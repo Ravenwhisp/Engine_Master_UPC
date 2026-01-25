@@ -1,0 +1,4 @@
+Engine_Master_UPC/3rdParty/Wwise/lib/x64/Debug/AkSoundEngine.lib filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/lib/x64/Profile/AkSoundEngine.lib filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/lib/x64/Release/AkSoundEngine.lib filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/bin/x64/Debug/AkSoundEngineDLL.pdb filter=lfs diff=lfs merge=lfs -text
