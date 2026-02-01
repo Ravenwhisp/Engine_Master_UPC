@@ -11,7 +11,10 @@ GameObject::~GameObject()
 
 bool GameObject::AddComponent(Component* newComponent)
 {
-    if (newComponent->getType() == TRANSFORM) return false;
+    if (newComponent->getType() == TRANSFORM)
+    {
+        return false;
+    }
 
     m_components.push_back(newComponent);
     return true;
@@ -19,11 +22,11 @@ bool GameObject::AddComponent(Component* newComponent)
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
-    m_components.erase(std::remove_if(m_components.begin(), m_components.end(), [componentToRemove](Component* c)
+    m_components.erase(std::remove_if(m_components.begin(), m_components.end(), [componentToRemove](Component* component)
         {
-            if (c == componentToRemove)
+            if (component == componentToRemove)
             {
-                delete c;
+                delete component;
                 return true;
             }
             return false;
