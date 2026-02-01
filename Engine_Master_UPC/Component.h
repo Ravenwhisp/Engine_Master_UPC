@@ -17,6 +17,7 @@ public:
 
 protected:
     ComponentType m_type;
+    GameObject* m_gameObject;
 
 private:
     short m_uuid;
