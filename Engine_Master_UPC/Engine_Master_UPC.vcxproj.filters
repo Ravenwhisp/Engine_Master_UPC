@@ -22,9 +22,6 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>Files\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>Files\Components</Filter>
     </ClCompile>
