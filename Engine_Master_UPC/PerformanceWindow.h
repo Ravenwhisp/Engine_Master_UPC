@@ -7,12 +7,12 @@ class PerformanceWindow: public EditorWindow
 {
 public:
 	PerformanceWindow();
-	const char* GetWindowName() const override { return "Performance"; }
-	void Update() override;
-	void Render() override;
+	const char* getWindowName() const override { return "Performance"; }
+	void		update() override;
+	void		render() override;
 
 private:
-	cvector<float> fps_log{ 100 };
-	cvector<float> ms_log{ 100 };
+	cvector<float> m_fps{ 100 };
+	cvector<float> m_milliseconds{ 100 };
 };
 

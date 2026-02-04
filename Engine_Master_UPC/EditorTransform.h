@@ -9,7 +9,6 @@
 class EditorTransform : public EditorComponent<Transform>
 {
 public:
-	const char* GetName() const override { return "Transform"; }
-
-	void Render() override;
+	const char* getName() const override { return "Transform"; }
+	void		render() override;
 };

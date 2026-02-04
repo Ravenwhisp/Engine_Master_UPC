@@ -6,16 +6,16 @@ class GameObject;
 template<class T> class EditorComponent
 {
 public:
-	virtual const char* GetName() const = 0;
-	virtual void Render(){}
+	virtual const char* getName() const = 0;
+	virtual void		render(){}
 
 	//Not sure if this is the right way since we have to notify all the editor components that the GameObject changed
-	void SetGameObject(GameObject* gameObject) { this->gameObject = gameObject; }
-	T* GetComponent() { return gameObject->GetComponent<T>(); }
+	void				setGameObject(GameObject* gameObject) { m_gameObject = gameObject; }
+	T*					getComponent() { return m_gameObject->GetComponent<T>(); }
 
-	bool IsOpen() const { return m_IsOpen; }
-	void SetOpen(bool open) { m_IsOpen = open; }
-	bool* GetOpenPtr() { return &m_IsOpen; }
+	bool	isOpen() const { return m_isOpen; }
+	void	setOpen(bool open) { m_isOpen = open; }
+	bool*	getOpenPtr() { return &m_isOpen; }
 
 protected:
 	//This should go in a utility class
@@ -25,8 +25,8 @@ protected:
 		arr[2] = vec.z;
 	}
 private:
-	bool m_IsOpen = true;
+	bool m_isOpen = true;
 
-	GameObject* gameObject;
+	GameObject* m_gameObject;
 };
 

@@ -5,14 +5,14 @@
 class HardwareWindow: public EditorWindow
 {
 public:
-	const char* GetWindowName() const override { return "Hardware Info"; }
-	void Render() override;
+	const char* getWindowName() const override { return "Hardware Info"; }
+	void render() override;
 
 private:
-	void CPU();
-	void SystemRAM();
-	void VRAM();
-	void GPU();
-	void GPUCaps();
+	void cpu();
+	void systemVRAM();
+	void vram();
+	void gpu();
+	void gpuFeatures();
 };
 

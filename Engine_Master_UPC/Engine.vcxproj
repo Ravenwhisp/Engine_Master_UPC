@@ -312,7 +312,6 @@
     <ClCompile Include="EditorMeshRenderer.cpp" />
     <ClCompile Include="EditorModule.cpp" />
     <ClCompile Include="EditorTransform.cpp" />
-    <ClCompile Include="EditorWindow.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameCoreModule.cpp" />

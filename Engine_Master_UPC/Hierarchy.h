@@ -8,19 +8,18 @@ class Hierarchy: public EditorWindow
 {
 public:
 	Hierarchy();
-	void SetOnSelectedGameObject(std::function<void(GameObject*)> f) {
-		OnSelectedGameObject.push_back(f);
-	}
-	void Render() override;
-	const char* GetWindowName() const override { return "Hierarchy"; }
-	void AddGameObject();
+
+	void setOnSelectedGameObject(std::function<void(GameObject*)> f) { m_onSelectedGameObject.push_back(f); }
+	void		render() override;
+	const char* getWindowName() const override { return "Hierarchy"; }
+	void		addGameObject();
 
 private:
-	void CreateTreeNode(Emeika::Scene* scene);
-	void CreateTreeNode(GameObject* gameObject);
-	void Reparent(GameObject* child, GameObject* newParent);
-	//TODO: This should be a vector
-	Emeika::Scene* scene;
-	std::vector<std::function<void(GameObject*)>> OnSelectedGameObject;
+	void createTreeNode(Emeika::Scene* scene);
+	void createTreeNode(GameObject* gameObject);
+	void reparent(GameObject* child, GameObject* newParent);
+
+	Emeika::Scene* m_scene;
+	std::vector<std::function<void(GameObject*)>> m_onSelectedGameObject;
 };
 

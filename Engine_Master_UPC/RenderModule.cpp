@@ -38,7 +38,7 @@ void RenderModule::preRender()
     auto m_commandList = app->getD3D12Module()->getCommandList();
     auto _swapChain = app->getD3D12Module()->getSwapChain();
 
-    auto newSize = app->getEditorModule()->GetSceneEditorSize();
+    auto newSize = app->getEditorModule()->getSceneEditorSize();
 
     if (m_size.x != newSize.x || m_size.y != newSize.y) 
     {
@@ -136,6 +136,6 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     m_scene->render(commandList, app->getCameraModule()->getViewMatrix(), app->getCameraModule()->getProjectionMatrix());
 
     //DebugDrawPass
-    app->getEditorModule()->GetSceneEditor()->RenderDebugDrawPass(commandList);
+    app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
 
 }

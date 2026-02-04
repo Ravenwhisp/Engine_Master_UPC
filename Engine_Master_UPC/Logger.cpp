@@ -15,10 +15,10 @@ Logger::Logger()
         s_Instance = this;
     }
 
-    m_InputBuf[0] = '\0';
-    m_FilterBuf[0] = '\0';
+    m_inputBuf[0] = '\0';
+    m_filterBuf[0] = '\0';
 
-    AddLogEntry(LogType::LOG_INFO, "System", "Logger initialized");
+    addLogEntry(LogType::LOG_INFO, "System", "Logger initialized");
 }
 
 Logger::~Logger()
@@ -29,11 +29,11 @@ Logger::~Logger()
     }
 
     // Clear all entries
-    for (int i = 0; i < m_Items.Size; i++)
+    for (int i = 0; i < m_items.Size; i++)
     {
-        delete m_Items[i];
+        delete m_items[i];
     }
-    m_Items.clear();
+    m_items.clear();
 }
 
 Logger* Logger::Instance()
@@ -41,7 +41,7 @@ Logger* Logger::Instance()
     return s_Instance;
 }
 
-void Logger::AddLogEntry(LogType type, const char* category, const char* text)
+void Logger::addLogEntry(LogType type, const char* category, const char* text)
 {
     // Get current timestamp
     float timestamp = 0.0f;
@@ -51,17 +51,17 @@ void Logger::AddLogEntry(LogType type, const char* category, const char* text)
     }
 
     LogEntry* entry = new LogEntry(type, text, timestamp);
-    m_Items.push_back(entry);
+    m_items.push_back(entry);
 
     // Limit number of entries
-    if (m_Items.Size > m_MaxEntries)
+    if (m_items.Size > m_maxEntries)
     {
-        delete m_Items[0];
-        m_Items.erase(m_Items.begin());
+        delete m_items[0];
+        m_items.erase(m_items.begin());
     }
 }
 
-const char* Logger::GetTypePrefix(LogType type)
+const char* Logger::getTypePrefix(LogType type)
 {
     switch (type)
     {
@@ -72,28 +72,28 @@ const char* Logger::GetTypePrefix(LogType type)
     }
 }
 
-ImU32 Logger::GetTypeColor(LogType type)
+ImU32 Logger::getTypeColor(LogType type)
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
     switch (type)
     {
-    case LogType::LOG_INFO:
-        return ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
+        case LogType::LOG_INFO:
+            return ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
 
-    case LogType::LOG_WARNING:
-        return ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.8f, 0.0f, 1.0f));
+        case LogType::LOG_WARNING:
+            return ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.8f, 0.0f, 1.0f));
 
-    case LogType::LOG_ERROR:
-        return ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+        case LogType::LOG_ERROR:
+            return ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
 
-    default:
-        return ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
+        default:
+            return ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
     }
 }
 
-void Logger::Render() {
-    if (!ImGui::Begin(GetWindowName(), GetOpenPtr(), GetWindowFlags()))
+void Logger::render() {
+    if (!ImGui::Begin(getWindowName(), getOpenPtr(), getWindowFlags()))
     {
         ImGui::End();
         return;
@@ -105,35 +105,32 @@ void Logger::Render() {
 
     if (height < 50.0f) height = 50.0f;
 
-    // Begin scrolling region
     ImGui::BeginChild("ScrollingRegion", ImVec2(0, height), false);
 
-    // Set text wrap if enabled
-    if (m_WrapText)
+    if (m_wrapText)
     {
         ImGui::PushTextWrapPos(ImGui::GetWindowWidth() - 10.0f);
     }
 
-    // Track if we need to auto-scroll
     bool scrollToBottom = false;
 
     // Draw log entries
-    for (int i = 0; i < m_Items.Size; i++)
+    for (int i = 0; i < m_items.Size; i++)
     {
-        LogEntry* entry = m_Items[i];
+        LogEntry* entry = m_items[i];
 
         // Set text color based on type
-        ImGui::PushStyleColor(ImGuiCol_Text, GetTypeColor(entry->type));
+        ImGui::PushStyleColor(ImGuiCol_Text, getTypeColor(entry->type));
 
         // Build display text
         ImGui::TextUnformatted("[");
         ImGui::SameLine(0, 0);
-        ImGui::TextUnformatted(GetTypePrefix(entry->type));
+        ImGui::TextUnformatted(getTypePrefix(entry->type));
         ImGui::SameLine(0, 0);
         ImGui::TextUnformatted("] ");
 
         // Timestamp
-        if (m_ShowTimestamps)
+        if (m_showTimestamps)
         {
             ImGui::SameLine(0, 5);
             ImGui::TextDisabled("%.2f", entry->timeStamp);
@@ -142,7 +139,6 @@ void Logger::Render() {
             ImGui::SameLine(0, 5);
         }
 
-        // Message text
         if (entry->count > 1)
         {
             char countText[64];
@@ -156,21 +152,19 @@ void Logger::Render() {
 
         ImGui::PopStyleColor();
 
-        // Handle auto-scroll
-        if (m_AutoScroll && i == m_Items.Size - 1)
+        if (m_autoScroll && i == m_items.Size - 1)
         {
             scrollToBottom = true;
         }
     }
 
-    // Restore text wrap
-    if (m_WrapText)
+    if (m_wrapText)
     {
         ImGui::PopTextWrapPos();
     }
 
     // Auto-scroll to bottom if enabled
-    if (scrollToBottom && m_AutoScroll)
+    if (scrollToBottom && m_autoScroll)
     {
         ImGui::SetScrollHereY(1.0f);
     }

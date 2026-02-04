@@ -1,26 +1,26 @@
 #include "Globals.h"
 #include "PerformanceProfiler.h"
 
-static TimerMap timers;
-static PerfDataMap perfData;
+static TimerMap s_timers;
+static PerfDataMap s_performanceData;
 
-void PerfBegin(const char* name)
+void performanceBegin(const char* name)
 {
-    timers[name].start();
+    s_timers[name].start();
 }
 
-void PerfEnd(const char* name)
+void performanceEnd(const char* name)
 {
-    uint64_t ms = timers[name].stop();
+    uint64_t ms = s_timers[name].stop();
 
-    PerfData& data = perfData[name];
+    PerfData& data = s_performanceData[name];
     data.lastMs = (float)ms;
     data.maxMs = std::max(data.maxMs, data.lastMs);
     data.avgMs = (data.avgMs * data.samples + data.lastMs) / (data.samples + 1);
     data.samples++;
 }
 
-const PerfDataMap& GetPerfData()
+const PerfDataMap& getPerfData()
 {
-    return perfData;
+    return s_performanceData;
 }

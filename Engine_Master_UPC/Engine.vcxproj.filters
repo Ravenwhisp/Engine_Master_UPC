@@ -94,9 +94,6 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="EditorWindow.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="SceneEditor.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>

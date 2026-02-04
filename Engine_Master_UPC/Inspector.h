@@ -11,16 +11,16 @@ class Inspector: public EditorWindow
 {
 public:
 	Inspector();
-	const char* GetWindowName() const override { return "Inspector"; }
-	void Render() override;
-	void SetSelectedGameObject(GameObject* gameObject);
+	const char* getWindowName() const override { return "Inspector"; }
+	void		render() override;
+	void		setSelectedGameObject(GameObject* gameObject);
 
 private:
-	GameObject* _selectedGameObject;
+	GameObject* m_selectedGameObject;
 
 	//PROVISIONAL
-	EditorTransform* editorTransform;
-	EditorMeshRenderer* editorMeshRenderer;
-	LightEditor* editorLight;
+	EditorTransform* m_editorTransform;
+	EditorMeshRenderer* m_editorMeshRenderer;
+	LightEditor* m_editorLight;
 };
 

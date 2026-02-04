@@ -12,14 +12,14 @@
 
 Inspector::Inspector()
 {
-    editorTransform = new EditorTransform();
-    editorMeshRenderer = new EditorMeshRenderer();
-    editorLight = new LightEditor();
+    m_editorTransform = new EditorTransform();
+    m_editorMeshRenderer = new EditorMeshRenderer();
+    m_editorLight = new LightEditor();
 }
 
-void Inspector::Render()
+void Inspector::render()
 {
-    if (!ImGui::Begin(GetWindowName(), GetOpenPtr(),
+    if (!ImGui::Begin(getWindowName(), getOpenPtr(),
         ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::End();
@@ -27,49 +27,50 @@ void Inspector::Render()
     }
 
 
-    if (_selectedGameObject) {
+    if (m_selectedGameObject) {
         bool isActive = true;
+
         if (ImGui::Checkbox("##Active", &isActive))
         {
             
         }
+
         ImGui::SameLine();
 
         // Name field
         char nameBuffer[256];
-        strcpy_s(nameBuffer, _selectedGameObject->GetName());
+        strcpy_s(nameBuffer, m_selectedGameObject->GetName());
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - 80);
         if (ImGui::InputText("##Name", nameBuffer, sizeof(nameBuffer)))
         {
-            _selectedGameObject->SetName(nameBuffer);
+            m_selectedGameObject->SetName(nameBuffer);
         }
         ImGui::PopItemWidth();
 
-        // Tag and Layer (placeholder for now)
         ImGui::Spacing();
         ImGui::Text("Tag: Untagged");
         ImGui::SameLine(ImGui::GetWindowWidth() * 0.5f);
         ImGui::Text("Layer: Default");
 
-        //THIS IS PROVISIONAL
-        auto transform = _selectedGameObject->GetComponent<Transform>();
-        if (transform && ImGui::CollapsingHeader(editorTransform->GetName(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+        auto transform = m_selectedGameObject->GetComponent<Transform>();
+        if (transform && ImGui::CollapsingHeader(m_editorTransform->getName(), ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
-            editorTransform->Render();
+            m_editorTransform->render();
             ImGui::Unindent();
         }
 
-        auto model = _selectedGameObject->GetComponent<Emeika::Model>();
-        if (model && ImGui::CollapsingHeader(editorMeshRenderer->GetName(), ImGuiTreeNodeFlags_DefaultOpen)) {
+        auto model = m_selectedGameObject->GetComponent<Emeika::Model>();
+        if (model && ImGui::CollapsingHeader(m_editorMeshRenderer->getName(), ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
-            editorMeshRenderer->Render();
+            m_editorMeshRenderer->render();
             ImGui::Unindent();
         }
 
-        auto light = _selectedGameObject->GetComponent<Light>();
-        if (light && ImGui::CollapsingHeader(editorLight->GetName(), ImGuiTreeNodeFlags_DefaultOpen)) {
+        auto light = m_selectedGameObject->GetComponent<Light>();
+        if (light && ImGui::CollapsingHeader(m_editorLight->getName(), ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::Indent();
-            editorLight->Render();
+            m_editorLight->render();
             ImGui::Unindent();
         }
     }
@@ -77,10 +78,10 @@ void Inspector::Render()
     ImGui::End();
 }
 
-void Inspector::SetSelectedGameObject(GameObject* gameObject)
+void Inspector::setSelectedGameObject(GameObject* gameObject)
 {
-    _selectedGameObject = gameObject;
-    editorTransform->SetGameObject(_selectedGameObject);
-    editorMeshRenderer->SetGameObject(_selectedGameObject);
-    editorLight->SetGameObject(_selectedGameObject);
+    m_selectedGameObject = gameObject;
+    m_editorTransform->setGameObject(m_selectedGameObject);
+    m_editorMeshRenderer->setGameObject(m_selectedGameObject);
+    m_editorLight->setGameObject(m_selectedGameObject);
 }

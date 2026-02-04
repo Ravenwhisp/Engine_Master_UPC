@@ -5,32 +5,31 @@ public:
     EditorWindow(){}
     virtual ~EditorWindow() = default;
 
-    virtual const char* GetWindowName() const = 0;
-    virtual void Update() { }
-    virtual void Render() = 0;
-    virtual void CleanUp() { }
+    virtual const char* getWindowName() const = 0;
+    virtual void        update() { }
+    virtual void        render() = 0;
+    virtual void        cleanUp() { }
 
-    bool IsOpen() const { return m_IsOpen; }
-    void SetOpen(bool open) { m_IsOpen = open; }
-    bool* GetOpenPtr() { return &m_IsOpen; }
+    bool                isOpen() const { return m_isOpen; }
+    void                setOpen(bool open) { m_isOpen = open; }
+    bool*               getOpenPtr() { return &m_isOpen; }
 
-    virtual ImGuiWindowFlags GetWindowFlags() const { return ImGuiWindowFlags_None; }
-    virtual bool IsDockable() const { return true; }
+    virtual ImGuiWindowFlags getWindowFlags() const { return ImGuiWindowFlags_None; }
+    virtual bool isDockable() const { return true; }
 
-    //TODO: Changes names for a intuitive API
-    ImVec2 GetSize() const { return m_Size; }
-    void SetSize(const ImVec2& size) { m_Size = size; }
-    float GetWindowX() const { return windowX; }
-    float GetWindowY() const { return windowY; }
+    ImVec2      getSize() const { return m_size; }
+    void        setSize(const ImVec2& size) { m_size = size; }
+    float       getWindowX() const { return m_windowX; }
+    float       getWindowY() const { return m_windowY; }
 
 
-    bool IsHovered() { return _isViewportHovered; }
-    bool IsFocused() { return _isViewportFocused; }
+    bool isHovered() { return m_isViewportHovered; }
+    bool isFocused() { return m_isViewportFocused; }
 protected:
-    float windowX, windowY = 0;
-    bool m_IsOpen = true;
-    ImVec2 m_Size = { 400, 300 };
-    bool _isViewportHovered = false;
-    bool _isViewportFocused = false;
+    float   m_windowX, m_windowY = 0;
+    bool    m_isOpen = true;
+    ImVec2  m_size = { 400, 300 };
+    bool    m_isViewportHovered = false;
+    bool    m_isViewportFocused = false;
 };
 

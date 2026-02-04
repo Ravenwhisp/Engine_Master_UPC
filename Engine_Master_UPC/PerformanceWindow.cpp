@@ -9,26 +9,26 @@ PerformanceWindow::PerformanceWindow()
    
 }
 
-void PerformanceWindow::Update()
+void PerformanceWindow::update()
 {
     float deltaTime = app->getTimeModule()->deltaTime();
     float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
-    fps_log.push_back(fps);
-    ms_log.push_back(deltaTime * 1000.0f);
+    m_fps.push_back(fps);
+    m_milliseconds.push_back(deltaTime * 1000.0f);
 }
 
-void PerformanceWindow::Render()
+void PerformanceWindow::render()
 {
-	if (!ImGui::Begin(GetWindowName(), GetOpenPtr(),
+	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
 		ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::End();
 		return;
 	}
 
-    auto fps = fps_log.linearized();
-    auto ms = ms_log.linearized();
+    auto fps = m_fps.linearized();
+    auto ms = m_milliseconds.linearized();
 
 	char title[64];
 	sprintf_s(title, sizeof(title), "Framerate %.1f", fps.back());
@@ -39,7 +39,7 @@ void PerformanceWindow::Render()
     ImGui::Separator();
     ImGui::TextDisabled("CPU Profiling");
 
-    const auto& data = GetPerfData();
+    const auto& data = getPerfData();
 
     if (ImGui::BeginTable("PerfTable", 4,
         ImGuiTableFlags_RowBg |

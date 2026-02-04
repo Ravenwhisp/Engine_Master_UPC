@@ -13,33 +13,33 @@ class SceneEditor: public EditorWindow
 {
 public:
     SceneEditor();
-    const char* GetWindowName() const override { return "Scene Editor"; }
-    void Update() override;
-    void Render() override;
-    bool Resize(ImVec2 contentRegion);
+    const char* getWindowName() const override { return "Scene Editor"; }
+    void        update() override;
+    void        render() override;
+    bool        resize(ImVec2 contentRegion);
 
-    void SetSelectedGameObject(Transform* transform) { this->transform = transform; }
+    void setSelectedGameObject(Transform* transform) { m_transform = transform; }
 
-    ImGuizmo::OPERATION GetCurrentOperation() const { return m_CurrentGizmoOperation; }
-    ImGuizmo::MODE GetCurrentMode() const { return m_CurrentGizmoMode; }
+    ImGuizmo::OPERATION getCurrentOperation() const { return m_currentGizmoOperation; }
+    ImGuizmo::MODE      getCurrentMode() const { return m_currentGizmoMode; }
 
-    void RenderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
-
-    CameraCommand* CreateMovementCommand(CameraCommand::Type type, Keyboard::Keys key, const Vector3& direction);
-    void BindCameraCommands();
+    void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
 
 private:
-    //DebugDrawPass
-    std::unique_ptr<DebugDrawPass> debugDrawPass;
-    bool _showGrid = true;
-    bool _showAxis = true;
 
-    CameraModule* m_Camera;
-    InputModule* m_Input;
-    std::vector<CameraCommand*> m_CameraCommands;
-    Transform* transform;
+    CameraCommand* createMovementCommand(CameraCommand::Type type, Keyboard::Keys key, const Vector3& direction);
+    void bindCameraCommands();
 
-    ImGuizmo::OPERATION m_CurrentGizmoOperation = ImGuizmo::TRANSLATE;
-    ImGuizmo::MODE m_CurrentGizmoMode = ImGuizmo::LOCAL;
+    std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
+    CameraModule*                   m_camera;
+    InputModule*                    m_input;
+    std::vector<CameraCommand*>     m_cameraCommands;
+    Transform*                      m_transform;
+
+    bool m_showGrid = true;
+    bool m_showAxis = true;
+
+    ImGuizmo::OPERATION m_currentGizmoOperation = ImGuizmo::TRANSLATE;
+    ImGuizmo::MODE      m_currentGizmoMode = ImGuizmo::LOCAL;
 };
 
