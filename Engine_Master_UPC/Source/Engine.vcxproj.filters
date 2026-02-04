@@ -1,0 +1,477 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Core\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_demo.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_draw.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_win32.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_tables.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiPass.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12Module.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="InputModule.cpp">
+      <Filter>Inputs</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Core\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Core\Timers</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorModule.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourcesModule.cpp">
+      <Filter>D3D12\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraModule.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorsModule.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>D3D12\Resources\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePad.cpp">
+      <Filter>Inputs\GamePad</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>Inputs\Mouse</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Inputs\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>D3D12\Geometry\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>D3D12\Geometry\Model\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>D3D12\Geometry\Model\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorWindow.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneEditor.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="HardwareWindow.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceWindow.cpp">
+      <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceProfiler.cpp">
+      <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorTransform.cpp">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>D3D12\Resources\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\IndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="Hierarchy.cpp">
+      <Filter>Editor\EditorWindows\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="Inspector.cpp">
+      <Filter>Editor\EditorWindows\Inspector</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorMeshRenderer.cpp">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderModule.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="LightEditor.cpp">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClCompile>
+    <ClCompile Include="GameCoreModule.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="debug_draw.hpp" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="PlatformHelpers.h" />
+    <ClInclude Include="ReadData.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Engine.h">
+      <Filter>Core\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\imgui.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiPass.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12Module.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="InputModule.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Core\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Core\Timers</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorModule.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourcesModule.h">
+      <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraModule.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilityGLFT.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorsModule.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeap.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>D3D12\Resources\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePad.h">
+      <Filter>Inputs\GamePad</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Inputs\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Inputs\Keyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>D3D12\Geometry\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>D3D12\Geometry\Model\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>D3D12\Geometry\Model\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeModule.h">
+      <Filter>Core\Timers</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorWindow.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneEditor.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="HardwareWindow.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="PerformanceWindow.h">
+      <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClInclude>
+    <ClInclude Include="PerformanceProfiler.h">
+      <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorTransform.h">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>D3D12\Resources\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBuffer.h">
+      <Filter>D3D12\Resources\Buffers\IndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>D3D12\Resources\Buffers\VertexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Id.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="Hierarchy.h">
+      <Filter>Editor\EditorWindows\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="Inspector.h">
+      <Filter>Editor\EditorWindows\Inspector</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorComponent.h">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorMeshRenderer.h">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderModule.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="cvector.h" />
+    <ClInclude Include="Light.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="LightEditor.h">
+      <Filter>Editor\EditorComponents</Filter>
+    </ClInclude>
+    <ClInclude Include="GameCoreModule.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="EmeikaEngine.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Engine.ico">
+      <Filter>Core\Engine</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>Core\Engine</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="D3D12">
+      <UniqueIdentifier>{6f8d5702-d82b-46d5-9404-e01286d5908a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inputs">
+      <UniqueIdentifier>{75a7ee99-43ee-4134-8166-ace55e23265d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Maths">
+      <UniqueIdentifier>{9e492cea-5dd8-47e3-a116-eab834e05cde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{883f394f-a5a6-46c5-aef8-502161e6618d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Application">
+      <UniqueIdentifier>{3252bbe7-16a5-413a-a214-af6112ee63b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Shaders">
+      <UniqueIdentifier>{5c66ace0-41d4-4137-b5f9-ab9952d19522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{2bed0e6a-b904-458e-ab3b-3c21b9f58527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\imgui">
+      <UniqueIdentifier>{a60f8542-9cd4-4679-8902-854421339996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Timers">
+      <UniqueIdentifier>{1514364a-f620-4a4f-bea2-17ede130ddd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Engine">
+      <UniqueIdentifier>{ab10a825-a32c-4012-8287-dfeb83ee1c99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources">
+      <UniqueIdentifier>{b286ac8e-665a-4fe1-b174-9a4d8e4e917f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry">
+      <UniqueIdentifier>{83c3b228-a53b-4f4b-b615-a09f5fdd0387}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources\Textures">
+      <UniqueIdentifier>{76aa94b6-93be-455c-8f6b-25244900a198}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inputs\GamePad">
+      <UniqueIdentifier>{1eabae0c-8441-4f4a-bb29-273ca24e591d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inputs\Mouse">
+      <UniqueIdentifier>{e8f0f216-6437-48b2-910f-0dca84cbf266}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Inputs\Keyboard">
+      <UniqueIdentifier>{aaa72633-86b0-428f-a371-8ab1e825dd2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry\Model">
+      <UniqueIdentifier>{7d589e71-6d9c-4c2b-9421-93d8192ce07c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry\Model\Mesh">
+      <UniqueIdentifier>{680d6bb1-ca56-47e5-8e10-0c1dd542cacf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry\Model\Material">
+      <UniqueIdentifier>{05bfdc35-fb58-495a-a789-0cea859d7795}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Wrappers">
+      <UniqueIdentifier>{bd70e7f1-6357-487a-a89c-635c1b2c6e70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Wrappers\Descriptors">
+      <UniqueIdentifier>{7881f684-8e13-48ef-b782-2e85ff9bfc29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\EditorWindows">
+      <UniqueIdentifier>{a038094e-e82e-4c57-905b-c620699451e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\EditorWindows\Performance">
+      <UniqueIdentifier>{24930ee1-012e-4ad2-89ed-af29a2fd287c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\EditorComponents">
+      <UniqueIdentifier>{ba7dc379-0b66-46a4-b108-aeb4a3a4e122}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources\Buffers">
+      <UniqueIdentifier>{e3267ec7-8f64-4d4b-be4a-4aeaedf9a5f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources\Buffers\IndexBuffer">
+      <UniqueIdentifier>{11d308b1-02f9-402f-977a-a0fb9e623f5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources\Buffers\VertexBuffer">
+      <UniqueIdentifier>{041281fd-c980-4f76-b3bc-75e2f34e598e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources\Buffers\RingBuffer">
+      <UniqueIdentifier>{d46f0b6c-ab6c-44b7-a23d-b3340f067747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity">
+      <UniqueIdentifier>{eff4dbb4-71dc-44e9-b5a9-afbe5403513f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Components">
+      <UniqueIdentifier>{8282f70e-5018-4bd5-84c6-112035a6869a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\EditorWindows\Hierarchy">
+      <UniqueIdentifier>{318d021a-20db-41d1-9cc7-097580be7c80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\EditorWindows\Inspector">
+      <UniqueIdentifier>{8d8770ea-210a-4dc3-8b2a-be29d2ae3343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering">
+      <UniqueIdentifier>{f8d98a8f-e8f1-4a90-b4c9-9473b976ab71}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Engine.rc">
+      <Filter>Core\Engine</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl">
+      <Filter>Maths</Filter>
+    </None>
+    <None Include="CBuffers.hlsli">
+      <Filter>D3D12\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
