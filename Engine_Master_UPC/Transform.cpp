@@ -2,7 +2,7 @@
 
 const Matrix* Transform::getTransformation()
 {
-    if (dirty)
+    if (m_dirty)
     {
         calculateMatrix();
     }
@@ -25,27 +25,23 @@ const void Transform::setRotation(Quaternion* newRotation)
 {
     m_rotation = *newRotation;
 
-    m_eulerAngles = convertQuaternionToEulerAngles(&m_rotation);
-
-    dirty = true;
+    m_dirty = true;
 }
 
 const void Transform::setRotation(Vector3* newRotation)
 {
-    m_eulerAngles = *newRotation;
+    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation->y), XMConvertToRadians(newRotation->x), XMConvertToRadians(newRotation->z));
 
-    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(m_eulerAngles.y), XMConvertToRadians(m_eulerAngles.x), XMConvertToRadians(m_eulerAngles.z));
-
-    dirty = true;
+    m_dirty = true;
 }
 
-const void Transform::removeChild(Transform* child)
+const void Transform::removeChild(Transform* childToRemove)
 {
-    m_children.erase(std::remove_if(m_children.begin(), m_children.end(), [child](Transform* c)
+    m_children.erase(std::remove_if(m_children.begin(), m_children.end(), [childToRemove](Transform* child)
         {
-            if (c == child)
+            if (child == childToRemove)
             {
-                delete c;
+                delete child;
                 return true;
             }
             return false;
@@ -55,16 +51,16 @@ const void Transform::removeChild(Transform* child)
 const void Transform::translate(Vector3* position)
 {
     m_position = m_position + *position;
-    dirty = true;
+    m_dirty = true;
 }
 
 const void Transform::rotate(Vector3* eulerAngles)
 {
-    m_eulerAngles = m_eulerAngles + *eulerAngles;
+    Quaternion rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(eulerAngles->y), XMConvertToRadians(eulerAngles->x), XMConvertToRadians(eulerAngles->z));
 
-    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(m_eulerAngles.y), XMConvertToRadians(m_eulerAngles.x), XMConvertToRadians(m_eulerAngles.z));
+    m_rotation = m_rotation + rotation;
 
-    dirty = true;
+    m_dirty = true;
 
 }
 
@@ -72,15 +68,13 @@ const void Transform::rotate(Quaternion* rotation)
 {
     m_rotation = m_rotation + *rotation;
 
-    m_eulerAngles = convertQuaternionToEulerAngles(&m_rotation);
-
-    dirty = true;
+    m_dirty = true;
 }
 
 const void Transform::scalate(Vector3* scale)
 {
     m_scale = m_scale + *scale;
-    dirty = true;
+    m_dirty = true;
 }
 
 const Vector3 Transform::convertQuaternionToEulerAngles(Quaternion* rotation)
