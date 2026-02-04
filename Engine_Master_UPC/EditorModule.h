@@ -28,24 +28,23 @@ public:
 	void postRender() override;
 	bool cleanUp() override;
 
-	SceneEditor* GetSceneEditor() { return _sceneView; }
-	ImVec2 GetSceneEditorSize() { return _sceneView->GetSize();}
-	ImGuiPass* GetImGuiPass() { return _gui; }
+	SceneEditor*	getSceneEditor() { return m_sceneView; }
+	ImVec2			getSceneEditorSize() { return m_sceneView->getSize();}
+	ImGuiPass*		getImGuiPass() { return m_gui; }
 private:
-	void SetupDockLayout(ImGuiID dockspace_id);
-	void MainDockspace(bool* p_open);
+	void			setupDockLayout(ImGuiID dockspace_id);
+	void			mainDockspace(bool* open);
 
-	std::vector<EditorWindow*> _editorWindows;
-	Logger* _logger = nullptr;
-	HardwareWindow* _hardwareWindow = nullptr;
-	PerformanceWindow* _performanceWindow = nullptr;
-	SceneEditor* _sceneView = nullptr;
+	std::vector<EditorWindow*>	m_editorWindows;
 
-	ImGuiPass* _gui = nullptr;
+	Logger*						m_logger = nullptr;
+	HardwareWindow*				m_hardwareWindow = nullptr;
+	PerformanceWindow*			m_performanceWindow = nullptr;
+	SceneEditor*				m_sceneView = nullptr;
+	ImGuiPass* 					m_gui = nullptr;
+	DebugDrawPass*				m_debugDrawPass = nullptr;
 
-	DebugDrawPass* _debugDrawPass = nullptr;
-    bool _showMainDockspace = true;
-
-    bool _firstFrame = true;
+    bool m_showMainDockspace = true;
+    bool m_firstFrame = true;
 };
 

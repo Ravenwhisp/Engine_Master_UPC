@@ -9,30 +9,36 @@ public:
     explicit cvector(size_t capacity = 100)
         : data(capacity), start(0), tail(0), count(0), capacity(capacity) {}
 
-    void push_back(const T& value) {
+    void push_back(const T& value) 
+    {
         if (capacity == 0) return;
 
-        if (count < capacity) {
+        if (count < capacity) 
+        {
             data[tail] = value;
             tail = (tail + 1) % capacity;
             count++;
         }
-        else {
+        else 
+        {
             data[tail] = value;
             tail = (tail + 1) % capacity;
             start = (start + 1) % capacity;
         }
     }
 
-    void push_back(T&& value) {
+    void push_back(T&& value) 
+    {
         if (capacity == 0) return;
 
-        if (count < capacity) {
+        if (count < capacity) 
+        {
             data[tail] = std::move(value);
             tail = (tail + 1) % capacity;
             count++;
         }
-        else {
+        else 
+        {
             data[tail] = std::move(value);
             tail = (tail + 1) % capacity;
             start = (start + 1) % capacity;
@@ -53,50 +59,60 @@ public:
         count = 0;
     }
 
-    T& operator[](size_t index) {
-        if (index >= count) {
+    T& operator[](size_t index) 
+    {
+        if (index >= count) 
+        {
             throw std::out_of_range("cvector index out of range");
         }
         return data[(start + index) % capacity];
     }
 
-    const T& operator[](size_t index) const {
-        if (index >= count) {
+    const T& operator[](size_t index) const 
+    {
+        if (index >= count) 
+        {
             throw std::out_of_range("cvector index out of range");
         }
         return data[(start + index) % capacity];
     }
 
-    T& front() {
+    T& front() 
+    {
         if (empty()) throw std::out_of_range("cvector is empty");
         return data[start];
     }
 
-    const T& front() const {
+    const T& front() const 
+    {
         if (empty()) throw std::out_of_range("cvector is empty");
         return data[start];
     }
 
-    // Get the newest element (back)
-    T& back() {
+    T& back() 
+    {
         if (empty()) throw std::out_of_range("cvector is empty");
         return data[(tail + capacity - 1) % capacity];
     }
 
-    const T& back() const {
+    const T& back() const 
+    {
         if (empty()) throw std::out_of_range("cvector is empty");
         return data[(tail + capacity - 1) % capacity];
     }
 
-    std::vector<T> linearized() const {
+    std::vector<T> linearized() const 
+    {
         std::vector<T> result(count);
         if (empty()) return result;
 
-        if (start < tail) {
+        if (start < tail) 
+        {
             // No wrap-around, single contiguous block
             std::copy(data.begin() + start, data.begin() + tail, result.begin());
         }
-        else {
+        else 
+        {
             // Wrap-around, two blocks
             size_t first_part = capacity - start;
             std::copy(data.begin() + start, data.end(), result.begin());
@@ -105,13 +121,15 @@ public:
         return result;
     }
 
-    void resize(size_t new_capacity) {
+    void resize(size_t new_capacity) 
+    {
         if (new_capacity == capacity) return;
 
         std::vector<T> new_data(new_capacity);
         size_t elements_to_keep = std::min(count, new_capacity);
 
-        for (size_t i = 0; i < elements_to_keep; ++i) {
+        for (size_t i = 0; i < elements_to_keep; ++i) 
+        {
             size_t src_idx = (start + count - elements_to_keep + i) % capacity;
             new_data[i] = std::move(data[src_idx]);
         }
@@ -123,7 +141,8 @@ public:
         capacity = new_capacity;
     }
 
-    class iterator {
+    class iterator 
+    {
     public:
         iterator(cvector* vec, size_t pos) : vec(vec), pos(pos) {}
 

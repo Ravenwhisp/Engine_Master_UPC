@@ -3,35 +3,26 @@
 #include "Application.h"
 #include "D3D12Module.h"
 
-void HardwareWindow::Render()
+void HardwareWindow::render()
 {
-	if (!ImGui::Begin(GetWindowName(), GetOpenPtr(),
+	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
 		ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::End();
 		return;
 	}
 
-	if (ImGui::CollapsingHeader("CPU", ImGuiTreeNodeFlags_DefaultOpen))
-		CPU();
-
-	if (ImGui::CollapsingHeader("System Memory", ImGuiTreeNodeFlags_DefaultOpen))
-		SystemRAM();
-
-	if (ImGui::CollapsingHeader("GPU", ImGuiTreeNodeFlags_DefaultOpen))
-		GPU();
-
-	if (ImGui::CollapsingHeader("Video Memory (VRAM)", ImGuiTreeNodeFlags_DefaultOpen))
-		VRAM();
-
-	if (ImGui::CollapsingHeader("GPU Capabilities"))
-		GPUCaps();
+	if (ImGui::CollapsingHeader("CPU", ImGuiTreeNodeFlags_DefaultOpen)){ cpu(); }
+	if (ImGui::CollapsingHeader("System Memory", ImGuiTreeNodeFlags_DefaultOpen)){ systemVRAM(); }
+	if (ImGui::CollapsingHeader("GPU", ImGuiTreeNodeFlags_DefaultOpen)) { gpu(); }
+	if (ImGui::CollapsingHeader("Video Memory (VRAM)", ImGuiTreeNodeFlags_DefaultOpen)) { vram(); }
+	if (ImGui::CollapsingHeader("GPU Capabilities")) { gpuFeatures(); }
 
 	ImGui::End();
 }
 
 
-void HardwareWindow::CPU()
+void HardwareWindow::cpu()
 {
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
@@ -45,7 +36,7 @@ void HardwareWindow::CPU()
 }
 
 
-void HardwareWindow::SystemRAM()
+void HardwareWindow::systemVRAM()
 {
 	MEMORYSTATUSEX statex = {};
 	statex.dwLength = sizeof(statex);
@@ -70,12 +61,11 @@ void HardwareWindow::SystemRAM()
 	ImGui::SameLine(200);
 	ImGui::Text("%.0f MB", availMB);
 
-	ImGui::ProgressBar(usedMB / totalMB, ImVec2(-1, 0),
-		"Memory Usage");
+	ImGui::ProgressBar(usedMB / totalMB, ImVec2(-1, 0), "Memory Usage");
 }
 
 
-void HardwareWindow::VRAM()
+void HardwareWindow::vram()
 {
 	auto adapter = app->getD3D12Module()->getAdapter();
 	DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
@@ -109,7 +99,7 @@ void HardwareWindow::VRAM()
 }
 
 
-void HardwareWindow::GPU()
+void HardwareWindow::gpu()
 {
 	auto adapter = app->getD3D12Module()->getAdapter();
 	DXGI_ADAPTER_DESC3 desc;
@@ -122,12 +112,11 @@ void HardwareWindow::GPU()
 
 	ImGui::Text("Dedicated VRAM");
 	ImGui::SameLine(200);
-	ImGui::Text("%llu MB",
-		desc.DedicatedVideoMemory / (1024 * 1024));
+	ImGui::Text("%llu MB", desc.DedicatedVideoMemory / (1024 * 1024));
 }
 
 
-void HardwareWindow::GPUCaps()
+void HardwareWindow::gpuFeatures()
 {
 	auto device = app->getD3D12Module()->getDevice();
 

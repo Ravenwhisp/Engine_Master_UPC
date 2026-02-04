@@ -6,10 +6,10 @@
 #include "D3D12Module.h"
 #include "Transform.h"
 
-void EditorTransform::Render()
+void EditorTransform::render()
 {
     // Get current model matrix
-    auto transform = GetComponent();
+    auto transform = getComponent();
     auto modelMatrix = transform->getWorldMatrix();
 
     // Decompose matrix for manual editing

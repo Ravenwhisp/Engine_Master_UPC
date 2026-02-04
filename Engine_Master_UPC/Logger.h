@@ -37,33 +37,33 @@ public:
     Logger();
     ~Logger();
 
-    const char* GetWindowName() const override { return "Console"; }
-    void Render() override;
+    const char* getWindowName() const override { return "Console"; }
+    void render() override;
 
 
     template<typename... Args>
-    static void Log(const char* fmt, Args... args)
+    static void log(const char* fmt, Args... args)
     {
-        Instance()->AddLog(LogType::LOG_INFO, "General", fmt, args...);
+        Instance()->addLog(LogType::LOG_INFO, "General", fmt, args...);
     }
 
     template<typename... Args>
-    static void Warning(const char* fmt, Args... args)
+    static void warning(const char* fmt, Args... args)
     {
-        Instance()->AddLog(LogType::LOG_WARNING, "Warning", fmt, args...);
+        Instance()->addLog(LogType::LOG_WARNING, "Warning", fmt, args...);
     }
 
     template<typename... Args>
-    static void Error(const char* fmt, Args... args)
+    static void error(const char* fmt, Args... args)
     {
-        Instance()->AddLog(LogType::LOG_ERROR, "Error", fmt, args...);
+        Instance()->addLog(LogType::LOG_ERROR, "Error", fmt, args...);
     }
 
     static Logger* Instance();
         
 private:
     template<typename... Args>
-    void AddLog(LogType type, const char* category, const char* fmt, Args... args)
+    void addLog(LogType type, const char* category, const char* fmt, Args... args)
     {
         char buffer[4096];
         va_list argsList;
@@ -72,32 +72,29 @@ private:
         buffer[sizeof(buffer) - 1] = 0;
         va_end(argsList);
 
-        AddLogEntry(type, category, buffer);
+        addLogEntry(type, category, buffer);
     }
 
-    void AddLogEntry(LogType type, const char* category, const char* text);
-    const char* GetTypePrefix(LogType type);
-    ImU32 GetTypeColor(LogType type);
+    void addLogEntry(LogType type, const char* category, const char* text);
+    const char* getTypePrefix(LogType type);
+    ImU32 getTypeColor(LogType type);
 
 
     // Storage
-    ImVector<LogEntry*> m_Items;
-    char m_InputBuf[256];
-    char m_FilterBuf[256];
+    ImVector<LogEntry*> m_items;
+    char                m_inputBuf[256];
+    char                m_filterBuf[256];
 
     // Configuration
-    bool m_AutoScroll = true;
-    bool m_ShowTimestamps = true;
-    bool m_ShowCategory = true;
-    bool m_WrapText = false;
-    int m_MaxEntries = 1000;
+    bool    m_autoScroll = true;
+    bool    m_showTimestamps = true;
+    bool    m_showCategory = true;
+    bool    m_wrapText = false;
+    int     m_maxEntries = 1000;
 
     static Logger* s_Instance;
 };
 
-#define LOG_INFO(...)     Logger::Log(__VA_ARGS__)
-#define LOG_WARNING(...)  Logger::Warning(__VA_ARGS__)
-#define LOG_ERROR(...)    Logger::Error(__VA_ARGS__)
-
-#define LOG_CAT(category, ...) Logger::Log(category, __VA_ARGS__)
-
+#define LOG_INFO(...)     Logger::log(__VA_ARGS__)
+#define LOG_WARNING(...)  Logger::warning(__VA_ARGS__)
+#define LOG_ERROR(...)    Logger::error(__VA_ARGS__)

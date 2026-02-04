@@ -3,9 +3,9 @@
 
 
 
-void LightEditor::Render()
+void LightEditor::render()
 {
-	Light* light = GetComponent();
+	Light* light = getComponent();
 
 	float colour[3], ambientColour[3];
 	VecToFloat(light->getColour(), colour);

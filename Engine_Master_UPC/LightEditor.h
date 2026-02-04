@@ -5,8 +5,7 @@
 class LightEditor: public EditorComponent<Light>
 {
 public:
-	const char* GetName() const override { return "Light"; }
-
-	void Render() override;
+	const char* getName() const override { return "Light"; }
+	void		render() override;
 };
 

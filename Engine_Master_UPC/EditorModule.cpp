@@ -21,7 +21,7 @@ using namespace std;
 Logger* logger = nullptr;
 
 // In the future this will be also a EditorWindow
-void MainMenuBar()
+void mainMenuBar()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -38,7 +38,7 @@ void MainMenuBar()
 }
 
 
-void Style() {
+void style() {
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowRounding = 5.0f;
     style.FrameRounding = 4.0f;
@@ -56,7 +56,7 @@ void Style() {
 }
 
 
-void EditorModule::MainDockspace(bool* p_open)
+void EditorModule::mainDockspace(bool* p_open)
 {
     // Fullscreen window flags
     ImGuiWindowFlags window_flags =
@@ -80,25 +80,26 @@ void EditorModule::MainDockspace(bool* p_open)
 
     ImGui::PopStyleVar(2);
 
-    MainMenuBar();
+    mainMenuBar();
     // Create the DockSpace
     ImGuiID dockspace_id = ImGui::GetID("MainDockspace");
     ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_None);
 
-    if (_firstFrame) {
-        for (auto it = _editorWindows.begin(); it != _editorWindows.end(); ++it)
-            (*it)->Render();
+    if (m_firstFrame) 
+    {
+        for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+            (*it)->render();
 
-        SetupDockLayout(dockspace_id);
-        Style();
-        _firstFrame = false;
+        setupDockLayout(dockspace_id);
+        style();
+        m_firstFrame = false;
     }
 
     ImGui::End();
 }
 
 
-void EditorModule::SetupDockLayout(ImGuiID dockspace_id)
+void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 {
 
     // Clear previous layout
@@ -131,55 +132,55 @@ void EditorModule::SetupDockLayout(ImGuiID dockspace_id)
 EditorModule::EditorModule()
 {
     //_console = Console();
-    _editorWindows.push_back(_logger = new Logger());
-    _editorWindows.push_back(_hardwareWindow = new HardwareWindow());
-    _editorWindows.push_back(_performanceWindow = new PerformanceWindow());
+    m_editorWindows.push_back(m_logger = new Logger());
+    m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
+    m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
 }
 
 EditorModule::~EditorModule()
 {
-	_gui->~ImGuiPass();
+    m_gui->~ImGuiPass();
     //_sceneView->~SceneView();
-    _debugDrawPass->~DebugDrawPass();
+    m_debugDrawPass->~DebugDrawPass();
 }
 
 bool EditorModule::postInit()
 {
 	D3D12Module* _d3d12 = app->getD3D12Module();
-    _gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(), 
+    m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
         app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), 
         app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));    
     SceneEditor* scene = new SceneEditor();
-    _sceneView = scene;
-    _editorWindows.push_back(scene);
+    m_sceneView = scene;
+    m_editorWindows.push_back(scene);
     
     Hierarchy* hierarchy = new Hierarchy();
     Inspector* inspector = new Inspector();
-    hierarchy->SetOnSelectedGameObject([inspector](GameObject* g) { inspector->SetSelectedGameObject(g); });
-    hierarchy->SetOnSelectedGameObject([scene](GameObject* g) { scene->SetSelectedGameObject(g->GetComponent<Transform>()); });
+    hierarchy->setOnSelectedGameObject([inspector](GameObject* g) { inspector->setSelectedGameObject(g); });
+    hierarchy->setOnSelectedGameObject([scene](GameObject* g) { scene->setSelectedGameObject(g->GetComponent<Transform>()); });
 
-    _editorWindows.push_back(hierarchy);
-    _editorWindows.push_back(inspector);
+    m_editorWindows.push_back(hierarchy);
+    m_editorWindows.push_back(inspector);
 
 	return true;
 }
 
 void EditorModule::update()
 {
-    for (auto it = _editorWindows.begin(); it != _editorWindows.end(); ++it)
-        (*it)->Update();
+    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+        (*it)->update();
 }
 
 void EditorModule::preRender()
 {
-	_gui->startFrame();
+    m_gui->startFrame();
     ImGuizmo::BeginFrame();
 
-    MainMenuBar();
-    MainDockspace(&_showMainDockspace);
+    mainMenuBar();
+    mainDockspace(&m_showMainDockspace);
 
-    for (auto it = _editorWindows.begin(); it != _editorWindows.end(); ++it)
-        (*it)->Render();
+    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+        (*it)->render();
 
     ImGui::EndFrame();
 }
@@ -187,7 +188,7 @@ void EditorModule::preRender()
 void EditorModule::render()
 {
     auto commandList = app->getD3D12Module()->getCommandList();
-	_gui->record(commandList);
+    m_gui->record(commandList);
 }
 
 void EditorModule::postRender()
@@ -196,7 +197,7 @@ void EditorModule::postRender()
 
 bool EditorModule::cleanUp()
 {
-    for (auto it = _editorWindows.begin(); it != _editorWindows.end(); ++it)
-        (*it)->CleanUp();
+    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+        (*it)->cleanUp();
     return true;
 }

@@ -7,8 +7,8 @@ namespace Emeika { class Model; }
 class EditorMeshRenderer: public EditorComponent<Emeika::Model>
 {
 public:
-	const char* GetName() const override { return "Mesh Renderer"; }
-	void Render() override;
+	const char* getName() const override { return "Mesh Renderer"; }
+	void		render() override;
 private:
 };
 
