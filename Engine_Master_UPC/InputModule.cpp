@@ -17,7 +17,8 @@ InputModule::InputModule(HWND hWnd)
 
 void InputModule::update()
 {
-    if (!isRightMouseDown() && !isLeftMouseDown()) {
+    if (!isRightMouseDown() && !isLeftMouseDown()) 
+    {
         m_firstMove = true;
     }
 }
@@ -41,8 +42,10 @@ void InputModule::getMouseDelta(float& deltaX, float& deltaY)
 {
     auto state = m_mouse->GetState();
 
-    if (!state.rightButton && !state.leftButton)
+    if (!state.rightButton && !state.leftButton) 
+    {
         m_firstMove = true;
+    }
 
     float currentX = (float)state.x;
     float currentY = (float)state.y;
