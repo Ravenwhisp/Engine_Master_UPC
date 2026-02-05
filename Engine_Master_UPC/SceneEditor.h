@@ -4,7 +4,7 @@
 #include <vector>
 #include "CameraModule.h"
 
-class Transform;
+class GameObject;
 class DebugDrawPass;
 
 class InputModule;
@@ -18,7 +18,7 @@ public:
     void        render() override;
     bool        resize(ImVec2 contentRegion);
 
-    void setSelectedGameObject(Transform* transform) { m_transform = transform; }
+    void setSelectedGameObject(GameObject* gameObject) { m_selectedGameObject = gameObject; }
 
     ImGuizmo::OPERATION getCurrentOperation() const { return m_currentGizmoOperation; }
     ImGuizmo::MODE      getCurrentMode() const { return m_currentGizmoMode; }
@@ -34,7 +34,7 @@ private:
     CameraModule*                   m_camera;
     InputModule*                    m_input;
     std::vector<CameraCommand*>     m_cameraCommands;
-    Transform*                      m_transform;
+    GameObject*                     m_selectedGameObject;
 
     bool m_showGrid = true;
     bool m_showAxis = true;

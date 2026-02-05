@@ -9,7 +9,6 @@
 #include "HardwareWindow.h"
 #include "PerformanceWindow.h"
 #include "EditorWindow.h"
-#include "EditorTransform.h"
 #include "ImGuizmo.h"
 #include "Logger.h"
 #include "ImGuiPass.h"
@@ -157,7 +156,7 @@ bool EditorModule::postInit()
     Hierarchy* hierarchy = new Hierarchy();
     Inspector* inspector = new Inspector();
     hierarchy->setOnSelectedGameObject([inspector](GameObject* g) { inspector->setSelectedGameObject(g); });
-    hierarchy->setOnSelectedGameObject([scene](GameObject* g) { scene->setSelectedGameObject(g->GetComponent<Transform>()); });
+    hierarchy->setOnSelectedGameObject([scene](GameObject* g) { scene->setSelectedGameObject(g); });
 
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
@@ -175,7 +174,7 @@ void EditorModule::preRender()
 {
     m_gui->startFrame();
     ImGuizmo::BeginFrame();
-
+    
     mainMenuBar();
     mainDockspace(&m_showMainDockspace);
 

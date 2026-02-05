@@ -2,7 +2,6 @@
 #include "SceneEditor.h"
 #include "ImGuizmo.h"
 #include <imgui.h>
-#include "Transform.h"
 
 #include "Application.h"
 #include "D3D12Module.h"
@@ -10,6 +9,8 @@
 #include "TimeModule.h"
 #include "RenderModule.h"
 #include "DebugDrawPass.h"
+
+#include "GameObject.h"
 
 SceneEditor::SceneEditor()
 {
@@ -80,9 +81,9 @@ void SceneEditor::render()
         m_currentGizmoOperation = ImGuizmo::SCALE;
     }
 
-    if (m_transform && m_camera && ImGui::IsWindowHovered())
+    if (m_selectedGameObject && m_camera && ImGui::IsWindowHovered())
     {
-        auto modelMatrix = m_transform->getWorldMatrix();
+        /*auto modelMatrix = m_selectedGameObject->getWorldMatrix();
 
         ImGuizmo::Manipulate(
             (float*)&m_camera->getViewMatrix(),
@@ -98,6 +99,7 @@ void SceneEditor::render()
         {
             m_transform->setWorldMatrix(modelMatrix);
         }
+        */
     }
 
     m_isViewportHovered = ImGui::IsWindowHovered();
@@ -178,9 +180,10 @@ void SceneEditor::bindCameraCommands()
             return m_input->isKeyDown(Keyboard::F);
         },
         [this](CameraModule* camera, float deltaTime) {
-            if (m_transform) {
+            if (m_selectedGameObject) {
                 //TODO: Move the camera near the object
-                camera->focus(camera->getPosition(), m_transform->getPosition());
+				const DirectX::SimpleMath::Vector3 objPos = * m_selectedGameObject->GetTransform()->getPosition();
+                camera->focus(camera->getPosition(), objPos);
             }
         }));
     

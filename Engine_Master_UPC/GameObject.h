@@ -1,121 +1,46 @@
 #pragma once
-#include "Id.h"
-#include <string>
+#include "Globals.h"
 
-class GameObjectManager;
-class Component;
-class Scene;
+#include "Transform.h"
+#include "Component.h"
+#include <vector>
 
-// For now we have the Layer and Tag in enums, but in the future they could be more complex structures
-enum Layer {
-	Default,
-	TransparentFX,
-	IgnoreRaycast,
-	Water,
-	UI,
-	COUNT_LAYERS
-};
+#include "Tag.h"
+#include "Layer.h"
 
-enum Tag {
-	Untagged,
-	Player,
-	Enemy,
-	Collectible,
-	COUNT_TAGS
-};
-
-
-// Following GameObject Unity API: https://docs.unity3d.com/6000.3/Documentation/ScriptReference/GameObject.html
 class GameObject {
 public:
-	friend class GameCoreModule;
+	GameObject(short newUuid);
+	~GameObject();
 
-	GameObject();
-	~GameObject() = default;
-	GameObject(const std::string& name);
+	const short GetID() { return m_uuid; }
+	const std::string& GetName() { return m_name; }
+	const bool GetActive() { return m_active; }
+	const bool GetStatic() { return m_isStatic; }
+	const Layer GetLayer() { return m_layer; }
+	const Tag GetTag() { return m_tag; }
+	GameObject* GetParent() { return m_parent; }
+	Transform* GetTransform() { return m_transform; }
+	const std::vector<GameObject*>* getChildList() { return m_transform->getAllChildren(); }
 
-	template<class... Component>
-	GameObject(const std::string& name, Component*... initialComponents);
+	void SetName(std::string newName) { m_name = newName; }
+	void SetActive(bool newActive) { m_active = newActive; }
+	void SetStatic(bool newIsStatic) { m_isStatic = newIsStatic; }
+	void SetLayer(Layer newLayer) { m_layer = newLayer; }
+	void SetTag(Tag newTag) { m_tag = newTag; }
+	bool AddComponent(Component* newComponent);
+	bool RemoveComponent(Component* componentToRemove);
 
-	template<class Component>
-	Component* AddComponent();
+	void drawUI();
 
-	template<class Component>
-	Component* AddComponent(Component* component);
-
-	// For now we iterate throw all the vector, which is not optimal
-	template<class Component>
-	Component* GetComponent();
-
-	std::vector<Component*> GetComponents() { return _components; }
-
-
-	bool AddChild(GameObject* child);
-	bool RemoveChild(GameObject* child);
-	std::vector<GameObject*> GetChildren() { return children; }
-	bool IsChild(GameObject* potentialChild);
-
-
-	bool IsChildOf(GameObject* parent);
-	void SetParent(GameObject* newParent) { parent = newParent; }
-	GameObject* GetParent() { return parent; }
-
-	ID_TYPE GetId() const { return _id; }
-	const char* GetName() { return (char*)_name.c_str(); }
-	void SetName(const char* name) { _name = name; }
-protected:
 private:
-	Layer layer = Layer::Default;
-	Tag tag = Tag::Untagged;
-
-	Scene* scene = nullptr;
-	GameObject* parent = nullptr;
-	std::vector<GameObject*> children;
-	std::vector<Component*> _components;
-
-	ID_TYPE _id;
-	std::string _name;
-	bool _activeInHierarchy = true;
-	bool _activeSelf = true;
-	bool _isStatic = false;
+	short m_uuid;
+	std::string m_name;
+	bool m_active = true;
+	bool m_isStatic = false;
+	Layer m_layer = Layer::DEFAULT;
+	Tag m_tag = Tag::DEFAULT;
+	GameObject* m_parent = nullptr;
+	Transform* m_transform;
+	std::vector<Component*> m_components;
 };
-
-template<class ...Component>
-GameObject::GameObject(const std::string& name, Component * ...initialComponents)
-{
-	GameObjectManager::Instance()->CreateGameObject(*this);
-
-	(AddComponent<Component>(), ...);
-}
-
-template<class Component>
-Component* GameObject::AddComponent()
-{
-	Component* component = new Component();
-	_components.emplace_back(component);
-	return component;
-}
-
-template<class Component>
-Component* GameObject::AddComponent(Component* component)
-{
-	_components.emplace_back(component);
-	return component;
-}
-
-template<class Component>
-Component* GameObject::GetComponent()
-{
-	for (auto& component : _components)
-	{
-		Component* casted = dynamic_cast<Component*>(component);
-		if (casted != nullptr)
-		{
-			return casted;
-		}
-	}
-
-	return nullptr;
-}
-
-

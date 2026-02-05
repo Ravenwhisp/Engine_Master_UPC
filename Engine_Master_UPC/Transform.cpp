@@ -1,25 +1,91 @@
 #include "Globals.h"
 #include "Transform.h"
 
-Vector3 Transform::getForward() const
+const Matrix* Transform::getTransformation()
 {
-	return Vector3::Transform(Vector3::Forward, m_rotation);
+    if (m_dirty)
+    {
+        calculateMatrix();
+    }
+    return &m_transformation;
 }
 
-Matrix& Transform::getWorldMatrix()
+const void Transform::setRotation(Quaternion* newRotation)
 {
-	m_worldMatrix = Matrix::CreateScale(m_scale) *
-		Matrix::CreateFromQuaternion(m_rotation) *
-		Matrix::CreateTranslation(m_position);
-	return m_worldMatrix;
+    m_rotation = *newRotation;
+
+    m_dirty = true;
 }
 
-Matrix& Transform::getNormalMatrix()
+const void Transform::setRotation(Vector3* newRotation)
 {
-	Matrix normal = getWorldMatrix();
-	normal.Translation(Vector3::Zero);
-	normal.Invert();
-	normal.Transpose();
+    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation->y), XMConvertToRadians(newRotation->x), XMConvertToRadians(newRotation->z));
 
-	return normal;
+    m_dirty = true;
+}
+
+const void Transform::translate(Vector3* position)
+{
+    m_position = m_position + *position;
+    m_dirty = true;
+}
+
+const void Transform::rotate(Vector3* eulerAngles)
+{
+    Quaternion rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(eulerAngles->y), XMConvertToRadians(eulerAngles->x), XMConvertToRadians(eulerAngles->z));
+
+    m_rotation = m_rotation + rotation;
+
+    m_dirty = true;
+
+}
+
+const void Transform::rotate(Quaternion* rotation)
+{
+    m_rotation = m_rotation + *rotation;
+
+    m_dirty = true;
+}
+
+const void Transform::scalate(Vector3* scale)
+{
+    m_scale = m_scale + *scale;
+    m_dirty = true;
+}
+
+const Vector3 Transform::convertQuaternionToEulerAngles(Quaternion* rotation)
+{
+    Quaternion quaternion = *rotation;
+
+    float sinr_cosp = 2.0f * (quaternion.w * quaternion.x + quaternion.y * quaternion.z);
+    float cosr_cosp = 1.0f - 2.0f * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
+    float roll = std::atan2(sinr_cosp, cosr_cosp);
+
+    float sinp = 2.0f * (quaternion.w * quaternion.y - quaternion.z * quaternion.x);
+    float pitch;
+    if (std::abs(sinp) >= 1)
+    {
+        pitch = std::copysign(DirectX::XM_PI / 2, sinp);
+    }
+    else
+    {
+        pitch = std::asin(sinp);
+    }
+
+    float siny_cosp = 2.0f * (quaternion.w * quaternion.z + quaternion.x * quaternion.y);
+    float cosy_cosp = 1.0f - 2.0f * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
+
+    float yaw = std::atan2(siny_cosp, cosy_cosp);
+
+    return Vector3(pitch, roll, yaw);
+}
+
+const void Transform::calculateMatrix()
+{
+    m_transformation = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_position);
+
+}
+
+void Transform::drawUi() {
+
 }

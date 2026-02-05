@@ -15,7 +15,7 @@ public:
 	void		addGameObject();
 
 private:
-	void createTreeNode(Emeika::Scene* scene);
+	void createTreeNode();
 	void createTreeNode(GameObject* gameObject);
 	void reparent(GameObject* child, GameObject* newParent);
 
