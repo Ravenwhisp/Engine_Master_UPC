@@ -2,8 +2,6 @@
 #include "Module.h"
 #include "DescriptorsModule.h"
 
-
-namespace Emeika { class Scene; }
 class RingBuffer;
 class RenderTexture;
 class DepthBuffer;
@@ -18,8 +16,7 @@ public:
 	bool cleanUp();
 
 	D3D12_GPU_DESCRIPTOR_HANDLE getGPUScreenRT();
-	Emeika::Scene*				getScene() { return m_scene; }
-
+	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 private:
 
@@ -34,7 +31,6 @@ private:
 	RingBuffer*						m_ringBuffer;
 	DescriptorsModule::SampleType	m_sampleType = DescriptorsModule::SampleType::POINT_CLAMP;
 
-	Emeika::Scene*					m_scene;
 	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_screenRT{};
 	std::unique_ptr<DepthBuffer>	m_screenDS{};

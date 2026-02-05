@@ -7,8 +7,9 @@
 #include "ResourcesModule.h"
 #include "CameraModule.h"
 
+#include "SceneModule.h"
+
 #include "RingBuffer.h"
-#include "Scene.h"
 #include "RenderTexture.h"
 
 
@@ -26,7 +27,6 @@ bool RenderModule::postInit()
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
     app->getCameraModule()->setAspectRatio(static_cast<float>(m_size.x), static_cast<float>(m_size.y));
 
-    m_scene = new Emeika::Scene();
     m_ringBuffer = app->getResourcesModule()->createRingBuffer(10);
     return true;
 }
@@ -76,7 +76,6 @@ bool RenderModule::cleanUp()
     m_screenRT.reset();
     m_screenDS.reset();
 
-    delete m_scene;
     delete m_ringBuffer;
 
     return true;
@@ -127,13 +126,13 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    SceneData& sceneData = m_scene->getData();
+    SceneData& sceneData = app->getSceneModule()->getData();
     sceneData.view = app->getCameraModule()->getPosition();
 
     commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneData, sizeof(SceneData), app->getD3D12Module()->getCurrentFrame()));
     commandList->SetGraphicsRootDescriptorTable(4, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
 
-    m_scene->render(commandList, app->getCameraModule()->getViewMatrix(), app->getCameraModule()->getProjectionMatrix());
+    app->getSceneModule()->render(commandList, app->getCameraModule()->getViewMatrix(), app->getCameraModule()->getProjectionMatrix());
 
     //DebugDrawPass
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);

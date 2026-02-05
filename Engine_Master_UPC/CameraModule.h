@@ -17,7 +17,6 @@ struct CameraCommand {
 		FOCUS,
 		ZOOM,
 		ORBIT,
-
 		COUNT
 	};
 

@@ -109,9 +109,6 @@
     <ClCompile Include="PerformanceProfiler.cpp">
       <Filter>Editor\EditorWindows\Performance</Filter>
     </ClCompile>
-    <ClCompile Include="EditorTransform.cpp">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClCompile>
     <ClCompile Include="Buffer.cpp">
       <Filter>D3D12\Resources\Buffers</Filter>
     </ClCompile>
@@ -133,26 +130,14 @@
     <ClCompile Include="Inspector.cpp">
       <Filter>Editor\EditorWindows\Inspector</Filter>
     </ClCompile>
-    <ClCompile Include="EditorMeshRenderer.cpp">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="RenderModule.cpp">
       <Filter>D3D12\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="LightEditor.cpp">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClCompile>
-    <ClCompile Include="GameCoreModule.cpp">
+    <ClCompile Include="SceneModule.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="TimeModule.cpp">
       <Filter>Core\Timers</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>D3D12\Geometry</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>D3D12\Resources\Textures</Filter>
@@ -162,6 +147,9 @@
     </ClCompile>
     <ClCompile Include="RenderTexture.cpp">
       <Filter>D3D12\Resources\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>GameEntity\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -228,9 +216,6 @@
     <ClInclude Include="CameraModule.h">
       <Filter>D3D12</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>D3D12\Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="UtilityGLFT.h">
       <Filter>D3D12\Geometry</Filter>
     </ClInclude>
@@ -288,9 +273,6 @@
     <ClInclude Include="PerformanceProfiler.h">
       <Filter>Editor\EditorWindows\Performance</Filter>
     </ClInclude>
-    <ClInclude Include="EditorTransform.h">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClInclude>
     <ClInclude Include="Buffer.h">
       <Filter>D3D12\Resources\Buffers</Filter>
     </ClInclude>
@@ -321,15 +303,6 @@
     <ClInclude Include="Inspector.h">
       <Filter>Editor\EditorWindows\Inspector</Filter>
     </ClInclude>
-    <ClInclude Include="EditorComponent.h">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorMeshRenderer.h">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="RenderModule.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
@@ -337,10 +310,7 @@
     <ClInclude Include="Light.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="LightEditor.h">
-      <Filter>Editor\EditorComponents</Filter>
-    </ClInclude>
-    <ClInclude Include="GameCoreModule.h">
+    <ClInclude Include="SceneModule.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="EmeikaEngine.h">
@@ -354,6 +324,13 @@
     </ClInclude>
     <ClInclude Include="DepthBuffer.h">
       <Filter>D3D12\Resources\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h" />
+    <ClInclude Include="Transform.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -433,9 +410,6 @@
     </Filter>
     <Filter Include="Editor\EditorWindows\Performance">
       <UniqueIdentifier>{24930ee1-012e-4ad2-89ed-af29a2fd287c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorComponents">
-      <UniqueIdentifier>{ba7dc379-0b66-46a4-b108-aeb4a3a4e122}</UniqueIdentifier>
     </Filter>
     <Filter Include="D3D12\Resources\Buffers">
       <UniqueIdentifier>{e3267ec7-8f64-4d4b-be4a-4aeaedf9a5f3}</UniqueIdentifier>
