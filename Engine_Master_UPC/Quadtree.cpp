@@ -68,12 +68,7 @@ void Quadtree::subdivide()
 
 bool Quadtree::isInside(Quadtree& quad, Vector3& position)
 {
-	if (quad.m_bounds.Contains(position.x, position.y))
-	{
-		return true;
-	}
-
-	return false;
+	return quad.m_bounds.Contains(position.x, position.y);
 }
 
 void Quadtree::insertToChildren(GameObject& gameObject)
