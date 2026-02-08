@@ -20,7 +20,7 @@ public:
 		COUNT
 	};
 
-	Light(Type type = Type::DIRECTIONAL) : m_type(type){}
+	Light(int id, GameObject* gameObject, Type type = Type::DIRECTIONAL) : m_type(type), Component(id, ComponentType::LIGHT, gameObject) {}
 
 	constexpr Vector3&	getColour() { return m_colour; }
 	constexpr Vector3&	getAmbientColour() { return m_ambientColour; }

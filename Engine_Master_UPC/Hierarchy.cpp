@@ -37,7 +37,7 @@ void Hierarchy::render()
 void Hierarchy::createTreeNode(GameObject* gameObject)
 {
 	//First check if the game object has children
-	const std::vector<GameObject*>* children = gameObject->getChildList();
+	const std::vector<GameObject*>* children = gameObject->GetTransform()->getAllChildren();
 	int gameObjectNodeFlag = 0;
 	if (children->empty()) 
 	{
@@ -99,7 +99,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 
 void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 {
-	GameObject* oldParent = child->GetParent();
+	GameObject* oldParent = child->GetTransform()->getRoot()->getOwner();
 
 	if (oldParent)
 	{

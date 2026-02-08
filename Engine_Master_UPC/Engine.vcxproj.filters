@@ -331,6 +331,9 @@
     <ClInclude Include="Tag.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentType.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
