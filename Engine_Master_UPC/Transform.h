@@ -28,7 +28,7 @@ public:
 	const void rotate(Quaternion* rotation);
 	const void scalate(Vector3* scale);
 
-	const Vector3 convertQuaternionToEulerAngles(Quaternion* rotation);
+	const Vector3 convertQuaternionToEulerAngles(const Quaternion* rotation);
 
 	void drawUi() override;
 

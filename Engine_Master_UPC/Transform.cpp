@@ -53,7 +53,7 @@ const void Transform::scalate(Vector3* scale)
     m_dirty = true;
 }
 
-const Vector3 Transform::convertQuaternionToEulerAngles(Quaternion* rotation)
+const Vector3 Transform::convertQuaternionToEulerAngles(const Quaternion* rotation)
 {
     Quaternion quaternion = *rotation;
 
@@ -87,5 +87,29 @@ const void Transform::calculateMatrix()
 }
 
 void Transform::drawUi() {
+    if (ImGui::CollapsingHeader("Transform")) {
 
+        if (ImGui::DragFloat3("Position", &m_position.x, 0.01f))
+        {
+            m_dirty = true;
+        }
+
+        Vector3 rot = convertQuaternionToEulerAngles(&m_rotation);
+        if (ImGui::DragFloat3("Rotation", &rot.x, 0.1f))
+        {
+            setRotation(&rot);
+        }
+
+        if (ImGui::DragFloat3("Scale", &m_scale.x, 0.01f))
+        {
+            m_dirty = true;
+        }
+
+        if (ImGui::Button("Reset"))
+        {
+            m_position = { 0,0,0 };
+            m_scale = { 1,1,1 };
+            setRotation(new Vector3{ 0,0,0 });
+        }
+    }
 }

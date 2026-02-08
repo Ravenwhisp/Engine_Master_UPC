@@ -197,7 +197,6 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HardwareWindow.h" />
     <ClInclude Include="Hierarchy.h" />
-    <ClInclude Include="Id.h" />
     <ClInclude Include="ImGuiPass.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="Inspector.h" />
