@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "RenderModule.h"
 #include "SceneModule.h"
+#include "EditorModule.h"
 
 Hierarchy::Hierarchy()
 {
@@ -47,16 +48,16 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 		gameObjectNodeFlag = ImGuiTreeNodeFlags_OpenOnArrow;
 	}
 
-	if (ImGui::TreeNodeEx(gameObject->GetName().c_str(), gameObjectNodeFlag))
+	std::string itemName = gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
+	if (ImGui::TreeNodeEx(itemName.c_str(), gameObjectNodeFlag))
 	{
-		/*
 		if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-			// Notify all listeners about the selected game object
 			for (auto event : m_onSelectedGameObject) 
 			{
-				event(gameObject); //!!!!
+				event(gameObject);
 			}
 		}
+		/*
 
 		if (ImGui::BeginDragDropSource())
 		{
@@ -91,8 +92,8 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 				createTreeNode(child);
 			}
 		}
-		*/
 		ImGui::TreePop();
+		*/
 	}
 }
 
@@ -149,9 +150,4 @@ void Hierarchy::createTreeNode()
 void Hierarchy::addGameObject()
 {
 	app->getSceneModule()->CreateGameObject();
-	/*auto gameObjects = m_scene->getGameObjects();
-	int size = gameObjects.size();
-	GameObject* gameObject = new GameObject(std::string("Game Object") + std::to_string(size));
-	m_scene->add(gameObject);
-	*/
 }

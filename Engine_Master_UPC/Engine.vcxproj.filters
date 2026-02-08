@@ -294,9 +294,6 @@
     <ClInclude Include="ScriptComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Id.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Hierarchy.h">
       <Filter>Editor\EditorWindows\Hierarchy</Filter>
     </ClInclude>
@@ -328,9 +325,11 @@
     <ClInclude Include="Layer.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="Tag.h" />
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
