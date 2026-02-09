@@ -57,7 +57,7 @@ void SceneEditor::render()
     }
 
     ImGuizmo::SetOrthographic(false);
-    ImGuizmo::SetDrawlist();
+    ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 
     ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
     ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
@@ -81,25 +81,36 @@ void SceneEditor::render()
         m_currentGizmoOperation = ImGuizmo::SCALE;
     }
 
-    if (m_selectedGameObject && m_camera && ImGui::IsWindowHovered())
+    if (m_selectedGameObject && m_camera)
     {
-        /*auto modelMatrix = m_selectedGameObject->getWorldMatrix();
+		Transform* transform = m_selectedGameObject->GetTransform();
+        Matrix model = *transform->getTransformation();
 
         ImGuizmo::Manipulate(
             (float*)&m_camera->getViewMatrix(),
             (float*)&m_camera->getProjectionMatrix(),
             m_currentGizmoOperation,
             m_currentGizmoMode,
-            (float*)&modelMatrix,
-            NULL,
-            NULL
+            (float*)&model
         );
 
-        if (ImGuizmo::IsUsing())
+        float translation[3];
+        float rotation[3];
+        float scale[3];
+
+        ImGuizmo::DecomposeMatrixToComponents(
+            (float*)&model,
+            translation,
+            rotation,
+            scale
+        );
+
+        if (ImGui::IsWindowHovered() && ImGuizmo::IsUsing())
         {
-            m_transform->setWorldMatrix(modelMatrix);
+            transform->setPosition(Vector3(translation[0], translation[1], translation[2]));
+            transform->setRotation(Vector3(rotation[0], rotation[1], rotation[2]));
+            transform->setScale(Vector3(scale[0], scale[1], scale[2]));
         }
-        */
     }
 
     m_isViewportHovered = ImGui::IsWindowHovered();

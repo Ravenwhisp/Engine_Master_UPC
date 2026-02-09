@@ -10,27 +10,27 @@ const Matrix* Transform::getTransformation()
     return &m_transformation;
 }
 
-const void Transform::setRotation(Quaternion* newRotation)
+void Transform::setRotation(const Quaternion &newRotation)
 {
-    m_rotation = *newRotation;
+    m_rotation = newRotation;
 
     m_dirty = true;
 }
 
-const void Transform::setRotation(Vector3* newRotation)
+void Transform::setRotation(const Vector3 &newRotation)
 {
-    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation->y), XMConvertToRadians(newRotation->x), XMConvertToRadians(newRotation->z));
+    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation.y), XMConvertToRadians(newRotation.x), XMConvertToRadians(newRotation.z));
 
     m_dirty = true;
 }
 
-const void Transform::translate(Vector3* position)
+void Transform::translate(Vector3* position)
 {
     m_position = m_position + *position;
     m_dirty = true;
 }
 
-const void Transform::rotate(Vector3* eulerAngles)
+void Transform::rotate(Vector3* eulerAngles)
 {
     Quaternion rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(eulerAngles->y), XMConvertToRadians(eulerAngles->x), XMConvertToRadians(eulerAngles->z));
 
@@ -40,14 +40,14 @@ const void Transform::rotate(Vector3* eulerAngles)
 
 }
 
-const void Transform::rotate(Quaternion* rotation)
+void Transform::rotate(Quaternion* rotation)
 {
     m_rotation = m_rotation + *rotation;
 
     m_dirty = true;
 }
 
-const void Transform::scalate(Vector3* scale)
+void Transform::scalate(Vector3* scale)
 {
     m_scale = m_scale + *scale;
     m_dirty = true;
@@ -97,7 +97,7 @@ void Transform::drawUi() {
         Vector3 rot = convertQuaternionToEulerAngles(&m_rotation);
         if (ImGui::DragFloat3("Rotation", &rot.x, 0.1f))
         {
-            setRotation(&rot);
+            setRotation(rot);
         }
 
         if (ImGui::DragFloat3("Scale", &m_scale.x, 0.01f))
@@ -109,7 +109,7 @@ void Transform::drawUi() {
         {
             m_position = { 0,0,0 };
             m_scale = { 1,1,1 };
-            setRotation(new Vector3{ 0,0,0 });
+            setRotation(Vector3{ 0,0,0 });
         }
     }
 }
