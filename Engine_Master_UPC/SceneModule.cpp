@@ -1,19 +1,77 @@
 #include "Globals.h"
 #include "SceneModule.h"
 
+
+#pragma region GameLoop
 bool SceneModule::init()
 {
+    m_sceneData.lightDirection = Vector3(0.0f, -1.0f, 0.0f);
+    m_sceneData.lightColor = Vector3(1.0f, 1.0f, 1.0f);
+    m_sceneData.ambientColor = Vector3(0.2f, 0.2f, 0.2f);
+    m_sceneData.view = Vector3(0.0f, 0.0f, -5.0f);
+
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        gameObject->update();
+    }
     return true;
 }
 
 void SceneModule::update()
 {
-
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        if (gameObject->GetActive())
+        {
+            gameObject->update();
+		}
+	}
 }
+
 void SceneModule::preRender()
 {
-
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        if (gameObject->GetActive())
+        {
+            gameObject->preRender();
+        }
+    }
 }
+
+void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) {
+
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        if (gameObject->GetActive())
+        {
+            gameObject->render(commandList, viewMatrix, projectionMatrix);
+        }
+    }
+}
+
+void SceneModule::postRender()
+{
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        if (gameObject->GetActive())
+        {
+            gameObject->postRender();
+        }
+    }
+}
+
+bool SceneModule::cleanUp()
+{
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        gameObject->cleanUp();
+        delete gameObject;
+    }
+    m_gameObjects.clear();
+	return true;
+}
+#pragma endregion
 
 void SceneModule::CreateGameObject()
 {
@@ -43,7 +101,4 @@ void SceneModule::getGameObjectToRender(std::vector<GameObject*>& renderableGame
 
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) {
-
-}
 

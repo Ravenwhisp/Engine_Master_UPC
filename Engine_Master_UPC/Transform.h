@@ -15,12 +15,8 @@ public:
 	const Vector3* getScale() { return &m_scale; }
 
 	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
-	void setRotation(const Quaternion& newRotation) { m_rotation = newRotation; markDirty(); }
-	void setRotation(const Vector3 &newRotation)
-	{
-		m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation.y), XMConvertToRadians(newRotation.x), XMConvertToRadians(newRotation.z));
-		markDirty();
-	}
+	void setRotation(const Quaternion& newRotation);
+	void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
 	void markDirty();
 
@@ -43,11 +39,12 @@ private:
 
 	Vector3 m_position;
 	Quaternion m_rotation;
+	Vector3 m_eulerDegrees;
 	Vector3 m_scale;
 
 	Transform* m_root;
 	std::vector<GameObject*> m_children;
 
 	void calculateMatrix() const;
-	Vector3 convertQuaternionToEulerAngles(const Quaternion &rotation);
+	static Vector3 convertQuaternionToEulerAngles(const Quaternion &rotation);
 };

@@ -16,9 +16,14 @@ struct SceneData {
 class SceneModule : public Module
 {
 public:
-	bool init()	override;
+#pragma region GameLoop
+	bool init() override;
 	void update() override;
 	void preRender() override;
+	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
+	void postRender() override;
+	bool cleanUp() override;
+#pragma endregion
 
 	void CreateGameObject();
 	void AddGameObject(GameObject* gameObject);
@@ -28,7 +33,6 @@ public:
 	void getGameObjectToRender(std::vector<GameObject*>& renderableGameObjects);
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
 
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
 
 	const char* getName() { return (char*)m_name.c_str(); }
 	SceneData& getData() { return m_sceneData; }
