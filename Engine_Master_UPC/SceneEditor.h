@@ -3,6 +3,7 @@
 #include "ImGuizmo.h"
 #include <vector>
 #include "CameraModule.h"
+#include <Quadtree.h>
 
 class GameObject;
 class DebugDrawPass;
@@ -24,7 +25,7 @@ public:
     ImGuizmo::MODE      getCurrentMode() const { return m_currentGizmoMode; }
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
-
+    void renderQuadtree();
 private:
 
     CameraCommand* createMovementCommand(CameraCommand::Type type, Keyboard::Keys key, const Vector3& direction);
@@ -35,8 +36,10 @@ private:
     InputModule*                    m_input;
     std::vector<CameraCommand*>     m_cameraCommands;
     GameObject*                     m_selectedGameObject;
+    Quadtree*					    m_quadtree;
 
-    bool m_showGrid = true;
+    bool m_showGrid = false;
+    bool m_showQuadtree = true;
     bool m_showAxis = true;
 
     ImGuizmo::OPERATION m_currentGizmoOperation = ImGuizmo::TRANSLATE;
