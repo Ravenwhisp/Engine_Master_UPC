@@ -7,40 +7,39 @@ class GameObject;
 
 class Transform final : public Component {
 public:
-	Transform(int id, GameObject* gameObject) : Component(id, ComponentType::TRANSFORM, gameObject),
-		m_dirty(false), m_root(nullptr), m_transformation(Matrix().Identity)
-	{};
+	Transform(int id, GameObject* gameObject);
 
-	const Matrix* getTransformation();
-	const void setTransformation(const Matrix& newTransformation) { m_transformation = newTransformation; }
-
+	const Matrix& getGlobalMatrix() const;
 	const Vector3* getPosition() { return &m_position; }
 	const Quaternion* getRotation() { return &m_rotation; }
 	const Vector3* getScale() { return &m_scale; }
 
-	void setPosition(const Vector3 &newPosition) { m_position = newPosition; m_dirty = true; }
-	void setRotation(const Quaternion &newRotation);
-	void setRotation(const Vector3 &newRotation);
-	void setScale(const Vector3 &newScale) { m_scale = newScale;  m_dirty = true; }
-	
-	void translate(Vector3* position);
-	void rotate(Vector3* eulerAngles);
-	void rotate(Quaternion* rotation);
-	void scalate(Vector3* scale);
+	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
+	void setRotation(const Quaternion& newRotation) { m_rotation = newRotation; markDirty(); }
+	void setRotation(const Vector3 &newRotation)
+	{
+		m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation.y), XMConvertToRadians(newRotation.x), XMConvertToRadians(newRotation.z));
+		markDirty();
+	}
+	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
+	void markDirty();
 
-	const Transform* getRoot() { return m_root; }
-	const std::vector<GameObject*>* getAllChildren() { return &m_children; }
+#pragma region Hierarchy Scene
+	Transform* getRoot() const { return m_root; }
+	const std::vector<GameObject*>& getAllChildren() const { return m_children; }
 
 	void setRoot(Transform* root) { m_root = root; }
 	void addChild(GameObject* child) { m_children.push_back(child); }
+	void removeChild(int id);
 
-	const Vector3 convertQuaternionToEulerAngles(const Quaternion* rotation);
+	bool isDescendantOf(const Transform* potentialParent) const;
+#pragma endregion
 
 	void drawUi() override;
 
 private:
-	Matrix m_transformation;
-	bool m_dirty;
+	mutable Matrix m_globalMatrix;
+	mutable bool m_dirty;
 
 	Vector3 m_position;
 	Quaternion m_rotation;
@@ -49,5 +48,6 @@ private:
 	Transform* m_root;
 	std::vector<GameObject*> m_children;
 
-	const void calculateMatrix();
+	void calculateMatrix() const;
+	Vector3 convertQuaternionToEulerAngles(const Quaternion &rotation);
 };

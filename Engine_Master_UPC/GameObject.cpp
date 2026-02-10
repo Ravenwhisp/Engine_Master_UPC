@@ -3,7 +3,7 @@
 
 #include "Light.h"
 
-GameObject::GameObject(short newUuid) : m_uuid(newUuid), m_name("New GameObject")
+GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
 	m_transform = new Transform(rand(), this);
 }
