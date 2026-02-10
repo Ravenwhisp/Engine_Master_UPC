@@ -10,11 +10,11 @@
 
 class GameObject {
 public:
-	GameObject(short newUuid);
+	GameObject(int newUuid);
 	~GameObject();
 	
 #pragma region Properties
-	const short GetID() { return m_uuid; }
+	const int GetID() { return m_uuid; }
 	const std::string& GetName() { return m_name; }
 	const bool GetActive() { return m_active; }
 	const bool GetStatic() { return m_isStatic; }
@@ -37,7 +37,7 @@ public:
 	void drawUI();
 
 private:
-	short m_uuid;
+	int m_uuid;
 	std::string m_name;
 	bool m_active = true;
 	bool m_isStatic = false;

@@ -1,61 +1,37 @@
 #include "Globals.h"
 #include "Transform.h"
+#include "GameObject.h"
 
-const Matrix* Transform::getTransformation()
+Transform::Transform(int id, GameObject* gameObject) :
+    Component(id, ComponentType::TRANSFORM, gameObject),
+    m_dirty(false),
+    m_root(nullptr),
+    m_globalMatrix(Matrix::Identity),
+    m_position(Vector3::Zero),
+    m_rotation(Quaternion::Identity),
+    m_scale(Vector3(1.0f, 1.0f, 1.0f))
 {
-    if (m_dirty)
-    {
+};
+
+const Matrix& Transform::getGlobalMatrix() const
+{
+    if (m_dirty) {
         calculateMatrix();
+        m_dirty = false;
     }
-    return &m_transformation;
+    return m_globalMatrix;
 }
 
-void Transform::setRotation(const Quaternion &newRotation)
+void Transform::markDirty()
 {
-    m_rotation = newRotation;
-
     m_dirty = true;
+    for (auto child : m_children) child->GetTransform()->markDirty();
 }
 
-void Transform::setRotation(const Vector3 &newRotation)
+
+Vector3 Transform::convertQuaternionToEulerAngles(const Quaternion &rotation)
 {
-    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation.y), XMConvertToRadians(newRotation.x), XMConvertToRadians(newRotation.z));
-
-    m_dirty = true;
-}
-
-void Transform::translate(Vector3* position)
-{
-    m_position = m_position + *position;
-    m_dirty = true;
-}
-
-void Transform::rotate(Vector3* eulerAngles)
-{
-    Quaternion rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(eulerAngles->y), XMConvertToRadians(eulerAngles->x), XMConvertToRadians(eulerAngles->z));
-
-    m_rotation = m_rotation + rotation;
-
-    m_dirty = true;
-
-}
-
-void Transform::rotate(Quaternion* rotation)
-{
-    m_rotation = m_rotation + *rotation;
-
-    m_dirty = true;
-}
-
-void Transform::scalate(Vector3* scale)
-{
-    m_scale = m_scale + *scale;
-    m_dirty = true;
-}
-
-const Vector3 Transform::convertQuaternionToEulerAngles(const Quaternion* rotation)
-{
-    Quaternion quaternion = *rotation;
+    Quaternion quaternion = rotation;
 
     float sinr_cosp = 2.0f * (quaternion.w * quaternion.x + quaternion.y * quaternion.z);
     float cosr_cosp = 1.0f - 2.0f * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
@@ -80,10 +56,38 @@ const Vector3 Transform::convertQuaternionToEulerAngles(const Quaternion* rotati
     return Vector3(pitch, roll, yaw);
 }
 
-const void Transform::calculateMatrix()
+void Transform::calculateMatrix() const
 {
-    m_transformation = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_position);
+    if (m_root != nullptr)
+    {
+        m_globalMatrix = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_position) * (m_root->getGlobalMatrix());
+    }
+    else
+    {
+        m_globalMatrix = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_position);
+    }
+}
 
+void Transform::removeChild(int id)
+{
+    for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+        if ((*it)->GetID() == id) {
+            m_children.erase(it);
+            return;
+        }
+    }
+}
+
+bool Transform::isDescendantOf(const Transform* potentialParent) const
+{
+    const Transform* current = m_root;
+    while (current)
+    {
+        if (current == potentialParent)
+            return true;
+        current = current->getRoot();
+    }
+    return false;
 }
 
 void Transform::drawUi() {
@@ -94,7 +98,7 @@ void Transform::drawUi() {
             m_dirty = true;
         }
 
-        Vector3 rot = convertQuaternionToEulerAngles(&m_rotation);
+        Vector3 rot = convertQuaternionToEulerAngles(m_rotation);
         if (ImGui::DragFloat3("Rotation", &rot.x, 0.1f))
         {
             setRotation(rot);

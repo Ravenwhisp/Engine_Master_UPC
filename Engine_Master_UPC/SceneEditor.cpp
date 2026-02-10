@@ -84,7 +84,7 @@ void SceneEditor::render()
     if (m_selectedGameObject && m_camera)
     {
 		Transform* transform = m_selectedGameObject->GetTransform();
-        Matrix model = *transform->getTransformation();
+        Matrix model = transform->getGlobalMatrix();
 
         ImGuizmo::Manipulate(
             (float*)&m_camera->getViewMatrix(),

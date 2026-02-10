@@ -21,7 +21,9 @@ public:
 	void preRender() override;
 
 	void CreateGameObject();
-	void RemoveGameObject(const short id);
+	void AddGameObject(GameObject* gameObject);
+	void DetachGameObject(GameObject* gameObject);
+	void DestroyGameObject(GameObject* gameObject);
 
 	void getGameObjectToRender(std::vector<GameObject*>& renderableGameObjects);
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
