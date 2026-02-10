@@ -83,35 +83,46 @@ void SceneEditor::render()
 
     if (m_selectedGameObject && m_camera)
     {
-		Transform* transform = m_selectedGameObject->GetTransform();
-        Matrix model = transform->getGlobalMatrix();
+        Transform* transform = m_selectedGameObject->GetTransform();
+
+        Matrix worldMatrix = transform->getGlobalMatrix();
 
         ImGuizmo::Manipulate(
             (float*)&m_camera->getViewMatrix(),
             (float*)&m_camera->getProjectionMatrix(),
             m_currentGizmoOperation,
             m_currentGizmoMode,
-            (float*)&model
+            (float*)&worldMatrix
         );
 
-        float translation[3];
-        float rotation[3];
-        float scale[3];
-
-        ImGuizmo::DecomposeMatrixToComponents(
-            (float*)&model,
-            translation,
-            rotation,
-            scale
-        );
-
-        if (ImGui::IsWindowHovered() && ImGuizmo::IsUsing())
+        if (ImGuizmo::IsUsing())
         {
+            Matrix localMatrix = worldMatrix;
+
+            Transform* parent = transform->getRoot();
+            if (parent)
+            {
+                Matrix parentWorldInv = parent->getGlobalMatrix().Invert();
+                localMatrix = worldMatrix * parentWorldInv;
+            }
+
+            float translation[3];
+            float rotation[3];
+            float scale[3];
+
+            ImGuizmo::DecomposeMatrixToComponents(
+                (float*)&localMatrix,
+                translation,
+                rotation,
+                scale
+            );
+
             transform->setPosition(Vector3(translation[0], translation[1], translation[2]));
-            transform->setRotation(Vector3(rotation[0], rotation[1], rotation[2]));
+            transform->setRotationEuler(Vector3(rotation[0], rotation[1], rotation[2]));
             transform->setScale(Vector3(scale[0], scale[1], scale[2]));
         }
     }
+
 
     m_isViewportHovered = ImGui::IsWindowHovered();
     m_isViewportFocused = ImGui::IsWindowFocused();

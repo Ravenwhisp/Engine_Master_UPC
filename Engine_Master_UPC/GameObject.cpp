@@ -83,3 +83,90 @@ void GameObject::drawUI()
         component->drawUi();
     }
 }
+
+#pragma region GameLoop
+bool GameObject::init()
+{
+    for (Component* component : m_components)
+    {
+        component->init();
+    }
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        child->init();
+    }
+    return true;
+}
+
+void GameObject::update() {
+    for (Component* component : m_components)
+    {
+        component->update();
+	}
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child->GetActive())
+        {
+        child->update();
+        }
+	}
+}
+
+void GameObject::preRender()
+{
+    for (Component* component : m_components)
+    {
+        component->preRender();
+    }
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child->GetActive())
+        {
+            child->preRender();
+        }
+    }
+}
+
+void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
+{
+    for (Component* component : m_components)
+    {
+        component->render(commandList, viewMatrix, projectionMatrix);
+    }
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child->GetActive())
+        {
+            child->render(commandList, viewMatrix, projectionMatrix);
+        }
+    }
+}
+
+void GameObject::postRender()
+{
+    for (Component* component : m_components)
+    {
+        component->postRender();
+    }
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child->GetActive())
+        {
+            child->postRender();
+        }
+    }
+}
+
+bool GameObject::cleanUp()
+{
+    for (Component* component : m_components)
+    {
+        component->cleanUp();
+    }
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        child->cleanUp();
+    }
+	return true;
+}
+#pragma endregion
