@@ -1,11 +1,18 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "BasicModel.h"
 #include "Light.h"
 
 GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
 	m_transform = new Transform(rand(), this);
+
+    //Testing duck
+	BasicModel* currModel = new BasicModel(rand(), this);
+    m_components.push_back(currModel);
+	currModel->postInit();
+    //////////////
 }
 
 GameObject::~GameObject()

@@ -2,7 +2,6 @@
 #include "EditorWindow.h"
 #include "GameObject.h"
 
-namespace Emeika { class Scene; }
 
 class Hierarchy: public EditorWindow
 {
@@ -19,7 +18,6 @@ private:
 	void createTreeNode(GameObject* gameObject);
 	void reparent(GameObject* child, GameObject* newParent);
 
-	Emeika::Scene* m_scene;
 	std::vector<std::function<void(GameObject*)>> m_onSelectedGameObject;
 };
 

@@ -2,12 +2,7 @@
 #include "Inspector.h"
 #include "GameObject.h"
 
-#include "Transform.h"
-#include "Model.h"
-#include "Light.h"
-
-
-Inspector::Inspector()
+Inspector::Inspector() : m_selectedGameObject(nullptr)
 {
 
 }

@@ -25,6 +25,18 @@ const Matrix& Transform::getGlobalMatrix() const
     return m_globalMatrix;
 }
 
+Matrix Transform::getNormalMatrix() const
+{
+    Matrix model = getGlobalMatrix();
+
+    Matrix normal = model;
+    normal.Translation(Vector3::Zero);
+
+    normal = normal.Invert();
+    normal = normal.Transpose();
+
+    return normal;
+}
 
 void Transform::setRotation(const Quaternion& q)
 {

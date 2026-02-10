@@ -10,6 +10,8 @@ public:
 	Transform(int id, GameObject* gameObject);
 
 	const Matrix& getGlobalMatrix() const;
+	Matrix getNormalMatrix() const;
+
 	const Vector3* getPosition() { return &m_position; }
 	const Quaternion* getRotation() { return &m_rotation; }
 	const Vector3* getScale() { return &m_scale; }
