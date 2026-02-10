@@ -151,6 +151,7 @@
     <ClCompile Include="Transform.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Quadtree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />

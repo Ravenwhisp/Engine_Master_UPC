@@ -1,6 +1,7 @@
 #pragma once
 #include "Module.h"
 #include "GameObject.h"
+#include "Quadtree.h"
 
 struct SceneData {
 	Vector3 lightDirection;
@@ -35,12 +36,15 @@ public:
 
 
 	const char* getName() { return (char*)m_name.c_str(); }
-	SceneData& getData() { return m_sceneData; }
+	SceneData&	getData() { return m_sceneData; }
+
+	Quadtree&	getQuadtree() { return *m_quadtree; }
 private:
 	std::string m_name = "SampleScene";
 	short m_current_uuid = 0;
 
-	std::vector<GameObject*> m_gameObjects;
-	SceneData m_sceneData;
+	std::vector<GameObject*>	m_gameObjects;
+	SceneData					m_sceneData;
+	Quadtree*					m_quadtree;
 };
 
