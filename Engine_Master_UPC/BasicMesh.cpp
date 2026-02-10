@@ -1,18 +1,20 @@
 #include "Globals.h"
+#include "BasicMesh.h"
+
 #include "UtilityGLFT.h"
 #include "Application.h"
 #include "ResourcesModule.h"
+
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
-#include "Mesh.h"
 
-Emeika::Mesh::~Mesh()
+BasicMesh::~BasicMesh()
 {
 	delete m_vertexBuffer;
 	delete m_indexBuffer;
 }
 
-void Emeika::Mesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive)
+void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive)
 {
 	m_materialIndex = primitive.material;
 
@@ -49,12 +51,12 @@ void Emeika::Mesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh
 	}
 }
 
-bool Emeika::Mesh::hasIndexBuffer() const
+bool BasicMesh::hasIndexBuffer() const
 {
 	return m_indexBuffer->getD3D12Resource() != nullptr;
 }
 
-void Emeika::Mesh::draw(ID3D12GraphicsCommandList* commandList) const
+void BasicMesh::draw(ID3D12GraphicsCommandList* commandList) const
 {
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	D3D12_VERTEX_BUFFER_VIEW vbv = m_vertexBuffer->getVertexBufferView();

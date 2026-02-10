@@ -4,21 +4,20 @@
 using namespace DirectX::SimpleMath;
 
 #pragma region GameLoop
-
 bool SceneModule::init()
 {
     m_sceneData.lightDirection = Vector3(0.0f, -1.0f, 0.0f);
     m_sceneData.lightColor = Vector3(1.0f, 1.0f, 1.0f);
     m_sceneData.ambientColor = Vector3(0.2f, 0.2f, 0.2f);
     m_sceneData.view = Vector3(0.0f, 0.0f, -5.0f);
-    
-    auto rectangle = RectangleData(0, 0, 10, 10);
-    m_quadtree = new Quadtree(rectangle);
 
     for (GameObject* gameObject : m_gameObjects)
     {
-        gameObject->update();
+        gameObject->init();
     }
+
+    auto rectangle = RectangleData(0, 0, 10, 10);
+    m_quadtree = new Quadtree(rectangle);
 
     return true;
 }
@@ -81,8 +80,9 @@ bool SceneModule::cleanUp()
 
 void SceneModule::CreateGameObject()
 {
-    m_gameObjects.push_back(new GameObject(m_current_uuid++));
-    m_quadtree->insert(*m_gameObjects.back());
+	GameObject* newGameObject = new GameObject(m_current_uuid++);
+    m_gameObjects.push_back(newGameObject);
+    m_quadtree->insert(*newGameObject);
 }
 
 void SceneModule::DetachGameObject(GameObject* gameObject)

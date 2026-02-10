@@ -38,8 +38,8 @@ private:
     GameObject*                     m_selectedGameObject;
     Quadtree*					    m_quadtree;
 
-    bool m_showGrid = false;
-    bool m_showQuadtree = true;
+    bool m_showGrid = true;
+    bool m_showQuadtree = false;
     bool m_showAxis = true;
 
     ImGuizmo::OPERATION m_currentGizmoOperation = ImGuizmo::TRANSLATE;

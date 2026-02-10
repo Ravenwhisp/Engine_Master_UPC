@@ -79,14 +79,14 @@
     <ClCompile Include="Keyboard.cpp">
       <Filter>Inputs\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>D3D12\Geometry\Model</Filter>
+    <ClCompile Include="BasicModel.cpp">
+      <Filter>D3D12\Geometry\BasicModel</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>D3D12\Geometry\Model\Mesh</Filter>
+    <ClCompile Include="BasicMesh.cpp">
+      <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>D3D12\Geometry\Model\Material</Filter>
+    <ClCompile Include="BasicMaterial.cpp">
+      <Filter>D3D12\Geometry\BasicModel\BasicMaterial</Filter>
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
       <Filter>D3D12\Wrappers</Filter>
@@ -238,14 +238,14 @@
     <ClInclude Include="Keyboard.h">
       <Filter>Inputs\Keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>D3D12\Geometry\Model</Filter>
+    <ClInclude Include="BasicModel.h">
+      <Filter>D3D12\Geometry\BasicModel</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>D3D12\Geometry\Model\Mesh</Filter>
+    <ClInclude Include="BasicMesh.h">
+      <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>D3D12\Geometry\Model\Material</Filter>
+    <ClInclude Include="BasicMaterial.h">
+      <Filter>D3D12\Geometry\BasicModel\BasicMaterial</Filter>
     </ClInclude>
     <ClInclude Include="CommandQueue.h">
       <Filter>D3D12\Wrappers</Filter>
@@ -311,9 +311,6 @@
     <ClInclude Include="SceneModule.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="EmeikaEngine.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
@@ -335,6 +332,7 @@
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Quadtree.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -393,15 +391,6 @@
     <Filter Include="Inputs\Keyboard">
       <UniqueIdentifier>{aaa72633-86b0-428f-a371-8ab1e825dd2e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="D3D12\Geometry\Model">
-      <UniqueIdentifier>{7d589e71-6d9c-4c2b-9421-93d8192ce07c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="D3D12\Geometry\Model\Mesh">
-      <UniqueIdentifier>{680d6bb1-ca56-47e5-8e10-0c1dd542cacf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="D3D12\Geometry\Model\Material">
-      <UniqueIdentifier>{05bfdc35-fb58-495a-a789-0cea859d7795}</UniqueIdentifier>
-    </Filter>
     <Filter Include="D3D12\Wrappers">
       <UniqueIdentifier>{bd70e7f1-6357-487a-a89c-635c1b2c6e70}</UniqueIdentifier>
     </Filter>
@@ -440,6 +429,15 @@
     </Filter>
     <Filter Include="D3D12\Rendering">
       <UniqueIdentifier>{f8d98a8f-e8f1-4a90-b4c9-9473b976ab71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry\BasicModel">
+      <UniqueIdentifier>{7d589e71-6d9c-4c2b-9421-93d8192ce07c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry\BasicModel\Mesh">
+      <UniqueIdentifier>{680d6bb1-ca56-47e5-8e10-0c1dd542cacf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Geometry\BasicModel\BasicMaterial">
+      <UniqueIdentifier>{05bfdc35-fb58-495a-a789-0cea859d7795}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -9,8 +9,6 @@
 #include "CommandQueue.h"
 #include "DescriptorsModule.h"
 #include "SwapChain.h"
-#include "Model.h"
-#include "Material.h"
 
 
 // -----------------------------------------------------------------------------

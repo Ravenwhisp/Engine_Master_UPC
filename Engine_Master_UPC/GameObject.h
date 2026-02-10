@@ -8,6 +8,8 @@
 #include "Tag.h"
 #include "Layer.h"
 
+class BasicModel;
+
 class GameObject {
 public:
 	GameObject(int newUuid);
@@ -56,4 +58,8 @@ private:
 
 	Transform* m_transform;
 	std::vector<Component*> m_components;
+
+	//Testing duck
+	BasicModel* m_model;
+	//////////////
 };
