@@ -332,7 +332,9 @@
     <ClInclude Include="Tag.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="Quadtree.h" />
+    <ClInclude Include="ComponentType.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

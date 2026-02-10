@@ -1,10 +1,11 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-GameObject::GameObject(short newUuid) : m_uuid(newUuid), m_name("New GameObject")
+#include "Light.h"
+
+GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-	m_transform = new Transform();
-	m_transform->setParent(this);
+	m_transform = new Transform(rand(), this);
 }
 
 GameObject::~GameObject()
@@ -18,15 +19,26 @@ GameObject::~GameObject()
     delete m_transform;
 }
 
-bool GameObject::AddComponent(Component* newComponent)
+bool GameObject::AddComponent(ComponentType componentType)
 {
-    if (!newComponent)
+    if (componentType == ComponentType::COUNT)
         return false;
 
-    if (newComponent->getType() == ComponentType::TRANSFORM)
-        return false;
+    if (componentType == ComponentType::TRANSFORM)
 
-    m_components.push_back(newComponent);
+    switch (componentType)
+    {
+    case ComponentType::LIGHT:
+        m_components.push_back(new Light(rand(), this));
+        break;
+    case ComponentType::TRANSFORM:
+    case ComponentType::COUNT:
+        return false;
+        break;
+    default:
+        return false;
+        break;
+    }
     return true;
 }
 
