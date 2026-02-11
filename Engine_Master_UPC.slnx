@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Engine_Master_UPC/Engine_Master_UPC.vcxproj" />
+  <Project Path="Engine_Master_UPC/Engine_Master_UPC.vcxproj" Id="a8230fd4-8e6e-4777-8f33-4eba54d44f41" />
 </Solution>
