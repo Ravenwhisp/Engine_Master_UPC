@@ -98,29 +98,7 @@ void SceneEditor::render()
 
         if (ImGuizmo::IsUsing())
         {
-            Matrix localMatrix = worldMatrix;
-
-            Transform* parent = transform->getRoot();
-            if (parent)
-            {
-                Matrix parentWorldInv = parent->getGlobalMatrix().Invert();
-                localMatrix = worldMatrix * parentWorldInv;
-            }
-
-            float translation[3];
-            float rotation[3];
-            float scale[3];
-
-            ImGuizmo::DecomposeMatrixToComponents(
-                (float*)&localMatrix,
-                translation,
-                rotation,
-                scale
-            );
-
-            transform->setPosition(Vector3(translation[0], translation[1], translation[2]));
-            transform->setRotationEuler(Vector3(rotation[0], rotation[1], rotation[2]));
-            transform->setScale(Vector3(scale[0], scale[1], scale[2]));
+            transform->setFromGlobalMatrix(worldMatrix);
         }
     }
 
