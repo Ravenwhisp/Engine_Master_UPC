@@ -2,10 +2,6 @@
 #include "ComponentType.h"
 
 class GameObject;
-enum ComponentType
-{
-    TRANSFORM
-};
 
 class Component {
 public:
