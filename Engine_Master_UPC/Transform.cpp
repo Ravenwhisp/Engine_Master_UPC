@@ -11,7 +11,7 @@ Transform::Transform(int id, GameObject* gameObject) :
     m_position(Vector3::Zero),
     m_rotation(Quaternion::Identity),
     m_eulerDegrees(Vector3::Zero),
-    m_scale(Vector3(1.0f, 1.0f, 1.0f))
+    m_scale(Vector3(0.01f, 0.01f, 0.01f))
 {
 }
 
@@ -38,12 +38,42 @@ Matrix Transform::getNormalMatrix() const
     return normal;
 }
 
+void Transform::setFromGlobalMatrix(const Matrix& globalMatrix)
+{
+    Matrix localMatrix = globalMatrix;
+
+    if (m_root)
+    {
+        Matrix parentInv = m_root->getGlobalMatrix().Invert();
+        localMatrix = globalMatrix * parentInv;
+    }
+
+    m_globalMatrix = globalMatrix;
+
+    Vector3 scale;
+    Quaternion rotation;
+    Vector3 position;
+
+    if (localMatrix.Decompose(scale, rotation, position))
+    {
+        m_scale = scale;
+        m_rotation = rotation;
+        m_rotation.Normalize();
+        m_position = position;
+
+        Vector3 eulerRad = m_rotation.ToEuler();
+        m_eulerDegrees = eulerRad * (180.0f / XM_PI);;
+    }
+
+    markDirty();
+}
+
 void Transform::setRotation(const Quaternion& q)
 {
     m_rotation = q;
     m_rotation.Normalize();
 
-    Vector3 eulerRad = convertQuaternionToEulerAngles(m_rotation);
+    Vector3 eulerRad = m_rotation.ToEuler();
     m_eulerDegrees = eulerRad * (180.0f / XM_PI);
 
     markDirty();
@@ -88,31 +118,6 @@ void Transform::calculateMatrix() const
         m_globalMatrix = local * m_root->getGlobalMatrix();
     else
         m_globalMatrix = local;
-}
-
-
-Vector3 Transform::convertQuaternionToEulerAngles(const Quaternion& q)
-{
-    float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
-    float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
-    float roll = std::atan2(sinr_cosp, cosr_cosp);
-
-    float sinp = 2.0f * (q.w * q.y - q.z * q.x);
-    float pitch;
-    if (std::abs(sinp) >= 1.0f)
-    {
-        pitch = std::copysign(XM_PIDIV2, sinp);
-    }
-    else
-    {
-        pitch = std::asin(sinp);
-    }
-
-    float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
-    float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
-    float yaw = std::atan2(siny_cosp, cosy_cosp);
-
-    return Vector3(pitch, yaw, roll);
 }
 
 void Transform::removeChild(int id)

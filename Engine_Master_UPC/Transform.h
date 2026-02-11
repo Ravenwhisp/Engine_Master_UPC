@@ -11,6 +11,7 @@ public:
 
 	const Matrix& getGlobalMatrix() const;
 	Matrix getNormalMatrix() const;
+	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
 	const Vector3* getPosition() { return &m_position; }
 	const Quaternion* getRotation() { return &m_rotation; }
@@ -48,5 +49,4 @@ private:
 	std::vector<GameObject*> m_children;
 
 	void calculateMatrix() const;
-	static Vector3 convertQuaternionToEulerAngles(const Quaternion &rotation);
 };
