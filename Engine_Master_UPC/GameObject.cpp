@@ -3,6 +3,7 @@
 
 #include "BasicModel.h"
 #include "Light.h"
+#include "PlayerWalk.h"
 
 GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -12,6 +13,7 @@ GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 	BasicModel* currModel = new BasicModel(rand(), this);
     m_components.push_back(currModel);
 	currModel->init();
+
     //////////////
 }
 
@@ -30,8 +32,11 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::MODEL:
             m_components.push_back(new BasicModel(rand(), this));
             break;
-
         case ComponentType::TRANSFORM:
+
+        case ComponentType::PLAYER_WALK:
+            m_components.push_back(new PlayerWalk(rand(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
