@@ -30,4 +30,7 @@ public:
 private:
 	std::vector<BasicMesh*>		m_meshes;
 	std::vector<BasicMaterial*>	m_materials;
+
+	std::string m_modelPath;
+	std::string m_basePath;
 };
