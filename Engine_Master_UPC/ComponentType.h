@@ -3,7 +3,8 @@
 #define COMPONENT_TYPE_LIST \
     X(TRANSFORM)            \
     X(MODEL)                \
-    X(LIGHT)
+    X(LIGHT)                \
+    X(PLAYER_WALK)
 
 enum class ComponentType
 {
