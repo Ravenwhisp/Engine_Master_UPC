@@ -40,6 +40,7 @@ bool CameraModule::postInit()
 
 void CameraModule::update() {
     if (!app->getEditorModule()->getSceneEditor()->isFocused() || !app->getEditorModule()->getSceneEditor()->isHovered()) {
+        m_lastWheel = Mouse::Get().GetState().scrollWheelValue;
         return;
     }
     ImVec2 sceneSize = m_editorModule->getSceneEditor()->getSize();
