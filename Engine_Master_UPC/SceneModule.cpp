@@ -117,16 +117,18 @@ void SceneModule::removeGameObject(int uuid)
         }
 
         target = findInHierarchy(root, uuid);
-        if (target)
+        if (target) 
+        {
             break;
+        }
+
     }
 
     if (!target)
         return;
 
+    m_quadtree->remove(*target);
     destroyHierarchy(target);
-
-
 }
 
 

@@ -33,7 +33,6 @@ private:
     CameraModule*                   m_camera;
     InputModule*                    m_input;
     std::vector<CameraCommand*>     m_cameraCommands;
-    Quadtree*					    m_quadtree;
 
     bool m_showGrid = false;
     bool m_showQuadtree = true;
