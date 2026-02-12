@@ -24,6 +24,8 @@ public:
 
     virtual void drawUi() {}
 
+    virtual void onTransformChange() = 0;
+
 protected:
     GameObject* m_owner;
 

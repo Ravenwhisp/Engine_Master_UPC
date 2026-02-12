@@ -28,6 +28,8 @@ public:
 	Vector3 getRight() const;
 	Vector3 getUp() const;
 
+	void onTransformChange() override {}
+
 #pragma region Hierarchy Scene
 	Transform* getRoot() const { return m_root; }
 	const std::vector<GameObject*>& getAllChildren() const { return m_children; }

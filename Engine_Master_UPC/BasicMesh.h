@@ -10,7 +10,7 @@ class BasicMesh
 {
 public:
 	~BasicMesh();
-	void load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive);
+	void load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, Vector3& minVector, Vector3& maxVector);
 	IndexBuffer* getVertexBuffer() { return m_indexBuffer; }
 	VertexBuffer* getIndexBuffer() { return m_vertexBuffer; }
 
