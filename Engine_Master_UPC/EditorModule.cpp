@@ -9,6 +9,7 @@
 #include "HardwareWindow.h"
 #include "PerformanceWindow.h"
 #include "EditorWindow.h"
+#include "EditorSettings.h"
 #include "ImGuizmo.h"
 #include "Logger.h"
 #include "ImGuiPass.h"
@@ -105,7 +106,6 @@ void EditorModule::mainDockspace(bool* p_open)
 
 void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 {
-
     // Clear previous layout
     ImGui::DockBuilderRemoveNode(dockspace_id);
     ImGui::DockBuilderAddNode(dockspace_id);
@@ -135,14 +135,16 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 
 EditorModule::EditorModule() : m_selectedGameObject(nullptr)
 {
-    //_console = Console();
-    m_editorWindows.push_back(m_logger = new Logger());
-    m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
-    m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
 }
 
 bool EditorModule::init()
 {
+    //_console = Console();
+    m_editorWindows.push_back(m_logger = new Logger());
+    m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
+    m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
+    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
+
 	D3D12Module* _d3d12 = app->getD3D12Module();
     m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
         app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), 

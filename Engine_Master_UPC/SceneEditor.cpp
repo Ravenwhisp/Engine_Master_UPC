@@ -4,21 +4,29 @@
 #include <imgui.h>
 
 #include "Application.h"
-#include "EditorModule.h"
 #include "D3D12Module.h"
+#include "EditorModule.h"
+
 #include "InputModule.h"
+
 #include "TimeModule.h"
 #include "RenderModule.h"
-#include "DebugDrawPass.h"
 #include "SceneModule.h"
 
+#include "Settings.h"
+
 #include "GameObject.h"
+#include "DebugDrawPass.h"
+
 
 SceneEditor::SceneEditor()
 {
-    m_camera = app->getCameraModule();
-    m_input = app->getInputModule();
+    m_cameraModule = app->getCameraModule();
+    m_inputModule = app->getInputModule();
+
+    m_settings = app->getSettings();
     auto d3d12Module = app->getD3D12Module();
+
     m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
     m_quadtree = &app->getSceneModule()->getQuadtree();
     bindCameraCommands();
@@ -32,7 +40,7 @@ void SceneEditor::update()
     float deltaTime = app->getTimeModule()->deltaTime();
     for (const auto& command : m_cameraCommands) 
     {
-        command->Execute(m_camera, deltaTime);
+        command->Execute(m_cameraModule, deltaTime);
     }
 }
 
@@ -84,15 +92,15 @@ void SceneEditor::render()
     }
 
     GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
-    if (selectedGameObject && m_camera)
+    if (m_settings->sceneEditor.showGuizmo && selectedGameObject && m_cameraModule)
     {
         Transform* transform = selectedGameObject->GetTransform();
 
         Matrix worldMatrix = transform->getGlobalMatrix();
 
         ImGuizmo::Manipulate(
-            (float*)&m_camera->getViewMatrix(),
-            (float*)&m_camera->getProjectionMatrix(),
+            (float*)&m_cameraModule->getViewMatrix(),
+            (float*)&m_cameraModule->getProjectionMatrix(),
             m_currentGizmoOperation,
             m_currentGizmoMode,
             (float*)&worldMatrix
@@ -123,17 +131,22 @@ bool SceneEditor::resize(ImVec2 contentRegion)
 
 void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 {
-    if (m_showGrid) 
+    if (m_settings->sceneEditor.showGrid)
     {
         dd::xzSquareGrid(-10.0f, 10.f, 0.0f, 1.0f, dd::colors::LightGray);
     }
 
-    if (m_showQuadtree)
+    if (m_settings->sceneEditor.showAxis)
+    {
+        dd::axisTriad(ddConvert(Matrix::Identity), 0.1f, 1.0f);
+    }
+
+    if (m_settings->sceneEditor.showQuadTree)
     {
         renderQuadtree();
     }
 
-    m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
+    m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_cameraModule->getViewMatrix(), m_cameraModule->getProjectionMatrix());
 }
 
 void SceneEditor::renderQuadtree()
@@ -155,11 +168,11 @@ CameraCommand* SceneEditor::createMovementCommand(CameraCommand::Type type, Keyb
     CameraCommand* command = new CameraCommand(
         type,
         [this, key]() {
-            return m_input->isRightMouseDown() && m_input->isKeyDown(key);
+            return m_inputModule->isRightMouseDown() && m_inputModule->isKeyDown(key);
         },
         [this, direction](CameraModule* camera, float deltaTime) {
             float speed = camera->getSpeed() * deltaTime;
-            if (m_input->isKeyDown(Keyboard::LeftShift)) {
+            if (m_inputModule->isKeyDown(Keyboard::LeftShift)) {
                 speed *= 2.0f;
             }
             Vector3 moveDir = direction.x * camera->getRight() + direction.y * camera->getUp() + direction.z * camera->getForward();
@@ -188,7 +201,7 @@ void SceneEditor::bindCameraCommands()
         },
         [this](CameraModule* camera, float deltaTime) {
             float wheel = 0.0f;
-            m_input->getMouseWheel(wheel);
+            m_inputModule->getMouseWheel(wheel);
             float zoomAmount = wheel * camera->getSpeed() * deltaTime;
             camera->zoom(zoomAmount);
         }));
@@ -197,7 +210,7 @@ void SceneEditor::bindCameraCommands()
     m_cameraCommands.emplace_back(new CameraCommand(
         CameraCommand::FOCUS,
         [this]() {
-            return m_input->isKeyDown(Keyboard::F);
+            return m_inputModule->isKeyDown(Keyboard::F);
         },
         [this](CameraModule* camera, float deltaTime) {
             GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
@@ -211,11 +224,11 @@ void SceneEditor::bindCameraCommands()
     m_cameraCommands.emplace_back(new CameraCommand(
         CameraCommand::ORBIT,
         [this]() {
-            return m_input->isKeyDown(Keyboard::LeftAlt) && m_input->isLeftMouseDown();
+            return m_inputModule->isKeyDown(Keyboard::LeftAlt) && m_inputModule->isLeftMouseDown();
         },
         [this](CameraModule* camera, float deltaTime) {
             float deltaX = 0.0f, deltaY = 0.0f;
-            m_input->getMouseDelta(deltaX, deltaY);
+            m_inputModule->getMouseDelta(deltaX, deltaY);
 
             Quaternion yaw = Quaternion::CreateFromAxisAngle(camera->getUp(), -deltaX * camera->getSensitivity());
             Quaternion pitch = Quaternion::CreateFromAxisAngle(camera->getRight(), -deltaY * camera->getSensitivity());
@@ -226,11 +239,11 @@ void SceneEditor::bindCameraCommands()
     m_cameraCommands.emplace_back(new CameraCommand(
         CameraCommand::LOOK,
         [this]() {
-            return m_input->isRightMouseDown() && !m_input->isKeyDown(Keyboard::LeftAlt);
+            return m_inputModule->isRightMouseDown() && !m_inputModule->isKeyDown(Keyboard::LeftAlt);
         },
         [this](CameraModule* camera, float deltaTime) {
             float deltaX = 0.0f, deltaY = 0.0f;
-            m_input->getMouseDelta(deltaX, deltaY);
+            m_inputModule->getMouseDelta(deltaX, deltaY);
 
             Quaternion yaw = Quaternion::CreateFromAxisAngle(camera->getUp(), deltaX * camera->getSensitivity());
             Quaternion pitch = Quaternion::CreateFromAxisAngle(camera->getRight(), deltaY * camera->getSensitivity());

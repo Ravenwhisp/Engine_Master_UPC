@@ -13,6 +13,7 @@ class PerformanceWindow;
 class SceneEditor;
 class Hierarchy;
 class DebugDrawPass;
+class EditorSettings;
 
 class EditorModule: public Module
 {
@@ -49,6 +50,7 @@ private:
 	SceneEditor*				m_sceneEditor = nullptr;
 	ImGuiPass* 					m_gui = nullptr;
 	DebugDrawPass*				m_debugDrawPass = nullptr;
+	EditorSettings*				m_editorSettings = nullptr;
 
     bool m_showMainDockspace = true;
     bool m_firstFrame = true;

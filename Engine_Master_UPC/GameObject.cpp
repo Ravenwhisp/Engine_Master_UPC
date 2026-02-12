@@ -149,10 +149,14 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
             bool isSelected = (i == currentIndex);
 
             if (ImGui::Selectable(toStringFunc(value), isSelected))
+            {
                 currentValue = value;
+            }
 
             if (isSelected)
+            {
                 ImGui::SetItemDefaultFocus();
+            }
         }
 
         ImGui::EndCombo();

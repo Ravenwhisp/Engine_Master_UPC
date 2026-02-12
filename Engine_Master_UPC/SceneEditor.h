@@ -1,17 +1,28 @@
 #pragma once
 #include "EditorWindow.h"
+
 #include "ImGuizmo.h"
 #include <vector>
+
 #include "CameraModule.h"
-#include <Quadtree.h>
-
-class GameObject;
-class DebugDrawPass;
-
+;
 class InputModule;
+
+class Settings;
+class Quadtree;
+
+class DebugDrawPass;
+class GameObject;
 
 class SceneEditor: public EditorWindow
 {
+private:
+    InputModule* m_inputModule;
+    CameraModule* m_cameraModule;
+
+    Settings* m_settings;
+    Quadtree* m_quadtree;
+
 public:
     SceneEditor();
     const char* getWindowName() const override { return "Scene Editor"; }
@@ -30,14 +41,7 @@ private:
     void bindCameraCommands();
 
     std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
-    CameraModule*                   m_camera;
-    InputModule*                    m_input;
     std::vector<CameraCommand*>     m_cameraCommands;
-    Quadtree*					    m_quadtree;
-
-    bool m_showGrid = true;
-    bool m_showQuadtree = false;
-    bool m_showAxis = true;
 
     ImGuizmo::OPERATION m_currentGizmoOperation = ImGuizmo::TRANSLATE;
     ImGuizmo::MODE      m_currentGizmoMode = ImGuizmo::LOCAL;

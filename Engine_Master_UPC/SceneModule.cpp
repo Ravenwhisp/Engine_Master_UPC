@@ -123,7 +123,6 @@ void SceneModule::removeGameObject(int uuid)
 
 }
 
-
 void SceneModule::addGameObject(GameObject* gameObject) {
 	m_gameObjects.push_back(gameObject);
 }
