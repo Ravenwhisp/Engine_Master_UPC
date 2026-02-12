@@ -63,7 +63,7 @@ void BasicModel::load(const char* fileName, const char* basePath)
 }
 
 #pragma region Loop functions
-bool BasicModel::postInit()
+bool BasicModel::init()
 {
     load("Assets/Models/Duck/Duck.gltf", "Assets/Models/Duck/");
     return true;
