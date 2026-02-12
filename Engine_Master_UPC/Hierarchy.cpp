@@ -25,6 +25,7 @@ void Hierarchy::render()
 	{
 		addGameObject();
 	}
+	ImGui::SameLine();
 	if (ImGui::Button("Remove game object"))
 	{
 		removeGameObject();
