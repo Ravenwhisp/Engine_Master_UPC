@@ -109,23 +109,29 @@ void Transform::markDirty()
 
 Vector3 Transform::getRight() const
 {
-    Vector3 right = Vector3(m_globalMatrix._11, m_globalMatrix._21, m_globalMatrix._31);
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 right(globalMatrix._11, globalMatrix._21, globalMatrix._31);
     right.Normalize();
     return right;
 }
 
 Vector3 Transform::getUp() const
 {
-    Vector3 right = Vector3(m_globalMatrix._12, m_globalMatrix._22, m_globalMatrix._32);
-    right.Normalize();
-    return right;
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 up(globalMatrix._12, globalMatrix._22, globalMatrix._32);
+    up.Normalize();
+    return up;
 }
 
 Vector3 Transform::getForward() const
 {
-    Vector3 right = Vector3(m_globalMatrix._13, m_globalMatrix._23, m_globalMatrix._33);
-    right.Normalize();
-    return right;
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 forward(globalMatrix._13, globalMatrix._23, globalMatrix._33);
+    forward.Normalize();
+    return forward;
 }
 
 void Transform::calculateMatrix() const
