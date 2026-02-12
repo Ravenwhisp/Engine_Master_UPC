@@ -91,7 +91,7 @@ bool SceneModule::cleanUp()
 
 void SceneModule::createGameObject()
 {
-	GameObject* newGameObject = new GameObject(m_current_uuid++);
+	GameObject* newGameObject = new GameObject(rand());
     newGameObject->init();
 
     m_gameObjects.push_back(newGameObject);
@@ -119,6 +119,8 @@ void SceneModule::removeGameObject(int uuid)
         return;
 
     destroyHierarchy(target);
+
+
 }
 
 

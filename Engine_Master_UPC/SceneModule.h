@@ -45,7 +45,6 @@ public:
 	Quadtree& getQuadtree() { return *m_quadtree; }
 private:
 	std::string m_name = "SampleScene";
-	short m_current_uuid = 0;
 
 	std::vector<GameObject*>	m_gameObjects;
 	SceneData					m_sceneData;

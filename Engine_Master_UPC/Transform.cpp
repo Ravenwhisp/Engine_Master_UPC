@@ -148,11 +148,6 @@ bool Transform::isDescendantOf(const Transform* potentialParent) const
 
 void Transform::drawUi()
 {
-    if (!ImGui::CollapsingHeader("Transform"))
-    {
-        return;
-    }
-
     if (ImGui::DragFloat3("Position", &m_position.x, 0.01f))
     {
         markDirty();
