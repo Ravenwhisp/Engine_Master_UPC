@@ -11,7 +11,7 @@ GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
     //Testing duck
 	BasicModel* currModel = new BasicModel(rand(), this);
     m_components.push_back(currModel);
-	currModel->postInit();
+	currModel->init();
     //////////////
 }
 
@@ -46,6 +46,7 @@ bool GameObject::AddComponent(ComponentType componentType)
         return false;
         break;
     }
+
     return true;
 }
 

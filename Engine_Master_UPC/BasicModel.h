@@ -21,7 +21,7 @@ public:
 	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
 
 #pragma region Loop functions
-	bool postInit() override;
+	bool init() override;
 	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
 	bool cleanUp() override;
 #pragma endregion
