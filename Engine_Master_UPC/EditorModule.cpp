@@ -136,13 +136,6 @@ EditorModule::EditorModule()
     m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
 }
 
-EditorModule::~EditorModule()
-{
-    m_gui->~ImGuiPass();
-    //_sceneView->~SceneView();
-    m_debugDrawPass->~DebugDrawPass();
-}
-
 bool EditorModule::postInit()
 {
 	D3D12Module* _d3d12 = app->getD3D12Module();
@@ -195,7 +188,29 @@ void EditorModule::postRender()
 
 bool EditorModule::cleanUp()
 {
-    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
-        (*it)->cleanUp();
+    //app->getD3D12Module()->waitForGPU(); <- Missing this function probably
+
+    for (auto window : m_editorWindows)
+    {
+        window->cleanUp();
+    }
+
+    for (auto window : m_editorWindows)
+    {
+        delete window;
+    }
+    m_editorWindows.clear();
+
+    delete m_gui;
+    m_gui = nullptr;
+
+    delete m_debugDrawPass;
+    m_debugDrawPass = nullptr;
+
+    m_sceneView = nullptr;
+    m_logger = nullptr;
+    m_hardwareWindow = nullptr;
+    m_performanceWindow = nullptr;
+
     return true;
 }
