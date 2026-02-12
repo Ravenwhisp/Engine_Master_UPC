@@ -24,13 +24,24 @@ bool SceneModule::init()
 
 void SceneModule::update()
 {
-    for (GameObject* gameObject : m_gameObjects)
+    for (GameObject* root : m_gameObjects)
     {
-        if (gameObject->GetActive())
-        {
-            gameObject->update();
-		}
-	}
+        updateHierarchy(root);
+    }
+}
+
+void SceneModule::updateHierarchy(GameObject* obj)
+{
+    if (!obj->GetActive())
+    {
+        return;
+    }
+
+    obj->update();
+    for (GameObject* child : obj->GetTransform()->getAllChildren())
+    {
+        updateHierarchy(child);
+    }
 }
 
 void SceneModule::preRender()
@@ -78,14 +89,44 @@ bool SceneModule::cleanUp()
 }
 #pragma endregion
 
-void SceneModule::CreateGameObject()
+void SceneModule::createGameObject()
 {
 	GameObject* newGameObject = new GameObject(m_current_uuid++);
+    newGameObject->init();
+
     m_gameObjects.push_back(newGameObject);
     m_quadtree->insert(*newGameObject);
 }
 
-void SceneModule::DetachGameObject(GameObject* gameObject)
+void SceneModule::removeGameObject(int uuid)
+{
+    GameObject* target = nullptr;
+
+    for (GameObject* root : m_gameObjects)
+    {
+        if (root->GetID() == uuid)
+        {
+            target = root;
+            break;
+        }
+
+        target = findInHierarchy(root, uuid);
+        if (target)
+            break;
+    }
+
+    if (!target)
+        return;
+
+    destroyHierarchy(target);
+}
+
+
+void SceneModule::addGameObject(GameObject* gameObject) {
+	m_gameObjects.push_back(gameObject);
+}
+
+void SceneModule::detachGameObject(GameObject* gameObject)
 {
     m_gameObjects.erase(
         std::remove(m_gameObjects.begin(), m_gameObjects.end(), gameObject),
@@ -93,19 +134,44 @@ void SceneModule::DetachGameObject(GameObject* gameObject)
     );
 }
 
-void SceneModule::DestroyGameObject(GameObject* gameObject)
+void SceneModule::destroyGameObject(GameObject* gameObject)
 {
-    DetachGameObject(gameObject);
+    detachGameObject(gameObject);
     delete gameObject;
 }
 
-void SceneModule::AddGameObject(GameObject* gameObject) {
-	m_gameObjects.push_back(gameObject);
-}
-
-void SceneModule::getGameObjectToRender(std::vector<GameObject*>& renderableGameObjects)
+GameObject* SceneModule::findInHierarchy(GameObject* current, int uuid)
 {
+    for (GameObject* child : current->GetTransform()->getAllChildren())
+    {
+        if (child->GetID() == uuid)
+            return child;
 
+        GameObject* found = findInHierarchy(child, uuid);
+        if (found)
+            return found;
+    }
+
+    return nullptr;
 }
 
+void SceneModule::destroyHierarchy(GameObject* obj)
+{
+    auto children = obj->GetTransform()->getAllChildren();
+
+    for (GameObject* child : children)
+    {
+        destroyHierarchy(child);
+    }
+
+    Transform* parent = obj->GetTransform()->getRoot();
+
+    if (parent)
+        parent->removeChild(obj->GetID());
+    else
+        detachGameObject(obj);
+
+    obj->cleanUp();
+    delete obj;
+}
 

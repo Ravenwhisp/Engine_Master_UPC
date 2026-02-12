@@ -4,6 +4,7 @@
 #include <imgui.h>
 
 #include "Application.h"
+#include "EditorModule.h"
 #include "D3D12Module.h"
 #include "InputModule.h"
 #include "TimeModule.h"
@@ -82,9 +83,10 @@ void SceneEditor::render()
         m_currentGizmoOperation = ImGuizmo::SCALE;
     }
 
-    if (m_selectedGameObject && m_camera)
+    GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
+    if (selectedGameObject && m_camera)
     {
-        Transform* transform = m_selectedGameObject->GetTransform();
+        Transform* transform = selectedGameObject->GetTransform();
 
         Matrix worldMatrix = transform->getGlobalMatrix();
 
@@ -126,7 +128,8 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         dd::xzSquareGrid(-10.0f, 10.f, 0.0f, 1.0f, dd::colors::LightGray);
     }
 
-    if (m_showQuadtree) {
+    if (m_showQuadtree)
+    {
         renderQuadtree();
     }
 
@@ -136,7 +139,8 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 void SceneEditor::renderQuadtree()
 {
     std::vector<RectangleData> quadrants = m_quadtree->getQuadrants();
-    for (const auto& rect : quadrants) {
+    for (const auto& rect : quadrants)
+    {
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);
 		Vector3 center(rect.x + rect.width * 0.5f, 0.1f, rect.y + rect.height * 0.5f);
 
@@ -196,9 +200,9 @@ void SceneEditor::bindCameraCommands()
             return m_input->isKeyDown(Keyboard::F);
         },
         [this](CameraModule* camera, float deltaTime) {
-            if (m_selectedGameObject) {
-                //TODO: Move the camera near the object
-				const DirectX::SimpleMath::Vector3 objPos = * m_selectedGameObject->GetTransform()->getPosition();
+            GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
+            if (selectedGameObject) {
+				const DirectX::SimpleMath::Vector3 objPos = *selectedGameObject->GetTransform()->getPosition();
                 camera->focus(camera->getPosition(), objPos);
             }
         }));

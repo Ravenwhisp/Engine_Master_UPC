@@ -67,20 +67,27 @@ void Application::update()
     {
         PERF_BEGIN("Engine Update");
         for (auto it = modules.begin(); it != modules.end(); ++it)
+        {
             (*it)->update();
+        }
 
         PERF_END("Engine Update");
 
         PERF_BEGIN("Engine Render");
         for (auto it = modules.begin(); it != modules.end(); ++it)
+        {
             (*it)->preRender();
-
+        }
 
         for (auto it = modules.begin(); it != modules.end(); ++it)
+        {
             (*it)->render();
+        }
 
         for (auto it = modules.begin(); it != modules.end(); ++it)
+        {
             (*it)->postRender();
+        }
         PERF_END("Engine Render");
     }
 

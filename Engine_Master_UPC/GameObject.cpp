@@ -17,34 +17,25 @@ GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 
 GameObject::~GameObject()
 {
-    for (Component* component : m_components)
-    {
-        delete component;
-    }
-    m_components.clear();
 
-    delete m_transform;
 }
 
 bool GameObject::AddComponent(ComponentType componentType)
 {
-    if (componentType == ComponentType::COUNT)
-        return false;
-
-    if (componentType == ComponentType::TRANSFORM)
-
     switch (componentType)
     {
-    case ComponentType::LIGHT:
-        m_components.push_back(new Light(rand(), this));
-        break;
-    case ComponentType::TRANSFORM:
-    case ComponentType::COUNT:
-        return false;
-        break;
-    default:
-        return false;
-        break;
+        case ComponentType::LIGHT:
+            m_components.push_back(new Light(rand(), this));
+            break;
+
+        case ComponentType::TRANSFORM:
+        case ComponentType::COUNT:
+            return false;
+            break;
+
+        default:
+            return false;
+            break;
     }
 
     return true;
@@ -111,13 +102,6 @@ void GameObject::update() {
     {
         component->update();
 	}
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child->GetActive())
-        {
-        child->update();
-        }
-	}
 }
 
 void GameObject::preRender()
@@ -170,11 +154,12 @@ bool GameObject::cleanUp()
     for (Component* component : m_components)
     {
         component->cleanUp();
+        delete component;
     }
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        child->cleanUp();
-    }
-	return true;
+    m_components.clear();
+
+    delete m_transform;
+
+    return true;
 }
 #pragma endregion

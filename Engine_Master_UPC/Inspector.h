@@ -10,9 +10,6 @@ public:
 	Inspector();
 	const char* getWindowName() const override { return "Inspector"; }
 	void		render() override;
-	void		setSelectedGameObject(GameObject* gameObject);
 
-private:
-	GameObject* m_selectedGameObject;
 };
 
