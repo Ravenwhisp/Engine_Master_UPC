@@ -23,7 +23,6 @@ using namespace std;
 
 Logger* logger = nullptr;
 
-// In the future this will be also a EditorWindow
 void mainMenuBar()
 {
     if (ImGui::BeginMainMenuBar())
@@ -164,6 +163,11 @@ bool EditorModule::init()
 
 void EditorModule::update()
 {
+    if (app->getEditorModule()->getSceneEditor()->isFocused())
+    {
+        handleKeyboardShortcuts();
+    }
+
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
     {
         (*it)->update();
@@ -222,4 +226,68 @@ bool EditorModule::cleanUp()
     m_performanceWindow = nullptr;
 
     return true;
+}
+
+
+void EditorModule::setSceneTool(SCENE_TOOL newTool) {
+    if (currentSceneTool == newTool) {
+        toggleGizmoMode();
+        return;
+    }
+
+    currentSceneTool = newTool;
+}
+
+void EditorModule::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode) {
+    if (previousSceneTool == NONE) {
+        previousSceneTool = currentSceneTool;
+        currentSceneTool = sceneTool;
+        currentNavigationMode = navigationMode;
+    }
+}
+
+void EditorModule::resetMode() {
+    if (previousSceneTool != NONE) {
+        currentSceneTool = previousSceneTool;
+        previousSceneTool = NONE;
+    }
+    currentNavigationMode = PAN;
+}
+
+void EditorModule::handleKeyboardShortcuts() {
+    Keyboard::State keyboardState = Keyboard::Get().GetState();
+    Mouse::State mouseState = Mouse::Get().GetState();
+
+    DirectX::Mouse::ButtonStateTracker buttonStateTracker;
+    buttonStateTracker.Update(mouseState);
+
+    if (mouseState.rightButton) {
+        setMode(NAVIGATION, FREE_LOOK);
+    }
+    else if (mouseState.leftButton && (keyboardState.LeftAlt || keyboardState.RightAlt)) {
+        setMode(NAVIGATION, ORBIT);
+    }
+    else if (mouseState.middleButton) {
+        setMode(NAVIGATION, PAN);
+    }
+    else if (!mouseState.leftButton) {
+        resetMode();
+        handleQWERTYCases(keyboardState);
+    }
+}
+
+void EditorModule::handleQWERTYCases(Keyboard::State keyboardState) {
+    static Keyboard::KeyboardStateTracker keyTracker;
+    keyTracker.Update(keyboardState);
+
+    if (keyTracker.pressed.W) setSceneTool(MOVE);
+    if (keyTracker.pressed.E) setSceneTool(ROTATE);
+    if (keyTracker.pressed.R) setSceneTool(SCALE);
+    if (keyTracker.pressed.T) setSceneTool(RECT);
+    if (keyTracker.pressed.Y) setSceneTool(TRANSFORM);
+
+    if (keyTracker.pressed.Q) {
+        currentSceneTool = NAVIGATION;
+        currentNavigationMode = PAN;
+    }
 }
