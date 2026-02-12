@@ -24,6 +24,10 @@ public:
 	void markDirty();
 	bool isDirty() { return m_dirty; }
 
+	Vector3 getForward() const;
+	Vector3 getRight() const;
+	Vector3 getUp() const;
+
 #pragma region Hierarchy Scene
 	Transform* getRoot() const { return m_root; }
 	const std::vector<GameObject*>& getAllChildren() const { return m_children; }
