@@ -152,6 +152,9 @@
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
+    <ClCompile Include="PlayerWalk.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -333,6 +336,9 @@
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h" />
+    <ClInclude Include="PlayerWalk.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
