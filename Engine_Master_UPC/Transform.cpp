@@ -21,6 +21,7 @@ const Matrix& Transform::getGlobalMatrix() const
     {
         calculateMatrix();
         m_dirty = false;
+        m_owner->onTransformChange();
     }
     return m_globalMatrix;
 }

@@ -48,6 +48,8 @@ public:
 
 	void drawUI();
 
+	void onTransformChange();
+
 private:
 	int m_uuid;
 	std::string m_name;

@@ -4,6 +4,7 @@
 #include "BasicModel.h"
 #include "Light.h"
 #include "PlayerWalk.h"
+#include "CameraComponent.h"
 
 GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -37,6 +38,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::PLAYER_WALK:
             m_components.push_back(new PlayerWalk(rand(), this));
             break;
+
+        case ComponentType::CAMERA:
+            m_components.push_back(new CameraComponent(rand(), this));
         case ComponentType::COUNT:
             return false;
             break;
@@ -259,6 +263,14 @@ void GameObject::drawUI()
         ImGui::EndCombo();
     }
 #pragma endregion
+}
+
+void GameObject::onTransformChange()
+{
+    for (int i = 0; i < m_components.size(); i++)
+    {
+        m_components.at(i)->onTransformChange();
+    }
 }
 
 #pragma endregion
