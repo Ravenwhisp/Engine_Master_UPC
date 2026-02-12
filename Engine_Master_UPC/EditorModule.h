@@ -19,7 +19,7 @@ class EditorModule: public Module
 {
 public:
 	EditorModule();
-	~EditorModule();
+	~EditorModule() {}
 
 	bool postInit();
 	void update() override;
