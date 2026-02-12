@@ -19,15 +19,13 @@ public:
     void        render() override;
     bool        resize(ImVec2 contentRegion);
 
-    void setSelectedGameObject(GameObject* gameObject) { m_selectedGameObject = gameObject; }
-
     ImGuizmo::OPERATION getCurrentOperation() const { return m_currentGizmoOperation; }
     ImGuizmo::MODE      getCurrentMode() const { return m_currentGizmoMode; }
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
-private:
 
+private:
     CameraCommand* createMovementCommand(CameraCommand::Type type, Keyboard::Keys key, const Vector3& direction);
     void bindCameraCommands();
 
@@ -35,7 +33,6 @@ private:
     CameraModule*                   m_camera;
     InputModule*                    m_input;
     std::vector<CameraCommand*>     m_cameraCommands;
-    GameObject*                     m_selectedGameObject;
     Quadtree*					    m_quadtree;
 
     bool m_showGrid = true;

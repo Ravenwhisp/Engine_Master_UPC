@@ -1,11 +1,11 @@
 #include "Globals.h"
 #include "Hierarchy.h"
-#include "GameObject.h"
 
 #include "Application.h"
-#include "RenderModule.h"
-#include "SceneModule.h"
 #include "EditorModule.h"
+#include "SceneModule.h"
+
+#include "GameObject.h"
 
 Hierarchy::Hierarchy()
 {
@@ -21,10 +21,13 @@ void Hierarchy::render()
 		return;
 	}
 
-	//Add gameObjects / filter by name
-	if (ImGui::Button("+")) 
+	if (ImGui::Button("New game object"))
 	{
 		addGameObject();
+	}
+	if (ImGui::Button("Remove game object"))
+	{
+		removeGameObject();
 	}
 
 	ImGui::Separator();
@@ -52,8 +55,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
-		for (auto& event : m_onSelectedGameObject)
-			event(gameObject);
+		app->getEditorModule()->setSelectedGameObject(gameObject);
 	}
 
 	// --- Drag source ---
@@ -110,7 +112,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->DetachGameObject(child);
+		app->getSceneModule()->detachGameObject(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -121,8 +123,10 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->AddGameObject(child);
+		app->getSceneModule()->addGameObject(child);
 	}
+
+	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
 }
 
 
@@ -153,5 +157,18 @@ void Hierarchy::createTreeNode()
 
 void Hierarchy::addGameObject()
 {
-	app->getSceneModule()->CreateGameObject();
+	app->getSceneModule()->createGameObject();
 }
+
+void Hierarchy::removeGameObject()
+{
+	GameObject* selected = app->getEditorModule()->getSelectedGameObject();
+
+	if (selected)
+	{
+		int id = selected->GetID();
+		app->getEditorModule()->setSelectedGameObject(nullptr);
+		app->getSceneModule()->removeGameObject(id);
+	}
+}
+
