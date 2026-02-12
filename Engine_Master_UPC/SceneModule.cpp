@@ -28,6 +28,7 @@ void SceneModule::update()
     {
         if (gameObject->GetActive())
         {
+
             gameObject->update();
 		}
 	}
@@ -50,6 +51,12 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     {
         if (gameObject->GetActive())
         {
+            /// Quatree TEST
+            if (gameObject->GetTransform()->isDirty())
+            {
+                m_quadtree->move(*gameObject);
+            }
+            ///
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
     }

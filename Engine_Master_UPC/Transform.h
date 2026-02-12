@@ -22,6 +22,7 @@ public:
 	void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
 	void markDirty();
+	bool isDirty() { return m_dirty; }
 
 #pragma region Hierarchy Scene
 	Transform* getRoot() const { return m_root; }

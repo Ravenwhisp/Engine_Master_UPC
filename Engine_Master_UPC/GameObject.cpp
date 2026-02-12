@@ -115,7 +115,7 @@ void GameObject::update() {
     {
         if (child->GetActive())
         {
-        child->update();
+            child->update();
         }
 	}
 }

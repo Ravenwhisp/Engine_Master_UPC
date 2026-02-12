@@ -102,7 +102,6 @@ void SceneEditor::render()
         }
     }
 
-
     m_isViewportHovered = ImGui::IsWindowHovered();
     m_isViewportFocused = ImGui::IsWindowFocused();
 
