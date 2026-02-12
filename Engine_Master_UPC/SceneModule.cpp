@@ -61,6 +61,12 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     {
         if (gameObject->GetActive())
         {
+            /// Quatree TEST
+            if (gameObject->GetTransform()->isDirty())
+            {
+                m_quadtree->move(*gameObject);
+            }
+            ///
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
     }
@@ -111,16 +117,18 @@ void SceneModule::removeGameObject(int uuid)
         }
 
         target = findInHierarchy(root, uuid);
-        if (target)
+        if (target) 
+        {
             break;
+        }
+
     }
 
     if (!target)
         return;
 
+    m_quadtree->remove(*target);
     destroyHierarchy(target);
-
-
 }
 
 void SceneModule::addGameObject(GameObject* gameObject) {
