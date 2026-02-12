@@ -175,7 +175,6 @@ void EditorModule::preRender()
     m_gui->startFrame();
     ImGuizmo::BeginFrame();
     
-    mainMenuBar();
     mainDockspace(&m_showMainDockspace);
 
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
