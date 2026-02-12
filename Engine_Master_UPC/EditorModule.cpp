@@ -188,7 +188,7 @@ void EditorModule::postRender()
 
 bool EditorModule::cleanUp()
 {
-    //app->getD3D12Module()->waitForGPU(); <- Missing this function probably
+    app->getD3D12Module()->getCommandQueue()->flush();
 
     for (auto window : m_editorWindows)
     {
