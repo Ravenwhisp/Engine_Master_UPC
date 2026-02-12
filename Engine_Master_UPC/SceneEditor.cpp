@@ -20,7 +20,7 @@ SceneEditor::SceneEditor()
     m_input = app->getInputModule();
     auto d3d12Module = app->getD3D12Module();
     m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
-    m_quadtree = &app->getSceneModule()->getQuadtree();
+
     bindCameraCommands();
 }
 
@@ -137,7 +137,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 void SceneEditor::renderQuadtree()
 {
-    std::vector<RectangleData> quadrants = m_quadtree->getQuadrants();
+    std::vector<RectangleData> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
     for (const auto& rect : quadrants)
     {
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);
