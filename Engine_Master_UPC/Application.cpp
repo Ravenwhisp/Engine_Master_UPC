@@ -12,6 +12,8 @@
 #include "PerformanceProfiler.h"
 #include <thread>
 
+#include "Settings.h"
+
 using namespace std::chrono;
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
@@ -27,6 +29,8 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_renderModule = new RenderModule());
 
     modules.push_back(m_timeModule = new TimeModule(120));
+
+    m_settings = new Settings();
 }
 
 Application::~Application()

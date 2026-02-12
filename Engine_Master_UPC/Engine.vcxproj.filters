@@ -152,6 +152,9 @@
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
+    <ClCompile Include="EditorSettings.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -333,6 +336,12 @@
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h" />
+    <ClInclude Include="Settings.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorSettings.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

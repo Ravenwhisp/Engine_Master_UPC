@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Globals.h"
 
 #include <array>
@@ -19,10 +18,11 @@ class TimeModule;
 class RenderModule;
 class SceneModule;
 
+class Settings;
+
 class Application
 {
 public:
-
 	Application(int argc, wchar_t** argv, void* hWnd);
 	~Application();
 
@@ -41,6 +41,8 @@ public:
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
 
+    Settings*                   getSettings() { return m_settings; }
+
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
 private:
@@ -55,6 +57,8 @@ private:
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
+
+    Settings*               m_settings = nullptr;
 
     bool m_paused = false;
 

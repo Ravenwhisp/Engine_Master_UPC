@@ -48,5 +48,5 @@ private:
 
 	std::vector<GameObject*>	m_gameObjects;
 	SceneData					m_sceneData;
-	Quadtree* m_quadtree;
+	Quadtree*					m_quadtree;
 };
