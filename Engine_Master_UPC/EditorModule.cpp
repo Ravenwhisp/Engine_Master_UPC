@@ -15,6 +15,9 @@
 #include "Hierarchy.h"
 #include "Inspector.h"
 
+#include "Application.h"
+#include "SceneModule.h"
+
 using namespace std;
 
 Logger* logger = nullptr;
@@ -87,7 +90,9 @@ void EditorModule::mainDockspace(bool* p_open)
     if (m_firstFrame) 
     {
         for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+        {
             (*it)->render();
+        }
 
         setupDockLayout(dockspace_id);
         style();
@@ -128,7 +133,7 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderFinish(dockspace_id);
 }
 
-EditorModule::EditorModule()
+EditorModule::EditorModule() : m_selectedGameObject(nullptr)
 {
     //_console = Console();
     m_editorWindows.push_back(m_logger = new Logger());
@@ -136,20 +141,18 @@ EditorModule::EditorModule()
     m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
 }
 
-bool EditorModule::postInit()
+bool EditorModule::init()
 {
 	D3D12Module* _d3d12 = app->getD3D12Module();
     m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
         app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), 
         app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));    
-    SceneEditor* scene = new SceneEditor();
-    m_sceneView = scene;
-    m_editorWindows.push_back(scene);
+
+    m_sceneEditor = new SceneEditor();
+    m_editorWindows.push_back(m_sceneEditor);
     
     Hierarchy* hierarchy = new Hierarchy();
     Inspector* inspector = new Inspector();
-    hierarchy->setOnSelectedGameObject([inspector](GameObject* g) { inspector->setSelectedGameObject(g); });
-    hierarchy->setOnSelectedGameObject([scene](GameObject* g) { scene->setSelectedGameObject(g); });
 
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
@@ -160,7 +163,9 @@ bool EditorModule::postInit()
 void EditorModule::update()
 {
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+    {
         (*it)->update();
+    }
 }
 
 void EditorModule::preRender()
@@ -171,7 +176,9 @@ void EditorModule::preRender()
     mainDockspace(&m_showMainDockspace);
 
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+    {
         (*it)->render();
+    }
 
     ImGui::EndFrame();
 }
@@ -207,7 +214,7 @@ bool EditorModule::cleanUp()
     delete m_debugDrawPass;
     m_debugDrawPass = nullptr;
 
-    m_sceneView = nullptr;
+    m_sceneEditor = nullptr;
     m_logger = nullptr;
     m_hardwareWindow = nullptr;
     m_performanceWindow = nullptr;

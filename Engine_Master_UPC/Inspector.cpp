@@ -1,8 +1,10 @@
 #include "Globals.h"
 #include "Inspector.h"
+#include "Application.h";
+#include "EditorModule.h"
 #include "GameObject.h"
 
-Inspector::Inspector() : m_selectedGameObject(nullptr)
+Inspector::Inspector()
 {
 
 }
@@ -16,15 +18,10 @@ void Inspector::render()
         return;
     }
 
-
-    if (m_selectedGameObject) {
-        m_selectedGameObject->drawUI();
+    GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
+    if (selectedGameObject) {
+        selectedGameObject->drawUI();
     }
 
     ImGui::End();
-}
-
-void Inspector::setSelectedGameObject(GameObject* gameObject)
-{
-    m_selectedGameObject = gameObject;
 }

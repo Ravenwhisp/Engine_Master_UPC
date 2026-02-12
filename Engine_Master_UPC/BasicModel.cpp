@@ -33,6 +33,9 @@ BasicModel::~BasicModel()
 }
 void BasicModel::load(const char* fileName, const char* basePath)
 {
+    m_modelPath = fileName;
+    m_basePath = basePath;
+
 	tinygltf::TinyGLTF gltfContext;
 	tinygltf::Model model;
 	std::string error, warning;
@@ -100,10 +103,65 @@ bool BasicModel::cleanUp()
 }
 #pragma endregion
 
-void BasicModel::drawUi() {
-    if (!ImGui::CollapsingHeader("Basic Model"))
+void BasicModel::drawUi()
+{
+    ImGui::Separator();
+
+    // --- Path fields ---
+    char modelBuffer[256];
+    std::strncpy(modelBuffer, m_modelPath.c_str(), sizeof(modelBuffer));
+    modelBuffer[sizeof(modelBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("Model Path", modelBuffer, sizeof(modelBuffer)))
+        m_modelPath = modelBuffer;
+
+    char baseBuffer[256];
+    std::strncpy(baseBuffer, m_basePath.c_str(), sizeof(baseBuffer));
+    baseBuffer[sizeof(baseBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("Base Path", baseBuffer, sizeof(baseBuffer)))
+        m_basePath = baseBuffer;
+
+    ImGui::Spacing();
+
+    // --- Buttons ---
+    if (ImGui::Button("Load"))
     {
-        return;
+        // limpiar anterior
+        for (auto mesh : m_meshes)
+            delete mesh;
+        m_meshes.clear();
+
+        for (auto material : m_materials)
+            delete material;
+        m_materials.clear();
+
+        if (!m_modelPath.empty())
+            load(m_modelPath.c_str(), m_basePath.c_str());
     }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Reload"))
+    {
+        if (!m_modelPath.empty())
+        {
+            for (auto mesh : m_meshes)
+                delete mesh;
+            m_meshes.clear();
+
+            for (auto material : m_materials)
+                delete material;
+            m_materials.clear();
+
+            load(m_modelPath.c_str(), m_basePath.c_str());
+        }
+    }
+
+    ImGui::Separator();
+
+    // --- Info ---
+    ImGui::Text("Meshes: %d", (int)m_meshes.size());
+    ImGui::Text("Materials: %d", (int)m_materials.size());
 }
 
