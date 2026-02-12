@@ -45,6 +45,9 @@ public:
 
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
+
+
+    uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
 private:
 
     std::vector<Module*>    modules;
@@ -62,6 +65,9 @@ private:
 
     bool m_paused = false;
 
+
+    uint64_t m_lastMilis = 0;
+    uint64_t m_elapsedMilis = 0;
 };
 
 extern Application* app;

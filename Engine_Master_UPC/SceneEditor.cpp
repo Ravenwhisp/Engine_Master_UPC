@@ -6,12 +6,11 @@
 #include "Application.h"
 #include "D3D12Module.h"
 #include "EditorModule.h"
+#include "CameraModule.h"
 
-#include "InputModule.h"
-
-#include "TimeModule.h"
 #include "RenderModule.h"
 #include "SceneModule.h"
+#include "EditorToolbar.h"
 
 #include "Settings.h"
 
@@ -25,23 +24,22 @@ SceneEditor::SceneEditor()
     m_inputModule = app->getInputModule();
 
     m_settings = app->getSettings();
+
+    m_editorToolbar = new EditorToolbar();
+
     auto d3d12Module = app->getD3D12Module();
 
     m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
+}
 
-    bindCameraCommands();
+SceneEditor::~SceneEditor()
+{
+    delete m_editorToolbar;
 }
 
 void SceneEditor::update()
 {
-    if (!isFocused()) return;
 
-    // Execute all camera commands
-    float deltaTime = app->getTimeModule()->deltaTime();
-    for (const auto& command : m_cameraCommands) 
-    {
-        command->Execute(m_cameraModule, deltaTime);
-    }
 }
 
 void SceneEditor::render()
@@ -51,6 +49,11 @@ void SceneEditor::render()
         ImGui::End();
         return;
     }
+
+    float toolbarWidth = ImGui::GetContentRegionAvail().x;
+    m_editorToolbar->DrawCentered(toolbarWidth);
+    ImGui::NewLine();
+    ImGui::Separator();
 
     ImVec2 windowPos = ImGui::GetWindowPos();
     m_windowX = windowPos.x;
@@ -77,38 +80,39 @@ void SceneEditor::render()
     ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
     ImGuizmo::Enable(true);
 
-    if (ImGui::IsKeyPressed(ImGuiKey_T)) 
-    {
-        m_currentGizmoOperation = ImGuizmo::TRANSLATE;
-
-    }
-    else if (ImGui::IsKeyPressed(ImGuiKey_E)) 
-    {
-        m_currentGizmoOperation = ImGuizmo::ROTATE;
-    }
-    else if (ImGui::IsKeyPressed(ImGuiKey_R))
-    {
-        m_currentGizmoOperation = ImGuizmo::SCALE;
-    }
-
     GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
-    if (m_settings->sceneEditor.showGuizmo && selectedGameObject && m_cameraModule)
+    if (selectedGameObject && m_cameraModule)
     {
-        Transform* transform = selectedGameObject->GetTransform();
+        ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
+        bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
 
-        Matrix worldMatrix = transform->getGlobalMatrix();
+        EditorModule::SCENE_TOOL currentMode = app->getEditorModule()->getCurrentSceneTool();
+        switch (currentMode) {
+        case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
+        case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
+        case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
+        case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
+        default: shouldShowGizmo = false; break;
+        }
 
-        ImGuizmo::Manipulate(
-            (float*)&m_cameraModule->getViewMatrix(),
-            (float*)&m_cameraModule->getProjectionMatrix(),
-            m_currentGizmoOperation,
-            m_currentGizmoMode,
-            (float*)&worldMatrix
-        );
+        if (shouldShowGizmo) {
+            Transform* transform = selectedGameObject->GetTransform();
+            Matrix worldMatrix = transform->getGlobalMatrix();
 
-        if (ImGuizmo::IsUsing())
-        {
-            transform->setFromGlobalMatrix(worldMatrix);
+            ImGuizmo::MODE gizmoMode = app->getEditorModule()->isGizmoLocal() ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+
+            ImGuizmo::Manipulate(
+                (float*)&m_cameraModule->getView(),
+                (float*)&m_cameraModule->getProjection(),
+                op,
+                gizmoMode,
+                (float*)&worldMatrix
+            );
+
+            if (ImGuizmo::IsUsing())
+            {
+                transform->setFromGlobalMatrix(worldMatrix);
+            }
         }
     }
 
@@ -145,7 +149,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         renderQuadtree();
     }
 
-    m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_cameraModule->getViewMatrix(), m_cameraModule->getProjectionMatrix());
+    m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_cameraModule->getView(), m_cameraModule->getProjection());
 }
 
 void SceneEditor::renderQuadtree()
@@ -158,94 +162,4 @@ void SceneEditor::renderQuadtree()
 
         dd::box(ddConvert(center), dd::colors::Red, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);
 	}
-}
-
-
-
-CameraCommand* SceneEditor::createMovementCommand(CameraCommand::Type type, Keyboard::Keys key, const Vector3& direction)
-{
-    CameraCommand* command = new CameraCommand(
-        type,
-        [this, key]() {
-            return m_inputModule->isRightMouseDown() && m_inputModule->isKeyDown(key);
-        },
-        [this, direction](CameraModule* camera, float deltaTime) {
-            float speed = camera->getSpeed() * deltaTime;
-            if (m_inputModule->isKeyDown(Keyboard::LeftShift)) {
-                speed *= 2.0f;
-            }
-            Vector3 moveDir = direction.x * camera->getRight() + direction.y * camera->getUp() + direction.z * camera->getForward();
-            camera->move(moveDir * speed);
-        }
-    );
-    return command;
-}
-
-void SceneEditor::bindCameraCommands()
-{
-    m_cameraCommands.clear();
-
-    m_cameraCommands.emplace_back(createMovementCommand(CameraCommand::MOVE_FORWARD, Keyboard::W, Vector3(0, 0, 1)));
-    m_cameraCommands.emplace_back(createMovementCommand(CameraCommand::MOVE_BACKWARD, Keyboard::S, Vector3(0, 0, -1)));
-    m_cameraCommands.emplace_back(createMovementCommand(CameraCommand::MOVE_LEFT, Keyboard::A, Vector3(-1, 0, 0)));
-    m_cameraCommands.emplace_back(createMovementCommand(CameraCommand::MOVE_RIGHT, Keyboard::D, Vector3(1, 0, 0)));
-    m_cameraCommands.emplace_back(createMovementCommand(CameraCommand::MOVE_UP, Keyboard::Q, Vector3(0, 1, 0)));
-    m_cameraCommands.emplace_back(createMovementCommand(CameraCommand::MOVE_DOWN, Keyboard::E, Vector3(0, -1, 0)));
-
-
-    m_cameraCommands.emplace_back(new CameraCommand(
-        CameraCommand::ZOOM,
-        [this]() {
-            return true;
-        },
-        [this](CameraModule* camera, float deltaTime) {
-            float wheel = 0.0f;
-            m_inputModule->getMouseWheel(wheel);
-            float zoomAmount = wheel * camera->getSpeed() * deltaTime;
-            camera->zoom(zoomAmount);
-        }));
-
-
-    m_cameraCommands.emplace_back(new CameraCommand(
-        CameraCommand::FOCUS,
-        [this]() {
-            return m_inputModule->isKeyDown(Keyboard::F);
-        },
-        [this](CameraModule* camera, float deltaTime) {
-            GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
-            if (selectedGameObject) {
-				const DirectX::SimpleMath::Vector3 objPos = *selectedGameObject->GetTransform()->getPosition();
-                camera->focus(camera->getPosition(), objPos);
-            }
-        }));
-    
-
-    m_cameraCommands.emplace_back(new CameraCommand(
-        CameraCommand::ORBIT,
-        [this]() {
-            return m_inputModule->isKeyDown(Keyboard::LeftAlt) && m_inputModule->isLeftMouseDown();
-        },
-        [this](CameraModule* camera, float deltaTime) {
-            float deltaX = 0.0f, deltaY = 0.0f;
-            m_inputModule->getMouseDelta(deltaX, deltaY);
-
-            Quaternion yaw = Quaternion::CreateFromAxisAngle(camera->getUp(), -deltaX * camera->getSensitivity());
-            Quaternion pitch = Quaternion::CreateFromAxisAngle(camera->getRight(), -deltaY * camera->getSensitivity());
-            camera->orbit(yaw * pitch, camera->getTarget());
-        }));
-
-
-    m_cameraCommands.emplace_back(new CameraCommand(
-        CameraCommand::LOOK,
-        [this]() {
-            return m_inputModule->isRightMouseDown() && !m_inputModule->isKeyDown(Keyboard::LeftAlt);
-        },
-        [this](CameraModule* camera, float deltaTime) {
-            float deltaX = 0.0f, deltaY = 0.0f;
-            m_inputModule->getMouseDelta(deltaX, deltaY);
-
-            Quaternion yaw = Quaternion::CreateFromAxisAngle(camera->getUp(), deltaX * camera->getSensitivity());
-            Quaternion pitch = Quaternion::CreateFromAxisAngle(camera->getRight(), deltaY * camera->getSensitivity());
-            camera->rotate(yaw * pitch);
-        }));
 }

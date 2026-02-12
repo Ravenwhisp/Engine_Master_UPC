@@ -13,9 +13,9 @@ public:
 	Matrix getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
-	const Vector3* getPosition() { return &m_position; }
-	const Quaternion* getRotation() { return &m_rotation; }
-	const Vector3* getScale() { return &m_scale; }
+	const Vector3& getPosition() { return m_position; }
+	const Quaternion& getRotation() { return m_rotation; }
+	const Vector3& getScale() { return m_scale; }
 
 	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
 	void setRotation(const Quaternion& newRotation);
