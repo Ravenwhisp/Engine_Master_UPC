@@ -151,6 +151,12 @@
     <ClCompile Include="Transform.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadNode.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="EditorSettings.cpp">
       <Filter>Editor\EditorWindows</Filter>
@@ -335,6 +341,12 @@
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadNode.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="Settings.h">
       <Filter>Core</Filter>
@@ -447,6 +459,9 @@
     </Filter>
     <Filter Include="D3D12\Geometry\BasicModel\BasicMaterial">
       <UniqueIdentifier>{05bfdc35-fb58-495a-a789-0cea859d7795}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DataStructure">
+      <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

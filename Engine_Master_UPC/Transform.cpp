@@ -115,9 +115,13 @@ void Transform::calculateMatrix() const
         Matrix::CreateTranslation(m_position);
 
     if (m_root)
+    {
         m_globalMatrix = local * m_root->getGlobalMatrix();
+    }
     else
+    {
         m_globalMatrix = local;
+    }
 }
 
 void Transform::removeChild(int id)

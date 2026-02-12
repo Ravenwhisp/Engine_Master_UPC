@@ -193,6 +193,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Layer.h" />
+    <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="SceneModule.h" />
     <ClInclude Include="GamePad.h" />
@@ -312,6 +313,7 @@
     <ClCompile Include="EditorSettings.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SceneModule.cpp" />
     <ClCompile Include="GamePad.cpp">
