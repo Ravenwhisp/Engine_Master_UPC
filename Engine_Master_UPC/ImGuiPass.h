@@ -1,6 +1,5 @@
 #pragma once
-
-class DescriptorHeap;
+#include "DescriptorHeap.h"
 
 class ImGuiPass
 {
@@ -14,4 +13,8 @@ public:
 
     void startFrame();
     void record(ID3D12GraphicsCommandList* commandList);
+
+private:
+    ID3D12DescriptorHeap* m_srvHeap = nullptr;
+    DescriptorHandle      m_fontDescriptor{};
 };
