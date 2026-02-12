@@ -3,6 +3,7 @@
 
 #include "BasicModel.h"
 #include "Light.h"
+#include "PlayerWalk.h"
 
 GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -12,6 +13,10 @@ GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 	BasicModel* currModel = new BasicModel(rand(), this);
     m_components.push_back(currModel);
 	currModel->init();
+
+    //Test character Component
+    PlayerWalk* playerWalk = new PlayerWalk(rand(), this);
+    m_components.push_back(playerWalk);
     //////////////
 }
 
