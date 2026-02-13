@@ -90,7 +90,7 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
             modelData.normalMat = transform->getNormalMatrix();
 
             commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
-            commandList->SetGraphicsRootDescriptorTable(3, m_materials[materialIndex]->getTexture()->getSRV().gpu);
+            commandList->SetGraphicsRootDescriptorTable(4, m_materials[materialIndex]->getTexture()->getSRV().gpu);
 
             mesh->draw(commandList);
         }

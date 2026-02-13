@@ -2,16 +2,18 @@
 #include "Module.h"
 #include "GameObject.h"
 #include "Quadtree.h"
+#include "Lights.h"
 
-struct SceneData {
-	Vector3 lightDirection;
-	float pad0;
-	Vector3 lightColor;
-	float pad1;
-	Vector3 ambientColor;
-	float pad2;
-	Vector3 view;
-	float pad3;
+struct SceneDataCB
+{
+	Vector3 viewPos;
+	float pad0 = 0.0f;
+};
+
+struct SceneLightingSettings
+{
+	Vector3 ambientColor;;
+	float ambientIntensity;;
 };
 
 class SceneModule : public Module
@@ -37,16 +39,20 @@ public:
 	GameObject* findInHierarchy(GameObject* current, int uuid);
 	void destroyHierarchy(GameObject* obj);
 
+	GameObject* createDirectionalLightOnInit();
+
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
-	SceneData& getData() { return m_sceneData; }
+	SceneLightingSettings& GetLightingSettings() { return m_lighting; }
+	SceneDataCB& getCBData() { return m_sceneDataCB; }
 
 	Quadtree& getQuadtree() { return *m_quadtree; }
 private:
 	std::string m_name = "SampleScene";
 
 	std::vector<GameObject*>	m_gameObjects;
-	SceneData					m_sceneData;
+	SceneLightingSettings		m_lighting;
 	Quadtree*					m_quadtree;
+	SceneDataCB					m_sceneDataCB;
 };
