@@ -75,6 +75,7 @@ void QuadNode::subdivide()
 void QuadNode::insertToChildren(GameObject& object)
 {
     auto model = object.GetComponent<BasicModel>();
+    if (!model) return;
 
     for (auto& child : m_children)
     {
@@ -162,7 +163,7 @@ bool QuadNode::intersects(const Frustum& frustum, const BoundingRect& rectangle,
     return true;
 }
 
-void QuadNode::gatherObjects(Frustum& frustum, std::vector<GameObject*>& out) const
+void QuadNode::gatherObjects(const Frustum& frustum, std::vector<GameObject*>& out) const
 {
     if (!intersects(frustum, m_bounds)) { return; }
 

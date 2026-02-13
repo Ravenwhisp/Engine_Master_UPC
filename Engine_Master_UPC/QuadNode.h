@@ -66,7 +66,7 @@ public:
 	void insert(GameObject& object);
 	void remove(GameObject& object);
 
-	void gatherObjects(Frustum& frustum, std::vector<GameObject*>& out) const;
+	void gatherObjects(const Frustum& frustum, std::vector<GameObject*>& out) const;
 
 	void gatherRectangles(std::vector<BoundingRect>& out) const;
 

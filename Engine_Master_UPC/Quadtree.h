@@ -15,7 +15,7 @@ public:
 	void remove(GameObject& object);
 	void move(GameObject& object);
 
-	std::vector<GameObject*> getObjects(Frustum& frustum) const;
+	std::vector<GameObject*> getObjects(const Frustum& frustum) const;
 	std::vector<BoundingRect> getQuadrants() const;
 private:
 	friend class QuadNode;

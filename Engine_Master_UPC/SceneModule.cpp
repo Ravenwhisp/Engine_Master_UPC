@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "SceneModule.h"
+#include <CameraComponent.h>
 
 using namespace DirectX::SimpleMath;
 
@@ -11,6 +12,11 @@ bool SceneModule::init()
     m_sceneData.ambientColor = Vector3(0.2f, 0.2f, 0.2f);
     m_sceneData.view = Vector3(0.0f, 0.0f, -5.0f);
 
+    /// PROVISIONAL
+    GameObject* gameObject = new GameObject(rand());
+    gameObject->AddComponent(ComponentType::CAMERA);
+    m_gameObjects.push_back(gameObject);
+
     for (GameObject* gameObject : m_gameObjects)
     {
         gameObject->init();
@@ -18,6 +24,8 @@ bool SceneModule::init()
 
     auto rectangle = BoundingRect(0, 0, 10, 10);
     m_quadtree = new Quadtree(rectangle);
+
+
 
     return true;
 }
@@ -57,7 +65,6 @@ void SceneModule::preRender()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
-
     for (GameObject* gameObject : m_gameObjects)
     {
         if (gameObject->GetActive())
@@ -68,6 +75,24 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
                 m_quadtree->move(*gameObject);
             }
             ///
+        }
+    }
+
+    /// PROVISIONAL
+    CameraComponent* camera { nullptr };
+    for (GameObject* gameObject : m_gameObjects)
+    {
+        camera = gameObject->GetComponent<CameraComponent>();
+        if (camera) break;
+    }
+
+    if (camera) 
+    {
+        camera->render(commandList, viewMatrix, projectionMatrix);
+
+        auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
+        for (GameObject* gameObject : gameObjects)
+        {
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
     }
