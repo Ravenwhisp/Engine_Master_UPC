@@ -26,11 +26,12 @@ void Quadtree::remove(GameObject& object)
 
 void Quadtree::move(GameObject& object)
 {
+    // Check if the bounding box is outside the current QuadNode from the GameObject
     remove(object);
     insert(object);
 }
 
-std::vector<GameObject*> Quadtree::getObjects(Frustum& frustum) const
+std::vector<GameObject*> Quadtree::getObjects(const Frustum& frustum) const
 {
     std::vector<GameObject*> result;
     m_root->gatherObjects(frustum, result);

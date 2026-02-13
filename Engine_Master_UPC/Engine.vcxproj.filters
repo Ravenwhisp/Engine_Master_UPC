@@ -151,9 +151,6 @@
     <ClCompile Include="Transform.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Quadtree.cpp">
-      <Filter>DataStructure</Filter>
-    </ClCompile>
     <ClCompile Include="QuadNode.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
@@ -166,6 +163,12 @@
     </ClCompile>
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="Frustum.cpp" />
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -347,9 +350,6 @@
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Quadtree.h">
-      <Filter>DataStructure</Filter>
-    </ClInclude>
     <ClInclude Include="QuadNode.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
@@ -365,6 +365,14 @@
     </ClInclude>
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="AABB.h" />
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="BoundingVolume.h" />
+    <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
