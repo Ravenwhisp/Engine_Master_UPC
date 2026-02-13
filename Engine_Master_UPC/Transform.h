@@ -28,6 +28,8 @@ public:
 	Vector3 getRight() const;
 	Vector3 getUp() const;
 
+	const Vector3& getEulerDegrees() const { return m_eulerDegrees; }
+
 #pragma region Hierarchy Scene
 	Transform* getRoot() const { return m_root; }
 	const std::vector<GameObject*>& getAllChildren() const { return m_children; }
