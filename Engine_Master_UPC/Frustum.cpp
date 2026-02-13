@@ -46,7 +46,8 @@ void Frustum::calculateFrustumVerticesFromFrustum(const Matrix& world, const flo
 	// Transform to world space
 	for (auto& v : points) v = Vector3::Transform(v, world);
 
-	for (unsigned int i = 0; i < 8; i++) {
+	for (unsigned int i = 0; i < 8; i++) 
+	{
 		verts[i] = points[i];
 	}
 }
