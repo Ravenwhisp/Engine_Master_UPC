@@ -1,110 +1,82 @@
 #pragma once
 #include "Module.h"
-#include "InputModule.h"
 
-class CameraModule;
+class InputModule;
+class D3D12Module;
+class EditorModule;
 
-struct CameraCommand {
+class Settings;
 
-	enum Type {
-		MOVE_FORWARD,
-		MOVE_BACKWARD,
-		MOVE_LEFT,
-		MOVE_RIGHT,
-		MOVE_UP,
-		MOVE_DOWN,
-		LOOK,
-		FOCUS,
-		ZOOM,
-		ORBIT,
-		COUNT
-	};
+class CameraModule : public Module {
+private:
+    InputModule* m_inputModule;
+    D3D12Module* m_D3D12Module;
+    EditorModule* m_editorModule;
 
-	using Condition = std::function<bool()>;
-	using Action = std::function<void(CameraModule*, float)>;
+    Settings* m_settings;
 
-	Condition condition;
-	Action action;
-	Type type;
+    // Camera state
+    Vector3 m_position{ 0.0f, 10.0f, 10.0f };
+    Vector3 m_target{ 0.0f, 0.0f, 0.0f };
+    Vector3 m_up = Vector3::Up;
 
-	CameraCommand(const Type type, Condition cond, Action act): type(type), condition(cond), action(act) {}
+    Matrix m_view;
+    Matrix m_projection;
 
-	bool Execute(CameraModule* camera, float deltaTime) const
-	{
-		if (condition && condition())
-		{
-			action(camera, deltaTime);
-			return true;
-		}
-		return false;
-	}
-};
+    // FPS angles (persistentes)
+    float m_yaw = 0.0f;
+    float m_pitch = 0.0f;
 
-class CameraModule: public Module
-{
+    // Orbit distance
+    float m_distanceToTarget = 10.0f;
+
+    // --------- Tunables (UI) ----------
+    // General
+    float m_fovY = XM_PIDIV4;
+    float m_nearPlane = 0.1f;
+    float m_farPlane = 1000.0f;
+
+    // Mouse state per-mode
+    bool m_panFirst = true;
+    int  m_panLastX = 0, m_panLastY = 0;
+
+    bool m_orbitFirst = true;
+    int  m_orbitLastX = 0, m_orbitLastY = 0;
+
+    bool m_zoomFirst = true;
+    int  m_zoomLastX = 0, m_zoomLastY = 0;
+
+    bool m_flyFirst = true;
+    int  m_flyLastX = 0, m_flyLastY = 0;
+
+    int m_lastWheel = 0;
+    int m_lastNavMode = -999;
+
 public:
-	CameraModule() = default;
-	~CameraModule();
-	bool init();
-	bool postInit();
-	void update();
+    bool init() override;
+    bool postInit() override;
+    void update() override;
 
-	void updateAxes(const Vector3& pos, const Vector3& target);
-
-	void setFOV(const float fov, const float width, const float height);
-	void setAspectRatio(const float width, const float height);
-	void setPlaneDistances(const float near, const float far);
-	void setPosition(const Vector3& position);
-	void setOrientation(const Vector3& orientation);
-	void lookAt(const Vector3& lookAt);
-	void resize(const float width, const float height);
-
-	void calculateProjectionMatrix();
-	void calculateViewMatrix();
-
-	constexpr Matrix&	getProjectionMatrix() { return m_proj; }
-	constexpr Matrix&	getViewMatrix() { return m_view; }
-	constexpr Vector3&	getPosition() { return m_eye; }
-
-	constexpr float		getSpeed() { return m_speed; }
-	constexpr float		getSensitivity() { return m_sensitivity; }
-	constexpr Vector3&	getRight() { return m_right; }
-	constexpr Vector3&	getUp() { return m_up; }
-	constexpr Vector3&	getTarget() { return m_target; }
-	constexpr Vector3&	getForward() { return m_forward; }
-
-
-	//Camera Manipulation
-	void zoom(float amount);
-	void move(const Vector3& translation);
-	void focus(const Vector3& position, const Vector3& target);
-	void rotate(const Quaternion& rotation);
-	void orbit(const Quaternion& rotation, const Vector3& pivot);
+    // --- Getters ---
+    const inline Matrix& getView() const { return m_view; }
+    const inline Matrix& getProjection() const { return m_projection; }
+    const inline Vector3& getPosition() const { return m_position; }
 
 private:
+    // Modes
+    void panMode();
+    void orbitMode();
+    void zoomMode();
+    void flythroughMode(float dt);
 
-	Matrix	m_view = Matrix::Identity;
-	Matrix	m_proj = Matrix::Identity;
+    // Helpers
+    void handleMouseWheel();
+    void handleAutoFocus();
+    void rebuildViewProj();
 
-	Vector3 m_eye = Vector3(0.0f, 10.f,10.f);
-	Vector3 m_target = Vector3::Zero;
-	Vector3 m_up = Vector3::Up;
-
-	Vector3 m_forward = Vector3::Forward;
-	Vector3 m_right = Vector3::Right;
-
-	Quaternion m_rotation = Quaternion::Identity;
-	float m_sensitivity = 0.002f;
-
-	bool m_isDirty = false;
-
-	float m_fovH = XM_PIDIV4;
-	float m_fovV = XM_PIDIV4;
-	float m_aspectRatio = 0;
-	float m_nearPlane = 1.0f;
-	float m_farPlane = 1000.f;
-
-	Vector2* m_size;
-	float m_speed = 3.0f;
+    void syncYawPitchFromLookAt();
+    void syncDistanceFromLookAt();
+    Vector3 getForwardFromYawPitch() const;
+    Vector3 getRightFromForward(const Vector3& fwd) const;
+    void focusOnTarget();
 };
-

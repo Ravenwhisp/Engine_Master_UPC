@@ -23,8 +23,8 @@ public:
     float       getWindowY() const { return m_windowY; }
 
 
-    bool isHovered() { return m_isViewportHovered; }
-    bool isFocused() { return m_isViewportFocused; }
+    bool isHovered() const { return m_isViewportHovered; }
+    bool isFocused() const { return m_isViewportFocused; }
 protected:
     float   m_windowX, m_windowY = 0;
     bool    m_isOpen = true;

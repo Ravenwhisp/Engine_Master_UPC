@@ -76,7 +76,7 @@ void QuadNode::insertToChildren(GameObject& object)
 
     for (auto& child : m_children)
     {
-        if (child->m_bounds.contains(*transform->getPosition()))
+        if (child->m_bounds.contains(transform->getPosition()))
         {
             child->insert(object);
             return;

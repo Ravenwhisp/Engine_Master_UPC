@@ -72,7 +72,7 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
 {
 	const float step = m_moveSpeed * dt;
 
-	Vector3 pos = *transform->getPosition();
+	Vector3 pos = transform->getPosition();
 	pos += direction * step;
 
 	transform->setPosition(pos);

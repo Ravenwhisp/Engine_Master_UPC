@@ -161,6 +161,9 @@
     <ClCompile Include="EditorSettings.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -355,6 +358,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="EditorSettings.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorToolbar.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
     <ClInclude Include="PlayerWalk.h">

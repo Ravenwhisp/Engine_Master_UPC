@@ -25,7 +25,6 @@ bool RenderModule::postInit()
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
-    app->getCameraModule()->setAspectRatio(static_cast<float>(m_size.x), static_cast<float>(m_size.y));
 
     m_ringBuffer = app->getResourcesModule()->createRingBuffer(10);
     return true;
@@ -48,7 +47,6 @@ void RenderModule::preRender()
         m_screenRT->setName(L"ScreenRT");
         m_screenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
         m_screenDS->setName(L"ScreenDS");
-        app->getCameraModule()->resize(newSize.x, newSize.y);
     }
 
     // Transition scene texture to render target
@@ -132,7 +130,10 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneData, sizeof(SceneData), app->getD3D12Module()->getCurrentFrame()));
     commandList->SetGraphicsRootDescriptorTable(4, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
 
-    app->getSceneModule()->render(commandList, app->getCameraModule()->getViewMatrix(), app->getCameraModule()->getProjectionMatrix());
+    Matrix viewMatrix = app->getCameraModule()->getView();
+    Matrix projectionMatrix = app->getCameraModule()->getProjection();
+
+    app->getSceneModule()->render(commandList, viewMatrix, projectionMatrix);
 
     //DebugDrawPass
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
