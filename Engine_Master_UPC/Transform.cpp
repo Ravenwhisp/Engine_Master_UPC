@@ -1,111 +1,203 @@
+#include "Globals.h"
 #include "Transform.h"
+#include "GameObject.h"
+#include <cmath>
 
-const Matrix* Transform::getTransformation()
+Transform::Transform(int id, GameObject* gameObject) :
+    Component(id, ComponentType::TRANSFORM, gameObject),
+    m_dirty(true),
+    m_root(nullptr),
+    m_globalMatrix(Matrix::Identity),
+    m_position(Vector3::Zero),
+    m_rotation(Quaternion::Identity),
+    m_eulerDegrees(Vector3::Zero),
+    m_scale(Vector3(0.01f, 0.01f, 0.01f))
+{
+}
+
+const Matrix& Transform::getGlobalMatrix() const
 {
     if (m_dirty)
     {
         calculateMatrix();
+        m_dirty = false;
     }
-    return &m_transformation;
+    return m_globalMatrix;
 }
 
-const Transform* Transform::findChild(char* name)
+Matrix Transform::getNormalMatrix() const
 {
-    for (size_t i = 0; i < m_children.size(); i++)
+    Matrix model = getGlobalMatrix();
+
+    Matrix normal = model;
+    normal.Translation(Vector3::Zero);
+
+    normal = normal.Invert();
+    normal = normal.Transpose();
+
+    return normal;
+}
+
+void Transform::setFromGlobalMatrix(const Matrix& globalMatrix)
+{
+    Matrix localMatrix = globalMatrix;
+
+    if (m_root)
     {
-        if (m_children[i]->m_gameObject->getName() == name)
-        {
-            return m_children[i];
-        }
+        Matrix parentInv = m_root->getGlobalMatrix().Invert();
+        localMatrix = globalMatrix * parentInv;
     }
-    return nullptr;
-}
 
-const void Transform::setRotation(Quaternion* newRotation)
-{
-    m_rotation = *newRotation;
+    m_globalMatrix = globalMatrix;
 
-    m_dirty = true;
-}
+    Vector3 scale;
+    Quaternion rotation;
+    Vector3 position;
 
-const void Transform::setRotation(Vector3* newRotation)
-{
-    m_rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(newRotation->y), XMConvertToRadians(newRotation->x), XMConvertToRadians(newRotation->z));
-
-    m_dirty = true;
-}
-
-const void Transform::removeChild(Transform* childToRemove)
-{
-    m_children.erase(std::remove_if(m_children.begin(), m_children.end(), [childToRemove](Transform* child)
-        {
-            if (child == childToRemove)
-            {
-                delete child;
-                return true;
-            }
-            return false;
-        }), m_children.end());
-}
-
-const void Transform::translate(Vector3* position)
-{
-    m_position = m_position + *position;
-    m_dirty = true;
-}
-
-const void Transform::rotate(Vector3* eulerAngles)
-{
-    Quaternion rotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(eulerAngles->y), XMConvertToRadians(eulerAngles->x), XMConvertToRadians(eulerAngles->z));
-
-    m_rotation = m_rotation + rotation;
-
-    m_dirty = true;
-
-}
-
-const void Transform::rotate(Quaternion* rotation)
-{
-    m_rotation = m_rotation + *rotation;
-
-    m_dirty = true;
-}
-
-const void Transform::scalate(Vector3* scale)
-{
-    m_scale = m_scale + *scale;
-    m_dirty = true;
-}
-
-const Vector3 Transform::convertQuaternionToEulerAngles(Quaternion* rotation)
-{
-    Quaternion quaternion = *rotation;
-
-    float sinr_cosp = 2.0f * (quaternion.w * quaternion.x + quaternion.y * quaternion.z);
-    float cosr_cosp = 1.0f - 2.0f * (quaternion.x * quaternion.x + quaternion.y * quaternion.y);
-    float roll = std::atan2(sinr_cosp, cosr_cosp);
-
-    float sinp = 2.0f * (quaternion.w * quaternion.y - quaternion.z * quaternion.x);
-    float pitch;
-    if (std::abs(sinp) >= 1)
+    if (localMatrix.Decompose(scale, rotation, position))
     {
-        pitch = std::copysign(DirectX::XM_PI / 2, sinp);
+        m_scale = scale;
+        m_rotation = rotation;
+        m_rotation.Normalize();
+        m_position = position;
+
+        Vector3 eulerRad = m_rotation.ToEuler();
+        m_eulerDegrees = eulerRad * (180.0f / XM_PI);;
+    }
+
+    markDirty();
+}
+
+void Transform::setRotation(const Quaternion& q)
+{
+    m_rotation = q;
+    m_rotation.Normalize();
+
+    Vector3 eulerRad = m_rotation.ToEuler();
+    m_eulerDegrees = eulerRad * (180.0f / XM_PI);
+
+    markDirty();
+}
+
+void Transform::setRotationEuler(const Vector3& eulerDegrees)
+{
+    m_eulerDegrees = eulerDegrees;
+
+    m_eulerDegrees.x = std::fmod(m_eulerDegrees.x, 360.0f);
+    m_eulerDegrees.y = std::fmod(m_eulerDegrees.y, 360.0f);
+    m_eulerDegrees.z = std::fmod(m_eulerDegrees.z, 360.0f);
+
+    m_rotation = Quaternion::CreateFromYawPitchRoll(
+        XMConvertToRadians(m_eulerDegrees.y),
+        XMConvertToRadians(m_eulerDegrees.x),
+        XMConvertToRadians(m_eulerDegrees.z)
+    );
+
+    m_rotation.Normalize();
+    markDirty();
+}
+
+
+void Transform::markDirty()
+{
+    m_dirty = true;
+    for (auto child : m_children)
+    {
+        child->GetTransform()->markDirty();
+    }
+}
+
+Vector3 Transform::getRight() const
+{
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 right(globalMatrix._11, globalMatrix._21, globalMatrix._31);
+    right.Normalize();
+    return right;
+}
+
+Vector3 Transform::getUp() const
+{
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 up(globalMatrix._12, globalMatrix._22, globalMatrix._32);
+    up.Normalize();
+    return up;
+}
+
+Vector3 Transform::getForward() const
+{
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 forward(globalMatrix._13, globalMatrix._23, globalMatrix._33);
+    forward.Normalize();
+    return forward;
+}
+
+void Transform::calculateMatrix() const
+{
+    Matrix local =
+        Matrix::CreateScale(m_scale) *
+        Matrix::CreateFromQuaternion(m_rotation) *
+        Matrix::CreateTranslation(m_position);
+
+    if (m_root)
+    {
+        m_globalMatrix = local * m_root->getGlobalMatrix();
     }
     else
     {
-        pitch = std::asin(sinp);
+        m_globalMatrix = local;
     }
-
-    float siny_cosp = 2.0f * (quaternion.w * quaternion.z + quaternion.x * quaternion.y);
-    float cosy_cosp = 1.0f - 2.0f * (quaternion.y * quaternion.y + quaternion.z * quaternion.z);
-
-    float yaw = std::atan2(siny_cosp, cosy_cosp);
-
-    return Vector3(pitch, roll, yaw);
 }
 
-const void Transform::calculateMatrix()
+void Transform::removeChild(int id)
 {
-    m_transformation = Matrix::CreateScale(m_scale) * Matrix::CreateFromQuaternion(m_rotation) * Matrix::CreateTranslation(m_position);
+    for (auto it = m_children.begin(); it != m_children.end(); ++it)
+    {
+        if ((*it)->GetID() == id)
+        {
+            m_children.erase(it);
+            return;
+        }
+    }
+}
 
+bool Transform::isDescendantOf(const Transform* potentialParent) const
+{
+    const Transform* current = m_root;
+    while (current)
+    {
+        if (current == potentialParent)
+        {
+            return true;
+        }
+        current = current->getRoot();
+    }
+    return false;
+}
+
+void Transform::drawUi()
+{
+    if (ImGui::DragFloat3("Position", &m_position.x, 0.01f))
+    {
+        markDirty();
+    }
+
+    if (ImGui::DragFloat3("Rotation", &m_eulerDegrees.x, 0.1f))
+    {
+        setRotationEuler(m_eulerDegrees);
+    }
+
+    if (ImGui::DragFloat3("Scale", &m_scale.x, 0.01f))
+    {
+        markDirty();
+    }
+
+    if (ImGui::Button("Reset"))
+    {
+        m_position = Vector3::Zero;
+        m_scale = Vector3(1, 1, 1);
+        setRotationEuler(Vector3::Zero);
+    }
 }
