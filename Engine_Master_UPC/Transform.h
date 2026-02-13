@@ -1,47 +1,57 @@
 #pragma once
 #include <vector>
 #include "Component.h"
+#include "SimpleMath.h"
 
-class Transform final : public Component{
+class GameObject;
+
+class Transform final : public Component {
 public:
-	const Vector3* getPosition() { return &m_position; }
-	const Quaternion* getRotation() { return &m_rotation; }
-	const Vector3* getScale() { return &m_scale; }
-	const Transform* getParent() { return m_parent; }
-	const Transform* getChild(int index) { return m_children[index]; }
-	const Matrix* getTransformation();
+	Transform(int id, GameObject* gameObject);
 
+	const Matrix& getGlobalMatrix() const;
+	Matrix getNormalMatrix() const;
+	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
-	const Transform* findChild(char* name);
+	const Vector3& getPosition() { return m_position; }
+	const Quaternion& getRotation() { return m_rotation; }
+	const Vector3& getScale() { return m_scale; }
 
-	const void setPosition(Vector3* newPosition) { m_position = *newPosition; m_dirty = true; }
-	const void setRotation(Quaternion* newRotation);
-	const void setRotation(Vector3* newRotation);
-	const void setScale(Vector3* newScale) { m_scale = *newScale;  m_dirty = true; }
+	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
+	void setRotation(const Quaternion& newRotation);
+	void setRotationEuler(const Vector3& eulerDegrees);
+	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
+	void markDirty();
+	bool isDirty() { return m_dirty; }
 
-	const void setParent(Transform* parent) { m_parent = parent; }
-	const void addChild(Transform* child) { m_children.push_back(child); }
-	const void removeChild(Transform* childToRemove);
+	Vector3 getForward() const;
+	Vector3 getRight() const;
+	Vector3 getUp() const;
 
-	const void translate(Vector3* position);
-	const void rotate(Vector3* eulerAngles);
-	const void rotate(Quaternion* rotation);
-	const void scalate(Vector3* scale);
+#pragma region Hierarchy Scene
+	Transform* getRoot() const { return m_root; }
+	const std::vector<GameObject*>& getAllChildren() const { return m_children; }
 
-	const Vector3 convertQuaternionToEulerAngles(Quaternion* rotation);
+	void setRoot(Transform* root) { m_root = root; }
+	void addChild(GameObject* child) { m_children.push_back(child); }
+	void removeChild(int id);
 
+	bool isDescendantOf(const Transform* potentialParent) const;
+#pragma endregion
+
+	void drawUi() override;
 
 private:
+	mutable Matrix m_globalMatrix;
+	mutable bool m_dirty;
+
 	Vector3 m_position;
 	Quaternion m_rotation;
+	Vector3 m_eulerDegrees;
 	Vector3 m_scale;
-	Matrix m_transformation;
-	bool m_dirty;
 
-	Transform* m_parent;
 	Transform* m_root;
-	std::vector<Transform*> m_children;
+	std::vector<GameObject*> m_children;
 
-	const void calculateMatrix();
-
+	void calculateMatrix() const;
 };
