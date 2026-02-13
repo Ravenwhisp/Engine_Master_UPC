@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
+#include "AABB.h"
 
 namespace tinygltf { class Model; }
 
@@ -27,10 +28,14 @@ public:
 #pragma endregion
 
 	void drawUi() override;
+
+	void onTransformChange() override;
 private:
 	std::vector<BasicMesh*>		m_meshes;
 	std::vector<BasicMaterial*>	m_materials;
 
 	std::string m_modelPath;
 	std::string m_basePath;
+
+	AABB m_aabb = {};
 };

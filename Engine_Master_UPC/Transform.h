@@ -13,9 +13,9 @@ public:
 	Matrix getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
-	const Vector3* getPosition() { return &m_position; }
-	const Quaternion* getRotation() { return &m_rotation; }
-	const Vector3* getScale() { return &m_scale; }
+	const Vector3& getPosition() { return m_position; }
+	const Quaternion& getRotation() { return m_rotation; }
+	const Vector3& getScale() { return m_scale; }
 
 	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
 	void setRotation(const Quaternion& newRotation);
@@ -23,6 +23,12 @@ public:
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
 	void markDirty();
 	bool isDirty() { return m_dirty; }
+
+	Vector3 getForward() const;
+	Vector3 getRight() const;
+	Vector3 getUp() const;
+
+	void onTransformChange() override {}
 
 #pragma region Hierarchy Scene
 	Transform* getRoot() const { return m_root; }

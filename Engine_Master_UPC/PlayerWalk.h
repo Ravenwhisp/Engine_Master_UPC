@@ -12,6 +12,8 @@ public:
 
 	void update() override;
 
+	void onTransformChange() override {}
+
 private:
 	float m_moveSpeed = 3.5f;
 

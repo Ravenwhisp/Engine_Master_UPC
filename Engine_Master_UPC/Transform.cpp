@@ -21,6 +21,7 @@ const Matrix& Transform::getGlobalMatrix() const
     {
         calculateMatrix();
         m_dirty = false;
+        m_owner->onTransformChange();
     }
     return m_globalMatrix;
 }
@@ -105,6 +106,33 @@ void Transform::markDirty()
     {
         child->GetTransform()->markDirty();
     }
+}
+
+Vector3 Transform::getRight() const
+{
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 right(globalMatrix._11, globalMatrix._21, globalMatrix._31);
+    right.Normalize();
+    return right;
+}
+
+Vector3 Transform::getUp() const
+{
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 up(globalMatrix._12, globalMatrix._22, globalMatrix._32);
+    up.Normalize();
+    return up;
+}
+
+Vector3 Transform::getForward() const
+{
+    const Matrix& globalMatrix = getGlobalMatrix();
+
+    Vector3 forward(globalMatrix._13, globalMatrix._23, globalMatrix._33);
+    forward.Normalize();
+    return forward;
 }
 
 void Transform::calculateMatrix() const

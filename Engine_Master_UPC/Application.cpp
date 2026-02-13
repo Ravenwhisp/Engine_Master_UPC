@@ -51,6 +51,8 @@ bool Application::init()
 	for(auto it = modules.begin(); it != modules.end() && ret; ++it)
 		ret = (*it)->init();
     PERF_END("Engine Init");
+
+    m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	return ret;
 }
 
@@ -66,6 +68,10 @@ bool Application::postInit()
 
 void Application::update()
 {
+
+    uint64_t currentMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    m_elapsedMilis = currentMilis - m_lastMilis;
+    m_lastMilis = currentMilis;
 
     if (!app->m_paused)
     {

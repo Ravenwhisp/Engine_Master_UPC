@@ -42,6 +42,9 @@ void BasicModel::load(const char* fileName, const char* basePath)
 	bool loadOk = gltfContext.LoadASCIIFromFile(&model, &error, &warning, fileName);
 	if (loadOk)
 	{
+        Vector3 minVector = Vector3(99999.0f, 99999.0f, 99999.0f);
+        Vector3 maxVector = Vector3(-99999.0f, -99999.0f, -99999.0f);
+
         for (tinygltf::Material material : model.materials) 
         {
             BasicMaterial* myMaterial = new BasicMaterial;
@@ -54,10 +57,14 @@ void BasicModel::load(const char* fileName, const char* basePath)
             for (tinygltf::Primitive primitive : mesh.primitives) 
             {
                 BasicMesh* myMesh = new BasicMesh;
-                myMesh->load(model, mesh, primitive);
+                myMesh->load(model, mesh, primitive, minVector, maxVector);
                 m_meshes.push_back(myMesh);
             }
         }
+
+        m_aabb.setMin(minVector);
+        m_aabb.setMax(maxVector);
+        m_aabb.update(m_owner->GetTransform()->getGlobalMatrix());
 	}
     else
     {
@@ -95,6 +102,8 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
             mesh->draw(commandList);
         }
     }
+
+    m_aabb.render();
 }
 
 bool BasicModel::cleanUp()
@@ -165,3 +174,7 @@ void BasicModel::drawUi()
     ImGui::Text("Materials: %d", (int)m_materials.size());
 }
 
+void BasicModel::onTransformChange() 
+{
+    m_aabb.update(m_owner->GetTransform()->getGlobalMatrix());
+}
