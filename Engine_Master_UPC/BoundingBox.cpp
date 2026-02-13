@@ -12,7 +12,8 @@ bool ::BoundingBox::isPointInsidePlane(const Vector3& point, const Plane& plane)
 bool ::BoundingBox::isFullyOutsideOfPlane(const Plane& plane) 
 {
 	for (auto& point : m_points) {
-		if (isPointInsidePlane(point, plane)) {
+		if (isPointInsidePlane(point, plane)) 
+		{
 			return false;
 		}
 	}
@@ -48,12 +49,26 @@ void ::BoundingBox::render()
 
 void ::BoundingBox::update(const Matrix& world)
 {
-	m_points[0] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_min.z), world);
-	m_points[1] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_max.z), world);
-	m_points[2] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_min.z), world);
-	m_points[3] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_max.z), world);
-	m_points[4] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_min.z), world);
-	m_points[5] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_max.z), world);
-	m_points[6] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_min.z), world);
-	m_points[7] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_max.z), world);
+	// Transform min/max to 8 corners in world space
+	m_points[0] = Vector3(m_min.x, m_min.y, m_min.z);
+	m_points[1] = Vector3(m_max.x, m_min.y, m_min.z);
+	m_points[2] = Vector3(m_min.x, m_max.y, m_min.z);
+	m_points[3] = Vector3(m_max.x, m_max.y, m_min.z);
+	m_points[4] = Vector3(m_min.x, m_min.y, m_max.z);
+	m_points[5] = Vector3(m_max.x, m_min.y, m_max.z);
+	m_points[6] = Vector3(m_min.x, m_max.y, m_max.z);
+	m_points[7] = Vector3(m_max.x, m_max.y, m_max.z);
+
+	// Apply world transform to all points
+	for (int i = 0; i < 8; ++i)
+		m_points[i] = Vector3::Transform(m_points[i], world);
+
+	// Update world-space min/max for convenience
+	m_min = m_points[0];
+	m_max = m_points[0];
+	for (int i = 1; i < 8; ++i)
+	{
+		m_min = Vector3::Min(m_min, m_points[i]);
+		m_max = Vector3::Max(m_max, m_points[i]);
+	}
 }

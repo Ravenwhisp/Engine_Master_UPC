@@ -1,23 +1,22 @@
 #pragma once
 #include "GameObject.h"
 #include "QuadNode.h"
+#include <Frustum.h>
 
-using namespace DirectX::SimpleMath;
-using namespace DirectX;
 
 class Quadtree {
 public:
 	static const int MAX_OBJECTS = 1;
 	static const int MAX_DEPTH = 5;
 
-	Quadtree(const RectangleData& worldBounds);
+	Quadtree(const BoundingRect& worldBounds);
 
 	void insert(GameObject& object);
 	void remove(GameObject& object);
 	void move(GameObject& object);
 
-	std::vector<GameObject*> getObjects(BoundingFrustum& frustum) const;
-	std::vector<RectangleData> getQuadrants() const;
+	std::vector<GameObject*> getObjects(Frustum& frustum) const;
+	std::vector<BoundingRect> getQuadrants() const;
 private:
 	friend class QuadNode;
 

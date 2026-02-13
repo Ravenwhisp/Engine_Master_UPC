@@ -2,16 +2,48 @@
 #include "GameObject.h"
 #include <array>
 
+#include "BoundingBox.h"
+
 class Quadtree;
 
-struct RectangleData {
+struct BoundingRect {
 	float x, y, width, height;
 
-	RectangleData() : x(0), y(0), width(0), height(0) {}
-	RectangleData(float _x, float _y, float _width, float _height) : x(_x), y(_y), width(_width), height(_height) {}
+	BoundingRect() : x(0), y(0), width(0), height(0) {}
+	BoundingRect(float _x, float _y, float _width, float _height) : x(_x), y(_y), width(_width), height(_height) {}
+
+	float minX() const { return x; }
+	float maxX() const { return x + width; }
+	float minZ() const { return y; }
+	float maxZ() const { return y + height; }
 
 	bool contains(const Vector3& point) const {
 		return point.x >= x && point.x <= x + width && point.z >= y && point.z <= y + height;
+	}
+
+	bool contains(const ::BoundingBox& aabb) const
+	{
+		return aabb.getMin().x >= minX() &&
+			aabb.getMax().x <= maxX() &&
+			aabb.getMin().z >= minZ() &&
+			aabb.getMax().z <= maxZ();
+	}
+
+	bool intersects(const ::BoundingBox& aabb) const
+	{
+		// Project the 3D AABB to XZ
+		float boxMinX = aabb.getMin().x;
+		float boxMaxX = aabb.getMax().x;
+		float boxMinZ = aabb.getMin().z;
+		float boxMaxZ = aabb.getMax().z;
+
+		// Separating Axis Theorem (2D AABB vs AABB)
+		if (boxMaxX < minX()) return false;
+		if (boxMinX > maxX()) return false;
+		if (boxMaxZ < minZ()) return false;
+		if (boxMinZ > maxZ()) return false;
+
+		return true;
 	}
 };
 
@@ -24,21 +56,9 @@ enum Quadrant {
 	QUADRANT_COUNT = 4,
 };
 
-enum FrustrumPlane {
-	NEAR_PLANE = 0,
-	FAR_PLANE = 1,
-	RIGHT_PLANE = 2,
-	LEFT_PLANE = 3,
-	TOP_PLANE = 4,
-	BOTTOM_PLANE = 5,
-
-	PLANE_COUNT = 6,
-};
-
-
 class QuadNode {
 public:
-	QuadNode(const RectangleData& bounds,
+	QuadNode(const BoundingRect& bounds,
 		UINT depth,
 		Quadtree& tree,
 		QuadNode* parent = nullptr);
@@ -46,9 +66,9 @@ public:
 	void insert(GameObject& object);
 	void remove(GameObject& object);
 
-	void gatherObjects(BoundingFrustum& frustum, std::vector<GameObject*>& out) const;
+	void gatherObjects(Frustum& frustum, std::vector<GameObject*>& out) const;
 
-	void gatherRectangles(std::vector<RectangleData>& out) const;
+	void gatherRectangles(std::vector<BoundingRect>& out) const;
 
 	bool isLeaf() const { return m_children[TOP_LEFT] == nullptr; }
 
@@ -59,16 +79,16 @@ private:
 	bool canMerge() const;
 	void merge();
 
-	bool intersects(const BoundingFrustum& frustum,
-		const RectangleData& rectangle,
+	bool intersects(const Frustum& frustum,
+		const BoundingRect& rectangle,
 		int minY = -10000,
 		int maxY = 10000) const;
 
 private:
-	RectangleData				m_bounds;
+	BoundingRect				m_bounds;
 	int							m_depth;
-	Quadtree& m_tree;
-	QuadNode* m_parent = nullptr;
+	Quadtree&					m_tree;
+	QuadNode*					m_parent = nullptr;
 	std::array<std::unique_ptr<QuadNode>, QUADRANT_COUNT> m_children;
 	std::vector<GameObject*>	m_objects;
 };

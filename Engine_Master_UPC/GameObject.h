@@ -34,6 +34,11 @@ public:
 	Transform* GetTransform() { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
 	bool RemoveComponent(Component* componentToRemove);
+
+	/// TESTING
+	template<class Component>
+	Component* GetComponent();
+	////////
 #pragma endregion
 
 
@@ -65,3 +70,18 @@ private:
 	BasicModel* m_model;
 	//////////////
 };
+
+template<class Component>
+Component* GameObject::GetComponent()
+{
+	for (auto& component : m_components)
+	{
+		Component* casted = dynamic_cast<Component*>(component);
+		if (casted != nullptr)
+		{
+			return casted;
+		}
+	}
+
+	return nullptr;
+}

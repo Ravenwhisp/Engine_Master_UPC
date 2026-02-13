@@ -17,11 +17,14 @@ public:
 	void setMin(Vector3 min) { m_min = min; }
 	void setMax(Vector3 max) { m_max = max; }
 
+	Vector3& getMin() const { return m_min; }
+	Vector3& getMax() const { return m_max; }
+
 	void update(const Matrix& world);
 	void render() override;
 
 protected:
-	Vector3 m_min;
-	Vector3 m_max;
+	mutable Vector3 m_min;
+	mutable Vector3 m_max;
 	Vector3 m_points[8];
 };

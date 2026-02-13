@@ -16,7 +16,7 @@ bool SceneModule::init()
         gameObject->init();
     }
 
-    auto rectangle = RectangleData(0, 0, 10, 10);
+    auto rectangle = BoundingRect(0, 0, 10, 10);
     m_quadtree = new Quadtree(rectangle);
 
     return true;
@@ -55,7 +55,8 @@ void SceneModule::preRender()
     }
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) {
+void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
+{
 
     for (GameObject* gameObject : m_gameObjects)
     {

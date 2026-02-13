@@ -2,7 +2,9 @@
 #include "QuadNode.h"
 #include "Quadtree.h"
 
-QuadNode::QuadNode(const RectangleData& bounds,
+#include "BasicModel.h"
+
+QuadNode::QuadNode(const BoundingRect& bounds,
     UINT depth,
     Quadtree& tree,
     QuadNode* parent)
@@ -47,19 +49,19 @@ void QuadNode::subdivide()
     float halfheight = m_bounds.height * 0.5f;
 
     m_children[TOP_LEFT] = std::make_unique<QuadNode>(
-        RectangleData(m_bounds.x, m_bounds.y, halfwidth, halfheight),
+        BoundingRect(m_bounds.x, m_bounds.y, halfwidth, halfheight),
         m_depth + 1, m_tree, this);
 
     m_children[TOP_RIGHT] = std::make_unique<QuadNode>(
-        RectangleData(m_bounds.x + halfwidth, m_bounds.y, halfwidth, halfheight),
+        BoundingRect(m_bounds.x + halfwidth, m_bounds.y, halfwidth, halfheight),
         m_depth + 1, m_tree, this);
 
     m_children[BOTTOM_LEFT] = std::make_unique<QuadNode>(
-        RectangleData(m_bounds.x, m_bounds.y + halfheight, halfwidth, halfheight),
+        BoundingRect(m_bounds.x, m_bounds.y + halfheight, halfwidth, halfheight),
         m_depth + 1, m_tree, this);
 
     m_children[BOTTOM_RIGHT] = std::make_unique<QuadNode>(
-        RectangleData(m_bounds.x + halfwidth, m_bounds.y + halfheight, halfwidth, halfheight),
+        BoundingRect(m_bounds.x + halfwidth, m_bounds.y + halfheight, halfwidth, halfheight),
         m_depth + 1, m_tree, this);
 
     for (GameObject* obj : m_objects)
@@ -72,11 +74,11 @@ void QuadNode::subdivide()
 
 void QuadNode::insertToChildren(GameObject& object)
 {
-    auto transform = object.GetTransform();
+    auto model = object.GetComponent<BasicModel>();
 
     for (auto& child : m_children)
     {
-        if (child->m_bounds.contains(transform->getPosition()))
+        if (child->m_bounds.contains(model->getAABB()))
         {
             child->insert(object);
             return;
@@ -128,88 +130,9 @@ void QuadNode::merge()
     }
 }
 
-void QuadNode::gatherObjects(BoundingFrustum& frustum, std::vector<GameObject*>& out) const
+bool QuadNode::intersects(const Frustum& frustum, const BoundingRect& rectangle, int minY, int maxY) const
 {
-    if (!intersects(frustum, m_bounds))
-    {
-        return;
-    }
-
-    if (isLeaf())
-    {
-        for (GameObject* obj : m_objects)
-            out.push_back(obj);
-        return;
-    }
-
-    for (const auto& child : m_children)
-    {
-        child->gatherObjects(frustum, out);
-    }
-}
-
-void QuadNode::gatherRectangles(std::vector<RectangleData>& out) const
-{
-    out.push_back(m_bounds);
-
-    for (const auto& child : m_children)
-        if (child)
-            child->gatherRectangles(out);
-}
-
-static Plane* getFrustumPlanes(const BoundingFrustum& frustum)
-{
-    XMVECTOR planes[PLANE_COUNT];
-    frustum.GetPlanes(
-        &planes[NEAR_PLANE],
-        &planes[FAR_PLANE],
-        &planes[RIGHT_PLANE],
-        &planes[LEFT_PLANE],
-        &planes[TOP_PLANE],
-        &planes[BOTTOM_PLANE]);
-
-    static Plane result[PLANE_COUNT] =
-    {
-        Plane(planes[NEAR_PLANE]),
-        Plane(planes[FAR_PLANE]),
-        Plane(planes[RIGHT_PLANE]),
-        Plane(planes[LEFT_PLANE]),
-        Plane(planes[TOP_PLANE]),
-        Plane(planes[BOTTOM_PLANE])
-    };
-
-    return result;
-}
-
-static bool intersectsPlanes(const Plane* planes,
-    const Vector3& center,
-    const Vector3& extents)
-{
-    for (int i = 0; i < PLANE_COUNT; ++i)
-    {
-        const Vector3 normal = planes[i].Normal();
-        float distance = planes[i].DotCoordinate(center);
-
-        float radius =
-            fabsf(normal.x) * extents.x +
-            fabsf(normal.y) * extents.y +
-            fabsf(normal.z) * extents.z;
-
-        if (distance + radius < 0.0f) 
-        {
-            return false;
-        }
-
-    }
-    return true;
-}
-
-bool QuadNode::intersects(const BoundingFrustum& frustum,
-const RectangleData& rectangle,
-    int minY,
-    int maxY) const
-{
-    Plane* planes = getFrustumPlanes(frustum);
+    Plane* planes = frustum.getPlanes();
 
     Vector3 center;
     center.x = rectangle.x + rectangle.width * 0.5f;
@@ -221,6 +144,54 @@ const RectangleData& rectangle,
     extents.z = rectangle.height * 0.5f;
     extents.y = (maxY - minY) * 0.5f;
 
-    return intersectsPlanes(planes, center, extents);
+    for (int i = 0; i < Frustum::NUM_PLANES; ++i)
+    {
+        const Vector3 normal = planes[i].Normal();
+        float distance = planes[i].DotCoordinate(center);
+
+        float radius =
+            fabsf(normal.x) * extents.x +
+            fabsf(normal.y) * extents.y +
+            fabsf(normal.z) * extents.z;
+
+        if (distance + radius < 0.0f)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void QuadNode::gatherObjects(Frustum& frustum, std::vector<GameObject*>& out) const
+{
+    if (!intersects(frustum, m_bounds)) { return; }
+
+    if (isLeaf())
+    {
+        for (GameObject* obj : m_objects)
+        {
+            out.push_back(obj);
+        }
+
+        return;
+    }
+
+    for (const auto& child : m_children)
+    {
+        child->gatherObjects(frustum, out);
+    }
+}
+
+void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
+{
+    out.push_back(m_bounds);
+
+    for (const auto& child : m_children)
+    {
+        if (child)
+        {
+            child->gatherRectangles(out);
+        }
+    }
 }
 

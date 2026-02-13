@@ -20,6 +20,7 @@ public:
 	void load(const char* fileName, const char* basePath);
 	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }
 	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
+	AABB& getAABB() { return m_aabb; }
 
 #pragma region Loop functions
 	bool init() override;

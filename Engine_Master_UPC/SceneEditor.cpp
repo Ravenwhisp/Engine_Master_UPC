@@ -154,7 +154,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 void SceneEditor::renderQuadtree()
 {
-    std::vector<RectangleData> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
+    std::vector<BoundingRect> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
     for (const auto& rect : quadrants)
     {
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);
