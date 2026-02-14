@@ -66,7 +66,9 @@ namespace
         }
         case LightType::SPOT:
         {
-            const float length = lightData.parameters.spot.radius;
+            //The implementation using dd::cone is bugged and I cannot solve it. 
+
+            /*const float length = lightData.parameters.spot.radius;
 
             const float outerDegrees = std::clamp(lightData.parameters.spot.outerAngleDegrees, 0.0f, SPOT_DEBUG_MAX_ANGLE_DEGREES);
             const float innerDegrees = std::clamp(lightData.parameters.spot.innerAngleDegrees, 0.0f, SPOT_DEBUG_MAX_ANGLE_DEGREES);
@@ -81,6 +83,59 @@ namespace
 
             dd::cone(asFloat3(position), asFloat3(coneDirection), asFloat3(color), outerBaseRadius, 0.0f, 0, depthEnabled);
             dd::cone(asFloat3(position), asFloat3(coneDirection), asFloat3(color), innerBaseRadius, 0.0f, 0, depthEnabled);
+            break;*/
+
+            const float length = lightData.parameters.spot.radius;
+
+            float outerDegrees = std::clamp(lightData.parameters.spot.outerAngleDegrees, 0.0f, SPOT_DEBUG_MAX_ANGLE_DEGREES);
+            float innerDegrees = std::clamp(lightData.parameters.spot.innerAngleDegrees, 0.0f, SPOT_DEBUG_MAX_ANGLE_DEGREES);
+
+            float outerRadians = XMConvertToRadians(outerDegrees);
+            float innerRadians = XMConvertToRadians(innerDegrees);
+
+            Vector3 direction = forward;
+            direction.Normalize();
+
+            Vector3 referenceAxis;
+
+            if (std::abs(direction.y) > 0.99f)
+            {
+                referenceAxis = Vector3(1.0f, 0.0f, 0.0f);
+            }
+            else
+            {
+                referenceAxis = Vector3(0.0f, 1.0f, 0.0f);
+            }
+
+            Vector3 x = referenceAxis.Cross(direction);
+            x.Normalize();
+
+            Vector3 y = direction.Cross(x);   
+            y.Normalize();
+
+            auto drawConeWire = [&](float angleRad)
+                {
+                    float baseCircleRadius = std::tan(angleRad) * length;
+                    Vector3 baseCenter = position + direction * length;
+
+                    const int stepDegrees = 20;
+                    Vector3 previousCirclePoint = baseCenter + y * baseCircleRadius;
+
+                    for (int angleDegrees = stepDegrees; angleDegrees <= 360; angleDegrees += stepDegrees)
+                    {
+                        float sin = std::sin(XMConvertToRadians((float)angleDegrees));
+                        float cos = std::cos(XMConvertToRadians((float)angleDegrees));
+                        Vector3 circlePoint = baseCenter + (x * sin + y * cos) * baseCircleRadius;
+
+                        dd::line(asFloat3(previousCirclePoint), asFloat3(circlePoint), asFloat3(color), 0, depthEnabled);
+                        dd::line(asFloat3(circlePoint), asFloat3(position), asFloat3(color), 0, depthEnabled);
+
+                        previousCirclePoint = circlePoint;
+                    }
+                };
+
+            drawConeWire(outerRadians);
+            drawConeWire(innerRadians);
             break;
         }
         default:
