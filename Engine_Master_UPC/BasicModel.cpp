@@ -87,7 +87,7 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
             ModelData modelData;
             modelData.model = transform->getGlobalMatrix().Transpose();
             modelData.material = m_materials[materialIndex]->getMaterial();
-            modelData.normalMat = transform->getNormalMatrix();
+            modelData.normalMat = transform->getNormalMatrix().Transpose();
 
             commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
             commandList->SetGraphicsRootDescriptorTable(4, m_materials[materialIndex]->getTexture()->getSRV().gpu);
