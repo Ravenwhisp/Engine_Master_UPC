@@ -69,37 +69,32 @@ void SceneModule::preRender()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
+    CameraComponent* camera = nullptr;
+
     for (GameObject* gameObject : m_gameObjects)
     {
-        if (gameObject->GetActive())
+        if (!gameObject->GetActive())
+            continue;
+
+        if (gameObject->GetTransform()->isDirty())
         {
-            /// Quatree TEST
-            if (gameObject->GetTransform()->isDirty())
-            {
-                m_quadtree->move(*gameObject);
-            }
-            ///
-            //gameObject->render(commandList, viewMatrix, projectionMatrix);
+            m_quadtree->move(*gameObject);
+        }
+
+        if (!camera)
+        {
+            camera = gameObject->GetComponent<CameraComponent>();
         }
     }
 
-    /// PROVISIONAL
-    CameraComponent* camera{nullptr};
-    for (GameObject* gameObject : m_gameObjects)
-    {
-        camera = gameObject->GetComponent<CameraComponent>();
-        if (camera) break;
-    }
+    if (!camera) return;
+    
+    camera->render(commandList, viewMatrix, projectionMatrix);
 
-    if (camera) 
+    auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
+    for (GameObject* gameObject : gameObjects)
     {
-        camera->render(commandList, viewMatrix, projectionMatrix);
-
-        auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
-        for (GameObject* gameObject : gameObjects)
-        {
-            gameObject->render(commandList, viewMatrix, projectionMatrix);
-        }
+        gameObject->render(commandList, viewMatrix, projectionMatrix);
     }
 }
 
