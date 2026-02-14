@@ -20,4 +20,5 @@ struct Frustum {
 		static Plane result[NUM_PLANES] = { m_frontFace, m_backFace, m_topFace, m_bottomFace, m_leftFace, m_rightFace };
 		return result;
 	}
+
 };

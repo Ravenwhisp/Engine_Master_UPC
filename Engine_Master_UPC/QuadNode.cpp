@@ -17,6 +17,11 @@ QuadNode::QuadNode(const BoundingRect& bounds,
 
 void QuadNode::insert(GameObject& object)
 {
+    auto model = object.GetComponent<BasicModel>();
+    if (!model) return;
+
+    if (!m_bounds.contains(model->getAABB())) return;
+
     if (isLeaf())
     {
         if (m_objects.size() >= Quadtree::MAX_OBJECTS && m_depth < Quadtree::MAX_DEPTH)
@@ -155,10 +160,8 @@ bool QuadNode::intersects(const Frustum& frustum, const BoundingRect& rectangle,
             fabsf(normal.y) * extents.y +
             fabsf(normal.z) * extents.z;
 
-        if (distance + radius < 0.0f)
-        {
+        if (distance - radius > 0.0f)
             return false;
-        }
     }
     return true;
 }
@@ -171,7 +174,13 @@ void QuadNode::gatherObjects(const Frustum& frustum, std::vector<GameObject*>& o
     {
         for (GameObject* obj : m_objects)
         {
-            out.push_back(obj);
+            auto model = obj->GetComponent<BasicModel>();
+            if (!model) return;
+
+            if (model->getAABB().test(frustum))
+            {
+                out.push_back(obj);
+            }
         }
 
         return;

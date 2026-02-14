@@ -2,6 +2,8 @@
 #include "SceneModule.h"
 #include <CameraComponent.h>
 
+#include "BasicModel.h"
+
 using namespace DirectX::SimpleMath;
 
 #pragma region GameLoop
@@ -15,6 +17,8 @@ bool SceneModule::init()
     /// PROVISIONAL
     GameObject* gameObject = new GameObject(rand());
     gameObject->AddComponent(ComponentType::CAMERA);
+    auto component = gameObject->GetComponent<BasicModel>();
+    gameObject->RemoveComponent(component);
     m_gameObjects.push_back(gameObject);
 
     for (GameObject* gameObject : m_gameObjects)
@@ -75,11 +79,12 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
                 m_quadtree->move(*gameObject);
             }
             ///
+            //gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
     }
 
     /// PROVISIONAL
-    CameraComponent* camera { nullptr };
+    CameraComponent* camera{nullptr};
     for (GameObject* gameObject : m_gameObjects)
     {
         camera = gameObject->GetComponent<CameraComponent>();
