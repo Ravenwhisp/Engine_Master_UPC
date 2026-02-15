@@ -28,6 +28,22 @@ void Quadtree::remove(GameObject& object)
 
 void Quadtree::move(GameObject& object)
 {
+	auto it = m_objectLocationMap.find(&object);
+
+    if (it == m_objectLocationMap.end())
+    {
+        insert(object);
+        return;
+	}
+
+	QuadNode* currentNode = it->second;
+	auto model = object.GetComponent<BasicModel>();
+
+    if (model && currentNode->getBounds().contains(model->getAABB()))
+    {
+        return;
+	}
+
     remove(object);
     insert(object);
 }
