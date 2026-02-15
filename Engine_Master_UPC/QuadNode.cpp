@@ -18,9 +18,15 @@ QuadNode::QuadNode(const BoundingRect& bounds,
 void QuadNode::insert(GameObject& object)
 {
     auto model = object.GetComponent<BasicModel>();
-    if (!model) return;
+    if (!model)
+    {
+        return;
+    }
 
-    if (!m_bounds.contains(model->getAABB())) return;
+    if (!m_bounds.contains(model->getAABB()))
+    {
+        return;
+    }
 
     if (isLeaf())
     {
@@ -80,7 +86,10 @@ void QuadNode::subdivide()
 void QuadNode::insertToChildren(GameObject& object)
 {
     auto model = object.GetComponent<BasicModel>();
-    if (!model) return;
+    if (!model)
+    {
+        return;
+    }
 
     for (auto& child : m_children)
     {
@@ -100,7 +109,10 @@ void QuadNode::tryMergeUpwards()
     {
         QuadNode* parent = current->m_parent;
 
-        if (!parent->canMerge()) break;
+        if (!parent->canMerge())
+        {
+            break;
+        }
 
         parent->merge();
         current = parent;
@@ -109,13 +121,19 @@ void QuadNode::tryMergeUpwards()
 
 bool QuadNode::canMerge() const
 {
-    if (isLeaf()) { return false; }
+    if (isLeaf()) 
+    { 
+        return false; 
+    }
 
     int total = 0;
 
     for (const auto& child : m_children)
     {
-        if (!child->isLeaf()) { return false; }
+        if (!child->isLeaf()) 
+        { 
+            return false;
+        }
         total += child->m_objects.size();
     }
 
@@ -161,21 +179,29 @@ bool QuadNode::intersects(const Frustum& frustum, const BoundingRect& rectangle,
             fabsf(normal.z) * extents.z;
 
         if (distance - radius > 0.0f)
+        {
             return false;
+        }
     }
     return true;
 }
 
 void QuadNode::gatherObjects(const Frustum& frustum, std::vector<GameObject*>& out) const
 {
-    if (!intersects(frustum, m_bounds)) { return; }
+    if (!intersects(frustum, m_bounds)) 
+    { 
+        return;
+    }
 
     if (isLeaf())
     {
         for (GameObject* obj : m_objects)
         {
             auto model = obj->GetComponent<BasicModel>();
-            if (!model) return;
+            if (!model)
+            {
+                return;
+            }
 
             if (model->getAABB().test(frustum))
             {
