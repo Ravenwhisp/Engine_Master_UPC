@@ -1,5 +1,7 @@
 ﻿#include "Globals.h"
 #include "Quadtree.h"
+#include "BasicModel.h"
+#include "GameObject.h"
 
 Quadtree::Quadtree(const BoundingRect& worldBounds)
 {
@@ -26,7 +28,6 @@ void Quadtree::remove(GameObject& object)
 
 void Quadtree::move(GameObject& object)
 {
-    // Check if the bounding box is outside the current QuadNode from the GameObject
     remove(object);
     insert(object);
 }

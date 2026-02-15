@@ -1,10 +1,11 @@
 #pragma once
-#include "GameObject.h"
-#include "QuadNode.h"
 #include <Frustum.h>
+#include "QuadNode.h"
 
+class GameObject;
 
-class Quadtree {
+class Quadtree 
+{
 public:
 	static const int MAX_OBJECTS = 1;
 	static const int MAX_DEPTH = 5;

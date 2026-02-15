@@ -1,8 +1,8 @@
 #include "Globals.h"
 #include "QuadNode.h"
 #include "Quadtree.h"
-
 #include "BasicModel.h"
+#include "GameObject.h"
 
 QuadNode::QuadNode(const BoundingRect& bounds,
     UINT depth,
