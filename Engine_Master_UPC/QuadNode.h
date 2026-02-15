@@ -1,12 +1,12 @@
 #pragma once
-#include "GameObject.h"
 #include <array>
-
 #include "BoundingBox.h"
 
 class Quadtree;
+class GameObject;
 
-struct BoundingRect {
+struct BoundingRect 
+{
 	float x, y, width, height;
 
 	BoundingRect() : x(0), y(0), width(0), height(0) {}
@@ -17,7 +17,8 @@ struct BoundingRect {
 	float minZ() const { return y; }
 	float maxZ() const { return y + height; }
 
-	bool contains(const Vector3& point) const {
+	bool contains(const Vector3& point) const 
+	{
 		return point.x >= x && point.x <= x + width && point.z >= y && point.z <= y + height;
 	}
 
@@ -47,7 +48,8 @@ struct BoundingRect {
 	}
 };
 
-enum Quadrant {
+enum Quadrant 
+{
 	TOP_LEFT = 0,
 	TOP_RIGHT = 1,
 	BOTTOM_LEFT = 2,
@@ -56,7 +58,8 @@ enum Quadrant {
 	QUADRANT_COUNT = 4,
 };
 
-class QuadNode {
+class QuadNode 
+{
 public:
 	QuadNode(const BoundingRect& bounds,
 		UINT depth,
@@ -71,6 +74,8 @@ public:
 	void gatherRectangles(std::vector<BoundingRect>& out) const;
 
 	bool isLeaf() const { return m_children[TOP_LEFT] == nullptr; }
+
+	BoundingRect getBounds() const { return m_bounds; }
 
 private:
 	void subdivide();
