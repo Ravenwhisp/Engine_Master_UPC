@@ -21,7 +21,7 @@ bool Engine::BoundingBox::isFullyOutsideOfPlane(const Plane& plane) const
 {
 	for (int i = 0; i < 8; i++)
 	{
-		if (plane.Normal().Dot(m_points[i]) + plane.D() < 0)
+		if (isPointInsidePlane(m_points[i], plane))
 		{
 			return false;
 		}
@@ -38,7 +38,7 @@ bool Engine::BoundingBox::test(const Engine::Frustum& frustum) const
 	if (isFullyOutsideOfPlane(frustum.m_topFace)) return false;
 	if (isFullyOutsideOfPlane(frustum.m_bottomFace)) return false;
 
-	return frustum.test(*this);
+	return true;
 }
 
 void Engine::BoundingBox::render()
