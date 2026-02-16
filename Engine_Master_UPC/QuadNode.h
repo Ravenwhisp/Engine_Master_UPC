@@ -41,6 +41,18 @@ struct BoundingRect
 		return overlapX && overlapZ;
 	}
 
+	bool containsFully(const Engine::BoundingBox& box) const
+	{
+		Vector3 boxMin = box.getMinInWorldSpace();
+		Vector3 boxMax = box.getMaxInWorldSpace();
+
+		return
+			boxMin.x >= minX() &&
+			boxMax.x <= maxX() &&
+			boxMin.z >= minZ() &&
+			boxMax.z <= maxZ();
+	}
+
 	bool intersects(const Engine::BoundingBox& box) const
 	{
 		Vector3 min = box.getMinInWorldSpace();
@@ -73,7 +85,9 @@ public:
 		Quadtree& tree,
 		QuadNode* parent = nullptr);
 
+
 	void insert(GameObject& object);
+	void refit(GameObject& object);
 	void remove(GameObject& object);
 
 	void gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const;
@@ -84,9 +98,9 @@ public:
 
 	BoundingRect getBounds() const { return m_bounds; }
 
+
 private:
 	void subdivide();
-	void insertToChildren(GameObject& object);
 	void tryMergeUpwards();
 	bool canMerge() const;
 	void merge();
