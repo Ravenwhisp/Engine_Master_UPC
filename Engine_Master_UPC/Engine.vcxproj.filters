@@ -381,6 +381,9 @@
     <ClInclude Include="LightDebugDraw.h">
       <Filter>Editor\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -493,6 +496,9 @@
     <Filter Include="Editor\Debug">
       <UniqueIdentifier>{81108d66-0f59-4640-9a4c-973569c8985b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="D3D12\Shaders\Skybox">
+      <UniqueIdentifier>{ede5caa6-5667-49bb-8efd-baed5ba3e6a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -503,22 +509,22 @@
     <None Include="SimpleMath.inl">
       <Filter>Maths</Filter>
     </None>
-    <None Include="CBuffers.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
     <None Include="NewCBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="LightPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxPixelShader.hlsl">
+      <Filter>D3D12\Shaders\Skybox</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxVertexShader.hlsl">
+      <Filter>D3D12\Shaders\Skybox</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

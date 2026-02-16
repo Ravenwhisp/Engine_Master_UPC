@@ -1,4 +1,4 @@
-#include "CBuffers.hlsli"
+#include "NewCBuffers.hlsli"
 
 struct VertexOutput
 {
