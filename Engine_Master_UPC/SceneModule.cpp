@@ -15,11 +15,14 @@ bool SceneModule::init()
     m_sceneData.view = Vector3(0.0f, 0.0f, -5.0f);
 
     /// PROVISIONAL
-    GameObject* gameObject = new GameObject(rand());
-    gameObject->AddComponent(ComponentType::CAMERA);
-    auto component = gameObject->GetComponent<BasicModel>();
-    gameObject->RemoveComponent(component);
-    m_gameObjects.push_back(gameObject);
+    GameObject* gameCamera = new GameObject(rand());
+    gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
+    gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
+    gameCamera->AddComponent(ComponentType::CAMERA);
+    gameCamera->SetName("Camera");
+    auto component = gameCamera->GetComponent<BasicModel>();
+    gameCamera->RemoveComponent(component);
+    m_gameObjects.push_back(gameCamera);
 
     for (GameObject* gameObject : m_gameObjects)
     {
@@ -94,7 +97,10 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
     for (GameObject* gameObject : gameObjects)
     {
-        gameObject->render(commandList, viewMatrix, projectionMatrix);
+        if (gameObject != camera->getOwner())
+        {
+            gameObject->render(commandList, viewMatrix, projectionMatrix);
+        }
     }
 }
 
@@ -125,6 +131,7 @@ void SceneModule::createGameObject()
 {
 	GameObject* newGameObject = new GameObject(rand());
     newGameObject->init();
+    newGameObject->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
     m_gameObjects.push_back(newGameObject);
     m_quadtree->insert(*newGameObject);

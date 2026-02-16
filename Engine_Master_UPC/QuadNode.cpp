@@ -3,6 +3,7 @@
 #include "Quadtree.h"
 #include "BasicModel.h"
 #include "GameObject.h"
+#include "BoundingBox.h"
 
 QuadNode::QuadNode(const BoundingRect& bounds,
     UINT depth,
@@ -23,7 +24,7 @@ void QuadNode::insert(GameObject& object)
         return;
     }
 
-    if (!m_bounds.contains(model->getAABB()))
+    if (!m_bounds.contains(model->getBoundingBox()))
     {
         return;
     }
@@ -93,7 +94,7 @@ void QuadNode::insertToChildren(GameObject& object)
 
     for (auto& child : m_children)
     {
-        if (child->m_bounds.contains(model->getAABB()))
+        if (child->m_bounds.contains(object.GetTransform()->getPosition()))
         {
             child->insert(object);
             return;
@@ -154,44 +155,50 @@ void QuadNode::merge()
     }
 }
 
-bool QuadNode::intersects(const Frustum& frustum, const BoundingRect& rectangle, int minY, int maxY) const
+bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& rectangle, int minY, int maxY) const
 {
-    Plane* planes = frustum.getPlanes();
-
-    Vector3 center;
+    Vector2 center;
     center.x = rectangle.x + rectangle.width * 0.5f;
-    center.z = rectangle.y + rectangle.height * 0.5f;
-    center.y = (minY + maxY) * 0.5f;
+    center.y = rectangle.y + rectangle.height * 0.5f;
 
-    Vector3 extents;
+    Vector2 extents;
     extents.x = rectangle.width * 0.5f;
-    extents.z = rectangle.height * 0.5f;
-    extents.y = (maxY - minY) * 0.5f;
+    extents.y = rectangle.height * 0.5f;
 
-    for (int i = 0; i < Frustum::NUM_PLANES; ++i)
-    {
-        const Vector3 normal = planes[i].Normal();
-        float distance = planes[i].DotCoordinate(center);
-
-        float radius =
-            fabsf(normal.x) * extents.x +
-            fabsf(normal.y) * extents.y +
-            fabsf(normal.z) * extents.z;
-
-        if (distance - radius > 0.0f)
-        {
-            return false;
-        }
+    std::vector<Vector2> frustumXZ;
+    for (int i = 0; i < 8; i++) {
+        frustumXZ.push_back(Vector2(frustum.m_points[i].x, frustum.m_points[i].z));
     }
-    return true;
+
+    Vector2 fMin = frustumXZ[0];
+    Vector2 fMax = frustumXZ[0];
+    for (const auto& p : frustumXZ) {
+        fMin.x = std::min(fMin.x, p.x);
+        fMin.y = std::min(fMin.y, p.y);
+        fMax.x = std::max(fMax.x, p.x);
+        fMax.y = std::max(fMax.y, p.y);
+    }
+
+    // Compute node AABB in XZ
+    Vector2 nMin = center - extents;
+    Vector2 nMax = center + extents;
+
+    // Test overlap
+    bool overlapX = !(nMax.x < fMin.x || nMin.x > fMax.x);
+    bool overlapZ = !(nMax.y < fMin.y || nMin.y > fMax.y);
+
+    return overlapX && overlapZ;
 }
 
-void QuadNode::gatherObjects(const Frustum& frustum, std::vector<GameObject*>& out) const
+void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const
 {
-    if (!intersects(frustum, m_bounds)) 
+    if (!intersects(frustum, m_bounds))
     { 
-        return;
+        m_bounds.m_debugIsCulled = true;
+        return; 
     }
+
+    m_bounds.m_debugIsCulled = false;
 
     if (isLeaf())
     {
@@ -203,7 +210,7 @@ void QuadNode::gatherObjects(const Frustum& frustum, std::vector<GameObject*>& o
                 return;
             }
 
-            if (model->getAABB().test(frustum))
+            if (model->getBoundingBox().test(frustum))
             {
                 out.push_back(obj);
             }

@@ -62,9 +62,9 @@ void BasicModel::load(const char* fileName, const char* basePath)
             }
         }
 
-        m_aabb.setMin(minVector);
-        m_aabb.setMax(maxVector);
-        m_aabb.update(m_owner->GetTransform()->getGlobalMatrix());
+        m_boundingBox.setMin(minVector);
+        m_boundingBox.setMax(maxVector);
+        m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 	}
     else
     {
@@ -103,7 +103,7 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
         }
     }
 
-    m_aabb.render();
+    m_boundingBox.render();
 }
 
 bool BasicModel::cleanUp()
@@ -176,5 +176,5 @@ void BasicModel::drawUi()
 
 void BasicModel::onTransformChange() 
 {
-    m_aabb.update(m_owner->GetTransform()->getGlobalMatrix());
+    m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }

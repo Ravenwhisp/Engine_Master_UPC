@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Frustum.h"
 
-void Frustum::render(const Matrix& world)
+void Engine::Frustum::render(const Matrix& world)
 {
 	float color[3] = { 0.3f, 0.3f, 0.3f };
 
@@ -17,19 +17,47 @@ void Frustum::render(const Matrix& world)
 	dd::line(&m_points[1].x, &m_points[5].x, color);
 	dd::line(&m_points[2].x, &m_points[6].x, color);
 	dd::line(&m_points[3].x, &m_points[7].x, color);
+
+	float leftFaceColor[3] = { 0.0f, 0.0f, 0.0f };
+	Vector3 leftFaceCenter = ((m_points[0] + m_points[3]) / 2 + (m_points[4] + m_points[7]) / 2) / 2;
+	Vector3 leftFaceNormal = m_leftFace.Normal();
+	dd::plane(&leftFaceCenter.x, &leftFaceNormal.x, leftFaceColor, leftFaceColor, 0.5f, 1.0f);
+
+	float rightFaceColor[3] = { 0.0f, 0.0f, 1.0f };
+	Vector3 rightFaceCenter = ((m_points[1] + m_points[2]) / 2 + (m_points[5] + m_points[6]) / 2) / 2;
+	Vector3 rightFaceNormal = m_rightFace.Normal();
+	dd::plane(&rightFaceCenter.x, &rightFaceNormal.x, rightFaceColor, rightFaceColor, 0.5f, 1.0f);
+
+	float topFaceColor[3] = { 0.0f, 1.0f, 0.0f};
+	Vector3 topFaceCenter = ((m_points[0] + m_points[1]) / 2 + (m_points[4] + m_points[5]) / 2) / 2;
+	Vector3 topFaceNormal = m_topFace.Normal();
+	dd::plane(&topFaceCenter.x, &topFaceNormal.x, topFaceColor, topFaceColor, 0.5f, 1.0f);
+
+	float bottomFaceColor[3] = { 0.0f, 1.0f, 1.0f };
+	Vector3 bottomFaceCenter = ((m_points[3] + m_points[2]) / 2 + (m_points[7] + m_points[6]) / 2) / 2;
+	Vector3 bottomFaceNormal = m_bottomFace.Normal();
+	dd::plane(&bottomFaceCenter.x, &bottomFaceNormal.x, bottomFaceColor, bottomFaceColor, 0.5f, 1.0f);
+
+	float frontFaceColor[3] = { 1.0f, 0.0f, 0.0f };
+	Vector3 frontFaceCenter = ((m_points[0] + m_points[1]) / 2 + (m_points[3] + m_points[2]) / 2) / 2;
+	Vector3 frontFaceNormal = m_frontFace.Normal();
+	dd::plane(&frontFaceCenter.x, &frontFaceNormal.x, frontFaceColor, frontFaceColor, 0.5f, 1.0f);
+
+	float backFaceColor[3] = { 1.0f, 0.0f, 1.0f };
+	Vector3 backFaceCenter = ((m_points[4] + m_points[7]) / 2 + (m_points[5] + m_points[6]) / 2) / 2;
+	Vector3 backFaceNormal = m_backFace.Normal();
+	dd::plane(&backFaceCenter.x, &backFaceNormal.x, backFaceColor, backFaceColor, 0.5f, 1.0f);
 }
 
-void Frustum::calculateFrustumVerticesFromFrustum(const Matrix& world, const float horizontalFov, const float nearPlane, const float farPlane, const float aspectRatio, Vector3 verts[8]) 
+void Engine::Frustum::calculateFrustumVerticesFromFrustum(const Matrix& world, const float horizontalFov, const float nearPlane, const float farPlane, const float aspectRatio, Vector3 verts[8])
 {
-	float tanFov = tan(horizontalFov / aspectRatio * (IM_PI / 180.0f) * 0.5f);
+	float halfHFovRad = horizontalFov * 0.5f * IM_PI / 180.0f;
+	float halfVFovRad = atan(tan(halfHFovRad) / aspectRatio);
 
-	// Near plane
-	float nh = nearPlane * tanFov;
-	float nw = nh * aspectRatio;
-
-	// Far plane
-	float fh = farPlane * tanFov;
-	float fw = fh * aspectRatio;
+	float nh = nearPlane * tan(halfVFovRad);
+	float nw = nearPlane * tan(halfHFovRad);
+	float fh = farPlane * tan(halfVFovRad);
+	float fw = farPlane * tan(halfHFovRad);
 
 	// Corners in camera space
 	Vector3 points[8] = {
@@ -50,4 +78,26 @@ void Frustum::calculateFrustumVerticesFromFrustum(const Matrix& world, const flo
 	{
 		verts[i] = points[i];
 	}
+}
+
+bool Engine::Frustum::test(const Engine::BoundingBox& box) const
+{
+	bool allLeft = true;
+	bool allRight = true;
+	bool allAbove = true;
+	bool allBelow = true;
+	bool allBehind = true;
+	bool allInFront = true;
+
+	for (int i = 0; i < 8; i++)
+	{
+		if (m_points[i].x >= box.getMin().x) allLeft = false;
+		if (m_points[i].x <= box.getMax().x) allRight = false;
+		if (m_points[i].y >= box.getMin().y) allBelow = false;
+		if (m_points[i].y <= box.getMax().y) allAbove = false;
+		if (m_points[i].z >= box.getMin().z) allInFront = false;
+		if (m_points[i].z <= box.getMax().z) allBehind = false;
+	}
+
+	return !(allLeft || allRight || allBelow || allAbove || allInFront || allBehind);
 }

@@ -1,7 +1,8 @@
 #pragma once
 #include "Globals.h"
+#include "BoundingBox.h"
 
-struct Frustum {
+struct Engine::Frustum {
 	static const int NUM_PLANES = 6;
 
 	Plane m_frontFace;
@@ -20,5 +21,7 @@ struct Frustum {
 		static Plane result[NUM_PLANES] = { m_frontFace, m_backFace, m_topFace, m_bottomFace, m_leftFace, m_rightFace };
 		return result;
 	}
+
+	bool test(const Engine::BoundingBox& box) const;
 
 };

@@ -5,6 +5,6 @@
 class BoundingVolume
 {
 public:
-	virtual bool test(const Frustum& frustum) = 0;
+	virtual bool test(const Engine::Frustum& frustum) const = 0;
 	virtual void render() = 0;
 };

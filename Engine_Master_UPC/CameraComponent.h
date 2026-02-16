@@ -25,7 +25,7 @@ public:
 
 	const Matrix& getProjectionMatrix() const { return m_projection; }
 
-	const Frustum& getFrustum() const { return m_frustum; }
+	const Engine::Frustum& getFrustum() const { return m_frustum; }
 
 	void recalculateFrustum();
 
@@ -35,13 +35,13 @@ public:
 
 private:
 	float m_horizontalFov = 90.0f;
-	float m_nearPlane = 0.3f;
-	float m_farPlane = 10.0f;
+	float m_nearPlane = 0.5f;
+	float m_farPlane = 25.0f;
 	float m_aspectRatio = 16.0f / 9.0f;
 
 	Matrix m_world = {};
 	Matrix m_view = {};
 	Matrix m_projection = {};
 
-	Frustum m_frustum = {};
+	Engine::Frustum m_frustum = {};
 };
