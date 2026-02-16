@@ -16,6 +16,8 @@
 
 #include "GameObject.h"
 #include "DebugDrawPass.h"
+#include "LightDebugDraw.h"
+#include "LightComponent.h"
 
 
 SceneEditor::SceneEditor()
@@ -147,6 +149,34 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
     if (m_settings->sceneEditor.showQuadTree)
     {
         renderQuadtree();
+    }
+
+    for (GameObject* go : app->getSceneModule()->getAllGameObjects())
+    {
+        if (!go || !go->GetActive()) {
+            continue;
+        }
+
+        auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT);
+
+        if (!light) 
+        {
+            continue;
+        }
+
+        if (!light->isDebugDrawEnabled()) 
+        {
+            continue;
+        }
+
+        if (light->isDebugDrawDepthEnabled()) 
+        {
+            LightDebugDraw::drawLightWithDepth(*go);
+        }
+        else 
+        {
+            LightDebugDraw::drawLightWithoutDepth(*go);
+        }
     }
 
     m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_cameraModule->getView(), m_cameraModule->getProjection());

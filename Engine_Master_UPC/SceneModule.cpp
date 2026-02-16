@@ -1,15 +1,14 @@
 #include "Globals.h"
 #include "SceneModule.h"
+#include "LightComponent.h"
 
 using namespace DirectX::SimpleMath;
 
 #pragma region GameLoop
 bool SceneModule::init()
 {
-    m_sceneData.lightDirection = Vector3(0.0f, -1.0f, 0.0f);
-    m_sceneData.lightColor = Vector3(1.0f, 1.0f, 1.0f);
-    m_sceneData.ambientColor = Vector3(0.2f, 0.2f, 0.2f);
-    m_sceneData.view = Vector3(0.0f, 0.0f, -5.0f);
+    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     for (GameObject* gameObject : m_gameObjects)
     {
@@ -18,6 +17,8 @@ bool SceneModule::init()
 
     auto rectangle = RectangleData(0, 0, 10, 10);
     m_quadtree = new Quadtree(rectangle);
+
+    createDirectionalLightOnInit();
 
     return true;
 }
@@ -182,5 +183,31 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 
     obj->cleanUp();
     delete obj;
+}
+
+GameObject* SceneModule::createDirectionalLightOnInit()
+{
+    GameObject* go = new GameObject(rand());
+    go->SetName("Directional Light");
+
+    go->AddComponent(ComponentType::LIGHT);
+
+    auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT);
+    if (light)
+    {
+        light->setTypeDirectional();
+        light->editData().common.color = Vector3::One;
+        light->editData().common.intensity = 1.0f;
+        light->editData().common.enabled = true;
+        light->sanitize();
+    }
+
+    go->GetTransform()->setRotationEuler({ 180.f, 0.f, 0.f });
+
+    go->init();
+    m_gameObjects.push_back(go);
+    m_quadtree->insert(*go);
+
+    return go;
 }
 

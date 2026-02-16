@@ -28,6 +28,9 @@
     <ClCompile Include="Quadtree.cpp">
       <Filter>Files\DataStructures</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameObject.h">
@@ -42,5 +45,13 @@
     <ClInclude Include="Quadtree.h">
       <Filter>Files\DataStructures</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl">
+      <Filter>Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

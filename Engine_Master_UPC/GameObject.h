@@ -16,12 +16,12 @@ public:
 	~GameObject();
 	
 #pragma region Properties
-	const int GetID() { return m_uuid; }
-	const std::string& GetName() { return m_name; }
-	const bool GetActive() { return m_active; }
-	const bool GetStatic() { return m_isStatic; }
-	const Layer GetLayer() { return m_layer; }
-	const Tag GetTag() { return m_tag; }
+	int GetID() const { return m_uuid; }
+	const std::string& GetName() const { return m_name; }
+	bool GetActive() const { return m_active; }
+	bool GetStatic() const { return m_isStatic; }
+	Layer GetLayer() const { return m_layer; }
+	Tag GetTag() const { return m_tag; }
 
 	void SetName(std::string newName) { m_name = newName; }
 	void SetActive(bool newActive) { m_active = newActive; }
@@ -32,8 +32,16 @@ public:
 
 #pragma region Components
 	Transform* GetTransform() { return m_transform; }
+	const Transform* GetTransform() const { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
 	bool RemoveComponent(Component* componentToRemove);
+	Component* GetComponent(ComponentType type) const;
+
+	template<typename T>
+	T* GetComponentAs(ComponentType type) const
+	{
+		return static_cast<T*>(GetComponent(type));
+	}
 #pragma endregion
 
 

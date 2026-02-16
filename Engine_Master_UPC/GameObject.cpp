@@ -2,7 +2,7 @@
 #include "GameObject.h"
 
 #include "BasicModel.h"
-#include "Light.h"
+#include "LightComponent.h"
 #include "PlayerWalk.h"
 
 GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -27,7 +27,7 @@ bool GameObject::AddComponent(ComponentType componentType)
     switch (componentType)
     {
         case ComponentType::LIGHT:
-            m_components.push_back(new Light(rand(), this));
+            m_components.push_back(new LightComponent(rand(), this));
             break;
         case ComponentType::MODEL:
             m_components.push_back(new BasicModel(rand(), this));
@@ -59,6 +59,16 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
         return true;
     }
     return false;
+}
+
+Component* GameObject::GetComponent(ComponentType type) const
+{
+    for (Component* component : m_components)
+    {
+        if (component && component->getType() == type)
+            return component;
+    }
+    return nullptr;
 }
 
 #pragma region GameLoop

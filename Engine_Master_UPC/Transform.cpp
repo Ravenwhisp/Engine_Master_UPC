@@ -111,7 +111,7 @@ Vector3 Transform::getRight() const
 {
     const Matrix& globalMatrix = getGlobalMatrix();
 
-    Vector3 right(globalMatrix._11, globalMatrix._21, globalMatrix._31);
+    Vector3 right(globalMatrix._11, globalMatrix._12, globalMatrix._13);
     right.Normalize();
     return right;
 }
@@ -120,7 +120,7 @@ Vector3 Transform::getUp() const
 {
     const Matrix& globalMatrix = getGlobalMatrix();
 
-    Vector3 up(globalMatrix._12, globalMatrix._22, globalMatrix._32);
+    Vector3 up(globalMatrix._21, globalMatrix._22, globalMatrix._23);   
     up.Normalize();
     return up;
 }
@@ -129,7 +129,7 @@ Vector3 Transform::getForward() const
 {
     const Matrix& globalMatrix = getGlobalMatrix();
 
-    Vector3 forward(globalMatrix._13, globalMatrix._23, globalMatrix._33);
+    Vector3 forward(globalMatrix._31, globalMatrix._32, globalMatrix._33);
     forward.Normalize();
     return forward;
 }

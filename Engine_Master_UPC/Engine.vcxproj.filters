@@ -167,6 +167,12 @@
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="LightDebugDraw.cpp">
+      <Filter>Editor\Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -366,6 +372,15 @@
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LightDebugDraw.h">
+      <Filter>Editor\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -475,6 +490,9 @@
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor\Debug">
+      <UniqueIdentifier>{81108d66-0f59-4640-9a4c-973569c8985b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -488,12 +506,18 @@
     <None Include="CBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
+    <None Include="NewCBuffers.hlsli">
+      <Filter>D3D12\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="LightPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

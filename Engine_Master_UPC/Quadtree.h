@@ -2,6 +2,9 @@
 #include "GameObject.h"
 #include "QuadNode.h"
 
+using namespace DirectX::SimpleMath;
+using namespace DirectX;
+
 class Quadtree {
 public:
 	static const int MAX_OBJECTS = 1;
@@ -15,7 +18,6 @@ public:
 
 	std::vector<GameObject*> getObjects(BoundingFrustum& frustum) const;
 	std::vector<RectangleData> getQuadrants() const;
-
 private:
 	friend class QuadNode;
 
