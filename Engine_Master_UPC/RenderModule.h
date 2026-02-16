@@ -40,8 +40,8 @@ private:
 	ComPtr<ID3D12RootSignature> m_skyboxRootSignature;
 	ComPtr<ID3D12PipelineState> m_skyboxPipelineState;
 
-	VertexBuffer* m_skyboxVertexB = nullptr;
-	IndexBuffer* m_skyboxIndexB = nullptr;
+	VertexBuffer* m_skyboxVertexBuffer = nullptr;
+	IndexBuffer* m_skyboxIndexBuffer = nullptr;
 	uint32_t      m_skyboxIndexCount = 0;
 
 	std::unique_ptr<Texture> m_skyboxTexture;
