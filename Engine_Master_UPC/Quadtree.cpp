@@ -39,9 +39,9 @@ void Quadtree::move(GameObject& object)
 	QuadNode* currentNode = it->second;
 	auto model = object.GetComponent<BasicModel>();
 
-    if (model && currentNode->getBounds().contains(model->getBoundingBox()))
-    {
-        return;
+    if (currentNode->getBounds().intersects(model->getBoundingBox()))
+	{
+		return;
 	}
 
     remove(object);
