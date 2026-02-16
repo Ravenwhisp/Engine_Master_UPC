@@ -28,25 +28,17 @@ void Quadtree::remove(GameObject& object)
 
 void Quadtree::move(GameObject& object)
 {
-	auto it = m_objectLocationMap.find(&object);
+    auto it = m_objectLocationMap.find(&object);
 
     if (it == m_objectLocationMap.end())
     {
         insert(object);
         return;
-	}
+    }
 
-	QuadNode* currentNode = it->second;
-	auto model = object.GetComponent<BasicModel>();
-
-    if (currentNode->getBounds().intersects(model->getBoundingBox()))
-	{
-		return;
-	}
-
-    remove(object);
-    insert(object);
+    it->second->refit(object);
 }
+
 
 std::vector<GameObject*> Quadtree::getObjects(const Engine::Frustum& frustum) const
 {

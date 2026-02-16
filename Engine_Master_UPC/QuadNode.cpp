@@ -19,39 +19,82 @@ QuadNode::QuadNode(const BoundingRect& bounds,
 void QuadNode::insert(GameObject& object)
 {
     auto model = object.GetComponent<BasicModel>();
-    if (!model)
-    {
-        return;
-    }
+    if (!model) return;
 
-    if (!m_bounds.intersects(model->getBoundingBox()))
-    {
-        return;
-    }
+    const auto& box = model->getBoundingBox();
 
-    if (isLeaf())
+    if (!m_bounds.containsFully(box)) return;
+
+    if (!isLeaf())
     {
-        if (m_objects.size() >= Quadtree::MAX_OBJECTS && m_depth < Quadtree::MAX_DEPTH)
+        for (auto& child : m_children)
         {
-            subdivide();
-            insertToChildren(object);
-        }
-        else
-        {
-            m_objects.push_back(&object);
-            m_tree.m_objectLocationMap[&object] = this;
+            if (child->m_bounds.containsFully(box))
+            {
+                child->insert(object);
+                return;
+            }
         }
     }
-    else
+
+    m_objects.push_back(&object);
+    m_tree.m_objectLocationMap[&object] = this;
+
+    if (isLeaf() && m_objects.size() > Quadtree::MAX_OBJECTS && m_depth < Quadtree::MAX_DEPTH)
     {
-        insertToChildren(object);
+        subdivide();
     }
 }
+
+void QuadNode::refit(GameObject& object)
+{
+    auto model = object.GetComponent<BasicModel>();
+    if (!model)return;
+
+    const auto& box = model->getBoundingBox();
+
+    if (!m_bounds.containsFully(box))
+    {
+        QuadNode* current = m_parent;
+
+        while (current && !current->m_bounds.containsFully(box))
+        {
+            current = current->m_parent;
+        }
+
+
+        if (!current)
+        {
+            current = &m_tree.getRoot();
+        }
+
+        remove(object);
+        current->insert(object);
+        return;
+    }
+
+    if (!isLeaf())
+    {
+        for (auto& child : m_children)
+        {
+            if (child->m_bounds.containsFully(box))
+            {
+                remove(object);
+                child->insert(object);
+                return;
+            }
+        }
+    }
+}
+
 
 void QuadNode::remove(GameObject& object)
 {
     auto& objs = m_objects;
     objs.erase(std::remove(objs.begin(), objs.end(), &object), objs.end());
+
+    m_tree.m_objectLocationMap.erase(&object);
+
     tryMergeUpwards();
 }
 
@@ -76,29 +119,12 @@ void QuadNode::subdivide()
         BoundingRect(m_bounds.x + halfwidth, m_bounds.y + halfheight, halfwidth, halfheight),
         m_depth + 1, m_tree, this);
 
-    for (GameObject* obj : m_objects)
-    {
-        insertToChildren(*obj);
-    }
-
+    std::vector<GameObject*> oldObjects = std::move(m_objects);
     m_objects.clear();
-}
 
-void QuadNode::insertToChildren(GameObject& object)
-{
-    auto model = object.GetComponent<BasicModel>();
-    if (!model)
+    for (GameObject* obj : oldObjects)
     {
-        return;
-    }
-
-    for (auto& child : m_children)
-    {
-        if (child->m_bounds.contains(object.GetTransform()->getPosition()))
-        {
-            child->insert(object);
-            return;
-        }
+        insert(*obj);
     }
 }
 
@@ -200,24 +226,16 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
 
     m_bounds.m_debugIsCulled = false;
 
-    if (isLeaf())
+    for (GameObject* obj : m_objects)
     {
-        for (GameObject* obj : m_objects)
+        auto model = obj->GetComponent<BasicModel>();
+        if (model && model->getBoundingBox().test(frustum))
         {
-            auto model = obj->GetComponent<BasicModel>();
-            if (!model)
-            {
-                return;
-            }
-
-            if (model->getBoundingBox().test(frustum))
-            {
-                out.push_back(obj);
-            }
+            out.push_back(obj);
         }
-
-        return;
     }
+
+    if (isLeaf()) return;
 
     for (const auto& child : m_children)
     {
