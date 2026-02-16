@@ -27,13 +27,18 @@ struct BoundingRect
 
 	bool contains(const Engine::BoundingBox& box) const
 	{
-		Vector3 minPointInWorldSpace = box.getMinInWorldSpace();
-		Vector3 maxPointInWorldSpace = box.getMaxInWorldSpace();
-		
-		return minPointInWorldSpace.x >= minX() ||
-			maxPointInWorldSpace.x <= maxX() ||
-			minPointInWorldSpace.z >= minZ() ||
-			maxPointInWorldSpace.z <= maxZ();
+		Vector3 boxMin = box.getMinInWorldSpace();
+		Vector3 boxMax = box.getMaxInWorldSpace();
+
+		float qMinX = minX();
+		float qMaxX = maxX();
+		float qMinZ = minZ();
+		float qMaxZ = maxZ();
+
+		bool overlapX = !(boxMax.x < qMinX || boxMin.x > qMaxX);
+		bool overlapZ = !(boxMax.z < qMinZ || boxMin.z > qMaxZ);
+
+		return overlapX && overlapZ;
 	}
 
 	bool intersects(const Engine::BoundingBox& box) const
