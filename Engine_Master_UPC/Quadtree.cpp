@@ -39,7 +39,7 @@ void Quadtree::move(GameObject& object)
 	QuadNode* currentNode = it->second;
 	auto model = object.GetComponent<BasicModel>();
 
-    if (model && currentNode->getBounds().contains(model->getAABB()))
+    if (model && currentNode->getBounds().contains(model->getBoundingBox()))
     {
         return;
 	}
@@ -48,7 +48,7 @@ void Quadtree::move(GameObject& object)
     insert(object);
 }
 
-std::vector<GameObject*> Quadtree::getObjects(const Frustum& frustum) const
+std::vector<GameObject*> Quadtree::getObjects(const Engine::Frustum& frustum) const
 {
     std::vector<GameObject*> result;
     m_root->gatherObjects(frustum, result);

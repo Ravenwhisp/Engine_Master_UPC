@@ -4,15 +4,24 @@
 
 // :: for global namespace, since DirectX::BoundingBox also exists
 
-bool ::BoundingBox::isPointInsidePlane(const Vector3& point, const Plane& plane) 
+Engine::BoundingBox::BoundingBox(const Vector3& min, const Vector3& max, Vector3 points[8]) : m_min(min), m_max(max)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		m_points[i] = points[i];
+	}
+}
+
+bool Engine::BoundingBox::isPointInsidePlane(const Vector3& point, const Plane& plane) const
 {
 	return plane.Normal().Dot(point) + plane.D() < 0;
 }
 
-bool ::BoundingBox::isFullyOutsideOfPlane(const Plane& plane) 
+bool Engine::BoundingBox::isFullyOutsideOfPlane(const Plane& plane) const
 {
-	for (auto& point : m_points) {
-		if (isPointInsidePlane(point, plane)) 
+	for (int i = 0; i < 8; i++)
+	{
+		if (plane.Normal().Dot(m_points[i]) + plane.D() < 0)
 		{
 			return false;
 		}
@@ -20,17 +29,19 @@ bool ::BoundingBox::isFullyOutsideOfPlane(const Plane& plane)
 	return true;
 }
 
-bool ::BoundingBox::test(const Frustum& frustum) 
+bool Engine::BoundingBox::test(const Engine::Frustum& frustum) const
 {
-	return !isFullyOutsideOfPlane(frustum.m_frontFace)
-		&& !isFullyOutsideOfPlane(frustum.m_backFace)
-		&& !isFullyOutsideOfPlane(frustum.m_rightFace)
-		&& !isFullyOutsideOfPlane(frustum.m_leftFace)
-		&& !isFullyOutsideOfPlane(frustum.m_topFace)
-		&& !isFullyOutsideOfPlane(frustum.m_bottomFace);
+	if (isFullyOutsideOfPlane(frustum.m_frontFace)) return false;
+	if (isFullyOutsideOfPlane(frustum.m_backFace)) return false;
+	if (isFullyOutsideOfPlane(frustum.m_leftFace)) return false;
+	if (isFullyOutsideOfPlane(frustum.m_rightFace)) return false;
+	if (isFullyOutsideOfPlane(frustum.m_topFace)) return false;
+	if (isFullyOutsideOfPlane(frustum.m_bottomFace)) return false;
+
+	return frustum.test(*this);
 }
 
-void ::BoundingBox::render() 
+void Engine::BoundingBox::render()
 {
 	float color[3] = { 0.3f, 0.3f, 0.3f };
 	dd::line(&m_points[0].x, &m_points[1].x, color);
@@ -47,28 +58,14 @@ void ::BoundingBox::render()
 	dd::line(&m_points[3].x, &m_points[7].x, color);
 }
 
-void ::BoundingBox::update(const Matrix& world)
+void Engine::BoundingBox::update(const Matrix& world)
 {
-	// Transform min/max to 8 corners in world space
-	m_points[0] = Vector3(m_min.x, m_min.y, m_min.z);
-	m_points[1] = Vector3(m_max.x, m_min.y, m_min.z);
-	m_points[2] = Vector3(m_min.x, m_max.y, m_min.z);
-	m_points[3] = Vector3(m_max.x, m_max.y, m_min.z);
-	m_points[4] = Vector3(m_min.x, m_min.y, m_max.z);
-	m_points[5] = Vector3(m_max.x, m_min.y, m_max.z);
-	m_points[6] = Vector3(m_min.x, m_max.y, m_max.z);
-	m_points[7] = Vector3(m_max.x, m_max.y, m_max.z);
-
-	// Apply world transform to all points
-	for (int i = 0; i < 8; ++i)
-		m_points[i] = Vector3::Transform(m_points[i], world);
-
-	// Update world-space min/max for convenience
-	m_min = m_points[0];
-	m_max = m_points[0];
-	for (int i = 1; i < 8; ++i)
-	{
-		m_min = Vector3::Min(m_min, m_points[i]);
-		m_max = Vector3::Max(m_max, m_points[i]);
-	}
+	m_points[0] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_min.z), world);
+	m_points[1] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_min.z), world);
+	m_points[2] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_min.z), world);
+	m_points[3] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_min.z), world);
+	m_points[4] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_max.z), world);
+	m_points[5] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_max.z), world);
+	m_points[6] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_max.z), world);
+	m_points[7] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_max.z), world);
 }

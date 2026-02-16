@@ -9,6 +9,9 @@ struct BoundingRect
 {
 	float x, y, width, height;
 
+	// DEBUG
+	mutable bool m_debugIsCulled = true;
+
 	BoundingRect() : x(0), y(0), width(0), height(0) {}
 	BoundingRect(float _x, float _y, float _width, float _height) : x(_x), y(_y), width(_width), height(_height) {}
 
@@ -22,21 +25,27 @@ struct BoundingRect
 		return point.x >= x && point.x <= x + width && point.z >= y && point.z <= y + height;
 	}
 
-	bool contains(const ::BoundingBox& aabb) const
+	bool contains(const Engine::BoundingBox& box) const
 	{
-		return aabb.getMin().x >= minX() &&
-			aabb.getMax().x <= maxX() &&
-			aabb.getMin().z >= minZ() &&
-			aabb.getMax().z <= maxZ();
+		Vector3 minPointInWorldSpace = box.getMinInWorldSpace();
+		Vector3 maxPointInWorldSpace = box.getMaxInWorldSpace();
+		
+		return minPointInWorldSpace.x >= minX() ||
+			maxPointInWorldSpace.x <= maxX() ||
+			minPointInWorldSpace.z >= minZ() ||
+			maxPointInWorldSpace.z <= maxZ();
 	}
 
-	bool intersects(const ::BoundingBox& aabb) const
+	bool intersects(const Engine::BoundingBox& box) const
 	{
+		Vector3 minPointInWorldSpace = box.getMinInWorldSpace();
+		Vector3 maxPointInWorldSpace = box.getMaxInWorldSpace();
+
 		// Project the 3D AABB to XZ
-		float boxMinX = aabb.getMin().x;
-		float boxMaxX = aabb.getMax().x;
-		float boxMinZ = aabb.getMin().z;
-		float boxMaxZ = aabb.getMax().z;
+		float boxMinX = minPointInWorldSpace.x;
+		float boxMaxX = maxPointInWorldSpace.x;
+		float boxMinZ = minPointInWorldSpace.z;
+		float boxMaxZ = maxPointInWorldSpace.z;
 
 		// Separating Axis Theorem (2D AABB vs AABB)
 		if (boxMaxX < minX()) return false;
@@ -69,7 +78,7 @@ public:
 	void insert(GameObject& object);
 	void remove(GameObject& object);
 
-	void gatherObjects(const Frustum& frustum, std::vector<GameObject*>& out) const;
+	void gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const;
 
 	void gatherRectangles(std::vector<BoundingRect>& out) const;
 
@@ -84,7 +93,7 @@ private:
 	bool canMerge() const;
 	void merge();
 
-	bool intersects(const Frustum& frustum,
+	bool intersects(const Engine::Frustum& frustum,
 		const BoundingRect& rectangle,
 		int minY = -10000,
 		int maxY = 10000) const;

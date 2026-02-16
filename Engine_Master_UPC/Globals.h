@@ -88,4 +88,11 @@ if(FAILED(x)) {													\
 #define NAME_D3D12_OBJECT(obj, name) obj->SetName(name); OutputDebugString(L"::D3D12 Object Created: "); OutputDebugString(name); OutputDebugString(L"\n");
 #endif
 
+// Namespace dedicated to names that collide with other libraries' (e.g. DirectX::BoundingBox)
+namespace Engine
+{
+	class BoundingBox;
+	struct Frustum;
+}
+
 

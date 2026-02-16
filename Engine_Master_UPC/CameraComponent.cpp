@@ -23,12 +23,11 @@ void CameraComponent::recalculateFrustum()
 	m_frustum.calculateFrustumVerticesFromFrustum(m_world, m_horizontalFov, m_nearPlane, m_farPlane, m_aspectRatio, m_frustum.m_points);
 
 	m_frustum.m_frontFace   = Plane(m_frustum.m_points[0], m_frustum.m_points[1], m_frustum.m_points[2]);
-	m_frustum.m_frontFace   = Plane(m_frustum.m_points[0], m_frustum.m_points[1], m_frustum.m_points[2]);
-	m_frustum.m_backFace    = Plane(m_frustum.m_points[6], m_frustum.m_points[5], m_frustum.m_points[4]);
-	m_frustum.m_topFace     = Plane(m_frustum.m_points[5], m_frustum.m_points[1], m_frustum.m_points[0]);
-	m_frustum.m_bottomFace  = Plane(m_frustum.m_points[2], m_frustum.m_points[6], m_frustum.m_points[7]);
-	m_frustum.m_leftFace    = Plane(m_frustum.m_points[5], m_frustum.m_points[6], m_frustum.m_points[2]);
-	m_frustum.m_rightFace   = Plane(m_frustum.m_points[0], m_frustum.m_points[3], m_frustum.m_points[7]);
+	m_frustum.m_backFace    = Plane(m_frustum.m_points[5], m_frustum.m_points[4], m_frustum.m_points[7]);
+	m_frustum.m_topFace     = Plane(m_frustum.m_points[0], m_frustum.m_points[4], m_frustum.m_points[5]);
+	m_frustum.m_bottomFace  = Plane(m_frustum.m_points[3], m_frustum.m_points[2], m_frustum.m_points[6]);
+	m_frustum.m_leftFace    = Plane(m_frustum.m_points[4], m_frustum.m_points[0], m_frustum.m_points[3]);
+	m_frustum.m_rightFace   = Plane(m_frustum.m_points[1], m_frustum.m_points[5], m_frustum.m_points[6]);
 }
 
 void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)

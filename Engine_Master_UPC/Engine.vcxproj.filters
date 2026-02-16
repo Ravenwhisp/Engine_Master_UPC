@@ -366,7 +366,6 @@
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="AABB.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="CameraComponent.h" />

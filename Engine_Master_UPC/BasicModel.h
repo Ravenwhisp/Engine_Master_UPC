@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
-#include "AABB.h"
+#include "BoundingBox.h"
 
 namespace tinygltf { class Model; }
 
@@ -20,7 +20,7 @@ public:
 	void load(const char* fileName, const char* basePath);
 	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }
 	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
-	AABB& getAABB() { return m_aabb; }
+	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
 
 #pragma region Loop functions
 	bool init() override;
@@ -38,5 +38,5 @@ private:
 	std::string m_modelPath;
 	std::string m_basePath;
 
-	AABB m_aabb = {};
+	Engine::BoundingBox m_boundingBox;
 };
