@@ -24,7 +24,7 @@ void QuadNode::insert(GameObject& object)
         return;
     }
 
-    if (!m_bounds.contains(model->getBoundingBox()))
+    if (!m_bounds.intersects(model->getBoundingBox()))
     {
         return;
     }
