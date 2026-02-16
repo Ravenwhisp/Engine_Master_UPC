@@ -40,6 +40,9 @@ public:
 
 	ComPtr<ID3D12RootSignature>		createRootSignature();
 	ComPtr<ID3D12PipelineState>		createPipelineStateObject(ID3D12RootSignature* rootSignature);
+
+	ComPtr<ID3D12RootSignature>		createSkyboxRootSignature();
+	ComPtr<ID3D12PipelineState>		createSkyboxPipelineStateObject(ID3D12RootSignature* rootSignature);
 private:
 
 	void loadPipeline();

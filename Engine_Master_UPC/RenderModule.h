@@ -7,6 +7,9 @@ class RingBuffer;
 class RenderTexture;
 class DepthBuffer;
 class GameObject;
+class VertexBuffer;
+class IndexBuffer;
+class Texture;
 
 class RenderModule: public Module
 {
@@ -32,6 +35,17 @@ private:
 
 	RingBuffer*						m_ringBuffer;
 	DescriptorsModule::SampleType	m_sampleType = DescriptorsModule::SampleType::POINT_CLAMP;
+
+	//another root and pipeline for the skybox
+	ComPtr<ID3D12RootSignature> m_skyboxRootSignature;
+	ComPtr<ID3D12PipelineState> m_skyboxPipelineState;
+
+	VertexBuffer* m_skyboxVertexB = nullptr;
+	IndexBuffer* m_skyboxIndexB = nullptr;
+	uint32_t      m_skyboxIndexCount = 0;
+
+	std::unique_ptr<Texture> m_skyboxTexture;
+	bool m_hasSkybox = false;
 
 	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_screenRT{};
