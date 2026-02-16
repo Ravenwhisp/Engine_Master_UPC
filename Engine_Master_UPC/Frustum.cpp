@@ -79,25 +79,3 @@ void Engine::Frustum::calculateFrustumVerticesFromFrustum(const Matrix& world, c
 		verts[i] = points[i];
 	}
 }
-
-bool Engine::Frustum::test(const Engine::BoundingBox& box) const
-{
-	bool allLeft = true;
-	bool allRight = true;
-	bool allAbove = true;
-	bool allBelow = true;
-	bool allBehind = true;
-	bool allInFront = true;
-
-	for (int i = 0; i < 8; i++)
-	{
-		if (m_points[i].x >= box.getMin().x) allLeft = false;
-		if (m_points[i].x <= box.getMax().x) allRight = false;
-		if (m_points[i].y >= box.getMin().y) allBelow = false;
-		if (m_points[i].y <= box.getMax().y) allAbove = false;
-		if (m_points[i].z >= box.getMin().z) allInFront = false;
-		if (m_points[i].z <= box.getMax().z) allBehind = false;
-	}
-
-	return !(allLeft || allRight || allBelow || allAbove || allInFront || allBehind);
-}
