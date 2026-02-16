@@ -15,6 +15,30 @@
 #include "LightComponent.h"
 #include "Transform.h"
 
+struct SkyboxVertex { Vector3 position; };
+
+static void CreateSkyboxCube(ResourcesModule* resourcesModule, VertexBuffer*& outputVertexBuffer, IndexBuffer*& outputIndexBuffer, uint32_t& outputIndexCount)
+{
+    static const SkyboxVertex vertexes[] =
+    {
+        {{-1, -1, -1}}, {{-1,  1, -1}}, {{ 1,  1, -1}}, {{ 1, -1, -1}},
+        {{-1, -1,  1}}, {{-1,  1,  1}}, {{ 1,  1,  1}}, {{ 1, -1,  1}},
+    };
+
+    static const uint16_t indexes[] =
+    {
+        0,1,2, 0,2,3,
+        4,6,5, 4,7,6,
+        4,5,1, 4,1,0,
+        3,2,6, 3,6,7,
+        1,5,6, 1,6,2,
+        4,0,3, 4,3,7
+    };
+
+    outputVertexBuffer = resourcesModule->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyboxVertex));
+    outputIndexBuffer = resourcesModule->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT);
+    outputIndexCount = (uint32_t)_countof(indexes);
+}
 
 bool RenderModule::init()
 {
@@ -25,6 +49,14 @@ bool RenderModule::postInit()
 {
     m_rootSignature = app->getD3D12Module()->createRootSignature();
     m_pipelineState = app->getD3D12Module()->createPipelineStateObject(m_rootSignature.Get());
+
+    m_skyboxRootSignature = app->getD3D12Module()->createSkyboxRootSignature();
+    m_skyboxPipelineState = app->getD3D12Module()->createSkyboxPipelineStateObject(m_skyboxRootSignature.Get());
+
+    CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
+
+    m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path("Assets/Textures/cubemap.dds"), "Skybox");
+    m_hasSkybox = (m_skyboxTexture != nullptr);
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
