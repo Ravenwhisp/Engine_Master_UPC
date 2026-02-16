@@ -25,33 +25,15 @@ struct BoundingRect
 		return point.x >= x && point.x <= x + width && point.z >= y && point.z <= y + height;
 	}
 
-	bool contains(const Engine::BoundingBox& box) const
-	{
-		Vector3 minPointInWorldSpace = box.getMinInWorldSpace();
-		Vector3 maxPointInWorldSpace = box.getMaxInWorldSpace();
-		
-		return minPointInWorldSpace.x >= minX() ||
-			maxPointInWorldSpace.x <= maxX() ||
-			minPointInWorldSpace.z >= minZ() ||
-			maxPointInWorldSpace.z <= maxZ();
-	}
-
 	bool intersects(const Engine::BoundingBox& box) const
 	{
-		Vector3 minPointInWorldSpace = box.getMinInWorldSpace();
-		Vector3 maxPointInWorldSpace = box.getMaxInWorldSpace();
+		Vector3 min = box.getMinInWorldSpace();
+		Vector3 max = box.getMaxInWorldSpace();
 
-		// Project the 3D AABB to XZ
-		float boxMinX = minPointInWorldSpace.x;
-		float boxMaxX = maxPointInWorldSpace.x;
-		float boxMinZ = minPointInWorldSpace.z;
-		float boxMaxZ = maxPointInWorldSpace.z;
-
-		// Separating Axis Theorem (2D AABB vs AABB)
-		if (boxMaxX < minX()) return false;
-		if (boxMinX > maxX()) return false;
-		if (boxMaxZ < minZ()) return false;
-		if (boxMinZ > maxZ()) return false;
+		if (max.x < minX()) return false;
+		if (min.x > maxX()) return false;
+		if (max.z < minZ()) return false;
+		if (min.z > maxZ()) return false;
 
 		return true;
 	}
