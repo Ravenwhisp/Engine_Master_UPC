@@ -1,4 +1,4 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "Quadtree.h"
 
 Quadtree::Quadtree(const RectangleData& worldBounds)

@@ -1,10 +1,12 @@
 #pragma once
 #include "Module.h"
 #include "DescriptorsModule.h"
+#include "Lights.h"
 
 class RingBuffer;
 class RenderTexture;
 class DepthBuffer;
+class GameObject;
 
 class RenderModule: public Module
 {
@@ -35,5 +37,8 @@ private:
 	std::unique_ptr<RenderTexture>	m_screenRT{};
 	std::unique_ptr<DepthBuffer>	m_screenDS{};
 	ImVec2							m_size = ImVec2(800, 600);
+
+	D3D12_GPU_VIRTUAL_ADDRESS buildAndUploadLightsCB();
+	GPULightsConstantBuffer packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const;
 };
 
