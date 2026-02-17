@@ -5,31 +5,31 @@
       <Filter>Core\Engine</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_demo.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_draw.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_win32.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_tables.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiPass.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClCompile>
     <ClCompile Include="D3D12Module.cpp">
       <Filter>D3D12</Filter>
@@ -173,6 +173,12 @@
     <ClCompile Include="LightDebugDraw.cpp">
       <Filter>Editor\Debug</Filter>
     </ClCompile>
+    <ClCompile Include="3rdParty\simdjson\simdjson.cpp">
+      <Filter>3dParty\simdjson</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSerializer.cpp">
+      <Filter>Core\Persistence</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -185,25 +191,25 @@
       <Filter>Core\Engine</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\imgui.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiPass.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
-      <Filter>Editor\imgui</Filter>
+      <Filter>3dParty\imgui</Filter>
     </ClInclude>
     <ClInclude Include="D3D12Module.h">
       <Filter>D3D12</Filter>
@@ -381,6 +387,12 @@
     <ClInclude Include="LightDebugDraw.h">
       <Filter>Editor\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\simdjson\simdjson.h">
+      <Filter>3dParty\simdjson</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -411,9 +423,6 @@
     </Filter>
     <Filter Include="Editor">
       <UniqueIdentifier>{2bed0e6a-b904-458e-ab3b-3c21b9f58527}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\imgui">
-      <UniqueIdentifier>{a60f8542-9cd4-4679-8902-854421339996}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Timers">
       <UniqueIdentifier>{1514364a-f620-4a4f-bea2-17ede130ddd0}</UniqueIdentifier>
@@ -492,6 +501,18 @@
     </Filter>
     <Filter Include="Editor\Debug">
       <UniqueIdentifier>{81108d66-0f59-4640-9a4c-973569c8985b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3dParty">
+      <UniqueIdentifier>{eee7e809-e00c-47b4-b239-325538c5c421}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3dParty\imgui">
+      <UniqueIdentifier>{a60f8542-9cd4-4679-8902-854421339996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3dParty\simdjson">
+      <UniqueIdentifier>{004385ad-c2b8-45e3-9ef1-ba9078e4af0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence">
+      <UniqueIdentifier>{0d7f2841-bb94-44cf-ad8f-b6394570814f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

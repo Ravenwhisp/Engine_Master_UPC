@@ -19,6 +19,7 @@
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
 
+#include "SceneSerializer.h"
 
 SceneEditor::SceneEditor()
 {
@@ -32,6 +33,8 @@ SceneEditor::SceneEditor()
     auto d3d12Module = app->getD3D12Module();
 
     m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
+
+	m_sceneSerializer = new SceneSerializer();
 }
 
 SceneEditor::~SceneEditor()
@@ -192,4 +195,14 @@ void SceneEditor::renderQuadtree()
 
         dd::box(ddConvert(center), dd::colors::Red, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);
 	}
+}
+
+void SceneEditor::saveScene()
+{
+	m_sceneSerializer->SaveScene("SampleScene");
+}
+
+void SceneEditor::loadScene()
+{
+    m_sceneSerializer->LoadScene("SampleScene");
 }
