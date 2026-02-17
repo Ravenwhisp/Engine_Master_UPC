@@ -54,6 +54,8 @@ public:
 	VertexBuffer*					createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
 	IndexBuffer*					createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat);
 
+	void							destroyVertexBuffer(VertexBuffer*& vertexBuffer);
+	void							destroyIndexBuffer(IndexBuffer*& inderxBuffer);
 	void							defferResourceRelease(ComPtr<ID3D12Resource> resource);
 
 private:

@@ -28,6 +28,8 @@ private:
 	void transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
 	void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
 	void renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
+	void renderSkybox(ID3D12GraphicsCommandList4* commandList, const Quaternion& cameraRot, Matrix& projectionMatrix);
+	void cleanupSkybox();
 
 	//For now let's store the root signature and the pipeline state here
 	ComPtr<ID3D12RootSignature>		m_rootSignature;
