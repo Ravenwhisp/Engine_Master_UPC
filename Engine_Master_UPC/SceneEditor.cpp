@@ -164,8 +164,8 @@ void SceneEditor::renderQuadtree()
         float color[3];
         if (rect.m_debugIsCulled) 
         {
-            dd::box(ddConvert(center), dd::colors::Red, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);
-        }
+        dd::box(ddConvert(center), dd::colors::Red, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);
+	}
         else 
         {
             dd::box(ddConvert(center), dd::colors::Green, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);

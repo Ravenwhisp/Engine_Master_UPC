@@ -34,6 +34,8 @@ public:
 	Transform* GetTransform() { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
 	bool RemoveComponent(Component* componentToRemove);
+#pragma endregion
+
 
 	/// TESTING
 	template<class Component>

@@ -79,10 +79,10 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
         if (!gameObject->GetActive())
             continue;
 
-        if (gameObject->GetTransform()->isDirty())
-        {
-            m_quadtree->move(*gameObject);
-        }
+            if (gameObject->GetTransform()->isDirty())
+            {
+                m_quadtree->move(*gameObject);
+            }
 
         if (!camera)
         {

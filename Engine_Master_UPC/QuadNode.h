@@ -1,4 +1,5 @@
 #pragma once
+#include "GameObject.h"
 #include <array>
 #include "BoundingBox.h"
 
@@ -101,6 +102,7 @@ public:
 
 private:
 	void subdivide();
+	void insertToChildren(GameObject& object);
 	void tryMergeUpwards();
 	bool canMerge() const;
 	void merge();
