@@ -1,0 +1,29 @@
+#pragma once
+#include "Component.h"
+#include "Lights.h"
+
+class LightComponent final : public Component
+{
+public:
+    LightComponent(int id, GameObject* owner);
+
+    const LightData& getData() const { return m_data; }
+    LightData& editData() { return m_data; }
+
+    void setTypeDirectional();
+    void setTypePoint(float radius);
+    void setTypeSpot(float radius, float innerAngleDegrees, float outerAngleDegrees);
+
+    void sanitize();
+
+    void drawUi() override;
+
+    bool isDebugDrawEnabled() const { return m_debugDrawEnabled; }
+    bool isDebugDrawDepthEnabled() const { return m_debugDrawDepthEnabled; }
+
+private:
+    LightData m_data{};
+
+    bool m_debugDrawEnabled = false;
+    bool m_debugDrawDepthEnabled = true;
+};
