@@ -92,12 +92,14 @@ public:
 
 	void gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const;
 	void gatherRectangles(std::vector<BoundingRect>& out) const;
-private:
-	void subdivide();
-	void tryMergeUpwards();
+
+	int getDepth() const { return m_depth; }
+	void clearDirty() { m_dirty = false; }
 	bool canMerge() const;
 	void merge();
-
+private:
+	void subdivide();
+	void markDirty();
 
 	bool isLeaf() const { return m_children[TOP_LEFT] == nullptr; }
 	BoundingRect getBounds() const { return m_bounds; }
@@ -111,6 +113,7 @@ private:
 
 
 private:
+	bool						m_dirty = false;
 	BoundingRect				m_bounds;
 	int							m_depth;
 	Quadtree&					m_tree;

@@ -19,9 +19,12 @@ public:
 	std::vector<GameObject*> getObjects(const Engine::Frustum& frustum) const;
 	std::vector<BoundingRect> getQuadrants() const;
 	QuadNode& getRoot() { return *m_root; }
+	void registerDirtyNode(QuadNode* node);
+	void resolveDirtyNodes();
 private:
 	friend class QuadNode;
 
 	std::unique_ptr<QuadNode> m_root;
+	std::vector<QuadNode*> m_dirtyNodes;
 	std::unordered_map<GameObject*, QuadNode*> m_objectLocationMap;
 };

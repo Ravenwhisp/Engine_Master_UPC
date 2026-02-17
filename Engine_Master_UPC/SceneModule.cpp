@@ -56,6 +56,8 @@ void SceneModule::updateHierarchy(GameObject* obj)
     {
         updateHierarchy(child);
     }
+
+    m_quadtree->resolveDirtyNodes();
 }
 
 void SceneModule::preRender()
