@@ -19,7 +19,7 @@ bool SceneModule::init()
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    auto component = gameCamera->GetComponent<BasicModel>();
+    auto component = gameCamera->GetComponentAs<BasicModel>(ComponentType::MODEL);
     gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
 
@@ -85,7 +85,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
 
         if (!camera)
         {
-            camera = gameObject->GetComponent<CameraComponent>();
+            camera = gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
         }
     }
 
