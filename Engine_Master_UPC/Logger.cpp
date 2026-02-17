@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "Logger.h"
+
 #include "Application.h"
 #include "TimeModule.h"
 #include <imgui_internal.h>

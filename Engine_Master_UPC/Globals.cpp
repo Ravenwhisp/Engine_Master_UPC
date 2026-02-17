@@ -1,5 +1,7 @@
 #include "Globals.h"
 
+#include "Logger.h"
+
 void log(const char file[], int line, const char* format, ...)
 {
 	static char tmp_string[4096];
@@ -12,4 +14,6 @@ void log(const char file[], int line, const char* format, ...)
 	va_end(ap);
 	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugStringA(tmp_string2);
+
+	Logger::log("%s(%d) : %s", file, line, tmp_string);
 }

@@ -99,5 +99,8 @@ private:
 	bool gizmoUseLocal = true;
 #pragma endregion
 
+	void ConsoleLog(const char* message);
+	void ConsoleWarn(const char* message);
+	void ConsoleError(const char* message);
 };
 
