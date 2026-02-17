@@ -15,6 +15,10 @@
 #include "LightComponent.h"
 #include "Transform.h"
 
+#include "Skybox.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
 struct SkyboxVertex { Vector3 position; };
 
 static void CreateSkyboxCube(ResourcesModule* resourcesModule, VertexBuffer*& outputVertexBuffer, IndexBuffer*& outputIndexBuffer, uint32_t& outputIndexCount)
@@ -106,10 +110,13 @@ void RenderModule::render()
 
 bool RenderModule::cleanUp()
 {
+    cleanupSkybox();
+
     m_screenRT.reset();
     m_screenDS.reset();
 
     delete m_ringBuffer;
+    m_ringBuffer = nullptr;
 
     return true;
 }
@@ -146,6 +153,52 @@ void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
     commandList->RSSetScissorRects(1, &offscreenScissorRect);
 }
 
+void RenderModule::renderSkybox(ID3D12GraphicsCommandList4* commandList, const Quaternion& cameraRotation, Matrix& projectionMatrix)
+{
+    if (!m_hasSkybox || !m_skyboxTexture || !m_skyboxVertexBuffer || !m_skyboxIndexBuffer) {
+        return;
+    }
+
+    Quaternion invRot;
+    cameraRotation.Inverse(invRot);
+
+    Matrix view = Matrix::CreateFromQuaternion(invRot);
+    Matrix vp = view * projectionMatrix;
+
+    vp = vp.Transpose();
+
+    SkyParams params{};
+    params.vp = vp;
+    params.flipX = 0;
+    params.flipZ = 0;
+
+    commandList->SetPipelineState(m_skyboxPipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_skyboxRootSignature.Get());
+
+    commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyParams)/sizeof(UINT32), &params, 0);
+    commandList->SetGraphicsRootDescriptorTable(1, m_skyboxTexture->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(2, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(DescriptorsModule::SampleType::LINEAR_CLAMP));
+
+    D3D12_VERTEX_BUFFER_VIEW vertexBufferView = m_skyboxVertexBuffer->getVertexBufferView();
+    D3D12_INDEX_BUFFER_VIEW  indexBufferView = m_skyboxIndexBuffer->getIndexBufferView();
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+    commandList->IASetIndexBuffer(&indexBufferView);
+
+    commandList->DrawIndexedInstanced(m_skyboxIndexCount, 1, 0, 0, 0);
+}
+
+void RenderModule::cleanupSkybox()
+{
+    app->getResourcesModule()->destroyVertexBuffer(m_skyboxVertexBuffer);
+    app->getResourcesModule()->destroyIndexBuffer(m_skyboxIndexBuffer);
+    m_skyboxIndexCount = 0;
+
+    m_skyboxTexture.reset();
+    m_hasSkybox = false;
+}
+
 void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
 {
     // Clear + draw
@@ -174,9 +227,12 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
 
     app->getSceneModule()->render(commandList, viewMatrix, projectionMatrix);
 
+    Quaternion cameraRotation = app->getCameraModule()->getRotation();
+    //Skybox
+    renderSkybox(commandList, cameraRotation, projectionMatrix);
+
     //DebugDrawPass
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
-
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS RenderModule::buildAndUploadLightsCB()

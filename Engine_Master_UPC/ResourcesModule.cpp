@@ -326,6 +326,21 @@ void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	m_queue->flush();
 }
 
-
+void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer) 
+{
+	if (vertexBuffer) 
+	{
+		delete vertexBuffer;
+		vertexBuffer = nullptr;
+	}
+}
+void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer) 
+{ 
+	if (indexBuffer) 
+	{
+		delete indexBuffer;
+		indexBuffer = nullptr;
+	}
+}
 
 
