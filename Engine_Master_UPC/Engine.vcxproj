@@ -201,6 +201,7 @@
     <ClInclude Include="PlayerWalk.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
+    <ClInclude Include="SceneConfig.h" />
     <ClInclude Include="SceneModule.h" />
     <ClInclude Include="GamePad.h" />
     <ClInclude Include="Globals.h" />
@@ -329,6 +330,7 @@
     <ClCompile Include="PlayerWalk.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
+    <ClCompile Include="SceneConfig.cpp" />
     <ClCompile Include="SceneModule.cpp" />
     <ClCompile Include="GamePad.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
