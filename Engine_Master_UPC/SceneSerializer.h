@@ -9,4 +9,3 @@ public:
     bool SaveScene(std::string sceneName);
     bool LoadScene(std::string sceneName);
 };
-

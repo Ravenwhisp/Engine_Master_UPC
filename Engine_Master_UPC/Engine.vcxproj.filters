@@ -94,13 +94,7 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="SceneEditor.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
     <ClCompile Include="Logger.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="HardwareWindow.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
     <ClCompile Include="PerformanceWindow.cpp">
@@ -161,9 +155,6 @@
     <ClCompile Include="EditorSettings.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
-    <ClCompile Include="EditorToolbar.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -178,6 +169,18 @@
     </ClCompile>
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>Core\Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="HardwareWindow.cpp">
+      <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Editor\EditorWindows\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneEditor.cpp">
+      <Filter>Editor\EditorWindows\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneConfig.cpp">
+      <Filter>Editor\EditorWindows\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -286,13 +289,7 @@
     <ClInclude Include="EditorWindow.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="SceneEditor.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
     <ClInclude Include="Logger.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="HardwareWindow.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
     <ClInclude Include="PerformanceWindow.h">
@@ -372,9 +369,6 @@
     <ClInclude Include="EditorSettings.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
-    <ClInclude Include="EditorToolbar.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -392,6 +386,18 @@
     </ClInclude>
     <ClInclude Include="SceneSerializer.h">
       <Filter>Core\Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="HardwareWindow.h">
+      <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorToolbar.h">
+      <Filter>Editor\EditorWindows\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneEditor.h">
+      <Filter>Editor\EditorWindows\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneConfig.h">
+      <Filter>Editor\EditorWindows\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -513,6 +519,9 @@
     </Filter>
     <Filter Include="Core\Persistence">
       <UniqueIdentifier>{0d7f2841-bb94-44cf-ad8f-b6394570814f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\EditorWindows\Scene">
+      <UniqueIdentifier>{15dba9f8-094f-42ca-98ed-6dc0b4f88d4a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

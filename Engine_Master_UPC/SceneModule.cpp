@@ -1,12 +1,17 @@
 #include "Globals.h"
+
 #include "SceneModule.h"
 #include "LightComponent.h"
+
+#include "SceneSerializer.h"
 
 using namespace DirectX::SimpleMath;
 
 #pragma region GameLoop
 bool SceneModule::init()
 {
+	m_sceneSerializer = new SceneSerializer();
+
     m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
@@ -210,4 +215,16 @@ GameObject* SceneModule::createDirectionalLightOnInit()
 
     return go;
 }
+
+#pragma region Persistence
+void SceneModule::saveScene()
+{
+	m_sceneSerializer->SaveScene(m_name);
+}
+
+void SceneModule::loadScene()
+{
+    m_sceneSerializer->LoadScene(m_name);
+}
+#pragma endregion
 

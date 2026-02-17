@@ -14,7 +14,6 @@ class EditorToolbar;
 
 class DebugDrawPass;
 class GameObject;
-class SceneSerializer;
 
 class SceneEditor: public EditorWindow
 {
@@ -26,7 +25,6 @@ private:
     Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
-	SceneSerializer* m_sceneSerializer;
 
 private:
     std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
@@ -42,11 +40,5 @@ public:
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
-
-#pragma region Persistence
-    void saveScene();
-	void loadScene();
-#pragma endregion
-
 };
 

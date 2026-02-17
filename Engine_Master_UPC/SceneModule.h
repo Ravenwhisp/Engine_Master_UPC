@@ -4,6 +4,8 @@
 #include "Quadtree.h"
 #include "Lights.h"
 
+class SceneSerializer;
+
 struct SceneDataCB
 {
 	Vector3 viewPos;
@@ -18,6 +20,16 @@ struct SceneLightingSettings
 
 class SceneModule : public Module
 {
+private:
+	SceneSerializer* m_sceneSerializer;
+
+	std::string m_name = "SampleScene";
+
+	std::vector<GameObject*>	m_gameObjects;
+	SceneLightingSettings		m_lighting;
+	Quadtree* m_quadtree;
+	SceneDataCB					m_sceneDataCB;
+
 public:
 #pragma region GameLoop
 	bool init() override;
@@ -27,6 +39,11 @@ public:
 	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
 	void postRender() override;
 	bool cleanUp() override;
+#pragma endregion
+
+#pragma region Persistence
+	void saveScene();
+	void loadScene();
 #pragma endregion
 
 	void createGameObject();
@@ -44,15 +61,10 @@ public:
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
+	const void setName(const char* newName) { m_name = newName; }
+
 	SceneLightingSettings& GetLightingSettings() { return m_lighting; }
 	SceneDataCB& getCBData() { return m_sceneDataCB; }
 
 	Quadtree& getQuadtree() { return *m_quadtree; }
-private:
-	std::string m_name = "SampleScene";
-
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	Quadtree*					m_quadtree;
-	SceneDataCB					m_sceneDataCB;
 };
