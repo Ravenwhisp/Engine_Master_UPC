@@ -33,4 +33,13 @@ private:
 
 	std::string m_modelPath;
 	std::string m_basePath;
+
+	bool    m_hasBounds = false;
+	Vector3 m_boundsMin = Vector3(0, 0, 0);
+	Vector3 m_boundsMax = Vector3(0, 0, 0);
+
+	bool m_drawBounds = false;
+	bool m_boundsDepthTest = true;
+	bool m_drawWorldAabb = false;
+
 };
