@@ -23,7 +23,6 @@ void Quadtree::remove(GameObject& object)
 
     QuadNode* node = it->second;
     node->remove(object);
-    m_objectLocationMap.erase(it);
 }
 
 void Quadtree::move(GameObject& object)
