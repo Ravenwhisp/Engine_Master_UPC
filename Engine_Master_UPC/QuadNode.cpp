@@ -36,8 +36,8 @@ void QuadNode::insert(GameObject& object)
         }
     }
 
-    m_objects.push_back(&object);
-    m_tree.m_objectLocationMap[&object] = this;
+            m_objects.push_back(&object);
+            m_tree.m_objectLocationMap[&object] = this;
 
     // Subdivide only if needed
     if (isLeaf() &&
@@ -45,12 +45,12 @@ void QuadNode::insert(GameObject& object)
         m_depth < Quadtree::MAX_DEPTH)
     {
         subdivide();
+        }
     }
-}
 
 
 void QuadNode::refit(GameObject& object)
-{
+    {
     auto model = object.GetComponent<BasicModel>();
     if (!model) return;
 
@@ -119,9 +119,14 @@ void QuadNode::subdivide()
 
     std::vector<GameObject*> oldObjects = std::move(m_objects);
     m_objects.clear();
+}
+
+void QuadNode::insertToChildren(GameObject& object)
+{
+    auto transform = object.GetTransform();
 
     for (GameObject* obj : oldObjects)
-    {
+        {
         insert(*obj);
     }
 
@@ -138,7 +143,7 @@ void QuadNode::tryMergeUpwards()
 
         if (parent->canMerge())
         {
-            parent->merge();
+        parent->merge();
         }
 
         current = parent;
@@ -215,20 +220,21 @@ bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& re
 void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const
 {
     if (!intersects(frustum, m_bounds))
-    { 
+    {
         m_bounds.m_debugIsCulled = true;
-        return; 
+        return;
     }
 
     m_bounds.m_debugIsCulled = false;
 
-    for (GameObject* obj : m_objects)
+        for (GameObject* obj : m_objects)
     {
         auto model = obj->GetComponent<BasicModel>();
         if (model && model->getBoundingBox().test(frustum))
         {
             out.push_back(obj);
-        }
+        return;
+    }
     }
 
     if (isLeaf()) return;
@@ -248,14 +254,14 @@ void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
         if (child)
         {
             child->gatherRectangles(out);
-        }
+}
     }
 }
 
 QuadNode* QuadNode::findBestFitChild(const Engine::BoundingBox& box) const
-{
-    for (const auto& child : m_children)
     {
+    for (const auto& child : m_children)
+        {
         if (child->m_bounds.containsFully(box))
             return child.get();
     }
@@ -271,5 +277,11 @@ QuadNode* QuadNode::findContainingAncestor(const Engine::BoundingBox& box)
     return node;
 }
 
+    Vector3 extents;
+    extents.x = rectangle.width * 0.5f;
+    extents.z = rectangle.height * 0.5f;
+    extents.y = (maxY - minY) * 0.5f;
 
+    return intersectsPlanes(planes, center, extents);
+}
 

@@ -151,6 +151,9 @@
     <ClCompile Include="Transform.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
     <ClCompile Include="QuadNode.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
@@ -349,6 +352,9 @@
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
     </ClInclude>
     <ClInclude Include="QuadNode.h">
       <Filter>DataStructure</Filter>

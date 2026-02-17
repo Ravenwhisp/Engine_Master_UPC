@@ -42,7 +42,7 @@ void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 				uint8_t* indices = new uint8_t[numIndices * indexElementSize];
 				loadAccessorData(indices, indexElementSize, indexElementSize, numIndices, model, primitive.indices);
 
-				if (numIndices > 0)
+				if (numIndices > 0) 
 				{
 					m_indexBuffer = app->getResourcesModule()->createIndexBuffer(indices, numIndices, INDEX_FORMATS[indexElementSize >> 1]);
 				}
