@@ -198,6 +198,9 @@
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Layer.h" />
+    <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="LightDebugDraw.h" />
+    <ClInclude Include="Lights.h" />
     <ClInclude Include="PlayerWalk.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
@@ -323,6 +326,8 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
@@ -381,9 +386,16 @@
     <None Include="CBuffers.hlsli">
       <FileType>Document</FileType>
     </None>
+    <None Include="NewCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="LightPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>

@@ -159,7 +159,8 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 	}
 
 	TextureInitInfo info{};
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(metaData.format, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(metaData.format);
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 	auto texture = std::make_unique<Texture>(*m_device.Get(), info);

@@ -12,6 +12,9 @@
 #include "RingBuffer.h"
 #include "RenderTexture.h"
 
+#include "LightComponent.h"
+#include "Transform.h"
+
 
 bool RenderModule::init()
 {
@@ -124,11 +127,15 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    SceneData& sceneData = app->getSceneModule()->getData();
-    sceneData.view = app->getCameraModule()->getPosition();
+    SceneDataCB& sceneDataCB = app->getSceneModule()->getCBData();
+    sceneDataCB.viewPos = app->getCameraModule()->getPosition();
 
-    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneData, sizeof(SceneData), app->getD3D12Module()->getCurrentFrame()));
-    commandList->SetGraphicsRootDescriptorTable(4, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
+    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
+
+    const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
+    commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
+
+    commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
 
     Matrix viewMatrix = app->getCameraModule()->getView();
     Matrix projectionMatrix = app->getCameraModule()->getProjection();
@@ -138,4 +145,151 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     //DebugDrawPass
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
 
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS RenderModule::buildAndUploadLightsCB()
+{
+    const auto& lighting = app->getSceneModule()->GetLightingSettings();
+
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getSceneModule()->getAllGameObjects(), lighting.ambientColor, lighting.ambientIntensity);
+
+    return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getD3D12Module()->getCurrentFrame());
+}
+
+GPULightsConstantBuffer RenderModule::packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const
+{
+    GPULightsConstantBuffer constantBuffer{};
+    constantBuffer.ambientColor = ambientColor;
+    constantBuffer.ambientIntensity = ambientIntensity;
+
+    std::vector<GPUDirectionalLight> directionalLights;
+    std::vector<GPUPointLight> pointLights;
+    std::vector<GPUSpotLight> spotLights;
+
+    directionalLights.reserve(LightDefaults::MAX_DIRECTIONAL_LIGHTS);
+    pointLights.reserve(LightDefaults::MAX_POINT_LIGHTS);
+    spotLights.reserve(LightDefaults::MAX_SPOT_LIGHTS);
+
+    for (GameObject* gameObject : objects)
+    {
+        if (gameObject == nullptr)
+        {
+            continue;
+        }
+
+        if (!gameObject->GetActive())
+        {
+            continue;
+        }
+
+        const LightComponent* lightComponent =
+            gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
+        if (lightComponent == nullptr)
+        {
+            continue;
+        }
+
+        const LightData& lightData = lightComponent->getData();
+        const LightCommon& common = lightData.common;
+
+        if (!common.enabled)
+        {
+            continue;
+        }
+
+        const Transform* transform = gameObject->GetTransform();
+        if (transform == nullptr)
+        {
+            continue;
+        }
+
+        const Vector3 position = transform->getPosition();
+
+        Vector3 forward = transform->getForward();
+        forward.Normalize();
+
+        switch (lightData.type)
+        {
+        case LightType::DIRECTIONAL:
+        {
+            if (directionalLights.size() >= LightDefaults::MAX_DIRECTIONAL_LIGHTS)
+            {
+                break;
+            }
+
+            GPUDirectionalLight gpuLight{};
+            gpuLight.direction = forward;
+            gpuLight.color = common.color;
+            gpuLight.intensity = common.intensity;
+
+            directionalLights.push_back(gpuLight);
+            break;
+        }
+
+        case LightType::POINT:
+        {
+            if (pointLights.size() >= LightDefaults::MAX_POINT_LIGHTS)
+            {
+                break;
+            }
+
+            GPUPointLight gpuLight{};
+            gpuLight.position = position;
+            gpuLight.radius = lightData.parameters.point.radius;
+            gpuLight.color = common.color;
+            gpuLight.intensity = common.intensity;
+
+            pointLights.push_back(gpuLight);
+            break;
+        }
+
+        case LightType::SPOT:
+        {
+            if (spotLights.size() >= LightDefaults::MAX_SPOT_LIGHTS)
+            {
+                break;
+            }
+
+            const SpotLightParameters& spotParameters = lightData.parameters.spot;
+
+            GPUSpotLight gpuLight{};
+            gpuLight.position = position;
+            gpuLight.direction = forward;
+            gpuLight.radius = spotParameters.radius;
+            gpuLight.color = common.color;
+            gpuLight.intensity = common.intensity;
+            gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(spotParameters.innerAngleDegrees));
+            gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(spotParameters.outerAngleDegrees));
+
+            spotLights.push_back(gpuLight);
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+        }
+    }
+
+    constantBuffer.directionalCount = static_cast<uint32_t>(directionalLights.size());
+    constantBuffer.pointCount = static_cast<uint32_t>(pointLights.size());
+    constantBuffer.spotCount = static_cast<uint32_t>(spotLights.size());
+
+    for (uint32_t i = 0; i < constantBuffer.directionalCount; ++i)
+    {
+        constantBuffer.directionalLights[i] = directionalLights[i];
+    }
+
+    for (uint32_t i = 0; i < constantBuffer.pointCount; ++i)
+    {
+        constantBuffer.pointLights[i] = pointLights[i];
+    }
+
+    for (uint32_t i = 0; i < constantBuffer.spotCount; ++i)
+    {
+        constantBuffer.spotLights[i] = spotLights[i];
+    }
+
+    return constantBuffer;
 }
