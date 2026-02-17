@@ -2,6 +2,7 @@
 #include "Quadtree.h"
 #include "BasicModel.h"
 #include "GameObject.h"
+#include <algorithm>
 
 Quadtree::Quadtree(const BoundingRect& worldBounds)
 {
@@ -52,3 +53,30 @@ std::vector<BoundingRect> Quadtree::getQuadrants() const
     m_root->gatherRectangles(result);
     return result;
 }
+
+void Quadtree::registerDirtyNode(QuadNode* node)
+{
+    m_dirtyNodes.push_back(node);
+}
+
+void Quadtree::resolveDirtyNodes()
+{
+    sort(m_dirtyNodes.begin(), m_dirtyNodes.end(),
+        [](QuadNode* a, QuadNode* b)
+        {
+            return a->getDepth() > b->getDepth();
+        });
+
+    for (QuadNode* node : m_dirtyNodes)
+    {
+        if (node->canMerge())
+        {
+            node->merge();
+        }
+
+        node->clearDirty();
+    }
+
+    m_dirtyNodes.clear();
+}
+

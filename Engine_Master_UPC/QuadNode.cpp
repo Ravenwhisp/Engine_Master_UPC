@@ -45,6 +45,8 @@ void QuadNode::insert(GameObject& object)
     {
         subdivide();
     }
+
+    markDirty();
 }
 
 
@@ -79,7 +81,7 @@ void QuadNode::refit(GameObject& object)
         }
     }
 
-    tryMergeUpwards();
+    markDirty();
 }
 
 
@@ -93,7 +95,7 @@ void QuadNode::remove(GameObject& object)
 
     m_tree.m_objectLocationMap.erase(&object);
 
-    tryMergeUpwards();
+    markDirty();
 }
 
 
@@ -126,26 +128,7 @@ void QuadNode::subdivide()
         insert(*obj);
     }
 
-    tryMergeUpwards();
 }
-
-void QuadNode::tryMergeUpwards()
-{
-    QuadNode* current = this;
-
-    while (current->m_parent)
-    {
-        QuadNode* parent = current->m_parent;
-
-        if (parent->canMerge())
-        {
-            parent->merge();
-        }
-
-        current = parent;
-    }
-}
-
 
 bool QuadNode::canMerge() const
 {
@@ -175,6 +158,19 @@ void QuadNode::merge()
         }
 
         child.reset();
+    }
+}
+
+void QuadNode::markDirty()
+{
+    if (m_dirty) return;
+
+    m_dirty = true;
+    m_tree.registerDirtyNode(this);
+
+    if (m_parent)
+    {
+        m_parent->markDirty();
     }
 }
 
@@ -254,6 +250,7 @@ void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
         }
     }
 }
+
 
 QuadNode* QuadNode::findBestFitChild(const Engine::BoundingBox& box) const
 {
