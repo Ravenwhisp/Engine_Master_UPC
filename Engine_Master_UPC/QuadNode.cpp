@@ -18,7 +18,7 @@ QuadNode::QuadNode(const BoundingRect& bounds,
 
 void QuadNode::insert(GameObject& object)
 {
-    auto model = object.GetComponent<BasicModel>();
+    auto model = object.GetComponentAs<BasicModel>(ComponentType::MODEL);
     if (!model) return;
 
     const auto& box = model->getBoundingBox();
@@ -50,7 +50,7 @@ void QuadNode::insert(GameObject& object)
 
 void QuadNode::refit(GameObject& object)
 {
-    auto model = object.GetComponent<BasicModel>();
+    auto model = object.GetComponentAs<BasicModel>(ComponentType::MODEL);
     if (!model) return;
 
     const auto& box = model->getBoundingBox();
@@ -227,7 +227,7 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
 
     for (GameObject* obj : m_objects)
     {
-        auto model = obj->GetComponent<BasicModel>();
+        auto model = obj->GetComponentAs<BasicModel>(ComponentType::MODEL);
         if (model && model->getBoundingBox().test(frustum))
         {
             out.push_back(obj);
