@@ -86,26 +86,21 @@ public:
 		Quadtree& tree,
 		QuadNode* parent = nullptr);
 
-
 	void insert(GameObject& object);
 	void refit(GameObject& object);
 	void remove(GameObject& object);
 
 	void gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const;
-
 	void gatherRectangles(std::vector<BoundingRect>& out) const;
-
-	bool isLeaf() const { return m_children[TOP_LEFT] == nullptr; }
-
-	BoundingRect getBounds() const { return m_bounds; }
-
-
 private:
 	void subdivide();
-	void insertToChildren(GameObject& object);
 	void tryMergeUpwards();
 	bool canMerge() const;
 	void merge();
+
+
+	bool isLeaf() const { return m_children[TOP_LEFT] == nullptr; }
+	BoundingRect getBounds() const { return m_bounds; }
 
 	bool intersects(const Engine::Frustum& frustum,
 		const BoundingRect& rectangle,

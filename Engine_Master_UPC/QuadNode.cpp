@@ -23,8 +23,7 @@ void QuadNode::insert(GameObject& object)
 
     const auto& box = model->getBoundingBox();
 
-    if (!m_bounds.containsFully(box))
-        return;
+    if (!m_bounds.containsFully(box)) return;
 
     // Try to push object down if possible
     if (!isLeaf())
@@ -61,7 +60,9 @@ void QuadNode::refit(GameObject& object)
     {
         QuadNode* target = findContainingAncestor(box);
         if (!target)
+        {
             target = &m_tree.getRoot();
+        }
 
         remove(object);
         target->insert(object);
@@ -188,13 +189,15 @@ bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& re
     extents.y = rectangle.height * 0.5f;
 
     std::vector<Vector2> frustumXZ;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) 
+    {
         frustumXZ.push_back(Vector2(frustum.m_points[i].x, frustum.m_points[i].z));
     }
 
     Vector2 fMin = frustumXZ[0];
     Vector2 fMax = frustumXZ[0];
-    for (const auto& p : frustumXZ) {
+    for (const auto& p : frustumXZ) 
+    {
         fMin.x = std::min(fMin.x, p.x);
         fMin.y = std::min(fMin.y, p.y);
         fMax.x = std::max(fMax.x, p.x);
@@ -257,7 +260,9 @@ QuadNode* QuadNode::findBestFitChild(const Engine::BoundingBox& box) const
     for (const auto& child : m_children)
     {
         if (child->m_bounds.containsFully(box))
+        {
             return child.get();
+        }
     }
     return nullptr;
 }
@@ -266,7 +271,8 @@ QuadNode* QuadNode::findContainingAncestor(const Engine::BoundingBox& box)
 {
     QuadNode* node = this;
     while (node && !node->m_bounds.containsFully(box))
+    {
         node = node->m_parent;
-
+    }
     return node;
 }
