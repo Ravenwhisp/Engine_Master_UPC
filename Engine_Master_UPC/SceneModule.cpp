@@ -28,7 +28,7 @@ bool SceneModule::init()
         gameObject->init();
     }
 
-    auto rectangle = BoundingRect(0, 0, 10, 10);
+    auto rectangle = BoundingRect(-10, -10, 20, 20);
     m_quadtree = new Quadtree(rectangle);
 
     createDirectionalLightOnInit();
@@ -219,6 +219,9 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     GameObject* go = new GameObject(rand());
+    auto component = go->GetComponentAs<BasicModel>(ComponentType::MODEL);
+    go->RemoveComponent(component);
+
     go->SetName("Directional Light");
 
     go->AddComponent(ComponentType::LIGHT);
