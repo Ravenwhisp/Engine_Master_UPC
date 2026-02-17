@@ -1,4 +1,4 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "QuadNode.h"
 #include "Quadtree.h"
 #include "BasicModel.h"
@@ -23,80 +23,78 @@ void QuadNode::insert(GameObject& object)
 
     const auto& box = model->getBoundingBox();
 
-    if (!m_bounds.containsFully(box)) return;
+    if (!m_bounds.containsFully(box))
+        return;
 
+    // Try to push object down if possible
     if (!isLeaf())
     {
-        for (auto& child : m_children)
+        if (QuadNode* child = findBestFitChild(box))
         {
-            if (child->m_bounds.containsFully(box))
-            {
-                child->insert(object);
-                return;
-            }
+            child->insert(object);
+            return;
         }
     }
 
     m_objects.push_back(&object);
     m_tree.m_objectLocationMap[&object] = this;
 
-    if (isLeaf() && m_objects.size() > Quadtree::MAX_OBJECTS && m_depth < Quadtree::MAX_DEPTH)
+    // Subdivide only if needed
+    if (isLeaf() &&
+        m_objects.size() > Quadtree::MAX_OBJECTS &&
+        m_depth < Quadtree::MAX_DEPTH)
     {
         subdivide();
     }
 }
 
+
 void QuadNode::refit(GameObject& object)
 {
     auto model = object.GetComponent<BasicModel>();
-    if (!model)return;
+    if (!model) return;
 
     const auto& box = model->getBoundingBox();
 
+    // Object no longer fits -> move upward
     if (!m_bounds.containsFully(box))
     {
-        QuadNode* current = m_parent;
-
-        while (current && !current->m_bounds.containsFully(box))
-        {
-            current = current->m_parent;
-        }
-
-
-        if (!current)
-        {
-            current = &m_tree.getRoot();
-        }
+        QuadNode* target = findContainingAncestor(box);
+        if (!target)
+            target = &m_tree.getRoot();
 
         remove(object);
-        current->insert(object);
+        target->insert(object);
         return;
     }
 
+    // Object fits here, but maybe can go deeper
     if (!isLeaf())
     {
-        for (auto& child : m_children)
+        if (QuadNode* child = findBestFitChild(box))
         {
-            if (child->m_bounds.containsFully(box))
-            {
-                remove(object);
-                child->insert(object);
-                return;
-            }
+            remove(object);
+            child->insert(object);
         }
     }
+
+    tryMergeUpwards();
 }
 
 
 void QuadNode::remove(GameObject& object)
 {
-    auto& objs = m_objects;
-    objs.erase(std::remove(objs.begin(), objs.end(), &object), objs.end());
+    auto it = std::find(m_objects.begin(), m_objects.end(), &object);
+    if (it != m_objects.end())
+    {
+        m_objects.erase(it);
+    }
 
     m_tree.m_objectLocationMap.erase(&object);
 
     tryMergeUpwards();
 }
+
 
 void QuadNode::subdivide()
 {
@@ -126,6 +124,8 @@ void QuadNode::subdivide()
     {
         insert(*obj);
     }
+
+    tryMergeUpwards();
 }
 
 void QuadNode::tryMergeUpwards()
@@ -136,36 +136,32 @@ void QuadNode::tryMergeUpwards()
     {
         QuadNode* parent = current->m_parent;
 
-        if (!parent->canMerge())
+        if (parent->canMerge())
         {
-            break;
+            parent->merge();
         }
 
-        parent->merge();
         current = parent;
     }
 }
 
+
 bool QuadNode::canMerge() const
 {
-    if (isLeaf()) 
-    { 
-        return false; 
-    }
+    if (isLeaf()) return false;
 
-    int total = 0;
+    int total = static_cast<int>(m_objects.size());
 
     for (const auto& child : m_children)
     {
-        if (!child->isLeaf()) 
-        { 
-            return false;
-        }
-        total += child->m_objects.size();
+        if (!child->isLeaf()) return false;
+
+        total += static_cast<int>(child->m_objects.size());
     }
 
     return total <= Quadtree::MAX_OBJECTS;
 }
+
 
 void QuadNode::merge()
 {
@@ -255,4 +251,25 @@ void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
         }
     }
 }
+
+QuadNode* QuadNode::findBestFitChild(const Engine::BoundingBox& box) const
+{
+    for (const auto& child : m_children)
+    {
+        if (child->m_bounds.containsFully(box))
+            return child.get();
+    }
+    return nullptr;
+}
+
+QuadNode* QuadNode::findContainingAncestor(const Engine::BoundingBox& box)
+{
+    QuadNode* node = this;
+    while (node && !node->m_bounds.containsFully(box))
+        node = node->m_parent;
+
+    return node;
+}
+
+
 

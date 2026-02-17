@@ -109,6 +109,9 @@ private:
 		const BoundingRect& rectangle,
 		int minY = -10000,
 		int maxY = 10000) const;
+	QuadNode* findBestFitChild(const  Engine::BoundingBox& box) const;
+	QuadNode* findContainingAncestor(const  Engine::BoundingBox& box);
+
 
 private:
 	BoundingRect				m_bounds;
