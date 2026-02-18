@@ -27,6 +27,8 @@ public:
 
 	void	setColour(Vector3& colour) { m_colour = colour; }
 	void	setAmbientColour(Vector3& colour) { m_ambientColour = colour; }
+
+	void onTransformChange() override {}
 private:
 	Type	m_type;
 	Vector3 m_ambientColour = Vector3::One * (0.1f);
