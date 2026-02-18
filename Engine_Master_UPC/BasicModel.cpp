@@ -36,15 +36,16 @@ void BasicModel::load(const char* fileName, const char* basePath)
     m_modelPath = fileName;
     m_basePath = basePath;
 
+    m_hasBounds = false;
+    m_boundsMin = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
+    m_boundsMax = Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
 	tinygltf::TinyGLTF gltfContext;
 	tinygltf::Model model;
 	std::string error, warning;
 	bool loadOk = gltfContext.LoadASCIIFromFile(&model, &error, &warning, fileName);
 	if (loadOk)
 	{
-        Vector3 minVector = Vector3(99999.0f, 99999.0f, 99999.0f);
-        Vector3 maxVector = Vector3(-99999.0f, -99999.0f, -99999.0f);
-
         for (tinygltf::Material material : model.materials) 
         {
             BasicMaterial* myMaterial = new BasicMaterial;
@@ -59,12 +60,31 @@ void BasicModel::load(const char* fileName, const char* basePath)
                 BasicMesh* myMesh = new BasicMesh;
                 myMesh->load(model, mesh, primitive, minVector, maxVector);
                 m_meshes.push_back(myMesh);
+
+                if (myMesh->hasBounds())
+                {
+                    if (!m_hasBounds)
+                    {
+                        m_boundsMin = myMesh->getBoundsMin();
+                        m_boundsMax = myMesh->getBoundsMax();
+                        m_hasBounds = true;
+                    }
+                    else
+                    {
+                        const Vector3& mn = myMesh->getBoundsMin();
+                        const Vector3& mx = myMesh->getBoundsMax();
+
+                        m_boundsMin.x = std::min(m_boundsMin.x, mn.x);
+                        m_boundsMin.y = std::min(m_boundsMin.y, mn.y);
+                        m_boundsMin.z = std::min(m_boundsMin.z, mn.z);
+
+                        m_boundsMax.x = std::max(m_boundsMax.x, mx.x);
+                        m_boundsMax.y = std::max(m_boundsMax.y, mx.y);
+                        m_boundsMax.z = std::max(m_boundsMax.z, mx.z);
+                    }
+                }
             }
         }
-
-        m_boundingBox.setMin(minVector);
-        m_boundingBox.setMax(maxVector);
-        m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 	}
     else
     {
@@ -103,7 +123,49 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
         }
     }
 
-    m_boundingBox.render();
+    if (m_drawBounds && m_hasBounds && dd::isInitialized())
+    {
+        const Matrix world = transform->getGlobalMatrix();
+
+        Vector3 c[8] = {
+            { m_boundsMin.x, m_boundsMin.y, m_boundsMin.z },
+            { m_boundsMax.x, m_boundsMin.y, m_boundsMin.z },
+            { m_boundsMax.x, m_boundsMax.y, m_boundsMin.z },
+            { m_boundsMin.x, m_boundsMax.y, m_boundsMin.z },
+            { m_boundsMin.x, m_boundsMin.y, m_boundsMax.z },
+            { m_boundsMax.x, m_boundsMin.y, m_boundsMax.z },
+            { m_boundsMax.x, m_boundsMax.y, m_boundsMax.z },
+            { m_boundsMin.x, m_boundsMax.y, m_boundsMax.z },
+        };
+
+        for (int i = 0; i < 8; ++i)
+            c[i] = Vector3::Transform(c[i], world);
+
+        if (!m_drawWorldAabb)
+        {
+            ddVec3 pts[8];
+            for (int i = 0; i < 8; ++i)
+            {
+                pts[i][0] = c[i].x; pts[i][1] = c[i].y; pts[i][2] = c[i].z;
+            }
+            dd::box(pts, dd::colors::Yellow, 0, m_boundsDepthTest);
+        }
+        else
+        {
+            Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
+            Vector3 wmax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+            for (int i = 0; i < 8; ++i)
+            {
+                wmin.x = std::min(wmin.x, c[i].x); wmin.y = std::min(wmin.y, c[i].y); wmin.z = std::min(wmin.z, c[i].z);
+                wmax.x = std::max(wmax.x, c[i].x); wmax.y = std::max(wmax.y, c[i].y); wmax.z = std::max(wmax.z, c[i].z);
+            }
+
+            ddVec3 mn = { wmin.x, wmin.y, wmin.z };
+            ddVec3 mx = { wmax.x, wmax.y, wmax.z };
+            dd::aabb(mn, mx, dd::colors::Yellow, 0, m_boundsDepthTest);
+        }
+    }
+
 }
 
 bool BasicModel::cleanUp()
@@ -136,6 +198,10 @@ void BasicModel::drawUi()
     // --- Buttons ---
     if (ImGui::Button("Load"))
     {
+        m_hasBounds = false;
+        m_boundsMin = Vector3(0, 0, 0);
+        m_boundsMax = Vector3(0, 0, 0);
+
         // limpiar anterior
         for (auto mesh : m_meshes)
             delete mesh;
@@ -145,14 +211,21 @@ void BasicModel::drawUi()
             delete material;
         m_materials.clear();
 
-        if (!m_modelPath.empty())
-            load(m_modelPath.c_str(), m_basePath.c_str());
+        if (!m_modelPath.empty()) 
+        {
+           load(m_modelPath.c_str(), m_basePath.c_str());
+        }
+           
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Reload"))
     {
+        m_hasBounds = false;
+        m_boundsMin = Vector3(0, 0, 0);
+        m_boundsMax = Vector3(0, 0, 0);
+
         if (!m_modelPath.empty())
         {
             for (auto mesh : m_meshes)
@@ -172,6 +245,22 @@ void BasicModel::drawUi()
     // --- Info ---
     ImGui::Text("Meshes: %d", (int)m_meshes.size());
     ImGui::Text("Materials: %d", (int)m_materials.size());
+
+    ImGui::SeparatorText("Debug Bounding Box");
+    ImGui::Checkbox("Draw Bounding Box", &m_drawBounds);
+    ImGui::Checkbox("Depth Test", &m_boundsDepthTest);
+    ImGui::Checkbox("World AABB (axis aligned)", &m_drawWorldAabb);
+
+    if (m_hasBounds)
+    {
+        ImGui::Text("Local Min: %.3f %.3f %.3f", m_boundsMin.x, m_boundsMin.y, m_boundsMin.z);
+        ImGui::Text("Local Max: %.3f %.3f %.3f", m_boundsMax.x, m_boundsMax.y, m_boundsMax.z);
+    }
+    else
+    {
+        ImGui::TextDisabled("No bounds computed.");
+    }
+
 }
 
 void BasicModel::onTransformChange() 
