@@ -213,7 +213,6 @@
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="Inspector.h" />
     <ClInclude Include="Keyboard.h" />
-    <ClInclude Include="Light.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="BasicMaterial.h" />
     <ClInclude Include="BasicMesh.h" />
