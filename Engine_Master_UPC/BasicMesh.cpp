@@ -14,7 +14,7 @@ BasicMesh::~BasicMesh()
 	delete m_indexBuffer;
 }
 
-void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive, Vector3& minVector, Vector3& maxVector)
+void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive)
 {
 	m_materialIndex = primitive.material;
 
@@ -62,17 +62,6 @@ void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 					m_indexBuffer = app->getResourcesModule()->createIndexBuffer(indices, numIndices, INDEX_FORMATS[indexElementSize >> 1]);
 				}
 			}
-		}
-
-		if (model.accessors[itPos->second].type == 3)
-		{
-			minVector.x = std::min(minVector.x, (float)model.accessors[itPos->second].minValues.at(0));
-			minVector.y = std::min(minVector.y, (float)model.accessors[itPos->second].minValues.at(1));
-			minVector.z = std::min(minVector.z, (float)model.accessors[itPos->second].minValues.at(2));
-
-			maxVector.x = std::max(maxVector.x, (float)model.accessors[itPos->second].maxValues.at(0));
-			maxVector.y = std::max(maxVector.y, (float)model.accessors[itPos->second].maxValues.at(1));
-			maxVector.z = std::max(maxVector.z, (float)model.accessors[itPos->second].maxValues.at(2));
 		}
 	}
 }
