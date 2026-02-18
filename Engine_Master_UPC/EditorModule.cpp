@@ -122,6 +122,7 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
     ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
+    ImGui::DockBuilderDockWindow("Editor Settings", dock_inspector);
     ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
 

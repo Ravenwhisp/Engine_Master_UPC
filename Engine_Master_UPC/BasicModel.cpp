@@ -37,8 +37,8 @@ void BasicModel::load(const char* fileName, const char* basePath)
     m_basePath = basePath;
 
     m_hasBounds = false;
-    m_boundsMin = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
-    m_boundsMax = Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+    m_boundingBox = Engine::BoundingBox(Vector3(FLT_MAX, FLT_MAX, FLT_MAX), Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX));
 
 	tinygltf::TinyGLTF gltfContext;
 	tinygltf::Model model;
@@ -65,8 +65,8 @@ void BasicModel::load(const char* fileName, const char* basePath)
                 {
                     if (!m_hasBounds)
                     {
-                        m_boundsMin = myMesh->getBoundsMin();
-                        m_boundsMax = myMesh->getBoundsMax();
+                        m_boundingBox.setMin(myMesh->getBoundsMin());
+                        m_boundingBox.setMax(myMesh->getBoundsMax());
                         m_hasBounds = true;
                     }
                     else
@@ -74,13 +74,23 @@ void BasicModel::load(const char* fileName, const char* basePath)
                         const Vector3& mn = myMesh->getBoundsMin();
                         const Vector3& mx = myMesh->getBoundsMax();
 
-                        m_boundsMin.x = std::min(m_boundsMin.x, mn.x);
-                        m_boundsMin.y = std::min(m_boundsMin.y, mn.y);
-                        m_boundsMin.z = std::min(m_boundsMin.z, mn.z);
+                        Vector3 currentMin = m_boundingBox.getMin();
+                        Vector3 currentMax = m_boundingBox.getMax();
 
-                        m_boundsMax.x = std::max(m_boundsMax.x, mx.x);
-                        m_boundsMax.y = std::max(m_boundsMax.y, mx.y);
-                        m_boundsMax.z = std::max(m_boundsMax.z, mx.z);
+                        Vector3 newMin(
+							std::min(currentMin.x, mn.x),
+							std::min(currentMin.y, mn.y),
+							std::min(currentMin.z, mn.z)
+						);
+
+                        Vector3 newMax( 
+                            std::max(currentMax.x, mx.x),
+                            std::max(currentMax.y, mx.y),
+                            std::max(currentMax.z, mx.z)
+                        );
+
+                        m_boundingBox.setMin(newMin);
+                        m_boundingBox.setMax(newMax);
                     }
                 }
             }
@@ -127,19 +137,7 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
     {
         const Matrix world = transform->getGlobalMatrix();
 
-        Vector3 c[8] = {
-            { m_boundsMin.x, m_boundsMin.y, m_boundsMin.z },
-            { m_boundsMax.x, m_boundsMin.y, m_boundsMin.z },
-            { m_boundsMax.x, m_boundsMax.y, m_boundsMin.z },
-            { m_boundsMin.x, m_boundsMax.y, m_boundsMin.z },
-            { m_boundsMin.x, m_boundsMin.y, m_boundsMax.z },
-            { m_boundsMax.x, m_boundsMin.y, m_boundsMax.z },
-            { m_boundsMax.x, m_boundsMax.y, m_boundsMax.z },
-            { m_boundsMin.x, m_boundsMax.y, m_boundsMax.z },
-        };
-
-        for (int i = 0; i < 8; ++i)
-            c[i] = Vector3::Transform(c[i], world);
+        const Vector3* c = m_boundingBox.getPoints();
 
         if (!m_drawWorldAabb)
         {
@@ -199,8 +197,6 @@ void BasicModel::drawUi()
     if (ImGui::Button("Load"))
     {
         m_hasBounds = false;
-        m_boundsMin = Vector3(0, 0, 0);
-        m_boundsMax = Vector3(0, 0, 0);
 
         // limpiar anterior
         for (auto mesh : m_meshes)
@@ -223,8 +219,6 @@ void BasicModel::drawUi()
     if (ImGui::Button("Reload"))
     {
         m_hasBounds = false;
-        m_boundsMin = Vector3(0, 0, 0);
-        m_boundsMax = Vector3(0, 0, 0);
 
         if (!m_modelPath.empty())
         {
@@ -253,8 +247,10 @@ void BasicModel::drawUi()
 
     if (m_hasBounds)
     {
-        ImGui::Text("Local Min: %.3f %.3f %.3f", m_boundsMin.x, m_boundsMin.y, m_boundsMin.z);
-        ImGui::Text("Local Max: %.3f %.3f %.3f", m_boundsMax.x, m_boundsMax.y, m_boundsMax.z);
+        auto min = m_boundingBox.getMin();
+        auto max = m_boundingBox.getMax();
+        ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
+        ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
     }
     else
     {
@@ -263,3 +259,7 @@ void BasicModel::drawUi()
 
 }
 
+void BasicModel::onTransformChange() 
+{
+    m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+}

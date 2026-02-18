@@ -167,11 +167,11 @@
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="LightComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="LightDebugDraw.cpp">
-      <Filter>Editor\Debug</Filter>
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="Frustum.cpp" />
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -372,14 +372,12 @@
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Lights.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="LightComponent.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="LightDebugDraw.h">
-      <Filter>Editor\Debug</Filter>
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="BoundingVolume.h" />
+    <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -490,9 +488,6 @@
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor\Debug">
-      <UniqueIdentifier>{81108d66-0f59-4640-9a4c-973569c8985b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -506,18 +501,12 @@
     <None Include="CBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
-    <None Include="NewCBuffers.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="LightPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

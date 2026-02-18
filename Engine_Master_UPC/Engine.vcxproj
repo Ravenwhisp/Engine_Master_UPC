@@ -174,7 +174,10 @@
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Application.h" />
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraModule.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -192,6 +195,7 @@
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
@@ -303,7 +307,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraModule.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="D3D12Module.cpp" />
@@ -318,6 +324,7 @@
     <ClCompile Include="EditorSettings.cpp" />
     <ClCompile Include="EditorToolbar.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
