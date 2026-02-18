@@ -19,6 +19,9 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 
+#include "Settings.h"
+#include "Logger.h"
+
 struct SkyboxVertex { Vector3 position; };
 
 static void CreateSkyboxCube(ResourcesModule* resourcesModule, VertexBuffer*& outputVertexBuffer, IndexBuffer*& outputIndexBuffer, uint32_t& outputIndexCount)
@@ -51,6 +54,8 @@ bool RenderModule::init()
 
 bool RenderModule::postInit()
 {
+    m_settings = app->getSettings();
+
     m_rootSignature = app->getD3D12Module()->createRootSignature();
     m_pipelineState = app->getD3D12Module()->createPipelineStateObject(m_rootSignature.Get());
 
@@ -59,8 +64,9 @@ bool RenderModule::postInit()
 
     CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
 
-    m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path("Assets/Textures/cubemap2.dds"), "Skybox");
-    m_hasSkybox = (m_skyboxTexture != nullptr);
+    applySkyboxSettings();
+    //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
+    //m_hasSkybox = (m_skyboxTexture != nullptr);
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
@@ -153,6 +159,42 @@ void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
     commandList->RSSetScissorRects(1, &offscreenScissorRect);
 }
 
+void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+{
+    // Clear + draw
+    renderBackground(commandList, rtvHandle, dsvHandle, width, height);
+
+    // Bind root signature (must be set before any draw calls)
+    commandList->SetPipelineState(m_pipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    //Set input assembler
+    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+    commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+    SceneDataCB& sceneDataCB = app->getSceneModule()->getCBData();
+    sceneDataCB.viewPos = app->getCameraModule()->getPosition();
+
+    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
+
+    const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
+    commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
+
+    commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
+
+    Matrix viewMatrix = app->getCameraModule()->getView();
+    Matrix projectionMatrix = app->getCameraModule()->getProjection();
+
+    app->getSceneModule()->render(commandList, viewMatrix, projectionMatrix);
+
+    Quaternion cameraRotation = app->getCameraModule()->getRotation();
+    //Skybox
+    renderSkybox(commandList, cameraRotation, projectionMatrix);
+
+    //DebugDrawPass
+    app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
+}
+
 void RenderModule::renderSkybox(ID3D12GraphicsCommandList4* commandList, const Quaternion& cameraRotation, Matrix& projectionMatrix)
 {
     if (!m_hasSkybox || !m_skyboxTexture || !m_skyboxVertexBuffer || !m_skyboxIndexBuffer) {
@@ -199,40 +241,30 @@ void RenderModule::cleanupSkybox()
     m_hasSkybox = false;
 }
 
-void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+bool RenderModule::applySkyboxSettings()
 {
-    // Clear + draw
-    renderBackground(commandList, rtvHandle, dsvHandle, width, height);
+    if (!m_settings->skybox.enabled || m_settings->skybox.path[0] == '\0')
+    {
+        m_hasSkybox = false;
+        m_skyboxTexture.reset();
 
-    // Bind root signature (must be set before any draw calls)
-    commandList->SetPipelineState(m_pipelineState.Get());
-    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+        LOG_INFO("[Skybox] Disabled");
 
-    //Set input assembler
-    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
-    commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+        return true;
+    }
 
-    SceneDataCB& sceneDataCB = app->getSceneModule()->getCBData();
-    sceneDataCB.viewPos = app->getCameraModule()->getPosition();
+    auto newTex = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
+    if (!newTex)
+    {
+        LOG_ERROR("[Skybox] Failed to load: %s", m_settings->skybox.path);
+        return false;
+    }
 
-    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
+    m_skyboxTexture = std::move(newTex);
+    m_hasSkybox = true;
 
-    const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
-    commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
-
-    commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
-
-    Matrix viewMatrix = app->getCameraModule()->getView();
-    Matrix projectionMatrix = app->getCameraModule()->getProjection();
-
-    app->getSceneModule()->render(commandList, viewMatrix, projectionMatrix);
-
-    Quaternion cameraRotation = app->getCameraModule()->getRotation();
-    //Skybox
-    renderSkybox(commandList, cameraRotation, projectionMatrix);
-
-    //DebugDrawPass
-    app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
+    LOG_INFO("[Skybox] Loaded: %s", m_settings->skybox.path);
+    return true;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS RenderModule::buildAndUploadLightsCB()
