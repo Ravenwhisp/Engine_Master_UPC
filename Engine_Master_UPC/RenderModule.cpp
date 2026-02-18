@@ -59,7 +59,7 @@ bool RenderModule::postInit()
 
     CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
 
-    m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path("Assets/Textures/cubemap.dds"), "Skybox");
+    m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path("Assets/Textures/cubemap2.dds"), "Skybox");
     m_hasSkybox = (m_skyboxTexture != nullptr);
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
