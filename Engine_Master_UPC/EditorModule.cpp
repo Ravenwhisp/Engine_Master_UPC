@@ -9,12 +9,12 @@
 #include "HardwareWindow.h"
 #include "PerformanceWindow.h"
 #include "EditorWindow.h"
-#include "EditorSettings.h"
 #include "ImGuizmo.h"
 #include "Logger.h"
 #include "ImGuiPass.h"
 #include "Hierarchy.h"
 #include "Inspector.h"
+#include "EditorSettings.h"
 
 #include "Application.h"
 #include "SceneModule.h"
@@ -89,15 +89,10 @@ void EditorModule::mainDockspace(bool* p_open)
 
     if (m_firstFrame) 
     {
-        for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
-        {
-            (*it)->render();
-        }
-
         setupDockLayout(dockspace_id);
         style();
         m_firstFrame = false;
-    }
+    } 
 
     ImGui::End();
 }
@@ -106,6 +101,7 @@ void EditorModule::mainDockspace(bool* p_open)
 void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 {
     // Clear previous layout
+    ImGui::DockBuilderRemoveNodeDockedWindows(dockspace_id);
     ImGui::DockBuilderRemoveNode(dockspace_id);
     ImGui::DockBuilderAddNode(dockspace_id);
     ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
@@ -123,6 +119,7 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 
     ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
     ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
+    ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
 
     ImGui::DockBuilderDockWindow("Console", dock_bottom);
@@ -142,7 +139,6 @@ bool EditorModule::init()
     m_editorWindows.push_back(m_logger = new Logger());
     m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
     m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
-    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
 
 	D3D12Module* _d3d12 = app->getD3D12Module();
     m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
@@ -157,6 +153,9 @@ bool EditorModule::init()
 
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
+
+    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
+
 
 	return true;
 }

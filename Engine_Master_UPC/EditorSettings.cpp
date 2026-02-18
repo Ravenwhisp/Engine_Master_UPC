@@ -2,6 +2,7 @@
 #include "EditorSettings.h"
 #include "Application.h"
 #include "Settings.h"
+#include "RenderModule.h"
 
 
 EditorSettings::EditorSettings()
@@ -21,6 +22,8 @@ void EditorSettings::render()
     drawCameraSettings();
     ImGui::Separator();
     drawSceneSettings();
+    ImGui::Separator();
+    drawSkyboxSettings();
 
     ImGui::End();
 }
@@ -66,5 +69,28 @@ void EditorSettings::drawSceneSettings() {
         ImGui::Checkbox("Show Axis###SceneShowAxis", &m_settings->sceneEditor.showAxis);
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
         ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
+    }
+}
+
+void EditorSettings::drawSkyboxSettings() {
+    if (ImGui::CollapsingHeader("Skybox")) {
+
+        if (ImGui::Checkbox("Enabled###SkyEnabled", &m_settings->skybox.enabled)) 
+        {
+            m_settings->skybox.dirty = true;
+        }
+
+        if (ImGui::InputText("Cubemap Path###SkyPath", m_settings->skybox.path, IM_ARRAYSIZE(m_settings->skybox.path))) 
+        {
+            m_settings->skybox.dirty = true;
+        }
+
+        if (ImGui::Button("Apply###SkyApply") && m_settings->skybox.dirty)
+        {
+            if (app->getRenderModule()->applySkyboxSettings()) 
+            {
+                m_settings->skybox.dirty = false;
+            }
+        }
     }
 }
