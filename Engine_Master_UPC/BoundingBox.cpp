@@ -62,10 +62,11 @@ void Engine::BoundingBox::update(const Matrix& world)
 {
 	m_points[0] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_min.z), world);
 	m_points[1] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_min.z), world);
-	m_points[2] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_min.z), world);
-	m_points[3] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_min.z), world);
+	m_points[2] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_min.z), world);
+	m_points[3] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_min.z), world);
 	m_points[4] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_max.z), world);
 	m_points[5] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_max.z), world);
-	m_points[6] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_max.z), world);
-	m_points[7] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_max.z), world);
+	m_points[6] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_max.z), world);
+	m_points[7] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_max.z), world);
+
 }
