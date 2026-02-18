@@ -28,7 +28,7 @@ struct SceneEditorSettings {
     bool showGrid = true;
     bool showAxis = true;
     bool showGuizmo = true;
-    bool showQuadTree = false;
+    bool showQuadTree = true;
 };
 
 struct SkyboxSettings

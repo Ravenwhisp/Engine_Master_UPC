@@ -184,12 +184,46 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 void SceneEditor::renderQuadtree()
 {
-    std::vector<RectangleData> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
+    std::vector<BoundingRect> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
     for (const auto& rect : quadrants)
     {
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);
 		Vector3 center(rect.x + rect.width * 0.5f, 0.1f, rect.y + rect.height * 0.5f);
 
+        
+        float color[3];
+        if (rect.m_debugIsCulled) 
+        {
         dd::box(ddConvert(center), dd::colors::Red, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);
+	}
+        else 
+        {
+            dd::box(ddConvert(center), dd::colors::Green, extents.x * 2.0f, extents.y * 2.0f, extents.z * 2.0f);
+        }
+
+        int minY = -10000;
+        int maxY = 10000;
+
+        center.y = (minY + maxY) * 0.5f;
+
+        extents.y = (maxY - minY) * 0.5f;
+
+        Vector3 min = center - extents;
+        Vector3 max = center + extents;
+
+        Vector3 bbPoints[8] =
+        {
+            Vector3(center.x - extents.x, center.y - extents.y, center.z - extents.z),
+            Vector3(center.x - extents.x, center.y - extents.y, center.z + extents.z),
+            Vector3(center.x - extents.x, center.y + extents.y, center.z - extents.z),
+            Vector3(center.x - extents.x, center.y + extents.y, center.z + extents.z),
+            Vector3(center.x + extents.x, center.y - extents.y, center.z - extents.z),
+            Vector3(center.x + extents.x, center.y - extents.y, center.z + extents.z),
+            Vector3(center.x + extents.x, center.y + extents.y, center.z - extents.z),
+            Vector3(center.x + extents.x, center.y + extents.y, center.z + extents.z)
+        };
+
+        Engine::BoundingBox bb = Engine::BoundingBox(min, max, bbPoints);
+        bb.render();
 	}
 }

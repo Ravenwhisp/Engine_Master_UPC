@@ -28,6 +28,21 @@ void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 		loadAccessorData(vertexData + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex), numVertices, model, primitive.attributes, "TEXCOORD_0");
 		loadAccessorData(vertexData + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex), numVertices, model, primitive.attributes, "NORMAL");
 
+		m_boundsMin = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
+		m_boundsMax = Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+		for (uint32_t i = 0; i < numVertices; ++i)
+		{
+			m_boundsMin.x = std::min(m_boundsMin.x, vertices[i].position.x);
+			m_boundsMin.y = std::min(m_boundsMin.y, vertices[i].position.y);
+			m_boundsMin.z = std::min(m_boundsMin.z, vertices[i].position.z);
+
+			m_boundsMax.x = std::max(m_boundsMax.x, vertices[i].position.x);
+			m_boundsMax.y = std::max(m_boundsMax.y, vertices[i].position.y);
+			m_boundsMax.z = std::max(m_boundsMax.z, vertices[i].position.z);
+		}
+		m_hasBounds = (numVertices > 0);
+
 		m_vertexBuffer = app->getResourcesModule()->createVertexBuffer(vertices, numVertices, sizeof(Vertex));
 
 		if (primitive.indices >= 0) 
