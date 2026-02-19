@@ -242,12 +242,11 @@ void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
 {
     out.push_back(m_bounds);
 
+    if (isLeaf()) return;
+
     for (const auto& child : m_children)
     {
-        if (child)
-        {
-            child->gatherRectangles(out);
-        }
+        child->gatherRectangles(out);
     }
 }
 
