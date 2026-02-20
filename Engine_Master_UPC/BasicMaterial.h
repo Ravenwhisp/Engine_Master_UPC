@@ -1,6 +1,7 @@
 #pragma once
 #include "Globals.h"
 #include "Texture.h"
+#include "Asset.h"
 
 namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
 class BasicMaterial
