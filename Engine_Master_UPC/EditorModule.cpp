@@ -15,13 +15,12 @@
 #include "Hierarchy.h"
 #include "Inspector.h"
 #include "EditorSettings.h"
+#include "SceneConfig.h"
 
 #include "Application.h"
 #include "SceneModule.h"
 
 using namespace std;
-
-Logger* logger = nullptr;
 
 void mainMenuBar()
 {
@@ -54,7 +53,6 @@ void style() {
     style.Colors[ImGuiCol_Button] = ImVec4(0.2f, 0.205f, 0.21f, 1.0f);
     style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.3f, 0.305f, 0.31f, 1.0f);
     style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.1505f, 0.151f, 1.0f);
-
 }
 
 
@@ -118,7 +116,7 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
     ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
-    ImGui::DockBuilderDockWindow("Editor Settings", dock_inspector);
+    ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
     ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
@@ -136,7 +134,6 @@ EditorModule::EditorModule() : m_selectedGameObject(nullptr)
 
 bool EditorModule::init()
 {
-    //_console = Console();
     m_editorWindows.push_back(m_logger = new Logger());
     m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
     m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
@@ -156,7 +153,7 @@ bool EditorModule::init()
     m_editorWindows.push_back(inspector);
 
     m_editorWindows.push_back(m_editorSettings = new EditorSettings());
-
+    m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
 	return true;
 }
