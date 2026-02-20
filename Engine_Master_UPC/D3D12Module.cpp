@@ -9,6 +9,7 @@
 #include <d3dcompiler.h>
 #include "RingBuffer.h"
 #include <PlatformHelpers.h>
+#include "Skybox.h"
 
 D3D12Module::D3D12Module(HWND hwnd) 
 {
@@ -191,6 +192,75 @@ ComPtr<ID3D12PipelineState> D3D12Module::createPipelineStateObject(ID3D12RootSig
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
 
+    return pso;
+}
+
+ComPtr<ID3D12RootSignature> D3D12Module::createSkyboxRootSignature()
+{
+    ComPtr<ID3D12RootSignature> rootSignature;
+
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
+    CD3DX12_DESCRIPTOR_RANGE srvRange;
+    CD3DX12_DESCRIPTOR_RANGE sampRange;
+
+    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, DescriptorsModule::SampleType::COUNT, 0);
+
+    rootParameters[0].InitAsConstants(sizeof(SkyParams)/sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+    rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[2].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+    rootSignatureDesc.Init( 3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    ComPtr<ID3DBlob> signature;
+    ComPtr<ID3DBlob> error;
+    DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+
+    return rootSignature;
+}
+
+ComPtr<ID3D12PipelineState> D3D12Module::createSkyboxPipelineStateObject(ID3D12RootSignature* rootSignature)
+{
+    ComPtr<ID3D12PipelineState> pso;
+
+#if defined(_DEBUG)
+    UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+    UINT compileFlags = 0;
+#endif
+
+    ComPtr<ID3DBlob> vertexShaderBlob;
+    ThrowIfFailed(D3DReadFileToBlob(L"SkyboxVertexShader.cso", &vertexShaderBlob));
+
+    ComPtr<ID3DBlob> pixelShaderBlob;
+    ThrowIfFailed(D3DReadFileToBlob(L"SkyboxPixelShader.cso", &pixelShaderBlob));
+
+    D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
+    desc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+    desc.pRootSignature = rootSignature;
+    desc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
+    desc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
+    desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+    desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+    desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    desc.SampleMask = UINT_MAX;
+    desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    desc.NumRenderTargets = 1;
+    desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc = { 1, 0 };
+
+    DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso)));
     return pso;
 }
 

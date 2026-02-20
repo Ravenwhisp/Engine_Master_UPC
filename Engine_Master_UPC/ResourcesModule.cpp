@@ -179,6 +179,12 @@ std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
 
 	info.srvDesc = &srvDesc;
 	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+
+	std::vector<D3D12_SUBRESOURCE_DATA> subData;
+	buildSubresourceData(image, metaData, subData);
+
+	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
+
 	return texture;
 }
 
@@ -232,6 +238,67 @@ IndexBuffer* ResourcesModule::createIndexBuffer(const void* data, size_t numIndi
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();
 	return new IndexBuffer(pDevice, defaultBuffer, numIndices, indexFormat);
+}
+
+void ResourcesModule::generateMipmapsIfMissing(DirectX::ScratchImage& image, DirectX::TexMetadata& metaData)
+{
+	if (metaData.mipLevels == 1 && (metaData.width > 1 || metaData.height > 1))
+	{
+		ScratchImage mipImages;
+		if (FAILED(GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA, 0, mipImages))) {
+		}
+		else {
+			image = std::move(mipImages);
+			metaData = image.GetMetadata();
+		}
+	}
+}
+
+void ResourcesModule::buildSubresourceData(const ScratchImage& image, const TexMetadata& metaData, std::vector<D3D12_SUBRESOURCE_DATA>& subData) {
+	subData.clear();
+	subData.reserve(image.GetImageCount());
+
+	for (size_t item = 0; item < metaData.arraySize; ++item)
+	{
+		for (size_t level = 0; level < metaData.mipLevels; ++level)
+		{
+			const Image* subImg = image.GetImage(level, item, 0);
+			D3D12_SUBRESOURCE_DATA data = { subImg->pixels, subImg->rowPitch, subImg->slicePitch };
+			subData.push_back(data);
+		}
+	}
+}
+
+void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData) {
+	const UINT subCount = static_cast<UINT>(subData.size());
+
+	ComPtr<ID3D12Resource> stagingBuffer = createUploadBuffer(GetRequiredIntermediateSize(dstTexture, 0, subCount));
+
+	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
+	UpdateSubresources(commandList.Get(), dstTexture, stagingBuffer.Get(), 0, 0, subCount, subData.data());
+
+	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(dstTexture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	commandList->ResourceBarrier(1, &barrier);
+	m_queue->executeCommandList(commandList);
+	m_queue->flush();
+}
+
+void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer) 
+{
+	if (vertexBuffer) 
+	{
+		delete vertexBuffer;
+		vertexBuffer = nullptr;
+	}
+}
+void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer) 
+{ 
+	if (indexBuffer) 
+	{
+		delete indexBuffer;
+		indexBuffer = nullptr;
+	}
 }
 
 

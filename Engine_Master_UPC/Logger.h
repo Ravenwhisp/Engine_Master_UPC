@@ -63,12 +63,11 @@ public:
         
 private:
     template<typename... Args>
-    void addLog(LogType type, const char* category, const char* fmt, Args... args)
+    void addLog(LogType type, const char* category, const char* fmt, Args&&... args)
     {
         char buffer[4096];
-        std::snprintf(buffer, sizeof(buffer), fmt, args...);
+        std::snprintf(buffer, sizeof(buffer), fmt, std::forward<Args>(args)...);
         buffer[sizeof(buffer) - 1] = 0;
-
         addLogEntry(type, category, buffer);
     }
 

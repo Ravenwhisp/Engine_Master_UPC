@@ -173,21 +173,11 @@
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\simdjson\simdjson.cpp" />
-    <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="LightDebugDraw.cpp" />
-    <ClCompile Include="SceneConfig.cpp" />
-    <ClCompile Include="SceneSerializer.cpp" />
-    <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="UID.cpp" />
-    <ClCompile Include="FileSystemModule.cpp">
-      <Filter>Core\Persistence</Filter>
+    <ClCompile Include="LightDebugDraw.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="TypedImporter.cpp">
-      <Filter>Core\Persistence\Import</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureImporter.cpp">
-      <Filter>Core\Persistence\Import</Filter>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -342,9 +332,6 @@
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="cvector.h" />
-    <ClInclude Include="Light.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="SceneModule.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -395,24 +382,17 @@
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
-    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
-    <ClInclude Include="LightComponent.h" />
-    <ClInclude Include="LightDebugDraw.h" />
-    <ClInclude Include="Lights.h" />
-    <ClInclude Include="SceneConfig.h" />
-    <ClInclude Include="SceneSerializer.h" />
-    <ClInclude Include="UID.h" />
-    <ClInclude Include="FileSystemModule.h">
-      <Filter>Core\Persistence</Filter>
+    <ClInclude Include="LightDebugDraw.h">
+      <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="TypedImporter.h">
-      <Filter>Core\Persistence\Import</Filter>
+    <ClInclude Include="Lights.h">
+      <Filter>D3D12\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="TextureImporter.h">
-      <Filter>Core\Persistence\Import</Filter>
+    <ClInclude Include="Skybox.h">
+      <Filter>D3D12\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Importer.h">
-      <Filter>Core\Persistence\Import</Filter>
+    <ClInclude Include="LightComponent.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -523,12 +503,6 @@
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Persistence">
-      <UniqueIdentifier>{b56d7918-780b-40f7-898c-95c42ba2b79d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Persistence\Import">
-      <UniqueIdentifier>{8cd982b3-6b84-42c9-9759-af0e280885d4}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -539,18 +513,22 @@
     <None Include="SimpleMath.inl">
       <Filter>Maths</Filter>
     </None>
-    <None Include="CBuffers.hlsli">
+    <None Include="NewCBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
-    <None Include="NewCBuffers.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="LightPixelShader.hlsl" />
+    <FxCompile Include="SkyboxVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="LightPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

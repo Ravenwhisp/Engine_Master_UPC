@@ -61,6 +61,7 @@ public:
     const inline Matrix& getView() const { return m_view; }
     const inline Matrix& getProjection() const { return m_projection; }
     const inline Vector3& getPosition() const { return m_position; }
+    const inline Quaternion getRotation() const { return Quaternion::CreateFromYawPitchRoll(-m_yaw, m_pitch, 0.0f); }
 
 private:
     // Modes
