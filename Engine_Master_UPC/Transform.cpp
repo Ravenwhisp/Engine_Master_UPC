@@ -2,6 +2,9 @@
 #include "Transform.h"
 #include "GameObject.h"
 #include <cmath>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 
 Transform::Transform(UID id, GameObject* gameObject) :
     Component(id, ComponentType::TRANSFORM, gameObject),
