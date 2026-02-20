@@ -31,7 +31,10 @@ public:
 
 	void drawUi() override;
 
-	void onTransformChange() override { recalculateFrustum(); }
+	void onTransformChange() override;
+
+	const bool getCullingToggle() const { return m_cullingToggle; }
+	void getCullingToggle(const bool cullingToggle) { m_cullingToggle = cullingToggle; }
 
 private:
 	float m_horizontalFov = 90.0f;
@@ -44,4 +47,6 @@ private:
 	Matrix m_projection = {};
 
 	Engine::Frustum m_frustum = {};
+
+	bool m_cullingToggle = false;
 };
