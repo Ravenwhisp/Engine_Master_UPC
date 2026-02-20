@@ -45,9 +45,11 @@ public:
 #pragma region Persistence
 	void saveScene();
 	void loadScene();
+	void clearScene();
 #pragma endregion
 
 	void createGameObject();
+	GameObject* createGameObjectWithUID(UID id);
 	void removeGameObject(const UID uuid);
 
 	void addGameObject(GameObject* gameObject);
