@@ -121,12 +121,13 @@ void SceneModule::postRender()
 
 bool SceneModule::cleanUp()
 {
-    for (GameObject* gameObject : m_gameObjects)
-    {
-        gameObject->cleanUp();
-        delete gameObject;
-    }
-    m_gameObjects.clear();
+    clearScene();
+
+    delete m_quadtree;
+    m_quadtree = nullptr;
+
+    delete m_sceneSerializer;
+    m_sceneSerializer = nullptr;
 	return true;
 }
 #pragma endregion
@@ -140,6 +141,16 @@ void SceneModule::createGameObject()
     m_gameObjects.push_back(newGameObject);
     m_quadtree->insert(*newGameObject);
 }
+
+GameObject* SceneModule::createGameObjectWithUID(UID id) {
+    GameObject* newGameObject = new GameObject(id);
+
+    m_gameObjects.push_back(newGameObject);
+    m_quadtree->insert(*newGameObject);
+
+    return newGameObject;
+}
+
 
 void SceneModule::removeGameObject(UID uuid)
 {
@@ -164,7 +175,6 @@ void SceneModule::removeGameObject(UID uuid)
     if (!target)
         return;
 
-    m_quadtree->remove(*target);
     destroyHierarchy(target);
 }
 
@@ -209,6 +219,8 @@ void SceneModule::destroyHierarchy(GameObject* obj)
     {
         destroyHierarchy(child);
     }
+
+    m_quadtree->remove(*obj);
 
     Transform* parent = obj->GetTransform()->getRoot();
 
@@ -257,6 +269,14 @@ void SceneModule::saveScene()
 void SceneModule::loadScene()
 {
     m_sceneSerializer->LoadScene(m_name);
+}
+
+void SceneModule::clearScene()
+{
+    while (!m_gameObjects.empty())
+    {
+        destroyHierarchy(m_gameObjects.back());
+    }
 }
 #pragma endregion
 

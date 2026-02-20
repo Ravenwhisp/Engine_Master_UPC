@@ -167,7 +167,7 @@ void Hierarchy::removeGameObject()
 
 	if (selected)
 	{
-		int id = selected->GetID();
+		UID id = selected->GetID();
 		app->getEditorModule()->setSelectedGameObject(nullptr);
 		app->getSceneModule()->removeGameObject(id);
 	}
