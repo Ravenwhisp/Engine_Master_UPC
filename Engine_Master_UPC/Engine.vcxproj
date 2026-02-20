@@ -110,7 +110,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -153,7 +153,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
     </ClCompile>
