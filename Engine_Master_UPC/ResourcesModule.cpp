@@ -3,13 +3,13 @@
 #include "D3D12Module.h"
 #include "Application.h"
 #include "CommandQueue.h"
+#include <DirectXTex.h>
 #include <iostream>
 
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "RingBuffer.h"
 #include <RenderTexture.h>
-#include <DirectXTex.h>
 
 #include "FileSystemModule.h"
 #include <TextureImporter.h>
@@ -133,6 +133,36 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 	std::string pathStr = filePath.string();
 	const char* cpath = pathStr.c_str();
 	TextureAsset* textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath));
+
+	ScratchImage image;
+	const wchar_t* path = filePath.c_str();
+
+	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image))) {
+		if (FAILED(LoadFromTGAFile(path, nullptr, image))) {
+			LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image);
+		}
+	}
+
+	if (image.GetImageCount() == 0) {
+		return createNullTexture2D();
+	}
+
+	TexMetadata metaData = image.GetMetadata();
+	if (metaData.dimension != TEX_DIMENSION_TEXTURE2D) {
+		return createNullTexture2D();
+	}
+
+	if (metaData.mipLevels == 1 && (metaData.width > 1 || metaData.height > 1))
+	{
+		ScratchImage mipImages;
+		if (FAILED(GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA, 0, mipImages))) {
+			// Try Nvidia tool?
+		}
+		else {
+			image = std::move(mipImages);
+			metaData = image.GetMetadata();
+		}
+	}
 
 	TextureInitInfo info{};
 	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat());

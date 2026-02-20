@@ -7,16 +7,17 @@
 
 #include "Tag.h"
 #include "Layer.h"
+#include "UID.h"
 
 class BasicModel;
 
 class GameObject {
 public:
-	GameObject(int newUuid);
+	GameObject(UID newUuid);
 	~GameObject();
 	
 #pragma region Properties
-	int GetID() const { return m_uuid; }
+	UID GetID() const { return m_uuid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
 	bool GetStatic() const { return m_isStatic; }
@@ -44,6 +45,8 @@ public:
 	}
 #pragma endregion
 
+#pragma endregion
+
 
 #pragma region GameLoop
 	bool init();
@@ -56,8 +59,10 @@ public:
 
 	void drawUI();
 
+	void onTransformChange();
+
 private:
-	int m_uuid;
+	UID m_uuid;
 	std::string m_name;
 	bool m_active = true;
 	bool m_isStatic = false;

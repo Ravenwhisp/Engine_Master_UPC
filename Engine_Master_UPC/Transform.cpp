@@ -2,8 +2,11 @@
 #include "Transform.h"
 #include "GameObject.h"
 #include <cmath>
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 
-Transform::Transform(int id, GameObject* gameObject) :
+Transform::Transform(UID id, GameObject* gameObject) :
     Component(id, ComponentType::TRANSFORM, gameObject),
     m_dirty(true),
     m_root(nullptr),
@@ -21,6 +24,7 @@ const Matrix& Transform::getGlobalMatrix() const
     {
         calculateMatrix();
         m_dirty = false;
+        m_owner->onTransformChange();
     }
     return m_globalMatrix;
 }
@@ -151,7 +155,7 @@ void Transform::calculateMatrix() const
     }
 }
 
-void Transform::removeChild(int id)
+void Transform::removeChild(UID id)
 {
     for (auto it = m_children.begin(); it != m_children.end(); ++it)
     {

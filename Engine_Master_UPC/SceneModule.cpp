@@ -2,6 +2,9 @@
 
 #include "SceneModule.h"
 #include "LightComponent.h"
+#include <CameraComponent.h>
+
+#include "BasicModel.h"
 
 #include "SceneSerializer.h"
 
@@ -15,12 +18,20 @@ bool SceneModule::init()
     m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
+    /// PROVISIONAL
+    GameObject* gameCamera = new GameObject(GenerateUID());
+    gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
+    gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
+    gameCamera->AddComponent(ComponentType::CAMERA);
+    gameCamera->SetName("Camera");
+    m_gameObjects.push_back(gameCamera);
+
     for (GameObject* gameObject : m_gameObjects)
     {
         gameObject->init();
     }
 
-    auto rectangle = RectangleData(0, 0, 10, 10);
+    auto rectangle = BoundingRect(-10, -10, 20, 20);
     m_quadtree = new Quadtree(rectangle);
 
     createDirectionalLightOnInit();
@@ -48,6 +59,8 @@ void SceneModule::updateHierarchy(GameObject* obj)
     {
         updateHierarchy(child);
     }
+
+    m_quadtree->resolveDirtyNodes();
 }
 
 void SceneModule::preRender()
@@ -61,18 +74,35 @@ void SceneModule::preRender()
     }
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) {
+void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
+{
+    CameraComponent* camera = nullptr;
 
     for (GameObject* gameObject : m_gameObjects)
     {
-        if (gameObject->GetActive())
-        {
-            /// Quatree TEST
+        if (!gameObject->GetActive())
+            continue;
+
             if (gameObject->GetTransform()->isDirty())
             {
                 m_quadtree->move(*gameObject);
             }
-            ///
+
+        if (!camera)
+        {
+            camera = gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+        }
+    }
+
+    if (!camera) return;
+    
+    camera->render(commandList, viewMatrix, projectionMatrix);
+
+    auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
+    for (GameObject* gameObject : gameObjects)
+    {
+        if (gameObject != camera->getOwner())
+        {
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
     }
@@ -103,14 +133,15 @@ bool SceneModule::cleanUp()
 
 void SceneModule::createGameObject()
 {
-	GameObject* newGameObject = new GameObject(rand());
+	GameObject* newGameObject = new GameObject(GenerateUID());
     newGameObject->init();
+    newGameObject->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
     m_gameObjects.push_back(newGameObject);
     m_quadtree->insert(*newGameObject);
 }
 
-void SceneModule::removeGameObject(int uuid)
+void SceneModule::removeGameObject(UID uuid)
 {
     GameObject* target = nullptr;
 
@@ -155,7 +186,7 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     delete gameObject;
 }
 
-GameObject* SceneModule::findInHierarchy(GameObject* current, int uuid)
+GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
@@ -192,7 +223,8 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
-    GameObject* go = new GameObject(rand());
+    GameObject* go = new GameObject(GenerateUID());
+
     go->SetName("Directional Light");
 
     go->AddComponent(ComponentType::LIGHT);

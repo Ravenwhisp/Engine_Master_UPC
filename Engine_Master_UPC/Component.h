@@ -1,14 +1,15 @@
 #pragma once
 #include "ComponentType.h"
+#include "UID.h" 
 
 class GameObject;
 
 class Component {
 public:
-    Component(int id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
+    Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
 
-    int getID() const { return m_uuid; }
+    UID getID() const { return m_uuid; }
     ComponentType getType() const { return m_type; }
     GameObject* getOwner() const { return m_owner; }
 
@@ -24,10 +25,12 @@ public:
 
     virtual void drawUi() {}
 
+    virtual void onTransformChange() = 0;
+
 protected:
     GameObject* m_owner;
 
 private:
-    const int m_uuid;
+    const UID m_uuid;
     const ComponentType m_type;
 };
