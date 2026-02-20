@@ -1,13 +1,36 @@
+#include "Globals.h"
 #include "FileSystemModule.h"
 #include <filesystem>
 #include <fstream>
 
 #include "TextureImporter.h"
+#include "Asset.h"
 
 bool FileSystemModule::init()
 {
     importers.push_back(new TextureImporter());
     return true;
+}
+
+Asset* FileSystemModule::import(const char* filePath) const
+{
+    for (Importer* importer : importers)
+	{
+		if (importer->canImport(filePath))
+		{
+			Asset* asset = importer->createAssetInstance();
+			if (importer->import(filePath, asset))
+			{
+				return asset;
+			}
+			else
+			{
+				delete asset;
+				return nullptr;
+			}
+		}
+	}
+    return nullptr;
 }
 
 unsigned int FileSystemModule::load(const char* filePath, char** buffer) const

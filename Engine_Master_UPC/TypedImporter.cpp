@@ -1,4 +1,5 @@
 #pragma once
+#include "Globals.h"
 #include "Importer.h"
 
 template<typename ExternalFormat, typename AssetFormat>
