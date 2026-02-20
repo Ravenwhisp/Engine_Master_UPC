@@ -6,16 +6,10 @@
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
 
-GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
+GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-    m_components.push_back(m_transform = new Transform(rand(), this));
+    m_components.push_back(m_transform = new Transform(GenerateUID(), this));
 
-    //Testing duck
-	BasicModel* currModel = new BasicModel(rand(), this);
-    m_components.push_back(currModel);
-	currModel->init();
-
-    //////////////
 }
 
 GameObject::~GameObject()
@@ -28,19 +22,19 @@ bool GameObject::AddComponent(ComponentType componentType)
     switch (componentType)
     {
         case ComponentType::LIGHT:
-            m_components.push_back(new LightComponent(rand(), this));
+            m_components.push_back(new LightComponent(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new BasicModel(rand(), this));
+            m_components.push_back(new BasicModel(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
 
         case ComponentType::PLAYER_WALK:
-            m_components.push_back(new PlayerWalk(rand(), this));
+            m_components.push_back(new PlayerWalk(GenerateUID(), this));
             break;
-
         case ComponentType::CAMERA:
-            m_components.push_back(new CameraComponent(rand(), this));
+            m_components.push_back(new CameraComponent(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -188,7 +182,7 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
 void GameObject::drawUI()
 {
 #pragma region 
-    ImGui::Text("GameObject UUID: %d", m_uuid);
+    ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
     ImGui::Checkbox("Active", &m_active);

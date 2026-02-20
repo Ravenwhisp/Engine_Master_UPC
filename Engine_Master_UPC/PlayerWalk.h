@@ -9,7 +9,7 @@ class GameObject;
 
 class PlayerWalk final : public Component {
 public:
-	PlayerWalk(int id, GameObject* gameObject);
+	PlayerWalk(UID id, GameObject* gameObject);
 
 	void update() override;
 

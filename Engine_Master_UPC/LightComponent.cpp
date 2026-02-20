@@ -26,7 +26,7 @@ namespace
     }
 }
 
-LightComponent::LightComponent(int id, GameObject* owner)
+LightComponent::LightComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::LIGHT, owner)
 {
 }
