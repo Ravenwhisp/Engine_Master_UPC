@@ -2,6 +2,8 @@
 #include "SceneModule.h"
 #include "LightComponent.h"
 #include <CameraComponent.h>
+#include "Application.h"
+#include "RenderModule.h"
 
 #include "BasicModel.h"
 
@@ -32,6 +34,8 @@ bool SceneModule::init()
     m_quadtree = new Quadtree(rectangle);
 
     createDirectionalLightOnInit();
+
+    applySkyboxToRenderer();
 
     return true;
 }
