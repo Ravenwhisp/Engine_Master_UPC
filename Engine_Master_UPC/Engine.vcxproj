@@ -175,6 +175,7 @@
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="3rdParty\simdjson\simdjson.h" />
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Asset.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraModule.h" />
     <ClInclude Include="CommandQueue.h" />
@@ -192,8 +193,10 @@
     <ClInclude Include="EditorToolbar.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="FileSystemModule.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Importer.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
@@ -236,8 +239,10 @@
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Tag.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureImporter.h" />
     <ClInclude Include="TimeModule.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="TypedImporter.h" />
     <ClInclude Include="UtilityGLFT.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="targetver.h" />
@@ -324,7 +329,9 @@
     <ClCompile Include="EditorSettings.cpp" />
     <ClCompile Include="EditorToolbar.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="FileSystemModule.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Importer.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
@@ -371,9 +378,11 @@
     </ClCompile>
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureImporter.cpp" />
     <ClCompile Include="TimeModule.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="TypedImporter.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>

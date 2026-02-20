@@ -182,6 +182,18 @@
     <ClCompile Include="SceneConfig.cpp">
       <Filter>Editor\EditorWindows\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="FileSystemModule.cpp">
+      <Filter>Core\Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Importer.cpp">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClCompile>
+    <ClCompile Include="TypedImporter.cpp">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureImporter.cpp">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -399,6 +411,21 @@
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor\EditorWindows\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="FileSystemModule.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImporter.h">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedImporter.h">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClInclude>
+    <ClInclude Include="Asset.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -522,6 +549,9 @@
     </Filter>
     <Filter Include="Editor\EditorWindows\Scene">
       <UniqueIdentifier>{15dba9f8-094f-42ca-98ed-6dc0b4f88d4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence\Import">
+      <UniqueIdentifier>{08ee0ccf-d966-46ac-98de-97b79adddb7d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
