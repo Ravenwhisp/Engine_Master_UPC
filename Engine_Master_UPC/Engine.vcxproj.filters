@@ -173,6 +173,12 @@
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
+    <ClCompile Include="LightDebugDraw.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -326,9 +332,6 @@
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="cvector.h" />
-    <ClInclude Include="Light.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="SceneModule.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -378,6 +381,18 @@
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="LightDebugDraw.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -498,15 +513,21 @@
     <None Include="SimpleMath.inl">
       <Filter>Maths</Filter>
     </None>
-    <None Include="CBuffers.hlsli">
+    <None Include="NewCBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="SkyboxVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="LightPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
