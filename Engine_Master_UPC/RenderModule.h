@@ -7,6 +7,10 @@ class RingBuffer;
 class RenderTexture;
 class DepthBuffer;
 class GameObject;
+class VertexBuffer;
+class IndexBuffer;
+class Texture;
+class Settings;
 
 class RenderModule: public Module
 {
@@ -20,11 +24,17 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE getGPUScreenRT();
 	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
+
+	bool applySkyboxSettings();
 private:
 
 	void transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
 	void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
 	void renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
+	void renderSkybox(ID3D12GraphicsCommandList4* commandList, const Quaternion& cameraRot, Matrix& projectionMatrix);
+	void cleanupSkybox();
+
+	Settings* m_settings;
 
 	//For now let's store the root signature and the pipeline state here
 	ComPtr<ID3D12RootSignature>		m_rootSignature;
@@ -32,6 +42,17 @@ private:
 
 	RingBuffer*						m_ringBuffer;
 	DescriptorsModule::SampleType	m_sampleType = DescriptorsModule::SampleType::POINT_CLAMP;
+
+	//another root and pipeline for the skybox
+	ComPtr<ID3D12RootSignature> m_skyboxRootSignature;
+	ComPtr<ID3D12PipelineState> m_skyboxPipelineState;
+
+	VertexBuffer* m_skyboxVertexBuffer = nullptr;
+	IndexBuffer* m_skyboxIndexBuffer = nullptr;
+	uint32_t      m_skyboxIndexCount = 0;
+
+	std::unique_ptr<Texture> m_skyboxTexture;
+	bool m_hasSkybox = false;
 
 	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_screenRT{};
