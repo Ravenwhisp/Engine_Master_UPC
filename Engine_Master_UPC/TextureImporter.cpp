@@ -40,22 +40,29 @@ void TextureImporter::importTyped(const DirectX::ScratchImage& source,TextureAss
     }
 
     const DirectX::Image* images = finalSource->GetImages();
-    size_t count = finalSource->GetImageCount();
+    const TexMetadata& meta = finalSource->GetMetadata();
 
-    texture->images.reserve(count);
+    const uint32_t mipCount = static_cast<uint32_t>(meta.mipLevels);
+    const uint32_t arraySize = static_cast<uint32_t>(meta.arraySize);
 
-    for (size_t i = 0; i < count; ++i)
+    texture->images.clear();
+    texture->images.reserve(meta.mipLevels * meta.arraySize);
+
+    for (size_t item = 0; item < metaData.arraySize; ++item)
     {
-        const DirectX::Image& img = images[i];
+        for (size_t level = 0; level < metaData.mipLevels; ++level)
+        {
+            const Image* subImg = source.GetImage(level, item, 0);
 
-        TextureImage tImg;
-        tImg.rowPitch = static_cast<uint32_t>(img.rowPitch);
-        tImg.slicePitch = static_cast<uint32_t>(img.slicePitch);
-        tImg.pixels.resize(img.slicePitch);
+            TextureImage tImg;
+            tImg.rowPitch = static_cast<uint32_t>(subImg->rowPitch);
+            tImg.slicePitch = static_cast<uint32_t>(subImg->slicePitch);
+            tImg.pixels.resize(subImg->slicePitch);
 
-        std::memcpy(tImg.pixels.data(), img.pixels, img.slicePitch);
+            std::memcpy(tImg.pixels.data(), subImg->pixels, subImg->slicePitch);
 
-        texture->images.push_back(std::move(tImg));
+            texture->images.push_back(std::move(tImg));
+        }
     }
 
     texture->width = metaData.width;

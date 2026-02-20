@@ -47,6 +47,9 @@ void SceneConfig::render()
     ImGui::Separator();
     drawSkyboxSettings();
 
+    ImGui::Separator();
+    drawLightSettings();
+
     ImGui::End();
 
 }
@@ -73,5 +76,17 @@ void SceneConfig::drawSkyboxSettings() {
                 m_skyboxDirty = false;
             }
         }
+    }
+}
+
+void SceneConfig::drawLightSettings()
+{
+    auto& light = m_sceneModule->GetLightingSettings();
+
+    if (ImGui::CollapsingHeader("Lighting"))
+    {
+        ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
+
+        ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
     }
 }
