@@ -17,6 +17,7 @@ class DescriptorsModule;
 class TimeModule;
 class RenderModule;
 class SceneModule;
+class FileSystemModule;
 
 class Settings;
 
@@ -40,7 +41,7 @@ public:
     TimeModule*                 getTimeModule() { return m_timeModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
-
+    FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
     Settings*                   getSettings() { return m_settings; }
 
     bool        isPaused() const { return m_paused; }
@@ -60,6 +61,7 @@ private:
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
+    FileSystemModule*       m_fileSystemModule = nullptr;
 
     Settings*               m_settings = nullptr;
 
