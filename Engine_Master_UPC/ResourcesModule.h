@@ -14,8 +14,9 @@ using namespace std::filesystem;
 struct Vertex
 {
 	Vector3 position;
-	Vector2 texCoord0;
 	Vector3 normal = Vector3::UnitZ;
+	Vector3 tangent = Vector3::UnitX;
+	Vector2 texCoord0;
 };
 
 struct DefferedResource {

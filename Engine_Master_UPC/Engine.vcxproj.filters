@@ -186,11 +186,18 @@
       <Filter>Core\Persistence</Filter>
     </ClCompile>
     <ClCompile Include="TypedImporter.cpp">
-      <Filter>Core\Persistence\Importers</Filter>
+      <Filter>Core\Persistence\Importers\Base</Filter>
     </ClCompile>
     <ClCompile Include="TextureImporter.cpp">
-      <Filter>Core\Persistence\Importers</Filter>
+      <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelImporter.cpp">
+      <Filter>Core\Persistence\Importers\Implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilityGLFT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -414,13 +421,19 @@
       <Filter>Core\Persistence</Filter>
     </ClInclude>
     <ClInclude Include="TypedImporter.h">
-      <Filter>Core\Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureImporter.h">
-      <Filter>Core\Persistence\Importers</Filter>
+      <Filter>Core\Persistence\Importers\Base</Filter>
     </ClInclude>
     <ClInclude Include="Importer.h">
-      <Filter>Core\Persistence\Importers</Filter>
+      <Filter>Core\Persistence\Importers\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImporter.h">
+      <Filter>Core\Persistence\Importers\Implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelImporter.h">
+      <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -536,6 +549,12 @@
     </Filter>
     <Filter Include="Core\Persistence\Importers">
       <UniqueIdentifier>{9d6ff4bf-6862-4848-b6e7-f8ec7bf8d8c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence\Importers\Base">
+      <UniqueIdentifier>{744bb66e-c2ec-4310-8071-9bd799c00ac1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence\Importers\Implementations">
+      <UniqueIdentifier>{aba8baee-156b-4981-81d0-8718697efe1b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

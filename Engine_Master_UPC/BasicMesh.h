@@ -1,5 +1,6 @@
 #pragma once
 #include "Globals.h"
+#include "Asset.h"
 
 class VertexBuffer;
 class IndexBuffer;

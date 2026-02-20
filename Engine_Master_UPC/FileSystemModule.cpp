@@ -8,7 +8,9 @@
 
 bool FileSystemModule::init()
 {
+    /// TESTING
     auto textureImporter = new TextureImporter();
+
     TextureAsset skyBox(rand());
     textureImporter->import(L"Assets/Textures/cubemap2.dds", &skyBox);
 
@@ -17,6 +19,12 @@ bool FileSystemModule::init()
     save("Library/Textures/cubemap2.asset", buffer, static_cast<unsigned int>(size));
 
     textureImporter->load(buffer, &skyBox);
+    ///
+
+    /// TESTING
+    // Image we want to import a .gltf file
+    // The final result in Unity is a prefab with the meshes, materials and textures
+    // So we need to ask MeshImporter, MaterialImporter and TextureImporter during the pipeline
 
     importers.push_back(textureImporter);
     return true;

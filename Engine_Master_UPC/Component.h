@@ -25,7 +25,7 @@ public:
 
     virtual void drawUi() {}
 
-    virtual void onTransformChange() = 0;
+    virtual void onTransformChange() {};
 
 protected:
     GameObject* m_owner;

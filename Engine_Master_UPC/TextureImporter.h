@@ -52,6 +52,7 @@ public:
 	{
 		return new TextureAsset(rand());
 	}
+
 protected:
 	bool loadExternal(const std::filesystem::path& path, DirectX::ScratchImage& out) override;
 	void importTyped(const DirectX::ScratchImage& source, TextureAsset* destiny) override;

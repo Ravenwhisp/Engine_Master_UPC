@@ -8,6 +8,10 @@ public:
 	Asset(int id): id(id) {}
 	virtual ~Asset() = default;
 	int getId() const { return id; }
+
+	std::string getAssetsFile() const { return assetsFile; }
+	std::string getLibraryFile() const { return libraryFile; }
+
 protected:
 	int id;
 	std::string assetsFile;

@@ -206,6 +206,8 @@
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
+    <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="PlayerWalk.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
@@ -350,6 +352,8 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
+    <ClCompile Include="MeshRenderer.cpp" />
+    <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
@@ -400,6 +404,7 @@
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="TypedImporter.cpp" />
     <ClCompile Include="UID.cpp" />
+    <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
