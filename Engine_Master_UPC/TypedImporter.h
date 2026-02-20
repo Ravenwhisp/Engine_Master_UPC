@@ -5,7 +5,7 @@ template<typename ExternalFormat, typename AssetFormat>
 class TypedImporter : public Importer
 {
 public:
-    bool import(const std::filesystem::path& path, void* outAsset) final
+    bool import(const std::filesystem::path& path, Asset * outAsset) final
     {
         ExternalFormat external{};
         if (!loadExternal(path, external)) return false;
@@ -14,12 +14,12 @@ public:
         return true;
     }
 
-    uint64_t save(const void* asset, uint8_t** outBuffer) final
+    uint64_t save(const Asset* asset, uint8_t** outBuffer) final
     {
         return saveTyped(static_cast<const AssetFormat*>(asset),outBuffer);
     }
 
-    void load(const uint8_t* buffer,void* outAsset) final
+    void load(const uint8_t* buffer, Asset* outAsset) final
     {
         loadTyped(buffer,static_cast<AssetFormat*>(outAsset));
     }

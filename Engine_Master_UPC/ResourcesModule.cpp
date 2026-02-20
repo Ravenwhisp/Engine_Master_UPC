@@ -11,6 +11,9 @@
 #include <RenderTexture.h>
 #include <DirectXTex.h>
 
+#include "FileSystemModule.h"
+#include <TextureImporter.h>
+
 ResourcesModule::~ResourcesModule()
 {
 	m_defferedResources.clear();
@@ -127,30 +130,34 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 
 std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath, const char* name)
 {
+	std::string pathStr = filePath.string();
+	const char* cpath = pathStr.c_str();
+	TextureAsset* textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath));
 
 	TextureInitInfo info{};
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(metaData.format);
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat());
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount()));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 
-	ComPtr<ID3D12Resource> stagingBuffer = createUploadBuffer(GetRequiredIntermediateSize(texture->getD3D12Resource().Get(), 0, image.GetImageCount()));
+	ComPtr<ID3D12Resource> stagingBuffer = createUploadBuffer(GetRequiredIntermediateSize(texture->getD3D12Resource().Get(), 0, textureAsset->getImageCount()));
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	subData.reserve(image.GetImageCount());
-	// Note we are iteration over mipLevels of each array item to respect Subresource index order
-	for (size_t item = 0; item < metaData.arraySize; ++item)
+	subData.reserve(textureAsset->getImageCount());
+
+	const std::vector<TextureImage>& subImages = textureAsset->getImages();
+	for (const auto& subImg : subImages)
 	{
-		for (size_t level = 0; level < metaData.mipLevels; ++level)
-		{
-			const Image* subImg = image.GetImage(level, item, 0);
-			D3D12_SUBRESOURCE_DATA data = { subImg->pixels, subImg->rowPitch, subImg->slicePitch };
-			subData.push_back(data);
-		}
+		D3D12_SUBRESOURCE_DATA data = {};
+		data.pData = subImg.pixels.data();
+		data.RowPitch = subImg.rowPitch;
+		data.SlicePitch = subImg.slicePitch;
+
+		subData.push_back(data);
 	}
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-	UpdateSubresources(commandList.Get(), texture->getD3D12Resource().Get(), stagingBuffer.Get(), 0, 0, UINT(image.GetImageCount()), subData.data());
+	UpdateSubresources(commandList.Get(), texture->getD3D12Resource().Get(), stagingBuffer.Get(), 0, 0, UINT(textureAsset->getImageCount()), subData.data());
 
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	commandList->ResourceBarrier(1, &barrier);

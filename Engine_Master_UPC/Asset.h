@@ -4,7 +4,7 @@
 class Asset
 {
 public:
-	Asset(int id);
+	Asset(int id): id(id) {}
 	virtual ~Asset() = default;
 	int getId() const { return id; }
 private:
