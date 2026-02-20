@@ -31,10 +31,18 @@ struct SceneEditorSettings {
     bool showQuadTree = true;
 };
 
+struct SkyboxSettings
+{
+    bool enabled = true;
+    char path[260] = "Assets/Textures/cubemap2.dds";
+    bool dirty = false;
+};
+
 class Settings {
 public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
+    SkyboxSettings skybox;
 
 public:
     void loadSettings() {

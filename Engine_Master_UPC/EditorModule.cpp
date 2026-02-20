@@ -1,23 +1,23 @@
 #include "Globals.h"
 #include "EditorModule.h"
-
 #include "D3D12Module.h"
 #include "CameraModule.h"
-
-#include "ImGuiPass.h"
-
-#include "Application.h"
-#include "SceneModule.h"
-
+#include "vector"
+#include <backends/imgui_impl_dx12.h>
+#include "Resources.h"
 #include "SceneEditor.h"
-#include "Logger.h"
-#include "Hierarchy.h"
-#include "Inspector.h"
 #include "HardwareWindow.h"
 #include "PerformanceWindow.h"
 #include "EditorWindow.h"
+#include "ImGuizmo.h"
+#include "Logger.h"
+#include "ImGuiPass.h"
+#include "Hierarchy.h"
+#include "Inspector.h"
 #include "EditorSettings.h"
-#include "SceneConfig.h"
+
+#include "Application.h"
+#include "SceneModule.h"
 
 using namespace std;
 
@@ -86,15 +86,10 @@ void EditorModule::mainDockspace(bool* p_open)
 
     if (m_firstFrame) 
     {
-        for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
-        {
-            (*it)->render();
-        }
-
         setupDockLayout(dockspace_id);
         style();
         m_firstFrame = false;
-    }
+    } 
 
     ImGui::End();
 }
@@ -102,26 +97,28 @@ void EditorModule::mainDockspace(bool* p_open)
 
 void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 {
+    // Clear previous layout
+    ImGui::DockBuilderRemoveNodeDockedWindows(dockspace_id);
     ImGui::DockBuilderRemoveNode(dockspace_id);
     ImGui::DockBuilderAddNode(dockspace_id);
     ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
     ImGuiID dock_main = dockspace_id;
 
-    ImGuiID dock_left, dock_right;
-    ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.75f, &dock_left, &dock_right);
+    ImGuiID dock_left, dock_inspector;
+    ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.75f, &dock_left, &dock_inspector);
 
     ImGuiID dock_bottom, dock_top;
     ImGui::DockBuilderSplitNode(dock_left, ImGuiDir_Down, 0.25f, &dock_bottom, &dock_top);
 
-    ImGuiID dock_center;
-    ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_left, &dock_center);
+    ImGuiID dock_hierarchy, dock_scene;
+    ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
-    ImGui::DockBuilderDockWindow("Inspector", dock_right);
-    ImGui::DockBuilderDockWindow("Editor Settings", dock_left);
-    ImGui::DockBuilderDockWindow("Scene Configuration", dock_left);
-    ImGui::DockBuilderDockWindow("Hierarchy", dock_left);
-    ImGui::DockBuilderDockWindow("Scene Editor", dock_center);
+    ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
+    ImGui::DockBuilderDockWindow("Editor Settings", dock_inspector);
+    ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
+    ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
+    ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
 
     ImGui::DockBuilderDockWindow("Console", dock_bottom);
     ImGui::DockBuilderDockWindow("Hardware Info", dock_bottom);
