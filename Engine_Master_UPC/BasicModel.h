@@ -15,7 +15,7 @@ struct ModelData {
 class BasicModel : public Component
 {
 public:
-	BasicModel(int id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
+	BasicModel(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
 	~BasicModel();
 	void load(const char* fileName, const char* basePath);
 	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }

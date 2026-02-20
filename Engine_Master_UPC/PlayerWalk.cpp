@@ -8,7 +8,7 @@
 
 static const float PI = 3.1415926535897931f;
 
-PlayerWalk::PlayerWalk(int id, GameObject* gameobject) :
+PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
 }

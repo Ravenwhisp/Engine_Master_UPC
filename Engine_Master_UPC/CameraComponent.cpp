@@ -2,7 +2,7 @@
 #include "CameraComponent.h"
 #include "GameObject.h"
 
-CameraComponent::CameraComponent(int id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
+CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
 	Transform* t = m_owner->GetTransform();
 	Vector3 position = t->getPosition();

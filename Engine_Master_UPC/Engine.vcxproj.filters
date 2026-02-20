@@ -173,6 +173,13 @@
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
+    <ClCompile Include="3rdParty\simdjson\simdjson.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="LightDebugDraw.cpp" />
+    <ClCompile Include="SceneConfig.cpp" />
+    <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
+    <ClCompile Include="UID.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -379,6 +386,13 @@
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
+    <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="LightDebugDraw.h" />
+    <ClInclude Include="Lights.h" />
+    <ClInclude Include="SceneConfig.h" />
+    <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="UID.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -501,6 +515,7 @@
     <None Include="CBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
+    <None Include="NewCBuffers.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -509,5 +524,6 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="LightPixelShader.hlsl" />
   </ItemGroup>
 </Project>

@@ -19,13 +19,11 @@ bool SceneModule::init()
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     /// PROVISIONAL
-    GameObject* gameCamera = new GameObject(rand());
+    GameObject* gameCamera = new GameObject(GenerateUID());
     gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    auto component = gameCamera->GetComponentAs<BasicModel>(ComponentType::MODEL);
-    gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
 
     for (GameObject* gameObject : m_gameObjects)
@@ -135,7 +133,7 @@ bool SceneModule::cleanUp()
 
 void SceneModule::createGameObject()
 {
-	GameObject* newGameObject = new GameObject(rand());
+	GameObject* newGameObject = new GameObject(GenerateUID());
     newGameObject->init();
     newGameObject->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
@@ -143,7 +141,7 @@ void SceneModule::createGameObject()
     m_quadtree->insert(*newGameObject);
 }
 
-void SceneModule::removeGameObject(int uuid)
+void SceneModule::removeGameObject(UID uuid)
 {
     GameObject* target = nullptr;
 
@@ -188,7 +186,7 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     delete gameObject;
 }
 
-GameObject* SceneModule::findInHierarchy(GameObject* current, int uuid)
+GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
@@ -225,9 +223,7 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
-    GameObject* go = new GameObject(rand());
-    auto component = go->GetComponentAs<BasicModel>(ComponentType::MODEL);
-    go->RemoveComponent(component);
+    GameObject* go = new GameObject(GenerateUID());
 
     go->SetName("Directional Light");
 
