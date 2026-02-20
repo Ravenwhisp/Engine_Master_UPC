@@ -15,6 +15,8 @@ public:
 
 	void drawUi() override;
 
+	void onTransformChange() override {}
+
 private:
 	float m_moveSpeed = 3.5f;
 	float m_shiftMultiplier = 2.0f;

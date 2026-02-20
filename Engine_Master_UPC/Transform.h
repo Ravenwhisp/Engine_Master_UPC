@@ -30,6 +30,8 @@ public:
 
 	const Vector3& getEulerDegrees() const { return m_eulerDegrees; }
 
+	void onTransformChange() override {}
+
 #pragma region Hierarchy Scene
 	Transform* getRoot() const { return m_root; }
 	const std::vector<GameObject*>& getAllChildren() const { return m_children; }

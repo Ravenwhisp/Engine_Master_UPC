@@ -44,6 +44,8 @@ public:
 	}
 #pragma endregion
 
+#pragma endregion
+
 
 #pragma region GameLoop
 	bool init();
@@ -55,6 +57,8 @@ public:
 #pragma endregion
 
 	void drawUI();
+
+	void onTransformChange();
 
 private:
 	int m_uuid;

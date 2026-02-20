@@ -5,31 +5,31 @@
       <Filter>Core\Engine</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_demo.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_draw.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_win32.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_tables.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiPass.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClCompile>
     <ClCompile Include="D3D12Module.cpp">
       <Filter>D3D12</Filter>
@@ -94,7 +94,13 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="SceneEditor.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
     <ClCompile Include="Logger.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="HardwareWindow.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
     <ClCompile Include="PerformanceWindow.cpp">
@@ -155,32 +161,17 @@
     <ClCompile Include="EditorSettings.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="LightComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="LightDebugDraw.cpp">
-      <Filter>Editor\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="3rdParty\simdjson\simdjson.cpp">
-      <Filter>3dParty\simdjson</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneSerializer.cpp">
-      <Filter>Core\Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="HardwareWindow.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
-    </ClCompile>
-    <ClCompile Include="EditorToolbar.cpp">
-      <Filter>Editor\EditorWindows\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneEditor.cpp">
-      <Filter>Editor\EditorWindows\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneConfig.cpp">
-      <Filter>Editor\EditorWindows\Scene</Filter>
+    <ClCompile Include="BoundingBox.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="Frustum.cpp" />
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -194,25 +185,25 @@
       <Filter>Core\Engine</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\imgui.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiPass.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
-      <Filter>3dParty\imgui</Filter>
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="D3D12Module.h">
       <Filter>D3D12</Filter>
@@ -289,7 +280,13 @@
     <ClInclude Include="EditorWindow.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="SceneEditor.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
     <ClInclude Include="Logger.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="HardwareWindow.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
     <ClInclude Include="PerformanceWindow.h">
@@ -369,35 +366,18 @@
     <ClInclude Include="EditorSettings.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
+    <ClInclude Include="EditorToolbar.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Lights.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="LightComponent.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="LightDebugDraw.h">
-      <Filter>Editor\Debug</Filter>
-    </ClInclude>
-    <ClInclude Include="3rdParty\simdjson\simdjson.h">
-      <Filter>3dParty\simdjson</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneSerializer.h">
-      <Filter>Core\Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="HardwareWindow.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorToolbar.h">
-      <Filter>Editor\EditorWindows\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneEditor.h">
-      <Filter>Editor\EditorWindows\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneConfig.h">
-      <Filter>Editor\EditorWindows\Scene</Filter>
+    <ClInclude Include="BoundingBox.h" />
+    <ClInclude Include="BoundingVolume.h" />
+    <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -429,6 +409,9 @@
     </Filter>
     <Filter Include="Editor">
       <UniqueIdentifier>{2bed0e6a-b904-458e-ab3b-3c21b9f58527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\imgui">
+      <UniqueIdentifier>{a60f8542-9cd4-4679-8902-854421339996}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Timers">
       <UniqueIdentifier>{1514364a-f620-4a4f-bea2-17ede130ddd0}</UniqueIdentifier>
@@ -505,24 +488,6 @@
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor\Debug">
-      <UniqueIdentifier>{81108d66-0f59-4640-9a4c-973569c8985b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3dParty">
-      <UniqueIdentifier>{eee7e809-e00c-47b4-b239-325538c5c421}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3dParty\imgui">
-      <UniqueIdentifier>{a60f8542-9cd4-4679-8902-854421339996}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3dParty\simdjson">
-      <UniqueIdentifier>{004385ad-c2b8-45e3-9ef1-ba9078e4af0e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Persistence">
-      <UniqueIdentifier>{0d7f2841-bb94-44cf-ad8f-b6394570814f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Scene">
-      <UniqueIdentifier>{15dba9f8-094f-42ca-98ed-6dc0b4f88d4a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -536,18 +501,12 @@
     <None Include="CBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
-    <None Include="NewCBuffers.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="LightPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
