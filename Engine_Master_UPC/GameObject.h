@@ -14,6 +14,7 @@ class BasicModel;
 class GameObject {
 public:
 	GameObject(UID newUuid);
+	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
 	
 #pragma region Properties
@@ -35,8 +36,10 @@ public:
 	Transform* GetTransform() { return m_transform; }
 	const Transform* GetTransform() const { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
+	Component* AddComponentWithUID(const ComponentType componentType, UID id);
 	bool RemoveComponent(Component* componentToRemove);
 	Component* GetComponent(ComponentType type) const;
+	const std::vector<Component*>& GetComponents() const { return m_components; }
 
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const
