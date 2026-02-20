@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "Quadtree.h"
 #include "Lights.h"
+#include "UID.h"
 
 class SceneSerializer;
 
@@ -47,13 +48,13 @@ public:
 #pragma endregion
 
 	void createGameObject();
-	void removeGameObject(const int uuid);
+	void removeGameObject(const UID uuid);
 
 	void addGameObject(GameObject* gameObject);
 	void detachGameObject(GameObject* gameObject);
 	void destroyGameObject(GameObject* gameObject);
 
-	GameObject* findInHierarchy(GameObject* current, int uuid);
+	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
 
 	GameObject* createDirectionalLightOnInit();

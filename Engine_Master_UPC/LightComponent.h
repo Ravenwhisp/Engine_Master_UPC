@@ -5,7 +5,7 @@
 class LightComponent final : public Component
 {
 public:
-    LightComponent(int id, GameObject* owner);
+    LightComponent(UID id, GameObject* owner);
 
     const LightData& getData() const { return m_data; }
     LightData& editData() { return m_data; }
@@ -17,6 +17,7 @@ public:
     void sanitize();
 
     void drawUi() override;
+    void onTransformChange() override {}
 
     bool isDebugDrawEnabled() const { return m_debugDrawEnabled; }
     bool isDebugDrawDepthEnabled() const { return m_debugDrawDepthEnabled; }

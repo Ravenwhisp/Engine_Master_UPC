@@ -9,11 +9,13 @@ class GameObject;
 
 class PlayerWalk final : public Component {
 public:
-	PlayerWalk(int id, GameObject* gameObject);
+	PlayerWalk(UID id, GameObject* gameObject);
 
 	void update() override;
 
 	void drawUi() override;
+
+	void onTransformChange() override {}
 
 private:
 	float m_moveSpeed = 3.5f;
