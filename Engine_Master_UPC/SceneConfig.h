@@ -11,8 +11,10 @@ private:
 
 private:
 	std::string m_sceneName;
-	std::string m_skybox_path;
 	GameObject* m_camera = nullptr;
+
+    void drawSkyboxSettings();
+    bool m_skyboxDirty = false;
 
 public:
     SceneConfig();

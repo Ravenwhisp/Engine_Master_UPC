@@ -15,6 +15,7 @@
 #include "Hierarchy.h"
 #include "Inspector.h"
 #include "EditorSettings.h"
+#include "SceneConfig.h"
 
 #include "Application.h"
 #include "SceneModule.h"
@@ -115,7 +116,7 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
     ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
-    ImGui::DockBuilderDockWindow("Editor Settings", dock_inspector);
+    ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
     ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
@@ -136,7 +137,6 @@ bool EditorModule::init()
     m_editorWindows.push_back(m_logger = new Logger());
     m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
     m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
-    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
 
 	D3D12Module* _d3d12 = app->getD3D12Module();
     m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
@@ -151,6 +151,9 @@ bool EditorModule::init()
 
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
+
+    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
+    m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
 	return true;
 }
