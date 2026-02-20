@@ -8,7 +8,17 @@
 
 bool FileSystemModule::init()
 {
-    importers.push_back(new TextureImporter());
+    auto textureImporter = new TextureImporter();
+    TextureAsset skyBox(rand());
+    textureImporter->import(L"Assets/Textures/cubemap2.dds", &skyBox);
+
+    uint8_t* buffer = nullptr;
+    uint64_t size = textureImporter->save(&skyBox, &buffer);
+    save("Library/Textures/cubemap2.asset", buffer, static_cast<unsigned int>(size));
+
+    textureImporter->load(buffer, &skyBox);
+
+    importers.push_back(textureImporter);
     return true;
 }
 

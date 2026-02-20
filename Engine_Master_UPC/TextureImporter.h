@@ -15,6 +15,7 @@ class TextureAsset: public Asset
 {
 public:
 	friend class TextureImporter;
+	TextureAsset() {}
 	TextureAsset(int id) : Asset(id) {}
 
 	uint32_t getWidth() const { return width; }
@@ -24,6 +25,7 @@ public:
 	DXGI_FORMAT getFormat() const { return format; }
 	uint32_t getImageCount() const { return imageCount; }
 	std::vector<TextureImage>& getImages() { return images; }
+
 private:
     uint32_t width = 0;
     uint32_t height = 0;
@@ -43,7 +45,7 @@ public:
     bool canImport(const std::filesystem::path& path) const override
 	{
 		auto ext = path.extension().string();
-		return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga";
+		return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga" || ext == ".dds";
 	}
 
 	Asset* createAssetInstance() const override

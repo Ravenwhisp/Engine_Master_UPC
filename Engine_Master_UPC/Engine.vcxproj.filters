@@ -179,17 +179,17 @@
     <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="SceneConfig.cpp" />
     <ClCompile Include="UID.cpp" />
-    <ClCompile Include="TypedImporter.cpp">
-      <Filter>Core\Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureImporter.cpp">
-      <Filter>Core\Persistence</Filter>
-    </ClCompile>
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>Core\Persistence</Filter>
     </ClCompile>
     <ClCompile Include="FileSystemModule.cpp">
       <Filter>Core\Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="TypedImporter.cpp">
+      <Filter>Core\Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureImporter.cpp">
+      <Filter>Core\Persistence\Importers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -401,20 +401,26 @@
     <ClInclude Include="SceneConfig.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="UID.h" />
-    <ClInclude Include="TypedImporter.h">
-      <Filter>Core\Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureImporter.h">
-      <Filter>Core\Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="SceneSerializer.h">
-      <Filter>Core\Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="Importer.h">
       <Filter>Core\Persistence</Filter>
     </ClInclude>
     <ClInclude Include="FileSystemModule.h">
       <Filter>Core\Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryWriter.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryReader.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedImporter.h">
+      <Filter>Core\Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImporter.h">
+      <Filter>Core\Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Core\Persistence\Importers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -527,6 +533,9 @@
     </Filter>
     <Filter Include="Core\Persistence">
       <UniqueIdentifier>{aa4cc7ae-7d76-4a3a-825e-06874e05aa40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence\Importers">
+      <UniqueIdentifier>{9d6ff4bf-6862-4848-b6e7-f8ec7bf8d8c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -4,10 +4,11 @@
 class Asset
 {
 public:
+	Asset() = default;
 	Asset(int id): id(id) {}
 	virtual ~Asset() = default;
 	int getId() const { return id; }
-private:
+protected:
 	int id;
 	std::string assetsFile;
 	std::string libraryFile;

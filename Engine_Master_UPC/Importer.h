@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 #include "Asset.h"
+#include "BinaryReader.h"
+#include "BinaryWriter.h"
 
 class Importer
 {
