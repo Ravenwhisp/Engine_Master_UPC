@@ -16,7 +16,7 @@ public:
 	void remove(GameObject& object);
 	void move(GameObject& object);
 
-	std::vector<GameObject*> getObjects(const Engine::Frustum& frustum) const;
+	std::vector<GameObject*> getObjects(const Engine::Frustum* frustum) const;
 	std::vector<BoundingRect> getQuadrants() const;
 	QuadNode& getRoot() { return *m_root; }
 	void registerDirtyNode(QuadNode* node);
