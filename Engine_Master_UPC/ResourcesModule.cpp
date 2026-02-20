@@ -128,57 +128,26 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 }
 
 
-std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath, const char* name)
-{
-	std::string pathStr = filePath.string();
-	const char* cpath = pathStr.c_str();
-	TextureAsset* textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath));
+std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & filePath, const char* name) 
+{ 
+	std::string pathStr = filePath.string(); 
+	const char* cpath = pathStr.c_str(); 
+	TextureAsset * textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath)); 
 
-	ScratchImage image;
-	const wchar_t* path = filePath.c_str();
-
-	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image))) {
-		if (FAILED(LoadFromTGAFile(path, nullptr, image))) {
-			LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image);
-		}
-	}
-
-	if (image.GetImageCount() == 0) {
-		return createNullTexture2D();
-	}
-
-	TexMetadata metaData = image.GetMetadata();
-	if (metaData.dimension != TEX_DIMENSION_TEXTURE2D) {
-		return createNullTexture2D();
-	}
-
-	if (metaData.mipLevels == 1 && (metaData.width > 1 || metaData.height > 1))
-	{
-		ScratchImage mipImages;
-		if (FAILED(GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA, 0, mipImages))) {
-			// Try Nvidia tool?
-		}
-		else {
-			image = std::move(mipImages);
-			metaData = image.GetMetadata();
-		}
-	}
-
-	TextureInitInfo info{};
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat());
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount()));
-	info.desc = &desc;
-	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	TextureInitInfo info{}; 
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat()); 
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount())); 
+	info.desc = &desc; info.initialState = D3D12_RESOURCE_STATE_COPY_DEST; auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 
 	ComPtr<ID3D12Resource> stagingBuffer = createUploadBuffer(GetRequiredIntermediateSize(texture->getD3D12Resource().Get(), 0, textureAsset->getImageCount()));
+	std::vector<D3D12_SUBRESOURCE_DATA> subData; subData.reserve(textureAsset->getImageCount()); 
 
-	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	subData.reserve(textureAsset->getImageCount());
-
-	const std::vector<TextureImage>& subImages = textureAsset->getImages();
+	const auto& subImages = textureAsset->getImages(); 
 	for (const auto& subImg : subImages)
 	{
+		assert(subImg.pixels.data() != nullptr);
+		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
+
 		D3D12_SUBRESOURCE_DATA data = {};
 		data.pData = subImg.pixels.data();
 		data.RowPitch = subImg.rowPitch;
@@ -186,15 +155,14 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 
 		subData.push_back(data);
 	}
+	
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-	UpdateSubresources(commandList.Get(), texture->getD3D12Resource().Get(), stagingBuffer.Get(), 0, 0, UINT(textureAsset->getImageCount()), subData.data());
-
-	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	commandList->ResourceBarrier(1, &barrier);
-	m_queue->executeCommandList(commandList);
+	UpdateSubresources(commandList.Get(), texture->getD3D12Resource().Get(), stagingBuffer.Get(), 0, 0, UINT(textureAsset->getImageCount()), subData.data()); 
+	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE); 
+	commandList->ResourceBarrier(1, & barrier);
+	m_queue->executeCommandList(commandList); 
 	m_queue->flush();
-
-	return texture;
+	return texture; 
 }
 
 std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()

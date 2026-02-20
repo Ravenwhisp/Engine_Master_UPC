@@ -180,6 +180,15 @@
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="UID.cpp" />
+    <ClCompile Include="FileSystemModule.cpp">
+      <Filter>Core\Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="TypedImporter.cpp">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureImporter.cpp">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -393,6 +402,18 @@
     <ClInclude Include="SceneConfig.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="UID.h" />
+    <ClInclude Include="FileSystemModule.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedImporter.h">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImporter.h">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Core\Persistence\Import</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -501,6 +522,12 @@
     </Filter>
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence">
+      <UniqueIdentifier>{b56d7918-780b-40f7-898c-95c42ba2b79d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence\Import">
+      <UniqueIdentifier>{8cd982b3-6b84-42c9-9759-af0e280885d4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

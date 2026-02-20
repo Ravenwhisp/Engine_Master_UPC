@@ -1,14 +1,12 @@
 #include "Module.h"
 #include "Importer.h"
 
-
-
 class FileSystemModule : public Module
 {
 public:
 	bool init() override;
 
-	Asset* import(const char* filePath) const;
+	Asset * import(const char* filePath) const;
 
 	unsigned int load(const char* filePath, char** buffer) const;
 	unsigned int save(const char* filePath, const void* buffer, unsigned int size, bool append = false) const;

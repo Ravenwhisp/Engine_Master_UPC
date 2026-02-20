@@ -8,6 +8,7 @@
 #include "DescriptorsModule.h"
 #include "RenderModule.h"
 #include "SceneModule.h"
+#include "FileSystemModule.h"
 #include "TimeModule.h"
 #include "PerformanceProfiler.h"
 #include <thread>
@@ -22,6 +23,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_d3d12Module = new D3D12Module((HWND)hWnd));
     modules.push_back(m_descriptorsModule = new DescriptorsModule());
     modules.push_back(m_resourcesModule = new ResourcesModule());
+    modules.push_back(m_fileSystemModule = new FileSystemModule());
 
     modules.push_back(m_cameraModule = new CameraModule());
     modules.push_back(m_editorModule = new EditorModule());
