@@ -12,6 +12,12 @@ GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 
 }
 
+GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name("New GameObject")
+{
+    m_components.push_back(m_transform = new Transform(transformUid, this));
+
+}
+
 GameObject::~GameObject()
 {
 
@@ -28,6 +34,7 @@ bool GameObject::AddComponent(ComponentType componentType)
             m_components.push_back(new BasicModel(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
+            break;
 
         case ComponentType::PLAYER_WALK:
             m_components.push_back(new PlayerWalk(GenerateUID(), this));
@@ -46,6 +53,38 @@ bool GameObject::AddComponent(ComponentType componentType)
 
     return true;
 }
+
+Component* GameObject::AddComponentWithUID(const ComponentType componentType, UID id) {
+    Component* newComponent = nullptr;
+
+    switch (componentType)
+    {
+    case ComponentType::LIGHT:
+        newComponent = new LightComponent(id, this);
+        break;
+    case ComponentType::MODEL:
+        newComponent = new BasicModel(id, this);
+        break;
+    case ComponentType::TRANSFORM:
+        return nullptr;
+    case ComponentType::PLAYER_WALK:
+        newComponent = new PlayerWalk(id, this);
+        break;
+    case ComponentType::CAMERA:
+        newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::COUNT:
+        return nullptr;
+
+    default:
+        return nullptr;
+    }
+
+    m_components.push_back(newComponent);
+    return newComponent;
+}
+
+
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
