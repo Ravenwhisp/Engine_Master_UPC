@@ -23,6 +23,8 @@ public:
 	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
 	Engine::BoundingBox&		getBoundingBox() { return m_boundingBox; }
 
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+
 private:
 	std::vector<BasicMesh*>		m_meshes;
 	std::vector<BasicMaterial*>	m_materials;
