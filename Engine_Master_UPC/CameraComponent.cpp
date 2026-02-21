@@ -37,7 +37,7 @@ void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& vie
 {
 	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
 	// Don't render it if this is the active camera.
-	if (app->getActiveCamera() != this)
+	if (app->getCurrentCameraPerspective() != this)
 	{
 		m_frustum.render(m_world);
 	}
@@ -79,21 +79,33 @@ void CameraComponent::drawUi()
 		recalculateFrustum();
 	}
 
-	ImGui::Checkbox("Cull objects outside frustum", &m_cullingToggle);
-
 	bool isThisCurrentActiveCamera = app->getActiveCamera() == this;
-	ImGui::Checkbox("Show this camera's perspective", &isThisCurrentActiveCamera);
-	if (isThisCurrentActiveCamera && !app->getActiveCamera())
+	ImGui::Checkbox("Set this camera as the active game camera", &isThisCurrentActiveCamera);
+	if (isThisCurrentActiveCamera && app->getActiveCamera() != this)
 	{
 		app->setActiveCamera(this);
 	}
-	else if (!isThisCurrentActiveCamera && app->getActiveCamera())
+	else if (!isThisCurrentActiveCamera && app->getActiveCamera() == this)
 	{
 		app->setActiveCamera(nullptr);
+	}
+
+	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
+	ImGui::Checkbox("Show this camera's perspective", &showThisCameraPerspective);
+	if (showThisCameraPerspective && app->getCurrentCameraPerspective() != this)
+	{
+		app->setCurrentCameraPerspective(this);
+	}
+	else if (!showThisCameraPerspective && app->getCurrentCameraPerspective() == this)
+	{
+		app->setCurrentCameraPerspective(nullptr);
 	}
 }
 
 bool CameraComponent::cleanUp() {
-	app->setActiveCamera(nullptr);
+	if (app->getCurrentCameraPerspective() == this)
+	{
+		app->setCurrentCameraPerspective(nullptr);
+	}
 	return true;
 }

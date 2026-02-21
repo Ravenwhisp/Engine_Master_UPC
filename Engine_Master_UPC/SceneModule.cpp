@@ -2,10 +2,14 @@
 #include "SceneModule.h"
 #include "LightComponent.h"
 #include <CameraComponent.h>
+#include "Application.h"
+#include "Settings.h"
 
 #include "BasicModel.h"
 
 using namespace DirectX::SimpleMath;
+
+extern Application* app;
 
 #pragma region GameLoop
 bool SceneModule::init()
@@ -96,7 +100,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     camera->render(commandList, viewMatrix, projectionMatrix);
 
     std::vector<GameObject*> gameObjects;
-    if (camera->getCullingToggle())
+    if (app->getSettings()->frustumCulling.cullObjectsOutsideOfFrustum)
     {
         gameObjects = m_quadtree->getObjects(&camera->getFrustum());
     }

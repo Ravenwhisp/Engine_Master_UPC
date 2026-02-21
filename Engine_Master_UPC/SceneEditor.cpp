@@ -184,10 +184,10 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
     Matrix viewMatrix;
     Matrix projectionMatrix;
 
-    if (app->getActiveCamera())
+    if (app->getCurrentCameraPerspective())
     {
-        viewMatrix = app->getActiveCamera()->getViewMatrix();
-        projectionMatrix = app->getActiveCamera()->getProjectionMatrix();
+        viewMatrix = app->getCurrentCameraPerspective()->getViewMatrix();
+        projectionMatrix = app->getCurrentCameraPerspective()->getProjectionMatrix();
     }
     else
     {

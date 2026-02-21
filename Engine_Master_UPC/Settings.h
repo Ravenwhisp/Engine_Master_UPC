@@ -38,11 +38,17 @@ struct SkyboxSettings
     bool dirty = false;
 };
 
+struct FrustumCullingSettings
+{
+    bool cullObjectsOutsideOfFrustum = false;
+};
+
 class Settings {
 public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
     SkyboxSettings skybox;
+    FrustumCullingSettings frustumCulling;
 
 public:
     void loadSettings() {
