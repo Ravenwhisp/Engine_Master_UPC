@@ -38,7 +38,7 @@ public:
 private:
 	mutable std::vector<std::unique_ptr<BasicMesh>>		m_meshes;
 	mutable std::vector<std::unique_ptr<BasicMaterial>>	m_materials;
-	Engine::BoundingBox							m_boundingBox;
+	Engine::BoundingBox									m_boundingBox;
 
 	std::string m_modelPath;
 	std::string m_basePath;

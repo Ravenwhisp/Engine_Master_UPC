@@ -408,7 +408,6 @@
     <ClCompile Include="TimeModule.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="TypedImporter.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />

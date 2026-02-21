@@ -16,12 +16,12 @@ public:
 	TextureAsset() {}
 	TextureAsset(int id) : Asset(id, AssetType::TEXTURE) {}
 
-	uint32_t getWidth() const { return width; }
-	uint32_t getHeight() const { return height; }
-	uint32_t getMipCount() const { return mipCount; }
-	uint32_t getArraySize() const { return arraySize; }
+	uint32_t	getWidth() const { return width; }
+	uint32_t	getHeight() const { return height; }
+	uint32_t	getMipCount() const { return mipCount; }
+	uint32_t	getArraySize() const { return arraySize; }
 	DXGI_FORMAT getFormat() const { return format; }
-	uint32_t getImageCount() const { return imageCount; }
+	uint32_t	getImageCount() const { return imageCount; }
 	std::vector<TextureImage>& getImages() const { return images; }
 
 private:

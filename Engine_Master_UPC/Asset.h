@@ -7,11 +7,11 @@ static const int INVALID_ASSET_ID = -1;
 enum class AssetType : uint32_t
 {
 	TEXTURE = 0,
-		MODEL = 1,
-		MATERIAL = 2,
-		MESH = 3,
+	MODEL = 1,
+	MATERIAL = 2,
+	MESH = 3,
 
-		UNKNOWN = 4
+	UNKNOWN = 4
 };
 
 

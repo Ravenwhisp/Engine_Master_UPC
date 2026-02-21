@@ -136,7 +136,7 @@ bool EditorModule::init()
     m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
     m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
     m_editorWindows.push_back(m_editorSettings = new EditorSettings());
-    //m_editorWindows.push_back(new FileDialog());
+    m_editorWindows.push_back(new FileDialog());
 
 	D3D12Module* _d3d12 = app->getD3D12Module();
     m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
