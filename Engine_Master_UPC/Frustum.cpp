@@ -18,7 +18,9 @@ void Engine::Frustum::render(const Matrix& world)
 	dd::line(&m_points[2].x, &m_points[6].x, color);
 	dd::line(&m_points[3].x, &m_points[7].x, color);
 
-	float leftFaceColor[3] = { 0.0f, 0.0f, 0.0f };
+	// I leave this commented for debugging purposes, I don't want to re-think this
+	// if I need to debug the frustum later on
+	/*float leftFaceColor[3] = { 0.0f, 0.0f, 0.0f };
 	Vector3 leftFaceCenter = ((m_points[0] + m_points[3]) / 2 + (m_points[4] + m_points[7]) / 2) / 2;
 	Vector3 leftFaceNormal = m_leftFace.Normal();
 	dd::plane(&leftFaceCenter.x, &leftFaceNormal.x, leftFaceColor, leftFaceColor, 0.5f, 1.0f);
@@ -46,7 +48,7 @@ void Engine::Frustum::render(const Matrix& world)
 	float backFaceColor[3] = { 1.0f, 0.0f, 1.0f };
 	Vector3 backFaceCenter = ((m_points[4] + m_points[7]) / 2 + (m_points[5] + m_points[6]) / 2) / 2;
 	Vector3 backFaceNormal = m_backFace.Normal();
-	dd::plane(&backFaceCenter.x, &backFaceNormal.x, backFaceColor, backFaceColor, 0.5f, 1.0f);
+	dd::plane(&backFaceCenter.x, &backFaceNormal.x, backFaceColor, backFaceColor, 0.5f, 1.0f);*/
 }
 
 void Engine::Frustum::calculateFrustumVerticesFromFrustum(const Matrix& world, const float horizontalFov, const float nearPlane, const float farPlane, const float aspectRatio, Vector3 verts[8])
