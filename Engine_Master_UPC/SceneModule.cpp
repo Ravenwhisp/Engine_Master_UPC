@@ -95,7 +95,16 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     
     camera->render(commandList, viewMatrix, projectionMatrix);
 
-    auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
+    std::vector<GameObject*> gameObjects;
+    if (camera->getCullingToggle())
+    {
+        gameObjects = m_quadtree->getObjects(&camera->getFrustum());
+    }
+    else
+    {
+        gameObjects = m_quadtree->getObjects(nullptr);
+    }
+
     for (GameObject* gameObject : gameObjects)
     {
         if (gameObject != camera->getOwner())
