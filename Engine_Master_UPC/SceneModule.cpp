@@ -4,8 +4,6 @@
 #include "LightComponent.h"
 #include <CameraComponent.h>
 
-#include "BasicModel.h"
-
 #include "SceneSerializer.h"
 
 using namespace DirectX::SimpleMath;

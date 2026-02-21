@@ -3,21 +3,28 @@
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
 #include "BoundingBox.h"
-#include "Asset.h"
-#include <BasicModel.h>
+#include <ModelAsset.h>
 
 namespace tinygltf { class Model; }
+
+struct ModelData {
+	Matrix model;
+	Matrix normalMat;
+	BasicMaterial::BDRFPhongMaterialData material;
+};
 
 
 class MeshRenderer : public Component
 {
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
-	~MeshRenderer();
+	~MeshRenderer() = default;
 
-	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }
-	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
-	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
+	void addModel(ModelAsset& model);
+
+	std::vector<std::unique_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
+	std::vector<std::unique_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
+	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
 
 #pragma region Loop functions
 	bool init() override;
@@ -29,9 +36,9 @@ public:
 
 	void onTransformChange() override;
 private:
-	std::vector<BasicMesh*>		m_meshes;
-	std::vector<BasicMaterial*>	m_materials;
-	Engine::BoundingBox			m_boundingBox;
+	mutable std::vector<std::unique_ptr<BasicMesh>>		m_meshes;
+	mutable std::vector<std::unique_ptr<BasicMaterial>>	m_materials;
+	Engine::BoundingBox							m_boundingBox;
 
 	std::string m_modelPath;
 	std::string m_basePath;

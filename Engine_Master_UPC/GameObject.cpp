@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include "BasicModel.h"
+#include "MeshRenderer.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
@@ -31,7 +31,7 @@ bool GameObject::AddComponent(ComponentType componentType)
             m_components.push_back(new LightComponent(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new BasicModel(GenerateUID(), this));
+            m_components.push_back(new MeshRenderer(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
             break;
@@ -63,7 +63,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         newComponent = new LightComponent(id, this);
         break;
     case ComponentType::MODEL:
-        newComponent = new BasicModel(id, this);
+        newComponent = new MeshRenderer(id, this);
         break;
     case ComponentType::TRANSFORM:
         return nullptr;

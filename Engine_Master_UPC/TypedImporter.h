@@ -11,6 +11,7 @@ public:
         if (!loadExternal(path, external)) return false;
 
         importTyped(external, static_cast<AssetFormat*>(outAsset));
+
         return true;
     }
 

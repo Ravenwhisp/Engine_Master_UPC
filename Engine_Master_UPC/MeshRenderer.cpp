@@ -7,7 +7,23 @@
 #include "RenderModule.h"
 
 
+void MeshRenderer::addModel(ModelAsset& model)
+{
+    for (const auto meshAsset : model.getMeshes())
+    {
+        auto mesh = std::make_unique<BasicMesh>(meshAsset);
+        m_meshes.push_back(std::move(mesh));
+    }
+
+    for (const auto materialAsset : model.getMaterials())
+    {
+        auto material = std::make_unique<BasicMaterial>(materialAsset);
+        m_materials.push_back(std::move(material));
+    }
+}
+
 #pragma region Loop functions
+
 bool MeshRenderer::init()
 {
 
@@ -20,21 +36,26 @@ void MeshRenderer::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMa
     Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
-    for (BasicMesh* mesh : getMeshes()) {
-        int32_t materialIndex = mesh->getMaterialIndex();
+    for (const auto& mesh : getMeshes())
+    {
+        const auto& submeshes = mesh->getSubmeshes();
 
-        // Check if material index is valid
-        if (materialIndex >= 0 && materialIndex < m_materials.size()) {
+        for (const Submesh& submesh : submeshes)
+        {
+            uint32_t materialIndex = submesh.materialId;
 
-            ModelData modelData;
+            if (materialIndex >= m_materials.size()) continue;
+
+            ModelData modelData{};
             modelData.model = transform->getGlobalMatrix().Transpose();
-            modelData.material = m_materials[materialIndex]->getMaterial();
             modelData.normalMat = transform->getNormalMatrix().Transpose();
+            modelData.material = m_materials[materialIndex]->getMaterial();
 
-            commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+            // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
+            commandList->SetGraphicsRootConstantBufferView(2 ,app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
             commandList->SetGraphicsRootDescriptorTable(4, m_materials[materialIndex]->getTexture()->getSRV().gpu);
 
-            mesh->draw(commandList);
+            mesh->draw(commandList, submesh);
         }
     }
 
@@ -104,13 +125,6 @@ void MeshRenderer::drawUi()
         m_hasBounds = false;
 
         // limpiar anterior
-        for (auto mesh : m_meshes)
-            delete mesh;
-        m_meshes.clear();
-
-        for (auto material : m_materials)
-            delete material;
-        m_materials.clear();
 
         if (!m_modelPath.empty())
         {
@@ -127,13 +141,6 @@ void MeshRenderer::drawUi()
 
         if (!m_modelPath.empty())
         {
-            for (auto mesh : m_meshes)
-                delete mesh;
-            m_meshes.clear();
-
-            for (auto material : m_materials)
-                delete material;
-            m_materials.clear();
 
             //load(m_modelPath.c_str(), m_basePath.c_str());
         }
