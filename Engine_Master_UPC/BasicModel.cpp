@@ -105,3 +105,13 @@ void BasicModel::load(const char* fileName, const char* basePath)
     }
 }
 
+rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::MODEL), domTree.GetAllocator());
+
+    return componentInfo;
+}
+
