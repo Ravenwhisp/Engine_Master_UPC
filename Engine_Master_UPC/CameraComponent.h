@@ -36,6 +36,8 @@ public:
 	const bool getCullingToggle() const { return m_cullingToggle; }
 	void getCullingToggle(const bool cullingToggle) { m_cullingToggle = cullingToggle; }
 
+	bool cleanUp() override;
+
 private:
 	float m_horizontalFov = 90.0f;
 	float m_nearPlane = 0.5f;

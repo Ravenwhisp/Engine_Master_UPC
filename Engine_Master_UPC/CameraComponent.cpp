@@ -92,3 +92,8 @@ void CameraComponent::drawUi()
 		app->setActiveCamera(nullptr);
 	}
 }
+
+bool CameraComponent::cleanUp() {
+	app->setActiveCamera(nullptr);
+	return true;
+}
