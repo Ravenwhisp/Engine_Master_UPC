@@ -48,6 +48,10 @@ public:
 	}
 #pragma endregion
 
+#pragma region Filesystem
+	//rapidjson::Value getJSON();
+#pragma endregion
+
 #pragma endregion
 
 
