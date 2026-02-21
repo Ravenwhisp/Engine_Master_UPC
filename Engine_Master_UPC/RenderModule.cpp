@@ -42,8 +42,8 @@ static void CreateSkyboxCube(ResourcesModule* resourcesModule, VertexBuffer*& ou
         4,0,3, 4,3,7
     };
 
-    outputVertexBuffer = resourcesModule->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyboxVertex));
-    outputIndexBuffer = resourcesModule->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT);
+    outputVertexBuffer = resourcesModule->createVertexBufferPointer(vertexes, _countof(vertexes), sizeof(SkyboxVertex));
+    outputIndexBuffer = resourcesModule->createIndexBufferPointer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT);
     outputIndexCount = (uint32_t)_countof(indexes);
 }
 

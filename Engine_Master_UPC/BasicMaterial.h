@@ -2,6 +2,7 @@
 #include "Globals.h"
 #include "Texture.h"
 #include "Asset.h"
+#include <ModelAsset.h>
 
 namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
 class BasicMaterial
@@ -28,13 +29,15 @@ public:
 		float		shininess;
 	};
 
-	void load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath);
-	ComPtr<ID3D12Resource>	getMaterialBuffer() const { return m_materialBuffer; }
-	Texture* getTexture() const { return m_textureColor.get(); }
-	BDRFPhongMaterialData& getMaterial() { return m_materialData; }
+	explicit BasicMaterial(const MaterialAsset& asset);
+	~BasicMaterial() = default;
+
+	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
+	Texture*					getTexture() const { return m_textureColor.get(); }
+	BDRFPhongMaterialData&		getMaterial() { return m_materialData; }
+
 	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
 private:
-	uint32_t m_index;
 	std::unique_ptr<Texture>	m_textureColor;
 	ComPtr<ID3D12Resource>		m_materialBuffer;
 	BDRFPhongMaterialData		m_materialData;

@@ -18,6 +18,7 @@ class TimeModule;
 class RenderModule;
 class SceneModule;
 class FileSystemModule;
+class AssetsModule;
 
 class Settings;
 
@@ -42,6 +43,7 @@ public:
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
+    AssetsModule*               getAssetModule() { return m_assetsModule; }
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -63,6 +65,7 @@ private:
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
     FileSystemModule*       m_fileSystemModule = nullptr;
+    AssetsModule*           m_assetsModule = nullptr;
 
     Settings*               m_settings = nullptr;
 

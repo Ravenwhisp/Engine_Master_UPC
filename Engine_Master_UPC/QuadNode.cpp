@@ -1,7 +1,7 @@
 ﻿#include "Globals.h"
 #include "QuadNode.h"
 #include "Quadtree.h"
-#include "BasicModel.h"
+#include "MeshRenderer.h"
 #include "GameObject.h"
 #include "BoundingBox.h"
 
@@ -18,7 +18,7 @@ QuadNode::QuadNode(const BoundingRect& bounds,
 
 void QuadNode::insert(GameObject& object)
 {
-    auto model = object.GetComponentAs<BasicModel>(ComponentType::MODEL);
+    auto model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     if (!model) return;
 
     const auto& box = model->getBoundingBox();
@@ -52,7 +52,7 @@ void QuadNode::insert(GameObject& object)
 
 void QuadNode::refit(GameObject& object)
 {
-    auto model = object.GetComponentAs<BasicModel>(ComponentType::MODEL);
+    auto model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     if (!model) return;
 
     const auto& box = model->getBoundingBox();
@@ -223,7 +223,7 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
 
     for (GameObject* obj : m_objects)
     {
-        auto model = obj->GetComponentAs<BasicModel>(ComponentType::MODEL);
+        auto model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (model && model->getBoundingBox().test(frustum))
         {
             out.push_back(obj);

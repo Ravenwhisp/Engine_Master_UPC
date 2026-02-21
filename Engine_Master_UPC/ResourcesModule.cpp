@@ -11,7 +11,7 @@
 #include "RingBuffer.h"
 #include <RenderTexture.h>
 
-#include "FileSystemModule.h"
+#include "AssetsModule.h"
 #include <TextureImporter.h>
 
 ResourcesModule::~ResourcesModule()
@@ -132,7 +132,9 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & f
 { 
 	std::string pathStr = filePath.string(); 
 	const char* cpath = pathStr.c_str(); 
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath)); 
+	auto assetModule = app->getAssetModule();
+
+	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->import(cpath)));
 
 	TextureInitInfo info{}; 
 	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat()); 
@@ -160,11 +162,54 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & f
 	return texture; 
 }
 
+std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
+{
+	TextureInitInfo info{};
+
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset.getWidth()), UINT(textureAsset.getHeight()), UINT16(textureAsset.getArraySize()), UINT16(textureAsset.getMipCount()));
+	info.desc = &desc;
+	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = texFormat;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MostDetailedMip = 0;
+	srvDesc.TextureCube.MipLevels = (UINT)textureAsset.getMipCount();
+	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+
+	info.srvDesc = &srvDesc;
+
+	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+
+	std::vector<D3D12_SUBRESOURCE_DATA> subData;
+	subData.reserve(textureAsset.getImageCount());
+
+	const auto& subImages = textureAsset.getImages();
+	for (const auto& subImg : subImages)
+	{
+		assert(subImg.pixels.data() != nullptr);
+		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
+
+		D3D12_SUBRESOURCE_DATA data = {};
+		data.pData = subImg.pixels.data();
+		data.RowPitch = subImg.rowPitch;
+		data.SlicePitch = subImg.slicePitch;
+
+		subData.push_back(data);
+	}
+
+	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
+
+	return texture;
+}
+
 std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
 {
-	std::string pathStr = filePath.string();
-	const char* cpath = pathStr.c_str();
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath));
+	auto assetModule = app->getAssetModule();
+
+	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->import(filePath)));
 
 	TextureInitInfo info{};
 
@@ -262,14 +307,28 @@ void ResourcesModule::defferResourceRelease(ComPtr<ID3D12Resource> resource)
 	m_defferedResources.push_back(defferedResource);
 }
 
-VertexBuffer* ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
+std::unique_ptr<VertexBuffer> ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
+{
+	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
+	ID3D12Device4& pDevice = *m_device.Get();
+	return std::make_unique<VertexBuffer>(pDevice, defaultBuffer, numVertices, vertexStride);
+}
+
+std::unique_ptr<IndexBuffer> ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
+{
+	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
+	ID3D12Device4& pDevice = *m_device.Get();
+	return std::make_unique<IndexBuffer>(pDevice, defaultBuffer, numIndices, indexFormat);
+}
+
+VertexBuffer* ResourcesModule::createVertexBufferPointer(const void* data, size_t numVertices, size_t vertexStride)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();
 	return new VertexBuffer(pDevice, defaultBuffer, numVertices, vertexStride);
 }
 
-IndexBuffer* ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
+IndexBuffer* ResourcesModule::createIndexBufferPointer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();

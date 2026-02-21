@@ -79,9 +79,6 @@
     <ClCompile Include="Keyboard.cpp">
       <Filter>Inputs\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="BasicModel.cpp">
-      <Filter>D3D12\Geometry\BasicModel</Filter>
-    </ClCompile>
     <ClCompile Include="BasicMesh.cpp">
       <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
     </ClCompile>
@@ -198,6 +195,12 @@
       <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClCompile>
     <ClCompile Include="UtilityGLFT.cpp" />
+    <ClCompile Include="AssetsModule.cpp">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -283,9 +286,6 @@
     </ClInclude>
     <ClInclude Include="Keyboard.h">
       <Filter>Inputs\Keyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicModel.h">
-      <Filter>D3D12\Geometry\BasicModel</Filter>
     </ClInclude>
     <ClInclude Include="BasicMesh.h">
       <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
@@ -435,6 +435,24 @@
     <ClInclude Include="ModelImporter.h">
       <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelAsset.h">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetsModule.h">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAsset.h">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Asset.h">
+      <Filter>Core\Persistence\Assets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -555,6 +573,9 @@
     </Filter>
     <Filter Include="Core\Persistence\Importers\Implementations">
       <UniqueIdentifier>{aba8baee-156b-4981-81d0-8718697efe1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Persistence\Assets">
+      <UniqueIdentifier>{9573c48e-1934-432a-8af3-7c7582a450d7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

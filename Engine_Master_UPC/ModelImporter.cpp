@@ -2,9 +2,22 @@
 #include "ModelImporter.h"
 #include <Logger.h>
 
+#define TINYGLTF_NO_STB_IMAGE_WRITE
+#define TINYGLTF_NO_STB_IMAGE
+#define TINYGLTF_NO_EXTERNAL_IMAGE 
+#define TINYGLTF_IMPLEMENTATION /* Only in one of the includes */
+#pragma warning(push)
+#pragma warning(disable : 4018) 
+#pragma warning(disable : 4267) 
+#include "tiny_gltf.h"
+#pragma warning(pop)
 
 #include "Application.h"
-#include "FileSystemModule.h"
+#include "AssetsModule.h"
+#include <IndexBuffer.h>
+
+static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
+
 
 bool ModelImporter::loadExternal(const std::filesystem::path& path, tinygltf::Model& out)
 {
@@ -23,11 +36,8 @@ bool ModelImporter::loadExternal(const std::filesystem::path& path, tinygltf::Mo
 	return true;
 }
 
-
-void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive, MeshAsset* mesh)
+void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive, MeshAsset* mesh, const std::vector<uint32_t>& materialRemap)
 {
-    assert(mesh);
-
     const uint32_t baseVertex = static_cast<uint32_t>(mesh->vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(mesh->indices.size());
 
@@ -50,15 +60,21 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
 
     if (primitive.indices >= 0)
     {
-        const tinygltf::Accessor& idexAccessor = model.accessors[primitive.indices];
-		if (idexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT || idexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT || idexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE)
+        const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+		if (indexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT || indexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT || indexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE)
 		{
-			uint32_t indexElementSize = tinygltf::GetComponentSizeInBytes(idexAccessor.componentType);
-			uint32_t numIndices = uint32_t(idexAccessor.count);
-			uint8_t* indices = new uint8_t[numIndices * indexElementSize];
-			loadAccessorData(indices, indexElementSize, indexElementSize, numIndices, model, primitive.indices);
+            uint32_t componentSize = tinygltf::GetComponentSizeInBytes(indexAccessor.componentType);
 
-			mesh->indices.resize(baseIndex + numIndices);
+            uint32_t indexCount = static_cast<uint32_t>(indexAccessor.count);
+            uint32_t byteCount = indexCount * componentSize;
+
+            uint32_t baseOffset = static_cast<uint32_t>(mesh->indices.size());
+
+            mesh->indices.resize(baseOffset + byteCount);
+
+            loadAccessorData( mesh->indices.data() + baseOffset, componentSize,  componentSize, indexCount,  model, primitive.indices );
+
+			mesh->indexFormat = INDEX_FORMATS[componentSize >> 1];
 		}
     }
     else
@@ -76,7 +92,14 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
     Submesh submesh{};
     submesh.indexStart = baseIndex;
     submesh.indexCount = indexCount;
-    submesh.materialId = (primitive.material >= 0)  ? primitive.material : 0;
+	if (primitive.material >= 0 && primitive.material < materialRemap.size())
+	{
+		submesh.materialId = materialRemap[primitive.material];
+	}
+	else
+	{
+		submesh.materialId = 0;
+	}
 
     mesh->submeshes.push_back(submesh);
 
@@ -92,7 +115,6 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
 }
 
 
-
 uint32_t loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex)
 {
 	if (gltfTextureIndex < 0 || gltfTextureIndex >= static_cast<int>(model.textures.size())) return 0;
@@ -104,10 +126,7 @@ uint32_t loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex)
 	if (image.uri.empty()) return 0;
 	std::filesystem::path texturePath = image.uri;
 
-	Asset * asset = app->getFileSystemModule()->import(texturePath.string().c_str());
-	if (!asset) return 0;
-
-	return asset->getId();
+	return app->getAssetModule()->import(texturePath.string().c_str());
 }
 
 void ModelImporter::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset)
@@ -130,19 +149,27 @@ void ModelImporter::loadMaterial(const tinygltf::Model& model, const tinygltf::M
 
 void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model)
 {
+	//This part is to translate the materialId from each primitive to the assetId from the materials loaded by order of importing
+	std::vector<uint32_t> materialIndexToAssetId;
+	materialIndexToAssetId.reserve(source.materials.size());
+
     for (tinygltf::Material material : source.materials) 
 	{		
-		MaterialAsset myMaterial(rand());
+		uint32_t materialId = app->getAssetModule()->generateNewUID();
+		MaterialAsset myMaterial(materialId);
+
 		loadMaterial(source, material, &myMaterial);
+
 		model->materials.push_back(myMaterial);
+		materialIndexToAssetId.push_back(materialId);
 	}
 
 	for (tinygltf::Mesh mesh : source.meshes) 
 	{
-		MeshAsset myMesh(rand());
+		MeshAsset myMesh(app->getAssetModule()->generateNewUID());
 		for (tinygltf::Primitive primitive : mesh.primitives) 
 		{
-			loadMesh(source, primitive, &myMesh);
+			loadMesh(source, primitive, &myMesh, materialIndexToAssetId);
 		}
 		model->meshes.push_back(myMesh);
 	}

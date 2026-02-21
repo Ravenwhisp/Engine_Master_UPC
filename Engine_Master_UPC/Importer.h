@@ -6,14 +6,14 @@
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 
+
 class Importer
 {
 public:
     virtual ~Importer() = default;
 
     virtual bool canImport(const std::filesystem::path& path) const = 0;
-    virtual Asset* createAssetInstance() const = 0;
-
+    virtual Asset* createAssetInstance(int uid) const = 0;
 
     virtual bool import(const std::filesystem::path& sourcePath, Asset * outAsset ) = 0;
     virtual uint64_t save( const Asset* asset, uint8_t** outBuffer) = 0;
