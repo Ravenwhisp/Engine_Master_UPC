@@ -17,34 +17,7 @@ void SceneConfig::render()
         return;
     }
 
-    ImGui::SeparatorText("Scene");
-
-    // Scene Name input
-    static char sceneBuffer[256];
-    strcpy_s(sceneBuffer, m_sceneName.c_str());
-
-    if (ImGui::InputText("Scene Name", sceneBuffer, IM_ARRAYSIZE(sceneBuffer)))
-    {
-        m_sceneName = sceneBuffer;
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Save"))
-    {
-		m_sceneModule->setName(m_sceneName.c_str());
-        m_sceneModule->saveScene();
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Load"))
-    {
-        m_sceneModule->setName(m_sceneName.c_str());
-        m_sceneModule->loadScene();
-    }
-
-    ImGui::Separator();
+    //ImGui::Separator();
     drawSkyboxSettings();
 
     ImGui::Separator();

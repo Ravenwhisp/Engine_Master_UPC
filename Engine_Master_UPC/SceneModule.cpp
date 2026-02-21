@@ -251,3 +251,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
     return go;
 }
 
+bool SceneModule::applySkyboxToRenderer()
+{
+    return app->getRenderModule()->applySkyboxSettings(m_skybox.enabled, m_skybox.path);
+}
