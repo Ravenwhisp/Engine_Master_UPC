@@ -24,15 +24,6 @@ struct SkyboxSettings
 
 class SceneModule : public Module
 {
-private:
-	std::string m_name = "SampleScene";
-
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	SkyboxSettings m_skybox;
-	Quadtree* m_quadtree;
-	SceneDataCB					m_sceneDataCB;
-
 public:
 #pragma region GameLoop
 	bool init() override;
@@ -74,4 +65,6 @@ private:
 	SceneLightingSettings		m_lighting;
 	Quadtree*					m_quadtree;
 	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
+
 };
