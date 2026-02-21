@@ -63,3 +63,18 @@ void CameraComponent::drawUi()
 
     ImGui::Separator();
 }
+
+rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
+
+	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
+	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
+	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
+	componentInfo.AddMember("AspecRatio", m_aspectRatio, domTree.GetAllocator());
+
+	return componentInfo;
+}
