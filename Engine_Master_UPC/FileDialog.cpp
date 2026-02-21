@@ -6,18 +6,16 @@
 
 void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 {
-    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ((m_currentDirectory && entry->path == *m_currentDirectory) ? ImGuiTreeNodeFlags_Selected : 0);
-
     std::string nodeName = entry->path.filename().string();
-    bool open = ImGui::TreeNodeEx(nodeName.c_str(), flags);
 
-    if (ImGui::IsItemClicked())
+    if (ImGui::TreeNodeEx(nodeName.c_str()))
     {
-        m_currentDirectory = &entry->path;
-    }
 
-    if (open)
-    {
+        if (ImGui::IsItemClicked())
+        {
+            m_currentDirectory = entry->path;
+        }
+
         for (auto& child : entry->children)
         {
             if (child->isDirectory)
@@ -27,6 +25,7 @@ void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
         }
         ImGui::TreePop();
     }
+
 }
 
 
@@ -54,7 +53,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
         {
-            if (asset->isDirectory) m_currentDirectory = &asset->path;
+            if (asset->isDirectory) m_currentDirectory = asset->path;
         }
 
         ImGui::TextWrapped("%s", asset->path.filename().string().c_str());
@@ -70,7 +69,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
 FileDialog::FileDialog()
 {
-    m_currentDirectory = &app->getFileSystemModule()->getRoot()->path;
+    m_currentDirectory = app->getFileSystemModule()->getRoot()->path;
 }
 
 void FileDialog::render()
@@ -88,7 +87,7 @@ void FileDialog::render()
 
     ImGui::SameLine();
     ImGui::BeginChild("RightPane", ImVec2(0, 0), true);
-    if (std::shared_ptr<FileEntry> dir = app->getFileSystemModule()->getEntry(*m_currentDirectory))
+    if (std::shared_ptr<FileEntry> dir = app->getFileSystemModule()->getEntry(m_currentDirectory))
     {
         drawAssetGrid(dir);
     }

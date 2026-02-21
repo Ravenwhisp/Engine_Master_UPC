@@ -13,6 +13,6 @@ private:
     void drawDirectoryTree(const std::shared_ptr<FileEntry> entry);
     void drawAssetGrid(const std::shared_ptr<FileEntry> directory);
 
-    std::filesystem::path* m_currentDirectory;
+    std::filesystem::path m_currentDirectory;
     std::shared_ptr<FileEntry> m_selectedItem;
 };

@@ -45,7 +45,10 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
     const char* cpath = pathStr.c_str();
 
     Importer* importer = app->getFileSystemModule()->findImporter(cpath);
-    if (!importer) return INVALID_ASSET_ID;
+    if (!importer)
+    {
+        return INVALID_ASSET_ID;
+    }
 
     int uid = generateNewUID();
 

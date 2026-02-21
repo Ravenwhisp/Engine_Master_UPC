@@ -182,9 +182,6 @@
     <ClCompile Include="FileSystemModule.cpp">
       <Filter>Core\Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="TypedImporter.cpp">
-      <Filter>Core\Persistence\Importers\Base</Filter>
-    </ClCompile>
     <ClCompile Include="TextureImporter.cpp">
       <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClCompile>

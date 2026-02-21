@@ -15,19 +15,8 @@ bool FileSystemModule::init()
 {
     rebuild();
 
-    /// TESTING
     auto textureImporter = new TextureImporter();
     auto modelImporter = new ModelImporter();
-
-    TextureAsset skyBox(rand());
-    textureImporter->import(L"Assets/Textures/cubemap2.dds", &skyBox);
-
-    uint8_t* buffer = nullptr;
-    uint64_t size = textureImporter->save(&skyBox, &buffer);
-    save("Library/Textures/cubemap2.asset", buffer, static_cast<unsigned int>(size));
-
-    textureImporter->load(buffer, &skyBox);
-    ///
 
     importersMap.emplace(AssetType::TEXTURE, textureImporter);
     importersMap.emplace(AssetType::MODEL, modelImporter);
@@ -114,7 +103,10 @@ unsigned int FileSystemModule::save(const char* filePath, const void* buffer, un
     }
 
     std::ofstream file(filePath, mode);
-    if (!file) return 0;
+    if (!file)
+    {
+        return 0;
+    }
 
     file.write(static_cast<const char*>(buffer), size);
     if (!file) return 0;
