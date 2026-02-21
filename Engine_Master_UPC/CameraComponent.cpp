@@ -77,6 +77,10 @@ void CameraComponent::drawUi()
 		m_farPlane = farPlane;
 		m_aspectRatio = aspectRatio;
 		recalculateFrustum();
+		Transform* t = m_owner->GetTransform();
+		Vector3 position = t->getPosition();
+		m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
+		m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
 	}
 
 	bool isThisCurrentActiveCamera = app->getActiveCamera() == this;
