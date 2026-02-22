@@ -40,22 +40,22 @@ void BasicModel::load(const char* fileName, const char* basePath)
 
     m_boundingBox = Engine::BoundingBox(Vector3(FLT_MAX, FLT_MAX, FLT_MAX), Vector3(-FLT_MAX, -FLT_MAX, -FLT_MAX));
 
-	tinygltf::TinyGLTF gltfContext;
-	tinygltf::Model model;
-	std::string error, warning;
-	bool loadOk = gltfContext.LoadASCIIFromFile(&model, &error, &warning, fileName);
-	if (loadOk)
-	{
-        for (tinygltf::Material material : model.materials) 
+    tinygltf::TinyGLTF gltfContext;
+    tinygltf::Model model;
+    std::string error, warning;
+    bool loadOk = gltfContext.LoadASCIIFromFile(&model, &error, &warning, fileName);
+    if (loadOk)
+    {
+        for (tinygltf::Material material : model.materials)
         {
             BasicMaterial* myMaterial = new BasicMaterial;
             myMaterial->load(model, material.pbrMetallicRoughness, basePath);
             m_materials.push_back(myMaterial);
         }
 
-        for (tinygltf::Mesh mesh : model.meshes) 
+        for (tinygltf::Mesh mesh : model.meshes)
         {
-            for (tinygltf::Primitive primitive : mesh.primitives) 
+            for (tinygltf::Primitive primitive : mesh.primitives)
             {
                 BasicMesh* myMesh = new BasicMesh;
                 myMesh->load(model, mesh, primitive);
@@ -78,12 +78,12 @@ void BasicModel::load(const char* fileName, const char* basePath)
                         Vector3 currentMax = m_boundingBox.getMax();
 
                         Vector3 newMin(
-							std::min(currentMin.x, mn.x),
-							std::min(currentMin.y, mn.y),
-							std::min(currentMin.z, mn.z)
-						);
+                            std::min(currentMin.x, mn.x),
+                            std::min(currentMin.y, mn.y),
+                            std::min(currentMin.z, mn.z)
+                        );
 
-                        Vector3 newMax( 
+                        Vector3 newMax(
                             std::max(currentMax.x, mx.x),
                             std::max(currentMax.y, mx.y),
                             std::max(currentMax.z, mx.z)
@@ -95,7 +95,7 @@ void BasicModel::load(const char* fileName, const char* basePath)
                 }
             }
         }
-	}
+    }
     else
     {
         LOG("Error loading %s: %s", fileName, error.c_str());
@@ -105,7 +105,11 @@ void BasicModel::load(const char* fileName, const char* basePath)
 #pragma region Loop functions
 bool BasicModel::init()
 {
+    /*if (!m_modelPath.empty())
+        load(m_modelPath.c_str(), m_basePath.c_str());   
+        */
     load("Assets/Models/Duck/Duck.gltf", "Assets/Models/Duck/");
+
     return true;
 }
 

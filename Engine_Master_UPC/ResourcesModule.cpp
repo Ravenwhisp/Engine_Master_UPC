@@ -32,7 +32,7 @@ bool ResourcesModule::postInit()
 void ResourcesModule::preRender()
 {
 	UINT lastCompletedFrame = app->getD3D12Module()->getLastCompletedFrame();
-	for (int i = 0; i < m_defferedResources.size(); ++i) 
+	for (int i = 0; i < m_defferedResources.size(); ++i)
 	{
 		if (lastCompletedFrame > m_defferedResources[i].frame)
 		{
@@ -48,11 +48,11 @@ void ResourcesModule::preRender()
 
 bool ResourcesModule::cleanUp()
 {
-	
+
 	return true;
 }
 
-ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size )
+ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size)
 {
 	ComPtr<ID3D12Resource> buffer;
 
@@ -82,7 +82,7 @@ ComPtr<ID3D12Resource> ResourcesModule::createDefaultBuffer(const void* data, si
 	memcpy(pData, data, size);
 	// Unmap the buffer (invalidate the pointer)
 	uploadBuffer->Unmap(0, nullptr);
-	
+
 	// Copy buffer commands
 
 	ComPtr<ID3D12GraphicsCommandList4> _commandList = m_queue->getCommandList();
@@ -240,7 +240,7 @@ RingBuffer* ResourcesModule::createRingBuffer(size_t size)
 std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float windowWidth, float windowHeight)
 {
 	TextureInitInfo info{};
-	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D( DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight),1,1,1,0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight), 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	D3D12_CLEAR_VALUE clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -326,21 +326,19 @@ void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	m_queue->flush();
 }
 
-void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer) 
+void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer)
 {
-	if (vertexBuffer) 
+	if (vertexBuffer)
 	{
 		delete vertexBuffer;
 		vertexBuffer = nullptr;
 	}
 }
-void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer) 
-{ 
-	if (indexBuffer) 
+void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
+{
+	if (indexBuffer)
 	{
 		delete indexBuffer;
 		indexBuffer = nullptr;
 	}
 }
-
-
