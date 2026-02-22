@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "TextureImporter.h"
+#include <Logger.h>
 
 bool TextureImporter::loadExternal(const std::filesystem::path& path, DirectX::ScratchImage& out)
 {
@@ -10,6 +11,7 @@ bool TextureImporter::loadExternal(const std::filesystem::path& path, DirectX::S
 		if (FAILED(LoadFromTGAFile(myPath, nullptr, out))) {
 			if (FAILED(LoadFromWICFile(myPath, WIC_FLAGS_NONE, nullptr, out))) 
 			{
+                 LOG_WARNING("[TextureImporter] Failed to import the texture at the following path:", path.c_str());
 				 return false;
 			}
 		}
@@ -19,10 +21,18 @@ bool TextureImporter::loadExternal(const std::filesystem::path& path, DirectX::S
 
 void TextureImporter::importTyped(const DirectX::ScratchImage& source,TextureAsset* texture)
 {
-    if (source.GetImageCount() == 0) return;
+    if (source.GetImageCount() == 0)
+    {
+        LOG_ERROR("[TextureImporter] Couldn't import the image since it's count is 0.");
+        return;
+    }
 
     TexMetadata metaData = source.GetMetadata();
-    if (metaData.dimension != TEX_DIMENSION_TEXTURE2D) return;
+    if (metaData.dimension != TEX_DIMENSION_TEXTURE2D)
+    {
+        LOG_ERROR("[TextureImporter] Texture Importer riught now doesn't support 1D or 3D textures.");
+        return;
+    }
 
     ScratchImage mipImages;
     const DirectX::ScratchImage* finalSource = &source;
@@ -31,7 +41,7 @@ void TextureImporter::importTyped(const DirectX::ScratchImage& source,TextureAss
     {
         if (FAILED(GenerateMipMaps( source.GetImages(), source.GetImageCount(), metaData, TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA, 0, mipImages)))
         {
-            LOG("Failed to generate mipmaps for texture %d", texture->getId());
+            LOG("[TextureImporter] Failed to generate mipmaps for texture %d", texture->getId());
         }
         else
         {

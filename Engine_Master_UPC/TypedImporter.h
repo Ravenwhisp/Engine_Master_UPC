@@ -1,5 +1,6 @@
 #pragma once
 #include "Importer.h"
+#include "Logger.h"
 
 template<typename ExternalFormat, typename AssetFormat>
 class TypedImporter : public Importer
@@ -8,7 +9,11 @@ public:
     bool import(const std::filesystem::path& path, Asset * outAsset) final
     {
         ExternalFormat external{};
-        if (!loadExternal(path, external)) return false;
+        if (!loadExternal(path, external))
+        {
+            LOG_ERROR("Error while trying to load the asset from this path:", path.c_str());
+            return false;
+        }
 
         importTyped(external, static_cast<AssetFormat*>(outAsset));
 
