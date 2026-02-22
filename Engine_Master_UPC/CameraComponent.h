@@ -31,7 +31,12 @@ public:
 
 	void drawUi() override;
 
-	void onTransformChange() override { recalculateFrustum(); }
+	void onTransformChange() override;
+
+	const bool getCullingToggle() const { return m_cullingToggle; }
+	void getCullingToggle(const bool cullingToggle) { m_cullingToggle = cullingToggle; }
+
+	bool cleanUp() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
@@ -48,4 +53,6 @@ private:
 	Matrix m_projection = {};
 
 	Engine::Frustum m_frustum = {};
+
+	bool m_cullingToggle = false;
 };
