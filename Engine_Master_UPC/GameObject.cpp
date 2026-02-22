@@ -317,3 +317,39 @@ void GameObject::onTransformChange()
 }
 
 #pragma endregion
+
+#pragma region FileSystem
+
+bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)
+{
+    parentUid = gameObjectJson["ParentUID"].GetUint64();
+    m_name = gameObjectJson["Name"].GetString();
+
+    const auto& transform = gameObjectJson["Transform"];
+
+    const auto& position = transform["Position"].GetArray();
+    m_transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+
+    const auto& rotation = transform["Rotation"].GetArray();
+    m_transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(), rotation[2].GetFloat(), rotation[3].GetFloat()));
+
+    const auto& scale = transform["Scale"].GetArray();
+    m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
+
+    const auto& components = gameObjectJson["Components"].GetArray();
+    for (auto& componentJson : components)
+    {
+        const uint64_t componentUid = componentJson["UID"].GetUint64();
+        const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
+
+        Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
+        if (newComponent) {
+            newComponent->deserializeJSON(componentJson);
+        }
+    }
+
+    return true;
+}
+
+#pragma endregion
+

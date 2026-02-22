@@ -3,7 +3,20 @@
 
 #include <filesystem>
 #include <iostream>
-#include "simdjson.h"
+
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+
+#include "Application.h"
+#include "SceneModule.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "Component.h"
+#include "ComponentType.h"
+
+#include <rapidjson/document.h>
+
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
 constexpr std::string_view SCENE_FILE_EXTENSION = ".scene";
@@ -41,6 +54,74 @@ bool SceneSerializer::SaveScene(std::string sceneName)
 }
 
 
-bool SceneSerializer::LoadScene(std::string sceneName) {
-    return false;
+bool SceneSerializer::LoadScene(std::string sceneName)
+{
+    if (sceneName.empty()) {
+        return false;
+    }
+
+    const std::string path = std::string(SCENE_FOLDER) + sceneName + std::string(SCENE_FILE_EXTENSION);
+
+    // Read file
+    std::ifstream file(path, std::ios::binary);
+    if (!file) {
+        return false;
+    }
+
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    const std::string json = ss.str();
+
+    // Parse JSON
+    rapidjson::Document doc;
+    doc.Parse(json.c_str());
+    if (doc.HasParseError()) {
+        return false;
+    }
+
+    const auto& sceneJson = doc["Scene"];
+    const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
+
+    SceneModule* sceneModule = app->getSceneModule();
+    sceneModule->clearScene();
+
+    // Create all objects and components
+    std::unordered_map<uint64_t, GameObject*> uidToGo;
+    std::unordered_map<uint64_t, uint64_t> childToParent;
+
+    for (auto& gameObjectJson : gameObjectsArray)
+    {
+        const uint64_t uid = gameObjectJson["UID"].GetUint64();
+        GameObject* gameObject = sceneModule->createGameObjectWithUID((UID)uid);
+
+        uint64_t parentUid = 0;
+        gameObject->deserializeJSON(gameObjectJson, parentUid);
+
+        uidToGo[uid] = gameObject;
+        childToParent[uid] = parentUid;
+    }
+
+    // Parent Child linking
+    for (const auto& childAndParent : childToParent)
+    {
+        const uint64_t childUid = childAndParent.first;
+        const uint64_t parentUid = childAndParent.second;
+
+        if (parentUid == 0) {
+            continue;
+        }
+
+        GameObject* child = uidToGo[childUid];
+        GameObject* parent = uidToGo[parentUid];
+
+        child->GetTransform()->setRoot(parent->GetTransform());
+        parent->GetTransform()->addChild(child);
+
+        sceneModule->detachGameObject(child);
+    }
+
+    for (GameObject* rootGameObject : sceneModule->getAllGameObjects())
+        rootGameObject->init();
+
+    return true;
 }
