@@ -180,6 +180,11 @@
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="SceneConfig.cpp" />
+    <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
+    <ClCompile Include="3rdParty\simdjson\simdjson.cpp" />
+    <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="UID.cpp" />
+    <ClCompile Include="UtilityGLFT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -396,6 +401,9 @@
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="SceneConfig.h" />
+    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
+    <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="UID.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
