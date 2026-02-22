@@ -115,3 +115,16 @@ rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
+bool BasicModel::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("ModelPath") && componentInfo.HasMember("BasePath"))
+    {
+        m_modelPath = componentInfo["ModelPath"].GetString();
+        m_basePath = componentInfo["BasePath"].GetString();
+
+        load(m_modelPath.c_str(), m_basePath.c_str());
+    }
+
+    return true;
+}
+

@@ -2,6 +2,9 @@
 #include "Component.h"
 #include "Lights.h"
 
+#include <rapidjson/document.h>
+
+
 class LightComponent final : public Component
 {
 public:
@@ -21,6 +24,8 @@ public:
 
     bool isDebugDrawEnabled() const { return m_debugDrawEnabled; }
     bool isDebugDrawDepthEnabled() const { return m_debugDrawDepthEnabled; }
+
+    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
     LightData m_data{};
