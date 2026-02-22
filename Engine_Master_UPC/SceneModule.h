@@ -16,6 +16,12 @@ struct SceneLightingSettings
 	float ambientIntensity;;
 };
 
+struct SkyboxSettings
+{
+	bool enabled = true;
+	char path[260] = "Assets/Textures/cubemap2.dds";
+};
+
 class SceneModule : public Module
 {
 public:
@@ -46,6 +52,10 @@ public:
 	const char* getName() { return (char*)m_name.c_str(); }
 	SceneLightingSettings& GetLightingSettings() { return m_lighting; }
 	SceneDataCB& getCBData() { return m_sceneDataCB; }
+	SkyboxSettings& getSkyboxSettings() { return m_skybox; }
+	const SkyboxSettings& getSkyboxSettings() const { return m_skybox; }
+
+	bool applySkyboxToRenderer();
 
 	Quadtree& getQuadtree() { return *m_quadtree; }
 private:
@@ -55,4 +65,6 @@ private:
 	SceneLightingSettings		m_lighting;
 	Quadtree*					m_quadtree;
 	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
+
 };

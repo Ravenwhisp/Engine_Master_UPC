@@ -179,6 +179,7 @@
     <ClCompile Include="LightComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="SceneConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -394,6 +395,7 @@
     <ClInclude Include="LightComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="SceneConfig.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
