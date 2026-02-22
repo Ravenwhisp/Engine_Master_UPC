@@ -50,6 +50,8 @@ public:
 
 #pragma region Filesystem
 	//rapidjson::Value getJSON();
+
+	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
 
 #pragma endregion
