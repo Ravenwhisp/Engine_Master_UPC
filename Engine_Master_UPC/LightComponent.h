@@ -22,6 +22,8 @@ public:
     bool isDebugDrawEnabled() const { return m_debugDrawEnabled; }
     bool isDebugDrawDepthEnabled() const { return m_debugDrawDepthEnabled; }
 
+    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+
 private:
     LightData m_data{};
 
