@@ -23,6 +23,16 @@ public:
 	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
 	Engine::BoundingBox&		getBoundingBox() { return m_boundingBox; }
 
+#pragma region Loop functions
+	bool init() override;
+	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
+	bool cleanUp() override;
+#pragma endregion
+
+	void drawUi() override;
+
+	void onTransformChange() override;
+
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
