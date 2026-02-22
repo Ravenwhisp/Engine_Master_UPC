@@ -33,6 +33,8 @@ public:
 
 	void onTransformChange() override { recalculateFrustum(); }
 
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+
 private:
 	float m_horizontalFov = 90.0f;
 	float m_nearPlane = 0.5f;

@@ -2,6 +2,8 @@
 #include "ComponentType.h"
 #include "UID.h" 
 
+#include <rapidjson/document.h>
+
 class GameObject;
 
 class Component {
@@ -27,10 +29,13 @@ public:
 
     virtual void onTransformChange() {};
 
+    virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
+
 protected:
     GameObject* m_owner;
 
-private:
     const UID m_uuid;
+
+private:
     const ComponentType m_type;
 };
