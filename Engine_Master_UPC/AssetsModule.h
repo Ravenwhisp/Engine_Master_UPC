@@ -16,6 +16,7 @@ public:
 	int generateNewUID();
 
 	Asset*	requestAsset(int id);
+	Asset*  requestAsset(const AssetMetadata* metadata);
 	void	releaseAsset(Asset* asset);
 
 private:

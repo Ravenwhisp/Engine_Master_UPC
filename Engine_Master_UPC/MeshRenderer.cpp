@@ -5,6 +5,7 @@
 
 #include "Application.h"
 #include "RenderModule.h"
+#include "AssetsModule.h"
 
 
 void MeshRenderer::addModel(ModelAsset& model)
@@ -102,48 +103,17 @@ void MeshRenderer::drawUi()
 {
     ImGui::Separator();
 
-    // --- Path fields ---
-    char modelBuffer[256];
-    std::strncpy(modelBuffer, m_modelPath.c_str(), sizeof(modelBuffer));
-    modelBuffer[sizeof(modelBuffer) - 1] = '\0';
+    ImGui::Button("Drop Here");
 
-    if (ImGui::InputText("Model Path", modelBuffer, sizeof(modelBuffer)))
-        m_modelPath = modelBuffer;
-
-    char baseBuffer[256];
-    std::strncpy(baseBuffer, m_basePath.c_str(), sizeof(baseBuffer));
-    baseBuffer[sizeof(baseBuffer) - 1] = '\0';
-
-    if (ImGui::InputText("Base Path", baseBuffer, sizeof(baseBuffer)))
-        m_basePath = baseBuffer;
-
-    ImGui::Spacing();
-
-    // --- Buttons ---
-    if (ImGui::Button("Load"))
+    if (ImGui::BeginDragDropTarget())
     {
-        m_hasBounds = false;
-
-        // limpiar anterior
-
-        if (!m_modelPath.empty())
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            //load(m_modelPath.c_str(), m_basePath.c_str());
+            const int* data = static_cast<const int*>(payload->Data);
+            ModelAsset*modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(*data));
+            addModel(*modelAsset);
         }
-
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Reload"))
-    {
-        m_hasBounds = false;
-
-        if (!m_modelPath.empty())
-        {
-
-            //load(m_modelPath.c_str(), m_basePath.c_str());
-        }
+        ImGui::EndDragDropTarget();
     }
 
     ImGui::Separator();

@@ -7,7 +7,7 @@ class MaterialAsset : public Asset
 {
 public:
 	friend class ModelImporter;
-
+	MaterialAsset() {}
 	MaterialAsset(int id) : Asset(id, AssetType::MATERIAL) {}
 
 	uint32_t getBaseMap() const { return baseMap; }
@@ -38,7 +38,7 @@ class MeshAsset : public Asset
 {
 public:
 	friend class ModelImporter;
-
+	MeshAsset() {}
 	MeshAsset(int id) : Asset(id, AssetType::MESH) {}
 
     const void* getVertexData() const { return vertices.data(); }
@@ -65,12 +65,12 @@ class ModelAsset : public Asset
 {
 public:
 	friend class ModelImporter;
+	ModelAsset() {}
 	ModelAsset(int id) : Asset(id, AssetType::MODEL) {}
 
 	std::vector<MeshAsset>& getMeshes() const { return meshes; }
 	std::vector<MaterialAsset>& getMaterials() const { return materials; }
 protected:
-
 	mutable std::vector<MeshAsset> meshes;
 	mutable std::vector<MaterialAsset> materials;
 };

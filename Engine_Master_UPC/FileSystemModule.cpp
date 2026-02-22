@@ -2,7 +2,7 @@
 #include "FileSystemModule.h"
 #include <filesystem>
 #include <fstream>
-#include <simdjson.h>
+
 #include <Logger.h>
 
 #include "TextureImporter.h"
@@ -224,36 +224,6 @@ std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared
     return nullptr;
 }
 
-
-bool loadMetaFile(const std::filesystem::path& metaPath, AssetMetadata& outMeta)
-{
-    try
-    {
-        simdjson::ondemand::parser parser;
-        simdjson::padded_string json = simdjson::padded_string::load(metaPath.string());
-
-        auto doc = parser.iterate(json);
-
-        outMeta.uid = doc["uid"].get_uint64().value();
-        outMeta.type = static_cast<AssetType>(doc["type"].get_uint64().value());
-
-        outMeta.sourcePath = std::string(doc["source"].get_string().value());
-        outMeta.binaryPath = std::string(doc["binary"].get_string().value());
-
-        return true;
-    }
-    catch (const simdjson::simdjson_error& e)
-    {
-        LOG_ERROR("[FileSystemModule] Failed to load meta file '%s': %s", metaPath.string().c_str(), e.what());
-        return false;
-    }
-    catch (const std::exception& e)
-    {
-        LOG_ERROR("[FileSystemModule] Unexpected error loading meta file '%s': %s", metaPath.string().c_str(), e.what());
-        return false;
-    }
-}
-
 std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::path& path)
 {
     auto entry = std::make_shared<FileEntry>();
@@ -272,7 +242,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::pa
         if (path.extension() == METADATA_EXTENSION)
         {
             AssetMetadata meta;
-            if (loadMetaFile(path, meta))
+            if (AssetMetadata::loadMetaFile(path, meta))
             {
                 m_metadataMap[meta.uid] = meta;
                 return nullptr;

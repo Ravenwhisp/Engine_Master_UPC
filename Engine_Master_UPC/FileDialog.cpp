@@ -69,6 +69,19 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
             }
         }
         if (!asset->isDirectory) {
+
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+            {
+                AssetMetadata metadata;
+                std::filesystem::path metaPath = asset->path;
+                metaPath += METADATA_EXTENSION;
+                AssetMetadata::loadMetaFile(metaPath, metadata);
+
+                ImGui::SetDragDropPayload("ASSET", &metadata.uid, sizeof(int));
+                ImGui::Text("Dragging %s", asset->path.lexically_normal().c_str());
+                ImGui::EndDragDropSource();
+            }
+
             if (ImGui::BeginPopupContextItem("ItemContext"))
             {
                 ImGui::Text("Options");
