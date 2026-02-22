@@ -107,6 +107,168 @@ void BasicModel::load(const char* fileName, const char* basePath)
     }
 }
 
+#pragma region Loop functions
+bool BasicModel::init()
+{
+    load("Assets/Models/Duck/Duck.gltf", "Assets/Models/Duck/");
+    return true;
+}
+
+void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
+{
+    Transform* transform = m_owner->GetTransform();
+    Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
+    commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
+
+    for (BasicMesh* mesh : m_meshes) {
+        int32_t materialIndex = mesh->getMaterialIndex();
+
+        // Check if material index is valid
+        if (materialIndex >= 0 && materialIndex < m_materials.size()) {
+
+            ModelData modelData;
+            modelData.model = transform->getGlobalMatrix().Transpose();
+            modelData.material = m_materials[materialIndex]->getMaterial();
+            modelData.normalMat = transform->getNormalMatrix().Transpose();
+
+            commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+            commandList->SetGraphicsRootDescriptorTable(4, m_materials[materialIndex]->getTexture()->getSRV().gpu);
+
+            mesh->draw(commandList);
+        }
+    }
+
+    if (m_drawBounds && m_hasBounds && dd::isInitialized())
+    {
+        const Matrix world = transform->getGlobalMatrix();
+
+        const Vector3* c = m_boundingBox.getPoints();
+
+        if (!m_drawWorldAabb)
+        {
+            ddVec3 pts[8];
+            for (int i = 0; i < 8; ++i)
+            {
+                pts[i][0] = c[i].x; pts[i][1] = c[i].y; pts[i][2] = c[i].z;
+            }
+            dd::box(pts, dd::colors::Yellow, 0, m_boundsDepthTest);
+        }
+        else
+        {
+            Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
+            Vector3 wmax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+            for (int i = 0; i < 8; ++i)
+            {
+                wmin.x = std::min(wmin.x, c[i].x); wmin.y = std::min(wmin.y, c[i].y); wmin.z = std::min(wmin.z, c[i].z);
+                wmax.x = std::max(wmax.x, c[i].x); wmax.y = std::max(wmax.y, c[i].y); wmax.z = std::max(wmax.z, c[i].z);
+            }
+
+            ddVec3 mn = { wmin.x, wmin.y, wmin.z };
+            ddVec3 mx = { wmax.x, wmax.y, wmax.z };
+            dd::aabb(mn, mx, dd::colors::Yellow, 0, m_boundsDepthTest);
+        }
+    }
+
+}
+
+bool BasicModel::cleanUp()
+{
+    return true;
+}
+#pragma endregion
+
+void BasicModel::drawUi()
+{
+    ImGui::Separator();
+
+    // --- Path fields ---
+    char modelBuffer[256];
+    std::strncpy(modelBuffer, m_modelPath.c_str(), sizeof(modelBuffer));
+    modelBuffer[sizeof(modelBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("Model Path", modelBuffer, sizeof(modelBuffer)))
+        m_modelPath = modelBuffer;
+
+    char baseBuffer[256];
+    std::strncpy(baseBuffer, m_basePath.c_str(), sizeof(baseBuffer));
+    baseBuffer[sizeof(baseBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("Base Path", baseBuffer, sizeof(baseBuffer)))
+        m_basePath = baseBuffer;
+
+    ImGui::Spacing();
+
+    // --- Buttons ---
+    if (ImGui::Button("Load"))
+    {
+        m_hasBounds = false;
+
+        // limpiar anterior
+        for (auto mesh : m_meshes)
+            delete mesh;
+        m_meshes.clear();
+
+        for (auto material : m_materials)
+            delete material;
+        m_materials.clear();
+
+        if (!m_modelPath.empty())
+        {
+            load(m_modelPath.c_str(), m_basePath.c_str());
+        }
+
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Reload"))
+    {
+        m_hasBounds = false;
+
+        if (!m_modelPath.empty())
+        {
+            for (auto mesh : m_meshes)
+                delete mesh;
+            m_meshes.clear();
+
+            for (auto material : m_materials)
+                delete material;
+            m_materials.clear();
+
+            load(m_modelPath.c_str(), m_basePath.c_str());
+        }
+    }
+
+    ImGui::Separator();
+
+    // --- Info ---
+    ImGui::Text("Meshes: %d", (int)m_meshes.size());
+    ImGui::Text("Materials: %d", (int)m_materials.size());
+
+    ImGui::SeparatorText("Debug Bounding Box");
+    ImGui::Checkbox("Draw Bounding Box", &m_drawBounds);
+    ImGui::Checkbox("Depth Test", &m_boundsDepthTest);
+    ImGui::Checkbox("World AABB (axis aligned)", &m_drawWorldAabb);
+
+    if (m_hasBounds)
+    {
+        auto min = m_boundingBox.getMin();
+        auto max = m_boundingBox.getMax();
+        ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
+        ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
+    }
+    else
+    {
+        ImGui::TextDisabled("No bounds computed.");
+    }
+
+}
+
+void BasicModel::onTransformChange()
+{
+    m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+}
+
 rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value componentInfo(rapidjson::kObjectType);
