@@ -9,7 +9,6 @@
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
     m_components.push_back(m_transform = new Transform(GenerateUID(), this));
-
 }
 
 GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name("New GameObject")
