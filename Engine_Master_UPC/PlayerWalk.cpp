@@ -140,3 +140,16 @@ void PlayerWalk::drawUi() {
 	ImGui::DragFloat("Shift Multiplier", &m_shiftMultiplier, 0.05f, 1.0f, 10.0f);
 }
 
+rapidjson::Value PlayerWalk::getJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::PLAYER_WALK), domTree.GetAllocator());
+
+	componentInfo.AddMember("MoveSpeed", m_moveSpeed, domTree.GetAllocator());
+	componentInfo.AddMember("ShiftMultiplier", m_shiftMultiplier, domTree.GetAllocator());
+
+	return componentInfo;
+}
+

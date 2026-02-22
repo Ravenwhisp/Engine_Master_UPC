@@ -317,3 +317,17 @@ void GameObject::onTransformChange()
 }
 
 #pragma endregion
+
+#pragma region Filesystem
+
+rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
+
+    gameObjectInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    //gameObjectInfo.AddMember("Name", m_name, domTree.GetAllocator());
+
+    return gameObjectInfo;
+}
+
+#pragma endregion
