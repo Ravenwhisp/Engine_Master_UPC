@@ -49,7 +49,7 @@ public:
 #pragma endregion
 
 #pragma region Filesystem
-	//rapidjson::Value getJSON();
+	rapidjson::Value getJSON(rapidjson::Document& domTree);
 #pragma endregion
 
 #pragma endregion
