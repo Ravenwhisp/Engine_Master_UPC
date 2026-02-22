@@ -110,11 +110,8 @@ void BasicModel::load(const char* fileName, const char* basePath)
 #pragma region Loop functions
 bool BasicModel::init()
 {
-    /*if (!m_modelPath.empty())
-        load(m_modelPath.c_str(), m_basePath.c_str());   
-        */
-    load("Assets/Models/Duck/Duck.gltf", "Assets/Models/Duck/");
-
+    if (!m_modelPath.empty())
+        load(m_modelPath.c_str(), m_basePath.c_str());     
     return true;
 }
 
