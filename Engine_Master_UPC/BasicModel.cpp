@@ -8,6 +8,8 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+#include "Logger.h"
+
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_EXTERNAL_IMAGE 
@@ -101,7 +103,7 @@ void BasicModel::load(const char* fileName, const char* basePath)
 	}
     else
     {
-        LOG("Error loading %s: %s", fileName, error.c_str());
+        LOG_INFO("Error loading %s: %s", fileName, error.c_str());
     }
 }
 

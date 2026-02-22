@@ -85,6 +85,9 @@ bool SceneSerializer::LoadScene(std::string sceneName)
     SceneModule* sceneModule = app->getSceneModule();
     sceneModule->clearScene();
 
+    loadSceneSkybox(sceneModule, sceneJson);
+    loadSceneLighting(sceneModule, sceneJson);
+
     // Create all objects and components
     std::unordered_map<uint64_t, GameObject*> uidToGo;
     std::unordered_map<uint64_t, uint64_t> childToParent;
@@ -122,6 +125,33 @@ bool SceneSerializer::LoadScene(std::string sceneName)
 
     for (GameObject* rootGameObject : sceneModule->getAllGameObjects())
         rootGameObject->init();
+
+    sceneModule->applySkyboxToRenderer();
+
+    return true;
+}
+
+bool SceneSerializer::loadSceneSkybox(SceneModule* sceneModule, const rapidjson::Value& sceneJson) {
+    auto& skybox = sceneModule->getSkyboxSettings();
+
+    const auto& skyboxJson = sceneJson["Skybox"];
+    skybox.enabled = skyboxJson["Enabled"].GetBool();
+
+    const char* pathStr = skyboxJson["Path"].GetString();
+    strcpy_s(skybox.path, 260, pathStr);
+    
+    return true;
+}
+
+bool SceneSerializer::loadSceneLighting(SceneModule* sceneModule, const rapidjson::Value& sceneJson) {
+    auto& lighting = sceneModule->GetLightingSettings();
+
+    const auto& lightingJson = sceneJson["Lighting"];
+
+    const auto& color = lightingJson["AmbientColor"].GetArray();
+    lighting.ambientColor = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
+
+    lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
 
     return true;
 }
