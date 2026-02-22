@@ -24,6 +24,7 @@ public:
 	Engine::BoundingBox&		getBoundingBox() { return m_boundingBox; }
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
 	std::vector<BasicMesh*>		m_meshes;

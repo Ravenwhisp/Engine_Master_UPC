@@ -74,7 +74,30 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
 	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
 	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspecRatio", m_aspectRatio, domTree.GetAllocator());
+	componentInfo.AddMember("AspecRtatio", m_aspectRatio, domTree.GetAllocator());
 
 	return componentInfo;
+}
+
+bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+	if (componentInfo.HasMember("HorizontalFOV")) {
+		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("NearPlane")) {
+		m_nearPlane = componentInfo["NearPlane"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("FarPlane")) {
+		m_farPlane = componentInfo["FarPlane"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("AspectRatio")) {
+		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
+	}
+
+	recalculateFrustum();
+
+	return true;
 }
