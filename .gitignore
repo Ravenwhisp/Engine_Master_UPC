@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+#Engine specific
+Engine_OUT/Library/
+Engine_OUT/Assets/
+
 # User-specific files
 *.rsuser
 *.suo
