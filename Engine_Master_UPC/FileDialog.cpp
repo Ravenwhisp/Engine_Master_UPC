@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "FileSystemModule.h"
+#include "AssetsModule.h"
 
 void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 {
@@ -18,7 +19,7 @@ void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 
         for (auto& child : entry->children)
         {
-            if (child->isDirectory)
+            if (child != nullptr && child->isDirectory)
             {
                 drawDirectoryTree(child);
             }
@@ -45,6 +46,11 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
     for (auto& asset : directory->children)
     {
+        if (asset == nullptr) 
+        {
+            continue;
+        }
+
         ImGui::PushID(asset->path.string().c_str());
 
         // PROVISIONAL: This will be changed for an image
@@ -60,6 +66,21 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
             if (asset->isDirectory)
             {
                 m_currentDirectory = asset->path;
+            }
+        }
+        if (!asset->isDirectory) {
+            if (ImGui::BeginPopupContextItem("ItemContext"))
+            {
+                ImGui::Text("Options");
+                ImGui::Separator();
+
+                Importer* importer = app->getFileSystemModule()->findImporter(asset->path);
+                bool canImport = importer != nullptr;
+                if (ImGui::MenuItem("Import", nullptr, false, canImport)) 
+                {
+                    app->getAssetModule()->import(asset->path);
+                }
+                ImGui::EndPopup();
             }
         }
 

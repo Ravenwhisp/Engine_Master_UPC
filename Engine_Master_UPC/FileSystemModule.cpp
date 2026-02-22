@@ -28,6 +28,13 @@ bool FileSystemModule::init()
     return true;
 }
 
+Importer* FileSystemModule::findImporter(const std::filesystem::path& filePath)
+{
+    std::string pathStr = filePath.string();
+    const char* cpath = pathStr.c_str();
+    return findImporter(cpath);
+}
+
 Importer* FileSystemModule::findImporter(const char* filePath)
 {
     for (auto importer : importers) 
@@ -60,6 +67,13 @@ AssetMetadata* FileSystemModule::getMetadata(int uid)
     }
 
     return nullptr;
+}
+
+unsigned int FileSystemModule::load(const std::filesystem::path& filePath, char** buffer) const
+{
+    std::string pathStr = filePath.string();
+    const char* cpath = pathStr.c_str();
+    return load(cpath, buffer);
 }
 
 unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
@@ -96,6 +110,13 @@ unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
 
     *buffer = data;
     return static_cast<unsigned int>(size);
+}
+
+unsigned int FileSystemModule::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
+{
+    std::string pathStr = filePath.string();
+    const char* cpath = pathStr.c_str();
+    return save(cpath, buffer, size, append);
 }
 
 unsigned int FileSystemModule::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
@@ -160,7 +181,13 @@ bool FileSystemModule::isDirectory(const char* path) const
 
 void FileSystemModule::rebuild()
 {
-    m_root = buildTree(ASSETS_FOLDER);
+    std::string s = ASSETS_FOLDER;
+    if (!s.empty() && s.back() == '/')
+    {
+        s.pop_back();
+    }
+
+    m_root = buildTree(s);
 }
 
 std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
@@ -230,7 +257,7 @@ bool loadMetaFile(const std::filesystem::path& metaPath, AssetMetadata& outMeta)
 std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::path& path)
 {
     auto entry = std::make_shared<FileEntry>();
-    entry->path = path;
+    entry->path = path.lexically_normal();
     entry->isDirectory = isDirectory(path.string().c_str());
 
     if (entry->isDirectory)
@@ -248,6 +275,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::pa
             if (loadMetaFile(path, meta))
             {
                 m_metadataMap[meta.uid] = meta;
+                return nullptr;
             }
         }
     }

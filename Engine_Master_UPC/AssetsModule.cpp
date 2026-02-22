@@ -46,10 +46,7 @@ bool saveMetaFile(const AssetMetadata& meta, const std::filesystem::path& metaPa
 
 int AssetsModule::import(const std::filesystem::path& assetsFile)
 {
-    std::string pathStr = assetsFile.string();
-    const char* cpath = pathStr.c_str();
-
-    Importer* importer = app->getFileSystemModule()->findImporter(cpath);
+    Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
     if (!importer)
     {
         LOG_INFO("[AssetsModule] Couldn't find a proper importer for this format:", assetsFile.c_str());
@@ -85,10 +82,7 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
     uint8_t* buffer = nullptr;
     uint64_t size = importer->save(asset, &buffer);
 
-    std::string librarypathStr = libraryPath.string();
-    const char* clibraryPath = librarypathStr.c_str();
-
-    app->getFileSystemModule()->save(clibraryPath, buffer, static_cast<unsigned int>(size));
+    app->getFileSystemModule()->save(meta.binaryPath, buffer, static_cast<unsigned int>(size));
 
     delete buffer;
     delete asset;
@@ -127,10 +121,8 @@ Asset* AssetsModule::requestAsset(int id)
 
     //Load from binary
     char* rawBuffer = nullptr;
-    std::string pathStr = metadata->binaryPath.string();
-    const char* cpath = pathStr.c_str();
 
-    unsigned int size = app->getFileSystemModule()->load(cpath, &rawBuffer);
+    unsigned int size = app->getFileSystemModule()->load(metadata->binaryPath, &rawBuffer);
     if (size > 0)
     {
         std::vector<uint8_t> buffer(rawBuffer, rawBuffer + size);
