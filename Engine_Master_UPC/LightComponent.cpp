@@ -173,3 +173,46 @@ void LightComponent::drawUi()
         sanitize();
     }
 }
+
+rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::LIGHT), domTree.GetAllocator());
+
+    componentInfo.AddMember("LightType", unsigned int(m_data.type), domTree.GetAllocator());
+    componentInfo.AddMember("Enabled", m_data.common.enabled, domTree.GetAllocator());
+    {
+        rapidjson::Value colorData(rapidjson::kArrayType);
+
+        colorData.PushBack(m_data.common.color.x, domTree.GetAllocator());
+        colorData.PushBack(m_data.common.color.y, domTree.GetAllocator());
+        colorData.PushBack(m_data.common.color.z, domTree.GetAllocator());
+
+        componentInfo.AddMember("Color", colorData, domTree.GetAllocator());
+    }
+    componentInfo.AddMember("Intensity", m_data.common.intensity, domTree.GetAllocator());
+    
+    // Not common parameters (depending on light type)
+    switch (m_data.type)
+    {
+
+    case LightType::DIRECTIONAL : 
+
+        break;
+
+    case LightType::POINT:
+        
+        componentInfo.AddMember("Radius", m_data.parameters.point.radius, domTree.GetAllocator());
+        break;
+    
+    case LightType::SPOT:
+
+        componentInfo.AddMember("Radius", m_data.parameters.spot.radius, domTree.GetAllocator());
+        componentInfo.AddMember("InnerAngleDegress", m_data.parameters.spot.innerAngleDegrees, domTree.GetAllocator());
+        componentInfo.AddMember("OuterAngleDegress", m_data.parameters.spot.outerAngleDegrees, domTree.GetAllocator());
+    }
+
+    return componentInfo;
+}
