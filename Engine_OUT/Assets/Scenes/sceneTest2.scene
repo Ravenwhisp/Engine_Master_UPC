@@ -1,5 +1,13 @@
 {
   "Scene": {
+    "Skybox": {
+      "Enabled": true,
+      "Path": "Assets/Textures/cubemap.dds"
+    },
+    "Lighting": {
+      "AmbientColor": [0.2, 0.2, 0.2],
+      "AmbientIntensity": 2.0
+    },
     "GameObjects": [
       {
         "UID": 1,
@@ -23,7 +31,7 @@
       },
       {
         "UID": 2,
-        "ParentUID": 0,
+        "ParentUID": 1,
         "Name": "Cameraaaaa",
         "Transform": {
           "Position": [-5.0, 10.0, -5.0],
@@ -47,15 +55,15 @@
         "Name": "DD",
         "Transform": {
           "Position": [0.0, 0.0, 0.0],
-          "Rotation": [0.0, 0.0, 0.0, 1.0],
+          "Rotation": [1.0, 0.0, 0.0, 1.0],
           "Scale": [1.0, 1.0, 1.0]
         },
         "Components": [
           {
             "UID": 301,
             "ComponentType": 1,
-            "ModelPath": "Assets/Models/Duck/Duck.gltf",
-            "BasePath": "Assets/Models/Duck/"
+            "ModelPath": "Assets/Models/DamagedHelmet/DamagedHelmet.gltf",
+            "BasePath": "Assets/Models/DamagedHelmet/"
           }
         ]
       },
