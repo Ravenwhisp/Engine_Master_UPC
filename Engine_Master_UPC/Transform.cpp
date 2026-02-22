@@ -3,7 +3,7 @@
 #include "GameObject.h"
 #include <cmath>
 
-Transform::Transform(int id, GameObject* gameObject) :
+Transform::Transform(UID id, GameObject* gameObject) :
     Component(id, ComponentType::TRANSFORM, gameObject),
     m_dirty(true),
     m_root(nullptr),
@@ -152,7 +152,7 @@ void Transform::calculateMatrix() const
     }
 }
 
-void Transform::removeChild(int id)
+void Transform::removeChild(UID id)
 {
     for (auto it = m_children.begin(); it != m_children.end(); ++it)
     {

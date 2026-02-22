@@ -5,7 +5,7 @@
 class CameraComponent : public Component 
 {
 public:
-	CameraComponent(int id, GameObject* gameObject);
+	CameraComponent(UID id, GameObject* gameObject);
 
 	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
 	void update() override;
@@ -37,6 +37,10 @@ public:
 	void getCullingToggle(const bool cullingToggle) { m_cullingToggle = cullingToggle; }
 
 	bool cleanUp() override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 
 private:
 	float m_horizontalFov = 90.0f;

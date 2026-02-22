@@ -6,16 +6,16 @@
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
 
-GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
+GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-    m_components.push_back(m_transform = new Transform(rand(), this));
+    m_components.push_back(m_transform = new Transform(GenerateUID(), this));
 
-    //Testing duck
-	BasicModel* currModel = new BasicModel(rand(), this);
-    m_components.push_back(currModel);
-	currModel->init();
+}
 
-    //////////////
+GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name("New GameObject")
+{
+    m_components.push_back(m_transform = new Transform(transformUid, this));
+
 }
 
 GameObject::~GameObject()
@@ -28,19 +28,20 @@ bool GameObject::AddComponent(ComponentType componentType)
     switch (componentType)
     {
         case ComponentType::LIGHT:
-            m_components.push_back(new LightComponent(rand(), this));
+            m_components.push_back(new LightComponent(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new BasicModel(rand(), this));
+            m_components.push_back(new BasicModel(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
-
-        case ComponentType::PLAYER_WALK:
-            m_components.push_back(new PlayerWalk(rand(), this));
             break;
 
+        case ComponentType::PLAYER_WALK:
+            m_components.push_back(new PlayerWalk(GenerateUID(), this));
+            break;
         case ComponentType::CAMERA:
-            m_components.push_back(new CameraComponent(rand(), this));
+            m_components.push_back(new CameraComponent(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -52,6 +53,38 @@ bool GameObject::AddComponent(ComponentType componentType)
 
     return true;
 }
+
+Component* GameObject::AddComponentWithUID(const ComponentType componentType, UID id) {
+    Component* newComponent = nullptr;
+
+    switch (componentType)
+    {
+    case ComponentType::LIGHT:
+        newComponent = new LightComponent(id, this);
+        break;
+    case ComponentType::MODEL:
+        newComponent = new BasicModel(id, this);
+        break;
+    case ComponentType::TRANSFORM:
+        return nullptr;
+    case ComponentType::PLAYER_WALK:
+        newComponent = new PlayerWalk(id, this);
+        break;
+    case ComponentType::CAMERA:
+        newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::COUNT:
+        return nullptr;
+
+    default:
+        return nullptr;
+    }
+
+    m_components.push_back(newComponent);
+    return newComponent;
+}
+
+
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
@@ -188,7 +221,7 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
 void GameObject::drawUI()
 {
 #pragma region 
-    ImGui::Text("GameObject UUID: %d", m_uuid);
+    ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
     ImGui::Checkbox("Active", &m_active);
@@ -284,3 +317,39 @@ void GameObject::onTransformChange()
 }
 
 #pragma endregion
+
+#pragma region FileSystem
+
+bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)
+{
+    parentUid = gameObjectJson["ParentUID"].GetUint64();
+    m_name = gameObjectJson["Name"].GetString();
+
+    const auto& transform = gameObjectJson["Transform"];
+
+    const auto& position = transform["Position"].GetArray();
+    m_transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+
+    const auto& rotation = transform["Rotation"].GetArray();
+    m_transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(), rotation[2].GetFloat(), rotation[3].GetFloat()));
+
+    const auto& scale = transform["Scale"].GetArray();
+    m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
+
+    const auto& components = gameObjectJson["Components"].GetArray();
+    for (auto& componentJson : components)
+    {
+        const uint64_t componentUid = componentJson["UID"].GetUint64();
+        const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
+
+        Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
+        if (newComponent) {
+            newComponent->deserializeJSON(componentJson);
+        }
+    }
+
+    return true;
+}
+
+#pragma endregion
+

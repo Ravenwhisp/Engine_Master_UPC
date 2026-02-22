@@ -5,7 +5,7 @@
 
 extern Application* app;
 
-CameraComponent::CameraComponent(int id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
+CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
 	Transform* t = m_owner->GetTransform();
 	Vector3 position = t->getPosition();
@@ -95,5 +95,43 @@ void CameraComponent::drawUi()
 
 bool CameraComponent::cleanUp() {
 	app->setActiveCamera(nullptr);
+	return true;
+}
+
+rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
+
+	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
+	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
+	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
+	componentInfo.AddMember("AspecRtatio", m_aspectRatio, domTree.GetAllocator());
+
+	return componentInfo;
+}
+
+bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+	if (componentInfo.HasMember("HorizontalFOV")) {
+		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("NearPlane")) {
+		m_nearPlane = componentInfo["NearPlane"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("FarPlane")) {
+		m_farPlane = componentInfo["FarPlane"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("AspectRatio")) {
+		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
+	}
+
+	recalculateFrustum();
+
 	return true;
 }

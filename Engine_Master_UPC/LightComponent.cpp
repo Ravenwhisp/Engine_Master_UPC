@@ -26,7 +26,7 @@ namespace
     }
 }
 
-LightComponent::LightComponent(int id, GameObject* owner)
+LightComponent::LightComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::LIGHT, owner)
 {
 }
@@ -172,4 +172,58 @@ void LightComponent::drawUi()
     if (lightChanged) {
         sanitize();
     }
+}
+
+bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("Enabled"))
+        m_data.common.enabled = componentInfo["Enabled"].GetBool();
+
+    if (componentInfo.HasMember("Intensity"))
+        m_data.common.intensity = componentInfo["Intensity"].GetFloat();
+
+    if (componentInfo.HasMember("Color"))
+    {
+        const auto& color = componentInfo["Color"].GetArray();
+        m_data.common.color = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
+    }
+
+    if (componentInfo.HasMember("LightType"))
+    {
+        int typeInt = componentInfo["LightType"].GetInt();
+        LightType type = static_cast<LightType>(typeInt);
+
+        if (type == LightType::DIRECTIONAL)
+        {
+            setTypeDirectional();
+        }
+        else if (type == LightType::POINT)
+        {
+            float radius = m_data.parameters.point.radius;
+            if (componentInfo.HasMember("Radius"))
+                radius = componentInfo["Radius"].GetFloat();
+
+            setTypePoint(radius);
+        }
+        else if (type == LightType::SPOT)
+        {
+            float radius = m_data.parameters.spot.radius;
+            float innerA = m_data.parameters.spot.innerAngleDegrees;
+            float outerA = m_data.parameters.spot.outerAngleDegrees;
+
+            if (componentInfo.HasMember("Radius"))
+                radius = componentInfo["Radius"].GetFloat();
+
+            if (componentInfo.HasMember("InnerAngleDegrees"))
+                innerA = componentInfo["InnerAngleDegrees"].GetFloat();
+
+            if (componentInfo.HasMember("OuterAngleDegrees"))
+                outerA = componentInfo["OuterAngleDegrees"].GetFloat();
+
+            setTypeSpot(radius, innerA, outerA);
+        }
+    }
+
+    sanitize();
+    return true;
 }

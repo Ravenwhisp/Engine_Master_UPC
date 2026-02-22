@@ -3,6 +3,7 @@
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
 #include "BoundingBox.h"
+#include "Asset.h"
 
 namespace tinygltf { class Model; }
 
@@ -15,7 +16,7 @@ struct ModelData {
 class BasicModel : public Component
 {
 public:
-	BasicModel(int id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
+	BasicModel(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {}
 	~BasicModel();
 	void load(const char* fileName, const char* basePath);
 	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }
@@ -31,6 +32,10 @@ public:
 	void drawUi() override;
 
 	void onTransformChange() override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
 private:
 	std::vector<BasicMesh*>		m_meshes;
 	std::vector<BasicMaterial*>	m_materials;

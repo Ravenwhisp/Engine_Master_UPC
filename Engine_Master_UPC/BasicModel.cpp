@@ -1,6 +1,15 @@
 #include "Globals.h"
 #include "BasicModel.h"
 
+
+
+#include "Application.h"
+#include "RenderModule.h"
+#include "GameObject.h"
+#include "Transform.h"
+
+#include "Logger.h"
+
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_EXTERNAL_IMAGE 
@@ -11,10 +20,6 @@
 #include "tiny_gltf.h"
 #pragma warning(pop)
 
-#include "Application.h"
-#include "RenderModule.h"
-#include "GameObject.h"
-#include "Transform.h"
 
 BasicModel::~BasicModel()
 {
@@ -115,7 +120,7 @@ bool BasicModel::init()
 
 void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
-	Transform* transform = m_owner->GetTransform();
+    Transform* transform = m_owner->GetTransform();
     Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
@@ -211,11 +216,11 @@ void BasicModel::drawUi()
             delete material;
         m_materials.clear();
 
-        if (!m_modelPath.empty()) 
+        if (!m_modelPath.empty())
         {
-           load(m_modelPath.c_str(), m_basePath.c_str());
+            load(m_modelPath.c_str(), m_basePath.c_str());
         }
-           
+
     }
 
     ImGui::SameLine();
@@ -263,7 +268,31 @@ void BasicModel::drawUi()
 
 }
 
-void BasicModel::onTransformChange() 
+void BasicModel::onTransformChange()
 {
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }
+
+rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::MODEL), domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool BasicModel::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("ModelPath") && componentInfo.HasMember("BasePath"))
+    {
+        m_modelPath = componentInfo["ModelPath"].GetString();
+        m_basePath = componentInfo["BasePath"].GetString();
+
+        load(m_modelPath.c_str(), m_basePath.c_str());
+    }
+
+    return true;
+}
+
