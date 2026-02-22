@@ -17,7 +17,7 @@ public:
 		return ext == GLTF_EXTENSION;
 	}
 
-	Asset* createAssetInstance(int uid) const override
+	Asset* createAssetInstance(UID uid) const override
 	{
 		return new ModelAsset(uid);
 	}

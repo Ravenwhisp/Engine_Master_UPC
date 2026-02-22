@@ -11,14 +11,13 @@ class AssetsModule : public Module
 {
 public:
 
-	int find(const std::filesystem::path& assetsFile) const;
-	int import(const std::filesystem::path & assetsFile);
-	int generateNewUID();
+	UID find(const std::filesystem::path& assetsFile) const;
+	UID import(const std::filesystem::path & assetsFile);
 
-	Asset*	requestAsset(int id);
+	Asset*	requestAsset(UID id);
 	Asset*  requestAsset(const AssetMetadata* metadata);
 	void	releaseAsset(Asset* asset);
 
 private:
-	std::unordered_map<int, Asset*> m_assets;
+	std::unordered_map<UID, Asset*> m_assets;
 };

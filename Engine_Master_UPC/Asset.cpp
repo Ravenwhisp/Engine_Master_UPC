@@ -20,7 +20,7 @@ bool AssetMetadata::saveMetaFile(const AssetMetadata& meta, const std::filesyste
     std::ofstream file(metaPath);
     if (!file.is_open())
     {
-        LOG_ERROR("[AssetsModule] Couldn't open the metafile.");
+        LOG("[AssetsModule] Couldn't open the metafile.");
         return false;
     }
 
@@ -30,29 +30,66 @@ bool AssetMetadata::saveMetaFile(const AssetMetadata& meta, const std::filesyste
 
 bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMetadata& outMeta)
 {
-    try
+    std::string pathStr = metaPath.string();
+    const char* cpath = pathStr.c_str();
+    FILE* fp = std::fopen(cpath, "rb");
+
+    if (!fp) 
     {
-        simdjson::ondemand::parser parser;
-        simdjson::padded_string json = simdjson::padded_string::load(metaPath.string());
-
-        auto doc = parser.iterate(json);
-
-        outMeta.uid = doc["uid"].get_uint64().value();
-        outMeta.type = static_cast<AssetType>(doc["type"].get_uint64().value());
-
-        outMeta.sourcePath = std::string(doc["source"].get_string().value());
-        outMeta.binaryPath = std::string(doc["binary"].get_string().value());
-
-        return true;
-    }
-    catch (const simdjson::simdjson_error& e)
-    {
-        LOG_ERROR("[FileSystemModule] Failed to load meta file '%s': %s", metaPath.string().c_str(), e.what());
+        LOG_ERROR("[FileSystemModule] Failed to open meta file '%s'", metaPath.string().c_str());
         return false;
     }
-    catch (const std::exception& e)
-    {
-        LOG_ERROR("[FileSystemModule] Unexpected error loading meta file '%s': %s", metaPath.string().c_str(), e.what());
+
+    char readBuffer[65536];
+    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+    rapidjson::Document doc;
+    doc.ParseStream(is);
+    std::fclose(fp);
+
+    if (doc.HasParseError()) {
+        LOG("[FileSystemModule] JSON parse error in '%s'", metaPath.string().c_str());
         return false;
     }
+
+    // Extract values safely
+    if (doc.HasMember("uid") && doc["uid"].IsUint64()) 
+    {
+        outMeta.uid = doc["uid"].GetUint64();
+    }
+    else 
+    {
+        LOG("[FileSystemModule] Missing or invalid 'uid' in '%s'", metaPath.string().c_str());
+        return false;
+    }
+
+    if (doc.HasMember("type") && doc["type"].IsUint64()) 
+    {
+        outMeta.type = static_cast<AssetType>(doc["type"].GetUint64());
+    }
+    else {
+        LOG("[FileSystemModule] Missing or invalid 'type' in '%s'", metaPath.string().c_str());
+        return false;
+    }
+
+    if (doc.HasMember("source") && doc["source"].IsString()) 
+    {
+        outMeta.sourcePath = doc["source"].GetString();
+    }
+    else {
+        LOG("[FileSystemModule] Missing or invalid 'source' in '%s'", metaPath.string().c_str());
+        return false;
+    }
+
+    if (doc.HasMember("binary") && doc["binary"].IsString()) 
+    {
+        outMeta.binaryPath = doc["binary"].GetString();
+    }
+    else 
+    {
+        LOG("[FileSystemModule] Missing or invalid 'binary' in '%s'", metaPath.string().c_str());
+        return false;
+    }
+
+    return true;
 }

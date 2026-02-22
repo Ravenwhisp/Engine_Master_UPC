@@ -8,22 +8,22 @@ class MaterialAsset : public Asset
 public:
 	friend class ModelImporter;
 	MaterialAsset() {}
-	MaterialAsset(int id) : Asset(id, AssetType::MATERIAL) {}
+	MaterialAsset(UID id) : Asset(id, AssetType::MATERIAL) {}
 
-	uint32_t getBaseMap() const { return baseMap; }
+	UID getBaseMap() const { return baseMap; }
 	Color&	 getBaseColour() const { return baseColour; }
 protected:
 
-	uint32_t			baseMap = -1;
+	UID			baseMap = -1;
 	mutable Color		baseColour = Color(255, 255, 255, 0);
 
-	uint32_t			metallicRoughnessMap = -1;
+	UID			metallicRoughnessMap = -1;
 	uint32_t			metallicFactor = 0;
-	uint32_t			normalMap = -1;
-	uint32_t			occlusionMap = -1;
+	UID			normalMap = -1;
+	UID			occlusionMap = -1;
 
 	bool				isEmissive = false;
-	uint32_t 			emissiveMap = -1;
+	UID 			emissiveMap = -1;
 };
 
 
@@ -31,7 +31,7 @@ struct Submesh
 {
 	uint32_t indexStart;
 	uint32_t indexCount;
-	uint32_t materialId;
+	UID materialId;
 };
 
 class MeshAsset : public Asset
@@ -39,7 +39,7 @@ class MeshAsset : public Asset
 public:
 	friend class ModelImporter;
 	MeshAsset() {}
-	MeshAsset(int id) : Asset(id, AssetType::MESH) {}
+	MeshAsset(UID id) : Asset(id, AssetType::MESH) {}
 
     const void* getVertexData() const { return vertices.data(); }
     uint32_t	getVertexCount() const {  return static_cast<uint32_t>(vertices.size()); }
@@ -50,6 +50,9 @@ public:
 	DXGI_FORMAT getIndexFormat() const { return indexFormat; }
 
     const std::vector<Submesh>& getSubmeshes() const { return submeshes; }
+
+	Vector3 getBoundsCenter() const { return boundsCenter; }
+	Vector3 getBoundsExtents() const { return boundsExtents; }
 protected:
 	std::vector<Vertex>		vertices;
 	std::vector<uint8_t>	indices;
@@ -66,7 +69,7 @@ class ModelAsset : public Asset
 public:
 	friend class ModelImporter;
 	ModelAsset() {}
-	ModelAsset(int id) : Asset(id, AssetType::MODEL) {}
+	ModelAsset(UID id) : Asset(id, AssetType::MODEL) {}
 
 	std::vector<MeshAsset>& getMeshes() const { return meshes; }
 	std::vector<MaterialAsset>& getMaterials() const { return materials; }

@@ -14,7 +14,7 @@ class TextureAsset : public Asset
 public:
 	friend class TextureImporter;
 	TextureAsset() {}
-	TextureAsset(int id) : Asset(id, AssetType::TEXTURE) {}
+	TextureAsset(UID id) : Asset(id, AssetType::TEXTURE) {}
 
 	uint32_t	getWidth() const { return width; }
 	uint32_t	getHeight() const { return height; }

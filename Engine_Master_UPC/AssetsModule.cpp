@@ -8,8 +8,9 @@
 #include <filesystem>
 #include <fstream>
 #include <Logger.h>
+#include <UID.h>
 
-int AssetsModule::find(const std::filesystem::path& assetsFile) const
+UID AssetsModule::find(const std::filesystem::path& assetsFile) const
 {
     //We should search fot the same path but with the .metadata
     return 0;
@@ -17,7 +18,7 @@ int AssetsModule::find(const std::filesystem::path& assetsFile) const
 
 
 
-int AssetsModule::import(const std::filesystem::path& assetsFile)
+UID AssetsModule::import(const std::filesystem::path& assetsFile)
 {
     Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
     if (!importer)
@@ -26,7 +27,7 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
         return INVALID_ASSET_ID;
     }
 
-    int uid = generateNewUID();
+    UID uid = GenerateUID();
 
     Asset* asset = importer->createAssetInstance(uid);
 
@@ -66,12 +67,8 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
     return uid;
 }
 
-int AssetsModule::generateNewUID()
-{
-    return rand();
-}
 
-Asset* AssetsModule::requestAsset(int id)
+Asset* AssetsModule::requestAsset(UID id)
 {
     auto it = m_assets.find(id);
     if (it != m_assets.end())

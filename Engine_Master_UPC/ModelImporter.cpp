@@ -15,6 +15,7 @@
 #include "Application.h"
 #include "AssetsModule.h"
 #include <IndexBuffer.h>
+#include <UID.h>
 
 static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
 
@@ -117,7 +118,7 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
 }
 
 
-uint32_t loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex, const std::filesystem::path* modelPath)
+UID loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex, const std::filesystem::path* modelPath)
 {
 	if (gltfTextureIndex < 0 || gltfTextureIndex >= static_cast<int>(model.textures.size())) return 0;
 	const tinygltf::Texture& texture = model.textures[gltfTextureIndex];
@@ -157,7 +158,7 @@ void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model
 
     for (tinygltf::Material material : source.materials) 
 	{		
-		uint32_t materialId = app->getAssetModule()->generateNewUID();
+        uint32_t materialId = GenerateUID();
 		MaterialAsset myMaterial(materialId);
 
 		loadMaterial(source, material, &myMaterial);
@@ -168,7 +169,7 @@ void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model
 
 	for (tinygltf::Mesh mesh : source.meshes) 
 	{
-		MeshAsset myMesh(app->getAssetModule()->generateNewUID());
+		MeshAsset myMesh(GenerateUID());
 		for (tinygltf::Primitive primitive : mesh.primitives) 
 		{
 			loadMesh(source, primitive, &myMesh, materialIndexToAssetId);
@@ -179,7 +180,7 @@ void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model
 
 uint64_t ModelImporter::saveTyped(const ModelAsset* source, uint8_t** outBuffer)
 {
-    uint64_t size = sizeof(uint32_t); // uid
+    uint64_t size = sizeof(uint64_t); // uid
 
     size += sizeof(uint32_t); // materialCount
     for (const auto& mat : source->materials)
@@ -202,7 +203,7 @@ uint64_t ModelImporter::saveTyped(const ModelAsset* source, uint8_t** outBuffer)
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u32(source->m_uid);
+    writer.u64(source->m_uid);
 
     writer.u32(static_cast<uint32_t>(source->materials.size()));
     for (const auto& mat : source->materials)
@@ -232,7 +233,7 @@ void ModelImporter::loadTyped(const uint8_t* buffer, ModelAsset* model)
 {
     BinaryReader reader(buffer);
 
-    model->m_uid = reader.u32();
+    model->m_uid = reader.u64();
 
     uint32_t materialCount = reader.u32();
     model->materials.resize(materialCount);
@@ -259,7 +260,7 @@ uint64_t ModelImporter::saveMesh(const MeshAsset* source, uint8_t** outBuffer)
 {
     uint64_t size = 0;
 
-    size += sizeof(uint32_t); // uid
+    size += sizeof(uint64_t); // uid
 
     size += sizeof(uint32_t); // vertexCount
     size += source->vertices.size() * sizeof(Vertex);
@@ -277,7 +278,7 @@ uint64_t ModelImporter::saveMesh(const MeshAsset* source, uint8_t** outBuffer)
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u32(source->m_uid);
+    writer.u64(source->m_uid);
 
     writer.u32(static_cast<uint32_t>(source->vertices.size()));
     writer.bytes(source->vertices.data(), source->vertices.size() * sizeof(Vertex));
@@ -300,30 +301,30 @@ uint64_t ModelImporter::saveMaterial(const MaterialAsset* source, uint8_t** outB
 {
     uint64_t size = 0;
     // Look a way to be able to get the size automatically
-    size += sizeof(uint32_t); // uid
-    size += sizeof(uint32_t); // baseMap
+    size += sizeof(uint64_t); // uid
+    size += sizeof(uint64_t); // baseMap
     size += sizeof(Color);    // baseColour
-    size += sizeof(uint32_t); // metallicRoughnessMap
-    size += sizeof(uint32_t); // metallicFactor
-    size += sizeof(uint32_t); // normalMap
-    size += sizeof(uint32_t); // occlusionMap
+    size += sizeof(uint64_t); // metallicRoughnessMap
+    size += sizeof(uint64_t); // metallicFactor
+    size += sizeof(uint64_t); // normalMap
+    size += sizeof(uint64_t); // occlusionMap
     size += sizeof(uint8_t);  // isEmissive
-    size += sizeof(uint32_t); // emissiveMap
+    size += sizeof(uint64_t); // emissiveMap
 
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u32(source->m_uid);
-    writer.u32(source->baseMap);
+    writer.u64(source->m_uid);
+    writer.u64(source->baseMap);
     writer.bytes(&source->baseColour, sizeof(Color));
 
-    writer.u32(source->metallicRoughnessMap);
+    writer.u64(source->metallicRoughnessMap);
     writer.u32(source->metallicFactor);
-    writer.u32(source->normalMap);
-    writer.u32(source->occlusionMap);
+    writer.u64(source->normalMap);
+    writer.u64(source->occlusionMap);
 
     writer.u8(source->isEmissive ? 1 : 0);
-    writer.u32(source->emissiveMap);
+    writer.u64(source->emissiveMap);
 
     *outBuffer = buffer;
     return size;
@@ -333,7 +334,7 @@ void ModelImporter::loadMesh(const uint8_t* buffer, MeshAsset* mesh)
 {
     BinaryReader reader(buffer);
 
-    mesh->m_uid = reader.u32();
+    mesh->m_uid = reader.u64();
 
     uint32_t vertexCount = reader.u32();
     mesh->vertices.resize(vertexCount);
@@ -356,16 +357,16 @@ void ModelImporter::loadMaterial(const uint8_t* buffer, MaterialAsset* material)
 {
     BinaryReader reader(buffer);
 
-    material->m_uid = reader.u32();
-    material->baseMap = reader.u32();
+    material->m_uid = reader.u64();
+    material->baseMap = reader.u64();
 
     reader.bytes(&material->baseColour, sizeof(Color));
 
-    material->metallicRoughnessMap = reader.u32();
+    material->metallicRoughnessMap = reader.u64();
     material->metallicFactor = reader.u32();
-    material->normalMap = reader.u32();
-    material->occlusionMap = reader.u32();
+    material->normalMap = reader.u64();
+    material->occlusionMap = reader.u64();
 
     material->isEmissive = reader.u8() != 0;
-    material->emissiveMap = reader.u32();
+    material->emissiveMap = reader.u64();
 }

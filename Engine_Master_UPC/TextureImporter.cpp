@@ -87,7 +87,8 @@ uint64_t TextureImporter::saveTyped(const TextureAsset* source, uint8_t** outBuf
 {
 
     uint64_t size = 0;
-    size += 7 * sizeof(uint32_t);
+    size += sizeof(uint64_t);
+    size += 6 * sizeof(uint32_t);
 
     for (const auto& img : source->images) {
         size += 3 * sizeof(uint32_t);
@@ -97,7 +98,7 @@ uint64_t TextureImporter::saveTyped(const TextureAsset* source, uint8_t** outBuf
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u32(source->m_uid);
+    writer.u64(source->m_uid);
 
     writer.u32(source->width);
     writer.u32(source->height);
@@ -121,7 +122,7 @@ void TextureImporter::loadTyped(const uint8_t* buffer, TextureAsset* texture)
 {
     BinaryReader reader(buffer);
 
-    texture->m_uid = reader.u32();
+    texture->m_uid = reader.u64();
 
     texture->width = reader.u32();
     texture->height = reader.u32();

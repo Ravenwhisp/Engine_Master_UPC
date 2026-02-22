@@ -38,6 +38,8 @@ public:
 private:
 	mutable std::vector<std::unique_ptr<BasicMesh>>		m_meshes;
 	mutable std::vector<std::unique_ptr<BasicMaterial>>	m_materials;
+	std::unordered_map<UID, uint32_t>					m_materialIndexByUID;
+
 	Engine::BoundingBox									m_boundingBox;
 
 	std::string m_modelPath;

@@ -139,9 +139,11 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & f
 	TextureInitInfo info{}; 
 	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat()); 
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount())); 
-	info.desc = &desc; info.initialState = D3D12_RESOURCE_STATE_COPY_DEST; auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	info.desc = &desc; info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 
-	std::vector<D3D12_SUBRESOURCE_DATA> subData; subData.reserve(textureAsset->getImageCount()); 
+	std::vector<D3D12_SUBRESOURCE_DATA> subData;
+	subData.reserve(textureAsset->getImageCount()); 
 
 	const auto& subImages = textureAsset->getImages(); 
 	for (const auto& subImg : subImages)
@@ -170,16 +172,6 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset.getWidth()), UINT(textureAsset.getHeight()), UINT16(textureAsset.getArraySize()), UINT16(textureAsset.getMipCount()));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = texFormat;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.MipLevels = (UINT)textureAsset.getMipCount();
-	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
-
-	info.srvDesc = &srvDesc;
 
 	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 
