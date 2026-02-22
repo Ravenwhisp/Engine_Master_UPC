@@ -1,6 +1,14 @@
 #pragma once
 #include <string>
 #include "filesystem"
+#include <Logger.h>
+
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
+#include <simdjson.h>
+#include <fstream>
 
 static const int INVALID_ASSET_ID = -1;
 
@@ -15,12 +23,17 @@ enum class AssetType : uint32_t
 };
 
 
-struct AssetMetadata
+class AssetMetadata
 {
+public:
 	int uid = INVALID_ASSET_ID;
 	AssetType type;
 	std::filesystem::path sourcePath;
 	std::filesystem::path binaryPath;
+
+	// I AM SO SORRY FOR THIS
+    static bool saveMetaFile(const AssetMetadata& meta, const std::filesystem::path& metaPath);
+    static bool loadMetaFile(const std::filesystem::path& metaPath, AssetMetadata& outMeta);
 };
 
 class Asset

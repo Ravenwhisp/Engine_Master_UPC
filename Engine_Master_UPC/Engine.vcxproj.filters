@@ -198,6 +198,7 @@
     <ClCompile Include="FileDialog.cpp">
       <Filter>Core\Persistence\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="Asset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -449,6 +450,9 @@
     </ClInclude>
     <ClInclude Include="Asset.h">
       <Filter>Core\Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializable.h">
+      <Filter>Core\Persistence</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

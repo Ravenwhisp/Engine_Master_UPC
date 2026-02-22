@@ -7,6 +7,13 @@ class BinaryReader {
 public:
     BinaryReader(const uint8_t* buffer) : cursor(buffer) {}
 
+    uint8_t u8() {
+        uint8_t v;
+        std::memcpy(&v, cursor, sizeof(v));
+        cursor += sizeof(v);
+        return v;
+    }
+
     uint32_t u32() 
     {
         uint32_t v;
@@ -34,6 +41,16 @@ public:
         std::string s(len, '\0');
         bytes(s.data(), len);
         return s;
+    }
+
+    const uint8_t* ptr() const 
+    { 
+        return cursor; 
+    }
+
+    void skip(size_t bytes) 
+    { 
+        cursor += bytes; 
     }
 
 private:

@@ -7,6 +7,11 @@ class BinaryWriter {
 public:
     BinaryWriter(uint8_t* buffer) : cursor(buffer) {}
 
+    void u8(uint8_t v) {
+        std::memcpy(cursor, &v, sizeof(v));
+        cursor += sizeof(v);
+    }
+
     void u32(uint32_t v) 
     {
         std::memcpy(cursor, &v, sizeof(v));
