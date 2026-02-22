@@ -10,6 +10,7 @@
 #include "Asset.h"
 
 #include <TextureAsset.h>
+#include <AssetsModule.h>
 
 bool FileSystemModule::init()
 {
@@ -63,19 +64,32 @@ AssetMetadata* FileSystemModule::getMetadata(int uid)
 
 unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
 {
-    if (!filePath || !buffer) return 0;
+    if (!filePath || !buffer)
+    {
+        LOG_ERROR("[FileSystemModule] No path or buffer correctly provided.");
+        return 0;
+    }
 
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-    if (!file) return 0;
+    if (!file) 
+    { 
+        LOG_ERROR("[FileSystemModule] Couldn't open the file while trying to load.");
+        return 0; 
+    }
 
     std::streamsize size = file.tellg();
-    if (size <= 0) return 0;
+    if (size <= 0)
+    {
+        LOG_ERROR("[FileSystemModule] Couldn't load the file since it's empty.");
+        return 0;
+    }
 
     file.seekg(0, std::ios::beg);
 
     char* data = new char[size];
     if (!file.read(data, size))
     {
+        LOG_ERROR("[FileSystemModule] Couldn't read the file.");
         delete[] data;
         return 0;
     }
@@ -105,11 +119,16 @@ unsigned int FileSystemModule::save(const char* filePath, const void* buffer, un
     std::ofstream file(filePath, mode);
     if (!file)
     {
+        LOG_ERROR("[FileSystemModule] Error while trying to save a file that doesn't exists.");
         return 0;
     }
 
     file.write(static_cast<const char*>(buffer), size);
-    if (!file) return 0;
+    if (!file)
+    {
+        LOG_ERROR("[FileSystemModule] Error while writing into a file.");
+        return 0;
+    }
 
     return size;
 }
@@ -141,24 +160,38 @@ bool FileSystemModule::isDirectory(const char* path) const
 
 void FileSystemModule::rebuild()
 {
-    m_root = buildTree("Assets");
+    m_root = buildTree(ASSETS_FOLDER);
 }
 
 std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
 {
-    if (!m_root) return nullptr;
+    if (!m_root)
+    {
+        LOG_WARNING("[FileSystemModule] Root folder doesn't exist.");
+        return nullptr;
+    }
     return getEntryRecursive(m_root, path);
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive( const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const
+std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const
 {
-    if (!node) return nullptr;
+    if (!node)
+    {
+        LOG_WARNING("[FileSystemModule] Node doesn't exists");
+        return nullptr;
+    }
 
-    if (node->path == path) return node;
+    if (node->path == path)
+    {
+        return node;
+    }
 
     for (auto& child : node->children)
     {
-        if (auto found = getEntryRecursive(child, path)) return found;
+        if (auto found = getEntryRecursive(child, path))
+        {
+            return found;
+        }
     }
 
     return nullptr;
@@ -184,12 +217,12 @@ bool loadMetaFile(const std::filesystem::path& metaPath, AssetMetadata& outMeta)
     }
     catch (const simdjson::simdjson_error& e)
     {
-        LOG_ERROR("Failed to load meta file '%s': %s", metaPath.string().c_str(), e.what());
+        LOG_ERROR("[FileSystemModule] Failed to load meta file '%s': %s", metaPath.string().c_str(), e.what());
         return false;
     }
     catch (const std::exception& e)
     {
-        LOG_ERROR("Unexpected error loading meta file '%s': %s", metaPath.string().c_str(), e.what());
+        LOG_ERROR("[FileSystemModule] Unexpected error loading meta file '%s': %s", metaPath.string().c_str(), e.what());
         return false;
     }
 }
@@ -209,7 +242,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::pa
     }
     else
     {
-        if (path.extension() == ".meta")
+        if (path.extension() == METADATA_EXTENSION)
         {
             AssetMetadata meta;
             if (loadMetaFile(path, meta))

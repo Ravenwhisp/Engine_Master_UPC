@@ -9,6 +9,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <filesystem>
 #include <fstream>
+#include <Logger.h>
 
 int AssetsModule::find(const std::filesystem::path& assetsFile) const
 {
@@ -33,7 +34,11 @@ bool saveMetaFile(const AssetMetadata& meta, const std::filesystem::path& metaPa
     doc.Accept(writer);
 
     std::ofstream file(metaPath);
-    if (!file.is_open()) return false;
+    if (!file.is_open())
+    {
+        LOG_ERROR("[AssetsModule] Couldn't open the metafile.");
+        return false;
+    }
 
     file << buffer.GetString();
     return true;
@@ -47,6 +52,7 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
     Importer* importer = app->getFileSystemModule()->findImporter(cpath);
     if (!importer)
     {
+        LOG_INFO("[AssetsModule] Couldn't find a proper importer for this format:", assetsFile.c_str());
         return INVALID_ASSET_ID;
     }
 
@@ -56,11 +62,12 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
 
     if (!importer->import(assetsFile, asset))
     {
+        LOG_ERROR("[AssetsModule] Couldn't import the asset:", assetsFile.c_str());
         delete asset;
         return INVALID_ASSET_ID;
     }
 
-    std::filesystem::path libraryPath = "Library/" + std::to_string(uid) + ".asset";
+    std::filesystem::path libraryPath = LIBRARY_FOLDER + std::to_string(uid) + ASSET_EXTENSION;
 
     // METADATA
     AssetMetadata meta;
@@ -70,7 +77,7 @@ int AssetsModule::import(const std::filesystem::path& assetsFile)
     meta.binaryPath = libraryPath;
 
     std::filesystem::path metaPath = assetsFile;
-    metaPath += ".meta";
+    metaPath += METADATA_EXTENSION;
 
     saveMetaFile(meta, metaPath);
 
@@ -108,7 +115,11 @@ Asset* AssetsModule::requestAsset(int id)
 
     // Load meta
     AssetMetadata* metadata = app->getFileSystemModule()->getMetadata(id);
-    if (!metadata) return nullptr;
+    if (!metadata)
+    {
+        LOG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", id);
+        return nullptr;
+    }
 
     //Create the asset
     Importer* importer = app->getFileSystemModule()->findImporter(metadata->type);
@@ -136,7 +147,11 @@ Asset* AssetsModule::requestAsset(int id)
 
 void AssetsModule::releaseAsset(Asset* asset)
 {
-    if (!asset) return;
+    if (!asset)
+    {
+        LOG_WARNING("[AssetsModule] Tried to release an empty asset");
+        return;
+    }
 
     asset->release();
     if (asset->getReferenceCount() <= 0)

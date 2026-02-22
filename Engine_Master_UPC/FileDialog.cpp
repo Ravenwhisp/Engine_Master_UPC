@@ -36,7 +36,10 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
     float panelWidth = ImGui::GetContentRegionAvail().x;
     int columnCount = (int)(panelWidth / cellSize);
-    if (columnCount < 1) columnCount = 1;
+    if (columnCount < 1)
+    {
+        columnCount = 1;
+    }
 
     ImGui::Columns(columnCount, nullptr, false);
 
@@ -44,7 +47,8 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
     {
         ImGui::PushID(asset->path.string().c_str());
 
-        ImGui::Button(asset->isDirectory ? "[DIR]" : "[FILE]",ImVec2(40, 40));
+        // PROVISIONAL: This will be changed for an image
+        ImGui::Button(asset->isDirectory ? "[DIR]" : "[FILE]", ImVec2(40, 40));
 
         if (ImGui::IsItemClicked())
         {
@@ -53,7 +57,10 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
         {
-            if (asset->isDirectory) m_currentDirectory = asset->path;
+            if (asset->isDirectory)
+            {
+                m_currentDirectory = asset->path;
+            }
         }
 
         ImGui::TextWrapped("%s", asset->path.filename().string().c_str());
@@ -81,7 +88,7 @@ void FileDialog::render()
         return;
     }
 
-    ImGui::BeginChild("LeftPane", ImVec2(250, 0), true);
+    ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
     drawDirectoryTree(app->getFileSystemModule()->getRoot());
     ImGui::EndChild();
 
