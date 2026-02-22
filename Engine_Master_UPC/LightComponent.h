@@ -2,10 +2,13 @@
 #include "Component.h"
 #include "Lights.h"
 
+#include <rapidjson/document.h>
+
+
 class LightComponent final : public Component
 {
 public:
-    LightComponent(int id, GameObject* owner);
+    LightComponent(UID id, GameObject* owner);
 
     const LightData& getData() const { return m_data; }
     LightData& editData() { return m_data; }
@@ -21,6 +24,8 @@ public:
 
     bool isDebugDrawEnabled() const { return m_debugDrawEnabled; }
     bool isDebugDrawDepthEnabled() const { return m_debugDrawDepthEnabled; }
+
+    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
     LightData m_data{};

@@ -1,4 +1,5 @@
 #include "Globals.h"
+
 #include "SceneModule.h"
 #include "LightComponent.h"
 #include <CameraComponent.h>
@@ -7,22 +8,24 @@
 
 #include "BasicModel.h"
 
+#include "SceneSerializer.h"
+
 using namespace DirectX::SimpleMath;
 
 #pragma region GameLoop
 bool SceneModule::init()
 {
+	m_sceneSerializer = new SceneSerializer();
+
     m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     /// PROVISIONAL
-    GameObject* gameCamera = new GameObject(rand());
+    GameObject* gameCamera = new GameObject(GenerateUID());
     gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    auto component = gameCamera->GetComponentAs<BasicModel>(ComponentType::MODEL);
-    gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
 
     for (GameObject* gameObject : m_gameObjects)
@@ -131,19 +134,20 @@ void SceneModule::postRender()
 
 bool SceneModule::cleanUp()
 {
-    for (GameObject* gameObject : m_gameObjects)
-    {
-        gameObject->cleanUp();
-        delete gameObject;
-    }
-    m_gameObjects.clear();
+    clearScene();
+
+    delete m_quadtree;
+    m_quadtree = nullptr;
+
+    delete m_sceneSerializer;
+    m_sceneSerializer = nullptr;
 	return true;
 }
 #pragma endregion
 
 void SceneModule::createGameObject()
 {
-	GameObject* newGameObject = new GameObject(rand());
+	GameObject* newGameObject = new GameObject(GenerateUID());
     newGameObject->init();
     newGameObject->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
@@ -151,7 +155,17 @@ void SceneModule::createGameObject()
     m_quadtree->insert(*newGameObject);
 }
 
-void SceneModule::removeGameObject(int uuid)
+GameObject* SceneModule::createGameObjectWithUID(UID id) {
+    GameObject* newGameObject = new GameObject(id);
+
+    m_gameObjects.push_back(newGameObject);
+    m_quadtree->insert(*newGameObject);
+
+    return newGameObject;
+}
+
+
+void SceneModule::removeGameObject(UID uuid)
 {
     GameObject* target = nullptr;
 
@@ -174,7 +188,6 @@ void SceneModule::removeGameObject(int uuid)
     if (!target)
         return;
 
-    m_quadtree->remove(*target);
     destroyHierarchy(target);
 }
 
@@ -196,7 +209,7 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     delete gameObject;
 }
 
-GameObject* SceneModule::findInHierarchy(GameObject* current, int uuid)
+GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
@@ -220,6 +233,8 @@ void SceneModule::destroyHierarchy(GameObject* obj)
         destroyHierarchy(child);
     }
 
+    m_quadtree->remove(*obj);
+
     Transform* parent = obj->GetTransform()->getRoot();
 
     if (parent)
@@ -233,9 +248,7 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
-    GameObject* go = new GameObject(rand());
-    auto component = go->GetComponentAs<BasicModel>(ComponentType::MODEL);
-    go->RemoveComponent(component);
+    GameObject* go = new GameObject(GenerateUID());
 
     go->SetName("Directional Light");
 
@@ -264,3 +277,24 @@ bool SceneModule::applySkyboxToRenderer()
 {
     return app->getRenderModule()->applySkyboxSettings(m_skybox.enabled, m_skybox.path);
 }
+
+#pragma region Persistence
+void SceneModule::saveScene()
+{
+	m_sceneSerializer->SaveScene(m_name);
+}
+
+void SceneModule::loadScene()
+{
+    m_sceneSerializer->LoadScene(m_name);
+}
+
+void SceneModule::clearScene()
+{
+    while (!m_gameObjects.empty())
+    {
+        destroyHierarchy(m_gameObjects.back());
+    }
+}
+#pragma endregion
+
