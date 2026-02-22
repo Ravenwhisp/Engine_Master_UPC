@@ -45,6 +45,10 @@ public:
 
 	void drawUi() override;
 
+#pragma region Filesystem
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basic parameters! (no childs, parent or uid)
+#pragma endregion
+
 private:
 	mutable Matrix m_globalMatrix;
 	mutable bool m_dirty;
