@@ -10,17 +10,41 @@
 
 void MeshRenderer::addModel(ModelAsset& model)
 {
+    m_meshes.clear();
+    m_materials.clear();
+    m_materialIndexByUID.clear();
+
+    Vector3 globalMin(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vector3 globalMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
     for (const auto meshAsset : model.getMeshes())
     {
+        Vector3 meshMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
+        Vector3 meshMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
+
+        globalMin.x = std::min(globalMin.x, meshMin.x);
+        globalMin.y = std::min(globalMin.y, meshMin.y);
+        globalMin.z = std::min(globalMin.z, meshMin.z);
+
+        globalMax.x = std::max(globalMax.x, meshMax.x);
+        globalMax.y = std::max(globalMax.y, meshMax.y);
+        globalMax.z = std::max(globalMax.z, meshMax.z);
+
         auto mesh = std::make_unique<BasicMesh>(meshAsset);
         m_meshes.push_back(std::move(mesh));
     }
 
+    uint32_t index = 0;
     for (const auto materialAsset : model.getMaterials())
     {
+        m_materialIndexByUID[materialAsset.getId()] = index;
         auto material = std::make_unique<BasicMaterial>(materialAsset);
         m_materials.push_back(std::move(material));
+        ++index;
     }
+
+    m_boundingBox = Engine::BoundingBox(globalMin, globalMax);
+    m_hasBounds = true;
 }
 
 #pragma region Loop functions
@@ -43,14 +67,19 @@ void MeshRenderer::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMa
 
         for (const Submesh& submesh : submeshes)
         {
-            uint32_t materialIndex = submesh.materialId;
+            auto it = m_materialIndexByUID.find(submesh.materialId);
+            if (it == m_materialIndexByUID.end())
+            {
+                continue;
+            }
 
-            if (materialIndex >= m_materials.size()) continue;
+            uint32_t materialIndex = it->second;
+            BasicMaterial* material = m_materials[materialIndex].get();
 
             ModelData modelData{};
             modelData.model = transform->getGlobalMatrix().Transpose();
             modelData.normalMat = transform->getNormalMatrix().Transpose();
-            modelData.material = m_materials[materialIndex]->getMaterial();
+            modelData.material = material->getMaterial();
 
             // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
             commandList->SetGraphicsRootConstantBufferView(2 ,app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
@@ -109,7 +138,7 @@ void MeshRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const int* data = static_cast<const int*>(payload->Data);
+            const UID* data = static_cast<const UID*>(payload->Data);
             ModelAsset*modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(*data));
             addModel(*modelAsset);
         }

@@ -19,7 +19,7 @@ public:
 	Importer* findImporter(const char* filePath);
 
 	Importer* findImporter(AssetType type);
-	AssetMetadata* getMetadata(int uid);
+	AssetMetadata* getMetadata(UID uid);
 
 	unsigned int load(const std::filesystem::path& filePath, char** buffer) const;
 	unsigned int load(const char* filePath, char** buffer) const;
@@ -42,7 +42,7 @@ private:
 	std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path);
 	std::shared_ptr<FileEntry> m_root;
 #pragma endregion
-	std::unordered_map<int, AssetMetadata> m_metadataMap;
+	std::unordered_map<UID, AssetMetadata> m_metadataMap;
 
 	// I don't know if having to ways of finding an importer is the solution
 	std::unordered_map<AssetType, Importer*> importersMap;

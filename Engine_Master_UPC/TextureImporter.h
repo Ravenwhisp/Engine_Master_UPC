@@ -21,7 +21,7 @@ public:
 		return ext == PNG_EXTENSION || ext == JPG_EXTENSION || ext == JPEG_EXTENSION || ext == BMP_EXTENSION || ext == TGA_EXTENSION || ext == DDS_EXTENSION;
 	}
 
-	Asset* createAssetInstance(int uid) const override
+	Asset* createAssetInstance(UID uid) const override
 	{
 		return new TextureAsset(uid);
 	}
