@@ -2,10 +2,10 @@
   "Scene": {
     "Skybox": {
       "Enabled": true,
-      "Path": "Assets/Textures/cubemap.dds"
+      "Path": "Assets/Textures/SkyMidNight.dds"
     },
     "Lighting": {
-      "AmbientColor": [0.2, 0.2, 0.2],
+      "AmbientColor": [0.3, 0.3, 0.3],
       "AmbientIntensity": 2.0
     },
     "GameObjects": [
@@ -14,7 +14,7 @@
         "ParentUID": 0,
         "Name": "Directional Light",
         "Transform": {
-	  "UID": 5001,
+          "UID": 5001,
           "Position": [0.0, 5.0, 0.0],
           "Rotation": [0.0, 0.0, 0.0, 1.0],
           "Scale": [1.0, 1.0, 1.0]
@@ -33,7 +33,7 @@
       {
         "UID": 2,
         "ParentUID": 0,
-        "Name": "Cameraaaaa",
+        "Name": "Camera",
         "Transform": {
           "UID": 5002,
           "Position": [-5.0, 10.0, -5.0],
@@ -54,16 +54,35 @@
       {
         "UID": 3,
         "ParentUID": 0,
-        "Name": "DD",
+        "Name": "Duck",
         "Transform": {
           "UID": 5003,
           "Position": [0.0, 0.0, 0.0],
-          "Rotation": [1.0, 0.0, 0.0, 1.0],
-          "Scale": [1.0, 1.0, 1.0]
+          "Rotation": [0.0, 0.0, 0.0, 1.0],
+          "Scale": [0.01, 0.01, 0.01]
         },
         "Components": [
           {
             "UID": 301,
+            "ComponentType": 1,
+            "ModelPath": "Assets/Models/Duck/Duck.gltf",
+            "BasePath": "Assets/Models/Duck/"
+          }
+        ]
+      },
+      {
+        "UID": 4,
+        "ParentUID": 0,
+        "Name": "DamagedHelmet",
+        "Transform": {
+          "UID": 5004,
+          "Position": [5.0, 0.0, 0.0],
+          "Rotation": [0.0, 0.0, 0.0, 1.0],
+          "Scale": [1.0, 1.0, 1.0]
+        },
+        "Components": [
+          {
+            "UID": 401,
             "ComponentType": 1,
             "ModelPath": "Assets/Models/DamagedHelmet/DamagedHelmet.gltf",
             "BasePath": "Assets/Models/DamagedHelmet/"
@@ -71,24 +90,26 @@
         ]
       },
       {
-        "UID": 4,
+        "UID": 5,
         "ParentUID": 0,
-        "Name": "Point Light",
+        "Name": "Spot Light",
         "Transform": {
-          "UID": 5004,
-          "Position": [2.0, 2.0, 2.0],
-          "Rotation": [0.0, 0.0, 0.0, 1.0],
+          "UID": 5005,
+          "Position": [0.0, 8.0, 0.0],
+          "Rotation": [0.70710678, 0.0, 0.0, 0.70710678],
           "Scale": [1.0, 1.0, 1.0]
         },
         "Components": [
           {
-            "UID": 401,
+            "UID": 501,
             "ComponentType": 2,
-            "LightType": 1,
+            "LightType": 2,
             "Enabled": true,
-            "Color": [1.0, 0.8, 0.6],
-            "Intensity": 5.0,
-            "Radius": 6.0
+            "Color": [0.3, 0.5, 1.0],
+            "Intensity": 10.0,
+            "Radius": 10.0,
+            "InnerAngleDegrees": 20.0,
+            "OuterAngleDegrees": 30.0
           }
         ]
       }
