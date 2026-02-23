@@ -45,7 +45,8 @@ public:
 
     Settings*                   getSettings() { return m_settings; }
 
-    const CameraComponent* getActiveCamera() const { return m_activeCamera; }
+    // FIXME: Cannot return const CameraComponent* (which it should) because render is not const
+    CameraComponent* getActiveCamera() const { return m_activeCamera; }
     void setActiveCamera(CameraComponent* camera) { m_activeCamera = camera; }
 
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }

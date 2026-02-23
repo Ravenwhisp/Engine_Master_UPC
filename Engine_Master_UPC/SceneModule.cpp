@@ -81,7 +81,7 @@ void SceneModule::preRender()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
-    CameraComponent* camera = nullptr;
+    CameraComponent* camera = app->getActiveCamera();
 
     for (GameObject* gameObject : m_gameObjects)
     {
@@ -110,7 +110,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     }
     else
     {
-        gameObjects = m_quadtree->getObjects(nullptr);
+        gameObjects = m_gameObjects;
     }
 
     for (GameObject* gameObject : gameObjects)
