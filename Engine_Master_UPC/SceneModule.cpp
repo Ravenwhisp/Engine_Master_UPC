@@ -160,6 +160,7 @@ void SceneModule::createGameObject()
 
 GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID) {
     GameObject* newGameObject = new GameObject(id, transformUID);
+    newGameObject->init();
 
     m_gameObjects.push_back(newGameObject);
 
@@ -383,18 +384,18 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         detachGameObject(child);
     }
 
-    for (GameObject* rootGameObject : getAllGameObjects())
-        rootGameObject->init();
+    /*for (GameObject* rootGameObject : getAllGameObjects())
+        rootGameObject->init();*/
 
     // Retake a look at this, models were not seen after loading because their transform wasn't being updated, so I did this fix, feels wierd to have it like that
     // but is the solution I found.
-    for (const auto& pair : uidToGo)
+    /*for (const auto& pair : uidToGo)
     {
         GameObject* gameObject = pair.second;
         gameObject->GetTransform()->getGlobalMatrix();
         gameObject->onTransformChange();
         getQuadtree().move(*gameObject);
-    }
+    }*/
 
     applySkyboxToRenderer();
 
