@@ -12,7 +12,4 @@ public:
     bool SaveScene(std::string sceneName, rapidjson::Document& domTree);
     bool LoadScene(std::string sceneName);
 
-    bool loadSceneSkybox(SceneModule* sceneModule, const rapidjson::Value& sceneJson);
-    bool loadSceneLighting(SceneModule* sceneModule, const rapidjson::Value& sceneJson);
-
 };

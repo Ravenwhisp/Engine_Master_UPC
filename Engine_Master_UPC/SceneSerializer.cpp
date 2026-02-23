@@ -103,91 +103,9 @@ bool SceneSerializer::LoadScene(std::string sceneName)
         return false;
     }
 
-    const auto& sceneJson = doc[sceneName.c_str()];
-    const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
-
+    const rapidjson::Value& sceneJson = doc[sceneName.c_str()];
     SceneModule* sceneModule = app->getSceneModule();
-    sceneModule->clearScene();
 
-    loadSceneSkybox(sceneModule, sceneJson);
-    loadSceneLighting(sceneModule, sceneJson);
+    return sceneModule->loadFromJSON(sceneJson);
 
-    // Create all objects and components
-    std::unordered_map<uint64_t, GameObject*> uidToGo;
-    std::unordered_map<uint64_t, uint64_t> childToParent;
-
-    for (auto& gameObjectJson : gameObjectsArray)
-    {
-        const uint64_t uid = gameObjectJson["UID"].GetUint64();
-        const uint64_t transformUid = gameObjectJson["Transform"]["UID"].GetUint64();
-        GameObject* gameObject = sceneModule->createGameObjectWithUID((UID)uid, (UID)transformUid);
-
-        uint64_t parentUid = 0;
-        gameObject->deserializeJSON(gameObjectJson, parentUid);
-
-        uidToGo[uid] = gameObject;
-        childToParent[uid] = parentUid;
-    }
-
-    // Parent Child linking
-    for (const auto& childAndParent : childToParent)
-    {
-        const uint64_t childUid = childAndParent.first;
-        const uint64_t parentUid = childAndParent.second;
-
-        if (parentUid == 0) {
-            continue;
-        }
-
-        GameObject* child = uidToGo[childUid];
-        GameObject* parent = uidToGo[parentUid];
-
-        child->GetTransform()->setRoot(parent->GetTransform());
-        parent->GetTransform()->addChild(child);
-
-        sceneModule->detachGameObject(child);
-    }
-
-    for (GameObject* rootGameObject : sceneModule->getAllGameObjects())
-        rootGameObject->init();
-
-    // Retake a look at this, models were not seen after loading because their transform wasn't being updated, so I did this fix, feels wierd to have it like that
-    // but is the solution I found.
-    for (const auto& pair : uidToGo)
-    {
-        GameObject* gameObject = pair.second;
-        gameObject->GetTransform()->getGlobalMatrix();
-        gameObject->onTransformChange();
-        sceneModule->getQuadtree().move(*gameObject);
-
-    }
-
-    sceneModule->applySkyboxToRenderer();
-
-    return true;
-}
-
-bool SceneSerializer::loadSceneSkybox(SceneModule* sceneModule, const rapidjson::Value& sceneJson) {
-    auto& skybox = sceneModule->getSkyboxSettings();
-
-    const auto& skyboxJson = sceneJson["Skybox"];
-    skybox.enabled = skyboxJson["Enabled"].GetBool();
-
-    const char* pathStr = skyboxJson["Path"].GetString();
-    strcpy_s(skybox.path, 260, pathStr);
-    
-    return true;
-}
-
-bool SceneSerializer::loadSceneLighting(SceneModule* sceneModule, const rapidjson::Value& sceneJson) {
-    auto& lighting = sceneModule->GetLightingSettings();
-
-    const auto& lightingJson = sceneJson["Lighting"];
-
-    const auto& color = lightingJson["AmbientColor"].GetArray();
-    lighting.ambientColor = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
-
-    lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
-
-    return true;
 }
