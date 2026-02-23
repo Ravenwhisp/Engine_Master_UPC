@@ -103,7 +103,7 @@ bool SceneSerializer::LoadScene(std::string sceneName)
         return false;
     }
 
-    const auto& sceneJson = doc["Scene"];
+    const auto& sceneJson = doc[sceneName.c_str()];
     const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
 
     SceneModule* sceneModule = app->getSceneModule();

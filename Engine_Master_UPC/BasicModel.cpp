@@ -276,6 +276,10 @@ rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::MODEL), domTree.GetAllocator());
+    rapidjson::Value modelPath(m_modelPath.c_str(), domTree.GetAllocator());
+    rapidjson::Value basePath(m_basePath.c_str(), domTree.GetAllocator());
+    componentInfo.AddMember("ModelPath", modelPath, domTree.GetAllocator());
+    componentInfo.AddMember("BasePath", basePath, domTree.GetAllocator());
 
     return componentInfo;
 }
