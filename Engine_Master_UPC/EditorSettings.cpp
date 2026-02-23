@@ -79,7 +79,6 @@ void EditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show Axis###SceneShowAxis", &m_settings->sceneEditor.showAxis);
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
         ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
-        ImGui::Checkbox("Cull objects outside of camera's frustum", &m_settings->frustumCulling.cullObjectsOutsideOfFrustum);
     }
 }
 
@@ -112,6 +111,6 @@ void EditorSettings::drawFrustumCullingSettings()
 {
     if (ImGui::CollapsingHeader("Frustum culling"))
     {
-        ImGui::Checkbox("Enabled###FrustumCullingEnabled", &m_settings->frustumCulling.cullObjectsOutsideOfFrustum);
+        ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.cullObjectsOutsideOfFrustum);
     }
 }

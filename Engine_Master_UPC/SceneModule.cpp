@@ -23,6 +23,7 @@ bool SceneModule::init()
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
+    app->setActiveCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
     auto component = gameCamera->GetComponentAs<BasicModel>(ComponentType::MODEL);
     gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
