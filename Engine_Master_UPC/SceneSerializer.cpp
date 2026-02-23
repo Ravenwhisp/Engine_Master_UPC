@@ -16,6 +16,8 @@
 #include "ComponentType.h"
 
 #include <rapidjson/document.h>
+#include "rapidjson/filewritestream.h"
+#include <rapidjson/writer.h>
 
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
@@ -42,13 +44,35 @@ SceneSerializer::~SceneSerializer()
 {
 }
 
-bool SceneSerializer::SaveScene(std::string sceneName)
+bool SceneSerializer::SaveScene(std::string sceneName, rapidjson::Document& domTree)
 {
     if (sceneName.empty())
     {
         LOG("Scene name cannot be empty.\n");
         return false;
 	}
+
+    const std::string path = std::string(SCENE_FOLDER) + sceneName + std::string(SCENE_FILE_EXTENSION);
+
+    // Save file //
+
+    FILE* fileOpened = std::fopen(path.c_str(), "wb"); // w for writing, b disables special handling of '\n' and '\x1A'
+    if (!fileOpened) 
+    {
+        LOG("Error opening file");
+        return false;
+    }
+
+    // Create a FileWriteStream
+    char writeBuffer[65536];
+    rapidjson::FileWriteStream stream(fileOpened, writeBuffer, sizeof(writeBuffer));
+
+    // Write JSON to file
+    rapidjson::Writer<rapidjson::FileWriteStream> writer(stream);
+    domTree.Accept(writer);
+
+    // Close file
+    std::fclose(fileOpened);
 
     return true;
 }

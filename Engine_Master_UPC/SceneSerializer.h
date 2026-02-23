@@ -9,7 +9,7 @@ public:
     SceneSerializer();
     ~SceneSerializer();
 
-    bool SaveScene(std::string sceneName);
+    bool SaveScene(std::string sceneName, rapidjson::Document& domTree);
     bool LoadScene(std::string sceneName);
 
     bool loadSceneSkybox(SceneModule* sceneModule, const rapidjson::Value& sceneJson);
