@@ -347,6 +347,9 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
 
         for (Component* component : m_components) 
         {
+            if (component->getType() == ComponentType::TRANSFORM)
+                continue;
+
             componentsData.PushBack(component->getJSON(domTree), domTree.GetAllocator());
         }
 

@@ -1,5 +1,5 @@
 {
-  "Scene": {
+  "sceneTest3": {
     "Skybox": {
       "Enabled": true,
       "Path": "Assets/Textures/SkyMidNight.dds"
