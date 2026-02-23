@@ -53,7 +53,7 @@ public:
 #pragma endregion
 
 	void createGameObject();
-	GameObject* createGameObjectWithUID(UID id);
+	GameObject* createGameObjectWithUID(UID id, UID transformUID);
 	void removeGameObject(const UID uuid);
 
 	void addGameObject(GameObject* gameObject);
