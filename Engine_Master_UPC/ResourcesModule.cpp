@@ -11,9 +11,6 @@
 #include "RingBuffer.h"
 #include <RenderTexture.h>
 
-#include "FileSystemModule.h"
-#include <TextureImporter.h>
-
 ResourcesModule::~ResourcesModule()
 {
 	m_defferedResources.clear();
@@ -35,7 +32,7 @@ bool ResourcesModule::postInit()
 void ResourcesModule::preRender()
 {
 	UINT lastCompletedFrame = app->getD3D12Module()->getLastCompletedFrame();
-	for (int i = 0; i < m_defferedResources.size(); ++i) 
+	for (int i = 0; i < m_defferedResources.size(); ++i)
 	{
 		if (lastCompletedFrame > m_defferedResources[i].frame)
 		{
@@ -51,11 +48,11 @@ void ResourcesModule::preRender()
 
 bool ResourcesModule::cleanUp()
 {
-	
+
 	return true;
 }
 
-ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size )
+ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size)
 {
 	ComPtr<ID3D12Resource> buffer;
 
@@ -85,7 +82,7 @@ ComPtr<ID3D12Resource> ResourcesModule::createDefaultBuffer(const void* data, si
 	memcpy(pData, data, size);
 	// Unmap the buffer (invalidate the pointer)
 	uploadBuffer->Unmap(0, nullptr);
-	
+
 	// Copy buffer commands
 
 	ComPtr<ID3D12GraphicsCommandList4> _commandList = m_queue->getCommandList();
@@ -128,79 +125,38 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 }
 
 
-std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & filePath, const char* name) 
-{ 
-	std::string pathStr = filePath.string(); 
-	const char* cpath = pathStr.c_str(); 
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath)); 
-
-	TextureInitInfo info{}; 
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat()); 
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount())); 
-	info.desc = &desc; info.initialState = D3D12_RESOURCE_STATE_COPY_DEST; auto texture = std::make_unique<Texture>(*m_device.Get(), info);
-
-	std::vector<D3D12_SUBRESOURCE_DATA> subData; subData.reserve(textureAsset->getImageCount()); 
-
-	const auto& subImages = textureAsset->getImages(); 
-	for (const auto& subImg : subImages)
-	{
-		assert(subImg.pixels.data() != nullptr);
-		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
-
-		D3D12_SUBRESOURCE_DATA data = {};
-		data.pData = subImg.pixels.data();
-		data.RowPitch = subImg.rowPitch;
-		data.SlicePitch = subImg.slicePitch;
-
-		subData.push_back(data);
-	}
-	
-	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
-
-	return texture; 
-}
-
-std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
+std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath, const char* name)
 {
-	std::string pathStr = filePath.string();
-	const char* cpath = pathStr.c_str();
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath));
+
+	ScratchImage image;
+	const wchar_t* path = filePath.c_str();
+
+	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image))) {
+		if (FAILED(LoadFromTGAFile(path, nullptr, image))) {
+			LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image);
+		}
+	}
+
+	if (image.GetImageCount() == 0) {
+		return createNullTexture2D();
+	}
+
+	TexMetadata metaData = image.GetMetadata();
+	if (metaData.dimension != TEX_DIMENSION_TEXTURE2D) {
+		return createNullTexture2D();
+	}
+
+	generateMipmapsIfMissing(image, metaData);
 
 	TextureInitInfo info{};
-
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat());
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount()));
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(metaData.format);
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = texFormat;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.MipLevels = (UINT)textureAsset->getMipCount();
-	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
-
-	info.srvDesc = &srvDesc;
-
 	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	subData.reserve(textureAsset->getImageCount());
-
-	const auto& subImages = textureAsset->getImages();
-	for (const auto& subImg : subImages)
-	{
-		assert(subImg.pixels.data() != nullptr);
-		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
-
-		D3D12_SUBRESOURCE_DATA data = {};
-		data.pData = subImg.pixels.data();
-		data.RowPitch = subImg.rowPitch;
-		data.SlicePitch = subImg.slicePitch;
-
-		subData.push_back(data);
-	}
+	buildSubresourceData(image, metaData, subData);
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
@@ -224,6 +180,56 @@ std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
 	return texture;
 }
 
+std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
+{
+	ScratchImage image;
+	const wchar_t* path = filePath.c_str();
+
+	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image)))
+	{
+		return nullptr;
+	}
+
+	if (image.GetImageCount() == 0) {
+		return nullptr;
+	}
+
+	TexMetadata metaData = image.GetMetadata();
+
+	if (metaData.dimension != TEX_DIMENSION_TEXTURE2D || !metaData.IsCubemap() || metaData.arraySize != 6) {
+		return nullptr;
+	}
+
+	generateMipmapsIfMissing(image, metaData);
+
+	TextureInitInfo info{};
+
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(metaData.format);
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
+
+	info.desc = &desc;
+	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = texFormat;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MostDetailedMip = 0;
+	srvDesc.TextureCube.MipLevels = (UINT)metaData.mipLevels;
+	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+
+	info.srvDesc = &srvDesc;
+
+	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+
+	std::vector<D3D12_SUBRESOURCE_DATA> subData;
+	buildSubresourceData(image, metaData, subData);
+
+	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
+
+	return texture;
+}
+
 RingBuffer* ResourcesModule::createRingBuffer(size_t size)
 {
 	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -234,7 +240,7 @@ RingBuffer* ResourcesModule::createRingBuffer(size_t size)
 std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float windowWidth, float windowHeight)
 {
 	TextureInitInfo info{};
-	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D( DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight),1,1,1,0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight), 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	D3D12_CLEAR_VALUE clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -320,21 +326,19 @@ void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	m_queue->flush();
 }
 
-void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer) 
+void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer)
 {
-	if (vertexBuffer) 
+	if (vertexBuffer)
 	{
 		delete vertexBuffer;
 		vertexBuffer = nullptr;
 	}
 }
-void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer) 
-{ 
-	if (indexBuffer) 
+void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
+{
+	if (indexBuffer)
 	{
 		delete indexBuffer;
 		indexBuffer = nullptr;
 	}
 }
-
-

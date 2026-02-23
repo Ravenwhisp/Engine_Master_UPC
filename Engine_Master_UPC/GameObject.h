@@ -50,6 +50,7 @@ public:
 
 #pragma region Persistence
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
 
 #pragma endregion

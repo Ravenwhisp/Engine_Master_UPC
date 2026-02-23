@@ -19,6 +19,8 @@ class RenderModule;
 class SceneModule;
 class FileSystemModule;
 
+class CameraComponent;
+
 class Settings;
 
 class Application
@@ -45,11 +47,15 @@ public:
 
     Settings*                   getSettings() { return m_settings; }
 
+    const CameraComponent* getActiveCamera() const { return m_activeCamera; }
+    void setActiveCamera(CameraComponent* camera) { m_activeCamera = camera; }
+
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
 
 
     uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
+
 private:
 
     std::vector<Module*>    modules;
@@ -71,6 +77,8 @@ private:
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
+
+    CameraComponent* m_activeCamera = nullptr;
 };
 
 extern Application* app;

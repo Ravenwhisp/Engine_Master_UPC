@@ -3,6 +3,8 @@
 #include "SceneModule.h"
 #include "LightComponent.h"
 #include <CameraComponent.h>
+#include "Application.h"
+#include "RenderModule.h"
 
 #include "BasicModel.h"
 
@@ -35,6 +37,8 @@ bool SceneModule::init()
     m_quadtree = new Quadtree(rectangle);
 
     createDirectionalLightOnInit();
+
+    applySkyboxToRenderer();
 
     return true;
 }
@@ -98,7 +102,16 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     
     camera->render(commandList, viewMatrix, projectionMatrix);
 
-    auto gameObjects = m_quadtree->getObjects(camera->getFrustum());
+    std::vector<GameObject*> gameObjects;
+    if (camera->getCullingToggle())
+    {
+        gameObjects = m_quadtree->getObjects(&camera->getFrustum());
+    }
+    else
+    {
+        gameObjects = m_quadtree->getObjects(nullptr);
+    }
+
     for (GameObject* gameObject : gameObjects)
     {
         if (gameObject != camera->getOwner())
@@ -258,6 +271,11 @@ GameObject* SceneModule::createDirectionalLightOnInit()
     m_quadtree->insert(*go);
 
     return go;
+}
+
+bool SceneModule::applySkyboxToRenderer()
+{
+    return app->getRenderModule()->applySkyboxSettings(m_skybox.enabled, m_skybox.path);
 }
 
 #pragma region Persistence
