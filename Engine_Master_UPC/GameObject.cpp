@@ -324,7 +324,16 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
     rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
 
     gameObjectInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    gameObjectInfo.AddMember("ParentUID", m_transform->getRoot()->getOwner()->GetID(), domTree.GetAllocator());
+    {
+        Transform* parentTransform = m_transform->getRoot();
+        if (parentTransform) 
+        {
+            gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
+        }
+        else {
+            gameObjectInfo.AddMember("ParentUID", NULL, domTree.GetAllocator());
+        }
+    }
 
     {
         rapidjson::Value name (m_name.c_str(), domTree.GetAllocator()); // copy string m_name
