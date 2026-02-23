@@ -46,7 +46,7 @@ public:
 	void drawUi() override;
 
 #pragma region Filesystem
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basic parameters! (no childs, parent or uid)
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basics! (no children nor parent)
 #pragma endregion
 
 private:
