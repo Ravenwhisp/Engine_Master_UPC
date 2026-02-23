@@ -279,6 +279,29 @@ bool SceneModule::applySkyboxToRenderer()
 }
 
 #pragma region Persistence
+rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value sceneInfo(rapidjson::kObjectType);
+
+    sceneInfo.AddMember("Skybox", getSkyboxJSON(domTree), domTree.GetAllocator());
+    sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
+
+
+    // GameObjects serialization //
+    {
+        rapidjson::Value gameObjectsData(rapidjson::kArrayType);
+
+        for (GameObject* gameObject : m_gameObjects)
+        {
+            gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+        }
+
+        sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
+    }
+
+    return sceneInfo;
+}
+
 rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value lightingInfo(rapidjson::kObjectType);
@@ -295,6 +318,19 @@ rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
     lightingInfo.AddMember("AmbientIntensity", m_lighting.ambientIntensity, domTree.GetAllocator());
 
     return lightingInfo;
+}
+
+rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value skyboxInfo(rapidjson::kObjectType);
+
+    skyboxInfo.AddMember("Enabled", m_skybox.enabled, domTree.GetAllocator());
+    {
+        rapidjson::Value path(m_skybox.path, domTree.GetAllocator()); // copy char[] path
+        skyboxInfo.AddMember("Path", path, domTree.GetAllocator());
+    }
+
+    return skyboxInfo;
 }
 
 void SceneModule::saveScene()
