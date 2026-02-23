@@ -19,8 +19,9 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 
-#include "Settings.h"
 #include "Logger.h"
+
+#include "CameraComponent.h"
 
 struct SkyboxVertex { Vector3 position; };
 
@@ -54,8 +55,6 @@ bool RenderModule::init()
 
 bool RenderModule::postInit()
 {
-    m_settings = app->getSettings();
-
     m_rootSignature = app->getD3D12Module()->createRootSignature();
     m_pipelineState = app->getD3D12Module()->createPipelineStateObject(m_rootSignature.Get());
 
@@ -63,10 +62,6 @@ bool RenderModule::postInit()
     m_skyboxPipelineState = app->getD3D12Module()->createSkyboxPipelineStateObject(m_skyboxRootSignature.Get());
 
     CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
-
-    applySkyboxSettings();
-    //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
-    //m_hasSkybox = (m_skyboxTexture != nullptr);
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
@@ -172,8 +167,28 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+    Matrix viewMatrix;
+    Matrix projectionMatrix;
+    Quaternion cameraRotation;
+    Vector3 cameraPosition;
+
+    if (app->getActiveCamera())
+    {
+        viewMatrix = app->getActiveCamera()->getViewMatrix();
+        projectionMatrix = app->getActiveCamera()->getProjectionMatrix();
+        cameraRotation = app->getActiveCamera()->getOwner()->GetTransform()->getRotation();
+        cameraPosition = app->getActiveCamera()->getOwner()->GetTransform()->getPosition();
+    }
+    else
+    {
+        viewMatrix = app->getCameraModule()->getView();
+        projectionMatrix = app->getCameraModule()->getProjection();
+        cameraRotation = app->getCameraModule()->getRotation();
+        cameraPosition = app->getCameraModule()->getPosition();
+    }
+
     SceneDataCB& sceneDataCB = app->getSceneModule()->getCBData();
-    sceneDataCB.viewPos = app->getCameraModule()->getPosition();
+    sceneDataCB.viewPos = cameraPosition;
 
     commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
 
@@ -182,29 +197,27 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
 
     commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
 
-    Matrix viewMatrix = app->getCameraModule()->getView();
-    Matrix projectionMatrix = app->getCameraModule()->getProjection();
 
     app->getSceneModule()->render(commandList, viewMatrix, projectionMatrix);
 
-    Quaternion cameraRotation = app->getCameraModule()->getRotation();
     //Skybox
-    renderSkybox(commandList, cameraRotation, projectionMatrix);
+    renderSkybox(commandList, viewMatrix, projectionMatrix);
 
     //DebugDrawPass
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
 }
 
-void RenderModule::renderSkybox(ID3D12GraphicsCommandList4* commandList, const Quaternion& cameraRotation, Matrix& projectionMatrix)
+void RenderModule::renderSkybox(ID3D12GraphicsCommandList4* commandList, const Matrix& viewMatrix, Matrix& projectionMatrix)
 {
     if (!m_hasSkybox || !m_skyboxTexture || !m_skyboxVertexBuffer || !m_skyboxIndexBuffer) {
         return;
     }
 
-    Quaternion invRot;
-    cameraRotation.Inverse(invRot);
-
-    Matrix view = Matrix::CreateFromQuaternion(invRot);
+    Matrix view = viewMatrix;
+    // Get rid of translation (skybox must not move relative to camera)
+    view._41 = 0.0f;
+    view._42 = 0.0f;
+    view._43 = 0.0f;
     Matrix vp = view * projectionMatrix;
 
     vp = vp.Transpose();
@@ -241,29 +254,30 @@ void RenderModule::cleanupSkybox()
     m_hasSkybox = false;
 }
 
-bool RenderModule::applySkyboxSettings()
+bool RenderModule::applySkyboxSettings(bool enabled, const char* cubemapPath)
 {
-    if (!m_settings->skybox.enabled || m_settings->skybox.path[0] == '\0')
+
+    if (!enabled || cubemapPath[0] == '\0')
     {
         m_hasSkybox = false;
         m_skyboxTexture.reset();
 
-        LOG_INFO("[Skybox] Disabled");
+        LOG("[Skybox] Disabled");
 
         return true;
     }
 
-    auto newTex = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
+    auto newTex = app->getResourcesModule()->createTextureCubeFromFile(path(cubemapPath), "Skybox");
     if (!newTex)
     {
-        LOG_ERROR("[Skybox] Failed to load: %s", m_settings->skybox.path);
+        LOG("[Skybox] Failed to load: %s", cubemapPath);
         return false;
     }
 
     m_skyboxTexture = std::move(newTex);
     m_hasSkybox = true;
 
-    LOG_INFO("[Skybox] Loaded: %s", m_settings->skybox.path);
+    LOG("[Skybox] Loaded: %s", cubemapPath);
     return true;
 }
 

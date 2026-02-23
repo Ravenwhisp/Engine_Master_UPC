@@ -30,6 +30,8 @@ public:
     virtual void onTransformChange() {};
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
+    virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
+
 
 protected:
     GameObject* m_owner;
