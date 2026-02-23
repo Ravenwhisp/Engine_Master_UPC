@@ -16,7 +16,6 @@ public:
 private:
     void drawCameraSettings();
     void drawSceneSettings();
-    void drawSkyboxSettings();
     void drawFrustumCullingSettings();
 
 private:

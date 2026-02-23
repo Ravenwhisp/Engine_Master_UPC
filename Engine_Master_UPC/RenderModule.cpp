@@ -19,7 +19,6 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 
-#include "Settings.h"
 #include "Logger.h"
 
 #include "CameraComponent.h"
@@ -56,8 +55,6 @@ bool RenderModule::init()
 
 bool RenderModule::postInit()
 {
-    m_settings = app->getSettings();
-
     m_rootSignature = app->getD3D12Module()->createRootSignature();
     m_pipelineState = app->getD3D12Module()->createPipelineStateObject(m_rootSignature.Get());
 
@@ -65,10 +62,6 @@ bool RenderModule::postInit()
     m_skyboxPipelineState = app->getD3D12Module()->createSkyboxPipelineStateObject(m_skyboxRootSignature.Get());
 
     CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
-
-    applySkyboxSettings();
-    //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
-    //m_hasSkybox = (m_skyboxTexture != nullptr);
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
@@ -262,29 +255,30 @@ void RenderModule::cleanupSkybox()
     m_hasSkybox = false;
 }
 
-bool RenderModule::applySkyboxSettings()
+bool RenderModule::applySkyboxSettings(bool enabled, const char* cubemapPath)
 {
-    if (!m_settings->skybox.enabled || m_settings->skybox.path[0] == '\0')
+
+    if (!enabled || cubemapPath[0] == '\0')
     {
         m_hasSkybox = false;
         m_skyboxTexture.reset();
 
-        LOG_INFO("[Skybox] Disabled");
+        LOG("[Skybox] Disabled");
 
         return true;
     }
 
-    auto newTex = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
+    auto newTex = app->getResourcesModule()->createTextureCubeFromFile(path(cubemapPath), "Skybox");
     if (!newTex)
     {
-        LOG_ERROR("[Skybox] Failed to load: %s", m_settings->skybox.path);
+        LOG("[Skybox] Failed to load: %s", cubemapPath);
         return false;
     }
 
     m_skyboxTexture = std::move(newTex);
     m_hasSkybox = true;
 
-    LOG_INFO("[Skybox] Loaded: %s", m_settings->skybox.path);
+    LOG("[Skybox] Loaded: %s", cubemapPath);
     return true;
 }
 

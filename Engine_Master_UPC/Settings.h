@@ -31,13 +31,6 @@ struct SceneEditorSettings {
     bool showQuadTree = false;
 };
 
-struct SkyboxSettings
-{
-    bool enabled = true;
-    char path[260] = "Assets/Textures/cubemap2.dds";
-    bool dirty = false;
-};
-
 struct FrustumCullingSettings
 {
     bool cullObjectsOutsideOfFrustum = false;
@@ -47,7 +40,6 @@ class Settings {
 public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
-    SkyboxSettings skybox;
     FrustumCullingSettings frustumCulling;
 
 public:
