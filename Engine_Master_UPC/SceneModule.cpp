@@ -261,6 +261,24 @@ GameObject* SceneModule::createDirectionalLightOnInit()
 }
 
 #pragma region Persistence
+rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value lightingInfo(rapidjson::kObjectType);
+
+    {
+        rapidjson::Value ambientColorData(rapidjson::kArrayType);
+        ambientColorData.PushBack(m_lighting.ambientColor.x, domTree.GetAllocator());
+        ambientColorData.PushBack(m_lighting.ambientColor.y, domTree.GetAllocator());
+        ambientColorData.PushBack(m_lighting.ambientColor.z, domTree.GetAllocator());
+
+        lightingInfo.AddMember("AmbientColor", ambientColorData, domTree.GetAllocator());
+    }
+
+    lightingInfo.AddMember("AmbientIntensity", m_lighting.ambientIntensity, domTree.GetAllocator());
+
+    return lightingInfo;
+}
+
 void SceneModule::saveScene()
 {
 	m_sceneSerializer->SaveScene(m_name);
