@@ -207,6 +207,8 @@ rapidjson::Value Transform::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+
     {
         rapidjson::Value positionData(rapidjson::kArrayType);
 
