@@ -335,7 +335,15 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
 
 void SceneModule::saveScene()
 {
-	m_sceneSerializer->SaveScene(m_name);
+    rapidjson::Document domTree;
+    domTree.SetObject();
+
+    {
+        rapidjson::Value name(m_name.c_str(), domTree.GetAllocator()); // copy string m_name
+        domTree.AddMember(name, getJSON(domTree), domTree.GetAllocator());
+    }
+
+	m_sceneSerializer->SaveScene(m_name, domTree);
 }
 
 void SceneModule::loadScene()
