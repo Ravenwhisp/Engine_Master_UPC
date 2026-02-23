@@ -318,7 +318,7 @@ void GameObject::onTransformChange()
 
 #pragma endregion
 
-#pragma region Filesystem
+#pragma region Persistence
 
 rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
 {

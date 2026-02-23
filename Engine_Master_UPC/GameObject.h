@@ -48,7 +48,7 @@ public:
 	}
 #pragma endregion
 
-#pragma region Filesystem
+#pragma region Persistence
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 #pragma endregion
 
