@@ -5,6 +5,7 @@
 #include <CameraComponent.h>
 #include "Application.h"
 #include "RenderModule.h"
+#include "EditorModule.h"
 
 #include "BasicModel.h"
 
@@ -152,13 +153,17 @@ void SceneModule::createGameObject()
     newGameObject->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
     m_gameObjects.push_back(newGameObject);
+
+    newGameObject->onTransformChange();      
     m_quadtree->insert(*newGameObject);
 }
 
-GameObject* SceneModule::createGameObjectWithUID(UID id) {
-    GameObject* newGameObject = new GameObject(id);
+GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID) {
+    GameObject* newGameObject = new GameObject(id, transformUID);
 
     m_gameObjects.push_back(newGameObject);
+
+    newGameObject->onTransformChange();
     m_quadtree->insert(*newGameObject);
 
     return newGameObject;
@@ -353,6 +358,8 @@ void SceneModule::loadScene()
 
 void SceneModule::clearScene()
 {
+    app->getEditorModule()->setSelectedGameObject(nullptr);
+
     while (!m_gameObjects.empty())
     {
         destroyHierarchy(m_gameObjects.back());

@@ -119,7 +119,8 @@ bool SceneSerializer::LoadScene(std::string sceneName)
     for (auto& gameObjectJson : gameObjectsArray)
     {
         const uint64_t uid = gameObjectJson["UID"].GetUint64();
-        GameObject* gameObject = sceneModule->createGameObjectWithUID((UID)uid);
+        const uint64_t transformUid = gameObjectJson["Transform"]["UID"].GetUint64();
+        GameObject* gameObject = sceneModule->createGameObjectWithUID((UID)uid, (UID)transformUid);
 
         uint64_t parentUid = 0;
         gameObject->deserializeJSON(gameObjectJson, parentUid);
@@ -149,6 +150,17 @@ bool SceneSerializer::LoadScene(std::string sceneName)
 
     for (GameObject* rootGameObject : sceneModule->getAllGameObjects())
         rootGameObject->init();
+
+    // Retake a look at this, models were not seen after loading because their transform wasn't being updated, so I did this fix, feels wierd to have it like that
+    // but is the solution I found.
+    for (const auto& pair : uidToGo)
+    {
+        GameObject* gameObject = pair.second;
+        gameObject->GetTransform()->getGlobalMatrix();
+        gameObject->onTransformChange();
+        sceneModule->getQuadtree().move(*gameObject);
+
+    }
 
     sceneModule->applySkyboxToRenderer();
 
