@@ -45,7 +45,7 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
-	//rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
+	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
 
 	void saveScene();
 	void loadScene();
