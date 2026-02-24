@@ -12,7 +12,8 @@
 #include <fstream>
 #include <UID.h>
 
-static const int INVALID_ASSET_ID = -1;
+#include <AssetsDictionary.h>
+
 
 enum class AssetType : uint32_t
 {
@@ -30,8 +31,21 @@ class AssetMetadata
 public:
 	UID uid = INVALID_ASSET_ID;
 	AssetType type;
-	std::filesystem::path sourcePath;
-	std::filesystem::path binaryPath;
+
+	std::filesystem::path getSourcePath(std::filesystem::path& metadataPath) const
+	{
+		return metadataPath.parent_path() / metadataPath.stem();
+	}
+
+	std::filesystem::path getBinaryPath() const
+	{
+		return std::filesystem::path(LIBRARY_FOLDER) / std::to_string(uid) += ".asset";
+	}
+
+	static void getMetadataPath(std::filesystem::path& assetPath) 
+	{
+		assetPath += METADATA_EXTENSION;
+	}
 
 	// I AM SO SORRY FOR THIS
     static bool saveMetaFile(const AssetMetadata& meta, const std::filesystem::path& metaPath);

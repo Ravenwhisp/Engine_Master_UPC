@@ -12,8 +12,17 @@
 
 UID AssetsModule::find(const std::filesystem::path& assetsFile) const
 {
-    //We should search fot the same path but with the .metadata
-    return 0;
+    std::filesystem::path metadataPath = assetsFile;
+    metadataPath += METADATA_EXTENSION;
+
+    auto entry = app->getFileSystemModule()->getEntry(metadataPath);
+    if (!entry)
+    {
+        LOG_WARNING("[AssetsModule] Could not find asset '{}'.", assetsFile.string());
+        return INVALID_ASSET_ID;
+    }
+
+    return entry->uid;
 }
 
 
@@ -44,8 +53,6 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile)
     AssetMetadata meta;
     meta.uid = uid;
     meta.type = asset->getType();
-    meta.sourcePath = assetsFile;
-    meta.binaryPath = libraryPath;
 
     std::filesystem::path metaPath = assetsFile;
     metaPath += METADATA_EXTENSION;
@@ -56,13 +63,10 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile)
     uint8_t* buffer = nullptr;
     uint64_t size = importer->save(asset, &buffer);
 
-    app->getFileSystemModule()->save(meta.binaryPath, buffer, static_cast<unsigned int>(size));
+    app->getFileSystemModule()->save(meta.getBinaryPath(), buffer, static_cast<unsigned int>(size));
 
     delete buffer;
     delete asset;
-
-    //This should maybe be substitute it with a dirty flag?
-    app->getFileSystemModule()->rebuild();
 
     return uid;
 }
@@ -92,7 +96,7 @@ Asset* AssetsModule::requestAsset(UID id)
     //Load from binary
     char* rawBuffer = nullptr;
 
-    unsigned int size = app->getFileSystemModule()->load(metadata->binaryPath, &rawBuffer);
+    unsigned int size = app->getFileSystemModule()->load(metadata->getBinaryPath(), &rawBuffer);
     if (size > 0)
     {
         std::vector<uint8_t> buffer(rawBuffer, rawBuffer + size);
@@ -122,7 +126,7 @@ Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
     //Load from binary
     char* rawBuffer = nullptr;
 
-    unsigned int size = app->getFileSystemModule()->load(metadata->binaryPath, &rawBuffer);
+    unsigned int size = app->getFileSystemModule()->load(metadata->getBinaryPath(), &rawBuffer);
     if (size > 0)
     {
         std::vector<uint8_t> buffer(rawBuffer, rawBuffer + size);

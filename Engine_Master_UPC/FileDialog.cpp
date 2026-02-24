@@ -7,7 +7,7 @@
 
 void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 {
-    std::string nodeName = entry->path.filename().string();
+    std::string nodeName = entry->displayName;
 
     if (ImGui::TreeNodeEx(nodeName.c_str()))
     {
@@ -72,12 +72,8 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
             {
-                AssetMetadata metadata;
-                std::filesystem::path metaPath = asset->path;
-                metaPath += METADATA_EXTENSION;
-                AssetMetadata::loadMetaFile(metaPath, metadata);
 
-                ImGui::SetDragDropPayload("ASSET", &metadata.uid, sizeof(UID));
+                ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
                 ImGui::Text("Dragging %s", asset->path.lexically_normal().c_str());
                 ImGui::EndDragDropSource();
             }
@@ -87,17 +83,18 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::Text("Options");
                 ImGui::Separator();
 
-                Importer* importer = app->getFileSystemModule()->findImporter(asset->path);
-                bool canImport = importer != nullptr;
-                if (ImGui::MenuItem("Import", nullptr, false, canImport)) 
+                std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
+    
+                Importer* importer = app->getFileSystemModule()->findImporter(originalPath);
+                if (ImGui::MenuItem("Import", nullptr, false, importer != nullptr))
                 {
-                    app->getAssetModule()->import(asset->path);
+                    app->getAssetModule()->import(originalPath);
                 }
                 ImGui::EndPopup();
             }
         }
 
-        ImGui::TextWrapped("%s", asset->path.filename().string().c_str());
+        ImGui::TextWrapped("%s", asset->displayName.c_str());
 
         ImGui::NextColumn();
         ImGui::PopID();

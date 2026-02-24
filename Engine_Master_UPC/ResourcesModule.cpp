@@ -201,7 +201,7 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& 
 {
 	auto assetModule = app->getAssetModule();
 
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->import(filePath)));
+	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(filePath)));
 
 	TextureInitInfo info{};
 

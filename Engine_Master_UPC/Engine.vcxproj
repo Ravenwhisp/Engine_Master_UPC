@@ -176,6 +176,7 @@
     <ClInclude Include="3rdParty\simdjson\simdjson.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="AssetsModule.h" />
     <ClInclude Include="BinaryReader.h" />
