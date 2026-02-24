@@ -253,7 +253,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
         light->setTypeDirectional();
         light->editData().common.color = Vector3::One;
         light->editData().common.intensity = 1.0f;
-        light->editData().common.enabled = true;
+        light->setActive(true);
         light->sanitize();
     }
 

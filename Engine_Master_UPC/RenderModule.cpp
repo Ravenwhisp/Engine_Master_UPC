@@ -327,7 +327,7 @@ GPULightsConstantBuffer RenderModule::packLightsForGPU(const std::vector<GameObj
         const LightData& lightData = lightComponent->getData();
         const LightCommon& common = lightData.common;
 
-        if (!common.enabled)
+        if (!lightComponent->isActive())
         {
             continue;
         }

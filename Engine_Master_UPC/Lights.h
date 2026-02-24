@@ -34,7 +34,6 @@ enum class LightType : uint8_t
 
 struct LightCommon
 {
-    bool enabled = true;
     Vector3 color = Vector3::One;
     float intensity = LightDefaults::DEFAULT_INTENSITY;
 };
