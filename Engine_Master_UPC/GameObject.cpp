@@ -5,6 +5,7 @@
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
+#include "Application.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -430,6 +431,7 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 
         Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
         if (newComponent) {
+            newComponent->setActive(componentJson["Active"].GetBool());
             newComponent->deserializeJSON(componentJson);
         }
     }

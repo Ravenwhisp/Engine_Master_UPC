@@ -75,8 +75,16 @@ void SceneConfig::drawSaveSceneSettings() {
 
         if (ImGui::Button("Save"))
         {
-            m_sceneModule->setName(m_saveSceneName.c_str());
-            m_sceneModule->saveScene();
+            const bool blank = (m_saveSceneName.find_first_not_of(" \t\n\r") == std::string::npos);
+            if (blank)
+            {
+                LOG("Cannot save scene: name is empty.");
+            }
+            else
+            {
+                m_sceneModule->setName(m_saveSceneName.c_str());
+                m_sceneModule->saveScene();
+            }
         }
     }
 }

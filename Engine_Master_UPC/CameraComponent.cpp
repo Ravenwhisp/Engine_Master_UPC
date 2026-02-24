@@ -113,6 +113,7 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 
 	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
 	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
+	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
 	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
 	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());

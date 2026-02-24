@@ -176,9 +176,9 @@ rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::LIGHT), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("LightType", unsigned int(m_data.type), domTree.GetAllocator());
-    componentInfo.AddMember("Enabled", m_data.common.enabled, domTree.GetAllocator());
     {
         rapidjson::Value colorData(rapidjson::kArrayType);
 
@@ -206,8 +206,8 @@ rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
     case LightType::SPOT:
 
         componentInfo.AddMember("Radius", m_data.parameters.spot.radius, domTree.GetAllocator());
-        componentInfo.AddMember("InnerAngleDegress", m_data.parameters.spot.innerAngleDegrees, domTree.GetAllocator());
-        componentInfo.AddMember("OuterAngleDegress", m_data.parameters.spot.outerAngleDegrees, domTree.GetAllocator());
+        componentInfo.AddMember("InnerAngleDegrees", m_data.parameters.spot.innerAngleDegrees, domTree.GetAllocator());
+        componentInfo.AddMember("OuterAngleDegrees", m_data.parameters.spot.outerAngleDegrees, domTree.GetAllocator());
     }
 
     return componentInfo;
@@ -215,11 +215,9 @@ rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
     
 bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("Enabled"))
-        m_data.common.enabled = componentInfo["Enabled"].GetBool();
-
-    if (componentInfo.HasMember("Intensity"))
+    if (componentInfo.HasMember("Intensity")) {
         m_data.common.intensity = componentInfo["Intensity"].GetFloat();
+    }
 
     if (componentInfo.HasMember("Color"))
     {
