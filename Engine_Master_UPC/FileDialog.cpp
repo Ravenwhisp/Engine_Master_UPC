@@ -42,6 +42,29 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         columnCount = 1;
     }
 
+    if (ImGui::BeginPopupContextWindow("##AssetGridContext",
+        ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+    {
+        ImGui::Text("Create");
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("New Folder"))
+        {
+            std::filesystem::path newFolderPath = m_currentDirectory / "New Folder";
+
+            int suffix = 1;
+            while (std::filesystem::exists(newFolderPath))
+            {
+                newFolderPath = m_currentDirectory / ("New Folder (" + std::to_string(suffix++) + ")");
+            }
+
+            std::filesystem::create_directory(newFolderPath);
+            app->getFileSystemModule()->rebuild();
+        }
+
+        ImGui::EndPopup();
+    }
+
     ImGui::Columns(columnCount, nullptr, false);
 
     for (auto& asset : directory->children)
@@ -51,7 +74,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
             continue;
         }
 
-        ImGui::PushID(asset->path.string().c_str());
+        ImGui::PushID(asset->displayName.c_str());
 
         // PROVISIONAL: This will be changed for an image
         ImGui::Button(asset->isDirectory ? "[DIR]" : "[FILE]", ImVec2(40, 40));
@@ -74,7 +97,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
             {
 
                 ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
-                ImGui::Text("Dragging %s", asset->path.lexically_normal().c_str());
+                ImGui::Text("Dragging %s", asset->displayName);
                 ImGui::EndDragDropSource();
             }
 
@@ -90,6 +113,35 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 {
                     app->getAssetModule()->import(originalPath);
                 }
+                ImGui::EndPopup();
+            }
+        } 
+        else 
+        {
+            if (ImGui::BeginPopupContextItem("DirContext"))
+            {
+                ImGui::Text("Folder: %s", asset->displayName.c_str());
+                ImGui::Separator();
+
+                m_selectedItem = asset;
+
+                if (ImGui::MenuItem("Delete Folder"))
+                {
+                    if (std::filesystem::exists(m_selectedItem->getPath()))
+                    {
+                        std::filesystem::remove_all(m_selectedItem->getPath());
+                        app->getFileSystemModule()->rebuild();
+
+                        // If we deleted the directory we were browsing, go up
+                        if (m_currentDirectory == m_selectedItem->path || m_currentDirectory.string().find(m_selectedItem->path.string()) == 0)
+                        {
+                            m_currentDirectory = m_selectedItem->path.parent_path();
+                        }
+
+                        m_selectedItem = nullptr;
+                    }
+                }
+
                 ImGui::EndPopup();
             }
         }
