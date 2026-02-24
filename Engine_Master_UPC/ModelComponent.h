@@ -13,15 +13,15 @@ struct ModelData {
 	BasicMaterial::BDRFPhongMaterialData material;
 };
 
-class BasicModel : public Component
+class ModelComponent : public Component
 {
 public:
-	BasicModel(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {}
-	~BasicModel();
+	ModelComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
+	~ModelComponent();
 	void load(const char* fileName, const char* basePath);
 	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }
 	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
-	Engine::BoundingBox&		getBoundingBox() { return m_boundingBox; }
+	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
 
 #pragma region Loop functions
 	bool init() override;

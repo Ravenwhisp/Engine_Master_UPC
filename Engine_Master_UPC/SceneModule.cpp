@@ -7,13 +7,15 @@
 #include "RenderModule.h"
 #include "EditorModule.h"
 
-#include "BasicModel.h"
+#include "ModelComponent.h"
 
 #include "SceneSerializer.h"
 
 #include <queue>
 
 using namespace DirectX::SimpleMath;
+
+extern Application* app;
 
 #pragma region GameLoop
 bool SceneModule::init()
@@ -29,6 +31,9 @@ bool SceneModule::init()
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
+    app->setActiveCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
+    auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+    gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
 
     for (GameObject* gameObject : m_gameObjects)
@@ -83,17 +88,19 @@ void SceneModule::preRender()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
-    CameraComponent* camera = nullptr;
+    CameraComponent* camera = app->getActiveCamera();
 
     for (GameObject* gameObject : m_gameObjects)
     {
         if (!gameObject->GetActive())
+        {
             continue;
+        }
 
-            if (gameObject->GetTransform()->isDirty())
-            {
-                m_quadtree->move(*gameObject);
-            }
+        if (gameObject->GetTransform()->isDirty())
+        {
+            m_quadtree->move(*gameObject);
+        }
 
         if (!camera)
         {
@@ -106,7 +113,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     camera->render(commandList, viewMatrix, projectionMatrix);
 
     std::vector<GameObject*> gameObjects;
-    if (camera->getCullingToggle())
+    if (app->getSettings()->frustumCulling.cullObjectsOutsideOfFrustum)
     {
         gameObjects = m_quadtree->getObjects(&camera->getFrustum());
     }
@@ -117,7 +124,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
 
     for (GameObject* gameObject : gameObjects)
     {
-        if (gameObject != camera->getOwner())
+        if (gameObject != camera->getOwner() && gameObject->GetActive())
         {
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
@@ -257,6 +264,8 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     GameObject* go = new GameObject(GenerateUID());
+    auto component = go->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+    go->RemoveComponent(component);
 
     go->SetName("Directional Light");
 
@@ -268,7 +277,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
         light->setTypeDirectional();
         light->editData().common.color = Vector3::One;
         light->editData().common.intensity = 1.0f;
-        light->editData().common.enabled = true;
+        light->setActive(true);
         light->sanitize();
     }
 
