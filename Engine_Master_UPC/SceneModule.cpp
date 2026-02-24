@@ -94,16 +94,14 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
         {
             m_quadtree->move(*gameObject);
         }
-
-        if (!camera)
-        {
-            camera = gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
-        }
     }
 
     if (!camera) return;
-    
-    camera->render(commandList, viewMatrix, projectionMatrix);
+
+    if (camera->isActive() && camera->getOwner()->GetActive())
+    {
+        camera->render(commandList, viewMatrix, projectionMatrix);
+    }
 
     std::vector<GameObject*> gameObjects;
     if (app->getSettings()->frustumCulling.cullObjectsOutsideOfFrustum)
