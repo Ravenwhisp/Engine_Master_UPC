@@ -124,16 +124,21 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	return buffer;
 }
 
-
-std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath, const char* name)
+std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath)
 {
 
 	ScratchImage image;
 	const wchar_t* path = filePath.c_str();
 
-	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image))) {
-		if (FAILED(LoadFromTGAFile(path, nullptr, image))) {
-			LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image);
+	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image)))
+	{
+		if (FAILED(LoadFromTGAFile(path, nullptr, image)))
+		{
+			if (FAILED(LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image)))
+			{
+				LOG("ERROR loading texture, not found valid file.")
+				return nullptr;
+			}
 		}
 	}
 
