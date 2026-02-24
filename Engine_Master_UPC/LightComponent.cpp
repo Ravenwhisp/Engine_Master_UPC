@@ -104,10 +104,6 @@ void LightComponent::drawUi()
 
     ImGui::Separator();
 
-    if (ImGui::Checkbox("Enabled", &m_data.common.enabled)) {
-        lightChanged = true;
-    }
-
     float rgb[3] = { m_data.common.color.x, m_data.common.color.y, m_data.common.color.z };
     if (ImGui::ColorEdit3("Color", rgb))
     {

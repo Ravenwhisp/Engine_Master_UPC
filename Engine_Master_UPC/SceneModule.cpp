@@ -4,10 +4,13 @@
 #include <CameraComponent.h>
 #include "Application.h"
 #include "RenderModule.h"
+#include "Settings.h"
 
-#include "BasicModel.h"
+#include "ModelComponent.h"
 
 using namespace DirectX::SimpleMath;
+
+extern Application* app;
 
 #pragma region GameLoop
 bool SceneModule::init()
@@ -21,7 +24,8 @@ bool SceneModule::init()
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    auto component = gameCamera->GetComponentAs<BasicModel>(ComponentType::MODEL);
+    app->setActiveCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
+    auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
     gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
 
@@ -77,17 +81,19 @@ void SceneModule::preRender()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
-    CameraComponent* camera = nullptr;
+    CameraComponent* camera = app->getActiveCamera();
 
     for (GameObject* gameObject : m_gameObjects)
     {
         if (!gameObject->GetActive())
+        {
             continue;
+        }
 
-            if (gameObject->GetTransform()->isDirty())
-            {
-                m_quadtree->move(*gameObject);
-            }
+        if (gameObject->GetTransform()->isDirty())
+        {
+            m_quadtree->move(*gameObject);
+        }
 
         if (!camera)
         {
@@ -100,18 +106,18 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     camera->render(commandList, viewMatrix, projectionMatrix);
 
     std::vector<GameObject*> gameObjects;
-    if (camera->getCullingToggle())
+    if (app->getSettings()->frustumCulling.cullObjectsOutsideOfFrustum)
     {
         gameObjects = m_quadtree->getObjects(&camera->getFrustum());
     }
     else
     {
-        gameObjects = m_quadtree->getObjects(nullptr);
+        gameObjects = m_gameObjects;
     }
 
     for (GameObject* gameObject : gameObjects)
     {
-        if (gameObject != camera->getOwner())
+        if (gameObject != camera->getOwner() && gameObject->GetActive())
         {
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }
@@ -234,7 +240,7 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     GameObject* go = new GameObject(rand());
-    auto component = go->GetComponentAs<BasicModel>(ComponentType::MODEL);
+    auto component = go->GetComponentAs<ModelComponent>(ComponentType::MODEL);
     go->RemoveComponent(component);
 
     go->SetName("Directional Light");
@@ -247,7 +253,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
         light->setTypeDirectional();
         light->editData().common.color = Vector3::One;
         light->editData().common.intensity = 1.0f;
-        light->editData().common.enabled = true;
+        light->setActive(true);
         light->sanitize();
     }
 
