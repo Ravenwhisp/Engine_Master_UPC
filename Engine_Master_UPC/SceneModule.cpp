@@ -11,6 +11,8 @@
 
 #include "SceneSerializer.h"
 
+#include <queue>
+
 using namespace DirectX::SimpleMath;
 
 #pragma region GameLoop
@@ -297,10 +299,23 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     {
         rapidjson::Value gameObjectsData(rapidjson::kArrayType);
 
+        std::queue<GameObject*> nodes_to_visit;
+
         for (GameObject* gameObject : m_gameObjects)
         {
-            // Missing checking the children
+            nodes_to_visit.push(gameObject);
+        }
+
+        while (!nodes_to_visit.empty()) 
+        {
+            GameObject* gameObject = nodes_to_visit.front();
+            nodes_to_visit.pop();
+
             gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+
+            for (GameObject* child : gameObject->GetTransform()->getAllChildren()) {
+                nodes_to_visit.push(child);
+            }
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
