@@ -331,14 +331,23 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
             gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
         }
         else {
-            gameObjectInfo.AddMember("ParentUID", NULL, domTree.GetAllocator());
+            gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator());
         }
     }
 
-    {
-        rapidjson::Value name (m_name.c_str(), domTree.GetAllocator()); // copy string m_name
-        gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
-    }
+    
+    rapidjson::Value name (m_name.c_str(), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
+    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
+
+    rapidjson::Value layer (LayerToString(m_layer), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
+
+    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
+    
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
 
     // Components serialization //
@@ -363,6 +372,11 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 {
     parentUid = gameObjectJson["ParentUID"].GetUint64();
     m_name = gameObjectJson["Name"].GetString();
+
+    m_active = gameObjectJson["Active"].GetBool();
+    m_isStatic = gameObjectJson["Static"].GetBool();
+    m_layer = StringToLayer(gameObjectJson["Layer"].GetString());
+    m_tag = StringToTag(gameObjectJson["Tag"].GetString());
 
     const auto& transform = gameObjectJson["Transform"];
 

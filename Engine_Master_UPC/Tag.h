@@ -24,3 +24,11 @@ inline const char* TagToString(Tag tag)
         return "Unknown";
     }
 }
+
+inline Tag StringToTag(const char* s)
+{
+#define X(name) if (strcmp(s, #name) == 0) return Tag::name;
+    TAG_LIST
+#undef X
+        return Tag::DEFAULT;
+}
