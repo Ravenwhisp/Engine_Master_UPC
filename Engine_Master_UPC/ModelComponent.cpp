@@ -1,6 +1,13 @@
 #include "Globals.h"
 #include "ModelComponent.h"
 
+#include "Application.h"
+#include "RenderModule.h"
+#include "GameObject.h"
+#include "Transform.h"
+
+#include "Logger.h"
+
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_EXTERNAL_IMAGE 
@@ -11,10 +18,6 @@
 #include "tiny_gltf.h"
 #pragma warning(pop)
 
-#include "Application.h"
-#include "RenderModule.h"
-#include "GameObject.h"
-#include "Transform.h"
 
 ModelComponent::~ModelComponent()
 {
@@ -49,7 +52,14 @@ void ModelComponent::load(const char* fileName, const char* basePath)
         for (tinygltf::Material material : model.materials)
         {
             BasicMaterial* myMaterial = new BasicMaterial;
-            myMaterial->load(model, material.pbrMetallicRoughness, basePath);
+            if (!myMaterial->load(model, material.pbrMetallicRoughness, basePath)) {
+                for (BasicMaterial* m : m_materials)
+                {
+                    delete m;
+                }
+                m_materials.clear();
+                return;
+            }
             m_materials.push_back(myMaterial);
         }
 
@@ -98,14 +108,16 @@ void ModelComponent::load(const char* fileName, const char* basePath)
     }
     else
     {
-        LOG("Error loading %s: %s", fileName, error.c_str());
+
+        DEBUG_ERROR("Error loading %s: %s", fileName, error.c_str());
     }
 }
 
 #pragma region Loop functions
 bool ModelComponent::init()
 {
-    load("Assets/Models/Duck/Duck.gltf", "Assets/Models/Duck/");
+    if (!m_modelPath.empty())
+        load(m_modelPath.c_str(), m_basePath.c_str());     
     return true;
 }
 
@@ -263,3 +275,32 @@ void ModelComponent::onTransformChange()
 {
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }
+
+rapidjson::Value ModelComponent::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::MODEL), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    rapidjson::Value modelPath(m_modelPath.c_str(), domTree.GetAllocator());
+    rapidjson::Value basePath(m_basePath.c_str(), domTree.GetAllocator());
+    componentInfo.AddMember("ModelPath", modelPath, domTree.GetAllocator());
+    componentInfo.AddMember("BasePath", basePath, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool ModelComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("ModelPath") && componentInfo.HasMember("BasePath"))
+    {
+        m_modelPath = componentInfo["ModelPath"].GetString();
+        m_basePath = componentInfo["BasePath"].GetString();
+
+        load(m_modelPath.c_str(), m_basePath.c_str());
+    }
+
+    return true;
+}
+

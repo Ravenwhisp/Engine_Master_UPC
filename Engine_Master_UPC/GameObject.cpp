@@ -5,19 +5,17 @@
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
-
 #include "Application.h"
 
-GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
+GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-    m_components.push_back(m_transform = new Transform(rand(), this));
+    m_components.push_back(m_transform = new Transform(GenerateUID(), this));
+}
 
-    //Testing duck
-	ModelComponent* currModel = new ModelComponent(rand(), this);
-    m_components.push_back(currModel);
-	currModel->init();
+GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name("New GameObject")
+{
+    m_components.push_back(m_transform = new Transform(transformUid, this));
 
-    //////////////
 }
 
 GameObject::~GameObject()
@@ -30,19 +28,20 @@ bool GameObject::AddComponent(ComponentType componentType)
     switch (componentType)
     {
         case ComponentType::LIGHT:
-            m_components.push_back(new LightComponent(rand(), this));
+            m_components.push_back(new LightComponent(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new ModelComponent(rand(), this));
+            m_components.push_back(new ModelComponent(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
-
-        case ComponentType::PLAYER_WALK:
-            m_components.push_back(new PlayerWalk(rand(), this));
             break;
 
+        case ComponentType::PLAYER_WALK:
+            m_components.push_back(new PlayerWalk(GenerateUID(), this));
+            break;
         case ComponentType::CAMERA:
-            m_components.push_back(new CameraComponent(rand(), this));
+            m_components.push_back(new CameraComponent(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -54,6 +53,38 @@ bool GameObject::AddComponent(ComponentType componentType)
 
     return true;
 }
+
+Component* GameObject::AddComponentWithUID(const ComponentType componentType, UID id) {
+    Component* newComponent = nullptr;
+
+    switch (componentType)
+    {
+    case ComponentType::LIGHT:
+        newComponent = new LightComponent(id, this);
+        break;
+    case ComponentType::MODEL:
+        newComponent = new ModelComponent(id, this);
+        break;
+    case ComponentType::TRANSFORM:
+        return nullptr;
+    case ComponentType::PLAYER_WALK:
+        newComponent = new PlayerWalk(id, this);
+        break;
+    case ComponentType::CAMERA:
+        newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::COUNT:
+        return nullptr;
+
+    default:
+        return nullptr;
+    }
+
+    m_components.push_back(newComponent);
+    return newComponent;
+}
+
+
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
@@ -202,7 +233,7 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
 void GameObject::drawUI()
 {
 #pragma region 
-    ImGui::Text("GameObject UUID: %d", m_uuid);
+    ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
     ImGui::Checkbox("Active", &m_active);
@@ -319,3 +350,94 @@ void GameObject::onTransformChange()
 }
 
 #pragma endregion
+
+#pragma region Persistence
+
+rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
+
+    gameObjectInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    {
+        Transform* parentTransform = m_transform->getRoot();
+        if (parentTransform) 
+        {
+            gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
+        }
+        else {
+            gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator());
+        }
+    }
+
+    
+    rapidjson::Value name (m_name.c_str(), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
+    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
+
+    rapidjson::Value layer (LayerToString(m_layer), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
+
+    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
+    
+    gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
+
+    // Components serialization //
+    {
+        rapidjson::Value componentsData(rapidjson::kArrayType);
+
+        for (Component* component : m_components) 
+        {
+            if (component->getType() == ComponentType::TRANSFORM)
+                continue;
+
+            componentsData.PushBack(component->getJSON(domTree), domTree.GetAllocator());
+        }
+
+        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
+    }
+
+    return gameObjectInfo;
+}
+
+bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)
+{
+    parentUid = gameObjectJson["ParentUID"].GetUint64();
+    m_name = gameObjectJson["Name"].GetString();
+
+    m_active = gameObjectJson["Active"].GetBool();
+    m_isStatic = gameObjectJson["Static"].GetBool();
+    m_layer = StringToLayer(gameObjectJson["Layer"].GetString());
+    m_tag = StringToTag(gameObjectJson["Tag"].GetString());
+
+    const auto& transform = gameObjectJson["Transform"];
+
+    const auto& position = transform["Position"].GetArray();
+    m_transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+
+    const auto& rotation = transform["Rotation"].GetArray();
+    m_transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(), rotation[2].GetFloat(), rotation[3].GetFloat()));
+
+    const auto& scale = transform["Scale"].GetArray();
+    m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
+
+    const auto& components = gameObjectJson["Components"].GetArray();
+    for (auto& componentJson : components)
+    {
+        const uint64_t componentUid = componentJson["UID"].GetUint64();
+        const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
+
+        Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
+        if (newComponent) {
+            newComponent->setActive(componentJson["Active"].GetBool());
+            newComponent->deserializeJSON(componentJson);
+        }
+    }
+
+    return true;
+}
+
+#pragma endregion
+

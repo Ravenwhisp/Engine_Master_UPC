@@ -1,14 +1,17 @@
 #pragma once
 #include "ComponentType.h"
+#include "UID.h" 
+
+#include <rapidjson/document.h>
 
 class GameObject;
 
 class Component {
 public:
-    Component(int id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
+    Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
 
-    int getID() const { return m_uuid; }
+    UID getID() const { return m_uuid; }
     ComponentType getType() const { return m_type; }
     GameObject* getOwner() const { return m_owner; }
 	void setActive(bool active) { m_active = active; }
@@ -26,13 +29,18 @@ public:
 
     virtual void drawUi() {}
 
-    virtual void onTransformChange() = 0;
+    virtual void onTransformChange() {};
+
+    virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
+    virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
+
 
 protected:
     GameObject* m_owner;
 
+    const UID m_uuid;
+
 private:
-    const int m_uuid;
     const ComponentType m_type;
 	bool m_active = true;
 };

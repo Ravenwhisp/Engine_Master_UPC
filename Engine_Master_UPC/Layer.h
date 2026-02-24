@@ -26,3 +26,11 @@ inline const char* LayerToString(Layer layer)
         return "Unknown";
     }
 }
+
+inline Layer StringToLayer(const char* string)
+{
+#define X(name) if (strcmp(string, #name) == 0) return Layer::name;
+    LAYER_LIST
+#undef X
+        return Layer::DEFAULT;
+}

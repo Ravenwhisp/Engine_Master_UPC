@@ -26,7 +26,7 @@ namespace
     }
 }
 
-LightComponent::LightComponent(int id, GameObject* owner)
+LightComponent::LightComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::LIGHT, owner)
 {
 }
@@ -169,3 +169,99 @@ void LightComponent::drawUi()
         sanitize();
     }
 }
+
+rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::LIGHT), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("LightType", unsigned int(m_data.type), domTree.GetAllocator());
+    {
+        rapidjson::Value colorData(rapidjson::kArrayType);
+
+        colorData.PushBack(m_data.common.color.x, domTree.GetAllocator());
+        colorData.PushBack(m_data.common.color.y, domTree.GetAllocator());
+        colorData.PushBack(m_data.common.color.z, domTree.GetAllocator());
+
+        componentInfo.AddMember("Color", colorData, domTree.GetAllocator());
+    }
+    componentInfo.AddMember("Intensity", m_data.common.intensity, domTree.GetAllocator());
+    
+    // Not common parameters (depending on light type)
+    switch (m_data.type)
+    {
+
+    case LightType::DIRECTIONAL : 
+
+        break;
+
+    case LightType::POINT:
+        
+        componentInfo.AddMember("Radius", m_data.parameters.point.radius, domTree.GetAllocator());
+        break;
+    
+    case LightType::SPOT:
+
+        componentInfo.AddMember("Radius", m_data.parameters.spot.radius, domTree.GetAllocator());
+        componentInfo.AddMember("InnerAngleDegrees", m_data.parameters.spot.innerAngleDegrees, domTree.GetAllocator());
+        componentInfo.AddMember("OuterAngleDegrees", m_data.parameters.spot.outerAngleDegrees, domTree.GetAllocator());
+    }
+
+    return componentInfo;
+}
+    
+bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("Intensity")) {
+        m_data.common.intensity = componentInfo["Intensity"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("Color"))
+    {
+        const auto& color = componentInfo["Color"].GetArray();
+        m_data.common.color = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
+    }
+
+    if (componentInfo.HasMember("LightType"))
+    {
+        int typeInt = componentInfo["LightType"].GetInt();
+        LightType type = static_cast<LightType>(typeInt);
+
+        if (type == LightType::DIRECTIONAL)
+        {
+            setTypeDirectional();
+        }
+        else if (type == LightType::POINT)
+        {
+            float radius = m_data.parameters.point.radius;
+            if (componentInfo.HasMember("Radius"))
+                radius = componentInfo["Radius"].GetFloat();
+
+            setTypePoint(radius);
+        }
+        else if (type == LightType::SPOT)
+        {
+            float radius = m_data.parameters.spot.radius;
+            float innerA = m_data.parameters.spot.innerAngleDegrees;
+            float outerA = m_data.parameters.spot.outerAngleDegrees;
+
+            if (componentInfo.HasMember("Radius"))
+                radius = componentInfo["Radius"].GetFloat();
+
+            if (componentInfo.HasMember("InnerAngleDegrees"))
+                innerA = componentInfo["InnerAngleDegrees"].GetFloat();
+
+            if (componentInfo.HasMember("OuterAngleDegrees"))
+                outerA = componentInfo["OuterAngleDegrees"].GetFloat();
+
+            setTypeSpot(radius, innerA, outerA);
+        }
+    }
+
+    sanitize();
+    return true;
+}
+
