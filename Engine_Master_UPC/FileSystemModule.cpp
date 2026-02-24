@@ -14,7 +14,6 @@
 
 bool FileSystemModule::init()
 {
-    rebuild();
 
     auto textureImporter = new TextureImporter();
     auto modelImporter = new ModelImporter();
@@ -24,6 +23,9 @@ bool FileSystemModule::init()
 
     importers.push_back(textureImporter);
     importers.push_back(modelImporter);
+
+    rebuild();
+    rebuild();
 
     return true;
 }
@@ -187,7 +189,10 @@ void FileSystemModule::rebuild()
         s.pop_back();
     }
 
+    m_metadataMap.clear();
     m_root = buildTree(s);
+
+    cleanOrphanedBinaries();
 }
 
 std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
@@ -224,32 +229,133 @@ std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared
     return nullptr;
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::path& path)
+std::filesystem::path FileSystemModule::getBinaryPath(UID uid) const
 {
+    return std::filesystem::path(LIBRARY_FOLDER) / std::to_string(uid) += ".asset";
+}
+
+void FileSystemModule::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
+{
+    AssetMetadata meta;
+    if (AssetMetadata::loadMetaFile(metadataPath, meta))
+    {
+        std::filesystem::remove(getBinaryPath(meta.uid));
+    }
+
+    std::filesystem::remove(metadataPath);
+}
+
+void FileSystemModule::handleMissingMetadata(const std::filesystem::path& sourcePath)
+{
+    Importer* importer = findImporter(sourcePath);
+    if (importer)
+    {
+        app->getAssetModule()->import(sourcePath);
+    }
+    else
+    {
+        LOG_WARNING("[FileSystemModule] No importer found for '{}'.", sourcePath.string());
+    }
+}
+
+std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::filesystem::path& path)
+{
+    std::filesystem::path sourcePath = path.parent_path() / path.stem();
+
+    if (!exists(sourcePath.string().c_str()))
+    {
+        handleOrphanedMetadata(path);
+        return nullptr;
+    }
+
     auto entry = std::make_shared<FileEntry>();
     entry->path = path.lexically_normal();
-    entry->isDirectory = isDirectory(path.string().c_str());
+    entry->isDirectory = false;
+    entry->displayName = path.stem().string();
 
-    if (entry->isDirectory)
+    AssetMetadata meta;
+    if (AssetMetadata::loadMetaFile(path, meta))
     {
-        for (const auto& p : std::filesystem::directory_iterator(path))
+        m_metadataMap[meta.uid] = meta;
+        entry->uid = meta.uid;
+
+        if (!exists(getBinaryPath(meta.uid).string().c_str()))
         {
-            entry->children.push_back(buildTree(p.path()));
+            app->getAssetModule()->import(sourcePath);
         }
     }
     else
     {
-        if (path.extension() == METADATA_EXTENSION)
+        LOG_WARNING("[FileSystemModule] Failed to load metadata file '{}'.", path.string());
+    }
+
+    return entry;
+}
+
+std::shared_ptr<FileEntry> FileSystemModule::buildDirectoryEntry(const std::filesystem::path& path)
+{
+    auto entry = std::make_shared<FileEntry>();
+    entry->path = path.lexically_normal();
+    entry->isDirectory = true;
+    entry->displayName = path.filename().string();
+
+    for (const auto& p : std::filesystem::directory_iterator(path))
+    {
+        auto child = buildTree(p.path());
+        if (child)
         {
-            AssetMetadata meta;
-            if (AssetMetadata::loadMetaFile(path, meta))
-            {
-                m_metadataMap[meta.uid] = meta;
-                return nullptr;
-            }
+            entry->children.push_back(std::move(child));
         }
     }
 
     return entry;
+}
+
+std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::path& path)
+{
+    if (isDirectory(path.string().c_str()))
+    {
+        return buildDirectoryEntry(path);
+    }
+
+    if (path.extension() == METADATA_EXTENSION)
+    {
+        return buildMetadataEntry(path);
+    }
+
+    // Raw source file — ensure its .metadata exists
+    std::filesystem::path metadataPath = path;
+    metadataPath += METADATA_EXTENSION;
+    if (!exists(metadataPath.string().c_str()))
+    {
+        handleMissingMetadata(path);
+    }
+
+    return nullptr;
+}
+
+void FileSystemModule::cleanOrphanedBinaries()
+{
+    if (!std::filesystem::exists(LIBRARY_FOLDER))
+    {
+        return;
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(LIBRARY_FOLDER))
+    {
+        if (!entry.is_regular_file())
+        {
+            continue;
+        }
+
+        std::string stem = entry.path().stem().string();
+        UID uid = std::stoull(stem);
+
+        if (m_metadataMap.find(uid) == m_metadataMap.end())
+        {
+            LOG_WARNING("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.", entry.path().string());
+            std::filesystem::remove(entry.path());
+        }
+    }
 }
 

@@ -454,6 +454,9 @@
     <ClInclude Include="ISerializable.h">
       <Filter>Core\Persistence</Filter>
     </ClInclude>
+    <ClInclude Include="AssetsDictionary.h">
+      <Filter>Core\Persistence</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

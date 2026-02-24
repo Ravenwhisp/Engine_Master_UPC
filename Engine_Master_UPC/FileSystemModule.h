@@ -6,6 +6,8 @@
 
 struct FileEntry {
 	std::filesystem::path path;
+	std::string displayName;
+	UID uid = INVALID_ASSET_ID;
 	bool isDirectory;
 	std::vector<std::shared_ptr<FileEntry>> children;
 };
@@ -40,6 +42,12 @@ public:
 private:
 	std::shared_ptr<FileEntry> getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
 	std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path);
+	std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path);
+	std::shared_ptr<FileEntry> buildMetadataEntry(const std::filesystem::path& path);
+	void handleMissingMetadata(const std::filesystem::path& path);
+	void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
+	std::filesystem::path getBinaryPath(UID uid) const;
+	void cleanOrphanedBinaries();
 	std::shared_ptr<FileEntry> m_root;
 #pragma endregion
 	std::unordered_map<UID, AssetMetadata> m_metadataMap;

@@ -139,7 +139,7 @@ void MeshRenderer::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             const UID* data = static_cast<const UID*>(payload->Data);
-            ModelAsset*modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(*data));
+            ModelAsset* modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(*data));
             addModel(*modelAsset);
         }
         ImGui::EndDragDropTarget();

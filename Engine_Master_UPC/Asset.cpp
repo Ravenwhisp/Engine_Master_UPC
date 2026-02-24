@@ -10,8 +10,6 @@ bool AssetMetadata::saveMetaFile(const AssetMetadata& meta, const std::filesyste
 
     doc.AddMember("uid", rapidjson::Value(meta.uid), alloc);
     doc.AddMember("type", rapidjson::Value(static_cast<int>(meta.type)), alloc);
-    doc.AddMember("source", rapidjson::Value(meta.sourcePath.string().c_str(), alloc), alloc);
-    doc.AddMember("binary", rapidjson::Value(meta.binaryPath.string().c_str(), alloc), alloc);
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -69,25 +67,6 @@ bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMet
     }
     else {
         LOG("[FileSystemModule] Missing or invalid 'type' in '%s'", metaPath.string().c_str());
-        return false;
-    }
-
-    if (doc.HasMember("source") && doc["source"].IsString()) 
-    {
-        outMeta.sourcePath = doc["source"].GetString();
-    }
-    else {
-        LOG("[FileSystemModule] Missing or invalid 'source' in '%s'", metaPath.string().c_str());
-        return false;
-    }
-
-    if (doc.HasMember("binary") && doc["binary"].IsString()) 
-    {
-        outMeta.binaryPath = doc["binary"].GetString();
-    }
-    else 
-    {
-        LOG("[FileSystemModule] Missing or invalid 'binary' in '%s'", metaPath.string().c_str());
         return false;
     }
 
