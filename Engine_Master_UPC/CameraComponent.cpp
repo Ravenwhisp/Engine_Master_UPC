@@ -81,16 +81,10 @@ void CameraComponent::drawUi()
 		m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
 		m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
 	}
-
-	bool isThisCurrentActiveCamera = app->getActiveCamera() == this;
-	ImGui::Checkbox("Set this camera as the active game camera", &isThisCurrentActiveCamera);
-	if (isThisCurrentActiveCamera && app->getActiveCamera() != this)
+	
+	if (ImGui::Button("Set as Default Camera"))
 	{
 		app->setActiveCamera(this);
-	}
-	else if (!isThisCurrentActiveCamera && app->getActiveCamera() == this)
-	{
-		app->setActiveCamera(nullptr);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;

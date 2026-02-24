@@ -6,7 +6,7 @@
 #include "RenderModule.h"
 #include "Settings.h"
 
-#include "BasicModel.h"
+#include "ModelComponent.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -25,7 +25,7 @@ bool SceneModule::init()
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
     app->setActiveCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
-    auto component = gameCamera->GetComponentAs<BasicModel>(ComponentType::MODEL);
+    auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
     gameCamera->RemoveComponent(component);
     m_gameObjects.push_back(gameCamera);
 
@@ -238,7 +238,7 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     GameObject* go = new GameObject(rand());
-    auto component = go->GetComponentAs<BasicModel>(ComponentType::MODEL);
+    auto component = go->GetComponentAs<ModelComponent>(ComponentType::MODEL);
     go->RemoveComponent(component);
 
     go->SetName("Directional Light");
