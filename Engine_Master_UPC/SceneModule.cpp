@@ -399,19 +399,6 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         detachGameObject(child);
     }
 
-    /*for (GameObject* rootGameObject : getAllGameObjects())
-        rootGameObject->init();*/
-
-    // Retake a look at this, models were not seen after loading because their transform wasn't being updated, so I did this fix, feels wierd to have it like that
-    // but is the solution I found.
-    /*for (const auto& pair : uidToGo)
-    {
-        GameObject* gameObject = pair.second;
-        gameObject->GetTransform()->getGlobalMatrix();
-        gameObject->onTransformChange();
-        getQuadtree().move(*gameObject);
-    }*/
-
     applySkyboxToRenderer();
 
     return true;
@@ -452,9 +439,15 @@ void SceneModule::saveScene()
 	m_sceneSerializer->SaveScene(m_name, domTree);
 }
 
-void SceneModule::loadScene()
+bool SceneModule::loadScene(const std::string& sceneName)
 {
-    m_sceneSerializer->LoadScene(m_name);
+    const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
+    if (!fileExists) {
+        return false;
+    }
+
+    m_name = sceneName;
+    return true;
 }
 
 void SceneModule::clearScene()

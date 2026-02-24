@@ -52,7 +52,7 @@ public:
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
 
 	void saveScene();
-	void loadScene();
+	bool loadScene(const std::string& sceneName);
 	void clearScene();
 #pragma endregion
 
