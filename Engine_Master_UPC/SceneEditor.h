@@ -24,6 +24,11 @@ private:
     Settings* m_settings;
     Quadtree* m_quadtree;
 
+    EditorToolbar* m_editorToolbar;
+
+private:
+    std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
+
 public:
     SceneEditor();
     ~SceneEditor();
@@ -35,10 +40,5 @@ public:
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
-
-private:
-    std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
-
-    EditorToolbar* m_editorToolbar;
 };
 

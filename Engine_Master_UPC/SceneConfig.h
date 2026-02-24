@@ -17,10 +17,13 @@ public:
     void render() override;
 
 private:
+    void drawSaveSceneSettings();
+    void drawLoadSceneSettings();
     void drawSkyboxSettings();
     void drawLightSettings();
 
-    std::string m_sceneName;
+    std::string m_saveSceneName;
+    std::string m_loadSceneName;
     GameObject* m_camera = nullptr;
 
     bool m_skyboxDirty = false;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Globals.h"
 #include "Texture.h"
+#include "Asset.h"
 
 namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
 class BasicMaterial
@@ -27,7 +28,7 @@ public:
 		float		shininess;
 	};
 
-	void load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath);
+	bool load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath);
 	ComPtr<ID3D12Resource>	getMaterialBuffer() const { return m_materialBuffer; }
 	Texture* getTexture() const { return m_textureColor.get(); }
 	BDRFPhongMaterialData& getMaterial() { return m_materialData; }

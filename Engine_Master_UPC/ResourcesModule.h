@@ -46,7 +46,7 @@ public:
 	ComPtr<ID3D12Resource>			createUploadBuffer(size_t size);
 	ComPtr<ID3D12Resource>			createDefaultBuffer(const void* data, size_t size, const char* name);
 	std::unique_ptr<DepthBuffer>	createDepthBuffer(float windowWidth, float windowHeight);
-	std::unique_ptr<Texture>		createTexture2DFromFile(const path& filePath, const char* name);
+	std::unique_ptr<Texture>		createTexture2DFromFile(const path& filePath);
 	std::unique_ptr<Texture>		createNullTexture2D();
 	std::unique_ptr<Texture>		createTextureCubeFromFile(const path& filePath, const char* name);
 	std::unique_ptr<RenderTexture>	createRenderTexture(float windowWidth, float windowHeight);

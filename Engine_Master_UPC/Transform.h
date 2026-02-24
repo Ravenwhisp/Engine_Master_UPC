@@ -7,7 +7,7 @@ class GameObject;
 
 class Transform final : public Component {
 public:
-	Transform(int id, GameObject* gameObject);
+	Transform(UID id, GameObject* gameObject);
 
 	const Matrix& getGlobalMatrix() const;
 	Matrix getNormalMatrix() const;
@@ -38,12 +38,16 @@ public:
 
 	void setRoot(Transform* root) { m_root = root; }
 	void addChild(GameObject* child) { m_children.push_back(child); }
-	void removeChild(int id);
+	void removeChild(UID id);
 
 	bool isDescendantOf(const Transform* potentialParent) const;
 #pragma endregion
 
 	void drawUi() override;
+
+#pragma region Filesystem
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basics! (no children nor parent)
+#pragma endregion
 
 private:
 	mutable Matrix m_globalMatrix;

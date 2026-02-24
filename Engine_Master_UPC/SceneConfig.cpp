@@ -16,16 +16,100 @@ void SceneConfig::render()
         ImGui::End();
         return;
     }
+    
+    /*ImGui::SeparatorText("Scene");
 
-    //ImGui::Separator();
+    // Scene Name input
+    static char sceneBuffer[256];
+    strcpy_s(sceneBuffer, m_sceneName.c_str());
+
+    if (ImGui::InputText("Scene Name", sceneBuffer, IM_ARRAYSIZE(sceneBuffer)))
+    {
+        m_sceneName = sceneBuffer;
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Save"))
+    {
+		m_sceneModule->setName(m_sceneName.c_str());
+        m_sceneModule->saveScene();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Load"))
+    {
+        m_sceneModule->setName(m_sceneName.c_str());
+        m_sceneModule->loadScene();
+    }*/
+
+    drawSaveSceneSettings();
+
+    ImGui::Separator();
+
+    drawLoadSceneSettings();
+
+    ImGui::Separator();
+
     drawSkyboxSettings();
 
     ImGui::Separator();
+
     drawLightSettings();
 
     ImGui::End();
 
 }
+
+void SceneConfig::drawSaveSceneSettings() {
+    if (ImGui::CollapsingHeader("Save Scene")) {
+
+        static char saveSceneBuffer[256];
+        strcpy_s(saveSceneBuffer, m_saveSceneName.c_str());
+
+        if (ImGui::InputText("Scene Name##Save", saveSceneBuffer, IM_ARRAYSIZE(saveSceneBuffer)))
+        {
+            m_saveSceneName = saveSceneBuffer;
+        }
+
+        if (ImGui::Button("Save"))
+        {
+            const bool blank = (m_saveSceneName.find_first_not_of(" \t\n\r") == std::string::npos);
+            if (blank)
+            {
+                DEBUG_WARN("Cannot save scene: name is empty.");
+            }
+            else
+            {
+                m_sceneModule->setName(m_saveSceneName.c_str());
+                m_sceneModule->saveScene();
+            }
+        }
+    }
+}
+
+
+void SceneConfig::drawLoadSceneSettings() {
+    if (ImGui::CollapsingHeader("Load Scene")) {
+        static char loadSceneBuffer[256];
+        strcpy_s(loadSceneBuffer, m_loadSceneName.c_str());
+
+        if (ImGui::InputText("Scene Name##Load", loadSceneBuffer, IM_ARRAYSIZE(loadSceneBuffer)))
+        {
+            m_loadSceneName = loadSceneBuffer;
+        }
+
+        if (ImGui::Button("Load"))
+        {
+            if (!m_sceneModule->loadScene(m_loadSceneName))
+            {
+                DEBUG_WARN("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
+            }
+        }
+    }
+}
+
 
 void SceneConfig::drawSkyboxSettings() {
     auto& skyboxSettings = m_sceneModule->getSkyboxSettings();

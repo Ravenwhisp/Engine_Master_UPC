@@ -5,10 +5,9 @@
 #include "ResourcesModule.h"
 #include "tiny_gltf.h"
 
-void BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath)
+bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath)
 {
-	Vector3 color = Vector3(float(material.baseColorFactor[0]), float(material.baseColorFactor[1]),
-		float(material.baseColorFactor[2]));
+	Vector3 color = Vector3(float(material.baseColorFactor[0]), float(material.baseColorFactor[1]), float(material.baseColorFactor[2]));
 
 	m_materialData.diffuseColour = color;
 	m_materialData.specularColour = Vector3(0.1f, 0.1f, 0.1f);
@@ -18,9 +17,13 @@ void BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 	{
 		const tinygltf::Texture& texture = model.textures[material.baseColorTexture.index];
 		const tinygltf::Image& image = model.images[texture.source];
-		if (!image.uri.empty())
+		if (!image.uri.empty() && app->getResourcesModule())
 		{
-			m_textureColor = app->getResourcesModule()->createTexture2DFromFile(std::string(basePath) + image.uri, "Texture");
+			m_textureColor = app->getResourcesModule()->createTexture2DFromFile(std::string(basePath) + image.uri);
+			if (!m_textureColor)
+			{
+				return false;
+			}
 			m_materialData.hasDiffuseTex = true;
 		}
 	}
@@ -31,5 +34,7 @@ void BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 	}
 
 	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(MaterialData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
+
+	return true;
 }
 
