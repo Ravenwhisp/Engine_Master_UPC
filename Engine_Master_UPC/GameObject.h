@@ -8,7 +8,7 @@
 #include "Tag.h"
 #include "Layer.h"
 
-class BasicModel;
+class ModelComponent;
 
 class GameObject {
 public:
@@ -72,6 +72,6 @@ private:
 	std::vector<Component*> m_components;
 
 	//Testing duck
-	BasicModel* m_model;
+	ModelComponent* m_model;
 	//////////////
 };

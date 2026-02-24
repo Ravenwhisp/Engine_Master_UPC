@@ -16,6 +16,7 @@ public:
 private:
     void drawCameraSettings();
     void drawSceneSettings();
+    void drawFrustumCullingSettings();
 
 private:
     Settings* m_settings = nullptr;

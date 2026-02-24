@@ -1,17 +1,19 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include "BasicModel.h"
+#include "ModelComponent.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
+
+#include "Application.h"
 
 GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
     m_components.push_back(m_transform = new Transform(rand(), this));
 
     //Testing duck
-	BasicModel* currModel = new BasicModel(rand(), this);
+	ModelComponent* currModel = new ModelComponent(rand(), this);
     m_components.push_back(currModel);
 	currModel->init();
 
@@ -31,7 +33,7 @@ bool GameObject::AddComponent(ComponentType componentType)
             m_components.push_back(new LightComponent(rand(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new BasicModel(rand(), this));
+            m_components.push_back(new ModelComponent(rand(), this));
             break;
         case ComponentType::TRANSFORM:
 
@@ -92,7 +94,10 @@ bool GameObject::init()
 void GameObject::update() {
     for (Component* component : m_components)
     {
-        component->update();
+        if (component->isActive())
+        {
+            component->update();
+        }
 	}
 }
 
@@ -100,7 +105,10 @@ void GameObject::preRender()
 {
     for (Component* component : m_components)
     {
-        component->preRender();
+        if (component->isActive())
+        {
+            component->preRender();
+        }
     }
     for (GameObject* child : m_transform->getAllChildren())
     {
@@ -115,7 +123,10 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 {
     for (Component* component : m_components)
     {
-        component->render(commandList, viewMatrix, projectionMatrix);
+        if (component->isActive())
+        {
+            component->render(commandList, viewMatrix, projectionMatrix);
+        }
     }
     for (GameObject* child : m_transform->getAllChildren())
     {
@@ -130,7 +141,10 @@ void GameObject::postRender()
 {
     for (Component* component : m_components)
     {
-        component->postRender();
+        if (component->isActive())
+        {
+            component->postRender();
+        }
     }
     for (GameObject* child : m_transform->getAllChildren())
     {
@@ -223,13 +237,31 @@ void GameObject::drawUI()
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         Component* component = m_components[i];
-
         ImGui::PushID(component->getID());
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+        if (component->getType() == ComponentType::CAMERA && app->getActiveCamera() == component)
         {
+            header += " (Default)";
+        }
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
+
+        bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
+
+        ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
+
+        bool enabled = component->isActive();
+        if (component->getType() != ComponentType::TRANSFORM && ImGui::Checkbox("##Active", &enabled))
+        {
+            component->setActive(enabled);
+        }
+
+        if (isOpen)
+        {
+            ImGui::Separator();
+
             component->drawUi();
 
             ImGui::Separator();
@@ -242,12 +274,15 @@ void GameObject::drawUI()
                 {
                     RemoveComponent(component);
                     ImGui::PopStyleColor();
+                    ImGui::TreePop();
                     ImGui::PopID();
                     break;
                 }
 
                 ImGui::PopStyleColor();
             }
+
+            ImGui::TreePop();
         }
 
         ImGui::PopID();
