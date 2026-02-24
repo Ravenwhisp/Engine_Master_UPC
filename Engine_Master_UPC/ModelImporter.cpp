@@ -129,7 +129,13 @@ UID loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex, const
 	if (image.uri.empty()) return 0;
     std::filesystem::path resolvedPath = modelPath->parent_path() / image.uri;
 
-	return app->getAssetModule()->import(resolvedPath.string().c_str());
+    UID uid = app->getAssetModule()->find(resolvedPath.string().c_str());
+    if (uid == INVALID_ASSET_ID)
+    {
+        return app->getAssetModule()->import(resolvedPath.string().c_str());
+    }
+
+	return uid;
 }
 
 void ModelImporter::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset)
