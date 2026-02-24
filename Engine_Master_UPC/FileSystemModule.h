@@ -10,6 +10,17 @@ struct FileEntry {
 	UID uid = INVALID_ASSET_ID;
 	bool isDirectory;
 	std::vector<std::shared_ptr<FileEntry>> children;
+
+	std::filesystem::path getPath() 
+	{
+		if (isDirectory)
+		{
+			std::filesystem::path realPath = path;
+			realPath += "/";
+			return realPath;
+		}
+		return path;
+	}
 };
 
 struct PendingImport

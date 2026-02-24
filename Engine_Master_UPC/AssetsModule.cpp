@@ -27,6 +27,7 @@ UID AssetsModule::find(const std::filesystem::path& assetsFile) const
 
 UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
 {
+
     Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
     if (!importer)
     {
