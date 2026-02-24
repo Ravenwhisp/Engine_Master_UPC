@@ -1,7 +1,13 @@
 #pragma once
+#include "ISerializer.h"
+#include "IDeserializer.h"
 
-class ISerialisable {
+class ISerializable {
 public:
-	virtual void serialize(const char** buffer) = 0;
+    virtual ~ISerializable() = default;
+
+    virtual void serialize(ISerializer& serializer) const = 0;
+
+    virtual void deserialize(IDeserializer& deserializer) = 0;
 
 };

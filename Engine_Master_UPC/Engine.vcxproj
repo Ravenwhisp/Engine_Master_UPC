@@ -207,6 +207,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Importer.h" />
     <ClInclude Include="ISerializable.h" />
+    <ClInclude Include="ISerializer.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
@@ -360,6 +361,7 @@
     <ClCompile Include="FileSystemModule.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="IDeserializer.h" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
