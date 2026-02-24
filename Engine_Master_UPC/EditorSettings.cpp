@@ -84,6 +84,6 @@ void EditorSettings::drawFrustumCullingSettings()
 {
     if (ImGui::CollapsingHeader("Frustum culling"))
     {
-        ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.cullObjectsOutsideOfFrustum);
+        ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.debugFrustumCulling);
     }
 }

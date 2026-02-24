@@ -33,7 +33,7 @@ struct SceneEditorSettings {
 
 struct FrustumCullingSettings
 {
-    bool cullObjectsOutsideOfFrustum = false;
+    bool debugFrustumCulling = false;
 };
 
 class Settings {

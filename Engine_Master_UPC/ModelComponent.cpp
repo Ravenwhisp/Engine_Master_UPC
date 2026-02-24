@@ -1,8 +1,6 @@
 #include "Globals.h"
 #include "ModelComponent.h"
 
-
-
 #include "Application.h"
 #include "RenderModule.h"
 #include "GameObject.h"
@@ -54,7 +52,14 @@ void ModelComponent::load(const char* fileName, const char* basePath)
         for (tinygltf::Material material : model.materials)
         {
             BasicMaterial* myMaterial = new BasicMaterial;
-            myMaterial->load(model, material.pbrMetallicRoughness, basePath);
+            if (!myMaterial->load(model, material.pbrMetallicRoughness, basePath)) {
+                for (BasicMaterial* m : m_materials)
+                {
+                    delete m;
+                }
+                m_materials.clear();
+                return;
+            }
             m_materials.push_back(myMaterial);
         }
 
