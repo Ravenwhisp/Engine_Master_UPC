@@ -15,6 +15,20 @@
 #include "LightComponent.h"
 #include "Transform.h"
 
+// LIBRARY SMOKE TEST
+#include <Recast.h>
+#include <DetourNavMesh.h>
+#include <DetourNavMeshQuery.h>
+
+static void NavSmokeTest()
+{
+    dtNavMesh* nav = dtAllocNavMesh();
+    dtNavMeshQuery* q = dtAllocNavMeshQuery();
+    dtFreeNavMeshQuery(q);
+    dtFreeNavMesh(nav);
+}
+
+// DELETE
 
 bool RenderModule::init()
 {

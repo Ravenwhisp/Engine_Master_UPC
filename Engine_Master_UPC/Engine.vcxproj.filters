@@ -173,6 +173,8 @@
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
+    <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="LightDebugDraw.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -379,6 +381,9 @@
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
+    <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="LightDebugDraw.h" />
+    <ClInclude Include="Lights.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -501,6 +506,7 @@
     <None Include="CBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
+    <None Include="NewCBuffers.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -509,5 +515,6 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="LightPixelShader.hlsl" />
   </ItemGroup>
 </Project>
