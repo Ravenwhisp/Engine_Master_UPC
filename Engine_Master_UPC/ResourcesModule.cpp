@@ -136,7 +136,7 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 		{
 			if (FAILED(LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image)))
 			{
-				LOG("ERROR loading texture, not found valid file.")
+				DEBUG_ERROR("ERROR loading texture, not found valid file.");
 				return nullptr;
 			}
 		}

@@ -263,7 +263,7 @@ bool RenderModule::applySkyboxSettings(bool enabled, const char* cubemapPath)
         m_hasSkybox = false;
         m_skyboxTexture.reset();
 
-        LOG("[Skybox] Disabled");
+        DEBUG_LOG("[Skybox] Disabled");
 
         return true;
     }
@@ -271,14 +271,14 @@ bool RenderModule::applySkyboxSettings(bool enabled, const char* cubemapPath)
     auto newTex = app->getResourcesModule()->createTextureCubeFromFile(path(cubemapPath), "Skybox");
     if (!newTex)
     {
-        LOG("[Skybox] Failed to load: %s", cubemapPath);
+        DEBUG_ERROR("[Skybox] Failed to load: %s", cubemapPath);
         return false;
     }
 
     m_skyboxTexture = std::move(newTex);
     m_hasSkybox = true;
 
-    LOG("[Skybox] Loaded: %s", cubemapPath);
+    DEBUG_LOG("[Skybox] Loaded: %s", cubemapPath);
     return true;
 }
 

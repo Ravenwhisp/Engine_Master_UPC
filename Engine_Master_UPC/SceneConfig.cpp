@@ -78,7 +78,7 @@ void SceneConfig::drawSaveSceneSettings() {
             const bool blank = (m_saveSceneName.find_first_not_of(" \t\n\r") == std::string::npos);
             if (blank)
             {
-                LOG("Cannot save scene: name is empty.");
+                DEBUG_WARN("Cannot save scene: name is empty.");
             }
             else
             {
@@ -104,7 +104,7 @@ void SceneConfig::drawLoadSceneSettings() {
         {
             if (!m_sceneModule->loadScene(m_loadSceneName))
             {
-                LOG("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
+                DEBUG_WARN("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
             }
         }
     }
