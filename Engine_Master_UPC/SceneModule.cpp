@@ -86,12 +86,14 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     for (GameObject* gameObject : m_gameObjects)
     {
         if (!gameObject->GetActive())
+        {
             continue;
+        }
 
-            if (gameObject->GetTransform()->isDirty())
-            {
-                m_quadtree->move(*gameObject);
-            }
+        if (gameObject->GetTransform()->isDirty())
+        {
+            m_quadtree->move(*gameObject);
+        }
 
         if (!camera)
         {
@@ -115,7 +117,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
 
     for (GameObject* gameObject : gameObjects)
     {
-        if (gameObject != camera->getOwner())
+        if (gameObject != camera->getOwner() && gameObject->GetActive())
         {
             gameObject->render(commandList, viewMatrix, projectionMatrix);
         }

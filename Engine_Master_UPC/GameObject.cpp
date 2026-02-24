@@ -237,15 +237,31 @@ void GameObject::drawUI()
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         Component* component = m_components[i];
-
         ImGui::PushID(component->getID());
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
-        if (component->getType() == ComponentType::CAMERA && app->getActiveCamera() == component)
-			header += " (Default)";
 
-        if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+        if (component->getType() == ComponentType::CAMERA && app->getActiveCamera() == component)
         {
+            header += " (Default)";
+        }
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
+
+        bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
+
+        ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
+
+        bool enabled = component->isActive();
+        if (component->getType() != ComponentType::TRANSFORM && ImGui::Checkbox("##Active", &enabled))
+        {
+            component->setActive(enabled);
+        }
+
+        if (isOpen)
+        {
+            ImGui::Separator();
+
             component->drawUi();
 
             ImGui::Separator();
@@ -258,12 +274,15 @@ void GameObject::drawUI()
                 {
                     RemoveComponent(component);
                     ImGui::PopStyleColor();
+                    ImGui::TreePop();
                     ImGui::PopID();
                     break;
                 }
 
                 ImGui::PopStyleColor();
             }
+
+            ImGui::TreePop();
         }
 
         ImGui::PopID();
