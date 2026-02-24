@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "BasicModel.h"
+#include "ModelComponent.h"
 
 
 
@@ -21,22 +21,22 @@
 #pragma warning(pop)
 
 
-BasicModel::~BasicModel()
+ModelComponent::~ModelComponent()
 {
-    for (int i = 0; i < m_meshes.size(); i++) 
+    for (int i = 0; i < m_meshes.size(); i++)
     {
         delete m_meshes[i];
         m_meshes[i] = nullptr;
     }
 
-    for (int i = 0; i < m_materials.size(); i++) 
+    for (int i = 0; i < m_materials.size(); i++)
     {
         delete m_materials[i];
         m_materials[i] = nullptr;
     }
 
 }
-void BasicModel::load(const char* fileName, const char* basePath)
+void ModelComponent::load(const char* fileName, const char* basePath)
 {
     m_modelPath = fileName;
     m_basePath = basePath;
@@ -108,14 +108,14 @@ void BasicModel::load(const char* fileName, const char* basePath)
 }
 
 #pragma region Loop functions
-bool BasicModel::init()
+bool ModelComponent::init()
 {
     if (!m_modelPath.empty())
         load(m_modelPath.c_str(), m_basePath.c_str());     
     return true;
 }
 
-void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
+void ModelComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
     Transform* transform = m_owner->GetTransform();
     Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
@@ -172,13 +172,13 @@ void BasicModel::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 
 }
 
-bool BasicModel::cleanUp()
+bool ModelComponent::cleanUp()
 {
     return true;
 }
 #pragma endregion
 
-void BasicModel::drawUi()
+void ModelComponent::drawUi()
 {
     ImGui::Separator();
 
@@ -265,7 +265,7 @@ void BasicModel::drawUi()
 
 }
 
-void BasicModel::onTransformChange()
+void ModelComponent::onTransformChange()
 {
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }

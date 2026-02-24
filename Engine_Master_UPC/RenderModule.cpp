@@ -172,12 +172,13 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     Quaternion cameraRotation;
     Vector3 cameraPosition;
 
-    if (app->getActiveCamera())
+    if (app->getCurrentCameraPerspective())
     {
-        viewMatrix = app->getActiveCamera()->getViewMatrix();
-        projectionMatrix = app->getActiveCamera()->getProjectionMatrix();
-        cameraRotation = app->getActiveCamera()->getOwner()->GetTransform()->getRotation();
-        cameraPosition = app->getActiveCamera()->getOwner()->GetTransform()->getPosition();
+        const CameraComponent* camera = app->getCurrentCameraPerspective();
+        viewMatrix = camera->getViewMatrix();
+        projectionMatrix = camera->getProjectionMatrix();
+        cameraRotation = camera->getOwner()->GetTransform()->getRotation();
+        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
     }
     else
     {
@@ -326,7 +327,7 @@ GPULightsConstantBuffer RenderModule::packLightsForGPU(const std::vector<GameObj
         const LightData& lightData = lightComponent->getData();
         const LightCommon& common = lightData.common;
 
-        if (!common.enabled)
+        if (!lightComponent->isActive())
         {
             continue;
         }
