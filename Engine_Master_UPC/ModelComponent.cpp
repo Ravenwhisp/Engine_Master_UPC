@@ -108,7 +108,8 @@ void ModelComponent::load(const char* fileName, const char* basePath)
     }
     else
     {
-        LOG("Error loading %s: %s", fileName, error.c_str());
+
+        DEBUG_ERROR("Error loading %s: %s", fileName, error.c_str());
     }
 }
 

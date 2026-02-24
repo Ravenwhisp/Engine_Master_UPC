@@ -30,11 +30,11 @@ SceneSerializer::SceneSerializer()
     {
         if (std::filesystem::create_directories(SCENE_FOLDER))
         {
-            LOG("Created scene folder: %s\n", SCENE_FOLDER.data());
+            DEBUG_LOG("Created scene folder: %s\n", SCENE_FOLDER.data());
         }
         else
         {
-            LOG("Failed to create scene folder: %s\n", SCENE_FOLDER.data());
+            DEBUG_ERROR("Failed to create scene folder: %s\n", SCENE_FOLDER.data());
         }
     }
 }
@@ -48,7 +48,7 @@ bool SceneSerializer::SaveScene(std::string sceneName, rapidjson::Document& domT
 {
     if (sceneName.empty())
     {
-        LOG("Scene name cannot be empty.\n");
+        DEBUG_LOG("Scene name cannot be empty.\n");
         return false;
 	}
 
@@ -59,7 +59,7 @@ bool SceneSerializer::SaveScene(std::string sceneName, rapidjson::Document& domT
     FILE* fileOpened = std::fopen(path.c_str(), "wb"); // w for writing, b disables special handling of '\n' and '\x1A'
     if (!fileOpened) 
     {
-        LOG("Error opening file");
+        DEBUG_ERROR("Error opening file");
         return false;
     }
 
