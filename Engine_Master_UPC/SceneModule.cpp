@@ -6,6 +6,7 @@
 #include "Application.h"
 #include "RenderModule.h"
 #include "EditorModule.h"
+#include "Settings.h"
 
 #include "ModelComponent.h"
 

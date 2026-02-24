@@ -270,12 +270,13 @@ void ModelComponent::onTransformChange()
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }
 
-rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
+rapidjson::Value ModelComponent::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::MODEL), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
     rapidjson::Value modelPath(m_modelPath.c_str(), domTree.GetAllocator());
     rapidjson::Value basePath(m_basePath.c_str(), domTree.GetAllocator());
     componentInfo.AddMember("ModelPath", modelPath, domTree.GetAllocator());
@@ -284,7 +285,7 @@ rapidjson::Value BasicModel::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
-bool BasicModel::deserializeJSON(const rapidjson::Value& componentInfo)
+bool ModelComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("ModelPath") && componentInfo.HasMember("BasePath"))
     {
