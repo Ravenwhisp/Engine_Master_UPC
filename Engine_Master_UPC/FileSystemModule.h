@@ -12,6 +12,12 @@ struct FileEntry {
 	std::vector<std::shared_ptr<FileEntry>> children;
 };
 
+struct PendingImport
+{
+	std::filesystem::path sourcePath;
+	UID existingUID = INVALID_ASSET_ID;
+};
+
 class FileSystemModule : public Module
 {
 public:
@@ -51,6 +57,7 @@ private:
 	std::shared_ptr<FileEntry> m_root;
 #pragma endregion
 	std::unordered_map<UID, AssetMetadata> m_metadataMap;
+	std::vector<PendingImport> m_pendingImports;
 
 	// I don't know if having to ways of finding an importer is the solution
 	std::unordered_map<AssetType, Importer*> importersMap;

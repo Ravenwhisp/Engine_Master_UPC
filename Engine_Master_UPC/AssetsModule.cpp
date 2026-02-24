@@ -25,9 +25,7 @@ UID AssetsModule::find(const std::filesystem::path& assetsFile) const
     return entry->uid;
 }
 
-
-
-UID AssetsModule::import(const std::filesystem::path& assetsFile)
+UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
 {
     Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
     if (!importer)
@@ -36,7 +34,9 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile)
         return INVALID_ASSET_ID;
     }
 
-    UID uid = GenerateUID();
+    if (uid == INVALID_ASSET_ID) {
+        uid = GenerateUID();
+    }
 
     Asset* asset = importer->createAssetInstance(uid);
 
@@ -89,26 +89,7 @@ Asset* AssetsModule::requestAsset(UID id)
         return nullptr;
     }
 
-    //Create the asset
-    Importer* importer = app->getFileSystemModule()->findImporter(metadata->type);
-    Asset* asset = importer->createAssetInstance(metadata->uid);
-
-    //Load from binary
-    char* rawBuffer = nullptr;
-
-    unsigned int size = app->getFileSystemModule()->load(metadata->getBinaryPath(), &rawBuffer);
-    if (size > 0)
-    {
-        std::vector<uint8_t> buffer(rawBuffer, rawBuffer + size);
-        importer->load(buffer.data(), asset);
-        delete[] rawBuffer;
-    }
-
-    //Store it in map
-    asset->addReference();
-    m_assets[metadata->uid] = asset;
-
-    return asset;
+    return requestAsset(metadata);
 }
 
 Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
