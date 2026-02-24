@@ -25,7 +25,6 @@ bool FileSystemModule::init()
     importers.push_back(modelImporter);
 
     rebuild();
-    rebuild();
 
     return true;
 }
@@ -190,7 +189,13 @@ void FileSystemModule::rebuild()
     }
 
     m_metadataMap.clear();
+    m_pendingImports.clear();
     m_root = buildTree(s);
+
+    for (const auto& pending : m_pendingImports)
+    {
+        app->getAssetModule()->import(pending.sourcePath, pending.existingUID);
+    }
 
     cleanOrphanedBinaries();
 }
@@ -250,7 +255,7 @@ void FileSystemModule::handleMissingMetadata(const std::filesystem::path& source
     Importer* importer = findImporter(sourcePath);
     if (importer)
     {
-        app->getAssetModule()->import(sourcePath);
+        m_pendingImports.push_back({ sourcePath, INVALID_ASSET_ID });
     }
     else
     {
@@ -281,7 +286,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::files
 
         if (!exists(getBinaryPath(meta.uid).string().c_str()))
         {
-            app->getAssetModule()->import(sourcePath);
+            m_pendingImports.push_back({ sourcePath, meta.uid });
         }
     }
     else
