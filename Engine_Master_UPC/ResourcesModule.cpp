@@ -171,6 +171,8 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
 {
 	TextureInitInfo info{};
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1);
+	info.desc = &desc;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Standard format
