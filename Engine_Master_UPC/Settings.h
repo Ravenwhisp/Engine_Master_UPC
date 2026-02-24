@@ -34,7 +34,7 @@ struct SceneEditorSettings {
 struct SkyboxSettings
 {
     bool enabled = true;
-    char path[260] = "Assets/Textures/cubemap2.dds";
+    char path[260] = "Assets/Textures/cubemap.dds";
     bool dirty = false;
 };
 
