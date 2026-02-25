@@ -129,7 +129,8 @@ void SceneEditor::render()
 bool SceneEditor::resize(ImVec2 contentRegion)
 {
     if (abs(contentRegion.x - m_size.x) > 1.0f ||
-        abs(contentRegion.y - m_size.y) > 1.0f) {
+        abs(contentRegion.y - m_size.y) > 1.0f) 
+    {
         setSize(contentRegion);
         return true;
     }

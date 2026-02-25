@@ -17,6 +17,7 @@ class Hierarchy;
 class DebugDrawPass;
 class EditorSettings;
 class SceneConfig;
+class GameEditor;
 
 class EditorModule: public Module
 {
@@ -78,6 +79,7 @@ private:
 	DebugDrawPass*				m_debugDrawPass = nullptr;
 	EditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
+	GameEditor*					m_gameEditor = nullptr;
 
     bool m_showMainDockspace = true;
     bool m_firstFrame = true;
