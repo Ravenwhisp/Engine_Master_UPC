@@ -7,16 +7,18 @@
 
 #include "Tag.h"
 #include "Layer.h"
+#include "UID.h"
 
-class BasicModel;
+class ModelComponent;
 
 class GameObject {
 public:
-	GameObject(int newUuid);
+	GameObject(UID newUuid);
+	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
 	
 #pragma region Properties
-	int GetID() const { return m_uuid; }
+	UID GetID() const { return m_uuid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
 	bool GetStatic() const { return m_isStatic; }
@@ -34,14 +36,21 @@ public:
 	Transform* GetTransform() { return m_transform; }
 	const Transform* GetTransform() const { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
+	Component* AddComponentWithUID(const ComponentType componentType, UID id);
 	bool RemoveComponent(Component* componentToRemove);
 	Component* GetComponent(ComponentType type) const;
+	const std::vector<Component*>& GetComponents() const { return m_components; }
 
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const
 	{
 		return static_cast<T*>(GetComponent(type));
 	}
+#pragma endregion
+
+#pragma region Persistence
+	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
 
 #pragma endregion
@@ -61,7 +70,7 @@ public:
 	void onTransformChange();
 
 private:
-	int m_uuid;
+	UID m_uuid;
 	std::string m_name;
 	bool m_active = true;
 	bool m_isStatic = false;
@@ -72,6 +81,6 @@ private:
 	std::vector<Component*> m_components;
 
 	//Testing duck
-	BasicModel* m_model;
+	ModelComponent* m_model;
 	//////////////
 };

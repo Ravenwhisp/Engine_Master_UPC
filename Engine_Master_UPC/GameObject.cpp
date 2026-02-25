@@ -1,21 +1,21 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include "BasicModel.h"
+#include "ModelComponent.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
+#include "Application.h"
 
-GameObject::GameObject(int newUuid) : m_uuid(newUuid), m_name("New GameObject")
+GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-    m_components.push_back(m_transform = new Transform(rand(), this));
+    m_components.push_back(m_transform = new Transform(GenerateUID(), this));
+}
 
-    //Testing duck
-	BasicModel* currModel = new BasicModel(rand(), this);
-    m_components.push_back(currModel);
-	currModel->init();
+GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name("New GameObject")
+{
+    m_components.push_back(m_transform = new Transform(transformUid, this));
 
-    //////////////
 }
 
 GameObject::~GameObject()
@@ -28,19 +28,20 @@ bool GameObject::AddComponent(ComponentType componentType)
     switch (componentType)
     {
         case ComponentType::LIGHT:
-            m_components.push_back(new LightComponent(rand(), this));
+            m_components.push_back(new LightComponent(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new BasicModel(rand(), this));
+            m_components.push_back(new ModelComponent(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
-
-        case ComponentType::PLAYER_WALK:
-            m_components.push_back(new PlayerWalk(rand(), this));
             break;
 
+        case ComponentType::PLAYER_WALK:
+            m_components.push_back(new PlayerWalk(GenerateUID(), this));
+            break;
         case ComponentType::CAMERA:
-            m_components.push_back(new CameraComponent(rand(), this));
+            m_components.push_back(new CameraComponent(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -52,6 +53,38 @@ bool GameObject::AddComponent(ComponentType componentType)
 
     return true;
 }
+
+Component* GameObject::AddComponentWithUID(const ComponentType componentType, UID id) {
+    Component* newComponent = nullptr;
+
+    switch (componentType)
+    {
+    case ComponentType::LIGHT:
+        newComponent = new LightComponent(id, this);
+        break;
+    case ComponentType::MODEL:
+        newComponent = new ModelComponent(id, this);
+        break;
+    case ComponentType::TRANSFORM:
+        return nullptr;
+    case ComponentType::PLAYER_WALK:
+        newComponent = new PlayerWalk(id, this);
+        break;
+    case ComponentType::CAMERA:
+        newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::COUNT:
+        return nullptr;
+
+    default:
+        return nullptr;
+    }
+
+    m_components.push_back(newComponent);
+    return newComponent;
+}
+
+
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
@@ -92,7 +125,10 @@ bool GameObject::init()
 void GameObject::update() {
     for (Component* component : m_components)
     {
-        component->update();
+        if (component->isActive())
+        {
+            component->update();
+        }
 	}
 }
 
@@ -100,7 +136,10 @@ void GameObject::preRender()
 {
     for (Component* component : m_components)
     {
-        component->preRender();
+        if (component->isActive())
+        {
+            component->preRender();
+        }
     }
     for (GameObject* child : m_transform->getAllChildren())
     {
@@ -115,7 +154,10 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 {
     for (Component* component : m_components)
     {
-        component->render(commandList, viewMatrix, projectionMatrix);
+        if (component->isActive())
+        {
+            component->render(commandList, viewMatrix, projectionMatrix);
+        }
     }
     for (GameObject* child : m_transform->getAllChildren())
     {
@@ -130,7 +172,10 @@ void GameObject::postRender()
 {
     for (Component* component : m_components)
     {
-        component->postRender();
+        if (component->isActive())
+        {
+            component->postRender();
+        }
     }
     for (GameObject* child : m_transform->getAllChildren())
     {
@@ -188,7 +233,7 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
 void GameObject::drawUI()
 {
 #pragma region 
-    ImGui::Text("GameObject UUID: %d", m_uuid);
+    ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
     ImGui::Checkbox("Active", &m_active);
@@ -223,13 +268,31 @@ void GameObject::drawUI()
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         Component* component = m_components[i];
-
         ImGui::PushID(component->getID());
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        if (ImGui::CollapsingHeader(header.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+        if (component->getType() == ComponentType::CAMERA && app->getActiveCamera() == component)
         {
+            header += " (Default)";
+        }
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
+
+        bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
+
+        ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
+
+        bool enabled = component->isActive();
+        if (component->getType() != ComponentType::TRANSFORM && ImGui::Checkbox("##Active", &enabled))
+        {
+            component->setActive(enabled);
+        }
+
+        if (isOpen)
+        {
+            ImGui::Separator();
+
             component->drawUi();
 
             ImGui::Separator();
@@ -242,12 +305,15 @@ void GameObject::drawUI()
                 {
                     RemoveComponent(component);
                     ImGui::PopStyleColor();
+                    ImGui::TreePop();
                     ImGui::PopID();
                     break;
                 }
 
                 ImGui::PopStyleColor();
             }
+
+            ImGui::TreePop();
         }
 
         ImGui::PopID();
@@ -284,3 +350,94 @@ void GameObject::onTransformChange()
 }
 
 #pragma endregion
+
+#pragma region Persistence
+
+rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
+
+    gameObjectInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    {
+        Transform* parentTransform = m_transform->getRoot();
+        if (parentTransform) 
+        {
+            gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
+        }
+        else {
+            gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator());
+        }
+    }
+
+    
+    rapidjson::Value name (m_name.c_str(), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
+    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
+
+    rapidjson::Value layer (LayerToString(m_layer), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
+
+    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
+    
+    gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
+
+    // Components serialization //
+    {
+        rapidjson::Value componentsData(rapidjson::kArrayType);
+
+        for (Component* component : m_components) 
+        {
+            if (component->getType() == ComponentType::TRANSFORM)
+                continue;
+
+            componentsData.PushBack(component->getJSON(domTree), domTree.GetAllocator());
+        }
+
+        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
+    }
+
+    return gameObjectInfo;
+}
+
+bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)
+{
+    parentUid = gameObjectJson["ParentUID"].GetUint64();
+    m_name = gameObjectJson["Name"].GetString();
+
+    m_active = gameObjectJson["Active"].GetBool();
+    m_isStatic = gameObjectJson["Static"].GetBool();
+    m_layer = StringToLayer(gameObjectJson["Layer"].GetString());
+    m_tag = StringToTag(gameObjectJson["Tag"].GetString());
+
+    const auto& transform = gameObjectJson["Transform"];
+
+    const auto& position = transform["Position"].GetArray();
+    m_transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+
+    const auto& rotation = transform["Rotation"].GetArray();
+    m_transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(), rotation[2].GetFloat(), rotation[3].GetFloat()));
+
+    const auto& scale = transform["Scale"].GetArray();
+    m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
+
+    const auto& components = gameObjectJson["Components"].GetArray();
+    for (auto& componentJson : components)
+    {
+        const uint64_t componentUid = componentJson["UID"].GetUint64();
+        const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
+
+        Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
+        if (newComponent) {
+            newComponent->setActive(componentJson["Active"].GetBool());
+            newComponent->deserializeJSON(componentJson);
+        }
+    }
+
+    return true;
+}
+
+#pragma endregion
+

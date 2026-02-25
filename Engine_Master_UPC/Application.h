@@ -17,7 +17,9 @@ class DescriptorsModule;
 class TimeModule;
 class RenderModule;
 class SceneModule;
-class NavigationModule;
+class FileSystemModule;
+
+class CameraComponent;
 
 class Settings;
 
@@ -41,16 +43,23 @@ public:
     TimeModule*                 getTimeModule() { return m_timeModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
-    NavigationModule*           getNavigationModule() { return m_navigationModule; }
-    
+    FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
 
     Settings*                   getSettings() { return m_settings; }
+
+    // FIXME: Cannot return const CameraComponent* (which it should) because render is not const
+    CameraComponent* getActiveCamera() const { return m_activeCamera; }
+    void setActiveCamera(CameraComponent* camera) { m_activeCamera = camera; }
+
+    const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
+    void setCurrentCameraPerspective(CameraComponent* camera) { m_currentCameraPerspective = camera; }
 
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
 
 
     uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
+
 private:
 
     std::vector<Module*>    modules;
@@ -63,7 +72,7 @@ private:
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
-    NavigationModule*       m_navigationModule = nullptr;
+    FileSystemModule*       m_fileSystemModule = nullptr;
 
     Settings*               m_settings = nullptr;
 
@@ -72,6 +81,12 @@ private:
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
+
+    // This will be the Game mode / Simulation mode camera
+    CameraComponent* m_activeCamera = nullptr;
+
+    // This is the current camera perspective, to check a CameraComponent's perspective from the scene editor
+    CameraComponent* m_currentCameraPerspective = nullptr;
 };
 
 extern Application* app;

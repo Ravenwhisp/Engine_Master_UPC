@@ -19,6 +19,8 @@
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
 
+#include "CameraComponent.h"
+
 
 SceneEditor::SceneEditor()
 {
@@ -179,7 +181,21 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         }
     }
 
-    m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_cameraModule->getView(), m_cameraModule->getProjection());
+    Matrix viewMatrix;
+    Matrix projectionMatrix;
+
+    if (app->getCurrentCameraPerspective())
+    {
+        viewMatrix = app->getCurrentCameraPerspective()->getViewMatrix();
+        projectionMatrix = app->getCurrentCameraPerspective()->getProjectionMatrix();
+    }
+    else
+    {
+        viewMatrix = app->getCameraModule()->getView();
+        projectionMatrix = app->getCameraModule()->getProjection();
+    }
+
+    m_debugDrawPass->record(commandList, getSize().x, getSize().y, viewMatrix, projectionMatrix);
 }
 
 void SceneEditor::renderQuadtree()

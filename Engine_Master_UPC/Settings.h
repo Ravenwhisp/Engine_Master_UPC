@@ -28,13 +28,19 @@ struct SceneEditorSettings {
     bool showGrid = true;
     bool showAxis = true;
     bool showGuizmo = true;
-    bool showQuadTree = true;
+    bool showQuadTree = false;
+};
+
+struct FrustumCullingSettings
+{
+    bool debugFrustumCulling = false;
 };
 
 class Settings {
 public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
+    FrustumCullingSettings frustumCulling;
 
 public:
     void loadSettings() {

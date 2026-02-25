@@ -1,9 +1,10 @@
 #pragma once
 #include "EditorWindow.h"
+#include <vector>
+#include <string>
+#include <imgui.h>
 
-static char* Strdup(const char* s) { IM_ASSERT(s); size_t len = strlen(s) + 1; void* buf = ImGui::MemAlloc(len); IM_ASSERT(buf); return (char*)memcpy(buf, (const void*)s, len); }
-
-class Logger: public EditorWindow
+class Logger : public EditorWindow
 {
 public:
     enum class LogType
@@ -15,23 +16,15 @@ public:
 
     struct LogEntry
     {
+        std::string message;
         LogType type;
-        char* text;
-        float timeStamp;
-        int count;
+        float timeStamp = 0.0f;
+        int count = 1;
+        bool selected = false;
 
-        LogEntry(LogType t, const char* msg, float time)
-			: type(t), timeStamp(time), count(1)
-		{
-			text = Strdup(msg);
-		}
-
-        ~LogEntry()
-		{
-            if (text) {
-                ImGui::MemFree(text);
-            }
-		}
+        LogEntry(LogType t, const std::string& msg, float time)
+            : message(msg), type(t), timeStamp(time) {
+        }
     };
 
     Logger();
@@ -40,57 +33,68 @@ public:
     const char* getWindowName() const override { return "Console"; }
     void render() override;
 
-
     template<typename... Args>
-    static void log(const char* fmt, Args... args)
+    static void log(const char* file, int line, const char* fmt, Args... args)
     {
-        Instance()->addLog(LogType::LOG_INFO, "General", fmt, args...);
+        Instance()->addLog(LogType::LOG_INFO, file, line, fmt, args...);
     }
 
     template<typename... Args>
-    static void warning(const char* fmt, Args... args)
+    static void warning(const char* file, int line, const char* fmt, Args... args)
     {
-        Instance()->addLog(LogType::LOG_WARNING, "Warning", fmt, args...);
+        Instance()->addLog(LogType::LOG_WARNING, file, line, fmt, args...);
     }
 
     template<typename... Args>
-    static void error(const char* fmt, Args... args)
+    static void error(const char* file, int line, const char* fmt, Args... args)
     {
-        Instance()->addLog(LogType::LOG_ERROR, "Error", fmt, args...);
+        Instance()->addLog(LogType::LOG_ERROR, file, line, fmt, args...);
     }
 
     static Logger* Instance();
-        
-private:
-    template<typename... Args>
-    void addLog(LogType type, const char* category, const char* fmt, Args... args)
-    {
-        char buffer[4096];
-        va_list argsList;
-        va_start(argsList, fmt);
-        vsnprintf(buffer, sizeof(buffer), fmt, argsList);
-        buffer[sizeof(buffer) - 1] = 0;
-        va_end(argsList);
 
-        addLogEntry(type, category, buffer);
+private:
+
+    template<typename... Args>
+    void addLog(LogType type, const char* file, int line, const char* fmt, Args&&... args)
+    {
+        char messageBuffer[2048];
+        std::snprintf(messageBuffer, sizeof(messageBuffer),
+            fmt, std::forward<Args>(args)...);
+
+        char finalBuffer[2300];
+        std::snprintf(finalBuffer, sizeof(finalBuffer),
+            "[%s:%d] %s",
+            file, line, messageBuffer);
+
+        addLogEntry(type, finalBuffer);
     }
 
-    void addLogEntry(LogType type, const char* category, const char* text);
-    const char* getTypePrefix(LogType type);
-    ImU32 getTypeColor(LogType type);
+    void addLogEntry(LogType type, const std::string& text);
+    void drawHeader();
+    void drawMessages();
+    void drawMessage(LogEntry& entry, size_t index);
+    void clear();
+    void clearSelection();
+    void copyToClipboard();
 
+    const char* getPrefix(LogType type);
+    ImVec4 getColor(LogType type);
 
-    // Storage
-    ImVector<LogEntry*> m_items;
-    char                m_inputBuf[256];
-    char                m_filterBuf[256];
+private:
 
-    // Configuration
-    bool    m_autoScroll = true;
-    bool    m_showTimestamps = true;
-    bool    m_showCategory = true;
-    bool    m_wrapText = false;
-    int     m_maxEntries = 1000;
+    std::vector<LogEntry> m_items;
+    ImGuiTextFilter m_filter;
+
+    bool m_autoScroll = true;
+
+    bool m_showLogs = true;
+    bool m_showWarnings = true;
+    bool m_showErrors = true;
+
+    bool m_showTimestamps = true;
+
+    int m_maxEntries = 2048;
 
     static Logger* s_Instance;
 };

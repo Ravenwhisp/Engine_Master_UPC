@@ -11,11 +11,11 @@ public:
 
     const char* getWindowName() const override { return "Editor Settings"; }
     void render() override;
-    void update() override {}
 
 private:
     void drawCameraSettings();
     void drawSceneSettings();
+    void drawFrustumCullingSettings();
 
 private:
     Settings* m_settings = nullptr;

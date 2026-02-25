@@ -79,9 +79,6 @@
     <ClCompile Include="Keyboard.cpp">
       <Filter>Inputs\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="BasicModel.cpp">
-      <Filter>D3D12\Geometry\BasicModel</Filter>
-    </ClCompile>
     <ClCompile Include="BasicMesh.cpp">
       <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
     </ClCompile>
@@ -167,16 +164,29 @@
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
-    <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="LightDebugDraw.cpp" />
-    <ClCompile Include="NavigationModule.cpp">
-      <Filter>NavMesh</Filter>
+    <ClCompile Include="LightDebugDraw.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingBox.cpp">
+      <Filter>D3D12\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>D3D12\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneConfig.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -264,9 +274,6 @@
     <ClInclude Include="Keyboard.h">
       <Filter>Inputs\Keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="BasicModel.h">
-      <Filter>D3D12\Geometry\BasicModel</Filter>
-    </ClInclude>
     <ClInclude Include="BasicMesh.h">
       <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
     </ClInclude>
@@ -331,9 +338,6 @@
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="cvector.h" />
-    <ClInclude Include="Light.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="SceneModule.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -377,21 +381,38 @@
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="BoundingVolume.h" />
-    <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="Frustum.h" />
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
-    <ClInclude Include="LightComponent.h" />
-    <ClInclude Include="LightDebugDraw.h" />
-    <ClInclude Include="Lights.h" />
-    <ClInclude Include="NavigationModule.h">
-      <Filter>NavMesh</Filter>
+    <ClInclude Include="LightDebugDraw.h">
+      <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshResource.h">
-      <Filter>NavMesh</Filter>
+    <ClInclude Include="Lights.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingBox.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingVolume.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Frustum.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneConfig.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -502,9 +523,6 @@
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NavMesh">
-      <UniqueIdentifier>{549588f5-c4c7-4bbc-8da8-be2d3a4bfc95}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -515,18 +533,22 @@
     <None Include="SimpleMath.inl">
       <Filter>Maths</Filter>
     </None>
-    <None Include="CBuffers.hlsli">
+    <None Include="NewCBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
-    <None Include="NewCBuffers.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="LightPixelShader.hlsl" />
+    <FxCompile Include="SkyboxVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="LightPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

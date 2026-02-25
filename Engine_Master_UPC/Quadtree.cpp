@@ -1,6 +1,6 @@
 ﻿#include "Globals.h"
 #include "Quadtree.h"
-#include "BasicModel.h"
+#include "ModelComponent.h"
 #include "GameObject.h"
 #include <algorithm>
 
@@ -40,7 +40,7 @@ void Quadtree::move(GameObject& object)
 }
 
 
-std::vector<GameObject*> Quadtree::getObjects(const Engine::Frustum& frustum) const
+std::vector<GameObject*> Quadtree::getObjects(const Engine::Frustum* frustum) const
 {
     std::vector<GameObject*> result;
     m_root->gatherObjects(frustum, result);
