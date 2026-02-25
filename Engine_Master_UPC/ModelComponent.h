@@ -43,7 +43,6 @@ private:
 	std::string m_modelPath;
 	std::string m_basePath;
 
-	bool m_drawBounds = false;
 	bool m_boundsDepthTest = true;
 	bool m_drawWorldAabb = false;
 

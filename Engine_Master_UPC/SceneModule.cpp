@@ -121,13 +121,14 @@ void SceneModule::createQuadtree()
         }
     }
 
-    auto rectangle = BoundingRect(minX, minZ, maxX, maxZ);
+    auto rectangle = BoundingRect(minX, minZ, maxX- minX, maxZ- minZ);
     m_quadtree = new Quadtree(rectangle);
 
     for (GameObject* go : m_gameObjects)
     {
         m_quadtree->insert((*go));
     }
+    DEBUG_LOG("QUADTREE created");
 }
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
@@ -166,6 +167,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
         {
             delete m_quadtree;
             m_quadtree;
+            DEBUG_LOG("QUADTREE removed");
         }
         gameObjects = m_gameObjects;
     }

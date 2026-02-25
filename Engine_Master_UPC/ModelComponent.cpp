@@ -5,8 +5,7 @@
 #include "RenderModule.h"
 #include "GameObject.h"
 #include "Transform.h"
-
-#include "Logger.h"
+#include "Settings.h"
 
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_STB_IMAGE
@@ -145,7 +144,7 @@ void ModelComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& view
         }
     }
 
-    if (m_drawBounds && m_hasBounds && dd::isInitialized())
+    if (app->getSettings()->sceneEditor.showModelBoundingBoxes && m_hasBounds && dd::isInitialized())
     {
         const Matrix world = transform->getGlobalMatrix();
 
@@ -253,7 +252,6 @@ void ModelComponent::drawUi()
     ImGui::Text("Materials: %d", (int)m_materials.size());
 
     ImGui::SeparatorText("Debug Bounding Box");
-    ImGui::Checkbox("Draw Bounding Box", &m_drawBounds);
     ImGui::Checkbox("Depth Test", &m_boundsDepthTest);
     ImGui::Checkbox("World AABB (axis aligned)", &m_drawWorldAabb);
 
