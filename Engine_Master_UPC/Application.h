@@ -16,6 +16,7 @@ class ShaderDescriptorsModule;
 class DescriptorsModule;
 class TimeModule;
 class RenderModule;
+class NavigationModule;
 class SceneModule;
 class FileSystemModule;
 
@@ -42,6 +43,7 @@ public:
     DescriptorsModule*          getDescriptorsModule() { return m_descriptorsModule; }
     TimeModule*                 getTimeModule() { return m_timeModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
+    NavigationModule*           getNavigationModule() { return m_navigationModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
 
@@ -71,6 +73,7 @@ private:
     DescriptorsModule*      m_descriptorsModule = nullptr;
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
+    NavigationModule*       m_navigationModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
     FileSystemModule*       m_fileSystemModule = nullptr;
 
