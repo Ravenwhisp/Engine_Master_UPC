@@ -8,6 +8,7 @@
 #include "DescriptorsModule.h"
 #include "RenderModule.h"
 #include "SceneModule.h"
+#include "NavigationModule.h"
 #include "TimeModule.h"
 #include "PerformanceProfiler.h"
 #include <thread>
@@ -26,6 +27,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_cameraModule = new CameraModule());
     modules.push_back(m_editorModule = new EditorModule());
     modules.push_back(m_sceneModule = new SceneModule());
+    modules.push_back(m_navigationModule = new NavigationModule());
     modules.push_back(m_renderModule = new RenderModule());
 
     modules.push_back(m_timeModule = new TimeModule(120));

@@ -175,6 +175,9 @@
     </ClCompile>
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
+    <ClCompile Include="NavigationModule.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -384,6 +387,12 @@
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
+    <ClInclude Include="NavigationModule.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshResource.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -492,6 +501,9 @@
     </Filter>
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NavMesh">
+      <UniqueIdentifier>{549588f5-c4c7-4bbc-8da8-be2d3a4bfc95}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

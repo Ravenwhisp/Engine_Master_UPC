@@ -17,6 +17,7 @@ class DescriptorsModule;
 class TimeModule;
 class RenderModule;
 class SceneModule;
+class NavigationModule;
 
 class Settings;
 
@@ -40,6 +41,8 @@ public:
     TimeModule*                 getTimeModule() { return m_timeModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
+    NavigationModule*           getNavigationModule() { return m_navigationModule; }
+    
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -60,6 +63,7 @@ private:
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
+    NavigationModule*       m_navigationModule = nullptr;
 
     Settings*               m_settings = nullptr;
 

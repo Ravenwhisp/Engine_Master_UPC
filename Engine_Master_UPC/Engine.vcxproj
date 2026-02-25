@@ -203,6 +203,8 @@
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
+    <ClInclude Include="NavigationModule.h" />
+    <ClInclude Include="NavMeshResource.h" />
     <ClInclude Include="PlayerWalk.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
@@ -330,6 +332,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
+    <ClCompile Include="NavigationModule.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
