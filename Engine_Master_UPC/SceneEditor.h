@@ -41,4 +41,3 @@ public:
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
 };
-
