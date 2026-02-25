@@ -8,9 +8,10 @@
 #include "EditorModule.h"
 #include "Settings.h"
 
+#include "Quadtree.h"
 #include "ModelComponent.h"
-
 #include "SceneSerializer.h"
+
 
 #include <queue>
 
@@ -42,8 +43,7 @@ bool SceneModule::init()
         gameObject->init();
     }
 
-    auto rectangle = BoundingRect(-10, -10, 20, 20);
-    m_quadtree = new Quadtree(rectangle);
+    m_quadtree = nullptr;
 
     createDirectionalLightOnInit();
 
@@ -73,7 +73,10 @@ void SceneModule::updateHierarchy(GameObject* obj)
         updateHierarchy(child);
     }
 
-    m_quadtree->resolveDirtyNodes();
+    if (m_quadtree)
+    {
+        m_quadtree->resolveDirtyNodes();
+    }
 }
 
 void SceneModule::preRender()
@@ -87,30 +90,83 @@ void SceneModule::preRender()
     }
 }
 
+
+void SceneModule::createQuadtree()
+{
+    bool first = true;
+    float minX = 0, minZ = 0, maxX = 0, maxZ = 0;
+
+    for (GameObject* go : m_gameObjects)
+    {
+        Component* component = go->GetComponent(ComponentType::MODEL);
+        if (component)
+        {
+            ModelComponent* model = static_cast<ModelComponent*>(component);
+            Engine::BoundingBox boundingBox = model->getBoundingBox();
+            
+            if (first)
+            {
+                minX = boundingBox.getMin().x;
+                minZ = boundingBox.getMin().z;
+                maxX = boundingBox.getMax().x;
+                maxZ = boundingBox.getMax().z;
+            }
+            else
+            {
+                minX = fmin(minX, boundingBox.getMin().x);
+                minZ = fmin(minZ, boundingBox.getMin().z);
+                maxX = fmax(maxX, boundingBox.getMax().x);
+                maxZ = fmax(maxZ, boundingBox.getMax().z);
+            }
+        }
+    }
+
+    auto rectangle = BoundingRect(minX, minZ, maxX, maxZ);
+    m_quadtree = new Quadtree(rectangle);
+
+    for (GameObject* go : m_gameObjects)
+    {
+        m_quadtree->insert((*go));
+    }
+}
+
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
     CameraComponent* camera = app->getActiveCamera();
 
-    for (GameObject* gameObject : m_gameObjects)
+    if (m_quadtree)
     {
-        if (!gameObject->GetActive())
+        for (GameObject* gameObject : m_gameObjects)
         {
-            continue;
-        }
+            if (!gameObject->GetActive())
+            {
+                continue;
+            }
 
-        if (gameObject->GetTransform()->isDirty())
-        {
-            m_quadtree->move(*gameObject);
+            if (gameObject->GetTransform()->isDirty())
+            {
+                m_quadtree->move(*gameObject);
+            }
         }
     }
 
     std::vector<GameObject*> gameObjects;
     if (app->getSettings()->frustumCulling.debugFrustumCulling && camera)
     {
+        if (!m_quadtree)
+        {
+            createQuadtree();
+        }
+
         gameObjects = m_quadtree->getObjects(&camera->getFrustum());
     }
     else
     {
+        if (m_quadtree)
+        {
+            delete m_quadtree;
+            m_quadtree;
+        }
         gameObjects = m_gameObjects;
     }
 
@@ -156,7 +212,11 @@ void SceneModule::createGameObject()
     m_gameObjects.push_back(newGameObject);
 
     newGameObject->onTransformChange();      
-    m_quadtree->insert(*newGameObject);
+
+    if (m_quadtree)
+    {
+        m_quadtree->insert(*newGameObject);
+    }
 }
 
 GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID) {
@@ -166,7 +226,10 @@ GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID) {
     m_gameObjects.push_back(newGameObject);
 
     newGameObject->onTransformChange();
-    m_quadtree->insert(*newGameObject);
+    if (m_quadtree)
+    {
+        m_quadtree->insert(*newGameObject);
+    }
 
     return newGameObject;
 }
@@ -240,7 +303,10 @@ void SceneModule::destroyHierarchy(GameObject* obj)
         destroyHierarchy(child);
     }
 
-    m_quadtree->remove(*obj);
+    if (m_quadtree)
+    {
+        m_quadtree->remove(*obj);
+    }
 
     Transform* parent = obj->GetTransform()->getRoot();
 
@@ -277,7 +343,10 @@ GameObject* SceneModule::createDirectionalLightOnInit()
 
     go->init();
     m_gameObjects.push_back(go);
-    m_quadtree->insert(*go);
+    if (m_quadtree)
+    {
+        m_quadtree->insert(*go);
+    }
 
     return go;
 }

@@ -1,11 +1,11 @@
 #pragma once
 #include "Module.h"
 #include "GameObject.h"
-#include "Quadtree.h"
 #include "Lights.h"
 #include "UID.h"
 
 class SceneSerializer;
+class Quadtree;
 
 struct SceneDataCB
 {
@@ -81,7 +81,8 @@ public:
 
 	bool applySkyboxToRenderer();
 
-	Quadtree& getQuadtree() { return *m_quadtree; }
+	Quadtree* getQuadtree() { return m_quadtree; }
+	void createQuadtree();
 private:
 	std::string m_name = "SampleScene";
 

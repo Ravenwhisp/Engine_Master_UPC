@@ -13,6 +13,7 @@ public:
     void render() override;
 
 private:
+    void drawEngineInformation();
     void drawCameraSettings();
     void drawSceneSettings();
     void drawFrustumCullingSettings();

@@ -19,6 +19,8 @@ void EditorSettings::render()
     }
 
     ImGui::Separator();
+    drawEngineInformation();
+    ImGui::Separator();
     drawCameraSettings();
     ImGui::Separator();
     drawSceneSettings();
@@ -26,6 +28,12 @@ void EditorSettings::render()
     drawFrustumCullingSettings();
 
     ImGui::End();
+}
+
+void EditorSettings::drawEngineInformation()
+{
+    std::string str = "Engine versions " + m_settings->engine.version;
+    ImGui::Text(str.c_str());
 }
 
 void EditorSettings::drawCameraSettings() 

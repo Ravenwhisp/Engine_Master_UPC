@@ -1,8 +1,13 @@
 #pragma once
 #include "Globals.h"
 
-// to check if fits with current camera (copied from another implementation)
-struct CameraSettings {
+struct EngineInformation
+{
+    std::string version = "alpha-v0.9";
+};
+
+struct CameraSettings
+{
     float panSpeed = 0.0025f;
     bool  panInvertX = false;
     bool  panInvertY = false;
@@ -24,7 +29,8 @@ struct CameraSettings {
     float flyPitchClamp = 0.01f;
 };
 
-struct SceneEditorSettings {
+struct SceneEditorSettings
+{
     bool showGrid = true;
     bool showAxis = true;
     bool showGuizmo = true;
@@ -36,18 +42,22 @@ struct FrustumCullingSettings
     bool debugFrustumCulling = false;
 };
 
-class Settings {
+class Settings
+{
 public:
+    EngineInformation engine;
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
     FrustumCullingSettings frustumCulling;
 
 public:
-    void loadSettings() {
+    void loadSettings()
+    {
         //to do, probably load.json on disk also can be bin more faster
     }
 
-    void saveSettings() {
+    void saveSettings()
+    {
         //to do
     }
 };
