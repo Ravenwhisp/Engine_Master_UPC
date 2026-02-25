@@ -11,13 +11,11 @@ class PlayerWalk final : public Component {
 public:
 	PlayerWalk(UID id, GameObject* gameObject);
 
+	bool init() override;
 	void update() override;
-
 	void drawUi() override;
 
 	void onTransformChange() override {}
-
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 
 private:
 	float m_moveSpeed = 3.5f;
@@ -27,6 +25,8 @@ private:
 	Keyboard::Keys m_keyLeft = Keyboard::Keys::A;
 	Keyboard::Keys m_keyDown = Keyboard::Keys::S;
 	Keyboard::Keys m_keyRight = Keyboard::Keys::D;
+
+	Vector3 m_initialRotationOffset = Vector3::Zero;
 
 	float m_turnSpeedDegPerSec = 720.0f;
 	float m_currentYawDeg = 0.0f;
@@ -41,4 +41,18 @@ private:
 	static float wrapAngleDegrees(float angle);
 
 	float getDeltaSecondsFromTimer() const;
+
+private:
+	enum class ControlScheme : int
+	{
+		WASD = 0,
+		ARROWS,
+		COUNT
+	};
+
+	ControlScheme m_controlScheme = ControlScheme::WASD;
+
+	void applyControlScheme();
+	bool drawControlSchemeCombo(ControlScheme& scheme);
+	const char* controlSchemeToString(ControlScheme scheme);
 };
