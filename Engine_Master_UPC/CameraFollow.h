@@ -13,11 +13,13 @@ public:
 	void drawUi() override;
 
 private:
-	void setFollowTarget();
+	void setFollowTargets();
 	Vector3 lerpVector(const Vector3& start, const Vector3& end, float alpha) const;
 
-	UID m_targetUid = 0;
-	Transform* m_targetTransform = nullptr;
+	UID m_firstTargetUid = 0;
+	UID m_secondTargetUid = 0;
+	Transform* m_firstTargetTransform = nullptr;
+	Transform* m_secondTargetTransform = nullptr;
 
 	Vector3 m_transformOffset = Vector3::Zero;
 	Vector3 m_rotationOffset = Vector3::Zero;
