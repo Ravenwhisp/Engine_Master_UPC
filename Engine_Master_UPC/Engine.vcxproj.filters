@@ -193,7 +193,12 @@
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="NavigationModule.cpp" />
+    <ClCompile Include="NavMeshGeometryExtractor.cpp">
+      <Filter>Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="NavigationModule.cpp">
+      <Filter>Navigation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -423,8 +428,15 @@
     <ClInclude Include="3rdParty\simdjson\simdjson.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="UID.h" />
-    <ClInclude Include="NavigationModule.h" />
-    <ClInclude Include="NavMeshResource.h" />
+    <ClInclude Include="NavMeshResource.h">
+      <Filter>Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="NavigationModule.h">
+      <Filter>Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshGeometryExtractor.h">
+      <Filter>Navigation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -533,6 +545,9 @@
     </Filter>
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Navigation">
+      <UniqueIdentifier>{d3007823-a34e-4fd3-9c8e-1193369cd717}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
