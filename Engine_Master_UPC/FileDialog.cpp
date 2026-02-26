@@ -32,8 +32,8 @@ void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 
 void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 {
-    float padding = 16.0f;
-    float cellSize = 96.0f;
+    float padding = 16.0f;  // You could have these
+    float cellSize = 96.0f; // values saved somewhere more visible...
 
     float panelWidth = ImGui::GetContentRegionAvail().x;
     int columnCount = (int)(panelWidth / cellSize);
@@ -97,7 +97,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
             {
 
                 ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
-                ImGui::Text("Dragging %s", asset->displayName);
+                ImGui::Text("Dragging %s", asset->displayName.c_str());
                 ImGui::EndDragDropSource();
             }
 
@@ -176,7 +176,7 @@ void FileDialog::render()
     ImGui::EndChild();
 
     ImGui::SameLine();
-    ImGui::BeginChild("RightPane", ImVec2(0, 0), true);
+    ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
     if (std::shared_ptr<FileEntry> dir = app->getFileSystemModule()->getEntry(m_currentDirectory))
     {
         drawAssetGrid(dir);
