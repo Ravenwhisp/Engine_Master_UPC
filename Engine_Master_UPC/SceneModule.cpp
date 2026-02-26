@@ -8,7 +8,6 @@
 #include "EditorModule.h"
 #include "Settings.h"
 
-#include "ModelComponent.h"
 
 #include "SceneSerializer.h"
 
@@ -32,9 +31,7 @@ bool SceneModule::init()
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    app->setActiveCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
-    auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
-    gameCamera->RemoveComponent(component);
+ 
     m_gameObjects.push_back(gameCamera);
 
     for (GameObject* gameObject : m_gameObjects)
@@ -256,8 +253,6 @@ void SceneModule::destroyHierarchy(GameObject* obj)
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     GameObject* go = new GameObject(GenerateUID());
-    auto component = go->GetComponentAs<ModelComponent>(ComponentType::MODEL);
-    go->RemoveComponent(component);
 
     go->SetName("Directional Light");
 
