@@ -77,7 +77,7 @@ void RenderModule::preRender()
 
     //This part since is common between SkyboxPass and MeshRendererPass it will belongs right not to the RenderModule
     D3D12_VIEWPORT viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_size.x), float(m_size.y) , 0.0, 1.0 };
-    D3D12_RECT scissorRect = D3D12_RECT{ 0, 0, long(m_size.x), long(m_size.y) };
+    D3D12_RECT scissorRect = D3D12_RECT{ 0, 0,  static_cast<LONG>(m_size.x),  static_cast<LONG>(m_size.y) };
     renderBackground(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, viewport, scissorRect);
 
     m_skyBoxPass->setView(app->getCameraModule()->getView());
@@ -96,12 +96,15 @@ void RenderModule::preRender()
     m_meshRendererPass->setViewport(_swapChain->getViewport());
     m_meshRendererPass->setRectScissor(_swapChain->getScissorRect());*/
 
+    // NOT IDEAL TO CALL HERE THIS RENDER FUCNTION, THAT IS NOT DOING ANYTHING RELATED TO RENDER ANYMORE
+    app->getSceneModule()->render(m_commandList);
+    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllRenderables());
     m_meshRendererPass->apply(m_commandList);
 
     // REPEATED CODE WITH MESH RENDERER PASS
     m_debugDrawPass->setView(app->getCameraModule()->getView());
     m_debugDrawPass->setProjection(app->getCameraModule()->getProjection());
-    m_debugDrawPass->setViewport(_swapChain->getViewport());
+    m_debugDrawPass->setViewport(viewport);
 
     // THIS IS NOT THE IDEAL BUT IS TO MAKE SURE THAT ALL WORKS
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(m_commandList);

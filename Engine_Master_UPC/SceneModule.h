@@ -37,7 +37,7 @@ public:
 	void update() override;
 	void updateHierarchy(GameObject* obj);
 	void preRender() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
+	void render(ID3D12GraphicsCommandList* commandList);
 	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion

@@ -84,7 +84,7 @@ void SceneModule::preRender()
     }
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
+void SceneModule::render(ID3D12GraphicsCommandList* commandList) 
 {
     CameraComponent* camera = app->getActiveCamera();
 
@@ -118,7 +118,10 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
             m_meshRenderers.clear();
             for (const auto& gameObject : m_gameObjects) {
                 auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                m_meshRenderers.push_back(meshRenderer);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
             }
         }
     }
