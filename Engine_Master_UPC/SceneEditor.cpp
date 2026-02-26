@@ -19,6 +19,8 @@
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
 
+#include "CameraComponent.h"
+
 
 SceneEditor::SceneEditor()
 {
@@ -175,6 +177,20 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         {
             LightDebugDraw::drawLightWithoutDepth(*go);
         }
+    }
+
+    Matrix viewMatrix;
+    Matrix projectionMatrix;
+
+    if (app->getCurrentCameraPerspective())
+    {
+        viewMatrix = app->getCurrentCameraPerspective()->getViewMatrix();
+        projectionMatrix = app->getCurrentCameraPerspective()->getProjectionMatrix();
+    }
+    else
+    {
+        viewMatrix = app->getCameraModule()->getView();
+        projectionMatrix = app->getCameraModule()->getProjection();
     }
 }
 

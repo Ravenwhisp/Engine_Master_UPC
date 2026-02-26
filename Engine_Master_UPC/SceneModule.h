@@ -5,6 +5,7 @@
 #include "Lights.h"
 #include "UID.h"
 #include <MeshRenderer.h>
+#include <MeshRendererPass.h>
 
 class SceneSerializer;
 
@@ -16,14 +17,8 @@ struct SceneDataCB
 
 struct SceneLightingSettings
 {
-	Vector3 ambientColor;
-	float ambientIntensity;
-};
-
-struct SkyboxSettings
-{
-	bool enabled = true;
-	char path[260] = "Assets/Textures/cubemap2.dds";
+	Vector3 ambientColor;;
+	float ambientIntensity;;
 };
 
 class SceneModule : public Module
@@ -31,13 +26,20 @@ class SceneModule : public Module
 private:
 	SceneSerializer* m_sceneSerializer;
 
+	std::string m_name = "SampleScene";
+
+	std::vector<GameObject*>	m_gameObjects;
+	SceneLightingSettings		m_lighting;
+	Quadtree* m_quadtree;
+	SceneDataCB					m_sceneDataCB;
+
 public:
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
 	void updateHierarchy(GameObject* obj);
 	void preRender() override;
-	void render(ID3D12GraphicsCommandList* commandList);
+	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
 	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
@@ -71,7 +73,7 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
-	const std::vector<MeshRenderer*>& getAllRenderables() { return m_meshRenderers; }
+	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
 	const void setName(const char* newName) { m_name = newName; }
@@ -88,9 +90,8 @@ private:
 	std::string m_name = "SampleScene";
 
 	std::vector<GameObject*>	m_gameObjects;
-	std::vector<MeshRenderer*>	m_meshRenderers;
 	SceneLightingSettings		m_lighting;
-	Quadtree* m_quadtree;
+	Quadtree*					m_quadtree;
 	SceneDataCB					m_sceneDataCB;
 	SkyboxSettings				m_skybox;
 
