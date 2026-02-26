@@ -1,0 +1,13 @@
+﻿  BinaryReader.cpp
+  CommonStates.cpp
+  DDSTextureLoader.cpp
+  DescriptorHeap.cpp
+  DirectXHelpers.cpp
+  GraphicsMemory.cpp
+  LinearAllocator.cpp
+  pch.cpp
+  ResourceUploadBatch.cpp
+  SpriteBatch.cpp
+  SpriteFont.cpp
+  VertexTypes.cpp
+  DirectXTK12.vcxproj -> C:\Users\INVICTUS\Documents\GitHub\Engine_Master_UPC\Engine_Master_UPC\x64\Debug\DirectXTK12.lib
