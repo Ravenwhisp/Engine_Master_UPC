@@ -31,6 +31,8 @@ bool D3D12Module::init()
 
 bool D3D12Module::postInit() {
     m_swapChain = new SwapChain(m_hwnd);
+    m_graphicsMemory = std::make_unique<GraphicsMemory>(m_device.Get());
+
     return true;
 }
 
@@ -55,6 +57,8 @@ void D3D12Module::postRender()
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
     // Present the frame and allow tearing
     m_swapChain->present();
+
+    m_graphicsMemory->Commit(m_commandQueue->getD3D12CommandQueue().Get());
 }
 
 bool D3D12Module::cleanUp()

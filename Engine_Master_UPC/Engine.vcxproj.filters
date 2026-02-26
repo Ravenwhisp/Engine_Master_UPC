@@ -207,6 +207,7 @@
     </ClCompile>
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="FontPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -621,6 +622,7 @@
       <Filter>Maths</Filter>
     </None>
     <None Include="NewCBuffers.hlsli" />
+    <None Include="MakeSpriteFont.exe" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">

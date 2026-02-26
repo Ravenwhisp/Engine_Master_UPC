@@ -1,11 +1,6 @@
 #pragma once
 #include "IRenderPass.h"
-
-#include <Texture.h>
-#include <VertexBuffer.h>
-#include <IndexBuffer.h>
-#include <Settings.h>
-#include <Skybox.h>
+#include "Skybox.h"
 
 class SkyboxSettings;
 
