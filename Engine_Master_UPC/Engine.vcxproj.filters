@@ -477,6 +477,9 @@
     <ClInclude Include="ILightPass.h">
       <Filter>D3D12\Rendering\RenderPasses\Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="FontPass.h">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
