@@ -11,7 +11,7 @@
 #include "RingBuffer.h"
 #include <RenderTexture.h>
 
-#include "AssetsModule.h"
+#include "FileSystemModule.h"
 #include <TextureImporter.h>
 
 ResourcesModule::~ResourcesModule()
@@ -35,7 +35,7 @@ bool ResourcesModule::postInit()
 void ResourcesModule::preRender()
 {
 	UINT lastCompletedFrame = app->getD3D12Module()->getLastCompletedFrame();
-	for (int i = 0; i < m_defferedResources.size(); ++i) 
+	for (int i = 0; i < m_defferedResources.size(); ++i)
 	{
 		if (lastCompletedFrame > m_defferedResources[i].frame)
 		{
@@ -51,11 +51,11 @@ void ResourcesModule::preRender()
 
 bool ResourcesModule::cleanUp()
 {
-	
+
 	return true;
 }
 
-ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size )
+ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size)
 {
 	ComPtr<ID3D12Resource> buffer;
 
@@ -85,7 +85,7 @@ ComPtr<ID3D12Resource> ResourcesModule::createDefaultBuffer(const void* data, si
 	memcpy(pData, data, size);
 	// Unmap the buffer (invalidate the pointer)
 	uploadBuffer->Unmap(0, nullptr);
-	
+
 	// Copy buffer commands
 
 	ComPtr<ID3D12GraphicsCommandList4> _commandList = m_queue->getCommandList();
@@ -127,6 +127,8 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	return buffer;
 }
 
+std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath)
+{
 
 std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & filePath, const char* name) 
 { 
@@ -145,11 +147,7 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & f
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset->getImageCount()); 
 
-	const auto& subImages = textureAsset->getImages(); 
-	for (const auto& subImg : subImages)
-	{
-		assert(subImg.pixels.data() != nullptr);
-		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
+	generateMipmapsIfMissing(image, metaData);
 
 		D3D12_SUBRESOURCE_DATA data = {};
 		data.pData = subImg.pixels.data();
@@ -161,7 +159,9 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path & f
 	
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
-	return texture; 
+	info.srvDesc = &srvDesc;
+	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	return texture;
 }
 
 std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
@@ -199,9 +199,9 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 
 std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
 {
-	auto assetModule = app->getAssetModule();
-
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(filePath)));
+	std::string pathStr = filePath.string();
+	const char* cpath = pathStr.c_str();
+	TextureAsset * textureAsset = static_cast<TextureAsset*>(app->getFileSystemModule()->import(cpath));
 
 	TextureInitInfo info{};
 
@@ -241,23 +241,6 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& 
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
-	return texture;
-}
-
-std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
-{
-	TextureInitInfo info{};
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Standard format
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = 1;
-	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-
-	info.srvDesc = &srvDesc;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 	return texture;
 }
 
@@ -387,5 +370,3 @@ void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
 		indexBuffer = nullptr;
 	}
 }
-
-

@@ -211,9 +211,19 @@ bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& re
     return overlapX && overlapZ;
 }
 
-void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const
+void QuadNode::gatherObjects(const Engine::Frustum* frustum, std::vector<GameObject*>& out) const
 {
-    if (!intersects(frustum, m_bounds))
+    if (!frustum)
+    {
+        for (GameObject* obj : m_objects)
+        {
+            auto model = obj->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+            out.push_back(obj);
+        }
+        return;
+    }
+
+    if (!intersects(*frustum, m_bounds))
     {
         m_bounds.m_debugIsCulled = true;
         return;

@@ -9,7 +9,7 @@
 #include "Layer.h"
 #include "UID.h"
 
-class BasicModel;
+class ModelComponent;
 
 class GameObject {
 public:
@@ -48,8 +48,9 @@ public:
 	}
 #pragma endregion
 
-#pragma region Filesystem
+#pragma region Persistence
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
 
 #pragma endregion
@@ -80,6 +81,6 @@ private:
 	std::vector<Component*> m_components;
 
 	//Testing duck
-	BasicModel* m_model;
+	ModelComponent* m_model;
 	//////////////
 };
