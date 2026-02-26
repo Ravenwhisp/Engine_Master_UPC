@@ -108,6 +108,8 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     if (app->getSettings()->frustumCulling.debugFrustumCulling && camera)
     {
         gameObjects = m_quadtree->getObjects(&camera->getFrustum());
+        // Add active camera manually to gameObjects since it's culled out by itself (it has no bounding box)
+        gameObjects.push_back(camera->getOwner());
     }
     else
     {
