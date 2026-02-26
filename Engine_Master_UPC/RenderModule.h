@@ -15,8 +15,6 @@ class GameObject;
 class VertexBuffer;
 class IndexBuffer;
 class Texture;
-class Settings;
-
 
 class RenderModule: public Module
 {
@@ -46,6 +44,7 @@ private:
 	std::unique_ptr<RenderTexture>	m_screenRT{};
 	std::unique_ptr<DepthBuffer>	m_screenDS{};
 	ImVec2							m_size = ImVec2(800, 600);
+
 
 	/// NEEEEEEEEEEEEEW
 	SkyBoxPass* m_skyBoxPass = nullptr;
