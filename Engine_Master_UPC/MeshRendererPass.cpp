@@ -160,69 +160,138 @@ D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 
 GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const
 {
-    GPULightsConstantBuffer cb{};
-    cb.ambientColor = ambientColor;
-    cb.ambientIntensity = ambientIntensity;
+    GPULightsConstantBuffer constantBuffer{};
+    constantBuffer.ambientColor = ambientColor;
+    constantBuffer.ambientIntensity = ambientIntensity;
+
+    std::vector<GPUDirectionalLight> directionalLights;
+    std::vector<GPUPointLight> pointLights;
+    std::vector<GPUSpotLight> spotLights;
+
+    directionalLights.reserve(LightDefaults::MAX_DIRECTIONAL_LIGHTS);
+    pointLights.reserve(LightDefaults::MAX_POINT_LIGHTS);
+    spotLights.reserve(LightDefaults::MAX_SPOT_LIGHTS);
 
     for (GameObject* gameObject : objects)
     {
-        if (!gameObject || !gameObject->GetActive()) continue;
+        if (gameObject == nullptr)
+        {
+            continue;
+        }
 
-        const LightComponent* lightComponent = gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
-        if (!lightComponent) continue;
+        if (!gameObject->GetActive())
+        {
+            continue;
+        }
+
+        const LightComponent* lightComponent =
+            gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
+        if (lightComponent == nullptr)
+        {
+            continue;
+        }
 
         const LightData& lightData = lightComponent->getData();
-        if (!lightData.common.enabled) continue;
+        const LightCommon& common = lightData.common;
+
+        if (!lightComponent->isActive())
+        {
+            continue;
+        }
 
         const Transform* transform = gameObject->GetTransform();
-        if (!transform) continue;
+        if (transform == nullptr)
+        {
+            continue;
+        }
 
-        const LightCommon& common = lightData.common;
         const Vector3 position = transform->getPosition();
+
         Vector3 forward = transform->getForward();
         forward.Normalize();
 
         switch (lightData.type)
         {
         case LightType::DIRECTIONAL:
-            if (cb.directionalCount < LightDefaults::MAX_DIRECTIONAL_LIGHTS)
+        {
+            if (directionalLights.size() >= LightDefaults::MAX_DIRECTIONAL_LIGHTS)
             {
-                auto& gpuLight = cb.directionalLights[cb.directionalCount++];
-                gpuLight.direction = forward;
-                gpuLight.color = common.color;
-                gpuLight.intensity = common.intensity;
+                break;
             }
+
+            GPUDirectionalLight gpuLight{};
+            gpuLight.direction = forward;
+            gpuLight.color = common.color;
+            gpuLight.intensity = common.intensity;
+
+            directionalLights.push_back(gpuLight);
             break;
+        }
 
         case LightType::POINT:
-            if (cb.pointCount < LightDefaults::MAX_POINT_LIGHTS)
+        {
+            if (pointLights.size() >= LightDefaults::MAX_POINT_LIGHTS)
             {
-                auto& gpuLight = cb.pointLights[cb.pointCount++];
-                gpuLight.position = position;
-                gpuLight.radius = lightData.parameters.point.radius;
-                gpuLight.color = common.color;
-                gpuLight.intensity = common.intensity;
+                break;
             }
+
+            GPUPointLight gpuLight{};
+            gpuLight.position = position;
+            gpuLight.radius = lightData.parameters.point.radius;
+            gpuLight.color = common.color;
+            gpuLight.intensity = common.intensity;
+
+            pointLights.push_back(gpuLight);
             break;
+        }
 
         case LightType::SPOT:
-            if (cb.spotCount < LightDefaults::MAX_SPOT_LIGHTS)
+        {
+            if (spotLights.size() >= LightDefaults::MAX_SPOT_LIGHTS)
             {
-                const SpotLightParameters& sp = lightData.parameters.spot;
-                auto& gpuLight = cb.spotLights[cb.spotCount++];
-                gpuLight.position = position;
-                gpuLight.direction = forward;
-                gpuLight.radius = sp.radius;
-                gpuLight.color = common.color;
-                gpuLight.intensity = common.intensity;
-                gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(sp.innerAngleDegrees));
-                gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(sp.outerAngleDegrees));
+                break;
             }
-            break;
 
-        default: break;
+            const SpotLightParameters& spotParameters = lightData.parameters.spot;
+
+            GPUSpotLight gpuLight{};
+            gpuLight.position = position;
+            gpuLight.direction = forward;
+            gpuLight.radius = spotParameters.radius;
+            gpuLight.color = common.color;
+            gpuLight.intensity = common.intensity;
+            gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(spotParameters.innerAngleDegrees));
+            gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(spotParameters.outerAngleDegrees));
+
+            spotLights.push_back(gpuLight);
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
         }
     }
 
-    return cb;
+    constantBuffer.directionalCount = static_cast<uint32_t>(directionalLights.size());
+    constantBuffer.pointCount = static_cast<uint32_t>(pointLights.size());
+    constantBuffer.spotCount = static_cast<uint32_t>(spotLights.size());
+
+    for (uint32_t i = 0; i < constantBuffer.directionalCount; ++i)
+    {
+        constantBuffer.directionalLights[i] = directionalLights[i];
+    }
+
+    for (uint32_t i = 0; i < constantBuffer.pointCount; ++i)
+    {
+        constantBuffer.pointLights[i] = pointLights[i];
+    }
+
+    for (uint32_t i = 0; i < constantBuffer.spotCount; ++i)
+    {
+        constantBuffer.spotLights[i] = spotLights[i];
+    }
+
+    return constantBuffer;
 }

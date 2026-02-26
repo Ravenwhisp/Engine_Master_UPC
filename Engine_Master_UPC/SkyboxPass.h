@@ -7,16 +7,17 @@
 #include <Settings.h>
 #include <Skybox.h>
 
+class SkyboxSettings;
 
 class SkyBoxPass : public IRenderPass {
 public:
-    SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& skybox);
+    SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings);
 
     void apply(ID3D12GraphicsCommandList4* commandList) override;
     void setView(const Matrix& view) { m_view = &view; }
     void setProjection(const Matrix& projection) { m_projection = &projection; }
 
-    void setSettings(SkyboxSettings& skybox);
+    void setSettings(const SkyboxSettings& skybox);
 private:
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;

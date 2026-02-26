@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorWindow.h"
+#include <string>
 
 class SceneModule;
 class GameObject;

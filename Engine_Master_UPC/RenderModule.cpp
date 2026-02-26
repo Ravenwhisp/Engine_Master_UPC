@@ -24,18 +24,13 @@
 
 bool RenderModule::init()
 {
-    return true;
-}
-
-bool RenderModule::postInit()
-{
     m_settings = app->getSettings();
     auto d3d12 = app->getD3D12Module();
     auto device = d3d12->getDevice();
 
     m_ringBuffer = app->getResourcesModule()->createRingBuffer(10);
 
-    m_skyBoxPass = new SkyBoxPass(device, m_settings->skybox);
+    m_skyBoxPass = new SkyBoxPass(device, app->getSceneModule()->getSkyboxSettings());
     m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
@@ -45,6 +40,12 @@ bool RenderModule::postInit()
 
     m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+
+    return true;
+}
+
+bool RenderModule::postInit()
+{
 
 
     return true;
@@ -83,7 +84,7 @@ void RenderModule::preRender()
     m_skyBoxPass->setProjection(app->getCameraModule()->getProjection());
     m_skyBoxPass->apply(m_commandList);
 
-    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllMeshRenderers());
+    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllRenderables());
 
     m_meshRendererPass->setCameraPosition(app->getCameraModule()->getPosition());
     m_meshRendererPass->setView(app->getCameraModule()->getView());
@@ -161,9 +162,9 @@ D3D12_GPU_VIRTUAL_ADDRESS RenderModule::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getD3D12Module()->getCurrentFrame());
 }
 
-bool RenderModule::applySkyboxSettings()
+bool RenderModule::applySkyboxSettings(const SkyboxSettings& settings)
 {
-    m_skyBoxPass->setSettings(m_settings->skybox);
+    m_skyBoxPass->setSettings(settings);
     return true;
 }
 

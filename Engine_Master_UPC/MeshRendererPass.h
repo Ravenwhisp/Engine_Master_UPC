@@ -4,21 +4,9 @@
 #include "GameObject.h"
 #include <RingBuffer.h>
 #include <MeshRenderer.h>
+#include "SceneModule.h"
 
 class Submesh;
-
-struct SceneDataCB
-{
-    Vector3 viewPos;
-    float pad0 = 0.0f;
-};
-
-struct SceneLightingSettings
-{
-    Vector3 ambientColor;
-    float ambientIntensity;
-};
-
 
 class MeshRendererPass : public IRenderPass {
 public:
@@ -38,7 +26,6 @@ public:
 
 
     void apply(ID3D12GraphicsCommandList4* commandList) override;
-    void renderBackground(ID3D12GraphicsCommandList4* commandList);
     D3D12_GPU_VIRTUAL_ADDRESS buildAndUploadLightsCB();
     GPULightsConstantBuffer packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const;
     void renderMesh(ID3D12GraphicsCommandList* commandList);
