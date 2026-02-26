@@ -116,5 +116,5 @@ void SkyBoxPass::setSettings(const SkyboxSettings& settings)
     auto assetModule = app->getAssetModule();
 
     TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(settings.path)));
-    m_skyBox = new SkyBox(*asset);
+    m_skyBox = std::make_unique<SkyBox>(*asset);
 }
