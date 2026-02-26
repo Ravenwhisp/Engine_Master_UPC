@@ -148,6 +148,18 @@ bool RenderModule::cleanUp()
     m_screenRT.reset();
     m_screenDS.reset();
 
+    delete m_skyBoxPass;
+    m_skyBoxPass = nullptr;
+
+    delete m_meshRendererPass;
+    m_meshRendererPass = nullptr;
+
+    delete m_imGuiPass;
+    m_imGuiPass = nullptr;
+
+    delete m_debugDrawPass;
+    m_debugDrawPass = nullptr;
+
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
 

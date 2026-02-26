@@ -23,7 +23,7 @@ private:
     ComPtr<ID3D12RootSignature>		m_rootSignature;
     ComPtr<ID3D12PipelineState>		m_pipelineState;
 
-    SkyBox* m_skyBox = nullptr;
+    std::unique_ptr<SkyBox>         m_skyBox;
 
     //Not sure if this belongs here
     mutable const Matrix*         m_projection = nullptr;
