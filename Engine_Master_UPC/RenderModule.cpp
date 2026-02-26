@@ -84,7 +84,6 @@ void RenderModule::preRender()
     m_skyBoxPass->setProjection(app->getCameraModule()->getProjection());
     m_skyBoxPass->apply(m_commandList);
 
-    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllRenderables());
 
     m_meshRendererPass->setCameraPosition(app->getCameraModule()->getPosition());
     m_meshRendererPass->setView(app->getCameraModule()->getView());
@@ -98,7 +97,7 @@ void RenderModule::preRender()
 
     // NOT IDEAL TO CALL HERE THIS RENDER FUCNTION, THAT IS NOT DOING ANYTHING RELATED TO RENDER ANYMORE
     app->getSceneModule()->render(m_commandList);
-    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllRenderables());
+    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllMeshRenderers());
     m_meshRendererPass->apply(m_commandList);
 
     // REPEATED CODE WITH MESH RENDERER PASS

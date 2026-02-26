@@ -6,7 +6,6 @@
 #include "DescriptorsModule.h"
 #include "RenderModule.h"
 #include <MeshRenderer.h>
-#include "SceneModule.h"
 #include "D3D12Module.h"
 #include <PlatformHelpers.h>
 #include <d3dcompiler.h>
