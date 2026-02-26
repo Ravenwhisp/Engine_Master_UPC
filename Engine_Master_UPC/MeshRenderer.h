@@ -24,6 +24,8 @@ public:
 
 	std::vector<std::unique_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
 	std::vector<std::unique_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
+	bool											hasMeshes() { return m_meshes.size() != 0; }
+
 	BasicMaterial* getMaterial(UID materialId)
 	{
 		auto it = m_materialIndexByUID.find(materialId);
