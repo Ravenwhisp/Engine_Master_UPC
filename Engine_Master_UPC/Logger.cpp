@@ -1,40 +1,23 @@
 #include "Globals.h"
 #include "Logger.h"
-
 #include "Application.h"
 #include "TimeModule.h"
-#include <imgui_internal.h>
+#include <cstdarg>
 
-// Initialize static instance
 Logger* Logger::s_Instance = nullptr;
 
 Logger::Logger()
 {
-    // Set as singleton instance
     if (!s_Instance)
-    {
         s_Instance = this;
-    }
 
-    m_inputBuf[0] = '\0';
-    m_filterBuf[0] = '\0';
-
-    addLogEntry(LogType::LOG_INFO, "System", "Logger initialized");
+    addLogEntry(LogType::LOG_INFO, "Logger initialized");
 }
 
 Logger::~Logger()
 {
     if (s_Instance == this)
-    {
         s_Instance = nullptr;
-    }
-
-    // Clear all entries
-    for (int i = 0; i < m_items.Size; i++)
-    {
-        delete m_items[i];
-    }
-    m_items.clear();
 }
 
 Logger* Logger::Instance()
@@ -42,135 +25,186 @@ Logger* Logger::Instance()
     return s_Instance;
 }
 
-void Logger::addLogEntry(LogType type, const char* category, const char* text)
+void Logger::clear()
 {
-    // Get current timestamp
+    m_items.clear();
+}
+
+void Logger::clearSelection()
+{
+    for (auto& item : m_items)
+        item.selected = false;
+}
+
+void Logger::copyToClipboard()
+{
+    std::string clipboard;
+
+    size_t selectedCount = 0;
+    for (auto& item : m_items)
+        if (item.selected)
+            selectedCount++;
+
+    for (auto& item : m_items)
+    {
+        if (selectedCount > 0)
+        {
+            if (!item.selected) continue;
+        }
+        else
+        {
+            if (!m_filter.PassFilter(item.message.c_str())) continue;
+            if ((item.type == LogType::LOG_INFO && !m_showLogs) ||
+                (item.type == LogType::LOG_WARNING && !m_showWarnings) ||
+                (item.type == LogType::LOG_ERROR && !m_showErrors))
+                continue;
+        }
+
+        clipboard += item.message + "\n";
+    }
+
+    ImGui::SetClipboardText(clipboard.c_str());
+}
+
+void Logger::addLogEntry(LogType type, const std::string& text)
+{
     float timestamp = 0.0f;
     if (app && app->getTimeModule())
+        timestamp = app->getTimeModule()->time();
+
+    if (!m_items.empty())
     {
-        timestamp = 0.0f;
+        LogEntry& last = m_items.back();
+        if (last.message == text && last.type == type)
+        {
+            last.count++;
+            return;
+        }
     }
 
-    LogEntry* entry = new LogEntry(type, text, timestamp);
-    m_items.push_back(entry);
+    m_items.emplace_back(type, text, timestamp);
 
-    // Limit number of entries
-    if (m_items.Size > m_maxEntries)
-    {
-        delete m_items[0];
+    if ((int)m_items.size() > m_maxEntries)
         m_items.erase(m_items.begin());
-    }
 }
 
-const char* Logger::getTypePrefix(LogType type)
+const char* Logger::getPrefix(LogType type)
 {
     switch (type)
     {
-        case LogType::LOG_INFO:     return "INFO";
-        case LogType::LOG_WARNING: return "WARN";
-        case LogType::LOG_ERROR:   return "ERROR";
-        default:               return "???";
+    case LogType::LOG_INFO: return "[LOG]";
+    case LogType::LOG_WARNING: return "[WARN]";
+    case LogType::LOG_ERROR: return "[ERROR]";
+    default: return "[???]";
     }
 }
 
-ImU32 Logger::getTypeColor(LogType type)
+ImVec4 Logger::getColor(LogType type)
 {
-    ImGuiStyle& style = ImGui::GetStyle();
-
     switch (type)
     {
-        case LogType::LOG_INFO:
-            return ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
-
-        case LogType::LOG_WARNING:
-            return ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.8f, 0.0f, 1.0f));
-
-        case LogType::LOG_ERROR:
-            return ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
-
-        default:
-            return ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]);
+    case LogType::LOG_INFO: return ImVec4(1, 1, 1, 1);
+    case LogType::LOG_WARNING: return ImVec4(1, 0.8f, 0.2f, 1);
+    case LogType::LOG_ERROR: return ImVec4(1, 0.3f, 0.3f, 1);
+    default: return ImVec4(1, 1, 1, 1);
     }
 }
 
-void Logger::render() {
+void Logger::render()
+{
     if (!ImGui::Begin(getWindowName(), getOpenPtr(), getWindowFlags()))
     {
         ImGui::End();
         return;
     }
 
-    float height = ImGui::GetContentRegionAvail().y -
-        ImGui::GetFrameHeightWithSpacing() -
-        ImGui::GetStyle().ItemSpacing.y;
-
-    if (height < 50.0f) height = 50.0f;
-
-    ImGui::BeginChild("ScrollingRegion", ImVec2(0, height), false);
-
-    if (m_wrapText)
-    {
-        ImGui::PushTextWrapPos(ImGui::GetWindowWidth() - 10.0f);
-    }
-
-    bool scrollToBottom = false;
-
-    // Draw log entries
-    for (int i = 0; i < m_items.Size; i++)
-    {
-        LogEntry* entry = m_items[i];
-
-        // Set text color based on type
-        ImGui::PushStyleColor(ImGuiCol_Text, getTypeColor(entry->type));
-
-        // Build display text
-        ImGui::TextUnformatted("[");
-        ImGui::SameLine(0, 0);
-        ImGui::TextUnformatted(getTypePrefix(entry->type));
-        ImGui::SameLine(0, 0);
-        ImGui::TextUnformatted("] ");
-
-        // Timestamp
-        if (m_showTimestamps)
-        {
-            ImGui::SameLine(0, 5);
-            ImGui::TextDisabled("%.2f", entry->timeStamp);
-            ImGui::SameLine(0, 5);
-            ImGui::TextUnformatted("|");
-            ImGui::SameLine(0, 5);
-        }
-
-        if (entry->count > 1)
-        {
-            char countText[64];
-            sprintf(countText, "%s (x%d)", entry->text, entry->count);
-            ImGui::TextUnformatted(countText);
-        }
-        else
-        {
-            ImGui::TextUnformatted(entry->text);
-        }
-
-        ImGui::PopStyleColor();
-
-        if (m_autoScroll && i == m_items.Size - 1)
-        {
-            scrollToBottom = true;
-        }
-    }
-
-    if (m_wrapText)
-    {
-        ImGui::PopTextWrapPos();
-    }
-
-    // Auto-scroll to bottom if enabled
-    if (scrollToBottom && m_autoScroll)
-    {
-        ImGui::SetScrollHereY(1.0f);
-    }
-
-    ImGui::EndChild();
+    drawHeader();
+    ImGui::Separator();
+    drawMessages();
 
     ImGui::End();
 }
+
+void Logger::drawHeader()
+{
+    if (ImGui::Button("Clear")) clear();
+    ImGui::SameLine();
+
+    if (ImGui::Button("Copy")) copyToClipboard();
+
+    ImGui::SameLine();
+    m_filter.Draw("Filter", 200);
+
+    ImGui::Separator();
+
+    ImGui::Checkbox("Logs", &m_showLogs);
+    ImGui::SameLine();
+    ImGui::Checkbox("Warnings", &m_showWarnings);
+    ImGui::SameLine();
+    ImGui::Checkbox("Errors", &m_showErrors);
+    ImGui::SameLine();
+    ImGui::Checkbox("Timestamps", &m_showTimestamps);
+}
+
+void Logger::drawMessages()
+{
+    ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false,
+        ImGuiWindowFlags_HorizontalScrollbar);
+
+    for (size_t i = 0; i < m_items.size(); ++i)
+    {
+        auto& item = m_items[i];
+
+        if (!m_filter.PassFilter(item.message.c_str())) continue;
+
+        if ((item.type == LogType::LOG_INFO && !m_showLogs) ||
+            (item.type == LogType::LOG_WARNING && !m_showWarnings) ||
+            (item.type == LogType::LOG_ERROR && !m_showErrors))
+            continue;
+
+        drawMessage(item, i);
+    }
+
+    if (m_autoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+        ImGui::SetScrollHereY(1.0f);
+
+    ImGui::EndChild();
+}
+
+void Logger::drawMessage(LogEntry& entry, size_t index)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, getColor(entry.type));
+
+    std::string label;
+
+    label += getPrefix(entry.type);
+    label += " ";
+
+    if (m_showTimestamps)
+    {
+        label += "[" + std::to_string(entry.timeStamp) + "] ";
+    }
+
+    label += entry.message;
+
+    if (entry.count > 1)
+        label += " (x" + std::to_string(entry.count) + ")";
+
+    label += "###log_" + std::to_string(index);
+
+    if (ImGui::Selectable(label.c_str(), entry.selected))
+    {
+        if (!ImGui::GetIO().KeyCtrl)
+        {
+            clearSelection();
+            entry.selected = true;
+        }
+        else
+        {
+            entry.selected = !entry.selected;
+        }
+    }
+
+    ImGui::PopStyleColor();
+}
+

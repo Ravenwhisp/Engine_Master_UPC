@@ -1,6 +1,5 @@
 #pragma once
 #include "Importer.h"
-#include "Logger.h"
 
 template<typename ExternalFormat, typename AssetFormat>
 class TypedImporter : public Importer
@@ -11,7 +10,7 @@ public:
         ExternalFormat external{};
         if (!loadExternal(path, external))
         {
-            LOG_ERROR("Error while trying to load the asset from this path:", path.c_str());
+            DEBUG_ERROR("Error while trying to load the asset from this path:", path.c_str());
             return false;
         }
 

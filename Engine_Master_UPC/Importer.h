@@ -5,7 +5,7 @@
 #include "Asset.h"
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
-
+#include "Globals.h"
 
 class Importer
 {

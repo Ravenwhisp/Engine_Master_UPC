@@ -14,6 +14,8 @@ public:
     UID getID() const { return m_uuid; }
     ComponentType getType() const { return m_type; }
     GameObject* getOwner() const { return m_owner; }
+	void setActive(bool active) { m_active = active; }
+	bool isActive() const { return m_active; }
 
     #pragma region Loop functions
     virtual bool init() { return true; }
@@ -31,6 +33,8 @@ public:
     Transform* getTransform();
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
+    virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
+
 
 protected:
     GameObject* m_owner;
@@ -39,4 +43,5 @@ protected:
 
 private:
     const ComponentType m_type;
+	bool m_active = true;
 };
