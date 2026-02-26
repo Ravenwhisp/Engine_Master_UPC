@@ -19,17 +19,16 @@ struct SceneLightingSettings
 	float ambientIntensity;;
 };
 
+struct SkyboxSettings
+{
+	bool enabled = true;
+	char path[260] = "Assets/Textures/cubemap2.dds";
+};
+
 class SceneModule : public Module
 {
 private:
 	SceneSerializer* m_sceneSerializer;
-
-	std::string m_name = "SampleScene";
-
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	Quadtree* m_quadtree;
-	SceneDataCB					m_sceneDataCB;
 
 public:
 #pragma region GameLoop
@@ -43,13 +42,22 @@ public:
 #pragma endregion
 
 #pragma region Persistence
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
+	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
+
+	bool loadFromJSON(const rapidjson::Value& sceneJson);
+	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
+	bool loadSceneLighting(const rapidjson::Value& sceneJson);
+
 	void saveScene();
-	void loadScene();
+	bool loadScene(const std::string& sceneName);
 	void clearScene();
 #pragma endregion
 
 	void createGameObject();
-	GameObject* createGameObjectWithUID(UID id);
+	GameObject* createGameObjectWithUID(UID id, UID transformUID);
 	void removeGameObject(const UID uuid);
 
 	void addGameObject(GameObject* gameObject);
@@ -68,6 +76,19 @@ public:
 
 	SceneLightingSettings& GetLightingSettings() { return m_lighting; }
 	SceneDataCB& getCBData() { return m_sceneDataCB; }
+	SkyboxSettings& getSkyboxSettings() { return m_skybox; }
+	const SkyboxSettings& getSkyboxSettings() const { return m_skybox; }
+
+	bool applySkyboxToRenderer();
 
 	Quadtree& getQuadtree() { return *m_quadtree; }
+private:
+	std::string m_name = "SampleScene";
+
+	std::vector<GameObject*>	m_gameObjects;
+	SceneLightingSettings		m_lighting;
+	Quadtree*					m_quadtree;
+	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
+
 };

@@ -33,7 +33,7 @@ namespace
         }
 
         const LightData& lightData = lightComponent->getData();
-        if (!lightData.common.enabled)
+        if (!lightComponent->isActive())
         {
             return;
         }
