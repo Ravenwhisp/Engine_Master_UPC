@@ -28,21 +28,19 @@ struct SceneEditorSettings {
     bool showGrid = true;
     bool showAxis = true;
     bool showGuizmo = true;
-    bool showQuadTree = true;
+    bool showQuadTree = false;
 };
 
-struct SkyboxSettings
+struct FrustumCullingSettings
 {
-    bool enabled = true;
-    char path[260] = "Assets/Textures/cubemap.dds";
-    bool dirty = false;
+    bool debugFrustumCulling = false;
 };
 
 class Settings {
 public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
-    SkyboxSettings skybox;
+    FrustumCullingSettings frustumCulling;
 
 public:
     void loadSettings() {

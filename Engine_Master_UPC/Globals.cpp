@@ -2,7 +2,7 @@
 
 #include "Logger.h"
 
-void log(const char file[], int line, const char* format, ...)
+void debug_log(const char file[], int line, const char* format, ...)
 {
 	static char tmp_string[4096];
 	static char tmp_string2[4096];
@@ -15,5 +15,37 @@ void log(const char file[], int line, const char* format, ...)
 	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugStringA(tmp_string2);
 
-	Logger::log("%s(%d) : %s", file, line, tmp_string);
+	Logger::log(file, line, "%s", tmp_string);
+}
+
+void debug_warn(const char file[], int line, const char* format, ...)
+{
+	static char tmp_string[4096];
+	static char tmp_string2[4096];
+	static va_list  ap;
+
+	// Construct the string from variable arguments
+	va_start(ap, format);
+	vsprintf_s(tmp_string, 4095, format, ap);
+	va_end(ap);
+	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
+	OutputDebugStringA(tmp_string2);
+
+	Logger::warning(file, line, "%s", tmp_string);
+}
+
+void debug_error(const char file[], int line, const char* format, ...)
+{
+	static char tmp_string[4096];
+	static char tmp_string2[4096];
+	static va_list  ap;
+
+	// Construct the string from variable arguments
+	va_start(ap, format);
+	vsprintf_s(tmp_string, 4095, format, ap);
+	va_end(ap);
+	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
+	OutputDebugStringA(tmp_string2);
+
+	Logger::error(file, line, "%s", tmp_string);
 }

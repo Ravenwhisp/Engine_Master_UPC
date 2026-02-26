@@ -19,7 +19,6 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 
-#include "Settings.h"
 #include "Logger.h"
 
 

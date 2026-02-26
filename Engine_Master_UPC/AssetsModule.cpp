@@ -18,7 +18,7 @@ UID AssetsModule::find(const std::filesystem::path& assetsFile) const
     auto entry = app->getFileSystemModule()->getEntry(metadataPath);
     if (!entry)
     {
-        LOG_WARNING("[AssetsModule] Could not find asset '{}'.", assetsFile.string());
+        DEBUG_ERROR("[AssetsModule] Could not find asset '{}'.", assetsFile.string());
         return INVALID_ASSET_ID;
     }
 
@@ -31,7 +31,7 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
     Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
     if (!importer)
     {
-        LOG_INFO("[AssetsModule] Couldn't find a proper importer for this format:", assetsFile.c_str());
+        DEBUG_WARN("[AssetsModule] Couldn't find a proper importer for this format:", assetsFile.c_str());
         return INVALID_ASSET_ID;
     }
 
@@ -43,7 +43,7 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
 
     if (!importer->import(assetsFile, asset))
     {
-        LOG_ERROR("[AssetsModule] Couldn't import the asset:", assetsFile.c_str());
+        DEBUG_ERROR("[AssetsModule] Couldn't import the asset:", assetsFile.c_str());
         delete asset;
         return INVALID_ASSET_ID;
     }
@@ -86,7 +86,7 @@ Asset* AssetsModule::requestAsset(UID id)
     AssetMetadata* metadata = app->getFileSystemModule()->getMetadata(id);
     if (!metadata)
     {
-        LOG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", id);
+        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", id);
         return nullptr;
     }
 
@@ -97,7 +97,7 @@ Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
 {
     if (!metadata)
     {
-        LOG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", metadata->uid);
+        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", metadata->uid);
         return nullptr;
     }
 
@@ -127,7 +127,7 @@ void AssetsModule::releaseAsset(Asset* asset)
 {
     if (!asset)
     {
-        LOG_WARNING("[AssetsModule] Tried to release an empty asset");
+        DEBUG_WARN("[AssetsModule] Tried to release an empty asset");
         return;
     }
 
