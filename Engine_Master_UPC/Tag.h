@@ -4,7 +4,8 @@
     X(DEFAULT)   \
     X(PLAYER)    \
     X(ENEMY)     \
-    X(PROJECTILE)
+    X(PROJECTILE)\
+    X(NAVIGATION)
 
 enum class Tag {
 #define X(name) name,

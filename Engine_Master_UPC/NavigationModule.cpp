@@ -4,6 +4,7 @@
 #include "SceneModule.h"
 
 #include "NavMeshResource.h"
+#include "NavMeshGeometryExtractor.h"
 
 #include <fstream>
 
@@ -30,6 +31,22 @@ bool NavigationModule::postInit()
 
 void NavigationModule::update()
 {
+    // Used for TESTING ONLY
+    if (GetAsyncKeyState(VK_F9) & 1)
+    {
+        TriangleSoup soup;
+
+        if (NavMeshGeometryExtractor::Extract(*app->getSceneModule(), soup))
+        {
+            DEBUG_LOG("NavMesh geometry: %zu vertices, %zu indices\n",
+                soup.vertices.size() / 3,
+                soup.indices.size() / 3);
+        }
+        else
+        {
+            DEBUG_ERROR("NavMesh geometry extraction FAILED\n");
+        }
+    }
 }
 
 bool NavigationModule::cleanUp()

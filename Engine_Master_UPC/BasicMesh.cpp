@@ -24,6 +24,7 @@ void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 		uint32_t numVertices = uint32_t(model.accessors[itPos->second].count);
 		Vertex* vertices = new Vertex[numVertices];
 		uint8_t* vertexData = (uint8_t*)vertices;
+		m_positionsCPU.resize(numVertices);
 		loadAccessorData(vertexData + offsetof(Vertex, position), sizeof(Vector3), sizeof(Vertex), numVertices, model, itPos->second);
 		loadAccessorData(vertexData + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex), numVertices, model, primitive.attributes, "TEXCOORD_0");
 		loadAccessorData(vertexData + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex), numVertices, model, primitive.attributes, "NORMAL");
@@ -40,6 +41,9 @@ void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 			m_boundsMax.x = std::max(m_boundsMax.x, vertices[i].position.x);
 			m_boundsMax.y = std::max(m_boundsMax.y, vertices[i].position.y);
 			m_boundsMax.z = std::max(m_boundsMax.z, vertices[i].position.z);
+
+			const Vector3& p = vertices[i].position;
+			m_positionsCPU[i] = p;
 		}
 		m_hasBounds = (numVertices > 0);
 
@@ -55,7 +59,27 @@ void BasicMesh::load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, c
 				uint32_t indexElementSize = tinygltf::GetComponentSizeInBytes(indAcc.componentType);
 				uint32_t numIndices = uint32_t(indAcc.count);
 				uint8_t* indices = new uint8_t[numIndices * indexElementSize];
+				m_indicesCPU.resize(numIndices);
 				loadAccessorData(indices, indexElementSize, indexElementSize, numIndices, model, primitive.indices);
+
+				if (indAcc.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT)
+				{
+					uint32_t* source = reinterpret_cast<uint32_t*>(indices);
+					for (uint32_t i = 0; i < numIndices; ++i)
+						m_indicesCPU[i] = source[i];
+				}
+				else if (indAcc.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT)
+				{
+					uint16_t* source = reinterpret_cast<uint16_t*>(indices);
+					for (uint32_t i = 0; i < numIndices; ++i)
+						m_indicesCPU[i] = source[i];
+				}
+				else if (indAcc.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE)
+				{
+					uint8_t* source = reinterpret_cast<uint8_t*>(indices);
+					for (uint32_t i = 0; i < numIndices; i++)
+						m_indicesCPU[i] = source[i];
+				}
 
 				if (numIndices > 0) 
 				{
