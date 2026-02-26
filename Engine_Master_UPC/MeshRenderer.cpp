@@ -61,34 +61,7 @@ void MeshRenderer::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMa
     Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
-    for (const auto& mesh : getMeshes())
-    {
-        const auto& submeshes = mesh->getSubmeshes();
-
-        for (const Submesh& submesh : submeshes)
-        {
-            auto it = m_materialIndexByUID.find(submesh.materialId);
-            if (it == m_materialIndexByUID.end())
-            {
-                continue;
-            }
-
-            uint32_t materialIndex = it->second;
-            BasicMaterial* material = m_materials[materialIndex].get();
-
-            ModelData modelData{};
-            modelData.model = transform->getGlobalMatrix().Transpose();
-            modelData.normalMat = transform->getNormalMatrix().Transpose();
-            modelData.material = material->getMaterial();
-
-            // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
-            commandList->SetGraphicsRootConstantBufferView(2 ,app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
-            commandList->SetGraphicsRootDescriptorTable(4, m_materials[materialIndex]->getTexture()->getSRV().gpu);
-
-            mesh->draw(commandList, submesh);
-        }
-    }
-
+ 
     if (m_drawBounds && m_hasBounds && dd::isInitialized())
     {
         const Matrix world = transform->getGlobalMatrix();

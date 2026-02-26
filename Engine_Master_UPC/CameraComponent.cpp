@@ -33,7 +33,7 @@ void CameraComponent::recalculateFrustum()
 void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
 	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
-	m_frustum.render(m_world);
+
 }
 
 void CameraComponent::update()
@@ -43,6 +43,9 @@ void CameraComponent::update()
 
 void CameraComponent::drawUi() 
 {
+	m_frustum.render(m_world);
+
+
     ImGui::Separator();
 
 	float fov = m_horizontalFov;

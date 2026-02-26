@@ -30,8 +30,6 @@ SceneEditor::SceneEditor()
     m_editorToolbar = new EditorToolbar();
 
     auto d3d12Module = app->getD3D12Module();
-
-    m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
 }
 
 SceneEditor::~SceneEditor()
@@ -178,8 +176,6 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
             LightDebugDraw::drawLightWithoutDepth(*go);
         }
     }
-
-    m_debugDrawPass->record(commandList, getSize().x, getSize().y, m_cameraModule->getView(), m_cameraModule->getProjection());
 }
 
 void SceneEditor::renderQuadtree()

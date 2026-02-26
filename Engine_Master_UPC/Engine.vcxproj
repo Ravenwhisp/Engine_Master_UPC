@@ -205,14 +205,16 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="ILightPass.h" />
+    <ClInclude Include="IMatrixPass.h" />
     <ClInclude Include="Importer.h" />
-    <ClInclude Include="ISerializable.h" />
-    <ClInclude Include="ISerializer.h" />
+    <ClInclude Include="IRenderPass.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="MeshRendererPass.h" />
     <ClInclude Include="ModelAsset.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="PlayerWalk.h" />
@@ -250,6 +252,7 @@
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Skybox.h" />
+    <ClInclude Include="SkyboxPass.h" />
     <ClInclude Include="Tag.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureAsset.h" />
@@ -339,6 +342,7 @@
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="AssetsModule.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
@@ -361,10 +365,10 @@
     <ClCompile Include="FileSystemModule.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="IDeserializer.h" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
+    <ClCompile Include="MeshRendererPass.cpp" />
     <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
     <ClCompile Include="QuadNode.cpp" />
@@ -407,6 +411,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="SkyboxPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureImporter.cpp" />

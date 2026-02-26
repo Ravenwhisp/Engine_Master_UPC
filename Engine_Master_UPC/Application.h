@@ -11,7 +11,6 @@ class EditorModule;
 class ResourcesModule;
 class CameraModule;
 class InputModule;
-class SampleModule;
 class ShaderDescriptorsModule;
 class DescriptorsModule;
 class TimeModule;

@@ -4,20 +4,10 @@
 #include "Quadtree.h"
 #include "Lights.h"
 #include "UID.h"
+#include <MeshRenderer.h>
+#include <MeshRendererPass.h>
 
 class SceneSerializer;
-
-struct SceneDataCB
-{
-	Vector3 viewPos;
-	float pad0 = 0.0f;
-};
-
-struct SceneLightingSettings
-{
-	Vector3 ambientColor;;
-	float ambientIntensity;;
-};
 
 class SceneModule : public Module
 {
@@ -27,6 +17,7 @@ private:
 	std::string m_name = "SampleScene";
 
 	std::vector<GameObject*>	m_gameObjects;
+	std::vector<MeshRenderer*>  m_meshRenderers;
 	SceneLightingSettings		m_lighting;
 	Quadtree* m_quadtree;
 	SceneDataCB					m_sceneDataCB;
@@ -62,6 +53,7 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
+	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
 	const void setName(const char* newName) { m_name = newName; }

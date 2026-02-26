@@ -197,16 +197,12 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 	return texture;
 }
 
-std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
+std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
 {
-	auto assetModule = app->getAssetModule();
-
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(filePath)));
-
 	TextureInitInfo info{};
 
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat());
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount()));
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset.getWidth()), UINT(textureAsset.getHeight()), UINT16(textureAsset.getArraySize()), UINT16(textureAsset.getMipCount()));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
@@ -215,7 +211,7 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& 
 	srvDesc.Format = texFormat;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
 	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.MipLevels = (UINT)textureAsset->getMipCount();
+	srvDesc.TextureCube.MipLevels = (UINT)textureAsset.getMipCount();
 	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
@@ -223,9 +219,9 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& 
 	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	subData.reserve(textureAsset->getImageCount());
+	subData.reserve(textureAsset.getImageCount());
 
-	const auto& subImages = textureAsset->getImages();
+	const auto& subImages = textureAsset.getImages();
 	for (const auto& subImg : subImages)
 	{
 		assert(subImg.pixels.data() != nullptr);
@@ -247,6 +243,8 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& 
 std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
 {
 	TextureInitInfo info{};
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1);
+	info.desc = &desc;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Standard format
