@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include "filesystem"
-#include <Logger.h>
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -10,9 +9,9 @@
 
 #include <simdjson.h>
 #include <fstream>
-#include <UID.h>
+#include "UID.h"
 
-#include <AssetsDictionary.h>
+#include "AssetsDictionary.h"
 
 
 enum class AssetType : uint32_t

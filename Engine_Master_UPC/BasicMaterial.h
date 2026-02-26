@@ -2,7 +2,7 @@
 #include "Globals.h"
 #include "Texture.h"
 #include "Asset.h"
-#include <ModelAsset.h>
+#include "ModelAsset.h"
 
 namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
 class BasicMaterial

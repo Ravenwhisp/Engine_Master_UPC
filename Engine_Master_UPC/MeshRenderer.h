@@ -3,7 +3,7 @@
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
 #include "BoundingBox.h"
-#include <ModelAsset.h>
+#include "ModelAsset.h"
 
 namespace tinygltf { class Model; }
 

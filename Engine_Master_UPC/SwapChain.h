@@ -1,9 +1,9 @@
 #pragma once
-#include <Globals.h>
+#include "Globals.h"
 #include "Resources.h"
 #include <cstdint>
 #include <dxgi1_6.h>
-#include <DepthBuffer.h>
+#include "DepthBuffer.h"
 
 using D3D12SwapChain = IDXGISwapChain4;
 

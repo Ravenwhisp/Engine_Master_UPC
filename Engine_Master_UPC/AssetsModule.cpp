@@ -7,8 +7,7 @@
 
 #include <filesystem>
 #include <fstream>
-#include <Logger.h>
-#include <UID.h>
+#include "UID.h"
 
 UID AssetsModule::find(const std::filesystem::path& assetsFile) const
 {

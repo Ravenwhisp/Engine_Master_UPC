@@ -18,6 +18,7 @@
 #include "Skybox.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "DepthBuffer.h"
 
 #include "Logger.h"
 
@@ -34,6 +35,7 @@ bool RenderModule::init()
     m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
+    m_fontPass = new FontPass(device);
 
     //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
     //m_hasSkybox = (m_skyboxTexture != nullptr);
@@ -109,6 +111,9 @@ void RenderModule::preRender()
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(m_commandList);
     m_debugDrawPass->apply(m_commandList);
 
+    m_fontPass->setViewport(viewport);
+    m_fontPass->apply(m_commandList),
+
     // Transition back to shader resource state
     transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
@@ -162,6 +167,9 @@ bool RenderModule::cleanUp()
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
+
+    delete m_fontPass;
+    m_fontPass = nullptr;
 
     return true;
 }
