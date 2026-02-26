@@ -17,6 +17,7 @@ class IndexBuffer;
 class Texture;
 class Settings;
 
+
 class RenderModule: public Module
 {
 public:
@@ -30,7 +31,7 @@ public:
 	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 
-	bool applySkyboxSettings();
+	bool applySkyboxSettings(const SkyboxSettings& settings);
 private:
 	void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect);
 
@@ -45,7 +46,6 @@ private:
 	std::unique_ptr<RenderTexture>	m_screenRT{};
 	std::unique_ptr<DepthBuffer>	m_screenDS{};
 	ImVec2							m_size = ImVec2(800, 600);
-
 
 	/// NEEEEEEEEEEEEEW
 	SkyBoxPass* m_skyBoxPass = nullptr;

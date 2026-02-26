@@ -4,13 +4,14 @@
 
 #include "Application.h"
 #include "DescriptorsModule.h"
+#include "SceneModule.h"
 #include "AssetsModule.h"
 #include <PlatformHelpers.h>
 #include <d3dcompiler.h>
 
-SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& skybox) : m_device(device)
+SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) : m_device(device)
 {
-    setSettings(skybox);
+    setSettings(settings);
 
     ComPtr<ID3D12RootSignature> rootSignature;
 
@@ -110,10 +111,10 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->DrawIndexedInstanced(m_skyBox->getIndexBuffer()->getNumIndices(), 1, 0, 0, 0);
 }
 
-void SkyBoxPass::setSettings(SkyboxSettings& skybox)
+void SkyBoxPass::setSettings(const SkyboxSettings& settings)
 {
     auto assetModule = app->getAssetModule();
 
-    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(skybox.path)));
+    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(settings.path)));
     m_skyBox = new SkyBox(*asset);
 }

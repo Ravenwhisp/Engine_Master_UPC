@@ -267,6 +267,10 @@ void EditorModule::update()
 
 void EditorModule::preRender()
 {
+}
+
+void EditorModule::render()
+{
     /// THIS MUST BE EXECUTED AFTER RenderModule.h render functtion, if not F
     mainDockspace(&m_showMainDockspace);
 
@@ -276,11 +280,6 @@ void EditorModule::preRender()
     }
 
     ImGui::EndFrame();
-}
-
-void EditorModule::render()
-{
-
 }
 
 void EditorModule::postRender()
