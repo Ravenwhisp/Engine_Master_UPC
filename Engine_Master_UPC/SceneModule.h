@@ -5,7 +5,6 @@
 #include "Lights.h"
 #include "UID.h"
 #include <MeshRenderer.h>
-#include <MeshRendererPass.h>
 
 class SceneSerializer;
 
@@ -17,29 +16,25 @@ struct SceneDataCB
 
 struct SceneLightingSettings
 {
-	Vector3 ambientColor;;
-	float ambientIntensity;;
+	Vector3 ambientColor;
+	float ambientIntensity;
+};
+
+struct SkyboxSettings
+{
+	bool enabled = true;
+	char path[260] = "Assets/Textures/cubemap2.dds";
 };
 
 class SceneModule : public Module
 {
-private:
-	SceneSerializer* m_sceneSerializer;
-
-	std::string m_name = "SampleScene";
-
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	Quadtree* m_quadtree;
-	SceneDataCB					m_sceneDataCB;
-
 public:
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
 	void updateHierarchy(GameObject* obj);
 	void preRender() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
+	void render(ID3D12GraphicsCommandList* commandList);
 	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
@@ -87,9 +82,12 @@ public:
 
 	Quadtree& getQuadtree() { return *m_quadtree; }
 private:
+
+	SceneSerializer* m_sceneSerializer;
 	std::string m_name = "SampleScene";
 
 	std::vector<GameObject*>	m_gameObjects;
+	std::vector<MeshRenderer*>	m_meshRenderers;
 	SceneLightingSettings		m_lighting;
 	Quadtree*					m_quadtree;
 	SceneDataCB					m_sceneDataCB;

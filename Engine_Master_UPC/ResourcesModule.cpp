@@ -199,10 +199,6 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 
 std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
 {
-	auto assetModule = app->getAssetModule();
-
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(filePath)));
-
 	TextureInitInfo info{};
 
 	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());

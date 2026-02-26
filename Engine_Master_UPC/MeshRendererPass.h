@@ -40,7 +40,7 @@ private:
     RingBuffer*                     m_ringBuffer;
 
     SceneLightingSettings		    m_lighting;
-    SceneDataCB					    m_sceneDataCB;
+    SceneDataCB				        m_sceneDataCB;
 
     mutable const Matrix* m_projection;
     mutable const Matrix* m_view;
