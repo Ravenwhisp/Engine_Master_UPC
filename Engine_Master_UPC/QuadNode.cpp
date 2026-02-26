@@ -217,7 +217,7 @@ void QuadNode::gatherObjects(const Engine::Frustum* frustum, std::vector<GameObj
     {
         for (GameObject* obj : m_objects)
         {
-            auto model = obj->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+            auto model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             out.push_back(obj);
         }
         return;
@@ -234,7 +234,7 @@ void QuadNode::gatherObjects(const Engine::Frustum* frustum, std::vector<GameObj
     for (GameObject* obj : m_objects)
     {
         auto model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-        if (model && model->getBoundingBox().test(frustum))
+        if (model && model->getBoundingBox().test(*frustum))
         {
             out.push_back(obj);
         }
