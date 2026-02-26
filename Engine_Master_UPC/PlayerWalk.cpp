@@ -21,7 +21,8 @@ float PlayerWalk::getDeltaSecondsFromTimer() const
 	return app->getTimeModule()->deltaTime(); 
 }
 
-bool PlayerWalk::init() {
+bool PlayerWalk::init() 
+{
 	// Capturing the initial rotation should go in the init when we have script system, but at the moment it never gets called so gotta go on the constructor.
 
 	Transform* transform = m_owner->GetTransform();
@@ -30,7 +31,8 @@ bool PlayerWalk::init() {
 	return true;
 }
 
-void PlayerWalk::update() {
+void PlayerWalk::update() 
+{
 	Transform* transform = m_owner->GetTransform();
 
 	InputModule* inputModule = app->getInputModule();
@@ -42,14 +44,21 @@ void PlayerWalk::update() {
 	Vector3 direction = readMoveDirection(inputModule);
 
 
-	if (direction == Vector3::Zero)
+	if (direction == Vector3::Zero) {
 		return;
-
-	direction.Normalize();
+	}
 
 	const float dt = getDeltaSecondsFromTimer();
 	bool shiftHeld = checkShiftHeld(inputModule);
-	applyFacingFromDirection(transform, direction, dt);
+
+	Vector3 horizontalDir(direction.x, 0.0f, direction.z);
+	if (horizontalDir != Vector3::Zero)
+	{
+		horizontalDir.Normalize();
+		applyFacingFromDirection(transform, horizontalDir, dt);
+	}
+
+	direction.Normalize();
 	applyTranslation(transform, direction, dt, shiftHeld);
 }
 
@@ -57,17 +66,29 @@ Vector3 PlayerWalk::readMoveDirection(InputModule* inputModule) const
 {
 	Vector3 direction(0, 0, 0);
 
-	if (inputModule->isKeyDown(m_keyUp)) {
+	if (inputModule->isKeyDown(m_keyUp)) 
+	{
 		direction.z -= 1.0f;
 	}
-	if (inputModule->isKeyDown(m_keyDown)) {
+	if (inputModule->isKeyDown(m_keyDown)) 
+	{
 		direction.z += 1.0f;
 	}
-	if (inputModule->isKeyDown(m_keyLeft)) {
+	if (inputModule->isKeyDown(m_keyLeft)) 
+	{
 		direction.x -= 1.0f;
 	}
-	if (inputModule->isKeyDown(m_keyRight)) {
+	if (inputModule->isKeyDown(m_keyRight)) 
+	{
 		direction.x += 1.0f;
+	}
+	if (inputModule->isKeyDown(m_keyAscend)) 
+	{
+		direction.y += 1.0f;
+	}
+	if (inputModule->isKeyDown(m_keyDescend))
+	{
+		direction.y -= 1.0f;
 	}
 
 	return direction;
@@ -96,7 +117,8 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
 {
 	float speed = m_moveSpeed;
 
-	if (shiftHeld) {
+	if (shiftHeld) 
+	{
 		speed *=  m_shiftMultiplier;
 	}
 
@@ -108,7 +130,8 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
 	transform->setPosition(pos);
 }
 
-bool PlayerWalk::checkShiftHeld(InputModule* inputModule) const{
+bool PlayerWalk::checkShiftHeld(InputModule* inputModule) const
+{
 	const bool shiftDown = inputModule->isKeyDown(Keyboard::Keys::LeftShift) || inputModule->isKeyDown(Keyboard::Keys::RightShift);
 	
 	return shiftDown;
@@ -168,11 +191,13 @@ void PlayerWalk::applyControlScheme()
 {
 	switch (m_controlScheme)
 	{
-	case ControlScheme::ARROWS:
-		m_keyUp = Keyboard::Keys::Up;
-		m_keyLeft = Keyboard::Keys::Left;
-		m_keyDown = Keyboard::Keys::Down;
-		m_keyRight = Keyboard::Keys::Right;
+	case ControlScheme::IJKL:
+		m_keyUp = Keyboard::Keys::I;
+		m_keyLeft = Keyboard::Keys::J;
+		m_keyDown = Keyboard::Keys::K;
+		m_keyRight = Keyboard::Keys::L;
+		m_keyAscend = Keyboard::Keys::O;
+		m_keyDescend = Keyboard::Keys::U;
 		break;
 
 	case ControlScheme::WASD:
@@ -181,6 +206,8 @@ void PlayerWalk::applyControlScheme()
 		m_keyLeft = Keyboard::Keys::A;
 		m_keyDown = Keyboard::Keys::S;
 		m_keyRight = Keyboard::Keys::D;
+		m_keyAscend = Keyboard::Keys::E;
+		m_keyDescend = Keyboard::Keys::Q;
 		break;
 	}
 }
@@ -202,7 +229,10 @@ bool PlayerWalk::drawControlSchemeCombo(ControlScheme& scheme)
 				changed = true;
 			}
 
-			if (selected) ImGui::SetItemDefaultFocus();
+			if (selected) 
+			{
+				ImGui::SetItemDefaultFocus();
+			}
 		}
 		ImGui::EndCombo();
 	}
@@ -215,7 +245,7 @@ const char* PlayerWalk::controlSchemeToString(ControlScheme scheme)
 	switch (scheme)
 	{
 	case ControlScheme::WASD:   return "WASD";
-	case ControlScheme::ARROWS: return "Arrow Keys";
+	case ControlScheme::IJKL: return "IJKL";
 	default: return "Unknown";
 	}
 }

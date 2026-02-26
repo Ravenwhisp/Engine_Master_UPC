@@ -25,6 +25,8 @@ private:
 	Keyboard::Keys m_keyLeft = Keyboard::Keys::A;
 	Keyboard::Keys m_keyDown = Keyboard::Keys::S;
 	Keyboard::Keys m_keyRight = Keyboard::Keys::D;
+	Keyboard::Keys m_keyAscend = Keyboard::Keys::E; 
+	Keyboard::Keys m_keyDescend = Keyboard::Keys::Q;
 
 	Vector3 m_initialRotationOffset = Vector3::Zero;
 
@@ -46,7 +48,7 @@ private:
 	enum class ControlScheme : int
 	{
 		WASD = 0,
-		ARROWS,
+		IJKL,
 		COUNT
 	};
 

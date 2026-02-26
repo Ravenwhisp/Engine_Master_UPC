@@ -139,9 +139,26 @@ float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtr
 
 Vector3 CameraFollow::computeDesiredCameraPosition(const Vector3& followPoint) const
 {
-    Vector3 offset = m_transformOffset;
-    offset.y += m_currentExtraHeight;
-    const Vector3 desiredPos = followPoint + offset;
+    Vector3 desiredPos = followPoint;
+
+    // XZ follows midpoint
+    desiredPos.x += m_transformOffset.x;
+    desiredPos.z += m_transformOffset.z;
+
+    // Y follows the highest target
+    float highestTargetY = m_firstTargetTransform->getPosition().y;
+
+    if (m_secondTargetTransform)
+    {
+        const float secondTargetY = m_secondTargetTransform->getPosition().y;
+        if (secondTargetY > highestTargetY)
+        {
+            highestTargetY = secondTargetY;
+        }
+    }
+
+    desiredPos.y = highestTargetY + m_transformOffset.y + m_currentExtraHeight;
+
     return desiredPos;
 }
 
