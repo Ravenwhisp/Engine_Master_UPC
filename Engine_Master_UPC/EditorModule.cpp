@@ -235,9 +235,6 @@ bool EditorModule::init()
     m_editorWindows.push_back(new FileDialog());
 
 	D3D12Module* _d3d12 = app->getD3D12Module();
-    m_gui = new ImGuiPass(_d3d12->getDevice(), _d3d12->getWindowHandle(),
-        app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), 
-        app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));    
 
     m_sceneEditor = new SceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
@@ -266,9 +263,7 @@ void EditorModule::update()
 
 void EditorModule::preRender()
 {
-    m_gui->startFrame();
-    ImGuizmo::BeginFrame();
-    
+    /// THIS MUST BE EXECUTED AFTER RenderModule.h render functtion, if not F
     mainDockspace(&m_showMainDockspace);
 
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
@@ -281,8 +276,7 @@ void EditorModule::preRender()
 
 void EditorModule::render()
 {
-    auto commandList = app->getD3D12Module()->getCommandList();
-    m_gui->record(commandList);
+
 }
 
 void EditorModule::postRender()
@@ -303,12 +297,6 @@ bool EditorModule::cleanUp()
         delete window;
     }
     m_editorWindows.clear();
-
-    delete m_gui;
-    m_gui = nullptr;
-
-    delete m_debugDrawPass;
-    m_debugDrawPass = nullptr;
 
     m_sceneEditor = nullptr;
     m_logger = nullptr;

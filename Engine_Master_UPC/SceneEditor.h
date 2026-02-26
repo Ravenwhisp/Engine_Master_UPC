@@ -26,9 +26,6 @@ private:
 
     EditorToolbar* m_editorToolbar;
 
-private:
-    std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
-
 public:
     SceneEditor();
     ~SceneEditor();

@@ -25,9 +25,6 @@
     <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp">
       <Filter>Editor\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="ImGuiPass.cpp">
-      <Filter>Editor\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
       <Filter>Editor\imgui</Filter>
     </ClCompile>
@@ -54,9 +51,6 @@
     </ClCompile>
     <ClCompile Include="ResourcesModule.cpp">
       <Filter>D3D12\Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="CameraModule.cpp">
       <Filter>D3D12</Filter>
@@ -199,9 +193,20 @@
       <Filter>Core\Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="Asset.cpp" />
-    <ClCompile Include="IDeserializer.h">
-      <Filter>Core\Persistence\Interfaces</Filter>
+    <ClCompile Include="ImGuiPass.cpp">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
     </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxPass.cpp">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRendererPass.cpp">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="Component.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -226,9 +231,6 @@
       <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h">
-      <Filter>Editor\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGuiPass.h">
       <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
@@ -260,9 +262,6 @@
     </ClInclude>
     <ClInclude Include="ResourcesModule.h">
       <Filter>D3D12\Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="CameraModule.h">
       <Filter>D3D12</Filter>
@@ -457,11 +456,26 @@
     <ClInclude Include="AssetsDictionary.h">
       <Filter>Core\Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="ISerializable.h">
-      <Filter>Core\Persistence\Interfaces</Filter>
+    <ClInclude Include="SkyboxPass.h">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
     </ClInclude>
-    <ClInclude Include="ISerializer.h">
-      <Filter>Core\Persistence\Interfaces</Filter>
+    <ClInclude Include="MeshRendererPass.h">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiPass.h">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderPass.h">
+      <Filter>D3D12\Rendering\RenderPasses\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="IMatrixPass.h">
+      <Filter>D3D12\Rendering\RenderPasses\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="ILightPass.h">
+      <Filter>D3D12\Rendering\RenderPasses\Interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -587,8 +601,11 @@
     <Filter Include="Core\Persistence\Assets">
       <UniqueIdentifier>{9573c48e-1934-432a-8af3-7c7582a450d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Persistence\Interfaces">
-      <UniqueIdentifier>{c690812e-d44e-4fc8-81b3-73ad96a2988e}</UniqueIdentifier>
+    <Filter Include="D3D12\Rendering\RenderPasses">
+      <UniqueIdentifier>{7583dc5c-eb4c-4c81-a046-7880f6048cd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\RenderPasses\Interfaces">
+      <UniqueIdentifier>{c830ea74-ce95-4139-9970-1a43ac28c5d7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

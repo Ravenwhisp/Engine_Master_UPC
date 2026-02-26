@@ -24,6 +24,12 @@ public:
 
 	std::vector<std::unique_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
 	std::vector<std::unique_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
+	BasicMaterial* getMaterial(UID materialId)
+	{
+		auto it = m_materialIndexByUID.find(materialId);
+		return m_materials[it->second].get();
+	}
+
 	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
 
 #pragma region Loop functions

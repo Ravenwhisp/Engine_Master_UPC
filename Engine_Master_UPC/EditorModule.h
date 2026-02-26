@@ -51,7 +51,6 @@ public:
 
 	SceneEditor*	getSceneEditor() { return m_sceneEditor; }
 	ImVec2			getSceneEditorSize() { return m_sceneEditor->getSize();}
-	ImGuiPass*		getImGuiPass() { return m_gui; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
@@ -72,8 +71,6 @@ private:
 	HardwareWindow*				m_hardwareWindow = nullptr;
 	PerformanceWindow*			m_performanceWindow = nullptr;
 	SceneEditor*				m_sceneEditor = nullptr;
-	ImGuiPass* 					m_gui = nullptr;
-	DebugDrawPass*				m_debugDrawPass = nullptr;
 	EditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
 

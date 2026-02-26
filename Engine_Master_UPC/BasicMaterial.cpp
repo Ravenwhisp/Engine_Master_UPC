@@ -8,7 +8,7 @@
 
 BasicMaterial::BasicMaterial(const MaterialAsset& asset)
 {
-	if (asset.getBaseMap() != INVALID_ASSET_ID) 
+	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
 		m_textureColor = app->getResourcesModule()->createTexture2D(*baseMapTexture);

@@ -46,11 +46,10 @@ public:
 	std::unique_ptr<Texture>		createTexture2DFromFile(const path& filePath, const char* name);
 	std::unique_ptr<Texture>		createTexture2D(const TextureAsset& textureAsset);
 	std::unique_ptr<Texture>		createNullTexture2D();
-	std::unique_ptr<Texture>		createTextureCubeFromFile(const path& filePath, const char* name);
+	std::unique_ptr<Texture>		createTextureCubeFromFile(const TextureAsset& textureAsset);
 
 	std::unique_ptr<RenderTexture>	createRenderTexture(float windowWidth, float windowHeight);
 	RingBuffer*						createRingBuffer(size_t size);
-
 
 	std::unique_ptr<VertexBuffer>	createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
 	std::unique_ptr<IndexBuffer>	createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat);

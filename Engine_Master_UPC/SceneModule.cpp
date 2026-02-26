@@ -101,7 +101,11 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
     {
         if (gameObject != camera->getOwner())
         {
-            gameObject->render(commandList, viewMatrix, projectionMatrix);
+            m_meshRenderers.clear();
+            for (const auto& gameObject : m_gameObjects) {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                m_meshRenderers.push_back(meshRenderer);
+            }
         }
     }
 }
