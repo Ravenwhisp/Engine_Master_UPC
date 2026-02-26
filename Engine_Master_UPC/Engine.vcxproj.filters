@@ -199,9 +199,6 @@
       <Filter>Core\Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="Asset.cpp" />
-    <ClCompile Include="IDeserializer.h">
-      <Filter>Core\Persistence\Interfaces</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -457,12 +454,6 @@
     <ClInclude Include="AssetsDictionary.h">
       <Filter>Core\Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="ISerializable.h">
-      <Filter>Core\Persistence\Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="ISerializer.h">
-      <Filter>Core\Persistence\Interfaces</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -586,9 +577,6 @@
     </Filter>
     <Filter Include="Core\Persistence\Assets">
       <UniqueIdentifier>{9573c48e-1934-432a-8af3-7c7582a450d7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Persistence\Interfaces">
-      <UniqueIdentifier>{c690812e-d44e-4fc8-81b3-73ad96a2988e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
