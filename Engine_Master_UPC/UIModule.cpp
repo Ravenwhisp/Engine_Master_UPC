@@ -9,7 +9,7 @@
 bool UIModule::init()
 {
     auto device = app->getD3D12Module()->getDevice();
-    m_fontPass = std::make_unique<FontPass>(device);
+    m_fontPass = new FontPass(device);
     return true;
 }
 
@@ -23,7 +23,10 @@ void UIModule::preRender()
 
 void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)
 {
-    if (!m_fontPass) return;
+    if (!m_fontPass)
+    {
+        return;
+    }
 
     m_fontPass->setViewport(viewport);
 
@@ -39,7 +42,10 @@ void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT 
 
 void UIModule::text(const wchar_t* msg, float x, float y)
 {
-    if (!msg) return;
+    if (!msg)
+    {
+        return;
+    }
     UITextCommand cmd;
     cmd.text = msg;
     cmd.x = x;
@@ -59,6 +65,9 @@ void UIModule::text(const std::wstring& msg, float x, float y)
 bool UIModule::cleanUp()
 {
     m_textCommands.clear();
-    m_fontPass.reset();
+
+    delete m_fontPass;     
+    m_fontPass = nullptr;
+
     return true;
 }

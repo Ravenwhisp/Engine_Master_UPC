@@ -423,7 +423,9 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="UID.cpp" />
-    <ClCompile Include="UIModule.cpp" />
+    <ClCompile Include="UIModule.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>

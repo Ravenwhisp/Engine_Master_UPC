@@ -14,9 +14,6 @@ struct UITextCommand
 class UIModule : public Module
 {
 public:
-    UIModule() = default;
-    ~UIModule() override = default;
-
     bool init() override;
     void preRender() override;
     bool cleanUp() override;
@@ -27,6 +24,6 @@ public:
     void text(const std::wstring& msg, float x, float y);
 
 private:
-    std::unique_ptr<FontPass> m_fontPass;
+    FontPass* m_fontPass = nullptr;
     std::vector<UITextCommand> m_textCommands;
 };
