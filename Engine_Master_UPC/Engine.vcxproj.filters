@@ -211,6 +211,9 @@
     <ClCompile Include="UIModule.cpp">
       <Filter>D3D12\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Transform2D.cpp">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -487,6 +490,9 @@
     <ClInclude Include="UIModule.h">
       <Filter>D3D12\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Transform2D.h">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -619,6 +625,9 @@
     </Filter>
     <Filter Include="D3D12\UI">
       <UniqueIdentifier>{7f8505e5-cfa4-40dd-b1a7-167f249e732d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Components\2D">
+      <UniqueIdentifier>{ec77b4b4-a40e-49b5-8dc2-e23b28f12031}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

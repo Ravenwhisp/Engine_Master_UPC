@@ -5,7 +5,8 @@
     X(MODEL)                \
     X(LIGHT)                \
     X(PLAYER_WALK)          \
-    X(CAMERA)
+    X(CAMERA)               \
+    X(TRANSFORM2D)
 
 enum class ComponentType
 {
