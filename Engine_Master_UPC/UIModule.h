@@ -1,15 +1,12 @@
 #pragma once
 
 #include "Module.h"
+#include <unordered_set>
+#include "UID.h"
+#include "UICommands.h"
 
 class FontPass;
-
-struct UITextCommand
-{
-    std::wstring text;
-    float x = 0.0f;
-    float y = 0.0f;
-};
+class GameObject;
 
 class UIModule : public Module
 {
@@ -26,4 +23,10 @@ public:
 private:
     FontPass* m_fontPass = nullptr;
     std::vector<UITextCommand> m_textCommands;
+
+private:
+    void logCanvasTree(GameObject* canvasGO);
+    void logChildrenRecursive(GameObject* go, int depth);
+
+    std::unordered_set<UID> m_loggedCanvases;
 };

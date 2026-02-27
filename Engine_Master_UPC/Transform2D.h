@@ -1,18 +1,11 @@
 #pragma once
 #include "Component.h"
+#include "UIRect.h"
 
 struct Float2
 {
     float x = 0.0f;
     float y = 0.0f;
-};
-
-struct Rect2D
-{
-    float x = 0.0f;
-    float y = 0.0f;
-    float w = 0.0f;
-    float h = 0.0f;
 };
 
 class Transform2D : public Component
@@ -27,4 +20,6 @@ public:
     Rect2D getRect() const;
 
     void drawUi() override;
+
+private:
 };

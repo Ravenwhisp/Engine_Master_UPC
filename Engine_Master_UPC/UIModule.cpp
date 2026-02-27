@@ -6,6 +6,11 @@
 #include "FontPass.h"
 #include "Logger.h"
 
+#include "SceneModule.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "Canvas.h"
+
 bool UIModule::init()
 {
     auto device = app->getD3D12Module()->getDevice();
@@ -19,6 +24,23 @@ void UIModule::preRender()
 
     // Remove later, just for test now.
     text(L"UI MODULE :)", 20.0f, 20.0f);
+
+    const auto& roots = app->getSceneModule()->getAllGameObjects();
+
+    for (GameObject* go : roots)
+    {
+        if (!go || !go->GetActive())
+            continue;
+
+        Canvas* canvas = go->GetComponentAs<Canvas>(ComponentType::CANVAS);
+        if (!canvas || !canvas->isActive())
+            continue;
+
+        if (m_loggedCanvases.insert(go->GetID()).second)
+        {
+            logCanvasTree(go);
+        }
+    }
 }
 
 void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)
@@ -30,14 +52,11 @@ void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT 
 
     m_fontPass->setViewport(viewport);
 
-    m_fontPass->begin(commandList);
+    m_fontPass->setTextCommands(&m_textCommands);
 
-    for (const auto& cmd : m_textCommands)
-    {
-        m_fontPass->drawText(cmd.text.c_str(), cmd.x, cmd.y);
-    }
+    m_fontPass->apply(commandList);
 
-    m_fontPass->end();
+    m_fontPass->setTextCommands(nullptr);
 }
 
 void UIModule::text(const wchar_t* msg, float x, float y)
@@ -70,4 +89,33 @@ bool UIModule::cleanUp()
     m_fontPass = nullptr;
 
     return true;
+}
+
+void UIModule::logCanvasTree(GameObject* canvasGO)
+{
+    DEBUG_LOG("Canvas found: %s (UID: %llu)",
+        canvasGO->GetName().c_str(),
+        (unsigned long long)canvasGO->GetID());
+
+    logChildrenRecursive(canvasGO, 0);
+}
+
+void UIModule::logChildrenRecursive(GameObject* go, int depth)
+{
+    if (!go) return;
+
+    std::string indent(depth * 2, ' ');
+    DEBUG_LOG("%s- %s (UID: %llu)",
+        indent.c_str(),
+        go->GetName().c_str(),
+        (unsigned long long)go->GetID());
+
+    Transform* t = go->GetTransform();
+    if (!t) return;
+
+    for (GameObject* child : t->getAllChildren())
+    {
+        if (child && child->GetActive())
+            logChildrenRecursive(child, depth + 1);
+    }
 }
