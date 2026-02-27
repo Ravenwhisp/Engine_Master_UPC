@@ -7,7 +7,6 @@
 #include <MeshRendererPass.h>
 #include <DebugDrawPass.h>
 #include <ImGuiPass.h>
-#include "FontPass.h"
 
 class RingBuffer;
 class RenderTexture;
@@ -53,7 +52,6 @@ private:
 	MeshRendererPass* m_meshRendererPass = nullptr;
 	DebugDrawPass* m_debugDrawPass = nullptr;
 	ImGuiPass* m_imGuiPass = nullptr;
-	FontPass* m_fontPass = nullptr;
 
 	std::vector<IRenderPass*> m_renderPasses;
 };
