@@ -12,6 +12,8 @@ static const float PI = 3.1415926535897931f;
 PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
+	InputModule* inputModule = app->getInputModule();
+
 	Transform* transform = m_owner->GetTransform();
 	m_initialRotationOffset = transform->getEulerDegrees();
 }
@@ -34,8 +36,6 @@ bool PlayerWalk::init()
 void PlayerWalk::update() 
 {
 	Transform* transform = m_owner->GetTransform();
-
-	InputModule* inputModule = app->getInputModule();
 
 	/*if (!inputModule->isKeyDown(Keyboard::Keys::LeftControl)) {
 		return;
@@ -244,8 +244,11 @@ const char* PlayerWalk::controlSchemeToString(ControlScheme scheme)
 {
 	switch (scheme)
 	{
-	case ControlScheme::WASD:   return "WASD";
-	case ControlScheme::IJKL: return "IJKL";
-	default: return "Unknown";
+	case ControlScheme::WASD:  
+		return "WASD";
+	case ControlScheme::IJKL: 
+		return "IJKL";
+	default: 
+		return "";
 	}
 }
