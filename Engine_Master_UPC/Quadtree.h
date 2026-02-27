@@ -11,6 +11,7 @@ public:
 	static const int MAX_DEPTH = 5;
 
 	Quadtree(const BoundingRect& worldBounds);
+	~Quadtree() {};
 
 	void insert(GameObject& object);
 	void remove(GameObject& object);

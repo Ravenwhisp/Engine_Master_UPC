@@ -166,7 +166,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
         if (m_quadtree)
         {
             delete m_quadtree;
-            m_quadtree;
+            m_quadtree = nullptr;
             DEBUG_LOG("QUADTREE removed");
         }
         gameObjects = m_gameObjects;
