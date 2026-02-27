@@ -160,6 +160,14 @@ bool FileSystemModule::copy(const char* sourceFilePath, const char* destinationF
 	return std::filesystem::copy_file(sourceFilePath, destinationFilePath);
 }
 
+bool FileSystemModule::move(const char* sourceFilePath, const char* destinationFilePath) const
+{
+    std::error_code error;
+    std::filesystem::rename(sourceFilePath, destinationFilePath, error);
+    std::string errText = error.message();
+    return error.value() == 0;
+}
+
 bool FileSystemModule::deleteFile(const char* filePath) const
 {
 	return std::filesystem::remove(filePath);
