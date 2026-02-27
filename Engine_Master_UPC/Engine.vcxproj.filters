@@ -481,6 +481,9 @@
     <ClInclude Include="FontPass.h">
       <Filter>D3D12\Rendering\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="Delegates.h">
+      <Filter>Core\Delegates</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -610,6 +613,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\RenderPasses\Interfaces">
       <UniqueIdentifier>{c830ea74-ce95-4139-9970-1a43ac28c5d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Delegates">
+      <UniqueIdentifier>{6cf467da-d038-4e34-b3ee-6aa8b3fd2af8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
