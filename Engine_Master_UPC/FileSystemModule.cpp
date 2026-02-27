@@ -214,7 +214,7 @@ std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared
 {
     if (!node)
     {
-        //LOG_WARNING("[FileSystemModule] Node doesn't exists");
+        //LOG_WARNING("[FileSystemModule] Node doesn't exist");
         return nullptr;
     }
 
