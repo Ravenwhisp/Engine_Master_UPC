@@ -99,10 +99,15 @@ void CameraComponent::drawUi()
 	}
 }
 
-bool CameraComponent::cleanUp() {
+bool CameraComponent::cleanUp() 
+{
 	if (app->getCurrentCameraPerspective() == this)
 	{
 		app->setCurrentCameraPerspective(nullptr);
+	}
+	if (app->getActiveCamera() == this)
+	{
+		app->setActiveCamera(nullptr);
 	}
 	return true;
 }
