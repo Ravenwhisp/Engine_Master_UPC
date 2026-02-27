@@ -62,6 +62,23 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
             app->getFileSystemModule()->rebuild();
         }
 
+
+        ImGui::Spacing();
+        ImGui::Text("General");
+        ImGui::Separator();
+
+        if (m_lastActionRequested != Command::NONE and ImGui::MenuItem("Paste"))
+        {
+            if (m_lastActionRequested == Command::MOVE) 
+            {
+                moveFile(directory.get());
+            }
+
+            app->getFileSystemModule()->rebuild();
+            m_lastActionRequested = Command::NONE;
+        }
+
+
         ImGui::EndPopup();
     }
 
@@ -113,6 +130,13 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 {
                     app->getAssetModule()->import(originalPath);
                 }
+
+                if (ImGui::MenuItem("Cut", "Ctrl + X", false, true))
+                {
+                    m_lastActionRequested = Command::MOVE;
+                    m_fileToManage = asset->path;
+                }
+
                 ImGui::EndPopup();
             }
         } 
@@ -124,6 +148,12 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::Separator();
 
                 m_selectedItem = asset;
+
+                if (ImGui::MenuItem("Cut Folder", "Ctrl + X", false, true))
+                {
+                    m_lastActionRequested = Command::MOVE;
+                    m_fileToManage = asset->path;
+                }
 
                 if (ImGui::MenuItem("Delete Folder"))
                 {
@@ -153,6 +183,32 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
     }
 
     ImGui::Columns(1);
+}
+
+inline bool FileDialog::moveFile(FileEntry* targetDirectory)
+{
+
+    std::string fileString = m_fileToManage.string();
+    const char* file = fileString.c_str();
+
+    std::string targetString = (targetDirectory->path / "").string();
+    const char* targetDir = targetString.c_str();
+
+    if (app->getFileSystemModule()->isDirectory(file)) 
+    {
+        return app->getFileSystemModule()->move(file, targetDir);
+    }
+    else 
+    {
+        // We have to copy its metadata as well, which should be on the same folder
+
+        bool moveFile = app->getFileSystemModule()->move(file, targetDir);
+        
+        std::string metadataPath = (m_fileToManage.parent_path() / m_fileToManage.stem()).string() + METADATA_EXTENSION;
+        bool moveMetadata = app->getFileSystemModule()->move(metadataPath.c_str(), targetDir);
+
+        return moveFile and moveMetadata;
+    }
 }
 
 
