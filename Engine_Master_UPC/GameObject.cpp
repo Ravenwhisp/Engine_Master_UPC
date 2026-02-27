@@ -6,6 +6,7 @@
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
 #include "Application.h"
+#include "Transform2D.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -42,6 +43,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CAMERA:
             m_components.push_back(new CameraComponent(GenerateUID(), this));
             break;
+        case ComponentType::TRANSFORM2D:
+            m_components.push_back(new Transform2D(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -72,6 +76,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CAMERA:
         newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::TRANSFORM2D:
+        newComponent = new Transform2D(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;

@@ -18,7 +18,7 @@ void UIModule::preRender()
     m_textCommands.clear();
 
     // Remove later, just for test now.
-    text(L"UI MODULE OK", 20.0f, 20.0f);
+    text(L"UI MODULE :)", 20.0f, 20.0f);
 }
 
 void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)

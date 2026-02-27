@@ -260,6 +260,7 @@
     <ClInclude Include="TextureImporter.h" />
     <ClInclude Include="TimeModule.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Transform2D.h" />
     <ClInclude Include="TypedImporter.h" />
     <ClInclude Include="UIModule.h" />
     <ClInclude Include="UtilityGLFT.h" />
@@ -422,6 +423,7 @@
     <ClCompile Include="TimeModule.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Transform2D.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UIModule.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
