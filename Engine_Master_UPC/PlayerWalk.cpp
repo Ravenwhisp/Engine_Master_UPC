@@ -12,7 +12,7 @@ static const float PI = 3.1415926535897931f;
 PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
-	InputModule* inputModule = app->getInputModule();
+	inputModule = app->getInputModule();
 
 	Transform* transform = m_owner->GetTransform();
 	m_initialRotationOffset = transform->getEulerDegrees();
