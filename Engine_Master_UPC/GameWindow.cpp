@@ -1,27 +1,32 @@
 #include "Globals.h"
-#include "GameEditor.h"
+#include "GameWindow.h"
+#include <imgui.h>
 
 #include "Application.h"
 
 #include "RenderModule.h"
+#include "PlayToolbar.h"
 
-#include <imgui.h>
-
-GameEditor::GameEditor()
+GameWindow::GameWindow()
 {
+    m_playToolbar = new PlayToolbar();
 }
 
-GameEditor::~GameEditor()
+GameWindow::~GameWindow()
 {
+    delete m_playToolbar;
 }
 
-void GameEditor::render()
+void GameWindow::render()
 {
     if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::End();
         return;
     }
+
+    float toolbarWidth = ImGui::GetContentRegionAvail().x;
+    m_playToolbar->DrawCentered(toolbarWidth);
 
     ImGui::NewLine();
     ImGui::Separator();
@@ -35,7 +40,7 @@ void GameEditor::render()
     if (contentRegion.x > 0 && contentRegion.y > 0)
     {
         resize(contentRegion);
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUPlayScreenRT().ptr;
         ImGui::Image(textureID, m_size);
 
     }
@@ -58,10 +63,11 @@ void GameEditor::render()
 }
 
 
-bool GameEditor::resize(ImVec2 contentRegion)
+bool GameWindow::resize(ImVec2 contentRegion)
 {
     if (abs(contentRegion.x - m_size.x) > 1.0f ||
-        abs(contentRegion.y - m_size.y) > 1.0f) {
+        abs(contentRegion.y - m_size.y) > 1.0f)
+    {
         setSize(contentRegion);
         return true;
     }

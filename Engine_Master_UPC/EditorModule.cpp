@@ -16,7 +16,7 @@
 #include "Inspector.h"
 #include "EditorSettings.h"
 #include "SceneConfig.h"
-#include "GameEditor.h"
+#include "GameWindow.h"
 
 #include "Application.h"
 #include "SceneModule.h"
@@ -117,6 +117,9 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGuiID dock_hierarchy, dock_scene;
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
+    ImGuiID dock_playmode_buttons;
+	ImGui::DockBuilderSplitNode(dock_scene, ImGuiDir_Up, 0.1f, &dock_playmode_buttons, &dock_scene);
+
     ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
     ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
 
@@ -129,6 +132,8 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderDockWindow("Console", dock_bottom);
     ImGui::DockBuilderDockWindow("Hardware Info", dock_bottom);
     ImGui::DockBuilderDockWindow("Performance", dock_bottom);
+
+	ImGui::DockBuilderDockWindow("Play Mode Buttons", dock_playmode_buttons);
 
     ImGui::DockBuilderFinish(dockspace_id);
 }
@@ -160,7 +165,7 @@ bool EditorModule::init()
     m_editorWindows.push_back(m_editorSettings = new EditorSettings());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 	
-	m_editorWindows.push_back(m_gameEditor = new GameEditor());
+	m_editorWindows.push_back(m_gameWindow = new GameWindow());
 
 	return true;
 }
@@ -228,7 +233,7 @@ bool EditorModule::cleanUp()
     m_logger = nullptr;
     m_hardwareWindow = nullptr;
     m_performanceWindow = nullptr;
-	m_gameEditor = nullptr;
+	m_gameWindow = nullptr;
 
     return true;
 }

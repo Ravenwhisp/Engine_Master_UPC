@@ -11,6 +11,7 @@
 #include "RenderModule.h"
 #include "SceneModule.h"
 #include "EditorToolbar.h"
+#include "PlayToolbar.h"
 
 #include "Settings.h"
 
@@ -30,6 +31,7 @@ SceneEditor::SceneEditor()
     m_settings = app->getSettings();
 
     m_editorToolbar = new EditorToolbar();
+	m_playToolbar = new PlayToolbar();
 
     auto d3d12Module = app->getD3D12Module();
 
@@ -39,6 +41,7 @@ SceneEditor::SceneEditor()
 SceneEditor::~SceneEditor()
 {
     delete m_editorToolbar;
+	delete m_playToolbar;
 }
 
 void SceneEditor::update()
@@ -55,6 +58,8 @@ void SceneEditor::render()
     }
 
     float toolbarWidth = ImGui::GetContentRegionAvail().x;
+	m_playToolbar->DrawCentered(toolbarWidth);
+    ImGui::NewLine();
     m_editorToolbar->DrawCentered(toolbarWidth);
     ImGui::NewLine();
     ImGui::Separator();
@@ -68,7 +73,7 @@ void SceneEditor::render()
     if (contentRegion.x > 0 && contentRegion.y > 0) 
     {
         resize(contentRegion);
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUEditorScreenRT().ptr;
         ImGui::Image(textureID, m_size);
         
     }

@@ -1,18 +1,16 @@
 #pragma once
-#include "Globals.h"
-
 #include "EditorWindow.h"
 
-class EditorToolbar;
+class PlayToolbar;
 
-class GameEditor : public EditorWindow
+class GameWindow : public EditorWindow
 {
 private:
-	EditorToolbar* m_editorToolbar;
+	PlayToolbar* m_playToolbar;
 
 public:
-	GameEditor();
-	~GameEditor();
+	GameWindow();
+	~GameWindow();
 
 	const char* getWindowName() const override { return "Game"; }
 	void		render() override;

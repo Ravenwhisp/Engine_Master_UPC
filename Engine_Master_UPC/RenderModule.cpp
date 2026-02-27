@@ -63,8 +63,10 @@ bool RenderModule::postInit()
 
     CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
 
-    m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+    m_editorScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
+    m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+    m_playScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
+    m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
 
     m_ringBuffer = app->getResourcesModule()->createRingBuffer(10);
     return true;
@@ -83,19 +85,32 @@ void RenderModule::preRender()
     {
         app->getD3D12Module()->getCommandQueue()->flush();
         m_size = newSize;
-        m_screenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
-        m_screenRT->setName(L"ScreenRT");
-        m_screenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
-        m_screenDS->setName(L"ScreenDS");
+
+        m_editorScreenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
+        m_editorScreenRT->setName(L"editorScreenRT");
+        m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
+        m_editorScreenDS->setName(L"editorScreenDS");
+
+        m_playScreenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
+        m_playScreenRT->setName(L"playScreenRT");
+        m_playScreenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
+        m_playScreenDS->setName(L"playScreenDS");
     }
 
-    // Transition scene texture to render target
-    transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    // Render the scene to texture
-    renderScene(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, m_size.x, m_size.y);
+    // Transition editor scene texture to render target
+    transitionResource(m_commandList, m_editorScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    // Transition play scene texture to render target
+    transitionResource(m_commandList, m_playScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+    // Render the editor scene to texture
+    renderEditorScene(m_commandList, m_editorScreenRT->getRTV(0).cpu, m_editorScreenDS->getDSV().cpu, m_size.x, m_size.y);
+    // Render the play scene to texture
+    renderPlayScene(m_commandList, m_playScreenRT->getRTV(0).cpu, m_playScreenDS->getDSV().cpu, m_size.x, m_size.y);
 
     // Transition back to shader resource state
-    transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    transitionResource(m_commandList, m_editorScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    // Transition back to shader resource state
+    transitionResource(m_commandList, m_playScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     transitionResource(m_commandList, _swapChain->getCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     renderBackground(m_commandList, _swapChain->getCurrentRenderTargetView().cpu, _swapChain->getDepthStencilView(), _swapChain->getViewport().Width, _swapChain->getViewport().Height);
@@ -113,8 +128,11 @@ bool RenderModule::cleanUp()
 {
     cleanupSkybox();
 
-    m_screenRT.reset();
-    m_screenDS.reset();
+    m_editorScreenRT.reset();
+    m_editorScreenDS.reset();
+
+    m_playScreenRT.reset();
+    m_playScreenDS.reset();
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
@@ -122,9 +140,13 @@ bool RenderModule::cleanUp()
     return true;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE RenderModule::getGPUScreenRT()
+D3D12_GPU_DESCRIPTOR_HANDLE RenderModule::getGPUEditorScreenRT()
 {
-    return m_screenRT->getSRV().gpu;
+    return m_editorScreenRT->getSRV().gpu;
+}
+D3D12_GPU_DESCRIPTOR_HANDLE RenderModule::getGPUPlayScreenRT()
+{
+    return m_playScreenRT->getSRV().gpu;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS RenderModule::allocateInRingBuffer(const void* data, size_t size)
@@ -154,7 +176,7 @@ void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
     commandList->RSSetScissorRects(1, &offscreenScissorRect);
 }
 
-void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+void RenderModule::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
 {
     // Clear + draw
     renderBackground(commandList, rtvHandle, dsvHandle, width, height);
@@ -208,9 +230,52 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CP
     app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
 }
 
+void RenderModule::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+{
+    if (app->getActiveCamera()) 
+    {
+        // Clear + draw
+        renderBackground(commandList, rtvHandle, dsvHandle, width, height);
+
+        // Bind root signature (must be set before any draw calls)
+        commandList->SetPipelineState(m_pipelineState.Get());
+        commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+        //Set input assembler
+        ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+        commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+        Matrix viewMatrix;
+        Matrix projectionMatrix;
+        Quaternion cameraRotation;
+        Vector3 cameraPosition;
+
+        const CameraComponent* camera = app->getActiveCamera();
+        viewMatrix = camera->getViewMatrix();
+        projectionMatrix = camera->getProjectionMatrix();
+        cameraRotation = camera->getOwner()->GetTransform()->getRotation();
+        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
+
+        SceneDataCB& sceneDataCB = app->getSceneModule()->getCBData();
+        sceneDataCB.viewPos = cameraPosition;
+
+        commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
+
+        const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
+        commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
+
+        commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(m_sampleType));
+
+        app->getSceneModule()->render(commandList, viewMatrix, projectionMatrix);
+
+        renderSkybox(commandList, viewMatrix, projectionMatrix);
+    }
+}
+
 void RenderModule::renderSkybox(ID3D12GraphicsCommandList4* commandList, const Matrix& viewMatrix, Matrix& projectionMatrix)
 {
-    if (!m_hasSkybox || !m_skyboxTexture || !m_skyboxVertexBuffer || !m_skyboxIndexBuffer) {
+    if (!m_hasSkybox || !m_skyboxTexture || !m_skyboxVertexBuffer || !m_skyboxIndexBuffer) 
+    {
         return;
     }
 

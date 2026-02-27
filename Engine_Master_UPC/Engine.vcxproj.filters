@@ -74,7 +74,8 @@
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="SimulationModule.cpp" />
-    <ClCompile Include="GameEditor.cpp" />
+    <ClCompile Include="GameWindow.cpp" />
+    <ClCompile Include="PlayToolbar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h" />
@@ -107,7 +108,7 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Frustum.h" />
-    <ClInclude Include="GameEditor.h" />
+    <ClInclude Include="GameWindow.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="UID.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="SimulationModule.h" />
+    <ClInclude Include="PlayToolbar.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
