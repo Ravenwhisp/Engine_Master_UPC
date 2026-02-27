@@ -629,6 +629,9 @@
     </None>
     <None Include="NewCBuffers.hlsli" />
     <None Include="MakeSpriteFont.exe" />
+    <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="ClassDiagram2.cd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">

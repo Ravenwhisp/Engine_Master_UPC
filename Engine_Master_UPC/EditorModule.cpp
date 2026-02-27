@@ -1,10 +1,7 @@
 #include "Globals.h"
 #include "EditorModule.h"
-#include "D3D12Module.h"
-#include "CameraModule.h"
-#include "vector"
 #include <backends/imgui_impl_dx12.h>
-#include "Resources.h"
+
 #include "SceneEditor.h"
 #include "HardwareWindow.h"
 #include "PerformanceWindow.h"
@@ -12,14 +9,14 @@
 #include "ImGuizmo.h"
 #include "Logger.h"
 #include "ImGuiPass.h"
+#include "SceneEditor.h"
 #include "Hierarchy.h"
 #include "Inspector.h"
 #include "EditorSettings.h"
 #include "FileDialog.h"
 #include "SceneConfig.h"
 
-#include "Application.h"
-#include "SceneModule.h"
+#include "Mouse.h"
 
 using namespace std;
 
@@ -236,8 +233,6 @@ bool EditorModule::init()
     m_editorWindows.push_back(new FileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
-	D3D12Module* _d3d12 = app->getD3D12Module();
-
     m_sceneEditor = new SceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
     
@@ -254,7 +249,7 @@ bool EditorModule::init()
 
 void EditorModule::update()
 {
-    if (app->getEditorModule()->getSceneEditor()->isFocused())
+    if (m_sceneEditor->isFocused())
     {
         handleKeyboardShortcuts();
     }
@@ -288,7 +283,6 @@ void EditorModule::postRender()
 
 bool EditorModule::cleanUp()
 {
-    app->getD3D12Module()->getCommandQueue()->flush();
 
     for (auto window : m_editorWindows)
     {

@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "D3D12Module.h"
 #include "EditorModule.h"
+#include "SceneEditor.h"
 
 #include "Settings.h"
 

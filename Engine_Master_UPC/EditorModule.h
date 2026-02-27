@@ -1,14 +1,9 @@
 #pragma once
 #include <Module.h>
-#include "DescriptorHeap.h"
-#include "EditorWindow.h"
-#include "SceneEditor.h"
-#include <vector>
 #include "Keyboard.h"
-#include "Mouse.h"
+#include "SceneEditor.h"
 
-class ImGuiPass;
-
+class EditorWindow;
 class Logger;
 class HardwareWindow;
 class PerformanceWindow;

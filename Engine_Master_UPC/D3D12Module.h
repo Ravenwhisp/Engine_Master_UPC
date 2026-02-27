@@ -5,9 +5,7 @@
 #include <dxgi1_6.h>
 #include <cstdint>
 #include <chrono>
-#include "DebugDrawPass.h"
 #include "CommandQueue.h"
-#include "DescriptorsModule.h"
 #include "SwapChain.h"
 #include <GraphicsMemory.h>
 
@@ -37,9 +35,6 @@ public:
 
 	uint64_t						getCurrentFrame() const { return m_fenceValues[m_frameIndex]; }
 	uint64_t						getLastCompletedFrame() const { return m_lastCompletedFenceValue; }
-
-	ComPtr<ID3D12RootSignature>		createRootSignature();
-	ComPtr<ID3D12PipelineState>		createPipelineStateObject(ID3D12RootSignature* rootSignature);
 
 private:
 
