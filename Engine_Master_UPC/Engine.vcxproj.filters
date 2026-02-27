@@ -208,6 +208,9 @@
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="FontPass.cpp" />
+    <ClCompile Include="UIModule.cpp">
+      <Filter>D3D12\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -481,6 +484,9 @@
     <ClInclude Include="FontPass.h">
       <Filter>D3D12\Rendering\RenderPasses</Filter>
     </ClInclude>
+    <ClInclude Include="UIModule.h">
+      <Filter>D3D12\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -610,6 +616,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\RenderPasses\Interfaces">
       <UniqueIdentifier>{c830ea74-ce95-4139-9970-1a43ac28c5d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\UI">
+      <UniqueIdentifier>{7f8505e5-cfa4-40dd-b1a7-167f249e732d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

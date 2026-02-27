@@ -32,16 +32,35 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+	begin(commandList);
+	drawText(L"RAVENWHISP!", 20, 20);
+	end();
+}
+
+void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
+{
+	if (!m_viewport)
+	{
+		return;
+	}
 	m_spriteBatch->SetViewport(*m_viewport);
 
 	ID3D12DescriptorHeap* heaps[] = { m_fontHeap->getHeap() };
 	commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
 	m_spriteBatch->Begin(commandList);
+}
 
-	//Here we create all the sprite batch and fonts
-	//m_spriteBatch->Draw(resourceDescriptors->GetGpuHandle(Descriptors::MySpriteTexture), GetTextureSize(tex), XMFLOAT2(x, y));
-	m_spriteFont->DrawString(m_spriteBatch.get(), L"RAVENWHISP!", XMFLOAT2(30, 30));
+void FontPass::drawText(const wchar_t* text, float x, float y)
+{
+	if (!m_spriteFont || !text)
+	{
+		return;
+	}
+	m_spriteFont->DrawString(m_spriteBatch.get(), text, DirectX::XMFLOAT2(x, y));
+}
 
+void FontPass::end()
+{
 	m_spriteBatch->End();
 }
