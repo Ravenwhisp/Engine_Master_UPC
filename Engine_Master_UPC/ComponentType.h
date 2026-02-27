@@ -6,7 +6,9 @@
     X(LIGHT)                \
     X(PLAYER_WALK)          \
     X(CAMERA)               \
-    X(TRANSFORM2D)
+    X(TRANSFORM2D)          \
+    X(CANVAS)               \
+    X(UIIMAGE)
 
 enum class ComponentType
 {

@@ -177,6 +177,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetsDictionary.h" />
+    <ClInclude Include="Canvas.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="AssetsModule.h" />
     <ClInclude Include="BinaryReader.h" />
@@ -262,7 +263,11 @@
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transform2D.h" />
     <ClInclude Include="TypedImporter.h" />
+    <ClInclude Include="UIImage.h" />
+    <ClInclude Include="UIImagePass.h" />
     <ClInclude Include="UIModule.h" />
+    <ClInclude Include="UICommands.h" />
+    <ClInclude Include="UIRect.h" />
     <ClInclude Include="UtilityGLFT.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="targetver.h" />
@@ -345,6 +350,7 @@
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="AssetsModule.cpp" />
@@ -425,6 +431,8 @@
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transform2D.cpp" />
     <ClCompile Include="UID.cpp" />
+    <ClCompile Include="UIImage.cpp" />
+    <ClCompile Include="UIImagePass.cpp" />
     <ClCompile Include="UIModule.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>

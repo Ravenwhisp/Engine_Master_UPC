@@ -214,6 +214,15 @@
     <ClCompile Include="Transform2D.cpp">
       <Filter>GameEntity\Components\2D</Filter>
     </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImage.cpp">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -492,6 +501,21 @@
     </ClInclude>
     <ClInclude Include="Transform2D.h">
       <Filter>GameEntity\Components\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImage.h">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="UICommands.h">
+      <Filter>D3D12\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRect.h">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImagePass.h">
+      <Filter>D3D12\Rendering\RenderPasses</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

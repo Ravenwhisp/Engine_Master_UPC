@@ -7,6 +7,9 @@
 #include "CameraComponent.h"
 #include "Application.h"
 #include "Transform2D.h"
+#include "Canvas.h"
+#include "UIImage.h"
+
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -46,6 +49,12 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::TRANSFORM2D:
             m_components.push_back(new Transform2D(GenerateUID(), this));
             break;
+        case ComponentType::CANVAS:
+            m_components.push_back(new Canvas(GenerateUID(), this));
+            break;
+        case ComponentType::UIIMAGE:
+            m_components.push_back(new UIImage(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -79,6 +88,12 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::TRANSFORM2D:
         newComponent = new Transform2D(id, this);
+        break;
+    case ComponentType::CANVAS:
+        newComponent = new Canvas(id, this);
+        break;
+    case ComponentType::UIIMAGE:
+        newComponent = new UIImage(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;

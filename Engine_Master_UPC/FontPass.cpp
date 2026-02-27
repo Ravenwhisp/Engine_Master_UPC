@@ -32,8 +32,17 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+	if (!m_commands || m_commands->empty())
+	{
+		return;
+	}
 	begin(commandList);
-	drawText(L"RAVENWHISP!", 20, 20);
+	
+	for (const auto& command : *m_commands)
+	{
+		drawText(command.text.c_str(), command.x, command.y);
+	}
+
 	end();
 }
 
