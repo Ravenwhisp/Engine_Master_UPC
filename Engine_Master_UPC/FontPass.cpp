@@ -12,7 +12,7 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 	m_upload->Begin();
 
-	RenderTargetState rtState(DXGI_FORMAT_B8G8R8A8_UNORM , DXGI_FORMAT_D32_FLOAT);
+	RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM , DXGI_FORMAT_D32_FLOAT);
 
 	const SpriteBatchPipelineStateDescription pd(rtState);
 
@@ -20,10 +20,10 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 	m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
-	/*m_spriteFont = std::make_unique<SpriteFont>(m_device.Get(), *m_upload,
+	m_spriteFont = std::make_unique<SpriteFont>(m_device.Get(), *m_upload,
 		L"Assets/Fonts/arial.spritefont",
 		m_fontHeap->getCPUHandle(0),
-		m_fontHeap->getGPUHandle(0));*/
+		m_fontHeap->getGPUHandle(0));
 
 	auto uploadResourcesFinished = m_upload->End(app->getD3D12Module()->getCommandQueue()->getD3D12CommandQueue().Get());
 
@@ -41,7 +41,7 @@ void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 	//Here we create all the sprite batch and fonts
 	//m_spriteBatch->Draw(resourceDescriptors->GetGpuHandle(Descriptors::MySpriteTexture), GetTextureSize(tex), XMFLOAT2(x, y));
-	/*m_spriteFont->DrawString(m_spriteBatch.get(), L"RAVENWHISP!", XMFLOAT2(500, 500));*/
+	m_spriteFont->DrawString(m_spriteBatch.get(), L"RAVENWHISP!", XMFLOAT2(30, 30));
 
 	m_spriteBatch->End();
 }

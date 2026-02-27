@@ -112,7 +112,7 @@ void RenderModule::preRender()
     m_debugDrawPass->apply(m_commandList);
 
     m_fontPass->setViewport(viewport);
-    m_fontPass->apply(m_commandList),
+    m_fontPass->apply(m_commandList);
 
     // Transition back to shader resource state
     transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -120,7 +120,7 @@ void RenderModule::preRender()
     transitionResource(m_commandList, _swapChain->getCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     renderBackground(m_commandList, _swapChain->getCurrentRenderTargetView().cpu, _swapChain->getDepthStencilView(), _swapChain->getViewport(), _swapChain->getScissorRect());
-    
+
     m_imGuiPass->startFrame();
     ImGuizmo::BeginFrame();
 }
