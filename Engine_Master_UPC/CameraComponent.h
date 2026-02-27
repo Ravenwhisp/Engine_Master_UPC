@@ -31,9 +31,13 @@ public:
 
 	void drawUi() override;
 
-	void onTransformChange() override { recalculateFrustum(); }
+	void onTransformChange() override;
+
+	bool cleanUp() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 
 private:
 	float m_horizontalFov = 90.0f;

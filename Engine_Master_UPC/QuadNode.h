@@ -90,7 +90,7 @@ public:
 	void refit(GameObject& object);
 	void remove(GameObject& object);
 
-	void gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const;
+	void gatherObjects(const Engine::Frustum* frustum, std::vector<GameObject*>& out) const;
 	void gatherRectangles(std::vector<BoundingRect>& out) const;
 
 	int getDepth() const { return m_depth; }

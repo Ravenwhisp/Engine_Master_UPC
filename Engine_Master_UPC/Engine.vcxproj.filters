@@ -451,9 +451,6 @@
     <ClInclude Include="Asset.h">
       <Filter>Core\Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="ISerializable.h">
-      <Filter>Core\Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="AssetsDictionary.h">
       <Filter>Core\Persistence</Filter>
     </ClInclude>

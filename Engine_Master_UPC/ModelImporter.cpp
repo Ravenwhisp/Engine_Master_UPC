@@ -30,7 +30,7 @@ bool ModelImporter::loadExternal(const std::filesystem::path& path, tinygltf::Mo
 
 	if (!gltfContext.LoadASCIIFromFile(&out, &error, &warning, cpath))
 	{
-		LOG_ERROR("Failed to load model from file: %s", cpath);
+        DEBUG_ERROR("Failed to load model from file: %s", cpath);
 		return false;
 	}
 

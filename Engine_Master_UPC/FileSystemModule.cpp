@@ -81,21 +81,21 @@ unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
 {
     if (!filePath || !buffer)
     {
-        LOG_ERROR("[FileSystemModule] No path or buffer correctly provided.");
+        DEBUG_ERROR("[FileSystemModule] No path or buffer correctly provided.");
         return 0;
     }
 
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file) 
     { 
-        LOG_ERROR("[FileSystemModule] Couldn't open the file while trying to load.");
+        DEBUG_ERROR("[FileSystemModule] Couldn't open the file while trying to load.");
         return 0; 
     }
 
     std::streamsize size = file.tellg();
     if (size <= 0)
     {
-        LOG_ERROR("[FileSystemModule] Couldn't load the file since it's empty.");
+        DEBUG_ERROR("[FileSystemModule] Couldn't load the file since it's empty.");
         return 0;
     }
 
@@ -104,7 +104,7 @@ unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
     char* data = new char[size];
     if (!file.read(data, size))
     {
-        LOG_ERROR("[FileSystemModule] Couldn't read the file.");
+        DEBUG_ERROR("[FileSystemModule] Couldn't read the file.");
         delete[] data;
         return 0;
     }
@@ -141,14 +141,14 @@ unsigned int FileSystemModule::save(const char* filePath, const void* buffer, un
     std::ofstream file(filePath, mode);
     if (!file)
     {
-        LOG_ERROR("[FileSystemModule] Error while trying to save a file that doesn't exists.");
+        DEBUG_ERROR("[FileSystemModule] Error while trying to save a file that doesn't exists.");
         return 0;
     }
 
     file.write(static_cast<const char*>(buffer), size);
     if (!file)
     {
-        LOG_ERROR("[FileSystemModule] Error while writing into a file.");
+        DEBUG_ERROR("[FileSystemModule] Error while writing into a file.");
         return 0;
     }
 
@@ -204,7 +204,7 @@ std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::pat
 {
     if (!m_root)
     {
-        LOG_WARNING("[FileSystemModule] Root folder doesn't exist.");
+        DEBUG_ERROR("[FileSystemModule] Root folder doesn't exist.");
         return nullptr;
     }
     return getEntryRecursive(m_root, path);
@@ -259,7 +259,7 @@ void FileSystemModule::handleMissingMetadata(const std::filesystem::path& source
     }
     else
     {
-        LOG_WARNING("[FileSystemModule] No importer found for '{}'.", sourcePath.string());
+        DEBUG_WARN("[FileSystemModule] No importer found for '{}'.", sourcePath.string());
     }
 }
 
@@ -291,7 +291,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::files
     }
     else
     {
-        LOG_WARNING("[FileSystemModule] Failed to load metadata file '{}'.", path.string());
+        DEBUG_ERROR("[FileSystemModule] Failed to load metadata file '{}'.", path.string());
     }
 
     return entry;
@@ -358,7 +358,7 @@ void FileSystemModule::cleanOrphanedBinaries()
 
         if (m_metadataMap.find(uid) == m_metadataMap.end())
         {
-            LOG_WARNING("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.", entry.path().string());
+            DEBUG_ERROR("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.", entry.path().string());
             std::filesystem::remove(entry.path());
         }
     }
