@@ -11,6 +11,10 @@ public:
 	void apply(ID3D12GraphicsCommandList4* commandList) override;
 	void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
 
+	void begin(ID3D12GraphicsCommandList4* commandList);
+	void drawText(const wchar_t* text, float x, float y);
+	void end();
+
 private:
 
 	mutable const D3D12_VIEWPORT* m_viewport = nullptr;
