@@ -20,7 +20,8 @@ public:
 	void render();
 	bool cleanUp();
 
-	D3D12_GPU_DESCRIPTOR_HANDLE getGPUScreenRT();
+	D3D12_GPU_DESCRIPTOR_HANDLE getGPUEditorScreenRT();
+	D3D12_GPU_DESCRIPTOR_HANDLE getGPUPlayScreenRT();
 	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 
@@ -29,7 +30,8 @@ private:
 
 	void transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
 	void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
-	void renderScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
+	void renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
+	void renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
 	void renderSkybox(ID3D12GraphicsCommandList4* commandList, const Matrix& viewMatrix, Matrix& projectionMatrix);
 	void cleanupSkybox();
 
@@ -52,8 +54,10 @@ private:
 	bool m_hasSkybox = false;
 
 	//Scene Editor Offscreen Render Target
-	std::unique_ptr<RenderTexture>	m_screenRT{};
-	std::unique_ptr<DepthBuffer>	m_screenDS{};
+	std::unique_ptr<RenderTexture>	m_editorScreenRT{};
+	std::unique_ptr<RenderTexture>	m_playScreenRT{};
+	std::unique_ptr<DepthBuffer>	m_editorScreenDS{};
+	std::unique_ptr<DepthBuffer>	m_playScreenDS{};
 	ImVec2							m_size = ImVec2(800, 600);
 
 	D3D12_GPU_VIRTUAL_ADDRESS buildAndUploadLightsCB();

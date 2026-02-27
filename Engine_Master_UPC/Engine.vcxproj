@@ -197,7 +197,7 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Frustum.h" />
-    <ClInclude Include="GameEditor.h" />
+    <ClInclude Include="GameWindow.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
@@ -205,6 +205,7 @@
     <ClInclude Include="Lights.h" />
     <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="PlayerWalk.h" />
+    <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="SceneConfig.h" />
@@ -342,12 +343,13 @@
     <ClCompile Include="EditorToolbar.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Frustum.cpp" />
-    <ClCompile Include="GameEditor.cpp" />
+    <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
+    <ClCompile Include="PlayToolbar.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SceneConfig.cpp" />

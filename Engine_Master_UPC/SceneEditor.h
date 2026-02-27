@@ -11,6 +11,7 @@ class Settings;
 class Quadtree;
 
 class EditorToolbar;
+class PlayToolbar;
 
 class DebugDrawPass;
 class GameObject;
@@ -25,6 +26,8 @@ private:
     Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
+
+    PlayToolbar* m_playToolbar;
 
 private:
     std::unique_ptr<DebugDrawPass>  m_debugDrawPass;

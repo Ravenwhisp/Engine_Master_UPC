@@ -106,7 +106,8 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	info.desc = &desc;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-	if (info.desc->Format == DXGI_FORMAT_D32_FLOAT) {
+	if (info.desc->Format == DXGI_FORMAT_D32_FLOAT) 
+	{
 		srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 	}
 
