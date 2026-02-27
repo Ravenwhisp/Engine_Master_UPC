@@ -25,16 +25,12 @@ D3D12Module::~D3D12Module()
 bool D3D12Module::init()
 {
     loadPipeline();
-
-    return true;
-}
-
-bool D3D12Module::postInit() {
     m_swapChain = new SwapChain(m_hwnd);
     m_graphicsMemory = std::make_unique<GraphicsMemory>(m_device.Get());
 
     return true;
 }
+
 
 void D3D12Module::preRender()
 {

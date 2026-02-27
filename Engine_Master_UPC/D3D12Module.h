@@ -22,7 +22,6 @@ public:
 	~D3D12Module();
 
 	bool init() override;
-	bool postInit() override;
 	void preRender() override;
 	void render() override;
 	void postRender() override;

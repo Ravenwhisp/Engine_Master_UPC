@@ -35,7 +35,6 @@ public:
 	~ResourcesModule();
 
 	bool init() override;
-	bool postInit() override;
 	void preRender() override;
 	bool cleanUp() override;
 

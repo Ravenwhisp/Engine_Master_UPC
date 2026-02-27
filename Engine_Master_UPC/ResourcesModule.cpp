@@ -26,12 +26,6 @@ bool ResourcesModule::init()
 	return true;
 }
 
-bool ResourcesModule::postInit()
-{
-
-	return true;
-}
-
 void ResourcesModule::preRender()
 {
 	UINT lastCompletedFrame = app->getD3D12Module()->getLastCompletedFrame();

@@ -22,7 +22,6 @@ class RenderModule: public Module
 {
 public:
 	bool init();
-	bool postInit();
 	void preRender();
 	void render();
 	bool cleanUp();

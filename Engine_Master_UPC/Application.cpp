@@ -54,23 +54,19 @@ bool Application::init()
 {
 	bool ret = true;
 
-    PERF_BEGIN("Engine Init");
-	for(auto it = modules.begin(); it != modules.end() && ret; ++it)
-		ret = (*it)->init();
-    PERF_END("Engine Init");
+
+    for (auto it = modules.begin(); it != modules.end() && ret; ++it)
+    {
+        std::string performanceName = "Init ";
+        performanceName += typeid(**it).name();
+
+        PERF_BEGIN(performanceName.c_str());
+        ret = (*it)->init();
+        PERF_END(performanceName.c_str());
+    }
 
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	return ret;
-}
-
-bool Application::postInit()
-{
-    bool ret = true;
-
-    for (auto it = modules.begin(); it != modules.end() && ret; ++it)
-        ret = (*it)->postInit();
-
-    return ret;
 }
 
 void Application::update()

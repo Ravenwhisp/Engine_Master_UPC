@@ -46,13 +46,6 @@ bool RenderModule::init()
     return true;
 }
 
-bool RenderModule::postInit()
-{
-
-
-    return true;
-}
-
 void RenderModule::preRender()
 {
     m_ringBuffer->free(app->getD3D12Module()->getLastCompletedFrame());

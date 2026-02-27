@@ -51,9 +51,6 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
 
     swapChain1.As(&m_swapChain);
 
-    m_depthStencil = app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight);
-    createRenderTargetViews(app->getD3D12Module()->getDevice());
-
     m_viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_windowWidth), float(m_windowHeight) , 0.0, 1.0 };
     m_scissorRect = D3D12_RECT { 0, 0, long(m_windowWidth), long(m_windowHeight) };
 }

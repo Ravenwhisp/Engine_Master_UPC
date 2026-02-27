@@ -30,7 +30,6 @@ public:
 	~Application();
 
 	bool         init();
-    bool         postInit();
 	void         update();
 	bool         cleanUp();
 
