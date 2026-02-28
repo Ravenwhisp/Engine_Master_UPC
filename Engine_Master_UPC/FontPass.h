@@ -15,7 +15,7 @@ public:
 
 private:
 	void begin(ID3D12GraphicsCommandList4* commandList);
-	void drawText(const wchar_t* text, float x, float y);
+	void drawText(const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale);
 	void end();
 
 private:

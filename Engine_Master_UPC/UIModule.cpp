@@ -205,6 +205,8 @@ void UIModule::buildUIText(GameObject* gameObject, Transform2D* t2d)
     command.text = stringToWString(uiText->getText());
     command.x = t2d->position.x;
     command.y = t2d->position.y;
+    command.color = uiText->getColor();
+    command.scale = uiText->getFontScale();
 
     m_textCommands.push_back(std::move(command));
 }

@@ -40,7 +40,7 @@ void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 	
 	for (const auto& command : *m_commands)
 	{
-		drawText(command.text.c_str(), command.x, command.y);
+		drawText(command.text.c_str(), command.x, command.y, command.color, command.scale);
 	}
 
 	end();
@@ -60,13 +60,15 @@ void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
 	m_spriteBatch->Begin(commandList);
 }
 
-void FontPass::drawText(const wchar_t* text, float x, float y)
+void FontPass::drawText(const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale)
 {
 	if (!m_spriteFont || !text)
 	{
 		return;
 	}
-	m_spriteFont->DrawString(m_spriteBatch.get(), text, DirectX::XMFLOAT2(x, y));
+	const DirectX::XMVECTOR tint = DirectX::XMLoadFloat4(&color);
+
+	m_spriteFont->DrawString(m_spriteBatch.get(), text, DirectX::XMFLOAT2(x, y), tint, 0.0f, DirectX::XMFLOAT2(0, 0), scale);
 }
 
 void FontPass::end()
