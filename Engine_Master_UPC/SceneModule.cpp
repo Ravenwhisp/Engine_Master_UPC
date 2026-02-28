@@ -12,8 +12,8 @@
 #include "ModelComponent.h"
 #include "SceneSerializer.h"
 
-
 #include <queue>
+#include <limits>
 
 using namespace DirectX::SimpleMath;
 
@@ -93,8 +93,10 @@ void SceneModule::preRender()
 
 void SceneModule::createQuadtree()
 {
-    bool first = true;
-    float minX = 0, minZ = 0, maxX = 0, maxZ = 0;
+    float minX = std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float maxZ = std::numeric_limits<float>::lowest();
 
     for (GameObject* go : m_gameObjects)
     {
@@ -103,25 +105,29 @@ void SceneModule::createQuadtree()
         {
             ModelComponent* model = static_cast<ModelComponent*>(component);
             Engine::BoundingBox boundingBox = model->getBoundingBox();
-            
-            if (first)
+
+            Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
+            Vector3 wmax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+            const Vector3* pts = boundingBox.getPoints();
+
+            for (int i = 0; i < 8; ++i)
             {
-                minX = boundingBox.getMin().x;
-                minZ = boundingBox.getMin().z;
-                maxX = boundingBox.getMax().x;
-                maxZ = boundingBox.getMax().z;
+                wmin.x = std::min(wmin.x, pts[i].x);
+                wmin.z = std::min(wmin.z, pts[i].z);
+
+                wmax.x = std::max(wmax.x, pts[i].x);
+                wmax.z = std::max(wmax.z, pts[i].z);
             }
-            else
-            {
-                minX = fmin(minX, boundingBox.getMin().x);
-                minZ = fmin(minZ, boundingBox.getMin().z);
-                maxX = fmax(maxX, boundingBox.getMax().x);
-                maxZ = fmax(maxZ, boundingBox.getMax().z);
-            }
+
+            minX = std::min(minX, wmin.x);
+            minZ = std::min(minZ, wmin.z);
+            maxX = std::max(maxX, wmax.x);
+            maxZ = std::max(maxZ, wmax.z);
         }
     }
 
-    auto rectangle = BoundingRect(minX, minZ, maxX- minX, maxZ- minZ);
+    auto rectangle = BoundingRect(minX, minZ, maxX-minX, maxZ-minZ);
     m_quadtree = new Quadtree(rectangle);
 
     for (GameObject* go : m_gameObjects)

@@ -116,7 +116,11 @@ void ModelComponent::load(const char* fileName, const char* basePath)
 bool ModelComponent::init()
 {
     if (!m_modelPath.empty())
+    {
         load(m_modelPath.c_str(), m_basePath.c_str());     
+    }
+
+    onTransformChange();
     return true;
 }
 

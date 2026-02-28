@@ -26,7 +26,7 @@ public:
 	const Vector3& getMax() const { return m_max; }
 
 	const Vector3& getMinInWorldSpace() const { return m_points[0]; }
-	const Vector3& getMaxInWorldSpace() const { return m_points[7]; }
+	const Vector3& getMaxInWorldSpace() const { return m_points[6]; }
 
 	void update(const Matrix& world);
 	void render() override;
