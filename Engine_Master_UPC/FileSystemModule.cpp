@@ -164,7 +164,6 @@ bool FileSystemModule::move(const char* sourceFilePath, const char* destinationF
 {
     std::error_code error;
     std::filesystem::rename(sourceFilePath, destinationFilePath, error);
-    std::string errText = error.message();
     return error.value() == 0;
 }
 
