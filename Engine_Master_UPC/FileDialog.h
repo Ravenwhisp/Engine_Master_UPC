@@ -20,6 +20,8 @@ private:
     void drawAssetGrid(const std::shared_ptr<FileEntry> directory);
 
     bool moveFile(FileEntry* targetDirectory);
+    bool deleteAsset(FileEntry* file);
+
 
     std::filesystem::path m_currentDirectory;
     std::shared_ptr<FileEntry> m_selectedItem;
