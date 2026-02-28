@@ -63,7 +63,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         }
 
 
-        ImGui::Spacing();
+        ImGui::Spacing(); ImGui::Spacing();
         ImGui::Text("General");
         ImGui::Separator();
 
