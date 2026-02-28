@@ -191,21 +191,26 @@ inline bool FileDialog::moveFile(FileEntry* targetDirectory)
     std::string fileString = m_fileToManage.string();
     const char* file = fileString.c_str();
 
-    std::string targetString = (targetDirectory->path / "").string();
-    const char* targetDir = targetString.c_str();
+    std::string targetNameString = (targetDirectory->path / m_fileToManage.filename()).string(); // targetName because we have to specify the name that the file will have in new directory
+    const char* targetName = targetNameString.c_str();
 
     if (app->getFileSystemModule()->isDirectory(file)) 
     {
-        return app->getFileSystemModule()->move(file, targetDir);
+        return app->getFileSystemModule()->move(file, targetName);
     }
     else 
     {
-        // We have to copy its metadata as well, which should be on the same folder
+        // The file that we have is the metadata; we have to move its asset as well, which should be on the same folder
 
-        bool moveFile = app->getFileSystemModule()->move(file, targetDir);
+        bool moveMetadata = app->getFileSystemModule()->move(file, targetName);
         
-        std::string metadataPath = (m_fileToManage.parent_path() / m_fileToManage.stem()).string() + METADATA_EXTENSION;
-        bool moveMetadata = app->getFileSystemModule()->move(metadataPath.c_str(), targetDir);
+        std::string assetPathString = (m_fileToManage.parent_path() / m_fileToManage.stem()).string(); // stem() is the file name, takes out the .metadata at the end
+        const char* assetPath = assetPathString.c_str();
+
+        std::string assetTargetNameString = (targetDirectory->path / m_fileToManage.stem()).string();
+        const char* assetTargetName = assetTargetNameString.c_str();
+
+        bool moveFile = app->getFileSystemModule()->move(assetPath, assetTargetName);
 
         return moveFile and moveMetadata;
     }
