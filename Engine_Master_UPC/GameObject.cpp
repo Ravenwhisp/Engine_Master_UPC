@@ -10,6 +10,7 @@
 #include "Canvas.h"
 #include "UIImage.h"
 #include "UIText.h"
+#include "UIButton.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -59,6 +60,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::UITEXT:
             m_components.push_back(new UIText(GenerateUID(), this));
             break;
+        case ComponentType::UIBUTTON:
+            m_components.push_back(new UIButton(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -101,6 +105,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::UITEXT:
         newComponent = new UIText(id, this);
+        break;
+    case ComponentType::UIBUTTON:
+        m_components.push_back(new UIButton(GenerateUID(), this));
         break;
     case ComponentType::COUNT:
         return nullptr;
@@ -311,6 +318,13 @@ void GameObject::drawUI()
         bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
 
         ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
+
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+        {
+            ImGui::SetDragDropPayload("COMPONENT", &component, sizeof(Component));
+            ImGui::Text("Component UID %s");
+            ImGui::EndDragDropSource();
+        }
 
         bool enabled = component->isActive();
         if (component->getType() != ComponentType::TRANSFORM && ImGui::Checkbox("##Active", &enabled))

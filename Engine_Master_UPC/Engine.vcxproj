@@ -178,6 +178,8 @@
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="Canvas.h" />
+    <ClInclude Include="Delegates.h" />
+    <ClInclude Include="EventSystem.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="AssetsModule.h" />
     <ClInclude Include="BinaryReader.h" />
@@ -210,6 +212,7 @@
     <ClInclude Include="ILightPass.h" />
     <ClInclude Include="IMatrixPass.h" />
     <ClInclude Include="Importer.h" />
+    <ClInclude Include="IPointerEventHandler.h" />
     <ClInclude Include="IRenderPass.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
@@ -220,6 +223,7 @@
     <ClInclude Include="ModelAsset.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="PlayerWalk.h" />
+    <ClInclude Include="PointerEventData.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="SceneConfig.h" />
@@ -263,6 +267,7 @@
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transform2D.h" />
     <ClInclude Include="TypedImporter.h" />
+    <ClInclude Include="UIButton.h" />
     <ClInclude Include="UIImage.h" />
     <ClInclude Include="UIImagePass.h" />
     <ClInclude Include="UIModule.h" />
@@ -353,6 +358,7 @@
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="EventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="AssetsModule.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
@@ -431,6 +437,7 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transform2D.cpp" />
+    <ClCompile Include="UIButton.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UIImage.cpp" />
     <ClCompile Include="UIImagePass.cpp" />

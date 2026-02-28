@@ -8,6 +8,8 @@ class GameObject;
 
 class Component {
 public:
+    friend class GameObject;
+
     Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
 

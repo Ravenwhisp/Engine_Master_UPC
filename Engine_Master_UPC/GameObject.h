@@ -79,8 +79,4 @@ private:
 
 	Transform* m_transform;
 	std::vector<Component*> m_components;
-
-	//Testing duck
-	ModelComponent* m_model;
-	//////////////
 };

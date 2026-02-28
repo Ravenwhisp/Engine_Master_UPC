@@ -3,6 +3,8 @@
 #include <string>
 #include <TextureAsset.h>
 
+struct Rect2D;
+
 class UIImage : public Component
 {
 public:
@@ -16,6 +18,8 @@ public:
 
     TextureAsset* getTextureAsset() const { return m_textureAsset; }
     UID getTextureAssetId() const { return m_textureAssetId; }
+
+    bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 
     bool hasTexture() const { return m_texture != nullptr; }
 

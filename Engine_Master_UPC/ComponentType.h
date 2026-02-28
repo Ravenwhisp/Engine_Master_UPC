@@ -9,7 +9,8 @@
     X(TRANSFORM2D)          \
     X(CANVAS)               \
     X(UIIMAGE)              \
-    X(UITEXT)
+    X(UITEXT)               \
+    X(UIBUTTON)
 
 enum class ComponentType
 {
