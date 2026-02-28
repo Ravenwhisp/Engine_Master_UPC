@@ -12,13 +12,28 @@ void UIImage::drawUi()
     ImGui::Text("UIImage");
 
     char buf[260];
-    strcpy_s(buf, m_path.c_str());
+    buf[0] = '\0';
+    if (!m_path.empty())
+        strcpy_s(buf, m_path.c_str());
 
     if (ImGui::InputText("Path", buf, IM_ARRAYSIZE(buf)))
     {
         m_path = buf;
-        m_dirty = true;
     }
 
+    if (ImGui::Button("Load Texture"))
+    {
+        m_loadRequested = true;
+    }
+
+    ImGui::SameLine();
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
+}
+
+
+bool UIImage::consumeLoadRequest()
+{
+    const bool was = m_loadRequested;
+    m_loadRequested = false;
+    return was;
 }

@@ -7,6 +7,8 @@
 
 class FontPass;
 class GameObject;
+class UIImagePass;
+class Texture;
 
 class UIModule : public Module
 {
@@ -22,11 +24,14 @@ public:
 
 private:
     FontPass* m_fontPass = nullptr;
+    UIImagePass* m_imagePass = nullptr;
+
     std::vector<UITextCommand> m_textCommands;
+    std::vector<UIImageCommand> m_imageCommands;
+
+    std::unordered_map<std::string, std::unique_ptr<Texture>> m_uiTextures;
 
 private:
-    void logCanvasTree(GameObject* canvasGO);
-    void logChildrenRecursive(GameObject* go, int depth);
+    void collectUIRecursive(GameObject* go);
 
-    std::unordered_set<UID> m_loggedCanvases;
 };

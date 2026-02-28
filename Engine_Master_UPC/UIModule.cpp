@@ -4,23 +4,31 @@
 #include "Application.h"
 #include "D3D12Module.h"
 #include "FontPass.h"
+#include "UIImagePass.h"
 #include "Logger.h"
 
 #include "SceneModule.h"
+#include "ResourcesModule.h"
+#include "Texture.h"
+
 #include "GameObject.h"
 #include "Transform.h"
 #include "Canvas.h"
+#include "UIImage.h"
+#include "Transform2D.h"
 
 bool UIModule::init()
 {
     auto device = app->getD3D12Module()->getDevice();
     m_fontPass = new FontPass(device);
+    m_imagePass = new UIImagePass(device);
     return true;
 }
 
 void UIModule::preRender()
 {
     m_textCommands.clear();
+    m_imageCommands.clear();
 
     // Remove later, just for test now.
     text(L"UI MODULE :)", 20.0f, 20.0f);
@@ -36,27 +44,28 @@ void UIModule::preRender()
         if (!canvas || !canvas->isActive())
             continue;
 
-        if (m_loggedCanvases.insert(go->GetID()).second)
-        {
-            logCanvasTree(go);
-        }
+        collectUIRecursive(go);
     }
 }
 
 void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)
 {
-    if (!m_fontPass)
+    if (m_imagePass)
     {
-        return;
+        m_imagePass->setViewport(viewport);
+        m_imagePass->setImageCommands(&m_imageCommands);
+        m_imagePass->apply(commandList);
+        m_imagePass->setImageCommands(nullptr);
     }
 
-    m_fontPass->setViewport(viewport);
+    if (m_fontPass)
+    {
+        m_fontPass->setViewport(viewport);
+        m_fontPass->setTextCommands(&m_textCommands);
+        m_fontPass->apply(commandList);
+        m_fontPass->setTextCommands(nullptr);
+    }
 
-    m_fontPass->setTextCommands(&m_textCommands);
-
-    m_fontPass->apply(commandList);
-
-    m_fontPass->setTextCommands(nullptr);
 }
 
 void UIModule::text(const wchar_t* msg, float x, float y)
@@ -84,38 +93,73 @@ void UIModule::text(const std::wstring& msg, float x, float y)
 bool UIModule::cleanUp()
 {
     m_textCommands.clear();
+    m_imageCommands.clear();
+
+    m_uiTextures.clear();
 
     delete m_fontPass;     
     m_fontPass = nullptr;
 
+    delete m_imagePass;
+    m_imagePass = nullptr;
+
     return true;
 }
 
-void UIModule::logCanvasTree(GameObject* canvasGO)
+void UIModule::collectUIRecursive(GameObject* gameObject)
 {
-    DEBUG_LOG("Canvas found: %s (UID: %llu)",
-        canvasGO->GetName().c_str(),
-        (unsigned long long)canvasGO->GetID());
+    if (!gameObject || !gameObject->GetActive())
+        return;
 
-    logChildrenRecursive(canvasGO, 0);
-}
+    UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
+    Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
 
-void UIModule::logChildrenRecursive(GameObject* go, int depth)
-{
-    if (!go) return;
-
-    std::string indent(depth * 2, ' ');
-    DEBUG_LOG("%s- %s (UID: %llu)",
-        indent.c_str(),
-        go->GetName().c_str(),
-        (unsigned long long)go->GetID());
-
-    Transform* t = go->GetTransform();
-    if (!t) return;
-
-    for (GameObject* child : t->getAllChildren())
+    if (uiImg && uiImg->isActive() && t2d && t2d->isActive())
     {
-        if (child && child->GetActive())
-            logChildrenRecursive(child, depth + 1);
+        if (uiImg->consumeLoadRequest())
+        {
+            const std::string& path = uiImg->getPath();
+
+            if (path.empty())
+            {
+                uiImg->setTexture(nullptr);
+            }
+            else
+            {
+                auto it = m_uiTextures.find(path);
+                if (it == m_uiTextures.end())
+                {
+                    auto texture = app->getResourcesModule()->createTexture2DFromFile(path, "UI_Image");
+                    if (texture)
+                    {
+                        Texture* raw = texture.get();
+                        m_uiTextures.emplace(path, std::move(texture));
+                        uiImg->setTexture(raw);
+                    }
+                    else
+                    {
+                        uiImg->setTexture(nullptr);
+                    }
+                }
+                else
+                {
+                    uiImg->setTexture(it->second.get());
+                }
+            }
+        }
+
+        if (uiImg->getTexture() != nullptr)
+        {
+            UIImageCommand command;
+            command.texture = uiImg->getTexture();
+            command.rect = t2d->getRect();
+            m_imageCommands.push_back(command);
+        }
     }
+
+    Transform* transform = gameObject->GetTransform();
+    if (!transform) return;
+
+    for (GameObject* child : transform->getAllChildren())
+        collectUIRecursive(child);
 }

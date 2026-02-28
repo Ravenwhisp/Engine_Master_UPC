@@ -25,7 +25,6 @@ private:
     mutable const D3D12_VIEWPORT* m_viewport = nullptr;
     const std::vector<UIImageCommand>* m_commands = nullptr;
 
-    std::unique_ptr<DescriptorHeap>          m_heap;
     std::unique_ptr<ResourceUploadBatch>     m_upload;
     std::unique_ptr<SpriteBatch>             m_spriteBatch;
 
