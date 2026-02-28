@@ -9,6 +9,7 @@ class FontPass;
 class GameObject;
 class UIImagePass;
 class Texture;
+class Transform2D;
 
 class UIModule : public Module
 {
@@ -32,6 +33,9 @@ private:
     std::unordered_map<UID, std::unique_ptr<Texture>> m_uiTextures;
 
 private:
-    void collectUIRecursive(GameObject* go);
+    void buildUIDrawCommands(GameObject* go);
+
+    void buildUIImage(GameObject* go, Transform2D* t2d);
+    void buildUIText(GameObject* go, Transform2D* t2d);
 
 };

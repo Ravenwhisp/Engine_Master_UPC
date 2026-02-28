@@ -31,9 +31,6 @@ void UIModule::preRender()
     m_textCommands.clear();
     m_imageCommands.clear();
 
-    // Remove later, just for test now.
-    text(L"UI MODULE :)", 20.0f, 20.0f);
-
     const auto& roots = app->getSceneModule()->getAllGameObjects();
 
     for (GameObject* go : roots)
@@ -45,7 +42,7 @@ void UIModule::preRender()
         if (!canvas || !canvas->isActive())
             continue;
 
-        collectUIRecursive(go);
+        buildUIDrawCommands(go);
     }
 }
 
@@ -124,74 +121,90 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void UIModule::collectUIRecursive(GameObject* gameObject)
+void UIModule::buildUIDrawCommands(GameObject* gameObject)
 {
     if (!gameObject || !gameObject->GetActive())
+    {
         return;
+    }
 
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
-    UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
-
-    if (uiImg && uiImg->isActive() && t2d && t2d->isActive())
-    {
-        if (uiImg->consumeLoadRequest())
-        {
-            TextureAsset* asset = uiImg->getTextureAsset();
-            UID assetId = uiImg->getTextureAssetId();
-
-            if (!asset || assetId == 0)
-            {
-                uiImg->setTexture(nullptr);
-            }
-            else
-            {
-                auto it = m_uiTextures.find(assetId);
-                if (it == m_uiTextures.end())
-                {
-                    auto texture = app->getResourcesModule()->createTexture2D(*asset);
-                    if (texture)
-                    {
-                        Texture* raw = texture.get();
-                        m_uiTextures.emplace(assetId, std::move(texture));
-                        uiImg->setTexture(raw);
-                    }
-                    else
-                    {
-                        uiImg->setTexture(nullptr);
-                    }
-                }
-                else
-                {
-                    uiImg->setTexture(it->second.get());
-                }
-            }
-        }
-
-        if (uiImg->getTexture() != nullptr)
-        {
-            UIImageCommand command;
-            command.texture = uiImg->getTexture();
-            command.rect = t2d->getRect();
-            m_imageCommands.push_back(command);
-        }
-    }
-
-    UIText* uiText = gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
-
-    if (uiText && uiText->isActive() && t2d && t2d->isActive())
-    {
-        UITextCommand cmd;
-        cmd.text = stringToWString(uiText->getText());
-
-        Rect2D r = t2d->getRect();
-        cmd.x = t2d->position.x;
-        cmd.y = t2d->position.y;
-
-        m_textCommands.push_back(std::move(cmd));
-    }
+    
+    buildUIImage(gameObject, t2d);
+    buildUIText(gameObject, t2d);
 
     Transform* transform = gameObject->GetTransform();
 
     for (GameObject* child : transform->getAllChildren())
-        collectUIRecursive(child);
+    {
+        buildUIDrawCommands(child);
+    }
+}
+
+void UIModule::buildUIImage(GameObject* gameObject, Transform2D* t2d)
+{
+    UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
+
+    if (!uiImg || !uiImg->isActive() || !t2d || !t2d->isActive())
+    {
+        return;
+    }
+
+    if (uiImg->consumeLoadRequest())
+    {
+        TextureAsset* asset = uiImg->getTextureAsset();
+        UID assetId = uiImg->getTextureAssetId();
+
+        if (!asset || assetId == 0)
+        {
+            uiImg->setTexture(nullptr);
+        }
+        else
+        {
+            auto textureIteration = m_uiTextures.find(assetId);
+            if (textureIteration == m_uiTextures.end())
+            {
+                auto texture = app->getResourcesModule()->createTexture2D(*asset);
+                if (texture)
+                {
+                    Texture* raw = texture.get();
+                    m_uiTextures.emplace(assetId, std::move(texture));
+                    uiImg->setTexture(raw);
+                }
+                else
+                {
+                    uiImg->setTexture(nullptr);
+                }
+            }
+            else
+            {
+                uiImg->setTexture(textureIteration->second.get());
+            }
+        }
+    }
+
+    if (uiImg->getTexture() != nullptr)
+    {
+        UIImageCommand command;
+        command.texture = uiImg->getTexture();
+        command.rect = t2d->getRect();
+        m_imageCommands.push_back(command);
+    }
+}
+
+void UIModule::buildUIText(GameObject* gameObject, Transform2D* t2d)
+{
+    UIText* uiText = gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
+
+    if (!uiText || !uiText->isActive() || !t2d || !t2d->isActive())
+    {
+        return;
+    }
+
+    UITextCommand command;
+    command.text = stringToWString(uiText->getText());
+    command.x = t2d->position.x;
+    command.y = t2d->position.y;
+
+    m_textCommands.push_back(std::move(command));
 }
