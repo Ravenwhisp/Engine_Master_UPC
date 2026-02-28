@@ -1,2 +1,3 @@
 C:\Users\usuario\Documents\GitHub\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 D:\ReposVS\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
+C:\ReposVS\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
