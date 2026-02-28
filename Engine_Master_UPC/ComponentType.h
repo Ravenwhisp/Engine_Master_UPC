@@ -8,7 +8,8 @@
     X(CAMERA)               \
     X(TRANSFORM2D)          \
     X(CANVAS)               \
-    X(UIIMAGE)
+    X(UIIMAGE)              \
+    X(UITEXT)
 
 enum class ComponentType
 {

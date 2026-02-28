@@ -223,6 +223,9 @@
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\RenderPasses</Filter>
     </ClCompile>
+    <ClCompile Include="UIText.cpp">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -516,6 +519,9 @@
     </ClInclude>
     <ClInclude Include="UIImagePass.h">
       <Filter>D3D12\Rendering\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="UIText.h">
+      <Filter>GameEntity\Components\2D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
