@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 #include <string>
+#include <TextureAsset.h>
 
 class UIImage : public Component
 {
@@ -14,6 +15,8 @@ public:
     bool consumeLoadRequest();
 
     class Texture* getTexture() const { return m_texture; }
+    TextureAsset* getTextureAsset() const { return m_textureAsset; }
+
     void setTexture(Texture* texture) { m_texture = texture; }
 
     bool hasTexture() const { return m_texture != nullptr; }
@@ -23,5 +26,6 @@ public:
 private:
     std::string m_path = "Assets/Textures/Klinklang.png";
     Texture* m_texture = nullptr;
+    TextureAsset* m_textureAsset = nullptr;
     bool m_loadRequested = false;
 };

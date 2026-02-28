@@ -2,8 +2,10 @@
 #include "UIImage.h"
 #include <imgui.h>
 
-UIImage::UIImage(UID id, GameObject* owner)
-    : Component(id, ComponentType::UIIMAGE, owner)
+#include "Application.h"
+#include "AssetsModule.h"
+
+UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAGE, owner)
 {
 }
 
@@ -11,19 +13,20 @@ void UIImage::drawUi()
 {
     ImGui::Text("UIImage");
 
-    char buf[260];
-    buf[0] = '\0';
-    if (!m_path.empty())
-        strcpy_s(buf, m_path.c_str());
+    ImGui::Button("Drop Here the Texture");
 
-    if (ImGui::InputText("Path", buf, IM_ARRAYSIZE(buf)))
+    if (ImGui::BeginDragDropTarget())
     {
-        m_path = buf;
-    }
-
-    if (ImGui::Button("Load Texture"))
-    {
-        m_loadRequested = true;
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            const UID* data = static_cast<const UID*>(payload->Data);
+            m_textureAsset = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(*data));
+            if (m_textureAsset)
+            {
+                m_loadRequested = true;
+            }
+        }
+        ImGui::EndDragDropTarget();
     }
 
     ImGui::SameLine();
