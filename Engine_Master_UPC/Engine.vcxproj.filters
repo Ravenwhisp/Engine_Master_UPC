@@ -161,9 +161,6 @@
     <ClCompile Include="EditorToolbar.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerWalk.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
     </ClCompile>
@@ -187,6 +184,17 @@
     </ClCompile>
     <ClCompile Include="SceneConfig.cpp">
       <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
+    <ClCompile Include="3rdParty\simdjson\simdjson.cpp" />
+    <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="UID.cpp" />
+    <ClCompile Include="UtilityGLFT.cpp" />
+    <ClCompile Include="PlayerWalk.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraFollow.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -378,9 +386,6 @@
     <ClInclude Include="EditorToolbar.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerWalk.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
@@ -413,6 +418,15 @@
     </ClInclude>
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
+    <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="UID.h" />
+    <ClInclude Include="PlayerWalk.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraFollow.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -522,6 +536,9 @@
     </Filter>
     <Filter Include="DataStructure">
       <UniqueIdentifier>{ee33400d-fee4-48fe-8e66-2f2e872ce3cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Components\Scripts">
+      <UniqueIdentifier>{17efb2dc-ee81-481c-8129-992bae918a62}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
