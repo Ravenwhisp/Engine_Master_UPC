@@ -454,6 +454,7 @@
     <ClInclude Include="AssetsDictionary.h">
       <Filter>Core\Persistence</Filter>
     </ClInclude>
+    <ClInclude Include="Delegates.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
