@@ -9,6 +9,7 @@
 #include "Transform2D.h"
 #include "Canvas.h"
 #include "UIImage.h"
+#include "UIText.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -55,6 +56,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::UIIMAGE:
             m_components.push_back(new UIImage(GenerateUID(), this));
             break;
+        case ComponentType::UITEXT:
+            m_components.push_back(new UIText(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -94,6 +98,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::UIIMAGE:
         newComponent = new UIImage(id, this);
+        break;
+    case ComponentType::UITEXT:
+        newComponent = new UIText(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;

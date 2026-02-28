@@ -16,6 +16,7 @@
 #include "Canvas.h"
 #include "UIImage.h"
 #include "Transform2D.h"
+#include "UIText.h"
 
 bool UIModule::init()
 {
@@ -106,34 +107,52 @@ bool UIModule::cleanUp()
     return true;
 }
 
+static std::wstring stringToWString(const std::string& string)
+{
+    if (string.empty())
+    {
+        return L"";
+    }
+    int len = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.size(), nullptr, 0);
+    if (len <= 0)
+    {
+        return L"";
+    }
+    std::wstring wstring;
+    wstring.resize(len);
+    MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.size(), wstring.data(), len);
+    return wstring;
+}
+
 void UIModule::collectUIRecursive(GameObject* gameObject)
 {
     if (!gameObject || !gameObject->GetActive())
         return;
 
-    UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
+    UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
     if (uiImg && uiImg->isActive() && t2d && t2d->isActive())
     {
         if (uiImg->consumeLoadRequest())
         {
-            const std::string& path = uiImg->getPath();
+            TextureAsset* asset = uiImg->getTextureAsset();
+            UID assetId = uiImg->getTextureAssetId();
 
-            if (path.empty())
+            if (!asset || assetId == 0)
             {
                 uiImg->setTexture(nullptr);
             }
             else
             {
-                auto it = m_uiTextures.find(path);
+                auto it = m_uiTextures.find(assetId);
                 if (it == m_uiTextures.end())
                 {
-                    auto texture = app->getResourcesModule()->createTexture2D(*uiImg->getTextureAsset());
+                    auto texture = app->getResourcesModule()->createTexture2D(*asset);
                     if (texture)
                     {
                         Texture* raw = texture.get();
-                        m_uiTextures.emplace(path, std::move(texture));
+                        m_uiTextures.emplace(assetId, std::move(texture));
                         uiImg->setTexture(raw);
                     }
                     else
@@ -157,8 +176,21 @@ void UIModule::collectUIRecursive(GameObject* gameObject)
         }
     }
 
+    UIText* uiText = gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
+
+    if (uiText && uiText->isActive() && t2d && t2d->isActive())
+    {
+        UITextCommand cmd;
+        cmd.text = stringToWString(uiText->getText());
+
+        Rect2D r = t2d->getRect();
+        cmd.x = t2d->position.x;
+        cmd.y = t2d->position.y;
+
+        m_textCommands.push_back(std::move(cmd));
+    }
+
     Transform* transform = gameObject->GetTransform();
-    if (!transform) return;
 
     for (GameObject* child : transform->getAllChildren())
         collectUIRecursive(child);

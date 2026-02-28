@@ -29,7 +29,7 @@ private:
     std::vector<UITextCommand> m_textCommands;
     std::vector<UIImageCommand> m_imageCommands;
 
-    std::unordered_map<std::string, std::unique_ptr<Texture>> m_uiTextures;
+    std::unordered_map<UID, std::unique_ptr<Texture>> m_uiTextures;
 
 private:
     void collectUIRecursive(GameObject* go);
