@@ -129,7 +129,7 @@ void UIModule::collectUIRecursive(GameObject* gameObject)
                 auto it = m_uiTextures.find(path);
                 if (it == m_uiTextures.end())
                 {
-                    auto texture = app->getResourcesModule()->createTexture2DFromFile(path, "UI_Image");
+                    auto texture = app->getResourcesModule()->createTexture2D(*uiImg->getTextureAsset());
                     if (texture)
                     {
                         Texture* raw = texture.get();
