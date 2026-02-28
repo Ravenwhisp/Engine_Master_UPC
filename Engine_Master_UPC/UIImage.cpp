@@ -4,9 +4,31 @@
 
 #include "Application.h"
 #include "AssetsModule.h"
+#include <UIRect.h>
 
 UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAGE, owner)
 {
+}
+
+bool UIImage::containsPoint(const Rect2D& rect, const Vector2& screenPos) const
+{
+    if (!m_texture) return true;
+
+    const int texW = m_textureAsset->getWidth();
+    const int texH = m_textureAsset->getHeight();
+
+    if (texW <= 0 || texH <= 0) return true;
+
+    // Normalised position inside the rect  [0 .. 1]
+    const float u = (screenPos.x - rect.x) / rect.w;
+    const float v = (screenPos.y - rect.y) / rect.h;
+
+    // Map to texture pixel coords
+    const int px = static_cast<int>(u * static_cast<float>(texW));
+    const int py = static_cast<int>(v * static_cast<float>(texH));
+
+    return px >= 0 && px < texW
+        && py >= 0 && py < texH;
 }
 
 void UIImage::drawUi()

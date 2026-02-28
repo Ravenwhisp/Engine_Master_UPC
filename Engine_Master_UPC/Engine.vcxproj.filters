@@ -226,6 +226,12 @@
     <ClCompile Include="UIText.cpp">
       <Filter>GameEntity\Components\2D</Filter>
     </ClCompile>
+    <ClCompile Include="EventSystem.cpp">
+      <Filter>Core\EventSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButton.cpp">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -523,6 +529,21 @@
     <ClInclude Include="UIText.h">
       <Filter>GameEntity\Components\2D</Filter>
     </ClInclude>
+    <ClInclude Include="UIButton.h">
+      <Filter>GameEntity\Components\2D</Filter>
+    </ClInclude>
+    <ClInclude Include="Delegates.h">
+      <Filter>Core\EventSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerEventData.h">
+      <Filter>Core\EventSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="IPointerEventHandler.h">
+      <Filter>Core\EventSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="EventSystem.h">
+      <Filter>Core\EventSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -658,6 +679,9 @@
     </Filter>
     <Filter Include="GameEntity\Components\2D">
       <UniqueIdentifier>{ec77b4b4-a40e-49b5-8dc2-e23b28f12031}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\EventSystem">
+      <UniqueIdentifier>{67d27f8f-47d5-4cff-826b-9cf5715a55f5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
