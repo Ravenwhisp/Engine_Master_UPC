@@ -26,4 +26,10 @@ void UIText::drawUi()
     }
 
     ImGui::DragFloat("Scale", &m_scale, 0.01f, 0.1f, 5.0f);
+
+    float color[4] = { m_color.x, m_color.y, m_color.z, m_color.w };
+    if (ImGui::ColorEdit4("Color", color))
+    {
+        m_color = { color[0], color[1], color[2], color[3] };
+    }
 }
