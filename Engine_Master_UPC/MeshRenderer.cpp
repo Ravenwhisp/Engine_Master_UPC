@@ -16,6 +16,7 @@ void MeshRenderer::addModel(ModelAsset& model)
 
     Vector3 globalMin(FLT_MAX, FLT_MAX, FLT_MAX);
     Vector3 globalMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    m_boundingBox = Engine::BoundingBox(globalMin, globalMax);
 
     for (const auto meshAsset : model.getMeshes())
     {
@@ -43,8 +44,10 @@ void MeshRenderer::addModel(ModelAsset& model)
         ++index;
     }
 
-    m_boundingBox = Engine::BoundingBox(globalMin, globalMax);
+    m_boundingBox.setMin(globalMin);
+    m_boundingBox.setMax(globalMax);
     m_hasBounds = true;
+    m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }
 
 #pragma region Loop functions
