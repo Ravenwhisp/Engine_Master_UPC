@@ -69,15 +69,19 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         if (m_lastActionRequested != Command::NONE and ImGui::MenuItem("Paste"))
         {
-            if (m_lastActionRequested == Command::MOVE) 
+         
+            // We only do a command if we are sure that the directories exist
+            if (std::filesystem::exists(m_fileToManage) and std::filesystem::exists(directory->getPath()))
             {
-                moveFile(directory.get());
+                if (m_lastActionRequested == Command::MOVE)
+                {
+                    moveFile(directory.get());
+                }
             }
-
+            
             app->getFileSystemModule()->rebuild();
             m_lastActionRequested = Command::NONE;
         }
-
 
         ImGui::EndPopup();
     }
@@ -137,6 +141,24 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                     m_fileToManage = asset->path;
                 }
 
+                if (ImGui::MenuItem("Delete", "Del", false, true))
+                {
+                    if (std::filesystem::exists(asset->getPath() ))
+                    {
+                        if (deleteAsset(asset.get())) 
+                        {
+                            // If the file deleted was going to be used for a command, we disable it
+                            if (m_lastActionRequested != Command::NONE and asset->path == m_fileToManage)
+                            {
+                                m_lastActionRequested = Command::NONE;
+                            }
+                        }
+                        app->getFileSystemModule()->rebuild();
+
+                        m_selectedItem = nullptr; // do we want this behaviour?
+                    }     
+                }
+
                 ImGui::EndPopup();
             }
         } 
@@ -161,6 +183,17 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                     {
                         std::filesystem::remove_all(m_selectedItem->getPath());
                         app->getFileSystemModule()->rebuild();
+                        
+                        
+                        // If the last path that we requested a command for no longer exists, we disable the command
+                        {
+                            std::string fileToManageString = m_fileToManage.string();
+                            const char* fileToManage = fileToManageString.c_str();
+                            if (m_lastActionRequested != Command::NONE and !app->getFileSystemModule()->exists(fileToManage))
+                            {
+                                m_lastActionRequested = Command::NONE;
+                            }
+                        }
 
                         // If we deleted the directory we were browsing, go up
                         if (m_currentDirectory == m_selectedItem->path || m_currentDirectory.string().find(m_selectedItem->path.string()) == 0)
@@ -214,6 +247,22 @@ inline bool FileDialog::moveFile(FileEntry* targetDirectory)
 
         return moveFile and moveMetadata;
     }
+}
+
+bool FileDialog::deleteAsset(FileEntry* file)
+{
+    std::string filePathString = file->path.string();
+    const char* filePath = filePathString.c_str();
+
+    // The file that we have is the metadata; we have to delete its asset as well, which should be on the same folder
+
+    std::string assetPathString = (file->path.parent_path() / file->path.stem()).string(); // stem() is the file name, takes out the .metadata at the end
+    const char* assetPath = assetPathString.c_str();
+
+    bool deleteMetadata = app->getFileSystemModule()->deleteFile(filePath);
+    bool deleteFile = app->getFileSystemModule()->deleteFile(assetPath);
+
+    return deleteFile and deleteMetadata;
 }
 
 
