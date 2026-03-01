@@ -20,3 +20,9 @@ BasicMaterial::BasicMaterial(const MaterialAsset& asset)
 	m_materialData.shininess = 32.0f;
 	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(BDRFPhongMaterialData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 }
+
+BasicMaterial::~BasicMaterial()
+{
+	app->getResourcesModule()->defferResourceRelease(m_materialBuffer);
+
+}

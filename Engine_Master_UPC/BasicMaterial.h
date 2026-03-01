@@ -30,7 +30,7 @@ public:
 	};
 
 	explicit BasicMaterial(const MaterialAsset& asset);
-	~BasicMaterial() = default;
+	~BasicMaterial();
 
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
 	Texture*					getTexture() const { return m_textureColor.get(); }
