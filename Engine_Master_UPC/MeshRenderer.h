@@ -43,12 +43,18 @@ public:
 	void drawUi() override;
 
 	void onTransformChange() override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
 private:
 	mutable std::vector<std::unique_ptr<BasicMesh>>		m_meshes;
 	mutable std::vector<std::unique_ptr<BasicMaterial>>	m_materials;
 	std::unordered_map<UID, uint32_t>					m_materialIndexByUID;
 
 	Engine::BoundingBox									m_boundingBox;
+
+	UID m_modelAssetId = 0;
 
 	std::string m_modelPath;
 	std::string m_basePath;

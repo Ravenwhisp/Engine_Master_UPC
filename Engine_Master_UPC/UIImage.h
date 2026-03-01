@@ -25,6 +25,9 @@ public:
 
     void drawUi() override;
 
+    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
 private:
     UID m_textureAssetId = 0;
     Texture* m_texture = nullptr;

@@ -107,7 +107,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         newComponent = new UIText(id, this);
         break;
     case ComponentType::UIBUTTON:
-        m_components.push_back(new UIButton(GenerateUID(), this));
+        newComponent = new UIButton(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;

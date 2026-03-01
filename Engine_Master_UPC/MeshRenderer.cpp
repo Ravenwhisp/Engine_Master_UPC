@@ -112,6 +112,7 @@ void MeshRenderer::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             const UID* data = static_cast<const UID*>(payload->Data);
+            m_modelAssetId = *data;
             ModelAsset* modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(*data));
             addModel(*modelAsset);
         }
@@ -146,4 +147,35 @@ void MeshRenderer::drawUi()
 void MeshRenderer::onTransformChange()
 {
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+}
+
+rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("ModelAssetId", m_modelAssetId, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("ModelAssetId"))
+    {
+        m_modelAssetId = componentInfo["ModelAssetId"].GetUint64();
+
+        m_meshes.clear();
+        m_materials.clear();
+        m_materialIndexByUID.clear();
+        m_hasBounds = false;
+
+        ModelAsset* modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(m_modelAssetId));
+        addModel(*modelAsset);
+    }
+
+    return true;
 }
