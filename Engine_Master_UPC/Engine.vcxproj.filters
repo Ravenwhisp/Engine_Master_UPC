@@ -73,7 +73,7 @@
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="SimulationModule.cpp" />
+    <ClCompile Include="GameViewModule.cpp" />
     <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
   </ItemGroup>
@@ -160,7 +160,7 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="UID.h" />
     <ClInclude Include="VertexBuffer.h" />
-    <ClInclude Include="SimulationModule.h" />
+    <ClInclude Include="GameViewModule.h" />
     <ClInclude Include="PlayToolbar.h" />
   </ItemGroup>
   <ItemGroup>

@@ -239,7 +239,7 @@
     <ClInclude Include="ScriptComponent.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleMath.h" />
-    <ClInclude Include="SimulationModule.h" />
+    <ClInclude Include="GameViewModule.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Tag.h" />
     <ClInclude Include="Texture.h" />
@@ -390,7 +390,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SimulationModule.cpp" />
+    <ClCompile Include="GameViewModule.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TimeModule.cpp" />

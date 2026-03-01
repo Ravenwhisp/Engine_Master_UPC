@@ -68,7 +68,7 @@ public:
 
 	SCENE_TOOL		getCurrentSceneTool() const { return currentSceneTool; }
 	NAVIGATION_MODE getCurrentNavigationMode() const { return currentNavigationMode; }
-	SIMULATION_MODE	getCurrentSceneMode() const { return currentSimulationMode; }
+	SIMULATION_MODE	getCurrentSimulationMode() const { return currentSimulationMode; }
 
 	void			setCurrentSceneTool(int tool) { currentSceneTool = static_cast<SCENE_TOOL>(tool); }
 	void			setCurrentSimulationMode(int mode) { currentSimulationMode = static_cast<SIMULATION_MODE>(mode); }

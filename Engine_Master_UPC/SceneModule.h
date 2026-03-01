@@ -1,11 +1,11 @@
 #pragma once
 #include "Module.h"
-#include "GameObject.h"
-#include "Quadtree.h"
-#include "Lights.h"
+#include <rapidjson/document.h>
 #include "UID.h"
 
 class SceneSerializer;
+class GameObject;
+class Quadtree;
 
 struct SceneDataCB
 {
@@ -63,6 +63,7 @@ public:
 	void addGameObject(GameObject* gameObject);
 	void detachGameObject(GameObject* gameObject);
 	void destroyGameObject(GameObject* gameObject);
+	void resetGameObjects(const std::vector<GameObject*>& previousGameObjects);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);

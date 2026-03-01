@@ -21,6 +21,7 @@
 
 #include "Logger.h"
 
+#include "GameObject.h"
 #include "CameraComponent.h"
 
 struct SkyboxVertex { Vector3 position; };

@@ -17,11 +17,19 @@ class DescriptorsModule;
 class TimeModule;
 class RenderModule;
 class SceneModule;
+class GameViewModule;
 class FileSystemModule;
 
 class CameraComponent;
 
 class Settings;
+
+enum ENGINE_STATE
+{
+    PLAYING,
+    PAUSED,
+    EDITOR
+};
 
 class Application
 {
@@ -43,6 +51,7 @@ public:
     TimeModule*                 getTimeModule() { return m_timeModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
+    GameViewModule*             getGameViewModule() { return m_gameViewModule; }
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
 
     Settings*                   getSettings() { return m_settings; }
@@ -53,6 +62,9 @@ public:
 
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
     void setCurrentCameraPerspective(CameraComponent* camera) { m_currentCameraPerspective = camera; }
+
+	const ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
+	void setEngineState(int index) { m_currentEngineState = static_cast<ENGINE_STATE>(index); }
 
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
@@ -72,12 +84,14 @@ private:
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
+    GameViewModule*         m_gameViewModule = nullptr;
     FileSystemModule*       m_fileSystemModule = nullptr;
 
     Settings*               m_settings = nullptr;
 
     bool m_paused = false;
 
+    ENGINE_STATE m_currentEngineState = ENGINE_STATE::EDITOR;
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
