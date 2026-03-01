@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "FileSystemModule.h"
 #include "AssetsModule.h"
-
+#include "Keyboard.h"
 
 // ---------------------------------------------------------
 // Actions
@@ -104,6 +104,7 @@ void FileDialog::deleteFolder(const std::shared_ptr<FileEntry>& asset)
 void FileDialog::navigateTo(const std::filesystem::path& path)
 {
     m_currentDirectory = path;
+    m_selectedItem = nullptr;
 }
 
 void FileDialog::handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset)
@@ -171,6 +172,29 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         ImGui::EndPopup();
     }
+
+    // Keyboard shortcuts
+    const Keyboard::State& keyState = Keyboard::Get().GetState();
+    if (keyState.LeftControl or keyState.RightControl) 
+    {
+        if (keyState.X) 
+        {
+            if (m_selectedItem) cutItem(m_selectedItem);
+
+        }
+        else if (keyState.V and m_lastActionRequested != Command::NONE) 
+        {
+            if (m_selectedItem) 
+            {
+                if (std::filesystem::is_directory(m_selectedItem->path)) pasteFile(m_selectedItem);
+            }
+            else 
+            {
+                pasteFile(directory);
+            }
+        }
+    }
+
 
     ImGui::Columns(columnCount, nullptr, false);
 
@@ -253,7 +277,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::Text("General");
                 ImGui::Separator();
 
-                if (m_lastActionRequested != Command::NONE and m_fileToManage != asset->path and 
+                if (m_lastActionRequested != Command::NONE and m_fileToManage != (asset->path) and 
                     ImGui::MenuItem("Paste", "Ctrl + V"))
                 {
                     pasteFile(asset);
