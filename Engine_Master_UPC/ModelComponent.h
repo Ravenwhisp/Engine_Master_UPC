@@ -61,8 +61,6 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
-	void printModelBinaryDataRefCount() { DEBUG_LOG(std::string(std::to_string(m_modelBinaryData.use_count())).c_str()); }
-
 private:
 	std::shared_ptr<ModelBinaryData> m_modelBinaryData;
 

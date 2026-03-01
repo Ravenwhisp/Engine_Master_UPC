@@ -32,9 +32,7 @@ bool GameObject::AddComponent(ComponentType componentType)
             m_components.push_back(new LightComponent(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            mC = new ModelComponent(GenerateUID(), this);
-            m_components.push_back(mC);
-            mC->printModelBinaryDataRefCount();
+            m_components.push_back(new ModelComponent(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
             break;
