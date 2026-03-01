@@ -6,7 +6,7 @@
 class GameObject;
 class Transform2D;
 
-class EventSystem : public Module
+class ModuleEventSystem : public Module
 {
 public:
     bool init()    override;

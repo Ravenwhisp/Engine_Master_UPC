@@ -226,7 +226,7 @@
     <ClCompile Include="UIText.cpp">
       <Filter>GameEntity\Components\2D</Filter>
     </ClCompile>
-    <ClCompile Include="EventSystem.cpp">
+    <ClCompile Include="ModuleEventSystem.cpp">
       <Filter>Core\EventSystem</Filter>
     </ClCompile>
     <ClCompile Include="UIButton.cpp">
@@ -541,7 +541,7 @@
     <ClInclude Include="IPointerEventHandler.h">
       <Filter>Core\EventSystem</Filter>
     </ClInclude>
-    <ClInclude Include="EventSystem.h">
+    <ClInclude Include="ModuleEventSystem.h">
       <Filter>Core\EventSystem</Filter>
     </ClInclude>
   </ItemGroup>
