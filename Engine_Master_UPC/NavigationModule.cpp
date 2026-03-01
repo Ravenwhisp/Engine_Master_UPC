@@ -4,7 +4,7 @@
 #include "SceneModule.h"
 
 #include "NavMeshResource.h"
-#include "NavMeshGeometryExtractor.h"
+#include "NavMeshBuilder.h"
 
 #include <fstream>
 
@@ -38,9 +38,26 @@ void NavigationModule::update()
 
         if (NavMeshGeometryExtractor::Extract(*app->getSceneModule(), soup))
         {
-            DEBUG_LOG("NavMesh geometry: %zu vertices, %zu indices\n",
+            DEBUG_LOG("EXTRACTION OK - NavMesh geometry: %zu vertices, %zu indices\n",
                 soup.vertices.size() / 3,
                 soup.indices.size() / 3);
+
+            NavMeshBuilder builder;
+            dtNavMesh* mesh = nullptr;
+
+            if (builder.Build(soup, mesh))
+            {
+                DEBUG_LOG("NavMesh build SUCCESSFUL\n");
+
+                if (m_navMesh)
+                    dtFreeNavMesh(m_navMesh);
+
+                m_navMesh = mesh;
+            }
+            else
+            {
+                DEBUG_ERROR("NavMesh build FAILED\n");
+            }
         }
         else
         {

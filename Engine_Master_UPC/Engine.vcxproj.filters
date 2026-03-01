@@ -199,6 +199,9 @@
     <ClCompile Include="NavigationModule.cpp">
       <Filter>Navigation</Filter>
     </ClCompile>
+    <ClCompile Include="NavMeshBuilder.cpp">
+      <Filter>Navigation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -435,6 +438,9 @@
       <Filter>Navigation</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
+      <Filter>Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshBuilder.h">
       <Filter>Navigation</Filter>
     </ClInclude>
   </ItemGroup>
