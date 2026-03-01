@@ -67,6 +67,8 @@ public:
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
 
+	GameObject* findGameObjectByUID(UID uuid);
+
 	GameObject* createDirectionalLightOnInit();
 
 	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
