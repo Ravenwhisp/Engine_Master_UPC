@@ -26,6 +26,9 @@ private:
 
     EditorToolbar* m_editorToolbar;
 
+    float m_viewportX = 0.0f;
+    float m_viewportY = 0.0f;
+
 public:
     SceneEditor();
     ~SceneEditor();
@@ -37,5 +40,10 @@ public:
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
+
+
+    float  getViewportX()      const { return m_viewportX; }
+    float  getViewportY()      const { return m_viewportY; }
+
 };
 
