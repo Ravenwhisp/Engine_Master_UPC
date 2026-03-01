@@ -7,6 +7,9 @@
 #include "RenderModule.h"
 #include "EditorModule.h"
 #include "Settings.h"
+#include "GameObject.h"
+#include "Quadtree.h"
+#include "UID.h"
 
 #include "ModelComponent.h"
 
@@ -159,7 +162,8 @@ void SceneModule::createGameObject()
     m_quadtree->insert(*newGameObject);
 }
 
-GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID) {
+GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID) 
+{
     GameObject* newGameObject = new GameObject(id, transformUID);
     newGameObject->init();
 
@@ -198,7 +202,8 @@ void SceneModule::removeGameObject(UID uuid)
     destroyHierarchy(target);
 }
 
-void SceneModule::addGameObject(GameObject* gameObject) {
+void SceneModule::addGameObject(GameObject* gameObject) 
+{
 	m_gameObjects.push_back(gameObject);
 }
 
@@ -214,6 +219,11 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
 {
     detachGameObject(gameObject);
     delete gameObject;
+}
+
+void SceneModule::resetGameObjects(const std::vector<GameObject*> &previousGameObjects)
+{
+	m_gameObjects = previousGameObjects;
 }
 
 GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
@@ -356,7 +366,8 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
     return skyboxInfo;
 }
 
-bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) 
+{
     const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
 
     clearScene();
@@ -405,7 +416,8 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
     return true;
 }
 
-bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) 
+{
     auto& skybox = getSkyboxSettings();
     const auto& skyboxJson = sceneJson["Skybox"];
     skybox.enabled = skyboxJson["Enabled"].GetBool();
@@ -416,7 +428,8 @@ bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) {
     return true;
 }
 
-bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) 
+{
     auto& lighting = GetLightingSettings();
     const auto& lightingJson = sceneJson["Lighting"];
 
@@ -443,7 +456,8 @@ void SceneModule::saveScene()
 bool SceneModule::loadScene(const std::string& sceneName)
 {
     const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
-    if (!fileExists) {
+    if (!fileExists) 
+    {
         return false;
     }
 

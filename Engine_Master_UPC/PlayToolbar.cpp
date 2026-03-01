@@ -34,7 +34,7 @@ void PlayToolbar::DrawCentered(float menuWidth)
 	float toolbarWidth = 3 * m_buttonWidth;
 	float centerPos = (menuWidth - toolbarWidth) * 0.5f;
 	ImGui::SetCursorPosX(centerPos);
-	int selectedIndex = static_cast<int>(m_moduleEditor->getCurrentSceneMode());
+	int selectedIndex = static_cast<int>(m_moduleEditor->getCurrentSimulationMode());
 	for (int i = 0; i < 3; i++)
 	{
 		CreateButton(selectedIndex, BAR_FUNCTIONS[i], i);
@@ -71,6 +71,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			if (selectedIndex == SIMULATION_MODE::PAUSE || selectedIndex == SIMULATION_MODE::STOP)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
+				app->setEngineState(index);
 			}
 		}
 		if (index == SIMULATION_MODE::PAUSE)
@@ -78,6 +79,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			if (selectedIndex == SIMULATION_MODE::PLAY)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
+				app->setEngineState(index);
 			}
 		}
 		if (index == SIMULATION_MODE::STOP)
@@ -85,6 +87,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			if (selectedIndex == SIMULATION_MODE::PLAY || selectedIndex == SIMULATION_MODE::PAUSE)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
+				app->setEngineState(index);
 			}
 		}
     }

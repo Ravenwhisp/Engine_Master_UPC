@@ -19,6 +19,7 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
+#include "Quadtree.h"
 
 #include "CameraComponent.h"
 
