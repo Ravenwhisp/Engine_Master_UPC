@@ -113,7 +113,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->detachGameObject(child);
+		app->getSceneModule()->removeFromRootList(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -124,7 +124,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->addGameObject(child);
+		app->getSceneModule()->addToRootList(child);
 	}
 
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
@@ -146,8 +146,8 @@ void Hierarchy::createTreeNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		const std::vector<GameObject*>& gameObjectList = app->getSceneModule()->getAllGameObjects();
-		for (GameObject* gameObject : gameObjectList)
+		const auto& roots = app->getSceneModule()->getRootObjects();
+		for (GameObject* gameObject : roots)
 		{
 			createTreeNode(gameObject);
 		}

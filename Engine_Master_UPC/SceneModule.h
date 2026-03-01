@@ -28,13 +28,25 @@ struct SkyboxSettings
 class SceneModule : public Module
 {
 private:
-	SceneSerializer* m_sceneSerializer;
+	std::string m_name = "SampleScene";
+
+	std::vector<std::unique_ptr<GameObject>> m_allObjects;
+	std::vector<GameObject*> m_rootObjects;
+
+	std::unique_ptr<SceneSerializer> m_sceneSerializer;
+	std::unique_ptr<Quadtree> m_quadtree;
+
+	SceneLightingSettings		m_lighting;
+	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
 
 public:
+	SceneModule();
+	~SceneModule();
+
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
-	void updateHierarchy(GameObject* obj);
 	void preRender() override;
 	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
 	void postRender() override;
@@ -59,18 +71,19 @@ public:
 	void createGameObject();
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
 	void removeGameObject(const UID uuid);
+	std::vector<GameObject*> getAllGameObjects();
 
-	void addGameObject(GameObject* gameObject);
-	void detachGameObject(GameObject* gameObject);
+	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
 
+	void addToRootList(GameObject* gameObject);
+	void removeFromRootList(GameObject* gameObject);
+	const std::vector<GameObject*>& getRootObjects() const;
+
 	GameObject* createDirectionalLightOnInit();
-
-	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
-
 	const char* getName() { return (char*)m_name.c_str(); }
 	const void setName(const char* newName) { m_name = newName; }
 
@@ -81,15 +94,6 @@ public:
 
 	bool applySkyboxToRenderer();
 
-	Quadtree* getQuadtree() { return m_quadtree; }
+	Quadtree* getQuadtree() { return m_quadtree.get(); }
 	void createQuadtree();
-private:
-	std::string m_name = "SampleScene";
-
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	Quadtree*					m_quadtree;
-	SceneDataCB					m_sceneDataCB;
-	SkyboxSettings				m_skybox;
-
 };
