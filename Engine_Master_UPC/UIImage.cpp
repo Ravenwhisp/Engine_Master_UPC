@@ -64,3 +64,34 @@ bool UIImage::consumeLoadRequest()
     m_loadRequested = false;
     return was;
 }
+
+rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::UIIMAGE), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("TextureAssetId", m_textureAssetId, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("TextureAssetId"))
+    {
+        m_textureAssetId = componentInfo["TextureAssetId"].GetUint64();
+
+        m_texture = nullptr;
+        m_textureAsset = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(m_textureAssetId));
+
+        if (m_textureAsset)
+        {
+            m_loadRequested = true;
+        }
+    }
+
+    return true;
+}

@@ -118,7 +118,7 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
 	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
 	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspecRtatio", m_aspectRatio, domTree.GetAllocator());
+	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
 
 	return componentInfo;
 }
