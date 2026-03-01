@@ -179,6 +179,7 @@
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="Delegates.h" />
+    <ClInclude Include="FontImporter.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="AssetsModule.h" />
@@ -358,6 +359,7 @@
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="AssetsModule.cpp" />
