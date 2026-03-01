@@ -251,7 +251,7 @@ void RenderModule::cleanupSkybox()
     app->getResourcesModule()->destroyIndexBuffer(m_skyboxIndexBuffer);
     m_skyboxIndexCount = 0;
 
-    m_skyboxTexture.reset();
+    m_skyboxTexture = nullptr;
     m_hasSkybox = false;
 }
 
@@ -261,7 +261,7 @@ bool RenderModule::applySkyboxSettings(bool enabled, const char* cubemapPath)
     if (!enabled || cubemapPath[0] == '\0')
     {
         m_hasSkybox = false;
-        m_skyboxTexture.reset();
+        m_skyboxTexture = nullptr;
 
         DEBUG_LOG("[Skybox] Disabled");
 

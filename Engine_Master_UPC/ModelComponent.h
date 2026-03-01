@@ -1,7 +1,6 @@
 #pragma once
 #include "Component.h"
-#include "BasicMesh.h"
-#include "BasicMaterial.h"
+#include "ResourcesModule.h"
 #include "BoundingBox.h"
 #include "Asset.h"
 
@@ -17,10 +16,36 @@ class ModelComponent : public Component
 {
 public:
 	ModelComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
-	~ModelComponent();
 	void load(const char* fileName, const char* basePath);
-	std::vector<BasicMesh*>		getMeshes() const { return m_meshes; }
-	std::vector<BasicMaterial*>	getMaterials() const { return m_materials; }
+
+	const std::vector<std::unique_ptr<BasicMesh>>& getMeshes() const
+	{
+		static const std::vector<std::unique_ptr<BasicMesh>> empty;
+		return m_modelBinaryData ? m_modelBinaryData->m_meshes : empty; // m_modelBinaryData can be null/empty if no model has been loaded yet
+	}
+
+	void clearMeshes()
+	{
+		if (!getMeshes().empty())
+		{
+			m_modelBinaryData->m_meshes.clear();
+		}
+	}
+
+	const std::vector<std::unique_ptr<BasicMaterial>>& getMaterials() const
+	{
+		static const std::vector<std::unique_ptr<BasicMaterial>> empty;
+		return m_modelBinaryData ? m_modelBinaryData->m_materials : empty; // m_modelBinaryData can be null/empty if no model has been loaded yet
+	}
+
+	void clearMaterials()
+	{
+		if (!getMaterials().empty())
+		{
+			m_modelBinaryData->m_materials.clear();
+		}
+	}
+
 	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
 
 #pragma region Loop functions
@@ -36,9 +61,10 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
+	void printModelBinaryDataRefCount() { DEBUG_LOG(std::string(std::to_string(m_modelBinaryData.use_count())).c_str()); }
+
 private:
-	std::vector<BasicMesh*>		m_meshes;
-	std::vector<BasicMaterial*>	m_materials;
+	std::shared_ptr<ModelBinaryData> m_modelBinaryData;
 
 	std::string m_modelPath;
 	std::string m_basePath;
