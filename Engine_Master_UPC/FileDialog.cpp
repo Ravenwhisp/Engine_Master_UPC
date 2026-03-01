@@ -31,7 +31,7 @@ void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
     {
         if (m_lastActionRequested == Command::MOVE)
         {
-        moveFile(directory.get());
+            moveFile(directory.get());
         }
     }
     
@@ -244,9 +244,19 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                     cutItem(asset);
                 }
 
-                if (ImGui::MenuItem("Delete Folder"))
+                if (ImGui::MenuItem("Delete Folder", "Del"))
                 {
                     deleteFolder(asset);
+                }
+
+                ImGui::Spacing(); ImGui::Spacing();
+                ImGui::Text("General");
+                ImGui::Separator();
+
+                if (m_lastActionRequested != Command::NONE and m_fileToManage != asset->path and 
+                    ImGui::MenuItem("Paste", "Ctrl + V"))
+                {
+                    pasteFile(asset);
                 }
 
                 ImGui::EndPopup();
