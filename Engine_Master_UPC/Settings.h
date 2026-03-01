@@ -41,6 +41,8 @@ struct SceneEditorSettings
 struct FrustumCullingSettings
 {
     bool debugFrustumCulling = false;
+    float quadtreeXExtraSize = 10.0f;
+    float quadtreeZExtraSize = 10.0f;
 };
 
 class Settings

@@ -117,8 +117,12 @@ void SceneModule::createQuadtree()
             maxZ = std::max(maxZ, wmax.z);
         }
     }
+	minX -= app->getSettings()->frustumCulling.quadtreeXExtraSize;
+	minZ -= app->getSettings()->frustumCulling.quadtreeZExtraSize;
+	maxX += app->getSettings()->frustumCulling.quadtreeXExtraSize;
+	maxZ += app->getSettings()->frustumCulling.quadtreeZExtraSize;
 
-    auto rectangle = BoundingRect(minX, minZ, maxX-minX, maxZ-minZ);
+    auto rectangle = BoundingRect(minX, minZ, maxX - minX, maxZ - minZ);
     m_quadtree = std::make_unique<Quadtree>(rectangle);
 
     for (const std::unique_ptr<GameObject>& go : m_allObjects)
@@ -530,6 +534,13 @@ bool SceneModule::loadScene(const std::string& sceneName)
 
 void SceneModule::clearScene()
 {
+	app->getEditorModule()->setSelectedGameObject(nullptr);
+
+    for (auto& go : m_allObjects)
+    {
+        go->cleanUp();
+    }
+
     m_rootObjects.clear();
     m_allObjects.clear();
 }

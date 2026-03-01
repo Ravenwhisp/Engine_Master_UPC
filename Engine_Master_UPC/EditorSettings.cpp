@@ -94,5 +94,7 @@ void EditorSettings::drawFrustumCullingSettings()
     if (ImGui::CollapsingHeader("Frustum culling"))
     {
         ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.debugFrustumCulling);
+        ImGui::DragFloat("Quadtree extra X size", &m_settings->frustumCulling.quadtreeXExtraSize, 1.f, 0.f, 100.f);
+        ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
     }
 }
