@@ -91,6 +91,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
     auto it = std::find(m_components.begin(), m_components.end(), componentToRemove);
     if (it != m_components.end())
     {
+        (*it)->cleanUp();
         delete* it;
         m_components.erase(it);
         return true;
@@ -103,7 +104,9 @@ Component* GameObject::GetComponent(ComponentType type) const
     for (Component* component : m_components)
     {
         if (component && component->getType() == type)
+        {
             return component;
+        }
     }
     return nullptr;
 }
