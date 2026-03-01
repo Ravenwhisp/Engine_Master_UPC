@@ -188,6 +188,10 @@
     <ClCompile Include="SceneConfig.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
+    <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="UID.cpp" />
+    <ClCompile Include="UtilityGLFT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -414,6 +418,8 @@
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="UID.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

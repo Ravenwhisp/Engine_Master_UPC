@@ -173,7 +173,6 @@
     <ClInclude Include="3rdParty\imgui-docking\imgui.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
-    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BoundingVolume.h" />
@@ -317,9 +316,6 @@
       </PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="3rdParty\simdjson\simdjson.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
