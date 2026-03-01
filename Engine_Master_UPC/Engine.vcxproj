@@ -179,7 +179,7 @@
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="Delegates.h" />
-    <ClInclude Include="EventSystem.h" />
+    <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="AssetsModule.h" />
     <ClInclude Include="BinaryReader.h" />
@@ -358,7 +358,7 @@
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="Component.cpp" />
-    <ClCompile Include="EventSystem.cpp" />
+    <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="AssetsModule.cpp" />
     <ClCompile Include="BoundingBox.cpp" />

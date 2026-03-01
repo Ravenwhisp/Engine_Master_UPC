@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "EventSystem.h"
+#include "ModuleEventSystem.h"
 
 #include "Application.h"
 #include "InputModule.h"
@@ -44,26 +44,24 @@ static bool IsMouseButtonReleased(PointerButton btn)
     }
 }
 
-// -----------------------------------------------------------------------
-bool EventSystem::init()
+bool ModuleEventSystem::init()
 {
     return true;
 }
 
-void EventSystem::update()
+void ModuleEventSystem::update()
 {
     process();
 }
 
-bool EventSystem::cleanUp()
+bool ModuleEventSystem::cleanUp()
 {
     for (auto& state : m_buttonStates)
         state = ButtonState{};
     return true;
 }
 
-// -----------------------------------------------------------------------
-void EventSystem::process()
+void ModuleEventSystem::process()
 {
     const Vector2 mousePos = GetMouseScreenPos();
 
@@ -122,7 +120,7 @@ void EventSystem::process()
 }
 
 
-GameObject* EventSystem::raycast(const Vector2& screenPos)
+GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
 {
     GameObject* best = nullptr;
     int         bestDepth = -1;
@@ -139,7 +137,7 @@ GameObject* EventSystem::raycast(const Vector2& screenPos)
     return best;
 }
 
-void EventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObject*& best, int& bestDepth, int depth)
+void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObject*& best, int& bestDepth, int depth)
 {
     if (!go || !go->GetActive()) return;
 
@@ -170,7 +168,7 @@ void EventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObjec
 }
 
 
-void EventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
+void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
     for (Component* c : go->GetComponents())
     {
@@ -181,7 +179,7 @@ void EventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
     }
 }
 
-void EventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
+void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 {
     for (Component* c : go->GetComponents())
     {
