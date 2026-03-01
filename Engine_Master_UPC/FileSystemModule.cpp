@@ -5,6 +5,7 @@
 
 #include "TextureImporter.h"
 #include "ModelImporter.h"
+#include "FontImporter.h"
 #include "Asset.h"
 
 #include "TextureAsset.h"
@@ -15,13 +16,17 @@ bool FileSystemModule::init()
 
     auto textureImporter = new TextureImporter();
     auto modelImporter = new ModelImporter();
+    auto fontImporter = new FontImporter();
 
     importersMap.emplace(AssetType::TEXTURE, textureImporter);
     importersMap.emplace(AssetType::MODEL, modelImporter);
+    importersMap.emplace(AssetType::FONT, fontImporter);
 
     importers.push_back(textureImporter);
     importers.push_back(modelImporter);
+    importers.push_back(fontImporter);
 
+    rebuild();
     rebuild();
 
     return true;

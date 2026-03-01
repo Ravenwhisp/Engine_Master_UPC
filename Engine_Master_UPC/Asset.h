@@ -20,6 +20,7 @@ enum class AssetType : uint32_t
 	MODEL = 1,
 	MATERIAL = 2,
 	MESH = 3,
+	FONT = 4,
 
 	UNKNOWN = 4
 };
