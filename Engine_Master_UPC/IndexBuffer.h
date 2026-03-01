@@ -14,7 +14,7 @@ class IndexBuffer: public Buffer
 public:
     IndexBuffer(ID3D12Device4& device, size_t numIndices, DXGI_FORMAT indexFormat);
     IndexBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> resource, size_t numIndices, DXGI_FORMAT indexFormat);
-    virtual ~IndexBuffer() = default;
+    virtual ~IndexBuffer();
 
     D3D12_INDEX_BUFFER_VIEW getIndexBufferView() const{ return m_IndexBufferView; }
     size_t                  getNumIndices() const{ return m_NumIndices; }
