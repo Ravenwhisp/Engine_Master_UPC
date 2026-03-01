@@ -143,8 +143,8 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
     const Vector2 rawMouse = app->getInputModule()->getMousePosition();
 
     // Viewport top-left in screen pixels
-    const float winX = sceneEditor->getWindowX();
-    const float winY = sceneEditor->getWindowY();
+    const float winX = sceneEditor->getViewportX();
+    const float winY = sceneEditor->getViewportY();
     const float winW = sceneEditor->getSize().x;
     const float winH = sceneEditor->getSize().y;
 
@@ -206,20 +206,10 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, Gam
     if (t2d && t2d->isActive())
     {
         const Rect2D rect = t2d->getRect();
-        DEBUG_LOG("GO: %s | rect(%.1f, %.1f, %.1f, %.1f) | mouse(%.1f, %.1f) | hit: %d",
-            go->GetName(),
-            rect.x, rect.y, rect.w, rect.h,
-            screenPos.x, screenPos.y,
-            rect.contains(screenPos));
 
-        // Step 1 – rect AABB
         if (rect.contains(screenPos))
         {
-            // Step 2 – image bounds refinement (only if a UIImage is present)
-            UIImage* img = go->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
-            const bool imageHit = !img || !img->isActive() || img->containsPoint(rect, screenPos);
-
-            if (imageHit && depth >= bestDepth)
+            if (depth >= bestDepth)
             {
                 best = go;
                 bestDepth = depth;
