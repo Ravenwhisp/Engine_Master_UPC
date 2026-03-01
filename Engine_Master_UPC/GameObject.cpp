@@ -5,6 +5,7 @@
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
+#include "CameraFollow.h"
 #include "Application.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -42,6 +43,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CAMERA:
             m_components.push_back(new CameraComponent(GenerateUID(), this));
             break;
+        case ComponentType::CAMERA_FOLLOW:
+            m_components.push_back(new CameraFollow(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -72,6 +76,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CAMERA:
         newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::CAMERA_FOLLOW:
+        newComponent = new CameraFollow(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;

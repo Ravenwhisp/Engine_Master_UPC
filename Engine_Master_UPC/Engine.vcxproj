@@ -179,6 +179,7 @@
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraModule.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -325,6 +326,7 @@
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraModule.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="D3D12Module.cpp" />
