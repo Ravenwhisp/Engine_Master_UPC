@@ -6,6 +6,8 @@
 #include "Mouse.h"
 #include "GamePad.h"
 
+#include "EditorModule.h"
+
 InputModule::InputModule(HWND hWnd)
 {
     m_keyboard = std::make_unique<Keyboard>();
@@ -98,7 +100,7 @@ bool InputModule::isMiddleMouseHeld() const
 Vector2 InputModule::getMousePosition() const
 {
     const Mouse::State state = m_mouse->GetState();
-    return Vector2(state.x, state.y);
+    return { static_cast<float>(state.x), static_cast<float>(state.y) };
 }
 
 void InputModule::getMouseDelta(float& deltaX, float& deltaY)
