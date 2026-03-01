@@ -33,8 +33,6 @@ public:
 	Texture* getTexture() const { return m_textureColor.get(); }
 	BDRFPhongMaterialData& getMaterial() { return m_materialData; }
 	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
-
-	long printTextureRefCount() {  return m_textureColor.use_count(); }
 private:
 	uint32_t m_index;
 	std::shared_ptr<Texture>	m_textureColor;

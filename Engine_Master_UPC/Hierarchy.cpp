@@ -49,7 +49,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 		: ImGuiTreeNodeFlags_OpenOnArrow;
 
 	std::string label =
-		gameObject->GetName() + " " + std::to_string(gameObject->GetID()) + "###" + std::to_string(gameObject->GetID());
+		gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
 
 	bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
 

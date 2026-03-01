@@ -25,7 +25,6 @@ GameObject::~GameObject()
 
 bool GameObject::AddComponent(ComponentType componentType)
 {
-    ModelComponent* mC;
     switch (componentType)
     {
         case ComponentType::LIGHT:
