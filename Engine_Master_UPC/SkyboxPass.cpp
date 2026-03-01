@@ -78,6 +78,10 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) :
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    if (!m_skyBox) return;
+    if (!m_skyBox->getTexture()) return;
+    if (!m_view || !m_projection) return;
+
     Matrix view = *m_view;
     view._41 = 0.0f;
     view._42 = 0.0f;
@@ -113,8 +117,28 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void SkyBoxPass::setSettings(const SkyboxSettings& settings)
 {
+    if (!settings.enabled)
+    {
+        m_skyBox.reset();
+        return;
+    }
+
+    if (settings.cubemapAssetId == 0)
+    {
+        m_skyBox.reset();
+        return;
+    }
+
     auto assetModule = app->getAssetModule();
 
-    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->find(settings.path)));
+    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(settings.cubemapAssetId));
+
+    if (!asset)
+    {
+        DEBUG_ERROR("Skybox cubemap asset not found");
+        m_skyBox.reset();
+        return;
+    }
+
     m_skyBox = std::make_unique<SkyBox>(*asset);
 }

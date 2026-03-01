@@ -286,7 +286,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
 
 bool SceneModule::applySkyboxToRenderer()
 {
-    return app->getRenderModule()->applySkyboxSettings(m_skybox);
+    return app->getRenderModule()->applySkyboxSettings();
 }
 
 #pragma region Persistence
@@ -350,10 +350,7 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
     rapidjson::Value skyboxInfo(rapidjson::kObjectType);
 
     skyboxInfo.AddMember("Enabled", m_skybox.enabled, domTree.GetAllocator());
-    {
-        rapidjson::Value path(m_skybox.path, domTree.GetAllocator()); // copy char[] path
-        skyboxInfo.AddMember("Path", path, domTree.GetAllocator());
-    }
+    skyboxInfo.AddMember("CubemapAssetId", (uint64_t)m_skybox.cubemapAssetId, domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -411,9 +408,7 @@ bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) {
     auto& skybox = getSkyboxSettings();
     const auto& skyboxJson = sceneJson["Skybox"];
     skybox.enabled = skyboxJson["Enabled"].GetBool();
-
-    const char* pathStr = skyboxJson["Path"].GetString();
-    strcpy_s(skybox.path, 260, pathStr);
+    skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
 
     return true;
 }
