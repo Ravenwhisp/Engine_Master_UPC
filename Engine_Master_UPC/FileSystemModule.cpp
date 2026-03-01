@@ -197,14 +197,15 @@ void FileSystemModule::rebuild()
 
     m_metadataMap.clear();
     m_pendingImports.clear();
-    m_root = buildTree(s);
-
+    
+    checkFile(s);
     for (const auto& pending : m_pendingImports)
     {
         app->getAssetModule()->import(pending.sourcePath, pending.existingUID);
     }
-
     cleanOrphanedBinaries();
+
+    m_root = buildTree(s);
 }
 
 std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
@@ -272,14 +273,6 @@ void FileSystemModule::handleMissingMetadata(const std::filesystem::path& source
 
 std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::filesystem::path& path)
 {
-    std::filesystem::path sourcePath = path.parent_path() / path.stem();
-
-    if (!exists(sourcePath.string().c_str()))
-    {
-        handleOrphanedMetadata(path);
-        return nullptr;
-    }
-
     auto entry = std::make_shared<FileEntry>();
     entry->path = path.lexically_normal();
     entry->isDirectory = false;
@@ -288,8 +281,56 @@ std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::files
     AssetMetadata meta;
     if (AssetMetadata::loadMetaFile(path, meta))
     {
-        m_metadataMap[meta.uid] = meta;
         entry->uid = meta.uid;
+    }
+    else
+    {
+        DEBUG_ERROR("[FileSystemModule] Failed to create metadata file node '{}'.", path.string());
+    }
+
+    return entry;
+}
+
+void FileSystemModule::checkFile(const std::filesystem::path& path)
+{
+    if (isDirectory(path.string().c_str()))
+    {
+        for (const auto& p : std::filesystem::directory_iterator(path))
+        {
+            checkFile(p.path());
+        }
+        return;
+    }
+
+    if (path.extension() == METADATA_EXTENSION)
+    {
+        loadMetadata(path);
+        return;
+    }
+
+    // Raw source file — ensure its .metadata exists
+    std::filesystem::path metadataPath = path;
+    metadataPath += METADATA_EXTENSION;
+    if (!exists(metadataPath.string().c_str()))
+    {
+        handleMissingMetadata(path);
+    }
+}
+
+void FileSystemModule::loadMetadata(const std::filesystem::path& path)
+{
+    std::filesystem::path sourcePath = path.parent_path() / path.stem();
+
+    if (!exists(sourcePath.string().c_str()))
+    {
+        handleOrphanedMetadata(path);
+        return;
+    }
+
+    AssetMetadata meta;
+    if (AssetMetadata::loadMetaFile(path, meta))
+    {
+        m_metadataMap[meta.uid] = meta;
 
         if (!exists(getBinaryPath(meta.uid).string().c_str()))
         {
@@ -300,8 +341,6 @@ std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::files
     {
         DEBUG_ERROR("[FileSystemModule] Failed to load metadata file '{}'.", path.string());
     }
-
-    return entry;
 }
 
 std::shared_ptr<FileEntry> FileSystemModule::buildDirectoryEntry(const std::filesystem::path& path)
@@ -333,14 +372,6 @@ std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::pa
     if (path.extension() == METADATA_EXTENSION)
     {
         return buildMetadataEntry(path);
-    }
-
-    // Raw source file — ensure its .metadata exists
-    std::filesystem::path metadataPath = path;
-    metadataPath += METADATA_EXTENSION;
-    if (!exists(metadataPath.string().c_str()))
-    {
-        handleMissingMetadata(path);
     }
 
     return nullptr;

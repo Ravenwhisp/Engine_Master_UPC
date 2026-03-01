@@ -62,6 +62,10 @@ private:
 	std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path);
 	std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path);
 	std::shared_ptr<FileEntry> buildMetadataEntry(const std::filesystem::path& path);
+
+	void checkFile(const std::filesystem::path& path);
+	void loadMetadata(const std::filesystem::path& path);
+
 	void handleMissingMetadata(const std::filesystem::path& path);
 	void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
 	std::filesystem::path getBinaryPath(UID uid) const;
