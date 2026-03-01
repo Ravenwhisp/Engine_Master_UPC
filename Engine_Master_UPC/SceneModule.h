@@ -23,7 +23,7 @@ struct SceneLightingSettings
 struct SkyboxSettings
 {
 	bool enabled = true;
-	char path[260] = "Assets/Textures/cubemap2.dds";
+	UID cubemapAssetId = 0;
 };
 
 class SceneModule : public Module
