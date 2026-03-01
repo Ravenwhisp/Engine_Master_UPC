@@ -1,11 +1,13 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "Application.h"
+#include "SceneModule.h"
+
 #include "ModelComponent.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
-#include "Application.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -272,7 +274,7 @@ void GameObject::drawUI()
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        if (component->getType() == ComponentType::CAMERA && app->getActiveCamera() == component)
+        if (component->getType() == ComponentType::CAMERA && app->getSceneModule()->getDefaultCamera() == component)
         {
             header += " (Default)";
         }

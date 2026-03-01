@@ -34,7 +34,7 @@ bool SceneModule::init()
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    app->setActiveCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
+    m_defaultCamera = gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
     auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
     gameCamera->RemoveComponent(component);
     m_allObjects.push_back(std::move(gameCamera));
@@ -91,6 +91,11 @@ void SceneModule::createQuadtree()
 
     for (const std::unique_ptr<GameObject>& go : m_allObjects)
     {
+        if(!go->GetActive())
+        {
+            continue;
+		}
+        
         Component* component = go->GetComponent(ComponentType::MODEL);
         if (component)
         {
@@ -129,12 +134,12 @@ void SceneModule::createQuadtree()
     {
         m_quadtree->insert((*go));
     }
+
     DEBUG_LOG("QUADTREE created");
 }
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
 {
-    CameraComponent* camera = app->getActiveCamera();
 
     if (m_quadtree)
     {
@@ -152,7 +157,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
         }
     }
 
-    const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling && camera;
+    const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling && m_defaultCamera;
 
     if (useCulling)
     {
@@ -161,7 +166,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
             createQuadtree();
         }
 
-        auto visibleObjects = m_quadtree->getObjects(&camera->getFrustum());
+        auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
 
         for (GameObject* gameObject : visibleObjects)
         {
@@ -543,6 +548,8 @@ void SceneModule::clearScene()
 
     m_rootObjects.clear();
     m_allObjects.clear();
+
+	m_defaultCamera = nullptr;
 }
 #pragma endregion
 

@@ -6,6 +6,7 @@
 
 class SceneSerializer;
 class Quadtree;
+class CameraComponent;
 
 struct SceneDataCB
 {
@@ -39,6 +40,8 @@ private:
 	SceneLightingSettings		m_lighting;
 	SceneDataCB					m_sceneDataCB;
 	SkyboxSettings				m_skybox;
+
+	CameraComponent* m_defaultCamera = nullptr;
 
 public:
 	SceneModule();
@@ -96,4 +99,7 @@ public:
 
 	Quadtree* getQuadtree() { return m_quadtree.get(); }
 	void createQuadtree();
+
+	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
+	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 };

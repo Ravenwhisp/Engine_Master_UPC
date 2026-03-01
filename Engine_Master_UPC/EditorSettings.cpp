@@ -1,9 +1,10 @@
 #include "Globals.h"
 #include "EditorSettings.h"
-#include "Application.h"
-#include "Settings.h"
-#include "RenderModule.h"
 
+#include "Application.h"
+#include "SceneModule.h"
+
+#include "Settings.h"
 
 EditorSettings::EditorSettings()
 {
@@ -96,5 +97,11 @@ void EditorSettings::drawFrustumCullingSettings()
         ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.debugFrustumCulling);
         ImGui::DragFloat("Quadtree extra X size", &m_settings->frustumCulling.quadtreeXExtraSize, 1.f, 0.f, 100.f);
         ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
+    }
+
+    if (m_settings->frustumCulling.debugFrustumCulling && !app->getSceneModule()->getDefaultCamera())
+    {
+        m_settings->frustumCulling.debugFrustumCulling = false;
+        DEBUG_WARN("Cannot show quadtree because there is no default camera set in the scene.");
     }
 }
