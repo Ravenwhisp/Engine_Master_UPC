@@ -8,6 +8,8 @@
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
+#include "CameraFollow.h"
+#include "Application.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -44,6 +46,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CAMERA:
             m_components.push_back(new CameraComponent(GenerateUID(), this));
             break;
+        case ComponentType::CAMERA_FOLLOW:
+            m_components.push_back(new CameraFollow(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -75,6 +80,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::CAMERA:
         newComponent = new CameraComponent(id, this);
         break;
+    case ComponentType::CAMERA_FOLLOW:
+        newComponent = new CameraFollow(id, this);
+        break;
     case ComponentType::COUNT:
         return nullptr;
 
@@ -93,6 +101,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
     auto it = std::find(m_components.begin(), m_components.end(), componentToRemove);
     if (it != m_components.end())
     {
+        (*it)->cleanUp();
         delete* it;
         m_components.erase(it);
         return true;
@@ -105,7 +114,9 @@ Component* GameObject::GetComponent(ComponentType type) const
     for (Component* component : m_components)
     {
         if (component && component->getType() == type)
+        {
             return component;
+        }
     }
     return nullptr;
 }

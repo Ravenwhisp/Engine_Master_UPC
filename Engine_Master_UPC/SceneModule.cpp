@@ -333,6 +333,21 @@ void SceneModule::destroyHierarchy(GameObject* obj)
     destroyGameObject(obj);
 }
 
+GameObject* SceneModule::findGameObjectByUID(UID uuid)
+{
+    for (GameObject* root : m_gameObjects)
+    {
+        if (root->GetID() == uuid) {
+            return root;
+        }
+
+        if (GameObject* found = findInHierarchy(root, uuid)) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     auto go = std::make_unique<GameObject>(GenerateUID());
