@@ -17,7 +17,7 @@ BasicMesh::BasicMesh(const MeshAsset& asset)
 
 	if (asset.getIndexBufferSize() > 0) 
 	{
-		m_indexBuffer = app->getResourcesModule()->createIndexBuffer(asset.getIndexData(), asset.getIndexBufferSize(), asset.getIndexFormat());
+		m_indexBuffer = app->getResourcesModule()->createIndexBuffer(asset.getIndexData(), asset.getIndexCount(), asset.getIndexFormat());
 	}
 }
 
