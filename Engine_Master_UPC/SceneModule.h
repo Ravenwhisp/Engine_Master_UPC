@@ -1,12 +1,13 @@
 #pragma once
 #include "Module.h"
 #include "GameObject.h"
-#include "Quadtree.h"
 #include "Lights.h"
 #include "UID.h"
 #include "MeshRenderer.h"
 
 class SceneSerializer;
+class Quadtree;
+class CameraComponent;
 
 struct SceneDataCB
 {
@@ -28,11 +29,28 @@ struct SkyboxSettings
 
 class SceneModule : public Module
 {
+private:
+	std::string m_name = "SampleScene";
+
+	std::vector<std::unique_ptr<GameObject>> m_allObjects;
+	std::vector<GameObject*> m_rootObjects;
+
+	std::unique_ptr<SceneSerializer> m_sceneSerializer;
+	std::unique_ptr<Quadtree> m_quadtree;
+
+	SceneLightingSettings		m_lighting;
+	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
+
+	CameraComponent* m_defaultCamera = nullptr;
+
 public:
+	SceneModule();
+	~SceneModule();
+
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
-	void updateHierarchy(GameObject* obj);
 	void preRender() override;
 	void render(ID3D12GraphicsCommandList* commandList);
 	void postRender() override;
@@ -56,14 +74,18 @@ public:
 
 	void createGameObject();
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
+	GameObject* findGameObjectByUID(UID uuid);
 	void removeGameObject(const UID uuid);
 
-	void addGameObject(GameObject* gameObject);
-	void detachGameObject(GameObject* gameObject);
+	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
+
+	void addToRootList(GameObject* gameObject);
+	void removeFromRootList(GameObject* gameObject);
+	const std::vector<GameObject*>& getRootObjects() const;
 
 	GameObject* createDirectionalLightOnInit();
 
@@ -80,17 +102,9 @@ public:
 
 	bool applySkyboxToRenderer();
 
-	Quadtree& getQuadtree() { return *m_quadtree; }
-private:
+	Quadtree* getQuadtree() { return m_quadtree.get(); }
+	void createQuadtree();
 
-	SceneSerializer* m_sceneSerializer;
-	std::string m_name = "SampleScene";
-
-	std::vector<GameObject*>	m_gameObjects;
-	std::vector<MeshRenderer*>	m_meshRenderers;
-	SceneLightingSettings		m_lighting;
-	Quadtree*					m_quadtree;
-	SceneDataCB					m_sceneDataCB;
-	SkyboxSettings				m_skybox;
-
+	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
+	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 };

@@ -38,7 +38,8 @@ public:
 
 	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
 private:
-	std::unique_ptr<Texture>	m_textureColor;
+	uint32_t m_index;
+	std::shared_ptr<Texture>	m_textureColor;
 	ComPtr<ID3D12Resource>		m_materialBuffer;
 	BDRFPhongMaterialData		m_materialData;
 };
