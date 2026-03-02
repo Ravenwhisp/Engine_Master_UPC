@@ -173,7 +173,6 @@
     <ClInclude Include="3rdParty\imgui-docking\imgui.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
-    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetsDictionary.h" />
@@ -189,6 +188,7 @@
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraModule.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -352,9 +352,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="3rdParty\simdjson\simdjson.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="Canvas.cpp" />
@@ -366,6 +363,7 @@
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraModule.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="D3D12Module.cpp" />

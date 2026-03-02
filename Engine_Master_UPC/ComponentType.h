@@ -10,7 +10,8 @@
     X(CANVAS)               \
     X(UIIMAGE)              \
     X(UITEXT)               \
-    X(UIBUTTON)
+    X(UIBUTTON)             \
+    X(CAMERA_FOLLOW)
 
 enum class ComponentType
 {

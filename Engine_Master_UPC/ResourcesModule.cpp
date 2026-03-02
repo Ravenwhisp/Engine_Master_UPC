@@ -216,7 +216,7 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const Textur
 
 	info.srvDesc = &srvDesc;
 
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -386,3 +386,42 @@ void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
 	}
 }
 
+std::weak_ptr<Texture> ResourcesModule::getLoadedTexture(const std::string& path) const 
+{
+	return m_loadedTextures.at(path);
+}
+
+bool ResourcesModule::isTextureLoaded(const std::string& path) const
+{
+	return m_loadedTextures.find(path) != m_loadedTextures.end();
+}
+
+void ResourcesModule::markTextureAsLoaded(const std::string& path, std::shared_ptr<Texture> resource)
+{
+	m_loadedTextures.emplace(path, resource);
+}
+
+void ResourcesModule::markTextureAsNotLoaded(const std::string& path)
+{
+	m_loadedTextures.erase(path);
+}
+
+std::weak_ptr<ModelBinaryData> ResourcesModule::getLoadedModel(const std::string& path) const
+{
+	return m_loadedModels.at(path);
+}
+
+bool ResourcesModule::isModelLoaded(const std::string& path) const
+{
+	return m_loadedModels.find(path) != m_loadedModels.end();
+}
+
+void ResourcesModule::markModelAsLoaded(const std::string& path, std::shared_ptr<ModelBinaryData> resource)
+{
+	m_loadedModels.emplace(path, resource);
+}
+
+void ResourcesModule::markModelAsNotLoaded(const std::string& path)
+{
+	m_loadedModels.erase(path);
+}

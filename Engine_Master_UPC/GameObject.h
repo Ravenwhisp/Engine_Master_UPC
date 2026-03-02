@@ -39,7 +39,7 @@ public:
 	Component* AddComponentWithUID(const ComponentType componentType, UID id);
 	bool RemoveComponent(Component* componentToRemove);
 	Component* GetComponent(ComponentType type) const;
-	const std::vector<Component*>& GetComponents() const { return m_components; }
+	std::vector<Component*> GetAllComponents() const;
 
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const
@@ -77,6 +77,6 @@ private:
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
 
+	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;
-	std::vector<Component*> m_components;
 };

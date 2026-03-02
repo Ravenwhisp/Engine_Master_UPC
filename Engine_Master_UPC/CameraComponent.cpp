@@ -1,9 +1,10 @@
 #include "Globals.h"
 #include "CameraComponent.h"
-#include "GameObject.h"
-#include "Application.h"
 
-extern Application* app;
+#include "Application.h"
+#include "SceneModule.h"
+
+#include "GameObject.h"
 
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
@@ -84,7 +85,7 @@ void CameraComponent::drawUi()
 	
 	if (ImGui::Button("Set as Default Camera"))
 	{
-		app->setActiveCamera(this);
+		app->getSceneModule()->setDefaultCamera(this);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
@@ -99,10 +100,15 @@ void CameraComponent::drawUi()
 	}
 }
 
-bool CameraComponent::cleanUp() {
+bool CameraComponent::cleanUp() 
+{
 	if (app->getCurrentCameraPerspective() == this)
 	{
 		app->setCurrentCameraPerspective(nullptr);
+	}
+	if (app->getSceneModule()->getDefaultCamera() == this)
+	{
+		app->getSceneModule()->setDefaultCamera(nullptr);
 	}
 	return true;
 }
