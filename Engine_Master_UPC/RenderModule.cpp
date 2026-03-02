@@ -23,6 +23,7 @@
 
 #include "Logger.h"
 
+#include "CameraComponent.h"
 
 bool RenderModule::init()
 {
@@ -82,14 +83,33 @@ void RenderModule::preRender()
     D3D12_RECT scissorRect = D3D12_RECT{ 0, 0,  static_cast<LONG>(m_size.x),  static_cast<LONG>(m_size.y) };
     renderBackground(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, viewport, scissorRect);
 
-    m_skyBoxPass->setView(app->getCameraModule()->getView());
-    m_skyBoxPass->setProjection(app->getCameraModule()->getProjection());
+
+    Matrix viewMatrix;
+    Matrix projectionMatrix;
+    Vector3 cameraPosition;
+
+    if (app->getCurrentCameraPerspective())
+    {
+        const CameraComponent* camera = app->getCurrentCameraPerspective();
+        viewMatrix = camera->getViewMatrix();
+        projectionMatrix = camera->getProjectionMatrix();
+        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
+    }
+    else
+    {
+        viewMatrix = app->getCameraModule()->getView();
+        projectionMatrix = app->getCameraModule()->getProjection();
+        cameraPosition = app->getCameraModule()->getPosition();
+    }
+
+    m_skyBoxPass->setView(viewMatrix);
+    m_skyBoxPass->setProjection(projectionMatrix);
     m_skyBoxPass->apply(m_commandList);
 
 
-    m_meshRendererPass->setCameraPosition(app->getCameraModule()->getPosition());
-    m_meshRendererPass->setView(app->getCameraModule()->getView());
-    m_meshRendererPass->setProjection(app->getCameraModule()->getProjection());
+    m_meshRendererPass->setCameraPosition(cameraPosition);
+    m_meshRendererPass->setView(viewMatrix);
+    m_meshRendererPass->setProjection(projectionMatrix);
 
     /*m_meshRendererPass->setRenderTargetView(m_screenRT->getRTV(0).cpu);
     m_meshRendererPass->setDepthStencilView(m_screenDS->getDSV().cpu);
@@ -103,8 +123,8 @@ void RenderModule::preRender()
     m_meshRendererPass->apply(m_commandList);
 
     // REPEATED CODE WITH MESH RENDERER PASS
-    m_debugDrawPass->setView(app->getCameraModule()->getView());
-    m_debugDrawPass->setProjection(app->getCameraModule()->getProjection());
+    m_debugDrawPass->setView(viewMatrix);
+    m_debugDrawPass->setProjection(projectionMatrix);
     m_debugDrawPass->setViewport(viewport);
 
     // THIS IS NOT THE IDEAL BUT IS TO MAKE SURE THAT ALL WORKS
