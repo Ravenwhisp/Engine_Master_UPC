@@ -92,5 +92,4 @@ private:
 	Quadtree*					m_quadtree;
 	SceneDataCB					m_sceneDataCB;
 	SkyboxSettings				m_skybox;
-
 };

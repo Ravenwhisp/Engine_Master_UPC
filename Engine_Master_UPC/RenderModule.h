@@ -48,7 +48,7 @@ private:
 	IndexBuffer* m_skyboxIndexBuffer = nullptr;
 	uint32_t      m_skyboxIndexCount = 0;
 
-	std::unique_ptr<Texture> m_skyboxTexture;
+	std::shared_ptr<Texture> m_skyboxTexture;
 	bool m_hasSkybox = false;
 
 	//Scene Editor Offscreen Render Target
