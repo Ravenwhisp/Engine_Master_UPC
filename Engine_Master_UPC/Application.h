@@ -48,9 +48,6 @@ public:
     Settings*                   getSettings() { return m_settings; }
 
     // FIXME: Cannot return const CameraComponent* (which it should) because render is not const
-    CameraComponent* getActiveCamera() const { return m_activeCamera; }
-    void setActiveCamera(CameraComponent* camera) { m_activeCamera = camera; }
-
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
     void setCurrentCameraPerspective(CameraComponent* camera) { m_currentCameraPerspective = camera; }
 
@@ -81,9 +78,6 @@ private:
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
-
-    // This will be the Game mode / Simulation mode camera
-    CameraComponent* m_activeCamera = nullptr;
 
     // This is the current camera perspective, to check a CameraComponent's perspective from the scene editor
     CameraComponent* m_currentCameraPerspective = nullptr;

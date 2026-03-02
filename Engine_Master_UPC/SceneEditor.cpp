@@ -20,6 +20,7 @@
 #include "LightComponent.h"
 
 #include "CameraComponent.h"
+#include "Quadtree.h"
 
 
 SceneEditor::SceneEditor()
@@ -200,7 +201,13 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 void SceneEditor::renderQuadtree()
 {
-    std::vector<BoundingRect> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
+    Quadtree* quadtree = app->getSceneModule()->getQuadtree();
+    if (!quadtree)
+    {
+        return;
+    }
+
+    std::vector<BoundingRect> quadrants = quadtree->getQuadrants();
     for (const auto& rect : quadrants)
     {
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);
