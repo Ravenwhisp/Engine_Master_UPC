@@ -226,11 +226,14 @@
     <ClCompile Include="UIText.cpp">
       <Filter>GameEntity\Components\2D</Filter>
     </ClCompile>
-    <ClCompile Include="EventSystem.cpp">
+    <ClCompile Include="ModuleEventSystem.cpp">
       <Filter>Core\EventSystem</Filter>
     </ClCompile>
     <ClCompile Include="UIButton.cpp">
       <Filter>GameEntity\Components\2D</Filter>
+    </ClCompile>
+    <ClCompile Include="FontImporter.cpp">
+      <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -541,8 +544,11 @@
     <ClInclude Include="IPointerEventHandler.h">
       <Filter>Core\EventSystem</Filter>
     </ClInclude>
-    <ClInclude Include="EventSystem.h">
+    <ClInclude Include="ModuleEventSystem.h">
       <Filter>Core\EventSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="FontImporter.h">
+      <Filter>Core\Persistence\Importers\Implementations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

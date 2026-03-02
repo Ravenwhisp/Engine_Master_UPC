@@ -12,6 +12,12 @@ public:
 
     void update() override;
 
+    void setWindowSize(int width, int height)
+    {
+        m_windowWidth = width;
+        m_windowHeight = height;
+    }
+
 
     bool isKeyDown(Keyboard::Keys key);
 
@@ -50,4 +56,7 @@ private:
     float m_mouseDeltaY = 0.0f;
     float m_wheelDelta = 0.0f;
     bool  m_firstMove = true;
+
+    int m_windowWidth = 1920;
+    int m_windowHeight = 1080;
 };

@@ -11,6 +11,7 @@
 #include "SceneModule.h"
 #include "FileSystemModule.h"
 #include "AssetsModule.h"
+#include "ModuleEventSystem.h"
 #include "TimeModule.h"
 #include "PerformanceProfiler.h"
 #include <thread>
@@ -31,6 +32,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     modules.push_back(m_assetsModule = new AssetsModule());
     modules.push_back(m_fileSystemModule = new FileSystemModule());
+    modules.push_back(m_moduleEventSystem = new ModuleEventSystem());
 
     modules.push_back(m_uiModule = new UIModule());
     modules.push_back(m_renderModule = new RenderModule());
