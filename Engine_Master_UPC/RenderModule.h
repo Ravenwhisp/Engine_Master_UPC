@@ -30,7 +30,7 @@ public:
 	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 
-	bool applySkyboxSettings();
+	bool applySkyboxSettings(const SkyboxSettings& settings);
 private:
 	void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect);
 
@@ -52,8 +52,6 @@ private:
 	MeshRendererPass* m_meshRendererPass = nullptr;
 	DebugDrawPass* m_debugDrawPass = nullptr;
 	ImGuiPass* m_imGuiPass = nullptr;
-
-	bool m_applySkyboxNextFrame = false;
 
 	std::vector<IRenderPass*> m_renderPasses;
 };
