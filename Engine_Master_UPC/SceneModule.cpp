@@ -306,7 +306,8 @@ void SceneModule::addGameObject(std::unique_ptr<GameObject> gameObject)
 void SceneModule::destroyGameObject(GameObject* gameObject)
 {
     removeFromRootList(gameObject);
-    auto it = std::remove_if(
+
+    auto it = std::find_if(
         m_allObjects.begin(),
         m_allObjects.end(),
         [gameObject](const std::unique_ptr<GameObject>& ptr)
@@ -314,7 +315,11 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
             return ptr.get() == gameObject;
         });
 
-    m_allObjects.erase(it, m_allObjects.end());
+    if (it != m_allObjects.end())
+    {
+        (*it)->cleanUp();
+        m_allObjects.erase(it);
+    }
 }
 
 GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
@@ -337,15 +342,21 @@ void SceneModule::destroyHierarchy(GameObject* obj)
     auto children = obj->GetTransform()->getAllChildren();
 
     for (GameObject* child : children)
+    {
         destroyHierarchy(child);
+    }
 
     if (m_quadtree)
+    {
         m_quadtree->remove(*obj);
+    }
 
     Transform* parent = obj->GetTransform()->getRoot();
 
     if (parent)
+    {
         parent->removeChild(obj->GetID());
+    }
 
     destroyGameObject(obj);
 }
