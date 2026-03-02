@@ -2,6 +2,7 @@
 #include "Globals.h"
 #include "Asset.h"
 #include "Vertex.h"
+#include "IndexBuffer.h"
 
 class MaterialAsset : public Asset
 {
@@ -47,6 +48,9 @@ public:
 
     const void* getIndexData() const { return indices.data(); }
     uint32_t	getIndexBufferSize() const { return static_cast<uint32_t>(indices.size()); }
+	uint32_t getIndexCount() const {
+		return static_cast<uint32_t>(indices.size()) / getSizeByFormat(indexFormat);
+	}
 	DXGI_FORMAT getIndexFormat() const { return indexFormat; }
 
     const std::vector<Submesh>& getSubmeshes() const { return submeshes; }
