@@ -2,13 +2,95 @@
 #include "NavigationModule.h"
 #include "Application.h"
 #include "SceneModule.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "ModelComponent.h"
+#include "BasicMesh.h"
 
 #include "NavMeshResource.h"
 
 #include <fstream>
+#include <vector>
 
 #include <DetourNavMeshQuery.h>
 #include <DetourAlloc.h>
+#include <Logger.h>
+
+static void AppendMeshToNavGeometry(
+    const BasicMesh* mesh,
+    const Matrix& world,
+    std::vector<float>& outVerts,
+    std::vector<int>& outTris,
+    int& inOutBaseVertex)
+{
+    if (!mesh) return;
+
+    const auto& positions = mesh->getCpuPositions();
+    const auto& indices = mesh->getCpuIndices();  
+
+    if (positions.empty() || indices.empty())
+        return;
+
+    // Add world-space vertices
+    outVerts.reserve(outVerts.size() + positions.size() * 3);
+    for (const Vector3& pLocal : positions)
+    {
+        const Vector3 pWorld = Vector3::Transform(pLocal, world);
+        outVerts.push_back(pWorld.x);
+        outVerts.push_back(pWorld.y);
+        outVerts.push_back(pWorld.z);
+    }
+
+    // Add triangle indices with base offset
+    outTris.reserve(outTris.size() + indices.size());
+    for (uint32_t idx : indices)
+        outTris.push_back(inOutBaseVertex + static_cast<int>(idx));
+
+    inOutBaseVertex += static_cast<int>(positions.size());
+}
+
+static void CollectNavGeometryFromGameObject(
+    GameObject* obj,
+    std::vector<float>& outVerts,
+    std::vector<int>& outTris,
+    int& inOutBaseVertex,
+    Layer requiredLayer)
+{
+    if (!obj || !obj->GetActive())
+        return;
+
+    if (obj->GetLayer() == requiredLayer)
+    {
+        ModelComponent* model = obj->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+        if (model)
+        {
+            const Matrix& world = obj->GetTransform()->getGlobalMatrix();
+            const auto meshes = model->getMeshes();
+
+            for (const BasicMesh* mesh : meshes)
+                AppendMeshToNavGeometry(mesh, world, outVerts, outTris, inOutBaseVertex);
+        }
+    }
+
+    for (GameObject* child : obj->GetTransform()->getAllChildren())
+        CollectNavGeometryFromGameObject(child, outVerts, outTris, inOutBaseVertex, requiredLayer);
+}
+
+static void CollectNavGeometryFromScene(
+    SceneModule* scene,
+    std::vector<float>& outVerts,
+    std::vector<int>& outTris,
+    Layer requiredLayer)
+{
+    outVerts.clear();
+    outTris.clear();
+
+    if (!scene) return;
+
+    int baseVertex = 0;
+    for (GameObject* root : scene->getAllGameObjects())
+        CollectNavGeometryFromGameObject(root, outVerts, outTris, baseVertex, requiredLayer);
+}
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
@@ -25,11 +107,26 @@ bool NavigationModule::postInit()
     const char* sceneName = app->getSceneModule()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
+
     return true;
 }
 
 void NavigationModule::update()
 {
+    if (Logger::Instance())
+    {
+        std::vector<float> verts;
+        std::vector<int> tris;
+
+        CollectNavGeometryFromScene(app->getSceneModule(), verts, tris, Layer::NAVMESH);
+
+        const int numVerts = (int)verts.size() / 3;
+        const int numTris = (int)tris.size() / 3;
+
+        LOG_INFO(__FILE__, __LINE__,
+            "NavGeometry (Layer::NAVMESH): verts=%d tris=%d (vertsFloats=%zu trisInts=%zu)",
+            numVerts, numTris, verts.size(), tris.size());
+    }
 }
 
 bool NavigationModule::cleanUp()

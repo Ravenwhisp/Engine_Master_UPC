@@ -2,6 +2,8 @@
 #include "Globals.h"
 #include "Asset.h"
 
+#include <vector> 
+
 class VertexBuffer;
 class IndexBuffer;
 
@@ -12,8 +14,8 @@ class BasicMesh
 public:
 	~BasicMesh();
 	void load(const tinygltf::Model& model, const tinygltf::Mesh& mesh, const tinygltf::Primitive& primitive);
-	IndexBuffer* getVertexBuffer() { return m_indexBuffer; }
-	VertexBuffer* getIndexBuffer() { return m_vertexBuffer; }
+	IndexBuffer* getIndexBuffer() { return m_indexBuffer; }
+	VertexBuffer* getVertexBuffer() { return m_vertexBuffer; }
 
 	bool hasIndexBuffer() const;
 
@@ -25,6 +27,11 @@ public:
 	const Vector3& getBoundsMin() const { return m_boundsMin; }
 	const Vector3& getBoundsMax() const { return m_boundsMax; }
 
+	const std::vector<Vector3>& getCpuPositions() const { return m_cpuPositions; }
+    const std::vector<uint32_t>& getCpuIndices() const { return m_cpuIndices; }
+    bool hasCpuGeometry() const { return !m_cpuPositions.empty() && (!m_cpuIndices.empty()); }
+   
+
 private:
 	VertexBuffer* m_vertexBuffer;
 	IndexBuffer* m_indexBuffer;
@@ -34,4 +41,7 @@ private:
 	bool    m_hasBounds = false;
 	Vector3 m_boundsMin = Vector3(0, 0, 0);
 	Vector3 m_boundsMax = Vector3(0, 0, 0);
+
+	std::vector<Vector3>  m_cpuPositions;
+	std::vector<uint32_t> m_cpuIndices;
 };
