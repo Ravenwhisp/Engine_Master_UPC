@@ -26,6 +26,7 @@ void UIButton::press()
 {
     if (!isActive()) return;
     onClick.Broadcast();
+    DEBUG_LOG("UIButton pressed");
 }
 
 

@@ -1,9 +1,10 @@
 #include "Globals.h"
-#include "EventSystem.h"
+#include "ModuleEventSystem.h"
 
 #include "Application.h"
 #include "InputModule.h"
 #include "SceneModule.h"
+#include "EditorModule.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -13,6 +14,7 @@
 
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
+#include <SceneEditor.h>
 
 
 static Vector2 GetMouseScreenPos()
@@ -44,28 +46,31 @@ static bool IsMouseButtonReleased(PointerButton btn)
     }
 }
 
-// -----------------------------------------------------------------------
-bool EventSystem::init()
+bool ModuleEventSystem::init()
 {
     return true;
 }
 
-void EventSystem::update()
+void ModuleEventSystem::update()
 {
     process();
 }
 
-bool EventSystem::cleanUp()
+bool ModuleEventSystem::cleanUp()
 {
     for (auto& state : m_buttonStates)
         state = ButtonState{};
     return true;
 }
 
-// -----------------------------------------------------------------------
-void EventSystem::process()
+void ModuleEventSystem::process()
 {
-    const Vector2 mousePos = GetMouseScreenPos();
+    Vector2 mousePos;
+    if (!getViewportMousePos(mousePos))
+    {
+        clearHoverState();
+        return;
+    }
 
     // Find the topmost UI element under the cursor
     GameObject* hovered = raycast(mousePos);
@@ -86,20 +91,28 @@ void EventSystem::process()
         data.position = mousePos;
         data.pointerEnter = hovered;
 
+        if (hovered != state.pointerEnterLast)
+        {
+            if (state.pointerEnterLast)
+            {
+                data.pointerEnter = state.pointerEnterLast;
+                data.pointerEnter = hovered;
+            }
+
+            state.pointerEnterLast = hovered;
+        }
+
        
-        if (IsMouseButtonPressed(btn))
+        if (IsMouseButtonPressed(btn) && hovered)
         {
             state.pointerPress = hovered;
             state.pressPosition = mousePos;
 
-            if (hovered)
-            {
-                data.pointerPress = hovered;
-                data.pressPosition = mousePos;
-            }
+            data.pointerPress = hovered;
+            data.pressPosition = mousePos;
         }
 
-        if (IsMouseButtonReleased(btn))
+        if (IsMouseButtonReleased(btn) && state.pointerPress)
         {
             data.pressPosition = state.pressPosition;
             data.pointerPress = state.pointerPress;
@@ -115,14 +128,60 @@ void EventSystem::process()
                     sendPointerClick(hovered, data);
                 }
             }
-
-            state.pointerPress = nullptr;
         }
     }
 }
 
 
-GameObject* EventSystem::raycast(const Vector2& screenPos)
+bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
+{
+    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    if (!sceneEditor || !sceneEditor->isHovered())
+        return false;
+
+    // Raw mouse position in screen pixels
+    const Vector2 rawMouse = app->getInputModule()->getMousePosition();
+
+    // Viewport top-left in screen pixels
+    const float winX = sceneEditor->getViewportX();
+    const float winY = sceneEditor->getViewportY();
+    const float winW = sceneEditor->getSize().x;
+    const float winH = sceneEditor->getSize().y;
+
+    if (winW <= 0.0f || winH <= 0.0f)
+        return false;
+
+    // Convert to viewport-local pixels — same space as Rect2D
+    const float localX = rawMouse.x - winX;
+    const float localY = rawMouse.y - winY;
+
+    // Reject if outside the viewport bounds
+    if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+        return false;
+
+    outPos = { localX, localY };
+    return true;
+}
+void ModuleEventSystem::clearHoverState()
+{
+    for (int idx = 0; idx < 3; ++idx)
+    {
+        ButtonState& state = m_buttonStates[idx];
+
+        if (state.pointerEnterLast)
+        {
+            PointerEventData data;
+            data.button = static_cast<PointerButton>(idx);
+            data.pointerEnter = nullptr;
+            state.pointerEnterLast = nullptr;
+        }
+
+        // Cancel any in-progress press so no ghost click fires on re-entry
+        state.pointerPress = nullptr;
+    }
+}
+
+GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
 {
     GameObject* best = nullptr;
     int         bestDepth = -1;
@@ -139,23 +198,18 @@ GameObject* EventSystem::raycast(const Vector2& screenPos)
     return best;
 }
 
-void EventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObject*& best, int& bestDepth, int depth)
+void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObject*& best, int& bestDepth, int depth)
 {
     if (!go || !go->GetActive()) return;
 
     Transform2D* t2d = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
-    if (t2d && t2d->isActive() && t2d->getRect().contains(screenPos))
+    if (t2d && t2d->isActive())
     {
         const Rect2D rect = t2d->getRect();
 
-        // Step 1 – rect AABB
         if (rect.contains(screenPos))
         {
-            // Step 2 – image bounds refinement (only if a UIImage is present)
-            UIImage* img = go->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
-            const bool imageHit = !img || !img->isActive() || img->containsPoint(rect, screenPos);
-
-            if (imageHit && depth >= bestDepth)
+            if (depth >= bestDepth)
             {
                 best = go;
                 bestDepth = depth;
@@ -170,7 +224,7 @@ void EventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObjec
 }
 
 
-void EventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
+void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
     for (Component* c : go->GetComponents())
     {
@@ -181,7 +235,7 @@ void EventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
     }
 }
 
-void EventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
+void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 {
     for (Component* c : go->GetComponents())
     {
