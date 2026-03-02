@@ -60,12 +60,6 @@ void RenderModule::preRender()
     auto m_commandList = app->getD3D12Module()->getCommandList();
     auto _swapChain = app->getD3D12Module()->getSwapChain();
 
-    if (m_applySkyboxNextFrame)
-    {
-        m_skyBoxPass->setSettings(app->getSceneModule()->getSkyboxSettings());
-        m_applySkyboxNextFrame = false;
-    }
-
     auto newSize = app->getEditorModule()->getSceneEditorSize();
 
     if (m_size.x != newSize.x || m_size.y != newSize.y) 
@@ -186,11 +180,9 @@ D3D12_GPU_VIRTUAL_ADDRESS RenderModule::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getD3D12Module()->getCurrentFrame());
 }
 
-bool RenderModule::applySkyboxSettings()
+bool RenderModule::applySkyboxSettings(const SkyboxSettings& settings)
 {
-    //m_skyBoxPass->setSettings(settings);
-
-    m_applySkyboxNextFrame = true;
+    m_skyBoxPass->setSettings(settings);
 
     return true;
 }

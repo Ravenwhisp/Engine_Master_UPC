@@ -286,7 +286,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
 
 bool SceneModule::applySkyboxToRenderer()
 {
-    return app->getRenderModule()->applySkyboxSettings();
+    return app->getRenderModule()->applySkyboxSettings(m_skybox);
 }
 
 #pragma region Persistence
