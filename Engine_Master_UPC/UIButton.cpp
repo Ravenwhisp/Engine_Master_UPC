@@ -57,3 +57,14 @@ void UIButton::drawUi()
     // onClick listener count (read-only info)
     ImGui::Text("onClick listeners: %zu", onClick.GetSize());
 }
+
+rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    return componentInfo;
+}

@@ -13,7 +13,7 @@ public:
 	OnClick onClick;
 
 	UIImage*	getTargetGraphic() const { return m_targetGraphic; }
-	void        setTargetGraphic(UIImage* img) { m_targetGraphic = img; }
+	void        setTargetGraphic(UIImage* img) { m_targetGraphic = img;}
 
 	void onPointerUp(PointerEventData& data) override;
 	void onPointerClick(PointerEventData& data) override;
@@ -21,8 +21,12 @@ public:
 	void press();
 
 	void drawUi() override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+
 private:
-	UIImage*		m_targetGraphic;
+	UIImage*		m_targetGraphic = nullptr;
 	bool			m_isPressed = false;
+
 	//Event
 };
