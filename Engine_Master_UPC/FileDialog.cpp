@@ -175,25 +175,26 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
     // Keyboard shortcuts
     const Keyboard::State& keyState = Keyboard::Get().GetState();
-    if (keyState.LeftControl or keyState.RightControl) 
+    if (keyState.LeftControl or keyState.RightControl)
     {
-        if (keyState.X) 
+        if (keyState.X)
         {
             if (m_selectedItem) cutItem(m_selectedItem);
 
         }
-        else if (keyState.V and m_lastActionRequested != Command::NONE) 
+        else if (keyState.V and m_lastActionRequested != Command::NONE)
         {
-            if (m_selectedItem) 
+            if (m_selectedItem)
             {
                 if (std::filesystem::is_directory(m_selectedItem->path)) pasteFile(m_selectedItem);
             }
-            else 
+            else
             {
                 pasteFile(directory);
             }
         }
     }
+    else if (keyState.Delete and m_selectedItem) deleteItem(m_selectedItem);
 
 
     ImGui::Columns(columnCount, nullptr, false);
