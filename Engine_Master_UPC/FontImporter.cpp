@@ -1,38 +1,34 @@
 #include "Globals.h"
 #include "FontImporter.h"
 
+#include "Application.h"
+#include "FileSystemModule.h"
+
 namespace fs = std::filesystem;
 
 
 bool FontImporter::loadExternal(const fs::path& path, std::vector<uint8_t>& out)
 {
-    const fs::path spritefontPath = runMakeSpriteFont(path);
+    fs::path spritefontPath = runMakeSpriteFont(path);
     if (spritefontPath.empty())
     {
         return false;
     }
 
-    std::ifstream file(spritefontPath, std::ios::binary | std::ios::ate);
-    if (!file.is_open())
+    char* buffer = nullptr;
+    const unsigned int size = app->getFileSystemModule()->load(spritefontPath, &buffer);
+
+    app->getFileSystemModule()->deleteFile(spritefontPath.string().c_str());
+
+    if (size == 0)
     {
-        DEBUG_ERROR("FontImporter: cannot open generated .spritefont at", spritefontPath.c_str());
         return false;
     }
 
-    const std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    out.resize(static_cast<size_t>(size));
-    if (!file.read(reinterpret_cast<char*>(out.data()), size))
-    {
-        DEBUG_ERROR("FontImporter: failed to read .spritefont data");
-        return false;
-    }
-
-    std::error_code ec;
-    fs::remove(spritefontPath, ec);
-
+    out.assign(reinterpret_cast<uint8_t*>(buffer), reinterpret_cast<uint8_t*>(buffer) + size);
+    delete[] buffer;
     return true;
+
 }
 
 
