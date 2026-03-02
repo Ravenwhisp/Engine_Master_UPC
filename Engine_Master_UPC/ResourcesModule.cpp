@@ -158,7 +158,7 @@ std::shared_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	buildSubresourceData(image, metaData, subData);
@@ -183,7 +183,7 @@ std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
 	return texture;
 }
 
