@@ -19,25 +19,37 @@
 #pragma warning(pop)
 
 
-ModelComponent::~ModelComponent()
-{
-    for (int i = 0; i < m_meshes.size(); i++)
-    {
-        delete m_meshes[i];
-        m_meshes[i] = nullptr;
-    }
-
-    for (int i = 0; i < m_materials.size(); i++)
-    {
-        delete m_materials[i];
-        m_materials[i] = nullptr;
-    }
-
-}
 void ModelComponent::load(const char* fileName, const char* basePath)
 {
     m_modelPath = fileName;
     m_basePath = basePath;
+    std::string fullPath = std::string(m_basePath) + std::string(m_modelPath);
+
+    if (app->getResourcesModule()->isModelLoaded(fullPath))
+    {
+        m_modelBinaryData = app->getResourcesModule()->getLoadedModel(fullPath).lock();
+        // Since m_loadedModels has a weak_ptr, it can have expired references, so we need to check if there's actually data inside
+        if (m_modelBinaryData)
+        {
+            std::string message = std::string("Model ") + fullPath + std::string(" already loaded in memory. Assigning meshes and materials to this model.");
+            DEBUG_LOG(message.c_str());
+            m_hasBounds = m_modelBinaryData->m_hasBounds;
+            m_boundingBox = m_modelBinaryData->m_boundingBox;
+            return;
+        }
+        else
+        {
+            if (app->getResourcesModule()->getLoadedModel(fullPath).expired())
+            {
+                app->getResourcesModule()->markModelAsNotLoaded(fullPath);
+            }
+            else
+            {
+                std::string error = std::string("Something is very wrong. Expected model ") + fullPath + std::string(" to be expired, but it's not, and lock() returned nullptr...");
+                DEBUG_LOG(error.c_str());
+            }
+        }
+    }
 
     m_hasBounds = false;
 
@@ -49,27 +61,23 @@ void ModelComponent::load(const char* fileName, const char* basePath)
     bool loadOk = gltfContext.LoadASCIIFromFile(&model, &error, &warning, fileName);
     if (loadOk)
     {
+        m_modelBinaryData = std::make_shared<ModelBinaryData>();
         for (tinygltf::Material material : model.materials)
         {
-            BasicMaterial* myMaterial = new BasicMaterial;
+            std::unique_ptr<BasicMaterial> myMaterial = std::make_unique<BasicMaterial>();
             if (!myMaterial->load(model, material.pbrMetallicRoughness, basePath)) {
-                for (BasicMaterial* m : m_materials)
-                {
-                    delete m;
-                }
-                m_materials.clear();
+                clearMaterials();
                 return;
             }
-            m_materials.push_back(myMaterial);
+            m_modelBinaryData->m_materials.push_back(std::move(myMaterial));
         }
 
         for (tinygltf::Mesh mesh : model.meshes)
         {
             for (tinygltf::Primitive primitive : mesh.primitives)
             {
-                BasicMesh* myMesh = new BasicMesh;
+                std::unique_ptr<BasicMesh> myMesh = std::make_unique<BasicMesh>();
                 myMesh->load(model, mesh, primitive);
-                m_meshes.push_back(myMesh);
 
                 if (myMesh->hasBounds())
                 {
@@ -103,8 +111,13 @@ void ModelComponent::load(const char* fileName, const char* basePath)
                         m_boundingBox.setMax(newMax);
                     }
                 }
+
+                m_modelBinaryData->m_meshes.push_back(std::move(myMesh));
             }
         }
+        m_modelBinaryData->m_hasBounds = m_hasBounds;
+        m_modelBinaryData->m_boundingBox = m_boundingBox;
+        app->getResourcesModule()->markModelAsLoaded(fullPath, m_modelBinaryData);
     }
     else
     {
@@ -127,19 +140,19 @@ void ModelComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& view
     Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
-    for (BasicMesh* mesh : m_meshes) {
+    for (auto& mesh : getMeshes()) {
         int32_t materialIndex = mesh->getMaterialIndex();
 
         // Check if material index is valid
-        if (materialIndex >= 0 && materialIndex < m_materials.size()) {
+        if (materialIndex >= 0 && materialIndex < m_modelBinaryData->m_materials.size()) {
 
             ModelData modelData;
             modelData.model = transform->getGlobalMatrix().Transpose();
-            modelData.material = m_materials[materialIndex]->getMaterial();
+            modelData.material = getMaterials()[materialIndex]->getMaterial();
             modelData.normalMat = transform->getNormalMatrix().Transpose();
 
             commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
-            commandList->SetGraphicsRootDescriptorTable(4, m_materials[materialIndex]->getTexture()->getSRV().gpu);
+            commandList->SetGraphicsRootDescriptorTable(4, getMaterials()[materialIndex]->getTexture()->getSRV().gpu);
 
             mesh->draw(commandList);
         }
@@ -211,13 +224,9 @@ void ModelComponent::drawUi()
         m_hasBounds = false;
 
         // limpiar anterior
-        for (auto mesh : m_meshes)
-            delete mesh;
-        m_meshes.clear();
+        clearMeshes();
 
-        for (auto material : m_materials)
-            delete material;
-        m_materials.clear();
+        clearMaterials();
 
         if (!m_modelPath.empty())
         {
@@ -234,13 +243,9 @@ void ModelComponent::drawUi()
 
         if (!m_modelPath.empty())
         {
-            for (auto mesh : m_meshes)
-                delete mesh;
-            m_meshes.clear();
+            clearMeshes();
 
-            for (auto material : m_materials)
-                delete material;
-            m_materials.clear();
+            clearMaterials();
 
             load(m_modelPath.c_str(), m_basePath.c_str());
         }
@@ -249,8 +254,8 @@ void ModelComponent::drawUi()
     ImGui::Separator();
 
     // --- Info ---
-    ImGui::Text("Meshes: %d", (int)m_meshes.size());
-    ImGui::Text("Materials: %d", (int)m_materials.size());
+    ImGui::Text("Meshes: %d", (int)getMeshes().size());
+    ImGui::Text("Materials: %d", (int)getMaterials().size());
 
     ImGui::SeparatorText("Debug Bounding Box");
     ImGui::Checkbox("Draw Bounding Box", &m_drawBounds);

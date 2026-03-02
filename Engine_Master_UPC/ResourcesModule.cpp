@@ -124,7 +124,7 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	return buffer;
 }
 
-std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath)
+std::shared_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath)
 {
 
 	ScratchImage image;
@@ -158,7 +158,7 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	buildSubresourceData(image, metaData, subData);
@@ -168,7 +168,7 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& fi
 	return texture;
 }
 
-std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
+std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
 {
 	TextureInitInfo info{};
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1);
@@ -183,11 +183,11 @@ std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
 	return texture;
 }
 
-std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
+std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
 {
 	ScratchImage image;
 	const wchar_t* path = filePath.c_str();
@@ -227,7 +227,7 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& 
 
 	info.srvDesc = &srvDesc;
 
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	buildSubresourceData(image, metaData, subData);
@@ -348,4 +348,44 @@ void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
 		delete indexBuffer;
 		indexBuffer = nullptr;
 	}
+}
+
+std::weak_ptr<Texture> ResourcesModule::getLoadedTexture(const std::string& path) const 
+{
+	return m_loadedTextures.at(path);
+}
+
+bool ResourcesModule::isTextureLoaded(const std::string& path) const
+{
+	return m_loadedTextures.find(path) != m_loadedTextures.end();
+}
+
+void ResourcesModule::markTextureAsLoaded(const std::string& path, std::shared_ptr<Texture> resource)
+{
+	m_loadedTextures.emplace(path, resource);
+}
+
+void ResourcesModule::markTextureAsNotLoaded(const std::string& path)
+{
+	m_loadedTextures.erase(path);
+}
+
+std::weak_ptr<ModelBinaryData> ResourcesModule::getLoadedModel(const std::string& path) const
+{
+	return m_loadedModels.at(path);
+}
+
+bool ResourcesModule::isModelLoaded(const std::string& path) const
+{
+	return m_loadedModels.find(path) != m_loadedModels.end();
+}
+
+void ResourcesModule::markModelAsLoaded(const std::string& path, std::shared_ptr<ModelBinaryData> resource)
+{
+	m_loadedModels.emplace(path, resource);
+}
+
+void ResourcesModule::markModelAsNotLoaded(const std::string& path)
+{
+	m_loadedModels.erase(path);
 }

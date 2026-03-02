@@ -17,14 +17,38 @@ bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 	{
 		const tinygltf::Texture& texture = model.textures[material.baseColorTexture.index];
 		const tinygltf::Image& image = model.images[texture.source];
+		std::string texturePath = std::string(basePath) + image.uri;
 		if (!image.uri.empty() && app->getResourcesModule())
 		{
-			m_textureColor = app->getResourcesModule()->createTexture2DFromFile(std::string(basePath) + image.uri);
-			if (!m_textureColor)
+			// We also need to check if a different material (gltf file) is trying to load this same texture
+			if (app->getResourcesModule()->isTextureLoaded(texturePath) && !app->getResourcesModule()->getLoadedTexture(texturePath).expired())
 			{
-				return false;
+				std::shared_ptr<Texture> loadedTexture = app->getResourcesModule()->getLoadedTexture(texturePath).lock();
+				// Since m_loadedTextures has a weak_ptr, it can have expired references, so we need to check if there's actually data inside
+				if (loadedTexture)
+				{
+					std::string message = std::string("Texture ") + texturePath + std::string(" already loaded in memory, not loading it from disk.");
+					DEBUG_LOG(message.c_str());
+					m_textureColor = loadedTexture;
+					m_materialData.hasDiffuseTex = true;
+				}
+				else
+				{
+					std::string error = std::string("Something is very wrong. Expected texture ") + texturePath + std::string(" to be expired, but it's not, and lock() returned nullptr...");
+					DEBUG_LOG(error.c_str());
+				}
 			}
-			m_materialData.hasDiffuseTex = true;
+			else
+			{
+				app->getResourcesModule()->markTextureAsNotLoaded(texturePath);
+				m_textureColor = app->getResourcesModule()->createTexture2DFromFile(texturePath);
+				if (!m_textureColor)
+				{
+					return false;
+				}
+				m_materialData.hasDiffuseTex = true;
+				app->getResourcesModule()->markTextureAsLoaded(texturePath, m_textureColor);
+			}
 		}
 	}
 	else
@@ -37,4 +61,3 @@ bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 
 	return true;
 }
-
