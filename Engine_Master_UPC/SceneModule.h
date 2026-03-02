@@ -73,6 +73,7 @@ public:
 
 	void createGameObject();
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
+	GameObject* findGameObjectByUID(UID uuid);
 	void removeGameObject(const UID uuid);
 	std::vector<GameObject*> getAllGameObjects();
 

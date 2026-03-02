@@ -23,7 +23,7 @@ SceneModule::~SceneModule() = default;
 #pragma region GameLoop
 bool SceneModule::init()
 {
-	m_sceneSerializer = std::make_unique<SceneSerializer>();
+    m_sceneSerializer = std::make_unique<SceneSerializer>();
 
     m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
@@ -38,7 +38,7 @@ bool SceneModule::init()
     auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
     gameCamera->RemoveComponent(component);
     m_allObjects.push_back(std::move(gameCamera));
-	m_rootObjects.push_back(m_allObjects.back().get());
+    m_rootObjects.push_back(m_allObjects.back().get());
 
     for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
     {
@@ -61,7 +61,7 @@ void SceneModule::update()
         if (gameObject->GetActive())
         {
             gameObject->update();
-		}
+        }
     }
 
     if (m_quadtree)
@@ -91,11 +91,11 @@ void SceneModule::createQuadtree()
 
     for (const std::unique_ptr<GameObject>& go : m_allObjects)
     {
-        if(!go->GetActive())
+        if (!go->GetActive())
         {
             continue;
-		}
-        
+        }
+
         Component* component = go->GetComponent(ComponentType::MODEL);
         if (component)
         {
@@ -122,10 +122,10 @@ void SceneModule::createQuadtree()
             maxZ = std::max(maxZ, wmax.z);
         }
     }
-	minX -= app->getSettings()->frustumCulling.quadtreeXExtraSize;
-	minZ -= app->getSettings()->frustumCulling.quadtreeZExtraSize;
-	maxX += app->getSettings()->frustumCulling.quadtreeXExtraSize;
-	maxZ += app->getSettings()->frustumCulling.quadtreeZExtraSize;
+    minX -= app->getSettings()->frustumCulling.quadtreeXExtraSize;
+    minZ -= app->getSettings()->frustumCulling.quadtreeZExtraSize;
+    maxX += app->getSettings()->frustumCulling.quadtreeXExtraSize;
+    maxZ += app->getSettings()->frustumCulling.quadtreeZExtraSize;
 
     auto rectangle = BoundingRect(minX, minZ, maxX - minX, maxZ - minZ);
     m_quadtree = std::make_unique<Quadtree>(rectangle);
@@ -138,7 +138,7 @@ void SceneModule::createQuadtree()
     DEBUG_LOG("QUADTREE created");
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) 
+void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
 
     if (m_quadtree)
@@ -212,19 +212,19 @@ bool SceneModule::cleanUp()
     m_quadtree.reset();
 
     m_sceneSerializer.reset();
-	return true;
+    return true;
 }
 #pragma endregion
 
 void SceneModule::createGameObject()
 {
-	std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
-	GameObject* rawPtr = newGameObject.get();
+    std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
+    GameObject* rawPtr = newGameObject.get();
     rawPtr->init();
     rawPtr->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
     m_allObjects.push_back(std::move(newGameObject));
-	m_rootObjects.push_back(rawPtr);
+    m_rootObjects.push_back(rawPtr);
 
     rawPtr->onTransformChange();
 
@@ -252,6 +252,23 @@ GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID)
     }
 
     return raw;
+}
+
+GameObject* SceneModule::findGameObjectByUID(UID uuid)
+{
+    for (const auto& root : m_allObjects)
+    {
+        if (root->GetID() == uuid)
+        {
+            return root.get();
+        }
+
+        if (GameObject* found = findInHierarchy(root.get(), uuid))
+        {
+            return found;
+        }
+    }
+    return nullptr;
 }
 
 void SceneModule::removeGameObject(UID uuid)
@@ -333,21 +350,6 @@ void SceneModule::destroyHierarchy(GameObject* obj)
     destroyGameObject(obj);
 }
 
-GameObject* SceneModule::findGameObjectByUID(UID uuid)
-{
-    for (GameObject* root : m_gameObjects)
-    {
-        if (root->GetID() == uuid) {
-            return root;
-        }
-
-        if (GameObject* found = findInHierarchy(root, uuid)) {
-            return found;
-        }
-    }
-    return nullptr;
-}
-
 GameObject* SceneModule::createDirectionalLightOnInit()
 {
     auto go = std::make_unique<GameObject>(GenerateUID());
@@ -408,7 +410,7 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
             nodes_to_visit.push(gameObject.get());
         }
 
-        while (!nodes_to_visit.empty()) 
+        while (!nodes_to_visit.empty())
         {
             GameObject* gameObject = nodes_to_visit.front();
             nodes_to_visit.pop();
@@ -538,7 +540,7 @@ void SceneModule::saveScene()
         domTree.AddMember(name, getJSON(domTree), domTree.GetAllocator());
     }
 
-	m_sceneSerializer->SaveScene(m_name, domTree);
+    m_sceneSerializer->SaveScene(m_name, domTree);
 }
 
 bool SceneModule::loadScene(const std::string& sceneName)
@@ -554,7 +556,7 @@ bool SceneModule::loadScene(const std::string& sceneName)
 
 void SceneModule::clearScene()
 {
-	app->getEditorModule()->setSelectedGameObject(nullptr);
+    app->getEditorModule()->setSelectedGameObject(nullptr);
 
     for (auto& go : m_allObjects)
     {
@@ -564,7 +566,7 @@ void SceneModule::clearScene()
     m_rootObjects.clear();
     m_allObjects.clear();
 
-	m_defaultCamera = nullptr;
+    m_defaultCamera = nullptr;
 }
 #pragma endregion
 

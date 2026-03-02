@@ -106,9 +106,9 @@ bool CameraComponent::cleanUp()
 	{
 		app->setCurrentCameraPerspective(nullptr);
 	}
-	if (app->getActiveCamera() == this)
+	if (app->getSceneModule()->getDefaultCamera() == this)
 	{
-		app->setActiveCamera(nullptr);
+		app->getSceneModule()->setDefaultCamera(nullptr);
 	}
 	return true;
 }
