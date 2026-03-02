@@ -4,6 +4,117 @@
 #include "Application.h"
 #include "FileSystemModule.h"
 #include "AssetsModule.h"
+#include "Keyboard.h"
+
+// ---------------------------------------------------------
+// Actions
+// ---------------------------------------------------------
+
+void FileDialog::createNewFolder()
+{
+    std::filesystem::path newFolderPath = m_currentDirectory / "New Folder";
+
+    int suffix = 1;
+    while (std::filesystem::exists(newFolderPath))
+    {
+        newFolderPath = m_currentDirectory / ("New Folder (" + std::to_string(suffix++) + ")");
+    }
+
+    std::filesystem::create_directory(newFolderPath);
+    app->getFileSystemModule()->rebuild();
+}
+
+void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
+{
+    // We only do a command if we are sure that the directories exist
+    if (std::filesystem::exists(m_fileToManage) and std::filesystem::exists(directory->getPath()))
+    {
+        if (m_lastActionRequested == Command::MOVE)
+        {
+            moveFile(directory.get());
+        }
+    }
+    
+    app->getFileSystemModule()->rebuild();
+    m_lastActionRequested = Command::NONE;
+}
+
+void FileDialog::importAsset(const std::shared_ptr<FileEntry>& asset)
+{
+    std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
+    app->getAssetModule()->import(originalPath);
+}
+
+void FileDialog::cutItem(const std::shared_ptr<FileEntry>& asset)
+{
+    m_lastActionRequested = Command::MOVE;
+    m_fileToManage = asset->path;
+}
+
+void FileDialog::deleteItem(const std::shared_ptr<FileEntry>& asset)
+{
+    if (std::filesystem::exists(asset->getPath() ))
+    {
+        if (deleteAsset(asset.get())) 
+        {
+            // If the file deleted was going to be used for a command, we disable it
+            if (m_lastActionRequested != Command::NONE and asset->path == m_fileToManage)
+            {
+                m_lastActionRequested = Command::NONE;
+            }
+        }
+        app->getFileSystemModule()->rebuild();
+        
+        m_selectedItem = nullptr; // do we want this behaviour?
+    }
+}
+
+void FileDialog::deleteFolder(const std::shared_ptr<FileEntry>& asset)
+{
+    if (!std::filesystem::exists(asset->getPath()))
+    {
+        return;
+    }
+
+    std::filesystem::remove_all(asset->getPath());
+    app->getFileSystemModule()->rebuild();
+
+    // If the last path that we requested a command for no longer exists, we disable the command
+    {
+        std::string fileToManageString = m_fileToManage.string();
+        const char* fileToManage = fileToManageString.c_str();
+        if (m_lastActionRequested != Command::NONE and !app->getFileSystemModule()->exists(fileToManage))
+        {
+            m_lastActionRequested = Command::NONE;
+        }
+    }
+
+    // If we deleted the directory we were browsing, go up
+    if (m_currentDirectory == asset->path ||
+        m_currentDirectory.string().find(asset->path.string()) == 0)
+    {
+        navigateTo(asset->path.parent_path());
+    }
+
+    m_selectedItem = nullptr;
+}
+
+
+
+void FileDialog::navigateTo(const std::filesystem::path& path)
+{
+    m_currentDirectory = path;
+    m_selectedItem = nullptr;
+}
+
+void FileDialog::handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset)
+{
+    if (asset->isDirectory)
+    {
+        navigateTo(asset->path);
+    }
+}
+
 
 void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 {
@@ -11,10 +122,9 @@ void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
 
     if (ImGui::TreeNodeEx(nodeName.c_str()))
     {
-
         if (ImGui::IsItemClicked())
         {
-            m_currentDirectory = entry->path;
+            navigateTo(entry->path);
         }
 
         for (auto& child : entry->children)
@@ -26,9 +136,7 @@ void FileDialog::drawDirectoryTree(const std::shared_ptr<FileEntry> entry)
         }
         ImGui::TreePop();
     }
-
 }
-
 
 void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 {
@@ -50,26 +158,49 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         if (ImGui::MenuItem("New Folder"))
         {
-            std::filesystem::path newFolderPath = m_currentDirectory / "New Folder";
+            createNewFolder();
+        }
 
-            int suffix = 1;
-            while (std::filesystem::exists(newFolderPath))
-            {
-                newFolderPath = m_currentDirectory / ("New Folder (" + std::to_string(suffix++) + ")");
-            }
+        ImGui::Spacing(); ImGui::Spacing();
+        ImGui::Text("General");
+        ImGui::Separator();
 
-            std::filesystem::create_directory(newFolderPath);
-            app->getFileSystemModule()->rebuild();
+        if (m_lastActionRequested != Command::NONE && ImGui::MenuItem("Paste"))
+        {
+            pasteFile(directory);
         }
 
         ImGui::EndPopup();
     }
 
+    // Keyboard shortcuts
+    const Keyboard::State& keyState = Keyboard::Get().GetState();
+    if (keyState.LeftControl or keyState.RightControl) 
+    {
+        if (keyState.X) 
+        {
+            if (m_selectedItem) cutItem(m_selectedItem);
+
+        }
+        else if (keyState.V and m_lastActionRequested != Command::NONE) 
+        {
+            if (m_selectedItem) 
+            {
+                if (std::filesystem::is_directory(m_selectedItem->path)) pasteFile(m_selectedItem);
+            }
+            else 
+            {
+                pasteFile(directory);
+            }
+        }
+    }
+
+
     ImGui::Columns(columnCount, nullptr, false);
 
     for (auto& asset : directory->children)
     {
-        if (asset == nullptr) 
+        if (asset == nullptr)
         {
             continue;
         }
@@ -86,16 +217,13 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
         {
-            if (asset->isDirectory)
-            {
-                m_currentDirectory = asset->path;
-            }
+            handleAssetDoubleClick(asset);
         }
-        if (!asset->isDirectory) {
 
+        if (!asset->isDirectory)
+        {
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
             {
-
                 ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
                 ImGui::Text("Dragging %s", asset->displayName.c_str());
                 ImGui::EndDragDropSource();
@@ -107,16 +235,26 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::Separator();
 
                 std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
-    
                 Importer* importer = app->getFileSystemModule()->findImporter(originalPath);
+
                 if (ImGui::MenuItem("Import", nullptr, false, importer != nullptr))
                 {
-                    app->getAssetModule()->import(originalPath);
+                    importAsset(asset);
                 }
+
+                if (ImGui::MenuItem("Cut", "Ctrl + X", false, true))
+                {
+                    cutItem(asset);
+                }
+
+                if (ImGui::MenuItem("Delete", "Del", false, true)){
+                    deleteItem(asset);
+                }
+
                 ImGui::EndPopup();
             }
-        } 
-        else 
+        }
+        else
         {
             if (ImGui::BeginPopupContextItem("DirContext"))
             {
@@ -125,21 +263,24 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
                 m_selectedItem = asset;
 
-                if (ImGui::MenuItem("Delete Folder"))
+                if (ImGui::MenuItem("Cut Folder", "Ctrl + X", false, true))
                 {
-                    if (std::filesystem::exists(m_selectedItem->getPath()))
-                    {
-                        std::filesystem::remove_all(m_selectedItem->getPath());
-                        app->getFileSystemModule()->rebuild();
+                    cutItem(asset);
+                }
 
-                        // If we deleted the directory we were browsing, go up
-                        if (m_currentDirectory == m_selectedItem->path || m_currentDirectory.string().find(m_selectedItem->path.string()) == 0)
-                        {
-                            m_currentDirectory = m_selectedItem->path.parent_path();
-                        }
+                if (ImGui::MenuItem("Delete Folder", "Del"))
+                {
+                    deleteFolder(asset);
+                }
 
-                        m_selectedItem = nullptr;
-                    }
+                ImGui::Spacing(); ImGui::Spacing();
+                ImGui::Text("General");
+                ImGui::Separator();
+
+                if (m_lastActionRequested != Command::NONE and m_fileToManage != (asset->path) and 
+                    ImGui::MenuItem("Paste", "Ctrl + V"))
+                {
+                    pasteFile(asset);
                 }
 
                 ImGui::EndPopup();
@@ -155,12 +296,52 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
     ImGui::Columns(1);
 }
 
-
-
-FileDialog::FileDialog()
+inline bool FileDialog::moveFile(FileEntry* targetDirectory)
 {
-    //m_currentDirectory = app->getFileSystemModule()->getRoot()->path;
+    std::string fileString = m_fileToManage.string();
+    const char* file = fileString.c_str();
+
+    std::string targetNameString = (targetDirectory->path / m_fileToManage.filename()).string();
+    const char* targetName = targetNameString.c_str();
+
+    if (app->getFileSystemModule()->isDirectory(file))
+    {
+        return app->getFileSystemModule()->move(file, targetName);
+    }
+    else
+    {
+        // The file that we have is the metadata; we have to move its asset as well, which should be on the same folder
+
+        bool moveMetadata = app->getFileSystemModule()->move(file, targetName);
+
+        std::string assetPathString = (m_fileToManage.parent_path() / m_fileToManage.stem()).string(); // stem() is the file name, takes out the .metadata at the end
+        const char* assetPath = assetPathString.c_str();
+
+        std::string assetTargetNameString = (targetDirectory->path / m_fileToManage.stem()).string();
+        const char* assetTargetName = assetTargetNameString.c_str();
+
+        bool moveFile = app->getFileSystemModule()->move(assetPath, assetTargetName);
+
+        return moveFile && moveMetadata;
+    }
 }
+
+inline bool FileDialog::deleteAsset(FileEntry* file)
+{
+    std::string filePathString = file->path.string();
+    const char* filePath = filePathString.c_str();
+
+    // The file that we have is the metadata; we have to delete its asset as well, which should be on the same folder
+
+    std::string assetPathString = (file->path.parent_path() / file->path.stem()).string(); // stem() is the file name, takes out the .metadata at the end
+    const char* assetPath = assetPathString.c_str();
+
+    bool deleteMetadata = app->getFileSystemModule()->deleteFile(filePath);
+    bool deleteFile = app->getFileSystemModule()->deleteFile(assetPath);
+
+    return deleteFile and deleteMetadata;
+}
+
 
 void FileDialog::render()
 {
@@ -184,4 +365,3 @@ void FileDialog::render()
     ImGui::EndChild();
     ImGui::End();
 }
-
