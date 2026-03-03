@@ -5,7 +5,9 @@
 
 #Engine specific
 Engine_OUT/Library/
-Engine_OUT/Assets/
+Engine_Master_UPC/3rdParty/DirectXTK12/x64/*
+
+*.metadata
 
 # User-specific files
 *.rsuser
