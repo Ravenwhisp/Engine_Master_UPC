@@ -19,21 +19,6 @@
 #pragma warning(pop)
 
 
-ModelComponent::~ModelComponent()
-{
-    for (int i = 0; i < m_meshes.size(); i++)
-    {
-        delete m_meshes[i];
-        m_meshes[i] = nullptr;
-    }
-
-    for (int i = 0; i < m_materials.size(); i++)
-    {
-        delete m_materials[i];
-        m_materials[i] = nullptr;
-    }
-
-}
 void ModelComponent::load(const char* fileName, const char* basePath)
 {
     m_modelPath = fileName;

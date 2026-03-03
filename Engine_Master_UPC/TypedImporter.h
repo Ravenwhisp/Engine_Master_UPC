@@ -5,7 +5,7 @@ template<typename ExternalFormat, typename AssetFormat>
 class TypedImporter : public Importer
 {
 public:
-    bool import(const std::filesystem::path& path, Asset * outAsset) final
+    bool import(const std::filesystem::path& path, std::shared_ptr<Asset> outAsset) final
     {
         ExternalFormat external{};
         if (!loadExternal(path, external))
@@ -14,27 +14,27 @@ public:
             return false;
         }
 
-        importTyped(external, static_cast<AssetFormat*>(outAsset));
+        importTyped(external, std::static_pointer_cast<AssetFormat>(outAsset));
 
         return true;
     }
 
-    uint64_t save(const Asset* asset, uint8_t** outBuffer) final
+    uint64_t save(const std::shared_ptr<Asset> asset, uint8_t** outBuffer) final
     {
-        return saveTyped(static_cast<const AssetFormat*>(asset),outBuffer);
+        return saveTyped(std::static_pointer_cast<AssetFormat>(asset), outBuffer);
     }
 
-    void load(const uint8_t* buffer, Asset* outAsset) final
+    void load(const uint8_t* buffer, std::shared_ptr<Asset> outAsset) final
     {
-        loadTyped(buffer,static_cast<AssetFormat*>(outAsset));
+        loadTyped(buffer, std::static_pointer_cast<AssetFormat>(outAsset));
     }
 
 protected:
     virtual bool loadExternal(const std::filesystem::path& path,ExternalFormat& out) = 0;
 
-    virtual void importTyped(const ExternalFormat& source, AssetFormat* dst) = 0;
+    virtual void importTyped(const ExternalFormat& source, std::shared_ptr<AssetFormat> dst) = 0;
 
-    virtual uint64_t saveTyped(const AssetFormat* source, uint8_t** buffer) = 0;
+    virtual uint64_t saveTyped(const std::shared_ptr<AssetFormat> source, uint8_t** buffer) = 0;
 
-    virtual void loadTyped( const uint8_t* buffer, AssetFormat* dst) = 0;
+    virtual void loadTyped( const uint8_t* buffer, std::shared_ptr<AssetFormat> dst) = 0;
 };

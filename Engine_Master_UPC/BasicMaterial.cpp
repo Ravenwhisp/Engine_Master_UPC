@@ -10,7 +10,7 @@ BasicMaterial::BasicMaterial(const MaterialAsset& asset)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID) 
 	{
-		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
+		std::shared_ptr<TextureAsset> baseMapTexture = std::static_pointer_cast<TextureAsset>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
 		m_textureColor = app->getResourcesModule()->createTexture2D(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}

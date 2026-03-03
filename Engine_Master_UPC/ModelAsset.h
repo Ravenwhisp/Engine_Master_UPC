@@ -71,9 +71,10 @@ public:
 	ModelAsset() {}
 	ModelAsset(UID id) : Asset(id, AssetType::MODEL) {}
 
-	std::vector<MeshAsset>& getMeshes() const { return meshes; }
-	std::vector<MaterialAsset>& getMaterials() const { return materials; }
+	std::vector<std::shared_ptr<MeshAsset>>& getMeshes() const { return m_meshes; }
+
+	std::vector<std::shared_ptr<MaterialAsset>>& getMaterials() const { return m_materials; }
 protected:
-	mutable std::vector<MeshAsset> meshes;
-	mutable std::vector<MaterialAsset> materials;
+	mutable std::vector<std::shared_ptr<MeshAsset>> m_meshes;
+	mutable std::vector<std::shared_ptr<MaterialAsset>> m_materials;
 };

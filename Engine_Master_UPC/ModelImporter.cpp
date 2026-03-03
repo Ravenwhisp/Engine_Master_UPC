@@ -138,7 +138,7 @@ UID loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex, const
 	return uid;
 }
 
-void ModelImporter::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset)
+void ModelImporter::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, std::shared_ptr<MaterialAsset> materialAsset)
 {
 
 	tinygltf::PbrMetallicRoughness pbrMetallicRoughness = material.pbrMetallicRoughness;
@@ -156,7 +156,7 @@ void ModelImporter::loadMaterial(const tinygltf::Model& model, const tinygltf::M
 }
 
 
-void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model)
+void ModelImporter::importTyped(const tinygltf::Model& source, std::shared_ptr<ModelAsset> model)
 {
 	//This part is to translate the materialId from each primitive to the assetId from the materials loaded by order of importing
 	std::vector<uint32_t> materialIndexToAssetId;
@@ -165,17 +165,17 @@ void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model
     for (tinygltf::Material material : source.materials) 
 	{		
         uint32_t materialId = GenerateUID();
-		MaterialAsset myMaterial(materialId);
+		std::shared_ptr<MaterialAsset> myMaterial = std::make_shared<MaterialAsset>(materialId);
 
-		loadMaterial(source, material, &myMaterial);
+		loadMaterial(source, material, myMaterial);
 
-		model->materials.push_back(myMaterial);
+		model->m_materials.push_back(myMaterial);
 		materialIndexToAssetId.push_back(materialId);
 	}
 
 	for (tinygltf::Mesh mesh : source.meshes) 
 	{
-		MeshAsset myMesh(GenerateUID());
+		std::shared_ptr<MeshAsset> myMesh = std::make_shared<MeshAsset>(GenerateUID());
 		for (tinygltf::Primitive primitive : mesh.primitives) 
 		{
 			loadMesh(source, primitive, &myMesh, materialIndexToAssetId);
@@ -184,7 +184,7 @@ void ModelImporter::importTyped(const tinygltf::Model& source, ModelAsset* model
 	}
 }
 
-uint64_t ModelImporter::saveTyped(const ModelAsset* source, uint8_t** outBuffer)
+uint64_t ModelImporter::saveTyped(const std::shared_ptr<ModelAsset> source, uint8_t** outBuffer)
 {
     uint64_t size = sizeof(uint64_t); // uid
 
@@ -235,7 +235,7 @@ uint64_t ModelImporter::saveTyped(const ModelAsset* source, uint8_t** outBuffer)
     return size;
 }
 
-void ModelImporter::loadTyped(const uint8_t* buffer, ModelAsset* model)
+void ModelImporter::loadTyped(const uint8_t* buffer, std::shared_ptr<ModelAsset> model)
 {
     BinaryReader reader(buffer);
 
@@ -303,7 +303,7 @@ uint64_t ModelImporter::saveMesh(const MeshAsset* source, uint8_t** outBuffer)
     return size;
 }
 
-uint64_t ModelImporter::saveMaterial(const MaterialAsset* source, uint8_t** outBuffer)
+uint64_t ModelImporter::saveMaterial(const std::shared_ptr<MaterialAsset> source, uint8_t** outBuffer)
 {
     uint64_t size = 0;
     // Look a way to be able to get the size automatically
@@ -359,7 +359,7 @@ void ModelImporter::loadMesh(const uint8_t* buffer, MeshAsset* mesh)
     reader.bytes(&mesh->boundsExtents, sizeof(Vector3));
 }
 
-void ModelImporter::loadMaterial(const uint8_t* buffer, MaterialAsset* material)
+void ModelImporter::loadMaterial(const uint8_t* buffer, std::shared_ptr<MaterialAsset> material)
 {
     BinaryReader reader(buffer);
 

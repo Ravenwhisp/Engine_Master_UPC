@@ -39,12 +39,11 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
         uid = GenerateUID();
     }
 
-    Asset* asset = importer->createAssetInstance(uid);
+    std::shared_ptr<Asset> asset = importer->createAssetInstance(uid);
 
     if (!importer->import(assetsFile, asset))
     {
         DEBUG_ERROR("[AssetsModule] Couldn't import the asset:", assetsFile.c_str());
-        delete asset;
         return INVALID_ASSET_ID;
     }
 
@@ -67,18 +66,16 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
     app->getFileSystemModule()->save(meta.getBinaryPath(), buffer, static_cast<unsigned int>(size));
 
     delete buffer;
-    delete asset;
 
     return uid;
 }
 
 
-Asset* AssetsModule::requestAsset(UID id)
+std::shared_ptr<Asset> AssetsModule::requestAsset(UID id)
 {
     auto it = m_assets.find(id);
     if (it != m_assets.end())
     {
-        it->second->addReference();
         return it->second;
     }
 
@@ -86,24 +83,25 @@ Asset* AssetsModule::requestAsset(UID id)
     AssetMetadata* metadata = app->getFileSystemModule()->getMetadata(id);
     if (!metadata)
     {
-        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", id);
+        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id: ", id);
         return nullptr;
     }
 
     return requestAsset(metadata);
 }
 
-Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
+std::shared_ptr<Asset> AssetsModule::requestAsset(const AssetMetadata* metadata)
 {
     if (!metadata)
     {
-        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", metadata->uid);
+        // How do you access metadata->uid if metadata == null ?
+        DEBUG_ERROR("Couldn't retrieve file metadata.");
         return nullptr;
     }
 
     //Create the asset
     Importer* importer = app->getFileSystemModule()->findImporter(metadata->type);
-    Asset* asset = importer->createAssetInstance(metadata->uid);
+    std::shared_ptr<Asset> asset = importer->createAssetInstance(metadata->uid);
 
     //Load from binary
     char* rawBuffer = nullptr;
@@ -117,24 +115,7 @@ Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
     }
 
     //Store it in map
-    asset->addReference();
     m_assets[metadata->uid] = asset;
 
     return asset;
-}
-
-void AssetsModule::releaseAsset(Asset* asset)
-{
-    if (!asset)
-    {
-        DEBUG_WARN("[AssetsModule] Tried to release an empty asset");
-        return;
-    }
-
-    asset->release();
-    if (asset->getReferenceCount() <= 0)
-    {
-        m_assets.erase(asset->getId());
-        delete asset;
-    }
 }
