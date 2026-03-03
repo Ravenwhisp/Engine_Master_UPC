@@ -3,9 +3,10 @@
 #include "Texture.h"
 #include "Asset.h"
 #include "ModelAsset.h"
+#include "ICacheable.h"
 
 namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
-class BasicMaterial
+class BasicMaterial : public ICacheable
 {
 public:
 	struct MaterialData {
@@ -29,7 +30,7 @@ public:
 		float		shininess;
 	};
 
-	explicit BasicMaterial(const MaterialAsset& asset);
+	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
@@ -38,7 +39,6 @@ public:
 
 	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
 private:
-	uint32_t m_index;
 	std::shared_ptr<Texture>	m_textureColor;
 	ComPtr<ID3D12Resource>		m_materialBuffer;
 	BDRFPhongMaterialData		m_materialData;

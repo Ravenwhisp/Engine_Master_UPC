@@ -179,6 +179,7 @@
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="FontImporter.h" />
+    <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="AssetsModule.h" />

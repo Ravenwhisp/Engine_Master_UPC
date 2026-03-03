@@ -12,6 +12,9 @@
 #include "UIText.h"
 #include "UIButton.h"
 #include "CameraFollow.h"
+#include "SceneModule.h"
+#include "MeshRenderer.h"
+
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -41,7 +44,7 @@ bool GameObject::AddComponent(ComponentType componentType)
             m_components.push_back(std::make_unique<LightComponent>(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new MeshRenderer(GenerateUID(), this));
+            m_components.push_back(std::make_unique<MeshRenderer>(GenerateUID(), this));
             break;
         case ComponentType::PLAYER_WALK:
             m_components.push_back(std::make_unique<PlayerWalk>(GenerateUID(), this));
@@ -50,28 +53,28 @@ bool GameObject::AddComponent(ComponentType componentType)
             m_components.push_back(std::make_unique<CameraComponent>(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM2D:
-            m_components.push_back(new Transform2D(GenerateUID(), this));
+            m_components.push_back(std::make_unique<Transform2D>(GenerateUID(), this));
             break;
         case ComponentType::CANVAS:
-            m_components.push_back(new Canvas(GenerateUID(), this));
+            m_components.push_back(std::make_unique<Canvas>(GenerateUID(), this));
             break;
         case ComponentType::UIIMAGE:
-            m_components.push_back(new UIImage(GenerateUID(), this));
+            m_components.push_back(std::make_unique<UIImage>(GenerateUID(), this));
             break;
         case ComponentType::UITEXT:
-            m_components.push_back(new UIText(GenerateUID(), this));
+            m_components.push_back(std::make_unique<UIText>(GenerateUID(), this));
             break;
         case ComponentType::UIBUTTON:
-            m_components.push_back(new UIButton(GenerateUID(), this));
+            m_components.push_back(std::make_unique<UIButton>(GenerateUID(), this));
             break;
-        case ComponentType::COUNT:
-            return false;
         case ComponentType::CAMERA_FOLLOW:
             m_components.push_back(std::make_unique<CameraFollow>(GenerateUID(), this));
             break;
-
         case ComponentType::TRANSFORM:
+            break;
         case ComponentType::COUNT:
+            return false;
+            break;
         default:
             return false;
             break;
@@ -91,7 +94,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
 
     case ComponentType::MODEL:
-        newComponent = new MeshRenderer(id, this);
+        newComponent = std::make_unique<MeshRenderer>(id, this);
         break;
 
     case ComponentType::PLAYER_WALK:
@@ -102,29 +105,27 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         newComponent = std::make_unique<CameraComponent>(id, this);
         break;
     case ComponentType::TRANSFORM2D:
-        newComponent = new Transform2D(id, this);
+        newComponent = std::make_unique<Transform2D>(id, this);
         break;
     case ComponentType::CANVAS:
-        newComponent = new Canvas(id, this);
+        newComponent = std::make_unique<Canvas>(id, this);
         break;
     case ComponentType::UIIMAGE:
-        newComponent = new UIImage(id, this);
+        newComponent = std::make_unique<UIImage>(id, this);
         break;
     case ComponentType::UITEXT:
-        newComponent = new UIText(id, this);
+        newComponent = std::make_unique<UIText>(id, this);
         break;
     case ComponentType::UIBUTTON:
-        newComponent = new UIButton(id, this);
+        newComponent = std::make_unique<UIButton>(id, this);
         break;
-    case ComponentType::COUNT:
-        return nullptr;
-
     case ComponentType::CAMERA_FOLLOW:
         newComponent = std::make_unique<CameraFollow>(id, this);
         break;
-
     case ComponentType::TRANSFORM:
+        break;
     case ComponentType::COUNT:
+        return nullptr;
     default:
         return nullptr;
     }

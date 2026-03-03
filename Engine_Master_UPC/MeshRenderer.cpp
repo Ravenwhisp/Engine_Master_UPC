@@ -5,6 +5,7 @@
 
 #include "Application.h"
 #include "RenderModule.h"
+#include "ResourcesModule.h"
 #include "AssetsModule.h"
 
 
@@ -31,7 +32,7 @@ void MeshRenderer::addModel(ModelAsset& model)
         globalMax.y = std::max(globalMax.y, meshMax.y);
         globalMax.z = std::max(globalMax.z, meshMax.z);
 
-        auto mesh = std::make_unique<BasicMesh>(meshAsset);
+        auto mesh = app->getResourcesModule()->createMesh(meshAsset);
         m_meshes.push_back(std::move(mesh));
     }
 
@@ -39,7 +40,7 @@ void MeshRenderer::addModel(ModelAsset& model)
     for (const auto materialAsset : model.getMaterials())
     {
         m_materialIndexByUID[materialAsset.getId()] = index;
-        auto material = std::make_unique<BasicMaterial>(materialAsset);
+        auto material = app->getResourcesModule()->createMaterial(materialAsset);
         m_materials.push_back(std::move(material));
         ++index;
     }

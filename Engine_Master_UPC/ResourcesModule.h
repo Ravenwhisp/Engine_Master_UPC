@@ -12,6 +12,7 @@
 #include "BasicMaterial.h"
 #include "BasicMesh.h"
 #include "BoundingBox.h"
+#include <ICacheable.h>
 
 using namespace std::filesystem;
 
@@ -56,10 +57,12 @@ public:
 	ComPtr<ID3D12Resource>			createDefaultBuffer(const void* data, size_t size, const char* name);
 	std::unique_ptr<DepthBuffer>	createDepthBuffer(float windowWidth, float windowHeight);
 
-	std::shared_ptr<Texture>		createTexture2DFromFile(const path& filePath, const char* name);
 	std::shared_ptr<Texture>		createTexture2D(const TextureAsset& textureAsset);
 	std::shared_ptr<Texture>		createNullTexture2D();
 	std::shared_ptr<Texture>		createTextureCubeFromFile(const TextureAsset& textureAsset);
+
+	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
+	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);
 
 	std::unique_ptr<RenderTexture>	createRenderTexture(float windowWidth, float windowHeight);
 	RingBuffer*						createRingBuffer(size_t size);
@@ -67,29 +70,35 @@ public:
 	std::unique_ptr<VertexBuffer>	createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
 	std::unique_ptr<IndexBuffer>	createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat);
 
-	void							destroyVertexBuffer(VertexBuffer*& vertexBuffer);
-	void							destroyIndexBuffer(IndexBuffer*& inderxBuffer);
 	void							defferResourceRelease(ComPtr<ID3D12Resource> resource);
-
-	std::weak_ptr<Texture> getLoadedTexture(const std::string& path) const;
-	bool isTextureLoaded(const std::string& path) const;
-	void markTextureAsLoaded(const std::string& path, std::shared_ptr<Texture> resource);
-	void markTextureAsNotLoaded(const std::string& path);
-
-	std::weak_ptr<ModelBinaryData> getLoadedModel(const std::string& path) const;
-	bool isModelLoaded(const std::string& path) const;
-	void markModelAsLoaded(const std::string& path, std::shared_ptr<ModelBinaryData> resource);
-	void markModelAsNotLoaded(const std::string& path);
-
 private:
-	ComPtr<ID3D12Device4>			m_device;
-	CommandQueue*					m_queue;
-	std::vector<DefferedResource>	m_defferedResources;
-
 	void generateMipmapsIfMissing(ScratchImage& image, TexMetadata& metaData);
 	void buildSubresourceData(const ScratchImage& image, const TexMetadata& metaData, std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
-	std::unordered_map<std::string, std::weak_ptr<Texture>> m_loadedTextures;
-	std::unordered_map<std::string, std::weak_ptr<ModelBinaryData>> m_loadedModels;
+	ComPtr<ID3D12Device4>									m_device;
+	CommandQueue*											m_queue;
+	std::vector<DefferedResource>							m_defferedResources;
+	std::unordered_map<UID, std::shared_ptr<ICacheable>>	m_resources;
+
+
+
+	template<typename T>
+	std::shared_ptr<T> getResource(UID uid) const
+	{
+		auto it = m_resources.find(uid);
+		if (it == m_resources.end()) return nullptr;
+		return std::static_pointer_cast<T>(it->second);
+	}
+
+	template<typename T>
+	bool isResourceLoaded(UID uid) const
+	{
+		return m_resources.find(uid) != m_resources.end();
+	}
+
+	void registerResource(UID uid, std::shared_ptr<ICacheable> resource)
+	{
+		m_resources.emplace(uid, std::move(resource));
+	}
 };

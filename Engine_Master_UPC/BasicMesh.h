@@ -4,13 +4,14 @@
 #include "ModelAsset.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "ICacheable.h"
 
 namespace tinygltf { class Model;  struct Mesh; struct Primitive; }
 
-class BasicMesh
+class BasicMesh: public ICacheable
 {
 public:
-	explicit BasicMesh(const MeshAsset& asset);
+	explicit BasicMesh(const UID uid, const MeshAsset& asset);
 	~BasicMesh() = default;
 	std::unique_ptr<VertexBuffer>&	getVertexBuffer() { return m_vertexBuffer; }
 	std::unique_ptr<IndexBuffer>&	getIndexBuffer() { return m_indexBuffer; }

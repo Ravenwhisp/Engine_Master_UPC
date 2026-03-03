@@ -127,45 +127,15 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	return buffer;
 }
 
-
-std::unique_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath, const char* name)
+std::shared_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
 {
-	std::string pathStr = filePath.string();
-	const char* cpath = pathStr.c_str();
-	auto assetModule = app->getAssetModule();
+	UID uid = textureAsset.getId();
 
-	TextureAsset * textureAsset = static_cast<TextureAsset*>(assetModule->requestAsset(assetModule->import(cpath)));
-
-	TextureInitInfo info{};
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset->getFormat());
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset->getWidth()), UINT(textureAsset->getHeight()), UINT16(textureAsset->getArraySize()), UINT16(textureAsset->getMipCount()));
-	info.desc = &desc; info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
-
-	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	subData.reserve(textureAsset->getImageCount());
-
-	const auto& subImages = textureAsset->getImages();
-	for (const auto& subImg : subImages)
+	if (isResourceLoaded<Texture>(uid))
 	{
-		assert(subImg.pixels.data() != nullptr);
-		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
-
-		D3D12_SUBRESOURCE_DATA data = {};
-		data.pData = subImg.pixels.data();
-		data.RowPitch = subImg.rowPitch;
-		data.SlicePitch = subImg.slicePitch;
-
-		subData.push_back(data);
+		return getResource<Texture>(uid);
 	}
 
-	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
-
-	return texture;
-}
-
-std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
-{
 	TextureInitInfo info{};
 
 	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());
@@ -173,7 +143,7 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -194,11 +164,20 @@ std::unique_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
+	registerResource(uid, texture);
+
 	return texture;
 }
 
-std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
+std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
 {
+	UID uid = textureAsset.getId();
+
+	if (isResourceLoaded<Texture>(uid))
+	{
+		return getResource<Texture>(uid);
+	}
+
 	TextureInitInfo info{};
 
 	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());
@@ -216,7 +195,7 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const Textur
 
 	info.srvDesc = &srvDesc;
 
-	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -237,10 +216,41 @@ std::unique_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const Textur
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
+	registerResource(uid, texture);
+
 	return texture;
 }
 
-std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
+std::shared_ptr<BasicMesh> ResourcesModule::createMesh(const MeshAsset& meshAsset)
+{
+	UID uid = meshAsset.getId();
+
+	if (isResourceLoaded<BasicMesh>(uid))
+	{
+		DEBUG_LOG("Mesh with UID %lld already loaded, returning existing instance.", uid);
+		return getResource<BasicMesh>(uid);
+	}
+
+	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
+	registerResource(uid, mesh);
+	return mesh;
+}
+
+std::shared_ptr<BasicMaterial> ResourcesModule::createMaterial(const MaterialAsset& materialAsset)
+{
+	UID uid = materialAsset.getId();
+
+	if (isResourceLoaded<BasicMaterial>(uid))
+	{
+		return getResource<BasicMaterial>(uid);
+	}
+
+	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
+	registerResource(uid, material);
+	return material;
+}
+
+std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
 {
 	TextureInitInfo info{};
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1);
@@ -255,7 +265,7 @@ std::unique_ptr<Texture> ResourcesModule::createNullTexture2D()
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
-	auto texture = std::make_unique<Texture>(*m_device.Get(), info);
+	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), info);
 	return texture;
 }
 
@@ -311,20 +321,6 @@ std::unique_ptr<IndexBuffer> ResourcesModule::createIndexBuffer(const void* data
 	return std::make_unique<IndexBuffer>(pDevice, defaultBuffer, numIndices, indexFormat);
 }
 
-VertexBuffer* ResourcesModule::createVertexBufferPointer(const void* data, size_t numVertices, size_t vertexStride)
-{
-	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
-	ID3D12Device4& pDevice = *m_device.Get();
-	return new VertexBuffer(pDevice, defaultBuffer, numVertices, vertexStride);
-}
-
-IndexBuffer* ResourcesModule::createIndexBufferPointer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
-{
-	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
-	ID3D12Device4& pDevice = *m_device.Get();
-	return new IndexBuffer(pDevice, defaultBuffer, numIndices, indexFormat);
-}
-
 void ResourcesModule::generateMipmapsIfMissing(DirectX::ScratchImage& image, DirectX::TexMetadata& metaData)
 {
 	if (metaData.mipLevels == 1 && (metaData.width > 1 || metaData.height > 1))
@@ -367,61 +363,4 @@ void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	commandList->ResourceBarrier(1, &barrier);
 	m_queue->executeCommandList(commandList);
 	m_queue->flush();
-}
-
-void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer)
-{
-	if (vertexBuffer)
-	{
-		delete vertexBuffer;
-		vertexBuffer = nullptr;
-	}
-}
-void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
-{
-	if (indexBuffer)
-	{
-		delete indexBuffer;
-		indexBuffer = nullptr;
-	}
-}
-
-std::weak_ptr<Texture> ResourcesModule::getLoadedTexture(const std::string& path) const 
-{
-	return m_loadedTextures.at(path);
-}
-
-bool ResourcesModule::isTextureLoaded(const std::string& path) const
-{
-	return m_loadedTextures.find(path) != m_loadedTextures.end();
-}
-
-void ResourcesModule::markTextureAsLoaded(const std::string& path, std::shared_ptr<Texture> resource)
-{
-	m_loadedTextures.emplace(path, resource);
-}
-
-void ResourcesModule::markTextureAsNotLoaded(const std::string& path)
-{
-	m_loadedTextures.erase(path);
-}
-
-std::weak_ptr<ModelBinaryData> ResourcesModule::getLoadedModel(const std::string& path) const
-{
-	return m_loadedModels.at(path);
-}
-
-bool ResourcesModule::isModelLoaded(const std::string& path) const
-{
-	return m_loadedModels.find(path) != m_loadedModels.end();
-}
-
-void ResourcesModule::markModelAsLoaded(const std::string& path, std::shared_ptr<ModelBinaryData> resource)
-{
-	m_loadedModels.emplace(path, resource);
-}
-
-void ResourcesModule::markModelAsNotLoaded(const std::string& path)
-{
-	m_loadedModels.erase(path);
 }
