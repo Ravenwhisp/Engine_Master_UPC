@@ -183,8 +183,6 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="SceneSerializer.cpp" />
-    <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="PlayerWalk.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
@@ -192,27 +190,75 @@
     <ClCompile Include="CameraFollow.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
-    <ClCompile Include="Asset.cpp" />
-    <ClCompile Include="Canvas.cpp" />
-    <ClCompile Include="Component.cpp" />
-    <ClCompile Include="FontImporter.cpp" />
-    <ClCompile Include="ModuleEventSystem.cpp" />
-    <ClCompile Include="FileDialog.cpp" />
-    <ClCompile Include="AssetsModule.cpp" />
-    <ClCompile Include="FileSystemModule.cpp" />
-    <ClCompile Include="FontPass.cpp" />
-    <ClCompile Include="MeshRenderer.cpp" />
-    <ClCompile Include="MeshRendererPass.cpp" />
-    <ClCompile Include="ModelImporter.cpp" />
-    <ClCompile Include="Skybox.cpp" />
-    <ClCompile Include="SkyboxPass.cpp" />
-    <ClCompile Include="TextureImporter.cpp" />
-    <ClCompile Include="Transform2D.cpp" />
-    <ClCompile Include="UIButton.cpp" />
-    <ClCompile Include="UIImage.cpp" />
-    <ClCompile Include="UIImagePass.cpp" />
-    <ClCompile Include="UIModule.cpp" />
-    <ClCompile Include="UIText.cpp" />
+    <ClCompile Include="UIImage.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIModule.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIText.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystemModule.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform2D.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButton.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSerializer.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetsModule.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="FontPass.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRendererPass.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyboxPass.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEventSystem.cpp">
+      <Filter>UI\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelImporter.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureImporter.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="FontImporter.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="Asset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -433,50 +479,124 @@
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h" />
-    <ClInclude Include="UID.h" />
     <ClInclude Include="PlayerWalk.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="CameraFollow.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="Asset.h" />
-    <ClInclude Include="AssetsDictionary.h" />
-    <ClInclude Include="Canvas.h" />
-    <ClInclude Include="Delegates.h" />
-    <ClInclude Include="FontImporter.h" />
-    <ClInclude Include="ICacheable.h" />
-    <ClInclude Include="ModuleEventSystem.h" />
-    <ClInclude Include="FileDialog.h" />
-    <ClInclude Include="AssetsModule.h" />
-    <ClInclude Include="BinaryReader.h" />
-    <ClInclude Include="BinaryWriter.h" />
-    <ClInclude Include="FileSystemModule.h" />
-    <ClInclude Include="FontPass.h" />
-    <ClInclude Include="ILightPass.h" />
-    <ClInclude Include="IMatrixPass.h" />
-    <ClInclude Include="Importer.h" />
-    <ClInclude Include="IPointerEventHandler.h" />
-    <ClInclude Include="IRenderPass.h" />
-    <ClInclude Include="MeshRenderer.h" />
-    <ClInclude Include="MeshRendererPass.h" />
-    <ClInclude Include="ModelAsset.h" />
-    <ClInclude Include="ModelImporter.h" />
-    <ClInclude Include="PointerEventData.h" />
-    <ClInclude Include="SkyboxPass.h" />
-    <ClInclude Include="TextureAsset.h" />
-    <ClInclude Include="TextureImporter.h" />
-    <ClInclude Include="Transform2D.h" />
-    <ClInclude Include="TypedImporter.h" />
-    <ClInclude Include="UIButton.h" />
-    <ClInclude Include="UIImage.h" />
-    <ClInclude Include="UIImagePass.h" />
-    <ClInclude Include="UIModule.h" />
-    <ClInclude Include="UICommands.h" />
-    <ClInclude Include="UIRect.h" />
-    <ClInclude Include="UIText.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="UIImage.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImagePass.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIModule.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRect.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIText.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryReader.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryWriter.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystemModule.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ICacheable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform2D.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UICommands.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIButton.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetsModule.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="FontPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ILightPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="IMatrixPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRendererPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Delegates.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="IPointerEventHandler.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleEventSystem.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerEventData.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelImporter.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImporter.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedImporter.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="FontImporter.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="Asset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetsDictionary.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -588,6 +708,21 @@
     </Filter>
     <Filter Include="GameEntity\Components\Scripts">
       <UniqueIdentifier>{17efb2dc-ee81-481c-8129-992bae918a62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{5eaae84d-0069-4ce5-97dc-eef9f4acbdd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence">
+      <UniqueIdentifier>{f0d7a3ca-c185-4ef1-a0f3-ea58035ee08d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Events">
+      <UniqueIdentifier>{854b8be7-722e-43ad-89a6-92d24898f3df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers">
+      <UniqueIdentifier>{85e774c8-7b58-4a29-bcad-df627620ca9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Assets">
+      <UniqueIdentifier>{8d27eb04-c0da-431b-8da1-e70ef57cd788}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

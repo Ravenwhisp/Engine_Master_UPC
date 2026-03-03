@@ -27,7 +27,6 @@ bool FileSystemModule::init()
     importers.push_back(fontImporter);
 
     rebuild();
-    rebuild();
 
     return true;
 }
@@ -194,21 +193,52 @@ void FileSystemModule::rebuild()
 {
     std::string s = ASSETS_FOLDER;
     if (!s.empty() && s.back() == '/')
-    {
         s.pop_back();
-    }
 
     m_metadataMap.clear();
+    m_pathIndex.clear();
     m_pendingImports.clear();
-    
+
     checkFile(s);
+
     for (const auto& pending : m_pendingImports)
     {
+        if (pending.existingUID == INVALID_ASSET_ID)
+        {
+            std::filesystem::path metaPath = pending.sourcePath;
+            metaPath += METADATA_EXTENSION;
+
+            if (exists(metaPath.string().c_str()))
+            {
+                if (m_pathIndex.find(pending.sourcePath.string()) == m_pathIndex.end())
+                {
+                    loadMetadata(metaPath);
+                }
+
+                continue;
+            }
+        }
         app->getAssetModule()->import(pending.sourcePath, pending.existingUID);
     }
-    cleanOrphanedBinaries();
 
+    cleanOrphanedBinaries();
     m_root = buildTree(s);
+}
+
+UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
+{
+    auto it = m_pathIndex.find(sourcePath.lexically_normal().string());
+    if (it != m_pathIndex.end())
+    {
+        return it->second;
+    }
+    return INVALID_ASSET_ID;
+}
+
+void FileSystemModule::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
+{
+    m_metadataMap[meta.uid] = meta;
+    m_pathIndex[sourcePath.lexically_normal().string()] = meta.uid;
 }
 
 std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
@@ -267,10 +297,6 @@ void FileSystemModule::handleMissingMetadata(const std::filesystem::path& source
     if (importer)
     {
         m_pendingImports.push_back({ sourcePath, INVALID_ASSET_ID });
-    }
-    else
-    {
-        DEBUG_WARN("[FileSystemModule] No importer found for '{}'.", sourcePath.string());
     }
 }
 
@@ -333,7 +359,7 @@ void FileSystemModule::loadMetadata(const std::filesystem::path& path)
     AssetMetadata meta;
     if (AssetMetadata::loadMetaFile(path, meta))
     {
-        m_metadataMap[meta.uid] = meta;
+        registerMetadata(meta, sourcePath);
 
         if (!exists(getBinaryPath(meta.uid).string().c_str()))
         {
