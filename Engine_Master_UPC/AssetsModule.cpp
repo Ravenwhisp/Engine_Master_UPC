@@ -9,21 +9,6 @@
 #include <fstream>
 #include "UID.h"
 
-UID AssetsModule::find(const std::filesystem::path& assetsFile) const
-{
-    std::filesystem::path metadataPath = assetsFile;
-    metadataPath += METADATA_EXTENSION;
-
-    auto entry = app->getFileSystemModule()->getEntry(metadataPath);
-    if (!entry)
-    {
-        DEBUG_ERROR("[AssetsModule] Could not find asset '{}'.", assetsFile.string());
-        return INVALID_ASSET_ID;
-    }
-
-    return entry->uid;
-}
-
 UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
 {
 
@@ -58,7 +43,7 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
     metaPath += METADATA_EXTENSION;
 
     AssetMetadata::saveMetaFile(meta, metaPath);
-
+    app->getFileSystemModule()->registerMetadata(meta, assetsFile);
     // FILE
     uint8_t* buffer = nullptr;
     uint64_t size = importer->save(asset, &buffer);

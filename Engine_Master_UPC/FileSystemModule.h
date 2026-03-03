@@ -39,6 +39,9 @@ public:
 
 	Importer* findImporter(AssetType type);
 	AssetMetadata* getMetadata(UID uid);
+	UID findByPath(const std::filesystem::path& sourcePath) const;
+	void registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath);
+
 
 	unsigned int load(const std::filesystem::path& filePath, char** buffer) const;
 	unsigned int load(const char* filePath, char** buffer) const;
@@ -73,6 +76,8 @@ private:
 	std::shared_ptr<FileEntry> m_root;
 #pragma endregion
 	std::unordered_map<UID, AssetMetadata> m_metadataMap;
+	std::unordered_map<std::string, UID>    m_pathIndex;
+
 	std::vector<PendingImport> m_pendingImports;
 
 	// I don't know if having to ways of finding an importer is the solution
