@@ -24,6 +24,8 @@ public:
     void text(const std::wstring& msg, float x, float y);
 
 private:
+    Rect2D m_rootScreenRect;
+
     FontPass* m_fontPass = nullptr;
     UIImagePass* m_imagePass = nullptr;
 
@@ -33,9 +35,9 @@ private:
     std::unordered_map<UID, std::unique_ptr<Texture>> m_uiTextures;
 
 private:
-    void buildUIDrawCommands(GameObject* go);
+    void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect);
 
-    void buildUIImage(GameObject* go, Transform2D* t2d);
-    void buildUIText(GameObject* go, Transform2D* t2d);
+    void buildUIImage(GameObject* go, const Rect2D& parentRect);
+    void buildUIText(GameObject* go, const Rect2D& parentRect);
 
 };

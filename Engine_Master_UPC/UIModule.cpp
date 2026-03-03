@@ -9,6 +9,7 @@
 
 #include "SceneModule.h"
 #include "ResourcesModule.h"
+#include "EditorModule.h"
 #include "Texture.h"
 
 #include "GameObject.h"
@@ -31,23 +32,39 @@ void UIModule::preRender()
     m_textCommands.clear();
     m_imageCommands.clear();
 
+    const ImVec2 screenSize = app->getEditorModule()->getSceneEditorSize();
+
+    if (screenSize.x <= 0.0f || screenSize.y <= 0.0f) {
+        return;
+    }
+
+    m_rootScreenRect.x = 0.0f;
+    m_rootScreenRect.y = 0.0f;
+    m_rootScreenRect.w = screenSize.x;
+    m_rootScreenRect.h = screenSize.y;
+
     const auto& roots = app->getSceneModule()->getAllGameObjects();
 
     for (GameObject* go : roots)
     {
-        if (!go || !go->GetActive())
+        if (!go || !go->GetActive()) 
+        {
             continue;
+        }
 
         Canvas* canvas = go->GetComponentAs<Canvas>(ComponentType::CANVAS);
-        if (!canvas || !canvas->isActive())
+        if (!canvas || !canvas->isActive()) 
+        {
             continue;
+        }
 
-        buildUIDrawCommands(go);
+        buildUIDrawCommands(go, m_rootScreenRect);
     }
 }
 
 void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)
 {
+
     if (m_imagePass)
     {
         m_imagePass->setViewport(viewport);
@@ -121,7 +138,7 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void UIModule::buildUIDrawCommands(GameObject* gameObject)
+void UIModule::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect)
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -129,23 +146,30 @@ void UIModule::buildUIDrawCommands(GameObject* gameObject)
     }
 
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
-    
-    buildUIImage(gameObject, t2d);
-    buildUIText(gameObject, t2d);
+
+    Rect2D myRect = parentRect;
+
+    if (t2d && t2d->isActive())
+    {
+        myRect = t2d->getRect(parentRect);
+
+        buildUIImage(gameObject, myRect);
+        buildUIText(gameObject, myRect);
+    }
 
     Transform* transform = gameObject->GetTransform();
 
     for (GameObject* child : transform->getAllChildren())
     {
-        buildUIDrawCommands(child);
+        buildUIDrawCommands(child, myRect);
     }
 }
 
-void UIModule::buildUIImage(GameObject* gameObject, Transform2D* t2d)
+void UIModule::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
-    if (!uiImg || !uiImg->isActive() || !t2d || !t2d->isActive())
+    if (!uiImg || !uiImg->isActive())
     {
         return;
     }
@@ -187,24 +211,24 @@ void UIModule::buildUIImage(GameObject* gameObject, Transform2D* t2d)
     {
         UIImageCommand command;
         command.texture = uiImg->getTexture();
-        command.rect = t2d->getRect();
+        command.rect = myRect;
         m_imageCommands.push_back(command);
     }
 }
 
-void UIModule::buildUIText(GameObject* gameObject, Transform2D* t2d)
+void UIModule::buildUIText(GameObject* gameObject, const Rect2D& myRect)
 {
     UIText* uiText = gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
 
-    if (!uiText || !uiText->isActive() || !t2d || !t2d->isActive())
+    if (!uiText || !uiText->isActive())
     {
         return;
     }
 
     UITextCommand command;
     command.text = stringToWString(uiText->getText());
-    command.x = t2d->position.x;
-    command.y = t2d->position.y;
+    command.x = myRect.x;
+    command.y = myRect.y;
     command.color = uiText->getColor();
     command.scale = uiText->getFontScale();
 
