@@ -7,7 +7,7 @@
 Engine_OUT/Library/
 Engine_OUT/Engine.exe
 Engine_OUT/*.cso
-Engine_OUT/*.metadata
+*.metadata
 
 # User-specific files
 *.rsuser

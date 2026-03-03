@@ -7,7 +7,6 @@
 #include <rapidjson/stringbuffer.h>
 #include "rapidjson/filereadstream.h"
 
-#include <simdjson.h>
 #include <fstream>
 #include "UID.h"
 
