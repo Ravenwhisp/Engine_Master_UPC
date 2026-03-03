@@ -9,7 +9,6 @@
 #include "Settings.h"
 
 #include "Quadtree.h"
-#include "ModelComponent.h"
 #include "SceneSerializer.h"
 
 #include <queue>
@@ -30,12 +29,14 @@ bool SceneModule::init()
 
     /// PROVISIONAL
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
+    GameObject* rawPtr = gameCamera.get();
     gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
  
-    m_gameObjects.push_back(gameCamera);
+    m_allObjects.push_back(std::move(gameCamera));
+    m_rootObjects.push_back(rawPtr);
 
     for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
     {
@@ -96,7 +97,7 @@ void SceneModule::createQuadtree()
         Component* component = go->GetComponent(ComponentType::MODEL);
         if (component)
         {
-            ModelComponent* model = static_cast<ModelComponent*>(component);
+            MeshRenderer* model = static_cast<MeshRenderer*>(component);
             Engine::BoundingBox boundingBox = model->getBoundingBox();
 
             Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -165,34 +166,38 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
 
         auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
 
+        m_meshRenderers.clear();
+
         for (GameObject* gameObject : visibleObjects)
         {
             if (gameObject->GetActive())
             {
-                gameObject->render(commandList, viewMatrix, projectionMatrix);
-            }
-        }
-    }
-    else
-    {
-        if (m_quadtree)
-        {
-            m_quadtree.reset();
-            DEBUG_LOG("QUADTREE removed");
-        }
-
-    for (GameObject* gameObject : gameObjects)
-    {
-        if (gameObject->GetActive())
-        {
-            m_meshRenderers.clear();
-            for (const auto& gameObject : m_gameObjects) {
                 auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
                 if (meshRenderer && meshRenderer->hasMeshes())
                 {
                     m_meshRenderers.push_back(meshRenderer);
                 }
             }
+        }
+    }
+    else
+    {		
+        m_meshRenderers.clear();
+        for (GameObject* gameObject : getAllGameObjects())
+        {
+            if (gameObject->GetActive())
+            {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
+            }
+        }
+        if (m_quadtree)
+        {
+            m_quadtree.reset();
+            DEBUG_LOG("QUADTREE removed");
         }
     }
 }
@@ -369,7 +374,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
     auto go = std::make_unique<GameObject>(GenerateUID());
     GameObject* raw = go.get();
 
-    auto component = raw->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+    auto component = raw->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     raw->RemoveComponent(component);
 
     raw->SetName("Directional Light");

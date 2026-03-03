@@ -32,11 +32,12 @@ class SceneModule : public Module
 private:
 	std::string m_name = "SampleScene";
 
-	std::vector<std::unique_ptr<GameObject>> m_allObjects;
-	std::vector<GameObject*> m_rootObjects;
+	std::vector<std::unique_ptr<GameObject>>	m_allObjects;
+	std::vector<GameObject*>					m_rootObjects;
+	std::vector<MeshRenderer*>					m_meshRenderers;
 
-	std::unique_ptr<SceneSerializer> m_sceneSerializer;
-	std::unique_ptr<Quadtree> m_quadtree;
+	std::unique_ptr<SceneSerializer>	m_sceneSerializer;
+	std::unique_ptr<Quadtree>			m_quadtree;
 
 	SceneLightingSettings		m_lighting;
 	SceneDataCB					m_sceneDataCB;
@@ -89,7 +90,7 @@ public:
 
 	GameObject* createDirectionalLightOnInit();
 
-	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
+	std::vector<GameObject*> getAllGameObjects();
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }

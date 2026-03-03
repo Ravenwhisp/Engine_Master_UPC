@@ -6,7 +6,7 @@
 #include "ResourcesModule.h"
 
 
-DepthBuffer::DepthBuffer(ID3D12Device4& device, TextureInitInfo info) : Texture(device, info) {
+DepthBuffer::DepthBuffer(ID3D12Device4& device, TextureInitInfo info) : Texture(GenerateUID(), device, info) {
 
     const DXGI_FORMAT format{ info.desc->Format };
 

@@ -22,8 +22,8 @@ public:
 
 	void addModel(ModelAsset& model);
 
-	std::vector<std::unique_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
-	std::vector<std::unique_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
+	std::vector<std::shared_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
+	std::vector<std::shared_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
 	bool											hasMeshes() { return m_meshes.size() != 0; }
 
 	BasicMaterial* getMaterial(UID materialId)
@@ -48,8 +48,8 @@ public:
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
-	mutable std::vector<std::unique_ptr<BasicMesh>>		m_meshes;
-	mutable std::vector<std::unique_ptr<BasicMaterial>>	m_materials;
+	mutable std::vector<std::shared_ptr<BasicMesh>>		m_meshes;
+	mutable std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 	std::unordered_map<UID, uint32_t>					m_materialIndexByUID;
 
 	Engine::BoundingBox									m_boundingBox;

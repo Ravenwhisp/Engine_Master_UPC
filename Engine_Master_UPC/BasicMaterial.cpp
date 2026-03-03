@@ -6,7 +6,7 @@
 #include "AssetsModule.h"
 #include <TextureImporter.h>
 
-BasicMaterial::BasicMaterial(const MaterialAsset& asset)
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICacheable(uid)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{

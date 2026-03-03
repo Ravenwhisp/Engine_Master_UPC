@@ -226,7 +226,7 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, Gam
 
 void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
-    for (Component* c : go->GetComponents())
+    for (Component* c : go->GetAllComponents())
     {
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
         {
@@ -237,7 +237,7 @@ void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 {
-    for (Component* c : go->GetComponents())
+    for (Component* c : go->GetAllComponents())
     {
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c)) h->onPointerUp(data);
     }
