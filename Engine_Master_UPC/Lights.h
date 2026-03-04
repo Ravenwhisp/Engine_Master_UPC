@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <cstdint>
-#include <SimpleMath.h>
+#include "SimpleMath.h"
 
 using DirectX::SimpleMath::Vector3;
 

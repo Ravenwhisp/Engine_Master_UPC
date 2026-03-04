@@ -7,16 +7,17 @@ class BasicMeshMesh;;
 class VertexBuffer: public Buffer
 {
 public:
+    VertexBuffer(ID3D12Device4& device, size_t numVertices, size_t vertexStride);
+    VertexBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> resource, size_t numVertices, size_t vertexStride);    
+    virtual ~VertexBuffer();
+
     D3D12_VERTEX_BUFFER_VIEW    getVertexBufferView() const{ return m_VertexBufferView; }
     size_t                      getNumVertices() const{ return m_NumVertices; }
 
     friend class ResourcesModule;
     friend class BasicMesh;
-protected:
-    VertexBuffer(ID3D12Device4& device, size_t numVertices, size_t vertexStride);
-    VertexBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> resource, size_t numVertices, size_t vertexStride);
-    virtual ~VertexBuffer();
 
+protected:
     void createVertexBufferView();
 private:
 

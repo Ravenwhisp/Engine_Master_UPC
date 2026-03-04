@@ -47,7 +47,6 @@ public:
 	};
 
 public:
-	EditorModule();
 	~EditorModule() {}
 
 #pragma region Game Loop
@@ -61,7 +60,6 @@ public:
 
 	SceneEditor*	getSceneEditor() { return m_sceneEditor; }
 	ImVec2			getSceneEditorSize() { return m_sceneEditor->getSize();}
-	ImGuiPass*		getImGuiPass() { return m_gui; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
@@ -78,7 +76,6 @@ public:
 private:
 	void			setupDockLayout(ImGuiID dockspace_id);
 	void			mainDockspace(bool* open);
-
 private:
 #pragma region Views
 	std::vector<EditorWindow*>	m_editorWindows;
@@ -86,8 +83,6 @@ private:
 	HardwareWindow*				m_hardwareWindow = nullptr;
 	PerformanceWindow*			m_performanceWindow = nullptr;
 	SceneEditor*				m_sceneEditor = nullptr;
-	ImGuiPass* 					m_gui = nullptr;
-	DebugDrawPass*				m_debugDrawPass = nullptr;
 	EditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
 	GameWindow*					m_gameWindow = nullptr;
@@ -110,7 +105,7 @@ private:
 	SCENE_TOOL previousSceneTool;
 	SIMULATION_MODE currentSimulationMode = STOP;
 
-	GameObject* m_selectedGameObject;
+	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;
 #pragma endregion
 

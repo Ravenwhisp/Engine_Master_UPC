@@ -11,14 +11,16 @@ class EditorModule;
 class ResourcesModule;
 class CameraModule;
 class InputModule;
-class SampleModule;
 class ShaderDescriptorsModule;
 class DescriptorsModule;
 class TimeModule;
+class UIModule;
 class RenderModule;
 class SceneModule;
 class GameViewModule;
 class FileSystemModule;
+class AssetsModule;
+class ModuleEventSystem;
 
 class CameraComponent;
 
@@ -49,10 +51,13 @@ public:
     CameraModule*               getCameraModule() { return m_cameraModule; }
     DescriptorsModule*          getDescriptorsModule() { return m_descriptorsModule; }
     TimeModule*                 getTimeModule() { return m_timeModule; }
+    UIModule*                   getUIModule() { return m_uiModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
     GameViewModule*             getGameViewModule() { return m_gameViewModule; }
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
+    AssetsModule*               getAssetModule() { return m_assetsModule; }
+    ModuleEventSystem*          getModuleEventSystem() { return m_moduleEventSystem; }
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -83,6 +88,9 @@ private:
     SceneModule*            m_sceneModule = nullptr;
     GameViewModule*         m_gameViewModule = nullptr;
     FileSystemModule*       m_fileSystemModule = nullptr;
+    AssetsModule*           m_assetsModule = nullptr;
+    UIModule*               m_uiModule = nullptr;
+    ModuleEventSystem*      m_moduleEventSystem = nullptr;
 
     Settings*               m_settings = nullptr;
 

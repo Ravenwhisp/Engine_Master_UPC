@@ -11,6 +11,9 @@
 #include "RingBuffer.h"
 #include <RenderTexture.h>
 
+#include "AssetsModule.h"
+#include <TextureImporter.h>
+
 ResourcesModule::~ResourcesModule()
 {
 	m_defferedResources.clear();
@@ -125,48 +128,126 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	return buffer;
 }
 
-std::shared_ptr<Texture> ResourcesModule::createTexture2DFromFile(const path& filePath)
+std::shared_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
 {
+	UID uid = textureAsset.getId();
 
-	ScratchImage image;
-	const wchar_t* path = filePath.c_str();
-
-	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image)))
+	if (auto texture = getResource<Texture>(uid))
 	{
-		if (FAILED(LoadFromTGAFile(path, nullptr, image)))
-		{
-			if (FAILED(LoadFromWICFile(path, WIC_FLAGS_NONE, nullptr, image)))
-			{
-				DEBUG_ERROR("ERROR loading texture, not found valid file.");
-				return nullptr;
-			}
-		}
+		return texture;
 	}
-
-	if (image.GetImageCount() == 0) {
-		return createNullTexture2D();
-	}
-
-	TexMetadata metaData = image.GetMetadata();
-	if (metaData.dimension != TEX_DIMENSION_TEXTURE2D) {
-		return createNullTexture2D();
-	}
-
-	generateMipmapsIfMissing(image, metaData);
 
 	TextureInitInfo info{};
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(metaData.format);
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
+
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset.getWidth()), UINT(textureAsset.getHeight()), UINT16(textureAsset.getArraySize()), UINT16(textureAsset.getMipCount()));
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
+
+	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	buildSubresourceData(image, metaData, subData);
+	subData.reserve(textureAsset.getImageCount());
+
+	const auto& subImages = textureAsset.getImages();
+	for (const auto& subImg : subImages)
+	{
+		assert(subImg.pixels.data() != nullptr);
+		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
+
+		D3D12_SUBRESOURCE_DATA data = {};
+		data.pData = subImg.pixels.data();
+		data.RowPitch = subImg.rowPitch;
+		data.SlicePitch = subImg.slicePitch;
+
+		subData.push_back(data);
+	}
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
+	registerResource(uid, texture);
+
 	return texture;
+}
+
+std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
+{
+	UID uid = textureAsset.getId();
+
+	if (auto texture = getResource<Texture>(uid))
+	{
+		return texture;
+	}
+
+	TextureInitInfo info{};
+
+	DXGI_FORMAT texFormat = DirectX::MakeSRGB(textureAsset.getFormat());
+	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(textureAsset.getWidth()), UINT(textureAsset.getHeight()), UINT16(textureAsset.getArraySize()), UINT16(textureAsset.getMipCount()));
+	info.desc = &desc;
+	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = texFormat;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MostDetailedMip = 0;
+	srvDesc.TextureCube.MipLevels = (UINT)textureAsset.getMipCount();
+	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+
+	info.srvDesc = &srvDesc;
+
+	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
+
+	std::vector<D3D12_SUBRESOURCE_DATA> subData;
+	subData.reserve(textureAsset.getImageCount());
+
+	const auto& subImages = textureAsset.getImages();
+	for (const auto& subImg : subImages)
+	{
+		assert(subImg.pixels.data() != nullptr);
+		assert(subImg.rowPitch > 0 && subImg.slicePitch > 0);
+
+		D3D12_SUBRESOURCE_DATA data = {};
+		data.pData = subImg.pixels.data();
+		data.RowPitch = subImg.rowPitch;
+		data.SlicePitch = subImg.slicePitch;
+
+		subData.push_back(data);
+	}
+
+	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
+
+	registerResource(uid, texture);
+
+	return texture;
+}
+
+std::shared_ptr<BasicMesh> ResourcesModule::createMesh(const MeshAsset& meshAsset)
+{
+	UID uid = meshAsset.getId();
+
+	if (auto mesh = getResource<BasicMesh>(uid))
+	{
+		return mesh;
+	}
+
+	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
+	registerResource(uid, mesh);
+	return mesh;
+}
+
+std::shared_ptr<BasicMaterial> ResourcesModule::createMaterial(const MaterialAsset& materialAsset)
+{
+	UID uid = materialAsset.getId();
+
+	if (auto material = getResource<BasicMaterial>(uid))
+	{
+		return material;
+	}
+
+	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
+	registerResource(uid, material);
+	return material;
 }
 
 std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
@@ -184,57 +265,7 @@ std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
-	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
-	return texture;
-}
-
-std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const path& filePath, const char* name)
-{
-	ScratchImage image;
-	const wchar_t* path = filePath.c_str();
-
-	if (FAILED(LoadFromDDSFile(path, DDS_FLAGS_NONE, nullptr, image)))
-	{
-		return nullptr;
-	}
-
-	if (image.GetImageCount() == 0) {
-		return nullptr;
-	}
-
-	TexMetadata metaData = image.GetMetadata();
-
-	if (metaData.dimension != TEX_DIMENSION_TEXTURE2D || !metaData.IsCubemap() || metaData.arraySize != 6) {
-		return nullptr;
-	}
-
-	generateMipmapsIfMissing(image, metaData);
-
-	TextureInitInfo info{};
-
-	DXGI_FORMAT texFormat = DirectX::MakeSRGB(metaData.format);
-	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(texFormat, UINT64(metaData.width), UINT(metaData.height), UINT16(metaData.arraySize), UINT16(metaData.mipLevels));
-
-	info.desc = &desc;
-	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = texFormat;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.MipLevels = (UINT)metaData.mipLevels;
-	srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
-
-	info.srvDesc = &srvDesc;
-
-	auto texture = std::make_shared<Texture>(*m_device.Get(), info);
-
-	std::vector<D3D12_SUBRESOURCE_DATA> subData;
-	buildSubresourceData(image, metaData, subData);
-
-	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
-
+	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), info);
 	return texture;
 }
 
@@ -248,8 +279,8 @@ RingBuffer* ResourcesModule::createRingBuffer(size_t size)
 std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float windowWidth, float windowHeight)
 {
 	TextureInitInfo info{};
-	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight), 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	D3D12_CLEAR_VALUE clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_TYPELESS, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight), 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	D3D12_CLEAR_VALUE clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, Color(0.0f, 0.2f, 0.4f, 1.0f));
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -265,6 +296,8 @@ std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float window
 	info.initialState = D3D12_RESOURCE_STATE_COMMON;
 	info.desc = &resourceDesc;
 
+	info.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
 	auto texture = std::make_unique<RenderTexture>(*m_device.Get(), info);	return texture;
 }
 
@@ -276,18 +309,18 @@ void ResourcesModule::defferResourceRelease(ComPtr<ID3D12Resource> resource)
 	m_defferedResources.push_back(defferedResource);
 }
 
-VertexBuffer* ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
+std::unique_ptr<VertexBuffer> ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();
-	return new VertexBuffer(pDevice, defaultBuffer, numVertices, vertexStride);
+	return std::make_unique<VertexBuffer>(pDevice, defaultBuffer, numVertices, vertexStride);
 }
 
-IndexBuffer* ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
+std::unique_ptr<IndexBuffer> ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();
-	return new IndexBuffer(pDevice, defaultBuffer, numIndices, indexFormat);
+	return std::make_unique<IndexBuffer>(pDevice, defaultBuffer, numIndices, indexFormat);
 }
 
 void ResourcesModule::generateMipmapsIfMissing(DirectX::ScratchImage& image, DirectX::TexMetadata& metaData)
@@ -332,61 +365,4 @@ void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	commandList->ResourceBarrier(1, &barrier);
 	m_queue->executeCommandList(commandList);
 	m_queue->flush();
-}
-
-void ResourcesModule::destroyVertexBuffer(VertexBuffer*& vertexBuffer)
-{
-	if (vertexBuffer)
-	{
-		delete vertexBuffer;
-		vertexBuffer = nullptr;
-	}
-}
-void ResourcesModule::destroyIndexBuffer(IndexBuffer*& indexBuffer)
-{
-	if (indexBuffer)
-	{
-		delete indexBuffer;
-		indexBuffer = nullptr;
-	}
-}
-
-std::weak_ptr<Texture> ResourcesModule::getLoadedTexture(const std::string& path) const 
-{
-	return m_loadedTextures.at(path);
-}
-
-bool ResourcesModule::isTextureLoaded(const std::string& path) const
-{
-	return m_loadedTextures.find(path) != m_loadedTextures.end();
-}
-
-void ResourcesModule::markTextureAsLoaded(const std::string& path, std::shared_ptr<Texture> resource)
-{
-	m_loadedTextures.emplace(path, resource);
-}
-
-void ResourcesModule::markTextureAsNotLoaded(const std::string& path)
-{
-	m_loadedTextures.erase(path);
-}
-
-std::weak_ptr<ModelBinaryData> ResourcesModule::getLoadedModel(const std::string& path) const
-{
-	return m_loadedModels.at(path);
-}
-
-bool ResourcesModule::isModelLoaded(const std::string& path) const
-{
-	return m_loadedModels.find(path) != m_loadedModels.end();
-}
-
-void ResourcesModule::markModelAsLoaded(const std::string& path, std::shared_ptr<ModelBinaryData> resource)
-{
-	m_loadedModels.emplace(path, resource);
-}
-
-void ResourcesModule::markModelAsNotLoaded(const std::string& path)
-{
-	m_loadedModels.erase(path);
 }

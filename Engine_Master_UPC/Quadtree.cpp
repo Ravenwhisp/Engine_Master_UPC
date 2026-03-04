@@ -1,6 +1,6 @@
 ﻿#include "Globals.h"
 #include "Quadtree.h"
-#include "ModelComponent.h"
+#include "MeshRenderer.h"
 #include "GameObject.h"
 #include <algorithm>
 

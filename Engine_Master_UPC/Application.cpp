@@ -6,8 +6,12 @@
 #include "ResourcesModule.h"
 #include "CameraModule.h"
 #include "DescriptorsModule.h"
+#include "UIModule.h"
 #include "RenderModule.h"
 #include "SceneModule.h"
+#include "FileSystemModule.h"
+#include "AssetsModule.h"
+#include "ModuleEventSystem.h"
 #include "GameViewModule.h"
 #include "TimeModule.h"
 #include "PerformanceProfiler.h"
@@ -24,12 +28,19 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_descriptorsModule = new DescriptorsModule());
     modules.push_back(m_resourcesModule = new ResourcesModule());
 
-    modules.push_back(m_cameraModule = new CameraModule());
+    //Needed to create the LOGs
     modules.push_back(m_editorModule = new EditorModule());
-    modules.push_back(m_sceneModule = new SceneModule());
+
+    modules.push_back(m_assetsModule = new AssetsModule());
+    modules.push_back(m_fileSystemModule = new FileSystemModule());
+    modules.push_back(m_moduleEventSystem = new ModuleEventSystem());
+
+    modules.push_back(m_uiModule = new UIModule());
     modules.push_back(m_renderModule = new RenderModule());
     modules.push_back(m_gameViewModule = new GameViewModule());
 
+    modules.push_back(m_cameraModule = new CameraModule());
+    modules.push_back(m_sceneModule = new SceneModule());
     modules.push_back(m_timeModule = new TimeModule(120));
 
     m_settings = new Settings();

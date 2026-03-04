@@ -37,10 +37,7 @@ void CameraComponent::recalculateFrustum()
 void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
 	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
-	if (app->getCurrentCameraPerspective() != this)
-	{
-		m_frustum.render(m_world);
-	}
+
 }
 
 void CameraComponent::update()
@@ -61,6 +58,9 @@ void CameraComponent::onTransformChange()
 
 void CameraComponent::drawUi() 
 {
+	m_frustum.render(m_world);
+
+
     ImGui::Separator();
 
 	float fov = m_horizontalFov;
@@ -125,7 +125,7 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
 	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
 	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspecRtatio", m_aspectRatio, domTree.GetAllocator());
+	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
 
 	return componentInfo;
 }

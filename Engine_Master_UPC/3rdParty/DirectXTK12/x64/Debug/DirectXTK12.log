@@ -1,0 +1,13 @@
+﻿  BinaryReader.cpp
+  CommonStates.cpp
+  DDSTextureLoader.cpp
+  DescriptorHeap.cpp
+  DirectXHelpers.cpp
+  GraphicsMemory.cpp
+  LinearAllocator.cpp
+  ResourceUploadBatch.cpp
+  SpriteBatch.cpp
+  SpriteFont.cpp
+  VertexTypes.cpp
+  pch.cpp
+  DirectXTK12.vcxproj -> D:\Proyectos\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib

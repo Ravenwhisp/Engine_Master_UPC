@@ -9,7 +9,6 @@
 #include "Settings.h"
 
 #include "Quadtree.h"
-#include "ModelComponent.h"
 #include "SceneSerializer.h"
 
 #include <queue>
@@ -30,15 +29,14 @@ bool SceneModule::init()
 
     /// PROVISIONAL
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
+    GameObject* rawPtr = gameCamera.get();
     gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    m_defaultCamera = gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
-    auto component = gameCamera->GetComponentAs<ModelComponent>(ComponentType::MODEL);
-    gameCamera->RemoveComponent(component);
+ 
     m_allObjects.push_back(std::move(gameCamera));
-    m_rootObjects.push_back(m_allObjects.back().get());
+    m_rootObjects.push_back(rawPtr);
 
     for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
     {
@@ -99,7 +97,7 @@ void SceneModule::createQuadtree()
         Component* component = go->GetComponent(ComponentType::MODEL);
         if (component)
         {
-            ModelComponent* model = static_cast<ModelComponent*>(component);
+            MeshRenderer* model = static_cast<MeshRenderer*>(component);
             Engine::BoundingBox boundingBox = model->getBoundingBox();
 
             Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -138,7 +136,7 @@ void SceneModule::createQuadtree()
     DEBUG_LOG("QUADTREE created");
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
+void SceneModule::render(ID3D12GraphicsCommandList* commandList) 
 {
 
     if (m_quadtree)
@@ -168,28 +166,38 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMat
 
         auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
 
+        m_meshRenderers.clear();
+
         for (GameObject* gameObject : visibleObjects)
         {
             if (gameObject->GetActive())
             {
-                gameObject->render(commandList, viewMatrix, projectionMatrix);
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
             }
         }
     }
     else
-    {
+    {		
+        m_meshRenderers.clear();
+        for (GameObject* gameObject : getAllGameObjects())
+        {
+            if (gameObject->GetActive())
+            {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
+            }
+        }
         if (m_quadtree)
         {
             m_quadtree.reset();
             DEBUG_LOG("QUADTREE removed");
-        }
-
-        for (const auto& gameObject : m_allObjects)
-        {
-            if (gameObject->GetActive())
-            {
-                gameObject->render(commandList, viewMatrix, projectionMatrix);
-            }
         }
     }
 }
@@ -366,7 +374,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
     auto go = std::make_unique<GameObject>(GenerateUID());
     GameObject* raw = go.get();
 
-    auto component = raw->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+    auto component = raw->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     raw->RemoveComponent(component);
 
     raw->SetName("Directional Light");
@@ -398,7 +406,7 @@ GameObject* SceneModule::createDirectionalLightOnInit()
 
 bool SceneModule::applySkyboxToRenderer()
 {
-    return app->getRenderModule()->applySkyboxSettings(m_skybox.enabled, m_skybox.path);
+    return app->getRenderModule()->applySkyboxSettings(m_skybox);
 }
 
 #pragma region Persistence
@@ -409,28 +417,22 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     sceneInfo.AddMember("Skybox", getSkyboxJSON(domTree), domTree.GetAllocator());
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
 
+    uint64_t defaultCameraOwnerUid = 0;
+    if (m_defaultCamera != nullptr) {
+        GameObject* owner = m_defaultCamera->getOwner();
+        defaultCameraOwnerUid = (uint64_t)owner->GetID();
+    }
+
+    sceneInfo.AddMember("DefaultCameraOwnerUID", defaultCameraOwnerUid, domTree.GetAllocator());
 
     // GameObjects serialization //
     {
         rapidjson::Value gameObjectsData(rapidjson::kArrayType);
 
-        std::queue<GameObject*> nodes_to_visit;
 
-        for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
+        for (GameObject* gameObject : getAllGameObjects())
         {
-            nodes_to_visit.push(gameObject.get());
-        }
-
-        while (!nodes_to_visit.empty())
-        {
-            GameObject* gameObject = nodes_to_visit.front();
-            nodes_to_visit.pop();
-
             gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
-
-            for (GameObject* child : gameObject->GetTransform()->getAllChildren()) {
-                nodes_to_visit.push(child);
-            }
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
@@ -462,10 +464,7 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
     rapidjson::Value skyboxInfo(rapidjson::kObjectType);
 
     skyboxInfo.AddMember("Enabled", m_skybox.enabled, domTree.GetAllocator());
-    {
-        rapidjson::Value path(m_skybox.path, domTree.GetAllocator()); // copy char[] path
-        skyboxInfo.AddMember("Path", path, domTree.GetAllocator());
-    }
+    skyboxInfo.AddMember("CubemapAssetId", (uint64_t)m_skybox.cubemapAssetId, domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -514,6 +513,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         removeFromRootList(child);
     }
 
+    resolveDefaultCamera(sceneJson);
     applySkyboxToRenderer();
 
     return true;
@@ -523,9 +523,7 @@ bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) {
     auto& skybox = getSkyboxSettings();
     const auto& skyboxJson = sceneJson["Skybox"];
     skybox.enabled = skyboxJson["Enabled"].GetBool();
-
-    const char* pathStr = skyboxJson["Path"].GetString();
-    strcpy_s(skybox.path, 260, pathStr);
+    skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
 
     return true;
 }
@@ -540,6 +538,23 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
     lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
     return true;
 }
+
+void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) {
+    m_defaultCamera = nullptr;
+
+    if (sceneJson.HasMember("DefaultCameraOwnerUID"))
+    {
+        const uint64_t cameraOwnerUID = sceneJson["DefaultCameraOwnerUID"].GetUint64();
+
+        if (cameraOwnerUID != 0)
+        {
+            GameObject* ownerGameObject = findGameObjectByUID((UID)cameraOwnerUID);
+            CameraComponent* cameraComponent = ownerGameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+            m_defaultCamera = cameraComponent;
+        }
+    }
+}
+
 
 void SceneModule::saveScene()
 {

@@ -79,8 +79,4 @@ private:
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;
-
-	//Testing duck
-	ModelComponent* m_model;
-	//////////////
 };
