@@ -122,13 +122,25 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
 
 UID loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex, const std::filesystem::path* modelPath)
 {
-	if (gltfTextureIndex < 0 || gltfTextureIndex >= static_cast<int>(model.textures.size())) return 0;
+    if (gltfTextureIndex < 0 || gltfTextureIndex >= static_cast<int>(model.textures.size()))
+    {
+        return INVALID_ASSET_ID;
+    }
+
 	const tinygltf::Texture& texture = model.textures[gltfTextureIndex];
 
-	if (texture.source < 0 || texture.source >= static_cast<int>(model.images.size())) return 0;
+    if (texture.source < 0 || texture.source >= static_cast<int>(model.images.size()))
+    {
+        return INVALID_ASSET_ID;
+    }
+
 	const tinygltf::Image& image = model.images[texture.source];
 
-	if (image.uri.empty()) return 0;
+    if (image.uri.empty())
+    {
+        return INVALID_ASSET_ID;
+    }
+
     std::filesystem::path resolvedPath = modelPath->parent_path() / image.uri;
 
     UID uid = app->getFileSystemModule()->findByPath(resolvedPath.string().c_str());
