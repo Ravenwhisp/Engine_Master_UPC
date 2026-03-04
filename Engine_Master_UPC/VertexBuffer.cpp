@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include "VertexBuffer.h"
+#include "Application.h"
+#include "ResourcesModule.h"
 
 VertexBuffer::VertexBuffer(ID3D12Device4& device, size_t numVertices, size_t vertexStride)
 	: Buffer(device, CD3DX12_RESOURCE_DESC::Buffer(numVertices* vertexStride))
@@ -20,7 +22,10 @@ VertexBuffer::VertexBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> resourc
 	createVertexBufferView();
 }
 
-VertexBuffer::~VertexBuffer() {}
+VertexBuffer::~VertexBuffer() 
+{
+	app->getResourcesModule()->defferResourceRelease(getD3D12Resource());
+}
 
 void VertexBuffer::createVertexBufferView()
 {

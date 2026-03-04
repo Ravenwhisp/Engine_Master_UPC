@@ -482,15 +482,15 @@ DebugDrawPass::~DebugDrawPass()
     implementation = 0;
 }
 
-void DebugDrawPass::record(ID3D12GraphicsCommandList* commandList, uint32_t width, uint32_t height, const Matrix& view, const Matrix& proj)
+void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "DebugDraw Pass");
 
-    implementation->mvpMatrix = view * proj;
+    implementation->mvpMatrix = *m_view * *m_projection;
     implementation->commandList = commandList;
 
-    implementation->width = width;
-    implementation->height = height;
+    implementation->width = m_viewport->Width;
+    implementation->height = m_viewport->Height;
 
     dd::flush();
 

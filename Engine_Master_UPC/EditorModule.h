@@ -38,7 +38,6 @@ public:
 	};
 
 public:
-	EditorModule();
 	~EditorModule() {}
 
 #pragma region Game Loop
@@ -52,21 +51,19 @@ public:
 
 	SceneEditor*	getSceneEditor() { return m_sceneEditor; }
 	ImVec2			getSceneEditorSize() { return m_sceneEditor->getSize();}
-	ImGuiPass*		getImGuiPass() { return m_gui; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
 
-	SCENE_TOOL getCurrentSceneTool() const { return currentSceneTool; }
+	SCENE_TOOL		getCurrentSceneTool() const { return currentSceneTool; }
 	NAVIGATION_MODE getCurrentNavigationMode() const { return currentNavigationMode; }
-	void setCurrentSceneTool(int tool) { currentSceneTool = static_cast<SCENE_TOOL>(tool); }
-	bool isGizmoLocal() const { return gizmoUseLocal; }
-	void toggleGizmoMode() { gizmoUseLocal = !gizmoUseLocal; }
+	void			setCurrentSceneTool(int tool) { currentSceneTool = static_cast<SCENE_TOOL>(tool); }
+	bool			isGizmoLocal() const { return gizmoUseLocal; }
+	void			toggleGizmoMode() { gizmoUseLocal = !gizmoUseLocal; }
 
 private:
 	void			setupDockLayout(ImGuiID dockspace_id);
 	void			mainDockspace(bool* open);
-
 private:
 #pragma region Views
 	std::vector<EditorWindow*>	m_editorWindows;
@@ -74,8 +71,6 @@ private:
 	HardwareWindow*				m_hardwareWindow = nullptr;
 	PerformanceWindow*			m_performanceWindow = nullptr;
 	SceneEditor*				m_sceneEditor = nullptr;
-	ImGuiPass* 					m_gui = nullptr;
-	DebugDrawPass*				m_debugDrawPass = nullptr;
 	EditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
 
@@ -95,7 +90,7 @@ private:
 	NAVIGATION_MODE currentNavigationMode;
 	SCENE_TOOL previousSceneTool;
 
-	GameObject* m_selectedGameObject;
+	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;
 #pragma endregion
 

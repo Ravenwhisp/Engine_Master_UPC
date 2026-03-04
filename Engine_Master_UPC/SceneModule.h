@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "Lights.h"
 #include "UID.h"
+#include "MeshRenderer.h"
 
 class SceneSerializer;
 class Quadtree;
@@ -16,14 +17,14 @@ struct SceneDataCB
 
 struct SceneLightingSettings
 {
-	Vector3 ambientColor;;
-	float ambientIntensity;;
+	Vector3 ambientColor;
+	float ambientIntensity;
 };
 
 struct SkyboxSettings
 {
 	bool enabled = true;
-	char path[260] = "Assets/Textures/cubemap2.dds";
+	UID cubemapAssetId = 0;
 };
 
 class SceneModule : public Module
@@ -31,11 +32,12 @@ class SceneModule : public Module
 private:
 	std::string m_name = "SampleScene";
 
-	std::vector<std::unique_ptr<GameObject>> m_allObjects;
-	std::vector<GameObject*> m_rootObjects;
+	std::vector<std::unique_ptr<GameObject>>	m_allObjects;
+	std::vector<GameObject*>					m_rootObjects;
+	std::vector<MeshRenderer*>					m_meshRenderers;
 
-	std::unique_ptr<SceneSerializer> m_sceneSerializer;
-	std::unique_ptr<Quadtree> m_quadtree;
+	std::unique_ptr<SceneSerializer>	m_sceneSerializer;
+	std::unique_ptr<Quadtree>			m_quadtree;
 
 	SceneLightingSettings		m_lighting;
 	SceneDataCB					m_sceneDataCB;
@@ -51,7 +53,7 @@ public:
 	bool init() override;
 	void update() override;
 	void preRender() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
+	void render(ID3D12GraphicsCommandList* commandList);
 	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
@@ -75,7 +77,6 @@ public:
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
 	GameObject* findGameObjectByUID(UID uuid);
 	void removeGameObject(const UID uuid);
-	std::vector<GameObject*> getAllGameObjects();
 
 	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
@@ -88,6 +89,10 @@ public:
 	const std::vector<GameObject*>& getRootObjects() const;
 
 	GameObject* createDirectionalLightOnInit();
+
+	std::vector<GameObject*> getAllGameObjects();
+	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
+
 	const char* getName() { return (char*)m_name.c_str(); }
 	const void setName(const char* newName) { m_name = newName; }
 
