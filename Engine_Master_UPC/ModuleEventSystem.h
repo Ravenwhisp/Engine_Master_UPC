@@ -2,6 +2,7 @@
 #include "Module.h"
 #include "PointerEventData.h"
 #include <unordered_map>
+#include "UIRect.h"
 
 class GameObject;
 class Transform2D;
@@ -20,7 +21,7 @@ private:
     void clearHoverState();
     GameObject* raycast(const Vector2& screenPos);
 
-    void raycastAll(GameObject* root, const Vector2& screenPos, GameObject*& best,int& bestDepth, int depth);
+    void raycastAll(GameObject* root, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth);
 
     void sendPointerClick(GameObject* go, PointerEventData& data);
     void sendPointerUp(GameObject* go, PointerEventData& data);

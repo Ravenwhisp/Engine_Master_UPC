@@ -186,6 +186,15 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     GameObject* best = nullptr;
     int         bestDepth = -1;
 
+    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    const ImVec2 size = sceneEditor->getSize();
+
+    Rect2D screenRect;
+    screenRect.x = 0.0f;
+    screenRect.y = 0.0f;
+    screenRect.w = size.x;
+    screenRect.h = size.y;
+
     for (GameObject* root : app->getSceneModule()->getAllGameObjects())
     {
         if (!root || !root->GetActive()) continue;
@@ -193,21 +202,23 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
         Canvas* canvas = root->GetComponentAs<Canvas>(ComponentType::CANVAS);
         if (!canvas || !canvas->isActive()) continue;
 
-        raycastAll(root, screenPos, best, bestDepth, 0);
+        raycastAll(root, screenPos, screenRect, best, bestDepth, 0);
     }
     return best;
 }
 
-void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, GameObject*& best, int& bestDepth, int depth)
+void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth)
 {
     if (!go || !go->GetActive()) return;
+
+    Rect2D myRect = parentRect;
 
     Transform2D* t2d = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
     if (t2d && t2d->isActive())
     {
-        const Rect2D rect = t2d->getRect();
+        myRect = t2d->getRect(parentRect);
 
-        if (rect.contains(screenPos))
+        if (myRect.contains(screenPos))
         {
             if (depth >= bestDepth)
             {
@@ -219,7 +230,7 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, Gam
 
     for (GameObject* child : go->GetTransform()->getAllChildren())
     {
-        raycastAll(child, screenPos, best, bestDepth, depth + 1);
+        raycastAll(child, screenPos, myRect, best, bestDepth, depth + 1);
     }
 }
 
