@@ -22,7 +22,6 @@ public:
     float       getWindowX() const { return m_windowX; }
     float       getWindowY() const { return m_windowY; }
 
-
     bool isHovered() const { return m_isViewportHovered; }
     bool isFocused() const { return m_isViewportFocused; }
 protected:

@@ -1,7 +1,8 @@
 #pragma once
 #include "DescriptorHeap.h"
+#include "IRenderPass.h"
 
-class ImGuiPass
+class ImGuiPass: public IRenderPass
 {
     DescriptorHeap* heap;
 
@@ -12,9 +13,10 @@ public:
     DescriptorHeap* GetHeap() { return heap; }
 
     void startFrame();
-    void record(ID3D12GraphicsCommandList* commandList);
+    void apply(ID3D12GraphicsCommandList4* commandList) override;
 
 private:
     ID3D12DescriptorHeap* m_srvHeap = nullptr;
     DescriptorHandle      m_fontDescriptor{};
+
 };

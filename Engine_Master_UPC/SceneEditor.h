@@ -26,11 +26,10 @@ private:
     Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
+	PlayToolbar* m_playToolbar;
 
-    PlayToolbar* m_playToolbar;
-
-private:
-    std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
+    float m_viewportX = 0.0f;
+    float m_viewportY = 0.0f;
 
 public:
     SceneEditor();
@@ -43,4 +42,9 @@ public:
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
+
+
+    float  getViewportX()      const { return m_viewportX; }
+    float  getViewportY()      const { return m_viewportY; }
+
 };
