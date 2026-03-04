@@ -7,6 +7,7 @@
 #include "D3D12Module.h"
 #include "EditorModule.h"
 #include "CameraModule.h"
+#include "NavigationModule.h"
 
 #include "RenderModule.h"
 #include "SceneModule.h"
@@ -180,6 +181,17 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
             LightDebugDraw::drawLightWithoutDepth(*go);
         }
     }
+
+    NavigationModule* nav = app->getNavigationModule();
+    if (nav && nav->getDrawNavMesh() && nav->getNavMesh())
+    {
+        const auto& lines = nav->getNavMeshDebugLines();
+        for (const auto& l : lines) 
+        {
+            dd::line(ddConvert(l.a), ddConvert(l.b), dd::colors::Green);
+        } 
+    }
+
 
     Matrix viewMatrix;
     Matrix projectionMatrix;

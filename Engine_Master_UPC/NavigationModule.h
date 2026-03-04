@@ -26,6 +26,20 @@ public:
     bool loadNavMeshForScene(const char* sceneName);
     bool unloadNavMesh();
     bool saveNavMeshForScene(const char* sceneName) const;
+    bool buildNavMeshForCurrentScene();
+
+    // Debug
+    struct NavDebugLine
+    {
+        Vector3 a;
+        Vector3 b;
+    };
+
+    const std::vector<NavDebugLine>& getNavMeshDebugLines() const { return m_navDebugLines; }
+    void rebuildNavMeshDebugLines();
+
+    void setDrawNavMesh(bool v) { m_drawNavMesh = v; }
+    bool getDrawNavMesh() const { return m_drawNavMesh; }
 
 private:
     dtNavMesh* m_navMesh = nullptr;
@@ -34,6 +48,9 @@ private:
 
     std::string m_loadedScene;
     bool m_triedLoadOnce = false; 
+
+    std::vector<NavDebugLine> m_navDebugLines;
+    bool m_drawNavMesh = false;
 
 };
 

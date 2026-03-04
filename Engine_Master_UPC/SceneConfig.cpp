@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "SceneModule.h"
+#include "NavigationModule.h"
 
 SceneConfig::SceneConfig()
 {
@@ -49,6 +50,10 @@ void SceneConfig::render()
     ImGui::Separator();
 
     drawLoadSceneSettings();
+
+    ImGui::Separator();
+
+    drawNavmeshSettings();
 
     ImGui::Separator();
 
@@ -108,6 +113,43 @@ void SceneConfig::drawLoadSceneSettings() {
             }
         }
     }
+}
+
+void SceneConfig::drawNavmeshSettings()
+{
+    if (ImGui::CollapsingHeader("Navmesh")) 
+    {
+        NavigationModule* nav = app->getNavigationModule();
+            
+        if (ImGui::Button("Build NavMesh")) 
+        {
+            nav->buildNavMeshForCurrentScene();
+        }
+
+        ImGui::SameLine();
+
+        // Temporary Button, this must happen automatically when loading the scene
+        if (ImGui::Button("Load Navmesh"))
+        {
+            if (!m_sceneModule->loadScene(m_loadSceneName))
+            {
+                DEBUG_WARN("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
+            }
+            else
+            {
+                app->getNavigationModule()->loadNavMeshForScene(m_sceneModule->getName());
+                DEBUG_LOG("Navmesh loaded successfully.");
+            }
+        }
+
+        bool show = nav->getDrawNavMesh();
+        if (ImGui::Checkbox("Show NavMesh###ShowNavMesh", &show))
+        {
+            nav->setDrawNavMesh(show);
+        }
+
+    }
+
 }
 
 

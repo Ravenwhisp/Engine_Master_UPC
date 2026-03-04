@@ -15,6 +15,7 @@
 #include <DetourNavMeshQuery.h>
 #include <DetourAlloc.h>
 #include <Logger.h>
+#include <NavMeshBuilder.h>
 
 static void AppendMeshToNavGeometry(
     const BasicMesh* mesh,
@@ -127,6 +128,14 @@ void NavigationModule::update()
             "NavGeometry (Layer::NAVMESH): verts=%d tris=%d (vertsFloats=%zu trisInts=%zu)",
             numVerts, numTris, verts.size(), tris.size());
     }
+
+    static bool builtOnce = false;
+    if (!builtOnce && Logger::Instance())
+    {
+        builtOnce = true;
+        buildNavMeshForCurrentScene();
+    }
+
 }
 
 bool NavigationModule::cleanUp()
@@ -209,6 +218,9 @@ bool NavigationModule::loadNavMeshForScene(const char* sceneName)
     m_navMesh = mesh;
     m_navQuery = query;
     m_loadedScene = sceneName;
+
+    rebuildNavMeshDebugLines();
+
     return true;
 }
 
@@ -256,4 +268,90 @@ bool NavigationModule::saveNavMeshForScene(const char* sceneName) const
     }
 
     return true;
+}
+
+bool NavigationModule::buildNavMeshForCurrentScene()
+{
+    if (!Logger::Instance()) return false;
+
+    std::vector<float> verts;
+    std::vector<int> tris;
+
+    CollectNavGeometryFromScene(app->getSceneModule(), verts, tris, Layer::NAVMESH);
+
+    const int numVerts = (int)verts.size() / 3;
+    const int numTris = (int)tris.size() / 3;
+
+    if (numVerts == 0 || numTris == 0)
+    {
+        LOG_WARNING(__FILE__, __LINE__, "NavMesh build aborted: no geometry in Layer::NAVMESH (verts=%d tris=%d).", numVerts, numTris);
+        return false;
+    }
+
+    NavMeshBuildSettings settings; 
+    NavMeshBuildResult result;
+
+    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result))
+    {
+        LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
+        return false;
+    }
+
+
+    unloadNavMesh();
+    m_navMesh = result.navMesh;
+    m_navQuery = result.navQuery;
+    m_tileRefs.clear();
+    m_tileRefs.push_back(result.tileRef);
+
+    const char* sceneName = app->getSceneModule()->getName();
+    const bool saved = saveNavMeshForScene(sceneName);
+
+    LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");
+
+    rebuildNavMeshDebugLines();
+
+    return saved;
+}
+
+void NavigationModule::rebuildNavMeshDebugLines()
+{
+    m_navDebugLines.clear();
+    if (!m_navMesh) return;
+
+    // Border edges only (cleaner)
+    for (dtTileRef ref : m_tileRefs)
+    {
+        const dtMeshTile* tile = m_navMesh->getTileByRef(ref);
+        if (!tile || !tile->header) continue;
+
+        const dtMeshHeader* h = tile->header;
+        const float* tv = tile->verts;
+
+        for (int i = 0; i < h->polyCount; ++i)
+        {
+            const dtPoly* p = &tile->polys[i];
+            if (p->getType() == DT_POLYTYPE_OFFMESH_CONNECTION)
+                continue;
+
+            const int nv = (int)p->vertCount;
+            for (int j = 0; j < nv; ++j)
+            {
+                // skip internal edges
+                if (p->neis[j] != 0)
+                    continue;
+
+                const unsigned short v0 = p->verts[j];
+                const unsigned short v1 = p->verts[(j + 1) % nv];
+
+                const float* a = &tv[v0 * 3];
+                const float* b = &tv[v1 * 3];
+
+                m_navDebugLines.push_back({
+                    Vector3(a[0], a[1], a[2]),
+                    Vector3(b[0], b[1], b[2])
+                    });
+            }
+        }
+    }
 }

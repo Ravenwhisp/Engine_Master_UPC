@@ -19,6 +19,7 @@ public:
 private:
     void drawSaveSceneSettings();
     void drawLoadSceneSettings();
+    void drawNavmeshSettings();
     void drawSkyboxSettings();
     void drawLightSettings();
 
