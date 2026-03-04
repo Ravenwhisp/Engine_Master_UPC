@@ -33,8 +33,6 @@ SceneEditor::SceneEditor()
     m_editorToolbar = new EditorToolbar();
 
     auto d3d12Module = app->getD3D12Module();
-
-    m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
 }
 
 SceneEditor::~SceneEditor()
@@ -69,6 +67,11 @@ void SceneEditor::render()
     if (contentRegion.x > 0 && contentRegion.y > 0) 
     {
         resize(contentRegion);
+
+        ImVec2 imageTopLeft = ImGui::GetCursorScreenPos();
+        m_viewportX = imageTopLeft.x;
+        m_viewportY = imageTopLeft.y;
+
         ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUScreenRT().ptr;
         ImGui::Image(textureID, m_size);
         
@@ -195,8 +198,6 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         viewMatrix = app->getCameraModule()->getView();
         projectionMatrix = app->getCameraModule()->getProjection();
     }
-
-    m_debugDrawPass->record(commandList, getSize().x, getSize().y, viewMatrix, projectionMatrix);
 }
 
 void SceneEditor::renderQuadtree()

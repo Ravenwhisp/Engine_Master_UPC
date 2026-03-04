@@ -6,7 +6,7 @@
 #include "ResourcesModule.h"
 
 
-RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Texture(device, info) {
+RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Texture(GenerateUID(), device, info) {
 
     assert(info.desc);
     m_mipCount = getD3D12ResourceDesc().MipLevels;
