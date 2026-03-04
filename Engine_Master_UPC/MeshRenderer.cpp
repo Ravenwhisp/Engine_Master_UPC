@@ -4,9 +4,9 @@
 #include "GameObject.h"
 
 #include "Application.h"
-#include "RenderModule.h"
 #include "ResourcesModule.h"
 #include "AssetsModule.h"
+#include "Settings.h"
 
 
 void MeshRenderer::addModel(ModelAsset& model)
@@ -55,6 +55,7 @@ void MeshRenderer::addModel(ModelAsset& model)
 
 bool MeshRenderer::init()
 {
+    m_hasBounds = false;
 
     return true;
 }
@@ -66,7 +67,7 @@ void MeshRenderer::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMa
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
  
-    if (m_drawBounds && m_hasBounds && dd::isInitialized())
+    if (app->getSettings()->sceneEditor.showModelBoundingBoxes && m_hasBounds && dd::isInitialized())
     {
         const Matrix world = transform->getGlobalMatrix();
 
@@ -96,7 +97,6 @@ void MeshRenderer::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMa
             dd::aabb(mn, mx, dd::colors::Yellow, 0, m_boundsDepthTest);
         }
     }
-
 }
 
 bool MeshRenderer::cleanUp()
@@ -130,7 +130,6 @@ void MeshRenderer::drawUi()
     ImGui::Text("Materials: %d", (int)m_materials.size());
 
     ImGui::SeparatorText("Debug Bounding Box");
-    ImGui::Checkbox("Draw Bounding Box", &m_drawBounds);
     ImGui::Checkbox("Depth Test", &m_boundsDepthTest);
     ImGui::Checkbox("World AABB (axis aligned)", &m_drawWorldAabb);
 
