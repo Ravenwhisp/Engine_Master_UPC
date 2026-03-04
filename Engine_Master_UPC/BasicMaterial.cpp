@@ -10,8 +10,8 @@ bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 	Vector3 color = Vector3(float(material.baseColorFactor[0]), float(material.baseColorFactor[1]), float(material.baseColorFactor[2]));
 
 	m_materialData.diffuseColour = color;
-	m_materialData.specularColour = Vector3(0.1f, 0.1f, 0.1f);
-	m_materialData.shininess = 32.0f;
+	//m_materialData.specularColour = Vector3(0.1f, 0.1f, 0.1f);
+	//m_materialData.shininess = 32.0f;
 
 	if (material.baseColorTexture.index >= 0)
 	{
@@ -31,6 +31,26 @@ bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 	{
 		m_textureColor = app->getResourcesModule()->createNullTexture2D();
 		m_materialData.hasDiffuseTex = false;
+	}
+
+	if (material.metallicRoughnessTexture.index >= 0)
+	{
+		const tinygltf::Texture& texture = model.textures[material.metallicRoughnessTexture.index];
+		const tinygltf::Image& image = model.images[texture.source];
+		if (!image.uri.empty() && app->getResourcesModule())
+		{
+			m_textureMetallicRoughness = app->getResourcesModule()->createTexture2DFromFile(std::string(basePath) + image.uri);
+			if (!m_textureMetallicRoughness)
+			{
+				return false;
+			}
+			m_materialData.hasMetallicRoughnessTex = true;
+		}
+	}
+	else
+	{
+		m_textureMetallicRoughness = app->getResourcesModule()->createNullTexture2D();
+		m_materialData.hasMetallicRoughnessTex = false;
 	}
 
 	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(MaterialData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
