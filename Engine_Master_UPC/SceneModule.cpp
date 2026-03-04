@@ -422,23 +422,10 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     {
         rapidjson::Value gameObjectsData(rapidjson::kArrayType);
 
-        std::queue<GameObject*> nodes_to_visit;
 
-        for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
+        for (GameObject* gameObject : getAllGameObjects())
         {
-            nodes_to_visit.push(gameObject.get());
-        }
-
-        while (!nodes_to_visit.empty())
-        {
-            GameObject* gameObject = nodes_to_visit.front();
-            nodes_to_visit.pop();
-
             gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
-
-            for (GameObject* child : gameObject->GetTransform()->getAllChildren()) {
-                nodes_to_visit.push(child);
-            }
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
