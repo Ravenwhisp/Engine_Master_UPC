@@ -4,17 +4,6 @@ cbuffer SceneData : register(b1)
     float pad0;
 };
 
-//New
-struct PbrMetallicRoughness //QUESTION: Where do I get TextureInfo
-{
-    float4 baseColorFactor;
-    TextureInfo baseColorTexture;
-    uint hasBaseColorTexture;
-    float metallicFactor;
-    float roughnessFactor;
-    TextureInfo metallicRoughnessTexture;
-};
-
 cbuffer ModelData : register(b2) //QUESTION: How do I change the Phong things to pbrMaterial
 {
     float4x4 model;
@@ -22,11 +11,11 @@ cbuffer ModelData : register(b2) //QUESTION: How do I change the Phong things to
 
     float3 diffuseColour;
     uint hasDiffuseTex;
-
-    float3 specularColour;
-    float shininess;
     
-    PbrMetallicRoughness pbrMaterial;
+    uint hasMetallicRoughnessTex;
+
+    //float3 specularColour;
+    //float shininess;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4

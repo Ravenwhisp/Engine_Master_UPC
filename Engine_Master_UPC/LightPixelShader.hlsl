@@ -1,7 +1,9 @@
 #include "NewCBuffers.hlsli"
 
 Texture2D diffuseTex : register(t0);
+Texture2D metallicRoughnessTex : register(t1);
 SamplerState diffuseSamp : register(s0);
+SamplerState metallicRoughnessSamp : register(s1);
 
 static const float PI = 3.14159265f;
 static const float EPS = 1e-5f;
@@ -190,13 +192,13 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 normalVector, f
 
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
-    //float3 albedo = (hasDiffuseTex != 0)
-    //    ? diffuseTex.Sample(diffuseSamp, coord).rgb * diffuseColour
-    //    : diffuseColour;
+    float3 albedo = (hasDiffuseTex != 0)
+        ? diffuseTex.Sample(diffuseSamp, coord).rgb * diffuseColour
+        : diffuseColour;
     
-    float3 albedo = (pbrMaterial.hasBaseColorTexture != 0)  //QUESTION: How to get pbrMaterial
-        ? pbrMaterial.baseColorTexture.Sample(diffuseSamp, coord).rgb * pbrMaterial.baseColorFactor //QUESTION: what is diffuseSamp
-        : pbrMaterial.baseColorFactor;
+    float2 metallicRoughness = (hasMetallicRoughnessTex != 0)
+        ? metallicRoughnessTex.Sample(metallicRoughnessSamp, coord).rg
+        : float2(0.5f, 0.5f);
     
     
 
