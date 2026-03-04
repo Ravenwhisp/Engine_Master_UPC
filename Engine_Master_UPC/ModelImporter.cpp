@@ -61,13 +61,13 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
 
     // Indices
     uint32_t indexCount = 0;
-
+    uint32_t componentSize = 0;
     if (primitive.indices >= 0)
     {
         const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
 		if (indexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT || indexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT || indexAccessor.componentType == TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE)
 		{
-            uint32_t componentSize = tinygltf::GetComponentSizeInBytes(indexAccessor.componentType);
+            componentSize = tinygltf::GetComponentSizeInBytes(indexAccessor.componentType);
 
             indexCount = static_cast<uint32_t>(indexAccessor.count);
             uint32_t byteCount = indexCount * componentSize;
@@ -79,6 +79,7 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
             loadAccessorData( mesh->indices.data() + baseOffset, componentSize,  componentSize, indexCount,  model, primitive.indices );
 
 			mesh->indexFormat = INDEX_FORMATS[componentSize >> 1];
+
 		}
     }
     else
@@ -94,7 +95,7 @@ void ModelImporter::loadMesh(const tinygltf::Model& model, const tinygltf::Primi
 
 
     Submesh submesh{};
-    submesh.indexStart = baseIndex;
+    submesh.indexStart = baseIndex / componentSize;
     submesh.indexCount = indexCount;
 	if (primitive.material >= 0 && primitive.material < materialRemap.size())
 	{
