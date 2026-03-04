@@ -131,6 +131,7 @@ void SwapChain::createRenderTargetViews(ComPtr<ID3D12Device2> device)
         m_renderTargets[n].rtv = rtvHandle;
         DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n].resource)));
         m_renderTargets[n].resource->SetName(L"BackBuffer");
+
         device->CreateRenderTargetView(m_renderTargets[n].resource.Get(), nullptr, rtvHandle.cpu);
     }
 }
