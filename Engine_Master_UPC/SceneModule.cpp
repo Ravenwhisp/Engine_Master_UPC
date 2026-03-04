@@ -417,6 +417,13 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     sceneInfo.AddMember("Skybox", getSkyboxJSON(domTree), domTree.GetAllocator());
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
 
+    uint64_t defaultCameraOwnerUid = 0;
+    if (m_defaultCamera != nullptr) {
+        GameObject* owner = m_defaultCamera->getOwner();
+        defaultCameraOwnerUid = (uint64_t)owner->GetID();
+    }
+
+    sceneInfo.AddMember("DefaultCameraOwnerUID", defaultCameraOwnerUid, domTree.GetAllocator());
 
     // GameObjects serialization //
     {
@@ -506,6 +513,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         removeFromRootList(child);
     }
 
+    resolveDefaultCamera(sceneJson);
     applySkyboxToRenderer();
 
     return true;
@@ -530,6 +538,27 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
     lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
     return true;
 }
+
+void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) {
+    m_defaultCamera = nullptr;
+
+    if (sceneJson.HasMember("DefaultCameraOwnerUID"))
+    {
+        const uint64_t cameraOwnerUID = sceneJson["DefaultCameraOwnerUID"].GetUint64();
+
+        if (cameraOwnerUID != 0)
+        {
+            GameObject* ownerGameObject = findGameObjectByUID((UID)cameraOwnerUID);
+            CameraComponent* cameraComponent = ownerGameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+            m_defaultCamera = cameraComponent;
+        }
+        else
+        {
+            m_defaultCamera = nullptr;
+        }
+    }
+}
+
 
 void SceneModule::saveScene()
 {

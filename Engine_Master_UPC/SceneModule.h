@@ -67,6 +67,7 @@ public:
 	bool loadFromJSON(const rapidjson::Value& sceneJson);
 	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
+	void resolveDefaultCamera(const rapidjson::Value& sceneJson);
 
 	void saveScene();
 	bool loadScene(const std::string& sceneName);
