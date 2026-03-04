@@ -44,8 +44,11 @@ static void AppendMeshToNavGeometry(
 
     // Add triangle indices with base offset
     outTris.reserve(outTris.size() + indices.size());
-    for (uint32_t idx : indices)
+    for (uint32_t idx : indices) 
+    {
         outTris.push_back(inOutBaseVertex + static_cast<int>(idx));
+    }
+        
 
     inOutBaseVertex += static_cast<int>(positions.size());
 }
@@ -68,13 +71,19 @@ static void CollectNavGeometryFromGameObject(
             const Matrix& world = obj->GetTransform()->getGlobalMatrix();
             const auto meshes = model->getMeshes();
 
-            for (const BasicMesh* mesh : meshes)
+            for (const BasicMesh* mesh : meshes) 
+            {
                 AppendMeshToNavGeometry(mesh, world, outVerts, outTris, inOutBaseVertex);
+            }
+                
         }
     }
 
-    for (GameObject* child : obj->GetTransform()->getAllChildren())
+    for (GameObject* child : obj->GetTransform()->getAllChildren()) 
+    {
         CollectNavGeometryFromGameObject(child, outVerts, outTris, inOutBaseVertex, requiredLayer);
+    }
+        
 }
 
 static void CollectNavGeometryFromScene(
@@ -89,8 +98,11 @@ static void CollectNavGeometryFromScene(
     if (!scene) return;
 
     int baseVertex = 0;
-    for (GameObject* root : scene->getAllGameObjects())
+    for (GameObject* root : scene->getAllGameObjects()) 
+    {
         CollectNavGeometryFromGameObject(root, outVerts, outTris, baseVertex, requiredLayer);
+    }
+        
 }
 
 static std::string MakeNavMeshPath(const char* sceneName)
@@ -109,11 +121,6 @@ bool NavigationModule::postInit()
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
 
-    return true;
-}
-
-void NavigationModule::update()
-{
     if (Logger::Instance())
     {
         std::vector<float> verts;
@@ -124,9 +131,7 @@ void NavigationModule::update()
         const int numVerts = (int)verts.size() / 3;
         const int numTris = (int)tris.size() / 3;
 
-        LOG_INFO(__FILE__, __LINE__,
-            "NavGeometry (Layer::NAVMESH): verts=%d tris=%d (vertsFloats=%zu trisInts=%zu)",
-            numVerts, numTris, verts.size(), tris.size());
+        LOG_INFO(__FILE__, __LINE__, "NavGeometry (Layer::NAVMESH): verts=%d tris=%d (vertsFloats=%zu trisInts=%zu)", numVerts, numTris, verts.size(), tris.size());
     }
 
     static bool builtOnce = false;
@@ -135,6 +140,13 @@ void NavigationModule::update()
         builtOnce = true;
         buildNavMeshForCurrentScene();
     }
+
+    return true;
+}
+
+void NavigationModule::update()
+{
+   
 
 }
 
@@ -354,4 +366,65 @@ void NavigationModule::rebuildNavMeshDebugLines()
             }
         }
     }
+}
+
+void NavigationModule::setPathStart(const Vector3& p)
+{
+    m_pathStart = p;
+    m_hasPathStart = true;
+    if (m_hasPathEnd) computeDebugPath();
+}
+
+void NavigationModule::setPathEnd(const Vector3& p)
+{
+    m_pathEnd = p;
+    m_hasPathEnd = true;
+    if (m_hasPathStart) computeDebugPath();
+}
+
+bool NavigationModule::computeDebugPath()
+{
+    m_debugPathPoints.clear();
+    if (!m_navQuery || !m_navMesh) return false;
+    if (!m_hasPathStart || !m_hasPathEnd) return false;
+
+    dtQueryFilter filter;
+    filter.setIncludeFlags(0xFFFF);
+    filter.setExcludeFlags(0);
+
+    float ext[3] = { 2.0f, 4.0f, 2.0f }; 
+
+    float s[3] = { m_pathStart.x, m_pathStart.y, m_pathStart.z };
+    float e[3] = { m_pathEnd.x,   m_pathEnd.y,   m_pathEnd.z };
+
+    dtPolyRef sRef = 0, eRef = 0;
+    float sNearest[3], eNearest[3];
+
+    if (dtStatusFailed(m_navQuery->findNearestPoly(s, ext, &filter, &sRef, sNearest)) || !sRef) return false;
+    if (dtStatusFailed(m_navQuery->findNearestPoly(e, ext, &filter, &eRef, eNearest)) || !eRef) return false;
+
+    dtPolyRef polys[256];
+    int npolys = 0;
+    if (dtStatusFailed(m_navQuery->findPath(sRef, eRef, sNearest, eNearest, &filter, polys, &npolys, 256)) || npolys == 0)
+        return false;
+
+    float straight[256 * 3];
+    unsigned char straightFlags[256];
+    dtPolyRef straightPolys[256];
+    int nstraight = 0;
+
+    if (dtStatusFailed(m_navQuery->findStraightPath(
+        sNearest, eNearest, polys, npolys,
+        straight, straightFlags, straightPolys,
+        &nstraight, 256)))
+        return false;
+
+    m_debugPathPoints.reserve(nstraight);
+    for (int i = 0; i < nstraight; ++i) 
+    {
+        m_debugPathPoints.emplace_back(straight[i * 3 + 0], straight[i * 3 + 1], straight[i * 3 + 2]);
+    }
+        
+
+    return (m_debugPathPoints.size() >= 2);
 }

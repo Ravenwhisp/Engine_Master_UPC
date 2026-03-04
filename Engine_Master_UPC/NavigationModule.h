@@ -41,6 +41,11 @@ public:
     void setDrawNavMesh(bool v) { m_drawNavMesh = v; }
     bool getDrawNavMesh() const { return m_drawNavMesh; }
 
+    void setPathStart(const Vector3& p);
+    void setPathEnd(const Vector3& p);
+    const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
+    bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
+
 private:
     dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
@@ -51,6 +56,14 @@ private:
 
     std::vector<NavDebugLine> m_navDebugLines;
     bool m_drawNavMesh = false;
+
+    bool m_hasPathStart = false;
+    bool m_hasPathEnd = false;
+    Vector3 m_pathStart{};
+    Vector3 m_pathEnd{};
+    std::vector<Vector3> m_debugPathPoints;
+
+    bool computeDebugPath();
 
 };
 

@@ -26,6 +26,9 @@ private:
 
     EditorToolbar* m_editorToolbar;
 
+    ImVec2 m_viewportPos{ 0,0 };
+    ImVec2 m_viewportSize{ 0,0 };
+
 private:
     std::unique_ptr<DebugDrawPass>  m_debugDrawPass;
 

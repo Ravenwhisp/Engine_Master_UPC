@@ -21,7 +21,51 @@
 #include "LightComponent.h"
 
 #include "CameraComponent.h"
+#include <Logger.h>
 
+
+static bool ScreenToWorldOnPlaneY0(
+    const ImVec2& mousePos,
+    const ImVec2& vpPos,
+    const ImVec2& vpSize,
+    const Matrix& view,
+    const Matrix& proj,
+    Vector3& outWorld)
+{
+    if (vpSize.x <= 1 || vpSize.y <= 1) return false;
+
+    // mouse -> viewport UV [0..1]
+    float u = (mousePos.x - vpPos.x) / vpSize.x;
+    float v = (mousePos.y - vpPos.y) / vpSize.y;
+    if (u < 0 || u > 1 || v < 0 || v > 1) return false;
+
+    // UV -> NDC (D3D: z=0..1). Ojo con Y invertida.
+    float ndcX = 2.0f * u - 1.0f;
+    float ndcY = 1.0f - 2.0f * v;
+
+    Matrix invViewProj = (view * proj).Invert();
+
+    Vector4 nearClip(ndcX, ndcY, 0.0f, 1.0f);
+    Vector4 farClip(ndcX, ndcY, 1.0f, 1.0f);
+
+    Vector4 nearWorld4 = Vector4::Transform(nearClip, invViewProj);
+    Vector4 farWorld4 = Vector4::Transform(farClip, invViewProj);
+
+    if (nearWorld4.w == 0 || farWorld4.w == 0) return false;
+
+    Vector3 nearWorld(nearWorld4.x / nearWorld4.w, nearWorld4.y / nearWorld4.w, nearWorld4.z / nearWorld4.w);
+    Vector3 farWorld(farWorld4.x / farWorld4.w, farWorld4.y / farWorld4.w, farWorld4.z / farWorld4.w);
+
+    Vector3 dir = farWorld - nearWorld;
+    dir.Normalize();
+
+    if (fabsf(dir.y) < 1e-5f) return false;
+    float t = (0.0f - nearWorld.y) / dir.y;
+    if (t < 0.0f) return false;
+
+    outWorld = nearWorld + dir * t;
+    return true;
+}
 
 SceneEditor::SceneEditor()
 {
@@ -81,6 +125,9 @@ void SceneEditor::render()
     ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
     ImVec2 contentPos(windowPos.x + contentMin.x, windowPos.y + contentMin.y);
     ImVec2 contentSize(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
+
+    m_viewportPos = contentPos;
+    m_viewportSize = contentSize;
 
     ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
     ImGuizmo::Enable(true);
@@ -192,6 +239,17 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         } 
     }
 
+    if (nav && nav->hasDebugPath())
+    {
+        const auto& pts = nav->getDebugPathPoints();
+        for (size_t i = 1; i < pts.size(); ++i)
+            dd::line(ddConvert(pts[i - 1]), ddConvert(pts[i]), dd::colors::Yellow);
+
+        // marks start/end
+        dd::line(ddConvert(pts.front()), ddConvert(pts.front() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+        dd::line(ddConvert(pts.back()), ddConvert(pts.back() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+    }
+
 
     Matrix viewMatrix;
     Matrix projectionMatrix;
@@ -205,6 +263,35 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
     {
         viewMatrix = app->getCameraModule()->getView();
         projectionMatrix = app->getCameraModule()->getProjection();
+    }
+
+    // Mouse Path tool
+    if (m_isViewportHovered)
+    {
+        Vector3 hit;
+        ImVec2 mouse = ImGui::GetMousePos();
+
+        // Start - left click
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, m_viewportSize, viewMatrix, projectionMatrix, hit)) 
+            {
+                app->getNavigationModule()->setPathStart(hit);
+                LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
+            }
+                
+        }
+
+        // end - right click
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        {
+            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, m_viewportSize, viewMatrix, projectionMatrix, hit)) 
+            {
+                app->getNavigationModule()->setPathEnd(hit);
+                LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
+            }
+                
+        }
     }
 
     m_debugDrawPass->record(commandList, getSize().x, getSize().y, viewMatrix, projectionMatrix);
