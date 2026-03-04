@@ -131,9 +131,9 @@ std::shared_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 {
 	UID uid = textureAsset.getId();
 
-	if (isResourceLoaded<Texture>(uid))
+	if (auto texture = getResource<Texture>(uid))
 	{
-		return getResource<Texture>(uid);
+		return texture;
 	}
 
 	TextureInitInfo info{};
@@ -173,9 +173,9 @@ std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const Textur
 {
 	UID uid = textureAsset.getId();
 
-	if (isResourceLoaded<Texture>(uid))
+	if (auto texture = getResource<Texture>(uid))
 	{
-		return getResource<Texture>(uid);
+		return texture;
 	}
 
 	TextureInitInfo info{};
@@ -225,10 +225,9 @@ std::shared_ptr<BasicMesh> ResourcesModule::createMesh(const MeshAsset& meshAsse
 {
 	UID uid = meshAsset.getId();
 
-	if (isResourceLoaded<BasicMesh>(uid))
+	if (auto mesh = getResource<BasicMesh>(uid))
 	{
-		DEBUG_LOG("Mesh with UID %lld already loaded, returning existing instance.", uid);
-		return getResource<BasicMesh>(uid);
+		return mesh;
 	}
 
 	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
@@ -240,9 +239,9 @@ std::shared_ptr<BasicMaterial> ResourcesModule::createMaterial(const MaterialAss
 {
 	UID uid = materialAsset.getId();
 
-	if (isResourceLoaded<BasicMaterial>(uid))
+	if (auto material = getResource<BasicMaterial>(uid))
 	{
-		return getResource<BasicMaterial>(uid);
+		return material;
 	}
 
 	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);

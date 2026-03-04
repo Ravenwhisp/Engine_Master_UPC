@@ -79,7 +79,7 @@ private:
 	ComPtr<ID3D12Device4>									m_device;
 	CommandQueue*											m_queue;
 	std::vector<DefferedResource>							m_defferedResources;
-	std::unordered_map<UID, std::shared_ptr<ICacheable>>	m_resources;
+	std::unordered_map<UID, std::weak_ptr<ICacheable>>	m_resources;
 
 
 
@@ -88,13 +88,7 @@ private:
 	{
 		auto it = m_resources.find(uid);
 		if (it == m_resources.end()) return nullptr;
-		return std::static_pointer_cast<T>(it->second);
-	}
-
-	template<typename T>
-	bool isResourceLoaded(UID uid) const
-	{
-		return m_resources.find(uid) != m_resources.end();
+		return std::static_pointer_cast<T>(it->second.lock());
 	}
 
 	void registerResource(UID uid, std::shared_ptr<ICacheable> resource)
