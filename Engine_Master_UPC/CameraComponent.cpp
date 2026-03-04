@@ -124,26 +124,37 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
 	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
 	componentInfo.AddMember("AspecRtatio", m_aspectRatio, domTree.GetAllocator());
+	
+	componentInfo.AddMember("DefaultCamera", app->getActiveCamera() == this, domTree.GetAllocator());
 
 	return componentInfo;
 }
 
 bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("HorizontalFOV")) {
+	if (componentInfo.HasMember("HorizontalFOV")) 
+	{
 		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("NearPlane")) {
+	if (componentInfo.HasMember("NearPlane")) 
+	{
 		m_nearPlane = componentInfo["NearPlane"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("FarPlane")) {
+	if (componentInfo.HasMember("FarPlane")) 
+	{
 		m_farPlane = componentInfo["FarPlane"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("AspectRatio")) {
+	if (componentInfo.HasMember("AspectRatio")) 
+	{
 		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
+	}
+
+	if (componentInfo.HasMember("DefaultCamera") && componentInfo["DefaultCamera"].GetBool())
+	{
+		app->setActiveCamera(this);
 	}
 
 	recalculateFrustum();
