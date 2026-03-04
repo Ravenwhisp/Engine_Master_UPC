@@ -1,21 +1,27 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "Application.h"
+#include "SceneModule.h"
+
 #include "ModelComponent.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
-#include "Application.h"
+#include "CameraFollow.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-    m_components.push_back(m_transform = new Transform(GenerateUID(), this));
+	auto transform = std::make_unique<Transform>(GenerateUID(), this);
+	m_transform = transform.get();
+    m_components.push_back(std::move(transform));
 }
 
 GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name("New GameObject")
 {
-    m_components.push_back(m_transform = new Transform(transformUid, this));
-
+    auto transform = std::make_unique<Transform>(transformUid, this);
+    m_transform = transform.get();
+    m_components.push_back(std::move(transform));
 }
 
 GameObject::~GameObject()
@@ -28,24 +34,23 @@ bool GameObject::AddComponent(ComponentType componentType)
     switch (componentType)
     {
         case ComponentType::LIGHT:
-            m_components.push_back(new LightComponent(GenerateUID(), this));
+            m_components.push_back(std::make_unique<LightComponent>(GenerateUID(), this));
             break;
         case ComponentType::MODEL:
-            m_components.push_back(new ModelComponent(GenerateUID(), this));
+            m_components.push_back(std::make_unique<ModelComponent>(GenerateUID(), this));
             break;
-        case ComponentType::TRANSFORM:
-            break;
-
         case ComponentType::PLAYER_WALK:
-            m_components.push_back(new PlayerWalk(GenerateUID(), this));
+            m_components.push_back(std::make_unique<PlayerWalk>(GenerateUID(), this));
             break;
         case ComponentType::CAMERA:
-            m_components.push_back(new CameraComponent(GenerateUID(), this));
+            m_components.push_back(std::make_unique<CameraComponent>(GenerateUID(), this));
             break;
-        case ComponentType::COUNT:
-            return false;
+        case ComponentType::CAMERA_FOLLOW:
+            m_components.push_back(std::make_unique<CameraFollow>(GenerateUID(), this));
             break;
 
+        case ComponentType::TRANSFORM:
+        case ComponentType::COUNT:
         default:
             return false;
             break;
@@ -54,56 +59,79 @@ bool GameObject::AddComponent(ComponentType componentType)
     return true;
 }
 
-Component* GameObject::AddComponentWithUID(const ComponentType componentType, UID id) {
-    Component* newComponent = nullptr;
+Component* GameObject::AddComponentWithUID(const ComponentType componentType, UID id)
+{
+    std::unique_ptr<Component> newComponent;
 
     switch (componentType)
     {
     case ComponentType::LIGHT:
-        newComponent = new LightComponent(id, this);
+        newComponent = std::make_unique<LightComponent>(id, this);
         break;
-    case ComponentType::MODEL:
-        newComponent = new ModelComponent(id, this);
-        break;
-    case ComponentType::TRANSFORM:
-        return nullptr;
-    case ComponentType::PLAYER_WALK:
-        newComponent = new PlayerWalk(id, this);
-        break;
-    case ComponentType::CAMERA:
-        newComponent = new CameraComponent(id, this);
-        break;
-    case ComponentType::COUNT:
-        return nullptr;
 
+    case ComponentType::MODEL:
+        newComponent = std::make_unique<ModelComponent>(id, this);
+        break;
+
+    case ComponentType::PLAYER_WALK:
+        newComponent = std::make_unique<PlayerWalk>(id, this);
+        break;
+
+    case ComponentType::CAMERA:
+        newComponent = std::make_unique<CameraComponent>(id, this);
+        break;
+
+    case ComponentType::CAMERA_FOLLOW:
+        newComponent = std::make_unique<CameraFollow>(id, this);
+        break;
+
+    case ComponentType::TRANSFORM:
+    case ComponentType::COUNT:
     default:
         return nullptr;
     }
 
-    m_components.push_back(newComponent);
-    return newComponent;
+    Component* rawPtr = newComponent.get();
+    m_components.push_back(std::move(newComponent));
+    return rawPtr;
 }
-
-
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
-    auto it = std::find(m_components.begin(), m_components.end(), componentToRemove);
+    auto it = std::find_if(
+        m_components.begin(),
+        m_components.end(),
+        [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove;}
+    );
+
     if (it != m_components.end())
     {
-        delete* it;
+        (*it)->cleanUp();
         m_components.erase(it);
         return true;
     }
     return false;
 }
 
+std::vector<Component*> GameObject::GetAllComponents() const
+{
+    std::vector<Component*> result = std::vector<Component*>();
+    for (const std::unique_ptr<Component>& component : m_components)
+    {
+        result.push_back(component.get());
+    }
+    return result;
+}
+
 Component* GameObject::GetComponent(ComponentType type) const
 {
-    for (Component* component : m_components)
+	std::vector<Component*> result = std::vector<Component*>();
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->getType() == type)
-            return component;
+        {
+            return component.get();
+        }
     }
     return nullptr;
 }
@@ -111,7 +139,7 @@ Component* GameObject::GetComponent(ComponentType type) const
 #pragma region GameLoop
 bool GameObject::init()
 {
-    for (Component* component : m_components)
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         component->init();
     }
@@ -123,7 +151,7 @@ bool GameObject::init()
 }
 
 void GameObject::update() {
-    for (Component* component : m_components)
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
         {
@@ -134,7 +162,7 @@ void GameObject::update() {
 
 void GameObject::preRender()
 {
-    for (Component* component : m_components)
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
         {
@@ -152,7 +180,7 @@ void GameObject::preRender()
 
 void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
-    for (Component* component : m_components)
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
         {
@@ -170,7 +198,7 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 
 void GameObject::postRender()
 {
-    for (Component* component : m_components)
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
         {
@@ -188,10 +216,9 @@ void GameObject::postRender()
 
 bool GameObject::cleanUp()
 {
-    for (Component* component : m_components)
+    for (const std::unique_ptr<Component>& component : m_components)
     {
         component->cleanUp();
-        delete component;
     }
     m_components.clear();
 
@@ -267,12 +294,12 @@ void GameObject::drawUI()
 
     for (size_t i = 0; i < m_components.size(); ++i)
     {
-        Component* component = m_components[i];
+        const std::unique_ptr<Component>& component = m_components[i];
         ImGui::PushID(component->getID());
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        if (component->getType() == ComponentType::CAMERA && app->getActiveCamera() == component)
+        if (component->getType() == ComponentType::CAMERA && app->getSceneModule()->getDefaultCamera() == component.get())
         {
             header += " (Default)";
         }
@@ -303,7 +330,7 @@ void GameObject::drawUI()
 
                 if (ImGui::Button("Remove Component"))
                 {
-                    RemoveComponent(component);
+                    RemoveComponent(component.get());
                     ImGui::PopStyleColor();
                     ImGui::TreePop();
                     ImGui::PopID();
@@ -343,9 +370,9 @@ void GameObject::drawUI()
 
 void GameObject::onTransformChange()
 {
-    for (int i = 0; i < m_components.size(); i++)
+    for (const auto& component : m_components)
     {
-        m_components.at(i)->onTransformChange();
+        component->onTransformChange();
     }
 }
 
@@ -388,7 +415,7 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
     {
         rapidjson::Value componentsData(rapidjson::kArrayType);
 
-        for (Component* component : m_components) 
+        for (const std::unique_ptr<Component>& component : m_components) 
         {
             if (component->getType() == ComponentType::TRANSFORM)
                 continue;

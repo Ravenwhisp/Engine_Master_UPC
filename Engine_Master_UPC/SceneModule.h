@@ -1,11 +1,12 @@
 #pragma once
 #include "Module.h"
-#include <rapidjson/document.h>
+#include "GameObject.h"
+#include "Lights.h"
 #include "UID.h"
 
 class SceneSerializer;
-class GameObject;
 class Quadtree;
+class CameraComponent;
 
 struct SceneDataCB
 {
@@ -28,13 +29,27 @@ struct SkyboxSettings
 class SceneModule : public Module
 {
 private:
-	SceneSerializer* m_sceneSerializer;
+	std::string m_name = "SampleScene";
+
+	std::vector<std::unique_ptr<GameObject>> m_allObjects;
+	std::vector<GameObject*> m_rootObjects;
+
+	std::unique_ptr<SceneSerializer> m_sceneSerializer;
+	std::unique_ptr<Quadtree> m_quadtree;
+
+	SceneLightingSettings		m_lighting;
+	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
+
+	CameraComponent* m_defaultCamera = nullptr;
 
 public:
+	SceneModule();
+	~SceneModule();
+
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
-	void updateHierarchy(GameObject* obj);
 	void preRender() override;
 	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
 	void postRender() override;
@@ -58,20 +73,21 @@ public:
 
 	void createGameObject();
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
+	GameObject* findGameObjectByUID(UID uuid);
 	void removeGameObject(const UID uuid);
+	std::vector<GameObject*> getAllGameObjects();
 
-	void addGameObject(GameObject* gameObject);
-	void detachGameObject(GameObject* gameObject);
+	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
-	void resetGameObjects(const std::vector<GameObject*>& previousGameObjects);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
 
+	void addToRootList(GameObject* gameObject);
+	void removeFromRootList(GameObject* gameObject);
+	const std::vector<GameObject*>& getRootObjects() const;
+
 	GameObject* createDirectionalLightOnInit();
-
-	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
-
 	const char* getName() { return (char*)m_name.c_str(); }
 	const void setName(const char* newName) { m_name = newName; }
 
@@ -82,14 +98,9 @@ public:
 
 	bool applySkyboxToRenderer();
 
-	Quadtree& getQuadtree() { return *m_quadtree; }
-private:
-	std::string m_name = "SampleScene";
+	Quadtree* getQuadtree() { return m_quadtree.get(); }
+	void createQuadtree();
 
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	Quadtree*					m_quadtree;
-	SceneDataCB					m_sceneDataCB;
-	SkyboxSettings				m_skybox;
-
+	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
+	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 };
