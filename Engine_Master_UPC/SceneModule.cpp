@@ -552,10 +552,6 @@ void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) {
             CameraComponent* cameraComponent = ownerGameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
             m_defaultCamera = cameraComponent;
         }
-        else
-        {
-            m_defaultCamera = nullptr;
-        }
     }
 }
 
