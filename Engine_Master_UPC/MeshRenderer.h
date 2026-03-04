@@ -32,6 +32,7 @@ public:
 		return m_materials[it->second].get();
 	}
 
+	bool											getHasBounds() { return m_hasBounds; }
 	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
 
 #pragma region Loop functions
@@ -59,7 +60,6 @@ private:
 	std::string m_modelPath;
 	std::string m_basePath;
 
-	bool m_drawBounds = false;
 	bool m_boundsDepthTest = true;
 	bool m_drawWorldAabb = false;
 
