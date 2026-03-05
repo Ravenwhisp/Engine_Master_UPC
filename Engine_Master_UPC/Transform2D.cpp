@@ -8,6 +8,19 @@ Transform2D::Transform2D(UID id, GameObject* owner)
 {
 }
 
+std::unique_ptr<Component> Transform2D::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<Transform2D> clonedComponent = std::make_unique<Transform2D>(m_uuid, newOwner);
+
+    clonedComponent->position = position;
+    clonedComponent->size = size;
+    clonedComponent->pivot = pivot;
+    clonedComponent->anchorMin = anchorMin;
+    clonedComponent->anchorMax = anchorMax;
+
+	return clonedComponent;
+}
+
 Rect2D Transform2D::getRect() const
 {
     Rect2D r;

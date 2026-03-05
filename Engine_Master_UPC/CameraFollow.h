@@ -5,9 +5,12 @@
 class GameObject;
 class Transform;
 
-class CameraFollow final : public Component {
+class CameraFollow final : public Component 
+{
 public:
 	CameraFollow(UID id, GameObject* gameObject);
+
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void update() override;
 	void drawUi() override;
@@ -20,7 +23,6 @@ private:
 	float smoothExtraHeight(float current, float target, float sharpness, float dt) const;
 	Vector3 computeDesiredCameraPosition(const Vector3& followPoint) const;
 	Vector3 smoothCameraPosition(const Vector3& current, const Vector3& target, float sharpness, float dt) const;
-
 
 	Vector3 lerpVector(const Vector3& start, const Vector3& end, float alpha) const;
 	float lerpFloat(float start, float end, float alpha) const;

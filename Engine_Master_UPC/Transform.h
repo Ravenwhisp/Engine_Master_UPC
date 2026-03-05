@@ -8,6 +8,7 @@ class GameObject;
 class Transform final : public Component {
 public:
 	Transform(UID id, GameObject* gameObject);
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	const Matrix& getGlobalMatrix() const;
 	Matrix getNormalMatrix() const;

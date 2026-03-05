@@ -5,6 +5,7 @@
 
 #include "Application.h"
 #include "EditorModule.h"
+#include "GameViewModule.h"
 
 constexpr const char* PLAY_TEXT = "Play";
 constexpr const char* PAUSE_TEXT = "Pause";
@@ -72,6 +73,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
+				app->getGameViewModule()->startGameSimulation();
 			}
 		}
 		if (index == SIMULATION_MODE::PAUSE)
@@ -88,6 +90,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
+				app->getGameViewModule()->stopGameSimulation();
 			}
 		}
     }

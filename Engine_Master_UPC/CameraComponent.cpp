@@ -17,6 +17,19 @@ CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id,
 	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
 }
 
+std::unique_ptr<Component> CameraComponent::clone(GameObject* newOwner) const
+{
+	std::unique_ptr<CameraComponent> clonedComponent = std::make_unique<CameraComponent>(m_uuid, newOwner);
+
+	clonedComponent->m_horizontalFov = this->m_horizontalFov;
+	clonedComponent->m_nearPlane = this->m_nearPlane;
+	clonedComponent->m_farPlane = this->m_farPlane;
+	clonedComponent->m_aspectRatio = this->m_aspectRatio;
+
+	// No need to clone the matrices nor the frustum, as they will be recalculated in the onTransformChange() method when the component is added to the new owner
+	return clonedComponent;
+}
+
 void CameraComponent::recalculateFrustum() 
 {
 	Transform* t = m_owner->GetTransform();

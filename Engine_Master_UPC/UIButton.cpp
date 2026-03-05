@@ -8,6 +8,16 @@ UIButton::UIButton(UID id, GameObject* owner)
 {
 }
 
+std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<UIButton> clonedButton = std::make_unique<UIButton>(m_uuid, newOwner);
+
+    clonedButton->setActive(this->isActive());
+    clonedButton->setTargetGraphic(this->getTargetGraphic());
+    // Note: onClick listeners are not cloned, as they are typically set up in code after instantiation
+
+	return clonedButton;
+}
 
 
 void UIButton::onPointerUp(PointerEventData& /*data*/)
