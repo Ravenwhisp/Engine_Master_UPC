@@ -4,6 +4,7 @@
 #include "ModelComponent.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
+#include "NavMeshWalk.h" 
 #include "CameraComponent.h"
 #include "Application.h"
 
@@ -39,6 +40,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::PLAYER_WALK:
             m_components.push_back(new PlayerWalk(GenerateUID(), this));
             break;
+        case ComponentType::NAVMESH_WALK:
+            m_components.push_back(new NavMeshWalk(GenerateUID(), this));
+            break;
         case ComponentType::CAMERA:
             m_components.push_back(new CameraComponent(GenerateUID(), this));
             break;
@@ -69,6 +73,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         return nullptr;
     case ComponentType::PLAYER_WALK:
         newComponent = new PlayerWalk(id, this);
+        break;
+    case ComponentType::NAVMESH_WALK:
+        newComponent = new NavMeshWalk(id, this);
         break;
     case ComponentType::CAMERA:
         newComponent = new CameraComponent(id, this);
