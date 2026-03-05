@@ -22,7 +22,6 @@
 #include "Quadtree.h"
 
 #include "CameraComponent.h"
-#include "Quadtree.h"
 
 
 SceneEditor::SceneEditor()
@@ -166,27 +165,28 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
     for (GameObject* go : app->getSceneModule()->getAllGameObjects())
     {
-        if (!go || !go->GetActive()) {
+        if (!go || !go->GetActive()) 
+        {
             continue;
         }
 
         auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT);
 
-        if (!light) 
+        if (!light)
         {
             continue;
         }
 
-        if (!light->isDebugDrawEnabled()) 
+        if (!light->isDebugDrawEnabled())
         {
             continue;
         }
 
-        if (light->isDebugDrawDepthEnabled()) 
+        if (light->isDebugDrawDepthEnabled())
         {
             LightDebugDraw::drawLightWithDepth(*go);
         }
-        else 
+        else
         {
             LightDebugDraw::drawLightWithoutDepth(*go);
         }

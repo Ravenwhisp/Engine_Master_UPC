@@ -30,11 +30,11 @@ void GameViewModule::update()
 void GameViewModule::startGameSimulation()
 {
 	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
-	m_gameObjects = m_sceneModule->getAllGameObjects();
+	m_gameObjects = std::move(m_sceneModule->getClonedGameObjects());
 }
 
 void GameViewModule::stopGameSimulation()
 {
 	// When we hit stop, we restore the scene's game objects with the copy we created when we hit play
-	m_sceneModule->resetGameObjects(m_gameObjects);
+	m_sceneModule->resetGameObjects(std::move(m_gameObjects));
 }

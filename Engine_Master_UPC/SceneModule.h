@@ -1,11 +1,11 @@
 #pragma once
 #include "Module.h"
-#include "GameObject.h"
-#include "Lights.h"
+#include <rapidjson/document.h>
 #include "UID.h"
 #include "MeshRenderer.h"
 
 class SceneSerializer;
+class GameObject;
 class Quadtree;
 class CameraComponent;
 
@@ -81,6 +81,7 @@ public:
 
 	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
+	void resetGameObjects(std::vector<std::unique_ptr<GameObject>> previousGameObjects);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
@@ -92,6 +93,7 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	std::vector<GameObject*> getAllGameObjects();
+	std::vector<std::unique_ptr<GameObject>> getClonedGameObjects();
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }

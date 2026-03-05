@@ -5,6 +5,7 @@ class Canvas : public Component
 {
 public:
     Canvas(UID id, GameObject* owner);
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
     bool isScreenSpace = true;
 

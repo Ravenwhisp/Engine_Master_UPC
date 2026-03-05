@@ -9,6 +9,19 @@
 #include "Settings.h"
 
 
+std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<MeshRenderer> newMeshRenderer = std::make_unique<MeshRenderer>(m_uuid, newOwner);
+
+    newMeshRenderer->m_modelAssetId = m_modelAssetId;
+    newMeshRenderer->m_modelPath = m_modelPath;
+    newMeshRenderer->m_basePath = m_basePath;
+    newMeshRenderer->m_boundsDepthTest = m_boundsDepthTest;
+    newMeshRenderer->m_drawWorldAabb = m_drawWorldAabb;
+
+    return newMeshRenderer;
+}
+
 void MeshRenderer::addModel(ModelAsset& model)
 {
     m_meshes.clear();

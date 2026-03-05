@@ -7,6 +7,8 @@
 #include "RenderModule.h"
 #include "EditorModule.h"
 #include "Settings.h"
+#include "GameObject.h"
+#include "UID.h"
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
@@ -330,6 +332,11 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     }
 }
 
+void SceneModule::resetGameObjects(std::vector<std::unique_ptr<GameObject>> previousGameObjects)
+{
+    m_allObjects = std::move(previousGameObjects);
+}
+
 GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
@@ -606,6 +613,20 @@ std::vector<GameObject*> SceneModule::getAllGameObjects()
 
     return result;
 }
+
+std::vector<std::unique_ptr<GameObject>> SceneModule::getClonedGameObjects()
+{
+    std::vector<std::unique_ptr<GameObject>> result;
+    result.reserve(m_allObjects.size());
+
+    for (const auto& obj : m_allObjects)
+    {
+        result.push_back(std::move(obj->clone()));
+    }
+
+    return result;
+}
+
 
 void SceneModule::removeFromRootList(GameObject* obj)
 {

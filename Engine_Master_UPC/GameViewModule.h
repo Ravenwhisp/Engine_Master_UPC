@@ -7,8 +7,8 @@ class GameObject;
 class GameViewModule : public Module
 {
 private:
-	SceneModule*				m_sceneModule;
-	std::vector<GameObject*>	m_gameObjects;
+	SceneModule*								m_sceneModule;
+	std::vector<std::unique_ptr<GameObject>>	m_gameObjects;
 
 public:
 	GameViewModule();

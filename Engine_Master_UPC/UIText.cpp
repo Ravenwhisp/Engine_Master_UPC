@@ -7,6 +7,18 @@ UIText::UIText(UID id, GameObject* owner)
 {
 }
 
+std::unique_ptr<Component> UIText::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<UIText> clonedComponent = std::make_unique<UIText>(m_uuid, newOwner);
+
+    clonedComponent->setActive(this->isActive());
+    clonedComponent->setText(m_text);
+    clonedComponent->setFontScale(m_scale);
+    clonedComponent->setColor(m_color);
+
+	return clonedComponent;
+}
+
 void UIText::drawUi()
 {
     ImGui::Text("UIText");
