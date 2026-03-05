@@ -12,21 +12,72 @@ Hierarchy::Hierarchy()
 
 }
 
+void Hierarchy::render()
+{
+	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
+		ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::End();
+		return;
+	}
+
+	if (ImGui::Button("New game object"))
+	{
+		addGameObject();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Remove game object"))
+	{
+		removeGameObject();
+	}
+
+	ImGui::Separator();
+
+	createTreeNode();
+
+	ImGui::End();
+}
+
+void Hierarchy::createTreeNode()
+{
+	if (ImGui::TreeNodeEx(app->getSceneModule()->getName()))
+	{
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+			{
+				GameObject* droppedObject = *(GameObject**)payload->Data;
+				reparent(droppedObject, nullptr);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		const auto& roots = app->getSceneModule()->getRootObjects();
+		for (GameObject* gameObject : roots)
+		{
+			createTreeNode(gameObject);
+		}
+
+		ImGui::TreePop();
+	}
+}
+
 void Hierarchy::createTreeNode(GameObject* gameObject)
 {
 	Transform* transform = gameObject->GetTransform();
 	const auto children = transform->getAllChildren();
 
-	ImGuiTreeNodeFlags flags =
-		children.empty()
-		? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen
-		: ImGuiTreeNodeFlags_OpenOnArrow;
+	ImGuiTreeNodeFlags flags = children.empty() ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen : ImGuiTreeNodeFlags_OpenOnArrow;
 
-	std::string label =
-		gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
+	if (gameObject == app->getEditorModule()->getSelectedGameObject())
+	{
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+
+	std::string label = gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
 
 	bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
-
+		
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
@@ -67,7 +118,6 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 	}
 }
 
-
 void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 {
 	if (!child) return;
@@ -104,32 +154,6 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
 }
 
-
-void Hierarchy::createTreeNode()
-{
-	if (ImGui::TreeNodeEx(app->getSceneModule()->getName()))
-	{
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
-			{
-				GameObject* droppedObject = *(GameObject**)payload->Data;
-				reparent(droppedObject, nullptr);
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-		const auto& roots = app->getSceneModule()->getRootObjects();
-		for (GameObject* gameObject : roots)
-		{
-			createTreeNode(gameObject);
-		}
-
-		ImGui::TreePop();
-	}
-}
-
 void Hierarchy::addGameObject()
 {
 	app->getSceneModule()->createGameObject();
@@ -147,29 +171,3 @@ void Hierarchy::removeGameObject()
 	}
 }
 
-
-void Hierarchy::render()
-{
-	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
-		ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::End();
-		return;
-	}
-
-	if (ImGui::Button("New game object"))
-	{
-		addGameObject();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove game object"))
-	{
-		removeGameObject();
-	}
-
-	ImGui::Separator();
-
-	createTreeNode();
-
-	ImGui::End();
-}
