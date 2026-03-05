@@ -45,7 +45,21 @@ void Hierarchy::render()
 
 void Hierarchy::createTreeNode()
 {
-	if (ImGui::TreeNodeEx(m_sceneModule->getName()))
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow;
+
+	if (!m_editorModule->getSelectedGameObject())
+	{
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+
+	bool opened = ImGui::TreeNodeEx(m_sceneModule->getName(), flags);
+
+	if (ImGui::IsItemClicked())
+	{
+		m_editorModule->setSelectedGameObject(nullptr);
+	}
+
+	if (opened)
 	{
 		if (ImGui::BeginDragDropTarget())
 		{
