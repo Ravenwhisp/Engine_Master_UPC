@@ -257,9 +257,6 @@ bool EditorModule::init()
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
 
-    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
-    m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
-	
 	m_editorWindows.push_back(m_gameWindow = new GameWindow());
 
 	return true;
