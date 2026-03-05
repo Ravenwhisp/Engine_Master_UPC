@@ -224,12 +224,11 @@ bool SceneModule::cleanUp()
 }
 #pragma endregion
 
-void SceneModule::createGameObject()
+GameObject* SceneModule::createGameObject()
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();
     rawPtr->init();
-    rawPtr->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
 
     m_allObjects.push_back(std::move(newGameObject));
     m_rootObjects.push_back(rawPtr);
@@ -240,6 +239,8 @@ void SceneModule::createGameObject()
     {
         m_quadtree->insert(*rawPtr);
     }
+    
+    return rawPtr;
 }
 
 GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID)

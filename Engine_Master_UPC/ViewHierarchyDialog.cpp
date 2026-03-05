@@ -6,16 +6,18 @@
 #include "SceneModule.h"
 
 #include "GameObject.h"
+#include "Hierarchy.h"
 
-ViewHierarchyDialog::ViewHierarchyDialog()
+ViewHierarchyDialog::ViewHierarchyDialog(Hierarchy* hierarchy)
 {
 	m_editorModule = app->getEditorModule();
     m_sceneModule = app->getSceneModule();
+
+	m_hierarchy = hierarchy;
 }
 
 void ViewHierarchyDialog::render()
 {
-    DEBUG_LOG("Supuestamente abierto el popup");
     GameObject* selected = m_editorModule->getSelectedGameObject();
     bool hasSelection = selected != nullptr;
 
@@ -32,8 +34,22 @@ void ViewHierarchyDialog::render()
     {
         if (hasSelection)
         {
-            m_sceneModule->removeGameObject(selected->GetID());
+			m_hierarchy->startRename(selected);
         }
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Copy", nullptr, false, hasSelection))
+    {
+        DEBUG_WARN("Option not implemented yet!");
+        //missing code to copy game objects
+    }
+
+    if (ImGui::MenuItem("Paste", nullptr, false, hasSelection))
+    {
+        DEBUG_WARN("Option not implemented yet!");
+        //missing code to paste game objects
     }
 
     ImGui::Separator();
@@ -45,19 +61,22 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Create Camera"))
     {
-        //app->getSceneModule()->createCamera();
+		GameObject* camera = app->getSceneModule()->createGameObject();
+		camera->AddComponent(ComponentType::CAMERA);
     }
 
     if (ImGui::BeginMenu("Create Light"))
     {
         if (ImGui::MenuItem("Point"))
         {
-            //app->getSceneModule()->createPointLight();
+            DEBUG_WARN("Option not implemented yet!");
+			//missing code to create point light
         }
 
         if (ImGui::MenuItem("Directional"))
         {
-            //app->getSceneModule()->createDirectionalLight();
+            DEBUG_WARN("Option not implemented yet!");
+			//missing code to create directional light
         }
 
         ImGui::EndMenu();
@@ -65,6 +84,7 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Create Model"))
     {
-
+        DEBUG_WARN("Option not implemented yet!");
+		//missing code to create model
     }
 }

@@ -11,7 +11,10 @@
 
 Hierarchy::Hierarchy()
 {
-	m_viewHierarchyDialog = new ViewHierarchyDialog();
+	m_editorModule = app->getEditorModule();
+	m_sceneModule = app->getSceneModule();
+
+	m_viewHierarchyDialog = new ViewHierarchyDialog(this);
 }
 
 void Hierarchy::render()
@@ -42,7 +45,7 @@ void Hierarchy::render()
 
 void Hierarchy::createTreeNode()
 {
-	if (ImGui::TreeNodeEx(app->getSceneModule()->getName()))
+	if (ImGui::TreeNodeEx(m_sceneModule->getName()))
 	{
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -54,7 +57,7 @@ void Hierarchy::createTreeNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		const auto& roots = app->getSceneModule()->getRootObjects();
+		const auto& roots = m_sceneModule->getRootObjects();
 		for (GameObject* gameObject : roots)
 		{
 			createTreeNode(gameObject);
@@ -71,19 +74,49 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 
 	ImGuiTreeNodeFlags flags = children.empty() ? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen : ImGuiTreeNodeFlags_OpenOnArrow;
 
-	if (gameObject == app->getEditorModule()->getSelectedGameObject())
+	if (gameObject == m_editorModule->getSelectedGameObject())
 	{
 		flags |= ImGuiTreeNodeFlags_Selected;
 	}
 
 	std::string label = gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
 
-	bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
-		
+	bool opened = false;
+
+	if (m_renamingObject == gameObject)
+	{
+		ImGui::SetNextItemWidth(150);
+
+		if (ImGui::InputText("##rename", m_renameBuffer, 256,
+			ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+		{
+			gameObject->SetName(m_renameBuffer);
+			m_renamingObject = nullptr;
+		}
+
+		if (!ImGui::IsItemActive() && ImGui::IsMouseClicked(0))
+		{
+			gameObject->SetName(m_renameBuffer);
+			m_renamingObject = nullptr;
+		}
+	}
+	else
+	{
+		opened = ImGui::TreeNodeEx(label.c_str(), flags);
+	}
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
-		app->getEditorModule()->setSelectedGameObject(gameObject);
+		float time = ImGui::GetTime();
+
+		if (m_editorModule->getSelectedGameObject() == gameObject && (time - m_lastClickTime) > 0.4f)
+		{
+			m_renamingObject = gameObject;
+			strcpy(m_renameBuffer, gameObject->GetName().c_str());
+		}
+
+		m_editorModule->setSelectedGameObject(gameObject);
+		m_lastClickTime = time;
 	}
 
 	// --- Drag source ---
@@ -139,7 +172,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->removeFromRootList(child);
+		m_sceneModule->removeFromRootList(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -150,8 +183,16 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->addToRootList(child);
+		m_sceneModule->addToRootList(child);
 	}
 
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
+}
+
+void Hierarchy::startRename(GameObject* go)
+{
+	if (!go) return;
+
+	m_renamingObject = go;
+	strcpy(m_renameBuffer, go->GetName().c_str());
 }

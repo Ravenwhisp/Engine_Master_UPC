@@ -74,7 +74,7 @@ public:
 	void clearScene();
 #pragma endregion
 
-	void createGameObject();
+	GameObject* createGameObject();
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
 	GameObject* findGameObjectByUID(UID uuid);
 	void removeGameObject(const UID uuid);
