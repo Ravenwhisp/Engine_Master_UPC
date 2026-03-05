@@ -14,6 +14,11 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 		m_textureColor = app->getResourcesModule()->createTexture2D(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
+	else
+	{
+		m_textureColor = app->getResourcesModule()->createNullTexture2D();
+		m_materialData.hasDiffuseTex = false;
+	}
 
 	m_materialData.diffuseColour = Vector3(asset.getBaseColour().R(), asset.getBaseColour().G(), asset.getBaseColour().B());
 	m_materialData.specularColour = Vector3(0.1f, 0.1f, 0.1f);
