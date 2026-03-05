@@ -17,5 +17,8 @@ private:
 	void createTreeNode();
 	void createTreeNode(GameObject* gameObject);
 	void reparent(GameObject* child, GameObject* newParent);
+
+	GameObject* m_pendingSelection = nullptr;
+	bool m_isDragging = false;
 };
 
