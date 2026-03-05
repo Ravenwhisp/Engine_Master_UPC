@@ -42,8 +42,10 @@ bool RenderModule::init()
     //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
     //m_hasSkybox = (m_skyboxTexture != nullptr);
 
-    m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+    m_editorScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
+    m_playScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
+    m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+	m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
 
     return true;
 }
@@ -51,15 +53,6 @@ bool RenderModule::init()
 bool RenderModule::postInit()
 {
 
-
-    CreateSkyboxCube(app->getResourcesModule(), m_skyboxVertexBuffer, m_skyboxIndexBuffer, m_skyboxIndexCount);
-
-    m_editorScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
-    m_playScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
-
-    m_ringBuffer = app->getResourcesModule()->createRingBuffer(10);
     return true;
 }
 
@@ -88,65 +81,15 @@ void RenderModule::preRender()
         m_playScreenDS->setName(L"playScreenDS");
     }
 
-    // Transition scene texture to render target
-    transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    // Render the scene to texture
-    //renderScene(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, m_size.x, m_size.y);
+    // Transition editor scene texture to render target
+    transitionResource(m_commandList, m_editorScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    // Transition play scene texture to render target
+    transitionResource(m_commandList, m_playScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    //This part since is common between SkyboxPass and MeshRendererPass it will belongs right not to the RenderModule
-    D3D12_VIEWPORT viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_size.x), float(m_size.y) , 0.0, 1.0 };
-    D3D12_RECT scissorRect = D3D12_RECT{ 0, 0,  static_cast<LONG>(m_size.x),  static_cast<LONG>(m_size.y) };
-    renderBackground(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, viewport, scissorRect);
-
-
-    Matrix viewMatrix;
-    Matrix projectionMatrix;
-    Vector3 cameraPosition;
-
-    if (app->getCurrentCameraPerspective())
-    {
-        const CameraComponent* camera = app->getCurrentCameraPerspective();
-        viewMatrix = camera->getViewMatrix();
-        projectionMatrix = camera->getProjectionMatrix();
-        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
-    }
-    else
-    {
-        viewMatrix = app->getCameraModule()->getView();
-        projectionMatrix = app->getCameraModule()->getProjection();
-        cameraPosition = app->getCameraModule()->getPosition();
-    }
-
-    m_skyBoxPass->setView(viewMatrix);
-    m_skyBoxPass->setProjection(projectionMatrix);
-    m_skyBoxPass->apply(m_commandList);
-
-
-    m_meshRendererPass->setCameraPosition(cameraPosition);
-    m_meshRendererPass->setView(viewMatrix);
-    m_meshRendererPass->setProjection(projectionMatrix);
-
-    /*m_meshRendererPass->setRenderTargetView(m_screenRT->getRTV(0).cpu);
-    m_meshRendererPass->setDepthStencilView(m_screenDS->getDSV().cpu);
-
-    m_meshRendererPass->setViewport(_swapChain->getViewport());
-    m_meshRendererPass->setRectScissor(_swapChain->getScissorRect());*/
-
-    // NOT IDEAL TO CALL HERE THIS RENDER FUCNTION, THAT IS NOT DOING ANYTHING RELATED TO RENDER ANYMORE
-    app->getSceneModule()->render(m_commandList);
-    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllMeshRenderers());
-    m_meshRendererPass->apply(m_commandList);
-
-    // REPEATED CODE WITH MESH RENDERER PASS
-    m_debugDrawPass->setView(viewMatrix);
-    m_debugDrawPass->setProjection(projectionMatrix);
-    m_debugDrawPass->setViewport(viewport);
-
-    // THIS IS NOT THE IDEAL BUT IS TO MAKE SURE THAT ALL WORKS
-    app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(m_commandList);
-    m_debugDrawPass->apply(m_commandList);
-
-    app->getUIModule()->renderUI(m_commandList, viewport);
+    // Render the editor scene to texture
+    renderEditorScene(m_commandList, m_editorScreenRT->getRTV(0).cpu, m_editorScreenDS->getDSV().cpu, m_size.x, m_size.y);
+    // Render the play scene to texture
+    renderPlayScene(m_commandList, m_playScreenRT->getRTV(0).cpu, m_playScreenDS->getDSV().cpu, m_size.x, m_size.y);
 
     // Transition back to shader resource state
     transitionResource(m_commandList, m_editorScreenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -174,6 +117,104 @@ void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
     commandList->RSSetScissorRects(1, &scissorRect);
 }
 
+void RenderModule::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+{
+    //This part since is common between SkyboxPass and MeshRendererPass it will belongs right not to the RenderModule
+    D3D12_VIEWPORT viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_size.x), float(m_size.y) , 0.0, 1.0 };
+    D3D12_RECT scissorRect = D3D12_RECT{ 0, 0,  static_cast<LONG>(m_size.x),  static_cast<LONG>(m_size.y) };
+    renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+
+    Matrix viewMatrix;
+    Matrix projectionMatrix;
+    Vector3 cameraPosition;
+
+    if (app->getCurrentCameraPerspective())
+    {
+        const CameraComponent* camera = app->getCurrentCameraPerspective();
+        viewMatrix = camera->getViewMatrix();
+        projectionMatrix = camera->getProjectionMatrix();
+        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
+    }
+    else
+    {
+        viewMatrix = app->getCameraModule()->getView();
+        projectionMatrix = app->getCameraModule()->getProjection();
+        cameraPosition = app->getCameraModule()->getPosition();
+    }
+
+    m_skyBoxPass->setView(viewMatrix);
+    m_skyBoxPass->setProjection(projectionMatrix);
+    m_skyBoxPass->apply(commandList);
+
+
+    m_meshRendererPass->setCameraPosition(cameraPosition);
+    m_meshRendererPass->setView(viewMatrix);
+    m_meshRendererPass->setProjection(projectionMatrix);
+
+    /*m_meshRendererPass->setRenderTargetView(m_screenRT->getRTV(0).cpu);
+    m_meshRendererPass->setDepthStencilView(m_screenDS->getDSV().cpu);
+
+    m_meshRendererPass->setViewport(_swapChain->getViewport());
+    m_meshRendererPass->setRectScissor(_swapChain->getScissorRect());*/
+
+    // NOT IDEAL TO CALL HERE THIS RENDER FUCNTION, THAT IS NOT DOING ANYTHING RELATED TO RENDER ANYMORE
+    app->getSceneModule()->render(commandList);
+    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllMeshRenderers());
+    m_meshRendererPass->apply(commandList);
+
+    // REPEATED CODE WITH MESH RENDERER PASS
+    m_debugDrawPass->setView(viewMatrix);
+    m_debugDrawPass->setProjection(projectionMatrix);
+    m_debugDrawPass->setViewport(viewport);
+
+    // THIS IS NOT THE IDEAL BUT IS TO MAKE SURE THAT ALL WORKS
+    app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
+    m_debugDrawPass->apply(commandList);
+
+    app->getUIModule()->renderUI(commandList, viewport);
+}
+
+void RenderModule::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+{
+    if (app->getSceneModule()->getDefaultCamera())
+    {
+        //This part since is common between SkyboxPass and MeshRendererPass it will belongs right not to the RenderModule
+        D3D12_VIEWPORT viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_size.x), float(m_size.y) , 0.0, 1.0 };
+        D3D12_RECT scissorRect = D3D12_RECT{ 0, 0,  static_cast<LONG>(m_size.x),  static_cast<LONG>(m_size.y) };
+        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+
+        Matrix viewMatrix;
+        Matrix projectionMatrix;
+        Vector3 cameraPosition;
+
+        const CameraComponent* camera = app->getSceneModule()->getDefaultCamera();
+        viewMatrix = camera->getViewMatrix();
+        projectionMatrix = camera->getProjectionMatrix();
+        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
+
+        m_skyBoxPass->setView(viewMatrix);
+        m_skyBoxPass->setProjection(projectionMatrix);
+        m_skyBoxPass->apply(commandList);
+
+        m_meshRendererPass->setCameraPosition(cameraPosition);
+        m_meshRendererPass->setView(viewMatrix);
+        m_meshRendererPass->setProjection(projectionMatrix);
+
+        /*m_meshRendererPass->setRenderTargetView(m_screenRT->getRTV(0).cpu);
+        m_meshRendererPass->setDepthStencilView(m_screenDS->getDSV().cpu);
+
+        m_meshRendererPass->setViewport(_swapChain->getViewport());
+        m_meshRendererPass->setRectScissor(_swapChain->getScissorRect());*/
+
+        // NOT IDEAL TO CALL HERE THIS RENDER FUCNTION, THAT IS NOT DOING ANYTHING RELATED TO RENDER ANYMORE
+        app->getSceneModule()->render(commandList);
+        m_meshRendererPass->setMeshes(app->getSceneModule()->getAllMeshRenderers());
+        m_meshRendererPass->apply(commandList);
+
+        app->getUIModule()->renderUI(commandList, viewport);
+    }
+}
+
 void RenderModule::render()
 {
     auto _commandList = app->getD3D12Module()->getCommandList();
@@ -186,8 +227,6 @@ void RenderModule::render()
 
 bool RenderModule::cleanUp()
 {
-    cleanupSkybox();
-
     m_editorScreenRT.reset();
     m_editorScreenDS.reset();
 

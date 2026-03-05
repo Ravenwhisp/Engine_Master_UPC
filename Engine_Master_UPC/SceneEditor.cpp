@@ -78,7 +78,7 @@ void SceneEditor::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUEditorScreenRT().ptr;
         ImGui::Image(textureID, m_size);
         
     }
