@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "Hierarchy.h"
 
+#include "ViewHierarchyDialog.h"
+
 #include "Application.h"
 #include "EditorModule.h"
 #include "SceneModule.h"
@@ -9,7 +11,7 @@
 
 Hierarchy::Hierarchy()
 {
-
+	m_viewHierarchyDialog = new ViewHierarchyDialog();
 }
 
 void Hierarchy::render()
@@ -21,20 +23,20 @@ void Hierarchy::render()
 		return;
 	}
 
-	if (ImGui::Button("New game object"))
-	{
-		addGameObject();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove game object"))
-	{
-		removeGameObject();
-	}
-
 	ImGui::Separator();
 
 	createTreeNode();
 
+	if (ImGui::IsWindowHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+	{
+		ImGui::OpenPopup("HierarchyDialogPopup");
+	}
+
+	if (ImGui::BeginPopup("HierarchyDialogPopup"))
+	{
+		m_viewHierarchyDialog->render();
+		ImGui::EndPopup();
+	}
 	ImGui::End();
 }
 
@@ -153,21 +155,3 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
 }
-
-void Hierarchy::addGameObject()
-{
-	app->getSceneModule()->createGameObject();
-}
-
-void Hierarchy::removeGameObject()
-{
-	GameObject* selected = app->getEditorModule()->getSelectedGameObject();
-
-	if (selected)
-	{
-		UID id = selected->GetID();
-		app->getEditorModule()->setSelectedGameObject(nullptr);
-		app->getSceneModule()->removeGameObject(id);
-	}
-}
-
