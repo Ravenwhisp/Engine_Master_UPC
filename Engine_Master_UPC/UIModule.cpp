@@ -18,6 +18,7 @@
 #include "UIImage.h"
 #include "Transform2D.h"
 #include "UIText.h"
+#include "SceneEditor.h"
 
 bool UIModule::init()
 {
@@ -32,7 +33,7 @@ void UIModule::preRender()
     m_textCommands.clear();
     m_imageCommands.clear();
 
-    const ImVec2 screenSize = app->getEditorModule()->getSceneEditorSize();
+    const ImVec2 screenSize = app->getEditorModule()->getSceneEditor()->getSize();
 
     if (screenSize.x <= 0.0f || screenSize.y <= 0.0f) {
         return;

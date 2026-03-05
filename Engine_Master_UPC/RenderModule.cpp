@@ -7,6 +7,7 @@
 #include "ResourcesModule.h"
 #include "CameraModule.h"
 
+#include "SceneEditor.h"
 #include "SceneModule.h"
 #include "UIModule.h"
 
@@ -61,7 +62,7 @@ void RenderModule::preRender()
     auto m_commandList = app->getD3D12Module()->getCommandList();
     auto _swapChain = app->getD3D12Module()->getSwapChain();
 
-    auto newSize = app->getEditorModule()->getSceneEditorSize();
+    auto newSize = app->getEditorModule()->getSceneEditor()->getSize();
 
     if (m_size.x != newSize.x || m_size.y != newSize.y) 
     {

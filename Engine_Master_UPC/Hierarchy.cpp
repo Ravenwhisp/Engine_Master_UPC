@@ -12,32 +12,6 @@ Hierarchy::Hierarchy()
 
 }
 
-void Hierarchy::render()
-{
-	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
-		ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::End();
-		return;
-	}
-
-	if (ImGui::Button("New game object"))
-	{
-		addGameObject();
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove game object"))
-	{
-		removeGameObject();
-	}
-
-	ImGui::Separator();
-
-	createTreeNode();
-
-	ImGui::End();
-}
-
 void Hierarchy::createTreeNode(GameObject* gameObject)
 {
 	Transform* transform = gameObject->GetTransform();
@@ -173,3 +147,29 @@ void Hierarchy::removeGameObject()
 	}
 }
 
+
+void Hierarchy::render()
+{
+	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
+		ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::End();
+		return;
+	}
+
+	if (ImGui::Button("New game object"))
+	{
+		addGameObject();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Remove game object"))
+	{
+		removeGameObject();
+	}
+
+	ImGui::Separator();
+
+	createTreeNode();
+
+	ImGui::End();
+}

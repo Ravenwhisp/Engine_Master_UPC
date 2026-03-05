@@ -1,5 +1,8 @@
 #include "Globals.h"
 #include "EditorModule.h"
+
+#include "Mouse.h"
+
 #include "D3D12Module.h"
 #include "CameraModule.h"
 #include "vector"

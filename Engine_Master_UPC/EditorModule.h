@@ -1,13 +1,11 @@
 #pragma once
 #include <Module.h>
-#include "DescriptorHeap.h"
-#include "EditorWindow.h"
-#include "SceneEditor.h"
-#include <vector>
+
 #include "Keyboard.h"
-#include "Mouse.h"
 
 class ImGuiPass;
+
+class EditorWindow;
 
 class Logger;
 class HardwareWindow;
@@ -17,6 +15,7 @@ class Hierarchy;
 class DebugDrawPass;
 class EditorSettings;
 class SceneConfig;
+class GameObject;
 
 class EditorModule: public Module
 {
@@ -50,7 +49,6 @@ public:
 #pragma endregion
 
 	SceneEditor*	getSceneEditor() { return m_sceneEditor; }
-	ImVec2			getSceneEditorSize() { return m_sceneEditor->getSize();}
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
@@ -94,8 +92,5 @@ private:
 	bool gizmoUseLocal = true;
 #pragma endregion
 
-	void ConsoleLog(const char* message);
-	void ConsoleWarn(const char* message);
-	void ConsoleError(const char* message);
 };
 

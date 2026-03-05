@@ -16,6 +16,8 @@
 #include "ImGuizmo.h"
 #include "GameObject.h"
 
+#include "SceneEditor.h"
+
 bool CameraModule::init() {
     m_settings = app->getSettings();
 
