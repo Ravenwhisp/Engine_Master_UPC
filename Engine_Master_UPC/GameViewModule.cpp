@@ -2,7 +2,6 @@
 #include "GameViewModule.h"
 
 #include "Application.h"
-#include "SceneModule.h"
 #include "GameObject.h"
 
 GameViewModule::GameViewModule()
@@ -23,18 +22,26 @@ void GameViewModule::update()
 {
 	if(app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
 	{
-		// Here is where the game simulation logic would go, but for now we don't have anything to update in the GameViewModule
+		for (GameObject* gameObject : m_sceneModule->getAllGameObjects())
+		{
+			if (gameObject->GetActive())
+			{
+				gameObject->update();
+			}
+		}
 	}
 }
 
 void GameViewModule::startGameSimulation()
 {
 	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
-	m_gameObjects = std::move(m_sceneModule->getClonedGameObjects());
+	m_sceneCloned = m_sceneModule->getClonedGameObjects();
 }
 
 void GameViewModule::stopGameSimulation()
 {
 	// When we hit stop, we restore the scene's game objects with the copy we created when we hit play
-	m_sceneModule->resetGameObjects(std::move(m_gameObjects));
+	m_sceneModule->resetGameObjects(std::move(m_sceneCloned));
+
+	m_sceneCloned = SceneSnapshot();
 }

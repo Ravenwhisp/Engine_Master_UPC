@@ -73,7 +73,10 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
-				app->getGameViewModule()->startGameSimulation();
+				if (selectedIndex == SIMULATION_MODE::STOP)
+				{
+					app->getGameViewModule()->startGameSimulation();
+				}
 			}
 		}
 		if (index == SIMULATION_MODE::PAUSE)

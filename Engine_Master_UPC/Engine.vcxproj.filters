@@ -259,6 +259,13 @@
     <ClCompile Include="Asset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="GameWindow.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="GameViewModule.cpp" />
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -596,6 +603,13 @@
     </ClInclude>
     <ClInclude Include="TextureAsset.h">
       <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="GameWindow.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="GameViewModule.h" />
+    <ClInclude Include="PlayToolbar.h">
+      <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

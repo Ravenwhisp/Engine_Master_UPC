@@ -18,6 +18,11 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_basePath = m_basePath;
     newMeshRenderer->m_boundsDepthTest = m_boundsDepthTest;
     newMeshRenderer->m_drawWorldAabb = m_drawWorldAabb;
+    newMeshRenderer->m_hasBounds = m_hasBounds;
+    newMeshRenderer->m_boundingBox = m_boundingBox;
+    newMeshRenderer->m_meshes = m_meshes;
+    newMeshRenderer->m_materials = m_materials;
+    newMeshRenderer->m_materialIndexByUID = m_materialIndexByUID;  
 
     return newMeshRenderer;
 }
