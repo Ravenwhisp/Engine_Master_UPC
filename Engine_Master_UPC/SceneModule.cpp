@@ -533,18 +533,17 @@ bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson)
     auto& skybox = getSkyboxSettings();
     const auto& skyboxJson = sceneJson["Skybox"];
 
-    if (skyboxJson.HasMember("Enabled") && skyboxJson["Enabled"].IsBool())
+    if (!skyboxJson.HasMember("Enabled") && skyboxJson["Enabled"].IsBool())
     {
         return false;
     }
-
     skybox.enabled = skyboxJson["Enabled"].GetBool();
 
     if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].IsUint64())
     {
         return false;
     }
-        skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
+    skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
 
     return true;
 }
