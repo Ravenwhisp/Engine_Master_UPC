@@ -56,12 +56,14 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
-		app->getEditorModule()->setSelectedGameObject(gameObject);
+		m_pendingSelection = gameObject;
+		m_isDragging = false;
 	}
 
 	// --- Drag source ---
 	if (ImGui::BeginDragDropSource())
 	{
+		m_isDragging = true;
 		ImGui::SetDragDropPayload("GAME_OBJECT", &gameObject, sizeof(GameObject*));
 		ImGui::Text("%s", gameObject->GetName().c_str());
 		ImGui::EndDragDropSource();
@@ -80,6 +82,15 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 			}
 		}
 		ImGui::EndDragDropTarget();
+	}
+
+	if (m_pendingSelection == gameObject && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		if (!m_isDragging)
+		{
+			app->getEditorModule()->setSelectedGameObject(gameObject);
+		}
+		m_pendingSelection = nullptr;
 	}
 
 	// --- Draw children ---

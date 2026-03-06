@@ -15,6 +15,9 @@
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
 #include <SceneEditor.h>
+#include "Delegates.h"
+
+unsigned int DelegateHandle::CURRENT_ID = 0;
 
 
 static Vector2 GetMouseScreenPos()
