@@ -5,12 +5,19 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "TimeModule.h"
+#include "ComponentType.h"
 
 static const float PI = 3.1415926535897931f;
 
 CameraFollow::CameraFollow(UID id, GameObject* gameObject)
     : Component(id, ComponentType::CAMERA_FOLLOW, gameObject)
 {
+}
+
+bool CameraFollow::init()
+{
+    setFollowTargets();
+    return true;
 }
 
 void CameraFollow::setFollowTargets() 
@@ -55,9 +62,6 @@ void CameraFollow::setFollowTargets()
 
 void CameraFollow::update()
 {
-    //This will end up going in the init
-    setFollowTargets();
-    //
     if (!m_firstTargetTransform) return;
 
     Transform* cameraTransform = m_owner->GetTransform();
@@ -187,19 +191,59 @@ void CameraFollow::drawUi()
     ImGui::Text("Camera Follow");
     ImGui::SeparatorText("First Target");
 
-    if (ImGui::InputScalar("First UID", ImGuiDataType_U64, &m_firstTargetUid))
+    m_firstTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_firstTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+        {
+            GameObject* droppedObject = *(GameObject**)payload->Data;
+
+            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+
+            if (sceneObject->GetComponent(ComponentType::PLAYER_WALK))
+            {
+                m_firstTargetTransform = sceneObject->GetTransform();
+                m_firstTargetUid = sceneObject->GetID();
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Clear###ClearFirstTargetButton"))
     {
         m_firstTargetTransform = nullptr;
+        m_firstTargetUid = 0;
     }
-    ImGui::Text("First Target Set: %s", (m_firstTargetTransform ? "YES" : "NO"));
 
     ImGui::SeparatorText("Second Target");
 
-    if (ImGui::InputScalar("Second UID", ImGuiDataType_U64, &m_secondTargetUid))
+    m_secondTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_secondTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+        {
+            GameObject* droppedObject = *(GameObject**)payload->Data;
+
+            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+
+            if (sceneObject->GetComponent(ComponentType::PLAYER_WALK))
+            {
+                m_secondTargetTransform = sceneObject->GetTransform();
+                m_secondTargetUid = sceneObject->GetID();
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Clear###ClearSecondTargetButton"))
     {
         m_secondTargetTransform = nullptr;
+        m_secondTargetUid = 0;
     }
-    ImGui::Text("Second Target Set: %s", (m_secondTargetTransform ? "YES" : "NO"));
 
     ImGui::SeparatorText("Camera Transform");
 
