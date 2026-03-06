@@ -128,6 +128,13 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 normalVector, f
 
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
+    float4 texSample = diffuseTex.Sample(diffuseSamp, coord);
+
+    if (hasDiffuseTex != 0 && texSample.a < 0.5f)
+    {
+        discard;
+    }
+    
     float3 albedo = (hasDiffuseTex != 0)
         ? diffuseTex.Sample(diffuseSamp, coord).rgb * diffuseColour
         : diffuseColour;
