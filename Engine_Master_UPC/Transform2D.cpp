@@ -156,7 +156,19 @@ void Transform2D::drawUi()
             sizingMode = keepAspect ? SizingMode::KEEP_ASPECT_RATIO : SizingMode::FIXED_SIZE;
         }
         
-        if (sizingMode == SizingMode::FIXED_SIZE)
+        if (stretchMode == StretchMode::NONE)
+        {
+            if (sizingMode == SizingMode::KEEP_ASPECT_RATIO)
+            {
+                ImGui::DragFloat("Scale", &scale.x, 0.01f, 0.0f, 10.0f);
+                scale.y = scale.x;
+            }
+            else
+            {
+                ImGui::DragFloat2("Scale", &scale.x, 0.01f, 0.0f, 10.0f);
+            }
+        }
+        else if (sizingMode == SizingMode::FIXED_SIZE)
         {
             if (stretchMode == StretchMode::HORIZONTAL)
             {
@@ -165,10 +177,6 @@ void Transform2D::drawUi()
             else if (stretchMode == StretchMode::VERTICAL)
             {
                 ImGui::DragFloat("Width Scale", &scale.x, 0.01f, 0.0f, 10.0f);
-            }
-            else
-            {
-                ImGui::DragFloat2("Scale", &scale.x, 0.01f, 0.0f, 10.0f);
             }
         }
     }
@@ -237,11 +245,15 @@ void Transform2D::drawStretchPresetsUI()
     if (ImGui::Button("V-L##VL", btnSize)) { setStretchPreset(StretchMode::VERTICAL, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stretch Vertical Left");
     ImGui::SameLine();
-    if (ImGui::Button("ALL##BOTH", btnSize)) { setStretchPreset(StretchMode::BOTH, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f, 0.5f); }
+    if (ImGui::Button("V-C##VC", btnSize)) { setStretchPreset(StretchMode::VERTICAL, 0.5f, 0.0f, 0.5f, 1.0f, 0.5f, 0.5f); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stretch Both");
     ImGui::SameLine();
     if (ImGui::Button("V-R##VR", btnSize)) { setStretchPreset(StretchMode::VERTICAL, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.5f); }
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stretch Vertical Right");
+
+    // Row 2: Full stretch
+    if (ImGui::Button("ALL##BOTH", btnSize)) { setStretchPreset(StretchMode::BOTH, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f, 0.5f); }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stretch Both");
 }
 
 void Transform2D::drawAnchorPresetsUI()
