@@ -7,6 +7,7 @@
 
 #include "GameObject.h"
 #include "Hierarchy.h"
+#include <LightComponent.h>
 
 ViewHierarchyDialog::ViewHierarchyDialog(Hierarchy* hierarchy)
 {
@@ -69,8 +70,9 @@ void ViewHierarchyDialog::render()
     {
         if (ImGui::MenuItem("Point"))
         {
-            DEBUG_WARN("Option not implemented yet!");
-			//missing code to create point light
+            GameObject* light = app->getSceneModule()->createGameObject();
+            LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
+            lightComp->setTypePoint(10.f);
         }
 
         if (ImGui::MenuItem("Directional"))
