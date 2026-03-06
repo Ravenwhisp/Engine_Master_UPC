@@ -9,6 +9,18 @@
 struct dtNavMesh;
 struct dtNavMeshQuery;
 
+struct NavMeshSettings
+{
+    float cellSize = 0.3f;
+    float cellHeight = 0.2f;
+
+    float agentHeight = 1.8f;
+    float agentRadius = 0.4f;
+
+    float agentMaxClimb = 0.6f;
+    float agentMaxSlope = 45.0f;
+};
+
 class NavigationModule : public Module
 {
 public:
@@ -41,12 +53,17 @@ public:
     void setDrawNavMesh(bool v) { m_drawNavMesh = v; }
     bool getDrawNavMesh() const { return m_drawNavMesh; }
 
+    NavMeshSettings& getSettings() { return m_settings; }
+    bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
+
     void setPathStart(const Vector3& p);
     void setPathEnd(const Vector3& p);
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
+    bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const;
 
 private:
+    NavMeshSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
     std::vector<dtTileRef> m_tileRefs;

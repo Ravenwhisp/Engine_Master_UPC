@@ -382,6 +382,65 @@ void NavigationModule::setPathEnd(const Vector3& p)
     if (m_hasPathStart) computeDebugPath();
 }
 
+bool NavigationModule::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const
+{
+    if (!m_navQuery)
+        return false;
+
+    float startPos[3] = { start.x, start.y, start.z };
+    float endPos[3] = { end.x, end.y, end.z };
+
+    float exts[3] = { extents.x, extents.y, extents.z };
+
+    dtQueryFilter filter;
+
+    dtPolyRef startRef = 0, endRef = 0;
+    float nearestStart[3], nearestEnd[3];
+
+    if (!dtStatusSucceed(m_navQuery->findNearestPoly(startPos, exts, &filter, &startRef, nearestStart)))
+        return false;
+
+    if (!dtStatusSucceed(m_navQuery->findNearestPoly(endPos, exts, &filter, &endRef, nearestEnd)))
+        return false;
+
+    dtPolyRef pathPolys[128];
+    int pathCount;
+
+    if (!dtStatusSucceed(m_navQuery->findPath(
+        startRef, endRef,
+        nearestStart, nearestEnd,
+        &filter,
+        pathPolys, &pathCount, 128)))
+        return false;
+
+    float straight[128 * 3];
+    unsigned char flags[128];
+    dtPolyRef refs[128];
+    int straightCount = 0;
+
+    m_navQuery->findStraightPath(
+        nearestStart, nearestEnd,
+        pathPolys, pathCount,
+        straight, flags, refs,
+        &straightCount, 128);
+
+    if (straightCount < 2)
+        return false;
+
+    outPath.clear();
+
+    for (int i = 0; i < straightCount; ++i)
+    {
+        outPath.emplace_back(
+            straight[i * 3 + 0],
+            straight[i * 3 + 1],
+            straight[i * 3 + 2]
+        );
+    }
+
+    return true;
+}
+
 bool NavigationModule::computeDebugPath()
 {
     m_debugPathPoints.clear();

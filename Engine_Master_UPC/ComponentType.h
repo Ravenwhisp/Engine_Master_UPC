@@ -6,6 +6,8 @@
     X(LIGHT)                \
     X(PLAYER_WALK)          \
     X(NAVMESH_WALK)          \
+    X(NAVIGATION_AGENT)          \
+    X(WAYPOINT_PATH)          \
     X(CAMERA)
 
 enum class ComponentType
