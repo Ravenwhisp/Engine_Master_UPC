@@ -1,5 +1,6 @@
 #pragma once
 #include "Module.h"
+#include "SceneModule.h"
 
 class SceneModule;
 class GameObject;
@@ -8,7 +9,8 @@ class GameViewModule : public Module
 {
 private:
 	SceneModule*								m_sceneModule;
-	std::vector<std::unique_ptr<GameObject>>	m_gameObjects;
+	//std::vector<std::unique_ptr<GameObject>>	m_gameObjects;
+	SceneSnapshot								m_sceneCloned;
 
 public:
 	GameViewModule();

@@ -27,6 +27,13 @@ struct SkyboxSettings
 	UID cubemapAssetId = 0;
 };
 
+struct SceneSnapshot
+{
+	std::vector<std::unique_ptr<GameObject>> allObjects;
+	std::vector<GameObject*> rootObjects;
+	CameraComponent* defaultCamera = nullptr;
+};
+
 class SceneModule : public Module
 {
 private:
@@ -81,7 +88,7 @@ public:
 
 	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
-	void resetGameObjects(std::vector<std::unique_ptr<GameObject>> previousGameObjects);
+	void resetGameObjects(SceneSnapshot previousScene);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
@@ -93,7 +100,7 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	std::vector<GameObject*> getAllGameObjects();
-	std::vector<std::unique_ptr<GameObject>> getClonedGameObjects();
+	SceneSnapshot getClonedGameObjects();
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }

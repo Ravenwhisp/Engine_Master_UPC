@@ -40,21 +40,26 @@ std::unique_ptr<GameObject> GameObject::clone() const
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
 
-	// Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
-	newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
-
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
     newGameObject->SetStatic(GetStatic());
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
 
+	//std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
+
+    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
+    newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
         if (clonedComponent)
         {
-            //newGameObject->m_components.push_back(std::move(clonedComponent));
+            if (clonedComponent->getType() == ComponentType::TRANSFORM)
+            {
+                newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
+            }
 			newGameObject->AddClonedComponent(std::move(clonedComponent));
         }
     }
@@ -221,7 +226,8 @@ bool GameObject::init()
     return true;
 }
 
-void GameObject::update() {
+void GameObject::update() 
+{
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
