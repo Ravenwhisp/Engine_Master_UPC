@@ -19,6 +19,9 @@ public:
 
 	void onTransformChange() override {}
 
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 private:
 	InputModule* inputModule;
 	float m_moveSpeed = 3.5f;
