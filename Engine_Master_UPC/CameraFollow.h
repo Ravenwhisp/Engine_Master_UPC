@@ -13,6 +13,9 @@ public:
 	void update() override;
 	void drawUi() override;
 
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 private:
 	void setFollowTargets();
 
