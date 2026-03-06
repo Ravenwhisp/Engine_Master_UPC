@@ -94,7 +94,7 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Create Model"))
     {
-        DEBUG_WARN("Option not implemented yet!");
-		//missing code to create model
+        GameObject* model = app->getSceneModule()->createGameObject();
+        model->AddComponent(ComponentType::MODEL);
     }
 }
