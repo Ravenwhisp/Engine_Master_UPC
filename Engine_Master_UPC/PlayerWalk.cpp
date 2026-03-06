@@ -13,9 +13,6 @@ PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
 	inputModule = app->getInputModule();
-
-	Transform* transform = m_owner->GetTransform();
-	m_initialRotationOffset = transform->getEulerDegrees();
 }
 
 float PlayerWalk::getDeltaSecondsFromTimer() const
@@ -25,10 +22,6 @@ float PlayerWalk::getDeltaSecondsFromTimer() const
 
 bool PlayerWalk::init() 
 {
-	// Capturing the initial rotation should go in the init when we have script system, but at the moment it never gets called so gotta go on the constructor.
-
-	Transform* transform = m_owner->GetTransform();
-	m_initialRotationOffset = transform->getEulerDegrees();
 
 	return true;
 }
@@ -251,4 +244,42 @@ const char* PlayerWalk::controlSchemeToString(ControlScheme scheme)
 	default: 
 		return "";
 	}
+}
+
+rapidjson::Value PlayerWalk::getJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::PLAYER_WALK), domTree.GetAllocator());
+	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+	componentInfo.AddMember("MoveSpeed", m_moveSpeed, domTree.GetAllocator());
+	componentInfo.AddMember("ShiftMultiplier", m_shiftMultiplier, domTree.GetAllocator());
+	componentInfo.AddMember("ControlScheme", rapidjson::Value(controlSchemeToString(m_controlScheme), domTree.GetAllocator()), domTree.GetAllocator());
+
+	return componentInfo;
+}
+
+bool PlayerWalk::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+	if (componentInfo.HasMember("MoveSpeed"))
+		m_moveSpeed = componentInfo["MoveSpeed"].GetFloat();
+
+	if (componentInfo.HasMember("ShiftMultiplier"))
+		m_shiftMultiplier = componentInfo["ShiftMultiplier"].GetFloat();
+
+	if (componentInfo.HasMember("ControlScheme"))
+	{
+		const char* schemeStr = componentInfo["ControlScheme"].GetString();
+
+		if (strcmp(schemeStr, "IJKL") == 0)
+			m_controlScheme = ControlScheme::IJKL;
+		else
+			m_controlScheme = ControlScheme::WASD;
+	}
+
+	applyControlScheme();
+
+	return true;
 }
