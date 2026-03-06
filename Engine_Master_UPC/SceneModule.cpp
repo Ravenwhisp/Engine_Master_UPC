@@ -434,7 +434,8 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
 
     uint64_t defaultCameraOwnerUid = 0;
-    if (m_defaultCamera != nullptr) {
+    if (m_defaultCamera != nullptr) 
+    {
         GameObject* owner = m_defaultCamera->getOwner();
         defaultCameraOwnerUid = (uint64_t)owner->GetID();
     }
