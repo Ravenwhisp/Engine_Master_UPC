@@ -17,11 +17,13 @@ class Hierarchy;
 class DebugDrawPass;
 class EditorSettings;
 class SceneConfig;
+class GameWindow;
 
 class EditorModule: public Module
 {
 public:
-	enum SCENE_TOOL {
+	enum SCENE_TOOL 
+	{
 		NONE = -1,
 		NAVIGATION = 0,
 		MOVE = 1,
@@ -30,11 +32,18 @@ public:
 		RECT = 4,
 		TRANSFORM = 5
 	};
-	enum NAVIGATION_MODE {
+	enum NAVIGATION_MODE 
+	{
 		PAN = 0,
 		ORBIT = 1,
 		ZOOM = 2,
 		FREE_LOOK = 3
+	};
+	enum SIMULATION_MODE
+	{
+		PLAY = 0,
+		PAUSE = 1,
+		STOP = 2
 	};
 
 public:
@@ -57,7 +66,10 @@ public:
 
 	SCENE_TOOL		getCurrentSceneTool() const { return currentSceneTool; }
 	NAVIGATION_MODE getCurrentNavigationMode() const { return currentNavigationMode; }
+	SIMULATION_MODE	getCurrentSimulationMode() const { return currentSimulationMode; }
+
 	void			setCurrentSceneTool(int tool) { currentSceneTool = static_cast<SCENE_TOOL>(tool); }
+	void			setCurrentSimulationMode(int mode) { currentSimulationMode = static_cast<SIMULATION_MODE>(mode); }
 	bool			isGizmoLocal() const { return gizmoUseLocal; }
 	void			toggleGizmoMode() { gizmoUseLocal = !gizmoUseLocal; }
 
@@ -73,6 +85,7 @@ private:
 	SceneEditor*				m_sceneEditor = nullptr;
 	EditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
+	GameWindow*					m_gameWindow = nullptr;
 
     bool m_showMainDockspace = true;
     bool m_firstFrame = true;
@@ -81,6 +94,7 @@ private:
 #pragma region Editor
 	void setSceneTool(SCENE_TOOL newTool);
 	void setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode);
+	void setSimulationMode(SIMULATION_MODE newMode);
 	void resetMode();
 
 	void handleKeyboardShortcuts();
@@ -89,6 +103,7 @@ private:
 	SCENE_TOOL currentSceneTool;
 	NAVIGATION_MODE currentNavigationMode;
 	SCENE_TOOL previousSceneTool;
+	SIMULATION_MODE currentSimulationMode = STOP;
 
 	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;

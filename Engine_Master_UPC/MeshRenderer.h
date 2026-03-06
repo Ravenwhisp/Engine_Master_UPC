@@ -7,7 +7,8 @@
 
 namespace tinygltf { class Model; }
 
-struct ModelData {
+struct ModelData 
+{
 	Matrix model;
 	Matrix normalMat;
 	BasicMaterial::BDRFPhongMaterialData material;
@@ -19,6 +20,8 @@ class MeshRenderer : public Component
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
 	~MeshRenderer() = default;
+
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void addModel(ModelAsset& model);
 

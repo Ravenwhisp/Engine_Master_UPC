@@ -9,6 +9,8 @@ class UIButton : public Component, public IPointerEventHandler {
 public:
 	UIButton(UID id, GameObject* owner);
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
 	DECLARE_MULTICAST_DELEGATE(OnClick);
 	OnClick onClick;
 

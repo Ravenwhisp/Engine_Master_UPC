@@ -1,11 +1,11 @@
 #pragma once
 #include "Module.h"
-#include "GameObject.h"
-#include "Lights.h"
+#include <rapidjson/document.h>
 #include "UID.h"
 #include "MeshRenderer.h"
 
 class SceneSerializer;
+class GameObject;
 class Quadtree;
 class CameraComponent;
 
@@ -25,6 +25,13 @@ struct SkyboxSettings
 {
 	bool enabled = true;
 	UID cubemapAssetId = 0;
+};
+
+struct SceneSnapshot
+{
+	std::vector<std::unique_ptr<GameObject>> allObjects;
+	std::vector<GameObject*> rootObjects;
+	CameraComponent* defaultCamera = nullptr;
 };
 
 class SceneModule : public Module
@@ -83,6 +90,7 @@ public:
 
 	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
+	void resetGameObjects(SceneSnapshot previousScene);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
@@ -94,6 +102,7 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	std::vector<GameObject*> getAllGameObjects();
+	SceneSnapshot getClonedGameObjects();
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }

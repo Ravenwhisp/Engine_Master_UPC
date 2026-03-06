@@ -17,6 +17,19 @@ CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id,
 	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
 }
 
+std::unique_ptr<Component> CameraComponent::clone(GameObject* newOwner) const
+{
+	std::unique_ptr<CameraComponent> clonedComponent = std::make_unique<CameraComponent>(m_uuid, newOwner);
+
+	clonedComponent->m_horizontalFov = this->m_horizontalFov;
+	clonedComponent->m_nearPlane = this->m_nearPlane;
+	clonedComponent->m_farPlane = this->m_farPlane;
+	clonedComponent->m_aspectRatio = this->m_aspectRatio;
+
+	// No need to clone the matrices nor the frustum, as they will be recalculated in the onTransformChange() method when the component is added to the new owner
+	return clonedComponent;
+}
+
 void CameraComponent::recalculateFrustum() 
 {
 	Transform* t = m_owner->GetTransform();
@@ -71,7 +84,8 @@ void CameraComponent::drawUi()
 	ImGui::DragFloat("Near plane", &nearPlane, 0.005f, 0.01f, 1.0f);
 	ImGui::DragFloat("Far plane", &farPlane, 1.0f, 10.0f, 100.0f);
 	ImGui::DragFloat("Aspect ratio", &aspectRatio, 0.001f, 1.333333f, 2.333333f); // 4:3 to 21:9 -- FIXME : change to a dropdown menu with several options
-	if (fov != m_horizontalFov || nearPlane != m_nearPlane || farPlane != m_farPlane || aspectRatio != m_aspectRatio) {
+	if (fov != m_horizontalFov || nearPlane != m_nearPlane || farPlane != m_farPlane || aspectRatio != m_aspectRatio) 
+	{
 		m_horizontalFov = fov;
 		m_nearPlane = nearPlane;
 		m_farPlane = farPlane;
@@ -131,19 +145,23 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 
 bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("HorizontalFOV")) {
+	if (componentInfo.HasMember("HorizontalFOV")) 
+	{
 		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("NearPlane")) {
+	if (componentInfo.HasMember("NearPlane")) 
+	{
 		m_nearPlane = componentInfo["NearPlane"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("FarPlane")) {
+	if (componentInfo.HasMember("FarPlane")) 
+	{
 		m_farPlane = componentInfo["FarPlane"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("AspectRatio")) {
+	if (componentInfo.HasMember("AspectRatio")) 
+	{
 		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
 	}
 
