@@ -659,9 +659,9 @@ SceneSnapshot SceneModule::getClonedGameObjects()
 {
 	SceneSnapshot snapshot;
 
-    snapshot.allObjects.reserve(m_allObjects.size());
+  /*  snapshot.allObjects.reserve(m_allObjects.size());
 
-    for (const auto& obj : m_allObjects)
+    for (const auto& obj : m_rootObjects)
     {
         auto clone = obj->clone();
 
@@ -677,7 +677,36 @@ SceneSnapshot SceneModule::getClonedGameObjects()
         snapshot.allObjects.push_back(std::move(clone));
     }
 
+    return snapshot;*/
+    for (GameObject* root : m_rootObjects)
+    {
+        auto clonedRoot = cloneGameObjectRecursive(root, snapshot);
+        snapshot.rootObjects.push_back(clonedRoot.get());
+        snapshot.allObjects.push_back(std::move(clonedRoot));
+    }
+
     return snapshot;
+}
+
+std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result)
+{
+    auto clone = original->clone();
+
+    //clone->ClearComponents();
+
+    Transform* originalTransform = original->GetTransform();
+
+    for (GameObject* childGO : originalTransform->getAllChildren())
+    {
+        auto clonedChild = cloneGameObjectRecursive(childGO, result);
+
+        clonedChild->GetTransform()->setRoot(clone->GetTransform());
+		clone->GetTransform()->addChild(clonedChild.get());
+		
+        result.allObjects.push_back(std::move(clonedChild));
+    }
+
+    return clone;
 }
 
 
