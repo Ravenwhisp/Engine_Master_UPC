@@ -56,10 +56,17 @@ bool SceneModule::init()
 
 void SceneModule::update()
 {
-    if (m_quadtree)
+    if (!m_pendingSceneLoad.empty())
+    {
+        loadScene(m_pendingSceneLoad);
+        m_pendingSceneLoad.clear();
+    }  
+  
+  if (m_quadtree)
     {
         m_quadtree->resolveDirtyNodes();
     }
+
 }
 
 void SceneModule::preRender()
@@ -71,6 +78,7 @@ void SceneModule::preRender()
             gameObject->preRender();
         }
     }
+
 }
 
 
@@ -610,6 +618,11 @@ bool SceneModule::loadScene(const std::string& sceneName)
 
     m_name = sceneName;
     return true;
+}
+
+void SceneModule::requestSceneChange(const std::string& sceneName)
+{
+    m_pendingSceneLoad = sceneName;
 }
 
 void SceneModule::clearScene()

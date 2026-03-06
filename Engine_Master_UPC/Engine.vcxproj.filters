@@ -265,6 +265,8 @@
     <ClCompile Include="GameViewModule.cpp" />
     <ClCompile Include="PlayToolbar.cpp">
       <Filter>Editor\EditorWindows</Filter>
+    <ClCompile Include="ChangeScene.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -610,6 +612,8 @@
     <ClInclude Include="GameViewModule.h" />
     <ClInclude Include="PlayToolbar.h">
       <Filter>Editor\EditorWindows</Filter>
+    <ClInclude Include="ChangeScene.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

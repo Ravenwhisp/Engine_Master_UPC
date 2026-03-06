@@ -11,7 +11,8 @@
     X(UIIMAGE)              \
     X(UITEXT)               \
     X(UIBUTTON)             \
-    X(CAMERA_FOLLOW)
+    X(CAMERA_FOLLOW)        \
+    X(CHANGE_SCENE)
 
 enum class ComponentType
 {
