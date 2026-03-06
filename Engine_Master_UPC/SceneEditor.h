@@ -11,6 +11,7 @@ class Settings;
 class Quadtree;
 
 class EditorToolbar;
+class PlayToolbar;
 
 class DebugDrawPass;
 class GameObject;
@@ -25,6 +26,7 @@ private:
     Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
+	PlayToolbar* m_playToolbar;
 
     float m_viewportX = 0.0f;
     float m_viewportY = 0.0f;
@@ -46,4 +48,3 @@ public:
     float  getViewportY()      const { return m_viewportY; }
 
 };
-

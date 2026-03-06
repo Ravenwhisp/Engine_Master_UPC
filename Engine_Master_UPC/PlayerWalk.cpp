@@ -15,6 +15,27 @@ PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	inputModule = app->getInputModule();
 }
 
+std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
+{
+	std::unique_ptr<PlayerWalk> newComponent = std::make_unique<PlayerWalk>(m_uuid, newOwner);
+
+	newComponent->m_moveSpeed = m_moveSpeed;
+	newComponent->m_shiftMultiplier = m_shiftMultiplier;
+	newComponent->m_keyUp = m_keyUp;
+	newComponent->m_keyLeft = m_keyLeft;
+	newComponent->m_keyDown = m_keyDown;
+	newComponent->m_keyRight = m_keyRight;
+	newComponent->m_keyAscend = m_keyAscend;
+	newComponent->m_keyDescend = m_keyDescend;
+	newComponent->m_initialRotationOffset = m_initialRotationOffset;
+	newComponent->m_turnSpeedDegPerSec = m_turnSpeedDegPerSec;
+	newComponent->m_currentYawDeg = m_currentYawDeg;
+	newComponent->m_yawInitialized = m_yawInitialized;
+	newComponent->m_controlScheme = m_controlScheme;
+
+	return newComponent;
+}
+
 float PlayerWalk::getDeltaSecondsFromTimer() const
 {
 	return app->getTimeModule()->deltaTime(); 
