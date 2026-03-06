@@ -134,10 +134,8 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     {
         discard;
     }
-    
-    float3 albedo = (hasDiffuseTex != 0)
-        ? diffuseTex.Sample(diffuseSamp, coord).rgb * diffuseColour
-        : diffuseColour;
+
+    float3 albedo = (hasDiffuseTex != 0) ? texSample.rgb * diffuseColour : diffuseColour;
 
     float3 normalVector = normalize(normal);
     float3 viewDirection = normalize(viewPos - worldPos);
