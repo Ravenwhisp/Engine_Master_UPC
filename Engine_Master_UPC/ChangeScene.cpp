@@ -21,6 +21,22 @@ ChangeScene::~ChangeScene()
 	}
 }
 
+std::unique_ptr<Component> ChangeScene::clone(GameObject* newOwner) const
+{
+	std::unique_ptr<ChangeScene> newComponent = std::make_unique<ChangeScene>(GenerateUID(), newOwner);
+
+	newComponent->m_sceneToLoad = m_sceneToLoad;
+	newComponent->m_uiButton = m_uiButton;
+
+	if (newComponent->m_uiButton)
+	{
+		newComponent->m_onClickHandle = newComponent->m_uiButton->onClick.AddRaw(newComponent.get(), &ChangeScene::onChangeScene);
+		DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", newComponent.get(), newComponent->m_sceneToLoad.c_str());
+	}
+
+	return newComponent;
+}
+
 bool ChangeScene::init()
 {
 
