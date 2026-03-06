@@ -29,6 +29,7 @@ struct SceneEditorSettings {
     bool showAxis = true;
     bool showGuizmo = true;
     bool showQuadTree = false;
+    bool showNavPath = true;
 };
 
 struct FrustumCullingSettings

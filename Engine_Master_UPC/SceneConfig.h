@@ -22,6 +22,7 @@ private:
     void drawNavmeshSettings();
     void drawSkyboxSettings();
     void drawLightSettings();
+    void drawNavigationSettings();
 
     std::string m_saveSceneName;
     std::string m_loadSceneName;

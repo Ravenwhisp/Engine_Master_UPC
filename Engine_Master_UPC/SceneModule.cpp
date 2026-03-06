@@ -11,6 +11,7 @@
 #include "ModelComponent.h"
 
 #include "SceneSerializer.h"
+#include "NavigationModule.h"
 
 #include <queue>
 
@@ -448,6 +449,17 @@ bool SceneModule::loadScene(const std::string& sceneName)
     }
 
     m_name = sceneName;
+
+    const char* s = sceneName.c_str();
+    if (app->getNavigationModule()->loadNavMeshForScene(s))
+    {
+        DEBUG_LOG("LOADED NavMesh for scene: %s\n", s);
+    }
+    else
+    {
+        DEBUG_ERROR("CANNOT load NavMesh for this scene\n");
+    }
+   
     return true;
 }
 

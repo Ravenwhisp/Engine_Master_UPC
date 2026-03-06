@@ -6,6 +6,8 @@
 #include "PlayerWalk.h"
 #include "NavMeshWalk.h" 
 #include "CameraComponent.h"
+#include "NavigationAgentComponent.h"
+#include "WaypointPathComponent.h"
 #include "Application.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -46,6 +48,12 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CAMERA:
             m_components.push_back(new CameraComponent(GenerateUID(), this));
             break;
+        case ComponentType::NAVIGATION_AGENT:
+            m_components.push_back(new NavigationAgentComponent(GenerateUID(), this));
+            break;
+        case ComponentType::WAYPOINT_PATH:
+            m_components.push_back(new WaypointPathComponent(GenerateUID(), this));
+            break;
         case ComponentType::COUNT:
             return false;
             break;
@@ -79,6 +87,12 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CAMERA:
         newComponent = new CameraComponent(id, this);
+        break;
+    case ComponentType::NAVIGATION_AGENT:
+        newComponent = new NavigationAgentComponent(id, this);
+        break;
+    case ComponentType::WAYPOINT_PATH:
+        newComponent = new WaypointPathComponent(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;
