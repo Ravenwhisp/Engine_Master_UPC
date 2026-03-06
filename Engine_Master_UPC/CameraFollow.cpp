@@ -5,12 +5,19 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "TimeModule.h"
+#include "ComponentType.h"
 
 static const float PI = 3.1415926535897931f;
 
 CameraFollow::CameraFollow(UID id, GameObject* gameObject)
     : Component(id, ComponentType::CAMERA_FOLLOW, gameObject)
 {
+}
+
+bool CameraFollow::init()
+{
+    setFollowTargets();
+    return true;
 }
 
 void CameraFollow::setFollowTargets() 
@@ -55,9 +62,12 @@ void CameraFollow::setFollowTargets()
 
 void CameraFollow::update()
 {
-    //This will end up going in the init
-    setFollowTargets();
-    //
+    if ((!m_firstTargetTransform && m_firstTargetUid != 0) || (!m_secondTargetTransform && m_secondTargetUid != 0))
+    {
+        setFollowTargets();
+    }
+        
+
     if (!m_firstTargetTransform) return;
 
     Transform* cameraTransform = m_owner->GetTransform();
@@ -187,19 +197,59 @@ void CameraFollow::drawUi()
     ImGui::Text("Camera Follow");
     ImGui::SeparatorText("First Target");
 
-    if (ImGui::InputScalar("First UID", ImGuiDataType_U64, &m_firstTargetUid))
+    m_firstTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_firstTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+        {
+            GameObject* droppedObject = *(GameObject**)payload->Data;
+
+            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+
+            if (sceneObject->GetComponent(ComponentType::PLAYER_WALK))
+            {
+                m_firstTargetTransform = sceneObject->GetTransform();
+                m_firstTargetUid = sceneObject->GetID();
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Clear###ClearFirstTargetButton"))
     {
         m_firstTargetTransform = nullptr;
+        m_firstTargetUid = 0;
     }
-    ImGui::Text("First Target Set: %s", (m_firstTargetTransform ? "YES" : "NO"));
 
     ImGui::SeparatorText("Second Target");
 
-    if (ImGui::InputScalar("Second UID", ImGuiDataType_U64, &m_secondTargetUid))
+    m_secondTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_secondTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+        {
+            GameObject* droppedObject = *(GameObject**)payload->Data;
+
+            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+
+            if (sceneObject->GetComponent(ComponentType::PLAYER_WALK))
+            {
+                m_secondTargetTransform = sceneObject->GetTransform();
+                m_secondTargetUid = sceneObject->GetID();
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Clear###ClearSecondTargetButton"))
     {
         m_secondTargetTransform = nullptr;
+        m_secondTargetUid = 0;
     }
-    ImGui::Text("Second Target Set: %s", (m_secondTargetTransform ? "YES" : "NO"));
 
     ImGui::SeparatorText("Camera Transform");
 
@@ -216,4 +266,99 @@ void CameraFollow::drawUi()
     ImGui::DragFloat("Zoom Start Distance", &m_zoomStartDistance, 0.05f, 0.0f, 1000.0f);
     ImGui::DragFloat("Zoom End Distance", &m_zoomEndDistance, 0.05f, 0.0f, 1000.0f);
     ImGui::DragFloat("Max Extra Height", &m_maxExtraHeight, 0.05f, 0.0f, 1000.0f);
+}
+
+rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("FirstTargetUID", m_firstTargetUid, domTree.GetAllocator());
+    componentInfo.AddMember("SecondTargetUID", m_secondTargetUid, domTree.GetAllocator());
+
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_transformOffset.x, domTree.GetAllocator());
+        offset.PushBack(m_transformOffset.y, domTree.GetAllocator());
+        offset.PushBack(m_transformOffset.z, domTree.GetAllocator());
+        componentInfo.AddMember("WorldOffset", offset, domTree.GetAllocator());
+    }
+
+    {
+        rapidjson::Value rot(rapidjson::kArrayType);
+        rot.PushBack(m_rotationOffset.x, domTree.GetAllocator());
+        rot.PushBack(m_rotationOffset.y, domTree.GetAllocator());
+        rot.PushBack(m_rotationOffset.z, domTree.GetAllocator());
+        componentInfo.AddMember("FixedRotation", rot, domTree.GetAllocator());
+    }
+
+    componentInfo.AddMember("FollowSharpness", m_followSharpness, domTree.GetAllocator());
+    componentInfo.AddMember("ZoomSharpness", m_zoomSharpness, domTree.GetAllocator());
+
+    componentInfo.AddMember("ZoomStartDistance", m_zoomStartDistance, domTree.GetAllocator());
+    componentInfo.AddMember("ZoomEndDistance", m_zoomEndDistance, domTree.GetAllocator());
+    componentInfo.AddMember("MaxExtraHeight", m_maxExtraHeight, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool CameraFollow::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("FirstTargetUID"))
+    {
+        m_firstTargetUid = (UID)componentInfo["FirstTargetUID"].GetUint64();
+    }
+    if (componentInfo.HasMember("SecondTargetUID"))
+    {
+        m_secondTargetUid = (UID)componentInfo["SecondTargetUID"].GetUint64();
+    }
+
+    if (componentInfo.HasMember("WorldOffset"))
+    {
+        const auto& worldOffsetArray = componentInfo["WorldOffset"];
+        m_transformOffset.x = worldOffsetArray[0].GetFloat();
+        m_transformOffset.y = worldOffsetArray[1].GetFloat();
+        m_transformOffset.z = worldOffsetArray[2].GetFloat();
+    }
+
+    if (componentInfo.HasMember("FixedRotation"))
+    {
+        const auto& fixedRotationArray = componentInfo["FixedRotation"];
+        m_rotationOffset.x = fixedRotationArray[0].GetFloat();
+        m_rotationOffset.y = fixedRotationArray[1].GetFloat();
+        m_rotationOffset.z = fixedRotationArray[2].GetFloat();
+    }
+
+    if (componentInfo.HasMember("FollowSharpness"))
+    {
+        m_followSharpness = componentInfo["FollowSharpness"].GetFloat();
+    }
+    if (componentInfo.HasMember("ZoomSharpness"))
+    {
+        m_zoomSharpness = componentInfo["ZoomSharpness"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("ZoomStartDistance"))
+    {
+        m_zoomStartDistance = componentInfo["ZoomStartDistance"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("ZoomEndDistance"))
+    {
+        m_zoomEndDistance = componentInfo["ZoomEndDistance"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("MaxExtraHeight"))
+    {
+        m_maxExtraHeight = componentInfo["MaxExtraHeight"].GetFloat();
+    }
+
+    m_firstTargetTransform = nullptr;
+    m_secondTargetTransform = nullptr;
+    m_currentExtraHeight = 0.0f;
+
+    return true;
 }

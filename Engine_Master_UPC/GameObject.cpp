@@ -14,7 +14,7 @@
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "MeshRenderer.h"
-
+#include "ChangeScene.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -70,6 +70,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CAMERA_FOLLOW:
             m_components.push_back(std::make_unique<CameraFollow>(GenerateUID(), this));
             break;
+        case ComponentType::CHANGE_SCENE:
+            m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
+            break;
         case ComponentType::TRANSFORM:
             break;
         case ComponentType::COUNT:
@@ -121,6 +124,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CAMERA_FOLLOW:
         newComponent = std::make_unique<CameraFollow>(id, this);
+        break;
+    case ComponentType::CHANGE_SCENE:
+        newComponent = std::make_unique<ChangeScene>(id, this);
         break;
     case ComponentType::TRANSFORM:
         break;

@@ -44,7 +44,8 @@ namespace
             return;
         }
 
-        const Vector3 position = transform->getPosition();
+        const Matrix& world = transform->getGlobalMatrix();
+        const Vector3 position(world._41, world._42, world._43);
 
         Vector3 forward = transform->getForward();
         forward.Normalize();
