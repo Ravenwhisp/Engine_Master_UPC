@@ -475,6 +475,100 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
     return gameObjectInfo;
 }
 
+rapidjson::Value GameObject::getNewHierarchyJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
+
+    UID newUID = GenerateUID();
+    gameObjectInfo.AddMember("UID", newUID, domTree.GetAllocator());
+    gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator()); // we ignore the parent for the new object
+   
+
+    rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
+    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
+
+    rapidjson::Value layer(LayerToString(m_layer), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
+
+    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Transform", m_transform->getNewJSON(domTree), domTree.GetAllocator());
+
+    // Components serialization //
+    {
+        rapidjson::Value componentsData(rapidjson::kArrayType);
+
+        for (const std::unique_ptr<Component>& component : m_components)
+        {
+            if (component->getType() == ComponentType::TRANSFORM)
+                continue;
+
+            componentsData.PushBack(component->getNewJSON(domTree), domTree.GetAllocator());
+        }
+
+        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
+    }
+
+
+    rapidjson::Value objectList(rapidjson::kArrayType);
+    objectList.PushBack(gameObjectInfo, domTree.GetAllocator());
+    for (GameObject* gameObject : m_transform->getAllChildren()) 
+    {
+        gameObject->getNewHierarchyJSON(domTree, objectList, newUID);
+    }
+
+    return objectList;
+}
+
+void GameObject::getNewHierarchyJSON(rapidjson::Document& domTree, rapidjson::Value& objectList, UID parentUID)
+{
+    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
+
+    UID newUID = GenerateUID();
+    gameObjectInfo.AddMember("UID", newUID, domTree.GetAllocator());
+    gameObjectInfo.AddMember("ParentUID", parentUID, domTree.GetAllocator());
+
+
+    rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
+    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
+
+    rapidjson::Value layer(LayerToString(m_layer), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
+
+    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
+    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
+
+    gameObjectInfo.AddMember("Transform", m_transform->getNewJSON(domTree), domTree.GetAllocator());
+
+    // Components serialization //
+    {
+        rapidjson::Value componentsData(rapidjson::kArrayType);
+
+        for (const std::unique_ptr<Component>& component : m_components)
+        {
+            if (component->getType() == ComponentType::TRANSFORM)
+                continue;
+
+            componentsData.PushBack(component->getNewJSON(domTree), domTree.GetAllocator());
+        }
+
+        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
+    }
+
+    objectList.PushBack(gameObjectInfo, domTree.GetAllocator());
+    for (GameObject* gameObject : m_transform->getAllChildren())
+    {
+        gameObject->getNewHierarchyJSON(domTree, objectList, newUID);
+    }
+}
+
 bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)
 {
     parentUid = gameObjectJson["ParentUID"].GetUint64();

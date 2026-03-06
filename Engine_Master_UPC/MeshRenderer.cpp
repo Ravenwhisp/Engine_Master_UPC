@@ -165,6 +165,19 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
+rapidjson::Value MeshRenderer::getNewJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("ModelAssetId", m_modelAssetId, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
 bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("ModelAssetId"))

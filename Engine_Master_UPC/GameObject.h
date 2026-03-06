@@ -50,6 +50,8 @@ public:
 
 #pragma region Persistence
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	rapidjson::Value getNewHierarchyJSON(rapidjson::Document& domTree); // creates all gameObjects "flat" with new UUID
+	void getNewHierarchyJSON(rapidjson::Document& domTree, rapidjson::Value& objectList, UID parentUID);
 	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
 

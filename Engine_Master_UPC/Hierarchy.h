@@ -29,9 +29,10 @@ public:
 	const char* getWindowName() const override { return "Hierarchy"; }
 
 	void startRename(GameObject* go);
+	void reparent(GameObject* child, GameObject* newParent);
 private:
 	void createTreeNode();
 	void createTreeNode(GameObject* gameObject);
-	void reparent(GameObject* child, GameObject* newParent);
+	
 };
 

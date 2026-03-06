@@ -242,3 +242,44 @@ rapidjson::Value Transform::getJSON(rapidjson::Document& domTree)
 
     return componentInfo;
 }
+
+rapidjson::Value Transform::getNewJSON(rapidjson::Document& domTree)
+{
+
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
+
+    {
+        rapidjson::Value positionData(rapidjson::kArrayType);
+
+        positionData.PushBack(m_position.x, domTree.GetAllocator());
+        positionData.PushBack(m_position.y, domTree.GetAllocator());
+        positionData.PushBack(m_position.z, domTree.GetAllocator());
+
+        componentInfo.AddMember("Position", positionData, domTree.GetAllocator());
+    }
+
+    {
+        rapidjson::Value rotationData(rapidjson::kArrayType);
+
+        rotationData.PushBack(m_rotation.x, domTree.GetAllocator());
+        rotationData.PushBack(m_rotation.y, domTree.GetAllocator());
+        rotationData.PushBack(m_rotation.z, domTree.GetAllocator());
+        rotationData.PushBack(m_rotation.w, domTree.GetAllocator());
+
+        componentInfo.AddMember("Rotation", rotationData, domTree.GetAllocator());
+    }
+
+    {
+        rapidjson::Value scaleData(rapidjson::kArrayType);
+
+        scaleData.PushBack(m_scale.x, domTree.GetAllocator());
+        scaleData.PushBack(m_scale.y, domTree.GetAllocator());
+        scaleData.PushBack(m_scale.z, domTree.GetAllocator());
+
+        componentInfo.AddMember("Scale", scaleData, domTree.GetAllocator());
+    }
+
+    return componentInfo;
+}

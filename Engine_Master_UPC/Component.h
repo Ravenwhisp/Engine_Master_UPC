@@ -35,6 +35,7 @@ public:
     Transform* getTransform();
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
+    virtual rapidjson::Value getNewJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // (same, but generates a new UUID)
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
 
 

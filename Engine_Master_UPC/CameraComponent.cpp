@@ -129,6 +129,22 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	return componentInfo;
 }
 
+rapidjson::Value CameraComponent::getNewJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
+	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
+	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
+	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
+	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
+
+	return componentInfo;
+}
+
 bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
 	if (componentInfo.HasMember("HorizontalFOV")) {
