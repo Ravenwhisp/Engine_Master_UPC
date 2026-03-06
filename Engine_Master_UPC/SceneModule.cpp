@@ -446,15 +446,25 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
         rapidjson::Value gameObjectsData(rapidjson::kArrayType);
 
 
-        for (GameObject* gameObject : getAllGameObjects())
+        for (GameObject* root : m_rootObjects)
         {
-            gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+            serializeHierarchy(root, gameObjectsData, domTree);
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
     }
 
     return sceneInfo;
+}
+
+void SceneModule::serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
+{
+    gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+
+    for (GameObject* child : gameObject->GetTransform()->getAllChildren())
+    {
+        serializeHierarchy(child, gameObjectsData, domTree);
+    }
 }
 
 rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
