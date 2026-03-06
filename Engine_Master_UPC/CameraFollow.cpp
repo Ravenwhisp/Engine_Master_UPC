@@ -64,14 +64,16 @@ void CameraFollow::setFollowTargets()
 
     if (!m_firstTargetTransform && m_firstTargetUid != 0)
     {
-        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_firstTargetUid)) {
+        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_firstTargetUid)) 
+        {
             m_firstTargetTransform = gameObject->GetTransform();
         }
     }
 
     if (!m_secondTargetTransform && m_secondTargetUid != 0)
     {
-        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_secondTargetUid)) {
+        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_secondTargetUid)) 
+        {
             m_secondTargetTransform = gameObject->GetTransform();
         }
     }
