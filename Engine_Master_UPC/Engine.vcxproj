@@ -180,6 +180,7 @@
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="Canvas.h" />
+    <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="GameViewModule.h" />
@@ -362,6 +363,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="GameViewModule.cpp" />

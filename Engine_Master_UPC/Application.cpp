@@ -21,6 +21,7 @@
 
 using namespace std::chrono;
 
+
 Application::Application(int argc, wchar_t** argv, void* hWnd)
 {
     modules.push_back(m_inputModule = new InputModule((HWND)hWnd));
