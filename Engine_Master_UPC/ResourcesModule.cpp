@@ -28,7 +28,6 @@ bool ResourcesModule::init()
 
 bool ResourcesModule::postInit()
 {
-
 	return true;
 }
 
