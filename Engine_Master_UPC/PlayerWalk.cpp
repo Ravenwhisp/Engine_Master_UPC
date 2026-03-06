@@ -13,9 +13,6 @@ PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
 	inputModule = app->getInputModule();
-
-	Transform* transform = m_owner->GetTransform();
-	m_initialRotationOffset = transform->getEulerDegrees();
 }
 
 float PlayerWalk::getDeltaSecondsFromTimer() const
@@ -25,10 +22,6 @@ float PlayerWalk::getDeltaSecondsFromTimer() const
 
 bool PlayerWalk::init() 
 {
-	// Capturing the initial rotation should go in the init when we have script system, but at the moment it never gets called so gotta go on the constructor.
-
-	Transform* transform = m_owner->GetTransform();
-	m_initialRotationOffset = transform->getEulerDegrees();
 
 	return true;
 }
