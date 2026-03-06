@@ -77,8 +77,16 @@ void ViewHierarchyDialog::render()
 
         if (ImGui::MenuItem("Directional"))
         {
-            DEBUG_WARN("Option not implemented yet!");
-			//missing code to create directional light
+            GameObject* light = app->getSceneModule()->createGameObject();
+            LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
+            lightComp->setTypeDirectional();
+        }
+
+        if (ImGui::MenuItem("Spot"))
+        {
+            GameObject* light = app->getSceneModule()->createGameObject();
+            LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
+            lightComp->setTypeSpot(10.f, 20.f, 30.f);
         }
 
         ImGui::EndMenu();
