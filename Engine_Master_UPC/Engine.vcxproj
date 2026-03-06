@@ -183,6 +183,8 @@
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="FontImporter.h" />
+    <ClInclude Include="GameViewModule.h" />
+    <ClInclude Include="GameWindow.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
@@ -229,6 +231,7 @@
     <ClInclude Include="ModelAsset.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="PlayerWalk.h" />
+    <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="PointerEventData.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
@@ -363,6 +366,8 @@
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="FontImporter.cpp" />
+    <ClCompile Include="GameViewModule.cpp" />
+    <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="AssetsModule.cpp" />
@@ -394,6 +399,7 @@
     <ClCompile Include="MeshRendererPass.cpp" />
     <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
+    <ClCompile Include="PlayToolbar.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SceneConfig.cpp" />
