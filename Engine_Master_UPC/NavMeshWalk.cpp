@@ -170,6 +170,7 @@ rapidjson::Value NavMeshWalk::getJSON(rapidjson::Document& domTree)
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVMESH_WALK), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("MoveSpeed", m_moveSpeed, domTree.GetAllocator());
     componentInfo.AddMember("ShiftMultiplier", m_shiftMultiplier, domTree.GetAllocator());

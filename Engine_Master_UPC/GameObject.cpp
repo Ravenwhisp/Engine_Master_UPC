@@ -437,8 +437,17 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
         const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
 
         Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
-        if (newComponent) {
-            newComponent->setActive(componentJson["Active"].GetBool());
+        if (newComponent) 
+        {
+            if (componentJson.HasMember("Active") && componentJson["Active"].IsBool()) 
+            {
+                newComponent->setActive(componentJson["Active"].GetBool());
+            }
+            else 
+            {
+                newComponent->setActive(true);
+            }
+                 
             newComponent->deserializeJSON(componentJson);
         }
     }
