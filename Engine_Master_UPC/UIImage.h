@@ -10,6 +10,8 @@ class UIImage : public Component
 public:
     UIImage(UID id, GameObject* owner);
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
     void requestLoad() { m_loadRequested = true; }              
     bool consumeLoadRequest();
 

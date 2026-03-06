@@ -7,6 +7,8 @@
 #include "RenderModule.h"
 #include "EditorModule.h"
 #include "Settings.h"
+#include "GameObject.h"
+#include "UID.h"
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
@@ -54,18 +56,17 @@ bool SceneModule::init()
 
 void SceneModule::update()
 {
-    for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
+    if (!m_pendingSceneLoad.empty())
     {
-        if (gameObject->GetActive())
-        {
-            gameObject->update();
-        }
-    }
-
-    if (m_quadtree)
+        loadScene(m_pendingSceneLoad);
+        m_pendingSceneLoad.clear();
+    }  
+  
+  if (m_quadtree)
     {
         m_quadtree->resolveDirtyNodes();
     }
+
 }
 
 void SceneModule::preRender()
@@ -77,6 +78,7 @@ void SceneModule::preRender()
             gameObject->preRender();
         }
     }
+
 }
 
 
@@ -330,16 +332,30 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     }
 }
 
+void SceneModule::resetGameObjects(SceneSnapshot previousScene)
+{
+    m_allObjects = std::move(previousScene.allObjects);
+	m_rootObjects = std::move(previousScene.rootObjects);
+	m_defaultCamera = previousScene.defaultCamera;
+
+    //guarrada historica a continuacion
+    app->getEditorModule()->setSelectedGameObject(nullptr);
+}
+
 GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
         if (child->GetID() == uuid)
+        {
             return child;
+        }
 
         GameObject* found = findInHierarchy(child, uuid);
         if (found)
+        {
             return found;
+        }
     }
 
     return nullptr;
@@ -469,12 +485,17 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
     return skyboxInfo;
 }
 
-bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) 
+{
     const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
 
     clearScene();
 
-    loadSceneSkybox(sceneJson);
+    if (!loadSceneSkybox(sceneJson))
+    {
+		DEBUG_LOG("Failed to load skybox settings from scene JSON. Possible wrong version of scene data.");
+        return false;
+    }
     loadSceneLighting(sceneJson);
 
     // Create all objects and components
@@ -519,16 +540,33 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
     return true;
 }
 
-bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson)
+{
+    if (!sceneJson.HasMember("Skybox"))
+    {
+        return false;
+    }
+
     auto& skybox = getSkyboxSettings();
     const auto& skyboxJson = sceneJson["Skybox"];
+
+    if (!skyboxJson.HasMember("Enabled") && skyboxJson["Enabled"].IsBool())
+    {
+        return false;
+    }
     skybox.enabled = skyboxJson["Enabled"].GetBool();
+
+    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].IsUint64())
+    {
+        return false;
+    }
     skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
 
     return true;
 }
 
-bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) 
+{
     auto& lighting = GetLightingSettings();
     const auto& lightingJson = sceneJson["Lighting"];
 
@@ -539,7 +577,8 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
     return true;
 }
 
-void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) {
+void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
+{
     m_defaultCamera = nullptr;
 
     if (sceneJson.HasMember("DefaultCameraOwnerUID"))
@@ -572,12 +611,18 @@ void SceneModule::saveScene()
 bool SceneModule::loadScene(const std::string& sceneName)
 {
     const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
-    if (!fileExists) {
+    if (!fileExists) 
+    {
         return false;
     }
 
     m_name = sceneName;
     return true;
+}
+
+void SceneModule::requestSceneChange(const std::string& sceneName)
+{
+    m_pendingSceneLoad = sceneName;
 }
 
 void SceneModule::clearScene()
@@ -602,10 +647,38 @@ std::vector<GameObject*> SceneModule::getAllGameObjects()
     result.reserve(m_allObjects.size());
 
     for (const auto& obj : m_allObjects)
+    {
         result.push_back(obj.get());
+    }
 
     return result;
 }
+
+SceneSnapshot SceneModule::getClonedGameObjects()
+{
+	SceneSnapshot snapshot;
+
+    snapshot.allObjects.reserve(m_allObjects.size());
+
+    for (const auto& obj : m_allObjects)
+    {
+        auto clone = obj->clone();
+
+        if(find(m_rootObjects.begin(), m_rootObjects.end(), obj.get()) != m_rootObjects.end())
+        {
+            snapshot.rootObjects.push_back(clone.get());
+		}
+        if(obj->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
+        {
+            snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+		}
+
+        snapshot.allObjects.push_back(std::move(clone));
+    }
+
+    return snapshot;
+}
+
 
 void SceneModule::removeFromRootList(GameObject* obj)
 {
