@@ -9,6 +9,7 @@ class CameraFollow final : public Component {
 public:
 	CameraFollow(UID id, GameObject* gameObject);
 
+	bool init() override;
 	void update() override;
 	void drawUi() override;
 
