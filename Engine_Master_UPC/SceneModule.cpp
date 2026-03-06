@@ -474,7 +474,11 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
 
     clearScene();
 
-    loadSceneSkybox(sceneJson);
+    if (!loadSceneSkybox(sceneJson))
+    {
+		DEBUG_LOG("Failed to load skybox settings from scene JSON. Possible wrong version of scene data.");
+        return false;
+    }
     loadSceneLighting(sceneJson);
 
     // Create all objects and components
@@ -519,10 +523,26 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
     return true;
 }
 
-bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson)
+{
+    if (!sceneJson.HasMember("Skybox"))
+    {
+        return false;
+    }
+
     auto& skybox = getSkyboxSettings();
     const auto& skyboxJson = sceneJson["Skybox"];
+
+    if (!skyboxJson.HasMember("Enabled") && skyboxJson["Enabled"].IsBool())
+    {
+        return false;
+    }
     skybox.enabled = skyboxJson["Enabled"].GetBool();
+
+    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].IsUint64())
+    {
+        return false;
+    }
     skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
 
     return true;

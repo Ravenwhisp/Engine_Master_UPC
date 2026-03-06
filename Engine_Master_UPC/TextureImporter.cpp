@@ -4,22 +4,23 @@
 
 bool TextureImporter::loadExternal(const std::filesystem::path& path, DirectX::ScratchImage& out)
 {
-	const wchar_t* myPath = path.c_str();
+    const wchar_t* myPath = path.c_str();
 
-	if (FAILED(LoadFromDDSFile(myPath, DDS_FLAGS_NONE, nullptr, out))) 
-	{
-		if (FAILED(LoadFromTGAFile(myPath, nullptr, out))) {
-			if (FAILED(LoadFromWICFile(myPath, WIC_FLAGS_NONE, nullptr, out))) 
-			{
+    if (FAILED(LoadFromDDSFile(myPath, DDS_FLAGS_NONE, nullptr, out)))
+    {
+        if (FAILED(LoadFromTGAFile(myPath, nullptr, out)))
+        {
+            if (FAILED(LoadFromWICFile(myPath, WIC_FLAGS_NONE, nullptr, out)))
+            {
                 DEBUG_ERROR("[TextureImporter] Failed to import the texture at the following path:", path.c_str());
-				 return false;
-			}
-		}
-	}
+                return false;
+            }
+        }
+    }
     return true;
 }
 
-void TextureImporter::importTyped(const DirectX::ScratchImage& source,TextureAsset* texture)
+void TextureImporter::importTyped(const DirectX::ScratchImage& source, TextureAsset* texture)
 {
     if (source.GetImageCount() == 0)
     {
@@ -28,20 +29,55 @@ void TextureImporter::importTyped(const DirectX::ScratchImage& source,TextureAss
     }
 
     TexMetadata metaData = source.GetMetadata();
+
     if (metaData.dimension != TEX_DIMENSION_TEXTURE2D)
     {
-        DEBUG_ERROR("[TextureImporter] Texture Importer riught now doesn't support 1D or 3D textures.");
+        DEBUG_ERROR("[TextureImporter] Texture Importer right now doesn't support 1D or 3D textures.");
         return;
     }
 
-    ScratchImage mipImages;
-    const DirectX::ScratchImage* finalSource = &source;
+    ScratchImage converted;
+    const DirectX::ScratchImage* workingSource = &source;
 
-    if (metaData.mipLevels == 1 && (metaData.width > 1 || metaData.height > 1))
+    if (metaData.format != DXGI_FORMAT_R8G8B8A8_UNORM)
     {
-        if (FAILED(GenerateMipMaps( source.GetImages(), source.GetImageCount(), metaData, TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA, 0, mipImages)))
+        HRESULT hr = Convert(
+            source.GetImages(),
+            source.GetImageCount(),
+            metaData,
+            DXGI_FORMAT_R8G8B8A8_UNORM,
+            TEX_FILTER_DEFAULT,
+            TEX_THRESHOLD_DEFAULT,
+            converted
+        );
+
+        if (FAILED(hr))
         {
-            DEBUG_ERROR("[TextureImporter] Failed to generate mipmaps for texture %d", texture->getId());
+            DEBUG_ERROR("[TextureImporter] Failed to convert texture format.");
+            return;
+        }
+
+        workingSource = &converted;
+        metaData = converted.GetMetadata();
+    }
+
+    ScratchImage mipImages;
+    const DirectX::ScratchImage* finalSource = workingSource;
+
+    if (metaData.mipLevels == 1 && metaData.width > 1 && metaData.height > 1)
+    {
+        HRESULT hr = GenerateMipMaps(
+            workingSource->GetImages(),
+            workingSource->GetImageCount(),
+            metaData,
+            TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA,
+            0,
+            mipImages
+        );
+
+        if (FAILED(hr))
+        {
+            DEBUG_ERROR("[TextureImporter] Failed to generate mipmaps for texture %d (HRESULT: %08X)", texture->getId(), hr);
         }
         else
         {
@@ -49,38 +85,43 @@ void TextureImporter::importTyped(const DirectX::ScratchImage& source,TextureAss
         }
     }
 
-    const DirectX::Image* images = finalSource->GetImages();
-    const TexMetadata& meta = finalSource->GetMetadata();
+    const TexMetadata& newMetaData = finalSource->GetMetadata();
 
-    const uint32_t mipCount = static_cast<uint32_t>(meta.mipLevels);
-    const uint32_t arraySize = static_cast<uint32_t>(meta.arraySize);
+    uint32_t mipCount = static_cast<uint32_t>(newMetaData.mipLevels);
+    uint32_t arraySize = static_cast<uint32_t>(newMetaData.arraySize);
 
     texture->images.clear();
-    texture->images.reserve(meta.mipLevels * meta.arraySize);
+    texture->images.reserve(mipCount * arraySize);
 
-    for (size_t item = 0; item < metaData.arraySize; ++item)
+    for (size_t item = 0; item < newMetaData.arraySize; ++item)
     {
-        for (size_t level = 0; level < metaData.mipLevels; ++level)
+        for (size_t level = 0; level < newMetaData.mipLevels; ++level)
         {
-            const Image* subImg = source.GetImage(level, item, 0);
+            const Image* subImg = finalSource->GetImage(level, item, 0);
+
+            if (!subImg)
+            {
+                DEBUG_ERROR("[TextureImporter] Failed to get subimage. Texture %d, item %d, level %d.", texture->getId(), item, level);
+                continue;
+            }
 
             TextureImage tImg;
             tImg.rowPitch = static_cast<uint32_t>(subImg->rowPitch);
             tImg.slicePitch = static_cast<uint32_t>(subImg->slicePitch);
-            tImg.pixels.resize(subImg->slicePitch);
 
+            tImg.pixels.resize(subImg->slicePitch);
             std::memcpy(tImg.pixels.data(), subImg->pixels, subImg->slicePitch);
 
             texture->images.push_back(std::move(tImg));
         }
     }
 
-    texture->width = metaData.width;
-    texture->height = metaData.height;
-    texture->mipCount = metaData.mipLevels;
-    texture->arraySize = metaData.arraySize;
-    texture->format = metaData.format;
-    texture->imageCount = source.GetImageCount();
+    texture->width = newMetaData.width;
+    texture->height = newMetaData.height;
+    texture->mipCount = mipCount;
+    texture->arraySize = arraySize;
+    texture->format = newMetaData.format;
+    texture->imageCount = mipCount * arraySize;
 }
 
 uint64_t TextureImporter::saveTyped(const TextureAsset* source, uint8_t** outBuffer)
