@@ -259,12 +259,6 @@
     <ClCompile Include="Asset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="GameWindow.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="GameViewModule.cpp" />
-    <ClCompile Include="PlayToolbar.cpp">
-      <Filter>Editor\EditorWindows</Filter>
     <ClCompile Include="ChangeScene.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
@@ -606,12 +600,6 @@
     <ClInclude Include="TextureAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="GameWindow.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="GameViewModule.h" />
-    <ClInclude Include="PlayToolbar.h">
-      <Filter>Editor\EditorWindows</Filter>
     <ClInclude Include="ChangeScene.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
