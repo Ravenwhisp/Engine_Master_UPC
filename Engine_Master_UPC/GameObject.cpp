@@ -13,7 +13,6 @@
 #include "UIButton.h"
 #include "CameraFollow.h"
 #include "SceneModule.h"
-#include "MeshRenderer.h"
 #include "ChangeScene.h"
 
 
