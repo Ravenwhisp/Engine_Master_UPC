@@ -62,6 +62,12 @@ void CameraFollow::setFollowTargets()
 
 void CameraFollow::update()
 {
+    if ((!m_firstTargetTransform && m_firstTargetUid != 0) || (!m_secondTargetTransform && m_secondTargetUid != 0))
+    {
+        setFollowTargets();
+    }
+        
+
     if (!m_firstTargetTransform) return;
 
     Transform* cameraTransform = m_owner->GetTransform();
@@ -260,4 +266,99 @@ void CameraFollow::drawUi()
     ImGui::DragFloat("Zoom Start Distance", &m_zoomStartDistance, 0.05f, 0.0f, 1000.0f);
     ImGui::DragFloat("Zoom End Distance", &m_zoomEndDistance, 0.05f, 0.0f, 1000.0f);
     ImGui::DragFloat("Max Extra Height", &m_maxExtraHeight, 0.05f, 0.0f, 1000.0f);
+}
+
+rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("FirstTargetUID", m_firstTargetUid, domTree.GetAllocator());
+    componentInfo.AddMember("SecondTargetUID", m_secondTargetUid, domTree.GetAllocator());
+
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_transformOffset.x, domTree.GetAllocator());
+        offset.PushBack(m_transformOffset.y, domTree.GetAllocator());
+        offset.PushBack(m_transformOffset.z, domTree.GetAllocator());
+        componentInfo.AddMember("WorldOffset", offset, domTree.GetAllocator());
+    }
+
+    {
+        rapidjson::Value rot(rapidjson::kArrayType);
+        rot.PushBack(m_rotationOffset.x, domTree.GetAllocator());
+        rot.PushBack(m_rotationOffset.y, domTree.GetAllocator());
+        rot.PushBack(m_rotationOffset.z, domTree.GetAllocator());
+        componentInfo.AddMember("FixedRotation", rot, domTree.GetAllocator());
+    }
+
+    componentInfo.AddMember("FollowSharpness", m_followSharpness, domTree.GetAllocator());
+    componentInfo.AddMember("ZoomSharpness", m_zoomSharpness, domTree.GetAllocator());
+
+    componentInfo.AddMember("ZoomStartDistance", m_zoomStartDistance, domTree.GetAllocator());
+    componentInfo.AddMember("ZoomEndDistance", m_zoomEndDistance, domTree.GetAllocator());
+    componentInfo.AddMember("MaxExtraHeight", m_maxExtraHeight, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool CameraFollow::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("FirstTargetUID"))
+    {
+        m_firstTargetUid = (UID)componentInfo["FirstTargetUID"].GetUint64();
+    }
+    if (componentInfo.HasMember("SecondTargetUID"))
+    {
+        m_secondTargetUid = (UID)componentInfo["SecondTargetUID"].GetUint64();
+    }
+
+    if (componentInfo.HasMember("WorldOffset"))
+    {
+        const auto& worldOffsetArray = componentInfo["WorldOffset"];
+        m_transformOffset.x = worldOffsetArray[0].GetFloat();
+        m_transformOffset.y = worldOffsetArray[1].GetFloat();
+        m_transformOffset.z = worldOffsetArray[2].GetFloat();
+    }
+
+    if (componentInfo.HasMember("FixedRotation"))
+    {
+        const auto& fixedRotationArray = componentInfo["FixedRotation"];
+        m_rotationOffset.x = fixedRotationArray[0].GetFloat();
+        m_rotationOffset.y = fixedRotationArray[1].GetFloat();
+        m_rotationOffset.z = fixedRotationArray[2].GetFloat();
+    }
+
+    if (componentInfo.HasMember("FollowSharpness"))
+    {
+        m_followSharpness = componentInfo["FollowSharpness"].GetFloat();
+    }
+    if (componentInfo.HasMember("ZoomSharpness"))
+    {
+        m_zoomSharpness = componentInfo["ZoomSharpness"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("ZoomStartDistance"))
+    {
+        m_zoomStartDistance = componentInfo["ZoomStartDistance"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("ZoomEndDistance"))
+    {
+        m_zoomEndDistance = componentInfo["ZoomEndDistance"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("MaxExtraHeight"))
+    {
+        m_maxExtraHeight = componentInfo["MaxExtraHeight"].GetFloat();
+    }
+
+    m_firstTargetTransform = nullptr;
+    m_secondTargetTransform = nullptr;
+    m_currentExtraHeight = 0.0f;
+
+    return true;
 }
