@@ -13,10 +13,14 @@ std::unique_ptr<Component> Transform2D::clone(GameObject* newOwner) const
     std::unique_ptr<Transform2D> clonedComponent = std::make_unique<Transform2D>(m_uuid, newOwner);
 
     clonedComponent->position = position;
-    clonedComponent->size = size;
+    clonedComponent->baseSize = baseSize;
+    clonedComponent->scale = scale;
     clonedComponent->pivot = pivot;
     clonedComponent->anchorMin = anchorMin;
     clonedComponent->anchorMax = anchorMax;
+    clonedComponent->stretchMode = stretchMode;
+    clonedComponent->sizingMode = sizingMode;
+    clonedComponent->aspectRatio = aspectRatio;
 
 	return clonedComponent;
 }
