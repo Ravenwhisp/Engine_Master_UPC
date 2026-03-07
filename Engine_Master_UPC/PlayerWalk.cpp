@@ -13,6 +13,8 @@ PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
 	inputModule = app->getInputModule();
+	Transform* transform = m_owner->GetTransform();
+	m_initialRotationOffset = transform->getEulerDegrees();
 }
 
 std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
