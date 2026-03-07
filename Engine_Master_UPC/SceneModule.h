@@ -44,6 +44,7 @@ private:
 	SkyboxSettings				m_skybox;
 
 	CameraComponent* m_defaultCamera = nullptr;
+	std::string m_pendingSceneLoad;
 
 public:
 	SceneModule();
@@ -71,6 +72,7 @@ public:
 
 	void saveScene();
 	bool loadScene(const std::string& sceneName);
+	void requestSceneChange(const std::string& sceneName);
 	void clearScene();
 #pragma endregion
 
