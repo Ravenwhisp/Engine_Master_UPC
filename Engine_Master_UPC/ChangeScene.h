@@ -10,6 +10,8 @@ public:
 	ChangeScene(UID id, GameObject* gameObject);
 	~ChangeScene();
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
 	bool init() override;
 	void drawUi() override;
 

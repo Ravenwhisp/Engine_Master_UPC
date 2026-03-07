@@ -10,6 +10,18 @@ UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAG
 {
 }
 
+std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<UIImage> cloned = std::make_unique<UIImage>(m_uuid, newOwner);
+
+    cloned->m_textureAssetId = m_textureAssetId;
+    cloned->m_texture = m_texture;
+    cloned->m_textureAsset = m_textureAsset;
+    cloned->m_loadRequested = m_loadRequested;
+
+	return cloned;
+}
+
 bool UIImage::containsPoint(const Rect2D& rect, const Vector2& screenPos) const
 {
     if (!m_texture) return true;

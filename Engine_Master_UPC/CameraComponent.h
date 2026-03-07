@@ -1,3 +1,4 @@
+#pragma once
 #include "Globals.h"
 #include "Component.h"
 #include "Frustum.h"
@@ -6,6 +7,7 @@ class CameraComponent : public Component
 {
 public:
 	CameraComponent(UID id, GameObject* gameObject);
+	virtual std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
 	void update() override;

@@ -11,6 +11,8 @@ class PlayerWalk final : public Component {
 public:
 	PlayerWalk(UID id, GameObject* gameObject);
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
 	bool init() override;
 	void update() override;
 	void drawUi() override;

@@ -1,9 +1,9 @@
 #pragma once
-#include "imgui.h"
 
 class EditorModule;
 
-class EditorToolbar {
+class EditorToolbar 
+{
 private:
     EditorModule* m_moduleEditor;
 

@@ -8,6 +8,16 @@ Canvas::Canvas(UID id, GameObject* owner)
 {
 }
 
+std::unique_ptr<Component> Canvas::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<Canvas> clonedCanvas = std::make_unique<Canvas>(m_uuid, newOwner);
+
+    clonedCanvas->isScreenSpace = this->isScreenSpace;
+    clonedCanvas->setActive(this->isActive());
+
+	return clonedCanvas;
+}
+
 void Canvas::drawUi()
 {
     ImGui::Text("Canvas");
