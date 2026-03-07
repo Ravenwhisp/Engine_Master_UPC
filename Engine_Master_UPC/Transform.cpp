@@ -29,6 +29,22 @@ std::unique_ptr<Component> Transform::clone(GameObject* newOwner) const
 	return newTransform;
 }
 
+void Transform::fixReferences(const std::unordered_map<Component*, Component*>& referenceMap)
+{
+    if (m_root)
+    {
+        auto it = referenceMap.find(m_root);
+        if (it != referenceMap.end())
+        {
+            m_root = static_cast<Transform*>(it->second);
+        }
+    }
+    else
+    {
+        m_root = nullptr;
+	}
+}
+
 const Matrix& Transform::getGlobalMatrix() const
 {
     if (m_dirty)
