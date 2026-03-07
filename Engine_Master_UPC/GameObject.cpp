@@ -217,6 +217,32 @@ Component* GameObject::GetComponent(ComponentType type) const
     return nullptr;
 }
 
+#pragma region Properties
+
+bool GameObject::IsActiveInHierarchy() const
+{
+    if (!m_active)
+    {
+        return false;
+    }
+
+    Transform* parentTransform = m_transform->getRoot();
+    if (parentTransform == nullptr)
+    {
+        return true;
+    }
+
+    GameObject* parent = parentTransform->getOwner();
+    if (parent != nullptr)
+    {
+        return parent->IsActiveInHierarchy();
+    }
+
+    return true;
+}
+
+#pragma endregion
+
 #pragma region GameLoop
 bool GameObject::init()
 {
@@ -233,6 +259,11 @@ bool GameObject::init()
 
 void GameObject::update() 
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -244,6 +275,11 @@ void GameObject::update()
 
 void GameObject::preRender()
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -262,6 +298,11 @@ void GameObject::preRender()
 
 void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -280,6 +321,11 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 
 void GameObject::postRender()
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())

@@ -110,6 +110,17 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
     for (const auto& renderer : *m_meshRenderers) {
 
+        GameObject* owner = renderer->getOwner();
+        if (owner == nullptr || !owner->IsActiveInHierarchy())
+        {
+            continue;
+        }
+
+        if (!renderer->isActive())
+        {
+            continue;
+        }
+
         Transform* transform = renderer->getTransform();
         Matrix mvp = (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
         commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
@@ -191,7 +202,7 @@ GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<Gam
             continue;
         }
 
-        if (!gameObject->GetActive())
+        if (!gameObject->IsActiveInHierarchy())
         {
             continue;
         }
