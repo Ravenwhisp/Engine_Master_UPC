@@ -40,6 +40,11 @@ void GameWindow::render()
     if (contentRegion.x > 0 && contentRegion.y > 0)
     {
         resize(contentRegion);
+
+        ImVec2 imageTopLeft = ImGui::GetCursorScreenPos();
+        m_viewportX = imageTopLeft.x;
+        m_viewportY = imageTopLeft.y;
+
         ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUPlayScreenRT().ptr;
         ImGui::Image(textureID, m_size);
 
