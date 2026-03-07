@@ -14,7 +14,7 @@
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "MeshRenderer.h"
-
+#include "ChangeScene.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -34,6 +34,37 @@ GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name(
 GameObject::~GameObject()
 {
 
+}
+
+std::unique_ptr<GameObject> GameObject::clone() const
+{
+    std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
+
+    newGameObject->SetName(GetName());
+    newGameObject->SetActive(GetActive());
+    newGameObject->SetStatic(GetStatic());
+    newGameObject->SetLayer(GetLayer());
+    newGameObject->SetTag(GetTag());
+
+	//std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
+
+    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
+    newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
+
+    for (const std::unique_ptr<Component>& component : m_components)
+    {
+        std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
+        if (clonedComponent)
+        {
+            if (clonedComponent->getType() == ComponentType::TRANSFORM)
+            {
+                newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
+            }
+			newGameObject->AddClonedComponent(std::move(clonedComponent));
+        }
+    }
+
+	return newGameObject;
 }
 
 bool GameObject::AddComponent(ComponentType componentType)
@@ -69,6 +100,9 @@ bool GameObject::AddComponent(ComponentType componentType)
             break;
         case ComponentType::CAMERA_FOLLOW:
             m_components.push_back(std::make_unique<CameraFollow>(GenerateUID(), this));
+            break;
+        case ComponentType::CHANGE_SCENE:
+            m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
             break;
@@ -122,6 +156,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::CAMERA_FOLLOW:
         newComponent = std::make_unique<CameraFollow>(id, this);
         break;
+    case ComponentType::CHANGE_SCENE:
+        newComponent = std::make_unique<ChangeScene>(id, this);
+        break;
     case ComponentType::TRANSFORM:
         break;
     case ComponentType::COUNT:
@@ -133,6 +170,12 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     Component* rawPtr = newComponent.get();
     m_components.push_back(std::move(newComponent));
     return rawPtr;
+}
+
+bool GameObject::AddClonedComponent(std::unique_ptr<Component> component)
+{
+    m_components.push_back(std::move(component));
+    return true;
 }
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
@@ -189,7 +232,8 @@ bool GameObject::init()
     return true;
 }
 
-void GameObject::update() {
+void GameObject::update() 
+{
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -513,4 +557,3 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 }
 
 #pragma endregion
-

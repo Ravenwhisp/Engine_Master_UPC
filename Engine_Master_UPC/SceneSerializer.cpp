@@ -80,7 +80,8 @@ bool SceneSerializer::SaveScene(std::string sceneName, rapidjson::Document& domT
 
 bool SceneSerializer::LoadScene(std::string sceneName)
 {
-    if (sceneName.empty()) {
+    if (sceneName.empty()) 
+    {
         return false;
     }
 
@@ -88,7 +89,8 @@ bool SceneSerializer::LoadScene(std::string sceneName)
 
     // Read file
     std::ifstream file(path, std::ios::binary);
-    if (!file) {
+    if (!file) 
+    {
         return false;
     }
 
@@ -99,7 +101,8 @@ bool SceneSerializer::LoadScene(std::string sceneName)
     // Parse JSON
     rapidjson::Document doc;
     doc.Parse(json.c_str());
-    if (doc.HasParseError()) {
+    if (doc.HasParseError()) 
+    {
         return false;
     }
 

@@ -14,6 +14,23 @@ CameraFollow::CameraFollow(UID id, GameObject* gameObject)
 {
 }
 
+std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
+{
+    auto clonedComponent = std::make_unique<CameraFollow>(m_uuid, newOwner);
+
+    clonedComponent->m_firstTargetUid = m_firstTargetUid;
+    clonedComponent->m_secondTargetUid = m_secondTargetUid;
+    clonedComponent->m_transformOffset = m_transformOffset;
+    clonedComponent->m_rotationOffset = m_rotationOffset;
+    clonedComponent->m_zoomStartDistance = m_zoomStartDistance;
+    clonedComponent->m_zoomEndDistance = m_zoomEndDistance;
+    clonedComponent->m_maxExtraHeight = m_maxExtraHeight;
+    clonedComponent->m_followSharpness = m_followSharpness;
+    clonedComponent->m_zoomSharpness = m_zoomSharpness;
+
+	return clonedComponent;
+}
+
 bool CameraFollow::init()
 {
     setFollowTargets();
