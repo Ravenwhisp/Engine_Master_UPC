@@ -659,7 +659,7 @@ SceneSnapshot SceneModule::getClonedGameObjects()
 {
 	SceneSnapshot snapshot;
 
-  /*  snapshot.allObjects.reserve(m_allObjects.size());
+  /*snapshot.allObjects.reserve(m_allObjects.size());
 
     for (const auto& obj : m_rootObjects)
     {
@@ -688,9 +688,14 @@ SceneSnapshot SceneModule::getClonedGameObjects()
     return snapshot;
 }
 
-std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result)
+std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
 {
     auto clone = original->clone();
+
+    if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
+    {
+        snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
 
     //clone->ClearComponents();
 
@@ -698,12 +703,12 @@ std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* or
 
     for (GameObject* childGO : originalTransform->getAllChildren())
     {
-        auto clonedChild = cloneGameObjectRecursive(childGO, result);
+        auto clonedChild = cloneGameObjectRecursive(childGO, snapshot);
 
         clonedChild->GetTransform()->setRoot(clone->GetTransform());
 		clone->GetTransform()->addChild(clonedChild.get());
 		
-        result.allObjects.push_back(std::move(clonedChild));
+        snapshot.allObjects.push_back(std::move(clonedChild));
     }
 
     return clone;
