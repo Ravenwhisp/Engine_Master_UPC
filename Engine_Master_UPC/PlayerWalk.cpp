@@ -261,6 +261,21 @@ rapidjson::Value PlayerWalk::getJSON(rapidjson::Document& domTree)
 	return componentInfo;
 }
 
+rapidjson::Value PlayerWalk::getNewJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::PLAYER_WALK), domTree.GetAllocator());
+	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+	componentInfo.AddMember("MoveSpeed", m_moveSpeed, domTree.GetAllocator());
+	componentInfo.AddMember("ShiftMultiplier", m_shiftMultiplier, domTree.GetAllocator());
+	componentInfo.AddMember("ControlScheme", rapidjson::Value(controlSchemeToString(m_controlScheme), domTree.GetAllocator()), domTree.GetAllocator());
+
+	return componentInfo;
+}
+
 bool PlayerWalk::deserializeJSON(const rapidjson::Value& componentInfo)
 {
 	if (componentInfo.HasMember("MoveSpeed"))

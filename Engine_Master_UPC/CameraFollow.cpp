@@ -305,6 +305,43 @@ rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
+rapidjson::Value CameraFollow::getNewJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("FirstTargetUID", m_firstTargetUid, domTree.GetAllocator());
+    componentInfo.AddMember("SecondTargetUID", m_secondTargetUid, domTree.GetAllocator());
+
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_transformOffset.x, domTree.GetAllocator());
+        offset.PushBack(m_transformOffset.y, domTree.GetAllocator());
+        offset.PushBack(m_transformOffset.z, domTree.GetAllocator());
+        componentInfo.AddMember("WorldOffset", offset, domTree.GetAllocator());
+    }
+
+    {
+        rapidjson::Value rot(rapidjson::kArrayType);
+        rot.PushBack(m_rotationOffset.x, domTree.GetAllocator());
+        rot.PushBack(m_rotationOffset.y, domTree.GetAllocator());
+        rot.PushBack(m_rotationOffset.z, domTree.GetAllocator());
+        componentInfo.AddMember("FixedRotation", rot, domTree.GetAllocator());
+    }
+
+    componentInfo.AddMember("FollowSharpness", m_followSharpness, domTree.GetAllocator());
+    componentInfo.AddMember("ZoomSharpness", m_zoomSharpness, domTree.GetAllocator());
+
+    componentInfo.AddMember("ZoomStartDistance", m_zoomStartDistance, domTree.GetAllocator());
+    componentInfo.AddMember("ZoomEndDistance", m_zoomEndDistance, domTree.GetAllocator());
+    componentInfo.AddMember("MaxExtraHeight", m_maxExtraHeight, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
 bool CameraFollow::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("FirstTargetUID"))
