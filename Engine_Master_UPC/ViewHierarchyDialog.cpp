@@ -118,6 +118,16 @@ void ViewHierarchyDialog::render()
             UIButton* buttonComp = (UIButton*) button->AddComponentWithUID(ComponentType::UIBUTTON, GenerateUID());
             UIImage* imageComp = (UIImage*) button->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
             buttonComp->setTargetGraphic(imageComp);
+
+            if (not canvasExists()) 
+            {
+                GameObject* canvas = app->getSceneModule()->createGameObject();
+                canvas->SetName("New Canvas");
+                canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+
+                canvas->GetTransform()->addChild(button);
+                app->getSceneModule()->removeFromRootList(button); // so that it is not shown twice in the hierarchy
+            }
         }
 
         if (ImGui::MenuItem("Text"))
@@ -125,6 +135,16 @@ void ViewHierarchyDialog::render()
             GameObject* text = app->getSceneModule()->createGameObject();
             text->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
             text->AddComponentWithUID(ComponentType::UITEXT, GenerateUID());
+
+            if (not canvasExists())
+            {
+                GameObject* canvas = app->getSceneModule()->createGameObject();
+                canvas->SetName("New Canvas");
+                canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+
+                canvas->GetTransform()->addChild(text);
+                app->getSceneModule()->removeFromRootList(text); // same
+            }
         }
 
         if (ImGui::MenuItem("Image"))
@@ -132,8 +152,17 @@ void ViewHierarchyDialog::render()
             GameObject* image = app->getSceneModule()->createGameObject();
             image->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
             image->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
-        }
 
+            if (not canvasExists())
+            {
+                GameObject* canvas = app->getSceneModule()->createGameObject();
+                canvas->SetName("New Canvas");
+                canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+
+                canvas->GetTransform()->addChild(image);
+                app->getSceneModule()->removeFromRootList(image); // same
+            }
+        }
 
         ImGui::EndMenu();
     }
@@ -227,4 +256,16 @@ GameObject* ViewHierarchyDialog::createGameObjectWithUID(UID id, UID transformUI
     }
     
     return raw;  
+}
+
+bool ViewHierarchyDialog::canvasExists()
+{
+    std::vector<GameObject*> sceneObjects = m_sceneModule->getAllGameObjects();
+
+    for (GameObject* object : sceneObjects) 
+    {
+        if (object->GetComponent(ComponentType::CANVAS)) return true;
+    }
+
+    return false;
 }

@@ -34,4 +34,6 @@ private:
 	GameObject* rebuildGameObject(const rapidjson::Value& objectList);
 	void removeFromList(GameObject* obj, std::vector<GameObject*>& objects);
 	GameObject* createGameObjectWithUID(UID id, UID transformUID, std::vector<GameObject*>& rootObjects);
+
+	bool canvasExists();
 };
