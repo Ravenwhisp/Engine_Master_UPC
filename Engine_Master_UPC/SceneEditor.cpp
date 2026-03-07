@@ -12,6 +12,7 @@
 #include "RenderModule.h"
 #include "SceneModule.h"
 #include "EditorToolbar.h"
+#include "PlayToolbar.h"
 
 #include "Settings.h"
 
@@ -20,6 +21,7 @@
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
 #include "NavigationAgentComponent.h"
+#include "Quadtree.h"
 
 #include "CameraComponent.h"
 #include <Logger.h>
@@ -105,15 +107,15 @@ SceneEditor::SceneEditor()
     m_settings = app->getSettings();
 
     m_editorToolbar = new EditorToolbar();
+	m_playToolbar = new PlayToolbar();
 
     auto d3d12Module = app->getD3D12Module();
-
-    m_debugDrawPass = std::make_unique<DebugDrawPass>(d3d12Module->getDevice(), d3d12Module->getCommandQueue()->getD3D12CommandQueue().Get(), false);
 }
 
 SceneEditor::~SceneEditor()
 {
     delete m_editorToolbar;
+	delete m_playToolbar;
 }
 
 void SceneEditor::update()
@@ -130,6 +132,8 @@ void SceneEditor::render()
     }
 
     float toolbarWidth = ImGui::GetContentRegionAvail().x;
+	m_playToolbar->DrawCentered(toolbarWidth);
+    ImGui::NewLine();
     m_editorToolbar->DrawCentered(toolbarWidth);
     ImGui::NewLine();
     ImGui::Separator();
@@ -143,7 +147,12 @@ void SceneEditor::render()
     if (contentRegion.x > 0 && contentRegion.y > 0) 
     {
         resize(contentRegion);
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUScreenRT().ptr;
+
+        ImVec2 imageTopLeft = ImGui::GetCursorScreenPos();
+        m_viewportX = imageTopLeft.x;
+        m_viewportY = imageTopLeft.y;
+
+        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUEditorScreenRT().ptr;
         ImGui::Image(textureID, m_size);
         
     }
@@ -211,7 +220,8 @@ void SceneEditor::render()
 bool SceneEditor::resize(ImVec2 contentRegion)
 {
     if (abs(contentRegion.x - m_size.x) > 1.0f ||
-        abs(contentRegion.y - m_size.y) > 1.0f) {
+        abs(contentRegion.y - m_size.y) > 1.0f) 
+    {
         setSize(contentRegion);
         return true;
     }
@@ -310,7 +320,13 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 void SceneEditor::renderQuadtree()
 {
-    std::vector<BoundingRect> quadrants = app->getSceneModule()->getQuadtree().getQuadrants();
+    Quadtree* quadtree = app->getSceneModule()->getQuadtree();
+    if (!quadtree)
+    {
+        return;
+    }
+
+    std::vector<BoundingRect> quadrants = quadtree->getQuadrants();
     for (const auto& rect : quadrants)
     {
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);

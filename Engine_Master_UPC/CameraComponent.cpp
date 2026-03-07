@@ -1,9 +1,10 @@
 #include "Globals.h"
 #include "CameraComponent.h"
-#include "GameObject.h"
-#include "Application.h"
 
-extern Application* app;
+#include "Application.h"
+#include "SceneModule.h"
+
+#include "GameObject.h"
 
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
@@ -14,6 +15,19 @@ CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id,
 	recalculateFrustum();
 	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
 	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
+}
+
+std::unique_ptr<Component> CameraComponent::clone(GameObject* newOwner) const
+{
+	std::unique_ptr<CameraComponent> clonedComponent = std::make_unique<CameraComponent>(m_uuid, newOwner);
+
+	clonedComponent->m_horizontalFov = this->m_horizontalFov;
+	clonedComponent->m_nearPlane = this->m_nearPlane;
+	clonedComponent->m_farPlane = this->m_farPlane;
+	clonedComponent->m_aspectRatio = this->m_aspectRatio;
+
+	// No need to clone the matrices nor the frustum, as they will be recalculated in the onTransformChange() method when the component is added to the new owner
+	return clonedComponent;
 }
 
 void CameraComponent::recalculateFrustum() 
@@ -36,15 +50,13 @@ void CameraComponent::recalculateFrustum()
 void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
 	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
-	if (app->getCurrentCameraPerspective() != this)
-	{
-		m_frustum.render(m_world);
-	}
+
 }
 
 void CameraComponent::update()
 {
-	
+	// No se si es optimo, pero es para comprobar que aqui esta el error
+	onTransformChange();
 }
 
 void CameraComponent::onTransformChange()
@@ -60,6 +72,9 @@ void CameraComponent::onTransformChange()
 
 void CameraComponent::drawUi() 
 {
+	m_frustum.render(m_world);
+
+
     ImGui::Separator();
 
 	float fov = m_horizontalFov;
@@ -70,7 +85,8 @@ void CameraComponent::drawUi()
 	ImGui::DragFloat("Near plane", &nearPlane, 0.005f, 0.01f, 1.0f);
 	ImGui::DragFloat("Far plane", &farPlane, 1.0f, 10.0f, 100.0f);
 	ImGui::DragFloat("Aspect ratio", &aspectRatio, 0.001f, 1.333333f, 2.333333f); // 4:3 to 21:9 -- FIXME : change to a dropdown menu with several options
-	if (fov != m_horizontalFov || nearPlane != m_nearPlane || farPlane != m_farPlane || aspectRatio != m_aspectRatio) {
+	if (fov != m_horizontalFov || nearPlane != m_nearPlane || farPlane != m_farPlane || aspectRatio != m_aspectRatio) 
+	{
 		m_horizontalFov = fov;
 		m_nearPlane = nearPlane;
 		m_farPlane = farPlane;
@@ -84,7 +100,7 @@ void CameraComponent::drawUi()
 	
 	if (ImGui::Button("Set as Default Camera"))
 	{
-		app->setActiveCamera(this);
+		app->getSceneModule()->setDefaultCamera(this);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
@@ -99,10 +115,15 @@ void CameraComponent::drawUi()
 	}
 }
 
-bool CameraComponent::cleanUp() {
+bool CameraComponent::cleanUp() 
+{
 	if (app->getCurrentCameraPerspective() == this)
 	{
 		app->setCurrentCameraPerspective(nullptr);
+	}
+	if (app->getSceneModule()->getDefaultCamera() == this)
+	{
+		app->getSceneModule()->setDefaultCamera(nullptr);
 	}
 	return true;
 }
@@ -118,26 +139,30 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
 	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
 	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspecRtatio", m_aspectRatio, domTree.GetAllocator());
+	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
 
 	return componentInfo;
 }
 
 bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("HorizontalFOV")) {
+	if (componentInfo.HasMember("HorizontalFOV")) 
+	{
 		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("NearPlane")) {
+	if (componentInfo.HasMember("NearPlane")) 
+	{
 		m_nearPlane = componentInfo["NearPlane"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("FarPlane")) {
+	if (componentInfo.HasMember("FarPlane")) 
+	{
 		m_farPlane = componentInfo["FarPlane"].GetFloat();
 	}
 
-	if (componentInfo.HasMember("AspectRatio")) {
+	if (componentInfo.HasMember("AspectRatio")) 
+	{
 		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
 	}
 

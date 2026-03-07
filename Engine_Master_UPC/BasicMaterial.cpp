@@ -3,29 +3,16 @@
 
 #include "Application.h"
 #include "ResourcesModule.h"
-#include "tiny_gltf.h"
+#include "AssetsModule.h"
+#include <TextureImporter.h>
 
-bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath)
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICacheable(uid)
 {
-	Vector3 color = Vector3(float(material.baseColorFactor[0]), float(material.baseColorFactor[1]), float(material.baseColorFactor[2]));
-
-	m_materialData.diffuseColour = color;
-	m_materialData.specularColour = Vector3(0.1f, 0.1f, 0.1f);
-	m_materialData.shininess = 32.0f;
-
-	if (material.baseColorTexture.index >= 0)
+	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
-		const tinygltf::Texture& texture = model.textures[material.baseColorTexture.index];
-		const tinygltf::Image& image = model.images[texture.source];
-		if (!image.uri.empty() && app->getResourcesModule())
-		{
-			m_textureColor = app->getResourcesModule()->createTexture2DFromFile(std::string(basePath) + image.uri);
-			if (!m_textureColor)
-			{
-				return false;
-			}
-			m_materialData.hasDiffuseTex = true;
-		}
+		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
+		m_textureColor = app->getResourcesModule()->createTexture2D(*baseMapTexture);
+		m_materialData.hasDiffuseTex = true;
 	}
 	else
 	{
@@ -33,8 +20,14 @@ bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 		m_materialData.hasDiffuseTex = false;
 	}
 
-	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(MaterialData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
-
-	return true;
+	m_materialData.diffuseColour = Vector3(asset.getBaseColour().R(), asset.getBaseColour().G(), asset.getBaseColour().B());
+	m_materialData.specularColour = Vector3(0.1f, 0.1f, 0.1f);
+	m_materialData.shininess = 32.0f;
+	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(BDRFPhongMaterialData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 }
 
+BasicMaterial::~BasicMaterial()
+{
+	app->getResourcesModule()->defferResourceRelease(m_materialBuffer);
+
+}

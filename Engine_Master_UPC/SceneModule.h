@@ -1,11 +1,13 @@
 #pragma once
 #include "Module.h"
-#include "GameObject.h"
-#include "Quadtree.h"
-#include "Lights.h"
+#include <rapidjson/document.h>
 #include "UID.h"
+#include "MeshRenderer.h"
 
 class SceneSerializer;
+class GameObject;
+class Quadtree;
+class CameraComponent;
 
 struct SceneDataCB
 {
@@ -15,28 +17,51 @@ struct SceneDataCB
 
 struct SceneLightingSettings
 {
-	Vector3 ambientColor;;
-	float ambientIntensity;;
+	Vector3 ambientColor;
+	float ambientIntensity;
 };
 
 struct SkyboxSettings
 {
 	bool enabled = true;
-	char path[260] = "Assets/Textures/cubemap2.dds";
+	UID cubemapAssetId = 0;
+};
+
+struct SceneSnapshot
+{
+	std::vector<std::unique_ptr<GameObject>> allObjects;
+	std::vector<GameObject*> rootObjects;
+	CameraComponent* defaultCamera = nullptr;
 };
 
 class SceneModule : public Module
 {
 private:
-	SceneSerializer* m_sceneSerializer;
+	std::string m_name = "SampleScene";
+
+	std::vector<std::unique_ptr<GameObject>>	m_allObjects;
+	std::vector<GameObject*>					m_rootObjects;
+	std::vector<MeshRenderer*>					m_meshRenderers;
+
+	std::unique_ptr<SceneSerializer>	m_sceneSerializer;
+	std::unique_ptr<Quadtree>			m_quadtree;
+
+	SceneLightingSettings		m_lighting;
+	SceneDataCB					m_sceneDataCB;
+	SkyboxSettings				m_skybox;
+
+	CameraComponent* m_defaultCamera = nullptr;
+	std::string m_pendingSceneLoad;
 
 public:
+	SceneModule();
+	~SceneModule();
+
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
-	void updateHierarchy(GameObject* obj);
 	void preRender() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
+	void render(ID3D12GraphicsCommandList* commandList);
 	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
@@ -44,32 +69,43 @@ public:
 #pragma region Persistence
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	void serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
 	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
 	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
 
 	bool loadFromJSON(const rapidjson::Value& sceneJson);
 	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
+	void resolveDefaultCamera(const rapidjson::Value& sceneJson);
 
 	void saveScene();
 	bool loadScene(const std::string& sceneName);
+	void requestSceneChange(const std::string& sceneName);
 	void clearScene();
 #pragma endregion
 
 	void createGameObject();
 	GameObject* createGameObjectWithUID(UID id, UID transformUID);
+	GameObject* findGameObjectByUID(UID uuid);
 	void removeGameObject(const UID uuid);
 
-	void addGameObject(GameObject* gameObject);
-	void detachGameObject(GameObject* gameObject);
+	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
+	void resetGameObjects(SceneSnapshot previousScene);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
 
+	void addToRootList(GameObject* gameObject);
+	void removeFromRootList(GameObject* gameObject);
+	const std::vector<GameObject*>& getRootObjects() const;
+
 	GameObject* createDirectionalLightOnInit();
 
-	const std::vector<GameObject*>& getAllGameObjects() { return m_gameObjects; }
+	std::vector<GameObject*> getAllGameObjects();
+	SceneSnapshot getClonedGameObjects();
+	std::unique_ptr<GameObject> cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result);
+	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
 	const void setName(const char* newName) { m_name = newName; }
@@ -81,14 +117,9 @@ public:
 
 	bool applySkyboxToRenderer();
 
-	Quadtree& getQuadtree() { return *m_quadtree; }
-private:
-	std::string m_name = "SampleScene";
+	Quadtree* getQuadtree() { return m_quadtree.get(); }
+	void createQuadtree();
 
-	std::vector<GameObject*>	m_gameObjects;
-	SceneLightingSettings		m_lighting;
-	Quadtree*					m_quadtree;
-	SceneDataCB					m_sceneDataCB;
-	SkyboxSettings				m_skybox;
-
+	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
+	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 };

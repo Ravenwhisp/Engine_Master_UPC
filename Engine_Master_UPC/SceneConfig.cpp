@@ -185,9 +185,17 @@ void SceneConfig::drawSkyboxSettings()
             m_skyboxDirty = true;
         }
 
-        if (ImGui::InputText("Cubemap Path###SkyPath", skyboxSettings.path, IM_ARRAYSIZE(skyboxSettings.path)))
+        ImGui::Button("Drop Cubemap Here###SkyDrop");
+
+        if (ImGui::BeginDragDropTarget())
         {
-            m_skyboxDirty = true;
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+            {
+                const UID* data = static_cast<const UID*>(payload->Data);
+                skyboxSettings.cubemapAssetId = *data;
+                m_skyboxDirty = true;
+            }
+            ImGui::EndDragDropTarget();
         }
 
         if (ImGui::Button("Apply###SkyApply") && m_skyboxDirty)

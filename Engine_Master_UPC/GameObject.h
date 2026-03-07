@@ -11,16 +11,19 @@
 
 class ModelComponent;
 
-class GameObject {
+class GameObject 
+{
 public:
 	GameObject(UID newUuid);
 	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
+	std::unique_ptr<GameObject> clone() const;
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
+	bool IsActiveInHierarchy() const;
 	bool GetStatic() const { return m_isStatic; }
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
@@ -37,9 +40,10 @@ public:
 	const Transform* GetTransform() const { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
 	Component* AddComponentWithUID(const ComponentType componentType, UID id);
+	bool AddClonedComponent(std::unique_ptr<Component> component);
 	bool RemoveComponent(Component* componentToRemove);
 	Component* GetComponent(ComponentType type) const;
-	const std::vector<Component*>& GetComponents() const { return m_components; }
+	std::vector<Component*> GetAllComponents() const;
 
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const
@@ -71,16 +75,13 @@ public:
 
 private:
 	UID m_uuid;
+
 	std::string m_name;
 	bool m_active = true;
 	bool m_isStatic = false;
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
 
+	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;
-	std::vector<Component*> m_components;
-
-	//Testing duck
-	ModelComponent* m_model;
-	//////////////
 };

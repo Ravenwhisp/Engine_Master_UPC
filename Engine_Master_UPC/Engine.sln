@@ -6,11 +6,15 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine.vcxproj", "{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D} = {6653A880-BA2D-4202-A0E6-90EC3C2FC81D}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "3rdParty\DirectXTex\DirectXTex_Desktop_2022_Win10.vcxproj", "{371B9FA9-4C90-4AC6-A123-ACED756D6C77}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RecastNavigationLib", "lib\RecastNavigationLib\RecastNavigationLib.vcxproj", "{774B9801-92F3-4576-8AD8-5DD82D9AEB33}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTK12", "3rdParty\DirectXTK12\DirectXTK12.vcxproj", "{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,14 +40,14 @@ Global
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.Build.0 = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x86.ActiveCfg = Release|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x86.Build.0 = Release|Win32
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Debug|x64.ActiveCfg = Debug|x64
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Debug|x64.Build.0 = Debug|x64
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Debug|x86.ActiveCfg = Debug|Win32
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Debug|x86.Build.0 = Debug|Win32
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Release|x64.ActiveCfg = Release|x64
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Release|x64.Build.0 = Release|x64
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Release|x86.ActiveCfg = Release|Win32
-		{774B9801-92F3-4576-8AD8-5DD82D9AEB33}.Release|x86.Build.0 = Release|Win32
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x64.ActiveCfg = Debug|x64
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x64.Build.0 = Debug|x64
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x86.ActiveCfg = Debug|Win32
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x86.Build.0 = Debug|Win32
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x64.ActiveCfg = Release|x64
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x64.Build.0 = Release|x64
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x86.ActiveCfg = Release|Win32
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

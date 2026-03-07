@@ -6,14 +6,14 @@
 #include "ResourcesModule.h"
 
 
-RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Texture(device, info) {
+RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Texture(GenerateUID(), device, info) {
 
     assert(info.desc);
     m_mipCount = getD3D12ResourceDesc().MipLevels;
     assert(m_mipCount && m_mipCount <= Texture::MAX_MIPS);
 
     D3D12_RENDER_TARGET_VIEW_DESC desc{};
-    desc.Format = info.desc->Format;
+    desc.Format = (info.rtvFormat != DXGI_FORMAT_UNKNOWN) ? info.rtvFormat : info.desc->Format;
     desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
     desc.Texture2D.MipSlice = 0;
 

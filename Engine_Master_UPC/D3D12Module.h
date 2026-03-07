@@ -9,6 +9,7 @@
 #include "CommandQueue.h"
 #include "DescriptorsModule.h"
 #include "SwapChain.h"
+#include <GraphicsMemory.h>
 
 
 // -----------------------------------------------------------------------------
@@ -41,8 +42,6 @@ public:
 	ComPtr<ID3D12RootSignature>		createRootSignature();
 	ComPtr<ID3D12PipelineState>		createPipelineStateObject(ID3D12RootSignature* rootSignature);
 
-	ComPtr<ID3D12RootSignature>		createSkyboxRootSignature();
-	ComPtr<ID3D12PipelineState>		createSkyboxPipelineStateObject(ID3D12RootSignature* rootSignature);
 private:
 
 	void loadPipeline();
@@ -50,6 +49,8 @@ private:
 	ComPtr<IDXGIAdapter4> m_adapter;
 	ComPtr<IDXGIFactory6> m_dxgiFactory;
 	ComPtr<ID3D12Device4> m_device;
+
+	std::unique_ptr<GraphicsMemory> m_graphicsMemory;
 
 	ComPtr<ID3D12GraphicsCommandList4> m_commandList;
 

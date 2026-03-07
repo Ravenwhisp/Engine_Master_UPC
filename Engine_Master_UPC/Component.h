@@ -3,13 +3,16 @@
 #include "UID.h" 
 
 #include <rapidjson/document.h>
-
+class Transform;
 class GameObject;
 
 class Component {
 public:
+    friend class GameObject;
+
     Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
+    virtual std::unique_ptr<Component> clone(GameObject* newOwner) const = 0;
 
     UID getID() const { return m_uuid; }
     ComponentType getType() const { return m_type; }
@@ -30,6 +33,7 @@ public:
     virtual void drawUi() {}
 
     virtual void onTransformChange() {};
+    Transform* getTransform();
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }

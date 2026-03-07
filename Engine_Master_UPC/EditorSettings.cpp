@@ -1,9 +1,10 @@
 #include "Globals.h"
 #include "EditorSettings.h"
-#include "Application.h"
-#include "Settings.h"
-#include "RenderModule.h"
 
+#include "Application.h"
+#include "SceneModule.h"
+
+#include "Settings.h"
 
 EditorSettings::EditorSettings()
 {
@@ -19,6 +20,8 @@ void EditorSettings::render()
     }
 
     ImGui::Separator();
+    drawEngineInformation();
+    ImGui::Separator();
     drawCameraSettings();
     ImGui::Separator();
     drawSceneSettings();
@@ -26,6 +29,12 @@ void EditorSettings::render()
     drawFrustumCullingSettings();
 
     ImGui::End();
+}
+
+void EditorSettings::drawEngineInformation()
+{
+    std::string str = "Engine versions " + m_settings->engine.version;
+    ImGui::Text(str.c_str());
 }
 
 void EditorSettings::drawCameraSettings() 
@@ -77,6 +86,7 @@ void EditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show Axis###SceneShowAxis", &m_settings->sceneEditor.showAxis);
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
         ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
+        ImGui::Checkbox("Show Model Bounding Boxes###ModelShowBoundingBoxes", &m_settings->sceneEditor.showModelBoundingBoxes);
         ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);
     }
 }
@@ -86,5 +96,13 @@ void EditorSettings::drawFrustumCullingSettings()
     if (ImGui::CollapsingHeader("Frustum culling"))
     {
         ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.debugFrustumCulling);
+        ImGui::DragFloat("Quadtree extra X size", &m_settings->frustumCulling.quadtreeXExtraSize, 1.f, 0.f, 100.f);
+        ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
+    }
+
+    if (m_settings->frustumCulling.debugFrustumCulling && !app->getSceneModule()->getDefaultCamera())
+    {
+        m_settings->frustumCulling.debugFrustumCulling = false;
+        DEBUG_WARN("Cannot show quadtree because there is no default camera set in the scene.");
     }
 }

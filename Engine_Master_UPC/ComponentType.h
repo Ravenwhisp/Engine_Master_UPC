@@ -5,10 +5,17 @@
     X(MODEL)                \
     X(LIGHT)                \
     X(PLAYER_WALK)          \
+    X(CAMERA)               \
+    X(TRANSFORM2D)          \
+    X(CANVAS)               \
+    X(UIIMAGE)              \
+    X(UITEXT)               \
+    X(UIBUTTON)             \
+    X(CAMERA_FOLLOW)        \
+    X(CHANGE_SCENE)		    \
     X(NAVMESH_WALK)         \
     X(NAVIGATION_AGENT)     \
-    X(WAYPOINT_PATH)         \
-    X(CAMERA)
+    X(WAYPOINT_PATH)         
 
 enum class ComponentType
 {

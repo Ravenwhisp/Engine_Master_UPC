@@ -56,12 +56,14 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
-		app->getEditorModule()->setSelectedGameObject(gameObject);
+		m_pendingSelection = gameObject;
+		m_isDragging = false;
 	}
 
 	// --- Drag source ---
 	if (ImGui::BeginDragDropSource())
 	{
+		m_isDragging = true;
 		ImGui::SetDragDropPayload("GAME_OBJECT", &gameObject, sizeof(GameObject*));
 		ImGui::Text("%s", gameObject->GetName().c_str());
 		ImGui::EndDragDropSource();
@@ -80,6 +82,15 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 			}
 		}
 		ImGui::EndDragDropTarget();
+	}
+
+	if (m_pendingSelection == gameObject && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		if (!m_isDragging)
+		{
+			app->getEditorModule()->setSelectedGameObject(gameObject);
+		}
+		m_pendingSelection = nullptr;
 	}
 
 	// --- Draw children ---
@@ -113,7 +124,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->detachGameObject(child);
+		app->getSceneModule()->removeFromRootList(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -124,7 +135,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->addGameObject(child);
+		app->getSceneModule()->addToRootList(child);
 	}
 
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
@@ -146,8 +157,8 @@ void Hierarchy::createTreeNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		const std::vector<GameObject*>& gameObjectList = app->getSceneModule()->getAllGameObjects();
-		for (GameObject* gameObject : gameObjectList)
+		const auto& roots = app->getSceneModule()->getRootObjects();
+		for (GameObject* gameObject : roots)
 		{
 			createTreeNode(gameObject);
 		}
