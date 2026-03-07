@@ -23,37 +23,18 @@ ChangeScene::~ChangeScene()
 
 std::unique_ptr<Component> ChangeScene::clone(GameObject* newOwner) const
 {
-	std::unique_ptr<ChangeScene> newComponent = std::make_unique<ChangeScene>(m_uuid, newOwner);
+	std::unique_ptr<ChangeScene> newComponent = std::make_unique<ChangeScene>(GenerateUID(), newOwner);
 
 	newComponent->m_sceneToLoad = m_sceneToLoad;
 	newComponent->m_uiButton = m_uiButton;
 
 	if (newComponent->m_uiButton)
 	{
-		newComponent->m_onClickHandle = newComponent->m_uiButton->onClick.AddRaw(newComponent.get(), &ChangeScene::onChangeScene); //se podria quitar?
+		newComponent->m_onClickHandle = newComponent->m_uiButton->onClick.AddRaw(newComponent.get(), &ChangeScene::onChangeScene);
 		DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", newComponent.get(), newComponent->m_sceneToLoad.c_str());
 	}
 
 	return newComponent;
-}
-
-void ChangeScene::fixReferences(const std::unordered_map<Component*, Component*>& referenceMap)
-{
-	if (m_uiButton)
-	{
-		auto it = referenceMap.find(m_uiButton);
-		if (it != referenceMap.end())
-		{
-			m_uiButton = static_cast<UIButton*>(it->second);
-			m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
-			DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
-		}
-		else
-		{
-			DEBUG_LOG("Failed to fix reference for ChangeScene at: %p, UIButton not found in reference map", this);
-			m_uiButton = nullptr;
-		}
-	}
 }
 
 bool ChangeScene::init()

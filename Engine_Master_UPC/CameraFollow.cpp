@@ -31,34 +31,6 @@ std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 	return clonedComponent;
 }
 
-void CameraFollow::fixReferences(const std::unordered_map<Component*, Component*>& referenceMap)
-{
-    if (m_firstTargetTransform)
-    {
-        auto it = referenceMap.find(m_firstTargetTransform);
-        if (it != referenceMap.end())
-        {
-            m_firstTargetTransform = static_cast<Transform*>(it->second);
-        }
-        else
-        {
-            m_firstTargetTransform = nullptr;
-        }
-    }
-    if (m_secondTargetTransform)
-    {
-        auto it = referenceMap.find(m_secondTargetTransform);
-        if (it != referenceMap.end())
-        {
-            m_secondTargetTransform = static_cast<Transform*>(it->second);
-        }
-        else
-        {
-            m_secondTargetTransform = nullptr;
-        }
-	}
-}
-
 bool CameraFollow::init()
 {
     setFollowTargets();
