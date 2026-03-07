@@ -19,7 +19,8 @@ void Inspector::render()
     }
 
     GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
-    if (selectedGameObject) {
+    if (selectedGameObject) 
+    {
         selectedGameObject->drawUI();
     }
 

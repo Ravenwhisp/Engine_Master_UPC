@@ -27,6 +27,8 @@ class Transform2D : public Component
 public:
     Transform2D(UID id, GameObject* owner);
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
     Rect2D getRect() const;
     Rect2D getRect(const Rect2D& parent) const;
     
