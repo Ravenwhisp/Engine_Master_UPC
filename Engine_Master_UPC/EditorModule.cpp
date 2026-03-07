@@ -320,6 +320,38 @@ bool EditorModule::cleanUp()
     return true;
 }
 
+ImVec2 EditorModule::getEventViewport() const
+{
+    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    if (sceneEditor && sceneEditor->isHovered())
+    {
+        return ImVec2(sceneEditor->getViewportX(), sceneEditor->getViewportY());
+    }
+
+    GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+    if (gameWindow && gameWindow->isHovered())
+    {
+        return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
+    }
+    return ImVec2(-1, -1);
+}
+
+ImVec2 EditorModule::getEventViewportSize() const
+{
+    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    if (sceneEditor && sceneEditor->isHovered())
+    {
+        return sceneEditor->getSize();
+    }
+
+    GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+    if (gameWindow && gameWindow->isHovered())
+    {
+        return gameWindow->getSize();
+    }
+    return ImVec2(-1, -1);
+}
+
 
 void EditorModule::setSceneTool(SCENE_TOOL newTool) 
 {
