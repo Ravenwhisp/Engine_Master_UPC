@@ -409,6 +409,16 @@ bool SceneModule::applySkyboxToRenderer()
     return app->getRenderModule()->applySkyboxSettings(m_skybox);
 }
 
+void serializeHierarchy(GameObject* go, rapidjson::Value& array, rapidjson::Document& doc)
+{
+    array.PushBack(go->getJSON(doc), doc.GetAllocator());
+
+    for (GameObject* child : go->GetTransform()->getAllChildren())
+    {
+        serializeHierarchy(child, array, doc);
+    }
+}
+
 #pragma region Persistence
 rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
 {
@@ -429,10 +439,9 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     {
         rapidjson::Value gameObjectsData(rapidjson::kArrayType);
 
-
-        for (GameObject* gameObject : getAllGameObjects())
+        for (GameObject* root : m_rootObjects)
         {
-            gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+            serializeHierarchy(root, gameObjectsData, domTree);
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
@@ -479,7 +488,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
 
     // Create all objects and components
     std::unordered_map<uint64_t, GameObject*> uidToGo;
-    std::unordered_map<uint64_t, uint64_t> childToParent;
+    std::vector<std::pair<uint64_t, uint64_t>> childToParent;
 
     for (auto& gameObjectJson : gameObjectsArray)
     {
@@ -491,14 +500,14 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         gameObject->deserializeJSON(gameObjectJson, parentUid);
 
         uidToGo[uid] = gameObject;
-        childToParent[uid] = parentUid;
+        childToParent.push_back({ uid, parentUid });
     }
 
     // Parent Child linking
-    for (const auto& childAndParent : childToParent)
+    for (const auto& pair : childToParent)
     {
-        const uint64_t childUid = childAndParent.first;
-        const uint64_t parentUid = childAndParent.second;
+        const uint64_t childUid = pair.first;
+        const uint64_t parentUid = pair.second;
 
         if (parentUid == 0) {
             continue;
