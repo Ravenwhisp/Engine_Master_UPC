@@ -10,7 +10,6 @@
 #include "UID.h"
 
 class ModelComponent;
-struct SceneSnapshot;
 
 class GameObject 
 {
@@ -18,7 +17,7 @@ public:
 	GameObject(UID newUuid);
 	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
-	std::unique_ptr<GameObject> clone(SceneSnapshot& snapshot) const;
+	std::unique_ptr<GameObject> clone() const;
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }

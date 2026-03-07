@@ -4,15 +4,13 @@
 
 class UIButton;
 
-class ChangeScene final : public Component 
-{
+class ChangeScene final : public Component {
 
 public:
 	ChangeScene(UID id, GameObject* gameObject);
 	~ChangeScene();
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
-	void fixReferences(const std::unordered_map<Component*, Component*>& referenceMap) override;
 
 	bool init() override;
 	void drawUi() override;

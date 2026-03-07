@@ -19,22 +19,6 @@ std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
 	return clonedButton;
 }
 
-void UIButton::fixReferences(const std::unordered_map<Component*, Component*>& referenceMap)
-{
-    if (m_targetGraphic)
-    {
-        auto it = referenceMap.find(m_targetGraphic);
-        if (it != referenceMap.end())
-        {
-            m_targetGraphic = static_cast<UIImage*>(it->second);
-        }
-        else
-        {
-            m_targetGraphic = nullptr; // Clear reference if not found
-        }
-	}
-}
-
 
 void UIButton::onPointerUp(PointerEventData& /*data*/)
 {

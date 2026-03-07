@@ -685,14 +685,12 @@ SceneSnapshot SceneModule::getClonedGameObjects()
         snapshot.allObjects.push_back(std::move(clonedRoot));
     }
 
-    fixClonedReferences(snapshot);
-
     return snapshot;
 }
 
 std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
 {
-    auto clone = original->clone(snapshot);
+    auto clone = original->clone();
 
     if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
     {
@@ -716,16 +714,6 @@ std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* or
     return clone;
 }
 
-void SceneModule::fixClonedReferences(const SceneSnapshot& snapshot)
-{
-    for (const auto& obj : snapshot.allObjects)
-    {
-        for (Component* component : obj->GetAllComponents())
-        {
-			component->fixReferences(snapshot.componentMap);
-        }
-    }
-}
 
 void SceneModule::removeFromRootList(GameObject* obj)
 {
