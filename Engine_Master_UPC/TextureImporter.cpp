@@ -39,13 +39,13 @@ void TextureImporter::importTyped(const DirectX::ScratchImage& source, TextureAs
     ScratchImage converted;
     const DirectX::ScratchImage* workingSource = &source;
 
-    if (metaData.format != DXGI_FORMAT_R8G8B8A8_UNORM)
+    if (metaData.format != DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
     {
         HRESULT hr = Convert(
             source.GetImages(),
             source.GetImageCount(),
             metaData,
-            DXGI_FORMAT_R8G8B8A8_UNORM,
+            DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
             TEX_FILTER_DEFAULT,
             TEX_THRESHOLD_DEFAULT,
             converted
