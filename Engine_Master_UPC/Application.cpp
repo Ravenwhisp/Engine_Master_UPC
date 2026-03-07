@@ -38,6 +38,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     modules.push_back(m_uiModule = new UIModule());
     modules.push_back(m_renderModule = new RenderModule());
+    
     modules.push_back(m_gameViewModule = new GameViewModule());
 
     modules.push_back(m_cameraModule = new CameraModule());
