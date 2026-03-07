@@ -13,6 +13,7 @@ public:
     Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
     virtual std::unique_ptr<Component> clone(GameObject* newOwner) const = 0;
+    virtual void fixReferences(const std::unordered_map<Component*, Component*>& referenceMap) {};
 
     UID getID() const { return m_uuid; }
     ComponentType getType() const { return m_type; }

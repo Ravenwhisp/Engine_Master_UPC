@@ -12,6 +12,8 @@ public:
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+	void fixReferences(const std::unordered_map<Component*, Component*>& referenceMap) override;
+
 	DECLARE_MULTICAST_DELEGATE(OnClick);
 	OnClick onClick;
 

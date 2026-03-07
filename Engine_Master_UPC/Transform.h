@@ -11,6 +11,8 @@ public:
 	Transform(UID id, GameObject* gameObject);
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+	void fixReferences(const std::unordered_map<Component*, Component*>& referenceMap) override;
+
 	const Matrix& getGlobalMatrix() const;
 	Matrix getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
