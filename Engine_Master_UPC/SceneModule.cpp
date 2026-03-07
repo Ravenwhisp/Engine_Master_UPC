@@ -425,15 +425,6 @@ bool SceneModule::applySkyboxToRenderer()
     return app->getRenderModule()->applySkyboxSettings(m_skybox);
 }
 
-void serializeHierarchy(GameObject* go, rapidjson::Value& array, rapidjson::Document& doc)
-{
-    array.PushBack(go->getJSON(doc), doc.GetAllocator());
-
-    for (GameObject* child : go->GetTransform()->getAllChildren())
-    {
-        serializeHierarchy(child, array, doc);
-    }
-}
 
 #pragma region Persistence
 rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
@@ -465,6 +456,16 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     }
 
     return sceneInfo;
+}
+
+void SceneModule::serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
+{
+    gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+
+    for (GameObject* child : gameObject->GetTransform()->getAllChildren())
+    {
+        serializeHierarchy(child, gameObjectsData, domTree);
+    }
 }
 
 rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
