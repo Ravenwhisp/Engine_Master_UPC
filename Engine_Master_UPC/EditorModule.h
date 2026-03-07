@@ -61,6 +61,10 @@ public:
 	SceneEditor*	getSceneEditor() { return m_sceneEditor; }
 	ImVec2			getSceneEditorSize() { return m_sceneEditor->getSize();}
 
+	ImVec2 getEventViewport() const;
+	ImVec2 getEventViewportSize() const;
+
+
 	GameWindow*		getGameWindow() { return m_gameWindow; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }

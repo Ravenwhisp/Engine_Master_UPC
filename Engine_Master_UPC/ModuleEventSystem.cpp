@@ -140,50 +140,17 @@ void ModuleEventSystem::process()
 
 bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
-    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
-    if (!sceneEditor || !sceneEditor->isHovered())
-    {
-		GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
-        if (!gameWindow || !gameWindow->isHovered())
-        {
-            return false;
-        }
-        // Raw mouse position in screen pixels
-        const Vector2 rawMouse = app->getInputModule()->getMousePosition();
-
-        // Viewport top-left in screen pixels
-        const float winX = gameWindow->getViewportX();
-        const float winY = gameWindow->getViewportY();
-        const float winW = gameWindow->getSize().x;
-        const float winH = gameWindow->getSize().y;
-
-        if (winW <= 0.0f || winH <= 0.0f)
-        {
-            return false;
-        }
-
-        // Convert to viewport-local pixels — same space as Rect2D
-        const float localX = rawMouse.x - winX;
-        const float localY = rawMouse.y - winY;
-
-        // Reject if outside the viewport bounds
-        if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
-        {
-            return false;
-        }
-
-        outPos = { localX, localY };
-        return true;
-    }
+    auto viewport = app->getEditorModule()->getEventViewport();
+    auto size = app->getEditorModule()->getEventViewportSize();
 
     // Raw mouse position in screen pixels
     const Vector2 rawMouse = app->getInputModule()->getMousePosition();
-
+    
     // Viewport top-left in screen pixels
-    const float winX = sceneEditor->getViewportX();
-    const float winY = sceneEditor->getViewportY();
-    const float winW = sceneEditor->getSize().x;
-    const float winH = sceneEditor->getSize().y;
+    const float winX = viewport.x;
+    const float winY = viewport.y;
+    const float winW = size.x;
+    const float winH = size.y;
 
     if (winW <= 0.0f || winH <= 0.0f)
     {
@@ -203,6 +170,7 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
     outPos = { localX, localY };
     return true;
 }
+
 void ModuleEventSystem::clearHoverState()
 {
     for (int idx = 0; idx < 3; ++idx)
@@ -227,8 +195,7 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     GameObject* best = nullptr;
     int         bestDepth = -1;
 
-    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
-    const ImVec2 size = sceneEditor->getSize();
+    const ImVec2 size = app->getEditorModule()->getEventViewport();
 
     Rect2D screenRect;
     screenRect.x = 0.0f;
