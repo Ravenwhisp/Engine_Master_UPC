@@ -55,7 +55,8 @@ void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& vie
 
 void CameraComponent::update()
 {
-	
+	// No se si es optimo, pero es para comprobar que aqui esta el error
+	onTransformChange();
 }
 
 void CameraComponent::onTransformChange()

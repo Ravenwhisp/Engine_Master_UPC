@@ -181,7 +181,8 @@ float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYaw
 	return currentYawAngle + delta;
 }
 
-void PlayerWalk::drawUi() {
+void PlayerWalk::drawUi()
+{
 	ImGui::Text("Hold Left Mouse Button + WASD to move arround");
 	ImGui::Text("Press shift to go faster");
 

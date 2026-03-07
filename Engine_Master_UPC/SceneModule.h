@@ -104,6 +104,7 @@ public:
 
 	std::vector<GameObject*> getAllGameObjects();
 	SceneSnapshot getClonedGameObjects();
+	std::unique_ptr<GameObject> cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result);
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
