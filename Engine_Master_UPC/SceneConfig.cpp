@@ -125,9 +125,16 @@ void SceneConfig::drawNavmeshSettings()
     {
         NavigationModule* nav = app->getNavigationModule();
             
-        if (ImGui::Button("Build NavMesh")) 
+        if (ImGui::Button("Bake NavMesh"))
         {
-            nav->buildNavMeshForCurrentScene();
+            if (app->getNavigationModule()->buildNavMeshForCurrentScene())
+            {
+                DEBUG_LOG("NavMesh bake SUCCESS\n");
+            }
+            else
+            {
+                DEBUG_ERROR("NavMesh bake FAILED\n");
+            }
         }
 
         ImGui::SameLine();
@@ -151,6 +158,17 @@ void SceneConfig::drawNavmeshSettings()
         {
             nav->setDrawNavMesh(show);
         }
+
+        ImGui::Separator();
+
+        ImGui::DragFloat("Cell Size", &nav->getSettings().cellSize, 0.01f, 0.05f, 1.0f);
+        ImGui::DragFloat("Cell Height", &nav->getSettings().cellHeight, 0.01f, 0.05f, 1.0f);
+
+        ImGui::DragFloat("Agent Height", &nav->getSettings().agentHeight, 0.05f, 0.5f, 5.0f);
+        ImGui::DragFloat("Agent Radius", &nav->getSettings().agentRadius, 0.01f, 0.1f, 2.0f);
+
+        ImGui::DragFloat("Max Climb", &nav->getSettings().agentMaxClimb, 0.01f, 0.0f, 2.0f);
+        ImGui::DragFloat("Max Slope", &nav->getSettings().agentMaxSlope, 1.0f, 0.0f, 60.0f);
 
     }
 
@@ -196,31 +214,12 @@ void SceneConfig::drawLightSettings()
 
 void SceneConfig::drawNavigationSettings()
 {
-    const auto& nav = app->getNavigationModule();
+    /*const auto& nav = app->getNavigationModule();
     if (ImGui::CollapsingHeader("Navigation Settings"))
     {
-        ImGui::Separator();
+       
 
-        ImGui::DragFloat("Cell Size", &nav->getSettings().cellSize, 0.01f, 0.05f, 1.0f);
-        ImGui::DragFloat("Cell Height", &nav->getSettings().cellHeight, 0.01f, 0.05f, 1.0f);
+        
 
-        ImGui::DragFloat("Agent Height", &nav->getSettings().agentHeight, 0.05f, 0.5f, 5.0f);
-        ImGui::DragFloat("Agent Radius", &nav->getSettings().agentRadius, 0.01f, 0.1f, 2.0f);
-
-        ImGui::DragFloat("Max Climb", &nav->getSettings().agentMaxClimb, 0.01f, 0.0f, 2.0f);
-        ImGui::DragFloat("Max Slope", &nav->getSettings().agentMaxSlope, 1.0f, 0.0f, 60.0f);
-
-        if (ImGui::Button("Bake NavMesh"))
-        {
-            if (app->getNavigationModule()->buildNavMeshForCurrentScene())
-            {
-                DEBUG_LOG("NavMesh bake SUCCESS\n");
-            }
-            else
-            {
-                DEBUG_ERROR("NavMesh bake FAILED\n");
-            }
-        }
-
-    }
+    }*/
 }

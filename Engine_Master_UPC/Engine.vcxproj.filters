@@ -199,9 +199,13 @@
     <ClCompile Include="NavMeshBuilder.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="NavMeshWalk.cpp" />
     <ClCompile Include="WaypointPathComponent.cpp" />
-    <ClCompile Include="NavigationAgentComponent.cpp" />
+    <ClCompile Include="NavigationAgentComponent.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshWalk.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -440,9 +444,13 @@
     <ClInclude Include="NavMeshBuilder.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshWalk.h" />
     <ClInclude Include="WaypointPathComponent.h" />
-    <ClInclude Include="NavigationAgentComponent.h" />
+    <ClInclude Include="NavigationAgentComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshWalk.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
