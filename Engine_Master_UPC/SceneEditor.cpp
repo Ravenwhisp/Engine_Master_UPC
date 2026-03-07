@@ -100,15 +100,17 @@ void SceneEditor::render()
         bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
 
         EditorModule::SCENE_TOOL currentMode = app->getEditorModule()->getCurrentSceneTool();
-        switch (currentMode) {
-        case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
-        case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
-        case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
-        case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
-        default: shouldShowGizmo = false; break;
+        switch (currentMode) 
+        {
+            case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
+            case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
+            case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
+            case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
+            default: shouldShowGizmo = false; break;
         }
 
-        if (shouldShowGizmo) {
+        if (shouldShowGizmo) 
+        {
             Transform* transform = selectedGameObject->GetTransform();
             Matrix worldMatrix = transform->getGlobalMatrix();
 

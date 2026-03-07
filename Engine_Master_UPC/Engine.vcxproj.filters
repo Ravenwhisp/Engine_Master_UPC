@@ -262,6 +262,15 @@
     <ClCompile Include="ChangeScene.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
+    <ClCompile Include="GameWindow.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="GameViewModule.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -602,6 +611,15 @@
     </ClInclude>
     <ClInclude Include="ChangeScene.h">
       <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="GameWindow.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayToolbar.h">
+      <Filter>Editor\EditorWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="GameViewModule.h">
+      <Filter>GameEntity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
