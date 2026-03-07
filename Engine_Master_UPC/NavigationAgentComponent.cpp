@@ -16,6 +16,11 @@ bool NavigationAgentComponent::init()
 	return true;
 }
 
+std::unique_ptr<Component> NavigationAgentComponent::clone(GameObject* newOwner) const
+{
+	return std::unique_ptr<Component>();
+}
+
 void NavigationAgentComponent::setTarget(const Vector3& target)
 {
 	auto* navigationModule = app->getNavigationModule();

@@ -166,7 +166,6 @@ void SceneEditor::render()
     ImVec2 contentSize(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
 
     m_viewportPos = contentPos;
-    m_viewportSize = contentSize;
 
     ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
     ImGuizmo::Enable(true);
@@ -295,7 +294,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         // Start - left click
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
-            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, m_viewportSize, viewMatrix, projectionMatrix, hit)) 
+            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
                 app->getNavigationModule()->setPathStart(hit);
                 LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
@@ -306,7 +305,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         // end - right click
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
         {
-            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, m_viewportSize, viewMatrix, projectionMatrix, hit)) 
+            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
                 app->getNavigationModule()->setPathEnd(hit);
                 LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
@@ -315,7 +314,6 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         }
     }
 
-    m_debugDrawPass->record(commandList, getSize().x, getSize().y, viewMatrix, projectionMatrix);
 }
 
 void SceneEditor::renderQuadtree()

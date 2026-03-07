@@ -4,11 +4,11 @@
 #include "SceneModule.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "ModelComponent.h"
+#include "MeshRenderer.h"
 #include "BasicMesh.h"
 
 static void AppendMesh(
-    const BasicMesh* mesh,
+    const std::shared_ptr<BasicMesh> mesh,
     const Matrix& world,
     std::vector<float>& outVerts,
     std::vector<int>& outTris,
@@ -16,8 +16,8 @@ static void AppendMesh(
 {
     if (!mesh) return;
 
-    const auto& positions = mesh->getCpuPositions();
-    const auto& indices = mesh->getCpuIndices();
+    const auto& positions = mesh->getVertexPositions();
+    const auto& indices = mesh->getIndices();
 
     if (positions.empty() || indices.empty())
         return;
@@ -33,7 +33,7 @@ static void AppendMesh(
     }
 
     outTris.reserve(outTris.size() + indices.size());
-    for (uint32_t idx : indices)
+    for (uint8_t idx : indices)
         outTris.push_back(inOutBaseVertex + (int)idx);
 
     inOutBaseVertex += (int)positions.size();
@@ -52,12 +52,12 @@ static void CollectFromObject(
 
     if (obj->GetLayer() == requiredLayer)
     {
-        ModelComponent* model = obj->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+        MeshRenderer* model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (model)
         {
             const Matrix& world = obj->GetTransform()->getGlobalMatrix();
             const auto meshes = model->getMeshes();
-            for (const BasicMesh* mesh : meshes)
+            for (const auto mesh : meshes)
                 AppendMesh(mesh, world, outVerts, outTris, inOutBaseVertex);
         }
     }

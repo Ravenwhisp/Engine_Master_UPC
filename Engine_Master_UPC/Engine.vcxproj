@@ -177,7 +177,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;
 $(SolutionDir)3rdParty\RecastNavigation\Recast\Include;
 $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
 %(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -250,7 +250,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
-    <ClInclude Include="ModelComponent.h" />
     <ClInclude Include="NavigationAgentComponent.h" />
     <ClInclude Include="NavigationModule.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -437,7 +436,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
-    <ClCompile Include="ModelComponent.cpp" />
     <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="NavigationModule.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

@@ -11,6 +11,8 @@ class NavigationAgentComponent : public Component
 public:
 	NavigationAgentComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::NAVIGATION_AGENT, gameObject) {}
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
 	void setTarget(const DirectX::SimpleMath::Vector3& target);
 
 	bool init() override;

@@ -4,7 +4,7 @@
 #include "SceneModule.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "ModelComponent.h"
+#include "MeshRenderer.h"
 #include "BasicMesh.h"
 
 #include "NavMeshResource.h"

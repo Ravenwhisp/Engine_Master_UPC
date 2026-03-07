@@ -183,7 +183,6 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="3rdParty\simdjson\simdjson.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
@@ -512,7 +511,6 @@
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="3rdParty\simdjson\simdjson.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="UID.h" />
     <ClInclude Include="NavigationModule.h">

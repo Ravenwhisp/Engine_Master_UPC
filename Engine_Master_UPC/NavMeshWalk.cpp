@@ -19,6 +19,11 @@ NavMeshWalk::NavMeshWalk(UID id, GameObject* gameobject)
 {
 }
 
+std::unique_ptr<Component> NavMeshWalk::clone(GameObject* newOwner) const
+{
+    return std::unique_ptr<Component>();
+}
+
 float NavMeshWalk::getDeltaSecondsFromTimer() const
 {
     return app->getTimeModule()->deltaTime();

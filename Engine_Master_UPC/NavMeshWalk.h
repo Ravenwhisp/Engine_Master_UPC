@@ -10,6 +10,9 @@ class NavMeshWalk : public Component
 public:
     NavMeshWalk(UID id, GameObject* gameobject);
 
+    std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
+
     void update() override;
     void drawUi() override;
 

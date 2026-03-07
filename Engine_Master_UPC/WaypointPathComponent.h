@@ -12,6 +12,8 @@ public:
 
 	WaypointPathComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::WAYPOINT_PATH, gameObject) {}
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
 	const std::vector<DirectX::SimpleMath::Vector3>& getWaypoints() const { return m_waypoints; }
 
 	void addWaypoint(const DirectX::SimpleMath::Vector3& p);
