@@ -195,7 +195,7 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     GameObject* best = nullptr;
     int         bestDepth = -1;
 
-    const ImVec2 size = app->getEditorModule()->getEventViewport();
+    const ImVec2 size = app->getEditorModule()->getEventViewportSize();
 
     Rect2D screenRect;
     screenRect.x = 0.0f;

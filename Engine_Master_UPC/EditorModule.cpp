@@ -323,13 +323,13 @@ bool EditorModule::cleanUp()
 ImVec2 EditorModule::getEventViewport() const
 {
     SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
-    if (sceneEditor && sceneEditor->isHovered())
+    if (sceneEditor && sceneEditor->isFocused())
     {
         return ImVec2(sceneEditor->getViewportX(), sceneEditor->getViewportY());
     }
 
     GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
-    if (gameWindow && gameWindow->isHovered())
+    if (gameWindow && gameWindow->isFocused())
     {
         return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
     }
@@ -339,13 +339,13 @@ ImVec2 EditorModule::getEventViewport() const
 ImVec2 EditorModule::getEventViewportSize() const
 {
     SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
-    if (sceneEditor && sceneEditor->isHovered())
+    if (sceneEditor && sceneEditor->isFocused())
     {
         return sceneEditor->getSize();
     }
 
     GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
-    if (gameWindow && gameWindow->isHovered())
+    if (gameWindow && gameWindow->isFocused())
     {
         return gameWindow->getSize();
     }
