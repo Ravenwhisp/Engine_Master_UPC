@@ -51,8 +51,6 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Paste", nullptr, false, hasSelection and domTree.HasMember("gameObjects")))
     {
-        DEBUG_WARN("Option not implemented yet!");
-        //missing code to paste game objects // UUID PROBLEM WITH TRANSFORMS!!!
         pasteOn(selected);
     }
 
