@@ -5,7 +5,8 @@
 #include "IPointerEventHandler.h"
 #include "Delegates.h"
 
-class UIButton : public Component, public IPointerEventHandler {
+class UIButton : public Component, public IPointerEventHandler 
+{
 public:
 	UIButton(UID id, GameObject* owner);
 
