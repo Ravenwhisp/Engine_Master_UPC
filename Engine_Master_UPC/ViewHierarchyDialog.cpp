@@ -6,6 +6,9 @@
 #include "SceneModule.h"
 
 #include "GameObject.h"
+#include "Canvas.h"
+#include "UIButton.h"
+#include "UIImage.h"
 #include "Quadtree.h"
 #include "Hierarchy.h"
 #include <LightComponent.h>
@@ -98,10 +101,48 @@ void ViewHierarchyDialog::render()
         GameObject* model = app->getSceneModule()->createGameObject();
         model->AddComponent(ComponentType::MODEL);
     }
+
+    if (ImGui::BeginMenu("Create UI"))
+    {
+        if (ImGui::MenuItem("Canvas"))
+        {
+            GameObject* canvas = app->getSceneModule()->createGameObject();
+            canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+        }
+
+        if (ImGui::MenuItem("Button"))
+        {
+            GameObject* button = app->getSceneModule()->createGameObject();
+            button->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+            
+            UIButton* buttonComp = (UIButton*) button->AddComponentWithUID(ComponentType::UIBUTTON, GenerateUID());
+            UIImage* imageComp = (UIImage*) button->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
+            buttonComp->setTargetGraphic(imageComp);
+        }
+
+        if (ImGui::MenuItem("Text"))
+        {
+            GameObject* text = app->getSceneModule()->createGameObject();
+            text->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+            text->AddComponentWithUID(ComponentType::UITEXT, GenerateUID());
+        }
+
+        if (ImGui::MenuItem("Image"))
+        {
+            GameObject* image = app->getSceneModule()->createGameObject();
+            image->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+            image->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
+        }
+
+
+        ImGui::EndMenu();
+    }
 }
 
 void ViewHierarchyDialog::copy(GameObject* selected)
 {
+    domTree.SetObject(); // clear
+
     rapidjson::Value gameObjectList = selected->getNewHierarchyJSON(domTree);
     domTree.AddMember("gameObjects", gameObjectList, domTree.GetAllocator());
 }
@@ -112,8 +153,6 @@ void ViewHierarchyDialog::pasteOn(GameObject* selected)
     GameObject* gameObject = rebuildGameObject(gameObjectList);
 
     m_hierarchy->reparent(gameObject, selected);
-
-    domTree.SetObject(); // clear
 }
 
 GameObject* ViewHierarchyDialog::rebuildGameObject(const rapidjson::Value& objectList)
