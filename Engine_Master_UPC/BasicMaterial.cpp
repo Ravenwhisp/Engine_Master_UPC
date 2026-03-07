@@ -53,7 +53,7 @@ bool BasicMaterial::load(const tinygltf::Model& model, const tinygltf::PbrMetall
 		m_materialData.hasMetallicRoughnessTex = false;
 	}
 
-	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(MaterialData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
+	m_materialBuffer = app->getResourcesModule()->createDefaultBuffer(&m_materialData, alignUp(sizeof(PbrMetallicRoughnessData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 
 	return true;
 }

@@ -13,10 +13,16 @@ cbuffer ModelData : register(b2) //QUESTION: How do I change the Phong things to
     uint hasDiffuseTex;
     
     uint hasMetallicRoughnessTex;
-
-    //float3 specularColour;
-    //float shininess;
+    float metallicFactor;
+    float roughnessFactor;
+    
+    float padding;
 };
+
+cbuffer MaterialData : register(b4)
+{
+    
+}
 
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 32
@@ -26,7 +32,7 @@ struct DirectionalLight
 {
     float3 direction;
     float pad0;
-    float3 color;
+    float3 color; 
     float intensity;
 };
 

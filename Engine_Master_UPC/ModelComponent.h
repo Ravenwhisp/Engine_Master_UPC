@@ -10,7 +10,7 @@ namespace tinygltf { class Model; }
 struct ModelData {
 	Matrix model;
 	Matrix normalMat;
-	BasicMaterial::BDRFPhongMaterialData material;
+	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
 class ModelComponent : public Component

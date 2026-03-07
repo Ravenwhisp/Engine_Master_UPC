@@ -29,18 +29,20 @@ public:
 	};
 
 	//New
-	struct PbrMetallicRoughnessData //QUESTION: Where do I get TextureInfo NO EXISTE
+	struct PbrMetallicRoughnessData
 	{
 		Vector3		diffuseColour;
-		BOOL		hasDiffuseTex;
-		BOOL		hasMetallicRoughnessTex;
+		BOOL        hasDiffuseTex;
 
-		//Vector4 baseColorFactor;
-		//TextureInfo baseColorTexture;
-		//uint hasBaseColorTexture;
-		//float metallicFactor;
-		//float roughnessFactor;
-		//TextureInfo metallicRoughnessTexture;*/
+		BOOL		hasMetallicRoughnessTex;
+		float       metallicFactor;
+		float       roughnessFactor;
+		float		padding;
+	};
+
+	struct MaterialGpu
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE srvTable;
 	};
 
 	bool load(const tinygltf::Model& model, const tinygltf::PbrMetallicRoughness& material, const char* basePath);
