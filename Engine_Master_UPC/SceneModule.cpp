@@ -444,7 +444,8 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
 
     uint64_t defaultCameraOwnerUid = 0;
-    if (m_defaultCamera != nullptr) {
+    if (m_defaultCamera != nullptr) 
+    {
         GameObject* owner = m_defaultCamera->getOwner();
         defaultCameraOwnerUid = (uint64_t)owner->GetID();
     }
@@ -667,9 +668,9 @@ SceneSnapshot SceneModule::getClonedGameObjects()
 {
 	SceneSnapshot snapshot;
 
-    snapshot.allObjects.reserve(m_allObjects.size());
+  /*snapshot.allObjects.reserve(m_allObjects.size());
 
-    for (const auto& obj : m_allObjects)
+    for (const auto& obj : m_rootObjects)
     {
         auto clone = obj->clone();
 
@@ -685,7 +686,41 @@ SceneSnapshot SceneModule::getClonedGameObjects()
         snapshot.allObjects.push_back(std::move(clone));
     }
 
+    return snapshot;*/
+    for (GameObject* root : m_rootObjects)
+    {
+        auto clonedRoot = cloneGameObjectRecursive(root, snapshot);
+        snapshot.rootObjects.push_back(clonedRoot.get());
+        snapshot.allObjects.push_back(std::move(clonedRoot));
+    }
+
     return snapshot;
+}
+
+std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
+{
+    auto clone = original->clone();
+
+    if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
+    {
+        snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    //clone->ClearComponents();
+
+    Transform* originalTransform = original->GetTransform();
+
+    for (GameObject* childGO : originalTransform->getAllChildren())
+    {
+        auto clonedChild = cloneGameObjectRecursive(childGO, snapshot);
+
+        clonedChild->GetTransform()->setRoot(clone->GetTransform());
+		clone->GetTransform()->addChild(clonedChild.get());
+		
+        snapshot.allObjects.push_back(std::move(clonedChild));
+    }
+
+    return clone;
 }
 
 

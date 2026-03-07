@@ -64,14 +64,16 @@ void CameraFollow::setFollowTargets()
 
     if (!m_firstTargetTransform && m_firstTargetUid != 0)
     {
-        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_firstTargetUid)) {
+        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_firstTargetUid)) 
+        {
             m_firstTargetTransform = gameObject->GetTransform();
         }
     }
 
     if (!m_secondTargetTransform && m_secondTargetUid != 0)
     {
-        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_secondTargetUid)) {
+        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_secondTargetUid)) 
+        {
             m_secondTargetTransform = gameObject->GetTransform();
         }
     }
@@ -128,7 +130,8 @@ Vector3 CameraFollow::computeFollowPoint() const
     return followPoint;
 }
 
-float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const {
+float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const 
+{
     const float distance = (p2 - p1).Length();
 
     const float zoomRange = m_zoomEndDistance - m_zoomStartDistance;
@@ -154,7 +157,8 @@ float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p
     return targetExtraHeight;
 }
 
-float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtraHeight, float sharpness, float dt) const {
+float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtraHeight, float sharpness, float dt) const 
+{
     if (sharpness <= 0.0f)
     {
         return targetExtraHeight;
