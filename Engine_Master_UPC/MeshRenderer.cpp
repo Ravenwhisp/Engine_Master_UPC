@@ -195,7 +195,9 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         m_hasBounds = false;
 
         ModelAsset* modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(m_modelAssetId));
-        addModel(*modelAsset);
+        if (modelAsset) {
+            addModel(*modelAsset);
+        }
     }
 
     return true;
