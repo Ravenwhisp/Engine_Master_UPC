@@ -69,6 +69,7 @@ public:
 #pragma region Persistence
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	void serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
 	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
 	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
 
