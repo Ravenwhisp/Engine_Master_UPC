@@ -6,6 +6,8 @@ class UIText : public Component
 public:
     UIText(UID id, GameObject* owner);
 
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
     const std::string& getText() const { return m_text; }
     void setText(const std::string& text) { m_text = text; }
 

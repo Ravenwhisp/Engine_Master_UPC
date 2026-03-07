@@ -17,6 +17,7 @@
 #include "EditorSettings.h"
 #include "FileDialog.h"
 #include "SceneConfig.h"
+#include "GameWindow.h"
 
 #include "Application.h"
 #include "SceneModule.h"
@@ -40,7 +41,8 @@ void mainMenuBar()
 }
 
 
-void style() {
+void style() 
+{
     ImGuiStyle& style = ImGui::GetStyle();
 
     // --- Layout & Rounding ---
@@ -212,16 +214,24 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
     ImGuiID dock_hierarchy, dock_scene;
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
+    ImGuiID dock_playmode_buttons;
+	ImGui::DockBuilderSplitNode(dock_scene, ImGuiDir_Up, 0.1f, &dock_playmode_buttons, &dock_scene);
+
     ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
     ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
+
     ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
+
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
+    ImGui::DockBuilderDockWindow("Game", dock_scene);
 
     ImGui::DockBuilderDockWindow("FileDialog", dock_bottom);
     ImGui::DockBuilderDockWindow("Console", dock_bottom);
     ImGui::DockBuilderDockWindow("Hardware Info", dock_bottom);
     ImGui::DockBuilderDockWindow("Performance", dock_bottom);
+
+	ImGui::DockBuilderDockWindow("Play Mode Buttons", dock_playmode_buttons);
 
     ImGui::DockBuilderFinish(dockspace_id);
 }
@@ -247,14 +257,14 @@ bool EditorModule::init()
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
 
-
+	m_editorWindows.push_back(m_gameWindow = new GameWindow());
 
 	return true;
 }
 
 void EditorModule::update()
 {
-    if (app->getEditorModule()->getSceneEditor()->isFocused())
+    if (m_sceneEditor->isFocused())
     {
         handleKeyboardShortcuts();
     }
@@ -305,13 +315,16 @@ bool EditorModule::cleanUp()
     m_logger = nullptr;
     m_hardwareWindow = nullptr;
     m_performanceWindow = nullptr;
+	m_gameWindow = nullptr;
 
     return true;
 }
 
 
-void EditorModule::setSceneTool(SCENE_TOOL newTool) {
-    if (currentSceneTool == newTool) {
+void EditorModule::setSceneTool(SCENE_TOOL newTool) 
+{
+    if (currentSceneTool == newTool) 
+    {
         toggleGizmoMode();
         return;
     }
@@ -319,45 +332,55 @@ void EditorModule::setSceneTool(SCENE_TOOL newTool) {
     currentSceneTool = newTool;
 }
 
-void EditorModule::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode) {
-    if (previousSceneTool == NONE) {
+void EditorModule::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode) 
+{
+    if (previousSceneTool == NONE) 
+    {
         previousSceneTool = currentSceneTool;
         currentSceneTool = sceneTool;
         currentNavigationMode = navigationMode;
     }
 }
 
-void EditorModule::resetMode() {
-    if (previousSceneTool != NONE) {
+void EditorModule::resetMode() 
+{
+    if (previousSceneTool != NONE) 
+    {
         currentSceneTool = previousSceneTool;
         previousSceneTool = NONE;
     }
     currentNavigationMode = PAN;
 }
 
-void EditorModule::handleKeyboardShortcuts() {
+void EditorModule::handleKeyboardShortcuts() 
+{
     Keyboard::State keyboardState = Keyboard::Get().GetState();
     Mouse::State mouseState = Mouse::Get().GetState();
 
     DirectX::Mouse::ButtonStateTracker buttonStateTracker;
     buttonStateTracker.Update(mouseState);
 
-    if (mouseState.rightButton) {
+    if (mouseState.rightButton) 
+    {
         setMode(NAVIGATION, FREE_LOOK);
     }
-    else if (mouseState.leftButton && (keyboardState.LeftAlt || keyboardState.RightAlt)) {
+    else if (mouseState.leftButton && (keyboardState.LeftAlt || keyboardState.RightAlt)) 
+    {
         setMode(NAVIGATION, ORBIT);
     }
-    else if (mouseState.middleButton) {
+    else if (mouseState.middleButton) 
+    {
         setMode(NAVIGATION, PAN);
     }
-    else if (!mouseState.leftButton) {
+    else if (!mouseState.leftButton) 
+    {
         resetMode();
         handleQWERTYCases(keyboardState);
     }
 }
 
-void EditorModule::handleQWERTYCases(Keyboard::State keyboardState) {
+void EditorModule::handleQWERTYCases(Keyboard::State keyboardState) 
+{
     static Keyboard::KeyboardStateTracker keyTracker;
     keyTracker.Update(keyboardState);
 
@@ -367,7 +390,8 @@ void EditorModule::handleQWERTYCases(Keyboard::State keyboardState) {
     if (keyTracker.pressed.T) setSceneTool(RECT);
     if (keyTracker.pressed.Y) setSceneTool(TRANSFORM);
 
-    if (keyTracker.pressed.Q) {
+    if (keyTracker.pressed.Q) 
+    {
         currentSceneTool = NAVIGATION;
         currentNavigationMode = PAN;
     }
