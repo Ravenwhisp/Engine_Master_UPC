@@ -5,6 +5,7 @@
 #include "InputModule.h"
 #include "SceneModule.h"
 #include "EditorModule.h"
+#include "GameWindow.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -78,7 +79,8 @@ void ModuleEventSystem::process()
     // Find the topmost UI element under the cursor
     GameObject* hovered = raycast(mousePos);
 
-    constexpr PointerButton buttons[] = {
+    constexpr PointerButton buttons[] = 
+    {
         PointerButton::Left,
         PointerButton::Right,
         PointerButton::Middle
@@ -140,7 +142,39 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
     SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
     if (!sceneEditor || !sceneEditor->isHovered())
-        return false;
+    {
+		GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+        if (!gameWindow || !gameWindow->isHovered())
+        {
+            return false;
+        }
+        // Raw mouse position in screen pixels
+        const Vector2 rawMouse = app->getInputModule()->getMousePosition();
+
+        // Viewport top-left in screen pixels
+        const float winX = gameWindow->getViewportX();
+        const float winY = gameWindow->getViewportY();
+        const float winW = gameWindow->getSize().x;
+        const float winH = gameWindow->getSize().y;
+
+        if (winW <= 0.0f || winH <= 0.0f)
+        {
+            return false;
+        }
+
+        // Convert to viewport-local pixels — same space as Rect2D
+        const float localX = rawMouse.x - winX;
+        const float localY = rawMouse.y - winY;
+
+        // Reject if outside the viewport bounds
+        if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+        {
+            return false;
+        }
+
+        outPos = { localX, localY };
+        return true;
+    }
 
     // Raw mouse position in screen pixels
     const Vector2 rawMouse = app->getInputModule()->getMousePosition();
@@ -152,7 +186,9 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
     const float winH = sceneEditor->getSize().y;
 
     if (winW <= 0.0f || winH <= 0.0f)
+    {
         return false;
+    }
 
     // Convert to viewport-local pixels — same space as Rect2D
     const float localX = rawMouse.x - winX;
@@ -160,7 +196,9 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 
     // Reject if outside the viewport bounds
     if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+    {
         return false;
+    }
 
     outPos = { localX, localY };
     return true;
