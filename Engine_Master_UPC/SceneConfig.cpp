@@ -65,14 +65,14 @@ void SceneConfig::render()
 
     ImGui::Separator();
 
-    drawNavigationSettings();
-
     ImGui::End();
 
 }
 
-void SceneConfig::drawSaveSceneSettings() {
-    if (ImGui::CollapsingHeader("Save Scene")) {
+void SceneConfig::drawSaveSceneSettings() 
+{
+    if (ImGui::CollapsingHeader("Save Scene")) 
+    {
 
         static char saveSceneBuffer[256];
         strcpy_s(saveSceneBuffer, m_saveSceneName.c_str());
@@ -99,8 +99,10 @@ void SceneConfig::drawSaveSceneSettings() {
 }
 
 
-void SceneConfig::drawLoadSceneSettings() {
-    if (ImGui::CollapsingHeader("Load Scene")) {
+void SceneConfig::drawLoadSceneSettings() 
+{
+    if (ImGui::CollapsingHeader("Load Scene")) 
+    {
         static char loadSceneBuffer[256];
         strcpy_s(loadSceneBuffer, m_loadSceneName.c_str());
 
@@ -142,15 +144,11 @@ void SceneConfig::drawNavmeshSettings()
         // Temporary Button, this must happen automatically when loading the scene
         if (ImGui::Button("Load Navmesh"))
         {
-            if (!m_sceneModule->loadScene(m_loadSceneName))
-            {
-                DEBUG_WARN("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
-            }
-            else
-            {
-                app->getNavigationModule()->loadNavMeshForScene(m_sceneModule->getName());
-                DEBUG_LOG("Navmesh loaded successfully.");
-            }
+            const char* sceneName = m_sceneModule->getName();
+            const bool ok = app->getNavigationModule()->loadNavMeshForScene(sceneName);
+
+            if (ok) DEBUG_LOG("Navmesh loaded successfully.");
+            else    DEBUG_WARN("Navmesh for scene '%s' not found.", sceneName);
         }
 
         bool show = nav->getDrawNavMesh();
@@ -175,10 +173,12 @@ void SceneConfig::drawNavmeshSettings()
 }
 
 
-void SceneConfig::drawSkyboxSettings() {
+void SceneConfig::drawSkyboxSettings() 
+{
     auto& skyboxSettings = m_sceneModule->getSkyboxSettings();
 
-    if (ImGui::CollapsingHeader("Skybox")) {
+    if (ImGui::CollapsingHeader("Skybox")) 
+    {
 
         if (ImGui::Checkbox("Enabled###SkyEnabled", &skyboxSettings.enabled))
         {
@@ -212,14 +212,3 @@ void SceneConfig::drawLightSettings()
     }
 }
 
-void SceneConfig::drawNavigationSettings()
-{
-    /*const auto& nav = app->getNavigationModule();
-    if (ImGui::CollapsingHeader("Navigation Settings"))
-    {
-       
-
-        
-
-    }*/
-}

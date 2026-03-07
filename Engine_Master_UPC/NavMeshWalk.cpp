@@ -201,5 +201,9 @@ bool NavMeshWalk::deserializeJSON(const rapidjson::Value& c)
             m_navExtents[2] = ext[2].GetFloat();
         }
     }
+
+    m_yawInitialized = false;
+    m_currentYawDeg = 0.0f;
+
     return true;
 }

@@ -206,6 +206,9 @@
     <ClCompile Include="NavMeshWalk.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="NavMeshGeometryExtractor.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -449,6 +452,9 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshWalk.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
   </ItemGroup>

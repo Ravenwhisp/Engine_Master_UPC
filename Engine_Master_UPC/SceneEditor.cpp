@@ -19,6 +19,7 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
+#include "NavigationAgentComponent.h"
 
 #include "CameraComponent.h"
 #include <Logger.h>
@@ -65,6 +66,35 @@ static bool ScreenToWorldOnPlaneY0(
 
     outWorld = nearWorld + dir * t;
     return true;
+}
+
+static void DebugDrawHierarchy(GameObject* go)
+{
+    if (!go || !go->GetActive())
+        return;
+
+    // --- Lights  ---
+    if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
+    {
+        if (light->isDebugDrawEnabled())
+        {
+            if (light->isDebugDrawDepthEnabled())
+                LightDebugDraw::drawLightWithDepth(*go);
+            else
+                LightDebugDraw::drawLightWithoutDepth(*go);
+        }
+    }
+
+    // --- Navigation Agent path ---
+    if (auto* agent = go->GetComponentAs<NavigationAgentComponent>(ComponentType::NAVIGATION_AGENT))
+    {
+        if (agent->isActive())
+            agent->drawDebugPath();
+    }
+
+    // recurse children
+    for (GameObject* child : go->GetTransform()->getAllChildren())
+        DebugDrawHierarchy(child);
 }
 
 SceneEditor::SceneEditor()
@@ -133,13 +163,16 @@ void SceneEditor::render()
     ImGuizmo::Enable(true);
 
     GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
+
     if (selectedGameObject && m_cameraModule)
     {
         ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
         bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
 
         EditorModule::SCENE_TOOL currentMode = app->getEditorModule()->getCurrentSceneTool();
-        switch (currentMode) {
+
+        switch (currentMode) 
+        {
         case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
         case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
         case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
@@ -147,7 +180,8 @@ void SceneEditor::render()
         default: shouldShowGizmo = false; break;
         }
 
-        if (shouldShowGizmo) {
+        if (shouldShowGizmo) 
+        {
             Transform* transform = selectedGameObject->GetTransform();
             Matrix worldMatrix = transform->getGlobalMatrix();
 
@@ -201,34 +235,11 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         renderQuadtree();
     }
 
-    for (GameObject* go : app->getSceneModule()->getAllGameObjects())
+    for (GameObject* root : app->getSceneModule()->getAllGameObjects()) 
     {
-        if (!go || !go->GetActive()) {
-            continue;
-        }
-
-        auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT);
-
-        if (!light) 
-        {
-            continue;
-        }
-
-        if (!light->isDebugDrawEnabled()) 
-        {
-            continue;
-        }
-
-        if (light->isDebugDrawDepthEnabled()) 
-        {
-            LightDebugDraw::drawLightWithDepth(*go);
-        }
-        else 
-        {
-            LightDebugDraw::drawLightWithoutDepth(*go);
-        }
+        DebugDrawHierarchy(root);
     }
-
+        
     NavigationModule* nav = app->getNavigationModule();
     if (nav && nav->getDrawNavMesh() && nav->getNavMesh())
     {

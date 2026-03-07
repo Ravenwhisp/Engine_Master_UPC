@@ -143,18 +143,29 @@ bool GameObject::init()
     return true;
 }
 
-void GameObject::update() {
+void GameObject::update() 
+{
+    if (!m_active)
+        return;
+
     for (Component* component : m_components)
     {
-        if (component->isActive())
-        {
+        if (component && component->isActive())
             component->update();
-        }
-	}
+    }
+
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child && child->GetActive())
+            child->update();
+    }
 }
 
 void GameObject::preRender()
 {
+    if (!m_active)
+        return;
+
     for (Component* component : m_components)
     {
         if (component->isActive())
@@ -173,6 +184,9 @@ void GameObject::preRender()
 
 void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
+    if (!m_active)
+        return;
+
     for (Component* component : m_components)
     {
         if (component->isActive())
@@ -191,6 +205,9 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 
 void GameObject::postRender()
 {
+    if (!m_active)
+        return;
+
     for (Component* component : m_components)
     {
         if (component->isActive())

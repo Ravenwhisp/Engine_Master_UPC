@@ -3,70 +3,83 @@
 
 #include "SceneModule.h"
 #include "GameObject.h"
+#include "Transform.h"
 #include "ModelComponent.h"
 #include "BasicMesh.h"
 
-bool NavMeshGeometryExtractor::Extract(SceneModule& scene, TriangleSoup& out)
+static void AppendMesh(
+    const BasicMesh* mesh,
+    const Matrix& world,
+    std::vector<float>& outVerts,
+    std::vector<int>& outTris,
+    int& inOutBaseVertex)
 {
-	out.vertices.clear();
-	out.indices.clear();
+    if (!mesh) return;
 
-	int vertexOffset = 0;
+    const auto& positions = mesh->getCpuPositions();
+    const auto& indices = mesh->getCpuIndices();
 
-	const std::vector<GameObject*>& gameObjects = scene.getAllGameObjects();
+    if (positions.empty() || indices.empty())
+        return;
 
-	for (GameObject* object : gameObjects)
-	{
-		if (!object)
-			continue;
+    outVerts.reserve(outVerts.size() + positions.size() * 3);
 
-		/*if (!object->GetStatic())
-			continue;*/
-		if (object->GetTag() != Tag::NAVIGATION)
-			continue;
+    for (const Vector3& pLocal : positions)
+    {
+        const Vector3 pWorld = Vector3::Transform(pLocal, world);
+        outVerts.push_back(pWorld.x);
+        outVerts.push_back(pWorld.y);
+        outVerts.push_back(pWorld.z);
+    }
 
-		Component* comp = object->GetComponent(ComponentType::MODEL);
-		if (!comp)
-			continue;
+    outTris.reserve(outTris.size() + indices.size());
+    for (uint32_t idx : indices)
+        outTris.push_back(inOutBaseVertex + (int)idx);
 
-		ModelComponent* model = static_cast<ModelComponent*>(comp);
-		if (!model)
-			continue;
+    inOutBaseVertex += (int)positions.size();
+}
 
-		const std::vector<BasicMesh*>& meshes = model->getMeshes();
+static void CollectFromObject(
+    GameObject* obj,
+    std::vector<float>& outVerts,
+    std::vector<int>& outTris,
+    int& inOutBaseVertex,
+    Layer requiredLayer,
+    bool onlyActive)
+{
+    if (!obj) return;
+    if (onlyActive && !obj->GetActive()) return;
 
-		for (BasicMesh* mesh : meshes)
-		{
-			if (!mesh)
-				continue;
+    if (obj->GetLayer() == requiredLayer)
+    {
+        ModelComponent* model = obj->GetComponentAs<ModelComponent>(ComponentType::MODEL);
+        if (model)
+        {
+            const Matrix& world = obj->GetTransform()->getGlobalMatrix();
+            const auto meshes = model->getMeshes();
+            for (const BasicMesh* mesh : meshes)
+                AppendMesh(mesh, world, outVerts, outTris, inOutBaseVertex);
+        }
+    }
 
-			const std::vector<Vector3>& positions = mesh->getPositionsCPU();
-			const std::vector<uint32_t>& indices = mesh->getIndicesCPU();
+    for (GameObject* child : obj->GetTransform()->getAllChildren()) 
+    {
+        CollectFromObject(child, outVerts, outTris, inOutBaseVertex, requiredLayer, onlyActive);
+    }
+        
+}
 
-			if (positions.empty() || indices.empty())
-				continue;
+bool NavMeshGeometryExtractor::Extract(SceneModule& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
+{
+    out.vertices.clear();
+    out.indices.clear();
 
-			Matrix worldMatrix = object->GetTransform()->getGlobalMatrix();
+    int baseVertex = 0;
+    for (GameObject* root : scene.getAllGameObjects()) 
+    {
+        CollectFromObject(root, out.vertices, out.indices, baseVertex, requiredLayer, onlyActive);
+    }
+        
 
-			for (const Vector3& p : positions)
-			{
-				Vector3 world = Vector3::Transform(p, worldMatrix);
-
-				out.vertices.push_back(world.x);
-				out.vertices.push_back(world.y);
-				out.vertices.push_back(world.z);
-			}
-
-			for (uint32_t i = 0; i < indices.size(); i += 3)
-			{
-				out.indices.push_back(vertexOffset + indices[i]);
-				out.indices.push_back(vertexOffset + indices[i + 1]);
-				out.indices.push_back(vertexOffset + indices[i + 2]);
-			}
-
-			vertexOffset += (int)positions.size();
-		}
-	}
-
-	return !out.vertices.empty();
+    return !out.vertices.empty() && !out.indices.empty();
 }

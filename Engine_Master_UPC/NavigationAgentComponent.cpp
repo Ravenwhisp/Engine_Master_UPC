@@ -10,13 +10,6 @@
 
 using namespace DirectX::SimpleMath;
 
-static float wrapPI(float a)
-{
-	while (a > DirectX::XM_PI) a -= DirectX::XM_2PI;
-	while (a < -DirectX::XM_PI) a += DirectX::XM_2PI;
-	return a;
-}
-
 bool NavigationAgentComponent::init()
 {
 	m_running = m_autoStart;
@@ -176,7 +169,7 @@ void NavigationAgentComponent::update()
 
 void NavigationAgentComponent::drawUi()
 {
-	ImGui::SeparatorText("Navigaton Agent");
+	ImGui::SeparatorText("Navigation Agent");
 
 	ImGui::Checkbox("Draw Path", &m_drawPath);
 	
@@ -231,6 +224,7 @@ rapidjson::Value NavigationAgentComponent::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVIGATION_AGENT), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 	componentInfo.AddMember("DrawPath", m_drawPath, domTree.GetAllocator());
+	componentInfo.AddMember("AutoStart", m_autoStart, domTree.GetAllocator());
 
 	componentInfo.AddMember("Speed", m_speed, domTree.GetAllocator());
 	componentInfo.AddMember("TurnSpeed", m_turnSpeed, domTree.GetAllocator());
@@ -241,17 +235,34 @@ rapidjson::Value NavigationAgentComponent::getJSON(rapidjson::Document& domTree)
 
 bool NavigationAgentComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("DrawPath"))
+	if (componentInfo.HasMember("DrawPath")) 
+	{
 		m_drawPath = componentInfo["DrawPath"].GetBool();
+	}
+		
+	if (componentInfo.HasMember("AutoStart")) 
+	{
+		m_autoStart = componentInfo["AutoStart"].GetBool();
+	}
+		
+	m_running = m_autoStart;
 
-	if (componentInfo.HasMember("Speed"))
+	if (componentInfo.HasMember("Speed")) 
+	{
 		m_speed = componentInfo["Speed"].GetFloat();
-
-	if (componentInfo.HasMember("TurnSpeed"))
+	}
+		
+	if (componentInfo.HasMember("TurnSpeed")) 
+	{
 		m_turnSpeed = componentInfo["TurnSpeed"].GetFloat();
-
-	if (componentInfo.HasMember("FaceMovement"))
+	}
+		
+	if (componentInfo.HasMember("FaceMovement")) 
+	{
 		m_faceMovement = componentInfo["FaceMovement"].GetBool();
+	}
+
+		
 
 	return true;
 }
