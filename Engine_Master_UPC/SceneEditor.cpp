@@ -7,7 +7,6 @@
 #include "D3D12Module.h"
 #include "EditorModule.h"
 #include "CameraModule.h"
-#include "NavigationModule.h"
 
 #include "RenderModule.h"
 #include "SceneModule.h"
@@ -20,84 +19,11 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
-#include "NavigationAgentComponent.h"
+#include "TriggerArea.h"
 #include "Quadtree.h"
 
 #include "CameraComponent.h"
-#include <Logger.h>
 
-
-static bool ScreenToWorldOnPlaneY0(
-    const ImVec2& mousePos,
-    const ImVec2& vpPos,
-    const ImVec2& vpSize,
-    const Matrix& view,
-    const Matrix& proj,
-    Vector3& outWorld)
-{
-    if (vpSize.x <= 1 || vpSize.y <= 1) return false;
-
-    // mouse -> viewport UV [0..1]
-    float u = (mousePos.x - vpPos.x) / vpSize.x;
-    float v = (mousePos.y - vpPos.y) / vpSize.y;
-    if (u < 0 || u > 1 || v < 0 || v > 1) return false;
-
-    // UV -> NDC (D3D: z=0..1). Ojo con Y invertida.
-    float ndcX = 2.0f * u - 1.0f;
-    float ndcY = 1.0f - 2.0f * v;
-
-    Matrix invViewProj = (view * proj).Invert();
-
-    Vector4 nearClip(ndcX, ndcY, 0.0f, 1.0f);
-    Vector4 farClip(ndcX, ndcY, 1.0f, 1.0f);
-
-    Vector4 nearWorld4 = Vector4::Transform(nearClip, invViewProj);
-    Vector4 farWorld4 = Vector4::Transform(farClip, invViewProj);
-
-    if (nearWorld4.w == 0 || farWorld4.w == 0) return false;
-
-    Vector3 nearWorld(nearWorld4.x / nearWorld4.w, nearWorld4.y / nearWorld4.w, nearWorld4.z / nearWorld4.w);
-    Vector3 farWorld(farWorld4.x / farWorld4.w, farWorld4.y / farWorld4.w, farWorld4.z / farWorld4.w);
-
-    Vector3 dir = farWorld - nearWorld;
-    dir.Normalize();
-
-    if (fabsf(dir.y) < 1e-5f) return false;
-    float t = (0.0f - nearWorld.y) / dir.y;
-    if (t < 0.0f) return false;
-
-    outWorld = nearWorld + dir * t;
-    return true;
-}
-
-static void DebugDrawHierarchy(GameObject* go)
-{
-    if (!go || !go->GetActive())
-        return;
-
-    // --- Lights  ---
-    if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
-    {
-        if (light->isDebugDrawEnabled())
-        {
-            if (light->isDebugDrawDepthEnabled())
-                LightDebugDraw::drawLightWithDepth(*go);
-            else
-                LightDebugDraw::drawLightWithoutDepth(*go);
-        }
-    }
-
-    // --- Navigation Agent path ---
-    if (auto* agent = go->GetComponentAs<NavigationAgentComponent>(ComponentType::NAVIGATION_AGENT))
-    {
-        if (agent->isActive())
-            agent->drawDebugPath();
-    }
-
-    // recurse children
-    for (GameObject* child : go->GetTransform()->getAllChildren())
-        DebugDrawHierarchy(child);
-}
 
 SceneEditor::SceneEditor()
 {
@@ -165,27 +91,23 @@ void SceneEditor::render()
     ImVec2 contentPos(windowPos.x + contentMin.x, windowPos.y + contentMin.y);
     ImVec2 contentSize(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
 
-    m_viewportPos = contentPos;
-
     ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
     ImGuizmo::Enable(true);
 
     GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
-
     if (selectedGameObject && m_cameraModule)
     {
         ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
         bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
 
         EditorModule::SCENE_TOOL currentMode = app->getEditorModule()->getCurrentSceneTool();
-
         switch (currentMode) 
         {
-        case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
-        case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
-        case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
-        case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
-        default: shouldShowGizmo = false; break;
+            case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
+            case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
+            case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
+            case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
+            default: shouldShowGizmo = false; break;
         }
 
         if (shouldShowGizmo) 
@@ -244,32 +166,49 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         renderQuadtree();
     }
 
-    for (GameObject* root : app->getSceneModule()->getAllGameObjects()) 
+    for (GameObject* go : app->getSceneModule()->getAllGameObjects())
     {
-        DebugDrawHierarchy(root);
-    }
-        
-    NavigationModule* nav = app->getNavigationModule();
-    if (nav && nav->getDrawNavMesh() && nav->getNavMesh())
-    {
-        const auto& lines = nav->getNavMeshDebugLines();
-        for (const auto& l : lines) 
+        if (!go || !go->GetActive()) 
         {
-            dd::line(ddConvert(l.a), ddConvert(l.b), dd::colors::Green);
-        } 
+            continue;
+        }
+
+        auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT);
+
+        if (!light)
+        {
+            continue;
+        }
+
+        if (!light->isDebugDrawEnabled())
+        {
+            continue;
+        }
+
+        if (light->isDebugDrawDepthEnabled())
+        {
+            LightDebugDraw::drawLightWithDepth(*go);
+        }
+        else
+        {
+            LightDebugDraw::drawLightWithoutDepth(*go);
+        }
+
+        auto* area = go->GetComponentAs<TriggerArea>(ComponentType::CHANGE_SCENE_ON_TRIGGER);
+        
+        if (area) 
+        {
+            area->printArea();
+        }
     }
 
-    if (nav && nav->hasDebugPath())
+    if (m_settings->sceneEditor.showModelBoundingBoxes)
     {
-        const auto& pts = nav->getDebugPathPoints();
-        for (size_t i = 1; i < pts.size(); ++i)
-            dd::line(ddConvert(pts[i - 1]), ddConvert(pts[i]), dd::colors::Yellow);
-
-        // marks start/end
-        dd::line(ddConvert(pts.front()), ddConvert(pts.front() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
-        dd::line(ddConvert(pts.back()), ddConvert(pts.back() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+        for (const auto& renderer : app->getSceneModule()->getAllMeshRenderers())
+        {
+            drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
+        }
     }
-
 
     Matrix viewMatrix;
     Matrix projectionMatrix;
@@ -284,36 +223,6 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         viewMatrix = app->getCameraModule()->getView();
         projectionMatrix = app->getCameraModule()->getProjection();
     }
-
-    // Mouse Path tool
-    if (m_isViewportHovered)
-    {
-        Vector3 hit;
-        ImVec2 mouse = ImGui::GetMousePos();
-
-        // Start - left click
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-        {
-            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
-            {
-                app->getNavigationModule()->setPathStart(hit);
-                LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
-            }
-                
-        }
-
-        // end - right click
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-        {
-            if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
-            {
-                app->getNavigationModule()->setPathEnd(hit);
-                LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
-            }
-                
-        }
-    }
-
 }
 
 void SceneEditor::renderQuadtree()
@@ -366,4 +275,20 @@ void SceneEditor::renderQuadtree()
         Engine::BoundingBox bb = Engine::BoundingBox(min, max, bbPoints);
         bb.render();
 	}
+}
+
+void SceneEditor::drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color)
+{
+    const Vector3* c = bbox.getPoints();
+
+    ddVec3 pts[8];
+
+    for (int i = 0; i < 8; ++i)
+    {
+        pts[i][0] = c[i].x;
+        pts[i][1] = c[i].y;
+        pts[i][2] = c[i].z;
+    }
+
+    dd::box(pts, color, 0, false);
 }

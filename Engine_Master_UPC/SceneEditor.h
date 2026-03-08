@@ -43,6 +43,7 @@ public:
 
     void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
     void renderQuadtree();
+    void drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color);
 
 
     float  getViewportX()      const { return m_viewportX; }

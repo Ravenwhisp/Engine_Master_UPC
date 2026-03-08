@@ -7,6 +7,8 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 
+class GameViewModule;
+
 class ImGuiPass;
 
 class Logger;
@@ -18,6 +20,8 @@ class DebugDrawPass;
 class EditorSettings;
 class SceneConfig;
 class GameWindow;
+
+class ViewGameDebug;
 
 class EditorModule: public Module
 {
@@ -47,14 +51,13 @@ public:
 	};
 
 public:
-	~EditorModule() {}
+	EditorModule();
+	~EditorModule();
 
 #pragma region Game Loop
 	bool init() override;
 	void update() override;
-	void preRender() override;
 	void render() override;
-	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
 
@@ -83,6 +86,8 @@ private:
 	void			setupDockLayout(ImGuiID dockspace_id);
 	void			mainDockspace(bool* open);
 private:
+	GameViewModule* m_gameViewModule;
+
 #pragma region Views
 	std::vector<EditorWindow*>	m_editorWindows;
 	Logger*						m_logger = nullptr;
@@ -95,6 +100,8 @@ private:
 
     bool m_showMainDockspace = true;
     bool m_firstFrame = true;
+
+	std::unique_ptr<ViewGameDebug> m_viewGameDebug;
 #pragma endregion
 
 #pragma region Editor
@@ -114,9 +121,5 @@ private:
 	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;
 #pragma endregion
-
-	void ConsoleLog(const char* message);
-	void ConsoleWarn(const char* message);
-	void ConsoleError(const char* message);
 };
 
