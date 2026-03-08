@@ -30,18 +30,33 @@ public:
 		float		shininess;
 	};
 
+	struct PbrMetallicRoughnessData
+	{
+		Vector3     diffuseColour;
+		BOOL        hasDiffuseTex;
+
+		BOOL        hasMetallicRoughnessTex;
+		float       metallicFactor;
+		float       roughnessFactor;
+		float       padding;
+	};
+
 	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
 	Texture*					getTexture() const { return m_textureColor.get(); }
-	BDRFPhongMaterialData&		getMaterial() { return m_materialData; }
+	PbrMetallicRoughnessData&	getMaterial() { return m_materialData; }
+	DescriptorHandle			getTexturesHandle() const { return m_texturesHandle; }
 
-	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
+	void setMaterial(PbrMetallicRoughnessData& material) { m_materialData = material; }
+
 private:
 	std::shared_ptr<Texture>	m_textureColor;
+	std::shared_ptr<Texture>	m_textureMetallicRoughness;
 	ComPtr<ID3D12Resource>		m_materialBuffer;
-	BDRFPhongMaterialData		m_materialData;
+	PbrMetallicRoughnessData	m_materialData;
+	DescriptorHandle			m_texturesHandle;
 };
 	
 

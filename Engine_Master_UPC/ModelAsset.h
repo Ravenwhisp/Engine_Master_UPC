@@ -13,17 +13,21 @@ public:
 
 	UID getBaseMap() const { return baseMap; }
 	Color&	 getBaseColour() const { return baseColour; }
+
+	UID getMetallicRoughnessMap() const { return metallicRoughnessMap; }
+	uint32_t getMetallicFactor() const { return metallicFactor; }
 protected:
 
-	UID			baseMap = -1;
-	mutable Color		baseColour = Color(255, 255, 255, 0);
+	UID				baseMap = -1;
+	mutable Color	baseColour = Color(255, 255, 255, 0);
 
-	UID			metallicRoughnessMap = -1;
-	uint32_t			metallicFactor = 0;
-	UID			normalMap = -1;
-	UID			occlusionMap = -1;
+	UID				metallicRoughnessMap = -1;
+	uint32_t		metallicFactor = 0;
+	//Maybe roughness factor is missing
+	UID				normalMap = -1;
+	UID				occlusionMap = -1;
 
-	bool				isEmissive = false;
+	bool			isEmissive = false;
 	UID 			emissiveMap = -1;
 };
 

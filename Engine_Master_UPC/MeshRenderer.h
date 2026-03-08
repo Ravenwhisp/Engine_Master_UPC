@@ -11,7 +11,7 @@ struct ModelData
 {
 	Matrix model;
 	Matrix normalMat;
-	BasicMaterial::BDRFPhongMaterialData material;
+	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
 

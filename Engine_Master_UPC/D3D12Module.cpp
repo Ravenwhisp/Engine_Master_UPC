@@ -132,7 +132,7 @@ ComPtr<ID3D12RootSignature> D3D12Module::createRootSignature() {
     CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
-    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, DescriptorsModule::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);

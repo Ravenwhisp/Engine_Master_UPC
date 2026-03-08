@@ -143,7 +143,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
                 // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
                 commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
-                commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
+                commandList->SetGraphicsRootDescriptorTable(4, material->getTexturesHandle().gpu);
 
                 commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
