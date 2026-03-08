@@ -52,9 +52,7 @@ public:
 #pragma region Game Loop
 	bool init() override;
 	void update() override;
-	void preRender() override;
 	void render() override;
-	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
 
@@ -114,9 +112,5 @@ private:
 	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;
 #pragma endregion
-
-	void ConsoleLog(const char* message);
-	void ConsoleWarn(const char* message);
-	void ConsoleError(const char* message);
 };
 

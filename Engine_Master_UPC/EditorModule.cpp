@@ -264,6 +264,10 @@ bool EditorModule::init()
 
 void EditorModule::update()
 {
+    #ifdef GAME_RELEASE
+        return;
+    #endif
+    
     if (m_sceneEditor->isFocused())
     {
         handleKeyboardShortcuts();
@@ -275,12 +279,13 @@ void EditorModule::update()
     }
 }
 
-void EditorModule::preRender()
-{
-}
-
 void EditorModule::render()
 {
+    #ifdef GAME_RELEASE
+        ImGui::EndFrame();
+        return;
+    #endif
+
     /// THIS MUST BE EXECUTED AFTER RenderModule.h render functtion, if not F
     mainDockspace(&m_showMainDockspace);
 
@@ -290,10 +295,6 @@ void EditorModule::render()
     }
 
     ImGui::EndFrame();
-}
-
-void EditorModule::postRender()
-{
 }
 
 bool EditorModule::cleanUp()
