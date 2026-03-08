@@ -31,23 +31,12 @@ bool CameraSwitcher::init()
 
 void CameraSwitcher::update()
 {
-    if (!isActive())
-    {
-        return;
-    }
-
     if (!m_hasBuiltCameraList)
     {
         rebuildCameraList();
         syncCurrentIndexWithDefaultCamera();
         m_wasSwitchKeyPressed = false;
         m_hasBuiltCameraList = true;
-    }
-
-    if (m_cameras.empty())
-    {
-        m_currentIndex = -1;
-        return;
     }
 
     if (m_currentIndex < 0 || m_currentIndex >= (int)m_cameras.size())
@@ -107,11 +96,6 @@ void CameraSwitcher::syncCurrentIndexWithDefaultCamera()
     CameraComponent* defaultCamera = app->getSceneModule()->getDefaultCamera();
     m_currentIndex = -1;
 
-    if (!defaultCamera)
-    {
-        return;
-    }
-
     for (int i = 0; i < (int)m_cameras.size(); ++i)
     {
         if (m_cameras[i] == defaultCamera)
@@ -124,11 +108,6 @@ void CameraSwitcher::syncCurrentIndexWithDefaultCamera()
 
 void CameraSwitcher::switchToNextCamera()
 {
-    if (m_cameras.empty())
-    {
-        return;
-    }
-
     syncCurrentIndexWithDefaultCamera();
 
     if (m_currentIndex == -1)
