@@ -45,9 +45,16 @@ struct SceneEditorSettings
 
 struct FrustumCullingSettings
 {
-    bool debugFrustumCulling = false;
+    bool debugFrustumCulling = !DEFAULT_DEBUG;
     float quadtreeXExtraSize = 10.0f;
     float quadtreeZExtraSize = 10.0f;
+};
+
+struct DebugGame
+{
+    bool showFPS = false;
+    bool showFrametime = false;
+    bool showTrianglesNumber = false;
 };
 
 class Settings
@@ -57,6 +64,7 @@ public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
     FrustumCullingSettings frustumCulling;
+    DebugGame debugGame;
 
 public:
     void loadSettings()
@@ -67,5 +75,9 @@ public:
     void saveSettings()
     {
         //to do
+    }
+
+    bool hasDebugInformationEnabled() {
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber;
     }
 };
