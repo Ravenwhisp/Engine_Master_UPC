@@ -187,6 +187,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
+    case WM_CREATE:
+    {
+        MessageBox(hWnd, L"Initializing engine...", L"Starting Application", MB_OK | MB_USERICON);
+    }
     case WM_ACTIVATE:
     case WM_ACTIVATEAPP:
         Keyboard::ProcessMessage(message, wParam, lParam);
