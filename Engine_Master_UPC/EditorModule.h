@@ -3,6 +3,8 @@
 #include "DescriptorHeap.h"
 #include "EditorWindow.h"
 #include "SceneEditor.h"
+#include "PrefabEditSession.h"
+#include "PrefabManager.h"
 #include <vector>
 #include "Keyboard.h"
 #include "Mouse.h"
@@ -68,6 +70,11 @@ public:
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
 
+	void               enterPrefabEdit(const std::string& prefabName);
+	void               exitPrefabEdit();
+	PrefabEditSession* getPrefabSession() { return &m_prefabSession; }
+
+
 	SCENE_TOOL		getCurrentSceneTool() const { return currentSceneTool; }
 	NAVIGATION_MODE getCurrentNavigationMode() const { return currentNavigationMode; }
 	SIMULATION_MODE	getCurrentSimulationMode() const { return currentSimulationMode; }
@@ -103,6 +110,7 @@ private:
 
 	void handleKeyboardShortcuts();
 	void handleQWERTYCases(Keyboard::State keyboardState);
+	void flushExitPrefabEdit();
 
 	SCENE_TOOL currentSceneTool;
 	NAVIGATION_MODE currentNavigationMode;
@@ -112,5 +120,11 @@ private:
 	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;
 #pragma endregion
+
+#pragma region Prefab Editing
+	PrefabEditSession m_prefabSession;
+	bool              m_pendingExitPrefab = false;
+#pragma endregion
+
 };
 
