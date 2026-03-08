@@ -11,20 +11,26 @@
 #include <DetourNavMeshQuery.h>
 #include <imgui.h>
 #include <cmath>
+#include <cstring>
 
 static const float PI = 3.1415926535897931f;
 
 NavMeshWalk::NavMeshWalk(UID id, GameObject* gameobject)
     : Component(id, ComponentType::NAVMESH_WALK, gameobject)
 {
+    Transform* transform = m_owner->GetTransform();
+    m_initialRotationOffset = transform->getEulerDegrees();
+
+    applyControlScheme();
 }
 
 std::unique_ptr<Component> NavMeshWalk::clone(GameObject* newOwner) const
 {
     auto c = std::make_unique<NavMeshWalk>(m_uuid, newOwner);
 
-    // Copy state
     c->setActive(this->isActive());
+    c->m_controlScheme = m_controlScheme;
+
     c->m_moveSpeed = m_moveSpeed;
     c->m_shiftMultiplier = m_shiftMultiplier;
     c->m_turnSpeedDegPerSec = m_turnSpeedDegPerSec;
@@ -39,10 +45,12 @@ std::unique_ptr<Component> NavMeshWalk::clone(GameObject* newOwner) const
     c->m_navExtents[1] = m_navExtents[1];
     c->m_navExtents[2] = m_navExtents[2];
 
-    // Reset runtime cache
+    c->m_initialRotationOffset = m_initialRotationOffset;
+
     c->m_yawInitialized = false;
     c->m_currentYawDeg = 0.0f;
 
+    c->applyControlScheme();
     return c;
 }
 
@@ -56,19 +64,21 @@ void NavMeshWalk::update()
     Transform* transform = m_owner->GetTransform();
     InputModule* inputModule = app->getInputModule();
 
-    if (!inputModule->isLeftMouseDown())
-        return;
-
     Vector3 direction = readMoveDirection(inputModule);
     if (direction == Vector3::Zero)
         return;
 
-    direction.Normalize();
-
     const float dt = getDeltaSecondsFromTimer();
-    bool shiftHeld = checkShiftHeld(inputModule);
+    const bool shiftHeld = checkShiftHeld(inputModule);
 
-    applyFacingFromDirection(transform, direction, dt);
+    Vector3 horizontalDir(direction.x, 0.0f, direction.z);
+    if (horizontalDir != Vector3::Zero)
+    {
+        horizontalDir.Normalize();
+        applyFacingFromDirection(transform, horizontalDir, dt);
+    }
+
+    direction.Normalize();
     applyTranslation(transform, direction, dt, shiftHeld);
 }
 
@@ -93,18 +103,19 @@ bool NavMeshWalk::checkShiftHeld(InputModule* inputModule) const
 void NavMeshWalk::applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt)
 {
     const float yawRad = std::atan2(-direction.x, -direction.z);
-    const float targetYawDeg = yawRad * (180.0f / PI) + 90.0f;
+    const float targetYawDeg = yawRad * (180.0f / PI);
 
     if (!m_yawInitialized)
     {
-        m_currentYawDeg = transform->getEulerDegrees().y;
+        m_currentYawDeg = 0.0f;
         m_yawInitialized = true;
     }
 
     const float maxStep = m_turnSpeedDegPerSec * dt;
     m_currentYawDeg = moveTowardsAngleDegrees(m_currentYawDeg, targetYawDeg, maxStep);
 
-    transform->setRotationEuler(Vector3(0.0f, m_currentYawDeg, 0.0f));
+    const float finalYaw = wrapAngleDegrees(m_initialRotationOffset.y + m_currentYawDeg);
+    transform->setRotationEuler(Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
 }
 
 void NavMeshWalk::applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const
@@ -112,10 +123,10 @@ void NavMeshWalk::applyTranslation(Transform* transform, const Vector3& directio
     float speed = m_moveSpeed;
     if (shiftHeld) speed *= m_shiftMultiplier;
 
-    float step = speed * dt;
+    const float step = speed * dt;
 
-    Vector3 currentPos = transform->getPosition();
-    Vector3 desiredPos = currentPos + direction * step;
+    const Vector3 currentPos = transform->getPosition();
+    const Vector3 desiredPos = currentPos + direction * step;
 
     if (!m_constrainToNavMesh)
     {
@@ -144,6 +155,7 @@ void NavMeshWalk::applyTranslation(Transform* transform, const Vector3& directio
 
     if (dtStatusFailed(q->findNearestPoly(start, m_navExtents, &filter, &startRef, startNearest)) || !startRef)
     {
+        transform->setPosition(desiredPos);
         return;
     }
 
@@ -184,14 +196,80 @@ void NavMeshWalk::drawUi()
     ImGui::TextColored(ImVec4(1, 0.6f, 0.2f, 1), "NOTE: NavMeshWalk only updates in PLAY mode.");
     ImGui::Separator();
 
-    ImGui::Text("Hold Left Mouse Button + WASD to move (NavMesh constrained)");
+    ImGui::Text("Keyboard movement (NavMesh constrained optional)");
     ImGui::Text("Press shift to go faster");
-    ImGui::Separator();
 
+    ImGui::SeparatorText("Controls");
+    if (drawControlSchemeCombo(m_controlScheme))
+    {
+        applyControlScheme();
+    }
+
+    ImGui::SeparatorText("NavMesh");
     ImGui::Checkbox("Constrain to NavMesh", &m_constrainToNavMesh);
+    ImGui::DragFloat3("Nav Extents", m_navExtents, 0.1f, 0.1f, 100.0f);
+
+    ImGui::SeparatorText("Tuning");
     ImGui::DragFloat("Move Speed", &m_moveSpeed, 0.05f, 0.0f, 50.0f);
     ImGui::DragFloat("Shift Multiplier", &m_shiftMultiplier, 0.05f, 1.0f, 10.0f);
-    ImGui::DragFloat3("Nav Extents", m_navExtents, 0.1f, 0.1f, 100.0f);
+    ImGui::DragFloat("Turn Speed (deg/s)", &m_turnSpeedDegPerSec, 1.0f, 0.0f, 2000.0f);
+}
+
+void NavMeshWalk::applyControlScheme()
+{
+    switch (m_controlScheme)
+    {
+    case ControlScheme::IJKL:
+        m_keyUp = Keyboard::Keys::I;
+        m_keyLeft = Keyboard::Keys::J;
+        m_keyDown = Keyboard::Keys::K;
+        m_keyRight = Keyboard::Keys::L;
+        break;
+
+    case ControlScheme::WASD:
+    default:
+        m_keyUp = Keyboard::Keys::W;
+        m_keyLeft = Keyboard::Keys::A;
+        m_keyDown = Keyboard::Keys::S;
+        m_keyRight = Keyboard::Keys::D;
+        break;
+    }
+}
+
+bool NavMeshWalk::drawControlSchemeCombo(ControlScheme& scheme)
+{
+    bool changed = false;
+
+    if (ImGui::BeginCombo("Control Scheme", controlSchemeToString(scheme)))
+    {
+        for (int i = 0; i < (int)ControlScheme::COUNT; ++i)
+        {
+            ControlScheme value = (ControlScheme)i;
+            bool selected = (value == scheme);
+
+            if (ImGui::Selectable(controlSchemeToString(value), selected))
+            {
+                scheme = value;
+                changed = true;
+            }
+
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    return changed;
+}
+
+const char* NavMeshWalk::controlSchemeToString(ControlScheme scheme)
+{
+    switch (scheme)
+    {
+    case ControlScheme::WASD:  return "WASD";
+    case ControlScheme::IJKL:  return "IJKL";
+    default:                   return "";
+    }
 }
 
 rapidjson::Value NavMeshWalk::getJSON(rapidjson::Document& domTree)
@@ -204,7 +282,12 @@ rapidjson::Value NavMeshWalk::getJSON(rapidjson::Document& domTree)
 
     componentInfo.AddMember("MoveSpeed", m_moveSpeed, domTree.GetAllocator());
     componentInfo.AddMember("ShiftMultiplier", m_shiftMultiplier, domTree.GetAllocator());
+    componentInfo.AddMember("TurnSpeedDegPerSec", m_turnSpeedDegPerSec, domTree.GetAllocator());
     componentInfo.AddMember("ConstrainToNavMesh", m_constrainToNavMesh, domTree.GetAllocator());
+
+    componentInfo.AddMember("ControlScheme",
+        rapidjson::Value(controlSchemeToString(m_controlScheme), domTree.GetAllocator()),
+        domTree.GetAllocator());
 
     rapidjson::Value ext(rapidjson::kArrayType);
     ext.PushBack(m_navExtents[0], domTree.GetAllocator());
@@ -217,14 +300,32 @@ rapidjson::Value NavMeshWalk::getJSON(rapidjson::Document& domTree)
 
 bool NavMeshWalk::deserializeJSON(const rapidjson::Value& c)
 {
-    if (c.HasMember("MoveSpeed")) m_moveSpeed = c["MoveSpeed"].GetFloat();
-    if (c.HasMember("ShiftMultiplier")) m_shiftMultiplier = c["ShiftMultiplier"].GetFloat();
-    if (c.HasMember("ConstrainToNavMesh")) m_constrainToNavMesh = c["ConstrainToNavMesh"].GetBool();
+    if (c.HasMember("MoveSpeed") && c["MoveSpeed"].IsNumber())
+        m_moveSpeed = c["MoveSpeed"].GetFloat();
 
-    if (c.HasMember("NavExtents"))
+    if (c.HasMember("ShiftMultiplier") && c["ShiftMultiplier"].IsNumber())
+        m_shiftMultiplier = c["ShiftMultiplier"].GetFloat();
+
+    if (c.HasMember("TurnSpeedDegPerSec") && c["TurnSpeedDegPerSec"].IsNumber())
+        m_turnSpeedDegPerSec = c["TurnSpeedDegPerSec"].GetFloat();
+
+    if (c.HasMember("ConstrainToNavMesh") && c["ConstrainToNavMesh"].IsBool())
+        m_constrainToNavMesh = c["ConstrainToNavMesh"].GetBool();
+
+    if (c.HasMember("ControlScheme") && c["ControlScheme"].IsString())
+    {
+        const char* schemeStr = c["ControlScheme"].GetString();
+        if (schemeStr && strcmp(schemeStr, "IJKL") == 0)
+            m_controlScheme = ControlScheme::IJKL;
+        else
+            m_controlScheme = ControlScheme::WASD;
+    }
+    applyControlScheme();
+
+    if (c.HasMember("NavExtents") && c["NavExtents"].IsArray())
     {
         const auto& ext = c["NavExtents"].GetArray();
-        if (ext.Size() == 3)
+        if (ext.Size() == 3 && ext[0].IsNumber() && ext[1].IsNumber() && ext[2].IsNumber())
         {
             m_navExtents[0] = ext[0].GetFloat();
             m_navExtents[1] = ext[1].GetFloat();
@@ -234,6 +335,5 @@ bool NavMeshWalk::deserializeJSON(const rapidjson::Value& c)
 
     m_yawInitialized = false;
     m_currentYawDeg = 0.0f;
-
     return true;
 }

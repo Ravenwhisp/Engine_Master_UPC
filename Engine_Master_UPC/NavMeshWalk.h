@@ -1,17 +1,18 @@
 #pragma once
+
 #include "Component.h"
 #include <Keyboard.h>
 
 class InputModule;
 class Transform;
+class GameObject;
 
-class NavMeshWalk : public Component
+class NavMeshWalk final : public Component
 {
 public:
     NavMeshWalk(UID id, GameObject* gameobject);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
-
 
     void update() override;
     void drawUi() override;
@@ -32,9 +33,25 @@ private:
     static float moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta);
 
 private:
+    enum class ControlScheme : int
+    {
+        WASD = 0,
+        IJKL,
+        COUNT
+    };
+
+    void applyControlScheme();
+    bool drawControlSchemeCombo(ControlScheme& scheme);
+    const char* controlSchemeToString(ControlScheme scheme);
+
+private:
+    ControlScheme m_controlScheme = ControlScheme::WASD;
+
     float m_moveSpeed = 5.0f;
     float m_shiftMultiplier = 2.0f;
     float m_turnSpeedDegPerSec = 360.0f;
+
+    Vector3 m_initialRotationOffset = Vector3::Zero;
 
     bool  m_yawInitialized = false;
     float m_currentYawDeg = 0.0f;
@@ -48,4 +65,3 @@ private:
     bool  m_constrainToNavMesh = true;
     float m_navExtents[3] = { 2.0f, 4.0f, 2.0f }; // X,Y,Z
 };
-
