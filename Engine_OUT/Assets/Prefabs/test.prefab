@@ -3,10 +3,12 @@
   "Version": 2,
   "PrefabUID": 2949673445,
   "OverrideMap": {
-    "ModifiedProperties": {},
-    "AddedComponents": [
-      2
-    ],
+    "ModifiedProperties": {
+      "2": [
+        "__inspector__"
+      ]
+    },
+    "AddedComponents": [],
     "RemovedComponents": []
   },
   "GameObject": {
@@ -38,7 +40,7 @@
       {
         "Type": 1,
         "Data": {
-          "UID": 9856246808882873482,
+          "UID": 1430436945022464825,
           "ComponentType": 1,
           "Active": true,
           "ModelAssetId": 11564806912439458555
@@ -47,14 +49,14 @@
       {
         "Type": 2,
         "Data": {
-          "UID": 16310038993799475295,
+          "UID": 10315189774755423144,
           "ComponentType": 2,
           "Active": true,
           "LightType": 0,
           "Color": [
             1.0,
             0.0,
-            0.0
+            0.19607843458652496
           ],
           "Intensity": 1.0
         }

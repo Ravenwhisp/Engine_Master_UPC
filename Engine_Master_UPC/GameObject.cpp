@@ -1,11 +1,12 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "Application.h"
+#include "EditorModule.h"
 #include "MeshRenderer.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
 #include "CameraComponent.h"
-#include "Application.h"
 #include "Transform2D.h"
 #include "Canvas.h"
 #include "UIImage.h"
@@ -508,7 +509,32 @@ void GameObject::drawUI()
         {
             ImGui::Separator();
 
+            rapidjson::Document docBefore;
+            rapidjson::StringBuffer sbBefore;
+            rapidjson::Writer<rapidjson::StringBuffer> wBefore(sbBefore);
+            component->getJSON(docBefore).Accept(wBefore);
+            std::string stateBefore = sbBefore.GetString();
+
             component->drawUi();
+
+            rapidjson::Document docAfter;
+            rapidjson::StringBuffer sbAfter;
+            rapidjson::Writer<rapidjson::StringBuffer> wAfter(sbAfter);
+            component->getJSON(docAfter).Accept(wAfter);
+            std::string stateAfter = sbAfter.GetString();
+
+            if (stateBefore != stateAfter)
+            {
+                if (PrefabManager::isPrefabInstance(this) ||
+                    app->getEditorModule()->getPrefabSession()->active)
+                {
+                    PrefabManager::markPropertyOverride(
+                        this,
+                        static_cast<int>(component->getType()),
+                        "__inspector__"
+                    );
+                }
+            }
 
             ImGui::Separator();
 
