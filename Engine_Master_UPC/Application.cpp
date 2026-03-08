@@ -23,6 +23,7 @@ using namespace std::chrono;
 
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
+    : m_hWnd((HWND)hWnd)
 {
     modules.push_back(m_inputModule = new InputModule((HWND)hWnd));
     modules.push_back(m_d3d12Module = new D3D12Module((HWND)hWnd));
@@ -132,4 +133,12 @@ bool Application::cleanUp()
 		ret = (*it)->cleanUp();
 
 	return ret;
+}
+
+void Application::exitApplication()
+{
+    if (m_hWnd)
+    {
+        DestroyWindow(m_hWnd);
+    }
 }

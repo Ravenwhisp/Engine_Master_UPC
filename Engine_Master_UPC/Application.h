@@ -71,6 +71,7 @@ public:
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
 
+    void exitApplication();
 
     uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
 
@@ -100,6 +101,8 @@ private:
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
+
+    HWND m_hWnd = nullptr;
 
     // This is the current camera perspective, to check a CameraComponent's perspective from the scene editor
     CameraComponent* m_currentCameraPerspective = nullptr;
