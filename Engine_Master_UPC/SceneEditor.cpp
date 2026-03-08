@@ -22,6 +22,7 @@
 #include "Quadtree.h"
 
 #include "CameraComponent.h"
+#include "PrefabUI.h"
 
 
 SceneEditor::SceneEditor()
@@ -127,6 +128,7 @@ void SceneEditor::render()
             if (ImGuizmo::IsUsing())
             {
                 transform->setFromGlobalMatrix(worldMatrix);
+                PrefabUI::markTransformOverride(selectedGameObject);
             }
         }
     }

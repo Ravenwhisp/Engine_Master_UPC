@@ -30,6 +30,20 @@ void Hierarchy::render()
 	if (prefabMode)
 	{
 		PrefabUI::drawModeHeader(session->prefabName.c_str());
+
+		if (ImGui::Button("Add Child Object"))
+		{
+			addChildToPrefabRoot(session->rootObject);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Remove Selected"))
+		{
+			removeGameObject();
+		}
+		ImGui::Separator();
+
+		if (session->rootObject)
+			createTreeNode(session->rootObject, true);
 	}
 	else
 	{
@@ -239,6 +253,10 @@ void Hierarchy::addGameObject()
 void Hierarchy::removeGameObject()
 {
 	GameObject* selected = app->getEditorModule()->getSelectedGameObject();
+	
+	PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
+	if (session && session->active && selected == session->rootObject)
+		return;
 
 	if (selected)
 	{
@@ -246,4 +264,21 @@ void Hierarchy::removeGameObject()
 		app->getEditorModule()->setSelectedGameObject(nullptr);
 		app->getSceneModule()->removeGameObject(id);
 	}
+}
+
+void Hierarchy::addChildToPrefabRoot(GameObject* parent)
+{
+	if (!parent) return;
+
+	app->getSceneModule()->createGameObject();
+
+	const auto& roots = app->getSceneModule()->getRootObjects();
+	if (roots.empty()) return;
+
+	GameObject* newObj = roots.back();
+	if (!newObj || newObj == parent) return;
+
+	reparent(newObj, parent);
+
+	app->getEditorModule()->setSelectedGameObject(newObj);
 }

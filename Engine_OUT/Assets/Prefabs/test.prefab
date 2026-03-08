@@ -2,19 +2,34 @@
   "PrefabName": "test",
   "Version": 2,
   "PrefabUID": 2949673445,
+  "OverrideMap": {
+    "ModifiedProperties": {
+      "0": [
+        "position",
+        "rotation",
+        "scale"
+      ]
+    },
+    "AddedComponents": [],
+    "RemovedComponents": []
+  },
   "GameObject": {
     "Name": "New GameObject",
     "Active": true,
+    "PrefabLink": {
+      "PrefabName": "test",
+      "PrefabUID": 2949673445
+    },
     "Transform": {
       "position": [
-        1.0,
+        -1.7102965116500854,
         0.0,
-        1.0
+        -1.3680987358093262
       ],
       "rotation": [
+        -0.0,
         0.0,
-        0.0,
-        0.0,
+        -0.0,
         1.0
       ],
       "scale": [
@@ -27,13 +42,38 @@
       {
         "Type": 1,
         "Data": {
-          "UID": 15008374451656598834,
+          "UID": 12596462259070846656,
           "ComponentType": 1,
           "Active": true,
           "ModelAssetId": 11564806912439458555
         }
       }
     ],
-    "Children": []
+    "Children": [
+      {
+        "Name": "New GameObject",
+        "Active": true,
+        "Transform": {
+          "position": [
+            314.29913330078125,
+            0.0,
+            1.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            0.009999999776482582,
+            0.009999999776482582,
+            0.009999999776482582
+          ]
+        },
+        "Components": [],
+        "Children": []
+      }
+    ]
   }
 }

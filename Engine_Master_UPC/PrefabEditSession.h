@@ -7,10 +7,11 @@ class GameObject;
 
 struct PrefabEditSession
 {
-    bool                          active = false;
-    std::string                   prefabName;
-    std::unique_ptr<SceneModule>  isolatedScene;
+    bool active = false;
+    std::string prefabName;
+    std::unique_ptr<SceneModule> isolatedScene;
     GameObject* rootObject = nullptr;
+    bool editingInMainScene = false;
 
     void clear()
     {
@@ -18,5 +19,6 @@ struct PrefabEditSession
         prefabName.clear();
         rootObject = nullptr;
         isolatedScene.reset();
+        editingInMainScene = false;
     }
 };
