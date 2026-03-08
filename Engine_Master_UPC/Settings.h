@@ -1,6 +1,11 @@
 #pragma once
 #include "Globals.h"
 
+#ifdef GAME_RELEASE
+constexpr bool DEFAULT_DEBUG = false;
+#else
+constexpr bool DEFAULT_DEBUG = true;
+#endif
 struct EngineInformation
 {
     std::string version = "alpha-v0.9";
@@ -31,9 +36,9 @@ struct CameraSettings
 
 struct SceneEditorSettings
 {
-    bool showGrid = true;
-    bool showAxis = true;
-    bool showGuizmo = true;
+    bool showGrid = DEFAULT_DEBUG;
+    bool showAxis = DEFAULT_DEBUG;
+    bool showGuizmo = DEFAULT_DEBUG;
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
 };
