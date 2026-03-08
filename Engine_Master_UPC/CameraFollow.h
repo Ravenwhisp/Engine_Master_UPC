@@ -12,8 +12,6 @@ public:
 	
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	void fixReferences(const std::unordered_map<Component*, Component*>& referenceMap) override;
-
 	bool init() override;
 
 	void update() override;
@@ -21,6 +19,8 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+	void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) override;
+
 
 private:
 	void setFollowTargets();

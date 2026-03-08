@@ -74,6 +74,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
 
+        if (app && app->shouldQuit())
+        {
+            PostMessage(app->getWindowHandle(), WM_CLOSE, 0, 0);
+        }
+
     }
 
     delete app;

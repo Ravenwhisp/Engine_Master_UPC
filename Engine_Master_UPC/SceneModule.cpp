@@ -545,6 +545,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson)
         removeFromRootList(child);
     }
 
+    fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyboxToRenderer();
 
@@ -586,6 +587,27 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson)
 
     lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
     return true;
+}
+
+void SceneModule::fixLoadedSceneReferences()
+{
+    std::unordered_map<UID, Component*> componentMap;
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            componentMap[component->getID()] = component;
+        }
+    }
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            component->fixReferences(componentMap);
+        }
+    }
 }
 
 void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) 

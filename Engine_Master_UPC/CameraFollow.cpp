@@ -31,37 +31,16 @@ std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 	return clonedComponent;
 }
 
-void CameraFollow::fixReferences(const std::unordered_map<Component*, Component*>& referenceMap)
+void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
 {
-    if (m_firstTargetTransform)
-    {
-        auto it = referenceMap.find(m_firstTargetTransform);
-        if (it != referenceMap.end())
-        {
-            m_firstTargetTransform = static_cast<Transform*>(it->second);
-        }
-        else
-        {
-            m_firstTargetTransform = nullptr;
-        }
-    }
-    if (m_secondTargetTransform)
-    {
-        auto it = referenceMap.find(m_secondTargetTransform);
-        if (it != referenceMap.end())
-        {
-            m_secondTargetTransform = static_cast<Transform*>(it->second);
-        }
-        else
-        {
-            m_secondTargetTransform = nullptr;
-        }
-	}
+    m_firstTargetTransform = nullptr;
+    m_secondTargetTransform = nullptr;
+    setFollowTargets();
 }
 
 bool CameraFollow::init()
 {
-    setFollowTargets();
+
     return true;
 }
 
@@ -246,7 +225,34 @@ void CameraFollow::drawUi()
     ImGui::Text("Camera Follow");
     ImGui::SeparatorText("First Target");
 
-    m_firstTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_firstTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+    GameObject* firstTargetGo = nullptr;
+    if (m_firstTargetUid != 0)
+    {
+        firstTargetGo = app->getSceneModule()->findGameObjectByUID(m_firstTargetUid);
+
+        if (firstTargetGo)
+        {
+            m_firstTargetTransform = firstTargetGo->GetTransform();
+        }
+        else
+        {
+            m_firstTargetTransform = nullptr;
+            m_firstTargetUid = 0;
+        }
+    }
+    else
+    {
+        m_firstTargetTransform = nullptr;
+    }
+
+    if (firstTargetGo)
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", firstTargetGo->GetName().c_str());
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+    }
 
     if (ImGui::BeginDragDropTarget())
     {
@@ -274,7 +280,34 @@ void CameraFollow::drawUi()
 
     ImGui::SeparatorText("Second Target");
 
-    m_secondTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_secondTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+    GameObject* secondTargetGo = nullptr;
+    if (m_secondTargetUid != 0)
+    {
+        secondTargetGo = app->getSceneModule()->findGameObjectByUID(m_secondTargetUid);
+
+        if (secondTargetGo)
+        {
+            m_secondTargetTransform = secondTargetGo->GetTransform();
+        }
+        else
+        {
+            m_secondTargetTransform = nullptr;
+            m_secondTargetUid = 0;
+        }
+    }
+    else
+    {
+        m_secondTargetTransform = nullptr;
+    }
+
+    if (secondTargetGo)
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", secondTargetGo->GetName().c_str());
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+    }
 
     if (ImGui::BeginDragDropTarget())
     {

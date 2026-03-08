@@ -19,14 +19,11 @@ ExitApplication::~ExitApplication()
 
 std::unique_ptr<Component> ExitApplication::clone(GameObject* newOwner) const
 {
-    std::unique_ptr<ExitApplication> newComponent = std::make_unique<ExitApplication>(GenerateUID(), newOwner);
+    std::unique_ptr<ExitApplication> newComponent = std::make_unique<ExitApplication>(m_uuid, newOwner);
 
+    newComponent->setActive(this->isActive());
     newComponent->m_uiButton = m_uiButton;
-
-    if (newComponent->m_uiButton)
-    {
-        newComponent->m_onClickHandle = newComponent->m_uiButton->onClick.AddRaw(newComponent.get(), &ExitApplication::onExitApplication);
-    }
+    newComponent->m_uiButtonUid = m_uiButtonUid;
 
     return newComponent;
 }
@@ -47,10 +44,17 @@ void ExitApplication::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
         {
             Component* data = *static_cast<Component**>(payload->Data);
-            m_uiButton = static_cast<UIButton*>(data);
+            UIButton* button = static_cast<UIButton*>(data);
 
-            if (m_uiButton)
+            if (button)
             {
+                if (m_uiButton)
+                {
+                    m_uiButton->onClick.Remove(m_onClickHandle);
+                }
+
+                m_uiButton = button;
+                m_uiButtonUid = m_uiButton->getID();
                 m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ExitApplication::onExitApplication);
             }
         }
@@ -62,7 +66,7 @@ void ExitApplication::drawUi()
 
 void ExitApplication::onExitApplication()
 {
-    app->exitApplication();
+    app->requestApplicationExit();
 }
 
 rapidjson::Value ExitApplication::getJSON(rapidjson::Document& domTree)
@@ -73,25 +77,40 @@ rapidjson::Value ExitApplication::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::EXIT_APPLICATION), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    if (m_uiButton)
-    {
-        componentInfo.AddMember("UIButtonUID", m_uiButton->getID(), domTree.GetAllocator());
-    }
+    componentInfo.AddMember("UIButtonUID", (uint64_t)m_uiButtonUid, domTree.GetAllocator());
 
     return componentInfo;
 }
 
-//This is wrong, but need the fixReferences script to make it good.
 bool ExitApplication::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("UIButtonUID"))
     {
-        m_uiButton = static_cast<UIButton*>(m_owner->GetComponent(ComponentType::UIBUTTON));
-        if (m_uiButton)
-        {
-            m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ExitApplication::onExitApplication);
-        }
+        m_uiButtonUid = (UID)componentInfo["UIButtonUID"].GetUint64();
     }
 
+    m_uiButton = nullptr;
+
     return true;
+}
+
+void ExitApplication::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+{
+    if (m_uiButton)
+    {
+        m_uiButton->onClick.Remove(m_onClickHandle);
+        m_uiButton = nullptr;
+    }
+
+    if (m_uiButtonUid == 0)
+    {
+        return;
+    }
+
+    auto it = referenceMap.find(m_uiButtonUid);
+    if (it != referenceMap.end())
+    {
+        m_uiButton = static_cast<UIButton*>(it->second);
+        m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ExitApplication::onExitApplication);
+    }
 }

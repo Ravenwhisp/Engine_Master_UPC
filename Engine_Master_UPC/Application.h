@@ -71,7 +71,10 @@ public:
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
 
-    void exitApplication();
+    void requestApplicationExit() { m_quit = true; }
+    bool shouldQuit() const { return m_quit; }
+
+    HWND getWindowHandle() const { return m_hWnd; }
 
     uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
 
@@ -96,6 +99,7 @@ private:
     Settings*               m_settings = nullptr;
 
     bool m_paused = false;
+    bool m_quit = false;
 
     ENGINE_STATE m_currentEngineState = ENGINE_STATE::EDITOR;
 

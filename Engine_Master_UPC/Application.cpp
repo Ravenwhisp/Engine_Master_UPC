@@ -134,11 +134,3 @@ bool Application::cleanUp()
 
 	return ret;
 }
-
-void Application::exitApplication()
-{
-    if (m_hWnd)
-    {
-        DestroyWindow(m_hWnd);
-    }
-}
