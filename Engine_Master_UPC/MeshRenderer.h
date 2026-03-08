@@ -35,14 +35,7 @@ public:
 		return m_materials[it->second].get();
 	}
 
-	bool											getHasBounds() { return m_hasBounds; }
 	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
-
-#pragma region Loop functions
-	bool init() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
-	bool cleanUp() override;
-#pragma endregion
 
 	void drawUi() override;
 
@@ -62,9 +55,4 @@ private:
 
 	std::string m_modelPath;
 	std::string m_basePath;
-
-	bool m_boundsDepthTest = true;
-	bool m_drawWorldAabb = false;
-
-	bool    m_hasBounds = false;
 };

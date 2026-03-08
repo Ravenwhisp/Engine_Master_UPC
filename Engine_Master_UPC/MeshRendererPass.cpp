@@ -127,18 +127,6 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
         const auto& materials = renderer->getMaterials();
 
-        if (app->getSettings()->sceneEditor.showModelBoundingBoxes && renderer->getHasBounds() && dd::isInitialized())
-        {
-            const Vector3* c = renderer->getBoundingBox().getPoints();
-            ddVec3 pts[8];
-            for (int i = 0; i < 8; ++i)
-            {
-                pts[i][0] = c[i].x; pts[i][1] = c[i].y; pts[i][2] = c[i].z;
-            }
-            dd::box(pts, dd::colors::Yellow, 0, false);
-        }
-
-
         for (const auto& mesh : renderer->getMeshes())
         {
             const auto& submeshes = mesh->getSubmeshes();

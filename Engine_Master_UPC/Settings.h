@@ -50,6 +50,12 @@ struct FrustumCullingSettings
     float quadtreeZExtraSize = 10.0f;
 };
 
+struct DebugGame
+{
+    bool showFPS = false;
+    bool showFrametime = false;
+};
+
 class Settings
 {
 public:
@@ -57,6 +63,7 @@ public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
     FrustumCullingSettings frustumCulling;
+    DebugGame debugGame;
 
 public:
     void loadSettings()
