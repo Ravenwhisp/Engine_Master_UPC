@@ -33,7 +33,9 @@ void MeshRenderer::addModel(ModelAsset& model)
     Vector3 globalMin(FLT_MAX, FLT_MAX, FLT_MAX);
     Vector3 globalMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
-    for (const auto meshAsset : model.getMeshes())
+    m_triangles = 0;
+
+    for (const auto& meshAsset : model.getMeshes())
     {
         Vector3 meshMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
         Vector3 meshMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
@@ -47,6 +49,17 @@ void MeshRenderer::addModel(ModelAsset& model)
         globalMax.z = std::max(globalMax.z, meshMax.z);
 
         auto mesh = app->getResourcesModule()->createMesh(meshAsset);
+
+        if (!mesh)
+        {
+            continue;
+        }
+
+        for (const auto& submesh : mesh->getSubmeshes())
+        {
+            m_triangles += submesh.indexCount / 3;
+        }
+
         m_meshes.push_back(std::move(mesh));
     }
 
@@ -86,6 +99,7 @@ void MeshRenderer::drawUi()
     // --- Info ---
     ImGui::Text("Meshes: %d", (int)m_meshes.size());
     ImGui::Text("Materials: %d", (int)m_materials.size());
+    ImGui::Text("Triangles: %d", (int)m_triangles);
 
     auto min = m_boundingBox.getMin();
     auto max = m_boundingBox.getMax();

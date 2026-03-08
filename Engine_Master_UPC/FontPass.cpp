@@ -1,12 +1,12 @@
 #include "Globals.h"
 #include "FontPass.h"
 #include "Application.h"
-#include "D3D12Module.h"
-#include "CommandQueue.h"
-
-#include "Application.h"
-#include "TimeModule.h"
 #include "Settings.h"
+#include "RenderModule.h"
+#include "D3D12Module.h"
+
+#include "CommandQueue.h"
+#include "TimeModule.h"
 
 FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
@@ -38,37 +38,24 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-	if (!m_commands || m_commands->empty() && !m_settings->debugGame.showFPS && !m_settings->debugGame.showFrametime)
+	bool hasCommands = m_commands && !m_commands->empty();
+	bool hasDebug = m_settings->hasDebugInformationEnabled();
+
+	if (!hasCommands && !hasDebug)
 	{
 		return;
 	}
 
 	begin(commandList);
 
-	if (m_settings->debugGame.showFPS)
-	{
-		float deltaTime = app->getTimeModule()->deltaTime();
-		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
-
-		wchar_t buffer[32];
-		swprintf_s(buffer, L"FPS: %.0f", fps);
-
-		drawText(buffer, 10.0f, 10.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
-	}
-	if (m_settings->debugGame.showFrametime)
-	{
-		float deltaTime = app->getTimeModule()->deltaTime();
-		float ms = deltaTime * 1000.0f;
-
-		wchar_t buffer[32];
-		swprintf_s(buffer, L"Frame time: %.2f ms", ms);
-
-		drawText(buffer, 10.0f, 30.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
-	}
+	showDebugInformation();
 	
-	for (const auto& command : *m_commands)
+	if (hasCommands)
 	{
-		drawText(command.text.c_str(), command.x, command.y, command.color, command.scale);
+		for (const auto& command : *m_commands)
+		{
+			drawText(command.text.c_str(), command.x, command.y, command.color, command.scale);
+		}
 	}
 
 	end();
@@ -102,4 +89,36 @@ void FontPass::drawText(const wchar_t* text, float x, float y, const DirectX::XM
 void FontPass::end()
 {
 	m_spriteBatch->End();
+}
+
+void FontPass::showDebugInformation() {
+	if (m_settings->debugGame.showFPS)
+	{
+		float deltaTime = app->getTimeModule()->deltaTime();
+		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
+
+		wchar_t buffer[64];
+		swprintf_s(buffer, L"FPS: %.0f", fps);
+
+		drawText(buffer, 10.0f, 10.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+	}
+	if (m_settings->debugGame.showFrametime)
+	{
+		float deltaTime = app->getTimeModule()->deltaTime();
+		float ms = deltaTime * 1000.0f;
+
+		wchar_t buffer[64];
+		swprintf_s(buffer, L"Frame time: %.2f ms", ms);
+
+		drawText(buffer, 10.0f, 30.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+	}
+	if (m_settings->debugGame.showTrianglesNumber)
+	{
+		int triangles = app->getRenderModule()->getTriangles();
+
+		wchar_t buffer[64];
+		swprintf_s(buffer, L"Triangles: %d", triangles);
+
+		drawText(buffer, 10.0f, 50.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+	}
 }

@@ -27,6 +27,7 @@ void ViewGameDebug::render()
     ImGui::Separator();
     ImGui::Checkbox("Show FPS", &m_settings->debugGame.showFPS);
     ImGui::Checkbox("Show Frame time", &m_settings->debugGame.showFrametime);
+    ImGui::Checkbox("Show triangles number", &m_settings->debugGame.showTrianglesNumber);
 
     ImGui::End();
 }

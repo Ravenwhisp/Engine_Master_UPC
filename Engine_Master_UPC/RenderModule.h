@@ -53,6 +53,8 @@ private:
 
 	std::vector<IRenderPass*> m_renderPasses;
 
+	int m_triangles;
+
 public:
 	bool init();
 	void preRender();
@@ -65,6 +67,8 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 
 	bool applySkyboxSettings(const SkyboxSettings& settings);
+
+	int getTriangles() { return m_triangles; }
 private:
 #pragma region RENDERS
 	void renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug);
