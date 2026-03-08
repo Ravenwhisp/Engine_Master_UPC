@@ -14,6 +14,7 @@
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "ChangeScene.h"
+#include "ExitApplication.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -57,7 +58,7 @@ std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
         std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
         if (clonedComponent)
         {
-			snapshot.componentMap[component.get()] = clonedComponent.get();
+			snapshot.componentMap[component->getID()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
@@ -105,6 +106,9 @@ bool GameObject::AddComponent(ComponentType componentType)
             break;
         case ComponentType::CHANGE_SCENE:
             m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
+            break;
+        case ComponentType::EXIT_APPLICATION:
+            m_components.push_back(std::make_unique<ExitApplication>(GenerateUID(), this));
             break;
         case ComponentType::TRANSFORM:
             break;
@@ -160,6 +164,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CHANGE_SCENE:
         newComponent = std::make_unique<ChangeScene>(id, this);
+        break;
+    case ComponentType::EXIT_APPLICATION:
+        newComponent = std::make_unique<ExitApplication>(id, this);
         break;
     case ComponentType::TRANSFORM:
         break;
