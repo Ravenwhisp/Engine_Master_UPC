@@ -13,7 +13,8 @@ std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
     std::unique_ptr<UIButton> clonedButton = std::make_unique<UIButton>(m_uuid, newOwner);
 
     clonedButton->setActive(this->isActive());
-    clonedButton->setTargetGraphic(this->getTargetGraphic());
+    clonedButton->m_targetGraphic = this->m_targetGraphic;
+    clonedButton->m_targetGraphicUid = this->m_targetGraphicUid;
     // Note: onClick listeners are not cloned, as they are typically set up in code after instantiation
 
 	return clonedButton;
@@ -76,5 +77,37 @@ rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
+    componentInfo.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
+
     return componentInfo;
+}
+
+bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("TargetGraphicUID"))
+    {
+        m_targetGraphicUid = (UID)componentInfo["TargetGraphicUID"].GetUint64();
+    }
+
+    m_targetGraphic = nullptr;
+    return true;
+}
+
+void UIButton::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+{
+    if (m_targetGraphicUid == 0)
+    {
+        m_targetGraphic = nullptr;
+        return;
+    }
+
+    auto it = referenceMap.find(m_targetGraphicUid);
+    if (it != referenceMap.end())
+    {
+        m_targetGraphic = static_cast<UIImage*>(it->second);
+    }
+    else
+    {
+        m_targetGraphic = nullptr;
+    }
 }

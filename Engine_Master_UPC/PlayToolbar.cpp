@@ -71,6 +71,11 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 		{ 
 			if (selectedIndex == SIMULATION_MODE::PAUSE || selectedIndex == SIMULATION_MODE::STOP)
 			{
+				if (!app->getSceneModule()->getDefaultCamera())
+				{
+					DEBUG_WARN("You need to set a defualt camera to start playing.");
+					return;
+				}
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
 				if (selectedIndex == SIMULATION_MODE::STOP)

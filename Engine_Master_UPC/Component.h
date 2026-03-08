@@ -37,7 +37,7 @@ public:
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
-
+    virtual void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) {};
 
 protected:
     GameObject* m_owner;
