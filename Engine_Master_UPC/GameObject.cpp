@@ -56,6 +56,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
     for (const std::unique_ptr<Component>& component : m_components)
     {
         std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
+
         if (clonedComponent)
         {
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
@@ -63,6 +64,14 @@ std::unique_ptr<GameObject> GameObject::clone() const
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
             }
             newGameObject->AddClonedComponent(std::move(clonedComponent));
+        }
+        else
+        {
+            DEBUG_WARN("[Clone] Component '%s' (type=%d, uid=%llu) returned nullptr in clone(). It will NOT exist in the cloned scene.",
+                ComponentTypeToString(component->getType()),
+                (int)component->getType(),
+                (unsigned long long)component->getType(),
+                (unsigned long long)component->getID());
         }
     }
 
