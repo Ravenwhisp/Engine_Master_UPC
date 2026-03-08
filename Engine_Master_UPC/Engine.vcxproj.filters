@@ -277,6 +277,9 @@
     <ClCompile Include="CameraSwitcher.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
+    <ClCompile Include="TriggerArea.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -631,6 +634,9 @@
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="CameraSwitcher.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerArea.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
   </ItemGroup>

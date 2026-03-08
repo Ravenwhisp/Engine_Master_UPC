@@ -58,7 +58,7 @@ void TriggerArea::drawUi()
 void TriggerArea::update()
 {
 	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
-	BoundingRect triggerArea(currentPosition.x, currentPosition.z, m_xWidth, m_zWidth);
+	BoundingRect triggerArea(currentPosition.x - m_xWidth/2, currentPosition.z - m_zWidth/2, m_xWidth, m_zWidth);
 
 	GameObject* gameObject1 = app->getSceneModule()->findGameObjectByUID(m_object1);
 	if (gameObject1) 
