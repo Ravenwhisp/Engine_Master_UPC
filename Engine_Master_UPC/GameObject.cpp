@@ -35,9 +35,11 @@ GameObject::~GameObject()
 
 }
 
-std::unique_ptr<GameObject> GameObject::clone() const
+std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
+
+	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -55,6 +57,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
         std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
         if (clonedComponent)
         {
+			snapshot.componentMap[component.get()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
