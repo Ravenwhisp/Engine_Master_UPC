@@ -191,6 +191,8 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
         m_debugDrawPass->apply(commandList);
     }
+
+    app->getUIModule()->renderUI(commandList, viewport);
 }
 
 void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
