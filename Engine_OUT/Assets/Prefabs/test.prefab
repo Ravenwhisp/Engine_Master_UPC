@@ -1,0 +1,39 @@
+{
+  "PrefabName": "test",
+  "Version": 2,
+  "PrefabUID": 2949673445,
+  "GameObject": {
+    "Name": "New GameObject",
+    "Active": true,
+    "Transform": {
+      "position": [
+        1.0,
+        0.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.009999999776482582,
+        0.009999999776482582,
+        0.009999999776482582
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 15008374451656598834,
+          "ComponentType": 1,
+          "Active": true,
+          "ModelAssetId": 11564806912439458555
+        }
+      }
+    ],
+    "Children": []
+  }
+}
