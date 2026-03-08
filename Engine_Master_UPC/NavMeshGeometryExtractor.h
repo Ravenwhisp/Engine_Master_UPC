@@ -3,7 +3,6 @@
 #include "Layer.h"
 
 class SceneModule;
-class GameObject;
 
 struct TriangleSoup
 {
