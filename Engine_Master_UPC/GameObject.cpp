@@ -11,6 +11,7 @@
 #include "UIImage.h"
 #include "UIText.h"
 #include "UIButton.h"
+#include "PrefabManager.h"
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "ChangeScene.h"
@@ -119,7 +120,7 @@ bool GameObject::AddComponent(ComponentType componentType)
             return false;
             break;
     }
-
+    PrefabManager::markComponentAdded(this, static_cast<int>(componentType));
     return true;
 }
 
@@ -197,8 +198,10 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     if (it != m_components.end())
     {
+        ComponentType removedType = (*it)->getType();
         (*it)->cleanUp();
         m_components.erase(it);
+        PrefabManager::markComponentRemoved(this, static_cast<int>(removedType));
         return true;
     }
     return false;

@@ -1,26 +1,15 @@
 {
-  "PrefabName": "test",
+  "PrefabName": "p",
   "Version": 2,
-  "PrefabUID": 2949673445,
-  "OverrideMap": {
-    "ModifiedProperties": {},
-    "AddedComponents": [
-      2
-    ],
-    "RemovedComponents": []
-  },
+  "PrefabUID": 4111221743,
   "GameObject": {
     "Name": "New GameObject",
     "Active": true,
-    "PrefabLink": {
-      "PrefabName": "test",
-      "PrefabUID": 2949673445
-    },
     "Transform": {
       "position": [
         -1.7102965116500854,
         0.0,
-        -1.3680987358093262
+        4.071601390838623
       ],
       "rotation": [
         -0.0,
@@ -38,7 +27,7 @@
       {
         "Type": 1,
         "Data": {
-          "UID": 9856246808882873482,
+          "UID": 10929380756197090441,
           "ComponentType": 1,
           "Active": true,
           "ModelAssetId": 11564806912439458555
@@ -47,14 +36,14 @@
       {
         "Type": 2,
         "Data": {
-          "UID": 16310038993799475295,
+          "UID": 3468886195435819028,
           "ComponentType": 2,
           "Active": true,
           "LightType": 0,
           "Color": [
-            1.0,
-            0.0,
-            0.0
+            0.00348832574672997,
+            0.9034749269485474,
+            0.72625732421875
           ],
           "Intensity": 1.0
         }
