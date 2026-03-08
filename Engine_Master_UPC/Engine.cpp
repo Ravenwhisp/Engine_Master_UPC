@@ -184,7 +184,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-        MessageBox(hWnd, L"Welcome to EngineDX!\nInitializing engine...", L"Starting Application", MB_OK | MB_USERICON);
+        MessageBox(hWnd, L"Initializing engine...", L"Starting Application", MB_OK | MB_USERICON);
     }
     case WM_ACTIVATE:
     case WM_ACTIVATEAPP:
