@@ -15,7 +15,7 @@ public:
 
 private:
 	void createTreeNode();
-	void createTreeNode(GameObject* gameObject);
+	void createTreeNode(GameObject* gameObject, bool prefabMode);
 	void reparent(GameObject* child, GameObject* newParent);
 
 	GameObject* m_pendingSelection = nullptr;

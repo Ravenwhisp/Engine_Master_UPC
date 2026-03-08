@@ -181,7 +181,6 @@ GameObject* PrefabManager::deserialiseNode(const Value& node, SceneModule* scene
 
     if (!go)
     {
-        DEBUG_ERROR("[PrefabManager] Failed to create GameObject '%s'", name);
         return nullptr;
     }
 
@@ -245,11 +244,6 @@ GameObject* PrefabManager::deserialiseNode(const Value& node, SceneModule* scene
                 {
                     comp->deserializeJSON(cn["Data"]);
                 }
-            }
-            else
-            {
-                DEBUG_WARN("[PrefabManager] Could not create component type %d for '%s'",
-                    cn["Type"].GetInt(), name);
             }
         }
     }
@@ -395,7 +389,6 @@ bool PrefabManager::createPrefab(const GameObject* go, const std::string& prefab
 {
     if (!go || prefabName.empty())
     {
-        DEBUG_ERROR("[PrefabManager] createPrefab: null go or empty name");
         return false;
     }
 
@@ -423,13 +416,11 @@ bool PrefabManager::createPrefab(const GameObject* go, const std::string& prefab
     std::string path = getPrefabPath(prefabName);
     if (!writePrefabDocument(doc, path))
     {
-        DEBUG_ERROR("[PrefabManager] createPrefab: Cannot write to '%s'", path.c_str());
         return false;
     }
 
     app->getFileSystemModule()->rebuild();
 
-    DEBUG_LOG("[PrefabManager] Saved prefab '%s' -> %s", prefabName.c_str(), path.c_str());
     return true;
 }
 
@@ -443,20 +434,17 @@ GameObject* PrefabManager::instantiatePrefab(const std::string& prefabName, Scen
     std::string path = getPrefabPath(prefabName);
     if (!fs::exists(path))
     {
-        DEBUG_ERROR("[PrefabManager] instantiatePrefab: Prefab not found: %s", path.c_str());
         return nullptr;
     }
 
     Document doc;
     if (!readPrefabDocument(path, doc))
     {
-        DEBUG_ERROR("[PrefabManager] instantiatePrefab: JSON parse error in '%s'", path.c_str());
         return nullptr;
     }
 
     if (!doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
     {
-        DEBUG_ERROR("[PrefabManager] instantiatePrefab: Missing 'GameObject' in '%s'", path.c_str());
         return nullptr;
     }
 
@@ -471,7 +459,6 @@ GameObject* PrefabManager::instantiatePrefab(const std::string& prefabName, Scen
     instData.prefabUID = doc.HasMember("PrefabUID") ? doc["PrefabUID"].GetUint() : makePrefabUID(prefabName);
     linkInstance(go, instData);
 
-    DEBUG_LOG("[PrefabManager] Instantiated prefab '%s' -> GO '%s'", prefabName.c_str(), go->GetName().c_str());
     return go;
 }
 
@@ -480,8 +467,6 @@ bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
     const PrefabInstanceData* inst = getInstanceData(go);
     if (!inst || inst->prefabName.empty())
     {
-        DEBUG_ERROR("[PrefabManager] applyToPrefab: '%s' is not a prefab instance",
-            go ? go->GetName().c_str() : "null");
         return false;
     }
 
@@ -541,12 +526,9 @@ bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
     std::string path = getPrefabPath(inst->prefabName);
     if (!writePrefabDocument(doc, path))
     {
-        DEBUG_ERROR("[PrefabManager] applyToPrefab: Cannot write to '%s'", path.c_str());
         return false;
     }
 
-    DEBUG_LOG("[PrefabManager] Applied instance '%s' -> prefab '%s'",
-        go->GetName().c_str(), inst->prefabName.c_str());
     return true;
 }
 
@@ -556,15 +538,12 @@ bool PrefabManager::revertToPrefab(GameObject* go, SceneModule* scene)
     PrefabInstanceData* inst = getInstanceDataMutable(go);
     if (!inst || inst->prefabName.empty())
     {
-        DEBUG_ERROR("[PrefabManager] revertToPrefab: '%s' is not a prefab instance",
-            go ? go->GetName().c_str() : "null");
         return false;
     }
 
     std::string path = getPrefabPath(inst->prefabName);
     if (!fs::exists(path))
     {
-        DEBUG_ERROR("[PrefabManager] revertToPrefab: Prefab file missing: %s", path.c_str());
         return false;
     }
 
@@ -606,12 +585,7 @@ bool PrefabManager::revertToPrefab(GameObject* go, SceneModule* scene)
         t->markDirty();
     }
 
-    DEBUG_WARN("[PrefabManager] revertToPrefab: component revert not yet implemented "
-        "(transform reverted successfully)");
-
     inst->overrides = savedOverrides;
-    DEBUG_LOG("[PrefabManager] Reverted transform of '%s' from prefab '%s'",
-        go->GetName().c_str(), inst->prefabName.c_str());
     return true;
 }
 
@@ -625,7 +599,6 @@ bool PrefabManager::createVariant(const std::string& srcPrefabName, const std::s
     std::string srcPath = getPrefabPath(srcPrefabName);
     if (!fs::exists(srcPath))
     {
-        DEBUG_ERROR("[PrefabManager] createVariant: Source not found: %s", srcPath.c_str());
         return false;
     }
 
@@ -667,8 +640,6 @@ bool PrefabManager::createVariant(const std::string& srcPrefabName, const std::s
         return false;
     }
 
-    DEBUG_LOG("[PrefabManager] Created variant '%s' from '%s'",
-        dstPrefabName.c_str(), srcPrefabName.c_str());
     return true;
 }
 

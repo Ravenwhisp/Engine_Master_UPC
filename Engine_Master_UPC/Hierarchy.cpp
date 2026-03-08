@@ -4,6 +4,9 @@
 #include "Application.h"
 #include "EditorModule.h"
 #include "SceneModule.h"
+#include "PrefabUI.h"
+#include "PrefabEditSession.h"
+#include "PrefabManager.h"
 
 #include "GameObject.h"
 
@@ -21,37 +24,71 @@ void Hierarchy::render()
 		return;
 	}
 
-	if (ImGui::Button("New game object"))
+	PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
+	const bool         prefabMode = session && session->active;
+
+	if (prefabMode)
 	{
-		addGameObject();
+		PrefabUI::drawModeHeader(session->prefabName.c_str());
 	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove game object"))
+	else
 	{
-		removeGameObject();
+		if (ImGui::Button("New game object"))
+		{
+			addGameObject();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Remove game object"))
+		{
+			removeGameObject();
+		}
+
+		ImGui::Separator();
 	}
 
-	ImGui::Separator();
-
-	createTreeNode();
+	if (prefabMode)
+	{
+		if (session->isolatedScene)
+		{
+			for (GameObject* go : session->isolatedScene->getRootObjects())
+				createTreeNode(go, true);
+		}
+	}
+	else
+	{
+		createTreeNode();
+	}
 
 	ImGui::End();
 }
 
-void Hierarchy::createTreeNode(GameObject* gameObject)
+void Hierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 {
 	Transform* transform = gameObject->GetTransform();
 	const auto children = transform->getAllChildren();
+
+	PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
+	const bool isEditRoot = prefabMode && session && gameObject == session->rootObject;
+	const bool isPrefabInst = !isEditRoot && PrefabManager::isPrefabInstance(gameObject);
 
 	ImGuiTreeNodeFlags flags =
 		children.empty()
 		? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen
 		: ImGuiTreeNodeFlags_OpenOnArrow;
 
-	std::string label =
-		gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
+	if (isEditRoot)
+		flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-	bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
+	if (isEditRoot)   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
+	else if (isPrefabInst) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
+
+	const char* label = (isEditRoot && session) ? session->prefabName.c_str()
+		: gameObject->GetName().c_str();
+	std::string nodeId = std::string(label) + "###" + std::to_string(gameObject->GetID());
+
+	bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
+
+	if (isEditRoot || isPrefabInst) ImGui::PopStyleColor();
 
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
@@ -60,8 +97,35 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 		m_isDragging = false;
 	}
 
+	// --- Right-click selects before popup opens ---
+	if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+		app->getEditorModule()->setSelectedGameObject(gameObject);
+
+	// --- Context menu ---
+	if (ImGui::BeginPopupContextItem())
+	{
+		PrefabUI::drawNodeContextMenu(gameObject, prefabMode, isEditRoot);
+
+		if (!prefabMode)
+		{
+			PrefabUI::drawPrefabSubMenu(gameObject, app->getSceneModule());
+			ImGui::Separator();
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
+			if (ImGui::MenuItem("Delete"))
+			{
+				UID id = gameObject->GetID();
+				if (app->getEditorModule()->getSelectedGameObject() == gameObject)
+					app->getEditorModule()->setSelectedGameObject(nullptr);
+				app->getSceneModule()->removeGameObject(id);
+			}
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndPopup();
+	}
+
 	// --- Drag source ---
-	if (ImGui::BeginDragDropSource())
+	if (!isEditRoot && ImGui::BeginDragDropSource())
 	{
 		m_isDragging = true;
 		ImGui::SetDragDropPayload("GAME_OBJECT", &gameObject, sizeof(GameObject*));
@@ -98,7 +162,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 	{
 		for (GameObject* child : children)
 		{
-			createTreeNode(child);
+			createTreeNode(child, prefabMode);
 		}
 		ImGui::TreePop();
 	}
@@ -160,7 +224,7 @@ void Hierarchy::createTreeNode()
 		const auto& roots = app->getSceneModule()->getRootObjects();
 		for (GameObject* gameObject : roots)
 		{
-			createTreeNode(gameObject);
+			createTreeNode(gameObject, false);
 		}
 
 		ImGui::TreePop();
@@ -183,4 +247,3 @@ void Hierarchy::removeGameObject()
 		app->getSceneModule()->removeGameObject(id);
 	}
 }
-

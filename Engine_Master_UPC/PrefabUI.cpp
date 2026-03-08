@@ -313,7 +313,6 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     if (ImGui::SmallButton("Apply"))
     {
         PrefabManager::applyToPrefab(go);
-        DEBUG_LOG("[FileDialog] Applied prefab overrides for '%s'", go->GetName().c_str());
     }
     ImGui::PopStyleColor(2);
     ImGui::EndDisabled();
@@ -327,7 +326,6 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     {
         PrefabManager::revertToPrefab(go, app->getSceneModule());
         app->getEditorModule()->setSelectedGameObject(go);
-        DEBUG_LOG("[FileDialog] Reverted '%s' to prefab", go->GetName().c_str());
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -339,7 +337,6 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     if (ImGui::SmallButton("Unlink"))
     {
         PrefabManager::unlinkInstance(go);
-        DEBUG_LOG("[FileDialog] Unlinked instance '%s'", go->GetName().c_str());
     }
     ImGui::PopStyleColor();
     if (ImGui::IsItemHovered())
@@ -380,11 +377,6 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::string& prefabName,
             if (go)
             {
                 app->getEditorModule()->setSelectedGameObject(go);
-                DEBUG_LOG("[FileDialog] Instantiated prefab '%s'", prefabName.c_str());
-            }
-            else
-            {
-                DEBUG_ERROR("[FileDialog] Failed to instantiate prefab '%s'", prefabName.c_str());
             }
         }
     }
@@ -405,13 +397,11 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::string& prefabName,
     if (ImGui::MenuItem("Apply to Prefab"))
     {
         PrefabManager::applyToPrefab(selected);
-        DEBUG_LOG("[FileDialog] Applied overrides for '%s'", prefabName.c_str());
     }
     if (ImGui::MenuItem("Revert to Prefab"))
     {
         PrefabManager::revertToPrefab(selected, app->getSceneModule());
         app->getEditorModule()->setSelectedGameObject(selected);
-        DEBUG_LOG("[FileDialog] Reverted '%s' to prefab", prefabName.c_str());
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && !hasOverrides)
@@ -443,7 +433,6 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::string& prefabName,
         {
             app->getFileSystemModule()->deleteFile(path.c_str());
             app->getFileSystemModule()->rebuild();
-            DEBUG_LOG("[FileDialog] Deleted prefab '%s'", prefabName.c_str());
         }
     }
     ImGui::PopStyleColor();
@@ -479,11 +468,6 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
                 if (PrefabManager::createVariant(variantSrcBuf, variantDstBuf))
                 {
                     app->getFileSystemModule()->rebuild();
-                    DEBUG_LOG("[FileDialog] Created variant '%s' from '%s'", variantDstBuf, variantSrcBuf);
-                }
-                else
-                {
-                    DEBUG_ERROR("[FileDialog] Variant creation failed: %s -> %s", variantSrcBuf, variantDstBuf);
                 }
             }
             ImGui::CloseCurrentPopup();
@@ -513,11 +497,6 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
                 if (app->getFileSystemModule()->move(oldPath.c_str(), newPath.c_str()))
                 {
                     app->getFileSystemModule()->rebuild();
-                    DEBUG_LOG("[FileDialog] Renamed prefab '%s' -> '%s'", renameSrcBuf, renameDstBuf);
-                }
-                else
-                {
-                    DEBUG_ERROR("[FileDialog] Rename failed: %s -> %s", renameSrcBuf, renameDstBuf);
                 }
             }
             ImGui::CloseCurrentPopup();
@@ -548,11 +527,6 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
                 d.prefabUID = PrefabManager::makePrefabUID(savePrefabBuf);
                 PrefabManager::linkInstance(sel, d);
                 app->getFileSystemModule()->rebuild();
-                DEBUG_LOG("[FileDialog] Saved prefab '%s'", savePrefabBuf);
-            }
-            else
-            {
-                DEBUG_ERROR("[FileDialog] Prefab save failed for '%s'", savePrefabBuf);
             }
             ImGui::CloseCurrentPopup();
         }
