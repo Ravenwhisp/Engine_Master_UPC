@@ -6,6 +6,7 @@
 #include "SceneModule.h"
 #include "EditorModule.h"
 #include "GameWindow.h"
+#include "D3D12Module.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -140,15 +141,27 @@ void ModuleEventSystem::process()
 
 bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
+#ifdef GAME_RELEASE
+
+    auto viewport = app->getD3D12Module()->getSwapChain()->getViewport();
+
+    const ImVec2 size(viewport.Width, viewport.Height);
+    const float winX = viewport.TopLeftX;
+    const float winY = viewport.TopLeftY;
+
+#else
     auto viewport = app->getEditorModule()->getEventViewport();
     auto size = app->getEditorModule()->getEventViewportSize();
+    const float winX = viewport.x;
+    const float winY = viewport.y;
+
+#endif // GAME_RELEASE
 
     // Raw mouse position in screen pixels
     const Vector2 rawMouse = app->getInputModule()->getMousePosition();
     
     // Viewport top-left in screen pixels
-    const float winX = viewport.x;
-    const float winY = viewport.y;
+    
     const float winW = size.x;
     const float winH = size.y;
 
@@ -195,7 +208,17 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     GameObject* best = nullptr;
     int         bestDepth = -1;
 
-    const ImVec2 size = app->getEditorModule()->getEventViewportSize();
+#ifdef GAME_RELEASE
+
+    auto viewport = app->getD3D12Module()->getSwapChain()->getViewport();
+
+    const ImVec2 size(viewport.Width, viewport.Height);
+
+#else
+
+    auto size = app->getEditorModule()->getEventViewportSize();
+
+#endif // GAME_RELEASE
 
     Rect2D screenRect;
     screenRect.x = 0.0f;
@@ -245,6 +268,11 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 
 void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
+    if (!go)
+    {
+        return;
+    }
+
     for (Component* c : go->GetAllComponents())
     {
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
@@ -256,6 +284,11 @@ void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 {
+    if(!go)
+    {
+        return;
+	}
+
     for (Component* c : go->GetAllComponents())
     {
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c)) h->onPointerUp(data);

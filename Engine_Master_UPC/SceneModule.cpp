@@ -685,6 +685,8 @@ void SceneModule::saveScene()
 
 bool SceneModule::loadScene(const std::string& sceneName)
 {
+	m_quadtree.reset();
+	clearScene();
     const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
     if (!fileExists) 
     {
