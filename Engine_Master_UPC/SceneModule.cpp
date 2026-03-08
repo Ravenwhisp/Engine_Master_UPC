@@ -545,6 +545,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson)
         removeFromRootList(child);
     }
 
+    fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyboxToRenderer();
 
@@ -586,6 +587,27 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson)
 
     lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
     return true;
+}
+
+void SceneModule::fixLoadedSceneReferences()
+{
+    std::unordered_map<UID, Component*> componentMap;
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            componentMap[component->getID()] = component;
+        }
+    }
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            component->fixReferences(componentMap);
+        }
+    }
 }
 
 void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
@@ -695,12 +717,14 @@ SceneSnapshot SceneModule::getClonedGameObjects()
         snapshot.allObjects.push_back(std::move(clonedRoot));
     }
 
+    fixClonedReferences(snapshot);
+
     return snapshot;
 }
 
 std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
 {
-    auto clone = original->clone();
+    auto clone = original->clone(snapshot);
 
     if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
     {
@@ -724,6 +748,16 @@ std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* or
     return clone;
 }
 
+void SceneModule::fixClonedReferences(const SceneSnapshot& snapshot)
+{
+    for (const auto& obj : snapshot.allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+			component->fixReferences(snapshot.componentMap);
+        }
+    }
+}
 
 void SceneModule::removeFromRootList(GameObject* obj)
 {

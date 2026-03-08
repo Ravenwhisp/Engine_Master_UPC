@@ -13,6 +13,8 @@
     X(UIBUTTON)             \
     X(CAMERA_FOLLOW)        \
     X(CHANGE_SCENE)         \
+    X(EXIT_APPLICATION)     \
+    X(CAMERA_SWITCHER)      \
     X(CHANGE_SCENE_ON_TRIGGER)
 
 enum class ComponentType

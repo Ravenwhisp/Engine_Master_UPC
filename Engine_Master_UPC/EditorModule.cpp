@@ -264,6 +264,10 @@ bool EditorModule::init()
 
 void EditorModule::update()
 {
+    #ifdef GAME_RELEASE
+        return;
+    #endif
+    
     if (m_sceneEditor->isFocused())
     {
         handleKeyboardShortcuts();
@@ -275,12 +279,13 @@ void EditorModule::update()
     }
 }
 
-void EditorModule::preRender()
-{
-}
-
 void EditorModule::render()
 {
+    #ifdef GAME_RELEASE
+        ImGui::EndFrame();
+        return;
+    #endif
+
     /// THIS MUST BE EXECUTED AFTER RenderModule.h render functtion, if not F
     mainDockspace(&m_showMainDockspace);
 
@@ -290,10 +295,6 @@ void EditorModule::render()
     }
 
     ImGui::EndFrame();
-}
-
-void EditorModule::postRender()
-{
 }
 
 bool EditorModule::cleanUp()
@@ -318,6 +319,38 @@ bool EditorModule::cleanUp()
 	m_gameWindow = nullptr;
 
     return true;
+}
+
+ImVec2 EditorModule::getEventViewport() const
+{
+    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    if (sceneEditor && sceneEditor->isFocused())
+    {
+        return ImVec2(sceneEditor->getViewportX(), sceneEditor->getViewportY());
+    }
+
+    GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+    if (gameWindow && gameWindow->isFocused())
+    {
+        return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
+    }
+    return ImVec2(-1, -1);
+}
+
+ImVec2 EditorModule::getEventViewportSize() const
+{
+    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    if (sceneEditor && sceneEditor->isFocused())
+    {
+        return sceneEditor->getSize();
+    }
+
+    GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+    if (gameWindow && gameWindow->isFocused())
+    {
+        return gameWindow->getSize();
+    }
+    return ImVec2(-1, -1);
 }
 
 

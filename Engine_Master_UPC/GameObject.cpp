@@ -14,6 +14,8 @@
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "ChangeScene.h"
+#include "ExitApplication.h"
+#include "CameraSwitcher.h"
 #include "TriggerArea.h"
 
 
@@ -36,9 +38,11 @@ GameObject::~GameObject()
 
 }
 
-std::unique_ptr<GameObject> GameObject::clone() const
+std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
+
+	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -56,6 +60,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
         std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
         if (clonedComponent)
         {
+			snapshot.componentMap[component->getID()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
@@ -103,6 +108,12 @@ bool GameObject::AddComponent(ComponentType componentType)
             break;
         case ComponentType::CHANGE_SCENE:
             m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
+            break;
+        case ComponentType::EXIT_APPLICATION:
+            m_components.push_back(std::make_unique<ExitApplication>(GenerateUID(), this));
+            break;
+        case ComponentType::CAMERA_SWITCHER:
+            m_components.push_back(std::make_unique<CameraSwitcher>(GenerateUID(), this));
             break;
         case ComponentType::CHANGE_SCENE_ON_TRIGGER:
             m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
@@ -162,6 +173,12 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CHANGE_SCENE:
         newComponent = std::make_unique<ChangeScene>(id, this);
+        break;
+    case ComponentType::EXIT_APPLICATION:
+        newComponent = std::make_unique<ExitApplication>(id, this);
+        break;
+    case ComponentType::CAMERA_SWITCHER:
+        newComponent = std::make_unique<CameraSwitcher>(id, this);
         break;
     case ComponentType::CHANGE_SCENE_ON_TRIGGER:
         newComponent = std::make_unique<TriggerArea>(id, this);
@@ -225,6 +242,32 @@ Component* GameObject::GetComponent(ComponentType type) const
     return nullptr;
 }
 
+#pragma region Properties
+
+bool GameObject::IsActiveInHierarchy() const
+{
+    if (!m_active)
+    {
+        return false;
+    }
+
+    Transform* parentTransform = m_transform->getRoot();
+    if (parentTransform == nullptr)
+    {
+        return true;
+    }
+
+    GameObject* parent = parentTransform->getOwner();
+    if (parent != nullptr)
+    {
+        return parent->IsActiveInHierarchy();
+    }
+
+    return true;
+}
+
+#pragma endregion
+
 #pragma region GameLoop
 bool GameObject::init()
 {
@@ -241,6 +284,11 @@ bool GameObject::init()
 
 void GameObject::update() 
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -252,6 +300,11 @@ void GameObject::update()
 
 void GameObject::preRender()
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -270,6 +323,11 @@ void GameObject::preRender()
 
 void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -288,6 +346,11 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 
 void GameObject::postRender()
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
