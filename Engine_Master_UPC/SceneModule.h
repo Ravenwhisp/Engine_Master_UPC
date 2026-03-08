@@ -29,7 +29,7 @@ struct SkyboxSettings
 
 struct SceneSnapshot
 {
-	std::unordered_map<Component*, Component*> componentMap;
+	std::unordered_map<UID, Component*> componentMap;
 	//std::unordered_map<GameObject*, GameObject*> gameObjectMap; For now, not necessary
 
 	std::vector<std::unique_ptr<GameObject>> allObjects;
@@ -79,6 +79,7 @@ public:
 	bool loadFromJSON(const rapidjson::Value& sceneJson);
 	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
+	void fixLoadedSceneReferences();
 	void resolveDefaultCamera(const rapidjson::Value& sceneJson);
 
 	void saveScene();

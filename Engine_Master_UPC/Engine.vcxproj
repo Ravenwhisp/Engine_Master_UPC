@@ -263,6 +263,7 @@
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Delegates.h" />
+    <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="GameViewModule.h" />
     <ClInclude Include="GameWindow.h" />
@@ -471,6 +472,7 @@
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="GameViewModule.cpp" />
     <ClCompile Include="GameWindow.cpp" />
