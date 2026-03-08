@@ -175,6 +175,12 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     scene->render(commandList);
 
     const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();
+    m_triangles = 0;
+    for (MeshRenderer* mesh : meshes)
+    {
+        m_triangles += mesh->getTriangles();
+    }
+
     m_meshRendererPass->setMeshes(meshes);
     m_meshRendererPass->apply(commandList);
 

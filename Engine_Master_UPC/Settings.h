@@ -54,6 +54,7 @@ struct DebugGame
 {
     bool showFPS = false;
     bool showFrametime = false;
+    bool showTrianglesNumber = false;
 };
 
 class Settings
@@ -74,5 +75,9 @@ public:
     void saveSettings()
     {
         //to do
+    }
+
+    bool hasDebugInformationEnabled() {
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber;
     }
 };

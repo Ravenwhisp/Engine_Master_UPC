@@ -44,6 +44,8 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
+	int getTriangles() { return m_triangles; }
+
 private:
 	mutable std::vector<std::shared_ptr<BasicMesh>>		m_meshes;
 	mutable std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
@@ -55,4 +57,6 @@ private:
 
 	std::string m_modelPath;
 	std::string m_basePath;
+
+	int m_triangles;
 };

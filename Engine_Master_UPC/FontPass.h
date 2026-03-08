@@ -20,6 +20,8 @@ private:
 	void drawText(const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale);
 	void end();
 
+	void showDebugInformation();
+
 private:
 	Settings* m_settings;
 
