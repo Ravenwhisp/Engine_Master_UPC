@@ -17,6 +17,8 @@
 #include "ExitApplication.h"
 #include "CameraSwitcher.h"
 #include "TriggerArea.h"
+#include <NavigationAgentComponent.h>
+#include <WaypointPathComponent.h>
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -118,7 +120,12 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CHANGE_SCENE_ON_TRIGGER:
             m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
             break;
-
+        case ComponentType::NAVIGATION_AGENT:
+            m_components.push_back(std::make_unique<NavigationAgentComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::WAYPOINT_PATH:
+            m_components.push_back(std::make_unique<WaypointPathComponent>(GenerateUID(), this));
+            break;
         case ComponentType::TRANSFORM:
             break;
         case ComponentType::COUNT:
@@ -128,7 +135,6 @@ bool GameObject::AddComponent(ComponentType componentType)
             return false;
             break;
     }
-
     return true;
 }
 
