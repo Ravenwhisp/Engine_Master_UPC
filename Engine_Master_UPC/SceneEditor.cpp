@@ -19,6 +19,7 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
+#include "TriggerArea.h"
 #include "Quadtree.h"
 
 #include "CameraComponent.h"
@@ -191,6 +192,13 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         else
         {
             LightDebugDraw::drawLightWithoutDepth(*go);
+        }
+
+        auto* area = go->GetComponentAs<TriggerArea>(ComponentType::CHANGE_SCENE_ON_TRIGGER);
+        
+        if (area) 
+        {
+            area->printArea();
         }
     }
 

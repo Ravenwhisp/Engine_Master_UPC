@@ -14,6 +14,7 @@
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "ChangeScene.h"
+#include "TriggerArea.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -103,6 +104,10 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CHANGE_SCENE:
             m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
             break;
+        case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+            m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
+            break;
+
         case ComponentType::TRANSFORM:
             break;
         case ComponentType::COUNT:
@@ -157,6 +162,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CHANGE_SCENE:
         newComponent = std::make_unique<ChangeScene>(id, this);
+        break;
+    case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+        newComponent = std::make_unique<TriggerArea>(id, this);
         break;
     case ComponentType::TRANSFORM:
         break;

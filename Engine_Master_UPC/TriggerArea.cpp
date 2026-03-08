@@ -8,7 +8,7 @@
 
 TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, ComponentType::CHANGE_SCENE_ON_TRIGGER, gameObject)
 {
-	xWidth = zWidth = 2.f;
+	m_xWidth = m_zWidth = 2.f;
 	m_sceneToLoad = "";
 	m_object1 = m_object2 = 0;
 
@@ -20,8 +20,8 @@ std::unique_ptr<Component> TriggerArea::clone(GameObject* newOwner) const
 {
 	std::unique_ptr<TriggerArea> newComponent = std::make_unique<TriggerArea>(GenerateUID(), newOwner);
 
-	newComponent->xWidth = xWidth;
-	newComponent->zWidth = zWidth;
+	newComponent->m_xWidth = m_xWidth;
+	newComponent->m_zWidth = m_zWidth;
 
 
 	newComponent->m_sceneToLoad = m_sceneToLoad;
@@ -34,8 +34,8 @@ std::unique_ptr<Component> TriggerArea::clone(GameObject* newOwner) const
 
 void TriggerArea::drawUi()
 {
-	ImGui::DragFloat("X Width", &xWidth, 1.f, 0.0f, FLT_MAX, "%.3f");
-	ImGui::DragFloat("Z Width", &zWidth, 1.f, 0.0f, FLT_MAX, "%.3f");
+	ImGui::DragFloat("X Width", &m_xWidth, 1.f, 0.0f, FLT_MAX, "%.3f");
+	ImGui::DragFloat("Z Width", &m_zWidth, 1.f, 0.0f, FLT_MAX, "%.3f");
 
 	ImGui::Separator();
 
@@ -51,12 +51,14 @@ void TriggerArea::drawUi()
 
 	ImGui::InputScalar("Object 1 UID", ImGuiDataType_U64, &m_object1);
 	ImGui::InputScalar("Object 2 UID", ImGuiDataType_U64, &m_object2);
+
+
 }
 
 void TriggerArea::update()
 {
 	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
-	BoundingRect triggerArea(currentPosition.x, currentPosition.z, xWidth, zWidth);
+	BoundingRect triggerArea(currentPosition.x, currentPosition.z, m_xWidth, m_zWidth);
 
 	GameObject* gameObject1 = app->getSceneModule()->findGameObjectByUID(m_object1);
 	if (gameObject1) 
@@ -80,6 +82,12 @@ void TriggerArea::update()
 	}
 }
 
+/*void TriggerArea::preRender()
+{
+	printArea();
+}
+*/
+
 void TriggerArea::onChangeScene()
 {
 	if (m_sceneToLoad == "") 
@@ -93,6 +101,16 @@ void TriggerArea::onChangeScene()
 	app->getSceneModule()->requestSceneChange(m_sceneToLoad);
 }
 
+void TriggerArea::printArea()
+{
+	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
+
+	ddVec3_In center = { currentPosition.x + m_xWidth / 2.f, currentPosition.y, currentPosition.z + m_zWidth / 2.f }; // half added because BoundingRect position was not the center, so we need to adjust on debug draw
+	float height = 1.f; // this should go somewhere else...
+
+	dd::box(center, dd::colors::Green, m_xWidth, height, m_zWidth);
+}
+
 rapidjson::Value TriggerArea::getJSON(rapidjson::Document& domTree) 
 {
 
@@ -101,8 +119,8 @@ rapidjson::Value TriggerArea::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("ComponentType", int(ComponentType::CHANGE_SCENE_ON_TRIGGER), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-	componentInfo.AddMember("XWidth", xWidth, domTree.GetAllocator());
-	componentInfo.AddMember("ZWidth", zWidth, domTree.GetAllocator());
+	componentInfo.AddMember("XWidth", m_xWidth, domTree.GetAllocator());
+	componentInfo.AddMember("ZWidth", m_zWidth, domTree.GetAllocator());
 	{
 		rapidjson::Value sceneString(m_sceneToLoad.c_str(), domTree.GetAllocator());
 		componentInfo.AddMember("SceneToLoad", sceneString, domTree.GetAllocator());
@@ -116,8 +134,8 @@ rapidjson::Value TriggerArea::getJSON(rapidjson::Document& domTree)
 
 bool TriggerArea::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	xWidth = componentInfo["XWidth"].GetFloat();
-	zWidth = componentInfo["ZWidth"].GetFloat();
+	m_xWidth = componentInfo["XWidth"].GetFloat();
+	m_zWidth = componentInfo["ZWidth"].GetFloat();
 
 	if (componentInfo.HasMember("SceneToLoad"))
 	{

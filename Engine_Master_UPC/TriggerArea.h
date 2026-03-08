@@ -13,14 +13,17 @@ public:
 
 	void update() override;
 
+	//void preRender() override;
+
 	void onTransformChange() override {}
 	void onChangeScene();
+	void printArea();
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	virtual bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 private:
 
-	float xWidth, zWidth;
+	float m_xWidth, m_zWidth;
 
 	std::string m_sceneToLoad;
 	UID m_object1;
