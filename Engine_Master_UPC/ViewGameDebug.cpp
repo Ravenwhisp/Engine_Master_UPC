@@ -23,6 +23,9 @@ void ViewGameDebug::render()
     ImGui::Checkbox("Show QuadTree", &m_settings->sceneEditor.showQuadTree);
     ImGui::Checkbox("Show Model Bounding Boxes", &m_settings->sceneEditor.showModelBoundingBoxes);
 
+    ImGui::Separator();
+    ImGui::Checkbox("Frustum culling", &m_settings->frustumCulling.debugFrustumCulling);
+
     //ImGui::Spacing();
     ImGui::Separator();
     ImGui::Checkbox("Show FPS", &m_settings->debugGame.showFPS);
