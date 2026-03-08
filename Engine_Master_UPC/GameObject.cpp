@@ -15,6 +15,7 @@
 #include "SceneModule.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
+#include "CameraSwitcher.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -110,6 +111,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::EXIT_APPLICATION:
             m_components.push_back(std::make_unique<ExitApplication>(GenerateUID(), this));
             break;
+        case ComponentType::CAMERA_SWITCHER:
+            m_components.push_back(std::make_unique<CameraSwitcher>(GenerateUID(), this));
+            break;
         case ComponentType::TRANSFORM:
             break;
         case ComponentType::COUNT:
@@ -167,6 +171,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::EXIT_APPLICATION:
         newComponent = std::make_unique<ExitApplication>(id, this);
+        break;
+    case ComponentType::CAMERA_SWITCHER:
+        newComponent = std::make_unique<CameraSwitcher>(id, this);
         break;
     case ComponentType::TRANSFORM:
         break;
