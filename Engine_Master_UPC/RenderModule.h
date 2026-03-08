@@ -8,6 +8,7 @@
 #include <DebugDrawPass.h>
 #include <ImGuiPass.h>
 
+class Settings;
 class RingBuffer;
 class RenderTexture;
 class DepthBuffer;
@@ -15,7 +16,8 @@ class GameObject;
 class VertexBuffer;
 class IndexBuffer;
 class Texture;
-class Settings;
+
+class GameViewModule;
 
 class RenderModule: public Module
 {
@@ -28,9 +30,31 @@ private:
 		bool valid = false;
 	};
 
+private:
+	Settings* m_settings;
+	GameViewModule* m_gameViewModule;
+
+	RingBuffer* m_ringBuffer;
+	DescriptorsModule::SampleType	m_sampleType = DescriptorsModule::SampleType::POINT_CLAMP;
+
+	//Scene Editor Offscreen Render Target
+	std::unique_ptr<RenderTexture>	m_editorScreenRT{};
+	std::unique_ptr<RenderTexture>	m_playScreenRT{};
+	std::unique_ptr<DepthBuffer>	m_editorScreenDS{};
+	std::unique_ptr<DepthBuffer>	m_playScreenDS{};
+	ImVec2							m_size = ImVec2(800, 600);
+
+
+	/// NEEEEEEEEEEEEEW
+	SkyBoxPass* m_skyBoxPass = nullptr;
+	MeshRendererPass* m_meshRendererPass = nullptr;
+	DebugDrawPass* m_debugDrawPass = nullptr;
+	ImGuiPass* m_imGuiPass = nullptr;
+
+	std::vector<IRenderPass*> m_renderPasses;
+
 public:
 	bool init();
-	bool postInit();
 	void preRender();
 	void render();
 	bool cleanUp();
@@ -56,26 +80,5 @@ private:
 	RenderCamera getGameCamera();
 
 	void transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
-
-	Settings* m_settings;
-
-	RingBuffer*						m_ringBuffer;
-	DescriptorsModule::SampleType	m_sampleType = DescriptorsModule::SampleType::POINT_CLAMP;
-
-	//Scene Editor Offscreen Render Target
-	std::unique_ptr<RenderTexture>	m_editorScreenRT{};
-	std::unique_ptr<RenderTexture>	m_playScreenRT{};
-	std::unique_ptr<DepthBuffer>	m_editorScreenDS{};
-	std::unique_ptr<DepthBuffer>	m_playScreenDS{};
-	ImVec2							m_size = ImVec2(800, 600);
-
-
-	/// NEEEEEEEEEEEEEW
-	SkyBoxPass* m_skyBoxPass = nullptr;
-	MeshRendererPass* m_meshRendererPass = nullptr;
-	DebugDrawPass* m_debugDrawPass = nullptr;
-	ImGuiPass* m_imGuiPass = nullptr;
-
-	std::vector<IRenderPass*> m_renderPasses;
 };
 

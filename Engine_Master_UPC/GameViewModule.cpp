@@ -2,19 +2,27 @@
 #include "GameViewModule.h"
 
 #include "Application.h"
+#include "InputModule.h"
+
 #include "GameObject.h"
 
 GameViewModule::GameViewModule()
 {
+	m_sceneModule = nullptr;
+	m_inputModule = nullptr;
 }
 
 GameViewModule::~GameViewModule()
 {
+
 }
 
 bool GameViewModule::init()
 {
 	m_sceneModule = app->getSceneModule();
+	m_inputModule = app->getInputModule();
+
+	m_showDebugWindow = false;
 	
 #ifdef GAME_RELEASE
 	m_sceneModule->loadScene("main");
@@ -26,6 +34,11 @@ bool GameViewModule::init()
 
 void GameViewModule::update()
 {
+	static Keyboard::KeyboardStateTracker keyTracker;
+
+	Keyboard::State state = Keyboard::Get().GetState();
+	keyTracker.Update(state);
+
 	if(app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
 	{
 		for (GameObject* gameObject : m_sceneModule->getAllGameObjects())
@@ -35,7 +48,16 @@ void GameViewModule::update()
 				gameObject->update();
 			}
 		}
+
+		if (keyTracker.pressed.F3)
+		{
+			m_showDebugWindow = !m_showDebugWindow;
+		}
+	} else
+	{
+		m_showDebugWindow = false;
 	}
+
 }
 
 void GameViewModule::startGameSimulation()

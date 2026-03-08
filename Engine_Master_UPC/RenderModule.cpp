@@ -6,6 +6,7 @@
 #include "EditorModule.h"
 #include "ResourcesModule.h"
 #include "CameraModule.h"
+#include "GameViewModule.h"
 
 #include "SceneModule.h"
 #include "UIModule.h"
@@ -29,6 +30,8 @@
 bool RenderModule::init()
 {
     m_settings = app->getSettings();
+    m_gameViewModule = app->getGameViewModule();
+
     auto d3d12 = app->getD3D12Module();
     auto device = d3d12->getDevice();
 
@@ -46,12 +49,6 @@ bool RenderModule::init()
     m_playScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
     m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
 	m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
-
-    return true;
-}
-
-bool RenderModule::postInit()
-{
 
     return true;
 }
@@ -229,7 +226,7 @@ void RenderModule::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
     D3D12_VIEWPORT viewport = { 0,0,width,height,0,1 };
     D3D12_RECT scissorRect = { 0,0,(LONG)width,(LONG)height };
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, false);
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_gameViewModule->getShowDebugWindow());
 }
 
 void RenderModule::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
@@ -241,7 +238,7 @@ void RenderModule::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandLis
         return;
     }
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, false);
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_gameViewModule->getShowDebugWindow());
 }
 
 void RenderModule::render()
