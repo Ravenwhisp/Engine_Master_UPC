@@ -357,11 +357,11 @@ bool CameraFollow::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("FirstTargetUID"))
     {
-        m_firstTargetTransformUid = (UID)componentInfo["FirstTargetTransformUID"].GetUint64();
+        m_firstTargetTransformUid = (UID)componentInfo["FirstTargetUID"].GetUint64();
     }
     if (componentInfo.HasMember("SecondTargetUID"))
     {
-        m_secondTargetTransformUid = (UID)componentInfo["SecondTargetTransformUID"].GetUint64();
+        m_secondTargetTransformUid = (UID)componentInfo["SecondTargetUID"].GetUint64();
     }
 
     if (componentInfo.HasMember("WorldOffset"))
