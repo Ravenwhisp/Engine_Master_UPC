@@ -277,6 +277,9 @@
     <ClCompile Include="ViewGameDebug.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
+    <ClCompile Include="CameraSwitcher.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -632,6 +635,9 @@
     </ClInclude>
     <ClInclude Include="ViewGameDebug.h">
       <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClInclude Include="CameraSwitcher.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
