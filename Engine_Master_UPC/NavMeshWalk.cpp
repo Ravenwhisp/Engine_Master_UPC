@@ -21,7 +21,29 @@ NavMeshWalk::NavMeshWalk(UID id, GameObject* gameobject)
 
 std::unique_ptr<Component> NavMeshWalk::clone(GameObject* newOwner) const
 {
-    return std::unique_ptr<Component>();
+    auto c = std::make_unique<NavMeshWalk>(m_uuid, newOwner);
+
+    // Copy state
+    c->setActive(this->isActive());
+    c->m_moveSpeed = m_moveSpeed;
+    c->m_shiftMultiplier = m_shiftMultiplier;
+    c->m_turnSpeedDegPerSec = m_turnSpeedDegPerSec;
+
+    c->m_keyUp = m_keyUp;
+    c->m_keyDown = m_keyDown;
+    c->m_keyLeft = m_keyLeft;
+    c->m_keyRight = m_keyRight;
+
+    c->m_constrainToNavMesh = m_constrainToNavMesh;
+    c->m_navExtents[0] = m_navExtents[0];
+    c->m_navExtents[1] = m_navExtents[1];
+    c->m_navExtents[2] = m_navExtents[2];
+
+    // Reset runtime cache
+    c->m_yawInitialized = false;
+    c->m_currentYawDeg = 0.0f;
+
+    return c;
 }
 
 float NavMeshWalk::getDeltaSecondsFromTimer() const
@@ -159,6 +181,9 @@ float NavMeshWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYa
 
 void NavMeshWalk::drawUi()
 {
+    ImGui::TextColored(ImVec4(1, 0.6f, 0.2f, 1), "NOTE: NavMeshWalk only updates in PLAY mode.");
+    ImGui::Separator();
+
     ImGui::Text("Hold Left Mouse Button + WASD to move (NavMesh constrained)");
     ImGui::Text("Press shift to go faster");
     ImGui::Separator();

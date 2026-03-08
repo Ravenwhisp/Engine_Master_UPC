@@ -18,7 +18,25 @@ bool NavigationAgentComponent::init()
 
 std::unique_ptr<Component> NavigationAgentComponent::clone(GameObject* newOwner) const
 {
-	return std::unique_ptr<Component>();
+	auto c = std::make_unique<NavigationAgentComponent>(m_uuid, newOwner);
+
+	// Authoring
+	c->setActive(this->isActive());
+	c->m_drawPath = m_drawPath;
+	c->m_autoStart = m_autoStart;
+	c->m_speed = m_speed;
+	c->m_turnSpeed = m_turnSpeed;
+	c->m_faceMovement = m_faceMovement;
+	c->m_waypointReachDistance = m_waypointReachDistance;
+
+	// Runtime 
+	c->m_path.clear();
+	c->m_currentIndex = 0;
+	c->m_hasPath = false;
+	c->m_running = false;
+	c->m_currentWaypoint = 0;
+
+	return c;
 }
 
 void NavigationAgentComponent::setTarget(const Vector3& target)

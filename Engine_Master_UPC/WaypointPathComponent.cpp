@@ -9,7 +9,10 @@ using namespace DirectX::SimpleMath;
 
 std::unique_ptr<Component> WaypointPathComponent::clone(GameObject* newOwner) const
 {
-	return std::unique_ptr<Component>();
+	auto c = std::make_unique<WaypointPathComponent>(m_uuid, newOwner);
+	c->setActive(this->isActive());
+	c->m_waypoints = m_waypoints;
+	return c;
 }
 
 void WaypointPathComponent::addWaypoint(const Vector3& p)
