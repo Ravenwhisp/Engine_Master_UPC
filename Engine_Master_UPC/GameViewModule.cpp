@@ -23,7 +23,7 @@ bool GameViewModule::init()
 	m_inputModule = app->getInputModule();
 
 	m_showDebugWindow = false;
-	
+
 #ifdef GAME_RELEASE
 	m_sceneModule->loadScene("main");
 	app->setEngineState(ENGINE_STATE::PLAYING);
