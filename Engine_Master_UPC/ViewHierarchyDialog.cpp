@@ -49,14 +49,14 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Copy", nullptr, false, hasSelection))
     {
-        DEBUG_WARN("Option currently not fully implemented! The action may not work as expected");
-        copy(selected);
+        DEBUG_WARN("Option not implemented yet!");
+        //copy(selected);
     }
 
     if (ImGui::MenuItem("Paste", nullptr, false, hasSelection and domTree.HasMember("gameObjects")))
     {
-        DEBUG_WARN("Option currently not fully implemented! The action may not work as expected");
-        pasteOn(selected);
+        DEBUG_WARN("Option not implemented yet!");
+        //pasteOn(selected);
     }
 
     ImGui::Separator();
