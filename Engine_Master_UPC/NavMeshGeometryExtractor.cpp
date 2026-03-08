@@ -83,8 +83,7 @@ static void AppendMeshAssetToSoup(
     std::vector<uint32_t> decoded;
     if (!DecodeIndices(mesh, decoded))
     {
-        // Fallback: si no hay indices pero es triangle list (muy raro aquí), puedes habilitar esto:
-        // if ((vCount % 3) == 0) { for (uint32_t i = 0; i < vCount; ++i) outTris.push_back(inOutBaseVertex + int(i)); }
+        if ((vCount % 3) == 0) { for (uint32_t i = 0; i < vCount; ++i) outTris.push_back(inOutBaseVertex + int(i)); }
         return;
     }
 
@@ -94,7 +93,6 @@ static void AppendMeshAssetToSoup(
         decoded.resize(decoded.size() - (decoded.size() % 3));
     }
 
-    // Validación: índices dentro de rango
     for (uint32_t idx : decoded)
     {
         if (idx >= vCount)

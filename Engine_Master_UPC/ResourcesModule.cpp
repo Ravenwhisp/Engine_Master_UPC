@@ -33,7 +33,7 @@ bool ResourcesModule::postInit()
 
 void ResourcesModule::preRender()
 {
-	UINT lastCompletedFrame = app->getD3D12Module()->getLastCompletedFrame();
+	UINT lastCompletedFrame = m_queue->getCompletedFenceValue();
 	for (int i = 0; i < m_defferedResources.size(); ++i)
 	{
 		if (lastCompletedFrame > m_defferedResources[i].frame)
@@ -108,7 +108,7 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 	info.desc = &desc;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-	if (info.desc->Format == DXGI_FORMAT_D32_FLOAT) 
+	if (info.desc->Format == DXGI_FORMAT_D32_FLOAT)
 	{
 		srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
 	}
@@ -303,7 +303,9 @@ std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float window
 void ResourcesModule::defferResourceRelease(ComPtr<ID3D12Resource> resource)
 {
 	DefferedResource defferedResource;
-	defferedResource.frame = app->getD3D12Module()->getCurrentFrame();
+
+	defferedResource.frame = m_queue->signal();
+
 	defferedResource.resource = resource;
 	m_defferedResources.push_back(defferedResource);
 }
