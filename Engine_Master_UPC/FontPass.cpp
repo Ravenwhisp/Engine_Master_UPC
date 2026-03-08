@@ -4,8 +4,14 @@
 #include "D3D12Module.h"
 #include "CommandQueue.h"
 
+#include "Application.h"
+#include "TimeModule.h"
+#include "Settings.h"
+
 FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
+	m_settings = app->getSettings();
+
 	m_fontHeap = std::make_unique<DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
 
 	m_upload =  std::make_unique<ResourceUploadBatch>(device.Get());
@@ -32,11 +38,33 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-	if (!m_commands || m_commands->empty())
+	if (!m_commands || m_commands->empty() && !m_settings->debugGame.showFPS && !m_settings->debugGame.showFrametime)
 	{
 		return;
 	}
+
 	begin(commandList);
+
+	if (m_settings->debugGame.showFPS)
+	{
+		float deltaTime = app->getTimeModule()->deltaTime();
+		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
+
+		wchar_t buffer[32];
+		swprintf_s(buffer, L"FPS: %.0f", fps);
+
+		drawText(buffer, 10.0f, 10.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+	}
+	if (m_settings->debugGame.showFrametime)
+	{
+		float deltaTime = app->getTimeModule()->deltaTime();
+		float ms = deltaTime * 1000.0f;
+
+		wchar_t buffer[32];
+		swprintf_s(buffer, L"Frame time: %.2f ms", ms);
+
+		drawText(buffer, 10.0f, 30.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+	}
 	
 	for (const auto& command : *m_commands)
 	{

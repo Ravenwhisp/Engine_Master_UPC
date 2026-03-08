@@ -16,9 +16,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_modelAssetId = m_modelAssetId;
     newMeshRenderer->m_modelPath = m_modelPath;
     newMeshRenderer->m_basePath = m_basePath;
-    newMeshRenderer->m_boundsDepthTest = m_boundsDepthTest;
-    newMeshRenderer->m_drawWorldAabb = m_drawWorldAabb;
-    newMeshRenderer->m_hasBounds = m_hasBounds;
     newMeshRenderer->m_boundingBox = m_boundingBox;
     newMeshRenderer->m_meshes = m_meshes;
     newMeshRenderer->m_materials = m_materials;
@@ -35,7 +32,6 @@ void MeshRenderer::addModel(ModelAsset& model)
 
     Vector3 globalMin(FLT_MAX, FLT_MAX, FLT_MAX);
     Vector3 globalMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-    m_boundingBox = Engine::BoundingBox(globalMin, globalMax);
 
     for (const auto meshAsset : model.getMeshes())
     {
@@ -63,65 +59,9 @@ void MeshRenderer::addModel(ModelAsset& model)
         ++index;
     }
 
-    m_boundingBox.setMin(globalMin);
-    m_boundingBox.setMax(globalMax);
-    m_hasBounds = true;
+    m_boundingBox = Engine::BoundingBox(globalMin, globalMax);
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }
-
-#pragma region Loop functions
-
-bool MeshRenderer::init()
-{
-    m_hasBounds = false;
-
-    return true;
-}
-
-void MeshRenderer::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
-{
-    Transform* transform = m_owner->GetTransform();
-    Matrix mvp = (transform->getGlobalMatrix() * viewMatrix * projectionMatrix).Transpose();
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
-
- 
-    if (app->getSettings()->sceneEditor.showModelBoundingBoxes && m_hasBounds && dd::isInitialized())
-    {
-        const Matrix world = transform->getGlobalMatrix();
-
-        const Vector3* c = m_boundingBox.getPoints();
-
-        if (!m_drawWorldAabb)
-        {
-            ddVec3 pts[8];
-            for (int i = 0; i < 8; ++i)
-            {
-                pts[i][0] = c[i].x; pts[i][1] = c[i].y; pts[i][2] = c[i].z;
-            }
-            dd::box(pts, dd::colors::Yellow, 0, m_boundsDepthTest);
-        }
-        else
-        {
-            Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
-            Vector3 wmax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-            for (int i = 0; i < 8; ++i)
-            {
-                wmin.x = std::min(wmin.x, c[i].x); wmin.y = std::min(wmin.y, c[i].y); wmin.z = std::min(wmin.z, c[i].z);
-                wmax.x = std::max(wmax.x, c[i].x); wmax.y = std::max(wmax.y, c[i].y); wmax.z = std::max(wmax.z, c[i].z);
-            }
-
-            ddVec3 mn = { wmin.x, wmin.y, wmin.z };
-            ddVec3 mx = { wmax.x, wmax.y, wmax.z };
-            dd::aabb(mn, mx, dd::colors::Yellow, 0, m_boundsDepthTest);
-        }
-    }
-}
-
-bool MeshRenderer::cleanUp()
-{
-    return true;
-}
-#pragma endregion
 
 void MeshRenderer::drawUi()
 {
@@ -147,22 +87,10 @@ void MeshRenderer::drawUi()
     ImGui::Text("Meshes: %d", (int)m_meshes.size());
     ImGui::Text("Materials: %d", (int)m_materials.size());
 
-    ImGui::SeparatorText("Debug Bounding Box");
-    ImGui::Checkbox("Depth Test", &m_boundsDepthTest);
-    ImGui::Checkbox("World AABB (axis aligned)", &m_drawWorldAabb);
-
-    if (m_hasBounds)
-    {
-        auto min = m_boundingBox.getMin();
-        auto max = m_boundingBox.getMax();
-        ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
-        ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
-    }
-    else
-    {
-        ImGui::TextDisabled("No bounds computed.");
-    }
-
+    auto min = m_boundingBox.getMin();
+    auto max = m_boundingBox.getMax();
+    ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
+    ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
 }
 
 void MeshRenderer::onTransformChange()
@@ -192,7 +120,6 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         m_meshes.clear();
         m_materials.clear();
         m_materialIndexByUID.clear();
-        m_hasBounds = false;
 
         ModelAsset* modelAsset = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(m_modelAssetId));
         if (modelAsset) {
