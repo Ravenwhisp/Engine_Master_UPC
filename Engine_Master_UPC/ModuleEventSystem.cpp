@@ -58,6 +58,11 @@ bool ModuleEventSystem::init()
 
 void ModuleEventSystem::update()
 {
+    if (app->getSceneModule()->isPendingSceneLoad()) {
+        clearHoverState();
+        return;
+
+    }
     process();
 }
 
@@ -106,6 +111,7 @@ void ModuleEventSystem::process()
             }
 
             state.pointerEnterLast = hovered;
+
         }
 
        
@@ -133,6 +139,8 @@ void ModuleEventSystem::process()
                     data.pointerClick = hovered;
                     sendPointerClick(hovered, data);
                 }
+
+                state.pointerPress = nullptr;
             }
         }
     }

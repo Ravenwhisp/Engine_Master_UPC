@@ -121,6 +121,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CHANGE_SCENE:
             m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
             break;
+        case ComponentType::NAVMESH_WALK:
+            m_components.push_back(std::make_unique<NavMeshWalk>(GenerateUID(), this));
+			break;
         case ComponentType::NAVIGATION_AGENT:
             m_components.push_back(std::make_unique<NavigationAgentComponent>(GenerateUID(), this));
             break;
