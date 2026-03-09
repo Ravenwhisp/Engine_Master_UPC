@@ -20,6 +20,9 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentJson) override;
 
+    bool getNavmeshConstrain() const { return m_constrainToNavMesh; }
+    void setNavmeshConstrain(bool v) { m_constrainToNavMesh = v; }
+
 private:
     float getDeltaSecondsFromTimer() const;
 
