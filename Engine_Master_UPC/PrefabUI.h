@@ -1,5 +1,6 @@
 #pragma once
 #include "imgui.h"
+#include <string>
 
 class GameObject;
 class SceneModule;
@@ -15,23 +16,24 @@ public:
     static void drawPrefabSubMenu(GameObject* go, SceneModule* scene);
     static void drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize);
     static void markTransformOverride(GameObject* go);
-
     static void drawFileDialogInstanceBar(GameObject* go);
+
+    struct FileDialogBuffers
+    {
+        char* variantSource;      int variantSourceSize;
+        char* variantDest;        int variantDestSize;
+        char* renameSource;       int renameSourceSize;
+        char* renameDest;         int renameDestSize;
+        char* savePrefab;         int savePrefabSize;
+    };
 
     static void drawFileDialogItemContextMenu(const std::string& prefabName,
         bool& outShowVariantModal,
         bool& outRenamingPrefab,
-        char* variantSrcBuf, int variantSrcBufSize,
-        char* variantDstBuf, int variantDstBufSize,
-        char* renameSrcBuf, int renameSrcBufSize,
-        char* renameDstBuf, int renameDstBufSize);
+        FileDialogBuffers& buffers);
 
     static void drawFileDialogModals(bool& showVariantModal,
         bool& showSavePrefabModal,
         bool& renamingPrefab,
-        char* variantSrcBuf, int variantSrcBufSize,
-        char* variantDstBuf, int variantDstBufSize,
-        char* savePrefabBuf, int savePrefabBufSize,
-        char* renameSrcBuf, int renameSrcBufSize,
-        char* renameDstBuf, int renameDstBufSize);
+        FileDialogBuffers& buffers);
 };

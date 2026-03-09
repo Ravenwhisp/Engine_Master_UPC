@@ -21,11 +21,11 @@ void Inspector::render()
     }
 
     PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
-    const bool         prefabMode = session && session->active;
+    const bool prefabMode = session && session->m_active;
 
     if (prefabMode)
     {
-        PrefabUI::drawModeHeader(session->prefabName.c_str());
+        PrefabUI::drawModeHeader(session->m_prefabName.c_str());
         PrefabUI::drawApplyRevertBar(ImGui::GetContentRegionAvail().x);
     }
 

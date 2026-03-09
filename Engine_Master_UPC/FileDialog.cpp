@@ -238,13 +238,8 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
             if (isPrefab)
             {
-                PrefabUI::drawFileDialogItemContextMenu(
-                    asset->path.stem().string(),
-                    m_showVariantModal, m_renamingPrefab,
-                    m_variantSrcBuf, sizeof(m_variantSrcBuf),
-                    m_variantDstBuf, sizeof(m_variantDstBuf),
-                    m_renameSrcBuf,  sizeof(m_renameSrcBuf),
-                    m_renameDstBuf,  sizeof(m_renameDstBuf));
+                PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
+                PrefabUI::drawFileDialogItemContextMenu(asset->path.stem().string(), m_showVariantModal, m_renamingPrefab, buffers);
             }
             else
             {
@@ -309,7 +304,6 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         }
 
         ImGui::TextWrapped("%s", asset->displayName.c_str());
-
         ImGui::NextColumn();
         ImGui::PopID();
     }
@@ -388,13 +382,19 @@ void FileDialog::render()
     }
     ImGui::EndChild();
 
-    PrefabUI::drawFileDialogModals(
-        m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab,
-        m_variantSrcBuf, sizeof(m_variantSrcBuf),
-        m_variantDstBuf, sizeof(m_variantDstBuf),
-        m_savePrefabNameBuf, sizeof(m_savePrefabNameBuf),
-        m_renameSrcBuf, sizeof(m_renameSrcBuf),
-        m_renameDstBuf, sizeof(m_renameDstBuf));
+    PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
+    PrefabUI::drawFileDialogModals(m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab, buffers);
 
     ImGui::End();
+}
+
+PrefabUI::FileDialogBuffers FileDialog::buildFileDialogBuffers()
+{
+    PrefabUI::FileDialogBuffers buffers;
+    buffers.variantSource = m_variantSrcBuf;      buffers.variantSourceSize = sizeof(m_variantSrcBuf);
+    buffers.variantDest = m_variantDstBuf;      buffers.variantDestSize = sizeof(m_variantDstBuf);
+    buffers.renameSource = m_renameSrcBuf;       buffers.renameSourceSize = sizeof(m_renameSrcBuf);
+    buffers.renameDest = m_renameDstBuf;       buffers.renameDestSize = sizeof(m_renameDstBuf);
+    buffers.savePrefab = m_savePrefabNameBuf;  buffers.savePrefabSize = sizeof(m_savePrefabNameBuf);
+    return buffers;
 }
