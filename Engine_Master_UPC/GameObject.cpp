@@ -17,6 +17,7 @@
 #include "ExitApplication.h"
 #include "CameraSwitcher.h"
 #include "TriggerArea.h"
+#include "NavMeshWalk.h"
 #include <NavigationAgentComponent.h>
 #include <WaypointPathComponent.h>
 
@@ -56,6 +57,7 @@ std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
 
     // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
     newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
+    newGameObject->m_transform = nullptr;
 
     for (const std::unique_ptr<Component>& component : m_components)
     {
@@ -119,6 +121,9 @@ bool GameObject::AddComponent(ComponentType componentType)
             break;
         case ComponentType::CHANGE_SCENE_ON_TRIGGER:
             m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
+            break;
+        case ComponentType::NAVMESH_WALK:
+            m_components.push_back(std::make_unique<NavMeshWalk>(GenerateUID(), this));
             break;
         case ComponentType::NAVIGATION_AGENT:
             m_components.push_back(std::make_unique<NavigationAgentComponent>(GenerateUID(), this));
@@ -189,6 +194,17 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::CHANGE_SCENE_ON_TRIGGER:
         newComponent = std::make_unique<TriggerArea>(id, this);
         break;
+    case ComponentType::NAVMESH_WALK:
+        newComponent = std::make_unique<NavMeshWalk>(id, this);
+        break;
+
+    case ComponentType::NAVIGATION_AGENT:
+        newComponent = std::make_unique<NavigationAgentComponent>(id, this);
+        break;
+
+    case ComponentType::WAYPOINT_PATH:
+        newComponent = std::make_unique<WaypointPathComponent>(id, this);
+        break;
     case ComponentType::TRANSFORM:
         break;
     case ComponentType::COUNT:
@@ -196,6 +212,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     default:
         return nullptr;
     }
+
+    if (!newComponent)
+        return nullptr;
 
     Component* rawPtr = newComponent.get();
     m_components.push_back(std::move(newComponent));
@@ -664,7 +683,12 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 
         Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
         if (newComponent) {
-            newComponent->setActive(componentJson["Active"].GetBool());
+           
+            if (componentJson.HasMember("Active") && componentJson["Active"].IsBool())
+                newComponent->setActive(componentJson["Active"].GetBool());
+            else
+                newComponent->setActive(true);
+
             newComponent->deserializeJSON(componentJson);
         }
     }

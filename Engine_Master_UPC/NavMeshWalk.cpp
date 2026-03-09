@@ -103,7 +103,7 @@ bool NavMeshWalk::checkShiftHeld(InputModule* inputModule) const
 void NavMeshWalk::applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt)
 {
     const float yawRad = std::atan2(-direction.x, -direction.z);
-    const float targetYawDeg = yawRad * (180.0f / PI);
+    const float targetYawDeg = yawRad * (180.0f / PI) - 90.0f;
 
     if (!m_yawInitialized)
     {

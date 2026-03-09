@@ -15,7 +15,7 @@
     X(CHANGE_SCENE)		    \
     X(NAVMESH_WALK)         \
     X(NAVIGATION_AGENT)     \
-    X(WAYPOINT_PATH)         
+    X(WAYPOINT_PATH)        \
     X(EXIT_APPLICATION)     \
     X(CAMERA_SWITCHER)      \
     X(CHANGE_SCENE_ON_TRIGGER)

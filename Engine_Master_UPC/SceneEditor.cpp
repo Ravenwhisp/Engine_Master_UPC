@@ -12,6 +12,7 @@
 #include "SceneModule.h"
 #include "EditorToolbar.h"
 #include "PlayToolbar.h"
+#include "NavigationModule.h"
 
 #include "Settings.h"
 
@@ -199,6 +200,18 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         if (area) 
         {
             area->printArea();
+        }
+    }
+
+    NavigationModule* nav = app->getNavigationModule();
+    if (nav && nav->getDrawNavMesh() && nav->getNavMesh())
+    {
+        const auto& lines = nav->getNavMeshDebugLines();
+        for (const auto& l : lines)
+        {
+            const Vector3 a = l.a + Vector3(0.0f, 0.03f, 0.0f);
+            const Vector3 b = l.b + Vector3(0.0f, 0.03f, 0.0f);
+            dd::line(ddConvert(a), ddConvert(b), dd::colors::Green);
         }
     }
 
