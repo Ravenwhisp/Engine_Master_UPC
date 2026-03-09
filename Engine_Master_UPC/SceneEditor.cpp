@@ -20,6 +20,7 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
+#include "TriggerArea.h"
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
 
@@ -270,6 +271,14 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         dd::line(ddConvert(pts.back()), ddConvert(pts.back() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
     }
 
+    if (m_settings->sceneEditor.showModelBoundingBoxes)
+    {
+        for (const auto& renderer : app->getSceneModule()->getAllMeshRenderers())
+        {
+            drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
+        }
+    }
+
 
     Matrix viewMatrix;
     Matrix projectionMatrix;
@@ -366,4 +375,20 @@ void SceneEditor::renderQuadtree()
         Engine::BoundingBox bb = Engine::BoundingBox(min, max, bbPoints);
         bb.render();
 	}
+}
+
+void SceneEditor::drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color)
+{
+    const Vector3* c = bbox.getPoints();
+
+    ddVec3 pts[8];
+
+    for (int i = 0; i < 8; ++i)
+    {
+        pts[i][0] = c[i].x;
+        pts[i][1] = c[i].y;
+        pts[i][2] = c[i].z;
+    }
+
+    dd::box(pts, color, 0, false);
 }

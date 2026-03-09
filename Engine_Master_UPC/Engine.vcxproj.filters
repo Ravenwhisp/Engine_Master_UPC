@@ -291,6 +291,18 @@
     <ClCompile Include="GameViewModule.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="ExitApplication.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewGameDebug.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraSwitcher.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerArea.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -662,6 +674,18 @@
     <ClInclude Include="GameViewModule.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="ExitApplication.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewGameDebug.h">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClInclude Include="CameraSwitcher.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerArea.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -791,6 +815,9 @@
     </Filter>
     <Filter Include="Persistence\Assets">
       <UniqueIdentifier>{8d27eb04-c0da-431b-8da1-e70ef57cd788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views">
+      <UniqueIdentifier>{a7f4de3f-7b74-44d1-b2f1-747706a4be6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

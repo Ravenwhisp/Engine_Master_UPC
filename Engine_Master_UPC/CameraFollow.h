@@ -19,10 +19,10 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+	void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) override;
+
 
 private:
-	void setFollowTargets();
-
 	Vector3 computeFollowPoint() const;
 	float computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const;
 	float smoothExtraHeight(float current, float target, float sharpness, float dt) const;
@@ -32,8 +32,10 @@ private:
 	Vector3 lerpVector(const Vector3& start, const Vector3& end, float alpha) const;
 	float lerpFloat(float start, float end, float alpha) const;
 
-	UID m_firstTargetUid = 0;
-	UID m_secondTargetUid = 0;
+	bool m_firstUpdateAfterResolve = true;
+
+	UID m_firstTargetTransformUid = 0;
+	UID m_secondTargetTransformUid = 0;
 	Transform* m_firstTargetTransform = nullptr;
 	Transform* m_secondTargetTransform = nullptr;
 

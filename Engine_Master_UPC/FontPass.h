@@ -6,6 +6,8 @@
 #include "DescriptorHeap.h"
 #include "UICommands.h"
 
+class Settings;
+
 class FontPass : public IRenderPass {
 public:
 	FontPass(ComPtr<ID3D12Device4> device);
@@ -18,7 +20,11 @@ private:
 	void drawText(const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale);
 	void end();
 
+	void showDebugInformation();
+
 private:
+	Settings* m_settings;
+
 	mutable const D3D12_VIEWPORT* m_viewport = nullptr;
 	const std::vector<UITextCommand>* m_commands = nullptr;
 

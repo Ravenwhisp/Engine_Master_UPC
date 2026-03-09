@@ -22,6 +22,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		GameRelease|x64 = GameRelease|x64
+		GameRelease|x86 = GameRelease|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -30,6 +32,10 @@ Global
 		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.Debug|x64.Build.0 = Debug|x64
 		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.Debug|x86.ActiveCfg = Debug|Win32
 		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.Debug|x86.Build.0 = Debug|Win32
+		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.GameRelease|x64.ActiveCfg = GameRelease|x64
+		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.GameRelease|x64.Build.0 = GameRelease|x64
+		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.GameRelease|x86.ActiveCfg = GameRelease|Win32
+		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.GameRelease|x86.Build.0 = GameRelease|Win32
 		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.Release|x64.ActiveCfg = Release|x64
 		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.Release|x64.Build.0 = Release|x64
 		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}.Release|x86.ActiveCfg = Release|Win32
@@ -38,6 +44,10 @@ Global
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Debug|x64.Build.0 = Debug|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Debug|x86.ActiveCfg = Debug|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Debug|x86.Build.0 = Debug|Win32
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.GameRelease|x64.ActiveCfg = GameRelease|x64
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.GameRelease|x64.Build.0 = GameRelease|x64
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.GameRelease|x86.ActiveCfg = GameRelease|Win32
+		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.GameRelease|x86.Build.0 = GameRelease|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.ActiveCfg = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.Build.0 = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x86.ActiveCfg = Release|Win32
@@ -54,6 +64,10 @@ Global
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x64.Build.0 = Debug|x64
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x86.ActiveCfg = Debug|Win32
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Debug|x86.Build.0 = Debug|Win32
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.GameRelease|x64.ActiveCfg = GameRelease|x64
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.GameRelease|x64.Build.0 = GameRelease|x64
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.GameRelease|x86.ActiveCfg = GameRelease|Win32
+		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.GameRelease|x86.Build.0 = GameRelease|Win32
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x64.ActiveCfg = Release|x64
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x64.Build.0 = Release|x64
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D}.Release|x86.ActiveCfg = Release|Win32

@@ -17,6 +17,9 @@
 #include "CameraFollow.h"
 #include "SceneModule.h"
 #include "ChangeScene.h"
+#include "ExitApplication.h"
+#include "CameraSwitcher.h"
+#include "TriggerArea.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -38,9 +41,11 @@ GameObject::~GameObject()
 
 }
 
-std::unique_ptr<GameObject> GameObject::clone() const
+std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
+
+	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -59,6 +64,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
 
         if (clonedComponent)
         {
+			snapshot.componentMap[component->getID()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
@@ -82,56 +88,62 @@ bool GameObject::AddComponent(ComponentType componentType)
 {
     switch (componentType)
     {
-    case ComponentType::LIGHT:
-        m_components.push_back(std::make_unique<LightComponent>(GenerateUID(), this));
-        break;
-    case ComponentType::MODEL:
-        m_components.push_back(std::make_unique<MeshRenderer>(GenerateUID(), this));
-        break;
-    case ComponentType::PLAYER_WALK:
-        m_components.push_back(std::make_unique<PlayerWalk>(GenerateUID(), this));
-        break;
-    case ComponentType::NAVMESH_WALK:
-        m_components.push_back(std::make_unique<NavMeshWalk>(GenerateUID(), this));
-        break;
-    case ComponentType::CAMERA:
-        m_components.push_back(std::make_unique<CameraComponent>(GenerateUID(), this));
-        break;
-    case ComponentType::TRANSFORM2D:
-        m_components.push_back(std::make_unique<Transform2D>(GenerateUID(), this));
-        break;
-    case ComponentType::CANVAS:
-        m_components.push_back(std::make_unique<Canvas>(GenerateUID(), this));
-        break;
-    case ComponentType::UIIMAGE:
-        m_components.push_back(std::make_unique<UIImage>(GenerateUID(), this));
-        break;
-    case ComponentType::UITEXT:
-        m_components.push_back(std::make_unique<UIText>(GenerateUID(), this));
-        break;
-    case ComponentType::UIBUTTON:
-        m_components.push_back(std::make_unique<UIButton>(GenerateUID(), this));
-        break;
-    case ComponentType::CAMERA_FOLLOW:
-        m_components.push_back(std::make_unique<CameraFollow>(GenerateUID(), this));
-        break;
-    case ComponentType::CHANGE_SCENE:
-        m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
-        break;
-    case ComponentType::TRANSFORM:
-        break;
-    case ComponentType::NAVIGATION_AGENT:
-        m_components.push_back(std::make_unique<NavigationAgentComponent>(GenerateUID(), this));
-        break;
-    case ComponentType::WAYPOINT_PATH:
-        m_components.push_back(std::make_unique<WaypointPathComponent>(GenerateUID(), this));
-        break;
-    case ComponentType::COUNT:
-        return false;
-        break;
-    default:
-        return false;
-        break;
+        case ComponentType::LIGHT:
+            m_components.push_back(std::make_unique<LightComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::MODEL:
+            m_components.push_back(std::make_unique<MeshRenderer>(GenerateUID(), this));
+            break;
+        case ComponentType::PLAYER_WALK:
+            m_components.push_back(std::make_unique<PlayerWalk>(GenerateUID(), this));
+            break;
+        case ComponentType::CAMERA:
+            m_components.push_back(std::make_unique<CameraComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::TRANSFORM2D:
+            m_components.push_back(std::make_unique<Transform2D>(GenerateUID(), this));
+            break;
+        case ComponentType::CANVAS:
+            m_components.push_back(std::make_unique<Canvas>(GenerateUID(), this));
+            break;
+        case ComponentType::UIIMAGE:
+            m_components.push_back(std::make_unique<UIImage>(GenerateUID(), this));
+            break;
+        case ComponentType::UITEXT:
+            m_components.push_back(std::make_unique<UIText>(GenerateUID(), this));
+            break;
+        case ComponentType::UIBUTTON:
+            m_components.push_back(std::make_unique<UIButton>(GenerateUID(), this));
+            break;
+        case ComponentType::CAMERA_FOLLOW:
+            m_components.push_back(std::make_unique<CameraFollow>(GenerateUID(), this));
+            break;
+        case ComponentType::CHANGE_SCENE:
+            m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
+            break;
+        case ComponentType::NAVIGATION_AGENT:
+            m_components.push_back(std::make_unique<NavigationAgentComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::WAYPOINT_PATH:
+            m_components.push_back(std::make_unique<WaypointPathComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::EXIT_APPLICATION:
+            m_components.push_back(std::make_unique<ExitApplication>(GenerateUID(), this));
+            break;
+        case ComponentType::CAMERA_SWITCHER:
+            m_components.push_back(std::make_unique<CameraSwitcher>(GenerateUID(), this));
+            break;
+        case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+            m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
+            break;
+        case ComponentType::TRANSFORM:
+            break;
+        case ComponentType::COUNT:
+            return false;
+            break;
+        default:
+            return false;
+            break;
     }
 
     return true;
@@ -180,6 +192,15 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
         break;
     case ComponentType::CHANGE_SCENE:
         newComponent = std::make_unique<ChangeScene>(id, this);
+        break;
+    case ComponentType::EXIT_APPLICATION:
+        newComponent = std::make_unique<ExitApplication>(id, this);
+        break;
+    case ComponentType::CAMERA_SWITCHER:
+        newComponent = std::make_unique<CameraSwitcher>(id, this);
+        break;
+    case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+        newComponent = std::make_unique<TriggerArea>(id, this);
         break;
     case ComponentType::TRANSFORM:
         break;
