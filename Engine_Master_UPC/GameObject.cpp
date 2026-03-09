@@ -13,8 +13,10 @@
 #include "UIButton.h"
 #include "CameraFollow.h"
 #include "SceneModule.h"
-#include "MeshRenderer.h"
 #include "ChangeScene.h"
+#include "ExitApplication.h"
+#include "CameraSwitcher.h"
+#include "TriggerArea.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -34,6 +36,40 @@ GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name(
 GameObject::~GameObject()
 {
 
+}
+
+std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
+{
+    std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
+
+	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
+
+    newGameObject->SetName(GetName());
+    newGameObject->SetActive(GetActive());
+    newGameObject->SetStatic(GetStatic());
+    newGameObject->SetLayer(GetLayer());
+    newGameObject->SetTag(GetTag());
+
+	//std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
+
+    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
+    newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
+
+    for (const std::unique_ptr<Component>& component : m_components)
+    {
+        std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
+        if (clonedComponent)
+        {
+			snapshot.componentMap[component->getID()] = clonedComponent.get();
+            if (clonedComponent->getType() == ComponentType::TRANSFORM)
+            {
+                newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
+            }
+			newGameObject->AddClonedComponent(std::move(clonedComponent));
+        }
+    }
+
+	return newGameObject;
 }
 
 bool GameObject::AddComponent(ComponentType componentType)
@@ -73,6 +109,16 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CHANGE_SCENE:
             m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
             break;
+        case ComponentType::EXIT_APPLICATION:
+            m_components.push_back(std::make_unique<ExitApplication>(GenerateUID(), this));
+            break;
+        case ComponentType::CAMERA_SWITCHER:
+            m_components.push_back(std::make_unique<CameraSwitcher>(GenerateUID(), this));
+            break;
+        case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+            m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
+            break;
+
         case ComponentType::TRANSFORM:
             break;
         case ComponentType::COUNT:
@@ -128,6 +174,15 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::CHANGE_SCENE:
         newComponent = std::make_unique<ChangeScene>(id, this);
         break;
+    case ComponentType::EXIT_APPLICATION:
+        newComponent = std::make_unique<ExitApplication>(id, this);
+        break;
+    case ComponentType::CAMERA_SWITCHER:
+        newComponent = std::make_unique<CameraSwitcher>(id, this);
+        break;
+    case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+        newComponent = std::make_unique<TriggerArea>(id, this);
+        break;
     case ComponentType::TRANSFORM:
         break;
     case ComponentType::COUNT:
@@ -139,6 +194,12 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     Component* rawPtr = newComponent.get();
     m_components.push_back(std::move(newComponent));
     return rawPtr;
+}
+
+bool GameObject::AddClonedComponent(std::unique_ptr<Component> component)
+{
+    m_components.push_back(std::move(component));
+    return true;
 }
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
@@ -181,6 +242,32 @@ Component* GameObject::GetComponent(ComponentType type) const
     return nullptr;
 }
 
+#pragma region Properties
+
+bool GameObject::IsActiveInHierarchy() const
+{
+    if (!m_active)
+    {
+        return false;
+    }
+
+    Transform* parentTransform = m_transform->getRoot();
+    if (parentTransform == nullptr)
+    {
+        return true;
+    }
+
+    GameObject* parent = parentTransform->getOwner();
+    if (parent != nullptr)
+    {
+        return parent->IsActiveInHierarchy();
+    }
+
+    return true;
+}
+
+#pragma endregion
+
 #pragma region GameLoop
 bool GameObject::init()
 {
@@ -195,7 +282,13 @@ bool GameObject::init()
     return true;
 }
 
-void GameObject::update() {
+void GameObject::update() 
+{
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -207,6 +300,11 @@ void GameObject::update() {
 
 void GameObject::preRender()
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -225,6 +323,11 @@ void GameObject::preRender()
 
 void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -243,6 +346,11 @@ void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatr
 
 void GameObject::postRender()
 {
+    if (!IsActiveInHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component->isActive())
@@ -304,33 +412,70 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
 
 void GameObject::drawUI()
 {
-#pragma region 
+#pragma region
+
     ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
-    ImGui::Checkbox("Active", &m_active);
+    if (ImGui::BeginTable("GameObjectInspector", 2, ImGuiTableFlags_SizingStretchProp))
+    {
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthStretch);
 
-    char buffer[256];
-    std::strncpy(buffer, m_name.c_str(), sizeof(buffer));
-    buffer[sizeof(buffer) - 1] = '\0';
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextUnformatted("UUID");
 
-    if (ImGui::InputText("Name", buffer, sizeof(buffer)))
-        m_name = buffer;
+        ImGui::TableSetColumnIndex(1);
 
-    float totalWidth = ImGui::GetContentRegionAvail().x;
-    float comboWidth = totalWidth * 0.40f;
+        std::string uuidStr = std::to_string(m_uuid);
 
-    ImGui::PushItemWidth(comboWidth);
-    DrawEnumCombo("Tag", m_tag, static_cast<int>(Tag::COUNT), TagToString);
-    ImGui::PopItemWidth();
+        ImGui::Text("%s", uuidStr.c_str());
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            ImGui::SetClipboardText(uuidStr.c_str());
+            DEBUG_LOG("UUID %s copied.", uuidStr.c_str());
+        }
 
-    ImGui::SameLine();
+        ImGui::SameLine();
+        ImGui::TextDisabled("(Double-click to copy)");
 
-    ImGui::PushItemWidth(comboWidth);
-    DrawEnumCombo("Layer", m_layer, static_cast<int>(Layer::COUNT), LayerToString);
-    ImGui::PopItemWidth();
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextUnformatted("Active");
+        ImGui::TableSetColumnIndex(1);
+        ImGui::Checkbox("##Active", &m_active);
+
+        char buffer[256];
+        std::strncpy(buffer, m_name.c_str(), sizeof(buffer));
+        buffer[sizeof(buffer) - 1] = '\0';
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextUnformatted("Name");
+        ImGui::TableSetColumnIndex(1);
+        if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
+        {
+            m_name = buffer;
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextUnformatted("Tag");
+        ImGui::TableSetColumnIndex(1);
+        DrawEnumCombo("##Tag", m_tag, static_cast<int>(Tag::COUNT), TagToString);
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextUnformatted("Layer");
+        ImGui::TableSetColumnIndex(1);
+        DrawEnumCombo("##Layer", m_layer, static_cast<int>(Layer::COUNT), LayerToString);
+
+        ImGui::EndTable();
+    }
 
     ImGui::Separator();
+
 #pragma endregion
     
 #pragma region Components
@@ -353,7 +498,10 @@ void GameObject::drawUI()
 
         bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
 
-        ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
+        if (i != 0)
+        {
+            ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
+        }
 
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
         {
@@ -613,4 +761,3 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 }
 
 #pragma endregion
-

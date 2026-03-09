@@ -17,6 +17,7 @@ class TimeModule;
 class UIModule;
 class RenderModule;
 class SceneModule;
+class GameViewModule;
 class FileSystemModule;
 class AssetsModule;
 class ModuleEventSystem;
@@ -24,6 +25,13 @@ class ModuleEventSystem;
 class CameraComponent;
 
 class Settings;
+
+enum ENGINE_STATE
+{
+    PLAYING,
+    PAUSED,
+    EDITOR
+};
 
 class Application
 {
@@ -46,6 +54,7 @@ public:
     UIModule*                   getUIModule() { return m_uiModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
+    GameViewModule*             getGameViewModule() { return m_gameViewModule; }
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
     AssetsModule*               getAssetModule() { return m_assetsModule; }
     ModuleEventSystem*          getModuleEventSystem() { return m_moduleEventSystem; }
@@ -56,9 +65,16 @@ public:
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
     void setCurrentCameraPerspective(CameraComponent* camera) { m_currentCameraPerspective = camera; }
 
+	const ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
+	void setEngineState(int index) { m_currentEngineState = static_cast<ENGINE_STATE>(index); }
+
     bool        isPaused() const { return m_paused; }
     bool        setPaused(bool p) { m_paused = p; return m_paused; }
 
+    void requestApplicationExit() { m_quit = true; }
+    bool shouldQuit() const { return m_quit; }
+
+    HWND getWindowHandle() const { return m_hWnd; }
 
     uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
 
@@ -74,6 +90,7 @@ private:
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
+    GameViewModule*         m_gameViewModule = nullptr;
     FileSystemModule*       m_fileSystemModule = nullptr;
     AssetsModule*           m_assetsModule = nullptr;
     UIModule*               m_uiModule = nullptr;
@@ -82,10 +99,14 @@ private:
     Settings*               m_settings = nullptr;
 
     bool m_paused = false;
+    bool m_quit = false;
 
+    ENGINE_STATE m_currentEngineState = ENGINE_STATE::EDITOR;
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
+
+    HWND m_hWnd = nullptr;
 
     // This is the current camera perspective, to check a CameraComponent's perspective from the scene editor
     CameraComponent* m_currentCameraPerspective = nullptr;

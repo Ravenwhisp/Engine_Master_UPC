@@ -12,6 +12,7 @@
 #include "FileSystemModule.h"
 #include "AssetsModule.h"
 #include "ModuleEventSystem.h"
+#include "GameViewModule.h"
 #include "TimeModule.h"
 #include "PerformanceProfiler.h"
 #include <thread>
@@ -22,6 +23,7 @@ using namespace std::chrono;
 
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
+    : m_hWnd((HWND)hWnd)
 {
     modules.push_back(m_inputModule = new InputModule((HWND)hWnd));
     modules.push_back(m_d3d12Module = new D3D12Module((HWND)hWnd));
@@ -37,6 +39,8 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     modules.push_back(m_uiModule = new UIModule());
     modules.push_back(m_renderModule = new RenderModule());
+    
+    modules.push_back(m_gameViewModule = new GameViewModule());
 
     modules.push_back(m_cameraModule = new CameraModule());
     modules.push_back(m_sceneModule = new SceneModule());
@@ -80,10 +84,15 @@ bool Application::postInit()
 
 void Application::update()
 {
-
     uint64_t currentMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     m_elapsedMilis = currentMilis - m_lastMilis;
     m_lastMilis = currentMilis;
+
+    float dt = 0.f;
+    if (m_currentEngineState == ENGINE_STATE::PLAYING)
+    {
+        dt = m_timeModule->deltaTime();
+    }
 
     if (!app->m_paused)
     {

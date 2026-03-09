@@ -13,6 +13,29 @@ PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
 	inputModule = app->getInputModule();
+	Transform* transform = m_owner->GetTransform();
+	m_initialRotationOffset = transform->getEulerDegrees();
+}
+
+std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
+{
+	std::unique_ptr<PlayerWalk> newComponent = std::make_unique<PlayerWalk>(m_uuid, newOwner);
+
+	newComponent->m_moveSpeed = m_moveSpeed;
+	newComponent->m_shiftMultiplier = m_shiftMultiplier;
+	newComponent->m_keyUp = m_keyUp;
+	newComponent->m_keyLeft = m_keyLeft;
+	newComponent->m_keyDown = m_keyDown;
+	newComponent->m_keyRight = m_keyRight;
+	newComponent->m_keyAscend = m_keyAscend;
+	newComponent->m_keyDescend = m_keyDescend;
+	newComponent->m_initialRotationOffset = m_initialRotationOffset;
+	newComponent->m_turnSpeedDegPerSec = m_turnSpeedDegPerSec;
+	newComponent->m_currentYawDeg = m_currentYawDeg;
+	newComponent->m_yawInitialized = m_yawInitialized;
+	newComponent->m_controlScheme = m_controlScheme;
+
+	return newComponent;
 }
 
 float PlayerWalk::getDeltaSecondsFromTimer() const
@@ -160,7 +183,8 @@ float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYaw
 	return currentYawAngle + delta;
 }
 
-void PlayerWalk::drawUi() {
+void PlayerWalk::drawUi()
+{
 	ImGui::Text("Hold Left Mouse Button + WASD to move arround");
 	ImGui::Text("Press shift to go faster");
 

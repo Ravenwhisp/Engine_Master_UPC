@@ -10,17 +10,21 @@
 #include "UID.h"
 
 class ModelComponent;
+struct SceneSnapshot;
 
-class GameObject {
+class GameObject 
+{
 public:
 	GameObject(UID newUuid);
 	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
+	std::unique_ptr<GameObject> clone(SceneSnapshot& snapshot) const;
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
+	bool IsActiveInHierarchy() const;
 	bool GetStatic() const { return m_isStatic; }
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
@@ -37,6 +41,7 @@ public:
 	const Transform* GetTransform() const { return m_transform; }
 	bool AddComponent(const ComponentType componentType);
 	Component* AddComponentWithUID(const ComponentType componentType, UID id);
+	bool AddClonedComponent(std::unique_ptr<Component> component);
 	bool RemoveComponent(Component* componentToRemove);
 	Component* GetComponent(ComponentType type) const;
 	std::vector<Component*> GetAllComponents() const;
@@ -73,6 +78,7 @@ public:
 
 private:
 	UID m_uuid;
+
 	std::string m_name;
 	bool m_active = true;
 	bool m_isStatic = false;

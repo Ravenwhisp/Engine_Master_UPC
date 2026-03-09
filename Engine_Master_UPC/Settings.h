@@ -1,6 +1,11 @@
 #pragma once
 #include "Globals.h"
 
+#ifdef GAME_RELEASE
+constexpr bool DEFAULT_DEBUG = false;
+#else
+constexpr bool DEFAULT_DEBUG = true;
+#endif
 struct EngineInformation
 {
     std::string version = "alpha-v0.9";
@@ -31,18 +36,25 @@ struct CameraSettings
 
 struct SceneEditorSettings
 {
-    bool showGrid = true;
-    bool showAxis = true;
-    bool showGuizmo = true;
+    bool showGrid = DEFAULT_DEBUG;
+    bool showAxis = DEFAULT_DEBUG;
+    bool showGuizmo = DEFAULT_DEBUG;
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
 };
 
 struct FrustumCullingSettings
 {
-    bool debugFrustumCulling = false;
+    bool debugFrustumCulling = !DEFAULT_DEBUG;
     float quadtreeXExtraSize = 10.0f;
     float quadtreeZExtraSize = 10.0f;
+};
+
+struct DebugGame
+{
+    bool showFPS = false;
+    bool showFrametime = false;
+    bool showTrianglesNumber = false;
 };
 
 class Settings
@@ -52,6 +64,7 @@ public:
     CameraSettings camera;
     SceneEditorSettings sceneEditor;
     FrustumCullingSettings frustumCulling;
+    DebugGame debugGame;
 
 public:
     void loadSettings()
@@ -62,5 +75,9 @@ public:
     void saveSettings()
     {
         //to do
+    }
+
+    bool hasDebugInformationEnabled() {
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber;
     }
 };

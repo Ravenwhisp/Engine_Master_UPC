@@ -6,6 +6,7 @@
 #include "EditorModule.h"
 #include "ResourcesModule.h"
 #include "CameraModule.h"
+#include "GameViewModule.h"
 
 #include "SceneEditor.h"
 #include "SceneModule.h"
@@ -24,11 +25,14 @@
 
 #include "Logger.h"
 
+#include "GameObject.h"
 #include "CameraComponent.h"
 
 bool RenderModule::init()
 {
     m_settings = app->getSettings();
+    m_gameViewModule = app->getGameViewModule();
+
     auto d3d12 = app->getD3D12Module();
     auto device = d3d12->getDevice();
 
@@ -42,109 +46,162 @@ bool RenderModule::init()
     //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
     //m_hasSkybox = (m_skyboxTexture != nullptr);
 
-    m_screenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_screenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+    m_editorScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
+    m_playScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
+    m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+	m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
 
     return true;
 }
 
-bool RenderModule::postInit()
+void RenderModule::renderToTexture(ID3D12GraphicsCommandList4* commandList, RenderTexture* rt, DepthBuffer* ds, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE)> renderFunc)
 {
-
-
-    return true;
+    transitionResource(commandList, rt->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    renderFunc(rt->getRTV(0).cpu, ds->getDSV().cpu);
+    transitionResource(commandList, rt->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 void RenderModule::preRender()
 {
     m_ringBuffer->free(app->getD3D12Module()->getLastCompletedFrame());
 
-    auto m_commandList = app->getD3D12Module()->getCommandList();
-    auto _swapChain = app->getD3D12Module()->getSwapChain();
+    auto commandList = app->getD3D12Module()->getCommandList();
+    auto swapChain = app->getD3D12Module()->getSwapChain();
 
+<<<<<<< HEAD
     auto newSize = app->getEditorModule()->getSceneEditor()->getSize();
+=======
+#ifdef GAME_RELEASE
+    transitionResource(commandList, swapChain->getCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    if (m_size.x != newSize.x || m_size.y != newSize.y) 
+    renderGameToBackbuffer(commandList, swapChain->getCurrentRenderTargetView().cpu, swapChain->getDepthStencilView(), swapChain->getViewport(), swapChain->getScissorRect());
+#else
+    auto newSize = app->getEditorModule()->getSceneEditorSize();
+>>>>>>> origin/main
+
+    if (m_size.x != newSize.x || m_size.y != newSize.y)
     {
         app->getD3D12Module()->getCommandQueue()->flush();
         m_size = newSize;
-        m_screenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
-        m_screenRT->setName(L"ScreenRT");
-        m_screenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
-        m_screenDS->setName(L"ScreenDS");
+
+        m_editorScreenRT.reset();
+        m_editorScreenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
+        m_editorScreenRT->setName(L"editorScreenRT");
+        m_editorScreenDS.reset();
+        m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
+        m_editorScreenDS->setName(L"editorScreenDS");
+
+        m_playScreenRT.reset();
+        m_playScreenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
+        m_playScreenRT->setName(L"playScreenRT");
+        m_playScreenDS.reset();
+        m_playScreenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
+        m_playScreenDS->setName(L"playScreenDS");
     }
 
-    // Transition scene texture to render target
-    transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    // Render the scene to texture
-    //renderScene(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, m_size.x, m_size.y);
+    renderToTexture(commandList, m_editorScreenRT.get(), m_editorScreenDS.get(),
+        [&](auto rtv, auto dsv)
+        {
+            renderEditorScene(commandList, rtv, dsv, m_size.x, m_size.y);
+        });
 
-    //This part since is common between SkyboxPass and MeshRendererPass it will belongs right not to the RenderModule
-    D3D12_VIEWPORT viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_size.x), float(m_size.y) , 0.0, 1.0 };
-    D3D12_RECT scissorRect = D3D12_RECT{ 0, 0,  static_cast<LONG>(m_size.x),  static_cast<LONG>(m_size.y) };
-    renderBackground(m_commandList, m_screenRT->getRTV(0).cpu, m_screenDS->getDSV().cpu, viewport, scissorRect);
-
-
-    Matrix viewMatrix;
-    Matrix projectionMatrix;
-    Vector3 cameraPosition;
-
-    if (app->getCurrentCameraPerspective())
+    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        const CameraComponent* camera = app->getCurrentCameraPerspective();
-        viewMatrix = camera->getViewMatrix();
-        projectionMatrix = camera->getProjectionMatrix();
-        cameraPosition = camera->getOwner()->GetTransform()->getPosition();
-    }
-    else
-    {
-        viewMatrix = app->getCameraModule()->getView();
-        projectionMatrix = app->getCameraModule()->getProjection();
-        cameraPosition = app->getCameraModule()->getPosition();
+        renderToTexture(commandList, m_playScreenRT.get(), m_playScreenDS.get(),
+            [&](auto rtv, auto dsv)
+            {
+                renderPlayScene(commandList, rtv, dsv, m_size.x, m_size.y);
+            });
     }
 
-    m_skyBoxPass->setView(viewMatrix);
-    m_skyBoxPass->setProjection(projectionMatrix);
-    m_skyBoxPass->apply(m_commandList);
+    transitionResource(commandList, swapChain->getCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-
-    m_meshRendererPass->setCameraPosition(cameraPosition);
-    m_meshRendererPass->setView(viewMatrix);
-    m_meshRendererPass->setProjection(projectionMatrix);
-
-    /*m_meshRendererPass->setRenderTargetView(m_screenRT->getRTV(0).cpu);
-    m_meshRendererPass->setDepthStencilView(m_screenDS->getDSV().cpu);
-
-    m_meshRendererPass->setViewport(_swapChain->getViewport());
-    m_meshRendererPass->setRectScissor(_swapChain->getScissorRect());*/
-
-    // NOT IDEAL TO CALL HERE THIS RENDER FUCNTION, THAT IS NOT DOING ANYTHING RELATED TO RENDER ANYMORE
-    app->getSceneModule()->render(m_commandList);
-    m_meshRendererPass->setMeshes(app->getSceneModule()->getAllMeshRenderers());
-    m_meshRendererPass->apply(m_commandList);
-
-    // REPEATED CODE WITH MESH RENDERER PASS
-    m_debugDrawPass->setView(viewMatrix);
-    m_debugDrawPass->setProjection(projectionMatrix);
-    m_debugDrawPass->setViewport(viewport);
-
-    // THIS IS NOT THE IDEAL BUT IS TO MAKE SURE THAT ALL WORKS
-    app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(m_commandList);
-    m_debugDrawPass->apply(m_commandList);
-
-    app->getUIModule()->renderUI(m_commandList, viewport);
-
-    // Transition back to shader resource state
-    transitionResource(m_commandList, m_screenRT->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-    transitionResource(m_commandList, _swapChain->getCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-    renderBackground(m_commandList, _swapChain->getCurrentRenderTargetView().cpu, _swapChain->getDepthStencilView(), _swapChain->getViewport(), _swapChain->getScissorRect());
+    renderBackground(commandList, swapChain->getCurrentRenderTargetView().cpu, swapChain->getDepthStencilView(), swapChain->getViewport(), swapChain->getScissorRect());
+#endif
 
     m_imGuiPass->startFrame();
     ImGuizmo::BeginFrame();
 }
 
+RenderModule::RenderCamera RenderModule::getEditorCamera()
+{
+    RenderCamera camera;
+
+    if (app->getCurrentCameraPerspective())
+    {
+        const CameraComponent* c = app->getCurrentCameraPerspective();
+
+        camera.view = c->getViewMatrix();
+        camera.projection = c->getProjectionMatrix();
+        camera.position = c->getOwner()->GetTransform()->getPosition();
+    }
+    else
+    {
+        camera.view = app->getCameraModule()->getView();
+        camera.projection = app->getCameraModule()->getProjection();
+        camera.position = app->getCameraModule()->getPosition();
+    }
+
+    return camera;
+}
+
+RenderModule::RenderCamera RenderModule::getGameCamera()
+{
+    RenderCamera camera;
+
+    const CameraComponent* c = app->getSceneModule()->getDefaultCamera();
+
+    if (!c)
+    {
+        return camera;
+    }
+
+    camera.view = c->getViewMatrix();
+    camera.projection = c->getProjectionMatrix();
+    camera.position = c->getOwner()->GetTransform()->getPosition();
+    camera.valid = true;
+
+    return camera;
+}
+
+void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug)
+{
+    renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+
+    m_skyBoxPass->setView(camera.view);
+    m_skyBoxPass->setProjection(camera.projection);
+    m_skyBoxPass->apply(commandList);
+
+    m_meshRendererPass->setCameraPosition(camera.position);
+    m_meshRendererPass->setView(camera.view);
+    m_meshRendererPass->setProjection(camera.projection);
+
+    SceneModule* scene = app->getSceneModule();
+    scene->render(commandList);
+
+    const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();
+    m_triangles = 0;
+    for (MeshRenderer* mesh : meshes)
+    {
+        m_triangles += mesh->getTriangles();
+    }
+
+    m_meshRendererPass->setMeshes(meshes);
+    m_meshRendererPass->apply(commandList);
+
+    //Debug
+    if (renderDebug)
+    {
+        m_debugDrawPass->setView(camera.view);
+        m_debugDrawPass->setProjection(camera.projection);
+        m_debugDrawPass->setViewport(viewport);
+
+        app->getEditorModule()->getSceneEditor()->renderDebugDrawPass(commandList);
+        m_debugDrawPass->apply(commandList);
+    }
+
+    app->getUIModule()->renderUI(commandList, viewport);
+}
 
 void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
 {
@@ -156,6 +213,43 @@ void RenderModule::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
 
     commandList->RSSetViewports(1, &viewport);
     commandList->RSSetScissorRects(1, &scissorRect);
+}
+
+void RenderModule::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+{
+    D3D12_VIEWPORT viewport = { 0,0,width,height,0,1 };
+    D3D12_RECT scissorRect = { 0,0,(LONG)width,(LONG)height };
+
+    RenderCamera camera = getEditorCamera();
+
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, true);
+}
+
+void RenderModule::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+{
+    RenderCamera camera = getGameCamera();
+
+    if (!camera.valid)
+    {
+        return;
+    }
+
+    D3D12_VIEWPORT viewport = { 0,0,width,height,0,1 };
+    D3D12_RECT scissorRect = { 0,0,(LONG)width,(LONG)height };
+
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_gameViewModule->getShowDebugWindow());
+}
+
+void RenderModule::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
+{
+    RenderCamera camera = getGameCamera();
+
+    if (!camera.valid)
+    {
+        return;
+    }
+
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_gameViewModule->getShowDebugWindow());
 }
 
 void RenderModule::render()
@@ -170,8 +264,11 @@ void RenderModule::render()
 
 bool RenderModule::cleanUp()
 {
-    m_screenRT.reset();
-    m_screenDS.reset();
+    m_editorScreenRT.reset();
+    m_editorScreenDS.reset();
+
+    m_playScreenRT.reset();
+    m_playScreenDS.reset();
 
     delete m_skyBoxPass;
     m_skyBoxPass = nullptr;
@@ -191,9 +288,13 @@ bool RenderModule::cleanUp()
     return true;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE RenderModule::getGPUScreenRT()
+D3D12_GPU_DESCRIPTOR_HANDLE RenderModule::getGPUEditorScreenRT()
 {
-    return m_screenRT->getSRV().gpu;
+    return m_editorScreenRT->getSRV().gpu;
+}
+D3D12_GPU_DESCRIPTOR_HANDLE RenderModule::getGPUPlayScreenRT()
+{
+    return m_playScreenRT->getSRV().gpu;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS RenderModule::allocateInRingBuffer(const void* data, size_t size)
