@@ -442,16 +442,16 @@ void EditorModule::enterPrefabEdit(const std::string& prefabName)
     GameObject* loaded = PrefabManager::instantiatePrefab(prefabName, scene);
     if (!loaded) return;
 
-    m_prefabSession.prefabName = prefabName;
-    m_prefabSession.rootObject = loaded;
-    m_prefabSession.active = true;
-    m_prefabSession.editingInMainScene = true;
+    m_prefabSession.m_prefabName = prefabName;
+    m_prefabSession.m_rootObject = loaded;
+    m_prefabSession.m_active = true;
+    m_prefabSession.m_editingInMainScene = true;
     m_selectedGameObject = loaded;
 }
 
 void EditorModule::exitPrefabEdit()
 {
-    if (!m_prefabSession.active)
+    if (!m_prefabSession.m_active)
     {
         return;
     }
@@ -464,8 +464,8 @@ void EditorModule::flushExitPrefabEdit()
     m_pendingExitPrefab = false;
     app->getD3D12Module()->getCommandQueue()->flush();
 
-    if (m_prefabSession.rootObject && m_prefabSession.editingInMainScene)
-        app->getSceneModule()->removeGameObject(m_prefabSession.rootObject->GetID());
+    if (m_prefabSession.m_rootObject && m_prefabSession.m_editingInMainScene)
+        app->getSceneModule()->removeGameObject(m_prefabSession.m_rootObject->GetID());
 
     m_selectedGameObject = nullptr;
     m_prefabSession.clear();

@@ -1,24 +1,24 @@
 #pragma once
 #include "SceneModule.h"
-#include <string>
 #include <memory>
+#include <string>
 
 class GameObject;
 
 struct PrefabEditSession
 {
-    bool active = false;
-    std::string prefabName;
-    std::unique_ptr<SceneModule> isolatedScene;
-    GameObject* rootObject = nullptr;
-    bool editingInMainScene = false;
+    bool m_active = false;
+    bool m_editingInMainScene = false;
+    std::string m_prefabName;
+    std::unique_ptr<SceneModule> m_isolatedScene;
+    GameObject* m_rootObject = nullptr;
 
     void clear()
     {
-        active = false;
-        prefabName.clear();
-        rootObject = nullptr;
-        isolatedScene.reset();
-        editingInMainScene = false;
+        m_active = false;
+        m_editingInMainScene = false;
+        m_prefabName.clear();
+        m_rootObject = nullptr;
+        m_isolatedScene.reset();
     }
 };

@@ -525,14 +525,9 @@ void GameObject::drawUI()
 
             if (stateBefore != stateAfter)
             {
-                if (PrefabManager::isPrefabInstance(this) ||
-                    app->getEditorModule()->getPrefabSession()->active)
+                if (PrefabManager::isPrefabInstance(this) || app->getEditorModule()->getPrefabSession()->m_active)
                 {
-                    PrefabManager::markPropertyOverride(
-                        this,
-                        static_cast<int>(component->getType()),
-                        "__inspector__"
-                    );
+                    PrefabManager::markPropertyOverride(this, static_cast<int>(component->getType()), "__inspector__");
                 }
             }
 

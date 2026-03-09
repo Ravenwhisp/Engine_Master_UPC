@@ -25,15 +25,15 @@ void Hierarchy::render()
 	}
 
 	PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
-	const bool         prefabMode = session && session->active;
+	const bool prefabMode = session && session->m_active;
 
 	if (prefabMode)
 	{
-		PrefabUI::drawModeHeader(session->prefabName.c_str());
+		PrefabUI::drawModeHeader(session->m_prefabName.c_str());
 
 		if (ImGui::Button("Add Child Object"))
 		{
-			addChildToPrefabRoot(session->rootObject);
+			addChildToPrefabRoot(session->m_rootObject);
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Remove Selected"))
@@ -42,8 +42,8 @@ void Hierarchy::render()
 		}
 		ImGui::Separator();
 
-		if (session->rootObject)
-			createTreeNode(session->rootObject, true);
+		if (session->m_rootObject)
+			createTreeNode(session->m_rootObject, true);
 	}
 	else
 	{
@@ -62,9 +62,9 @@ void Hierarchy::render()
 
 	if (prefabMode)
 	{
-		if (session->isolatedScene)
+		if (session->m_isolatedScene)
 		{
-			for (GameObject* go : session->isolatedScene->getRootObjects())
+			for (GameObject* go : session->m_isolatedScene->getRootObjects())
 				createTreeNode(go, true);
 		}
 	}
@@ -82,7 +82,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 	const auto children = transform->getAllChildren();
 
 	PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
-	const bool isEditRoot = prefabMode && session && gameObject == session->rootObject;
+	const bool isEditRoot = prefabMode && session && gameObject == session->m_rootObject;
 	const bool isPrefabInst = !isEditRoot && PrefabManager::isPrefabInstance(gameObject);
 
 	ImGuiTreeNodeFlags flags =
@@ -96,8 +96,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 	if (isEditRoot)   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
 	else if (isPrefabInst) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
 
-	const char* label = (isEditRoot && session) ? session->prefabName.c_str()
-		: gameObject->GetName().c_str();
+	const char* label = (isEditRoot && session) ? session->m_prefabName.c_str() : gameObject->GetName().c_str();
 	std::string nodeId = std::string(label) + "###" + std::to_string(gameObject->GetID());
 
 	bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
@@ -255,8 +254,10 @@ void Hierarchy::removeGameObject()
 	GameObject* selected = app->getEditorModule()->getSelectedGameObject();
 	
 	PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
-	if (session && session->active && selected == session->rootObject)
+	if (session && session->m_active && selected == session->m_rootObject)
+	{
 		return;
+	}
 
 	if (selected)
 	{
@@ -268,15 +269,24 @@ void Hierarchy::removeGameObject()
 
 void Hierarchy::addChildToPrefabRoot(GameObject* parent)
 {
-	if (!parent) return;
+	if (!parent)
+	{
+		return;
+	}
 
 	app->getSceneModule()->createGameObject();
 
 	const auto& roots = app->getSceneModule()->getRootObjects();
-	if (roots.empty()) return;
+	if (roots.empty())
+	{
+		return;
+	}
 
 	GameObject* newObj = roots.back();
-	if (!newObj || newObj == parent) return;
+	if (!newObj || newObj == parent)
+	{
+		return;
+	}
 
 	reparent(newObj, parent);
 
