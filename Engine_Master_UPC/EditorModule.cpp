@@ -1,11 +1,8 @@
 #include "Globals.h"
 #include "EditorModule.h"
 
-<<<<<<< HEAD
 #include "Mouse.h"
 
-=======
->>>>>>> origin/main
 #include "D3D12Module.h"
 #include "CameraModule.h"
 #include "vector"
