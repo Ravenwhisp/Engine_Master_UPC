@@ -17,13 +17,10 @@ class Hierarchy;
 class DebugDrawPass;
 class EditorSettings;
 class SceneConfig;
-<<<<<<< HEAD
-class GameObject;
-=======
 class GameWindow;
+class GameObject;
 
 class ViewGameDebug;
->>>>>>> origin/main
 
 class EditorModule: public Module
 {
@@ -122,9 +119,5 @@ private:
 	GameObject* m_selectedGameObject = nullptr;
 	bool gizmoUseLocal = true;
 #pragma endregion
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main
 };
 

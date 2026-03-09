@@ -68,16 +68,12 @@ void RenderModule::preRender()
     auto commandList = app->getD3D12Module()->getCommandList();
     auto swapChain = app->getD3D12Module()->getSwapChain();
 
-<<<<<<< HEAD
-    auto newSize = app->getEditorModule()->getSceneEditor()->getSize();
-=======
 #ifdef GAME_RELEASE
     transitionResource(commandList, swapChain->getCurrentRenderTarget(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     renderGameToBackbuffer(commandList, swapChain->getCurrentRenderTargetView().cpu, swapChain->getDepthStencilView(), swapChain->getViewport(), swapChain->getScissorRect());
 #else
     auto newSize = app->getEditorModule()->getSceneEditorSize();
->>>>>>> origin/main
 
     if (m_size.x != newSize.x || m_size.y != newSize.y)
     {
