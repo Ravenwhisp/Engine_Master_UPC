@@ -7,7 +7,8 @@ class InputModule;
 class Transform;
 class GameObject;
 
-class PlayerWalk final : public Component {
+class PlayerWalk final : public Component 
+{
 public:
 	PlayerWalk(UID id, GameObject* gameObject);
 

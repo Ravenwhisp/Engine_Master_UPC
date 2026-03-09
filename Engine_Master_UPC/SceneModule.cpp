@@ -141,7 +141,6 @@ void SceneModule::createQuadtree()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList) 
 {
-
     if (m_quadtree)
     {
         for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
@@ -158,8 +157,51 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
         }
     }
 
+#ifdef GAME_RELEASE
+    const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling;
+
+    if (!m_quadtree)
+    {
+        createQuadtree();
+    }
+
+    m_meshRenderers.clear();
+    if (useCulling)
+    {
+        auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
+
+        for (GameObject* gameObject : visibleObjects)
+        {
+            if (gameObject->GetActive())
+            {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
+            }
+        }
+    }
+    else
+    {
+        for (GameObject* gameObject : getAllGameObjects())
+        {
+            if (gameObject->GetActive())
+            {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
+            }
+        }
+    }
+
+
+#else
     const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling && m_defaultCamera;
 
+    m_meshRenderers.clear();
     if (useCulling)
     {
         if (!m_quadtree)
@@ -168,8 +210,6 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
         }
 
         auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
-
-        m_meshRenderers.clear();
 
         for (GameObject* gameObject : visibleObjects)
         {
@@ -185,7 +225,6 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
     }
     else
     {		
-        m_meshRenderers.clear();
         for (GameObject* gameObject : getAllGameObjects())
         {
             if (gameObject->GetActive())
@@ -203,6 +242,8 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
             DEBUG_LOG("QUADTREE removed");
         }
     }
+#endif // GAME_RELEASE
+
 }
 
 void SceneModule::postRender()
@@ -546,6 +587,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson)
         removeFromRootList(child);
     }
 
+    fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyboxToRenderer();
 
@@ -587,6 +629,27 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson)
 
     lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
     return true;
+}
+
+void SceneModule::fixLoadedSceneReferences()
+{
+    std::unordered_map<UID, Component*> componentMap;
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            componentMap[component->getID()] = component;
+        }
+    }
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            component->fixReferences(componentMap);
+        }
+    }
 }
 
 void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
@@ -707,12 +770,14 @@ SceneSnapshot SceneModule::getClonedGameObjects()
         snapshot.allObjects.push_back(std::move(clonedRoot));
     }
 
+    fixClonedReferences(snapshot);
+
     return snapshot;
 }
 
 std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
 {
-    auto clone = original->clone();
+    auto clone = original->clone(snapshot);
 
     if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
     {
@@ -736,6 +801,16 @@ std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* or
     return clone;
 }
 
+void SceneModule::fixClonedReferences(const SceneSnapshot& snapshot)
+{
+    for (const auto& obj : snapshot.allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+			component->fixReferences(snapshot.componentMap);
+        }
+    }
+}
 
 void SceneModule::removeFromRootList(GameObject* obj)
 {

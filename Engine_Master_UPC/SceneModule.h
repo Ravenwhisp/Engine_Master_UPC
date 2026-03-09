@@ -29,6 +29,9 @@ struct SkyboxSettings
 
 struct SceneSnapshot
 {
+	std::unordered_map<UID, Component*> componentMap;
+	//std::unordered_map<GameObject*, GameObject*> gameObjectMap; For now, not necessary
+
 	std::vector<std::unique_ptr<GameObject>> allObjects;
 	std::vector<GameObject*> rootObjects;
 	CameraComponent* defaultCamera = nullptr;
@@ -76,6 +79,7 @@ public:
 	bool loadFromJSON(const rapidjson::Value& sceneJson);
 	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
+	void fixLoadedSceneReferences();
 	void resolveDefaultCamera(const rapidjson::Value& sceneJson);
 
 	void saveScene();
@@ -103,8 +107,11 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	std::vector<GameObject*> getAllGameObjects();
+
 	SceneSnapshot getClonedGameObjects();
 	std::unique_ptr<GameObject> cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result);
+	void fixClonedReferences(const SceneSnapshot& snapshot);
+
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }
