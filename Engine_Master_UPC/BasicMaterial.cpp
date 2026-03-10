@@ -11,12 +11,12 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
-		m_textureColor = app->getResourcesModule()->createTexture2D(*baseMapTexture);
+		m_textureColor.reset(app->getResourcesModule()->createTexture2D(*baseMapTexture));
 		m_materialData.hasDiffuseTex = true;
 	}
 	else
 	{
-		m_textureColor = app->getResourcesModule()->createNullTexture2D();
+		m_textureColor.reset(app->getResourcesModule()->createNullTexture2D());
 		m_materialData.hasDiffuseTex = false;
 	}
 
@@ -29,5 +29,4 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 BasicMaterial::~BasicMaterial()
 {
 	app->getResourcesModule()->defferResourceRelease(m_materialBuffer);
-
 }

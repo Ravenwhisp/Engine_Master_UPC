@@ -7,6 +7,8 @@
 #include <MeshRendererPass.h>
 #include <DebugDrawPass.h>
 #include <ImGuiPass.h>
+#include "RenderTexture.h"
+
 
 class Settings;
 class RingBuffer;

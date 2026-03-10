@@ -8,6 +8,7 @@
 #include "AssetsModule.h"
 #include <PlatformHelpers.h>
 #include <d3dcompiler.h>
+#include "TextureAsset.h"
 
 SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) : m_device(device)
 {

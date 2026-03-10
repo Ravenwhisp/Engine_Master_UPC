@@ -52,7 +52,7 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
 
     swapChain1.As(&m_swapChain);
 
-    m_depthStencil = app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight);
+    m_depthStencil.reset(app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight));
     createRenderTargetViews(app->getD3D12Module()->getDevice());
 
     m_viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_windowWidth), float(m_windowHeight) , 0.0, 1.0 };
@@ -118,7 +118,7 @@ void SwapChain::resize()
         }
 
         createRenderTargetViews(app->getD3D12Module()->getDevice());
-        m_depthStencil = app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight);
+        m_depthStencil.reset(app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight));
         m_depthStencil->setName(L"SwapChainDS");
     }
 }

@@ -1,10 +1,11 @@
 #pragma once
 #include <cstdint>
-#include "Globals.h"
-#include <TextureAsset.h>
-#include <VertexBuffer.h>
-#include <IndexBuffer.h>
-#include <Texture.h>
+
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "Texture.h"
+
+class TextureAsset;
 
 struct SkyParams
 {
