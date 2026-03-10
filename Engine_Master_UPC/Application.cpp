@@ -86,9 +86,7 @@ bool Application::postInit()
 
 void Application::update()
 {
-    uint64_t currentMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    m_elapsedMilis = currentMilis - m_lastMilis;
-    m_lastMilis = currentMilis;
+    auto frameStart = std::chrono::high_resolution_clock::now();
 
     float dt = 0.f;
     if (m_currentEngineState == ENGINE_STATE::PLAYING)
@@ -103,26 +101,44 @@ void Application::update()
         {
             (*it)->update();
         }
-
         PERF_END("Engine Update");
 
-        PERF_BEGIN("Engine Render");
+        PERF_BEGIN("Engine Prerender");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->preRender();
         }
+        PERF_END("Engine Prerender");
 
+        PERF_BEGIN("Engine Render");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->render();
         }
+        PERF_END("Engine Render");
 
+        PERF_BEGIN("Engine Postrender");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->postRender();
         }
-        PERF_END("Engine Render");
+        PERF_END("Engine Postrender");
     }
+
+    const PerfDataMap& data = getPerfData();
+
+    for (const auto& [name, perf] : data)
+    {
+        DEBUG_LOG("%s -> last: %.3f ms | avg: %.3f ms | max: %.3f ms\n",
+            name.c_str(),
+            perf.lastMs,
+            perf.avgMs,
+            perf.maxMs);
+    }
+
+    auto frameEnd = std::chrono::high_resolution_clock::now();
+
+    m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
 
     m_timeModule->waitForNextFrame();
 }
