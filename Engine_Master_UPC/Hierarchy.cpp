@@ -42,8 +42,11 @@ void Hierarchy::render()
 		}
 		ImGui::Separator();
 
-		if (session->m_rootObject)
-			createTreeNode(session->m_rootObject, true);
+		if (session->m_isolatedScene)
+		{
+			for (GameObject* go : session->m_isolatedScene->getRootObjects())
+				createTreeNode(go, true);
+		}
 	}
 	else
 	{
@@ -58,18 +61,7 @@ void Hierarchy::render()
 		}
 
 		ImGui::Separator();
-	}
 
-	if (prefabMode)
-	{
-		if (session->m_isolatedScene)
-		{
-			for (GameObject* go : session->m_isolatedScene->getRootObjects())
-				createTreeNode(go, true);
-		}
-	}
-	else
-	{
 		createTreeNode();
 	}
 

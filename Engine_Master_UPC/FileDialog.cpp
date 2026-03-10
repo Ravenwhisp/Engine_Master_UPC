@@ -368,8 +368,6 @@ void FileDialog::render()
         return;
     }
 
-    PrefabUI::drawFileDialogInstanceBar(app->getEditorModule()->getSelectedGameObject());
-
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
     drawDirectoryTree(app->getFileSystemModule()->getRoot());
     ImGui::EndChild();
