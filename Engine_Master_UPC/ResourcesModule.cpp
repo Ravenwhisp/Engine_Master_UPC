@@ -12,6 +12,9 @@
 #include <RenderTexture.h>
 
 #include "AssetsModule.h"
+#include "ModelAsset.h"
+#include "BasicMesh.h"
+#include "BasicMaterial.h"
 #include <TextureImporter.h>
 
 ResourcesModule::~ResourcesModule()
@@ -99,7 +102,7 @@ ComPtr<ID3D12Resource> ResourcesModule::createDefaultBuffer(const void* data, si
 	return buffer;
 }
 
-std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidth, float windowHeight)
+DepthBuffer* ResourcesModule::createDepthBuffer(float windowWidth, float windowHeight)
 {
 	TextureInitInfo info{};
 	info.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
@@ -122,18 +125,16 @@ std::unique_ptr<DepthBuffer> ResourcesModule::createDepthBuffer(float windowWidt
 
 	info.srvDesc = &srv_desc;
 
-	auto buffer = std::make_unique<DepthBuffer>(*m_device.Get(), info);
-
-	return buffer;
+	return new DepthBuffer(*m_device.Get(), info);
 }
 
-std::shared_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
+Texture* ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
 {
 	UID uid = textureAsset.getId();
 
-	if (auto texture = getResource<Texture>(uid))
+	if (Texture* cached = getResource<Texture>(uid))
 	{
-		return texture;
+		return cached;
 	}
 
 	TextureInitInfo info{};
@@ -164,18 +165,19 @@ std::shared_ptr<Texture> ResourcesModule::createTexture2D(const TextureAsset& te
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
-	registerResource(uid, texture);
+	Texture* raw = texture.get();
+	registerResource(uid, std::move(texture));
 
-	return texture;
+	return raw;
 }
 
-std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
+Texture* ResourcesModule::createTextureCubeFromFile(const TextureAsset& textureAsset)
 {
 	UID uid = textureAsset.getId();
 
-	if (auto texture = getResource<Texture>(uid))
+	if (Texture* cached = getResource<Texture>(uid))
 	{
-		return texture;
+		return cached;
 	}
 
 	TextureInitInfo info{};
@@ -216,47 +218,50 @@ std::shared_ptr<Texture> ResourcesModule::createTextureCubeFromFile(const Textur
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
 
-	registerResource(uid, texture);
+	Texture* raw = texture.get();
+	registerResource(uid, std::move(texture));
 
-	return texture;
+	return raw;
 }
 
-std::shared_ptr<BasicMesh> ResourcesModule::createMesh(const MeshAsset& meshAsset)
+BasicMesh* ResourcesModule::createMesh(const MeshAsset& meshAsset)
 {
 	UID uid = meshAsset.getId();
 
-	if (auto mesh = getResource<BasicMesh>(uid))
+	if (BasicMesh* cached = getResource<BasicMesh>(uid))
 	{
-		return mesh;
+		return cached;
 	}
 
 	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
-	registerResource(uid, mesh);
-	return mesh;
+	BasicMesh* raw = mesh.get();
+	registerResource(uid, std::move(mesh));
+	return raw;
 }
 
-std::shared_ptr<BasicMaterial> ResourcesModule::createMaterial(const MaterialAsset& materialAsset)
+BasicMaterial* ResourcesModule::createMaterial(const MaterialAsset& materialAsset)
 {
 	UID uid = materialAsset.getId();
 
-	if (auto material = getResource<BasicMaterial>(uid))
+	if (BasicMaterial* cached = getResource<BasicMaterial>(uid))
 	{
-		return material;
+		return cached;
 	}
 
 	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
-	registerResource(uid, material);
-	return material;
+	BasicMaterial* raw = material.get();
+	registerResource(uid, std::move(material));
+	return raw;
 }
 
-std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
+Texture* ResourcesModule::createNullTexture2D()
 {
 	TextureInitInfo info{};
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1);
 	info.desc = &desc;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Standard format
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Texture2D.MostDetailedMip = 0;
@@ -264,8 +269,7 @@ std::shared_ptr<Texture> ResourcesModule::createNullTexture2D()
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
-	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), info);
-	return texture;
+	return new Texture(GenerateUID(), *m_device.Get(), info);
 }
 
 RingBuffer* ResourcesModule::createRingBuffer(size_t size)
@@ -275,7 +279,7 @@ RingBuffer* ResourcesModule::createRingBuffer(size_t size)
 	return new RingBuffer(*m_device.Get(), buffer, totalMemorySize);
 }
 
-std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float windowWidth, float windowHeight)
+RenderTexture* ResourcesModule::createRenderTexture(float windowWidth, float windowHeight)
 {
 	TextureInitInfo info{};
 	D3D12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_TYPELESS, static_cast<UINT64>(windowWidth), static_cast<UINT>(windowHeight), 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
@@ -294,10 +298,9 @@ std::unique_ptr<RenderTexture> ResourcesModule::createRenderTexture(float window
 	info.clearValue = clearValue;
 	info.initialState = D3D12_RESOURCE_STATE_COMMON;
 	info.desc = &resourceDesc;
-
 	info.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
-	auto texture = std::make_unique<RenderTexture>(*m_device.Get(), info);	return texture;
+	return new RenderTexture(*m_device.Get(), info);
 }
 
 void ResourcesModule::defferResourceRelease(ComPtr<ID3D12Resource> resource)
@@ -310,18 +313,18 @@ void ResourcesModule::defferResourceRelease(ComPtr<ID3D12Resource> resource)
 	m_defferedResources.push_back(defferedResource);
 }
 
-std::unique_ptr<VertexBuffer> ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
+VertexBuffer* ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();
-	return std::make_unique<VertexBuffer>(pDevice, defaultBuffer, numVertices, vertexStride);
+	return new VertexBuffer(pDevice, defaultBuffer, numVertices, vertexStride);
 }
 
-std::unique_ptr<IndexBuffer> ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
+IndexBuffer* ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
 	ID3D12Device4& pDevice = *m_device.Get();
-	return std::make_unique<IndexBuffer>(pDevice, defaultBuffer, numIndices, indexFormat);
+	return new IndexBuffer(pDevice, defaultBuffer, numIndices, indexFormat);
 }
 
 void ResourcesModule::generateMipmapsIfMissing(DirectX::ScratchImage& image, DirectX::TexMetadata& metaData)

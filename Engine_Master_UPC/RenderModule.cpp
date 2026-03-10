@@ -45,10 +45,10 @@ bool RenderModule::init()
     //m_skyboxTexture = app->getResourcesModule()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
     //m_hasSkybox = (m_skyboxTexture != nullptr);
 
-    m_editorScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_playScreenRT = app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y);
-    m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
-	m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
+    m_editorScreenRT.reset(app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y));
+    m_playScreenRT.reset(app->getResourcesModule()->createRenderTexture(m_size.x, m_size.y));
+    m_editorScreenDS.reset(app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y));
+	m_playScreenDS.reset(app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y));
 
     return true;
 }
@@ -80,17 +80,17 @@ void RenderModule::preRender()
         m_size = newSize;
 
         m_editorScreenRT.reset();
-        m_editorScreenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
+        m_editorScreenRT.reset(app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y));
         m_editorScreenRT->setName(L"editorScreenRT");
         m_editorScreenDS.reset();
-        m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
+        m_editorScreenDS.reset(app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y));
         m_editorScreenDS->setName(L"editorScreenDS");
 
         m_playScreenRT.reset();
-        m_playScreenRT = app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y);
+        m_playScreenRT.reset(app->getResourcesModule()->createRenderTexture(newSize.x, newSize.y));
         m_playScreenRT->setName(L"playScreenRT");
         m_playScreenDS.reset();
-        m_playScreenDS = app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y);
+        m_playScreenDS.reset(app->getResourcesModule()->createDepthBuffer(newSize.x, newSize.y));
         m_playScreenDS->setName(L"playScreenDS");
     }
 

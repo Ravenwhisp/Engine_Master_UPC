@@ -48,7 +48,8 @@ void MeshRenderer::addModel(ModelAsset& model)
         globalMax.y = std::max(globalMax.y, meshMax.y);
         globalMax.z = std::max(globalMax.z, meshMax.z);
 
-        auto mesh = app->getResourcesModule()->createMesh(meshAsset);
+        std::shared_ptr<BasicMesh> mesh(app->getResourcesModule()->createMesh(meshAsset));
+
 
         if (!mesh)
         {
@@ -60,15 +61,15 @@ void MeshRenderer::addModel(ModelAsset& model)
             m_triangles += submesh.indexCount / 3;
         }
 
-        m_meshes.push_back(std::move(mesh));
+        m_meshes.push_back(mesh);
     }
 
     uint32_t index = 0;
     for (const auto materialAsset : model.getMaterials())
     {
         m_materialIndexByUID[materialAsset.getId()] = index;
-        auto material = app->getResourcesModule()->createMaterial(materialAsset);
-        m_materials.push_back(std::move(material));
+        std::shared_ptr<BasicMaterial> material(app->getResourcesModule()->createMaterial(materialAsset));
+        m_materials.push_back(material);
         ++index;
     }
 

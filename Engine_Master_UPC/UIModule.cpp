@@ -201,9 +201,8 @@ void UIModule::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
                 auto texture = app->getResourcesModule()->createTexture2D(*asset);
                 if (texture)
                 {
-                    Texture* raw = texture.get();
                     m_uiTextures.emplace(assetId, std::move(texture));
-                    uiImg->setTexture(raw);
+                    uiImg->setTexture(texture);
                 }
                 else
                 {
