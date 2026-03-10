@@ -70,7 +70,7 @@ Asset* AssetsModule::requestAsset(UID id)
     AssetMetadata* metadata = app->getFileSystemModule()->getMetadata(id);
     if (!metadata)
     {
-        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", id);
+        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id: %d", id);
         return nullptr;
     }
 
@@ -81,7 +81,7 @@ Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
 {
     if (!metadata)
     {
-        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id:", metadata->uid);
+        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id: %d", metadata->uid);
         return nullptr;
     }
 

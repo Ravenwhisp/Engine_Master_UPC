@@ -28,6 +28,7 @@ private:
     EditorToolbar* m_editorToolbar;
 	PlayToolbar* m_playToolbar;
 
+    ImVec2 m_viewportPos = ImVec2(0.0f, 0.0f);
     float m_viewportX = 0.0f;
     float m_viewportY = 0.0f;
 

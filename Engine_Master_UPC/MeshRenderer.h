@@ -28,6 +28,7 @@ public:
 	std::vector<std::shared_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
 	std::vector<std::shared_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
 	bool											hasMeshes() { return m_meshes.size() != 0; }
+	UID												getModelAssetId() const { return m_modelAssetId; }
 
 	BasicMaterial* getMaterial(UID materialId)
 	{

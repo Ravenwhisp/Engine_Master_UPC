@@ -85,6 +85,7 @@ public:
 	void saveScene();
 	bool loadScene(const std::string& sceneName);
 	void requestSceneChange(const std::string& sceneName);
+	bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 	void clearScene();
 #pragma endregion
 

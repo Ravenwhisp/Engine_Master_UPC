@@ -20,7 +20,8 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
     swapChainDesc.Width =       m_windowWidth;
     swapChainDesc.Height =      m_windowHeight;
-    swapChainDesc.Format =      DEFAULT_FORMAT; // 32-bit RGBA format (8 bits per channel)
+    swapChainDesc.Format =      DEFAULT_FORMAT;
+
     // UNORM = Unsigned normalized integer (0-255 mapped to 0.0-1.0)
     swapChainDesc.Stereo =      FALSE; // Set to TRUE for stereoscopic 3D rendering (VR/3D Vision)
     swapChainDesc.SampleDesc =  { 1, 0 }; // Multisampling { Count, Quality } // Count=1: No multisampling (1 sample per pixel)
@@ -132,7 +133,18 @@ void SwapChain::createRenderTargetViews(ComPtr<ID3D12Device2> device)
         DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n].resource)));
         m_renderTargets[n].resource->SetName(L"BackBuffer");
 
+#ifdef GAME_RELEASE
+        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+        rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.MipSlice = 0;
+        rtvDesc.Texture2D.PlaneSlice = 0;
+
+        device->CreateRenderTargetView(m_renderTargets[n].resource.Get(), &rtvDesc, rtvHandle.cpu);
+#else
         device->CreateRenderTargetView(m_renderTargets[n].resource.Get(), nullptr, rtvHandle.cpu);
+
+#endif
     }
 }
 

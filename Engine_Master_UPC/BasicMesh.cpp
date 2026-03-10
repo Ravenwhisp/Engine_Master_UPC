@@ -13,6 +13,9 @@ BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 {
 	m_submeshes = asset.getSubmeshes();
 
+	m_vertexPositions = asset.getVerticesPositions();
+	m_indices = asset.getIndexDataVector();
+
 	m_vertexBuffer = app->getResourcesModule()->createVertexBuffer(asset.getVertexData(), asset.getVertexCount(), asset.getVertexStride());
 
 	if (asset.getIndexBufferSize() > 0) 

@@ -41,6 +41,7 @@ struct SceneEditorSettings
     bool showGuizmo = DEFAULT_DEBUG;
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
+    bool showNavPath = true;
 };
 
 struct FrustumCullingSettings
