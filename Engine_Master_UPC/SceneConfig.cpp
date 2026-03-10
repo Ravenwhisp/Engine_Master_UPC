@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "SceneModule.h"
+#include "NavigationModule.h"
 
 SceneConfig::SceneConfig()
 {
@@ -52,18 +53,26 @@ void SceneConfig::render()
 
     ImGui::Separator();
 
+    drawNavmeshSettings();
+
+    ImGui::Separator();
+
     drawSkyboxSettings();
 
     ImGui::Separator();
 
     drawLightSettings();
 
+    ImGui::Separator();
+
     ImGui::End();
 
 }
 
-void SceneConfig::drawSaveSceneSettings() {
-    if (ImGui::CollapsingHeader("Save Scene")) {
+void SceneConfig::drawSaveSceneSettings() 
+{
+    if (ImGui::CollapsingHeader("Save Scene")) 
+    {
 
         static char saveSceneBuffer[256];
         strcpy_s(saveSceneBuffer, m_saveSceneName.c_str());
@@ -90,8 +99,10 @@ void SceneConfig::drawSaveSceneSettings() {
 }
 
 
-void SceneConfig::drawLoadSceneSettings() {
-    if (ImGui::CollapsingHeader("Load Scene")) {
+void SceneConfig::drawLoadSceneSettings() 
+{
+    if (ImGui::CollapsingHeader("Load Scene")) 
+    {
         static char loadSceneBuffer[256];
         strcpy_s(loadSceneBuffer, m_loadSceneName.c_str());
 
@@ -110,11 +121,64 @@ void SceneConfig::drawLoadSceneSettings() {
     }
 }
 
+void SceneConfig::drawNavmeshSettings()
+{
+    if (ImGui::CollapsingHeader("Navmesh")) 
+    {
+        NavigationModule* nav = app->getNavigationModule();
+            
+        if (ImGui::Button("Bake NavMesh"))
+        {
+            if (app->getNavigationModule()->buildNavMeshForCurrentScene())
+            {
+                DEBUG_LOG("NavMesh bake SUCCESS\n");
+            }
+            else
+            {
+                DEBUG_ERROR("NavMesh bake FAILED\n");
+            }
+        }
 
-void SceneConfig::drawSkyboxSettings() {
+        ImGui::SameLine();
+
+        // Temporary Button, this must happen automatically when loading the scene
+        if (ImGui::Button("Load Navmesh"))
+        {
+            const char* sceneName = m_sceneModule->getName();
+            const bool ok = app->getNavigationModule()->loadNavMeshForScene(sceneName);
+
+            if (ok) DEBUG_LOG("Navmesh loaded successfully.");
+            else    DEBUG_WARN("Navmesh for scene '%s' not found.", sceneName);
+        }
+
+        bool show = nav->getDrawNavMesh();
+        if (ImGui::Checkbox("Show NavMesh###ShowNavMesh", &show))
+        {
+            nav->setDrawNavMesh(show);
+        }
+
+        ImGui::Separator();
+
+        ImGui::DragFloat("Cell Size", &nav->getSettings().cellSize, 0.01f, 0.05f, 1.0f);
+        ImGui::DragFloat("Cell Height", &nav->getSettings().cellHeight, 0.01f, 0.05f, 1.0f);
+
+        ImGui::DragFloat("Agent Height", &nav->getSettings().agentHeight, 0.05f, 0.5f, 5.0f);
+        ImGui::DragFloat("Agent Radius", &nav->getSettings().agentRadius, 0.01f, 0.1f, 2.0f);
+
+        ImGui::DragFloat("Max Climb", &nav->getSettings().agentMaxClimb, 0.01f, 0.0f, 2.0f);
+        ImGui::DragFloat("Max Slope", &nav->getSettings().agentMaxSlope, 1.0f, 0.0f, 60.0f);
+
+    }
+
+}
+
+
+void SceneConfig::drawSkyboxSettings() 
+{
     auto& skyboxSettings = m_sceneModule->getSkyboxSettings();
 
-    if (ImGui::CollapsingHeader("Skybox")) {
+    if (ImGui::CollapsingHeader("Skybox")) 
+    {
 
         if (ImGui::Checkbox("Enabled###SkyEnabled", &skyboxSettings.enabled))
         {
@@ -155,3 +219,4 @@ void SceneConfig::drawLightSettings()
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
     }
 }
+

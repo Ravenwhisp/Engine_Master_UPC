@@ -16,6 +16,7 @@ class DescriptorsModule;
 class TimeModule;
 class UIModule;
 class RenderModule;
+class NavigationModule;
 class SceneModule;
 class GameViewModule;
 class FileSystemModule;
@@ -53,6 +54,7 @@ public:
     TimeModule*                 getTimeModule() { return m_timeModule; }
     UIModule*                   getUIModule() { return m_uiModule; }
     RenderModule*               getRenderModule() { return m_renderModule; }
+    NavigationModule*           getNavigationModule() { return m_navigationModule; }
     SceneModule*                getSceneModule() { return m_sceneModule; }
     GameViewModule*             getGameViewModule() { return m_gameViewModule; }
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
@@ -89,6 +91,7 @@ private:
     DescriptorsModule*      m_descriptorsModule = nullptr;
     TimeModule*             m_timeModule = nullptr;
     RenderModule*           m_renderModule = nullptr;
+    NavigationModule*       m_navigationModule = nullptr;
     SceneModule*            m_sceneModule = nullptr;
     GameViewModule*         m_gameViewModule = nullptr;
     FileSystemModule*       m_fileSystemModule = nullptr;

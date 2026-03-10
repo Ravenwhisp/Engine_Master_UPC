@@ -32,7 +32,18 @@ void UIModule::preRender()
     m_textCommands.clear();
     m_imageCommands.clear();
 
+#ifdef GAME_RELEASE
+
+	auto viewport = app->getD3D12Module()->getSwapChain()->getViewport();
+
+	const ImVec2 screenSize(viewport.Width, viewport.Height);
+
+#else
     const ImVec2 screenSize = app->getEditorModule()->getSceneEditorSize();
+
+#endif // GAME_RELEASE
+
+    
 
     if (screenSize.x <= 0.0f || screenSize.y <= 0.0f) {
         return;

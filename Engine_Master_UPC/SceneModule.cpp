@@ -12,6 +12,7 @@
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
+#include "NavigationModule.h"
 
 #include <queue>
 #include <limits>
@@ -684,6 +685,8 @@ void SceneModule::saveScene()
 
 bool SceneModule::loadScene(const std::string& sceneName)
 {
+	m_quadtree.reset();
+	clearScene();
     const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
     if (!fileExists) 
     {
@@ -691,6 +694,17 @@ bool SceneModule::loadScene(const std::string& sceneName)
     }
 
     m_name = sceneName;
+
+    const char* s = sceneName.c_str();
+    if (app->getNavigationModule()->loadNavMeshForScene(s))
+    {
+        DEBUG_LOG("LOADED NavMesh for scene: %s\n", s);
+    }
+    else
+    {
+        DEBUG_ERROR("CANNOT load NavMesh for this scene\n");
+    }
+   
     return true;
 }
 
