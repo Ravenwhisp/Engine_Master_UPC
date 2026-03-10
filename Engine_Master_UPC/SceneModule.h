@@ -129,4 +129,6 @@ public:
 
 	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
 	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
+
+	bool initEmpty();
 };

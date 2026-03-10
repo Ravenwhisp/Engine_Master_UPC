@@ -47,6 +47,8 @@ bool RenderModule::init()
     m_editorScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
 	m_playScreenDS = app->getResourcesModule()->createDepthBuffer(m_size.x, m_size.y);
 
+    m_activeScene = app->getSceneModule();
+
     return true;
 }
 
@@ -166,15 +168,19 @@ void RenderModule::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    m_skyBoxPass->setView(camera.view);
-    m_skyBoxPass->setProjection(camera.projection);
-    m_skyBoxPass->apply(commandList);
+    SceneModule* scene = m_activeScene ? m_activeScene : app->getSceneModule();
+
+    if (scene == app->getSceneModule())
+    {
+        m_skyBoxPass->setView(camera.view);
+        m_skyBoxPass->setProjection(camera.projection);
+        m_skyBoxPass->apply(commandList);
+    }
 
     m_meshRendererPass->setCameraPosition(camera.position);
     m_meshRendererPass->setView(camera.view);
     m_meshRendererPass->setProjection(camera.projection);
 
-    SceneModule* scene = app->getSceneModule();
     scene->render(commandList);
 
     const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();

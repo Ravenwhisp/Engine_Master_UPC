@@ -150,29 +150,6 @@ void PrefabUI::drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize)
     ImGui::End();
 }
 
-void PrefabUI::drawInstanceBadge(const GameObject* go)
-{
-    if (!PrefabManager::isPrefabInstance(go))
-    {
-        return;
-    }
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
-    ImGui::Text("[Prefab: %s]", PrefabManager::getPrefabName(go).c_str());
-    ImGui::PopStyleColor();
-
-    const PrefabInstanceData* instance = PrefabManager::getInstanceData(go);
-    if (instance && !instance->m_overrides.isEmpty())
-    {
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.1f, 1.f));
-        ImGui::Text("(overrides)");
-        ImGui::PopStyleColor();
-    }
-
-    ImGui::Separator();
-}
-
 void PrefabUI::drawSavePrefabSection(GameObject* go)
 {
     if (!go)

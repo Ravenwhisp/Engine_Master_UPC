@@ -8,7 +8,9 @@
         "__inspector__"
       ]
     },
-    "AddedComponents": [],
+    "AddedComponents": [
+      2
+    ],
     "RemovedComponents": []
   },
   "GameObject": {
@@ -22,7 +24,7 @@
       "position": [
         -1.7102965116500854,
         0.0,
-        -1.3680987358093262
+        4.071601390838623
       ],
       "rotation": [
         -0.0,
@@ -40,7 +42,7 @@
       {
         "Type": 1,
         "Data": {
-          "UID": 1430436945022464825,
+          "UID": 5993869196960384689,
           "ComponentType": 1,
           "Active": true,
           "ModelAssetId": 11564806912439458555
@@ -49,14 +51,14 @@
       {
         "Type": 2,
         "Data": {
-          "UID": 10315189774755423144,
+          "UID": 4772639947069790221,
           "ComponentType": 2,
           "Active": true,
           "LightType": 0,
           "Color": [
-            1.0,
+            0.969111979007721,
             0.0,
-            0.19607843458652496
+            0.0
           ],
           "Intensity": 1.0
         }
@@ -66,6 +68,10 @@
       {
         "Name": "New GameObject",
         "Active": true,
+        "PrefabLink": {
+          "PrefabName": "test",
+          "PrefabUID": 2949673445
+        },
         "Transform": {
           "position": [
             314.29913330078125,

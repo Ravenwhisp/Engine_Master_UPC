@@ -32,9 +32,6 @@ void Inspector::render()
     GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
     if (selectedGameObject)
     {
-        if (!prefabMode)
-            PrefabUI::drawInstanceBadge(selectedGameObject);
-
         selectedGameObject->drawUI();
 
         if (!prefabMode)

@@ -1,6 +1,7 @@
 #pragma once
 #include "Module.h"
 #include "DescriptorsModule.h"
+#include "Application.h"
 #include "Lights.h"
 #include <IRenderPass.h>
 #include <SkyboxPass.h>
@@ -41,6 +42,9 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 
 	bool applySkyboxSettings(const SkyboxSettings& settings);
+
+	void setActiveScene(SceneModule* scene) { m_activeScene = scene; }
+	SceneModule* getActiveScene() const { return m_activeScene ? m_activeScene : app->getSceneModule(); }
 private:
 #pragma region RENDERS
 	void renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug);
@@ -77,5 +81,8 @@ private:
 	ImGuiPass* m_imGuiPass = nullptr;
 
 	std::vector<IRenderPass*> m_renderPasses;
+
+	//Prefab thingz
+	SceneModule* m_activeScene = nullptr;
 };
 

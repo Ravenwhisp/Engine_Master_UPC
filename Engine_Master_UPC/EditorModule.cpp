@@ -19,6 +19,7 @@
 #include "SceneConfig.h"
 #include "GameWindow.h"
 #include "PrefabManager.h"
+#include "RenderModule.h"
 
 #include "Application.h"
 #include "SceneModule.h"
@@ -438,15 +439,20 @@ void EditorModule::enterPrefabEdit(const std::string& prefabName)
     app->getD3D12Module()->getCommandQueue()->flush();
 
     m_prefabSession.clear();
-    SceneModule* scene = app->getSceneModule();
-    GameObject* loaded = PrefabManager::instantiatePrefab(prefabName, scene);
+    m_prefabSession.m_isolatedScene = std::make_unique<SceneModule>();
+    m_prefabSession.m_isolatedScene->initEmpty();
+
+    GameObject* loaded = PrefabManager::instantiatePrefab(prefabName, m_prefabSession.m_isolatedScene.get());
     if (!loaded) return;
 
     m_prefabSession.m_prefabName = prefabName;
     m_prefabSession.m_rootObject = loaded;
     m_prefabSession.m_active = true;
-    m_prefabSession.m_editingInMainScene = true;
+    m_prefabSession.m_editingInMainScene = false;
+
     m_selectedGameObject = loaded;
+
+    app->getRenderModule()->setActiveScene(m_prefabSession.m_isolatedScene.get());
 }
 
 void EditorModule::exitPrefabEdit()
@@ -464,10 +470,9 @@ void EditorModule::flushExitPrefabEdit()
     m_pendingExitPrefab = false;
     app->getD3D12Module()->getCommandQueue()->flush();
 
-    if (m_prefabSession.m_rootObject && m_prefabSession.m_editingInMainScene)
-        app->getSceneModule()->removeGameObject(m_prefabSession.m_rootObject->GetID());
+    app->getRenderModule()->setActiveScene(app->getSceneModule());
 
     m_selectedGameObject = nullptr;
-    m_prefabSession.clear();
+    m_prefabSession.clear(); 
 }
 

@@ -10,7 +10,6 @@ class PrefabUI
 public:
     static void drawModeHeader(const char* prefabName);
     static void drawApplyRevertBar(float availableWidth);
-    static void drawInstanceBadge(const GameObject* go);
     static void drawSavePrefabSection(GameObject* go);
     static void drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditRoot);
     static void drawPrefabSubMenu(GameObject* go, SceneModule* scene);
