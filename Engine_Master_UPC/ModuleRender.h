@@ -1,6 +1,6 @@
 #pragma once
 #include "Module.h"
-#include "DescriptorsModule.h"
+#include "ModuleDescriptors.h"
 #include "Lights.h"
 #include <IRenderPass.h>
 #include <SkyboxPass.h>
@@ -17,9 +17,9 @@ class VertexBuffer;
 class IndexBuffer;
 class Texture;
 
-class GameViewModule;
+class ModuleGameView;
 
-class RenderModule: public Module
+class ModuleRender: public Module
 {
 private:
 	struct RenderCamera
@@ -32,10 +32,10 @@ private:
 
 private:
 	Settings* m_settings;
-	GameViewModule* m_gameViewModule;
+	ModuleGameView* m_gameViewModule;
 
 	RingBuffer* m_ringBuffer;
-	DescriptorsModule::SampleType	m_sampleType = DescriptorsModule::SampleType::POINT_CLAMP;
+	ModuleDescriptors::SampleType	m_sampleType = ModuleDescriptors::SampleType::POINT_CLAMP;
 
 	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_editorScreenRT{};

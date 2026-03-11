@@ -3,10 +3,10 @@
 #include <LightComponent.h>
 
 #include "Application.h"
-#include "DescriptorsModule.h"
-#include "RenderModule.h"
+#include "ModuleDescriptors.h"
+#include "ModuleRender.h"
 #include <MeshRenderer.h>
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 #include <PlatformHelpers.h>
 #include <d3dcompiler.h>
 #include "Settings.h"
@@ -23,7 +23,7 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* rin
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, DescriptorsModule::SampleType::COUNT, 0);
+    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -92,15 +92,15 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
     //Set input assembler
-    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&m_sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
+    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&m_sceneDataCB, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame()));
 
     const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
     commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(DescriptorsModule::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     renderMesh(commandList);
 }
@@ -141,7 +141,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
                 modelData.material = material->getMaterial();
 
                 // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
-                commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+                commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
                 commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
 
                 commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -164,9 +164,9 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 {
 
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getSceneModule()->getAllGameObjects(), m_lighting.ambientColor, m_lighting.ambientIntensity);
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getAllGameObjects(), m_lighting.ambientColor, m_lighting.ambientIntensity);
 
-    return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getD3D12Module()->getCurrentFrame());
+    return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }
 
 GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const

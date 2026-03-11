@@ -15,7 +15,7 @@
 #include "UIText.h"
 #include "UIButton.h"
 #include "CameraFollow.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
 #include "CameraSwitcher.h"
@@ -452,7 +452,7 @@ void GameObject::drawUI()
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        if (component->getType() == ComponentType::CAMERA && app->getSceneModule()->getDefaultCamera() == component.get())
+        if (component->getType() == ComponentType::CAMERA && app->getModuleScene()->getDefaultCamera() == component.get())
         {
             header += " (Default)";
         }

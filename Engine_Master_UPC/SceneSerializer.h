@@ -1,7 +1,7 @@
 #pragma once
 #include <rapidjson/document.h>
 
-class SceneModule;
+class ModuleScene;
 
 class SceneSerializer
 {

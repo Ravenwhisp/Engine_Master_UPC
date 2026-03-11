@@ -37,7 +37,7 @@ struct SceneSnapshot
 	CameraComponent* defaultCamera = nullptr;
 };
 
-class SceneModule : public Module
+class ModuleScene : public Module
 {
 private:
 	std::string m_name = "SampleScene";
@@ -57,8 +57,8 @@ private:
 	std::string m_pendingSceneLoad;
 
 public:
-	SceneModule();
-	~SceneModule();
+	ModuleScene();
+	~ModuleScene();
 
 #pragma region GameLoop
 	bool init() override;

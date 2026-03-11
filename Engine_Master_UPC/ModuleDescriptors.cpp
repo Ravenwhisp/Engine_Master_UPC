@@ -1,10 +1,10 @@
 #include "Globals.h"
-#include "DescriptorsModule.h"
+#include "ModuleDescriptors.h"
 #include "Application.h"
-#include "D3D12Module.h"
-#include "ResourcesModule.h"
+#include "ModuleD3D12.h"
+#include "ModuleResources.h"
 
-DescriptorsModule::~DescriptorsModule()
+ModuleDescriptors::~ModuleDescriptors()
 {
     for (auto& pair : m_DescriptorHeapMap) {
         delete pair.second;
@@ -13,9 +13,9 @@ DescriptorsModule::~DescriptorsModule()
     m_defferedDescriptors.clear();
 }
 
-bool DescriptorsModule::init()
+bool ModuleDescriptors::init()
 {
-    m_device = app->getD3D12Module()->getDevice();
+    m_device = app->getModuleD3D12()->getDevice();
 
     m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 256);
     m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 256);
@@ -26,10 +26,10 @@ bool DescriptorsModule::init()
 	return true;
 }
 
-void DescriptorsModule::preRender()
+void ModuleDescriptors::preRender()
 {
     // For now only the SRV heap is having deferred releases since it's the only one used for textures
-	UINT lastCompletedFrame = app->getD3D12Module()->getLastCompletedFrame();
+	UINT lastCompletedFrame = app->getModuleD3D12()->getLastCompletedFrame();
 	for (int i = 0; i < m_defferedDescriptors.size(); ++i) {
 
         if (lastCompletedFrame > m_defferedDescriptors[i].frame)
@@ -45,13 +45,13 @@ void DescriptorsModule::preRender()
 	}
 }
 
-bool DescriptorsModule::cleanUp()
+bool ModuleDescriptors::cleanUp()
 {
 
     return true;
 }
 
-void DescriptorsModule::createDefaultSamplers()
+void ModuleDescriptors::createDefaultSamplers()
 {
     D3D12_SAMPLER_DESC samplers[COUNT] = {
         {
@@ -102,10 +102,10 @@ void DescriptorsModule::createDefaultSamplers()
     }
 }
 
-void DescriptorsModule::defferDescriptorRelease(Handle handle)
+void ModuleDescriptors::defferDescriptorRelease(Handle handle)
 {
 	DefferedDescriptor defferedDescriptor;
-	defferedDescriptor.frame = app->getD3D12Module()->getCurrentFrame();
+	defferedDescriptor.frame = app->getModuleD3D12()->getCurrentFrame();
 	defferedDescriptor.handle = handle;
 	m_defferedDescriptors.push_back(defferedDescriptor);
 }

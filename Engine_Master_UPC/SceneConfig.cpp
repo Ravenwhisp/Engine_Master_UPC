@@ -2,12 +2,12 @@
 #include "SceneConfig.h"
 
 #include "Application.h"
-#include "SceneModule.h"
-#include "NavigationModule.h"
+#include "ModuleScene.h"
+#include "ModuleNavigation.h"
 
 SceneConfig::SceneConfig()
 {
-	m_sceneModule = app->getSceneModule();
+	m_sceneModule = app->getModuleScene();
 }
 
 void SceneConfig::render()
@@ -125,11 +125,11 @@ void SceneConfig::drawNavmeshSettings()
 {
     if (ImGui::CollapsingHeader("Navmesh")) 
     {
-        NavigationModule* nav = app->getNavigationModule();
+        ModuleNavigation* nav = app->getModuleNavigation();
             
         if (ImGui::Button("Bake NavMesh"))
         {
-            if (app->getNavigationModule()->buildNavMeshForCurrentScene())
+            if (app->getModuleNavigation()->buildNavMeshForCurrentScene())
             {
                 DEBUG_LOG("NavMesh bake SUCCESS\n");
             }
@@ -145,7 +145,7 @@ void SceneConfig::drawNavmeshSettings()
         if (ImGui::Button("Load Navmesh"))
         {
             const char* sceneName = m_sceneModule->getName();
-            const bool ok = app->getNavigationModule()->loadNavMeshForScene(sceneName);
+            const bool ok = app->getModuleNavigation()->loadNavMeshForScene(sceneName);
 
             if (ok) DEBUG_LOG("Navmesh loaded successfully.");
             else    DEBUG_WARN("Navmesh for scene '%s' not found.", sceneName);

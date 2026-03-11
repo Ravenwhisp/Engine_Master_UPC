@@ -2,7 +2,7 @@
 #include "EditorWindow.h"
 
 class PlayToolbar;
-class InputModule;
+class ModuleInput;
 
 class GameWindow : public EditorWindow
 {

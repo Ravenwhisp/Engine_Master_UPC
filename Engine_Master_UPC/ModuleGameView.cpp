@@ -1,26 +1,26 @@
 #include "Globals.h"
-#include "GameViewModule.h"
+#include "ModuleGameView.h"
 
 #include "Application.h"
-#include "InputModule.h"
+#include "ModuleInput.h"
 
 #include "GameObject.h"
 
-GameViewModule::GameViewModule()
+ModuleGameView::ModuleGameView()
 {
 	m_sceneModule = nullptr;
 	m_inputModule = nullptr;
 }
 
-GameViewModule::~GameViewModule()
+ModuleGameView::~ModuleGameView()
 {
 
 }
 
-bool GameViewModule::init()
+bool ModuleGameView::init()
 {
-	m_sceneModule = app->getSceneModule();
-	m_inputModule = app->getInputModule();
+	m_sceneModule = app->getModuleScene();
+	m_inputModule = app->getModuleInput();
 
 	m_showDebugWindow = false;
 
@@ -32,7 +32,7 @@ bool GameViewModule::init()
 	return true;
 }
 
-void GameViewModule::update()
+void ModuleGameView::update()
 {
 	static Keyboard::KeyboardStateTracker keyTracker;
 
@@ -60,13 +60,13 @@ void GameViewModule::update()
 
 }
 
-void GameViewModule::startGameSimulation()
+void ModuleGameView::startGameSimulation()
 {
 	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
 	m_sceneCloned = m_sceneModule->getClonedGameObjects();
 }
 
-void GameViewModule::stopGameSimulation()
+void ModuleGameView::stopGameSimulation()
 {
 	// When we hit stop, we restore the scene's game objects with the copy we created when we hit play
 	m_sceneModule->resetGameObjects(std::move(m_sceneCloned));

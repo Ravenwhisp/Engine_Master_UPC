@@ -4,7 +4,7 @@
 
 #include "Buffer.h"
 
-class ResourcesModule;
+class ModuleResources;
 
 struct AllocationInfo
 {
@@ -24,7 +24,7 @@ public:
 
     size_t getTotalSize() const { return m_totalMemorySize; }
 
-    friend class ResourcesModule;
+    friend class ModuleResources;
 protected:
     RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t sizeInMB);
 private:

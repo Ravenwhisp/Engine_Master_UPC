@@ -1,42 +1,42 @@
 #include "Globals.h"
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 #include "Application.h"
-#include "ResourcesModule.h"
-#include "CameraModule.h"
-#include "DescriptorsModule.h"
-#include "EditorModule.h"
+#include "ModuleResources.h"
+#include "ModuleCamera.h"
+#include "ModuleDescriptors.h"
+#include "ModuleEditor.h"
 #include "Transform.h"
 #include <d3dcompiler.h>
 #include "RingBuffer.h"
 #include <PlatformHelpers.h>
 #include "Skybox.h"
 
-D3D12Module::D3D12Module(HWND hwnd) 
+ModuleD3D12::ModuleD3D12(HWND hwnd) 
 {
     m_hwnd = hwnd;
 }
 
-D3D12Module::~D3D12Module()
+ModuleD3D12::~ModuleD3D12()
 {
 
 }
 
 
-bool D3D12Module::init()
+bool ModuleD3D12::init()
 {
     loadPipeline();
 
     return true;
 }
 
-bool D3D12Module::postInit() {
+bool ModuleD3D12::postInit() {
     m_swapChain = new SwapChain(m_hwnd);
     m_graphicsMemory = std::make_unique<GraphicsMemory>(m_device.Get());
 
     return true;
 }
 
-void D3D12Module::preRender()
+void ModuleD3D12::preRender()
 {
     m_frameIndex = m_swapChain->getCurrentBackBufferIndex();
     m_commandQueue->waitForFenceValue(m_fenceValues[m_frameIndex]);
@@ -46,12 +46,12 @@ void D3D12Module::preRender()
     m_commandList = m_commandQueue->getCommandList();
 }
 
-void D3D12Module::render()
+void ModuleD3D12::render()
 {
 
 }
 
-void D3D12Module::postRender()
+void ModuleD3D12::postRender()
 {
     // Execute the command list.
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
@@ -61,7 +61,7 @@ void D3D12Module::postRender()
     m_graphicsMemory->Commit(m_commandQueue->getD3D12CommandQueue().Get());
 }
 
-bool D3D12Module::cleanUp()
+bool ModuleD3D12::cleanUp()
 {
     if (m_swapChain) {
         m_swapChain->~SwapChain();
@@ -85,7 +85,7 @@ bool D3D12Module::cleanUp()
 }
 
 
-void D3D12Module::loadPipeline() {
+void ModuleD3D12::loadPipeline() {
 
     UINT dxgiFactoryFlags = 0;
 
@@ -124,7 +124,7 @@ void D3D12Module::loadPipeline() {
 }
 
 
-ComPtr<ID3D12RootSignature> D3D12Module::createRootSignature() {
+ComPtr<ID3D12RootSignature> ModuleD3D12::createRootSignature() {
 
     ComPtr<ID3D12RootSignature> rootSignature;
 
@@ -133,7 +133,7 @@ ComPtr<ID3D12RootSignature> D3D12Module::createRootSignature() {
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, DescriptorsModule::SampleType::COUNT, 0);
+    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -152,7 +152,7 @@ ComPtr<ID3D12RootSignature> D3D12Module::createRootSignature() {
     return rootSignature;
 }
 
-ComPtr<ID3D12PipelineState> D3D12Module::createPipelineStateObject(ID3D12RootSignature* rootSignature) {
+ComPtr<ID3D12PipelineState> ModuleD3D12::createPipelineStateObject(ID3D12RootSignature* rootSignature) {
     ComPtr<ID3D12PipelineState> pso;
 #if defined(_DEBUG)
     // Enable better shader debugging with the graphics debugging tools.

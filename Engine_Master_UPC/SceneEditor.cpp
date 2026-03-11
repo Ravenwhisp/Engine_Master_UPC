@@ -4,13 +4,13 @@
 #include <imgui.h>
 
 #include "Application.h"
-#include "D3D12Module.h"
-#include "EditorModule.h"
-#include "CameraModule.h"
-#include "NavigationModule.h"
+#include "ModuleD3D12.h"
+#include "ModuleEditor.h"
+#include "ModuleCamera.h"
+#include "ModuleNavigation.h"
 
-#include "RenderModule.h"
-#include "SceneModule.h"
+#include "ModuleRender.h"
+#include "ModuleScene.h"
 #include "EditorToolbar.h"
 #include "PlayToolbar.h"
 
@@ -102,15 +102,15 @@ static void DebugDrawHierarchy(GameObject* go)
 
 SceneEditor::SceneEditor()
 {
-    m_cameraModule = app->getCameraModule();
-    m_inputModule = app->getInputModule();
+    m_cameraModule = app->getModuleCamera();
+    m_inputModule = app->getModuleInput();
 
     m_settings = app->getSettings();
 
     m_editorToolbar = new EditorToolbar();
 	m_playToolbar = new PlayToolbar();
 
-    auto d3d12Module = app->getD3D12Module();
+    auto d3d12Module = app->getModuleD3D12();
 }
 
 SceneEditor::~SceneEditor()
@@ -153,7 +153,7 @@ void SceneEditor::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUEditorScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)app->getModuleRender()->getGPUEditorScreenRT().ptr;
         ImGui::Image(textureID, m_size);
         
     }
@@ -171,21 +171,21 @@ void SceneEditor::render()
     ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
     ImGuizmo::Enable(true);
 
-    GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
+    GameObject* selectedGameObject = app->getModuleEditor()->getSelectedGameObject();
 
     if (selectedGameObject && m_cameraModule)
     {
         ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
         bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
 
-        EditorModule::SCENE_TOOL currentMode = app->getEditorModule()->getCurrentSceneTool();
+        ModuleEditor::SCENE_TOOL currentMode = app->getModuleEditor()->getCurrentSceneTool();
 
         switch (currentMode) 
         {
-        case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
-        case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
-        case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
-        case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
+        case ModuleEditor::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
+        case ModuleEditor::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
+        case ModuleEditor::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
+        case ModuleEditor::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
         default: shouldShowGizmo = false; break;
         }
 
@@ -194,7 +194,7 @@ void SceneEditor::render()
             Transform* transform = selectedGameObject->GetTransform();
             Matrix worldMatrix = transform->getGlobalMatrix();
 
-            ImGuizmo::MODE gizmoMode = app->getEditorModule()->isGizmoLocal() ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+            ImGuizmo::MODE gizmoMode = app->getModuleEditor()->isGizmoLocal() ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
 
             ImGuizmo::Manipulate(
                 (float*)&m_cameraModule->getView(),
@@ -245,12 +245,12 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         renderQuadtree();
     }
 
-    for (GameObject* root : app->getSceneModule()->getAllGameObjects()) 
+    for (GameObject* root : app->getModuleScene()->getAllGameObjects()) 
     {
         DebugDrawHierarchy(root);
     }
         
-    NavigationModule* nav = app->getNavigationModule();
+    ModuleNavigation* nav = app->getModuleNavigation();
     if (nav && nav->getDrawNavMesh() && nav->getNavMesh())
     {
         const auto& lines = nav->getNavMeshDebugLines();
@@ -273,7 +273,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
     if (m_settings->sceneEditor.showModelBoundingBoxes)
     {
-        for (const auto& renderer : app->getSceneModule()->getAllMeshRenderers())
+        for (const auto& renderer : app->getModuleScene()->getAllMeshRenderers())
         {
             drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
         }
@@ -290,8 +290,8 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
     }
     else
     {
-        viewMatrix = app->getCameraModule()->getView();
-        projectionMatrix = app->getCameraModule()->getProjection();
+        viewMatrix = app->getModuleCamera()->getView();
+        projectionMatrix = app->getModuleCamera()->getProjection();
     }
 
     // Mouse Path tool
@@ -305,7 +305,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         {
             if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
-                app->getNavigationModule()->setPathStart(hit);
+                app->getModuleNavigation()->setPathStart(hit);
                 LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
             }
                 
@@ -316,7 +316,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
         {
             if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
-                app->getNavigationModule()->setPathEnd(hit);
+                app->getModuleNavigation()->setPathEnd(hit);
                 LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
             }
                 
@@ -327,7 +327,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 void SceneEditor::renderQuadtree()
 {
-    Quadtree* quadtree = app->getSceneModule()->getQuadtree();
+    Quadtree* quadtree = app->getModuleScene()->getQuadtree();
     if (!quadtree)
     {
         return;

@@ -21,7 +21,7 @@ struct NavMeshSettings
     float agentMaxSlope = 45.0f;
 };
 
-class NavigationModule : public Module
+class ModuleNavigation : public Module
 {
 public:
     bool init() override;

@@ -1,17 +1,17 @@
 #pragma once
 #include "Module.h"
 
-class InputModule;
-class D3D12Module;
-class EditorModule;
+class ModuleInput;
+class ModuleD3D12;
+class ModuleEditor;
 
 class Settings;
 
-class CameraModule : public Module {
+class ModuleCamera : public Module {
 private:
-    InputModule* m_inputModule;
-    D3D12Module* m_D3D12Module;
-    EditorModule* m_editorModule;
+    ModuleInput* m_inputModule;
+    ModuleD3D12* m_ModuleD3D12;
+    ModuleEditor* m_editorModule;
 
     Settings* m_settings;
 

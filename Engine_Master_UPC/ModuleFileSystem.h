@@ -29,7 +29,7 @@ struct PendingImport
 	UID existingUID = INVALID_ASSET_ID;
 };
 
-class FileSystemModule : public Module
+class ModuleFileSystem : public Module
 {
 public:
 	bool init() override;

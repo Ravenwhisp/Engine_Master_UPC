@@ -2,8 +2,8 @@
 #include "Hierarchy.h"
 
 #include "Application.h"
-#include "EditorModule.h"
-#include "SceneModule.h"
+#include "ModuleEditor.h"
+#include "ModuleScene.h"
 
 #include "GameObject.h"
 
@@ -88,7 +88,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 	{
 		if (!m_isDragging)
 		{
-			app->getEditorModule()->setSelectedGameObject(gameObject);
+			app->getModuleEditor()->setSelectedGameObject(gameObject);
 		}
 		m_pendingSelection = nullptr;
 	}
@@ -124,7 +124,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->removeFromRootList(child);
+		app->getModuleScene()->removeFromRootList(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -135,7 +135,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getSceneModule()->addToRootList(child);
+		app->getModuleScene()->addToRootList(child);
 	}
 
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
@@ -144,7 +144,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 
 void Hierarchy::createTreeNode()
 {
-	if (ImGui::TreeNodeEx(app->getSceneModule()->getName()))
+	if (ImGui::TreeNodeEx(app->getModuleScene()->getName()))
 	{
 
 		if (ImGui::BeginDragDropTarget())
@@ -157,7 +157,7 @@ void Hierarchy::createTreeNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		const auto& roots = app->getSceneModule()->getRootObjects();
+		const auto& roots = app->getModuleScene()->getRootObjects();
 		for (GameObject* gameObject : roots)
 		{
 			createTreeNode(gameObject);
@@ -169,18 +169,18 @@ void Hierarchy::createTreeNode()
 
 void Hierarchy::addGameObject()
 {
-	app->getSceneModule()->createGameObject();
+	app->getModuleScene()->createGameObject();
 }
 
 void Hierarchy::removeGameObject()
 {
-	GameObject* selected = app->getEditorModule()->getSelectedGameObject();
+	GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
 
 	if (selected)
 	{
 		UID id = selected->GetID();
-		app->getEditorModule()->setSelectedGameObject(nullptr);
-		app->getSceneModule()->removeGameObject(id);
+		app->getModuleEditor()->setSelectedGameObject(nullptr);
+		app->getModuleScene()->removeGameObject(id);
 	}
 }
 

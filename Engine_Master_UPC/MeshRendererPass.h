@@ -4,7 +4,7 @@
 #include "GameObject.h"
 #include <RingBuffer.h>
 #include <MeshRenderer.h>
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
 class Submesh;
 

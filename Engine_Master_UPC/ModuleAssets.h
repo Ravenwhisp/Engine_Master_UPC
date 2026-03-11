@@ -3,7 +3,7 @@
 #include "Asset.h"
 
 
-class AssetsModule : public Module
+class ModuleAssets : public Module
 {
 public:
 

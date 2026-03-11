@@ -2,8 +2,8 @@
 #include "Resources.h"
 
 #include "Application.h"
-#include "ResourcesModule.h"
-#include "DescriptorsModule.h"
+#include "ModuleResources.h"
+#include "ModuleDescriptors.h"
 
 D3D12_RESOURCE_DESC Resource::getD3D12ResourceDesc() const
 {

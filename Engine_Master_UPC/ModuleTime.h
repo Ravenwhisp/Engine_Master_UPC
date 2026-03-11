@@ -3,11 +3,11 @@
 #include "Timer.h"
 
 
-class TimeModule : public Module
+class ModuleTime : public Module
 {
 public:
-	TimeModule(int targetFps = 60): m_targetFps(targetFps) {}
-	~TimeModule() override = default;
+	ModuleTime(int targetFps = 60): m_targetFps(targetFps) {}
+	~ModuleTime() override = default;
 
 	bool init() override;
 	void update() override;

@@ -290,12 +290,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FontImporter.h" />
-    <ClInclude Include="GameViewModule.h" />
+    <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="GameWindow.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
-    <ClInclude Include="AssetsModule.h" />
+    <ClInclude Include="ModuleAssets.h" />
     <ClInclude Include="BinaryReader.h" />
     <ClInclude Include="BinaryWriter.h" />
     <ClInclude Include="BoundingBox.h" />
@@ -303,23 +303,23 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraFollow.h" />
-    <ClInclude Include="CameraModule.h" />
+    <ClInclude Include="ModuleCamera.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentType.h" />
     <ClInclude Include="cvector.h" />
-    <ClInclude Include="D3D12Module.h" />
+    <ClInclude Include="ModuleD3D12.h" />
     <ClInclude Include="DebugDrawPass.h" />
     <ClInclude Include="debug_draw.hpp" />
     <ClInclude Include="DepthBuffer.h" />
     <ClInclude Include="DescriptorHeap.h" />
-    <ClInclude Include="DescriptorsModule.h" />
-    <ClInclude Include="EditorModule.h" />
+    <ClInclude Include="ModuleDescriptors.h" />
+    <ClInclude Include="ModuleEditor.h" />
     <ClInclude Include="EditorSettings.h" />
     <ClInclude Include="EditorToolbar.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="FileSystemModule.h" />
+    <ClInclude Include="ModuleFileSystem.h" />
     <ClInclude Include="FontPass.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Frustum.h" />
@@ -334,7 +334,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="NavigationAgentComponent.h" />
-    <ClInclude Include="NavigationModule.h">
+    <ClInclude Include="ModuleNavigation.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -359,7 +359,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="SceneConfig.h" />
-    <ClInclude Include="SceneModule.h" />
+    <ClInclude Include="ModuleScene.h" />
     <ClInclude Include="GamePad.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HardwareWindow.h" />
@@ -372,17 +372,17 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="BasicMaterial.h" />
     <ClInclude Include="BasicMesh.h" />
     <ClInclude Include="Module.h" />
-    <ClInclude Include="InputModule.h" />
+    <ClInclude Include="ModuleInput.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="PerformanceProfiler.h" />
     <ClInclude Include="PerformanceWindow.h" />
     <ClInclude Include="PlatformHelpers.h" />
     <ClInclude Include="ReadData.h" />
-    <ClInclude Include="RenderModule.h" />
+    <ClInclude Include="ModuleRender.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Resources.h" />
-    <ClInclude Include="ResourcesModule.h" />
+    <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="SceneEditor.h" />
     <ClInclude Include="SceneSerializer.h" />
@@ -395,7 +395,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureAsset.h" />
     <ClInclude Include="TextureImporter.h" />
-    <ClInclude Include="TimeModule.h" />
+    <ClInclude Include="ModuleTime.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transform2D.h" />
     <ClInclude Include="TriggerArea.h" />
@@ -403,7 +403,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UIButton.h" />
     <ClInclude Include="UIImage.h" />
     <ClInclude Include="UIImagePass.h" />
-    <ClInclude Include="UIModule.h" />
+    <ClInclude Include="ModuleUI.h" />
     <ClInclude Include="UICommands.h" />
     <ClInclude Include="UIRect.h" />
     <ClInclude Include="UIText.h" />
@@ -519,18 +519,18 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FontImporter.cpp" />
-    <ClCompile Include="GameViewModule.cpp" />
+    <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
-    <ClCompile Include="AssetsModule.cpp" />
+    <ClCompile Include="ModuleAssets.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraFollow.cpp" />
-    <ClCompile Include="CameraModule.cpp" />
+    <ClCompile Include="ModuleCamera.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="D3D12Module.cpp" />
+    <ClCompile Include="ModuleD3D12.cpp" />
     <ClCompile Include="DebugDrawPass.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -538,19 +538,19 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="DepthBuffer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
-    <ClCompile Include="DescriptorsModule.cpp" />
-    <ClCompile Include="EditorModule.cpp" />
+    <ClCompile Include="ModuleDescriptors.cpp" />
+    <ClCompile Include="ModuleEditor.cpp" />
     <ClCompile Include="EditorSettings.cpp" />
     <ClCompile Include="EditorToolbar.cpp" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="FileSystemModule.cpp" />
+    <ClCompile Include="ModuleFileSystem.cpp" />
     <ClCompile Include="FontPass.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="NavigationAgentComponent.cpp" />
-    <ClCompile Include="NavigationModule.cpp">
+    <ClCompile Include="ModuleNavigation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -567,7 +567,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SceneConfig.cpp" />
-    <ClCompile Include="SceneModule.cpp" />
+    <ClCompile Include="ModuleScene.cpp" />
     <ClCompile Include="GamePad.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -590,17 +590,17 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="Inspector.cpp" />
     <ClCompile Include="Keyboard.cpp" />
-    <ClCompile Include="InputModule.cpp" />
+    <ClCompile Include="ModuleInput.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="BasicMaterial.cpp" />
     <ClCompile Include="BasicMesh.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="PerformanceProfiler.cpp" />
     <ClCompile Include="PerformanceWindow.cpp" />
-    <ClCompile Include="RenderModule.cpp" />
+    <ClCompile Include="ModuleRender.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Resources.cpp" />
-    <ClCompile Include="ResourcesModule.cpp" />
+    <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="SceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
@@ -614,7 +614,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureImporter.cpp" />
-    <ClCompile Include="TimeModule.cpp" />
+    <ClCompile Include="ModuleTime.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transform2D.cpp" />
@@ -623,7 +623,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UIImage.cpp" />
     <ClCompile Include="UIImagePass.cpp" />
-    <ClCompile Include="UIModule.cpp">
+    <ClCompile Include="ModuleUI.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">false</ExcludedFromBuild>
     </ClCompile>
