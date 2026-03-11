@@ -1,17 +1,17 @@
 #pragma once
 #include "Module.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
-class SceneModule;
-class InputModule;
+class ModuleScene;
+class ModuleInput;
 
 class GameObject;
 
-class GameViewModule : public Module
+class ModuleGameView : public Module
 {
 private:
-	SceneModule*								m_sceneModule;
-	InputModule*								m_inputModule;
+	ModuleScene*								m_sceneModule;
+	ModuleInput*								m_inputModule;
 
 	//std::vector<std::unique_ptr<GameObject>>	m_gameObjects;
 	SceneSnapshot								m_sceneCloned;
@@ -19,8 +19,8 @@ private:
 	bool										m_showDebugWindow;
 
 public:
-	GameViewModule();
-	~GameViewModule();
+	ModuleGameView();
+	~ModuleGameView();
 
 	bool init() override;
 	void update() override;

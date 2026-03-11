@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "PerformanceWindow.h"
 #include "Application.h"
-#include "TimeModule.h"
+#include "ModuleTime.h"
 #include "PerformanceProfiler.h"
 
 PerformanceWindow::PerformanceWindow()
@@ -11,7 +11,7 @@ PerformanceWindow::PerformanceWindow()
 
 void PerformanceWindow::update()
 {
-    float deltaTime = app->getTimeModule()->deltaTime();
+    float deltaTime = app->getModuleTime()->deltaTime();
     float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
     m_fps.push_back(fps);

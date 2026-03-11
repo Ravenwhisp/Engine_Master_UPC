@@ -6,21 +6,21 @@
 #include <chrono>
 
 class Module;
-class D3D12Module;
-class EditorModule;
-class ResourcesModule;
-class CameraModule;
-class InputModule;
-class ShaderDescriptorsModule;
-class DescriptorsModule;
-class TimeModule;
-class UIModule;
-class RenderModule;
-class NavigationModule;
-class SceneModule;
-class GameViewModule;
-class FileSystemModule;
-class AssetsModule;
+class ModuleD3D12;
+class ModuleEditor;
+class ModuleResources;
+class ModuleCamera;
+class ModuleInput;
+class ShaderModuleDescriptors;
+class ModuleDescriptors;
+class ModuleTime;
+class ModuleUI;
+class ModuleRender;
+class ModuleNavigation;
+class ModuleScene;
+class ModuleGameView;
+class ModuleFileSystem;
+class ModuleAssets;
 class ModuleEventSystem;
 
 class CameraComponent;
@@ -45,20 +45,20 @@ public:
 	void         update();
 	bool         cleanUp();
 
-    D3D12Module*                getD3D12Module() { return m_d3d12Module; }
-    EditorModule*               getEditorModule() { return m_editorModule; }
-    ResourcesModule*            getResourcesModule() { return m_resourcesModule; }
-    InputModule*                getInputModule() { return m_inputModule; }
-    CameraModule*               getCameraModule() { return m_cameraModule; }
-    DescriptorsModule*          getDescriptorsModule() { return m_descriptorsModule; }
-    TimeModule*                 getTimeModule() { return m_timeModule; }
-    UIModule*                   getUIModule() { return m_uiModule; }
-    RenderModule*               getRenderModule() { return m_renderModule; }
-    NavigationModule*           getNavigationModule() { return m_navigationModule; }
-    SceneModule*                getSceneModule() { return m_sceneModule; }
-    GameViewModule*             getGameViewModule() { return m_gameViewModule; }
-    FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
-    AssetsModule*               getAssetModule() { return m_assetsModule; }
+    ModuleD3D12*                getModuleD3D12() { return m_d3d12Module; }
+    ModuleEditor*               getModuleEditor() { return m_editorModule; }
+    ModuleResources*            getModuleResources() { return m_resourcesModule; }
+    ModuleInput*                getModuleInput() { return m_inputModule; }
+    ModuleCamera*               getModuleCamera() { return m_cameraModule; }
+    ModuleDescriptors*          getModuleDescriptors() { return m_descriptorsModule; }
+    ModuleTime*                 getModuleTime() { return m_timeModule; }
+    ModuleUI*                   getModuleUI() { return m_uiModule; }
+    ModuleRender*               getModuleRender() { return m_renderModule; }
+    ModuleNavigation*           getModuleNavigation() { return m_navigationModule; }
+    ModuleScene*                getModuleScene() { return m_sceneModule; }
+    ModuleGameView*             getModuleGameView() { return m_gameViewModule; }
+    ModuleFileSystem*           getModuleFileSystem() { return m_fileSystemModule; }
+    ModuleAssets*               getAssetModule() { return m_assetsModule; }
     ModuleEventSystem*          getModuleEventSystem() { return m_moduleEventSystem; }
 
     Settings*                   getSettings() { return m_settings; }
@@ -83,20 +83,20 @@ public:
 private:
 
     std::vector<Module*>    modules;
-    D3D12Module*            m_d3d12Module = nullptr;
-    EditorModule*           m_editorModule = nullptr;
-    ResourcesModule*        m_resourcesModule = nullptr;
-    CameraModule*           m_cameraModule = nullptr;
-    InputModule*            m_inputModule = nullptr;
-    DescriptorsModule*      m_descriptorsModule = nullptr;
-    TimeModule*             m_timeModule = nullptr;
-    RenderModule*           m_renderModule = nullptr;
-    NavigationModule*       m_navigationModule = nullptr;
-    SceneModule*            m_sceneModule = nullptr;
-    GameViewModule*         m_gameViewModule = nullptr;
-    FileSystemModule*       m_fileSystemModule = nullptr;
-    AssetsModule*           m_assetsModule = nullptr;
-    UIModule*               m_uiModule = nullptr;
+    ModuleD3D12*            m_d3d12Module = nullptr;
+    ModuleEditor*           m_editorModule = nullptr;
+    ModuleResources*        m_resourcesModule = nullptr;
+    ModuleCamera*           m_cameraModule = nullptr;
+    ModuleInput*            m_inputModule = nullptr;
+    ModuleDescriptors*      m_descriptorsModule = nullptr;
+    ModuleTime*             m_timeModule = nullptr;
+    ModuleRender*           m_renderModule = nullptr;
+    ModuleNavigation*       m_navigationModule = nullptr;
+    ModuleScene*            m_sceneModule = nullptr;
+    ModuleGameView*         m_gameViewModule = nullptr;
+    ModuleFileSystem*       m_fileSystemModule = nullptr;
+    ModuleAssets*           m_assetsModule = nullptr;
+    ModuleUI*               m_uiModule = nullptr;
     ModuleEventSystem*      m_moduleEventSystem = nullptr;
 
     Settings*               m_settings = nullptr;

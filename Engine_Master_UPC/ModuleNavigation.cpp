@@ -1,7 +1,7 @@
 #include "Globals.h"
-#include "NavigationModule.h"
+#include "ModuleNavigation.h"
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
@@ -24,21 +24,21 @@ static std::string MakeNavMeshPath(const char* sceneName)
     return std::string("Assets/NavMeshes/") + sceneName + ".navmesh";
 }
 
-bool NavigationModule::init()
+bool ModuleNavigation::init()
 {
 	return true;
 }
 
-bool NavigationModule::postInit()
+bool ModuleNavigation::postInit()
 {
-    const char* sceneName = app->getSceneModule()->getName();
+    const char* sceneName = app->getModuleScene()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
 
     if (Logger::Instance())
     {
         TriangleSoup soup;
-        NavMeshGeometryExtractor::Extract(*app->getSceneModule(), soup, Layer::NAVMESH, true);
+        NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
 
         const auto& verts = soup.vertices;
         const auto& tris = soup.indices;
@@ -52,19 +52,19 @@ bool NavigationModule::postInit()
     return true;
 }
 
-void NavigationModule::update()
+void ModuleNavigation::update()
 {
    
 
 }
 
-bool NavigationModule::cleanUp()
+bool ModuleNavigation::cleanUp()
 {
     unloadNavMesh();
     return true;
 }
 
-bool NavigationModule::loadNavMeshForScene(const char* sceneName)
+bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
 {
     unloadNavMesh();
     m_tileRefs.clear();
@@ -144,7 +144,7 @@ bool NavigationModule::loadNavMeshForScene(const char* sceneName)
     return true;
 }
 
-bool NavigationModule::unloadNavMesh()
+bool ModuleNavigation::unloadNavMesh()
 {
     if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery); m_navQuery = nullptr; }
     if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }
@@ -153,7 +153,7 @@ bool NavigationModule::unloadNavMesh()
     return true;
 }
 
-bool NavigationModule::saveNavMeshForScene(const char* sceneName) const
+bool ModuleNavigation::saveNavMeshForScene(const char* sceneName) const
 {
     if (!m_navMesh || !sceneName) return false;
 
@@ -190,12 +190,12 @@ bool NavigationModule::saveNavMeshForScene(const char* sceneName) const
     return true;
 }
 
-bool NavigationModule::buildNavMeshForCurrentScene()
+bool ModuleNavigation::buildNavMeshForCurrentScene()
 {
     if (!Logger::Instance()) return false;
 
     TriangleSoup soup;
-    NavMeshGeometryExtractor::Extract(*app->getSceneModule(), soup, Layer::NAVMESH, true);
+    NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
 
     const auto& verts = soup.vertices;
     const auto& tris = soup.indices;
@@ -232,7 +232,7 @@ bool NavigationModule::buildNavMeshForCurrentScene()
     m_tileRefs.clear();
     m_tileRefs.push_back(result.tileRef);
 
-    const char* sceneName = app->getSceneModule()->getName();
+    const char* sceneName = app->getModuleScene()->getName();
     const bool saved = saveNavMeshForScene(sceneName);
 
     LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");
@@ -242,7 +242,7 @@ bool NavigationModule::buildNavMeshForCurrentScene()
     return saved;
 }
 
-void NavigationModule::rebuildNavMeshDebugLines()
+void ModuleNavigation::rebuildNavMeshDebugLines()
 {
     m_navDebugLines.clear();
     if (!m_navMesh) return;
@@ -284,21 +284,21 @@ void NavigationModule::rebuildNavMeshDebugLines()
     }
 }
 
-void NavigationModule::setPathStart(const Vector3& p)
+void ModuleNavigation::setPathStart(const Vector3& p)
 {
     m_pathStart = p;
     m_hasPathStart = true;
     if (m_hasPathEnd) computeDebugPath();
 }
 
-void NavigationModule::setPathEnd(const Vector3& p)
+void ModuleNavigation::setPathEnd(const Vector3& p)
 {
     m_pathEnd = p;
     m_hasPathEnd = true;
     if (m_hasPathStart) computeDebugPath();
 }
 
-bool NavigationModule::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const
+bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const
 {
     if (!m_navQuery)
         return false;
@@ -360,7 +360,7 @@ bool NavigationModule::findStraightPath(const Vector3& start, const Vector3& end
     return true;
 }
 
-bool NavigationModule::computeDebugPath()
+bool ModuleNavigation::computeDebugPath()
 {
     m_debugPathPoints.clear();
     if (!m_navQuery || !m_navMesh) return false;

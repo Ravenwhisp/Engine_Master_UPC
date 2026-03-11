@@ -31,10 +31,10 @@
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
       <Filter>Editor\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="D3D12Module.cpp">
+    <ClCompile Include="ModuleD3D12.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="InputModule.cpp">
+    <ClCompile Include="ModuleInput.cpp">
       <Filter>Inputs</Filter>
     </ClCompile>
     <ClCompile Include="SimpleMath.cpp">
@@ -49,19 +49,19 @@
     <ClCompile Include="Timer.cpp">
       <Filter>Core\Timers</Filter>
     </ClCompile>
-    <ClCompile Include="EditorModule.cpp">
+    <ClCompile Include="ModuleEditor.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="ResourcesModule.cpp">
+    <ClCompile Include="ModuleResources.cpp">
       <Filter>D3D12\Resources</Filter>
     </ClCompile>
     <ClCompile Include="DebugDrawPass.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="CameraModule.cpp">
+    <ClCompile Include="ModuleCamera.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorsModule.cpp">
+    <ClCompile Include="ModuleDescriptors.cpp">
       <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorHeap.cpp">
@@ -127,13 +127,13 @@
     <ClCompile Include="Inspector.cpp">
       <Filter>Editor\EditorWindows\Inspector</Filter>
     </ClCompile>
-    <ClCompile Include="RenderModule.cpp">
+    <ClCompile Include="ModuleRender.cpp">
       <Filter>D3D12\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="SceneModule.cpp">
+    <ClCompile Include="ModuleScene.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="TimeModule.cpp">
+    <ClCompile Include="ModuleTime.cpp">
       <Filter>Core\Timers</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
@@ -186,7 +186,7 @@
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="NavigationModule.cpp">
+    <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshBuilder.cpp">
@@ -215,13 +215,13 @@
     <ClCompile Include="UIImagePass.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UIModule.cpp">
+    <ClCompile Include="ModuleUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="UIText.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="FileSystemModule.cpp">
+    <ClCompile Include="ModuleFileSystem.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="FileDialog.cpp">
@@ -236,7 +236,7 @@
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="AssetsModule.cpp">
+    <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
@@ -287,7 +287,7 @@
     <ClCompile Include="PlayToolbar.cpp">
       <Filter>Editor\EditorWindows</Filter>
     </ClCompile>
-    <ClCompile Include="GameViewModule.cpp">
+    <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="CameraSwitcher.cpp">
@@ -337,10 +337,10 @@
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
       <Filter>Editor\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="D3D12Module.h">
+    <ClInclude Include="ModuleD3D12.h">
       <Filter>D3D12</Filter>
     </ClInclude>
-    <ClInclude Include="InputModule.h">
+    <ClInclude Include="ModuleInput.h">
       <Filter>Inputs</Filter>
     </ClInclude>
     <ClInclude Include="SimpleMath.h">
@@ -358,22 +358,22 @@
     <ClInclude Include="Timer.h">
       <Filter>Core\Timers</Filter>
     </ClInclude>
-    <ClInclude Include="EditorModule.h">
+    <ClInclude Include="ModuleEditor.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="ResourcesModule.h">
+    <ClInclude Include="ModuleResources.h">
       <Filter>D3D12\Resources</Filter>
     </ClInclude>
     <ClInclude Include="DebugDrawPass.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="CameraModule.h">
+    <ClInclude Include="ModuleCamera.h">
       <Filter>D3D12</Filter>
     </ClInclude>
     <ClInclude Include="UtilityGLFT.h">
       <Filter>D3D12\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorsModule.h">
+    <ClInclude Include="ModuleDescriptors.h">
       <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClInclude>
     <ClInclude Include="DescriptorHeap.h">
@@ -400,7 +400,7 @@
     <ClInclude Include="CommandQueue.h">
       <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="TimeModule.h">
+    <ClInclude Include="ModuleTime.h">
       <Filter>Core\Timers</Filter>
     </ClInclude>
     <ClInclude Include="SwapChain.h">
@@ -451,11 +451,11 @@
     <ClInclude Include="Inspector.h">
       <Filter>Editor\EditorWindows\Inspector</Filter>
     </ClInclude>
-    <ClInclude Include="RenderModule.h">
+    <ClInclude Include="ModuleRender.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="cvector.h" />
-    <ClInclude Include="SceneModule.h">
+    <ClInclude Include="ModuleScene.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
@@ -527,7 +527,7 @@
     </ClInclude>
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="UID.h" />
-    <ClInclude Include="NavigationModule.h">
+    <ClInclude Include="ModuleNavigation.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshResource.h">
@@ -558,7 +558,7 @@
     <ClInclude Include="UIImagePass.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="UIModule.h">
+    <ClInclude Include="ModuleUI.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UIRect.h">
@@ -573,7 +573,7 @@
     <ClInclude Include="BinaryWriter.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="FileSystemModule.h">
+    <ClInclude Include="ModuleFileSystem.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="FileDialog.h">
@@ -594,7 +594,7 @@
     <ClInclude Include="SceneSerializer.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="AssetsModule.h">
+    <ClInclude Include="ModuleAssets.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">
@@ -672,7 +672,7 @@
     <ClInclude Include="PlayToolbar.h">
       <Filter>Editor\EditorWindows</Filter>
     </ClInclude>
-    <ClInclude Include="GameViewModule.h">
+    <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="CameraSwitcher.h">

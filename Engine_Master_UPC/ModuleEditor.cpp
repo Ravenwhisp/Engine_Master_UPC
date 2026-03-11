@@ -1,8 +1,8 @@
 #include "Globals.h"
-#include "EditorModule.h"
+#include "ModuleEditor.h"
 
-#include "D3D12Module.h"
-#include "CameraModule.h"
+#include "ModuleD3D12.h"
+#include "ModuleCamera.h"
 #include "vector"
 #include <backends/imgui_impl_dx12.h>
 #include "Resources.h"
@@ -22,8 +22,8 @@
 #include "ViewGameDebug.h"
 
 #include "Application.h"
-#include "SceneModule.h"
-#include "GameViewModule.h";
+#include "ModuleScene.h"
+#include "ModuleGameView.h";
 
 using namespace std;
 
@@ -157,10 +157,10 @@ void style()
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.55f);
 }
 
-EditorModule::EditorModule() = default;
-EditorModule::~EditorModule() = default;
+ModuleEditor::ModuleEditor() = default;
+ModuleEditor::~ModuleEditor() = default;
 
-void EditorModule::mainDockspace(bool* p_open)
+void ModuleEditor::mainDockspace(bool* p_open)
 {
     // Fullscreen window flags
     ImGuiWindowFlags window_flags =
@@ -200,7 +200,7 @@ void EditorModule::mainDockspace(bool* p_open)
 }
 
 
-void EditorModule::setupDockLayout(ImGuiID dockspace_id)
+void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
 {
     // Clear previous layout
     ImGui::DockBuilderRemoveNodeDockedWindows(dockspace_id);
@@ -242,9 +242,9 @@ void EditorModule::setupDockLayout(ImGuiID dockspace_id)
 }
 
 
-bool EditorModule::init()
+bool ModuleEditor::init()
 {
-    m_gameViewModule = app->getGameViewModule();
+    m_gameViewModule = app->getModuleGameView();
 
     m_editorWindows.push_back(m_logger = new Logger());
     m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
@@ -253,7 +253,7 @@ bool EditorModule::init()
     m_editorWindows.push_back(new FileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
-	D3D12Module* _d3d12 = app->getD3D12Module();
+	ModuleD3D12* _d3d12 = app->getModuleD3D12();
 
     m_sceneEditor = new SceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
@@ -270,7 +270,7 @@ bool EditorModule::init()
 	return true;
 }
 
-void EditorModule::update()
+void ModuleEditor::update()
 {
     #ifdef GAME_RELEASE
         return;
@@ -287,7 +287,7 @@ void EditorModule::update()
     }
 }
 
-void EditorModule::render()
+void ModuleEditor::render()
 {
     #ifdef GAME_RELEASE
         if (m_gameViewModule->getShowDebugWindow() && m_viewGameDebug)
@@ -298,7 +298,7 @@ void EditorModule::render()
         return;
     #endif
 
-    /// THIS MUST BE EXECUTED AFTER RenderModule.h render functtion, if not F
+    /// THIS MUST BE EXECUTED AFTER ModuleRender.h render functtion, if not F
     mainDockspace(&m_showMainDockspace);
 
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
@@ -314,9 +314,9 @@ void EditorModule::render()
     ImGui::EndFrame();
 }
 
-bool EditorModule::cleanUp()
+bool ModuleEditor::cleanUp()
 {
-    app->getD3D12Module()->getCommandQueue()->flush();
+    app->getModuleD3D12()->getCommandQueue()->flush();
 
     for (auto window : m_editorWindows)
     {
@@ -338,15 +338,15 @@ bool EditorModule::cleanUp()
     return true;
 }
 
-ImVec2 EditorModule::getEventViewport() const
+ImVec2 ModuleEditor::getEventViewport() const
 {
-    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    SceneEditor* sceneEditor = app->getModuleEditor()->getSceneEditor();
     if (sceneEditor && sceneEditor->isFocused())
     {
         return ImVec2(sceneEditor->getViewportX(), sceneEditor->getViewportY());
     }
 
-    GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+    GameWindow* gameWindow = app->getModuleEditor()->getGameWindow();
     if (gameWindow && gameWindow->isFocused())
     {
         return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
@@ -354,15 +354,15 @@ ImVec2 EditorModule::getEventViewport() const
     return ImVec2(-1, -1);
 }
 
-ImVec2 EditorModule::getEventViewportSize() const
+ImVec2 ModuleEditor::getEventViewportSize() const
 {
-    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
+    SceneEditor* sceneEditor = app->getModuleEditor()->getSceneEditor();
     if (sceneEditor && sceneEditor->isFocused())
     {
         return sceneEditor->getSize();
     }
 
-    GameWindow* gameWindow = app->getEditorModule()->getGameWindow();
+    GameWindow* gameWindow = app->getModuleEditor()->getGameWindow();
     if (gameWindow && gameWindow->isFocused())
     {
         return gameWindow->getSize();
@@ -371,7 +371,7 @@ ImVec2 EditorModule::getEventViewportSize() const
 }
 
 
-void EditorModule::setSceneTool(SCENE_TOOL newTool) 
+void ModuleEditor::setSceneTool(SCENE_TOOL newTool) 
 {
     if (currentSceneTool == newTool) 
     {
@@ -382,7 +382,7 @@ void EditorModule::setSceneTool(SCENE_TOOL newTool)
     currentSceneTool = newTool;
 }
 
-void EditorModule::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode) 
+void ModuleEditor::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode) 
 {
     if (previousSceneTool == NONE) 
     {
@@ -392,7 +392,7 @@ void EditorModule::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode)
     }
 }
 
-void EditorModule::resetMode() 
+void ModuleEditor::resetMode() 
 {
     if (previousSceneTool != NONE) 
     {
@@ -402,7 +402,7 @@ void EditorModule::resetMode()
     currentNavigationMode = PAN;
 }
 
-void EditorModule::handleKeyboardShortcuts() 
+void ModuleEditor::handleKeyboardShortcuts() 
 {
     Keyboard::State keyboardState = Keyboard::Get().GetState();
     Mouse::State mouseState = Mouse::Get().GetState();
@@ -429,7 +429,7 @@ void EditorModule::handleKeyboardShortcuts()
     }
 }
 
-void EditorModule::handleQWERTYCases(Keyboard::State keyboardState) 
+void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState) 
 {
     static Keyboard::KeyboardStateTracker keyTracker;
     keyTracker.Update(keyboardState);

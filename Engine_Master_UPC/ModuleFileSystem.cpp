@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "FileSystemModule.h"
+#include "ModuleFileSystem.h"
 #include <filesystem>
 #include <fstream>
 
@@ -9,9 +9,9 @@
 #include "Asset.h"
 
 #include "TextureAsset.h"
-#include "AssetsModule.h"
+#include "ModuleAssets.h"
 
-bool FileSystemModule::init()
+bool ModuleFileSystem::init()
 {
 
     auto textureImporter = new TextureImporter();
@@ -31,14 +31,14 @@ bool FileSystemModule::init()
     return true;
 }
 
-Importer* FileSystemModule::findImporter(const std::filesystem::path& filePath)
+Importer* ModuleFileSystem::findImporter(const std::filesystem::path& filePath)
 {
     std::string pathStr = filePath.string();
     const char* cpath = pathStr.c_str();
     return findImporter(cpath);
 }
 
-Importer* FileSystemModule::findImporter(const char* filePath)
+Importer* ModuleFileSystem::findImporter(const char* filePath)
 {
     for (auto importer : importers) 
     {
@@ -50,7 +50,7 @@ Importer* FileSystemModule::findImporter(const char* filePath)
     return nullptr;
 }
 
-Importer* FileSystemModule::findImporter(AssetType type)
+Importer* ModuleFileSystem::findImporter(AssetType type)
 {
     auto it = importersMap.find(type);
     if (it != importersMap.end())
@@ -61,7 +61,7 @@ Importer* FileSystemModule::findImporter(AssetType type)
     return nullptr;
 }
 
-AssetMetadata* FileSystemModule::getMetadata(UID uid)
+AssetMetadata* ModuleFileSystem::getMetadata(UID uid)
 {
     auto it = m_metadataMap.find(uid);
     if (it != m_metadataMap.end())
@@ -72,32 +72,32 @@ AssetMetadata* FileSystemModule::getMetadata(UID uid)
     return nullptr;
 }
 
-unsigned int FileSystemModule::load(const std::filesystem::path& filePath, char** buffer) const
+unsigned int ModuleFileSystem::load(const std::filesystem::path& filePath, char** buffer) const
 {
     std::string pathStr = filePath.string();
     const char* cpath = pathStr.c_str();
     return load(cpath, buffer);
 }
 
-unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
+unsigned int ModuleFileSystem::load(const char* filePath, char** buffer) const
 {
     if (!filePath || !buffer)
     {
-        DEBUG_ERROR("[FileSystemModule] No path or buffer correctly provided.");
+        DEBUG_ERROR("[ModuleFileSystem] No path or buffer correctly provided.");
         return 0;
     }
 
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file) 
     { 
-        DEBUG_ERROR("[FileSystemModule] Couldn't open the file while trying to load.");
+        DEBUG_ERROR("[ModuleFileSystem] Couldn't open the file while trying to load.");
         return 0; 
     }
 
     std::streamsize size = file.tellg();
     if (size <= 0)
     {
-        DEBUG_ERROR("[FileSystemModule] Couldn't load the file since it's empty.");
+        DEBUG_ERROR("[ModuleFileSystem] Couldn't load the file since it's empty.");
         return 0;
     }
 
@@ -106,7 +106,7 @@ unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
     char* data = new char[size];
     if (!file.read(data, size))
     {
-        DEBUG_ERROR("[FileSystemModule] Couldn't read the file.");
+        DEBUG_ERROR("[ModuleFileSystem] Couldn't read the file.");
         delete[] data;
         return 0;
     }
@@ -115,14 +115,14 @@ unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
     return static_cast<unsigned int>(size);
 }
 
-unsigned int FileSystemModule::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
+unsigned int ModuleFileSystem::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
 {
     std::string pathStr = filePath.string();
     const char* cpath = pathStr.c_str();
     return save(cpath, buffer, size, append);
 }
 
-unsigned int FileSystemModule::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
+unsigned int ModuleFileSystem::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
 {
     if (!filePath || !buffer || size == 0) return 0;
 
@@ -143,53 +143,53 @@ unsigned int FileSystemModule::save(const char* filePath, const void* buffer, un
     std::ofstream file(filePath, mode);
     if (!file)
     {
-        DEBUG_ERROR("[FileSystemModule] Error while trying to save a file that doesn't exists.");
+        DEBUG_ERROR("[ModuleFileSystem] Error while trying to save a file that doesn't exists.");
         return 0;
     }
 
     file.write(static_cast<const char*>(buffer), size);
     if (!file)
     {
-        DEBUG_ERROR("[FileSystemModule] Error while writing into a file.");
+        DEBUG_ERROR("[ModuleFileSystem] Error while writing into a file.");
         return 0;
     }
 
     return size;
 }
 
-bool FileSystemModule::copy(const char* sourceFilePath, const char* destinationFilePath) const
+bool ModuleFileSystem::copy(const char* sourceFilePath, const char* destinationFilePath) const
 {
 	return std::filesystem::copy_file(sourceFilePath, destinationFilePath);
 }
 
-bool FileSystemModule::move(const char* sourceFilePath, const char* destinationFilePath) const
+bool ModuleFileSystem::move(const char* sourceFilePath, const char* destinationFilePath) const
 {
     std::error_code error;
     std::filesystem::rename(sourceFilePath, destinationFilePath, error);
     return error.value() == 0;
 }
 
-bool FileSystemModule::deleteFile(const char* filePath) const
+bool ModuleFileSystem::deleteFile(const char* filePath) const
 {
 	return std::filesystem::remove(filePath);
 }
 
-bool FileSystemModule::createDirectory(const char* directoryPath) const
+bool ModuleFileSystem::createDirectory(const char* directoryPath) const
 {
 	return std::filesystem::create_directory(directoryPath);
 }
 
-bool FileSystemModule::exists(const char* filePath) const
+bool ModuleFileSystem::exists(const char* filePath) const
 {
 	return std::filesystem::exists(filePath);
 }
 
-bool FileSystemModule::isDirectory(const char* path) const
+bool ModuleFileSystem::isDirectory(const char* path) const
 {
 	return std::filesystem::is_directory(path);
 }
 
-void FileSystemModule::rebuild()
+void ModuleFileSystem::rebuild()
 {
     std::string s = ASSETS_FOLDER;
     if (!s.empty() && s.back() == '/')
@@ -225,7 +225,7 @@ void FileSystemModule::rebuild()
     m_root = buildTree(s);
 }
 
-UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
+UID ModuleFileSystem::findByPath(const std::filesystem::path& sourcePath) const
 {
     auto it = m_pathIndex.find(sourcePath.lexically_normal().string());
     if (it != m_pathIndex.end())
@@ -235,27 +235,27 @@ UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
     return INVALID_ASSET_ID;
 }
 
-void FileSystemModule::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
+void ModuleFileSystem::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
 {
     m_metadataMap[meta.uid] = meta;
     m_pathIndex[sourcePath.lexically_normal().string()] = meta.uid;
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
+std::shared_ptr<FileEntry> ModuleFileSystem::getEntry(const std::filesystem::path& path)
 {
     if (!m_root)
     {
-        DEBUG_ERROR("[FileSystemModule] Root folder doesn't exist.");
+        DEBUG_ERROR("[ModuleFileSystem] Root folder doesn't exist.");
         return nullptr;
     }
     return getEntryRecursive(m_root, path);
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const
+std::shared_ptr<FileEntry> ModuleFileSystem::getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const
 {
     if (!node)
     {
-        //LOG_WARNING("[FileSystemModule] Node doesn't exist");
+        //LOG_WARNING("[ModuleFileSystem] Node doesn't exist");
         return nullptr;
     }
 
@@ -275,12 +275,12 @@ std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared
     return nullptr;
 }
 
-std::filesystem::path FileSystemModule::getBinaryPath(UID uid) const
+std::filesystem::path ModuleFileSystem::getBinaryPath(UID uid) const
 {
     return std::filesystem::path(LIBRARY_FOLDER) / std::to_string(uid) += ".asset";
 }
 
-void FileSystemModule::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
+void ModuleFileSystem::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
 {
     AssetMetadata meta;
     if (AssetMetadata::loadMetaFile(metadataPath, meta))
@@ -291,7 +291,7 @@ void FileSystemModule::handleOrphanedMetadata(const std::filesystem::path& metad
     std::filesystem::remove(metadataPath);
 }
 
-void FileSystemModule::handleMissingMetadata(const std::filesystem::path& sourcePath)
+void ModuleFileSystem::handleMissingMetadata(const std::filesystem::path& sourcePath)
 {
     Importer* importer = findImporter(sourcePath);
     if (importer)
@@ -300,7 +300,7 @@ void FileSystemModule::handleMissingMetadata(const std::filesystem::path& source
     }
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::filesystem::path& path)
+std::shared_ptr<FileEntry> ModuleFileSystem::buildMetadataEntry(const std::filesystem::path& path)
 {
     auto entry = std::make_shared<FileEntry>();
     entry->path = path.lexically_normal();
@@ -314,13 +314,13 @@ std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::files
     }
     else
     {
-        DEBUG_ERROR("[FileSystemModule] Failed to create metadata file node '{}'.", path.string());
+        DEBUG_ERROR("[ModuleFileSystem] Failed to create metadata file node '{}'.", path.string());
     }
 
     return entry;
 }
 
-void FileSystemModule::checkFile(const std::filesystem::path& path)
+void ModuleFileSystem::checkFile(const std::filesystem::path& path)
 {
     if (isDirectory(path.string().c_str()))
     {
@@ -346,7 +346,7 @@ void FileSystemModule::checkFile(const std::filesystem::path& path)
     }
 }
 
-void FileSystemModule::loadMetadata(const std::filesystem::path& path)
+void ModuleFileSystem::loadMetadata(const std::filesystem::path& path)
 {
     std::filesystem::path sourcePath = path.parent_path() / path.stem();
 
@@ -368,11 +368,11 @@ void FileSystemModule::loadMetadata(const std::filesystem::path& path)
     }
     else
     {
-        DEBUG_ERROR("[FileSystemModule] Failed to load metadata file '{}'.", path.string());
+        DEBUG_ERROR("[ModuleFileSystem] Failed to load metadata file '{}'.", path.string());
     }
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::buildDirectoryEntry(const std::filesystem::path& path)
+std::shared_ptr<FileEntry> ModuleFileSystem::buildDirectoryEntry(const std::filesystem::path& path)
 {
     auto entry = std::make_shared<FileEntry>();
     entry->path = path.lexically_normal();
@@ -391,7 +391,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildDirectoryEntry(const std::file
     return entry;
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::path& path)
+std::shared_ptr<FileEntry> ModuleFileSystem::buildTree(const std::filesystem::path& path)
 {
     if (isDirectory(path.string().c_str()))
     {
@@ -406,7 +406,7 @@ std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::pa
     return nullptr;
 }
 
-void FileSystemModule::cleanOrphanedBinaries()
+void ModuleFileSystem::cleanOrphanedBinaries()
 {
     if (!std::filesystem::exists(LIBRARY_FOLDER))
     {
@@ -425,7 +425,7 @@ void FileSystemModule::cleanOrphanedBinaries()
 
         if (m_metadataMap.find(uid) == m_metadataMap.end())
         {
-            DEBUG_ERROR("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.", entry.path().string());
+            DEBUG_ERROR("[ModuleFileSystem] Deleting orphaned binary '{}' with no associated metadata.", entry.path().string());
             std::filesystem::remove(entry.path());
         }
     }

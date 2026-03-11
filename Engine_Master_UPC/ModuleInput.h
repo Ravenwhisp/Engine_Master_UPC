@@ -5,10 +5,10 @@
 #include "Mouse.h"
 #include <GamePad.h>
 
-class InputModule : public Module
+class ModuleInput : public Module
 {
 public:
-    InputModule(HWND hWnd);
+    ModuleInput(HWND hWnd);
 
     void update() override;
 

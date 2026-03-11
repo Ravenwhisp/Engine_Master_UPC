@@ -10,7 +10,7 @@ struct DefferedDescriptor {
 };
 
 // -----------------------------------------------------------------------------
-// DescriptorsModule
+// ModuleDescriptors
 // -----------------------------------------------------------------------------
 // Acts as a centralized manager for all descriptor heaps used by the renderer.
 //
@@ -21,7 +21,7 @@ struct DefferedDescriptor {
 // • DSV(Depth Stencil Views)
 // • SRV(Shader Resource Views, e.g.textures, buffers)
 // • Samplers(Sampler descriptors for filtering / wrapping modes)
-class DescriptorsModule: public Module
+class ModuleDescriptors: public Module
 {
 public:
 	enum SampleType
@@ -33,7 +33,7 @@ public:
 		COUNT
 	};
 
-	~DescriptorsModule();
+	~ModuleDescriptors();
 
 	bool init() override;
 	void preRender() override;

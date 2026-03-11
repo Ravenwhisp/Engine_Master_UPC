@@ -4,7 +4,7 @@
 
 #include "Application.h"
 
-#include "RenderModule.h"
+#include "ModuleRender.h"
 #include "PlayToolbar.h"
 
 GameWindow::GameWindow()
@@ -45,7 +45,7 @@ void GameWindow::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUPlayScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)app->getModuleRender()->getGPUPlayScreenRT().ptr;
         ImGui::Image(textureID, m_size);
 
     }

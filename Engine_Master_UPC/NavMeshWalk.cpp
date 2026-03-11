@@ -4,9 +4,9 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "Application.h"
-#include "TimeModule.h"
-#include "InputModule.h"
-#include "NavigationModule.h"
+#include "ModuleTime.h"
+#include "ModuleInput.h"
+#include "ModuleNavigation.h"
 
 #include <DetourNavMeshQuery.h>
 #include <imgui.h>
@@ -56,13 +56,13 @@ std::unique_ptr<Component> NavMeshWalk::clone(GameObject* newOwner) const
 
 float NavMeshWalk::getDeltaSecondsFromTimer() const
 {
-    return app->getTimeModule()->deltaTime();
+    return app->getModuleTime()->deltaTime();
 }
 
 void NavMeshWalk::update()
 {
     Transform* transform = m_owner->GetTransform();
-    InputModule* inputModule = app->getInputModule();
+    ModuleInput* inputModule = app->getModuleInput();
 
     Vector3 direction = readMoveDirection(inputModule);
     if (direction == Vector3::Zero)
@@ -82,7 +82,7 @@ void NavMeshWalk::update()
     applyTranslation(transform, direction, dt, shiftHeld);
 }
 
-Vector3 NavMeshWalk::readMoveDirection(InputModule* inputModule) const
+Vector3 NavMeshWalk::readMoveDirection(ModuleInput* inputModule) const
 {
     Vector3 direction(0, 0, 0);
 
@@ -94,7 +94,7 @@ Vector3 NavMeshWalk::readMoveDirection(InputModule* inputModule) const
     return direction;
 }
 
-bool NavMeshWalk::checkShiftHeld(InputModule* inputModule) const
+bool NavMeshWalk::checkShiftHeld(ModuleInput* inputModule) const
 {
     return inputModule->isKeyDown(Keyboard::Keys::LeftShift) ||
         inputModule->isKeyDown(Keyboard::Keys::RightShift);
@@ -134,7 +134,7 @@ void NavMeshWalk::applyTranslation(Transform* transform, const Vector3& directio
         return;
     }
 
-    NavigationModule* nav = app->getNavigationModule();
+    ModuleNavigation* nav = app->getModuleNavigation();
     dtNavMeshQuery* q = nav ? nav->getNavQuery() : nullptr;
 
     if (!q)

@@ -7,7 +7,7 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 
-class GameViewModule;
+class ModuleGameView;
 
 class ImGuiPass;
 
@@ -23,7 +23,7 @@ class GameWindow;
 
 class ViewGameDebug;
 
-class EditorModule: public Module
+class ModuleEditor: public Module
 {
 public:
 	enum SCENE_TOOL 
@@ -51,8 +51,8 @@ public:
 	};
 
 public:
-	EditorModule();
-	~EditorModule();
+	ModuleEditor();
+	~ModuleEditor();
 
 #pragma region Game Loop
 	bool init() override;
@@ -86,7 +86,7 @@ private:
 	void			setupDockLayout(ImGuiID dockspace_id);
 	void			mainDockspace(bool* open);
 private:
-	GameViewModule* m_gameViewModule;
+	ModuleGameView* m_gameViewModule;
 
 #pragma region Views
 	std::vector<EditorWindow*>	m_editorWindows;

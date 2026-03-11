@@ -2,11 +2,11 @@
 #include "FontPass.h"
 #include "Application.h"
 #include "Settings.h"
-#include "RenderModule.h"
-#include "D3D12Module.h"
+#include "ModuleRender.h"
+#include "ModuleD3D12.h"
 
 #include "CommandQueue.h"
-#include "TimeModule.h"
+#include "ModuleTime.h"
 
 FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
@@ -31,7 +31,7 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 		m_fontHeap->getCPUHandle(0),
 		m_fontHeap->getGPUHandle(0));
 
-	auto uploadResourcesFinished = m_upload->End(app->getD3D12Module()->getCommandQueue()->getD3D12CommandQueue().Get());
+	auto uploadResourcesFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
 	uploadResourcesFinished.wait();
 }
@@ -94,7 +94,7 @@ void FontPass::end()
 void FontPass::showDebugInformation() {
 	if (m_settings->debugGame.showFPS)
 	{
-		float deltaTime = app->getTimeModule()->deltaTime();
+		float deltaTime = app->getModuleTime()->deltaTime();
 		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
 		wchar_t buffer[64];
@@ -104,7 +104,7 @@ void FontPass::showDebugInformation() {
 	}
 	if (m_settings->debugGame.showFrametime)
 	{
-		float deltaTime = app->getTimeModule()->deltaTime();
+		float deltaTime = app->getModuleTime()->deltaTime();
 		float ms = deltaTime * 1000.0f;
 
 		wchar_t buffer[64];
@@ -114,7 +114,7 @@ void FontPass::showDebugInformation() {
 	}
 	if (m_settings->debugGame.showTrianglesNumber)
 	{
-		int triangles = app->getRenderModule()->getTriangles();
+		int triangles = app->getModuleRender()->getTriangles();
 
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Triangles: %d", triangles);

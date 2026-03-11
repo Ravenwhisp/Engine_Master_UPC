@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Logger.h"
 #include "Application.h"
-#include "TimeModule.h"
+#include "ModuleTime.h"
 #include <cstdarg>
 
 Logger* Logger::s_Instance = nullptr;
@@ -69,8 +69,8 @@ void Logger::copyToClipboard()
 void Logger::addLogEntry(LogType type, const std::string& text)
 {
     float timestamp = 0.0f;
-    if (app && app->getTimeModule())
-        timestamp = app->getTimeModule()->time();
+    if (app && app->getModuleTime())
+        timestamp = app->getModuleTime()->time();
 
     if (!m_items.empty())
     {

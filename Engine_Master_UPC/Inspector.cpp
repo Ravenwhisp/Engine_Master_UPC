@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Inspector.h"
 #include "Application.h";
-#include "EditorModule.h"
+#include "ModuleEditor.h"
 #include "GameObject.h"
 
 Inspector::Inspector()
@@ -18,7 +18,7 @@ void Inspector::render()
         return;
     }
 
-    GameObject* selectedGameObject = app->getEditorModule()->getSelectedGameObject();
+    GameObject* selectedGameObject = app->getModuleEditor()->getSelectedGameObject();
     if (selectedGameObject) 
     {
         selectedGameObject->drawUI();

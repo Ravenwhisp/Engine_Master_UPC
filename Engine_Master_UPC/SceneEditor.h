@@ -4,8 +4,8 @@
 #include "ImGuizmo.h"
 #include <vector>
 
-class InputModule;
-class CameraModule;
+class ModuleInput;
+class ModuleCamera;
 
 class Settings;
 class Quadtree;
@@ -19,8 +19,8 @@ class GameObject;
 class SceneEditor: public EditorWindow
 {
 private:
-    InputModule* m_inputModule;
-    CameraModule* m_cameraModule;
+    ModuleInput* m_inputModule;
+    ModuleCamera* m_cameraModule;
 
     Settings* m_settings;
     Quadtree* m_quadtree;

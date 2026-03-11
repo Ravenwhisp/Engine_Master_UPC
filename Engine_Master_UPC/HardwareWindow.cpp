@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "HardwareWindow.h"
 #include "Application.h"
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 
 void HardwareWindow::render()
 {
@@ -67,7 +67,7 @@ void HardwareWindow::systemVRAM()
 
 void HardwareWindow::vram()
 {
-	auto adapter = app->getD3D12Module()->getAdapter();
+	auto adapter = app->getModuleD3D12()->getAdapter();
 	DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
 	adapter->QueryVideoMemoryInfo(
 		0,
@@ -101,7 +101,7 @@ void HardwareWindow::vram()
 
 void HardwareWindow::gpu()
 {
-	auto adapter = app->getD3D12Module()->getAdapter();
+	auto adapter = app->getModuleD3D12()->getAdapter();
 	DXGI_ADAPTER_DESC3 desc;
 	adapter->GetDesc3(&desc);
 
@@ -118,7 +118,7 @@ void HardwareWindow::gpu()
 
 void HardwareWindow::gpuFeatures()
 {
-	auto device = app->getD3D12Module()->getDevice();
+	auto device = app->getModuleD3D12()->getDevice();
 
 	D3D12_FEATURE_DATA_D3D12_OPTIONS options = {};
 	if (FAILED(device->CheckFeatureSupport(

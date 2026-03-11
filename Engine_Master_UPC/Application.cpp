@@ -1,20 +1,20 @@
 #include "Globals.h"
 #include "Application.h"
-#include "InputModule.h"
-#include "D3D12Module.h"
-#include "EditorModule.h"
-#include "ResourcesModule.h"
-#include "CameraModule.h"
-#include "DescriptorsModule.h"
-#include "UIModule.h"
-#include "RenderModule.h"
-#include "SceneModule.h"
-#include "FileSystemModule.h"
-#include "AssetsModule.h"
+#include "ModuleInput.h"
+#include "ModuleD3D12.h"
+#include "ModuleEditor.h"
+#include "ModuleResources.h"
+#include "ModuleCamera.h"
+#include "ModuleDescriptors.h"
+#include "ModuleUI.h"
+#include "ModuleRender.h"
+#include "ModuleScene.h"
+#include "ModuleFileSystem.h"
+#include "ModuleAssets.h"
 #include "ModuleEventSystem.h"
-#include "GameViewModule.h"
-#include "NavigationModule.h"
-#include "TimeModule.h"
+#include "ModuleGameView.h"
+#include "ModuleNavigation.h"
+#include "ModuleTime.h"
 #include "PerformanceProfiler.h"
 #include <thread>
 
@@ -26,27 +26,27 @@ using namespace std::chrono;
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
-    modules.push_back(m_inputModule = new InputModule((HWND)hWnd));
-    modules.push_back(m_d3d12Module = new D3D12Module((HWND)hWnd));
-    modules.push_back(m_descriptorsModule = new DescriptorsModule());
-    modules.push_back(m_resourcesModule = new ResourcesModule());
+    modules.push_back(m_inputModule = new ModuleInput((HWND)hWnd));
+    modules.push_back(m_d3d12Module = new ModuleD3D12((HWND)hWnd));
+    modules.push_back(m_descriptorsModule = new ModuleDescriptors());
+    modules.push_back(m_resourcesModule = new ModuleResources());
 
     //Needed to create the LOGs
-    modules.push_back(m_editorModule = new EditorModule());
+    modules.push_back(m_editorModule = new ModuleEditor());
 
-    modules.push_back(m_assetsModule = new AssetsModule());
-    modules.push_back(m_fileSystemModule = new FileSystemModule());
+    modules.push_back(m_assetsModule = new ModuleAssets());
+    modules.push_back(m_fileSystemModule = new ModuleFileSystem());
     modules.push_back(m_moduleEventSystem = new ModuleEventSystem());
 
-    modules.push_back(m_uiModule = new UIModule());
-    modules.push_back(m_navigationModule = new NavigationModule());
-    modules.push_back(m_renderModule = new RenderModule());
+    modules.push_back(m_uiModule = new ModuleUI());
+    modules.push_back(m_navigationModule = new ModuleNavigation());
+    modules.push_back(m_renderModule = new ModuleRender());
     
-    modules.push_back(m_gameViewModule = new GameViewModule());
+    modules.push_back(m_gameViewModule = new ModuleGameView());
 
-    modules.push_back(m_cameraModule = new CameraModule());
-    modules.push_back(m_sceneModule = new SceneModule());
-    modules.push_back(m_timeModule = new TimeModule(120));
+    modules.push_back(m_cameraModule = new ModuleCamera());
+    modules.push_back(m_sceneModule = new ModuleScene());
+    modules.push_back(m_timeModule = new ModuleTime(120));
 
     m_settings = new Settings();
 }

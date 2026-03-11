@@ -1,14 +1,14 @@
 #include "Globals.h"
 #include "Application.h"
-#include "InputModule.h"
+#include "ModuleInput.h"
 
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "GamePad.h"
 
-#include "EditorModule.h"
+#include "ModuleEditor.h"
 
-InputModule::InputModule(HWND hWnd)
+ModuleInput::ModuleInput(HWND hWnd)
 {
     m_keyboard = std::make_unique<Keyboard>();
     m_mouse = std::make_unique<Mouse>();
@@ -18,7 +18,7 @@ InputModule::InputModule(HWND hWnd)
 }
 
 
-void InputModule::update()
+void ModuleInput::update()
 {
     m_mouseTracker.Update(m_mouse->GetState());
 
@@ -29,81 +29,81 @@ void InputModule::update()
 }
 
 
-bool InputModule::isKeyDown(Keyboard::Keys key)
+bool ModuleInput::isKeyDown(Keyboard::Keys key)
 {
     return m_keyboard->GetState().IsKeyDown(key);
 }
 
 
-bool InputModule::isLeftMouseDown()
+bool ModuleInput::isLeftMouseDown()
 {
     return m_mouseTracker.leftButton == Mouse::ButtonStateTracker::HELD;
 }
 
-bool InputModule::isRightMouseDown()
+bool ModuleInput::isRightMouseDown()
 {
     return m_mouseTracker.rightButton == Mouse::ButtonStateTracker::HELD;
 }
 
 
-bool InputModule::isLeftMousePressed() const
+bool ModuleInput::isLeftMousePressed() const
 {
     return m_mouseTracker.leftButton == Mouse::ButtonStateTracker::PRESSED;
 }
 
-bool InputModule::isRightMousePressed() const
+bool ModuleInput::isRightMousePressed() const
 {
     return m_mouseTracker.rightButton == Mouse::ButtonStateTracker::PRESSED;
 }
 
-bool InputModule::isMiddleMousePressed() const
+bool ModuleInput::isMiddleMousePressed() const
 {
     return m_mouseTracker.middleButton == Mouse::ButtonStateTracker::PRESSED;
 }
 
 
-bool InputModule::isLeftMouseReleased() const
+bool ModuleInput::isLeftMouseReleased() const
 {
     return m_mouseTracker.leftButton == Mouse::ButtonStateTracker::RELEASED;
 }
 
-bool InputModule::isRightMouseReleased() const
+bool ModuleInput::isRightMouseReleased() const
 {
     return m_mouseTracker.rightButton == Mouse::ButtonStateTracker::RELEASED;
 }
 
-bool InputModule::isMiddleMouseReleased() const
+bool ModuleInput::isMiddleMouseReleased() const
 {
     return m_mouseTracker.middleButton == Mouse::ButtonStateTracker::RELEASED;
 }
 
 
-bool InputModule::isLeftMouseHeld() const
+bool ModuleInput::isLeftMouseHeld() const
 {
     return m_mouseTracker.leftButton == Mouse::ButtonStateTracker::HELD
         || m_mouseTracker.leftButton == Mouse::ButtonStateTracker::PRESSED;
 }
 
-bool InputModule::isRightMouseHeld() const
+bool ModuleInput::isRightMouseHeld() const
 {
     return m_mouseTracker.rightButton == Mouse::ButtonStateTracker::HELD
         || m_mouseTracker.rightButton == Mouse::ButtonStateTracker::PRESSED;
 }
 
-bool InputModule::isMiddleMouseHeld() const
+bool ModuleInput::isMiddleMouseHeld() const
 {
     return m_mouseTracker.middleButton == Mouse::ButtonStateTracker::HELD
         || m_mouseTracker.middleButton == Mouse::ButtonStateTracker::PRESSED;
 }
 
 
-Vector2 InputModule::getMousePosition() const
+Vector2 ModuleInput::getMousePosition() const
 {
     const Mouse::State state = m_mouse->GetState();
     return { static_cast<float>(state.x), static_cast<float>(state.y) };
 }
 
-void InputModule::getMouseDelta(float& deltaX, float& deltaY)
+void ModuleInput::getMouseDelta(float& deltaX, float& deltaY)
 {
     const Mouse::State state = m_mouse->GetState();
 
@@ -128,7 +128,7 @@ void InputModule::getMouseDelta(float& deltaX, float& deltaY)
 }
 
 
-void InputModule::getMouseWheel(float& delta)
+void ModuleInput::getMouseWheel(float& delta)
 {
     const float currentValue = static_cast<float>(m_mouse->GetState().scrollWheelValue);
     delta = currentValue - m_wheelDelta;

@@ -7,19 +7,19 @@
 #include <chrono>
 #include "DebugDrawPass.h"
 #include "CommandQueue.h"
-#include "DescriptorsModule.h"
+#include "ModuleDescriptors.h"
 #include "SwapChain.h"
 #include <GraphicsMemory.h>
 
 
 // -----------------------------------------------------------------------------
-// D3D12Module
+// ModuleD3D12
 // -----------------------------------------------------------------------------
-class D3D12Module : public Module
+class ModuleD3D12 : public Module
 {
 public:
-	D3D12Module(HWND hwnd);
-	~D3D12Module();
+	ModuleD3D12(HWND hwnd);
+	~ModuleD3D12();
 
 	bool init() override;
 	bool postInit() override;

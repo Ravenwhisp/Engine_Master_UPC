@@ -11,7 +11,7 @@ class UIImagePass;
 class Texture;
 class Transform2D;
 
-class UIModule : public Module
+class ModuleUI : public Module
 {
 public:
     bool init() override;

@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "IndexBuffer.h"
 #include "Application.h"
-#include "ResourcesModule.h"
+#include "ModuleResources.h"
 
 IndexBuffer::IndexBuffer(ID3D12Device4& device, size_t numIndices, DXGI_FORMAT indexFormat)
     : Buffer(device, CD3DX12_RESOURCE_DESC::Buffer(numIndices * getSizeByFormat(indexFormat)))
@@ -24,7 +24,7 @@ IndexBuffer::IndexBuffer(ID3D12Device4& device, Microsoft::WRL::ComPtr<ID3D12Res
 
 IndexBuffer::~IndexBuffer()
 {
-    app->getResourcesModule()->defferResourceRelease(getD3D12Resource());
+    app->getModuleResources()->defferResourceRelease(getD3D12Resource());
 }
 
 void IndexBuffer::createIndexBufferView()

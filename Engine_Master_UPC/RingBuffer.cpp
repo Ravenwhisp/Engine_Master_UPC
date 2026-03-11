@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "RingBuffer.h"
 #include "Application.h"
-#include "ResourcesModule.h"
+#include "ModuleResources.h"
 
 RingBuffer::RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t size) : Buffer(device, buffer), m_totalMemorySize(size)
 {

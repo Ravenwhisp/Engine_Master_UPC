@@ -1,29 +1,29 @@
 #include "Globals.h"
 
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "LightComponent.h"
 #include <CameraComponent.h>
 #include "Application.h"
-#include "RenderModule.h"
-#include "EditorModule.h"
+#include "ModuleRender.h"
+#include "ModuleEditor.h"
 #include "Settings.h"
 #include "GameObject.h"
 #include "UID.h"
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
-#include "NavigationModule.h"
+#include "ModuleNavigation.h"
 
 #include <queue>
 #include <limits>
 
 using namespace DirectX::SimpleMath;
 
-SceneModule::SceneModule() = default;
-SceneModule::~SceneModule() = default;
+ModuleScene::ModuleScene() = default;
+ModuleScene::~ModuleScene() = default;
 
 #pragma region GameLoop
-bool SceneModule::init()
+bool ModuleScene::init()
 {
     m_sceneSerializer = std::make_unique<SceneSerializer>();
 
@@ -55,7 +55,7 @@ bool SceneModule::init()
     return true;
 }
 
-void SceneModule::update()
+void ModuleScene::update()
 {
     if (!m_pendingSceneLoad.empty())
     {
@@ -71,7 +71,7 @@ void SceneModule::update()
 }
 
 
-void SceneModule::createQuadtree()
+void ModuleScene::createQuadtree()
 {
     float minX = std::numeric_limits<float>::max();
     float minZ = std::numeric_limits<float>::max();
@@ -127,7 +127,7 @@ void SceneModule::createQuadtree()
     DEBUG_LOG("QUADTREE created");
 }
 
-void SceneModule::render(ID3D12GraphicsCommandList* commandList) 
+void ModuleScene::render(ID3D12GraphicsCommandList* commandList) 
 {
     if (m_quadtree)
     {
@@ -234,7 +234,7 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
 
 }
 
-bool SceneModule::cleanUp()
+bool ModuleScene::cleanUp()
 {
     clearScene();
 
@@ -245,7 +245,7 @@ bool SceneModule::cleanUp()
 }
 #pragma endregion
 
-void SceneModule::createGameObject()
+void ModuleScene::createGameObject()
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();
@@ -263,7 +263,7 @@ void SceneModule::createGameObject()
     }
 }
 
-GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID)
+GameObject* ModuleScene::createGameObjectWithUID(UID id, UID transformUID)
 {
     auto newGameObject = std::make_unique<GameObject>(id, transformUID);
     GameObject* raw = newGameObject.get();
@@ -283,7 +283,7 @@ GameObject* SceneModule::createGameObjectWithUID(UID id, UID transformUID)
     return raw;
 }
 
-GameObject* SceneModule::findGameObjectByUID(UID uuid)
+GameObject* ModuleScene::findGameObjectByUID(UID uuid)
 {
     for (const auto& root : m_allObjects)
     {
@@ -300,7 +300,7 @@ GameObject* SceneModule::findGameObjectByUID(UID uuid)
     return nullptr;
 }
 
-void SceneModule::removeGameObject(UID uuid)
+void ModuleScene::removeGameObject(UID uuid)
 {
     GameObject* target = nullptr;
 
@@ -327,12 +327,12 @@ void SceneModule::removeGameObject(UID uuid)
     destroyHierarchy(target);
 }
 
-void SceneModule::addGameObject(std::unique_ptr<GameObject> gameObject)
+void ModuleScene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
     m_allObjects.push_back(std::move(gameObject));
 }
 
-void SceneModule::destroyGameObject(GameObject* gameObject)
+void ModuleScene::destroyGameObject(GameObject* gameObject)
 {
     removeFromRootList(gameObject);
 
@@ -351,17 +351,17 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     }
 }
 
-void SceneModule::resetGameObjects(SceneSnapshot previousScene)
+void ModuleScene::resetGameObjects(SceneSnapshot previousScene)
 {
     m_allObjects = std::move(previousScene.allObjects);
 	m_rootObjects = std::move(previousScene.rootObjects);
 	m_defaultCamera = previousScene.defaultCamera;
 
     //guarrada historica a continuacion
-    app->getEditorModule()->setSelectedGameObject(nullptr);
+    app->getModuleEditor()->setSelectedGameObject(nullptr);
 }
 
-GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
+GameObject* ModuleScene::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
@@ -380,7 +380,7 @@ GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
     return nullptr;
 }
 
-void SceneModule::destroyHierarchy(GameObject* obj)
+void ModuleScene::destroyHierarchy(GameObject* obj)
 {
     auto children = obj->GetTransform()->getAllChildren();
 
@@ -404,7 +404,7 @@ void SceneModule::destroyHierarchy(GameObject* obj)
     destroyGameObject(obj);
 }
 
-GameObject* SceneModule::createDirectionalLightOnInit()
+GameObject* ModuleScene::createDirectionalLightOnInit()
 {
     auto go = std::make_unique<GameObject>(GenerateUID());
     GameObject* raw = go.get();
@@ -439,14 +439,14 @@ GameObject* SceneModule::createDirectionalLightOnInit()
     return raw;
 }
 
-bool SceneModule::applySkyboxToRenderer()
+bool ModuleScene::applySkyboxToRenderer()
 {
-    return app->getRenderModule()->applySkyboxSettings(m_skybox);
+    return app->getModuleRender()->applySkyboxSettings(m_skybox);
 }
 
 
 #pragma region Persistence
-rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
+rapidjson::Value ModuleScene::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value sceneInfo(rapidjson::kObjectType);
 
@@ -477,7 +477,7 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     return sceneInfo;
 }
 
-void SceneModule::serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
+void ModuleScene::serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
 {
     gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
 
@@ -487,7 +487,7 @@ void SceneModule::serializeHierarchy(GameObject* gameObject, rapidjson::Value& g
     }
 }
 
-rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
+rapidjson::Value ModuleScene::getLightingJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value lightingInfo(rapidjson::kObjectType);
 
@@ -505,7 +505,7 @@ rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
     return lightingInfo;
 }
 
-rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
+rapidjson::Value ModuleScene::getSkyboxJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value skyboxInfo(rapidjson::kObjectType);
 
@@ -515,7 +515,7 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
     return skyboxInfo;
 }
 
-bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) 
+bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson) 
 {
     const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
 
@@ -571,7 +571,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson)
     return true;
 }
 
-bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson)
+bool ModuleScene::loadSceneSkybox(const rapidjson::Value& sceneJson)
 {
     if (!sceneJson.HasMember("Skybox"))
     {
@@ -596,7 +596,7 @@ bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson)
     return true;
 }
 
-bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) 
+bool ModuleScene::loadSceneLighting(const rapidjson::Value& sceneJson) 
 {
     auto& lighting = GetLightingSettings();
     const auto& lightingJson = sceneJson["Lighting"];
@@ -608,7 +608,7 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson)
     return true;
 }
 
-void SceneModule::fixLoadedSceneReferences()
+void ModuleScene::fixLoadedSceneReferences()
 {
     std::unordered_map<UID, Component*> componentMap;
 
@@ -629,7 +629,7 @@ void SceneModule::fixLoadedSceneReferences()
     }
 }
 
-void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
+void ModuleScene::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
 {
     m_defaultCamera = nullptr;
 
@@ -647,7 +647,7 @@ void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson)
 }
 
 
-void SceneModule::saveScene()
+void ModuleScene::saveScene()
 {
     rapidjson::Document domTree;
     domTree.SetObject();
@@ -660,7 +660,7 @@ void SceneModule::saveScene()
     m_sceneSerializer->SaveScene(m_name, domTree);
 }
 
-bool SceneModule::loadScene(const std::string& sceneName)
+bool ModuleScene::loadScene(const std::string& sceneName)
 {
 	m_quadtree.reset();
 	clearScene();
@@ -673,7 +673,7 @@ bool SceneModule::loadScene(const std::string& sceneName)
     m_name = sceneName;
 
     const char* s = sceneName.c_str();
-    if (app->getNavigationModule()->loadNavMeshForScene(s))
+    if (app->getModuleNavigation()->loadNavMeshForScene(s))
     {
         DEBUG_LOG("LOADED NavMesh for scene: %s\n", s);
     }
@@ -685,14 +685,14 @@ bool SceneModule::loadScene(const std::string& sceneName)
     return true;
 }
 
-void SceneModule::requestSceneChange(const std::string& sceneName)
+void ModuleScene::requestSceneChange(const std::string& sceneName)
 {
     m_pendingSceneLoad = sceneName;
 }
 
-void SceneModule::clearScene()
+void ModuleScene::clearScene()
 {
-    app->getEditorModule()->setSelectedGameObject(nullptr);
+    app->getModuleEditor()->setSelectedGameObject(nullptr);
 
     for (auto& go : m_allObjects)
     {
@@ -706,7 +706,7 @@ void SceneModule::clearScene()
 }
 #pragma endregion
 
-std::vector<GameObject*> SceneModule::getAllGameObjects()
+std::vector<GameObject*> ModuleScene::getAllGameObjects()
 {
     std::vector<GameObject*> result;
     result.reserve(m_allObjects.size());
@@ -719,7 +719,7 @@ std::vector<GameObject*> SceneModule::getAllGameObjects()
     return result;
 }
 
-SceneSnapshot SceneModule::getClonedGameObjects()
+SceneSnapshot ModuleScene::getClonedGameObjects()
 {
 	SceneSnapshot snapshot;
 
@@ -754,7 +754,7 @@ SceneSnapshot SceneModule::getClonedGameObjects()
     return snapshot;
 }
 
-std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
+std::unique_ptr<GameObject> ModuleScene::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
 {
     auto clone = original->clone(snapshot);
 
@@ -780,7 +780,7 @@ std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* or
     return clone;
 }
 
-void SceneModule::fixClonedReferences(const SceneSnapshot& snapshot)
+void ModuleScene::fixClonedReferences(const SceneSnapshot& snapshot)
 {
     for (const auto& obj : snapshot.allObjects)
     {
@@ -791,7 +791,7 @@ void SceneModule::fixClonedReferences(const SceneSnapshot& snapshot)
     }
 }
 
-void SceneModule::removeFromRootList(GameObject* obj)
+void ModuleScene::removeFromRootList(GameObject* obj)
 {
     auto it = std::remove(
         m_rootObjects.begin(),
@@ -801,7 +801,7 @@ void SceneModule::removeFromRootList(GameObject* obj)
     m_rootObjects.erase(it, m_rootObjects.end());
 }
 
-void SceneModule::addToRootList(GameObject* gameObject)
+void ModuleScene::addToRootList(GameObject* gameObject)
 {
     if (!gameObject) return;
 
@@ -811,7 +811,7 @@ void SceneModule::addToRootList(GameObject* gameObject)
     }
 }
 
-const std::vector<GameObject*>& SceneModule::getRootObjects() const
+const std::vector<GameObject*>& ModuleScene::getRootObjects() const
 {
     return m_rootObjects;
 }

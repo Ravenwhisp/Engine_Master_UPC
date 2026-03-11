@@ -4,7 +4,7 @@
 #include "CommandQueue.h"
 #include <filesystem>
 #include "Application.h"
-#include "DescriptorsModule.h"
+#include "ModuleDescriptors.h"
 #include <DepthBuffer.h>
 #include <RenderTexture.h>
 #include <DirectXTex.h>
@@ -39,14 +39,14 @@ class IndexBuffer;
 class RingBuffer;
 
 // -----------------------------------------------------------------------------
-// ResourcesModule
+// ModuleResources
 // -----------------------------------------------------------------------------
 // This module centralizes all resource creation
 // 
-class ResourcesModule : public Module
+class ModuleResources : public Module
 {
 public:
-	~ResourcesModule();
+	~ModuleResources();
 
 	bool init() override;
 	bool postInit() override;

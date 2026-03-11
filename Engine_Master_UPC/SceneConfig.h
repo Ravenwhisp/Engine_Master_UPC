@@ -2,13 +2,13 @@
 #include "EditorWindow.h"
 #include <string>
 
-class SceneModule;
+class ModuleScene;
 class GameObject;
 
 class SceneConfig : public EditorWindow
 {
 private:
-	SceneModule* m_sceneModule;
+	ModuleScene* m_sceneModule;
 
 public:
     SceneConfig();

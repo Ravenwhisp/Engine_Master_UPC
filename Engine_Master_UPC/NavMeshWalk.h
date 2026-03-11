@@ -3,7 +3,7 @@
 #include "Component.h"
 #include <Keyboard.h>
 
-class InputModule;
+class ModuleInput;
 class Transform;
 class GameObject;
 
@@ -26,8 +26,8 @@ public:
 private:
     float getDeltaSecondsFromTimer() const;
 
-    Vector3 readMoveDirection(InputModule* inputModule) const;
-    bool checkShiftHeld(InputModule* inputModule) const;
+    Vector3 readMoveDirection(ModuleInput* inputModule) const;
+    bool checkShiftHeld(ModuleInput* inputModule) const;
 
     void applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt);
     void applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const;

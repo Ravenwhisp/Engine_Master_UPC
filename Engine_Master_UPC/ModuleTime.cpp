@@ -1,7 +1,7 @@
 #include "Globals.h"
-#include "TimeModule.h"
+#include "ModuleTime.h"
 
-bool TimeModule::init()
+bool ModuleTime::init()
 {
 	m_realTimer.start();
 	m_gameTimer.start();
@@ -9,7 +9,7 @@ bool TimeModule::init()
 	return true;
 }
 
-void TimeModule::update()
+void ModuleTime::update()
 {
 	uint64_t nowRealMs = m_realTimer.read();
 	uint64_t deltaMs = nowRealMs - m_lastRealMs;
@@ -20,7 +20,7 @@ void TimeModule::update()
 	m_frames++;
 }
 
-void TimeModule::waitForNextFrame()
+void ModuleTime::waitForNextFrame()
 {
 	if (m_targetFps <= 0) return;
 

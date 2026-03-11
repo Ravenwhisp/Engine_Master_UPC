@@ -1,15 +1,15 @@
 #include "Globals.h"
-#include "UIModule.h"
+#include "ModuleUI.h"
 
 #include "Application.h"
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 #include "FontPass.h"
 #include "UIImagePass.h"
 #include "Logger.h"
 
-#include "SceneModule.h"
-#include "ResourcesModule.h"
-#include "EditorModule.h"
+#include "ModuleScene.h"
+#include "ModuleResources.h"
+#include "ModuleEditor.h"
 #include "Texture.h"
 
 #include "GameObject.h"
@@ -19,27 +19,27 @@
 #include "Transform2D.h"
 #include "UIText.h"
 
-bool UIModule::init()
+bool ModuleUI::init()
 {
-    auto device = app->getD3D12Module()->getDevice();
+    auto device = app->getModuleD3D12()->getDevice();
     m_fontPass = new FontPass(device);
     m_imagePass = new UIImagePass(device);
     return true;
 }
 
-void UIModule::preRender()
+void ModuleUI::preRender()
 {
     m_textCommands.clear();
     m_imageCommands.clear();
 
 #ifdef GAME_RELEASE
 
-	auto viewport = app->getD3D12Module()->getSwapChain()->getViewport();
+	auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
 
 	const ImVec2 screenSize(viewport.Width, viewport.Height);
 
 #else
-    const ImVec2 screenSize = app->getEditorModule()->getSceneEditorSize();
+    const ImVec2 screenSize = app->getModuleEditor()->getSceneEditorSize();
 
 #endif // GAME_RELEASE
 
@@ -54,7 +54,7 @@ void UIModule::preRender()
     m_rootScreenRect.w = screenSize.x;
     m_rootScreenRect.h = screenSize.y;
 
-    const auto& roots = app->getSceneModule()->getAllGameObjects();
+    const auto& roots = app->getModuleScene()->getAllGameObjects();
 
     for (GameObject* go : roots)
     {
@@ -73,7 +73,7 @@ void UIModule::preRender()
     }
 }
 
-void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)
+void ModuleUI::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport)
 {
     if (m_imagePass)
     {
@@ -93,7 +93,7 @@ void UIModule::renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT 
 
 }
 
-void UIModule::text(const wchar_t* msg, float x, float y)
+void ModuleUI::text(const wchar_t* msg, float x, float y)
 {
     if (!msg)
     {
@@ -106,7 +106,7 @@ void UIModule::text(const wchar_t* msg, float x, float y)
     m_textCommands.push_back(std::move(cmd));
 }
 
-void UIModule::text(const std::wstring& msg, float x, float y)
+void ModuleUI::text(const std::wstring& msg, float x, float y)
 {
     UITextCommand cmd;
     cmd.text = msg;
@@ -115,7 +115,7 @@ void UIModule::text(const std::wstring& msg, float x, float y)
     m_textCommands.push_back(std::move(cmd));
 }
 
-bool UIModule::cleanUp()
+bool ModuleUI::cleanUp()
 {
     m_textCommands.clear();
     m_imageCommands.clear();
@@ -148,7 +148,7 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void UIModule::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect) 
+void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect) 
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -175,7 +175,7 @@ void UIModule::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
     }
 }
 
-void UIModule::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
+void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
@@ -198,7 +198,7 @@ void UIModule::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
             auto textureIteration = m_uiTextures.find(assetId);
             if (textureIteration == m_uiTextures.end())
             {
-                auto texture = app->getResourcesModule()->createTexture2D(*asset);
+                auto texture = app->getModuleResources()->createTexture2D(*asset);
                 if (texture)
                 {
                     Texture* raw = texture.get();
@@ -226,7 +226,7 @@ void UIModule::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
     }
 }
 
-void UIModule::buildUIText(GameObject* gameObject, const Rect2D& myRect) 
+void ModuleUI::buildUIText(GameObject* gameObject, const Rect2D& myRect) 
 {
     UIText* uiText = gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
 
