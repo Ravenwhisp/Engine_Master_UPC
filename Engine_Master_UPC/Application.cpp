@@ -16,6 +16,7 @@
 #include "NavigationModule.h"
 #include "TimeModule.h"
 #include "PerformanceProfiler.h"
+#include "ScriptFactory.h"
 #include <thread>
 
 #include "Settings.h"
@@ -74,12 +75,25 @@ bool Application::init()
     HMODULE gameScriptsModule = LoadLibraryA("GameScripts.dll");
     assert(gameScriptsModule != nullptr);
 
-    using PrintLoadedFn = void(*)();
-    PrintLoadedFn printLoaded =
-        (PrintLoadedFn)GetProcAddress(gameScriptsModule, "PrintGameScriptsLoaded");
+    using GetScriptNameFn = const char* (*)();
+    using GetScriptCreatorFn = ScriptCreator(*)();
 
-    assert(printLoaded != nullptr);
-    printLoaded();
+    GetScriptNameFn getScriptName =
+        (GetScriptNameFn)GetProcAddress(gameScriptsModule, "GetScriptName");
+    assert(getScriptName != nullptr);
+
+    GetScriptCreatorFn getScriptCreator =
+        (GetScriptCreatorFn)GetProcAddress(gameScriptsModule, "GetScriptCreator");
+    assert(getScriptCreator != nullptr);
+
+    const char* scriptName = getScriptName();
+    ScriptCreator creator = getScriptCreator();
+
+    assert(scriptName != nullptr);
+    assert(creator != nullptr);
+
+    ScriptFactory::registerScript(scriptName, creator);
+    assert(ScriptFactory::isScriptRegistered("Test"));
     //DELL TEST
 
 	return ret;

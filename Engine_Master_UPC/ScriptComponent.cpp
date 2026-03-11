@@ -60,7 +60,35 @@ void ScriptComponent::update()
         m_hasStarted = true;
     }
 
+    DEBUG_LOG("Here");
     m_script->Update();
+}
+
+void ScriptComponent::drawUi()
+{
+    char buffer[256];
+    std::strncpy(buffer, m_scriptName.c_str(), sizeof(buffer));
+    buffer[sizeof(buffer) - 1] = '\0';
+
+    if (ImGui::InputText("Script Name", buffer, sizeof(buffer)))
+    {
+        m_scriptName = buffer;
+    }
+
+    if (ImGui::Button("Create Script Instance"))
+    {
+        bool created = createScriptInstance();
+        if (created)
+        {
+            OutputDebugStringA("Script instance created correctly\n");
+        }
+        else
+        {
+            OutputDebugStringA("Failed to create script instance\n");
+        }
+    }
+
+    ImGui::Text("Loaded: %s", m_script ? "Yes" : "No");
 }
 
 std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
