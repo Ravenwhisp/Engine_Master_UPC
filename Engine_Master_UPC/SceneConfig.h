@@ -8,7 +8,7 @@ class GameObject;
 class SceneConfig : public EditorWindow
 {
 private:
-	ModuleScene* m_sceneModule;
+	ModuleScene* m_moduleScene;
 
 public:
     SceneConfig();

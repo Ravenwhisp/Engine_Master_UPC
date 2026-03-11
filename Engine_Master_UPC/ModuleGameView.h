@@ -10,8 +10,8 @@ class GameObject;
 class ModuleGameView : public Module
 {
 private:
-	ModuleScene*								m_sceneModule;
-	ModuleInput*								m_inputModule;
+	ModuleScene*								m_moduleScene;
+	ModuleInput*								m_moduleInput;
 
 	//std::vector<std::unique_ptr<GameObject>>	m_gameObjects;
 	SceneSnapshot								m_sceneCloned;

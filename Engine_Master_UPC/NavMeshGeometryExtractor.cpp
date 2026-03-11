@@ -8,7 +8,7 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "ModelAsset.h"
-#include <Logger.h>
+#include <WindowLogger.h>
 
 static bool DecodeIndices(const MeshAsset& mesh, std::vector<uint32_t>& out)
 {

@@ -292,7 +292,7 @@ GameObject* ModuleScene::findGameObjectByUID(UID uuid)
             return root.get();
         }
 
-        if (GameObject* found = findInHierarchy(root.get(), uuid))
+        if (GameObject* found = findInWindowHierarchy(root.get(), uuid))
         {
             return found;
         }
@@ -312,7 +312,7 @@ void ModuleScene::removeGameObject(UID uuid)
             break;
         }
 
-        target = findInHierarchy(root.get(), uuid);
+        target = findInWindowHierarchy(root.get(), uuid);
         if (target)
         {
             break;
@@ -324,7 +324,7 @@ void ModuleScene::removeGameObject(UID uuid)
         return;
     }
 
-    destroyHierarchy(target);
+    destroyWindowHierarchy(target);
 }
 
 void ModuleScene::addGameObject(std::unique_ptr<GameObject> gameObject)
@@ -361,7 +361,7 @@ void ModuleScene::resetGameObjects(SceneSnapshot previousScene)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 }
 
-GameObject* ModuleScene::findInHierarchy(GameObject* current, UID uuid)
+GameObject* ModuleScene::findInWindowHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
@@ -370,7 +370,7 @@ GameObject* ModuleScene::findInHierarchy(GameObject* current, UID uuid)
             return child;
         }
 
-        GameObject* found = findInHierarchy(child, uuid);
+        GameObject* found = findInWindowHierarchy(child, uuid);
         if (found)
         {
             return found;
@@ -380,13 +380,13 @@ GameObject* ModuleScene::findInHierarchy(GameObject* current, UID uuid)
     return nullptr;
 }
 
-void ModuleScene::destroyHierarchy(GameObject* obj)
+void ModuleScene::destroyWindowHierarchy(GameObject* obj)
 {
     auto children = obj->GetTransform()->getAllChildren();
 
     for (GameObject* child : children)
     {
-        destroyHierarchy(child);
+        destroyWindowHierarchy(child);
     }
 
     if (m_quadtree)
@@ -468,7 +468,7 @@ rapidjson::Value ModuleScene::getJSON(rapidjson::Document& domTree)
 
         for (GameObject* root : m_rootObjects)
         {
-            serializeHierarchy(root, gameObjectsData, domTree);
+            serializeWindowHierarchy(root, gameObjectsData, domTree);
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
@@ -477,13 +477,13 @@ rapidjson::Value ModuleScene::getJSON(rapidjson::Document& domTree)
     return sceneInfo;
 }
 
-void ModuleScene::serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
+void ModuleScene::serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
 {
     gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
 
     for (GameObject* child : gameObject->GetTransform()->getAllChildren())
     {
-        serializeHierarchy(child, gameObjectsData, domTree);
+        serializeWindowHierarchy(child, gameObjectsData, domTree);
     }
 }
 

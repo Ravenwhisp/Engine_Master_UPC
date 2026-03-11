@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "Hierarchy.h"
+#include "WindowHierarchy.h"
 
 #include "Application.h"
 #include "ModuleEditor.h"
@@ -7,12 +7,12 @@
 
 #include "GameObject.h"
 
-Hierarchy::Hierarchy()
+WindowHierarchy::WindowHierarchy()
 {
 
 }
 
-void Hierarchy::render()
+void WindowHierarchy::render()
 {
 	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
 		ImGuiWindowFlags_AlwaysAutoResize))
@@ -38,7 +38,7 @@ void Hierarchy::render()
 	ImGui::End();
 }
 
-void Hierarchy::createTreeNode(GameObject* gameObject)
+void WindowHierarchy::createTreeNode(GameObject* gameObject)
 {
 	Transform* transform = gameObject->GetTransform();
 	const auto children = transform->getAllChildren();
@@ -105,7 +105,7 @@ void Hierarchy::createTreeNode(GameObject* gameObject)
 }
 
 
-void Hierarchy::reparent(GameObject* child, GameObject* newParent)
+void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 {
 	if (!child) return;
 
@@ -142,7 +142,7 @@ void Hierarchy::reparent(GameObject* child, GameObject* newParent)
 }
 
 
-void Hierarchy::createTreeNode()
+void WindowHierarchy::createTreeNode()
 {
 	if (ImGui::TreeNodeEx(app->getModuleScene()->getName()))
 	{
@@ -167,12 +167,12 @@ void Hierarchy::createTreeNode()
 	}
 }
 
-void Hierarchy::addGameObject()
+void WindowHierarchy::addGameObject()
 {
 	app->getModuleScene()->createGameObject();
 }
 
-void Hierarchy::removeGameObject()
+void WindowHierarchy::removeGameObject()
 {
 	GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
 

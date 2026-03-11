@@ -14,7 +14,7 @@
 
 #include <DetourNavMeshQuery.h>
 #include <DetourAlloc.h>
-#include <Logger.h>
+#include <WindowLogger.h>
 #include <NavMeshBuilder.h>
 
 #include "NavMeshGeometryExtractor.h"
@@ -35,7 +35,7 @@ bool ModuleNavigation::postInit()
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
 
-    if (Logger::Instance())
+    if (WindowLogger::Instance())
     {
         TriangleSoup soup;
         NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
@@ -192,7 +192,7 @@ bool ModuleNavigation::saveNavMeshForScene(const char* sceneName) const
 
 bool ModuleNavigation::buildNavMeshForCurrentScene()
 {
-    if (!Logger::Instance()) return false;
+    if (!WindowLogger::Instance()) return false;
 
     TriangleSoup soup;
     NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);

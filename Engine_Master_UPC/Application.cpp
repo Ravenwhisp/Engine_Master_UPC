@@ -26,27 +26,27 @@ using namespace std::chrono;
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
-    modules.push_back(m_inputModule = new ModuleInput((HWND)hWnd));
-    modules.push_back(m_d3d12Module = new ModuleD3D12((HWND)hWnd));
-    modules.push_back(m_descriptorsModule = new ModuleDescriptors());
-    modules.push_back(m_resourcesModule = new ModuleResources());
+    modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
+    modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
+    modules.push_back(m_moduleDescriptors = new ModuleDescriptors());
+    modules.push_back(m_moduleResources = new ModuleResources());
 
     //Needed to create the LOGs
-    modules.push_back(m_editorModule = new ModuleEditor());
+    modules.push_back(m_moduleEditor = new ModuleEditor());
 
-    modules.push_back(m_assetsModule = new ModuleAssets());
-    modules.push_back(m_fileSystemModule = new ModuleFileSystem());
-    modules.push_back(m_moduleEventSystem = new ModuleEventSystem());
+    modules.push_back(m_moduleAssets = new ModuleAssets());
+    modules.push_back(m_moduleFileSystem = new ModuleFileSystem());
+    modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
-    modules.push_back(m_uiModule = new ModuleUI());
-    modules.push_back(m_navigationModule = new ModuleNavigation());
-    modules.push_back(m_renderModule = new ModuleRender());
+    modules.push_back(m_moduleUI = new ModuleUI());
+    modules.push_back(m_moduleNavigation = new ModuleNavigation());
+    modules.push_back(m_moduleRender = new ModuleRender());
     
-    modules.push_back(m_gameViewModule = new ModuleGameView());
+    modules.push_back(m_moduleGameView = new ModuleGameView());
 
-    modules.push_back(m_cameraModule = new ModuleCamera());
-    modules.push_back(m_sceneModule = new ModuleScene());
-    modules.push_back(m_timeModule = new ModuleTime(120));
+    modules.push_back(m_moduleCamera = new ModuleCamera());
+    modules.push_back(m_moduleScene = new ModuleScene());
+    modules.push_back(m_moduleTime = new ModuleTime(120));
 
     m_settings = new Settings();
 }
@@ -91,7 +91,7 @@ void Application::update()
     float dt = 0.f;
     if (m_currentEngineState == ENGINE_STATE::PLAYING)
     {
-        dt = m_timeModule->deltaTime();
+        dt = m_moduleTime->deltaTime();
     }
 
     if (!app->m_paused)
@@ -142,7 +142,7 @@ void Application::update()
 
     m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
 
-    //m_timeModule->waitForNextFrame();
+    //m_moduleTime->waitForNextFrame();
 }
 
 bool Application::cleanUp()

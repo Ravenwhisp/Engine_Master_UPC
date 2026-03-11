@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "ModuleTime.h"
 #include "ModuleInput.h"
-#include "Logger.h"
+#include "WindowLogger.h"
 
 static const float PI = 3.1415926535897931f;
 

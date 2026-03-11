@@ -70,7 +70,7 @@ public:
 #pragma region Persistence
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
-	void serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
+	void serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
 	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
 	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
 
@@ -96,8 +96,8 @@ public:
 	void destroyGameObject(GameObject* gameObject);
 	void resetGameObjects(SceneSnapshot previousScene);
 
-	GameObject* findInHierarchy(GameObject* current, UID uuid);
-	void destroyHierarchy(GameObject* obj);
+	GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
+	void destroyWindowHierarchy(GameObject* obj);
 
 	void addToRootList(GameObject* gameObject);
 	void removeFromRootList(GameObject* gameObject);

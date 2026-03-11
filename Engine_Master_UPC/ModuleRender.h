@@ -32,7 +32,7 @@ private:
 
 private:
 	Settings* m_settings;
-	ModuleGameView* m_gameViewModule;
+	ModuleGameView* m_moduleGameView;
 
 	RingBuffer* m_ringBuffer;
 	ModuleDescriptors::SampleType	m_sampleType = ModuleDescriptors::SampleType::POINT_CLAMP;

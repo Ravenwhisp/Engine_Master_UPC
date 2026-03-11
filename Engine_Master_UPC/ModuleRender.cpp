@@ -22,7 +22,7 @@
 #include "IndexBuffer.h"
 #include "DepthBuffer.h"
 
-#include "Logger.h"
+#include "WindowLogger.h"
 
 #include "GameObject.h"
 #include "CameraComponent.h"
@@ -30,7 +30,7 @@
 bool ModuleRender::init()
 {
     m_settings = app->getSettings();
-    m_gameViewModule = app->getModuleGameView();
+    m_moduleGameView = app->getModuleGameView();
 
     auto d3d12 = app->getModuleD3D12();
     auto device = d3d12->getDevice();
@@ -72,7 +72,7 @@ void ModuleRender::preRender()
 
     renderGameToBackbuffer(commandList, swapChain->getCurrentRenderTargetView().cpu, swapChain->getDepthStencilView(), swapChain->getViewport(), swapChain->getScissorRect());
 #else
-    auto newSize = app->getModuleEditor()->getSceneEditorSize();
+    auto newSize = app->getModuleEditor()->getWindowSceneEditorSize();
 
     if (m_size.x != newSize.x || m_size.y != newSize.y)
     {
@@ -191,7 +191,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         m_debugDrawPass->setProjection(camera.projection);
         m_debugDrawPass->setViewport(viewport);
 
-        app->getModuleEditor()->getSceneEditor()->renderDebugDrawPass(commandList);
+        app->getModuleEditor()->getWindowSceneEditor()->renderDebugDrawPass(commandList);
         m_debugDrawPass->apply(commandList);
     }
 
@@ -232,7 +232,7 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
     D3D12_VIEWPORT viewport = { 0,0,width,height,0,1 };
     D3D12_RECT scissorRect = { 0,0,(LONG)width,(LONG)height };
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_gameViewModule->getShowDebugWindow());
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow());
 }
 
 void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
@@ -244,7 +244,7 @@ void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandLis
         return;
     }
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_gameViewModule->getShowDebugWindow());
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow());
 }
 
 void ModuleRender::render()

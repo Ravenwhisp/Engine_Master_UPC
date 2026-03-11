@@ -45,21 +45,21 @@ public:
 	void         update();
 	bool         cleanUp();
 
-    ModuleD3D12*                getModuleD3D12() { return m_d3d12Module; }
-    ModuleEditor*               getModuleEditor() { return m_editorModule; }
-    ModuleResources*            getModuleResources() { return m_resourcesModule; }
-    ModuleInput*                getModuleInput() { return m_inputModule; }
-    ModuleCamera*               getModuleCamera() { return m_cameraModule; }
-    ModuleDescriptors*          getModuleDescriptors() { return m_descriptorsModule; }
-    ModuleTime*                 getModuleTime() { return m_timeModule; }
-    ModuleUI*                   getModuleUI() { return m_uiModule; }
-    ModuleRender*               getModuleRender() { return m_renderModule; }
-    ModuleNavigation*           getModuleNavigation() { return m_navigationModule; }
-    ModuleScene*                getModuleScene() { return m_sceneModule; }
-    ModuleGameView*             getModuleGameView() { return m_gameViewModule; }
-    ModuleFileSystem*           getModuleFileSystem() { return m_fileSystemModule; }
-    ModuleAssets*               getAssetModule() { return m_assetsModule; }
-    ModuleEventSystem*          getModuleEventSystem() { return m_moduleEventSystem; }
+    ModuleD3D12*                getModuleD3D12() { return m_moduleD3d12M; }
+    ModuleEditor*               getModuleEditor() { return m_moduleEditor; }
+    ModuleResources*            getModuleResources() { return m_moduleResources; }
+    ModuleInput*                getModuleInput() { return m_moduleInput; }
+    ModuleCamera*               getModuleCamera() { return m_moduleCamera; }
+    ModuleDescriptors*          getModuleDescriptors() { return m_moduleDescriptors; }
+    ModuleTime*                 getModuleTime() { return m_moduleTime; }
+    ModuleUI*                   getModuleUI() { return m_moduleUI; }
+    ModuleRender*               getModuleRender() { return m_moduleRender; }
+    ModuleNavigation*           getModuleNavigation() { return m_moduleNavigation; }
+    ModuleScene*                getModuleScene() { return m_moduleScene; }
+    ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
+    ModuleFileSystem*           getModuleFileSystem() { return m_moduleFileSystem; }
+    ModuleAssets*               getAssetModule() { return m_moduleAssets; }
+    ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -83,21 +83,21 @@ public:
 private:
 
     std::vector<Module*>    modules;
-    ModuleD3D12*            m_d3d12Module = nullptr;
-    ModuleEditor*           m_editorModule = nullptr;
-    ModuleResources*        m_resourcesModule = nullptr;
-    ModuleCamera*           m_cameraModule = nullptr;
-    ModuleInput*            m_inputModule = nullptr;
-    ModuleDescriptors*      m_descriptorsModule = nullptr;
-    ModuleTime*             m_timeModule = nullptr;
-    ModuleRender*           m_renderModule = nullptr;
-    ModuleNavigation*       m_navigationModule = nullptr;
-    ModuleScene*            m_sceneModule = nullptr;
-    ModuleGameView*         m_gameViewModule = nullptr;
-    ModuleFileSystem*       m_fileSystemModule = nullptr;
-    ModuleAssets*           m_assetsModule = nullptr;
-    ModuleUI*               m_uiModule = nullptr;
-    ModuleEventSystem*      m_moduleEventSystem = nullptr;
+    ModuleD3D12*            m_moduleD3d12M = nullptr;
+    ModuleEditor*           m_moduleEditor = nullptr;
+    ModuleResources*        m_moduleResources = nullptr;
+    ModuleCamera*           m_moduleCamera = nullptr;
+    ModuleInput*            m_moduleInput = nullptr;
+    ModuleDescriptors*      m_moduleDescriptors = nullptr;
+    ModuleTime*             m_moduleTime = nullptr;
+    ModuleRender*           m_moduleRender = nullptr;
+    ModuleNavigation*       m_moduleNavigation = nullptr;
+    ModuleScene*            m_moduleScene = nullptr;
+    ModuleGameView*         m_moduleGameView = nullptr;
+    ModuleFileSystem*       m_moduleFileSystem = nullptr;
+    ModuleAssets*           m_moduleAssets = nullptr;
+    ModuleUI*               m_moduleUI = nullptr;
+    ModuleEventSystem*      m_eventSystemModule = nullptr;
 
     Settings*               m_settings = nullptr;
 

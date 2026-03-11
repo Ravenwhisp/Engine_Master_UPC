@@ -16,11 +16,11 @@ class PlayToolbar;
 class DebugDrawPass;
 class GameObject;
 
-class SceneEditor: public EditorWindow
+class WindowSceneEditor: public EditorWindow
 {
 private:
-    ModuleInput* m_inputModule;
-    ModuleCamera* m_cameraModule;
+    ModuleInput* m_moduleInput;
+    ModuleCamera* m_moduleCamera;
 
     Settings* m_settings;
     Quadtree* m_quadtree;
@@ -33,8 +33,8 @@ private:
     float m_viewportY = 0.0f;
 
 public:
-    SceneEditor();
-    ~SceneEditor();
+    WindowSceneEditor();
+    ~WindowSceneEditor();
 
     const char* getWindowName() const override { return "Scene Editor"; }
     void        update() override;

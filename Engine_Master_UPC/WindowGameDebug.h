@@ -2,13 +2,13 @@
 
 class Settings;
 
-class ViewGameDebug
+class WindowGameDebug
 {
 private:
     Settings* m_settings;
 
 public:
-    ViewGameDebug();
+    WindowGameDebug();
 
     void render();
 };

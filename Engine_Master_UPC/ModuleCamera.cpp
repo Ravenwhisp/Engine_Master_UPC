@@ -19,9 +19,9 @@
 bool ModuleCamera::init() {
     m_settings = app->getSettings();
 
-    m_inputModule = app->getModuleInput();
+    m_moduleInput = app->getModuleInput();
     m_ModuleD3D12 = app->getModuleD3D12();
-    m_editorModule = app->getModuleEditor();
+    m_moduleEditor = app->getModuleEditor();
 
     syncYawPitchFromLookAt();
     syncDistanceFromLookAt();
@@ -39,11 +39,11 @@ bool ModuleCamera::postInit()
 }
 
 void ModuleCamera::update() {
-    if (!app->getModuleEditor()->getSceneEditor()->isFocused() || !app->getModuleEditor()->getSceneEditor()->isHovered()) {
+    if (!app->getModuleEditor()->getWindowSceneEditor()->isFocused() || !app->getModuleEditor()->getWindowSceneEditor()->isHovered()) {
         m_lastWheel = Mouse::Get().GetState().scrollWheelValue;
         return;
     }
-    ImVec2 sceneSize = m_editorModule->getSceneEditor()->getSize();
+    ImVec2 sceneSize = m_moduleEditor->getWindowSceneEditor()->getSize();
     if (sceneSize.x <= 1.0f || sceneSize.y <= 1.0f)
         return;
 
@@ -53,8 +53,8 @@ void ModuleCamera::update() {
     float dt = app->getElapsedMilis() * 0.001f;
 
     int navMode = -1;
-    if (m_editorModule->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION)
-        navMode = (int)m_editorModule->getCurrentNavigationMode();
+    if (m_moduleEditor->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION)
+        navMode = (int)m_moduleEditor->getCurrentNavigationMode();
 
     if (navMode != m_lastNavMode) {
         if (m_lastNavMode == (int)ModuleEditor::NAVIGATION_MODE::FREE_LOOK) {
@@ -71,11 +71,11 @@ void ModuleCamera::update() {
         m_lastNavMode = navMode;
     }
 
-    bool allowCameraInput = m_editorModule->getSceneEditor()->isFocused() && !ImGuizmo::IsUsing();
+    bool allowCameraInput = m_moduleEditor->getWindowSceneEditor()->isFocused() && !ImGuizmo::IsUsing();
 
     if (allowCameraInput) {
-        if (m_editorModule->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION) {
-            switch (m_editorModule->getCurrentNavigationMode()) {
+        if (m_moduleEditor->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION) {
+            switch (m_moduleEditor->getCurrentNavigationMode()) {
             case ModuleEditor::NAVIGATION_MODE::PAN:        panMode(); break;
             case ModuleEditor::NAVIGATION_MODE::ORBIT:      orbitMode(); break;
             case ModuleEditor::NAVIGATION_MODE::ZOOM:       zoomMode(); break;
@@ -91,7 +91,7 @@ void ModuleCamera::update() {
     }
 
     Vector3 viewTarget = m_target;
-    if (m_editorModule->getCurrentNavigationMode() == ModuleEditor::NAVIGATION_MODE::FREE_LOOK)
+    if (m_moduleEditor->getCurrentNavigationMode() == ModuleEditor::NAVIGATION_MODE::FREE_LOOK)
         viewTarget = m_position + getForwardFromYawPitch();
 
     m_view = Matrix::CreateLookAt(m_position, viewTarget, m_up);
@@ -100,7 +100,7 @@ void ModuleCamera::update() {
 
 
 void ModuleCamera::rebuildViewProj() {
-    ImVec2 sceneSize = m_editorModule->getSceneEditor()->getSize();
+    ImVec2 sceneSize = m_moduleEditor->getWindowSceneEditor()->getSize();
     if (sceneSize.x <= 1.0f || sceneSize.y <= 1.0f)
         return;
 
@@ -109,7 +109,7 @@ void ModuleCamera::rebuildViewProj() {
 
     Vector3 viewTarget = m_target;
 
-    if (m_editorModule && m_editorModule->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION && m_editorModule->getCurrentNavigationMode() == ModuleEditor::NAVIGATION_MODE::FREE_LOOK) {
+    if (m_moduleEditor && m_moduleEditor->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION && m_moduleEditor->getCurrentNavigationMode() == ModuleEditor::NAVIGATION_MODE::FREE_LOOK) {
         viewTarget = m_position + getForwardFromYawPitch();
     }
 
@@ -162,7 +162,7 @@ void ModuleCamera::panMode() {
         return;
     }
 
-    ImVec2 sceneMin = m_editorModule->getSceneEditor()->getSize();
+    ImVec2 sceneMin = m_moduleEditor->getWindowSceneEditor()->getSize();
     int mx = ms.x - (int)sceneMin.x;
     int my = ms.y - (int)sceneMin.y;
 
@@ -200,7 +200,7 @@ void ModuleCamera::panMode() {
 
 void ModuleCamera::orbitMode() {
     Mouse::State ms = Mouse::Get().GetState();
-    ImVec2 sceneMin = m_editorModule->getSceneEditor()->getSize();
+    ImVec2 sceneMin = m_moduleEditor->getWindowSceneEditor()->getSize();
 
     int mx = ms.x - (int)sceneMin.x;
     int my = ms.y - (int)sceneMin.y;
@@ -239,7 +239,7 @@ void ModuleCamera::zoomMode() {
         return;
     }
 
-    ImVec2 sceneMin = m_editorModule->getSceneEditor()->getSize();
+    ImVec2 sceneMin = m_moduleEditor->getWindowSceneEditor()->getSize();
     int my = ms.y - (int)sceneMin.y;
 
     if (m_zoomFirst) {
@@ -267,7 +267,7 @@ void ModuleCamera::handleMouseWheel() {
 
     Vector3 forward = getForwardFromYawPitch();
 
-    if (m_editorModule->getCurrentNavigationMode() == ModuleEditor::NAVIGATION_MODE::FREE_LOOK) {
+    if (m_moduleEditor->getCurrentNavigationMode() == ModuleEditor::NAVIGATION_MODE::FREE_LOOK) {
         float d = delta * m_settings->camera.zoomWheelSpeed * m_settings->camera.flyMoveSpeed;
         m_position += forward * d;
 
@@ -285,7 +285,7 @@ void ModuleCamera::flythroughMode(float dt) {
     Mouse::State ms = Mouse::Get().GetState();
     Keyboard::State ks = Keyboard::Get().GetState();
 
-    ImVec2 sceneMin = m_editorModule->getSceneEditor()->getSize();
+    ImVec2 sceneMin = m_moduleEditor->getWindowSceneEditor()->getSize();
     int mx = ms.x - (int)sceneMin.x;
     int my = ms.y - (int)sceneMin.y;
 
@@ -335,7 +335,7 @@ void ModuleCamera::handleAutoFocus() {
 void ModuleCamera::focusOnTarget() {
     Vector3 focusPoint = Vector3::Zero;
 
-    GameObject* selectedModel = m_editorModule->getSelectedGameObject();
+    GameObject* selectedModel = m_moduleEditor->getSelectedGameObject();
 
     if (selectedModel) {
         focusPoint = selectedModel->GetTransform()->getPosition();

@@ -5,7 +5,7 @@
 #include "ModuleInput.h"
 #include "ModuleScene.h"
 #include "ModuleEditor.h"
-#include "GameWindow.h"
+#include "WindowGame.h"
 #include "ModuleD3D12.h"
 
 #include "GameObject.h"
@@ -16,7 +16,7 @@
 
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
-#include <SceneEditor.h>
+#include <WindowSceneEditor.h>
 #include "Delegates.h"
 
 unsigned int DelegateHandle::CURRENT_ID = 0;

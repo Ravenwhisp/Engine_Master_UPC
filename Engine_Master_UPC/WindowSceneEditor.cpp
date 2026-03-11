@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "SceneEditor.h"
+#include "WindowSceneEditor.h"
 #include "ImGuizmo.h"
 #include <imgui.h>
 
@@ -25,7 +25,7 @@
 #include "Quadtree.h"
 
 #include "CameraComponent.h"
-#include <Logger.h>
+#include <WindowLogger.h>
 
 
 static bool ScreenToWorldOnPlaneY0(
@@ -71,7 +71,7 @@ static bool ScreenToWorldOnPlaneY0(
     return true;
 }
 
-static void DebugDrawHierarchy(GameObject* go)
+static void DebugDrawWindowHierarchy(GameObject* go)
 {
     if (!go || !go->GetActive())
         return;
@@ -97,13 +97,13 @@ static void DebugDrawHierarchy(GameObject* go)
 
     // recurse children
     for (GameObject* child : go->GetTransform()->getAllChildren())
-        DebugDrawHierarchy(child);
+        DebugDrawWindowHierarchy(child);
 }
 
-SceneEditor::SceneEditor()
+WindowSceneEditor::WindowSceneEditor()
 {
-    m_cameraModule = app->getModuleCamera();
-    m_inputModule = app->getModuleInput();
+    m_moduleCamera = app->getModuleCamera();
+    m_moduleInput = app->getModuleInput();
 
     m_settings = app->getSettings();
 
@@ -113,18 +113,18 @@ SceneEditor::SceneEditor()
     auto d3d12Module = app->getModuleD3D12();
 }
 
-SceneEditor::~SceneEditor()
+WindowSceneEditor::~WindowSceneEditor()
 {
     delete m_editorToolbar;
 	delete m_playToolbar;
 }
 
-void SceneEditor::update()
+void WindowSceneEditor::update()
 {
 
 }
 
-void SceneEditor::render()
+void WindowSceneEditor::render()
 {
     if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -173,7 +173,7 @@ void SceneEditor::render()
 
     GameObject* selectedGameObject = app->getModuleEditor()->getSelectedGameObject();
 
-    if (selectedGameObject && m_cameraModule)
+    if (selectedGameObject && m_moduleCamera)
     {
         ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
         bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
@@ -197,8 +197,8 @@ void SceneEditor::render()
             ImGuizmo::MODE gizmoMode = app->getModuleEditor()->isGizmoLocal() ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
 
             ImGuizmo::Manipulate(
-                (float*)&m_cameraModule->getView(),
-                (float*)&m_cameraModule->getProjection(),
+                (float*)&m_moduleCamera->getView(),
+                (float*)&m_moduleCamera->getProjection(),
                 op,
                 gizmoMode,
                 (float*)&worldMatrix
@@ -217,7 +217,7 @@ void SceneEditor::render()
     ImGui::End();
 }
 
-bool SceneEditor::resize(ImVec2 contentRegion)
+bool WindowSceneEditor::resize(ImVec2 contentRegion)
 {
     if (abs(contentRegion.x - m_size.x) > 1.0f ||
         abs(contentRegion.y - m_size.y) > 1.0f) 
@@ -228,7 +228,7 @@ bool SceneEditor::resize(ImVec2 contentRegion)
     return false;
 }
 
-void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
+void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 {
     if (m_settings->sceneEditor.showGrid)
     {
@@ -247,7 +247,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
     for (GameObject* root : app->getModuleScene()->getAllGameObjects()) 
     {
-        DebugDrawHierarchy(root);
+        DebugDrawWindowHierarchy(root);
     }
         
     ModuleNavigation* nav = app->getModuleNavigation();
@@ -325,7 +325,7 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
 }
 
-void SceneEditor::renderQuadtree()
+void WindowSceneEditor::renderQuadtree()
 {
     Quadtree* quadtree = app->getModuleScene()->getQuadtree();
     if (!quadtree)
@@ -377,7 +377,7 @@ void SceneEditor::renderQuadtree()
 	}
 }
 
-void SceneEditor::drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color)
+void WindowSceneEditor::drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color)
 {
     const Vector3* c = bbox.getPoints();
 

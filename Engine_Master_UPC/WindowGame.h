@@ -4,7 +4,7 @@
 class PlayToolbar;
 class ModuleInput;
 
-class GameWindow : public EditorWindow
+class WindowGame : public EditorWindow
 {
 private:
 	PlayToolbar* m_playToolbar;
@@ -13,8 +13,8 @@ private:
 	float m_viewportY = 0.0f;
 
 public:
-	GameWindow();
-	~GameWindow();
+	WindowGame();
+	~WindowGame();
 
 	const char* getWindowName() const override { return "Game"; }
 	void		render() override;
