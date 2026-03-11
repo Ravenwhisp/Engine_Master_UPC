@@ -218,7 +218,7 @@ void ModuleFileSystem::rebuild()
                 continue;
             }
         }
-        app->getAssetModule()->import(pending.sourcePath, pending.existingUID);
+        app->getAssetModule()->importAsset(pending.sourcePath, pending.existingUID);
     }
 
     cleanOrphanedBinaries();

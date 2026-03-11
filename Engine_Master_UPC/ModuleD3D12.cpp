@@ -64,7 +64,6 @@ void ModuleD3D12::postRender()
 bool ModuleD3D12::cleanUp()
 {
     if (m_swapChain) {
-        m_swapChain->~SwapChain();
         delete m_swapChain;
         m_swapChain = nullptr;
     }

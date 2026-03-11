@@ -1,13 +1,20 @@
 #pragma once
 #include "Module.h"
-#include "Asset.h"
 
+#include "UID.h"
+#include "AssetsDictionary.h"
+
+#include <filesystem>
+#include <unordered_map>
+
+class Asset;
+class AssetMetadata;
 
 class ModuleAssets : public Module
 {
 public:
 
-	UID import(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
+	UID importAsset(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
 
 	Asset*	requestAsset(UID id);
 	Asset*  requestAsset(const AssetMetadata* metadata);

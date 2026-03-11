@@ -42,7 +42,7 @@ void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
 void FileDialog::importAsset(const std::shared_ptr<FileEntry>& asset)
 {
     std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
-    app->getAssetModule()->import(originalPath);
+    app->getAssetModule()->importAsset(originalPath);
 }
 
 void FileDialog::cutItem(const std::shared_ptr<FileEntry>& asset)

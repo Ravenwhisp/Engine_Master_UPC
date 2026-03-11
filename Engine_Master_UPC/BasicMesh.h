@@ -1,10 +1,14 @@
 #pragma once
 #include "Globals.h"
-#include "Asset.h"
-#include "ModelAsset.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
+
 #include "ICacheable.h"
+
+class MeshAsset;
+
+class VertexBuffer;
+class IndexBuffer;
+
+struct Submesh;
 
 namespace tinygltf { class Model;  struct Mesh; struct Primitive; }
 
@@ -22,7 +26,6 @@ public:
 
 	bool			hasIndexBuffer() const;
 
-	void draw(ID3D12GraphicsCommandList* commandList, const Submesh& submesh) const;
 private:
 	std::unique_ptr<VertexBuffer>	m_vertexBuffer;
 	std::unique_ptr<IndexBuffer>	m_indexBuffer;

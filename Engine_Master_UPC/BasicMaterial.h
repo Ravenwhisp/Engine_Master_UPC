@@ -1,9 +1,9 @@
 #pragma once
 #include "Globals.h"
-#include "Texture.h"
-#include "Asset.h"
-#include "ModelAsset.h"
 #include "ICacheable.h"
+
+class Texture;
+class MaterialAsset;
 
 namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
 class BasicMaterial : public ICacheable
@@ -33,8 +33,8 @@ public:
 	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
-	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
-	Texture*					getTexture() const { return m_textureColor.get(); }
+	ComPtr<ID3D12Resource>		getMaterialBuffer() const noexcept { return m_materialBuffer; }
+	Texture*					getTexture() const noexcept;
 	BDRFPhongMaterialData&		getMaterial() { return m_materialData; }
 
 	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
@@ -43,7 +43,3 @@ private:
 	ComPtr<ID3D12Resource>		m_materialBuffer;
 	BDRFPhongMaterialData		m_materialData;
 };
-	
-
-
-

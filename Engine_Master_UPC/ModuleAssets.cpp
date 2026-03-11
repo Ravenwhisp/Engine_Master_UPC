@@ -4,12 +4,14 @@
 #include "Application.h"
 #include "ModuleFileSystem.h"
 
+#include "Importer.h"
+#include "Asset.h"
 
-#include <filesystem>
 #include <fstream>
-#include "UID.h"
+#include <filesystem>
+#include <unordered_map>
 
-UID ModuleAssets::import(const std::filesystem::path& assetsFile, UID uid)
+UID ModuleAssets::importAsset(const std::filesystem::path& assetsFile, UID uid)
 {
 
     Importer* importer = app->getModuleFileSystem()->findImporter(assetsFile);
