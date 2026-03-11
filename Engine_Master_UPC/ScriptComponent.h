@@ -14,6 +14,11 @@ public:
     void setScript(std::unique_ptr<Script> script);
     Script* getScript() const;
 
+    void setScriptName(const std::string& scriptName);
+    const std::string& getScriptName() const;
+
+    bool createScriptInstance();
+
     void update() override;
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 

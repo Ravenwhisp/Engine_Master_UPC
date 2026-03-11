@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "ScriptComponent.h"
 #include "Script.h"
+#include "ScriptFactory.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -17,6 +18,34 @@ Script* ScriptComponent::getScript() const
 {
     return m_script.get();
 }
+
+void ScriptComponent::setScriptName(const std::string& scriptName)
+{
+    m_scriptName = scriptName;
+}
+
+const std::string& ScriptComponent::getScriptName() const
+{
+    return m_scriptName;
+}
+
+bool ScriptComponent::createScriptInstance()
+{
+    if (m_scriptName.empty())
+    {
+        return false;
+    }
+
+    std::unique_ptr<Script> newScript = ScriptFactory::createScript(m_scriptName, getOwner());
+    if (!newScript)
+    {
+        return false;
+    }
+
+    setScript(std::move(newScript));
+    return true;
+}
+
 
 void ScriptComponent::update()
 {
@@ -37,6 +66,7 @@ void ScriptComponent::update()
 std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
 {
     std::unique_ptr<ScriptComponent> clonedComponent = std::make_unique<ScriptComponent>(m_uuid, newOwner);
+    clonedComponent->m_scriptName = m_scriptName;
     clonedComponent->m_hasStarted = false;
     return clonedComponent;
 }
