@@ -3,13 +3,13 @@
 #include "GameObject.h"
 
 
-class Hierarchy: public EditorWindow
+class WindowHierarchy: public EditorWindow
 {
 public:
-	Hierarchy();
+	WindowHierarchy();
 
 	void		render() override;
-	const char* getWindowName() const override { return "Hierarchy"; }
+	const char* getWindowName() const override { return "WindowHierarchy"; }
 	void		addGameObject();
 	void		removeGameObject();
 

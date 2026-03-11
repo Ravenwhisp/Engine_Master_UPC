@@ -3,10 +3,10 @@
 #include "cvector.h"
 
 
-class PerformanceWindow: public EditorWindow
+class WindowPerformance: public EditorWindow
 {
 public:
-	PerformanceWindow();
+	WindowPerformance();
 	const char* getWindowName() const override { return "Performance"; }
 	void		update() override;
 	void		render() override;

@@ -1,42 +1,42 @@
 #include "Globals.h"
-#include "Logger.h"
+#include "WindowLogger.h"
 #include "Application.h"
 #include "ModuleTime.h"
 #include <cstdarg>
 
-Logger* Logger::s_Instance = nullptr;
+WindowLogger* WindowLogger::s_Instance = nullptr;
 
-Logger::Logger()
+WindowLogger::WindowLogger()
 {
     if (!s_Instance)
         s_Instance = this;
 
-    addLogEntry(LogType::LOG_INFO, "Logger initialized");
+    addLogEntry(LogType::LOG_INFO, "WindowLogger initialized");
 }
 
-Logger::~Logger()
+WindowLogger::~WindowLogger()
 {
     if (s_Instance == this)
         s_Instance = nullptr;
 }
 
-Logger* Logger::Instance()
+WindowLogger* WindowLogger::Instance()
 {
     return s_Instance;
 }
 
-void Logger::clear()
+void WindowLogger::clear()
 {
     m_items.clear();
 }
 
-void Logger::clearSelection()
+void WindowLogger::clearSelection()
 {
     for (auto& item : m_items)
         item.selected = false;
 }
 
-void Logger::copyToClipboard()
+void WindowLogger::copyToClipboard()
 {
     std::string clipboard;
 
@@ -66,7 +66,7 @@ void Logger::copyToClipboard()
     ImGui::SetClipboardText(clipboard.c_str());
 }
 
-void Logger::addLogEntry(LogType type, const std::string& text)
+void WindowLogger::addLogEntry(LogType type, const std::string& text)
 {
     float timestamp = 0.0f;
     if (app && app->getModuleTime())
@@ -88,7 +88,7 @@ void Logger::addLogEntry(LogType type, const std::string& text)
         m_items.erase(m_items.begin());
 }
 
-const char* Logger::getPrefix(LogType type)
+const char* WindowLogger::getPrefix(LogType type)
 {
     switch (type)
     {
@@ -99,7 +99,7 @@ const char* Logger::getPrefix(LogType type)
     }
 }
 
-ImVec4 Logger::getColor(LogType type)
+ImVec4 WindowLogger::getColor(LogType type)
 {
     switch (type)
     {
@@ -110,7 +110,7 @@ ImVec4 Logger::getColor(LogType type)
     }
 }
 
-void Logger::render()
+void WindowLogger::render()
 {
     if (!ImGui::Begin(getWindowName(), getOpenPtr(), getWindowFlags()))
     {
@@ -125,7 +125,7 @@ void Logger::render()
     ImGui::End();
 }
 
-void Logger::drawHeader()
+void WindowLogger::drawHeader()
 {
     if (ImGui::Button("Clear")) clear();
     ImGui::SameLine();
@@ -146,7 +146,7 @@ void Logger::drawHeader()
     ImGui::Checkbox("Timestamps", &m_showTimestamps);
 }
 
-void Logger::drawMessages()
+void WindowLogger::drawMessages()
 {
     ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false,
         ImGuiWindowFlags_HorizontalScrollbar);
@@ -171,7 +171,7 @@ void Logger::drawMessages()
     ImGui::EndChild();
 }
 
-void Logger::drawMessage(LogEntry& entry, size_t index)
+void WindowLogger::drawMessage(LogEntry& entry, size_t index)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, getColor(entry.type));
 

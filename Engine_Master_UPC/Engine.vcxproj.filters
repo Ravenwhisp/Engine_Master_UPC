@@ -55,9 +55,6 @@
     <ClCompile Include="ModuleResources.cpp">
       <Filter>D3D12\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleCamera.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
@@ -91,20 +88,11 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="SceneEditor.cpp">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClCompile Include="WindowSceneEditor.cpp">
+      <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="HardwareWindow.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceWindow.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceProfiler.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClCompile Include="WindowPerformance.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
     <ClCompile Include="Buffer.cpp">
       <Filter>D3D12\Resources\Buffers</Filter>
@@ -121,11 +109,11 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="Hierarchy.cpp">
-      <Filter>Editor\EditorWindows\Hierarchy</Filter>
+    <ClCompile Include="WindowHierarchy.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
-    <ClCompile Include="Inspector.cpp">
-      <Filter>Editor\EditorWindows\Inspector</Filter>
+    <ClCompile Include="WindowInspector.cpp">
+      <Filter>Editor\Views\Inspector</Filter>
     </ClCompile>
     <ClCompile Include="ModuleRender.cpp">
       <Filter>D3D12\Rendering</Filter>
@@ -156,10 +144,7 @@
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="EditorSettings.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="EditorToolbar.cpp">
-      <Filter>Editor\EditorWindows</Filter>
+      <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
@@ -260,9 +245,6 @@
     <ClCompile Include="ModuleEventSystem.cpp">
       <Filter>UI\Events</Filter>
     </ClCompile>
-    <ClCompile Include="Skybox.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
@@ -281,11 +263,8 @@
     <ClCompile Include="ChangeScene.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
-    <ClCompile Include="GameWindow.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayToolbar.cpp">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClCompile Include="WindowGame.cpp">
+      <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
@@ -302,8 +281,29 @@
     <ClCompile Include="ExitApplication.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
-    <ClCompile Include="ViewGameDebug.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClCompile Include="WindowGameDebug.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>D3D12\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceProfiler.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowHardware.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowLogger.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -364,9 +364,6 @@
     <ClInclude Include="ModuleResources.h">
       <Filter>D3D12\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleCamera.h">
       <Filter>D3D12</Filter>
     </ClInclude>
@@ -409,20 +406,11 @@
     <ClInclude Include="EditorWindow.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="SceneEditor.h">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClInclude Include="WindowSceneEditor.h">
+      <Filter>Editor\Views</Filter>
     </ClInclude>
-    <ClInclude Include="Logger.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="HardwareWindow.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="PerformanceWindow.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
-    </ClInclude>
-    <ClInclude Include="PerformanceProfiler.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClInclude Include="WindowPerformance.h">
+      <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
       <Filter>D3D12\Resources\Buffers</Filter>
@@ -445,11 +433,11 @@
     <ClInclude Include="ScriptComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Hierarchy.h">
-      <Filter>Editor\EditorWindows\Hierarchy</Filter>
+    <ClInclude Include="WindowHierarchy.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
-    <ClInclude Include="Inspector.h">
-      <Filter>Editor\EditorWindows\Inspector</Filter>
+    <ClInclude Include="WindowInspector.h">
+      <Filter>Editor\Views\Inspector</Filter>
     </ClInclude>
     <ClInclude Include="ModuleRender.h">
       <Filter>D3D12\Rendering</Filter>
@@ -490,22 +478,13 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="EditorSettings.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorToolbar.h">
-      <Filter>Editor\EditorWindows</Filter>
+      <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
     </ClInclude>
     <ClInclude Include="LightDebugDraw.h">
       <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Lights.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Skybox.h">
-      <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>GameEntity\Components</Filter>
@@ -666,11 +645,8 @@
     <ClInclude Include="ChangeScene.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="GameWindow.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayToolbar.h">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClInclude Include="WindowGame.h">
+      <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
@@ -687,8 +663,32 @@
     <ClInclude Include="ExitApplication.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="ViewGameDebug.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClInclude Include="WindowGameDebug.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>D3D12\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>D3D12\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
+    </ClInclude>
+    <ClInclude Include="PerformanceProfiler.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowHardware.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowLogger.h">
+      <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -754,12 +754,6 @@
     <Filter Include="D3D12\Wrappers\Descriptors">
       <UniqueIdentifier>{7881f684-8e13-48ef-b782-2e85ff9bfc29}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor\EditorWindows">
-      <UniqueIdentifier>{a038094e-e82e-4c57-905b-c620699451e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Performance">
-      <UniqueIdentifier>{24930ee1-012e-4ad2-89ed-af29a2fd287c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="D3D12\Resources\Buffers">
       <UniqueIdentifier>{e3267ec7-8f64-4d4b-be4a-4aeaedf9a5f3}</UniqueIdentifier>
     </Filter>
@@ -777,12 +771,6 @@
     </Filter>
     <Filter Include="GameEntity\Components">
       <UniqueIdentifier>{8282f70e-5018-4bd5-84c6-112035a6869a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Hierarchy">
-      <UniqueIdentifier>{318d021a-20db-41d1-9cc7-097580be7c80}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Inspector">
-      <UniqueIdentifier>{8d8770ea-210a-4dc3-8b2a-be29d2ae3343}</UniqueIdentifier>
     </Filter>
     <Filter Include="D3D12\Rendering">
       <UniqueIdentifier>{f8d98a8f-e8f1-4a90-b4c9-9473b976ab71}</UniqueIdentifier>
@@ -819,6 +807,24 @@
     </Filter>
     <Filter Include="Persistence\Assets">
       <UniqueIdentifier>{8d27eb04-c0da-431b-8da1-e70ef57cd788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Entities">
+      <UniqueIdentifier>{53615f82-6135-49b9-8f7d-595d4737b088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views">
+      <UniqueIdentifier>{a038094e-e82e-4c57-905b-c620699451e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Hierarchy">
+      <UniqueIdentifier>{318d021a-20db-41d1-9cc7-097580be7c80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Inspector">
+      <UniqueIdentifier>{8d8770ea-210a-4dc3-8b2a-be29d2ae3343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Debugging">
+      <UniqueIdentifier>{24930ee1-012e-4ad2-89ed-af29a2fd287c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Toolbars">
+      <UniqueIdentifier>{2ac420dc-456e-4836-bbad-d43c6c2c4223}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

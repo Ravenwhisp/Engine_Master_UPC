@@ -8,8 +8,8 @@
 
 ModuleGameView::ModuleGameView()
 {
-	m_sceneModule = nullptr;
-	m_inputModule = nullptr;
+	m_moduleScene = nullptr;
+	m_moduleInput = nullptr;
 }
 
 ModuleGameView::~ModuleGameView()
@@ -19,13 +19,13 @@ ModuleGameView::~ModuleGameView()
 
 bool ModuleGameView::init()
 {
-	m_sceneModule = app->getModuleScene();
-	m_inputModule = app->getModuleInput();
+	m_moduleScene = app->getModuleScene();
+	m_moduleInput = app->getModuleInput();
 
 	m_showDebugWindow = false;
 
 #ifdef GAME_RELEASE
-	m_sceneModule->loadScene("main");
+	m_moduleScene->loadScene("main");
 	app->setEngineState(ENGINE_STATE::PLAYING);
 #endif
 
@@ -41,7 +41,7 @@ void ModuleGameView::update()
 
 	if(app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
 	{
-		for (GameObject* gameObject : m_sceneModule->getAllGameObjects())
+		for (GameObject* gameObject : m_moduleScene->getAllGameObjects())
 		{
 			if (gameObject->GetActive())
 			{
@@ -63,13 +63,13 @@ void ModuleGameView::update()
 void ModuleGameView::startGameSimulation()
 {
 	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
-	m_sceneCloned = m_sceneModule->getClonedGameObjects();
+	m_sceneCloned = m_moduleScene->getClonedGameObjects();
 }
 
 void ModuleGameView::stopGameSimulation()
 {
 	// When we hit stop, we restore the scene's game objects with the copy we created when we hit play
-	m_sceneModule->resetGameObjects(std::move(m_sceneCloned));
+	m_moduleScene->resetGameObjects(std::move(m_sceneCloned));
 
 	m_sceneCloned = SceneSnapshot();
 }

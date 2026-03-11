@@ -9,9 +9,9 @@ class Settings;
 
 class ModuleCamera : public Module {
 private:
-    ModuleInput* m_inputModule;
+    ModuleInput* m_moduleInput;
     ModuleD3D12* m_ModuleD3D12;
-    ModuleEditor* m_editorModule;
+    ModuleEditor* m_moduleEditor;
 
     Settings* m_settings;
 

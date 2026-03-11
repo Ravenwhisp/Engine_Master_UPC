@@ -5,7 +5,7 @@
 #include "ModuleD3D12.h"
 #include "FontPass.h"
 #include "UIImagePass.h"
-#include "Logger.h"
+#include "WindowLogger.h"
 
 #include "ModuleScene.h"
 #include "ModuleResources.h"
@@ -39,7 +39,7 @@ void ModuleUI::preRender()
 	const ImVec2 screenSize(viewport.Width, viewport.Height);
 
 #else
-    const ImVec2 screenSize = app->getModuleEditor()->getSceneEditorSize();
+    const ImVec2 screenSize = app->getModuleEditor()->getWindowSceneEditorSize();
 
 #endif // GAME_RELEASE
 

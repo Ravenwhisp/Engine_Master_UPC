@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "GameWindow.h"
+#include "WindowGame.h"
 #include <imgui.h>
 
 #include "Application.h"
@@ -7,17 +7,17 @@
 #include "ModuleRender.h"
 #include "PlayToolbar.h"
 
-GameWindow::GameWindow()
+WindowGame::WindowGame()
 {
     m_playToolbar = new PlayToolbar();
 }
 
-GameWindow::~GameWindow()
+WindowGame::~WindowGame()
 {
     delete m_playToolbar;
 }
 
-void GameWindow::render()
+void WindowGame::render()
 {
     if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -68,7 +68,7 @@ void GameWindow::render()
 }
 
 
-bool GameWindow::resize(ImVec2 contentRegion)
+bool WindowGame::resize(ImVec2 contentRegion)
 {
     if (abs(contentRegion.x - m_size.x) > 1.0f ||
         abs(contentRegion.y - m_size.y) > 1.0f)

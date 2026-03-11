@@ -1,15 +1,15 @@
 #include "Globals.h"
-#include "Inspector.h"
+#include "WindowInspector.h"
 #include "Application.h";
 #include "ModuleEditor.h"
 #include "GameObject.h"
 
-Inspector::Inspector()
+WindowInspector::WindowInspector()
 {
 
 }
 
-void Inspector::render()
+void WindowInspector::render()
 {
     if (!ImGui::Begin(getWindowName(), getOpenPtr(),
         ImGuiWindowFlags_AlwaysAutoResize))

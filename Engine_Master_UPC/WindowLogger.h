@@ -4,7 +4,7 @@
 #include <string>
 #include <imgui.h>
 
-class Logger : public EditorWindow
+class WindowLogger : public EditorWindow
 {
 public:
     enum class LogType
@@ -27,8 +27,8 @@ public:
         }
     };
 
-    Logger();
-    ~Logger();
+    WindowLogger();
+    ~WindowLogger();
 
     const char* getWindowName() const override { return "Console"; }
     void render() override;
@@ -51,7 +51,7 @@ public:
         Instance()->addLog(LogType::LOG_ERROR, file, line, fmt, args...);
     }
 
-    static Logger* Instance();
+    static WindowLogger* Instance();
 
 private:
 
@@ -96,9 +96,9 @@ private:
 
     int m_maxEntries = 2048;
 
-    static Logger* s_Instance;
+    static WindowLogger* s_Instance;
 };
 
-#define LOG_INFO(...)     Logger::log(__VA_ARGS__)
-#define LOG_WARNING(...)  Logger::warning(__VA_ARGS__)
-#define LOG_ERROR(...)    Logger::error(__VA_ARGS__)
+#define LOG_INFO(...)     WindowLogger::log(__VA_ARGS__)
+#define LOG_WARNING(...)  WindowLogger::warning(__VA_ARGS__)
+#define LOG_ERROR(...)    WindowLogger::error(__VA_ARGS__)

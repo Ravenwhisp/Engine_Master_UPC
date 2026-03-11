@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "ViewGameDebug.h"
+#include "WindowGameDebug.h"
 
 #include "imgui.h"
 
@@ -10,13 +10,13 @@
 #include "GameObject.h"
 #include "NavMeshWalk.h"
 
-ViewGameDebug::ViewGameDebug()
+WindowGameDebug::WindowGameDebug()
 {
     m_settings = app->getSettings();
 }
 
 
-void ViewGameDebug::render()
+void WindowGameDebug::render()
 {
     ImGui::Begin("Debug (F3 to close)");
 

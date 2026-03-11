@@ -2,7 +2,7 @@
 #include <Module.h>
 #include "DescriptorHeap.h"
 #include "EditorWindow.h"
-#include "SceneEditor.h"
+#include "WindowSceneEditor.h"
 #include <vector>
 #include "Keyboard.h"
 #include "Mouse.h"
@@ -11,17 +11,17 @@ class ModuleGameView;
 
 class ImGuiPass;
 
-class Logger;
-class HardwareWindow;
-class PerformanceWindow;
-class SceneEditor;
-class Hierarchy;
+class WindowLogger;
+class WindowHardware;
+class WindowPerformance;
+class WindowSceneEditor;
+class WindowHierarchy;
 class DebugDrawPass;
 class EditorSettings;
 class SceneConfig;
-class GameWindow;
+class WindowGame;
 
-class ViewGameDebug;
+class WindowGameDebug;
 
 class ModuleEditor: public Module
 {
@@ -61,14 +61,14 @@ public:
 	bool cleanUp() override;
 #pragma endregion
 
-	SceneEditor*	getSceneEditor() { return m_sceneEditor; }
-	ImVec2			getSceneEditorSize() { return m_sceneEditor->getSize();}
+	WindowSceneEditor*	getWindowSceneEditor() { return m_sceneEditor; }
+	ImVec2			getWindowSceneEditorSize() { return m_sceneEditor->getSize();}
 
 	ImVec2 getEventViewport() const;
 	ImVec2 getEventViewportSize() const;
 
 
-	GameWindow*		getGameWindow() { return m_gameWindow; }
+	WindowGame*		getWindowGame() { return m_gameWindow; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
@@ -86,22 +86,22 @@ private:
 	void			setupDockLayout(ImGuiID dockspace_id);
 	void			mainDockspace(bool* open);
 private:
-	ModuleGameView* m_gameViewModule;
+	ModuleGameView* m_moduleGameView;
 
 #pragma region Views
 	std::vector<EditorWindow*>	m_editorWindows;
-	Logger*						m_logger = nullptr;
-	HardwareWindow*				m_hardwareWindow = nullptr;
-	PerformanceWindow*			m_performanceWindow = nullptr;
-	SceneEditor*				m_sceneEditor = nullptr;
+	WindowLogger*						m_logger = nullptr;
+	WindowHardware*				m_hardwareWindow = nullptr;
+	WindowPerformance*			m_performanceWindow = nullptr;
+	WindowSceneEditor*				m_sceneEditor = nullptr;
 	EditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
-	GameWindow*					m_gameWindow = nullptr;
+	WindowGame*					m_gameWindow = nullptr;
 
     bool m_showMainDockspace = true;
     bool m_firstFrame = true;
 
-	std::unique_ptr<ViewGameDebug> m_viewGameDebug;
+	std::unique_ptr<WindowGameDebug> m_viewGameDebug;
 #pragma endregion
 
 #pragma region Editor

@@ -7,7 +7,7 @@
 
 SceneConfig::SceneConfig()
 {
-	m_sceneModule = app->getModuleScene();
+	m_moduleScene = app->getModuleScene();
 }
 
 void SceneConfig::render()
@@ -33,16 +33,16 @@ void SceneConfig::render()
 
     if (ImGui::Button("Save"))
     {
-		m_sceneModule->setName(m_sceneName.c_str());
-        m_sceneModule->saveScene();
+		m_moduleScene->setName(m_sceneName.c_str());
+        m_moduleScene->saveScene();
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Load"))
     {
-        m_sceneModule->setName(m_sceneName.c_str());
-        m_sceneModule->loadScene();
+        m_moduleScene->setName(m_sceneName.c_str());
+        m_moduleScene->loadScene();
     }*/
 
     drawSaveSceneSettings();
@@ -91,8 +91,8 @@ void SceneConfig::drawSaveSceneSettings()
             }
             else
             {
-                m_sceneModule->setName(m_saveSceneName.c_str());
-                m_sceneModule->saveScene();
+                m_moduleScene->setName(m_saveSceneName.c_str());
+                m_moduleScene->saveScene();
             }
         }
     }
@@ -113,7 +113,7 @@ void SceneConfig::drawLoadSceneSettings()
 
         if (ImGui::Button("Load"))
         {
-            if (!m_sceneModule->loadScene(m_loadSceneName))
+            if (!m_moduleScene->loadScene(m_loadSceneName))
             {
                 DEBUG_WARN("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
             }
@@ -144,7 +144,7 @@ void SceneConfig::drawNavmeshSettings()
         // Temporary Button, this must happen automatically when loading the scene
         if (ImGui::Button("Load Navmesh"))
         {
-            const char* sceneName = m_sceneModule->getName();
+            const char* sceneName = m_moduleScene->getName();
             const bool ok = app->getModuleNavigation()->loadNavMeshForScene(sceneName);
 
             if (ok) DEBUG_LOG("Navmesh loaded successfully.");
@@ -175,7 +175,7 @@ void SceneConfig::drawNavmeshSettings()
 
 void SceneConfig::drawSkyboxSettings() 
 {
-    auto& skyboxSettings = m_sceneModule->getSkyboxSettings();
+    auto& skyboxSettings = m_moduleScene->getSkyboxSettings();
 
     if (ImGui::CollapsingHeader("Skybox")) 
     {
@@ -200,7 +200,7 @@ void SceneConfig::drawSkyboxSettings()
 
         if (ImGui::Button("Apply###SkyApply") && m_skyboxDirty)
         {
-            if (m_sceneModule->applySkyboxToRenderer())
+            if (m_moduleScene->applySkyboxToRenderer())
             {
                 m_skyboxDirty = false;
             }
@@ -210,7 +210,7 @@ void SceneConfig::drawSkyboxSettings()
 
 void SceneConfig::drawLightSettings()
 {
-    auto& light = m_sceneModule->GetLightingSettings();
+    auto& light = m_moduleScene->GetLightingSettings();
 
     if (ImGui::CollapsingHeader("Lighting"))
     {

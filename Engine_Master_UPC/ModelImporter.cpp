@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "ModelImporter.h"
-#include <Logger.h>
+#include <WindowLogger.h>
 
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_STB_IMAGE

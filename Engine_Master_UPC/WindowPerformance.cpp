@@ -1,15 +1,15 @@
 #include "Globals.h"
-#include "PerformanceWindow.h"
+#include "WindowPerformance.h"
 #include "Application.h"
 #include "ModuleTime.h"
 #include "PerformanceProfiler.h"
 
-PerformanceWindow::PerformanceWindow()
+WindowPerformance::WindowPerformance()
 {
    
 }
 
-void PerformanceWindow::update()
+void WindowPerformance::update()
 {
     float deltaTime = app->getModuleTime()->deltaTime();
     float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
@@ -18,7 +18,7 @@ void PerformanceWindow::update()
     m_milliseconds.push_back(deltaTime * 1000.0f);
 }
 
-void PerformanceWindow::render()
+void WindowPerformance::render()
 {
 	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
 		ImGuiWindowFlags_AlwaysAutoResize))

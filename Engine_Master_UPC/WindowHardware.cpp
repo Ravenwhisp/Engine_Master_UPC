@@ -1,9 +1,9 @@
 #include "Globals.h"
-#include "HardwareWindow.h"
+#include "WindowHardware.h"
 #include "Application.h"
 #include "ModuleD3D12.h"
 
-void HardwareWindow::render()
+void WindowHardware::render()
 {
 	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
 		ImGuiWindowFlags_AlwaysAutoResize))
@@ -22,7 +22,7 @@ void HardwareWindow::render()
 }
 
 
-void HardwareWindow::cpu()
+void WindowHardware::cpu()
 {
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
@@ -36,7 +36,7 @@ void HardwareWindow::cpu()
 }
 
 
-void HardwareWindow::systemVRAM()
+void WindowHardware::systemVRAM()
 {
 	MEMORYSTATUSEX statex = {};
 	statex.dwLength = sizeof(statex);
@@ -65,7 +65,7 @@ void HardwareWindow::systemVRAM()
 }
 
 
-void HardwareWindow::vram()
+void WindowHardware::vram()
 {
 	auto adapter = app->getModuleD3D12()->getAdapter();
 	DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
@@ -99,7 +99,7 @@ void HardwareWindow::vram()
 }
 
 
-void HardwareWindow::gpu()
+void WindowHardware::gpu()
 {
 	auto adapter = app->getModuleD3D12()->getAdapter();
 	DXGI_ADAPTER_DESC3 desc;
@@ -116,7 +116,7 @@ void HardwareWindow::gpu()
 }
 
 
-void HardwareWindow::gpuFeatures()
+void WindowHardware::gpuFeatures()
 {
 	auto device = app->getModuleD3D12()->getDevice();
 

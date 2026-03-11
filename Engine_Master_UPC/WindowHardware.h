@@ -2,7 +2,7 @@
 #include "EditorWindow.h"
 #include <dxgi1_6.h>
 
-class HardwareWindow: public EditorWindow
+class WindowHardware: public EditorWindow
 {
 public:
 	const char* getWindowName() const override { return "Hardware Info"; }

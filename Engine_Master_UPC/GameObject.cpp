@@ -272,7 +272,7 @@ Component* GameObject::GetComponent(ComponentType type) const
 
 #pragma region Properties
 
-bool GameObject::IsActiveInHierarchy() const
+bool GameObject::IsActiveInWindowHierarchy() const
 {
     if (!m_active)
     {
@@ -288,7 +288,7 @@ bool GameObject::IsActiveInHierarchy() const
     GameObject* parent = parentTransform->getOwner();
     if (parent != nullptr)
     {
-        return parent->IsActiveInHierarchy();
+        return parent->IsActiveInWindowHierarchy();
     }
 
     return true;
@@ -312,7 +312,7 @@ bool GameObject::init()
 
 void GameObject::update()
 {
-    if (!IsActiveInHierarchy())
+    if (!IsActiveInWindowHierarchy())
     {
         return;
     }
@@ -380,7 +380,7 @@ void GameObject::drawUI()
     ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
-    if (ImGui::BeginTable("GameObjectInspector", 2, ImGuiTableFlags_SizingStretchProp))
+    if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
         ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthStretch);

@@ -6,20 +6,20 @@
 #include "vector"
 #include <backends/imgui_impl_dx12.h>
 #include "Resources.h"
-#include "SceneEditor.h"
-#include "HardwareWindow.h"
-#include "PerformanceWindow.h"
+#include "WindowSceneEditor.h"
+#include "WindowHardware.h"
+#include "WindowPerformance.h"
 #include "EditorWindow.h"
 #include "ImGuizmo.h"
-#include "Logger.h"
+#include "WindowLogger.h"
 #include "ImGuiPass.h"
-#include "Hierarchy.h"
-#include "Inspector.h"
+#include "WindowHierarchy.h"
+#include "WindowInspector.h"
 #include "EditorSettings.h"
 #include "FileDialog.h"
 #include "SceneConfig.h"
-#include "GameWindow.h"
-#include "ViewGameDebug.h"
+#include "WindowGame.h"
+#include "WindowGameDebug.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -222,10 +222,10 @@ void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
     ImGuiID dock_playmode_buttons;
 	ImGui::DockBuilderSplitNode(dock_scene, ImGuiDir_Up, 0.1f, &dock_playmode_buttons, &dock_scene);
 
-    ImGui::DockBuilderDockWindow("Inspector", dock_inspector);
+    ImGui::DockBuilderDockWindow("WindowInspector", dock_inspector);
     ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
 
-    ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
+    ImGui::DockBuilderDockWindow("WindowHierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
 
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
@@ -244,29 +244,29 @@ void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
 
 bool ModuleEditor::init()
 {
-    m_gameViewModule = app->getModuleGameView();
+    m_moduleGameView = app->getModuleGameView();
 
-    m_editorWindows.push_back(m_logger = new Logger());
-    m_editorWindows.push_back(m_hardwareWindow = new HardwareWindow());
-    m_editorWindows.push_back(m_performanceWindow = new PerformanceWindow());
+    m_editorWindows.push_back(m_logger = new WindowLogger());
+    m_editorWindows.push_back(m_hardwareWindow = new WindowHardware());
+    m_editorWindows.push_back(m_performanceWindow = new WindowPerformance());
     m_editorWindows.push_back(m_editorSettings = new EditorSettings());
     m_editorWindows.push_back(new FileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
 	ModuleD3D12* _d3d12 = app->getModuleD3D12();
 
-    m_sceneEditor = new SceneEditor();
+    m_sceneEditor = new WindowSceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
     
-    Hierarchy* hierarchy = new Hierarchy();
-    Inspector* inspector = new Inspector();
+    WindowHierarchy* hierarchy = new WindowHierarchy();
+    WindowInspector* inspector = new WindowInspector();
 
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
 
-	m_editorWindows.push_back(m_gameWindow = new GameWindow());
+	m_editorWindows.push_back(m_gameWindow = new WindowGame());
 
-    m_viewGameDebug = std::make_unique<ViewGameDebug>();
+    m_viewGameDebug = std::make_unique<WindowGameDebug>();
 	return true;
 }
 
@@ -290,7 +290,7 @@ void ModuleEditor::update()
 void ModuleEditor::render()
 {
     #ifdef GAME_RELEASE
-        if (m_gameViewModule->getShowDebugWindow() && m_viewGameDebug)
+        if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
         {
             m_viewGameDebug->render();
         }
@@ -306,7 +306,7 @@ void ModuleEditor::render()
         (*it)->render();
     }
 
-    if (m_gameViewModule->getShowDebugWindow() && m_viewGameDebug)
+    if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
     {
         m_viewGameDebug->render();
     }
@@ -340,13 +340,13 @@ bool ModuleEditor::cleanUp()
 
 ImVec2 ModuleEditor::getEventViewport() const
 {
-    SceneEditor* sceneEditor = app->getModuleEditor()->getSceneEditor();
+    WindowSceneEditor* sceneEditor = app->getModuleEditor()->getWindowSceneEditor();
     if (sceneEditor && sceneEditor->isFocused())
     {
         return ImVec2(sceneEditor->getViewportX(), sceneEditor->getViewportY());
     }
 
-    GameWindow* gameWindow = app->getModuleEditor()->getGameWindow();
+    WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
     if (gameWindow && gameWindow->isFocused())
     {
         return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
@@ -356,13 +356,13 @@ ImVec2 ModuleEditor::getEventViewport() const
 
 ImVec2 ModuleEditor::getEventViewportSize() const
 {
-    SceneEditor* sceneEditor = app->getModuleEditor()->getSceneEditor();
+    WindowSceneEditor* sceneEditor = app->getModuleEditor()->getWindowSceneEditor();
     if (sceneEditor && sceneEditor->isFocused())
     {
         return sceneEditor->getSize();
     }
 
-    GameWindow* gameWindow = app->getModuleEditor()->getGameWindow();
+    WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
     if (gameWindow && gameWindow->isFocused())
     {
         return gameWindow->getSize();
