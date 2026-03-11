@@ -127,6 +127,7 @@ void Application::update()
 
     const PerfDataMap& data = getPerfData();
 
+    /*
     for (const auto& [name, perf] : data)
     {
         DEBUG_LOG("%s -> last: %.3f ms | avg: %.3f ms | max: %.3f ms\n",
@@ -135,12 +136,13 @@ void Application::update()
             perf.avgMs,
             perf.maxMs);
     }
+    */
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 
     m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
 
-    m_timeModule->waitForNextFrame();
+    //m_timeModule->waitForNextFrame();
 }
 
 bool Application::cleanUp()

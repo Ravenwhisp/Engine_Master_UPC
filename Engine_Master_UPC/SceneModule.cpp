@@ -70,18 +70,6 @@ void SceneModule::update()
 
 }
 
-void SceneModule::preRender()
-{
-    for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
-    {
-        if (gameObject->GetActive())
-        {
-            gameObject->preRender();
-        }
-    }
-
-}
-
 
 void SceneModule::createQuadtree()
 {
@@ -244,17 +232,6 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
     }
 #endif // GAME_RELEASE
 
-}
-
-void SceneModule::postRender()
-{
-    for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
-    {
-        if (gameObject->GetActive())
-        {
-            gameObject->postRender();
-        }
-    }
 }
 
 bool SceneModule::cleanUp()

@@ -47,12 +47,6 @@ void CameraComponent::recalculateFrustum()
 	m_frustum.m_rightFace   = Plane(m_frustum.m_points[1], m_frustum.m_points[5], m_frustum.m_points[6]);
 }
 
-void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
-{
-	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
-
-}
-
 void CameraComponent::update()
 {
 	// No se si es optimo, pero es para comprobar que aqui esta el error

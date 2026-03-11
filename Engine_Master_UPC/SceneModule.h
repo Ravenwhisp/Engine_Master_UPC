@@ -63,9 +63,7 @@ public:
 #pragma region GameLoop
 	bool init() override;
 	void update() override;
-	void preRender() override;
 	void render(ID3D12GraphicsCommandList* commandList);
-	void postRender() override;
 	bool cleanUp() override;
 #pragma endregion
 

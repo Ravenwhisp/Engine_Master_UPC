@@ -64,9 +64,6 @@ public:
 #pragma region GameLoop
 	bool init();
 	void update();
-	void preRender();
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
-	void postRender();
 	bool cleanUp();
 #pragma endregion
 
