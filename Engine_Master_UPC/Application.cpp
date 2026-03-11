@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "Application.h"
+
 #include "ModuleInput.h"
 #include "ModuleD3D12.h"
 #include "ModuleEditor.h"
@@ -16,6 +17,7 @@
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
 #include "PerformanceProfiler.h"
+
 #include <thread>
 
 #include "Settings.h"
@@ -26,6 +28,7 @@ using namespace std::chrono;
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
+    modules.push_back(m_moduleTime = new ModuleTime(120));
     modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
     modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
     modules.push_back(m_moduleDescriptors = new ModuleDescriptors());
@@ -46,7 +49,6 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     modules.push_back(m_moduleCamera = new ModuleCamera());
     modules.push_back(m_moduleScene = new ModuleScene());
-    modules.push_back(m_moduleTime = new ModuleTime(120));
 
     m_settings = new Settings();
 }

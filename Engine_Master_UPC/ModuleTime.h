@@ -1,13 +1,13 @@
 #pragma once
 #include "Module.h"
-#include "Timer.h"
 
+class Timer;
 
 class ModuleTime : public Module
 {
 public:
-	ModuleTime(int targetFps = 60): m_targetFps(targetFps) {}
-	~ModuleTime() override = default;
+	ModuleTime(int targetFps = 60);
+	~ModuleTime() override;
 
 	bool init() override;
 	void update() override;
@@ -16,15 +16,15 @@ public:
 	
 	float unscaledDeltaTime() const { return m_lastRealDelta; }
 	float deltaTime() const { return m_scale * m_lastRealDelta; }
-	float time() { return (m_realTimer.read() * 0.001f) * m_scale; }
+	float time();
 	float timeScale() const  { return m_scale; }
 	void setTimeScale(float scale) { m_scale = std::max(0.0f, scale); }
 	uint32_t frameCount() const { return m_frames; }
-	float realtimeSinceStartup()  { return m_realTimer.read() * 0.001f; }
+	float realtimeSinceStartup();
 
 private:
-	Timer m_realTimer;
-	Timer m_gameTimer;
+	std::unique_ptr<Timer> m_realTimer;
+	std::unique_ptr<Timer> m_gameTimer;
 
 	float m_scale = 1.0f;
 	uint64_t m_lastRealMs = 0;

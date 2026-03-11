@@ -8,6 +8,8 @@
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
 
+#include "ModelAsset.h"
+
 
 BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 {

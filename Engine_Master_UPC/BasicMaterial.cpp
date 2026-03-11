@@ -4,9 +4,11 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ModuleAssets.h"
-#include <TextureImporter.h>
 
-BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICacheable(uid)
+#include "ModelAsset.h"
+
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
+	: ICacheable(uid)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
@@ -29,5 +31,9 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 BasicMaterial::~BasicMaterial()
 {
 	app->getModuleResources()->defferResourceRelease(m_materialBuffer);
+}
 
+Texture* BasicMaterial::getTexture() const noexcept
+{
+	return m_textureColor.get();
 }

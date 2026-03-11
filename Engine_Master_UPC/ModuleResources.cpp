@@ -13,6 +13,7 @@
 
 #include "ModuleAssets.h"
 #include <TextureImporter.h>
+#include "ModelAsset.h"
 
 ModuleResources::~ModuleResources()
 {
