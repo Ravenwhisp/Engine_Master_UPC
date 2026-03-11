@@ -388,6 +388,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptComponent.h" />
+    <ClInclude Include="ScriptFactory.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Skybox.h" />
@@ -606,6 +607,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
+    <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
