@@ -308,6 +308,9 @@
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptFactory.cpp">
+      <Filter>Core\Scripting</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -694,7 +697,10 @@
       <Filter>Editor\EditorWindows\Performance</Filter>
     </ClInclude>
     <ClInclude Include="Script.h">
-      <Filter>GameEntity\Components</Filter>
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFactory.h">
+      <Filter>Core\Scripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -825,6 +831,9 @@
     </Filter>
     <Filter Include="Persistence\Assets">
       <UniqueIdentifier>{8d27eb04-c0da-431b-8da1-e70ef57cd788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting">
+      <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
