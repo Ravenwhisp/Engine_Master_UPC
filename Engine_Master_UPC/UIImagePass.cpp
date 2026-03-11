@@ -12,7 +12,7 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 
     m_upload->Begin();
 
-    RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, DXGI_FORMAT_D32_FLOAT);
+    RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);
 
     const SpriteBatchPipelineStateDescription pd(rtState);
 

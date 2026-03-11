@@ -20,6 +20,7 @@
 #include "ExitApplication.h"
 #include "CameraSwitcher.h"
 #include "TriggerArea.h"
+#include "ScriptComponent.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -94,6 +95,9 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::MODEL:
             m_components.push_back(std::make_unique<MeshRenderer>(GenerateUID(), this));
             break;
+        case ComponentType::SCRIPT:
+            m_components.push_back(std::make_unique<ScriptComponent>(GenerateUID(), this));
+            break;
         case ComponentType::PLAYER_WALK:
             m_components.push_back(std::make_unique<PlayerWalk>(GenerateUID(), this));
             break;
@@ -165,7 +169,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::MODEL:
         newComponent = std::make_unique<MeshRenderer>(id, this);
         break;
-
+    case ComponentType::SCRIPT:
+        newComponent = std::make_unique<ScriptComponent>(id, this);
+        break;
     case ComponentType::PLAYER_WALK:
         newComponent = std::make_unique<PlayerWalk>(id, this);
         break;
