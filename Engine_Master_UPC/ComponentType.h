@@ -4,6 +4,7 @@
     X(TRANSFORM)            \
     X(MODEL)                \
     X(LIGHT)                \
+    X(SCRIPT)               \
     X(PLAYER_WALK)          \
     X(CAMERA)               \
     X(TRANSFORM2D)          \
