@@ -305,6 +305,9 @@
     <ClCompile Include="ViewGameDebug.cpp">
       <Filter>Editor\EditorWindows\Performance</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -689,6 +692,9 @@
     </ClInclude>
     <ClInclude Include="ViewGameDebug.h">
       <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

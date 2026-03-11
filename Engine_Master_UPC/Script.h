@@ -1,30 +1,22 @@
 #pragma once
 
-#include "Component.h"
+class GameObject;
 
-class Script : public Component
+class Script
 {
 public:
-
-    Script(UID id, GameObject* owner)
-        : Component(id, ComponentType::SCRIPT, owner)
+    explicit Script(GameObject* owner)
+        : m_owner(owner)
     {
     }
 
     virtual ~Script() = default;
 
     virtual void Start() {}
-
     virtual void Update() {}
 
-    // Component update calls script update
-    void update() override
-    {
-        Update();
-    }
+    GameObject* getOwner() const { return m_owner; }
 
-    std::unique_ptr<Component> clone(GameObject* newOwner) const override
-    {
-        return nullptr;
-    }
+protected:
+    GameObject* m_owner = nullptr;
 };
