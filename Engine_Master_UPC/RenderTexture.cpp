@@ -13,7 +13,7 @@ RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Text
     assert(m_mipCount && m_mipCount <= Texture::MAX_MIPS);
 
     D3D12_RENDER_TARGET_VIEW_DESC desc{};
-    desc.Format = (info.rtvFormat != DXGI_FORMAT_UNKNOWN) ? info.rtvFormat : info.desc->Format;
+    desc.Format = info.desc->Format;
     desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
     desc.Texture2D.MipSlice = 0;
 

@@ -6,7 +6,6 @@ struct TextureInitInfo {
 	ID3D12Resource*						resource{ nullptr };
 	D3D12_SHADER_RESOURCE_VIEW_DESC*	srvDesc{};
 	D3D12_RESOURCE_DESC*				desc{};
-	DXGI_FORMAT							rtvFormat{ DXGI_FORMAT_UNKNOWN };
 	D3D12_RESOURCE_ALLOCATION_INFO1		allocInfo{};
 	D3D12_RESOURCE_STATES				initialState{ };
 	D3D12_CLEAR_VALUE					clearValue{  };
