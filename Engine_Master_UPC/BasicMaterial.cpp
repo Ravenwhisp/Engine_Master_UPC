@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ResourcesModule.h"
+#include "ModuleFlyweight.h"
 #include "AssetsModule.h"
 #include <TextureImporter.h>
 
@@ -11,7 +12,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
-		m_textureColor.reset(app->getResourcesModule()->createTexture2D(*baseMapTexture));
+		m_textureColor = app->getModuleFlyweight()->createTexture(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else

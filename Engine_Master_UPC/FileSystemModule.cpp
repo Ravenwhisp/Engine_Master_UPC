@@ -1,4 +1,6 @@
 #include "Globals.h"
+
+#include "Application.h"
 #include "FileSystemModule.h"
 #include <filesystem>
 #include <fstream>

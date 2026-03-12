@@ -332,6 +332,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
+    <ClInclude Include="ModuleFlyweight.h" />
     <ClInclude Include="NavigationAgentComponent.h" />
     <ClInclude Include="NavigationModule.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -546,6 +547,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightDebugDraw.cpp" />
+    <ClCompile Include="ModuleFlyweight.cpp" />
     <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="NavigationModule.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

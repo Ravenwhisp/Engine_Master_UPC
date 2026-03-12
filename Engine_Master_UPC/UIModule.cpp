@@ -9,6 +9,7 @@
 
 #include "SceneModule.h"
 #include "ResourcesModule.h"
+#include "ModuleFlyweight.h"
 #include "EditorModule.h"
 #include "Texture.h"
 
@@ -198,11 +199,13 @@ void UIModule::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
             auto textureIteration = m_uiTextures.find(assetId);
             if (textureIteration == m_uiTextures.end())
             {
-                auto texture = app->getResourcesModule()->createTexture2D(*asset);
+                auto texture = app->getModuleFlyweight()->createTexture(*asset);
                 if (texture)
                 {
                     m_uiTextures.emplace(assetId, std::move(texture));
-                    uiImg->setTexture(texture);
+                    Texture* texturePtr = m_uiTextures[assetId].get();
+
+                    uiImg->setTexture(texturePtr);
                 }
                 else
                 {
