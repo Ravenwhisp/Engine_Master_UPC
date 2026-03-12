@@ -24,7 +24,7 @@ VertexBuffer::VertexBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> resourc
 
 VertexBuffer::~VertexBuffer() 
 {
-	app->getResourcesModule()->defferResourceRelease(getD3D12Resource());
+	app->getResourcesModule()->deferResourceRelease(getD3D12Resource());
 }
 
 void VertexBuffer::createVertexBufferView()

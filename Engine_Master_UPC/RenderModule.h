@@ -7,13 +7,11 @@
 #include <MeshRendererPass.h>
 #include <DebugDrawPass.h>
 #include <ImGuiPass.h>
-#include "RenderTexture.h"
+#include "Texture.h"
 
 
 class Settings;
 class RingBuffer;
-class RenderTexture;
-class DepthBuffer;
 class GameObject;
 class VertexBuffer;
 class IndexBuffer;

@@ -311,7 +311,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="D3D12Module.h" />
     <ClInclude Include="DebugDrawPass.h" />
     <ClInclude Include="debug_draw.hpp" />
-    <ClInclude Include="DepthBuffer.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="DescriptorsModule.h" />
     <ClInclude Include="EditorModule.h" />
@@ -379,7 +378,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PlatformHelpers.h" />
     <ClInclude Include="ReadData.h" />
     <ClInclude Include="RenderModule.h" />
-    <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="ResourcesModule.h" />
@@ -536,7 +534,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="DepthBuffer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="DescriptorsModule.cpp" />
     <ClCompile Include="EditorModule.cpp" />
@@ -598,7 +595,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="PerformanceProfiler.cpp" />
     <ClCompile Include="PerformanceWindow.cpp" />
     <ClCompile Include="RenderModule.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="ResourcesModule.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
