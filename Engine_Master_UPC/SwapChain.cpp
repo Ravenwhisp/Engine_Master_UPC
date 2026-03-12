@@ -114,7 +114,7 @@ void SwapChain::resize()
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
         {
             app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_renderTargets[n].rtv.handle);
-            app->getResourcesModule()->defferResourceRelease(m_renderTargets[n].resource);
+            app->getResourcesModule()->deferResourceRelease(m_renderTargets[n].resource);
         }
 
         createRenderTargetViews(app->getD3D12Module()->getDevice());

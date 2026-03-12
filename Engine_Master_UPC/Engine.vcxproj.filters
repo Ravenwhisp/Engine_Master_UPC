@@ -139,12 +139,6 @@
     <ClCompile Include="Texture.cpp">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClCompile>
-    <ClCompile Include="DepthBuffer.cpp">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTexture.cpp">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -459,12 +453,6 @@
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthBuffer.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
     <ClInclude Include="Layer.h">

@@ -12,7 +12,6 @@
 #include "UIModule.h"
 
 #include "RingBuffer.h"
-#include "RenderTexture.h"
 
 #include "LightComponent.h"
 #include "Transform.h"
@@ -20,7 +19,6 @@
 #include "Skybox.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "DepthBuffer.h"
 
 #include "Logger.h"
 

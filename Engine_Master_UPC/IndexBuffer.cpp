@@ -24,7 +24,7 @@ IndexBuffer::IndexBuffer(ID3D12Device4& device, Microsoft::WRL::ComPtr<ID3D12Res
 
 IndexBuffer::~IndexBuffer()
 {
-    app->getResourcesModule()->defferResourceRelease(getD3D12Resource());
+    app->getResourcesModule()->deferResourceRelease(getD3D12Resource());
 }
 
 void IndexBuffer::createIndexBufferView()

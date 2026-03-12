@@ -28,5 +28,5 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 
 BasicMaterial::~BasicMaterial()
 {
-	app->getResourcesModule()->defferResourceRelease(m_materialBuffer);
+	app->getResourcesModule()->deferResourceRelease(m_materialBuffer);
 }
