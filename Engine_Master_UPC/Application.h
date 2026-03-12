@@ -22,6 +22,7 @@ class GameViewModule;
 class FileSystemModule;
 class AssetsModule;
 class ModuleEventSystem;
+class ModuleFlyweight;
 
 class CameraComponent;
 
@@ -60,6 +61,7 @@ public:
     FileSystemModule*           getFileSystemModule() { return m_fileSystemModule; }
     AssetsModule*               getAssetModule() { return m_assetsModule; }
     ModuleEventSystem*          getModuleEventSystem() { return m_moduleEventSystem; }
+    ModuleFlyweight*			getModuleFlyweight() { return m_moduleFlyweight; }
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -98,6 +100,7 @@ private:
     AssetsModule*           m_assetsModule = nullptr;
     UIModule*               m_uiModule = nullptr;
     ModuleEventSystem*      m_moduleEventSystem = nullptr;
+    ModuleFlyweight*		m_moduleFlyweight = nullptr;
 
     Settings*               m_settings = nullptr;
 

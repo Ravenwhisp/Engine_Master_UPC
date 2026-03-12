@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ResourcesModule.h"
+#include "ModuleFlyweight.h"
 #include "TextureAsset.h"
 
 struct SkyboxVertex { Vector3 position; };
@@ -28,5 +29,5 @@ SkyBox::SkyBox(TextureAsset& asset)
 
     m_vertexBuffer.reset(app->getResourcesModule()->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyboxVertex)));
     m_indexBuffer.reset(app->getResourcesModule()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT));
-    m_texture.reset(app->getResourcesModule()->createTextureCube(asset));
+    m_texture = app->getModuleFlyweight()->createTexture(asset);
 }

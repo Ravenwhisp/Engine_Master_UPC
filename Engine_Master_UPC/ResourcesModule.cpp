@@ -54,7 +54,6 @@ void ResourcesModule::preRender()
 
 bool ResourcesModule::cleanUp()
 {
-	m_resources.clear();
 	m_deferredResources.clear();
 	return true;
 }
@@ -122,15 +121,19 @@ Texture* ResourcesModule::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ResourcesModule::createTextureFromAsset(const TextureAsset& textureAsset)
+Texture* ResourcesModule::createNullTexture2D()
 {
-	UID uid = textureAsset.getId();
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.width = 1;
+	desc.height = 1;
+	desc.mipLevels = 1;
+	desc.views = TextureView::SRV;
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
 
-	if (Texture* cached = getResource<Texture>(uid))
-	{
-		return cached;
-	}
-
+Texture* ResourcesModule::createTexture(const TextureAsset& textureAsset)
+{
 	TextureDesc desc{};
 	desc.format = DirectX::MakeSRGB(textureAsset.getFormat());
 	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
@@ -140,7 +143,7 @@ Texture* ResourcesModule::createTextureFromAsset(const TextureAsset& textureAsse
 	desc.views = TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), desc);
+	auto texture = new Texture(textureAsset.getId(), *m_device.Get(), desc);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -158,61 +161,7 @@ Texture* ResourcesModule::createTextureFromAsset(const TextureAsset& textureAsse
 	}
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
-
-	Texture* raw = texture.get();
-	registerResource(uid, std::move(texture));
-	return raw;
-}
-
-Texture* ResourcesModule::createTexture2D(const TextureAsset& textureAsset)
-{
-	return createTextureFromAsset(textureAsset);
-}
-
-Texture* ResourcesModule::createTextureCube(const TextureAsset& textureAsset)
-{
-	return createTextureFromAsset(textureAsset);
-}
-
-Texture* ResourcesModule::createNullTexture2D()
-{
-	TextureDesc desc{};
-	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.width = 1;
-	desc.height = 1;
-	desc.mipLevels = 1;
-	desc.views = TextureView::SRV;
-	return new Texture(GenerateUID(), *m_device.Get(), desc);
-}
-
-BasicMesh* ResourcesModule::createMesh(const MeshAsset& meshAsset)
-{
-	UID uid = meshAsset.getId();
-
-	if (BasicMesh* cached = getResource<BasicMesh>(uid))
-	{
-		return cached;
-	}
-
-	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
-	BasicMesh* raw = mesh.get();
-	registerResource(uid, std::move(mesh));
-	return raw;
-}
-
-BasicMaterial* ResourcesModule::createMaterial(const MaterialAsset& materialAsset)
-{
-	UID uid = materialAsset.getId();
-
-	if (BasicMaterial* cached = getResource<BasicMaterial>(uid))
-	{
-		return cached;
-	}
-
-	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
-	BasicMaterial* raw = material.get();
-	registerResource(uid, std::move(material));
-	return raw;
+	return texture;
 }
 
 RingBuffer* ResourcesModule::createRingBuffer(size_t size)

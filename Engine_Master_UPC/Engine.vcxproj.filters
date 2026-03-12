@@ -299,6 +299,9 @@
     <ClCompile Include="ViewGameDebug.cpp">
       <Filter>Editor\EditorWindows\Performance</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleFlyweight.cpp">
+      <Filter>D3D12\Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -677,6 +680,9 @@
     </ClInclude>
     <ClInclude Include="ViewGameDebug.h">
       <Filter>Editor\EditorWindows\Performance</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleFlyweight.h">
+      <Filter>D3D12\Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
