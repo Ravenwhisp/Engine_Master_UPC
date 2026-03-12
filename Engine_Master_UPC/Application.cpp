@@ -16,14 +16,9 @@
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
-#include "PerformanceProfiler.h"
-
-#include <thread>
 
 #include "Settings.h"
-
-using namespace std::chrono;
-
+#include "PerformanceProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)

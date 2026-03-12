@@ -1,9 +1,8 @@
 #pragma once
-#include "Globals.h"
 
-#include <array>
 #include <vector>
-#include <chrono>
+#include <cstdint>
+#include <windef.h>
 
 class Module;
 class ModuleD3D12;
@@ -24,10 +23,9 @@ class ModuleAssets;
 class ModuleEventSystem;
 
 class CameraComponent;
-
 class Settings;
 
-enum ENGINE_STATE
+enum class ENGINE_STATE
 {
     PLAYING,
     PAUSED,
@@ -67,7 +65,7 @@ public:
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
     void setCurrentCameraPerspective(CameraComponent* camera) { m_currentCameraPerspective = camera; }
 
-	const ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
+	ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
 	void setEngineState(int index) { m_currentEngineState = static_cast<ENGINE_STATE>(index); }
 
     bool        isPaused() const { return m_paused; }

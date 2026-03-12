@@ -5,7 +5,6 @@
 
 #include "Timer.h"
 
-
 ModuleTime::ModuleTime(int targetFps) : m_targetFps(targetFps) {}
 
 ModuleTime::~ModuleTime() = default;

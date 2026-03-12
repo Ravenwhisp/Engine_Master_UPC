@@ -1,5 +1,4 @@
 #pragma once
-#include "Globals.h"
 
 #ifdef GAME_RELEASE
 constexpr bool DEFAULT_DEBUG = false;
