@@ -326,8 +326,10 @@ void GameObject::update()
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->isActive())
-            DEBUG_LOG("calling update component");
+        {
+            //DEBUG_LOG("calling update component");
             component->update();
+        }
     }
 
     for (GameObject* child : m_transform->getAllChildren())

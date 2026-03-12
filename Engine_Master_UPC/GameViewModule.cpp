@@ -5,6 +5,7 @@
 #include "InputModule.h"
 
 #include "GameObject.h"
+#include "ScriptComponent.h"
 
 GameViewModule::GameViewModule()
 {
@@ -41,19 +42,12 @@ void GameViewModule::update()
 
 	if(app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
 	{
-		for (GameObject* gameObject : m_sceneModule->getAllGameObjects())
-		{
-			if (gameObject->GetActive())
-			{
-				gameObject->update();
-			}
-		}
-
 		if (keyTracker.pressed.F3)
 		{
 			m_showDebugWindow = !m_showDebugWindow;
 		}
-	} else
+	} 
+	else
 	{
 		m_showDebugWindow = false;
 	}
@@ -64,6 +58,8 @@ void GameViewModule::startGameSimulation()
 {
 	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
 	m_sceneCloned = m_sceneModule->getClonedGameObjects();
+
+	instantiateScriptsOnPlay();
 }
 
 void GameViewModule::stopGameSimulation()
@@ -72,4 +68,19 @@ void GameViewModule::stopGameSimulation()
 	m_sceneModule->resetGameObjects(std::move(m_sceneCloned));
 
 	m_sceneCloned = SceneSnapshot();
+}
+
+void GameViewModule::instantiateScriptsOnPlay() {
+	// scripts instantiation
+	for (GameObject* gameObject : m_sceneModule->getAllGameObjects())
+	{
+		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
+		if (scriptComponent && !scriptComponent->getScriptName().empty())
+		{
+			scriptComponent->destroyScriptInstance();
+
+			bool created = scriptComponent->createScriptInstance();
+			assert(created);
+		}
+	}
 }

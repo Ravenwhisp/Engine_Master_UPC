@@ -3,6 +3,8 @@
 #include "UID.h" 
 
 #include <rapidjson/document.h>
+#include <unordered_map>
+
 class Transform;
 class GameObject;
 
