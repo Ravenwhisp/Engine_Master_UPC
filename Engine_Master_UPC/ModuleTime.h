@@ -1,5 +1,10 @@
 #pragma once
+
 #include "Module.h"
+
+#include <memory>
+#include <cstdint>
+#include <algorithm>
 
 class Timer;
 
@@ -17,7 +22,7 @@ public:
 	float unscaledDeltaTime() const { return m_lastRealDelta; }
 	float deltaTime() const { return m_scale * m_lastRealDelta; }
 	float time();
-	float timeScale() const  { return m_scale; }
+	float timeScale() const { return m_scale; }
 	void setTimeScale(float scale) { m_scale = std::max(0.0f, scale); }
 	uint32_t frameCount() const { return m_frames; }
 	float realtimeSinceStartup();

@@ -1,10 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <cstdint>
 #include "SimpleMath.h"
-
-using DirectX::SimpleMath::Vector3;
 
 struct LightDefaults
 {
