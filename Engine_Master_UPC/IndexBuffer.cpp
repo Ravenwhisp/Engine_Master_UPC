@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "IndexBuffer.h"
+
 #include "Application.h"
 #include "ModuleResources.h"
 

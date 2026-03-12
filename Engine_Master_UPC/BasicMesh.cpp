@@ -1,15 +1,12 @@
 #include "Globals.h"
 #include "BasicMesh.h"
 
-#include "UtilityGLFT.h"
 #include "Application.h"
 #include "ModuleResources.h"
 
-#include "IndexBuffer.h"
-#include "VertexBuffer.h"
-
 #include "ModelAsset.h"
-
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 {
@@ -25,6 +22,8 @@ BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 		m_indexBuffer = app->getModuleResources()->createIndexBuffer(asset.getIndexData(), asset.getIndexCount(), asset.getIndexFormat());
 	}
 }
+
+BasicMesh::~BasicMesh() = default;
 
 bool BasicMesh::hasIndexBuffer() const
 {

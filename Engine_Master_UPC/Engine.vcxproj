@@ -389,8 +389,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptComponent.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleMath.h" />
-    <ClInclude Include="Skybox.h" />
-    <ClInclude Include="SkyboxPass.h" />
+    <ClInclude Include="SkyBox.h" />
+    <ClInclude Include="SkyBoxPass.h" />
     <ClInclude Include="Tag.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureAsset.h" />
@@ -609,8 +609,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Skybox.cpp" />
-    <ClCompile Include="SkyboxPass.cpp" />
+    <ClCompile Include="SkyBox.cpp" />
+    <ClCompile Include="SkyBoxPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureImporter.cpp" />
@@ -654,7 +654,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="SkyboxPixelShader.hlsl">
+    <FxCompile Include="SkyBoxPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
@@ -662,7 +662,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="SkyboxVertexShader.hlsl">
+    <FxCompile Include="SkyBoxVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

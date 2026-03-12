@@ -230,15 +230,6 @@
     <ClCompile Include="Canvas.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="FontPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshRendererPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyboxPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="MeshRenderer.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -284,10 +275,7 @@
     <ClCompile Include="WindowGameDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Skybox.cpp">
+    <ClCompile Include="SkyBox.cpp">
       <Filter>D3D12\Entities</Filter>
     </ClCompile>
     <ClCompile Include="EditorToolbar.cpp">
@@ -304,6 +292,18 @@
     </ClCompile>
     <ClCompile Include="WindowLogger.cpp">
       <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="FontPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBoxPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -579,24 +579,6 @@
     <ClInclude Include="Canvas.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="FontPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ILightPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="IMatrixPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="IRenderPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshRendererPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyboxPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="MeshRenderer.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -666,13 +648,10 @@
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Lights.h">
       <Filter>D3D12\Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Skybox.h">
+    <ClInclude Include="SkyBox.h">
       <Filter>D3D12\Entities</Filter>
     </ClInclude>
     <ClInclude Include="EditorToolbar.h">
@@ -689,6 +668,27 @@
     </ClInclude>
     <ClInclude Include="WindowLogger.h">
       <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="FontPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="ILightPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IMatrixPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -826,6 +826,9 @@
     <Filter Include="Editor\Toolbars">
       <UniqueIdentifier>{2ac420dc-456e-4836-bbad-d43c6c2c4223}</UniqueIdentifier>
     </Filter>
+    <Filter Include="D3D12\Rendering\Pass">
+      <UniqueIdentifier>{c00f1a7c-5fee-4c5c-a935-e6462080d839}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -845,13 +848,13 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxVertexShader.hlsl">
+    <FxCompile Include="SkyBoxVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="LightPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxPixelShader.hlsl">
+    <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

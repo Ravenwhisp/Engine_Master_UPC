@@ -1,13 +1,16 @@
 #pragma once
 #include "Module.h"
-#include "ModuleDescriptors.h"
-#include "Lights.h"
-#include <IRenderPass.h>
-#include <SkyboxPass.h>
-#include <MeshRendererPass.h>
-#include <DebugDrawPass.h>
-#include <ImGuiPass.h>
 
+#include <d3d12.h>
+#include <wrl/client.h>
+#include <memory>
+#include <vector>
+
+#include "ModuleDescriptors.h";
+
+using Microsoft::WRL::ComPtr;
+
+class ModuleGameView;
 class Settings;
 class RingBuffer;
 class RenderTexture;
@@ -16,8 +19,18 @@ class GameObject;
 class VertexBuffer;
 class IndexBuffer;
 class Texture;
+class SkyBoxPass;
+class MeshRendererPass;
+class DebugDrawPass;
+class ImGuiPass;
+class IRenderPass;
 
-class ModuleGameView;
+struct SkyBoxSettings;
+
+namespace DirectX { namespace SimpleMath { struct Matrix; struct Vector3; } }
+
+using Matrix = DirectX::SimpleMath::Matrix;
+using Vector3 = DirectX::SimpleMath::Vector3;
 
 class ModuleRender: public Module
 {
@@ -66,7 +79,7 @@ public:
 	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
 
-	bool applySkyboxSettings(const SkyboxSettings& settings);
+	bool applySkyBoxSettings(const SkyBoxSettings& settings);
 
 	int getTriangles() { return m_triangles; }
 private:

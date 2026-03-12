@@ -7,25 +7,21 @@
 #include "ModuleResources.h"
 #include "ModuleCamera.h"
 #include "ModuleGameView.h"
-
 #include "ModuleScene.h"
 #include "ModuleUI.h"
 
 #include "RingBuffer.h"
 #include "RenderTexture.h"
-
-#include "LightComponent.h"
-#include "Transform.h"
-
-#include "Skybox.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
 #include "DepthBuffer.h"
-
-#include "WindowLogger.h"
 
 #include "GameObject.h"
 #include "CameraComponent.h"
+#include "Transform.h"
+
+#include "ImGuiPass.h"
+#include "SkyBoxPass.h"
+#include "MeshRendererPass.h"
+#include "DebugDrawPass.h"
 
 bool ModuleRender::init()
 {
@@ -37,13 +33,13 @@ bool ModuleRender::init()
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
-    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getSkyboxSettings());
+    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getSkyBoxSettings());
     m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
 
-    //m_skyboxTexture = app->getModuleResources()->createTextureCubeFromFile(path(m_settings->skybox.path), "Skybox");
-    //m_hasSkybox = (m_skyboxTexture != nullptr);
+    //m_skyboxTexture = app->getModuleResources()->createTextureCubeFromFile(path(m_settings->skybox.path), "SkyBox");
+    //m_hasSkyBox = (m_skyboxTexture != nullptr);
 
     m_editorScreenRT = app->getModuleResources()->createRenderTexture(m_size.x, m_size.y);
     m_playScreenRT = app->getModuleResources()->createRenderTexture(m_size.x, m_size.y);
@@ -297,7 +293,7 @@ D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
 }
 
-bool ModuleRender::applySkyboxSettings(const SkyboxSettings& settings)
+bool ModuleRender::applySkyBoxSettings(const SkyBoxSettings& settings)
 {
     m_skyBoxPass->setSettings(settings);
 

@@ -9,7 +9,7 @@
 #include <d3dcompiler.h>
 #include "RingBuffer.h"
 #include <PlatformHelpers.h>
-#include "Skybox.h"
+#include "SkyBox.h"
 
 ModuleD3D12::ModuleD3D12(HWND hwnd) 
 {

@@ -24,10 +24,8 @@ public:
     friend class BasicMesh;
 
 protected:
-
-
-
     void createIndexBufferView();
+
 private:
     size_t      m_NumIndices;
     DXGI_FORMAT m_IndexFormat;

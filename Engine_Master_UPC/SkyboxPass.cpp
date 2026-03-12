@@ -1,15 +1,22 @@
 #include "Globals.h"
-#include "SkyboxPass.h"
-#include "Skybox.h"
+#include "SkyBoxPass.h"
 
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"
 #include "ModuleAssets.h"
-#include <PlatformHelpers.h>
-#include <d3dcompiler.h>
 
-SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) : m_device(device)
+#include "SkyBox.h"
+#include "Texture.h"
+#include "TextureAsset.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
+#include <d3dx12.h>
+#include <d3dcompiler.h>
+#include <PlatformHelpers.h>
+
+SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) : m_device(device)
 {
     setSettings(settings);
 
@@ -43,10 +50,10 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) :
 #endif
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkyboxVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxVertexShader.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkyboxPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxPixelShader.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
@@ -75,6 +82,7 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) :
     DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
+SkyBoxPass::~SkyBoxPass() = default;
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
@@ -115,7 +123,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->DrawIndexedInstanced(m_skyBox->getIndexBuffer()->getNumIndices(), 1, 0, 0, 0);
 }
 
-void SkyBoxPass::setSettings(const SkyboxSettings& settings)
+void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
 {
     if (!settings.enabled)
     {
@@ -135,7 +143,7 @@ void SkyBoxPass::setSettings(const SkyboxSettings& settings)
 
     if (!asset)
     {
-        DEBUG_ERROR("Skybox cubemap asset not found");
+        DEBUG_ERROR("SkyBox cubemap asset not found");
         m_skyBox.reset();
         return;
     }
