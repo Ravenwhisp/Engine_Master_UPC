@@ -87,10 +87,6 @@ private:
 
 	std::shared_ptr<FileEntry> m_root;
 #pragma endregion
-
-	std::unordered_map<UID, AssetMetadata> m_metadataMap;
-	std::unordered_map<std::string, UID>    m_pathIndex;
-
 	std::vector<PendingImport> m_pendingImports;
 
 	FileIO*				m_fileIO{ nullptr };
