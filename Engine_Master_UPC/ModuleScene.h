@@ -21,7 +21,7 @@ struct SceneLightingSettings
 	float ambientIntensity;
 };
 
-struct SkyboxSettings
+struct SkyBoxSettings
 {
 	bool enabled = true;
 	UID cubemapAssetId = 0;
@@ -51,7 +51,7 @@ private:
 
 	SceneLightingSettings		m_lighting;
 	SceneDataCB					m_sceneDataCB;
-	SkyboxSettings				m_skybox;
+	SkyBoxSettings				m_skybox;
 
 	CameraComponent* m_defaultCamera = nullptr;
 	std::string m_pendingSceneLoad;
@@ -72,10 +72,10 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	void serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
 	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
-	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
+	rapidjson::Value getSkyBoxJSON(rapidjson::Document& domTree);
 
 	bool loadFromJSON(const rapidjson::Value& sceneJson);
-	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
+	bool loadSceneSkyBox(const rapidjson::Value& sceneJson);
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
 	void fixLoadedSceneReferences();
 	void resolveDefaultCamera(const rapidjson::Value& sceneJson);
@@ -118,10 +118,10 @@ public:
 
 	SceneLightingSettings& GetLightingSettings() { return m_lighting; }
 	SceneDataCB& getCBData() { return m_sceneDataCB; }
-	SkyboxSettings& getSkyboxSettings() { return m_skybox; }
-	const SkyboxSettings& getSkyboxSettings() const { return m_skybox; }
+	SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
+	const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
 
-	bool applySkyboxToRenderer();
+	bool applySkyBoxToRenderer();
 
 	Quadtree* getQuadtree() { return m_quadtree.get(); }
 	void createQuadtree();

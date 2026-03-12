@@ -1,20 +1,30 @@
 #include "Globals.h"
 #include "MeshRendererPass.h"
-#include <LightComponent.h>
 
 #include "Application.h"
+#include "ModuleD3D12.h"
 #include "ModuleDescriptors.h"
 #include "ModuleRender.h"
-#include <MeshRenderer.h>
-#include "ModuleD3D12.h"
-#include <PlatformHelpers.h>
+#include "ModuleScene.h"
+
+#include "RingBuffer.h"
+#include "MeshRenderer.h"
+#include "GameObject.h"
+#include "LightComponent.h"
+#include "VertexBuffer.h"
+#include "Texture.h"
+
+#include "SimpleMath.h"
 #include <d3dcompiler.h>
-#include "Settings.h"
+#include "PlatformHelpers.h"
 
 MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer): m_device(device)
 {
-    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
-    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+	m_lighting = std::make_unique<SceneLightingSettings>();
+	m_sceneDataCB = std::make_unique<SceneDataCB>();
+
+    m_lighting->ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     m_ringBuffer = ringBuffer;
 
@@ -82,6 +92,13 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* rin
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
+}
+
+MeshRendererPass::~MeshRendererPass() = default;
+
+void MeshRendererPass::setCameraPosition(const Vector3& cameraPos)
+{
+    m_sceneDataCB->viewPos = cameraPos;
 }
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -163,8 +180,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
 D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 {
-
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getAllGameObjects(), m_lighting.ambientColor, m_lighting.ambientIntensity);
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getAllGameObjects(), m_lighting->ambientColor, m_lighting->ambientIntensity);
 
     return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }
@@ -220,7 +236,6 @@ GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<Gam
         const Vector3 position(world._41, world._42, world._43);
 
         Vector3 forward = transform->getForward();
-        forward.Normalize();
 
         switch (lightData.type)
         {

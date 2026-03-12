@@ -1,22 +1,25 @@
 #pragma once
-#include "Globals.h"
+
+#include <memory>
+#include <vector>
 
 #include "ICacheable.h"
+#include "SimpleMath.h"
 
 class MeshAsset;
-
 class VertexBuffer;
 class IndexBuffer;
 
 struct Submesh;
 
-namespace tinygltf { class Model;  struct Mesh; struct Primitive; }
+using DirectX::SimpleMath::Vector3;
 
 class BasicMesh : public ICacheable
 {
 public:
 	explicit BasicMesh(const UID uid, const MeshAsset& asset);
-	~BasicMesh() = default;
+	~BasicMesh();
+
 	std::unique_ptr<VertexBuffer>& getVertexBuffer() { return m_vertexBuffer; }
 	std::unique_ptr<IndexBuffer>& getIndexBuffer() { return m_indexBuffer; }
 	std::vector<Submesh>& getSubmeshes() { return m_submeshes; }
@@ -24,7 +27,7 @@ public:
 	std::vector<Vector3>& getVertexPositions() { return m_vertexPositions; }
 	std::vector<uint8_t>& getIndices() { return m_indices; }
 
-	bool			hasIndexBuffer() const;
+	bool hasIndexBuffer() const;
 
 private:
 	std::unique_ptr<VertexBuffer>	m_vertexBuffer;

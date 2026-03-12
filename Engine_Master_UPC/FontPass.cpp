@@ -1,28 +1,29 @@
 #include "Globals.h"
 #include "FontPass.h"
+
 #include "Application.h"
-#include "Settings.h"
 #include "ModuleRender.h"
 #include "ModuleD3D12.h"
-
-#include "CommandQueue.h"
 #include "ModuleTime.h"
 
-FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
+#include "Settings.h"
+#include "CommandQueue.h"
+
+#include "UICommands.h"
+
+FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
 	m_settings = app->getSettings();
 
 	m_fontHeap = std::make_unique<DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
 
-	m_upload =  std::make_unique<ResourceUploadBatch>(device.Get());
+	m_upload = std::make_unique<ResourceUploadBatch>(device.Get());
 
 	m_upload->Begin();
 
-	RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB , DXGI_FORMAT_D32_FLOAT);
+	RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, DXGI_FORMAT_D32_FLOAT);
 
 	const SpriteBatchPipelineStateDescription pd(rtState);
-
-	auto upload2 = m_upload.get();
 
 	m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
@@ -63,7 +64,7 @@ void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
 {
-	if (!m_viewport)
+	if (!m_viewport || !m_spriteBatch)
 	{
 		return;
 	}

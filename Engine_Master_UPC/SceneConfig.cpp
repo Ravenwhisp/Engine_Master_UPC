@@ -57,7 +57,7 @@ void SceneConfig::render()
 
     ImGui::Separator();
 
-    drawSkyboxSettings();
+    drawSkyBoxSettings();
 
     ImGui::Separator();
 
@@ -173,11 +173,11 @@ void SceneConfig::drawNavmeshSettings()
 }
 
 
-void SceneConfig::drawSkyboxSettings() 
+void SceneConfig::drawSkyBoxSettings() 
 {
-    auto& skyboxSettings = m_moduleScene->getSkyboxSettings();
+    auto& skyboxSettings = m_moduleScene->getSkyBoxSettings();
 
-    if (ImGui::CollapsingHeader("Skybox")) 
+    if (ImGui::CollapsingHeader("SkyBox")) 
     {
 
         if (ImGui::Checkbox("Enabled###SkyEnabled", &skyboxSettings.enabled))
@@ -200,7 +200,7 @@ void SceneConfig::drawSkyboxSettings()
 
         if (ImGui::Button("Apply###SkyApply") && m_skyboxDirty)
         {
-            if (m_moduleScene->applySkyboxToRenderer())
+            if (m_moduleScene->applySkyBoxToRenderer())
             {
                 m_skyboxDirty = false;
             }

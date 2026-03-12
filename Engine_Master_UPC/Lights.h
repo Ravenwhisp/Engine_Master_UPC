@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "SimpleMath.h"
 
+using DirectX::SimpleMath::Vector3;
+
 struct LightDefaults
 {
     static constexpr float DEFAULT_INTENSITY = 1.0f;

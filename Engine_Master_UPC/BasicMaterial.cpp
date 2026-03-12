@@ -5,6 +5,7 @@
 #include "ModuleResources.h"
 #include "ModuleAssets.h"
 
+#include "Texture.h"
 #include "ModelAsset.h"
 
 BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)

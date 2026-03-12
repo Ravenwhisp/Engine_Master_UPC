@@ -50,7 +50,7 @@ bool ModuleScene::init()
 
     createDirectionalLightOnInit();
 
-    applySkyboxToRenderer();
+    applySkyBoxToRenderer();
 
     return true;
 }
@@ -439,9 +439,9 @@ GameObject* ModuleScene::createDirectionalLightOnInit()
     return raw;
 }
 
-bool ModuleScene::applySkyboxToRenderer()
+bool ModuleScene::applySkyBoxToRenderer()
 {
-    return app->getModuleRender()->applySkyboxSettings(m_skybox);
+    return app->getModuleRender()->applySkyBoxSettings(m_skybox);
 }
 
 
@@ -450,7 +450,7 @@ rapidjson::Value ModuleScene::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value sceneInfo(rapidjson::kObjectType);
 
-    sceneInfo.AddMember("Skybox", getSkyboxJSON(domTree), domTree.GetAllocator());
+    sceneInfo.AddMember("SkyBox", getSkyBoxJSON(domTree), domTree.GetAllocator());
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
 
     uint64_t defaultCameraOwnerUid = 0;
@@ -505,7 +505,7 @@ rapidjson::Value ModuleScene::getLightingJSON(rapidjson::Document& domTree)
     return lightingInfo;
 }
 
-rapidjson::Value ModuleScene::getSkyboxJSON(rapidjson::Document& domTree)
+rapidjson::Value ModuleScene::getSkyBoxJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value skyboxInfo(rapidjson::kObjectType);
 
@@ -521,7 +521,7 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
 
     clearScene();
 
-    if (!loadSceneSkybox(sceneJson))
+    if (!loadSceneSkyBox(sceneJson))
     {
 		DEBUG_LOG("Failed to load skybox settings from scene JSON. Possible wrong version of scene data.");
         return false;
@@ -566,20 +566,20 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
 
     fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
-    applySkyboxToRenderer();
+    applySkyBoxToRenderer();
 
     return true;
 }
 
-bool ModuleScene::loadSceneSkybox(const rapidjson::Value& sceneJson)
+bool ModuleScene::loadSceneSkyBox(const rapidjson::Value& sceneJson)
 {
-    if (!sceneJson.HasMember("Skybox"))
+    if (!sceneJson.HasMember("SkyBox"))
     {
         return false;
     }
 
-    auto& skybox = getSkyboxSettings();
-    const auto& skyboxJson = sceneJson["Skybox"];
+    auto& skybox = getSkyBoxSettings();
+    const auto& skyboxJson = sceneJson["SkyBox"];
 
     if (!skyboxJson.HasMember("Enabled") && skyboxJson["Enabled"].IsBool())
     {
