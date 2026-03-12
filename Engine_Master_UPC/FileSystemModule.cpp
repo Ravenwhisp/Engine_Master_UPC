@@ -25,6 +25,10 @@ bool FileSystemModule::init()
     m_importerRegistry = new ImporterRegistry();
     m_metadataStore = new MetadataStore();
 
+    m_importerRegistry->registerImporter(std::make_unique<TextureImporter>());
+    m_importerRegistry->registerImporter(std::make_unique<ModelImporter>());
+    m_importerRegistry->registerImporter(std::make_unique<FontImporter>());
+
     rebuild();
 
     return true;
@@ -106,8 +110,7 @@ void FileSystemModule::rebuild()
     if (!s.empty() && s.back() == '/')
         s.pop_back();
 
-    m_metadataMap.clear();
-    m_pathIndex.clear();
+    m_metadataStore->clear();
     m_pendingImports.clear();
 
     checkFile(s);
@@ -119,13 +122,12 @@ void FileSystemModule::rebuild()
             std::filesystem::path metaPath = pending.sourcePath;
             metaPath += METADATA_EXTENSION;
 
-            if (exists(metaPath.string().c_str()))
+            if (m_fileIO->exists(metaPath.string().c_str()))
             {
-                if (m_pathIndex.find(pending.sourcePath.string()) == m_pathIndex.end())
+                if (m_metadataStore->findByPath(pending.sourcePath) == INVALID_ASSET_ID)
                 {
                     loadMetadata(metaPath);
                 }
-
                 continue;
             }
         }
@@ -136,21 +138,18 @@ void FileSystemModule::rebuild()
     m_root = buildTree(s);
 }
 
+
 UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
 {
-    auto it = m_pathIndex.find(sourcePath.lexically_normal().string());
-    if (it != m_pathIndex.end())
-    {
-        return it->second;
-    }
-    return INVALID_ASSET_ID;
+    return m_metadataStore->findByPath(sourcePath);
 }
 
-void FileSystemModule::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
+void FileSystemModule::registerMetadata(const AssetMetadata& meta,
+    const std::filesystem::path& sourcePath)
 {
-    m_metadataMap[meta.uid] = meta;
-    m_pathIndex[sourcePath.lexically_normal().string()] = meta.uid;
+    m_metadataStore->registerMetadata(meta, sourcePath);
 }
+
 
 std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
 {
@@ -319,26 +318,19 @@ std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::pa
 
 void FileSystemModule::cleanOrphanedBinaries()
 {
-    if (!std::filesystem::exists(LIBRARY_FOLDER))
-    {
+    if (!m_fileIO->exists(LIBRARY_FOLDER))
         return;
-    }
 
     for (const auto& entry : std::filesystem::directory_iterator(LIBRARY_FOLDER))
     {
-        if (!entry.is_regular_file())
-        {
-            continue;
-        }
+        if (!entry.is_regular_file()) continue;
 
-        std::string stem = entry.path().stem().string();
-        UID uid = std::stoull(stem);
+        UID uid = std::stoull(entry.path().stem().string());
 
-        if (m_metadataMap.find(uid) == m_metadataMap.end())
+        if (!m_metadataStore->contains(uid))
         {
-            DEBUG_ERROR("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.", entry.path().string());
-            std::filesystem::remove(entry.path());
+            DEBUG_ERROR("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.",  entry.path().string());
+            m_fileIO->deleteFile(entry.path().string().c_str());
         }
     }
 }
-
