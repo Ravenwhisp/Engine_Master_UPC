@@ -46,6 +46,11 @@ bool ScriptComponent::createScriptInstance()
     return true;
 }
 
+void ScriptComponent::destroyScriptInstance()
+{
+    m_script.reset();
+    m_hasStarted = false;
+}
 
 void ScriptComponent::update()
 {
@@ -60,7 +65,7 @@ void ScriptComponent::update()
         m_hasStarted = true;
     }
 
-    DEBUG_LOG("Here");
+    //DEBUG_LOG("Here");
     m_script->Update();
 }
 

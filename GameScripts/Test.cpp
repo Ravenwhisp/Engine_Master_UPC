@@ -2,7 +2,6 @@
 #include "Test.h"
 #include "GameObject.h"
 
-
 Test::Test(GameObject* owner)
     : Script(owner)
 {
@@ -15,8 +14,10 @@ void Test::Start()
 
 void Test::Update()
 {
+    OutputDebugStringA("Test::Update running\n");
     if (getOwner())
     {
+        OutputDebugStringA("Test::HasOwner\n");
         auto* transform = getOwner()->GetTransform();
         auto pos = transform->getPosition();
         pos.x += 0.005f;

@@ -4,6 +4,8 @@
 #include "Transform.h"
 #include "Component.h"
 #include <vector>
+//#include <string>
+//#include <rapidjson/document.h>
 
 #include "Tag.h"
 #include "Layer.h"
@@ -11,6 +13,9 @@
 
 class ModelComponent;
 struct SceneSnapshot;
+//struct ID3D12GraphicsCommandList;
+//using DirectX::SimpleMath::Matrix;
+
 
 class GameObject 
 {

@@ -18,6 +18,7 @@ public:
     const std::string& getScriptName() const;
 
     bool createScriptInstance();
+    void destroyScriptInstance();
 
     void update() override;
     void drawUi() override;
