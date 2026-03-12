@@ -1,7 +1,7 @@
 #pragma once
 #include "Importer.h"
 
-template<typename ExternalFormat, typename AssetFormat>
+template<typename ExternalFormat, typename AssetFormat, AssetType TType>
 class TypedImporter : public Importer
 {
 public:
@@ -17,6 +17,11 @@ public:
         importTyped(external, static_cast<AssetFormat*>(outAsset));
 
         return true;
+    }
+
+    AssetType getAssetType() const override
+    {
+        return TType;
     }
 
     uint64_t save(const Asset* asset, uint8_t** outBuffer) final

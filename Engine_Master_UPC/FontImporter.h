@@ -18,7 +18,7 @@ private:
 constexpr const char* TTL_EXTENSION = ".ttf";
 
 
-class FontImporter : public TypedImporter<std::vector<uint8_t>, FontAsset>
+class FontImporter : public TypedImporter<std::vector<uint8_t>, FontAsset, AssetType::FONT>
 {
 public:
     bool canImport(const std::filesystem::path& path) const override

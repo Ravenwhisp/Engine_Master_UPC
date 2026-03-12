@@ -59,12 +59,8 @@ public:
 	virtual ~Asset() = default;
 	UID getId() const { return m_uid; }
 
-	void		addReference() { m_referenceCount += 1; }
-	void		release() { m_referenceCount -= 1; }
-	uint8_t		getReferenceCount() const { return m_referenceCount; }
 	AssetType	getType() const { return m_type; }
 protected:
 	UID			m_uid = INVALID_ASSET_ID;
 	AssetType	m_type;
-	uint8_t		m_referenceCount = 0;
 };

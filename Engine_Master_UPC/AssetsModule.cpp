@@ -3,15 +3,14 @@
 
 #include "Application.h"
 #include "FileSystemModule.h"
-
+#include "Importer.h"
 
 #include <filesystem>
 #include <fstream>
 #include "UID.h"
 
-UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
+UID AssetsModule::import(const std::filesystem::path & assetsFile, UID uid)
 {
-
     Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
     if (!importer)
     {
@@ -19,22 +18,21 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
         return INVALID_ASSET_ID;
     }
 
-    if (uid == INVALID_ASSET_ID) {
+    if (uid == INVALID_ASSET_ID)
+    {
         uid = GenerateUID();
     }
 
-    Asset* asset = importer->createAssetInstance(uid);
+    // Scoped to this function — not cached, not shared.
+    std::unique_ptr<Asset> asset(importer->createAssetInstance(uid));
 
-    if (!importer->import(assetsFile, asset))
+    if (!importer->import(assetsFile, asset.get()))
     {
         DEBUG_ERROR("[AssetsModule] Couldn't import the asset:", assetsFile.c_str());
-        delete asset;
-        return INVALID_ASSET_ID;
+        return INVALID_ASSET_ID;  // asset cleaned up by unique_ptr
     }
 
-    std::filesystem::path libraryPath = LIBRARY_FOLDER + std::to_string(uid) + ASSET_EXTENSION;
-
-    // METADATA
+    // Write metadata file alongside the source asset.
     AssetMetadata meta;
     meta.uid = uid;
     meta.type = asset->getType();
@@ -44,29 +42,33 @@ UID AssetsModule::import(const std::filesystem::path& assetsFile, UID uid)
 
     AssetMetadata::saveMetaFile(meta, metaPath);
     app->getFileSystemModule()->registerMetadata(meta, assetsFile);
-    // FILE
-    uint8_t* buffer = nullptr;
-    uint64_t size = importer->save(asset, &buffer);
 
-    app->getFileSystemModule()->save(meta.getBinaryPath(), buffer, static_cast<unsigned int>(size));
+    // Serialize and write binary to the library folder.
+    uint8_t* rawBuffer = nullptr;
+    uint64_t size = importer->save(asset.get(), &rawBuffer);
 
-    delete buffer;
-    delete asset;
+    // Wrap immediately so it's freed even if save() throws.
+    std::unique_ptr<uint8_t[]> buffer(rawBuffer);
+
+    app->getFileSystemModule()->save(
+        meta.getBinaryPath(), buffer.get(), static_cast<unsigned int>(size));
 
     return uid;
 }
 
-
-Asset* AssetsModule::requestAsset(UID id)
+std::shared_ptr<Asset> AssetsModule::requestAsset(UID id)
 {
     auto it = m_assets.find(id);
     if (it != m_assets.end())
     {
-        it->second->addReference();
-        return it->second;
+        if (auto live = it->second.lock())
+        {
+            return live;
+        }
+        // Stale entry — the asset was freed since the last request.
+        m_assets.erase(it);
     }
 
-    // Load meta
     AssetMetadata* metadata = app->getFileSystemModule()->getMetadata(id);
     if (!metadata)
     {
@@ -74,51 +76,30 @@ Asset* AssetsModule::requestAsset(UID id)
         return nullptr;
     }
 
-    return requestAsset(metadata);
+    return loadAsset(metadata);
 }
 
-Asset* AssetsModule::requestAsset(const AssetMetadata* metadata)
+std::shared_ptr<Asset> AssetsModule::loadAsset(const AssetMetadata* metadata)
 {
-    if (!metadata)
+    Importer* importer = app->getFileSystemModule()->findImporter(metadata->type);
+    if (!importer)
     {
-        DEBUG_ERROR("[AssetsModule] Couldn't retrieve the metadata with id: %d", metadata->uid);
+        DEBUG_ERROR("[AssetsModule] No importer found for asset type of uid: %d", metadata->uid);
         return nullptr;
     }
 
-    //Create the asset
-    Importer* importer = app->getFileSystemModule()->findImporter(metadata->type);
-    Asset* asset = importer->createAssetInstance(metadata->uid);
+    std::shared_ptr<Asset> asset(importer->createAssetInstance(metadata->uid));
 
-    //Load from binary
     char* rawBuffer = nullptr;
-
     unsigned int size = app->getFileSystemModule()->load(metadata->getBinaryPath(), &rawBuffer);
     if (size > 0)
     {
         std::vector<uint8_t> buffer(rawBuffer, rawBuffer + size);
-        importer->load(buffer.data(), asset);
+        importer->load(buffer.data(), asset.get());
         delete[] rawBuffer;
     }
 
-    //Store it in map
-    asset->addReference();
     m_assets[metadata->uid] = asset;
 
     return asset;
-}
-
-void AssetsModule::releaseAsset(Asset* asset)
-{
-    if (!asset)
-    {
-        DEBUG_WARN("[AssetsModule] Tried to release an empty asset");
-        return;
-    }
-
-    asset->release();
-    if (asset->getReferenceCount() <= 0)
-    {
-        m_assets.erase(asset->getId());
-        delete asset;
-    }
 }

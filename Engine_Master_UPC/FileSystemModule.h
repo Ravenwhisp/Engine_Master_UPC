@@ -1,8 +1,14 @@
 #pragma once
 #include "Module.h"
-#include "Importer.h"
-
+#include <filesystem>
 #include "Asset.h"
+
+class FileIO;
+class MetadataStore;
+class ImporterRegistry;
+class Importer;
+class AssetMetadata;
+
 
 struct FileEntry {
 	std::filesystem::path path;
@@ -34,15 +40,7 @@ class FileSystemModule : public Module
 public:
 	bool init() override;
 
-	Importer* findImporter(const std::filesystem::path& filePath);
-	Importer* findImporter(const char* filePath);
-
-	Importer* findImporter(AssetType type);
-	AssetMetadata* getMetadata(UID uid);
-	UID findByPath(const std::filesystem::path& sourcePath) const;
-	void registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath);
-
-
+#pragma region FileIO
 	unsigned int load(const std::filesystem::path& filePath, char** buffer) const;
 	unsigned int load(const char* filePath, char** buffer) const;
 
@@ -51,10 +49,23 @@ public:
 
 	bool copy(const char* sourceFilePath, const char* destinationFilePath) const;
 	bool move(const char* sourceFilePath, const char* destinationFilePath) const;
-	bool deleteFile(const char* filePath) const;
-	bool createDirectory(const char* directoryPath) const;
-	bool exists(const char* filePath) const;
-	bool isDirectory(const char* path) const;
+	bool deleteFile(const char* filePath)        const;
+	bool createDirectory(const char* path)       const;
+	bool exists(const char* filePath)            const;
+	bool isDirectory(const char* path)           const;
+#pragma endregion
+
+#pragma region Importer
+	Importer* findImporter(const std::filesystem::path& filePath) const;
+	Importer* findImporter(const char* filePath)                   const;
+	Importer* findImporter(AssetType type)                         const;
+#pragma endregion
+
+#pragma region Metadata
+	AssetMetadata* getMetadata(UID uid);
+	UID            findByPath(const std::filesystem::path& sourcePath) const;
+	void           registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath);
+#pragma endregion
 
 #pragma region FileDialog
 	void rebuild();
@@ -73,14 +84,16 @@ private:
 	void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
 	std::filesystem::path getBinaryPath(UID uid) const;
 	void cleanOrphanedBinaries();
+
 	std::shared_ptr<FileEntry> m_root;
 #pragma endregion
+
 	std::unordered_map<UID, AssetMetadata> m_metadataMap;
 	std::unordered_map<std::string, UID>    m_pathIndex;
 
 	std::vector<PendingImport> m_pendingImports;
 
-	// I don't know if having to ways of finding an importer is the solution
-	std::unordered_map<AssetType, Importer*> importersMap;
-	std::vector<Importer*> importers;
+	FileIO*				m_fileIO{ nullptr };
+	ImporterRegistry*	m_importerRegistry{ nullptr };
+	MetadataStore*		m_metadataStore{ nullptr };
 };

@@ -8,7 +8,7 @@
 constexpr const char* GLTF_EXTENSION = ".gltf";
 
 // We can also treat ModelImporter as a GLTF file loader, which loads the entire file into a Model structure. 
-class ModelImporter : public TypedImporter<tinygltf::Model, ModelAsset>
+class ModelImporter : public TypedImporter<tinygltf::Model, ModelAsset, AssetType::MODEL>
 {
 public:
 	bool canImport(const std::filesystem::path& path) const override

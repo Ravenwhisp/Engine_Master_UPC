@@ -1,4 +1,5 @@
 #pragma once
+#include "UID.h"
 
 static const UID INVALID_ASSET_ID = -1;
 

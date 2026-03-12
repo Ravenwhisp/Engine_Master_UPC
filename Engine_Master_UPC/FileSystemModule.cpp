@@ -13,182 +13,91 @@
 #include "TextureAsset.h"
 #include "AssetsModule.h"
 
+#include "FileIO.h"
+#include "ImporterRegistry.h"
+#include "MetadataStore.h"
+
+#include "UID.h"
+
 bool FileSystemModule::init()
 {
-
-    auto textureImporter = new TextureImporter();
-    auto modelImporter = new ModelImporter();
-    auto fontImporter = new FontImporter();
-
-    importersMap.emplace(AssetType::TEXTURE, textureImporter);
-    importersMap.emplace(AssetType::MODEL, modelImporter);
-    importersMap.emplace(AssetType::FONT, fontImporter);
-
-    importers.push_back(textureImporter);
-    importers.push_back(modelImporter);
-    importers.push_back(fontImporter);
+    m_fileIO = new FileIO();
+    m_importerRegistry = new ImporterRegistry();
+    m_metadataStore = new MetadataStore();
 
     rebuild();
 
     return true;
 }
 
-Importer* FileSystemModule::findImporter(const std::filesystem::path& filePath)
-{
-    std::string pathStr = filePath.string();
-    const char* cpath = pathStr.c_str();
-    return findImporter(cpath);
-}
-
-Importer* FileSystemModule::findImporter(const char* filePath)
-{
-    for (auto importer : importers) 
-    {
-        if (importer->canImport(filePath))
-        {
-            return importer;
-        }
-    }
-    return nullptr;
-}
-
-Importer* FileSystemModule::findImporter(AssetType type)
-{
-    auto it = importersMap.find(type);
-    if (it != importersMap.end())
-    {
-        return it->second;
-    }
-
-    return nullptr;
-}
-
 AssetMetadata* FileSystemModule::getMetadata(UID uid)
 {
-    auto it = m_metadataMap.find(uid);
-    if (it != m_metadataMap.end())
-    {
-        return &it->second;
-    }
-
-    return nullptr;
+    return m_metadataStore->getMetadata(uid);
 }
 
 unsigned int FileSystemModule::load(const std::filesystem::path& filePath, char** buffer) const
 {
-    std::string pathStr = filePath.string();
-    const char* cpath = pathStr.c_str();
-    return load(cpath, buffer);
+    return m_fileIO->load(filePath, buffer);
 }
 
 unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
 {
-    if (!filePath || !buffer)
-    {
-        DEBUG_ERROR("[FileSystemModule] No path or buffer correctly provided.");
-        return 0;
-    }
-
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-    if (!file) 
-    { 
-        DEBUG_ERROR("[FileSystemModule] Couldn't open the file while trying to load.");
-        return 0; 
-    }
-
-    std::streamsize size = file.tellg();
-    if (size <= 0)
-    {
-        DEBUG_ERROR("[FileSystemModule] Couldn't load the file since it's empty.");
-        return 0;
-    }
-
-    file.seekg(0, std::ios::beg);
-
-    char* data = new char[size];
-    if (!file.read(data, size))
-    {
-        DEBUG_ERROR("[FileSystemModule] Couldn't read the file.");
-        delete[] data;
-        return 0;
-    }
-
-    *buffer = data;
-    return static_cast<unsigned int>(size);
+    return m_fileIO->load(filePath, buffer);
 }
 
 unsigned int FileSystemModule::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
 {
-    std::string pathStr = filePath.string();
-    const char* cpath = pathStr.c_str();
-    return save(cpath, buffer, size, append);
+    return m_fileIO->save(filePath, buffer, size, append);
 }
 
 unsigned int FileSystemModule::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
 {
-    if (!filePath || !buffer || size == 0) return 0;
-
-    std::filesystem::path path(filePath);
-    std::filesystem::create_directories(path.parent_path());
-
-    std::ios::openmode mode = std::ios::binary | std::ios::out;
-    if (append)
-    {
-        mode |= std::ios::app;
-    }
-    else
-    {
-        mode |= std::ios::trunc;
-
-    }
-
-    std::ofstream file(filePath, mode);
-    if (!file)
-    {
-        DEBUG_ERROR("[FileSystemModule] Error while trying to save a file that doesn't exists.");
-        return 0;
-    }
-
-    file.write(static_cast<const char*>(buffer), size);
-    if (!file)
-    {
-        DEBUG_ERROR("[FileSystemModule] Error while writing into a file.");
-        return 0;
-    }
-
-    return size;
+    return m_fileIO->save(filePath, buffer, size, append);
 }
 
 bool FileSystemModule::copy(const char* sourceFilePath, const char* destinationFilePath) const
 {
-	return std::filesystem::copy_file(sourceFilePath, destinationFilePath);
+    return m_fileIO->copy(sourceFilePath, destinationFilePath);
 }
 
 bool FileSystemModule::move(const char* sourceFilePath, const char* destinationFilePath) const
 {
-    std::error_code error;
-    std::filesystem::rename(sourceFilePath, destinationFilePath, error);
-    return error.value() == 0;
+    return m_fileIO->move(sourceFilePath, destinationFilePath);
 }
 
 bool FileSystemModule::deleteFile(const char* filePath) const
 {
-	return std::filesystem::remove(filePath);
+    return m_fileIO->deleteFile(filePath);
 }
 
 bool FileSystemModule::createDirectory(const char* directoryPath) const
 {
-	return std::filesystem::create_directory(directoryPath);
+	return m_fileIO->createDirectory(directoryPath);
 }
 
 bool FileSystemModule::exists(const char* filePath) const
 {
-	return std::filesystem::exists(filePath);
+	return m_fileIO->exists(filePath);
 }
 
 bool FileSystemModule::isDirectory(const char* path) const
 {
-	return std::filesystem::is_directory(path);
+	return m_fileIO->isDirectory(path);
+}
+
+Importer* FileSystemModule::findImporter(const std::filesystem::path& filePath) const
+{
+    return m_importerRegistry->findImporter(filePath);
+}
+
+Importer* FileSystemModule::findImporter(const char* filePath) const
+{
+    return m_importerRegistry->findImporter(filePath);
+}
+
+Importer* FileSystemModule::findImporter(AssetType type) const
+{
+    return m_importerRegistry->findImporter(type);
 }
 
 void FileSystemModule::rebuild()
