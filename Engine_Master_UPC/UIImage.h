@@ -18,7 +18,7 @@ public:
     class Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
-    TextureAsset* getTextureAsset() const { return m_textureAsset; }
+    TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
     UID getTextureAssetId() const { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
@@ -33,6 +33,6 @@ public:
 private:
     UID m_textureAssetId = 0;
     Texture* m_texture = nullptr;
-    TextureAsset* m_textureAsset = nullptr;
+    std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
 };

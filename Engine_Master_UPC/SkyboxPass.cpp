@@ -132,7 +132,7 @@ void SkyBoxPass::setSettings(const SkyboxSettings& settings)
 
     auto assetModule = app->getAssetModule();
 
-    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(settings.cubemapAssetId));
+    auto asset = std::static_pointer_cast<TextureAsset>(assetModule->requestAsset(settings.cubemapAssetId));
 
     if (!asset)
     {

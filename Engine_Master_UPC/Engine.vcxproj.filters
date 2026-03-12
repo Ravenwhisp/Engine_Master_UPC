@@ -302,6 +302,15 @@
     <ClCompile Include="ModuleFlyweight.cpp">
       <Filter>D3D12\Resources</Filter>
     </ClCompile>
+    <ClCompile Include="FileIO.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="MetadataStore.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -683,6 +692,15 @@
     </ClInclude>
     <ClInclude Include="ModuleFlyweight.h">
       <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="MetadataStore.h">
+      <Filter>Persistence</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

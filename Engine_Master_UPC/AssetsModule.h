@@ -9,10 +9,9 @@ public:
 
 	UID import(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
 
-	Asset*	requestAsset(UID id);
-	Asset*  requestAsset(const AssetMetadata* metadata);
-	void	releaseAsset(Asset* asset);
+	std::shared_ptr<Asset>	requestAsset(UID id);
+	std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
 
 private:
-	std::unordered_map<UID, Asset*> m_assets;
+	std::unordered_map<UID, std::weak_ptr<Asset>> m_assets;
 };

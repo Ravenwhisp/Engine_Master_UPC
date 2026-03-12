@@ -11,7 +11,7 @@ constexpr const char* BMP_EXTENSION = ".bmp";
 constexpr const char* TGA_EXTENSION = ".tga";
 constexpr const char* DDS_EXTENSION = ".dds";
 
-class TextureImporter : public TypedImporter<DirectX::ScratchImage, TextureAsset>
+class TextureImporter : public TypedImporter<DirectX::ScratchImage, TextureAsset, AssetType::TEXTURE>
 {
 public:
 

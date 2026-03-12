@@ -48,7 +48,6 @@ std::shared_ptr<BasicMesh> ModuleFlyweight::createMesh(const MeshAsset& meshAsse
 		return cached;
 	}
 
-
 	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
 	registerResource(uid, mesh);
 	return mesh;
@@ -63,7 +62,6 @@ std::shared_ptr<BasicMaterial> ModuleFlyweight::createMaterial(const MaterialAss
 	{
 		return cached;
 	}
-
 
 	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
 	registerResource(uid, material);
