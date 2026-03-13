@@ -311,6 +311,9 @@
     <ClCompile Include="ScriptFactory.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentFactory.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -701,6 +704,12 @@
     </ClInclude>
     <ClInclude Include="ScriptFactory.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentFactory.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSnapshot.h">
+      <Filter>GameEntity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
