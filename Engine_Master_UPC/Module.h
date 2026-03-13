@@ -20,11 +20,6 @@ public:
 		return true; 
 	}
 
-	virtual bool postInit()
-	{
-		return true;
-	}
-
 	virtual void update()
 	{
 	}

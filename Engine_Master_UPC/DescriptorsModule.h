@@ -33,6 +33,7 @@ public:
 		COUNT
 	};
 
+	DescriptorsModule(ComPtr<ID3D12Device4> device);
 	~DescriptorsModule();
 
 	bool init() override;

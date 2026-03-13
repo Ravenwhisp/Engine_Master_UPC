@@ -26,11 +26,6 @@ static std::string MakeNavMeshPath(const char* sceneName)
 
 bool NavigationModule::init()
 {
-	return true;
-}
-
-bool NavigationModule::postInit()
-{
     const char* sceneName = app->getSceneModule()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);

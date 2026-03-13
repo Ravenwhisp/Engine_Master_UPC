@@ -311,6 +311,12 @@
     <ClCompile Include="MetadataStore.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -700,6 +706,15 @@
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="MetadataStore.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="WeakCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetScanner.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
   </ItemGroup>

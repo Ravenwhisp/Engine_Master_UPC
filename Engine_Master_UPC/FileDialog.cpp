@@ -5,10 +5,9 @@
 #include "FileSystemModule.h"
 #include "AssetsModule.h"
 #include "Keyboard.h"
+#include "ContentRegistry.h"
 
-// ---------------------------------------------------------
-// Actions
-// ---------------------------------------------------------
+
 
 void FileDialog::createNewFolder()
 {
@@ -27,7 +26,7 @@ void FileDialog::createNewFolder()
 void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
 {
     // We only do a command if we are sure that the directories exist
-    if (std::filesystem::exists(m_fileToManage) and std::filesystem::exists(directory->getPath()))
+    if (std::filesystem::exists(m_fileToManage) && std::filesystem::exists(directory->getPath()))
     {
         if (m_lastActionRequested == Command::MOVE)
         {
@@ -58,7 +57,7 @@ void FileDialog::deleteItem(const std::shared_ptr<FileEntry>& asset)
         if (deleteAsset(asset.get())) 
         {
             // If the file deleted was going to be used for a command, we disable it
-            if (m_lastActionRequested != Command::NONE and asset->path == m_fileToManage)
+            if (m_lastActionRequested != Command::NONE && asset->path == m_fileToManage)
             {
                 m_lastActionRequested = Command::NONE;
             }
@@ -83,7 +82,7 @@ void FileDialog::deleteFolder(const std::shared_ptr<FileEntry>& asset)
     {
         std::string fileToManageString = m_fileToManage.string();
         const char* fileToManage = fileToManageString.c_str();
-        if (m_lastActionRequested != Command::NONE and !app->getFileSystemModule()->exists(fileToManage))
+        if (m_lastActionRequested != Command::NONE && !app->getFileSystemModule()->exists(fileToManage))
         {
             m_lastActionRequested = Command::NONE;
         }
@@ -175,7 +174,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
     // Keyboard shortcuts
     const Keyboard::State& keyState = Keyboard::Get().GetState();
-    if (keyState.LeftControl or keyState.RightControl) 
+    if (keyState.LeftControl || keyState.RightControl) 
     {
         if (keyState.X) 
         {

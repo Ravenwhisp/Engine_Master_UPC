@@ -25,7 +25,6 @@ class NavigationModule : public Module
 {
 public:
     bool init() override;
-    bool postInit() override;
     void update() override;
     bool cleanUp() override;
 

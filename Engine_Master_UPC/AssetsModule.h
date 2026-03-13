@@ -1,11 +1,16 @@
 #pragma once
 #include "Module.h"
 #include "Asset.h"
+#include "WeakCache.h"
+#include "Delegates.h"
 
+class ImportRequest;
 
 class AssetsModule : public Module
 {
 public:
+	bool init()    override;
+	bool cleanUp() override;
 
 	UID import(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
 
@@ -13,5 +18,8 @@ public:
 	std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
 
 private:
-	std::unordered_map<UID, std::weak_ptr<Asset>> m_assets;
+	void onImportRequested(const ImportRequest& request);
+
+	WeakCache<UID, Asset>  m_assets;
+	DelegateHandle    m_importHandle;
 };

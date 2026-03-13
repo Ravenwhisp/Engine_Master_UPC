@@ -22,10 +22,10 @@ class TextureAsset;
 class ResourcesModule : public Module
 {
 public:
+	ResourcesModule(ComPtr<ID3D12Device4> device, CommandQueue* queue);
 	~ResourcesModule();
 
 	bool init()         override;
-	bool postInit()     override;
 	void preRender()    override;
 	bool cleanUp()      override;
 

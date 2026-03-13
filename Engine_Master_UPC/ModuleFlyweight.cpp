@@ -14,56 +14,55 @@
 
 bool ModuleFlyweight::init()
 {
-	return true;
+    return true;
 }
 
 bool ModuleFlyweight::cleanUp()
 {
-	m_resources.clear();
-	return true;
+    m_resources.clear();
+    return true;
 }
-
 
 std::shared_ptr<Texture> ModuleFlyweight::createTexture(const TextureAsset& textureAsset)
 {
-	const UID uid = textureAsset.getId();
+    const UID uid = textureAsset.getId();
 
-	if (auto cached = getResource<Texture>(uid))
-	{
-		return cached;
-	}
+    if (auto cached = m_resources.getAs<Texture>(uid))
+    {
+        return cached;
+    }
 
-	auto texture = std::shared_ptr<Texture>(app->getResourcesModule()->createTexture(textureAsset));
-	registerResource(uid, texture);
-	return texture;
+
+    auto texture = std::shared_ptr<Texture>(app->getResourcesModule()->createTexture(textureAsset));
+    m_resources.insert(uid, texture);
+    return texture;
 }
-
 
 std::shared_ptr<BasicMesh> ModuleFlyweight::createMesh(const MeshAsset& meshAsset)
 {
-	const UID uid = meshAsset.getId();
+    const UID uid = meshAsset.getId();
 
-	if (auto cached = getResource<BasicMesh>(uid))
-	{
-		return cached;
-	}
+    if (auto cached = m_resources.getAs<BasicMesh>(uid))
+    {
+        return cached;
+    }
 
-	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
-	registerResource(uid, mesh);
-	return mesh;
+
+    auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
+    m_resources.insert(uid, mesh);
+    return mesh;
 }
-
 
 std::shared_ptr<BasicMaterial> ModuleFlyweight::createMaterial(const MaterialAsset& materialAsset)
 {
-	const UID uid = materialAsset.getId();
+    const UID uid = materialAsset.getId();
 
-	if (auto cached = getResource<BasicMaterial>(uid))
-	{
-		return cached;
-	}
+    if (auto cached = m_resources.getAs<BasicMaterial>(uid))
+    {
+        return cached;
+    }
 
-	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
-	registerResource(uid, material);
-	return material;
+    auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
+    m_resources.insert(uid, material);
+    return material;
 }
