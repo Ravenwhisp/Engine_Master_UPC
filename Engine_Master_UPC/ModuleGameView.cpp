@@ -70,9 +70,9 @@ void ModuleGameView::stopGameSimulation()
 	m_sceneCloned = SceneSnapshot();
 }
 
-void GameViewModule::instantiateScriptsOnPlay() {
+void ModuleGameView::instantiateScriptsOnPlay() {
 	// scripts instantiation
-	for (GameObject* gameObject : m_sceneModule->getAllGameObjects())
+	for (GameObject* gameObject : m_moduleScene->getAllGameObjects())
 	{
 		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
 		if (scriptComponent && !scriptComponent->getScriptName().empty())
