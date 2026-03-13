@@ -3,7 +3,7 @@
 #include "GameObject.h"
 #include <UIButton.h>
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
 #include "UIButton.h"
 
@@ -82,7 +82,7 @@ void ChangeScene::onChangeScene()
 {
 	DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
 
-	app->getSceneModule()->requestSceneChange(m_sceneToLoad);
+	app->getModuleScene()->requestSceneChange(m_sceneToLoad);
 }
 
 rapidjson::Value ChangeScene::getJSON(rapidjson::Document& domTree)

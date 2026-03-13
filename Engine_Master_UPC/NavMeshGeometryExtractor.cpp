@@ -1,14 +1,14 @@
 #include "Globals.h"
 #include "NavMeshGeometryExtractor.h"
 
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "Application.h"
-#include "AssetsModule.h"
+#include "ModuleAssets.h"
 #include "ModelAsset.h"
-#include <Logger.h>
+#include <WindowLogger.h>
 
 static bool DecodeIndices(const MeshAsset& mesh, std::vector<uint32_t>& out)
 {
@@ -146,7 +146,7 @@ static void CollectFromObject(
         CollectFromObject(child, outVerts, outTris, inOutBaseVertex, requiredLayer, onlyActive);
 }
 
-bool NavMeshGeometryExtractor::Extract(SceneModule& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
+bool NavMeshGeometryExtractor::Extract(ModuleScene& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
 {
     out.vertices.clear();
     out.indices.clear();

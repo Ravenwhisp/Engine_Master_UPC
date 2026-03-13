@@ -34,7 +34,7 @@ public:
 
 	void onTransformChange() override {}
 
-#pragma region Hierarchy Scene
+#pragma region WindowHierarchy Scene
 	Transform* getRoot() const { return m_root; }
 	const std::vector<GameObject*>& getAllChildren() const { return m_children; }
 

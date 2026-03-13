@@ -3,7 +3,7 @@
 #include "imgui.h"
 
 #include "Application.h"
-#include "EditorModule.h"
+#include "ModuleEditor.h"
 
 constexpr const char* PAN_TEXT = "Pan";
 constexpr const char* ORBIT_TEXT = "Orbit";
@@ -22,7 +22,7 @@ constexpr const char* BAR_FUNCTIONS[5] = { MOVE_TEXT, ROTATE_TEXT, SCALE_TEXT, R
 
 EditorToolbar::EditorToolbar() 
 {
-    m_moduleEditor = app->getEditorModule();
+    m_moduleEditor = app->getModuleEditor();
 }
 
 EditorToolbar::~EditorToolbar() 
