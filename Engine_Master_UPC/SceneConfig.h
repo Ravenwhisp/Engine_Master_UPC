@@ -2,13 +2,13 @@
 #include "EditorWindow.h"
 #include <string>
 
-class SceneModule;
+class ModuleScene;
 class GameObject;
 
 class SceneConfig : public EditorWindow
 {
 private:
-	SceneModule* m_sceneModule;
+	ModuleScene* m_moduleScene;
 
 public:
     SceneConfig();
@@ -21,7 +21,7 @@ private:
     void drawSaveSceneSettings();
     void drawLoadSceneSettings();
     void drawNavmeshSettings();
-    void drawSkyboxSettings();
+    void drawSkyBoxSettings();
     void drawLightSettings();
 
     std::string m_saveSceneName;

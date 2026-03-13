@@ -6,7 +6,7 @@
 
 
 //Should not be here
-//#include "SceneModule.h"
+//#include "ModuleScene.h"
 //#include "Application.h"
 //#include "CameraComponent.h"
 
@@ -43,7 +43,7 @@ std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
 
     //std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
 
-    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
+    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquï¿½a
     newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
 
     for (const std::unique_ptr<Component>& component : m_components)
@@ -155,7 +155,7 @@ Component* GameObject::GetComponent(ComponentType type) const
 
 #pragma region Properties
 
-bool GameObject::IsActiveInHierarchy() const
+bool GameObject::IsActiveInWindowHierarchy() const
 {
     if (!m_active)
     {
@@ -171,7 +171,7 @@ bool GameObject::IsActiveInHierarchy() const
     GameObject* parent = parentTransform->getOwner();
     if (parent != nullptr)
     {
-        return parent->IsActiveInHierarchy();
+        return parent->IsActiveInWindowHierarchy();
     }
 
     return true;
@@ -195,7 +195,7 @@ bool GameObject::init()
 
 void GameObject::update()
 {
-    if (!IsActiveInHierarchy())
+    if (!IsActiveInWindowHierarchy())
     {
         return;
     }
@@ -204,7 +204,6 @@ void GameObject::update()
     {
         if (component && component->isActive())
         {
-            //DEBUG_LOG("calling update component");
             component->update();
         }
     }
@@ -213,75 +212,6 @@ void GameObject::update()
     {
         if (child && child->GetActive())
             child->update();
-    }
-}
-
-void GameObject::preRender()
-{
-    if (!IsActiveInHierarchy())
-    {
-        return;
-    }
-
-    for (const std::unique_ptr<Component>& component : m_components)
-    {
-        if (component->isActive())
-        {
-            component->preRender();
-        }
-    }
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child->GetActive())
-        {
-            child->preRender();
-        }
-    }
-}
-
-void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
-{
-    if (!IsActiveInHierarchy())
-    {
-        return;
-    }
-
-    for (const std::unique_ptr<Component>& component : m_components)
-    {
-        if (component->isActive())
-        {
-            component->render(commandList, viewMatrix, projectionMatrix);
-        }
-    }
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child->GetActive())
-        {
-            child->render(commandList, viewMatrix, projectionMatrix);
-        }
-    }
-}
-
-void GameObject::postRender()
-{
-    if (!IsActiveInHierarchy())
-    {
-        return;
-    }
-
-    for (const std::unique_ptr<Component>& component : m_components)
-    {
-        if (component->isActive())
-        {
-            component->postRender();
-        }
-    }
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child->GetActive())
-        {
-            child->postRender();
-        }
     }
 }
 
@@ -335,7 +265,7 @@ void GameObject::drawUI()
     ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
-    if (ImGui::BeginTable("GameObjectInspector", 2, ImGuiTableFlags_SizingStretchProp))
+    if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
         ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthStretch);

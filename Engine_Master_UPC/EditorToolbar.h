@@ -1,11 +1,11 @@
 #pragma once
 
-class EditorModule;
+class ModuleEditor;
 
 class EditorToolbar 
 {
 private:
-    EditorModule* m_moduleEditor;
+    ModuleEditor* m_moduleEditor;
 
     float m_buttonWidth = 100.0f;
     float m_buttonHeight = 28.0f;

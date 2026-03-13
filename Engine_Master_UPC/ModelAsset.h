@@ -27,7 +27,6 @@ protected:
 	UID 			emissiveMap = -1;
 };
 
-
 struct Submesh
 {
 	uint32_t indexStart;

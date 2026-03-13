@@ -1,10 +1,14 @@
 #pragma once
-#include "Globals.h"
-#include "Frustum.h"
+namespace Engine
+{
+    class Frustum;
+}
 
 class BoundingVolume
 {
 public:
-	virtual bool test(const Engine::Frustum& frustum) const = 0;
-	virtual void render() = 0;
+    virtual ~BoundingVolume() = default;
+
+    virtual bool test(const Engine::Frustum& frustum) const = 0;
+    virtual void render() = 0;
 };

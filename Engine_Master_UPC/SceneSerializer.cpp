@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "Component.h"
@@ -107,7 +107,7 @@ bool SceneSerializer::LoadScene(std::string sceneName)
     }
 
     const rapidjson::Value& sceneJson = doc[sceneName.c_str()];
-    SceneModule* sceneModule = app->getSceneModule();
+    ModuleScene* sceneModule = app->getModuleScene();
 
     return sceneModule->loadFromJSON(sceneJson);
 

@@ -2,7 +2,7 @@
 #include "FontImporter.h"
 
 #include "Application.h"
-#include "FileSystemModule.h"
+#include "ModuleFileSystem.h"
 
 namespace fs = std::filesystem;
 
@@ -16,9 +16,9 @@ bool FontImporter::loadExternal(const fs::path& path, std::vector<uint8_t>& out)
     }
 
     char* buffer = nullptr;
-    const unsigned int size = app->getFileSystemModule()->load(spritefontPath, &buffer);
+    const unsigned int size = app->getModuleFileSystem()->load(spritefontPath, &buffer);
 
-    app->getFileSystemModule()->deleteFile(spritefontPath.string().c_str());
+    app->getModuleFileSystem()->deleteFile(spritefontPath.string().c_str());
 
     if (size == 0)
     {

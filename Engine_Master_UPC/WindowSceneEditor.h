@@ -1,0 +1,52 @@
+#pragma once
+#include "EditorWindow.h"
+
+#include "ImGuizmo.h"
+#include <vector>
+
+class ModuleInput;
+class ModuleCamera;
+
+class Settings;
+class Quadtree;
+
+class EditorToolbar;
+class PlayToolbar;
+
+class DebugDrawPass;
+class GameObject;
+
+class WindowSceneEditor: public EditorWindow
+{
+private:
+    ModuleInput* m_moduleInput;
+    ModuleCamera* m_moduleCamera;
+
+    Settings* m_settings;
+    Quadtree* m_quadtree;
+
+    EditorToolbar* m_editorToolbar;
+	PlayToolbar* m_playToolbar;
+
+    ImVec2 m_viewportPos = ImVec2(0.0f, 0.0f);
+    float m_viewportX = 0.0f;
+    float m_viewportY = 0.0f;
+
+public:
+    WindowSceneEditor();
+    ~WindowSceneEditor();
+
+    const char* getWindowName() const override { return "Scene Editor"; }
+    void        update() override;
+    void        render() override;
+    bool        resize(ImVec2 contentRegion);
+
+    void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
+    void renderQuadtree();
+    void drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color);
+
+
+    float  getViewportX()      const { return m_viewportX; }
+    float  getViewportY()      const { return m_viewportY; }
+
+};
