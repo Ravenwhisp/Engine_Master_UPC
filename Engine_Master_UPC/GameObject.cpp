@@ -1,27 +1,33 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+//Should not be here
+#include "SceneModule.h"
+#include "Application.h"
+
+//Normal components
 #include "MeshRenderer.h"
 #include "LightComponent.h"
-#include "PlayerWalk.h"
-#include "NavMeshWalk.h" 
 #include "CameraComponent.h"
 #include "NavigationAgentComponent.h"
 #include "WaypointPathComponent.h"
-#include "Application.h"
-#include "Transform2D.h"
+#include "ScriptComponent.h"
+
+//UI components
 #include "Canvas.h"
+#include "Transform2D.h"
 #include "UIImage.h"
 #include "UIText.h"
 #include "UIButton.h"
+
+//Fake components
+#include "PlayerWalk.h"
+#include "NavMeshWalk.h" 
 #include "CameraFollow.h"
-#include "SceneModule.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
 #include "CameraSwitcher.h"
 #include "TriggerArea.h"
-#include "ScriptComponent.h"
-
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {

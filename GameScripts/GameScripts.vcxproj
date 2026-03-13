@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\directX;$(SolutionDir)3rdParty\rapidjson\include;$(SolutionDir)3rdParty\WinPixEventRuntime\Include;$(SolutionDir)3rdParty\imgui-docking;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;$(SolutionDir)3rdParty\WinPixEventRuntime\Include;$(SolutionDir)3rdParty\directX;$(SolutionDir)3rdParty\imgui-docking</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -130,7 +130,8 @@
       </Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /Y "$(TargetPath)" "$(SolutionDir)..\Engine_OUT\"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,7 +157,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="GameScriptsAPI.h" />
     <ClInclude Include="GameScriptsExports.h" />
     <ClInclude Include="GameScriptsRegistration.h" />
     <ClInclude Include="pch.h" />

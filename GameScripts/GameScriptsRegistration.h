@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameScriptsAPI.h"
+#include "GameScriptsExports.h"
 #include "ScriptFactory.h"
 
 extern "C" GAMESCRIPTS_API const char* GetScriptName();
