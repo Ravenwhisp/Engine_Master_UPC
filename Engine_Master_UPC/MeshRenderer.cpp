@@ -4,8 +4,8 @@
 #include "GameObject.h"
 
 #include "Application.h"
-#include "ResourcesModule.h"
-#include "AssetsModule.h"
+#include "ModuleResources.h"
+#include "ModuleAssets.h"
 #include "Settings.h"
 
 
@@ -48,7 +48,7 @@ void MeshRenderer::addModel(ModelAsset& model)
         globalMax.y = std::max(globalMax.y, meshMax.y);
         globalMax.z = std::max(globalMax.z, meshMax.z);
 
-        auto mesh = app->getResourcesModule()->createMesh(meshAsset);
+        auto mesh = app->getModuleResources()->createMesh(meshAsset);
 
         if (!mesh)
         {
@@ -67,7 +67,7 @@ void MeshRenderer::addModel(ModelAsset& model)
     for (const auto materialAsset : model.getMaterials())
     {
         m_materialIndexByUID[materialAsset.getId()] = index;
-        auto material = app->getResourcesModule()->createMaterial(materialAsset);
+        auto material = app->getModuleResources()->createMaterial(materialAsset);
         m_materials.push_back(std::move(material));
         ++index;
     }

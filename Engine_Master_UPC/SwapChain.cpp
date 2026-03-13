@@ -1,9 +1,9 @@
 #include <Globals.h>
 #include "SwapChain.h"
 #include "Application.h"
-#include "ResourcesModule.h"
-#include "CameraModule.h"
-#include "D3D12Module.h"
+#include "ModuleResources.h"
+#include "ModuleCamera.h"
+#include "ModuleD3D12.h"
 
 SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
 {
@@ -40,7 +40,7 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
    //DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING: Allow tearing in windowed mode (VSync off)
 
     ComPtr<IDXGISwapChain1> swapChain1;
-    auto commandQueue = app->getD3D12Module()->getCommandQueue()->getD3D12CommandQueue();
+    auto commandQueue = app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue();
     DXCall(dxgiFactory4->CreateSwapChainForHwnd(
         commandQueue.Get(),
         hWnd,
@@ -52,8 +52,8 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
 
     swapChain1.As(&m_swapChain);
 
-    m_depthStencil = app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight);
-    createRenderTargetViews(app->getD3D12Module()->getDevice());
+    m_depthStencil = app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight);
+    createRenderTargetViews(app->getModuleD3D12()->getDevice());
 
     m_viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_windowWidth), float(m_windowHeight) , 0.0, 1.0 };
     m_scissorRect = D3D12_RECT { 0, 0, long(m_windowWidth), long(m_windowHeight) };
@@ -63,7 +63,7 @@ SwapChain::~SwapChain()
 {
     m_depthStencil.reset();
     // 3. Flush GPU commands
-    app->getD3D12Module()->getCommandQueue()->flush();
+    app->getModuleD3D12()->getCommandQueue()->flush();
 
     // 4. Release swap chain
     m_swapChain.Reset();
@@ -95,7 +95,7 @@ void SwapChain::resize()
         m_viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_windowWidth), float(m_windowHeight) , 0.0, 1.0 };
         m_scissorRect = D3D12_RECT{ 0, 0, long(m_windowWidth), long(m_windowHeight) };
 
-        app->getD3D12Module()->getCommandQueue()->flush();
+        app->getModuleD3D12()->getCommandQueue()->flush();
 
         // Release the render targets
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
@@ -113,12 +113,12 @@ void SwapChain::resize()
         // Recreate the render target views
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
         {
-            app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_renderTargets[n].rtv.handle);
-            app->getResourcesModule()->defferResourceRelease(m_renderTargets[n].resource);
+            app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_renderTargets[n].rtv.handle);
+            app->getModuleResources()->defferResourceRelease(m_renderTargets[n].resource);
         }
 
-        createRenderTargetViews(app->getD3D12Module()->getDevice());
-        m_depthStencil = app->getResourcesModule()->createDepthBuffer(m_windowWidth, m_windowHeight);
+        createRenderTargetViews(app->getModuleD3D12()->getDevice());
+        m_depthStencil = app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight);
         m_depthStencil->setName(L"SwapChainDS");
     }
 }
@@ -128,7 +128,7 @@ void SwapChain::createRenderTargetViews(ComPtr<ID3D12Device2> device)
 {    
     for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
     {
-        auto rtvHandle = app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
+        auto rtvHandle = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
         m_renderTargets[n].rtv = rtvHandle;
         DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n].resource)));
         m_renderTargets[n].resource->SetName(L"BackBuffer");

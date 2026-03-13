@@ -1,53 +1,50 @@
 #include "Globals.h"
 #include "Application.h"
-#include "InputModule.h"
-#include "D3D12Module.h"
-#include "EditorModule.h"
-#include "ResourcesModule.h"
-#include "CameraModule.h"
-#include "DescriptorsModule.h"
-#include "UIModule.h"
-#include "RenderModule.h"
-#include "SceneModule.h"
-#include "FileSystemModule.h"
-#include "AssetsModule.h"
+
+#include "ModuleInput.h"
+#include "ModuleD3D12.h"
+#include "ModuleEditor.h"
+#include "ModuleResources.h"
+#include "ModuleCamera.h"
+#include "ModuleDescriptors.h"
+#include "ModuleUI.h"
+#include "ModuleRender.h"
+#include "ModuleScene.h"
+#include "ModuleFileSystem.h"
+#include "ModuleAssets.h"
 #include "ModuleEventSystem.h"
-#include "GameViewModule.h"
-#include "NavigationModule.h"
-#include "TimeModule.h"
-#include "PerformanceProfiler.h"
+#include "ModuleGameView.h"
+#include "ModuleNavigation.h"
+#include "ModuleTime.h"
 #include "ScriptFactory.h"
-#include <thread>
 
 #include "Settings.h"
-
-using namespace std::chrono;
-
+#include "PerformanceProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
-    modules.push_back(m_inputModule = new InputModule((HWND)hWnd));
-    modules.push_back(m_d3d12Module = new D3D12Module((HWND)hWnd));
-    modules.push_back(m_descriptorsModule = new DescriptorsModule());
-    modules.push_back(m_resourcesModule = new ResourcesModule());
+    modules.push_back(m_moduleTime = new ModuleTime(120));
+    modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
+    modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
+    modules.push_back(m_moduleDescriptors = new ModuleDescriptors());
+    modules.push_back(m_moduleResources = new ModuleResources());
 
     //Needed to create the LOGs
-    modules.push_back(m_editorModule = new EditorModule());
+    modules.push_back(m_moduleEditor = new ModuleEditor());
 
-    modules.push_back(m_assetsModule = new AssetsModule());
-    modules.push_back(m_fileSystemModule = new FileSystemModule());
-    modules.push_back(m_moduleEventSystem = new ModuleEventSystem());
+    modules.push_back(m_moduleAssets = new ModuleAssets());
+    modules.push_back(m_moduleFileSystem = new ModuleFileSystem());
+    modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
-    modules.push_back(m_uiModule = new UIModule());
-    modules.push_back(m_navigationModule = new NavigationModule());
-    modules.push_back(m_renderModule = new RenderModule());
+    modules.push_back(m_moduleUI = new ModuleUI());
+    modules.push_back(m_moduleNavigation = new ModuleNavigation());
+    modules.push_back(m_moduleRender = new ModuleRender());
     
-    modules.push_back(m_gameViewModule = new GameViewModule());
+    modules.push_back(m_moduleGameView = new ModuleGameView());
 
-    modules.push_back(m_cameraModule = new CameraModule());
-    modules.push_back(m_sceneModule = new SceneModule());
-    modules.push_back(m_timeModule = new TimeModule(120));
+    modules.push_back(m_moduleCamera = new ModuleCamera());
+    modules.push_back(m_moduleScene = new ModuleScene());
 
     m_settings = new Settings();
 }
@@ -116,7 +113,7 @@ void Application::update()
     float dt = 0.f;
     if (m_currentEngineState == ENGINE_STATE::PLAYING)
     {
-        dt = m_timeModule->deltaTime();
+        dt = m_moduleTime->deltaTime();
     }
 
     if (!app->m_paused)
@@ -144,6 +141,7 @@ void Application::update()
 
     const PerfDataMap& data = getPerfData();
 
+    /*
     for (const auto& [name, perf] : data)
     {
         DEBUG_LOG("%s -> last: %.3f ms | avg: %.3f ms | max: %.3f ms\n",
@@ -152,12 +150,13 @@ void Application::update()
             perf.avgMs,
             perf.maxMs);
     }
+    */
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 
     m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
 
-    m_timeModule->waitForNextFrame();
+    //m_moduleTime->waitForNextFrame();
 }
 
 bool Application::cleanUp()

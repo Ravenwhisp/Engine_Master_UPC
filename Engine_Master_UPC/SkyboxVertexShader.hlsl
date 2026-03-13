@@ -1,4 +1,4 @@
-cbuffer SkyboxParams : register(b0)
+cbuffer SkyBoxParams : register(b0)
 {
     float4x4 vp;
     uint flipX;

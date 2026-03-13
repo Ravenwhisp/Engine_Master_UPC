@@ -2,8 +2,8 @@
 #include "DepthBuffer.h"
 
 #include "Application.h"
-#include "DescriptorsModule.h"
-#include "ResourcesModule.h"
+#include "ModuleDescriptors.h"
+#include "ModuleResources.h"
 
 
 DepthBuffer::DepthBuffer(ID3D12Device4& device, TextureInitInfo info) : Texture(GenerateUID(), device, info) {
@@ -16,11 +16,11 @@ DepthBuffer::DepthBuffer(ID3D12Device4& device, TextureInitInfo info) : Texture(
     dsv_desc.Format = format;
     dsv_desc.Texture2D.MipSlice = 0;
 
-    m_dsv = app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).allocate();
+    m_dsv = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).allocate();
     device.CreateDepthStencilView(getD3D12Resource().Get(), &dsv_desc, m_dsv.cpu);
 }
 
 void DepthBuffer::release()
 {
-    app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).free(m_dsv.handle);
+    app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).free(m_dsv.handle);
 }

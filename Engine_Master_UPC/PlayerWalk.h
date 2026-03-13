@@ -3,7 +3,7 @@
 #include "Component.h"
 #include <Keyboard.h>
 
-class InputModule;
+class ModuleInput;
 class Transform;
 class GameObject;
 
@@ -24,7 +24,7 @@ public:
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
 private:
-	InputModule* inputModule;
+	ModuleInput* inputModule;
 	float m_moveSpeed = 3.5f;
 	float m_shiftMultiplier = 2.0f;
 
@@ -41,10 +41,10 @@ private:
 	float m_currentYawDeg = 0.0f;
 	bool  m_yawInitialized = false;
 
-	Vector3 readMoveDirection(InputModule* inputModule) const;
+	Vector3 readMoveDirection(ModuleInput* inputModule) const;
 	void applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt);
 	void applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const;
-	bool checkShiftHeld(InputModule* inputModule) const;
+	bool checkShiftHeld(ModuleInput* inputModule) const;
 
 	static float moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta);
 	static float wrapAngleDegrees(float angle);
