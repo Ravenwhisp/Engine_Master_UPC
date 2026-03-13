@@ -3,6 +3,7 @@
 #include <rapidjson/document.h>
 #include "UID.h"
 #include "MeshRenderer.h"
+#include "SceneSnapshot.h"
 
 class SceneSerializer;
 class GameObject;
@@ -25,16 +26,6 @@ struct SkyboxSettings
 {
 	bool enabled = true;
 	UID cubemapAssetId = 0;
-};
-
-struct SceneSnapshot
-{
-	std::unordered_map<UID, Component*> componentMap;
-	//std::unordered_map<GameObject*, GameObject*> gameObjectMap; For now, not necessary
-
-	std::vector<std::unique_ptr<GameObject>> allObjects;
-	std::vector<GameObject*> rootObjects;
-	CameraComponent* defaultCamera = nullptr;
 };
 
 class SceneModule : public Module
