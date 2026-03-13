@@ -305,16 +305,16 @@
     <ClCompile Include="FileIO.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterRegistry.cpp">
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="MetadataStore.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="AssetScanner.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="ContentRegistry.cpp">
+    <ClCompile Include="ImporterRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
   </ItemGroup>

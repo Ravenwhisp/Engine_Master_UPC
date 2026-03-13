@@ -8,7 +8,7 @@
 #include "TextureAsset.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "ResourcesModule.h"
+#include "ModuleResources.h"
 #include "ModuleFlyweight.h"
 #include "TextureAsset.h"
 
@@ -32,8 +32,8 @@ SkyBox::SkyBox(TextureAsset& asset)
         4,0,3, 4,3,7
     };
 
-    m_vertexBuffer.reset(app->getResourcesModule()->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyboxVertex)));
-    m_indexBuffer.reset(app->getResourcesModule()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT));
+    m_vertexBuffer.reset(app->getModuleResources()->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyBoxVertex)));
+    m_indexBuffer.reset(app->getModuleResources()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT));
     m_texture = app->getModuleFlyweight()->createTexture(asset);
 }
 

@@ -4,8 +4,8 @@
 #include "GameObject.h"
 
 #include "Application.h"
-#include "ResourcesModule.h"
-#include "AssetsModule.h"
+#include "ModuleFlyweight.h"
+#include "ModuleAssets.h"
 #include "Settings.h"
 
 
@@ -48,7 +48,7 @@ void MeshRenderer::addModel(ModelAsset& model)
         globalMax.y = std::max(globalMax.y, meshMax.y);
         globalMax.z = std::max(globalMax.z, meshMax.z);
 
-        auto mesh = app->getResourcesModule()->createMesh(meshAsset);
+        auto mesh = app->getModuleFlyweight()->createMesh(meshAsset);
 
         if (!mesh)
         {
@@ -67,7 +67,7 @@ void MeshRenderer::addModel(ModelAsset& model)
     for (const auto materialAsset : model.getMaterials())
     {
         m_materialIndexByUID[materialAsset.getId()] = index;
-        auto material = app->getResourcesModule()->createMaterial(materialAsset);
+        auto material = app->getModuleFlyweight()->createMaterial(materialAsset);
         m_materials.push_back(std::move(material));
         ++index;
     }
@@ -88,7 +88,7 @@ void MeshRenderer::drawUi()
         {
             const UID* data = static_cast<const UID*>(payload->Data);
             m_modelAssetId = *data;
-            auto modelAsset = std::static_pointer_cast<ModelAsset>(app->getAssetModule()->requestAsset(*data));
+            auto modelAsset = std::static_pointer_cast<ModelAsset>(app->getModuleAssets()->requestAsset(*data));
             addModel(*modelAsset);
         }
         ImGui::EndDragDropTarget();
@@ -135,7 +135,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         m_materials.clear();
         m_materialIndexByUID.clear();
 
-        std::shared_ptr<ModelAsset> modelAsset = std::static_pointer_cast<ModelAsset>(app->getAssetModule()->requestAsset(m_modelAssetId));
+        std::shared_ptr<ModelAsset> modelAsset = std::static_pointer_cast<ModelAsset>(app->getModuleAssets()->requestAsset(m_modelAssetId));
         if (modelAsset) {
             addModel(*modelAsset);
         }

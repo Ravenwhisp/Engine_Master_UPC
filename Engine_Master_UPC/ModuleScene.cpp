@@ -357,6 +357,8 @@ void ModuleScene::resetGameObjects(SceneSnapshot previousScene)
 	m_rootObjects = std::move(previousScene.rootObjects);
 	m_defaultCamera = previousScene.defaultCamera;
 
+    m_meshRenderers.clear();
+
     //guarrada historica a continuacion
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 }

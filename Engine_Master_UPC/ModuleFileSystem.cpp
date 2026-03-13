@@ -1,7 +1,7 @@
 #include "Globals.h"
 
 #include "Application.h"
-#include "FileSystemModule.h"
+#include "ModuleFileSystem.h"
 #include <filesystem>
 #include <fstream>
 
@@ -21,7 +21,7 @@
 
 #include "UID.h"
 
-bool FileSystemModule::init()
+bool ModuleFileSystem::init()
 {
     m_fileIO = std::make_unique<FileIO>();
     m_metadataStore = std::make_unique<MetadataStore>();
@@ -37,22 +37,22 @@ bool FileSystemModule::init()
     return true;
 }
 
-AssetMetadata* FileSystemModule::getMetadata(UID uid)
+AssetMetadata* ModuleFileSystem::getMetadata(UID uid)
 {
     return m_metadataStore->getMetadata(uid);
 }
 
-UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
+UID ModuleFileSystem::findByPath(const std::filesystem::path& sourcePath) const
 {
     return m_metadataStore->findByPath(sourcePath);
 }
 
-void FileSystemModule::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
+void ModuleFileSystem::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
 {
     m_metadataStore->registerMetadata(meta, sourcePath);
 }
 
-unsigned int FileSystemModule::load(const std::filesystem::path& filePath, char** buffer) const
+unsigned int ModuleFileSystem::load(const std::filesystem::path& filePath, char** buffer) const
 {
     return m_fileIO->load(filePath, buffer);
 }
@@ -62,7 +62,7 @@ unsigned int ModuleFileSystem::load(const char* filePath, char** buffer) const
     return m_fileIO->load(filePath, buffer);
 }
 
-unsigned int FileSystemModule::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
+unsigned int ModuleFileSystem::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
 {
     return m_fileIO->save(filePath, buffer, size, append);
 }
@@ -72,7 +72,7 @@ unsigned int ModuleFileSystem::save(const char* filePath, const void* buffer, un
     return m_fileIO->save(filePath, buffer, size, append);
 }
 
-bool FileSystemModule::copy(const char* sourceFilePath, const char* destinationFilePath) const
+bool ModuleFileSystem::copy(const char* sourceFilePath, const char* destinationFilePath) const
 {
     return m_fileIO->copy(sourceFilePath, destinationFilePath);
 }
@@ -102,22 +102,22 @@ bool ModuleFileSystem::isDirectory(const char* path) const
 	return m_fileIO->isDirectory(path);
 }
 
-Importer* FileSystemModule::findImporter(const std::filesystem::path& filePath) const
+Importer* ModuleFileSystem::findImporter(const std::filesystem::path& filePath) const
 {
     return m_importerRegistry->findImporter(filePath);
 }
 
-Importer* FileSystemModule::findImporter(const char* filePath) const
+Importer* ModuleFileSystem::findImporter(const char* filePath) const
 {
     return m_importerRegistry->findImporter(filePath);
 }
 
-Importer* FileSystemModule::findImporter(AssetType type) const
+Importer* ModuleFileSystem::findImporter(AssetType type) const
 {
     return m_importerRegistry->findImporter(type);
 }
 
-void FileSystemModule::rebuild()
+void ModuleFileSystem::rebuild()
 {
     std::string rootStr = ASSETS_FOLDER;
     if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
@@ -131,12 +131,12 @@ void FileSystemModule::rebuild()
     m_contentRegistry->rebuild(root);
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::getRoot() const
+std::shared_ptr<FileEntry> ModuleFileSystem::getRoot() const
 {
     return m_contentRegistry->getRoot();
 }
 
-std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path) const
+std::shared_ptr<FileEntry> ModuleFileSystem::getEntry(const std::filesystem::path& path) const
 {
     return m_contentRegistry->getEntry(path);
 }

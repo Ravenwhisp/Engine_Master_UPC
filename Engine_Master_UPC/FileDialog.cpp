@@ -41,7 +41,7 @@ void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
 void FileDialog::importAsset(const std::shared_ptr<FileEntry>& asset)
 {
     std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
-    app->getAssetModule()->importAsset(originalPath);
+    app->getModuleAssets()->import(originalPath);
 }
 
 void FileDialog::cutItem(const std::shared_ptr<FileEntry>& asset)
@@ -82,7 +82,7 @@ void FileDialog::deleteFolder(const std::shared_ptr<FileEntry>& asset)
     {
         std::string fileToManageString = m_fileToManage.string();
         const char* fileToManage = fileToManageString.c_str();
-        if (m_lastActionRequested != Command::NONE and !app->getFileSystemModule()->exists(fileToManage))
+        if (m_lastActionRequested != Command::NONE and !app->getModuleFileSystem()->exists(fileToManage))
         {
             m_lastActionRequested = Command::NONE;
         }

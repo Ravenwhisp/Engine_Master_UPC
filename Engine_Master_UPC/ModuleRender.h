@@ -13,8 +13,6 @@ using Microsoft::WRL::ComPtr;
 class ModuleGameView;
 class Settings;
 class RingBuffer;
-class RenderTexture;
-class DepthBuffer;
 class GameObject;
 class VertexBuffer;
 class IndexBuffer;
@@ -24,6 +22,9 @@ class MeshRendererPass;
 class DebugDrawPass;
 class ImGuiPass;
 class IRenderPass;
+
+using RenderTexture = Texture;
+using DepthBuffer = Texture;
 
 struct SkyBoxSettings;
 

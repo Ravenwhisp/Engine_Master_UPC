@@ -19,11 +19,11 @@ class TextureAsset;
 // Responsible for creation and management of raw GPU resources in D3D12.
 // Handles buffers, textures, render targets, depth stencils, and deferred GPU release.
 // Owns no asset-level objects — callers own everything returned here.
-class ResourcesModule : public Module
+class ModuleResources : public Module
 {
 public:
-	ResourcesModule(ComPtr<ID3D12Device4> device, CommandQueue* queue);
-	~ResourcesModule();
+	ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue);
+	~ModuleResources();
 
 	bool init()         override;
 	void preRender()    override;
