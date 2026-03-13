@@ -4,6 +4,18 @@
 #include "D3D12Module.h"
 #include "ResourcesModule.h"
 
+DescriptorsModule::DescriptorsModule(ComPtr<ID3D12Device4> device)
+{
+    m_device = device;
+
+    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 256);
+    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 256);
+    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096 * 8);
+    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = new DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SampleType::COUNT);
+
+    createDefaultSamplers();
+}
+
 DescriptorsModule::~DescriptorsModule()
 {
     for (auto& pair : m_DescriptorHeapMap) {
@@ -15,14 +27,8 @@ DescriptorsModule::~DescriptorsModule()
 
 bool DescriptorsModule::init()
 {
-    m_device = app->getD3D12Module()->getDevice();
 
-    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 256);
-    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 256);
-    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096 * 8);
-    m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = new DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SampleType::COUNT);
 
-    createDefaultSamplers();
 	return true;
 }
 

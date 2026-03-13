@@ -283,10 +283,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
+    <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FileIO.h" />
@@ -418,6 +420,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="WaypointPathComponent.h" />
     <ClInclude Include="ViewGameDebug.h" />
+    <ClInclude Include="WeakCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -515,10 +518,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="FontImporter.cpp" />

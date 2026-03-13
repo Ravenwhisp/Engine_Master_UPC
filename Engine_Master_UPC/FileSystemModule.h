@@ -1,39 +1,16 @@
 #pragma once
 #include "Module.h"
-#include <filesystem>
 #include "Asset.h"
+#include "AssetScanner.h"
+#include "ContentRegistry.h"
+#include "MetadataStore.h"
+#include "ImporterRegistry.h"
+#include "Importer.h"
+#include "FileIO.h"
 
-class FileIO;
-class MetadataStore;
-class ImporterRegistry;
-class Importer;
 class AssetMetadata;
+struct FileEntry;
 
-
-struct FileEntry {
-	std::filesystem::path path;
-	std::string displayName;
-	UID uid = INVALID_ASSET_ID;
-	bool isDirectory;
-	std::vector<std::shared_ptr<FileEntry>> children;
-
-	std::filesystem::path getPath() 
-	{
-		if (isDirectory)
-		{
-			std::filesystem::path realPath = path;
-			realPath += "/";
-			return realPath;
-		}
-		return path;
-	}
-};
-
-struct PendingImport
-{
-	std::filesystem::path sourcePath;
-	UID existingUID = INVALID_ASSET_ID;
-};
 
 class FileSystemModule : public Module
 {
@@ -69,27 +46,26 @@ public:
 
 #pragma region FileDialog
 	void rebuild();
-	std::shared_ptr<FileEntry> getRoot() { return m_root; }
-	std::shared_ptr<FileEntry> getEntry(const std::filesystem::path& path);
-private:
-	std::shared_ptr<FileEntry> getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
-	std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path);
-	std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path);
-	std::shared_ptr<FileEntry> buildMetadataEntry(const std::filesystem::path& path);
+	std::shared_ptr<FileEntry> getRoot()                                const;
+	std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&)   const;
 
-	void checkFile(const std::filesystem::path& path);
-	void loadMetadata(const std::filesystem::path& path);
+	OnImportRequestedEvent& onImportRequested() { return m_scanner->OnImportRequested; }
 
-	void handleMissingMetadata(const std::filesystem::path& path);
-	void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
-	std::filesystem::path getBinaryPath(UID uid) const;
-	void cleanOrphanedBinaries();
+	DelegateHandle subscribeToImportRequested(OnImportRequestedEvent::DelegateT&& delegate)
+	{
+		return m_scanner->OnImportRequested.Add(std::move(delegate));
+	}
 
-	std::shared_ptr<FileEntry> m_root;
+	void unsubscribeFromImportRequested(DelegateHandle& handle)
+	{
+		m_scanner->unsubscribe(handle);
+	}
+
 #pragma endregion
-	std::vector<PendingImport> m_pendingImports;
-
-	FileIO*				m_fileIO{ nullptr };
-	ImporterRegistry*	m_importerRegistry{ nullptr };
-	MetadataStore*		m_metadataStore{ nullptr };
+private:
+	std::unique_ptr<FileIO> 		 m_fileIO;
+	std::unique_ptr<MetadataStore>   m_metadataStore;
+	std::unique_ptr<ImporterRegistry> m_importerRegistry;
+	std::unique_ptr<AssetScanner>    m_scanner;
+	std::unique_ptr<ContentRegistry> m_contentRegistry;
 };

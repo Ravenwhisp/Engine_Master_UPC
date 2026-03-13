@@ -12,7 +12,7 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
 	m_settings = app->getSettings();
 
-	m_fontHeap = std::make_unique<DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
+	m_fontHeap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
 
 	m_upload =  std::make_unique<ResourceUploadBatch>(device.Get());
 

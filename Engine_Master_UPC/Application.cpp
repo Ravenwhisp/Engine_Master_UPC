@@ -29,15 +29,15 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 {
     modules.push_back(m_inputModule = new InputModule((HWND)hWnd));
     modules.push_back(m_d3d12Module = new D3D12Module((HWND)hWnd));
-    modules.push_back(m_descriptorsModule = new DescriptorsModule());
-    modules.push_back(m_resourcesModule = new ResourcesModule());
+    modules.push_back(m_descriptorsModule = new DescriptorsModule(m_d3d12Module->getDevice()));
+    modules.push_back(m_resourcesModule = new ResourcesModule(m_d3d12Module->getDevice(), m_d3d12Module->getCommandQueue()));
     modules.push_back(m_moduleFlyweight = new ModuleFlyweight());
 
     //Needed to create the LOGs
     modules.push_back(m_editorModule = new EditorModule());
 
-    modules.push_back(m_assetsModule = new AssetsModule());
     modules.push_back(m_fileSystemModule = new FileSystemModule());
+    modules.push_back(m_assetsModule = new AssetsModule());
     modules.push_back(m_moduleEventSystem = new ModuleEventSystem());
 
     modules.push_back(m_uiModule = new UIModule());
@@ -73,18 +73,12 @@ bool Application::init()
     PERF_END("Engine Init");
 
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    m_fileSystemModule->rebuild();
+
 	return ret;
 }
 
-bool Application::postInit()
-{
-    bool ret = true;
-
-    for (auto it = modules.begin(); it != modules.end() && ret; ++it)
-        ret = (*it)->postInit();
-
-    return ret;
-}
 
 void Application::update()
 {

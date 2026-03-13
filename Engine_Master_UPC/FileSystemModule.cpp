@@ -16,20 +16,23 @@
 #include "FileIO.h"
 #include "ImporterRegistry.h"
 #include "MetadataStore.h"
+#include "AssetScanner.h"
+#include "ContentRegistry.h"
 
 #include "UID.h"
 
 bool FileSystemModule::init()
 {
-    m_fileIO = new FileIO();
-    m_importerRegistry = new ImporterRegistry();
-    m_metadataStore = new MetadataStore();
+    m_fileIO = std::make_unique<FileIO>();
+    m_metadataStore = std::make_unique<MetadataStore>();
+    m_importerRegistry = std::make_unique<ImporterRegistry>();
 
     m_importerRegistry->registerImporter(std::make_unique<TextureImporter>());
     m_importerRegistry->registerImporter(std::make_unique<ModelImporter>());
     m_importerRegistry->registerImporter(std::make_unique<FontImporter>());
 
-    rebuild();
+    m_scanner = std::make_unique<AssetScanner>(m_fileIO.get(), m_metadataStore.get(), m_importerRegistry.get());
+    m_contentRegistry = std::make_unique<ContentRegistry>(m_fileIO.get());
 
     return true;
 }
@@ -37,6 +40,16 @@ bool FileSystemModule::init()
 AssetMetadata* FileSystemModule::getMetadata(UID uid)
 {
     return m_metadataStore->getMetadata(uid);
+}
+
+UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
+{
+    return m_metadataStore->findByPath(sourcePath);
+}
+
+void FileSystemModule::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
+{
+    m_metadataStore->registerMetadata(meta, sourcePath);
 }
 
 unsigned int FileSystemModule::load(const std::filesystem::path& filePath, char** buffer) const
@@ -106,231 +119,24 @@ Importer* FileSystemModule::findImporter(AssetType type) const
 
 void FileSystemModule::rebuild()
 {
-    std::string s = ASSETS_FOLDER;
-    if (!s.empty() && s.back() == '/')
-        s.pop_back();
-
-    m_metadataStore->clear();
-    m_pendingImports.clear();
-
-    checkFile(s);
-
-    for (const auto& pending : m_pendingImports)
+    std::string rootStr = ASSETS_FOLDER;
+    if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
     {
-        if (pending.existingUID == INVALID_ASSET_ID)
-        {
-            std::filesystem::path metaPath = pending.sourcePath;
-            metaPath += METADATA_EXTENSION;
-
-            if (m_fileIO->exists(metaPath.string().c_str()))
-            {
-                if (m_metadataStore->findByPath(pending.sourcePath) == INVALID_ASSET_ID)
-                {
-                    loadMetadata(metaPath);
-                }
-                continue;
-            }
-        }
-        app->getAssetModule()->import(pending.sourcePath, pending.existingUID);
+        rootStr.pop_back();
     }
 
-    cleanOrphanedBinaries();
-    m_root = buildTree(s);
+    const std::filesystem::path root = rootStr;
+
+    m_scanner->scan(root);
+    m_contentRegistry->rebuild(root);
 }
 
-
-UID FileSystemModule::findByPath(const std::filesystem::path& sourcePath) const
+std::shared_ptr<FileEntry> FileSystemModule::getRoot() const
 {
-    return m_metadataStore->findByPath(sourcePath);
+    return m_contentRegistry->getRoot();
 }
 
-void FileSystemModule::registerMetadata(const AssetMetadata& meta,
-    const std::filesystem::path& sourcePath)
+std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path) const
 {
-    m_metadataStore->registerMetadata(meta, sourcePath);
-}
-
-
-std::shared_ptr<FileEntry> FileSystemModule::getEntry(const std::filesystem::path& path)
-{
-    if (!m_root)
-    {
-        DEBUG_ERROR("[FileSystemModule] Root folder doesn't exist.");
-        return nullptr;
-    }
-    return getEntryRecursive(m_root, path);
-}
-
-std::shared_ptr<FileEntry> FileSystemModule::getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const
-{
-    if (!node)
-    {
-        //LOG_WARNING("[FileSystemModule] Node doesn't exist");
-        return nullptr;
-    }
-
-    if (node->path == path)
-    {
-        return node;
-    }
-
-    for (auto& child : node->children)
-    {
-        if (auto found = getEntryRecursive(child, path))
-        {
-            return found;
-        }
-    }
-
-    return nullptr;
-}
-
-std::filesystem::path FileSystemModule::getBinaryPath(UID uid) const
-{
-    return std::filesystem::path(LIBRARY_FOLDER) / std::to_string(uid) += ".asset";
-}
-
-void FileSystemModule::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
-{
-    AssetMetadata meta;
-    if (AssetMetadata::loadMetaFile(metadataPath, meta))
-    {
-        std::filesystem::remove(getBinaryPath(meta.uid));
-    }
-
-    std::filesystem::remove(metadataPath);
-}
-
-void FileSystemModule::handleMissingMetadata(const std::filesystem::path& sourcePath)
-{
-    Importer* importer = findImporter(sourcePath);
-    if (importer)
-    {
-        m_pendingImports.push_back({ sourcePath, INVALID_ASSET_ID });
-    }
-}
-
-std::shared_ptr<FileEntry> FileSystemModule::buildMetadataEntry(const std::filesystem::path& path)
-{
-    auto entry = std::make_shared<FileEntry>();
-    entry->path = path.lexically_normal();
-    entry->isDirectory = false;
-    entry->displayName = path.stem().string();
-
-    AssetMetadata meta;
-    if (AssetMetadata::loadMetaFile(path, meta))
-    {
-        entry->uid = meta.uid;
-    }
-    else
-    {
-        DEBUG_ERROR("[FileSystemModule] Failed to create metadata file node '{}'.", path.string());
-    }
-
-    return entry;
-}
-
-void FileSystemModule::checkFile(const std::filesystem::path& path)
-{
-    if (isDirectory(path.string().c_str()))
-    {
-        for (const auto& p : std::filesystem::directory_iterator(path))
-        {
-            checkFile(p.path());
-        }
-        return;
-    }
-
-    if (path.extension() == METADATA_EXTENSION)
-    {
-        loadMetadata(path);
-        return;
-    }
-
-    // Raw source file — ensure its .metadata exists
-    std::filesystem::path metadataPath = path;
-    metadataPath += METADATA_EXTENSION;
-    if (!exists(metadataPath.string().c_str()))
-    {
-        handleMissingMetadata(path);
-    }
-}
-
-void FileSystemModule::loadMetadata(const std::filesystem::path& path)
-{
-    std::filesystem::path sourcePath = path.parent_path() / path.stem();
-
-    if (!exists(sourcePath.string().c_str()))
-    {
-        handleOrphanedMetadata(path);
-        return;
-    }
-
-    AssetMetadata meta;
-    if (AssetMetadata::loadMetaFile(path, meta))
-    {
-        registerMetadata(meta, sourcePath);
-
-        if (!exists(getBinaryPath(meta.uid).string().c_str()))
-        {
-            m_pendingImports.push_back({ sourcePath, meta.uid });
-        }
-    }
-    else
-    {
-        DEBUG_ERROR("[FileSystemModule] Failed to load metadata file '{}'.", path.string());
-    }
-}
-
-std::shared_ptr<FileEntry> FileSystemModule::buildDirectoryEntry(const std::filesystem::path& path)
-{
-    auto entry = std::make_shared<FileEntry>();
-    entry->path = path.lexically_normal();
-    entry->isDirectory = true;
-    entry->displayName = path.filename().string();
-
-    for (const auto& p : std::filesystem::directory_iterator(path))
-    {
-        auto child = buildTree(p.path());
-        if (child)
-        {
-            entry->children.push_back(std::move(child));
-        }
-    }
-
-    return entry;
-}
-
-std::shared_ptr<FileEntry> FileSystemModule::buildTree(const std::filesystem::path& path)
-{
-    if (isDirectory(path.string().c_str()))
-    {
-        return buildDirectoryEntry(path);
-    }
-
-    if (path.extension() == METADATA_EXTENSION)
-    {
-        return buildMetadataEntry(path);
-    }
-
-    return nullptr;
-}
-
-void FileSystemModule::cleanOrphanedBinaries()
-{
-    if (!m_fileIO->exists(LIBRARY_FOLDER))
-        return;
-
-    for (const auto& entry : std::filesystem::directory_iterator(LIBRARY_FOLDER))
-    {
-        if (!entry.is_regular_file()) continue;
-
-        UID uid = std::stoull(entry.path().stem().string());
-
-        if (!m_metadataStore->contains(uid))
-        {
-            DEBUG_ERROR("[FileSystemModule] Deleting orphaned binary '{}' with no associated metadata.",  entry.path().string());
-            m_fileIO->deleteFile(entry.path().string().c_str());
-        }
-    }
+    return m_contentRegistry->getEntry(path);
 }

@@ -29,14 +29,11 @@ bool CameraModule::init() {
     Mouse::State mouseState = Mouse::Get().GetState();
     m_lastWheel = mouseState.scrollWheelValue;
 
+    rebuildViewProj();
+
     return true;
 }
 
-bool CameraModule::postInit()
-{
-    rebuildViewProj();
-    return true;
-}
 
 void CameraModule::update() {
     if (!app->getEditorModule()->getSceneEditor()->isFocused() || !app->getEditorModule()->getSceneEditor()->isHovered()) {

@@ -16,6 +16,12 @@
 #include "TextureAsset.h"
 #include <DirectXTex.h>
 
+ResourcesModule::ResourcesModule(ComPtr<ID3D12Device4> device, CommandQueue* queue)
+{
+	m_device = device;
+	m_queue = queue;
+}
+
 ResourcesModule::~ResourcesModule()
 {
 	m_deferredResources.clear();
@@ -23,15 +29,10 @@ ResourcesModule::~ResourcesModule()
 
 bool ResourcesModule::init()
 {
-	m_device = app->getD3D12Module()->getDevice();
-	m_queue = app->getD3D12Module()->getCommandQueue();
+
 	return true;
 }
 
-bool ResourcesModule::postInit()
-{
-	return true;
-}
 
 void ResourcesModule::preRender()
 {
