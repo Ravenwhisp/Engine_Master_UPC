@@ -11,7 +11,7 @@
 #include "Asset.h"
 
 #include "TextureAsset.h"
-#include "AssetsModule.h"
+#include "ModuleAssets.h"
 
 #include "FileIO.h"
 #include "ImporterRegistry.h"
@@ -57,7 +57,7 @@ unsigned int FileSystemModule::load(const std::filesystem::path& filePath, char*
     return m_fileIO->load(filePath, buffer);
 }
 
-unsigned int FileSystemModule::load(const char* filePath, char** buffer) const
+unsigned int ModuleFileSystem::load(const char* filePath, char** buffer) const
 {
     return m_fileIO->load(filePath, buffer);
 }
@@ -67,7 +67,7 @@ unsigned int FileSystemModule::save(const std::filesystem::path& filePath, const
     return m_fileIO->save(filePath, buffer, size, append);
 }
 
-unsigned int FileSystemModule::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
+unsigned int ModuleFileSystem::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
 {
     return m_fileIO->save(filePath, buffer, size, append);
 }
@@ -77,27 +77,27 @@ bool FileSystemModule::copy(const char* sourceFilePath, const char* destinationF
     return m_fileIO->copy(sourceFilePath, destinationFilePath);
 }
 
-bool FileSystemModule::move(const char* sourceFilePath, const char* destinationFilePath) const
+bool ModuleFileSystem::move(const char* sourceFilePath, const char* destinationFilePath) const
 {
     return m_fileIO->move(sourceFilePath, destinationFilePath);
 }
 
-bool FileSystemModule::deleteFile(const char* filePath) const
+bool ModuleFileSystem::deleteFile(const char* filePath) const
 {
     return m_fileIO->deleteFile(filePath);
 }
 
-bool FileSystemModule::createDirectory(const char* directoryPath) const
+bool ModuleFileSystem::createDirectory(const char* directoryPath) const
 {
 	return m_fileIO->createDirectory(directoryPath);
 }
 
-bool FileSystemModule::exists(const char* filePath) const
+bool ModuleFileSystem::exists(const char* filePath) const
 {
 	return m_fileIO->exists(filePath);
 }
 
-bool FileSystemModule::isDirectory(const char* path) const
+bool ModuleFileSystem::isDirectory(const char* path) const
 {
 	return m_fileIO->isDirectory(path);
 }
