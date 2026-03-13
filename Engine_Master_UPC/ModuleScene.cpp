@@ -4,6 +4,7 @@
 #include "LightComponent.h"
 #include <CameraComponent.h>
 #include "Application.h"
+#include "ModuleD3D12.h"
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
 #include "Settings.h"
@@ -357,8 +358,6 @@ void ModuleScene::resetGameObjects(SceneSnapshot previousScene)
 	m_rootObjects = std::move(previousScene.rootObjects);
 	m_defaultCamera = previousScene.defaultCamera;
 
-    m_meshRenderers.clear();
-
     //guarrada historica a continuacion
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 }
@@ -703,6 +702,7 @@ void ModuleScene::clearScene()
 
     m_rootObjects.clear();
     m_allObjects.clear();
+  
 
     m_defaultCamera = nullptr;
 }

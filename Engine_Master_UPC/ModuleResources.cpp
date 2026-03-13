@@ -178,9 +178,9 @@ VertexBuffer* ModuleResources::createVertexBuffer(const void* data, size_t numVe
 	return new VertexBuffer(*m_device.Get(), defaultBuffer, numVertices, vertexStride);
 }
 
-IndexBuffer* ModuleResources::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
+IndexBuffer* ModuleResources::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat, const char* name )
 {
-	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
+	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), name);
 	return new IndexBuffer(*m_device.Get(), defaultBuffer, numIndices, indexFormat);
 }
 
