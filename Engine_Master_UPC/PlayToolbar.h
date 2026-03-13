@@ -1,6 +1,6 @@
 #pragma once
 
-class EditorModule;
+class ModuleEditor;
 
 class PlayToolbar
 {
@@ -11,7 +11,7 @@ public:
 	void DrawCentered(float menuWidth);
 
 private:
-	EditorModule* m_moduleEditor;
+	ModuleEditor* m_moduleEditor;
 
 	void ManagePositionButton(int selectedIndex);
 	void CreateButton(int selectedIndex, const char* text, int index);

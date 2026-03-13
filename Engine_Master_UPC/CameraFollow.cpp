@@ -1,10 +1,10 @@
 #include "Globals.h"
 #include "CameraFollow.h"
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "TimeModule.h"
+#include "ModuleTime.h"
 #include "ComponentType.h"
 
 static const float PI = 3.1415926535897931f;
@@ -82,7 +82,7 @@ void CameraFollow::update()
 
     Transform* cameraTransform = m_owner->GetTransform();
 
-    const float dt = app->getTimeModule()->deltaTime();
+    const float dt = app->getModuleTime()->deltaTime();
 
     const bool hasSecondTarget = (m_secondTargetTransform != nullptr);
 
@@ -240,7 +240,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
@@ -281,7 +281,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {

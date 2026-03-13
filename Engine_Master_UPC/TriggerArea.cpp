@@ -3,7 +3,7 @@
 
 #include "Application.h"
 #include "GameObject.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "QuadNode.h"
 
 TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, ComponentType::CHANGE_SCENE_ON_TRIGGER, gameObject)
@@ -60,7 +60,7 @@ void TriggerArea::update()
 	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
 	BoundingRect triggerArea(currentPosition.x - m_xWidth/2, currentPosition.z - m_zWidth/2, m_xWidth, m_zWidth);
 
-	GameObject* gameObject1 = app->getSceneModule()->findGameObjectByUID(m_object1);
+	GameObject* gameObject1 = app->getModuleScene()->findGameObjectByUID(m_object1);
 	if (gameObject1) 
 	{
 
@@ -71,7 +71,7 @@ void TriggerArea::update()
 		}
 	}
 
-	GameObject* gameObject2 = app->getSceneModule()->findGameObjectByUID(m_object2);
+	GameObject* gameObject2 = app->getModuleScene()->findGameObjectByUID(m_object2);
 	if (gameObject2)
 	{
 
@@ -98,7 +98,7 @@ void TriggerArea::onChangeScene()
 
 	DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
 
-	app->getSceneModule()->requestSceneChange(m_sceneToLoad);
+	app->getModuleScene()->requestSceneChange(m_sceneToLoad);
 }
 
 void TriggerArea::printArea()

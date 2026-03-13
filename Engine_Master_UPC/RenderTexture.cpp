@@ -2,8 +2,8 @@
 #include "RenderTexture.h"
 
 #include "Application.h"
-#include "DescriptorsModule.h"
-#include "ResourcesModule.h"
+#include "ModuleDescriptors.h"
+#include "ModuleResources.h"
 
 
 RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Texture(GenerateUID(), device, info) {
@@ -19,7 +19,7 @@ RenderTexture::RenderTexture(ID3D12Device4& device, TextureInitInfo info) : Text
 
     for (int i{ 0 }; i < m_mipCount; i++)
     {
-        m_rtv[i] = app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
+        m_rtv[i] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
         device.CreateRenderTargetView(getD3D12Resource().Get(), &desc, m_rtv[i].cpu);
         ++desc.Texture2D.MipSlice;
     }
@@ -30,7 +30,7 @@ void RenderTexture::release()
 {
     for (uint32_t i = 0; i < m_mipCount; ++i)
     {
-        app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[i].handle);
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[i].handle);
     }
     m_mipCount = 0;
 }
