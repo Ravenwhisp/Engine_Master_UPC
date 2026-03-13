@@ -35,7 +35,7 @@ public:
 
 	RingBuffer* createRingBuffer(size_t size);
 	VertexBuffer* createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
-	IndexBuffer* createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat);
+	IndexBuffer* createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat, const char* name = "IndexBuffer");
 
 
 	Texture* createDepthBuffer(float width, float height);

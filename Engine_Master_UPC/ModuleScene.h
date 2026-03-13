@@ -24,7 +24,7 @@ struct SceneLightingSettings
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	UID cubemapAssetId = 0;
+	UID cubemapAssetId = INVALID_ASSET_ID;
 };
 
 struct SceneSnapshot

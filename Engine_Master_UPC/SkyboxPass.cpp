@@ -131,7 +131,7 @@ void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
         return;
     }
 
-    if (settings.cubemapAssetId == 0)
+    if (settings.cubemapAssetId == INVALID_ASSET_ID)
     {
         m_skyBox.reset();
         return;
