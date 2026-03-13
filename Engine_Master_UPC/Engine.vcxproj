@@ -383,7 +383,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="WindowPerformance.h" />
     <ClInclude Include="PlatformHelpers.h" />
     <ClInclude Include="ReadData.h" />
-    <ClInclude Include="ModuleRender.h" />    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ModuleRender.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
@@ -526,6 +527,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="FontImporter.cpp" />
+    <ClCompile Include="ImporterRegistry.cpp" />
+    <ClCompile Include="MetadataStore.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />

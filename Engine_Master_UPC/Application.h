@@ -56,7 +56,7 @@ public:
     ModuleScene*                getModuleScene() { return m_moduleScene; }
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
     ModuleFileSystem*           getModuleFileSystem() { return m_moduleFileSystem; }
-    ModuleAssets*               getAssetModule() { return m_moduleAssets; }
+    ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
     ModuleFlyweight*            getModuleFlyweight() { return m_moduleFlyweight; }
 

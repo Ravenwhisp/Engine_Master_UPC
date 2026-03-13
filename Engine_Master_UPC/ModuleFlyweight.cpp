@@ -2,8 +2,7 @@
 #include "ModuleFlyweight.h"
 
 #include "Application.h"
-#include "ResourcesModule.h"
-#include "AssetsModule.h"
+#include "ModuleResources.h"
 
 #include "Texture.h"
 #include "BasicMesh.h"
@@ -33,7 +32,7 @@ std::shared_ptr<Texture> ModuleFlyweight::createTexture(const TextureAsset& text
     }
 
 
-    auto texture = std::shared_ptr<Texture>(app->getResourcesModule()->createTexture(textureAsset));
+    auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTexture(textureAsset));
     m_resources.insert(uid, texture);
     return texture;
 }

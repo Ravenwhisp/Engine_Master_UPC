@@ -6,20 +6,27 @@
 
 #include <filesystem>
 #include <unordered_map>
+#include "Delegates.h"
+#include "WeakCache.h"
 
 class Asset;
 class AssetMetadata;
+struct ImportRequest;
 
 class ModuleAssets : public Module
 {
 public:
+	bool init()    override;
+	bool cleanUp() override;
 
-	UID importAsset(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
+	UID import(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
 
-	Asset*	requestAsset(UID id);
-	Asset*  requestAsset(const AssetMetadata* metadata);
-	void	releaseAsset(Asset* asset);
+	std::shared_ptr<Asset>	requestAsset(UID id);
+	std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
 
 private:
-	std::unordered_map<UID, Asset*> m_assets;
+	void onImportRequested(const ImportRequest& request);
+
+	WeakCache<UID, Asset>  m_assets;
+	DelegateHandle    m_importHandle;
 };

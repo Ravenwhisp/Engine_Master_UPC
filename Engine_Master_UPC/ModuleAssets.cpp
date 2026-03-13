@@ -2,7 +2,7 @@
 #include "ModuleAssets.h"
 
 #include "Application.h"
-#include "FileSystemModule.h"
+#include "ModuleFileSystem.h"
 #include "Importer.h"
 #include "UID.h"
 #include "Delegates.h"
@@ -10,29 +10,29 @@
 #include <filesystem>
 #include <AssetScanner.h>
 
-bool AssetsModule::init()
+bool ModuleAssets::init()
 {
-    m_importHandle = app->getFileSystemModule()->subscribeToImportRequested(OnImportRequestedEvent::DelegateT::CreateRaw(this, &AssetsModule::onImportRequested));
+    m_importHandle = app->getModuleFileSystem()->subscribeToImportRequested(OnImportRequestedEvent::DelegateT::CreateRaw(this, &ModuleAssets::onImportRequested));
     return true;
 }
 
-bool AssetsModule::cleanUp()
+bool ModuleAssets::cleanUp()
 {
-    app->getFileSystemModule()->unsubscribeFromImportRequested(m_importHandle);
+    app->getModuleFileSystem()->unsubscribeFromImportRequested(m_importHandle);
 
     m_assets.clear();
     return true;
 }
 
-void AssetsModule::onImportRequested(const ImportRequest& request)
+void ModuleAssets::onImportRequested(const ImportRequest& request)
 {
     import(request.sourcePath, request.existingUID);
 }
 
 
-UID AssetsModule::import(const std::filesystem::path & assetsFile, UID uid)
+UID ModuleAssets::import(const std::filesystem::path & assetsFile, UID uid)
 {
-    Importer* importer = app->getFileSystemModule()->findImporter(assetsFile);
+    Importer* importer = app->getModuleFileSystem()->findImporter(assetsFile);
     if (!importer)
     {
         DEBUG_WARN("[AssetsModule] No importer found for '{}'.", assetsFile.string());
@@ -60,25 +60,24 @@ UID AssetsModule::import(const std::filesystem::path & assetsFile, UID uid)
     metaPath += METADATA_EXTENSION;
 
     AssetMetadata::saveMetaFile(meta, metaPath);
-    app->getFileSystemModule()->registerMetadata(meta, assetsFile);
+    app->getModuleFileSystem()->registerMetadata(meta, assetsFile);
 
     // Serialise the processed binary into the library folder.
     uint8_t* rawBuffer = nullptr;
     uint64_t size = importer->save(asset.get(), &rawBuffer);
 
     std::unique_ptr<uint8_t[]> buffer(rawBuffer);
-    app->getFileSystemModule()->save(
-        meta.getBinaryPath(), buffer.get(), static_cast<unsigned int>(size));
+    app->getModuleFileSystem()->save(meta.getBinaryPath(), buffer.get(), static_cast<unsigned int>(size));
 
     return uid;
 }
 
-std::shared_ptr<Asset> AssetsModule::requestAsset(UID id)
+std::shared_ptr<Asset> ModuleAssets::requestAsset(UID id)
 {
     if (auto live = m_assets.get(id))
         return live;
 
-    AssetMetadata* metadata = app->getFileSystemModule()->getMetadata(id);
+    AssetMetadata* metadata = app->getModuleFileSystem()->getMetadata(id);
     if (!metadata)
     {
         DEBUG_ERROR("[AssetsModule] No metadata found for UID: %llu", id);
@@ -88,9 +87,9 @@ std::shared_ptr<Asset> AssetsModule::requestAsset(UID id)
     return loadAsset(metadata);
 }
 
-std::shared_ptr<Asset> AssetsModule::loadAsset(const AssetMetadata* metadata)
+std::shared_ptr<Asset> ModuleAssets::loadAsset(const AssetMetadata* metadata)
 {
-    Importer* importer = app->getFileSystemModule()->findImporter(metadata->type);
+    Importer* importer = app->getModuleFileSystem()->findImporter(metadata->type);
     if (!importer)
     {
         DEBUG_ERROR("[AssetsModule] No importer found for asset type (UID: %llu).", metadata->uid);
@@ -100,7 +99,7 @@ std::shared_ptr<Asset> AssetsModule::loadAsset(const AssetMetadata* metadata)
     std::shared_ptr<Asset> asset(importer->createAssetInstance(metadata->uid));
 
     char* rawBuffer = nullptr;
-    unsigned int size = app->getFileSystemModule()->load(metadata->getBinaryPath(), &rawBuffer);
+    unsigned int size = app->getModuleFileSystem()->load(metadata->getBinaryPath(), &rawBuffer);
 
     if (size > 0)
     {

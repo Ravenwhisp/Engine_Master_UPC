@@ -1,6 +1,6 @@
 #include "Globals.h"
-#include "ResourcesModule.h"
-#include "D3D12Module.h"
+#include "ModuleResources.h"
+#include "ModuleD3D12.h"
 #include "Application.h"
 #include "CommandQueue.h"
 
@@ -9,32 +9,32 @@
 #include "RingBuffer.h"
 #include "Texture.h"
 
-#include "AssetsModule.h"
+#include "ModuleAssets.h"
 #include "ModelAsset.h"
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
 #include "TextureAsset.h"
 #include <DirectXTex.h>
 
-ResourcesModule::ResourcesModule(ComPtr<ID3D12Device4> device, CommandQueue* queue)
+ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {
 	m_device = device;
 	m_queue = queue;
 }
 
-ResourcesModule::~ResourcesModule()
+ModuleResources::~ModuleResources()
 {
 	m_deferredResources.clear();
 }
 
-bool ResourcesModule::init()
+bool ModuleResources::init()
 {
 
 	return true;
 }
 
 
-void ResourcesModule::preRender()
+void ModuleResources::preRender()
 {
 	const uint64_t lastCompletedFrame = m_queue->getCompletedFenceValue();
 
@@ -53,13 +53,13 @@ void ResourcesModule::preRender()
 	}
 }
 
-bool ResourcesModule::cleanUp()
+bool ModuleResources::cleanUp()
 {
 	m_deferredResources.clear();
 	return true;
 }
 
-ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size)
+ComPtr<ID3D12Resource> ModuleResources::createUploadBuffer(size_t size)
 {
 	ComPtr<ID3D12Resource> buffer;
 	CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -68,7 +68,7 @@ ComPtr<ID3D12Resource> ResourcesModule::createUploadBuffer(size_t size)
 	return buffer;
 }
 
-ComPtr<ID3D12Resource> ResourcesModule::createDefaultBuffer(const void* data, size_t size, const char* name)
+ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(const void* data, size_t size, const char* name)
 {
 	ComPtr<ID3D12Resource> buffer;
 	auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -92,7 +92,7 @@ ComPtr<ID3D12Resource> ResourcesModule::createDefaultBuffer(const void* data, si
 	return buffer;
 }
 
-Texture* ResourcesModule::createDepthBuffer(float width, float height)
+Texture* ModuleResources::createDepthBuffer(float width, float height)
 {
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R32_TYPELESS;
@@ -107,7 +107,7 @@ Texture* ResourcesModule::createDepthBuffer(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ResourcesModule::createRenderTexture(float width, float height)
+Texture* ModuleResources::createRenderTexture(float width, float height)
 {
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
@@ -122,7 +122,7 @@ Texture* ResourcesModule::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ResourcesModule::createNullTexture2D()
+Texture* ModuleResources::createNullTexture2D()
 {
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -133,7 +133,7 @@ Texture* ResourcesModule::createNullTexture2D()
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ResourcesModule::createTexture(const TextureAsset& textureAsset)
+Texture* ModuleResources::createTexture(const TextureAsset& textureAsset)
 {
 	TextureDesc desc{};
 	desc.format = DirectX::MakeSRGB(textureAsset.getFormat());
@@ -165,26 +165,26 @@ Texture* ResourcesModule::createTexture(const TextureAsset& textureAsset)
 	return texture;
 }
 
-RingBuffer* ResourcesModule::createRingBuffer(size_t size)
+RingBuffer* ModuleResources::createRingBuffer(size_t size)
 {
 	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 	ComPtr<ID3D12Resource> buffer = createUploadBuffer(totalMemorySize);
 	return new RingBuffer(*m_device.Get(), buffer, totalMemorySize);
 }
 
-VertexBuffer* ResourcesModule::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
+VertexBuffer* ModuleResources::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
 	return new VertexBuffer(*m_device.Get(), defaultBuffer, numVertices, vertexStride);
 }
 
-IndexBuffer* ResourcesModule::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
+IndexBuffer* ModuleResources::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat)
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), "IndexBuffer");
 	return new IndexBuffer(*m_device.Get(), defaultBuffer, numIndices, indexFormat);
 }
 
-void ResourcesModule::deferResourceRelease(ComPtr<ID3D12Resource> resource)
+void ModuleResources::deferResourceRelease(ComPtr<ID3D12Resource> resource)
 {
 	DeferredResource deferred{};
 	deferred.frame = m_queue->signal();
@@ -192,7 +192,7 @@ void ResourcesModule::deferResourceRelease(ComPtr<ID3D12Resource> resource)
 	m_deferredResources.push_back(std::move(deferred));
 }
 
-void ResourcesModule::uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData)
+void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData)
 {
 	const UINT subCount = static_cast<UINT>(subData.size());
 

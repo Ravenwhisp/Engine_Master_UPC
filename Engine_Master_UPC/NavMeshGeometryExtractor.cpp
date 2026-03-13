@@ -131,7 +131,7 @@ static void CollectFromObject(
             const UID modelId = renderer->getModelAssetId();
             if (modelId != 0)
             {
-                auto model = std::static_pointer_cast<ModelAsset>(app->getAssetModule()->requestAsset(modelId));
+                auto model = std::static_pointer_cast<ModelAsset>(app->getModuleAssets()->requestAsset(modelId));
                 if (model)
                 {
                     const Matrix world = obj->GetTransform()->getGlobalMatrix();

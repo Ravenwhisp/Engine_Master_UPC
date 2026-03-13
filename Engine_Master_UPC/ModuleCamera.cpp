@@ -34,11 +34,6 @@ bool ModuleCamera::init() {
     return true;
 }
 
-bool CameraModule::postInit()
-{
-    rebuildViewProj();
-    return true;
-}
 
 void ModuleCamera::update() {
     if (!app->getModuleEditor()->getWindowSceneEditor()->isFocused() || !app->getModuleEditor()->getWindowSceneEditor()->isHovered()) {
