@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "AssetsModule.h"
+#include "ModuleAssets.h"
 
 #include "Application.h"
 #include "FileSystemModule.h"

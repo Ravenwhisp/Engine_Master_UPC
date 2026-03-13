@@ -29,10 +29,12 @@ bool ModuleCamera::init() {
     Mouse::State mouseState = Mouse::Get().GetState();
     m_lastWheel = mouseState.scrollWheelValue;
 
+    rebuildViewProj();
+
     return true;
 }
 
-bool ModuleCamera::postInit()
+bool CameraModule::postInit()
 {
     rebuildViewProj();
     return true;
