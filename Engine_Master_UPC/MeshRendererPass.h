@@ -1,20 +1,35 @@
 #pragma once
+
 #include "IRenderPass.h"
 #include "Lights.h"
-#include "GameObject.h"
-#include <RingBuffer.h>
-#include <MeshRenderer.h>
-#include "SceneModule.h"
+
+#include <vector>
+#include <d3d12.h>
+#include <wrl/client.h>
+
+using Microsoft::WRL::ComPtr;
 
 class Submesh;
+class RingBuffer;
+class MeshRenderer;
+class GameObject;
+
+struct SceneLightingSettings;
+struct SceneDataCB;
+
+namespace DirectX { namespace SimpleMath { struct Vector3; struct Matrix; } }
+
+using Vector3 = DirectX::SimpleMath::Vector3;
+using Matrix = DirectX::SimpleMath::Matrix;
 
 class MeshRendererPass : public IRenderPass {
 public:
     MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer);
+    ~MeshRendererPass();
 
     void setMeshes(const std::vector<MeshRenderer*>& meshRenderers) { m_meshRenderers = &meshRenderers; }
 
-    void setCameraPosition(const Vector3& cameraPos) { m_sceneDataCB.viewPos = cameraPos; }
+    void setCameraPosition(const Vector3& cameraPos);
     void setView(const Matrix& view) { m_view = &view; }
     void setProjection(const Matrix& projection) { m_projection = &projection; }
 
@@ -39,9 +54,9 @@ private:
 
     RingBuffer*                     m_ringBuffer;
 
-    SceneLightingSettings		    m_lighting;
-    SceneDataCB				        m_sceneDataCB;
+    std::unique_ptr<SceneLightingSettings> m_lighting;
+    std::unique_ptr<SceneDataCB> m_sceneDataCB;
 
-    mutable const Matrix* m_projection;
-    mutable const Matrix* m_view;
+    const Matrix* m_projection;
+    const Matrix* m_view;
 };

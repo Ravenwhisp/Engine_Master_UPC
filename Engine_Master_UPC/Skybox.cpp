@@ -1,17 +1,22 @@
 #include "Globals.h"
-#include "Skybox.h"
+#include "SkyBox.h"
 
 #include "Application.h"
+#include "ModuleResources.h"
+
+#include "Texture.h"
+#include "TextureAsset.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 #include "ResourcesModule.h"
 #include "ModuleFlyweight.h"
 #include "TextureAsset.h"
 
-struct SkyboxVertex { Vector3 position; };
-
+struct SkyBoxVertex { Vector3 position; };
 
 SkyBox::SkyBox(TextureAsset& asset)
 {
-    static const SkyboxVertex vertexes[] =
+    static const SkyBoxVertex vertexes[] =
     {
         {{-1, -1, -1}}, {{-1,  1, -1}}, {{ 1,  1, -1}}, {{ 1, -1, -1}},
         {{-1, -1,  1}}, {{-1,  1,  1}}, {{ 1,  1,  1}}, {{ 1, -1,  1}},
@@ -31,3 +36,5 @@ SkyBox::SkyBox(TextureAsset& asset)
     m_indexBuffer.reset(app->getResourcesModule()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT));
     m_texture = app->getModuleFlyweight()->createTexture(asset);
 }
+
+SkyBox::~SkyBox() = default;

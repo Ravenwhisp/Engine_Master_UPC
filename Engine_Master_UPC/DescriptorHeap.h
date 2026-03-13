@@ -1,6 +1,5 @@
 #pragma once
 
-
 struct Handle {
 	UINT index : 24;
 	UINT generation : 8;

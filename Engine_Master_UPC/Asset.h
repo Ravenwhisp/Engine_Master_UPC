@@ -12,7 +12,6 @@
 
 #include "AssetsDictionary.h"
 
-
 enum class AssetType : uint32_t
 {
 	TEXTURE = 0,

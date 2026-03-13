@@ -1,7 +1,7 @@
 #pragma once
 
 #include "TypedImporter.h"
-#include <ResourcesModule.h>
+#include <ModuleResources.h>
 #include "UtilityGLFT.h"
 #include <ModelAsset.h>
 
