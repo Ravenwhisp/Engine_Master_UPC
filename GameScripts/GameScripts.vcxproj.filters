@@ -27,9 +27,6 @@
     <ClInclude Include="GameScriptsExports.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="GameScriptsAPI.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="GameScriptsRegistration.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
