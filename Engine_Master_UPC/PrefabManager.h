@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 
 class GameObject;
-class SceneModule;
+class ModuleScene;
 
 struct PrefabOverrideRecord
 {
@@ -53,9 +53,9 @@ public:
     };
 
     static bool         createPrefab(const GameObject* go, const std::string& prefabName);
-    static GameObject* instantiatePrefab(const std::string& prefabName, SceneModule* scene);
+    static GameObject* instantiatePrefab(const std::string& prefabName, ModuleScene* scene);
     static bool         applyToPrefab(const GameObject* go, bool respectOverrides = true);
-    static bool         revertToPrefab(GameObject* go, SceneModule* scene);
+    static bool         revertToPrefab(GameObject* go, ModuleScene* scene);
     static bool         createVariant(const std::string& sourcePrefabName, const std::string& destinationPrefabName);
 
     static void markPropertyOverride(GameObject* go, int componentType, const std::string& propertyName);
@@ -66,7 +66,7 @@ public:
     static void markComponentRemoved(GameObject* go, int componentType);
 
     static std::string  serializeGameObject(const GameObject* go);
-    static GameObject* deserializeGameObject(const std::string& data, SceneModule* scene);
+    static GameObject* deserializeGameObject(const std::string& data, ModuleScene* scene);
 
     static bool                      isPrefabInstance(const GameObject* go);
     static std::string               getPrefabName(const GameObject* go);
@@ -89,7 +89,7 @@ private:
     static bool        readPrefabDocument(const std::string& path, rapidjson::Document& doc);
 
     struct SerialiseCtx;
-    static GameObject* deserialiseNode(const rapidjson::Value& node, SceneModule* scene, GameObject* parent);
+    static GameObject* deserialiseNode(const rapidjson::Value& node, ModuleScene* scene, GameObject* parent);
 
     static std::unordered_map<const GameObject*, PrefabInstanceData>& registry();
 };
