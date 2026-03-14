@@ -103,3 +103,14 @@ std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
     clonedComponent->m_hasStarted = false;
     return clonedComponent;
 }
+
+rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    return componentInfo;
+}

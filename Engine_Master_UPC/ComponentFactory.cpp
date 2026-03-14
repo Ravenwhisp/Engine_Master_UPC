@@ -46,9 +46,6 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
     case ComponentType::PLAYER_WALK:
         return std::make_unique<PlayerWalk>(id, owner);
 
-    case ComponentType::NAVMESH_WALK:
-        return std::make_unique<NavMeshWalk>(id, owner);
-
     case ComponentType::CAMERA:
         return std::make_unique<CameraComponent>(id, owner);
 
@@ -72,6 +69,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::CHANGE_SCENE:
         return std::make_unique<ChangeScene>(id, owner);
+
+    case ComponentType::NAVMESH_WALK:
+        return std::make_unique<NavMeshWalk>(id, owner);
 
     case ComponentType::NAVIGATION_AGENT:
         return std::make_unique<NavigationAgentComponent>(id, owner);
