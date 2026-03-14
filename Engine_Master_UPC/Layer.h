@@ -4,6 +4,7 @@
     X(DEFAULT)     \
     X(UI)          \
     X(ENVIRONMENT) \
+    X(NAVMESH)     \
     X(PLAYER)      \
     X(ENEMY)       \
     X(PROJECTILE)

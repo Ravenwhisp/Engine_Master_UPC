@@ -13,7 +13,12 @@
     X(UIBUTTON)             \
     X(CAMERA_FOLLOW)        \
     X(CHANGE_SCENE)         \
-    X(EXIT_APPLICATION)
+    X(EXIT_APPLICATION)     \
+    X(CAMERA_SWITCHER)      \
+    X(CHANGE_SCENE_ON_TRIGGER) \
+    X(NAVMESH_WALK)         \
+    X(NAVIGATION_AGENT)     \
+    X(WAYPOINT_PATH)         
 
 enum class ComponentType
 {

@@ -2,11 +2,8 @@
 #include "FileDialog.h"
 
 #include "Application.h"
-#include "FileSystemModule.h"
-#include "AssetsModule.h"
-#include "EditorModule.h"
-#include "PrefabManager.h"
-#include "PrefabUI.h"
+#include "ModuleFileSystem.h"
+#include "ModuleAssets.h"
 #include "Keyboard.h"
 
 // ---------------------------------------------------------
@@ -24,7 +21,7 @@ void FileDialog::createNewFolder()
     }
 
     std::filesystem::create_directory(newFolderPath);
-    app->getFileSystemModule()->rebuild();
+    app->getModuleFileSystem()->rebuild();
 }
 
 void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
@@ -38,14 +35,14 @@ void FileDialog::pasteFile(const std::shared_ptr<FileEntry>& directory)
         }
     }
     
-    app->getFileSystemModule()->rebuild();
+    app->getModuleFileSystem()->rebuild();
     m_lastActionRequested = Command::NONE;
 }
 
 void FileDialog::importAsset(const std::shared_ptr<FileEntry>& asset)
 {
     std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
-    app->getAssetModule()->import(originalPath);
+    app->getAssetModule()->importAsset(originalPath);
 }
 
 void FileDialog::cutItem(const std::shared_ptr<FileEntry>& asset)
@@ -66,7 +63,7 @@ void FileDialog::deleteItem(const std::shared_ptr<FileEntry>& asset)
                 m_lastActionRequested = Command::NONE;
             }
         }
-        app->getFileSystemModule()->rebuild();
+        app->getModuleFileSystem()->rebuild();
         
         m_selectedItem = nullptr; // do we want this behaviour?
     }
@@ -80,13 +77,13 @@ void FileDialog::deleteFolder(const std::shared_ptr<FileEntry>& asset)
     }
 
     std::filesystem::remove_all(asset->getPath());
-    app->getFileSystemModule()->rebuild();
+    app->getModuleFileSystem()->rebuild();
 
     // If the last path that we requested a command for no longer exists, we disable the command
     {
         std::string fileToManageString = m_fileToManage.string();
         const char* fileToManage = fileToManageString.c_str();
-        if (m_lastActionRequested != Command::NONE and !app->getFileSystemModule()->exists(fileToManage))
+        if (m_lastActionRequested != Command::NONE and !app->getModuleFileSystem()->exists(fileToManage))
         {
             m_lastActionRequested = Command::NONE;
         }
@@ -176,25 +173,28 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         ImGui::EndPopup();
     }
 
-     const Keyboard::State& keyState = Keyboard::Get().GetState();
-    if (keyState.LeftControl or keyState.RightControl)
+    // Keyboard shortcuts
+    const Keyboard::State& keyState = Keyboard::Get().GetState();
+    if (keyState.LeftControl or keyState.RightControl) 
     {
-        if (keyState.X)
+        if (keyState.X) 
         {
             if (m_selectedItem) cutItem(m_selectedItem);
+
         }
-        else if (keyState.V and m_lastActionRequested != Command::NONE)
+        else if (keyState.V and m_lastActionRequested != Command::NONE) 
         {
-            if (m_selectedItem)
+            if (m_selectedItem) 
             {
                 if (std::filesystem::is_directory(m_selectedItem->path)) pasteFile(m_selectedItem);
             }
-            else
+            else 
             {
                 pasteFile(directory);
             }
         }
     }
+
 
     ImGui::Columns(columnCount, nullptr, false);
 
@@ -207,15 +207,8 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         ImGui::PushID(asset->displayName.c_str());
 
-        const bool isPrefab = (!asset->isDirectory && asset->path.extension() == ".prefab");
-
-        if (isPrefab)
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
-
-        ImGui::Button(asset->isDirectory ? "[DIR]" : (isPrefab ? "[P]" : "[FILE]"), ImVec2(40, 40));
-
-        if (isPrefab)
-            ImGui::PopStyleColor();
+        // PROVISIONAL: This will be changed for an image
+        ImGui::Button(asset->isDirectory ? "[DIR]" : "[FILE]", ImVec2(40, 40));
 
         if (ImGui::IsItemClicked())
         {
@@ -236,38 +229,29 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::EndDragDropSource();
             }
 
-            if (isPrefab)
+            if (ImGui::BeginPopupContextItem("ItemContext"))
             {
-                PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
-                PrefabUI::drawFileDialogItemContextMenu(asset->path.stem().string(), m_showVariantModal, m_renamingPrefab, buffers);
-            }
-            else
-            {
-                if (ImGui::BeginPopupContextItem("ItemContext"))
+                ImGui::Text("Options");
+                ImGui::Separator();
+
+                std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
+                Importer* importer = app->getModuleFileSystem()->findImporter(originalPath);
+
+                if (ImGui::MenuItem("Import", nullptr, false, importer != nullptr))
                 {
-                    ImGui::Text("Options");
-                    ImGui::Separator();
-
-                    std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
-                    Importer* importer = app->getFileSystemModule()->findImporter(originalPath);
-
-                    if (ImGui::MenuItem("Import", nullptr, false, importer != nullptr))
-                    {
-                        importAsset(asset);
-                    }
-
-                    if (ImGui::MenuItem("Cut", "Ctrl + X", false, true))
-                    {
-                        cutItem(asset);
-                    }
-
-                    if (ImGui::MenuItem("Delete", "Del", false, true))
-                    {
-                        deleteItem(asset);
-                    }
-
-                    ImGui::EndPopup();
+                    importAsset(asset);
                 }
+
+                if (ImGui::MenuItem("Cut", "Ctrl + X", false, true))
+                {
+                    cutItem(asset);
+                }
+
+                if (ImGui::MenuItem("Delete", "Del", false, true)){
+                    deleteItem(asset);
+                }
+
+                ImGui::EndPopup();
             }
         }
         else
@@ -293,7 +277,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::Text("General");
                 ImGui::Separator();
 
-                if (m_lastActionRequested != Command::NONE and m_fileToManage != (asset->path) and
+                if (m_lastActionRequested != Command::NONE and m_fileToManage != (asset->path) and 
                     ImGui::MenuItem("Paste", "Ctrl + V"))
                 {
                     pasteFile(asset);
@@ -304,6 +288,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         }
 
         ImGui::TextWrapped("%s", asset->displayName.c_str());
+
         ImGui::NextColumn();
         ImGui::PopID();
     }
@@ -319,15 +304,15 @@ inline bool FileDialog::moveFile(FileEntry* targetDirectory)
     std::string targetNameString = (targetDirectory->path / m_fileToManage.filename()).string();
     const char* targetName = targetNameString.c_str();
 
-    if (app->getFileSystemModule()->isDirectory(file))
+    if (app->getModuleFileSystem()->isDirectory(file))
     {
-        return app->getFileSystemModule()->move(file, targetName);
+        return app->getModuleFileSystem()->move(file, targetName);
     }
     else
     {
         // The file that we have is the metadata; we have to move its asset as well, which should be on the same folder
 
-        bool moveMetadata = app->getFileSystemModule()->move(file, targetName);
+        bool moveMetadata = app->getModuleFileSystem()->move(file, targetName);
 
         std::string assetPathString = (m_fileToManage.parent_path() / m_fileToManage.stem()).string(); // stem() is the file name, takes out the .metadata at the end
         const char* assetPath = assetPathString.c_str();
@@ -335,7 +320,7 @@ inline bool FileDialog::moveFile(FileEntry* targetDirectory)
         std::string assetTargetNameString = (targetDirectory->path / m_fileToManage.stem()).string();
         const char* assetTargetName = assetTargetNameString.c_str();
 
-        bool moveFile = app->getFileSystemModule()->move(assetPath, assetTargetName);
+        bool moveFile = app->getModuleFileSystem()->move(assetPath, assetTargetName);
 
         return moveFile && moveMetadata;
     }
@@ -351,12 +336,11 @@ inline bool FileDialog::deleteAsset(FileEntry* file)
     std::string assetPathString = (file->path.parent_path() / file->path.stem()).string(); // stem() is the file name, takes out the .metadata at the end
     const char* assetPath = assetPathString.c_str();
 
-    bool deleteMetadata = app->getFileSystemModule()->deleteFile(filePath);
-    bool deleteFile = app->getFileSystemModule()->deleteFile(assetPath);
+    bool deleteMetadata = app->getModuleFileSystem()->deleteFile(filePath);
+    bool deleteFile = app->getModuleFileSystem()->deleteFile(assetPath);
 
     return deleteFile and deleteMetadata;
 }
-
 
 
 void FileDialog::render()
@@ -369,30 +353,15 @@ void FileDialog::render()
     }
 
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
-    drawDirectoryTree(app->getFileSystemModule()->getRoot());
+    drawDirectoryTree(app->getModuleFileSystem()->getRoot());
     ImGui::EndChild();
 
     ImGui::SameLine();
     ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
-    if (std::shared_ptr<FileEntry> dir = app->getFileSystemModule()->getEntry(m_currentDirectory))
+    if (std::shared_ptr<FileEntry> dir = app->getModuleFileSystem()->getEntry(m_currentDirectory))
     {
         drawAssetGrid(dir);
     }
     ImGui::EndChild();
-
-    PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
-    PrefabUI::drawFileDialogModals(m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab, buffers);
-
     ImGui::End();
-}
-
-PrefabUI::FileDialogBuffers FileDialog::buildFileDialogBuffers()
-{
-    PrefabUI::FileDialogBuffers buffers;
-    buffers.variantSource = m_variantSrcBuf;      buffers.variantSourceSize = sizeof(m_variantSrcBuf);
-    buffers.variantDest = m_variantDstBuf;      buffers.variantDestSize = sizeof(m_variantDstBuf);
-    buffers.renameSource = m_renameSrcBuf;       buffers.renameSourceSize = sizeof(m_renameSrcBuf);
-    buffers.renameDest = m_renameDstBuf;       buffers.renameDestSize = sizeof(m_renameDstBuf);
-    buffers.savePrefab = m_savePrefabNameBuf;  buffers.savePrefabSize = sizeof(m_savePrefabNameBuf);
-    return buffers;
 }

@@ -18,7 +18,7 @@ bool AssetMetadata::saveMetaFile(const AssetMetadata& meta, const std::filesyste
     std::ofstream file(metaPath);
     if (!file.is_open())
     {
-        DEBUG_LOG("[AssetsModule] Couldn't open the metafile.");
+        DEBUG_LOG("[ModuleAssets] Couldn't open the metafile.");
         return false;
     }
 
@@ -34,7 +34,7 @@ bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMet
 
     if (!fp) 
     {
-        DEBUG_ERROR("[FileSystemModule] Failed to open meta file '%s'", metaPath.string().c_str());
+        DEBUG_ERROR("[ModuleFileSystem] Failed to open meta file '%s'", metaPath.string().c_str());
         return false;
     }
 
@@ -46,7 +46,7 @@ bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMet
     std::fclose(fp);
 
     if (doc.HasParseError()) {
-        DEBUG_ERROR("[FileSystemModule] JSON parse error in '%s'", metaPath.string().c_str());
+        DEBUG_ERROR("[ModuleFileSystem] JSON parse error in '%s'", metaPath.string().c_str());
         return false;
     }
 
@@ -57,7 +57,7 @@ bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMet
     }
     else 
     {
-        DEBUG_ERROR("[FileSystemModule] Missing or invalid 'uid' in '%s'", metaPath.string().c_str());
+        DEBUG_ERROR("[ModuleFileSystem] Missing or invalid 'uid' in '%s'", metaPath.string().c_str());
         return false;
     }
 
@@ -66,7 +66,7 @@ bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMet
         outMeta.type = static_cast<AssetType>(doc["type"].GetUint64());
     }
     else {
-        DEBUG_ERROR("[FileSystemModule] Missing or invalid 'type' in '%s'", metaPath.string().c_str());
+        DEBUG_ERROR("[ModuleFileSystem] Missing or invalid 'type' in '%s'", metaPath.string().c_str());
         return false;
     }
 

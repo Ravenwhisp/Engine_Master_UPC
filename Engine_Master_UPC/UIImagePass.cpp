@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "UIImagePass.h"
 #include "Application.h"
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 #include "CommandQueue.h"
 #include <DirectXColors.h>
 #include <algorithm>
@@ -18,7 +18,7 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 
     m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
-    auto uploadFinished = m_upload->End( app->getD3D12Module()->getCommandQueue()->getD3D12CommandQueue().Get());
+    auto uploadFinished = m_upload->End( app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
     uploadFinished.wait();
 }
@@ -48,7 +48,7 @@ void UIImagePass::begin(ID3D12GraphicsCommandList4* commandList)
     }
     m_spriteBatch->SetViewport(*m_viewport);
 
-    auto& heap = app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     ID3D12DescriptorHeap* heaps[] = { heap.getHeap() };
     commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 

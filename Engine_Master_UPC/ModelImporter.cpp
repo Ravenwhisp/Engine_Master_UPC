@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "ModelImporter.h"
-#include <Logger.h>
+#include <WindowLogger.h>
 
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_STB_IMAGE
@@ -13,8 +13,8 @@
 #pragma warning(pop)
 
 #include "Application.h"
-#include "FileSystemModule.h"
-#include "AssetsModule.h"
+#include "ModuleFileSystem.h"
+#include "ModuleAssets.h"
 #include <IndexBuffer.h>
 #include <UID.h>
 
@@ -143,10 +143,10 @@ UID loadTextureFromGLTF(const tinygltf::Model& model,int gltfTextureIndex, const
 
     std::filesystem::path resolvedPath = modelPath->parent_path() / image.uri;
 
-    UID uid = app->getFileSystemModule()->findByPath(resolvedPath.string().c_str());
+    UID uid = app->getModuleFileSystem()->findByPath(resolvedPath.string().c_str());
     if (uid == INVALID_ASSET_ID)
     {
-        return app->getAssetModule()->import(resolvedPath.string().c_str());
+        return app->getAssetModule()->importAsset(resolvedPath.string().c_str());
     }
 
 	return uid;

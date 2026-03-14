@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "TextureImporter.h"
-#include <Logger.h>
+#include <WindowLogger.h>
 
 bool TextureImporter::loadExternal(const std::filesystem::path& path, DirectX::ScratchImage& out)
 {
