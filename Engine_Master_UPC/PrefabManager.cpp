@@ -4,9 +4,9 @@
 #include "Application.h"
 #include "Component.h"
 #include "ComponentType.h"
-#include "FileSystemModule.h"
+#include "ModuleFileSystem.h"
 #include "GameObject.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "Transform.h"
 
 #include <rapidjson/document.h>
@@ -212,7 +212,7 @@ static void deserialiseComponents(const Value& node, GameObject* go)
     }
 }
 
-GameObject* PrefabManager::deserialiseNode(const Value& node, SceneModule* scene, GameObject* parent)
+GameObject* PrefabManager::deserialiseNode(const Value& node, ModuleScene* scene, GameObject* parent)
 {
     if (!node.IsObject())
     {
@@ -285,7 +285,7 @@ std::string PrefabManager::serializeGameObject(const GameObject* go)
     return buffer.GetString();
 }
 
-GameObject* PrefabManager::deserializeGameObject(const std::string& data, SceneModule* scene)
+GameObject* PrefabManager::deserializeGameObject(const std::string& data, ModuleScene* scene)
 {
     if (data.empty() || !scene)
     {
@@ -455,11 +455,11 @@ bool PrefabManager::createPrefab(const GameObject* go, const std::string& prefab
         return false;
     }
 
-    app->getFileSystemModule()->rebuild();
+    app->getModuleFileSystem()->rebuild();
     return true;
 }
 
-GameObject* PrefabManager::instantiatePrefab(const std::string& prefabName, SceneModule* scene)
+GameObject* PrefabManager::instantiatePrefab(const std::string& prefabName, ModuleScene* scene)
 {
     if (!scene || prefabName.empty())
     {
@@ -556,7 +556,7 @@ bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
     return writePrefabDocument(doc, getPrefabPath(instance->m_prefabName));
 }
 
-bool PrefabManager::revertToPrefab(GameObject* go, SceneModule* scene)
+bool PrefabManager::revertToPrefab(GameObject* go, ModuleScene* scene)
 {
     PrefabInstanceData* instance = getInstanceDataMutable(go);
     if (!instance || instance->m_prefabName.empty())

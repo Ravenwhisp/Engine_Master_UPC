@@ -3,7 +3,7 @@
 #include <string>
 
 class GameObject;
-class SceneModule;
+class ModuleScene;
 
 class PrefabUI
 {
@@ -12,7 +12,7 @@ public:
     static void drawApplyRevertBar(float availableWidth);
     static void drawSavePrefabSection(GameObject* go);
     static void drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditRoot);
-    static void drawPrefabSubMenu(GameObject* go, SceneModule* scene);
+    static void drawPrefabSubMenu(GameObject* go, ModuleScene* scene);
     static void drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize);
     static void markTransformOverride(GameObject* go);
     static void drawFileDialogInstanceBar(GameObject* go);

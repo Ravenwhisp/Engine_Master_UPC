@@ -1,5 +1,5 @@
 #pragma once
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include <memory>
 #include <string>
 
@@ -10,7 +10,7 @@ struct PrefabEditSession
     bool m_active = false;
     bool m_editingInMainScene = false;
     std::string m_prefabName;
-    std::unique_ptr<SceneModule> m_isolatedScene;
+    std::unique_ptr<ModuleScene> m_isolatedScene;
     GameObject* m_rootObject = nullptr;
 
     void clear()

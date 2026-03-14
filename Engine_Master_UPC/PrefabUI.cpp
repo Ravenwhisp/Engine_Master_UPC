@@ -3,12 +3,12 @@
 
 #include "Application.h"
 #include "ComponentType.h"
-#include "EditorModule.h"
-#include "FileSystemModule.h"
+#include "ModuleEditor.h"
+#include "ModuleFileSystem.h"
 #include "GameObject.h"
 #include "PrefabEditSession.h"
 #include "PrefabManager.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
 static void linkAndSavePrefab(GameObject* go, const char* prefabName)
 {
@@ -42,7 +42,7 @@ void PrefabUI::drawModeHeader(const char* prefabName)
 
 void PrefabUI::drawApplyRevertBar(float availableWidth)
 {
-    PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
+    PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     if (!session || !session->m_active || !session->m_rootObject)
     {
         return;
@@ -60,7 +60,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     if (ImGui::Button("Apply", ImVec2(buttonWidth, 0)))
     {
         PrefabManager::applyToPrefab(session->m_rootObject);
-        app->getEditorModule()->exitPrefabEdit();
+        app->getModuleEditor()->exitPrefabEdit();
     }
 
     ImGui::PopStyleColor(2);
@@ -76,7 +76,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     if (ImGui::Button("Revert", ImVec2(buttonWidth, 0)))
     {
         PrefabManager::revertToPrefab(session->m_rootObject, session->m_isolatedScene.get());
-        app->getEditorModule()->setSelectedGameObject(session->m_rootObject);
+        app->getModuleEditor()->setSelectedGameObject(session->m_rootObject);
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -90,7 +90,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.72f, 0.17f, 0.17f, 1.f));
     if (ImGui::Button("Exit", ImVec2(buttonWidth, 0)))
     {
-        app->getEditorModule()->exitPrefabEdit();
+        app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor(2);
     if (ImGui::IsItemHovered())
@@ -104,7 +104,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
 
 void PrefabUI::drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize)
 {
-    PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
+    PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     if (!session || !session->m_active)
     {
         return;
@@ -139,7 +139,7 @@ void PrefabUI::drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize)
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.38f, 0.07f, 0.07f, 1.f));
     if (ImGui::Button("Exit Prefab Edit  [Esc]", ImVec2(BUTTON_WIDTH, 0)))
     {
-        app->getEditorModule()->exitPrefabEdit();
+        app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor(3);
     if (ImGui::IsItemHovered())
@@ -176,7 +176,7 @@ void PrefabUI::drawSavePrefabSection(GameObject* go)
         ImGui::Spacing();
         if (ImGui::Button("Edit Prefab"))
         {
-            app->getEditorModule()->enterPrefabEdit(PrefabManager::getPrefabName(go));
+            app->getModuleEditor()->enterPrefabEdit(PrefabManager::getPrefabName(go));
         }
     }
 }
@@ -239,8 +239,8 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     ImGui::BeginDisabled(!hasOverrides);
     if (ImGui::SmallButton("Revert"))
     {
-        PrefabManager::revertToPrefab(go, app->getSceneModule());
-        app->getEditorModule()->setSelectedGameObject(go);
+        PrefabManager::revertToPrefab(go, app->getModuleScene());
+        app->getModuleEditor()->setSelectedGameObject(go);
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
@@ -265,7 +265,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
 
     if (ImGui::SmallButton("Edit Prefab"))
     {
-        app->getEditorModule()->enterPrefabEdit(prefabName);
+        app->getModuleEditor()->enterPrefabEdit(prefabName);
     }
     if (ImGui::IsItemHovered())
     {
@@ -283,7 +283,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
         return;
     }
 
-    PrefabEditSession* session = app->getEditorModule()->getPrefabSession();
+    PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     const PrefabInstanceData* instance = PrefabManager::getInstanceData(session->m_rootObject);
     const bool                hasChanges = instance && !instance->m_overrides.isEmpty();
 
@@ -297,7 +297,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     if (ImGui::MenuItem("Apply  -  Save changes to prefab file"))
     {
         PrefabManager::applyToPrefab(session->m_rootObject);
-        app->getEditorModule()->exitPrefabEdit();
+        app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor();
     ImGui::EndDisabled();
@@ -310,7 +310,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     if (ImGui::MenuItem("Revert  -  Reload from prefab file"))
     {
         PrefabManager::revertToPrefab(session->m_rootObject, session->m_isolatedScene.get());
-        app->getEditorModule()->setSelectedGameObject(session->m_rootObject);
+        app->getModuleEditor()->setSelectedGameObject(session->m_rootObject);
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && !hasChanges)
@@ -322,7 +322,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     if (ImGui::MenuItem("Unlink  -  Break prefab connection"))
     {
         PrefabManager::unlinkInstance(session->m_rootObject);
-        app->getEditorModule()->exitPrefabEdit();
+        app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor();
 
@@ -331,13 +331,13 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
     if (ImGui::MenuItem("Exit Prefab Edit"))
     {
-        app->getEditorModule()->exitPrefabEdit();
+        app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor();
     ImGui::Separator();
 }
 
-void PrefabUI::drawPrefabSubMenu(GameObject* go, SceneModule* scene)
+void PrefabUI::drawPrefabSubMenu(GameObject* go, ModuleScene* scene)
 {
     if (!go || !ImGui::BeginMenu("Prefab"))
     {
@@ -361,7 +361,7 @@ void PrefabUI::drawPrefabSubMenu(GameObject* go, SceneModule* scene)
         ImGui::Separator();
         if (ImGui::MenuItem("Edit Prefab"))
         {
-            app->getEditorModule()->enterPrefabEdit(PrefabManager::getPrefabName(go));
+            app->getModuleEditor()->enterPrefabEdit(PrefabManager::getPrefabName(go));
         }
         if (ImGui::MenuItem("Apply to Prefab"))
         {
@@ -424,25 +424,25 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::string& prefabName,
 
     if (ImGui::MenuItem("Add to Scene"))
     {
-        SceneModule* scene = app->getSceneModule();
+        ModuleScene* scene = app->getModuleScene();
         if (scene)
         {
             GameObject* gameObject = PrefabManager::instantiatePrefab(prefabName, scene);
             if (gameObject)
             {
-                app->getEditorModule()->setSelectedGameObject(gameObject);
+                app->getModuleEditor()->setSelectedGameObject(gameObject);
             }
         }
     }
 
     if (ImGui::MenuItem("Edit Prefab..."))
     {
-        app->getEditorModule()->enterPrefabEdit(prefabName);
+        app->getModuleEditor()->enterPrefabEdit(prefabName);
     }
 
     ImGui::Separator();
 
-    GameObject* selected = app->getEditorModule()->getSelectedGameObject();
+    GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
     const bool                isLinked = selected
         && PrefabManager::isPrefabInstance(selected)
         && PrefabManager::getPrefabName(selected) == prefabName;
@@ -456,8 +456,8 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::string& prefabName,
     }
     if (ImGui::MenuItem("Revert to Prefab"))
     {
-        PrefabManager::revertToPrefab(selected, app->getSceneModule());
-        app->getEditorModule()->setSelectedGameObject(selected);
+        PrefabManager::revertToPrefab(selected, app->getModuleScene());
+        app->getModuleEditor()->setSelectedGameObject(selected);
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && !hasOverrides)
@@ -487,10 +487,10 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::string& prefabName,
     if (ImGui::MenuItem("Delete Prefab File"))
     {
         const std::string path = std::string("Assets/Prefabs/") + prefabName + ".prefab";
-        if (app->getFileSystemModule()->exists(path.c_str()))
+        if (app->getModuleFileSystem()->exists(path.c_str()))
         {
-            app->getFileSystemModule()->deleteFile(path.c_str());
-            app->getFileSystemModule()->rebuild();
+            app->getModuleFileSystem()->deleteFile(path.c_str());
+            app->getModuleFileSystem()->rebuild();
         }
     }
     ImGui::PopStyleColor();
@@ -523,7 +523,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
         {
             if (strlen(buffers.variantDest) > 0 && PrefabManager::createVariant(buffers.variantSource, buffers.variantDest))
             {
-                app->getFileSystemModule()->rebuild();
+                app->getModuleFileSystem()->rebuild();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -556,9 +556,9 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
         {
             const std::string oldPath = std::string("Assets/Prefabs/") + buffers.renameSource + ".prefab";
             const std::string newPath = std::string("Assets/Prefabs/") + buffers.renameDest + ".prefab";
-            if (app->getFileSystemModule()->move(oldPath.c_str(), newPath.c_str()))
+            if (app->getModuleFileSystem()->move(oldPath.c_str(), newPath.c_str()))
             {
-                app->getFileSystemModule()->rebuild();
+                app->getModuleFileSystem()->rebuild();
             }
             ImGui::CloseCurrentPopup();
         }
@@ -579,7 +579,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     ImGui::SetNextWindowSize({ 300, 0 });
     if (ImGui::BeginPopupModal("##pfSaveModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        GameObject* selected = app->getEditorModule()->getSelectedGameObject();
+        GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
         ImGui::Text("Save \"%s\" as prefab:", selected ? selected->GetName().c_str() : "?");
         ImGui::Separator();
         ImGui::SetNextItemWidth(-1);
@@ -591,7 +591,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
             if (selected)
             {
                 linkAndSavePrefab(selected, buffers.savePrefab);
-                app->getFileSystemModule()->rebuild();
+                app->getModuleFileSystem()->rebuild();
             }
             ImGui::CloseCurrentPopup();
         }

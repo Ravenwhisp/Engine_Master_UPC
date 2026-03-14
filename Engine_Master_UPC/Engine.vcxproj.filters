@@ -305,6 +305,8 @@
     <ClCompile Include="SkyBoxPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="PrefabUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -690,6 +692,9 @@
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
+    <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="PrefabUI.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
