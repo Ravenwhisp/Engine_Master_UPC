@@ -4,8 +4,8 @@
 #include "imgui.h"
 
 #include "Application.h"
-#include "EditorModule.h"
-#include "GameViewModule.h"
+#include "ModuleEditor.h"
+#include "ModuleGameView.h"
 
 constexpr const char* PLAY_TEXT = "Play";
 constexpr const char* PAUSE_TEXT = "Pause";
@@ -22,7 +22,7 @@ enum SIMULATION_MODE
 
 PlayToolbar::PlayToolbar()
 {
-	m_moduleEditor = app->getEditorModule();
+	m_moduleEditor = app->getModuleEditor();
 }
 
 PlayToolbar::~PlayToolbar()
@@ -71,11 +71,16 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 		{ 
 			if (selectedIndex == SIMULATION_MODE::PAUSE || selectedIndex == SIMULATION_MODE::STOP)
 			{
+				if (!app->getModuleScene()->getDefaultCamera())
+				{
+					DEBUG_WARN("You need to set a defualt camera to start playing.");
+					return;
+				}
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
 				if (selectedIndex == SIMULATION_MODE::STOP)
 				{
-					app->getGameViewModule()->startGameSimulation();
+					app->getModuleGameView()->startGameSimulation();
 				}
 			}
 		}
@@ -93,7 +98,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
-				app->getGameViewModule()->stopGameSimulation();
+				app->getModuleGameView()->stopGameSimulation();
 			}
 		}
     }

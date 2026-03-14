@@ -2,9 +2,11 @@
 #include "ModuleEventSystem.h"
 
 #include "Application.h"
-#include "InputModule.h"
-#include "SceneModule.h"
-#include "EditorModule.h"
+#include "ModuleInput.h"
+#include "ModuleScene.h"
+#include "ModuleEditor.h"
+#include "WindowGame.h"
+#include "ModuleD3D12.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -14,7 +16,7 @@
 
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
-#include <SceneEditor.h>
+#include <WindowSceneEditor.h>
 #include "Delegates.h"
 
 unsigned int DelegateHandle::CURRENT_ID = 0;
@@ -22,12 +24,12 @@ unsigned int DelegateHandle::CURRENT_ID = 0;
 
 static Vector2 GetMouseScreenPos()
 {
-    return app->getInputModule()->getMousePosition();
+    return app->getModuleInput()->getMousePosition();
 }
 
 static bool IsMouseButtonPressed(PointerButton btn)
 {
-    InputModule* input = app->getInputModule();
+    ModuleInput* input = app->getModuleInput();
     switch (btn)
     {
     case PointerButton::Left:   return input->isLeftMousePressed();
@@ -39,7 +41,7 @@ static bool IsMouseButtonPressed(PointerButton btn)
 
 static bool IsMouseButtonReleased(PointerButton btn)
 {
-    InputModule* input = app->getInputModule();
+    ModuleInput* input = app->getModuleInput();
     switch (btn)
     {
     case PointerButton::Left:   return input->isLeftMouseReleased();
@@ -56,6 +58,11 @@ bool ModuleEventSystem::init()
 
 void ModuleEventSystem::update()
 {
+    if (app->getModuleScene()->isPendingSceneLoad()) {
+        clearHoverState();
+        return;
+
+    }
     process();
 }
 
@@ -78,7 +85,8 @@ void ModuleEventSystem::process()
     // Find the topmost UI element under the cursor
     GameObject* hovered = raycast(mousePos);
 
-    constexpr PointerButton buttons[] = {
+    constexpr PointerButton buttons[] = 
+    {
         PointerButton::Left,
         PointerButton::Right,
         PointerButton::Middle
@@ -103,6 +111,7 @@ void ModuleEventSystem::process()
             }
 
             state.pointerEnterLast = hovered;
+
         }
 
        
@@ -130,6 +139,8 @@ void ModuleEventSystem::process()
                     data.pointerClick = hovered;
                     sendPointerClick(hovered, data);
                 }
+
+                state.pointerPress = nullptr;
             }
         }
     }
@@ -138,21 +149,34 @@ void ModuleEventSystem::process()
 
 bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
-    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
-    if (!sceneEditor || !sceneEditor->isHovered())
-        return false;
+#ifdef GAME_RELEASE
+
+    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+
+    const ImVec2 size(viewport.Width, viewport.Height);
+    const float winX = viewport.TopLeftX;
+    const float winY = viewport.TopLeftY;
+
+#else
+    auto viewport = app->getModuleEditor()->getEventViewport();
+    auto size = app->getModuleEditor()->getEventViewportSize();
+    const float winX = viewport.x;
+    const float winY = viewport.y;
+
+#endif // GAME_RELEASE
 
     // Raw mouse position in screen pixels
-    const Vector2 rawMouse = app->getInputModule()->getMousePosition();
-
+    const Vector2 rawMouse = app->getModuleInput()->getMousePosition();
+    
     // Viewport top-left in screen pixels
-    const float winX = sceneEditor->getViewportX();
-    const float winY = sceneEditor->getViewportY();
-    const float winW = sceneEditor->getSize().x;
-    const float winH = sceneEditor->getSize().y;
+    
+    const float winW = size.x;
+    const float winH = size.y;
 
     if (winW <= 0.0f || winH <= 0.0f)
+    {
         return false;
+    }
 
     // Convert to viewport-local pixels — same space as Rect2D
     const float localX = rawMouse.x - winX;
@@ -160,11 +184,14 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 
     // Reject if outside the viewport bounds
     if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+    {
         return false;
+    }
 
     outPos = { localX, localY };
     return true;
 }
+
 void ModuleEventSystem::clearHoverState()
 {
     for (int idx = 0; idx < 3; ++idx)
@@ -189,8 +216,17 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     GameObject* best = nullptr;
     int         bestDepth = -1;
 
-    SceneEditor* sceneEditor = app->getEditorModule()->getSceneEditor();
-    const ImVec2 size = sceneEditor->getSize();
+#ifdef GAME_RELEASE
+
+    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+
+    const ImVec2 size(viewport.Width, viewport.Height);
+
+#else
+
+    auto size = app->getModuleEditor()->getEventViewportSize();
+
+#endif // GAME_RELEASE
 
     Rect2D screenRect;
     screenRect.x = 0.0f;
@@ -198,7 +234,7 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     screenRect.w = size.x;
     screenRect.h = size.y;
 
-    for (GameObject* root : app->getSceneModule()->getAllGameObjects())
+    for (GameObject* root : app->getModuleScene()->getAllGameObjects())
     {
         if (!root || !root->GetActive()) continue;
 
@@ -240,6 +276,11 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 
 void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
+    if (!go)
+    {
+        return;
+    }
+
     for (Component* c : go->GetAllComponents())
     {
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
@@ -251,6 +292,11 @@ void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 {
+    if(!go)
+    {
+        return;
+	}
+
     for (Component* c : go->GetAllComponents())
     {
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c)) h->onPointerUp(data);

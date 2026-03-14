@@ -7,7 +7,7 @@
 #include "Engine.h"
 
 #include "Application.h"
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 
 #include <shellapi.h>
 
@@ -72,6 +72,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+        }
+
+        if (app && app->shouldQuit())
+        {
+            PostMessage(app->getWindowHandle(), WM_CLOSE, 0, 0);
         }
 
     }
@@ -182,6 +187,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
+    case WM_CREATE:
+    {
+        MessageBox(hWnd, L"Initializing engine...", L"Starting Application", MB_OK | MB_USERICON);
+    }
     case WM_ACTIVATE:
     case WM_ACTIVATEAPP:
         Keyboard::ProcessMessage(message, wParam, lParam);
@@ -236,7 +245,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         else {
             app->setPaused(false);
-            app->getD3D12Module()->getSwapChain()->resize();
+            app->getModuleD3D12()->getSwapChain()->resize();
         }
         break;
     case WM_SYSKEYDOWN:

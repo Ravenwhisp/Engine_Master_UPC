@@ -28,6 +28,7 @@ public:
 	std::vector<std::shared_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
 	std::vector<std::shared_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
 	bool											hasMeshes() { return m_meshes.size() != 0; }
+	UID												getModelAssetId() const { return m_modelAssetId; }
 
 	BasicMaterial* getMaterial(UID materialId)
 	{
@@ -35,14 +36,7 @@ public:
 		return m_materials[it->second].get();
 	}
 
-	bool											getHasBounds() { return m_hasBounds; }
 	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
-
-#pragma region Loop functions
-	bool init() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
-	bool cleanUp() override;
-#pragma endregion
 
 	void drawUi() override;
 
@@ -50,6 +44,8 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
+	int getTriangles() { return m_triangles; }
 
 private:
 	mutable std::vector<std::shared_ptr<BasicMesh>>		m_meshes;
@@ -63,8 +59,5 @@ private:
 	std::string m_modelPath;
 	std::string m_basePath;
 
-	bool m_boundsDepthTest = true;
-	bool m_drawWorldAabb = false;
-
-	bool    m_hasBounds = false;
+	int m_triangles;
 };

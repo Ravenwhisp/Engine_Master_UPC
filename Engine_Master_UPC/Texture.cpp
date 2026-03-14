@@ -2,8 +2,8 @@
 #include "Texture.h"
 
 #include "Application.h"
-#include "DescriptorsModule.h"
-#include "ResourcesModule.h"
+#include "ModuleDescriptors.h"
+#include "ModuleResources.h"
 
 Texture::Texture(const UID uid, ID3D12Device4& device, TextureInitInfo info, DescriptorHandle* texturesHandle) : Resource(device, *info.desc, &info.clearValue), ICacheable(uid)
 {
@@ -13,6 +13,6 @@ Texture::Texture(const UID uid, ID3D12Device4& device, TextureInitInfo info, Des
 
 void Texture::release()
 {
-    app->getDescriptorsModule()->defferDescriptorRelease((Handle)m_srv.handle);
-    app->getResourcesModule()->defferResourceRelease(getD3D12Resource());
+    app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
+    app->getModuleResources()->defferResourceRelease(getD3D12Resource());
 }

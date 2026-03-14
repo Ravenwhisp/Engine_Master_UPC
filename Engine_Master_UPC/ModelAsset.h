@@ -31,7 +31,6 @@ protected:
 	UID 			emissiveMap = -1;
 };
 
-
 struct Submesh
 {
 	uint32_t indexStart;
@@ -47,10 +46,19 @@ public:
 	MeshAsset(UID id) : Asset(id, AssetType::MESH) {}
 
     const void* getVertexData() const { return vertices.data(); }
+	std::vector<Vector3> getVerticesPositions() const {
+		std::vector<Vector3> positions;
+		for (const auto& vertex : vertices) {
+			positions.push_back(vertex.position);
+		}
+		return positions;
+	}
+
     uint32_t	getVertexCount() const {  return static_cast<uint32_t>(vertices.size()); }
     uint32_t	getVertexStride() const { return sizeof(Vertex); }
 
     const void* getIndexData() const { return indices.data(); }
+	std::vector<uint8_t> getIndexDataVector() const { return indices; }
     uint32_t	getIndexBufferSize() const { return static_cast<uint32_t>(indices.size()); }
 	uint32_t getIndexCount() const {
 		return static_cast<uint32_t>(indices.size()) / getSizeByFormat(indexFormat);

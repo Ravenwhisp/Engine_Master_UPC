@@ -10,6 +10,7 @@
 #include "UID.h"
 
 class ModelComponent;
+struct SceneSnapshot;
 
 class GameObject 
 {
@@ -17,12 +18,13 @@ public:
 	GameObject(UID newUuid);
 	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
-	std::unique_ptr<GameObject> clone() const;
+	std::unique_ptr<GameObject> clone(SceneSnapshot& snapshot) const;
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
+	bool IsActiveInWindowHierarchy() const;
 	bool GetStatic() const { return m_isStatic; }
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
@@ -62,9 +64,6 @@ public:
 #pragma region GameLoop
 	bool init();
 	void update();
-	void preRender();
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix);
-	void postRender();
 	bool cleanUp();
 #pragma endregion
 

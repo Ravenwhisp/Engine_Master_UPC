@@ -2,12 +2,14 @@
 #include "BasicMaterial.h"
 
 #include "Application.h"
-#include "D3D12Module.h"
-#include "ResourcesModule.h"
-#include "AssetsModule.h"
-#include <TextureImporter.h>
+#include "ModuleResources.h"
+#include "ModuleAssets.h"
 
-BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICacheable(uid)
+#include "Texture.h"
+#include "ModelAsset.h"
+
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
+	: ICacheable(uid)
 {
 	//Creates a handle to store all textures contigously instead of having a handler for each texture
 	m_texturesHandle = app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
@@ -50,6 +52,10 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 
 BasicMaterial::~BasicMaterial()
 {
-	app->getResourcesModule()->defferResourceRelease(m_materialBuffer);
+	app->getModuleResources()->defferResourceRelease(m_materialBuffer);
+}
 
+Texture* BasicMaterial::getTexture() const noexcept
+{
+	return m_textureColor.get();
 }

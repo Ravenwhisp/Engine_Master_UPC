@@ -3,16 +3,18 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "Application.h"
-#include "TimeModule.h"
-#include "InputModule.h"
-#include "Logger.h"
+#include "ModuleTime.h"
+#include "ModuleInput.h"
+#include "WindowLogger.h"
 
 static const float PI = 3.1415926535897931f;
 
 PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
-	inputModule = app->getInputModule();
+	inputModule = app->getModuleInput();
+	Transform* transform = m_owner->GetTransform();
+	m_initialRotationOffset = transform->getEulerDegrees();
 }
 
 std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
@@ -38,7 +40,7 @@ std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
 
 float PlayerWalk::getDeltaSecondsFromTimer() const
 {
-	return app->getTimeModule()->deltaTime(); 
+	return app->getModuleTime()->deltaTime(); 
 }
 
 bool PlayerWalk::init() 
@@ -76,7 +78,7 @@ void PlayerWalk::update()
 	applyTranslation(transform, direction, dt, shiftHeld);
 }
 
-Vector3 PlayerWalk::readMoveDirection(InputModule* inputModule) const
+Vector3 PlayerWalk::readMoveDirection(ModuleInput* inputModule) const
 {
 	Vector3 direction(0, 0, 0);
 
@@ -144,7 +146,7 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
 	transform->setPosition(pos);
 }
 
-bool PlayerWalk::checkShiftHeld(InputModule* inputModule) const
+bool PlayerWalk::checkShiftHeld(ModuleInput* inputModule) const
 {
 	const bool shiftDown = inputModule->isKeyDown(Keyboard::Keys::LeftShift) || inputModule->isKeyDown(Keyboard::Keys::RightShift);
 	

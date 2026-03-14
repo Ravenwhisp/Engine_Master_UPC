@@ -4,7 +4,10 @@
 #include "MeshRenderer.h"
 #include "LightComponent.h"
 #include "PlayerWalk.h"
+#include "NavMeshWalk.h" 
 #include "CameraComponent.h"
+#include "NavigationAgentComponent.h"
+#include "WaypointPathComponent.h"
 #include "Application.h"
 #include "Transform2D.h"
 #include "Canvas.h"
@@ -12,14 +15,17 @@
 #include "UIText.h"
 #include "UIButton.h"
 #include "CameraFollow.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 #include "ChangeScene.h"
+#include "ExitApplication.h"
+#include "CameraSwitcher.h"
+#include "TriggerArea.h"
 
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
-	auto transform = std::make_unique<Transform>(GenerateUID(), this);
-	m_transform = transform.get();
+    auto transform = std::make_unique<Transform>(GenerateUID(), this);
+    m_transform = transform.get();
     m_components.push_back(std::move(transform));
 }
 
@@ -35,9 +41,11 @@ GameObject::~GameObject()
 
 }
 
-std::unique_ptr<GameObject> GameObject::clone() const
+std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
+
+	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -45,7 +53,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
 
-	//std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
+    //std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
 
     // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarquía
     newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
@@ -53,17 +61,27 @@ std::unique_ptr<GameObject> GameObject::clone() const
     for (const std::unique_ptr<Component>& component : m_components)
     {
         std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
+
         if (clonedComponent)
         {
+			snapshot.componentMap[component->getID()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
             }
-			newGameObject->AddClonedComponent(std::move(clonedComponent));
+            newGameObject->AddClonedComponent(std::move(clonedComponent));
+        }
+        else
+        {
+            DEBUG_WARN("[Clone] Component '%s' (type=%d, uid=%llu) returned nullptr in clone(). It will NOT exist in the cloned scene.",
+                ComponentTypeToString(component->getType()),
+                (int)component->getType(),
+                (unsigned long long)component->getType(),
+                (unsigned long long)component->getID());
         }
     }
 
-	return newGameObject;
+    return newGameObject;
 }
 
 bool GameObject::AddComponent(ComponentType componentType)
@@ -103,6 +121,24 @@ bool GameObject::AddComponent(ComponentType componentType)
         case ComponentType::CHANGE_SCENE:
             m_components.push_back(std::make_unique<ChangeScene>(GenerateUID(), this));
             break;
+        case ComponentType::NAVMESH_WALK:
+            m_components.push_back(std::make_unique<NavMeshWalk>(GenerateUID(), this));
+			break;
+        case ComponentType::NAVIGATION_AGENT:
+            m_components.push_back(std::make_unique<NavigationAgentComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::WAYPOINT_PATH:
+            m_components.push_back(std::make_unique<WaypointPathComponent>(GenerateUID(), this));
+            break;
+        case ComponentType::EXIT_APPLICATION:
+            m_components.push_back(std::make_unique<ExitApplication>(GenerateUID(), this));
+            break;
+        case ComponentType::CAMERA_SWITCHER:
+            m_components.push_back(std::make_unique<CameraSwitcher>(GenerateUID(), this));
+            break;
+        case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+            m_components.push_back(std::make_unique<TriggerArea>(GenerateUID(), this));
+            break;
         case ComponentType::TRANSFORM:
             break;
         case ComponentType::COUNT:
@@ -133,7 +169,9 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::PLAYER_WALK:
         newComponent = std::make_unique<PlayerWalk>(id, this);
         break;
-
+    case ComponentType::NAVMESH_WALK:
+        newComponent = std::make_unique<NavMeshWalk>(id, this);
+        break;
     case ComponentType::CAMERA:
         newComponent = std::make_unique<CameraComponent>(id, this);
         break;
@@ -158,7 +196,22 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     case ComponentType::CHANGE_SCENE:
         newComponent = std::make_unique<ChangeScene>(id, this);
         break;
+    case ComponentType::EXIT_APPLICATION:
+        newComponent = std::make_unique<ExitApplication>(id, this);
+        break;
+    case ComponentType::CAMERA_SWITCHER:
+        newComponent = std::make_unique<CameraSwitcher>(id, this);
+        break;
+    case ComponentType::CHANGE_SCENE_ON_TRIGGER:
+        newComponent = std::make_unique<TriggerArea>(id, this);
+        break;
     case ComponentType::TRANSFORM:
+        break;
+    case ComponentType::NAVIGATION_AGENT:
+        newComponent = std::make_unique<NavigationAgentComponent>(id, this);
+        break;
+    case ComponentType::WAYPOINT_PATH:
+        newComponent = std::make_unique<WaypointPathComponent>(id, this);
         break;
     case ComponentType::COUNT:
         return nullptr;
@@ -182,7 +235,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
     auto it = std::find_if(
         m_components.begin(),
         m_components.end(),
-        [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove;}
+        [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; }
     );
 
     if (it != m_components.end())
@@ -206,7 +259,7 @@ std::vector<Component*> GameObject::GetAllComponents() const
 
 Component* GameObject::GetComponent(ComponentType type) const
 {
-	std::vector<Component*> result = std::vector<Component*>();
+    std::vector<Component*> result = std::vector<Component*>();
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->getType() == type)
@@ -216,6 +269,32 @@ Component* GameObject::GetComponent(ComponentType type) const
     }
     return nullptr;
 }
+
+#pragma region Properties
+
+bool GameObject::IsActiveInWindowHierarchy() const
+{
+    if (!m_active)
+    {
+        return false;
+    }
+
+    Transform* parentTransform = m_transform->getRoot();
+    if (parentTransform == nullptr)
+    {
+        return true;
+    }
+
+    GameObject* parent = parentTransform->getOwner();
+    if (parent != nullptr)
+    {
+        return parent->IsActiveInWindowHierarchy();
+    }
+
+    return true;
+}
+
+#pragma endregion
 
 #pragma region GameLoop
 bool GameObject::init()
@@ -231,68 +310,23 @@ bool GameObject::init()
     return true;
 }
 
-void GameObject::update() 
+void GameObject::update()
 {
+    if (!IsActiveInWindowHierarchy())
+    {
+        return;
+    }
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
-        if (component->isActive())
-        {
+        if (component && component->isActive())
             component->update();
-        }
-	}
-}
-
-void GameObject::preRender()
-{
-    for (const std::unique_ptr<Component>& component : m_components)
-    {
-        if (component->isActive())
-        {
-            component->preRender();
-        }
     }
+
     for (GameObject* child : m_transform->getAllChildren())
     {
-        if (child->GetActive())
-        {
-            child->preRender();
-        }
-    }
-}
-
-void GameObject::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
-{
-    for (const std::unique_ptr<Component>& component : m_components)
-    {
-        if (component->isActive())
-        {
-            component->render(commandList, viewMatrix, projectionMatrix);
-        }
-    }
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child->GetActive())
-        {
-            child->render(commandList, viewMatrix, projectionMatrix);
-        }
-    }
-}
-
-void GameObject::postRender()
-{
-    for (const std::unique_ptr<Component>& component : m_components)
-    {
-        if (component->isActive())
-        {
-            component->postRender();
-        }
-    }
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child->GetActive())
-        {
-            child->postRender();
-        }
+        if (child && child->GetActive())
+            child->update();
     }
 }
 
@@ -346,7 +380,7 @@ void GameObject::drawUI()
     ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
 
-    if (ImGui::BeginTable("GameObjectInspector", 2, ImGuiTableFlags_SizingStretchProp))
+    if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
         ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthStretch);
@@ -406,7 +440,7 @@ void GameObject::drawUI()
     ImGui::Separator();
 
 #pragma endregion
-    
+
 #pragma region Components
     ImGui::Text("Components");
     ImGui::Separator();
@@ -418,7 +452,7 @@ void GameObject::drawUI()
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        if (component->getType() == ComponentType::CAMERA && app->getSceneModule()->getDefaultCamera() == component.get())
+        if (component->getType() == ComponentType::CAMERA && app->getModuleScene()->getDefaultCamera() == component.get())
         {
             header += " (Default)";
         }
@@ -516,7 +550,7 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
     gameObjectInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     {
         Transform* parentTransform = m_transform->getRoot();
-        if (parentTransform) 
+        if (parentTransform)
         {
             gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
         }
@@ -525,26 +559,26 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
         }
     }
 
-    
-    rapidjson::Value name (m_name.c_str(), domTree.GetAllocator());
+
+    rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
     gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
 
     gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
     gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
 
-    rapidjson::Value layer (LayerToString(m_layer), domTree.GetAllocator());
+    rapidjson::Value layer(LayerToString(m_layer), domTree.GetAllocator());
     gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
 
     rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
     gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
-    
+
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
 
     // Components serialization //
     {
         rapidjson::Value componentsData(rapidjson::kArrayType);
 
-        for (const std::unique_ptr<Component>& component : m_components) 
+        for (const std::unique_ptr<Component>& component : m_components)
         {
             if (component->getType() == ComponentType::TRANSFORM)
                 continue;
@@ -586,8 +620,17 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
         const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
 
         Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
-        if (newComponent) {
-            newComponent->setActive(componentJson["Active"].GetBool());
+        if (newComponent)
+        {
+            if (componentJson.HasMember("Active") && componentJson["Active"].IsBool())
+            {
+                newComponent->setActive(componentJson["Active"].GetBool());
+            }
+            else
+            {
+                newComponent->setActive(true);
+            }
+
             newComponent->deserializeJSON(componentJson);
         }
     }

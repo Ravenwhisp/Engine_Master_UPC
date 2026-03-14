@@ -22,11 +22,7 @@ public:
 
     #pragma region Loop functions
     virtual bool init() { return true; }
-    virtual bool postInit() { return true; }
     virtual void update() {}
-    virtual void preRender() {}
-    virtual void postRender() {}
-    virtual void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) {}
     virtual bool cleanUp() { return true; }
     #pragma endregion
 
@@ -37,7 +33,7 @@ public:
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
-
+    virtual void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) {};
 
 protected:
     GameObject* m_owner;

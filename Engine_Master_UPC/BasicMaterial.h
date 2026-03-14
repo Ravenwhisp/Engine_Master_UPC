@@ -1,11 +1,20 @@
 #pragma once
-#include "Globals.h"
-#include "Texture.h"
-#include "Asset.h"
-#include "ModelAsset.h"
+
 #include "ICacheable.h"
 
-namespace tinygltf { class Model; struct Material; struct PbrMetallicRoughness; }
+#include <memory>
+#include <wrl/client.h>
+#include <d3d12.h>
+
+#include "SimpleMath.h"
+
+class Texture;
+class MaterialAsset;
+
+using Microsoft::WRL::ComPtr;
+using DirectX::SimpleMath::Vector3;
+using DirectX::SimpleMath::Vector4;
+
 class BasicMaterial : public ICacheable
 {
 public:
@@ -58,7 +67,3 @@ private:
 	PbrMetallicRoughnessData	m_materialData;
 	DescriptorHandle			m_texturesHandle;
 };
-	
-
-
-

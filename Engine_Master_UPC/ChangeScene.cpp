@@ -3,7 +3,7 @@
 #include "GameObject.h"
 #include <UIButton.h>
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
 #include "UIButton.h"
 
@@ -23,16 +23,12 @@ ChangeScene::~ChangeScene()
 
 std::unique_ptr<Component> ChangeScene::clone(GameObject* newOwner) const
 {
-	std::unique_ptr<ChangeScene> newComponent = std::make_unique<ChangeScene>(GenerateUID(), newOwner);
+	std::unique_ptr<ChangeScene> newComponent = std::make_unique<ChangeScene>(m_uuid, newOwner);
 
+	newComponent->setActive(this->isActive());
 	newComponent->m_sceneToLoad = m_sceneToLoad;
 	newComponent->m_uiButton = m_uiButton;
-
-	if (newComponent->m_uiButton)
-	{
-		newComponent->m_onClickHandle = newComponent->m_uiButton->onClick.AddRaw(newComponent.get(), &ChangeScene::onChangeScene);
-		DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", newComponent.get(), newComponent->m_sceneToLoad.c_str());
-	}
+	newComponent->m_uiButtonUid = m_uiButtonUid;
 
 	return newComponent;
 }
@@ -62,12 +58,16 @@ void ChangeScene::drawUi()
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
 		{
 			Component* data = *static_cast<Component**>(payload->Data);
-			m_uiButton = static_cast<UIButton*>(data);
-			if (m_uiButton)
+			UIButton* button = static_cast<UIButton*>(data);
+			if (button)
 			{
-				DELEGATE_ASSERT(this != nullptr);
-				DELEGATE_ASSERT(m_uiButton != nullptr);
+				if (m_uiButton)
+				{
+					m_uiButton->onClick.Remove(m_onClickHandle);
+				}
 
+				m_uiButton = button;
+				m_uiButtonUid = button->getID();
 				m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
 			}
 		}
@@ -82,7 +82,7 @@ void ChangeScene::onChangeScene()
 {
 	DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
 
-	app->getSceneModule()->requestSceneChange(m_sceneToLoad);
+	app->getModuleScene()->requestSceneChange(m_sceneToLoad);
 }
 
 rapidjson::Value ChangeScene::getJSON(rapidjson::Document& domTree)
@@ -91,14 +91,12 @@ rapidjson::Value ChangeScene::getJSON(rapidjson::Document& domTree)
 	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
 	componentInfo.AddMember("ComponentType", int(ComponentType::CHANGE_SCENE), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-	{
-		rapidjson::Value sceneString(m_sceneToLoad.c_str(), domTree.GetAllocator());
-		componentInfo.AddMember("SceneToLoad", sceneString, domTree.GetAllocator());
-	}
-	if (m_uiButton)
-	{
-		componentInfo.AddMember("UIButtonUID", m_uiButton->getID(), domTree.GetAllocator());
-	}
+
+	rapidjson::Value sceneString(m_sceneToLoad.c_str(), domTree.GetAllocator());
+	componentInfo.AddMember("SceneToLoad", sceneString, domTree.GetAllocator());
+
+	componentInfo.AddMember("UIButtonUID", (uint64_t)m_uiButtonUid, domTree.GetAllocator());
+
 	return componentInfo;
 }
 
@@ -108,15 +106,39 @@ bool ChangeScene::deserializeJSON(const rapidjson::Value& componentInfo)
 	{
 		m_sceneToLoad = componentInfo["SceneToLoad"].GetString();
 	}
+
 	if (componentInfo.HasMember("UIButtonUID"))
 	{
-		m_uiButton = static_cast<UIButton*>(m_owner->GetComponent(ComponentType::UIBUTTON));
-		if (m_uiButton)
-		{
-			m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
-			DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
-
-		}
+		m_uiButtonUid = (UID)componentInfo["UIButtonUID"].GetUint64();
 	}
+
+	m_uiButton = nullptr;
 	return true;
+}
+
+void ChangeScene::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+{
+	if (m_uiButton)
+	{
+		m_uiButton->onClick.Remove(m_onClickHandle);
+		m_uiButton = nullptr;
+	}
+
+	if (m_uiButtonUid == 0)
+	{
+		return;
+	}
+
+	auto it = referenceMap.find(m_uiButtonUid);
+	if (it != referenceMap.end())
+	{
+		m_uiButton = static_cast<UIButton*>(it->second);
+		m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
+		DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
+	}
+	else
+	{
+		DEBUG_LOG("Failed to fix reference for ChangeScene at: %p, UIButton UID not found", this);
+		m_uiButton = nullptr;
+	}
 }

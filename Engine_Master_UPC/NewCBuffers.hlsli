@@ -20,7 +20,7 @@ cbuffer ModelData : register(b2)
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4
-#define MAX_POINT_LIGHTS 32
+#define MAX_POINT_LIGHTS 112
 #define MAX_SPOT_LIGHTS 16
 
 struct DirectionalLight

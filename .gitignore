@@ -5,9 +5,9 @@
 
 #Engine specific
 Engine_OUT/Library/
+Engine_OUT/Assets/
 Engine_OUT/Engine.exe
 Engine_OUT/*.cso
-*.metadata
 
 # User-specific files
 *.rsuser
