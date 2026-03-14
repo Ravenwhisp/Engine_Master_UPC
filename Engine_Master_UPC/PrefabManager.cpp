@@ -560,60 +560,76 @@ bool PrefabManager::revertToPrefab(GameObject* go, ModuleScene* scene)
 {
     PrefabInstanceData* instance = getInstanceDataMutable(go);
     if (!instance || instance->m_prefabName.empty())
-    {
         return false;
-    }
 
     std::string prefabPath = getPrefabPath(instance->m_prefabName);
     if (!fs::exists(prefabPath))
-    {
         return false;
-    }
 
     Document doc;
     if (!readPrefabDocument(prefabPath, doc) || !doc.HasMember("GameObject"))
-    {
         return false;
-    }
 
     const Value& gameObjectNode = doc["GameObject"];
     PrefabOverrideRecord savedOverrides = instance->m_overrides;
-    const int            transformType = static_cast<int>(ComponentType::TRANSFORM);
+    const int transformType = static_cast<int>(ComponentType::TRANSFORM);
 
-    if (!gameObjectNode.HasMember("Transform") || !gameObjectNode["Transform"].IsObject())
+    if (gameObjectNode.HasMember("Transform") && gameObjectNode["Transform"].IsObject())
     {
-        return true;
-    }
+        Transform* transform = go->GetTransform();
+        const Value& transformNode = gameObjectNode["Transform"];
 
-    Transform* transform = go->GetTransform();
-    const Value& transformNode = gameObjectNode["Transform"];
+        auto overrideIterator = savedOverrides.m_modifiedProperties.find(transformType);
+        const std::unordered_set<std::string>* overrideSet =
+            (overrideIterator != savedOverrides.m_modifiedProperties.end()) ? &overrideIterator->second : nullptr;
 
-    auto overrideIterator = savedOverrides.m_modifiedProperties.find(transformType);
-    const std::unordered_set<std::string>* overrideSet =
-        (overrideIterator != savedOverrides.m_modifiedProperties.end()) ? &overrideIterator->second : nullptr;
+        auto isOverridden = [&](const char* propertyName)
+            {
+                return overrideSet && overrideSet->count(propertyName) > 0;
+            };
 
-    auto isOverridden = [&](const char* propertyName)
+        if (!isOverridden("position") && transformNode.HasMember("position") && transformNode["position"].IsArray())
         {
-            return overrideSet && overrideSet->count(propertyName) > 0;
-        };
+            const auto& position = transformNode["position"];
+            transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+        }
+        if (!isOverridden("rotation") && transformNode.HasMember("rotation") && transformNode["rotation"].IsArray())
+        {
+            const auto& rotation = transformNode["rotation"];
+            transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(),
+                rotation[2].GetFloat(), rotation[3].GetFloat()));
+        }
+        if (!isOverridden("scale") && transformNode.HasMember("scale") && transformNode["scale"].IsArray())
+        {
+            const auto& scale = transformNode["scale"];
+            transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
+        }
+        transform->markDirty();
+    }
 
-    if (!isOverridden("position") && transformNode.HasMember("position") && transformNode["position"].IsArray())
+    if (gameObjectNode.HasMember("Components") && gameObjectNode["Components"].IsArray())
     {
-        const auto& position = transformNode["position"];
-        transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+        const Value& componentsArray = gameObjectNode["Components"];
+        for (SizeType i = 0; i < componentsArray.Size(); ++i)
+        {
+            const Value& componentNode = componentsArray[i];
+            if (!componentNode.HasMember("Type") || !componentNode.HasMember("Data"))
+                continue;
+
+            const int componentType = componentNode["Type"].GetInt();
+
+            auto overrideIt = savedOverrides.m_modifiedProperties.find(componentType);
+            if (overrideIt != savedOverrides.m_modifiedProperties.end()
+                && overrideIt->second.count("properties") > 0)
+                continue;
+
+            Component* component = go->GetComponent(static_cast<ComponentType>(componentType));
+            if (component)
+            {
+                component->deserializeJSON(componentNode["Data"]);
+            }
+        }
     }
-    if (!isOverridden("rotation") && transformNode.HasMember("rotation") && transformNode["rotation"].IsArray())
-    {
-        const auto& rotation = transformNode["rotation"];
-        transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(),
-            rotation[2].GetFloat(), rotation[3].GetFloat()));
-    }
-    if (!isOverridden("scale") && transformNode.HasMember("scale") && transformNode["scale"].IsArray())
-    {
-        const auto& scale = transformNode["scale"];
-        transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
-    }
-    transform->markDirty();
 
     instance->m_overrides = savedOverrides;
     return true;
@@ -678,17 +694,20 @@ std::vector<std::string> PrefabManager::listPrefabs()
         return names;
     }
 
-    try
+    std::error_code errorCode;
+    fs::directory_iterator iterator(PREFAB_DIR, errorCode);
+    if (errorCode)
     {
-        for (const auto& entry : fs::directory_iterator(PREFAB_DIR))
+        return names;
+    }
+
+    for (const auto& entry : iterator)
+    {
+        if (entry.is_regular_file() && entry.path().extension() == PREFAB_EXT)
         {
-            if (entry.is_regular_file() && entry.path().extension() == PREFAB_EXT)
-            {
-                names.push_back(entry.path().stem().string());
-            }
+            names.push_back(entry.path().stem().string());
         }
     }
-    catch (...) {}
 
     return names;
 }
@@ -715,62 +734,65 @@ std::vector<PrefabManager::PrefabInfo> PrefabManager::listPrefabsInfo()
             return count;
         };
 
-    try
+    std::error_code errorCode;
+    fs::directory_iterator iterator(PREFAB_DIR, errorCode);
+    if (errorCode)
     {
-        for (const auto& entry : fs::directory_iterator(PREFAB_DIR))
-        {
-            if (!entry.is_regular_file() || entry.path().extension() != PREFAB_EXT)
-            {
-                continue;
-            }
-
-            Document doc;
-            if (!readPrefabDocument(entry.path().string(), doc))
-            {
-                continue;
-            }
-
-            PrefabInfo info;
-            info.m_name = entry.path().stem().string();
-            info.m_uid = doc.HasMember("PrefabUID") ? doc["PrefabUID"].GetUint() : 0;
-            info.m_version = doc.HasMember("Version") ? doc["Version"].GetInt() : 0;
-
-            if (doc.HasMember("VariantOf") && doc["VariantOf"].IsString())
-            {
-                info.m_variantOf = doc["VariantOf"].GetString();
-                info.m_isVariant = true;
-            }
-
-            if (doc.HasMember("GameObject") && doc["GameObject"].IsObject())
-            {
-                const Value& gameObjectNode = doc["GameObject"];
-
-                std::vector<std::string> componentNames = { "Transform" };
-                if (gameObjectNode.HasMember("Components") && gameObjectNode["Components"].IsArray())
-                {
-                    for (SizeType index = 0; index < gameObjectNode["Components"].Size(); ++index)
-                    {
-                        auto type = static_cast<ComponentType>(gameObjectNode["Components"][index]["Type"].GetInt());
-                        componentNames.push_back(ComponentTypeToString(type));
-                    }
-                }
-
-                for (size_t index = 0; index < componentNames.size(); ++index)
-                {
-                    if (index)
-                    {
-                        info.m_componentSummary += ", ";
-                    }
-                    info.m_componentSummary += componentNames[index];
-                }
-
-                info.m_childCount = countChildren(countChildren, gameObjectNode);
-            }
-
-            results.push_back(std::move(info));
-        }
+        return results;
     }
-    catch (...) {}
+
+    for (const auto& entry : iterator)
+    {
+        if (!entry.is_regular_file() || entry.path().extension() != PREFAB_EXT)
+        {
+            continue;
+        }
+
+        Document doc;
+        if (!readPrefabDocument(entry.path().string(), doc))
+        {
+            continue;
+        }
+
+        PrefabInfo info;
+        info.m_name = entry.path().stem().string();
+        info.m_uid = doc.HasMember("PrefabUID") ? doc["PrefabUID"].GetUint() : 0;
+        info.m_version = doc.HasMember("Version") ? doc["Version"].GetInt() : 0;
+
+        if (doc.HasMember("VariantOf") && doc["VariantOf"].IsString())
+        {
+            info.m_variantOf = doc["VariantOf"].GetString();
+            info.m_isVariant = true;
+        }
+
+        if (doc.HasMember("GameObject") && doc["GameObject"].IsObject())
+        {
+            const Value& gameObjectNode = doc["GameObject"];
+
+            std::vector<std::string> componentNames = { "Transform" };
+            if (gameObjectNode.HasMember("Components") && gameObjectNode["Components"].IsArray())
+            {
+                for (SizeType index = 0; index < gameObjectNode["Components"].Size(); ++index)
+                {
+                    auto type = static_cast<ComponentType>(gameObjectNode["Components"][index]["Type"].GetInt());
+                    componentNames.push_back(ComponentTypeToString(type));
+                }
+            }
+
+            for (size_t index = 0; index < componentNames.size(); ++index)
+            {
+                if (index)
+                {
+                    info.m_componentSummary += ", ";
+                }
+                info.m_componentSummary += componentNames[index];
+            }
+
+            info.m_childCount = countChildren(countChildren, gameObjectNode);
+        }
+
+        results.push_back(std::move(info));
+    }
 
     return results;
 }
