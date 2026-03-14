@@ -16,6 +16,7 @@
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
+#include "ScriptFactory.h"
 
 #include "Settings.h"
 #include "PerformanceProfiler.h"
@@ -62,12 +63,36 @@ bool Application::init()
 {
 	bool ret = true;
 
-    PERF_BEGIN("Engine Init");
 	for(auto it = modules.begin(); it != modules.end() && ret; ++it)
 		ret = (*it)->init();
-    PERF_END("Engine Init");
 
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    // DLL TEST
+    HMODULE gameScriptsModule = LoadLibraryA("GameScripts.dll");
+    assert(gameScriptsModule != nullptr);
+
+    using GetScriptNameFn = const char* (*)();
+    using GetScriptCreatorFn = ScriptCreator(*)();
+
+    GetScriptNameFn getScriptName =
+        (GetScriptNameFn)GetProcAddress(gameScriptsModule, "GetScriptName");
+    assert(getScriptName != nullptr);
+
+    GetScriptCreatorFn getScriptCreator =
+        (GetScriptCreatorFn)GetProcAddress(gameScriptsModule, "GetScriptCreator");
+    assert(getScriptCreator != nullptr);
+
+    const char* scriptName = getScriptName();
+    ScriptCreator creator = getScriptCreator();
+
+    assert(scriptName != nullptr);
+    assert(creator != nullptr);
+
+    ScriptFactory::registerScript(scriptName, creator);
+    assert(ScriptFactory::isScriptRegistered("Test"));
+    //DELL TEST
+
 	return ret;
 }
 
@@ -93,33 +118,25 @@ void Application::update()
 
     if (!app->m_paused)
     {
-        PERF_BEGIN("Engine Update");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->update();
         }
-        PERF_END("Engine Update");
 
-        PERF_BEGIN("Engine Prerender");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->preRender();
         }
-        PERF_END("Engine Prerender");
 
-        PERF_BEGIN("Engine Render");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->render();
         }
-        PERF_END("Engine Render");
 
-        PERF_BEGIN("Engine Postrender");
         for (auto it = modules.begin(); it != modules.end(); ++it)
         {
             (*it)->postRender();
         }
-        PERF_END("Engine Postrender");
     }
 
     const PerfDataMap& data = getPerfData();

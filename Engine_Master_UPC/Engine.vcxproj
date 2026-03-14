@@ -287,6 +287,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
+    <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FontImporter.h" />
@@ -389,7 +390,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="WindowSceneEditor.h" />
     <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="SceneSnapshot.h" />
+    <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptComponent.h" />
+    <ClInclude Include="ScriptFactory.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="SkyBox.h" />
@@ -520,6 +524,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentFactory.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
@@ -609,6 +614,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="ScriptComponent.cpp" />
+    <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
