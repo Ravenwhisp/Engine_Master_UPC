@@ -63,9 +63,22 @@ void ModuleScene::update()
         m_pendingSceneLoad.clear();
     }  
   
-  if (m_quadtree)
+    if (m_quadtree)
     {
         m_quadtree->resolveDirtyNodes();
+    }
+
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
+        return;
+    }
+
+    for (GameObject* root : m_rootObjects)
+    {
+        if (root && root->GetActive())
+        {
+            root->update();
+        }
     }
 
 }
