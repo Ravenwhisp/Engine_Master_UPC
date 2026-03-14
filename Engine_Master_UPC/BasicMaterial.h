@@ -5,6 +5,7 @@
 #include <memory>
 #include <wrl/client.h>
 #include <d3d12.h>
+#include "DescriptorHeap.h"
 
 #include "SimpleMath.h"
 
@@ -53,10 +54,10 @@ public:
 	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
+	Texture* getTexture() const noexcept;
+
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
-	Texture*					getTexture() const { return m_textureColor.get(); }
 	PbrMetallicRoughnessData&	getMaterial() { return m_materialData; }
-	DescriptorHandle			getTexturesHandle() const { return m_texturesHandle; }
 
 	void setMaterial(PbrMetallicRoughnessData& material) { m_materialData = material; }
 
@@ -65,5 +66,4 @@ private:
 	std::shared_ptr<Texture>	m_textureMetallicRoughness;
 	ComPtr<ID3D12Resource>		m_materialBuffer;
 	PbrMetallicRoughnessData	m_materialData;
-	DescriptorHandle			m_texturesHandle;
 };

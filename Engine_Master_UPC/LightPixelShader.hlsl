@@ -200,13 +200,16 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
 
     float3 normalVector = normalize(normal);
     float3 viewDirection = normalize(viewPos - worldPos);
+    
+    //This is a total guess, it might not work, but we need albedo energy for the indirect lighting
+    float maxF0 = max(albedo.r, max(albedo.g, albedo.b));
+    float3 albedoEnergy = albedo * (1.0f - maxF0); 
 
-    float3 F0 = albedo; //Metals
-
-    //Remove this since energy conservation formula is not needed in PBR Metallic Roughness
-    //float maxF0 = max(F0.r, max(F0.g, F0.b));
-    //float3 albedoEnergy = albedo * (1.0f - maxF0); 
-    //float3 diffuseBRDF = albedoEnergy / PI;
+    float3 F0Metallic = albedo;
+    float3 F0NonMetallic = 0.04f;
+    
+    float3 diffuseColorMetallic = 0.0f;
+    float3 diffuseColorNonMetallic = albedo;
 
     float3 directLightingMetallic = 0.0f;
     float3 directLightingNonMetallic = 0.0f;
@@ -216,27 +219,30 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     // Directional lights
     for (uint i = 0; i < directionalCount; ++i)
     {
-        directLightingMetallic += ComputeDirectionalLight(i, normalVector, viewDirection, F0, diffuseBRDF, roughness);
-        directLightingNonMetallic += ComputeDirectionalLight(i, normalVector, viewDirection, F0, diffuseBRDF, roughness);
-
+        directLightingMetallic += ComputeDirectionalLight(i, normalVector, viewDirection, F0Metallic, diffuseColorMetallic, roughness);
+        directLightingNonMetallic += ComputeDirectionalLight(i, normalVector, viewDirection, F0NonMetallic, diffuseColorNonMetallic, roughness);
     }
 
     // Point lights
     for (uint i = 0; i < pointCount; ++i)
     {
-        directLighting += ComputePointLight(i, worldPos, normalVector, viewDirection, F0, diffuseBRDF, roughness);
+        directLightingMetallic += ComputePointLight(i, worldPos, normalVector, viewDirection, F0Metallic, diffuseColorMetallic, roughness);
+        directLightingNonMetallic += ComputePointLight(i, worldPos, normalVector, viewDirection, F0NonMetallic, diffuseColorNonMetallic, roughness);
     }
 
     // Spot lights
     for (uint i = 0; i < spotCount; ++i)
     {
-        directLighting += ComputeSpotLight(i, worldPos, normalVector, viewDirection, F0, diffuseBRDF, roughness);
+        directLightingMetallic += ComputeSpotLight(i, worldPos, normalVector, viewDirection, F0Metallic, diffuseColorMetallic, roughness);
+        directLightingNonMetallic += ComputeSpotLight(i, worldPos, normalVector, viewDirection, F0NonMetallic, diffuseColorNonMetallic, roughness);
     }
-
+    
+    float3 finalDirectLighting = lerp(directLightingMetallic, directLightingNonMetallic, metallicFactor);
+    
     // Ambient
     float3 indirectLighting = ambientColor * ambientIntensity * albedoEnergy;
     
-    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
+    float3 colorMapped = PBRNeutralToneMapping(finalDirectLighting + indirectLighting);
 
     return float4(colorMapped, 1.0f);
 }

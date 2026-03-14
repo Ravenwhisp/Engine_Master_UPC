@@ -128,7 +128,7 @@ std::unique_ptr<DepthBuffer> ModuleResources::createDepthBuffer(float windowWidt
 	return buffer;
 }
 
-std::shared_ptr<Texture> ModuleResources::createTexture2D(const TextureAsset& textureAsset, DescriptorHandle* texturesHandle) //Recives the handle where store the texture instead of creating a handle for each texture
+std::shared_ptr<Texture> ModuleResources::createTexture2D(const TextureAsset& textureAsset)
 {
 	UID uid = textureAsset.getId();
 
@@ -144,7 +144,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture2D(const TextureAsset& te
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info, texturesHandle);
+	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -250,7 +250,7 @@ std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAss
 	return material;
 }
 
-std::shared_ptr<Texture> ModuleResources::createNullTexture2D(DescriptorHandle* texturesHandle)
+std::shared_ptr<Texture> ModuleResources::createNullTexture2D()
 {
 	TextureInitInfo info{};
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1);
@@ -265,7 +265,7 @@ std::shared_ptr<Texture> ModuleResources::createNullTexture2D(DescriptorHandle* 
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 	info.srvDesc = &srvDesc;
-	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), info, texturesHandle);
+	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), info);
 	return texture;
 }
 

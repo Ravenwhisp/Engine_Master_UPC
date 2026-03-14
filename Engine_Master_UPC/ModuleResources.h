@@ -57,8 +57,8 @@ public:
 	ComPtr<ID3D12Resource>			createDefaultBuffer(const void* data, size_t size, const char* name);
 	std::unique_ptr<DepthBuffer>	createDepthBuffer(float windowWidth, float windowHeight);
 
-	std::shared_ptr<Texture>		createTexture2D(const TextureAsset& textureAsset, DescriptorHandle* texturesHAndle);
-	std::shared_ptr<Texture>		createNullTexture2D(DescriptorHandle* texturesHAndle);
+	std::shared_ptr<Texture>		createTexture2D(const TextureAsset& textureAsset);
+	std::shared_ptr<Texture>		createNullTexture2D();
 	std::shared_ptr<Texture>		createTextureCubeFromFile(const TextureAsset& textureAsset);
 
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
