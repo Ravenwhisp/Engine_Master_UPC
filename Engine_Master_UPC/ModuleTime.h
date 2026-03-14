@@ -23,7 +23,7 @@ public:
 	float deltaTime() const { return m_scale * m_lastRealDelta; }
 	float time();
 	float timeScale() const { return m_scale; }
-	void setTimeScale(float scale) { m_scale = std::max(0.0f, scale); }
+	void setTimeScale(float scale) { m_scale = scale; }
 	uint32_t frameCount() const { return m_frames; }
 	float realtimeSinceStartup();
 

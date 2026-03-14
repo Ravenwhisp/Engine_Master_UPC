@@ -113,14 +113,14 @@ void Transform::setRotationEuler(const Vector3& eulerDegrees)
 }
 
 
-void Transform::markDirty()
+/*void Transform::markDirty()
 {
     m_dirty = true;
     for (auto child : m_children)
     {
         child->GetTransform()->markDirty();
     }
-}
+}*/
 
 Vector3 Transform::getRight() const
 {

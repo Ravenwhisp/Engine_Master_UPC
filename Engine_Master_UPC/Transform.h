@@ -23,7 +23,7 @@ public:
 	void setRotation(const Quaternion& newRotation);
 	void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
-	void markDirty();
+	void markDirty() { m_dirty = true; };
 	bool isDirty() { return m_dirty; }
 
 	Vector3 getForward() const;

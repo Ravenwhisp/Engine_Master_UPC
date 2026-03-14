@@ -292,6 +292,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
