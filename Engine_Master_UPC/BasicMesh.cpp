@@ -9,7 +9,7 @@
 #include "ModelAsset.h"
 
 
-BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
+BasicMesh::BasicMesh(const MD5Hash uid, const MeshAsset& asset) : ICacheable(uid)
 {
 	m_submeshes = asset.getSubmeshes();
 

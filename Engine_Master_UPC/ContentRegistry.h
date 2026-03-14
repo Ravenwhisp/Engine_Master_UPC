@@ -11,7 +11,7 @@ struct FileEntry
 {
     std::filesystem::path                   path;
     std::string                             displayName;
-    UID                                     uid = INVALID_ASSET_ID;
+    MD5Hash                                 uid = INVALID_ASSET_ID;
     bool                                    isDirectory = false;
     std::vector<std::shared_ptr<FileEntry>> children;
 
@@ -49,9 +49,7 @@ private:
     std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path)   const;
     std::shared_ptr<FileEntry> buildAssetEntry(const std::filesystem::path& metaPath)   const;
 
-    std::shared_ptr<FileEntry> getEntryRecursive(
-        const std::shared_ptr<FileEntry>& node,
-        const std::filesystem::path& path) const;
+    std::shared_ptr<FileEntry> getEntryRecursive( const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
 
     ModuleFileSystem* m_fs{ nullptr };
     AssetRegistry* m_registry{ nullptr };

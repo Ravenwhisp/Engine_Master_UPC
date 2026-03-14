@@ -28,9 +28,9 @@ public:
 	std::vector<std::shared_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
 	std::vector<std::shared_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
 	bool											hasMeshes() { return m_meshes.size() != 0; }
-	UID												getModelAssetId() const { return m_modelAssetId; }
+	MD5Hash												getModelAssetId() const { return m_modelAssetId; }
 
-	BasicMaterial* getMaterial(UID materialId)
+	BasicMaterial* getMaterial(const MD5Hash& materialId)
 	{
 		auto it = m_materialIndexByUID.find(materialId);
 		return m_materials[it->second].get();
@@ -50,11 +50,11 @@ public:
 private:
 	mutable std::vector<std::shared_ptr<BasicMesh>>		m_meshes;
 	mutable std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
-	std::unordered_map<UID, uint32_t>					m_materialIndexByUID;
+	std::unordered_map<MD5Hash, uint32_t>					m_materialIndexByUID;
 
 	Engine::BoundingBox									m_boundingBox;
 
-	UID m_modelAssetId = 0;
+	MD5Hash m_modelAssetId = INVALID_ASSET_ID;
 
 	std::string m_modelPath;
 	std::string m_basePath;

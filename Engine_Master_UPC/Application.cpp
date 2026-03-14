@@ -16,7 +16,6 @@
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
-#include "ModuleFlyweight.h"
 
 #include "Settings.h"
 #include "PerformanceProfiler.h"
@@ -29,7 +28,6 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
     modules.push_back(m_moduleDescriptors = new ModuleDescriptors(m_moduleD3d12M->getDevice()));
     modules.push_back(m_moduleResources = new ModuleResources(m_moduleD3d12M->getDevice(), m_moduleD3d12M->getCommandQueue()));
-    modules.push_back(m_moduleFlyweight = new ModuleFlyweight());
 
     //Needed to create the LOGs
     modules.push_back(m_moduleEditor = new ModuleEditor());

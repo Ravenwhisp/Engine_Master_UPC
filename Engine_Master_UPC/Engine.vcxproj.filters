@@ -163,7 +163,6 @@
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="SceneSerializer.cpp" />
-    <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
@@ -233,15 +232,6 @@
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="ModelImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="FontImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
     <ClCompile Include="Asset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
@@ -299,9 +289,6 @@
     <ClCompile Include="SkyBoxPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleFlyweight.cpp">
-      <Filter>D3D12\Resources</Filter>
-    </ClCompile>
     <ClCompile Include="AssetScanner.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
@@ -313,6 +300,30 @@
     </ClCompile>
     <ClCompile Include="ImporterRegistry.cpp">
       <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelImporter.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterTexture.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="FontImporter.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMesh.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMaterial.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterGltf.cpp">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -508,7 +519,6 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="SceneSerializer.h" />
-    <ClInclude Include="UID.h" />
     <ClInclude Include="ModuleNavigation.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -600,21 +610,6 @@
     <ClInclude Include="UID.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="Importer.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TypedImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="FontImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
     <ClInclude Include="Asset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
@@ -693,9 +688,6 @@
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleFlyweight.h">
-      <Filter>D3D12\Resources</Filter>
-    </ClInclude>
     <ClInclude Include="ImporterRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
@@ -710,6 +702,51 @@
     </ClInclude>
     <ClInclude Include="ContentRegistry.h">
       <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="FontAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImage.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterSource.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterNative.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelImporter.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterTexture.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="FontImporter.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMesh.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMaterial.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterGltf.h">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -849,6 +886,21 @@
     </Filter>
     <Filter Include="D3D12\Rendering\Pass">
       <UniqueIdentifier>{c00f1a7c-5fee-4c5c-a935-e6462080d839}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\UID">
+      <UniqueIdentifier>{447188c5-ed03-4870-940c-f644cc7d601b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\Core">
+      <UniqueIdentifier>{18769d40-df5d-46aa-8177-cdc32142975b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\Native">
+      <UniqueIdentifier>{504f1747-70c4-4ffd-ba99-2eb9af3ddd57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\External">
+      <UniqueIdentifier>{d77e5b0d-aeb5-4b14-84d3-9385c4b82cd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\External\Gltf">
+      <UniqueIdentifier>{4a5cc4af-9f57-45c8-a0f5-fafd5c606cfd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

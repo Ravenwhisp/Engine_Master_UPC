@@ -44,18 +44,19 @@ bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
 }
 
 
-UID ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID uid)
+void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid)
 {
     Importer* importer = m_importerRegistry->findImporter(sourcePath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
-        return INVALID_ASSET_ID;
+        uid = INVALID_ASSET_ID;
+        return;
     }
 
-    if (uid == INVALID_ASSET_ID)
+    if (!isValidAsset(uid))
     {
-        uid = GenerateUID();
+        uid = computeMD5(sourcePath);
     }
 
     // Scoped to this function — not cached, not shared.
@@ -64,7 +65,8 @@ UID ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID uid)
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
-        return INVALID_ASSET_ID;
+        uid = INVALID_ASSET_ID;
+        return;
     }
 
     // Write the .metadata sidecar alongside the source file.
@@ -78,7 +80,8 @@ UID ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID uid)
     if (!AssetMetadata::saveMetaFile(meta, metaPath))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
-        return INVALID_ASSET_ID;
+        uid = INVALID_ASSET_ID;
+        return;
     }
 
     m_registry->registerAsset(meta);
@@ -94,10 +97,11 @@ UID ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID uid)
         // Metadata was already written — roll back the in-memory store entry
         // so it doesn't reference a binary that doesn't exist.
         m_registry->remove(uid);
-        return INVALID_ASSET_ID;
+        uid = INVALID_ASSET_ID;
+        return;
     }
 
-    return uid;
+    return;
 }
 
 void ModuleAssets::refresh()
@@ -110,8 +114,8 @@ void ModuleAssets::refresh()
 
     const std::filesystem::path root = rootStr;
 
-    const std::vector<ImportRequest> pending = m_scanner->scan(root);
-    for (const ImportRequest& req : pending)
+    std::vector<ImportRequest> pending = m_scanner->scan(root);
+    for (ImportRequest& req : pending)
     {
         importAsset(req.sourcePath, req.existingUID);
     }
@@ -120,17 +124,17 @@ void ModuleAssets::refresh()
 }
 
 
-UID ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
+MD5Hash ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
 {
     return m_registry->findByPath(sourcePath);
 }
 
-bool ModuleAssets::isLoaded(UID id)
+bool ModuleAssets::isLoaded(const MD5Hash& id)
 {
     return m_assets.contains(id);
 }
 
-void ModuleAssets::unload(UID id)
+void ModuleAssets::unload(const MD5Hash& id)
 {
     m_assets.remove(id);
 }

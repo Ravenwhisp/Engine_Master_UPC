@@ -3,20 +3,19 @@
 
 #include "Application.h"
 #include "ModuleResources.h"
-#include "ModuleFlyweight.h"
 #include "ModuleAssets.h"
 #include <TextureImporter.h>
 
 #include "Texture.h"
 #include "ModelAsset.h"
 
-BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
+BasicMaterial::BasicMaterial(const MD5Hash uid, const MaterialAsset& asset)
 	: ICacheable(uid)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
-		m_textureColor = app->getModuleFlyweight()->createTexture(*baseMapTexture);
+		m_textureColor = app->getModuleResources()->createTexture(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else

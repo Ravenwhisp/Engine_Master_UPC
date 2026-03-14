@@ -8,8 +8,7 @@
 #include "rapidjson/filereadstream.h"
 
 #include <fstream>
-#include "UID.h"
-
+#include "MD5.h" 
 #include "AssetsDictionary.h"
 
 enum class AssetType : uint32_t
@@ -27,7 +26,7 @@ enum class AssetType : uint32_t
 class AssetMetadata
 {
 public:
-	UID uid = INVALID_ASSET_ID;
+	MD5Hash uid = INVALID_ASSET_ID;
 	std::filesystem::path sourcePath;
 	AssetType type;
 
@@ -38,7 +37,7 @@ public:
 
 	std::filesystem::path getBinaryPath() const
 	{
-		return std::filesystem::path(LIBRARY_FOLDER) / std::to_string(uid) += ".asset";
+		return std::filesystem::path(LIBRARY_FOLDER) / uid += ASSET_EXTENSION;
 	}
 
 	static void getMetadataPath(std::filesystem::path& assetPath) 
@@ -55,12 +54,12 @@ class Asset
 {
 public:
 	Asset() = default;
-	Asset(UID id, AssetType type = AssetType::UNKNOWN): m_uid(id), m_type(type) {}
+	Asset(MD5Hash id, AssetType type = AssetType::UNKNOWN): m_uid(id), m_type(type) {}
 	virtual ~Asset() = default;
-	UID getId() const { return m_uid; }
+	MD5Hash getId() const { return m_uid; }
 
 	AssetType	getType() const { return m_type; }
 protected:
-	UID			m_uid = INVALID_ASSET_ID;
+	MD5Hash 			m_uid = INVALID_ASSET_ID;
 	AssetType	m_type;
 };

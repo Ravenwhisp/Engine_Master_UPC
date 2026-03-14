@@ -1,13 +1,13 @@
 #pragma once
 #include "Globals.h"
-#include "UID.h"
+#include "MD5.h"
 
 class ICacheable
 {
 public:
-    explicit ICacheable(UID uid) : m_uid(uid) {}
+    explicit ICacheable(MD5Hash uid) : m_uid(uid) {}
     virtual ~ICacheable() = default;
-    UID getId() const { return m_uid; }
+    MD5Hash getId() const { return m_uid; }
 private:
-    UID m_uid;
+    MD5Hash m_uid;
 };

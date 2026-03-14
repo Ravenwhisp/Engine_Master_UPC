@@ -58,7 +58,6 @@ public:
     ModuleFileSystem*           getModuleFileSystem() { return m_moduleFileSystem; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
-    ModuleFlyweight*            getModuleFlyweight() { return m_moduleFlyweight; }
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -97,7 +96,6 @@ private:
     ModuleAssets*           m_moduleAssets = nullptr;
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
-    ModuleFlyweight* m_moduleFlyweight = nullptr;
 
     Settings*               m_settings = nullptr;
 

@@ -8,7 +8,8 @@ bool AssetMetadata::saveMetaFile(const AssetMetadata& meta, const std::filesyste
 
     auto& alloc = doc.GetAllocator();
 
-    doc.AddMember("uid", rapidjson::Value(meta.uid), alloc);
+    rapidjson::Value uidVal(meta.uid.c_str(), alloc);
+    doc.AddMember("uid", uidVal, alloc);
     doc.AddMember("type", rapidjson::Value(static_cast<int>(meta.type)), alloc);
 
     rapidjson::StringBuffer buffer;
@@ -51,9 +52,9 @@ bool AssetMetadata::loadMetaFile(const std::filesystem::path& metaPath, AssetMet
     }
 
     // Extract values safely
-    if (doc.HasMember("uid") && doc["uid"].IsUint64()) 
+    if (doc.HasMember("uid") && doc["uid"].IsString())
     {
-        outMeta.uid = doc["uid"].GetUint64();
+        outMeta.uid = doc["uid"].GetString();
     }
     else 
     {

@@ -3,6 +3,7 @@
 #include "Module.h"
 #include "CommandQueue.h"
 #include "UID.h"
+#include "WeakCache.h"
 
 struct DeferredResource
 {
@@ -15,6 +16,11 @@ class IndexBuffer;
 class RingBuffer;
 class Texture;
 class TextureAsset;
+class BasicMaterial;
+class BasicMesh;
+class MeshAsset;
+class MaterialAsset;
+class ICacheable;
 
 // Responsible for creation and management of raw GPU resources in D3D12.
 // Handles buffers, textures, render targets, depth stencils, and deferred GPU release.
@@ -42,14 +48,20 @@ public:
 	Texture* createRenderTexture(float width, float height);
 	Texture* createNullTexture2D();
 
-	Texture* createTexture(const TextureAsset& textureAsset);
+	Texture* createTextureInternal(const TextureAsset& textureAsset);
 
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
+
+	std::shared_ptr<Texture>       createTexture(const TextureAsset& textureAsset);
+	std::shared_ptr<BasicMesh>     createMesh(const MeshAsset& meshAsset);
+	std::shared_ptr<BasicMaterial> createMaterial(const MaterialAsset& materialAsset);
+
 private:
-	ComPtr<ID3D12Device4>         m_device;
+	ComPtr<ID3D12Device4>				m_device;
 	CommandQueue* m_queue{ nullptr };
-	std::vector<DeferredResource> m_deferredResources;
+	std::vector<DeferredResource>		m_deferredResources;
+	WeakCache<UID, ICacheable> m_resources;
 };

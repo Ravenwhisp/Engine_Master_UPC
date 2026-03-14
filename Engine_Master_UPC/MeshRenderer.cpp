@@ -4,8 +4,8 @@
 #include "GameObject.h"
 
 #include "Application.h"
-#include "ModuleFlyweight.h"
 #include "ModuleAssets.h"
+#include "ModuleResources.h"
 #include "Settings.h"
 
 
@@ -48,7 +48,7 @@ void MeshRenderer::addModel(ModelAsset& model)
         globalMax.y = std::max(globalMax.y, meshMax.y);
         globalMax.z = std::max(globalMax.z, meshMax.z);
 
-        auto mesh = app->getModuleFlyweight()->createMesh(meshAsset);
+        auto mesh = app->getModuleResources()->createMesh(meshAsset);
 
         if (!mesh)
         {
@@ -67,7 +67,7 @@ void MeshRenderer::addModel(ModelAsset& model)
     for (const auto materialAsset : model.getMaterials())
     {
         m_materialIndexByUID[materialAsset.getId()] = index;
-        auto material = app->getModuleFlyweight()->createMaterial(materialAsset);
+        auto material = app->getModuleResources()->createMaterial(materialAsset);
         m_materials.push_back(std::move(material));
         ++index;
     }
@@ -86,7 +86,7 @@ void MeshRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const UID* data = static_cast<const UID*>(payload->Data);
+            const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
             m_modelAssetId = *data;
             auto modelAsset = app->getModuleAssets()->load<ModelAsset>(*data);
             addModel(*modelAsset);

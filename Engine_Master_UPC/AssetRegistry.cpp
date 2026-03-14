@@ -4,19 +4,19 @@
 
 #include <filesystem>
 
-AssetMetadata* AssetRegistry::getMetadata(UID uid)
+AssetMetadata* AssetRegistry::getMetadata(const MD5Hash& uid)
 {
     auto it = m_metadataMap.find(uid);
     return it != m_metadataMap.end() ? &it->second : nullptr;
 }
 
-const AssetMetadata* AssetRegistry::getMetadata(UID uid) const
+const AssetMetadata* AssetRegistry::getMetadata(const MD5Hash& uid) const
 {
     auto it = m_metadataMap.find(uid);
     return it != m_metadataMap.end() ? &it->second : nullptr;
 }
 
-UID AssetRegistry::findByPath(const std::filesystem::path& sourcePath) const
+MD5Hash AssetRegistry::findByPath(const std::filesystem::path& sourcePath) const
 {
     auto it = m_pathIndex.find(sourcePath.lexically_normal().string());
     return it != m_pathIndex.end() ? it->second : INVALID_ASSET_ID;
@@ -32,7 +32,7 @@ void AssetRegistry::registerAsset(const AssetMetadata& meta)
     m_metadataMap[normalised.uid]               = std::move(normalised);
 }
 
-void AssetRegistry::remove(UID uid)
+void AssetRegistry::remove(const MD5Hash& uid)
 {
     auto it = m_metadataMap.find(uid);
     if (it == m_metadataMap.end())
@@ -43,7 +43,7 @@ void AssetRegistry::remove(UID uid)
     m_metadataMap.erase(it);
 }
 
-bool AssetRegistry::contains(UID uid) const
+bool AssetRegistry::contains(const MD5Hash& uid) const
 {
     return m_metadataMap.count(uid) > 0;
 }

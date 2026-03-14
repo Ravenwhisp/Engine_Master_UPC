@@ -55,6 +55,7 @@ void ModuleResources::preRender()
 
 bool ModuleResources::cleanUp()
 {
+	m_resources.clear();
 	m_deferredResources.clear();
 	return true;
 }
@@ -133,7 +134,7 @@ Texture* ModuleResources::createNullTexture2D()
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createTexture(const TextureAsset& textureAsset)
+Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset)
 {
 	TextureDesc desc{};
 	desc.format = DirectX::MakeSRGB(textureAsset.getFormat());
@@ -144,7 +145,7 @@ Texture* ModuleResources::createTexture(const TextureAsset& textureAsset)
 	desc.views = TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-	auto texture = new Texture(textureAsset.getId(), *m_device.Get(), desc);
+	auto texture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -206,4 +207,48 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 
 	m_queue->executeCommandList(commandList);
 	m_queue->flush();
+}
+
+std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset)
+{
+	const UID uid = GenerateUID();
+
+	if (auto cached = m_resources.getAs<Texture>(uid))
+	{
+		return cached;
+	}
+
+
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTexture(textureAsset));
+	m_resources.insert(uid, texture);
+	return texture;
+}
+
+std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsset)
+{
+	const UID uid = meshAsset.getId();
+
+	if (auto cached = m_resources.getAs<BasicMesh>(uid))
+	{
+		return cached;
+	}
+
+
+	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
+	m_resources.insert(uid, mesh);
+	return mesh;
+}
+
+std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAsset& materialAsset)
+{
+	const UID uid = materialAsset.getId();
+
+	if (auto cached = m_resources.getAs<BasicMaterial>(uid))
+	{
+		return cached;
+	}
+
+	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
+	m_resources.insert(uid, material);
+	return material;
 }

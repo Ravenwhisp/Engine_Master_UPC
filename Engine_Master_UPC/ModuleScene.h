@@ -1,7 +1,7 @@
 #pragma once
 #include "Module.h"
 #include <rapidjson/document.h>
-#include "UID.h"
+#include "MD5.h"
 #include "MeshRenderer.h"
 
 class SceneSerializer;
@@ -24,7 +24,7 @@ struct SceneLightingSettings
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	UID cubemapAssetId = INVALID_ASSET_ID;
+	MD5Hash cubemapAssetId = INVALID_ASSET_ID;
 };
 
 struct SceneSnapshot
