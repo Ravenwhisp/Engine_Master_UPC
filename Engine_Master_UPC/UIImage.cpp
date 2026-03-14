@@ -3,7 +3,7 @@
 #include <imgui.h>
 
 #include "Application.h"
-#include "AssetsModule.h"
+#include "ModuleAssets.h"
 #include <UIRect.h>
 
 UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAGE, owner)

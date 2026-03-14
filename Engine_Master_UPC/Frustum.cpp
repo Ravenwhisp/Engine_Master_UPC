@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "Frustum.h"
 
-void Engine::Frustum::render(const Matrix& world)
+void Engine::Frustum::render(const Matrix& world) const
 {
 	float color[3] = { 0.3f, 0.3f, 0.3f };
 
