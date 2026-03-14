@@ -302,16 +302,13 @@
     <ClCompile Include="ModuleFlyweight.cpp">
       <Filter>D3D12\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="FileIO.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
     <ClCompile Include="AssetScanner.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="ContentRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="MetadataStore.cpp">
+    <ClCompile Include="AssetRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="ImporterRegistry.cpp">
@@ -699,13 +696,10 @@
     <ClInclude Include="ModuleFlyweight.h">
       <Filter>D3D12\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="FileIO.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="ImporterRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="MetadataStore.h">
+    <ClInclude Include="AssetRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="WeakCache.h">

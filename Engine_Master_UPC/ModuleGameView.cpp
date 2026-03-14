@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleInput.h"
+#include "ModuleD3D12.h"
 
 #include "GameObject.h"
 
@@ -34,6 +35,15 @@ bool ModuleGameView::init()
 
 void ModuleGameView::update()
 {
+
+	if (m_pendingStop)
+	{
+		m_pendingStop = false;
+		m_moduleScene->resetGameObjects(std::move(m_sceneCloned));
+		m_sceneCloned = SceneSnapshot();
+	}
+
+
 	static Keyboard::KeyboardStateTracker keyTracker;
 
 	Keyboard::State state = Keyboard::Get().GetState();
@@ -68,8 +78,5 @@ void ModuleGameView::startGameSimulation()
 
 void ModuleGameView::stopGameSimulation()
 {
-	// When we hit stop, we restore the scene's game objects with the copy we created when we hit play
-	m_moduleScene->resetGameObjects(std::move(m_sceneCloned));
-
-	m_sceneCloned = SceneSnapshot();
+	m_pendingStop = true;
 }

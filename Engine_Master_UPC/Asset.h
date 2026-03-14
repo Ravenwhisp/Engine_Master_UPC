@@ -28,6 +28,7 @@ class AssetMetadata
 {
 public:
 	UID uid = INVALID_ASSET_ID;
+	std::filesystem::path sourcePath;
 	AssetType type;
 
 	std::filesystem::path getSourcePath(std::filesystem::path& metadataPath) const

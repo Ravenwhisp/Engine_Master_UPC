@@ -56,7 +56,7 @@ void UIImage::drawUi()
             const UID* data = static_cast<const UID*>(payload->Data);
             m_textureAssetId = *data;
             m_texture = nullptr;
-            m_textureAsset = std::static_pointer_cast<TextureAsset>(app->getModuleAssets()->requestAsset(*data));
+            m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
             if (m_textureAsset)
             {
                 m_loadRequested = true;
@@ -97,7 +97,7 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
         m_textureAssetId = componentInfo["TextureAssetId"].GetUint64();
 
         m_texture = nullptr;
-        m_textureAsset = std::static_pointer_cast<TextureAsset>(app->getModuleAssets()->requestAsset(m_textureAssetId));
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
 
         if (m_textureAsset)
         {

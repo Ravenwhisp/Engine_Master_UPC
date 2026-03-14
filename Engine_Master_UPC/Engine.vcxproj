@@ -291,13 +291,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
-    <ClInclude Include="FileIO.h" />
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ImporterRegistry.h" />
-    <ClInclude Include="MetadataStore.h" />
+    <ClInclude Include="AssetRegistry.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="ModuleAssets.h" />
@@ -525,10 +524,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
-    <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="ImporterRegistry.cpp" />
-    <ClCompile Include="MetadataStore.cpp" />
+    <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />

@@ -41,7 +41,7 @@ void ModuleResources::preRender()
 	int i = 0;
 	while (i < static_cast<int>(m_deferredResources.size()))
 	{
-		if (lastCompletedFrame > m_deferredResources[i].frame)
+		if (lastCompletedFrame >= m_deferredResources[i].frame)
 		{
 			m_deferredResources[i] = m_deferredResources.back();
 			m_deferredResources.pop_back();

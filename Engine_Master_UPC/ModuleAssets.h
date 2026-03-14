@@ -1,32 +1,79 @@
 #pragma once
 #include "Module.h"
-
 #include "UID.h"
 #include "AssetsDictionary.h"
+#include "WeakCache.h"
+#include "AssetRegistry.h"
+
+#include "ImporterRegistry.h"
+#include "AssetScanner.h"
+#include "ContentRegistry.h"
 
 #include <filesystem>
-#include <unordered_map>
-#include "Delegates.h"
-#include "WeakCache.h"
+#include <memory>
 
 class Asset;
 class AssetMetadata;
-struct ImportRequest;
+struct FileEntry;
 
+// Owns the full asset lifecycle: import, cache, load, unload.
+// Also owns the editor content-browser tree.
 class ModuleAssets : public Module
 {
 public:
-	bool init()    override;
-	bool cleanUp() override;
+    bool init()    override;
+    bool cleanUp() override;
+    bool canImport(const std::filesystem::path& sourcePath) const;
 
-	UID import(const std::filesystem::path & assetsFile, UID uid = INVALID_ASSET_ID);
+    UID importAsset(const std::filesystem::path& sourcePath, UID uid = INVALID_ASSET_ID);
 
-	std::shared_ptr<Asset>	requestAsset(UID id);
-	std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
+    void refresh();
+
+    template<typename T>
+    std::shared_ptr<T> load(UID id)
+    {
+        if (auto cached = m_assets.getAs<T>(id))
+            return cached;
+
+        const AssetMetadata* meta = m_registry->getMetadata(id);
+        if (!meta)
+        {
+            DEBUG_ERROR("[ModuleAssets] No metadata found for UID %llu.", id);
+            return nullptr;
+        }
+
+        return std::static_pointer_cast<T>(loadAsset(meta));
+    }
+
+    // Resolves the UID from the source path, then delegates to load<T>.
+    template<typename T>
+    std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath)
+    {
+        const UID id = m_registry->findByPath(sourcePath);
+        if (id == INVALID_ASSET_ID)
+        {
+            DEBUG_ERROR("[ModuleAssets] No asset registered at path '%s'.", sourcePath.string().c_str());
+            return nullptr;
+        }
+        return load<T>(id);
+    }
+
+
+    UID  findUID(const std::filesystem::path& sourcePath) const;
+    bool isLoaded(UID id);
+    void unload(UID id);
+
+
+    std::shared_ptr<FileEntry> getRoot()                              const;
+    std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
 
 private:
-	void onImportRequested(const ImportRequest& request);
+    // Loads from disk using the registered importer and inserts into cache.
+    std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
 
-	WeakCache<UID, Asset>  m_assets;
-	DelegateHandle    m_importHandle;
+    std::unique_ptr<AssetRegistry>      m_registry;
+    std::unique_ptr<ImporterRegistry>   m_importerRegistry;
+    std::unique_ptr<AssetScanner>       m_scanner;
+    std::unique_ptr<ContentRegistry>    m_contentRegistry;
+    WeakCache<UID, Asset>               m_assets;
 };
