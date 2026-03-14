@@ -17,7 +17,7 @@ using DirectX::SimpleMath::Vector3;
 class BasicMesh : public ICacheable
 {
 public:
-	explicit BasicMesh(const UID uid, const MeshAsset& asset);
+	explicit BasicMesh(const MD5Hash uid, const MeshAsset& asset);
 	~BasicMesh();
 
 	std::unique_ptr<VertexBuffer>& getVertexBuffer() { return m_vertexBuffer; }

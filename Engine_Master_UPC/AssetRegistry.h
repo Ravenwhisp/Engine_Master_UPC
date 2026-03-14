@@ -7,21 +7,20 @@
 class AssetRegistry
 {
 public:
-    AssetMetadata* getMetadata(UID uid);
-    const AssetMetadata* getMetadata(UID uid) const;
+    AssetMetadata* getMetadata(const MD5Hash& uid);
+    const AssetMetadata* getMetadata(const MD5Hash& uid) const;
 
-    UID findByPath(const std::filesystem::path& sourcePath) const;
+    MD5Hash findByPath(const std::filesystem::path& sourcePath) const;
 
     void registerAsset(const AssetMetadata& meta);
 
+    void remove(const MD5Hash& uid);
 
-    void remove(UID uid);
-
-    bool contains(UID uid) const;
+    bool contains(const MD5Hash& uid) const;
 
     void clear();
 
 private:
-    std::unordered_map<UID, AssetMetadata> m_metadataMap;
-    std::unordered_map<std::string, UID>   m_pathIndex;
+    std::unordered_map<MD5Hash, AssetMetadata> m_metadataMap;
+    std::unordered_map<std::string, MD5Hash>   m_pathIndex;
 };

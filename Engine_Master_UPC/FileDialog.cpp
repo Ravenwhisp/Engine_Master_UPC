@@ -39,7 +39,7 @@ void FileDialog::importAsset(const std::shared_ptr<FileEntry>& asset)
 {
     // asset->path is the .metadata path; the source file is the stem.
     const std::filesystem::path sourcePath = asset->path.parent_path() / asset->path.stem();
-    app->getModuleAssets()->importAsset(sourcePath);
+    app->getModuleAssets()->importAsset(sourcePath, asset->uid);
 }
 
 void FileDialog::cutItem(const std::shared_ptr<FileEntry>& asset)
@@ -177,14 +177,18 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         ImGui::Separator();
 
         if (ImGui::MenuItem("New Folder"))
+        {
             createNewFolder();
+        }
 
         ImGui::Spacing(); ImGui::Spacing();
         ImGui::Text("General");
         ImGui::Separator();
 
         if (m_lastActionRequested != Command::NONE && ImGui::MenuItem("Paste"))
+        {
             pasteFile(directory);
+        }
 
         ImGui::EndPopup();
     }
@@ -200,9 +204,13 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         else if (keyState.V && m_lastActionRequested != Command::NONE)
         {
             if (m_selectedItem && std::filesystem::is_directory(m_selectedItem->path))
+            {
                 pasteFile(m_selectedItem);
+            }
             else
+            {
                 pasteFile(directory);
+            }
         }
     }
 
@@ -218,10 +226,14 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         ImGui::Button(asset->isDirectory ? "[DIR]" : "[FILE]", ImVec2(40, 40));
 
         if (ImGui::IsItemClicked())
+        {
             m_selectedItem = asset;
+        }
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+        {
             handleAssetDoubleClick(asset);
+        }
 
         if (!asset->isDirectory)
         {
@@ -241,10 +253,14 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 const bool importable = app->getModuleAssets()->canImport(sourcePath);
 
                 if (ImGui::MenuItem("Import", nullptr, false, importable))
+                {
                     importAsset(asset);
+                }
 
                 if (ImGui::MenuItem("Cut", "Ctrl+X"))
+                {
                     cutItem(asset);
+                }
 
                 if (ImGui::MenuItem("Delete", "Del"))
                     deleteItem(asset);

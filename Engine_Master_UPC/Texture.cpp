@@ -40,7 +40,7 @@ namespace
 
 }
 
-Texture::Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc)
+Texture::Texture(MD5Hash uid, ID3D12Device4& device, const TextureDesc& desc)
     : Resource(device,
         buildResourceDesc(desc),
         desc.hasClearValue ? &desc.clearValue : nullptr)

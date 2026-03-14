@@ -2,10 +2,10 @@
 #include "Importer.h"
 
 template<typename ExternalFormat, typename AssetFormat, AssetType TType>
-class TypedImporter : public Importer
+class ImporterSource : public Importer
 {
 public:
-    bool import(const std::filesystem::path& path, Asset * outAsset) final
+    bool import(const std::filesystem::path& path, Asset* outAsset) final
     {
         ExternalFormat external{};
         if (!loadExternal(path, external))

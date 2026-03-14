@@ -1,7 +1,7 @@
 #pragma once
 #include "UID.h"
 
-static const UID INVALID_ASSET_ID = -1;
+static const UID INVALID_REFERENCE_ID = -1;
 
 constexpr const char* ASSETS_FOLDER = "Assets/";
 constexpr const char* LIBRARY_FOLDER = "Library/";

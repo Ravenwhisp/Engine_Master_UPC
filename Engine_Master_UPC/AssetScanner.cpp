@@ -113,7 +113,7 @@ void AssetScanner::cleanOrphanedBinaries()
         if (!entry.is_regular_file())
             continue;
 
-        const UID uid = std::stoull(entry.path().stem().string());
+        const MD5Hash uid = entry.path().stem().string();
         if (!m_registry->contains(uid))
         {
             DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata).",
@@ -123,7 +123,7 @@ void AssetScanner::cleanOrphanedBinaries()
     }
 }
 
-std::filesystem::path AssetScanner::getBinaryPath(UID uid) const
+std::filesystem::path AssetScanner::getBinaryPath(const MD5Hash& uid) const
 {
-    return std::filesystem::path(LIBRARY_FOLDER) / std::to_string(uid) += ".asset";
+    return std::filesystem::path(LIBRARY_FOLDER) / uid += ASSET_EXTENSION;
 }

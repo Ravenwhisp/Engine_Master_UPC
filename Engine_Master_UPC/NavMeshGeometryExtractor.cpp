@@ -128,8 +128,8 @@ static void CollectFromObject(
         MeshRenderer* renderer = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (renderer)
         {
-            const UID modelId = renderer->getModelAssetId();
-            if (modelId != 0)
+            const MD5Hash modelId = renderer->getModelAssetId();
+            if (modelId != INVALID_ASSET_ID)
             {
                 auto model = app->getModuleAssets()->load<ModelAsset>(modelId);
                 if (model)

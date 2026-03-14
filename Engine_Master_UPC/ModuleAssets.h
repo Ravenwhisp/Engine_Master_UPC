@@ -25,15 +25,17 @@ public:
     bool cleanUp() override;
     bool canImport(const std::filesystem::path& sourcePath) const;
 
-    UID importAsset(const std::filesystem::path& sourcePath, UID uid = INVALID_ASSET_ID);
+    void importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid);
 
     void refresh();
 
     template<typename T>
-    std::shared_ptr<T> load(UID id)
+    std::shared_ptr<T> load(MD5Hash id)
     {
         if (auto cached = m_assets.getAs<T>(id))
+        {
             return cached;
+        }
 
         const AssetMetadata* meta = m_registry->getMetadata(id);
         if (!meta)
@@ -49,7 +51,7 @@ public:
     template<typename T>
     std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath)
     {
-        const UID id = m_registry->findByPath(sourcePath);
+        const MD5Hash id = m_registry->findByPath(sourcePath);
         if (id == INVALID_ASSET_ID)
         {
             DEBUG_ERROR("[ModuleAssets] No asset registered at path '%s'.", sourcePath.string().c_str());
@@ -59,9 +61,9 @@ public:
     }
 
 
-    UID  findUID(const std::filesystem::path& sourcePath) const;
-    bool isLoaded(UID id);
-    void unload(UID id);
+    MD5Hash  findUID(const std::filesystem::path& sourcePath) const;
+    bool isLoaded(const MD5Hash& id);
+    void unload(const MD5Hash& id);
 
 
     std::shared_ptr<FileEntry> getRoot()                              const;
@@ -75,5 +77,5 @@ private:
     std::unique_ptr<ImporterRegistry>   m_importerRegistry;
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
-    WeakCache<UID, Asset>               m_assets;
+    WeakCache<MD5Hash, Asset>               m_assets;
 };
