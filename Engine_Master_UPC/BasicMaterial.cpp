@@ -4,12 +4,11 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ModuleAssets.h"
-#include <TextureImporter.h>
-
+#include "MaterialAsset.h"
+#include "TextureAsset.h"
 #include "Texture.h"
-#include "ModelAsset.h"
 
-BasicMaterial::BasicMaterial(const MD5Hash uid, const MaterialAsset& asset)
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
 	: ICacheable(uid)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID)

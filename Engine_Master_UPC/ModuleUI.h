@@ -2,7 +2,7 @@
 
 #include "Module.h"
 #include <unordered_set>
-#include "UID.h"
+#include "MD5.h"
 #include "UICommands.h"
 
 class FontPass;
@@ -32,7 +32,7 @@ private:
     std::vector<UITextCommand> m_textCommands;
     std::vector<UIImageCommand> m_imageCommands;
 
-    std::unordered_map<UID, std::shared_ptr<Texture>> m_uiTextures;
+    std::unordered_map<MD5Hash, std::shared_ptr<Texture>> m_uiTextures;
 
 private:
     void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect);

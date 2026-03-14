@@ -18,8 +18,9 @@ enum class AssetType : uint32_t
 	MATERIAL = 2,
 	MESH = 3,
 	FONT = 4,
+	PREFAB = 5,
 
-	UNKNOWN = 4
+	UNKNOWN = 6
 };
 
 
@@ -61,5 +62,5 @@ public:
 	AssetType	getType() const { return m_type; }
 protected:
 	MD5Hash 			m_uid = INVALID_ASSET_ID;
-	AssetType	m_type;
+	AssetType			m_type;
 };

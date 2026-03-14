@@ -14,6 +14,8 @@
 
 class Asset;
 class AssetMetadata;
+class ImporterMaterial;
+class ImporterMesh;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -69,6 +71,8 @@ public:
     std::shared_ptr<FileEntry> getRoot()                              const;
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
 
+    void registerSubAsset(const AssetMetadata& meta, uint8_t* binaryData, size_t binarySize);
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
@@ -77,5 +81,8 @@ private:
     std::unique_ptr<ImporterRegistry>   m_importerRegistry;
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
-    WeakCache<MD5Hash, Asset>               m_assets;
+    WeakCache<MD5Hash, Asset>           m_assets;
+
+    ImporterMesh* m_importerMesh = nullptr;
+    ImporterMaterial* m_importerMaterial = nullptr;
 };

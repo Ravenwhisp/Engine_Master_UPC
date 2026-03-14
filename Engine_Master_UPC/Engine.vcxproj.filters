@@ -307,13 +307,10 @@
     <ClCompile Include="MD5.cpp">
       <Filter>Persistence\UID</Filter>
     </ClCompile>
-    <ClCompile Include="ModelImporter.cpp">
-      <Filter>Persistence\Importers\External</Filter>
-    </ClCompile>
     <ClCompile Include="ImporterTexture.cpp">
       <Filter>Persistence\Importers\External</Filter>
     </ClCompile>
-    <ClCompile Include="FontImporter.cpp">
+    <ClCompile Include="ImporterFont.cpp">
       <Filter>Persistence\Importers\External</Filter>
     </ClCompile>
     <ClCompile Include="ImporterMesh.cpp">
@@ -324,6 +321,9 @@
     </ClCompile>
     <ClCompile Include="ImporterGltf.cpp">
       <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterPrefab.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -616,9 +616,6 @@
     <ClInclude Include="AssetsDictionary.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="ModelAsset.h">
-      <Filter>Persistence\Assets</Filter>
-    </ClInclude>
     <ClInclude Include="TextureAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
@@ -724,13 +721,10 @@
     <ClInclude Include="Importer.h">
       <Filter>Persistence\Importers\Core</Filter>
     </ClInclude>
-    <ClInclude Include="ModelImporter.h">
-      <Filter>Persistence\Importers\External</Filter>
-    </ClInclude>
     <ClInclude Include="ImporterTexture.h">
       <Filter>Persistence\Importers\External</Filter>
     </ClInclude>
-    <ClInclude Include="FontImporter.h">
+    <ClInclude Include="ImporterFont.h">
       <Filter>Persistence\Importers\External</Filter>
     </ClInclude>
     <ClInclude Include="ImporterMesh.h">
@@ -747,6 +741,12 @@
     </ClInclude>
     <ClInclude Include="ImporterGltf.h">
       <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterPrefab.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabAsset.h">
+      <Filter>Persistence\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

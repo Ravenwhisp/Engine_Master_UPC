@@ -31,7 +31,7 @@ public:
 
     void load(const uint8_t* buffer, Asset* outAsset) final
     {
-        loadTyped(buffer,static_cast<AssetFormat*>(outAsset));
+        loadTyped(buffer, static_cast<AssetFormat*>(outAsset));
     }
 
 protected:

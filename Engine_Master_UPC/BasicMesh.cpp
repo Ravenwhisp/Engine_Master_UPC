@@ -6,10 +6,10 @@
 
 #include "IndexBuffer.h"
 #include "VertexBuffer.h"
-#include "ModelAsset.h"
+#include "MeshAsset.h"
 
 
-BasicMesh::BasicMesh(const MD5Hash uid, const MeshAsset& asset) : ICacheable(uid)
+BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 {
 	m_submeshes = asset.getSubmeshes();
 

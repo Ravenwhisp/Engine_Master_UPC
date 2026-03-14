@@ -1,7 +1,6 @@
 #pragma once
 #include "ImporterNative.h"
-
-class MaterialAsset;
+#include "MaterialAsset.h"
 
 constexpr const char* MATERIAL_EXTENSION = ".material";
 

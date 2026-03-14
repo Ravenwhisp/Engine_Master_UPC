@@ -46,7 +46,7 @@ public:
     constexpr static uint32_t MAX_MIPS{ 14 };
 
     Texture() = delete;
-    explicit Texture(MD5Hash uid, ID3D12Device4& device, const TextureDesc& desc);
+    explicit Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc);
     ~Texture();
 
     Texture(const Texture&) = delete;
