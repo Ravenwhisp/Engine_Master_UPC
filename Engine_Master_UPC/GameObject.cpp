@@ -6,9 +6,9 @@
 
 
 //Should not be here
-//#include "ModuleScene.h"
-//#include "Application.h"
-//#include "CameraComponent.h"
+#include "ModuleScene.h"
+#include "Application.h"
+#include "CameraComponent.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -340,7 +340,7 @@ void GameObject::drawUI()
         /*if (component->getType() == ComponentType::CAMERA)
         {
             CameraComponent* cameraComponent = static_cast<CameraComponent*>(component.get());
-            if (app->getSceneModule()->getDefaultCamera() == cameraComponent)
+            if (app->getModuleScene()->getDefaultCamera() == cameraComponent)
             {
                 header += " (Default)";
             }
