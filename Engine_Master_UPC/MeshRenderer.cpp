@@ -88,7 +88,7 @@ void MeshRenderer::drawUi()
         {
             const UID* data = static_cast<const UID*>(payload->Data);
             m_modelAssetId = *data;
-            auto modelAsset = std::static_pointer_cast<ModelAsset>(app->getModuleAssets()->requestAsset(*data));
+            auto modelAsset = app->getModuleAssets()->load<ModelAsset>(*data);
             addModel(*modelAsset);
         }
         ImGui::EndDragDropTarget();
@@ -135,7 +135,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         m_materials.clear();
         m_materialIndexByUID.clear();
 
-        std::shared_ptr<ModelAsset> modelAsset = std::static_pointer_cast<ModelAsset>(app->getModuleAssets()->requestAsset(m_modelAssetId));
+        std::shared_ptr<ModelAsset> modelAsset = app->getModuleAssets()->load<ModelAsset>(m_modelAssetId);
         if (modelAsset) {
             addModel(*modelAsset);
         }

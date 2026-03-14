@@ -7,30 +7,20 @@
 namespace fs = std::filesystem;
 
 
-bool FontImporter::loadExternal(const fs::path& path, std::vector<uint8_t>& out)
+bool FontImporter::loadExternal(const std::filesystem::path& path, std::vector<uint8_t>& out)
 {
-    fs::path spritefontPath = runMakeSpriteFont(path);
+    const std::filesystem::path spritefontPath = runMakeSpriteFont(path);
     if (spritefontPath.empty())
     {
         return false;
     }
 
-    char* buffer = nullptr;
-    const unsigned int size = app->getModuleFileSystem()->load(spritefontPath, &buffer);
 
-    app->getModuleFileSystem()->deleteFile(spritefontPath.string().c_str());
+    out = app->getModuleFileSystem()->read(spritefontPath);
+    app->getModuleFileSystem()->remove(spritefontPath);
 
-    if (size == 0)
-    {
-        return false;
-    }
-
-    out.assign(reinterpret_cast<uint8_t*>(buffer), reinterpret_cast<uint8_t*>(buffer) + size);
-    delete[] buffer;
-    return true;
-
+    return !out.empty();
 }
-
 
 void FontImporter::importTyped(const std::vector<uint8_t>& source, FontAsset* dst)
 {

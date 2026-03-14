@@ -1,142 +1,115 @@
 #include "Globals.h"
-
-#include "Application.h"
 #include "ModuleFileSystem.h"
-#include <filesystem>
+
 #include <fstream>
-
-#include "TextureImporter.h"
-#include "ModelImporter.h"
-#include "FontImporter.h"
-#include "Asset.h"
-
-#include "TextureAsset.h"
-#include "ModuleAssets.h"
-
-#include "FileIO.h"
-#include "ImporterRegistry.h"
-#include "MetadataStore.h"
-#include "AssetScanner.h"
-#include "ContentRegistry.h"
-
-#include "UID.h"
+#include <filesystem>
 
 bool ModuleFileSystem::init()
 {
-    m_fileIO = std::make_unique<FileIO>();
-    m_metadataStore = std::make_unique<MetadataStore>();
-    m_importerRegistry = std::make_unique<ImporterRegistry>();
+    return true;
+}
 
-    m_importerRegistry->registerImporter(std::make_unique<TextureImporter>());
-    m_importerRegistry->registerImporter(std::make_unique<ModelImporter>());
-    m_importerRegistry->registerImporter(std::make_unique<FontImporter>());
+std::vector<uint8_t> ModuleFileSystem::read(const std::filesystem::path& filePath) const
+{
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+    if (!file)
+    {
+        DEBUG_ERROR("[ModuleFileSystem] Could not open '%s' for reading.", filePath.string().c_str());
+        return {};
+    }
 
-    m_scanner = std::make_unique<AssetScanner>(m_fileIO.get(), m_metadataStore.get(), m_importerRegistry.get());
-    m_contentRegistry = std::make_unique<ContentRegistry>(m_fileIO.get());
+    const std::streamsize size = file.tellg();
+    if (size <= 0)
+    {
+        DEBUG_ERROR("[ModuleFileSystem] File '%s' is empty.", filePath.string().c_str());
+        return {};
+    }
+
+    file.seekg(0, std::ios::beg);
+
+    std::vector<uint8_t> buffer(static_cast<size_t>(size));
+    if (!file.read(reinterpret_cast<char*>(buffer.data()), size))
+    {
+        DEBUG_ERROR("[ModuleFileSystem] Failed to read '%s'.", filePath.string().c_str());
+        return {};
+    }
+
+    return buffer;
+}
+
+bool ModuleFileSystem::write(const std::filesystem::path& filePath, const void* data, size_t size, bool append) const
+{
+    if (!data || size == 0)
+    {
+        return false;
+    }
+
+    std::filesystem::create_directories(filePath.parent_path());
+
+    std::ios::openmode mode = std::ios::binary | std::ios::out;
+    mode |= append ? std::ios::app : std::ios::trunc;
+
+    std::ofstream file(filePath, mode);
+    if (!file)
+    {
+        DEBUG_ERROR("[ModuleFileSystem] Could not open '%s' for writing.", filePath.string().c_str());
+        return false;
+    }
+
+    file.write(static_cast<const char*>(data), static_cast<std::streamsize>(size));
+    if (!file)
+    {
+        DEBUG_ERROR("[ModuleFileSystem] Failed to write to '%s'.", filePath.string().c_str());
+        return false;
+    }
 
     return true;
 }
 
-AssetMetadata* ModuleFileSystem::getMetadata(UID uid)
+bool ModuleFileSystem::copy(const std::filesystem::path& src, const std::filesystem::path& dst) const
 {
-    return m_metadataStore->getMetadata(uid);
-}
-
-UID ModuleFileSystem::findByPath(const std::filesystem::path& sourcePath) const
-{
-    return m_metadataStore->findByPath(sourcePath);
-}
-
-void ModuleFileSystem::registerMetadata(const AssetMetadata& meta, const std::filesystem::path& sourcePath)
-{
-    m_metadataStore->registerMetadata(meta, sourcePath);
-}
-
-unsigned int ModuleFileSystem::load(const std::filesystem::path& filePath, char** buffer) const
-{
-    return m_fileIO->load(filePath, buffer);
-}
-
-unsigned int ModuleFileSystem::load(const char* filePath, char** buffer) const
-{
-    return m_fileIO->load(filePath, buffer);
-}
-
-unsigned int ModuleFileSystem::save(const std::filesystem::path& filePath, const void* buffer, unsigned int size, bool append) const
-{
-    return m_fileIO->save(filePath, buffer, size, append);
-}
-
-unsigned int ModuleFileSystem::save(const char* filePath, const void* buffer, unsigned int size, bool append) const
-{
-    return m_fileIO->save(filePath, buffer, size, append);
-}
-
-bool ModuleFileSystem::copy(const char* sourceFilePath, const char* destinationFilePath) const
-{
-    return m_fileIO->copy(sourceFilePath, destinationFilePath);
-}
-
-bool ModuleFileSystem::move(const char* sourceFilePath, const char* destinationFilePath) const
-{
-    return m_fileIO->move(sourceFilePath, destinationFilePath);
-}
-
-bool ModuleFileSystem::deleteFile(const char* filePath) const
-{
-    return m_fileIO->deleteFile(filePath);
-}
-
-bool ModuleFileSystem::createDirectory(const char* directoryPath) const
-{
-	return m_fileIO->createDirectory(directoryPath);
-}
-
-bool ModuleFileSystem::exists(const char* filePath) const
-{
-	return m_fileIO->exists(filePath);
-}
-
-bool ModuleFileSystem::isDirectory(const char* path) const
-{
-	return m_fileIO->isDirectory(path);
-}
-
-Importer* ModuleFileSystem::findImporter(const std::filesystem::path& filePath) const
-{
-    return m_importerRegistry->findImporter(filePath);
-}
-
-Importer* ModuleFileSystem::findImporter(const char* filePath) const
-{
-    return m_importerRegistry->findImporter(filePath);
-}
-
-Importer* ModuleFileSystem::findImporter(AssetType type) const
-{
-    return m_importerRegistry->findImporter(type);
-}
-
-void ModuleFileSystem::rebuild()
-{
-    std::string rootStr = ASSETS_FOLDER;
-    if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
+    std::error_code ec;
+    const bool ok = std::filesystem::copy_file(src, dst, ec);
+    if (ec)
     {
-        rootStr.pop_back();
+        DEBUG_ERROR("[ModuleFileSystem] copy '%s' -> '%s': %s", src.string().c_str(), dst.string().c_str(), ec.message().c_str());
     }
-
-    const std::filesystem::path root = rootStr;
-
-    m_scanner->scan(root);
-    m_contentRegistry->rebuild(root);
+    return ok;
 }
 
-std::shared_ptr<FileEntry> ModuleFileSystem::getRoot() const
+bool ModuleFileSystem::move(const std::filesystem::path& src, const std::filesystem::path& dst) const
 {
-    return m_contentRegistry->getRoot();
+    std::error_code ec;
+    std::filesystem::rename(src, dst, ec);
+    if (ec)
+    {
+        DEBUG_ERROR("[ModuleFileSystem] move '%s' -> '%s': %s", src.string().c_str(), dst.string().c_str(), ec.message().c_str());
+    }
+    return ec.value() == 0;
 }
 
-std::shared_ptr<FileEntry> ModuleFileSystem::getEntry(const std::filesystem::path& path) const
+bool ModuleFileSystem::remove(const std::filesystem::path& filePath) const
 {
-    return m_contentRegistry->getEntry(path);
+    std::error_code ec;
+    std::filesystem::remove(filePath, ec);
+    if (ec)
+        DEBUG_ERROR("[ModuleFileSystem] remove '%s': %s", filePath.string().c_str(), ec.message().c_str());
+    return ec.value() == 0;
+}
+
+bool ModuleFileSystem::exists(const std::filesystem::path& filePath) const
+{
+    return std::filesystem::exists(filePath);
+}
+
+bool ModuleFileSystem::isDirectory(const std::filesystem::path& path) const
+{
+    return std::filesystem::is_directory(path);
+}
+
+bool ModuleFileSystem::createDirectory(const std::filesystem::path& path) const
+{
+    std::error_code ec;
+    std::filesystem::create_directory(path, ec);
+    return ec.value() == 0;
 }

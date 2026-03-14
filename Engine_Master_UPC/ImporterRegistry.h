@@ -1,17 +1,16 @@
 #pragma once
 
 #include "Asset.h"
-class Importer;
+#include "Importer.h"
 
 class ImporterRegistry {
 public:
+    void      registerImporter(std::unique_ptr<Importer> importer);
 
-    virtual void registerImporter(std::unique_ptr<Importer> importer);
     Importer* findImporter(const std::filesystem::path& filePath) const;
-    Importer* findImporter(const char* filePath) const;
-    Importer* findImporter(const AssetType type);
+    Importer* findImporter(AssetType type)                        const;
 
 private:
-    std::unordered_map<AssetType, Importer*>    m_importersByType;
-    std::vector<std::unique_ptr<Importer>> m_importers;
+    std::unordered_map<AssetType, Importer*> m_importersByType;
+    std::vector<std::unique_ptr<Importer>>   m_importers;
 };

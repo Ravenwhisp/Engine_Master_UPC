@@ -1,8 +1,8 @@
 ﻿#include "Globals.h"
 #include "AssetScanner.h"
 
-#include "FileIO.h"
-#include "MetadataStore.h"
+#include "ModuleFileSystem.h"
+#include "AssetRegistry.h"
 #include "ImporterRegistry.h"
 #include "Importer.h"
 #include "Asset.h"
@@ -10,28 +10,27 @@
 
 #include <filesystem>
 
-AssetScanner::AssetScanner(FileIO* fileIO, MetadataStore* metadataStore, ImporterRegistry* importerRegistry)
-    : m_fileIO(fileIO)
-    , m_metadataStore(metadataStore)
+AssetScanner::AssetScanner(ModuleFileSystem* fs, AssetRegistry* registry, ImporterRegistry* importerRegistry)
+    : m_fs(fs)
+    , m_registry(registry)
     , m_importerRegistry(importerRegistry)
 {
 }
 
-void AssetScanner::scan(const std::filesystem::path& rootPath)
+std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootPath)
 {
-    m_metadataStore->clear();
+    m_registry->clear();
     m_pendingImports.clear();
 
     checkFile(rootPath);
-
     cleanOrphanedBinaries();
-    dispatchPendingImports();
-}
 
+    return std::move(m_pendingImports);
+}
 
 void AssetScanner::checkFile(const std::filesystem::path& path)
 {
-    if (m_fileIO->isDirectory(path.string().c_str()))
+    if (m_fs->isDirectory(path))
     {
         for (const auto& entry : std::filesystem::directory_iterator(path))
         {
@@ -49,7 +48,7 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
     // Raw source file — check that its .metadata sidecar exists.
     std::filesystem::path metadataPath = path;
     metadataPath += METADATA_EXTENSION;
-    if (!m_fileIO->exists(metadataPath.string().c_str()))
+    if (!m_fs->exists(metadataPath))
     {
         handleMissingMetadata(path);
     }
@@ -57,9 +56,9 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
 
 void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
 {
-    std::filesystem::path sourcePath = metadataPath.parent_path() / metadataPath.stem();
+    const std::filesystem::path sourcePath = metadataPath.parent_path() / metadataPath.stem();
 
-    if (!m_fileIO->exists(sourcePath.string().c_str()))
+    if (!m_fs->exists(sourcePath))
     {
         handleOrphanedMetadata(metadataPath);
         return;
@@ -68,14 +67,15 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     AssetMetadata meta;
     if (!AssetMetadata::loadMetaFile(metadataPath, meta))
     {
-        DEBUG_ERROR("[AssetScanner] Failed to load metadata file '{}'.", metadataPath.string());
+        DEBUG_ERROR("[AssetScanner] Failed to load metadata file '%s'.", metadataPath.string().c_str());
         return;
     }
 
-    m_metadataStore->registerMetadata(meta, sourcePath);
+    meta.sourcePath = sourcePath.lexically_normal();
+    m_registry->registerAsset(meta);
 
-    // Binary missing → re-import from source.
-    if (!m_fileIO->exists(getBinaryPath(meta.uid).string().c_str()))
+    // Binary missing — queue for re-import.
+    if (!m_fs->exists(getBinaryPath(meta.uid)))
     {
         m_pendingImports.push_back({ sourcePath, meta.uid });
     }
@@ -97,39 +97,30 @@ void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataP
     AssetMetadata meta;
     if (AssetMetadata::loadMetaFile(metadataPath, meta))
     {
-        std::filesystem::remove(getBinaryPath(meta.uid));
+        m_fs->remove(getBinaryPath(meta.uid));
     }
 
-    std::filesystem::remove(metadataPath);
+    m_fs->remove(metadataPath);
 }
 
 void AssetScanner::cleanOrphanedBinaries()
 {
-    if (!m_fileIO->exists(LIBRARY_FOLDER)) return;
+    if (!m_fs->exists(LIBRARY_FOLDER))
+        return;
 
     for (const auto& entry : std::filesystem::directory_iterator(LIBRARY_FOLDER))
     {
-        if (!entry.is_regular_file()) continue;
+        if (!entry.is_regular_file())
+            continue;
 
-        UID uid = std::stoull(entry.path().stem().string());
-
-        if (!m_metadataStore->contains(uid))
+        const UID uid = std::stoull(entry.path().stem().string());
+        if (!m_registry->contains(uid))
         {
-            DEBUG_ERROR("[AssetScanner] Deleting orphaned binary '{}' with no associated metadata.",
-                entry.path().string());
-            m_fileIO->deleteFile(entry.path().string().c_str());
+            DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata).",
+                entry.path().string().c_str());
+            m_fs->remove(entry.path());
         }
     }
-}
-
-void AssetScanner::dispatchPendingImports()
-{
-    for (const ImportRequest& request : m_pendingImports)
-    {
-        OnImportRequested.Broadcast(request);
-    }
-
-    m_pendingImports.clear();
 }
 
 std::filesystem::path AssetScanner::getBinaryPath(UID uid) const

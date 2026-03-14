@@ -15,7 +15,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
-		auto baseMapTexture = std::static_pointer_cast<TextureAsset>(app->getModuleAssets()->requestAsset(asset.getBaseMap()));
+		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
 		m_textureColor = app->getModuleFlyweight()->createTexture(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}

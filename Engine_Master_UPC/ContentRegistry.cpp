@@ -1,12 +1,14 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "ContentRegistry.h"
-#include "FileIO.h"
+#include "ModuleFileSystem.h"
+#include "AssetRegistry.h"
 #include "Asset.h"
 
 #include <filesystem>
 
-ContentRegistry::ContentRegistry(FileIO* fileIO)
-    : m_fileIO(fileIO)
+ContentRegistry::ContentRegistry(ModuleFileSystem* fs, AssetRegistry* registry)
+    : m_fs(fs)
+    , m_registry(registry)
 {
 }
 
@@ -19,16 +21,15 @@ std::shared_ptr<FileEntry> ContentRegistry::getEntry(const std::filesystem::path
 {
     if (!m_root)
     {
-        DEBUG_ERROR("[ContentRegistry] Tree has not been built yet � call rebuild() first.");
+        DEBUG_ERROR("[ContentRegistry] Tree has not been built yet — call rebuild() first.");
         return nullptr;
     }
     return getEntryRecursive(m_root, path);
 }
 
-
 std::shared_ptr<FileEntry> ContentRegistry::buildTree(const std::filesystem::path& path) const
 {
-    if (m_fileIO->isDirectory(path.string().c_str()))
+    if (m_fs->isDirectory(path))
     {
         return buildDirectoryEntry(path);
     }
@@ -36,10 +37,10 @@ std::shared_ptr<FileEntry> ContentRegistry::buildTree(const std::filesystem::pat
 
     if (path.extension() == METADATA_EXTENSION)
     {
-        return buildMetadataEntry(path);
+        return buildAssetEntry(path);
     }
 
-    // Raw source files (.png, .fbx, �) are not shown in the browser
+    // Raw source files (.png, .fbx, …) are not shown in the browser.
     return nullptr;
 }
 
@@ -61,22 +62,23 @@ std::shared_ptr<FileEntry> ContentRegistry::buildDirectoryEntry(const std::files
     return entry;
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::buildMetadataEntry(const std::filesystem::path& path) const
+std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesystem::path& metaPath) const
 {
     auto entry = std::make_shared<FileEntry>();
-    entry->path = path.lexically_normal();
+    entry->path = metaPath.lexically_normal();
     entry->isDirectory = false;
-    entry->displayName = path.stem().string();
+    entry->displayName = metaPath.stem().string();  // strips .metadata → shows asset name
 
-    AssetMetadata meta;
-    if (AssetMetadata::loadMetaFile(path, meta))
+    // Resolve UID from the in-memory store — no disk read needed here
+    // because rebuild() is always called after AssetScanner::scan().
+    const std::filesystem::path sourcePath = metaPath.parent_path() / metaPath.stem();
+    entry->uid = m_registry->findByPath(sourcePath);
+
+    if (entry->uid == INVALID_ASSET_ID)
     {
-        entry->uid = meta.uid;
+        DEBUG_WARN("[ContentRegistry] No metadata in store for '%s'. Was rebuild() called before scan()?", sourcePath.string().c_str());
     }
-    else
-    {
-        DEBUG_ERROR("[ContentRegistry] Failed to read metadata for tree node '{}'.", path.string());
-    }
+
 
     return entry;
 }
@@ -86,22 +88,15 @@ std::shared_ptr<FileEntry> ContentRegistry::getEntryRecursive(
     const std::filesystem::path& path) const
 {
     if (!node)
-    {
         return nullptr;
-    }
 
     if (node->path == path)
-    {
         return node;
-    }
-
 
     for (const auto& child : node->children)
     {
         if (auto found = getEntryRecursive(child, path))
-        {
             return found;
-        }
     }
 
     return nullptr;
