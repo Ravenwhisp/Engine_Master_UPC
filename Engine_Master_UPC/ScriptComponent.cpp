@@ -80,19 +80,6 @@ void ScriptComponent::drawUi()
         m_scriptName = buffer;
     }
 
-    if (ImGui::Button("Create Script Instance"))
-    {
-        bool created = createScriptInstance();
-        if (created)
-        {
-            OutputDebugStringA("Script instance created correctly\n");
-        }
-        else
-        {
-            OutputDebugStringA("Failed to create script instance\n");
-        }
-    }
-
     ImGui::Text("Loaded: %s", m_script ? "Yes" : "No");
 }
 
