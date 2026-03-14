@@ -60,6 +60,17 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     if (ImGui::Button("Apply", ImVec2(buttonWidth, 0)))
     {
         PrefabManager::applyToPrefab(session->m_rootObject);
+
+        ModuleScene* mainScene = app->getModuleScene();
+        const std::string prefabName = session->m_prefabName;
+        for (GameObject* go : mainScene->getAllGameObjects())
+        {
+            if (PrefabManager::getPrefabName(go) == prefabName)
+            {
+                PrefabManager::revertToPrefab(go, mainScene);
+            }
+        }
+
         app->getModuleEditor()->exitPrefabEdit();
     }
 

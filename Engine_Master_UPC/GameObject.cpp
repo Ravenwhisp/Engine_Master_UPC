@@ -3,7 +3,9 @@
 
 #include "ComponentFactory.h"
 #include "SceneSnapshot.h"
-
+#include "PrefabManager.h"
+#include "ModuleEditor.h"
+#include "PrefabEditSession.h"
 
 //Should not be here
 #include "ModuleScene.h"
@@ -86,6 +88,7 @@ bool GameObject::AddComponent(ComponentType componentType)
     }
 
     m_components.push_back(std::move(newComponent));
+    PrefabManager::markComponentAdded(this, static_cast<int>(componentType));
     return true;
 }
 
@@ -123,8 +126,10 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     if (it != m_components.end())
     {
+        ComponentType removedType = (*it)->getType();
         (*it)->cleanUp();
         m_components.erase(it);
+        PrefabManager::markComponentRemoved(this, static_cast<int>(removedType));
         return true;
     }
     return false;
@@ -372,7 +377,19 @@ void GameObject::drawUI()
         {
             ImGui::Separator();
 
+            PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+            const bool inPrefabMode = session && session->m_active && session->m_rootObject;
+
+            const ImGuiID activeIdBefore = ImGui::GetActiveID();
             component->drawUi();
+            const ImGuiID activeIdAfter = ImGui::GetActiveID();
+
+            if (inPrefabMode && activeIdAfter != 0)
+            {
+                const int componentType = static_cast<int>(component->getType());
+                PrefabManager::markPropertyOverride(
+                    session->m_rootObject, componentType, "properties");
+            }
 
             ImGui::Separator();
 
