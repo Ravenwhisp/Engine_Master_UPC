@@ -43,9 +43,6 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
     case ComponentType::MODEL:
         return std::make_unique<MeshRenderer>(id, owner);
 
-    case ComponentType::SCRIPT:
-        return std::make_unique<ScriptComponent>(id, owner);
-
     case ComponentType::PLAYER_WALK:
         return std::make_unique<PlayerWalk>(id, owner);
 
@@ -90,6 +87,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::CHANGE_SCENE_ON_TRIGGER:
         return std::make_unique<TriggerArea>(id, owner);
+
+    case ComponentType::SCRIPT:
+        return std::make_unique<ScriptComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:
