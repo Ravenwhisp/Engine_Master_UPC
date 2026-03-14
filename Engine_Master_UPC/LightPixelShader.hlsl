@@ -1,12 +1,13 @@
 #include "NewCBuffers.hlsli"
 
-Texture2D diffuseTex : register(t0);
+Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 
-SamplerState diffuseSamp : register(s0);
+SamplerState liearSample : register(s0);
 
 static const float PI = 3.14159265f;
 static const float EPS = 1e-5f;
+static const float3 DIELECTRIC_FRESNEL = 0.04;
 
 float3 SchlickFresnel(float3 F0, float cosTheta)
 {
@@ -111,7 +112,7 @@ float3 PBRNeutralToneMapping(float3 color)
     return lerp(color, newPeak.xxx, g);
 }
 
-float3 EvaluateLight(float3 lightDirection, float3 lightColor, float3 normalVector, float3 viewDirection, float3 F0, float3 diffuseBRDF, float roughness)
+float3 EvaluateLight(float3 lightDirection, float3 lightColor, float3 normalVector, float3 viewDirection, float3 F0, float3 diffuseBRDF, float roughness) //DiffuseBRDF will be base color ("Varies")
 {
     float3 halfVector = normalize(viewDirection + lightDirection);
     float lightDotHalf = dot(lightDirection, halfVector);
@@ -183,38 +184,41 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 normalVector, f
 
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
-    float4 texSample = diffuseTex.Sample(diffuseSamp, coord);
+    float4 texSample = baseColorTex.Sample(liearSample, coord);
 
-    if (hasDiffuseTex != 0 && texSample.a < 0.5f)
+    if (hasBaseColorTex != 0 && texSample.a < 0.5f) //The 0.5 is temporary while transparency is not added
     {
         discard;
     }
 
-    float3 albedo = (hasDiffuseTex != 0) ? texSample.rgb * diffuseColour : diffuseColour;
+    float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor; //Albedo = BaseColor ("Varies")
     
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(diffuseSamp, coord).rg;
+    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(liearSample, coord).rg;
     float2 metallicRoughness = (hasMetallicRoughnessTex != 0)
-                                ? metallicRoughnessSample.rg * float2(metallicFactor, roughnessFactor)
-                                : float2(metallicFactor, roughnessFactor);
+                                ? metallicRoughnessSample
+                                : float2(0, 0.5); 
 
     float3 normalVector = normalize(normal);
     float3 viewDirection = normalize(viewPos - worldPos);
 
-    float3 F0 = specularColour; //Maybe this has to be removed
+    float3 F0 = albedo; //Metals
 
-    float maxF0 = max(F0.r, max(F0.g, F0.b));
-    float3 albedoEnergy = albedo * (1.0f - maxF0);
+    //Remove this since energy conservation formula is not needed in PBR Metallic Roughness
+    //float maxF0 = max(F0.r, max(F0.g, F0.b));
+    //float3 albedoEnergy = albedo * (1.0f - maxF0); 
+    //float3 diffuseBRDF = albedoEnergy / PI;
 
-    float3 diffuseBRDF = albedoEnergy / PI;
-
-    float3 directLighting = 0.0f;
+    float3 directLightingMetallic = 0.0f;
+    float3 directLightingNonMetallic = 0.0f;
     
     float roughness = pow(roughnessFactor, 2);
 
     // Directional lights
     for (uint i = 0; i < directionalCount; ++i)
     {
-        directLighting += ComputeDirectionalLight(i, normalVector, viewDirection, F0, diffuseBRDF, roughness);
+        directLightingMetallic += ComputeDirectionalLight(i, normalVector, viewDirection, F0, diffuseBRDF, roughness);
+        directLightingNonMetallic += ComputeDirectionalLight(i, normalVector, viewDirection, F0, diffuseBRDF, roughness);
+
     }
 
     // Point lights

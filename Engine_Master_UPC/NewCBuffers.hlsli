@@ -9,8 +9,8 @@ cbuffer ModelData : register(b2)
     float4x4 model;
     float4x4 normalMat;
 
-    float3 diffuseColour;
-    uint hasDiffuseTex;
+    float3 baseColor;
+    uint hasBaseColorTex;
 
     float metallicFactor;
     float roughnessFactor;
