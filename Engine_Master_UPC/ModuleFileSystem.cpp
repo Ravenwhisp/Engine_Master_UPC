@@ -337,6 +337,8 @@ void ModuleFileSystem::checkFile(const std::filesystem::path& path)
         return;
     }
 
+    if (path.extension() == ".prefab") return;
+
     // Raw source file — ensure its .metadata exists
     std::filesystem::path metadataPath = path;
     metadataPath += METADATA_EXTENSION;
@@ -402,6 +404,17 @@ std::shared_ptr<FileEntry> ModuleFileSystem::buildTree(const std::filesystem::pa
     {
         return buildMetadataEntry(path);
     }
+
+    if (path.extension() == ".prefab")
+    {
+        auto entry = std::make_shared<FileEntry>();
+        entry->path = path.lexically_normal();
+        entry->isDirectory = false;
+        entry->displayName = path.stem().string();
+        entry->uid = INVALID_ASSET_ID;
+        return entry;
+    }
+
 
     return nullptr;
 }

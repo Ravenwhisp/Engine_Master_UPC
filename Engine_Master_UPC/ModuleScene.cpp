@@ -828,3 +828,11 @@ const std::vector<GameObject*>& ModuleScene::getRootObjects() const
 {
     return m_rootObjects;
 }
+
+bool ModuleScene::initEmpty()
+{
+    m_sceneSerializer = std::make_unique<SceneSerializer>();
+    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+    return true;
+}
