@@ -1,9 +1,8 @@
 #pragma once
 #include "ImporterSource.h"
+#include "FontAsset.h"
 #include <filesystem>
 #include <string>
-
-class FontAsset;
 
 constexpr const char* TTL_EXTENSION = ".ttf";
 

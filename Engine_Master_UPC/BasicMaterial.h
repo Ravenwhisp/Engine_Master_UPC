@@ -39,7 +39,7 @@ public:
 		float		shininess;
 	};
 
-	explicit BasicMaterial(const MD5Hash uid, const MaterialAsset& asset);
+	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const noexcept { return m_materialBuffer; }

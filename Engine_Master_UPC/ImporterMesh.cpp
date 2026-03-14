@@ -1,3 +1,4 @@
+#include "Globals.h"
 #include "ImporterMesh.h"
 #include "MeshAsset.h"
 

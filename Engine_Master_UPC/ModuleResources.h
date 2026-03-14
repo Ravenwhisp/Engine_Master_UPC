@@ -63,5 +63,5 @@ private:
 	ComPtr<ID3D12Device4>				m_device;
 	CommandQueue* m_queue{ nullptr };
 	std::vector<DeferredResource>		m_deferredResources;
-	WeakCache<UID, ICacheable> m_resources;
+	WeakCache<UID, ICacheable>			m_resources;
 };

@@ -53,7 +53,7 @@ void UIImage::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const UID* data = static_cast<const UID*>(payload->Data);
+            const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
             m_textureAssetId = *data;
             m_texture = nullptr;
             m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
@@ -85,7 +85,7 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::UIIMAGE), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("TextureAssetId", m_textureAssetId, domTree.GetAllocator());
+    componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -94,7 +94,7 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("TextureAssetId"))
     {
-        m_textureAssetId = componentInfo["TextureAssetId"].GetUint64();
+        m_textureAssetId = componentInfo["TextureAssetId"].GetString();
 
         m_texture = nullptr;
         m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);

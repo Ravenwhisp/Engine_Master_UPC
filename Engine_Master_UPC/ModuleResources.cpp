@@ -10,11 +10,12 @@
 #include "Texture.h"
 
 #include "ModuleAssets.h"
-#include "ModelAsset.h"
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
 #include "TextureAsset.h"
 #include <DirectXTex.h>
+#include "MeshAsset.h"
+#include "MaterialAsset.h"
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {
@@ -145,7 +146,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	desc.views = TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-	auto texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -211,7 +212,7 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 
 std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset)
 {
-	const UID uid = GenerateUID();
+	const UID uid = hashToUID(textureAsset.getId());
 
 	if (auto cached = m_resources.getAs<Texture>(uid))
 	{
@@ -226,7 +227,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 
 std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsset)
 {
-	const UID uid = meshAsset.getId();
+	const UID uid = hashToUID(meshAsset.getId());
 
 	if (auto cached = m_resources.getAs<BasicMesh>(uid))
 	{
@@ -241,7 +242,7 @@ std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsse
 
 std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAsset& materialAsset)
 {
-	const UID uid = materialAsset.getId();
+	const UID uid = hashToUID(materialAsset.getId());
 
 	if (auto cached = m_resources.getAs<BasicMaterial>(uid))
 	{

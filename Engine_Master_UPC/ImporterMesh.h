@@ -1,10 +1,8 @@
 #pragma once
-
 #include "ImporterNative.h"
 #include <ModuleResources.h>
 #include "UtilityGLFT.h"
-
-class MeshAsset;
+#include "MeshAsset.h"
 
 constexpr const char* MESH_EXTENSION = ".asset";
 

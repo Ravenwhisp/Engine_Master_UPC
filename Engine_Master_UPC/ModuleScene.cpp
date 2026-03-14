@@ -205,7 +205,7 @@ void ModuleScene::render(ID3D12GraphicsCommandList* commandList)
             if (gameObject->GetActive())
             {
                 auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
+                if (meshRenderer)
                 {
                     m_meshRenderers.push_back(meshRenderer);
                 }
@@ -219,7 +219,7 @@ void ModuleScene::render(ID3D12GraphicsCommandList* commandList)
             if (gameObject->GetActive())
             {
                 auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
+                if (meshRenderer)
                 {
                     m_meshRenderers.push_back(meshRenderer);
                 }
@@ -511,7 +511,7 @@ rapidjson::Value ModuleScene::getSkyBoxJSON(rapidjson::Document& domTree)
     rapidjson::Value skyboxInfo(rapidjson::kObjectType);
 
     skyboxInfo.AddMember("Enabled", m_skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", (uint64_t)m_skybox.cubemapAssetId, domTree.GetAllocator());
+    skyboxInfo.AddMember("CubemapAssetId", rapidjson::Value(m_skybox.cubemapAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -588,11 +588,11 @@ bool ModuleScene::loadSceneSkyBox(const rapidjson::Value& sceneJson)
     }
     skybox.enabled = skyboxJson["Enabled"].GetBool();
 
-    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].IsUint64())
+    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].GetString())
     {
         return false;
     }
-    skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
+    skybox.cubemapAssetId = skyboxJson["CubemapAssetId"].GetString();
 
     return true;
 }
