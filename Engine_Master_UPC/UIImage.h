@@ -31,7 +31,7 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
-    MD5Hash m_textureAssetId = 0;
+    MD5Hash m_textureAssetId = INVALID_ASSET_ID;
     Texture* m_texture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;

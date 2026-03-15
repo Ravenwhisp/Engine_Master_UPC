@@ -26,16 +26,8 @@
 static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
 
 
-
-// Derives a deterministic string UID for a sub-asset embedded in a GLTF file.
-static MD5Hash subAssetUID(const std::filesystem::path& gltfPath, const char* kind, int index)
-{
-    return computeMD5(gltfPath.string() + ":" + kind + ":" + std::to_string(index));
-}
-
 // Resolves a GLTF texture index to an engine asset UID, importing if needed.
-static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,
-    const std::filesystem::path* modelPath)
+MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,const std::filesystem::path* modelPath)
 {
     if (texIndex < 0 || texIndex >= static_cast<int>(model.textures.size()))
         return INVALID_ASSET_ID;
@@ -88,304 +80,247 @@ bool ImporterGltf::loadExternal(const std::filesystem::path& path, tinygltf::Mod
 }
 
 
-void ImporterGltf::importTyped(const tinygltf::Model& source, PrefabAsset* prefab)
+void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 {
-    std::vector<MD5Hash> matUIDs;
-    matUIDs.reserve(source.materials.size());
+    ModuleAssets* assets = app->getModuleAssets();
 
-    for (int i = 0; i < static_cast<int>(source.materials.size()); ++i)
+    // 1. Import materials
+    std::vector<MD5Hash> materialUIDs(model.materials.size(), INVALID_ASSET_ID);
+    for (int i = 0; i < static_cast<int>(model.materials.size()); ++i)
     {
-        const MD5Hash matUID = subAssetUID(*m_currentFilePath, "material", i);
+        // Derive a stable UID from the source file + material index
+        const std::string matKey = m_currentFilePath->string() + "?mat=" + std::to_string(i);
+        MD5Hash matUID = computeMD5(matKey);
 
-        MaterialAsset mat(matUID);
-        loadMaterial(source, source.materials[i], &mat);
+        MaterialAsset matAsset(matUID);
+        loadMaterial(model, model.materials[i], &matAsset);
 
-        uint8_t* rawBuf = nullptr;
-        const uint64_t bufSize = m_importerMaterial.save(&mat, &rawBuf);
-        std::unique_ptr<uint8_t[]> buf(rawBuf);
+        uint8_t* rawBuffer = nullptr;
+        const uint64_t size = m_importerMaterial.save(&matAsset, &rawBuffer);
+        std::unique_ptr<uint8_t[]> buf(rawBuffer);
 
         AssetMetadata meta;
         meta.uid = matUID;
         meta.type = AssetType::MATERIAL;
-        app->getModuleAssets()->registerSubAsset(meta, buf.get(), static_cast<size_t>(bufSize));
+        assets->registerSubAsset(meta, rawBuffer, static_cast<size_t>(size));
 
-        matUIDs.push_back(matUID);
+        materialUIDs[i] = matUID;
     }
 
-    std::vector<std::vector<MD5Hash>> meshPrimUIDs(source.meshes.size());
-    int globalPrimIdx = 0;
-
-    for (int mi = 0; mi < static_cast<int>(source.meshes.size()); ++mi)
+    // 2. Import meshes (one MeshAsset per GLTF mesh, merging all primitives)
+    std::vector<MD5Hash> meshUIDs(model.meshes.size(), INVALID_ASSET_ID);
+    for (int i = 0; i < static_cast<int>(model.meshes.size()); ++i)
     {
-        const tinygltf::Mesh& gltfMesh = source.meshes[mi];
-        meshPrimUIDs[mi].reserve(gltfMesh.primitives.size());
+        const std::string meshKey = m_currentFilePath->string() + "?mesh=" + std::to_string(i);
+        MD5Hash meshUID = computeMD5(meshKey);
 
-        for (int pi = 0; pi < static_cast<int>(gltfMesh.primitives.size()); ++pi, ++globalPrimIdx)
+        MeshAsset meshAsset(meshUID);
+        for (const tinygltf::Primitive& prim : model.meshes[i].primitives)
         {
-            const MD5Hash meshUID = subAssetUID(*m_currentFilePath, "mesh", globalPrimIdx);
-
-            // Resolve the material UID this primitive uses (may be INVALID)
-            const tinygltf::Primitive& prim = gltfMesh.primitives[pi];
-            const MD5Hash matUID = (prim.material >= 0 && prim.material < static_cast<int>(matUIDs.size()))
-                ? matUIDs[prim.material] : INVALID_ASSET_ID;
-
-            MeshAsset mesh(meshUID);
-            loadMesh(source, prim, &mesh, matUID);
-
-            uint8_t* rawBuf = nullptr;
-            const uint64_t bufSize = m_importerMesh.save(&mesh, &rawBuf);
-            std::unique_ptr<uint8_t[]> buf(rawBuf);
-
-            AssetMetadata meta;
-            meta.uid = meshUID;
-            meta.type = AssetType::MESH;
-            app->getModuleAssets()->registerSubAsset(meta, buf.get(), static_cast<size_t>(bufSize));
-
-            meshPrimUIDs[mi].push_back(meshUID);
+            MD5Hash matUID = (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size()))
+                ? materialUIDs[prim.material]
+                : INVALID_ASSET_ID;
+            loadMesh(model, prim, &meshAsset, matUID);
         }
+
+        uint8_t* rawBuffer = nullptr;
+        const uint64_t size = m_importerMesh.save(&meshAsset, &rawBuffer);
+        std::unique_ptr<uint8_t[]> buf(rawBuffer);
+
+        AssetMetadata meta;
+        meta.uid = meshUID;
+        meta.type = AssetType::MESH;
+        assets->registerSubAsset(meta, rawBuffer, static_cast<size_t>(size));
+
+        meshUIDs[i] = meshUID;
     }
 
-    // ---- 3. Build JSON hierarchy -------------------------------------------
-    rapidjson::Document doc;
+    //3. Build prefab JSON from GLTF node hierarchy
+    using namespace rapidjson;
+    Document doc;
     doc.SetObject();
+    auto& alloc = doc.GetAllocator();
 
-    rapidjson::Value gameObjectsArray(rapidjson::kArrayType);
-    UID rootUID = 0;
+    // Pick a stable prefab name from the source file stem
+    const std::string prefabName = m_currentFilePath->stem().string();
+    const MD5Hash     prefabUID = dst->m_uid;
 
-    const int sceneIdx = source.defaultScene >= 0 ? source.defaultScene : 0;
+    doc.AddMember("PrefabName", Value(prefabName.c_str(), alloc), alloc);
+    doc.AddMember("Version", 2, alloc);
+    doc.AddMember("PrefabUID", Value(prefabUID.c_str(), alloc), alloc);
 
-    if (sceneIdx < static_cast<int>(source.scenes.size()))
-    {
-        bool firstRoot = true;
-        for (int nodeIdx : source.scenes[sceneIdx].nodes)
+    // Recursive lambda: GLTF node → prefab JSON node
+    std::function<Value(int)> buildNode = [&](int nodeIndex) -> Value
         {
-            UID uid = buildNodeJSON(source, nodeIdx, 0, meshPrimUIDs, matUIDs, gameObjectsArray, doc);
-            if (firstRoot) { rootUID = uid; firstRoot = false; }
-        }
+            const tinygltf::Node& gltfNode = model.nodes[nodeIndex];
+
+            Value nodeObj(kObjectType);
+            const std::string nodeName = gltfNode.name.empty()
+                ? ("Node_" + std::to_string(nodeIndex))
+                : gltfNode.name;
+            nodeObj.AddMember("Name", Value(nodeName.c_str(), alloc), alloc);
+            nodeObj.AddMember("Active", true, alloc);
+
+            // Transform
+            Value tfObj(kObjectType);
+            if (gltfNode.translation.size() == 3)
+            {
+                Value pos(kArrayType);
+                pos.PushBack((float)gltfNode.translation[0], alloc)
+                    .PushBack((float)gltfNode.translation[1], alloc)
+                    .PushBack((float)gltfNode.translation[2], alloc);
+                tfObj.AddMember("position", pos, alloc);
+            }
+            else
+            {
+                Value pos(kArrayType);
+                pos.PushBack(0.f, alloc).PushBack(0.f, alloc).PushBack(0.f, alloc);
+                tfObj.AddMember("position", pos, alloc);
+            }
+            if (gltfNode.rotation.size() == 4)
+            {
+                Value rot(kArrayType);
+                rot.PushBack((float)gltfNode.rotation[0], alloc)
+                    .PushBack((float)gltfNode.rotation[1], alloc)
+                    .PushBack((float)gltfNode.rotation[2], alloc)
+                    .PushBack((float)gltfNode.rotation[3], alloc);
+                tfObj.AddMember("rotation", rot, alloc);
+            }
+            else
+            {
+                Value rot(kArrayType);
+                rot.PushBack(0.f, alloc).PushBack(0.f, alloc).PushBack(0.f, alloc).PushBack(1.f, alloc);
+                tfObj.AddMember("rotation", rot, alloc);
+            }
+            if (gltfNode.scale.size() == 3)
+            {
+                Value sc(kArrayType);
+                sc.PushBack((float)gltfNode.scale[0], alloc)
+                    .PushBack((float)gltfNode.scale[1], alloc)
+                    .PushBack((float)gltfNode.scale[2], alloc);
+                tfObj.AddMember("scale", sc, alloc);
+            }
+            else
+            {
+                Value sc(kArrayType);
+                sc.PushBack(1.f, alloc).PushBack(1.f, alloc).PushBack(1.f, alloc);
+                tfObj.AddMember("scale", sc, alloc);
+            }
+            nodeObj.AddMember("Transform", tfObj, alloc);
+
+            // Components — emit MeshRenderer if this node has a mesh
+            Value compArray(kArrayType);
+            if (gltfNode.mesh >= 0 && gltfNode.mesh < static_cast<int>(meshUIDs.size()))
+            {
+                const MD5Hash& meshUID = meshUIDs[gltfNode.mesh];
+
+                // Pick the first primitive's material as the node-level material
+                MD5Hash matUID = INVALID_ASSET_ID;
+                if (!model.meshes[gltfNode.mesh].primitives.empty())
+                {
+                    int matIdx = model.meshes[gltfNode.mesh].primitives[0].material;
+                    if (matIdx >= 0 && matIdx < static_cast<int>(materialUIDs.size()))
+                        matUID = materialUIDs[matIdx];
+                }
+
+                Value compData(kObjectType);
+                compData.AddMember("MeshAssetId", Value(meshUID.c_str(), alloc), alloc);
+                compData.AddMember("MaterialAssetId", Value(matUID.c_str(), alloc), alloc);
+
+                Value compNode(kObjectType);
+                compNode.AddMember("Type", static_cast<int>(ComponentType::MODEL), alloc);
+                compNode.AddMember("Data", compData, alloc);
+
+                compArray.PushBack(compNode, alloc);
+            }
+            nodeObj.AddMember("Components", compArray, alloc);
+
+            // Children
+            Value childArray(kArrayType);
+            for (int childIdx : gltfNode.children)
+            {
+                childArray.PushBack(buildNode(childIdx), alloc);
+            }
+
+            nodeObj.AddMember("Children", childArray, alloc);
+
+            return nodeObj;
+        };
+
+    // Find root nodes from the default scene (or all nodes if no scenes)
+    std::vector<int> rootNodes;
+    if (!model.scenes.empty())
+    {
+        int sceneIdx = model.defaultScene >= 0 ? model.defaultScene : 0;
+        rootNodes = model.scenes[sceneIdx].nodes;
+    }
+    else
+    {
+        for (int i = 0; i < static_cast<int>(model.nodes.size()); ++i)
+            rootNodes.push_back(i);
     }
 
-    const std::string rootUIDStr = std::to_string(rootUID);
-    doc.AddMember("RootUID",
-        rapidjson::Value(rootUIDStr.c_str(), doc.GetAllocator()),
-        doc.GetAllocator());
-    doc.AddMember("GameObjects", gameObjectsArray, doc.GetAllocator());
+    // Wrap in a single synthetic root if there are multiple top-level nodes
+    Value gameObjectNode;
+    if (rootNodes.size() == 1)
+    {
+        gameObjectNode = buildNode(rootNodes[0]);
+    }
+    else
+    {
+        gameObjectNode.SetObject();
+        gameObjectNode.AddMember("Name", Value(prefabName.c_str(), alloc), alloc);
+        gameObjectNode.AddMember("Active", true, alloc);
 
-    rapidjson::StringBuffer sb;
-    rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(sb);
-    doc.Accept(jsonWriter);
+        Value tfObj(kObjectType);
+        Value pos(kArrayType); pos.PushBack(0.f, alloc).PushBack(0.f, alloc).PushBack(0.f, alloc);
+        Value rot(kArrayType); rot.PushBack(0.f, alloc).PushBack(0.f, alloc).PushBack(0.f, alloc).PushBack(1.f, alloc);
+        Value sc(kArrayType);  sc.PushBack(1.f, alloc).PushBack(1.f, alloc).PushBack(1.f, alloc);
+        tfObj.AddMember("position", pos, alloc);
+        tfObj.AddMember("rotation", rot, alloc);
+        tfObj.AddMember("scale", sc, alloc);
+        gameObjectNode.AddMember("Transform", tfObj, alloc);
+        gameObjectNode.AddMember("Components", Value(kArrayType), alloc);
 
-    prefab->m_json = sb.GetString();
-    prefab->m_rootUID = rootUIDStr;
+        Value childArray(kArrayType);
+        for (int rootIdx : rootNodes)
+            childArray.PushBack(buildNode(rootIdx), alloc);
+        gameObjectNode.AddMember("Children", childArray, alloc);
+    }
 
-    m_currentFilePath = nullptr;
+    doc.AddMember("GameObject", gameObjectNode, alloc);
+
+    StringBuffer sb;
+    rapidjson::Writer<StringBuffer> writer(sb);
+    doc.Accept(writer);
+
+    dst->m_json = sb.GetString();
+    dst->m_rootUID = prefabUID;
+
+    m_currentFilePath = nullptr;   // reset for safety
 }
-
 
 uint64_t ImporterGltf::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
 {
+    // Reuse the same binary layout as ImporterPrefab
     const uint32_t jsonLen = static_cast<uint32_t>(src->m_json.size());
+    const uint32_t rootLen = static_cast<uint32_t>(src->m_rootUID.size());
+    const uint64_t totalSize = sizeof(uint32_t) + jsonLen + sizeof(uint32_t) + rootLen;
 
-    uint64_t size = 0;
-    size += sizeof(uint32_t) + src->m_uid.size();
-    size += sizeof(uint32_t) + src->m_rootUID.size();
-    size += sizeof(uint32_t) + jsonLen;
-
-    uint8_t* buffer = new uint8_t[size];
-    BinaryWriter w(buffer);
-
-    w.string(src->m_uid);
-    w.string(src->m_rootUID);
-    w.u32(jsonLen);
-    w.bytes(src->m_json.data(), jsonLen);
+    uint8_t* buffer = new uint8_t[totalSize];
+    BinaryWriter writer(buffer);
+    writer.string(src->m_json);
+    writer.string(src->m_rootUID);
 
     *outBuffer = buffer;
-    return size;
+    return totalSize;
 }
 
 void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
 {
-    BinaryReader r(buffer);
-
-    dst->m_uid = r.string();
-    dst->m_rootUID = r.string();
-
-    const uint32_t jsonLen = r.u32();
-    dst->m_json.assign(reinterpret_cast<const char*>(r.ptr()), jsonLen);
-}
-
-UID ImporterGltf::buildNodeJSON(
-    const tinygltf::Model& model,
-    int nodeIndex,
-    UID parentUID,
-    const std::vector<std::vector<MD5Hash>>& meshPrimUIDs,
-    const std::vector<MD5Hash>& matUIDs,
-    rapidjson::Value& array,
-    rapidjson::Document& doc)
-{
-    const tinygltf::Node& node = model.nodes[nodeIndex];
-    auto& alloc = doc.GetAllocator();
-
-    const UID goUID = hashToUID(subAssetUID(*m_currentFilePath, "node_go", nodeIndex));
-    const UID xfUID = hashToUID(subAssetUID(*m_currentFilePath, "node_xform", nodeIndex));
-
-    Vector3    pos = Vector3::Zero;
-    Quaternion rot = Quaternion::Identity;
-    Vector3    scale = Vector3::One;
-
-    if (node.matrix.size() == 16)
-    {
-        // GLTF stores matrices column-major; DirectX SimpleMath uses row-major.
-        Matrix m(
-            (float)node.matrix[0], (float)node.matrix[4], (float)node.matrix[8], (float)node.matrix[12],
-            (float)node.matrix[1], (float)node.matrix[5], (float)node.matrix[9], (float)node.matrix[13],
-            (float)node.matrix[2], (float)node.matrix[6], (float)node.matrix[10], (float)node.matrix[14],
-            (float)node.matrix[3], (float)node.matrix[7], (float)node.matrix[11], (float)node.matrix[15]
-        );
-        m.Decompose(scale, rot, pos);
-    }
-    else
-    {
-        if (node.translation.size() == 3)
-            pos = { (float)node.translation[0], (float)node.translation[1], (float)node.translation[2] };
-        if (node.rotation.size() == 4)
-            rot = { (float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3] };
-        if (node.scale.size() == 3)
-            scale = { (float)node.scale[0], (float)node.scale[1], (float)node.scale[2] };
-    }
-
-    // --- Primitive info for this node's mesh --------------------------------
-    const int meshIdx = node.mesh;
-    const bool hasMesh = meshIdx >= 0 && meshIdx < static_cast<int>(meshPrimUIDs.size());
-    const int primCount = hasMesh ? static_cast<int>(meshPrimUIDs[meshIdx].size()) : 0;
-
-    // ---- Build the node's own GameObject entry ----------------------------
-    const std::string nodeName = node.name.empty() ? ("Node_" + std::to_string(nodeIndex)) : node.name;
-
-    rapidjson::Value go(rapidjson::kObjectType);
-    go.AddMember("UID", goUID, alloc);
-    go.AddMember("ParentUID", parentUID, alloc);
-    go.AddMember("Name", rapidjson::Value(nodeName.c_str(), alloc), alloc);
-    go.AddMember("Active", true, alloc);
-    go.AddMember("Static", false, alloc);
-    go.AddMember("Layer", rapidjson::Value("DEFAULT", alloc), alloc);
-    go.AddMember("Tag", rapidjson::Value("DEFAULT", alloc), alloc);
-
-    // Transform
-    {
-        rapidjson::Value xform(rapidjson::kObjectType);
-        xform.AddMember("UID", xfUID, alloc);
-
-        rapidjson::Value posArr(rapidjson::kArrayType);
-        posArr.PushBack(pos.x, alloc); posArr.PushBack(pos.y, alloc); posArr.PushBack(pos.z, alloc);
-        xform.AddMember("Position", posArr, alloc);
-
-        rapidjson::Value rotArr(rapidjson::kArrayType);
-        rotArr.PushBack(rot.x, alloc); rotArr.PushBack(rot.y, alloc);
-        rotArr.PushBack(rot.z, alloc); rotArr.PushBack(rot.w, alloc);
-        xform.AddMember("Rotation", rotArr, alloc);
-
-        rapidjson::Value scaleArr(rapidjson::kArrayType);
-        scaleArr.PushBack(scale.x, alloc); scaleArr.PushBack(scale.y, alloc); scaleArr.PushBack(scale.z, alloc);
-        xform.AddMember("Scale", scaleArr, alloc);
-
-        go.AddMember("Transform", xform, alloc);
-    }
-
-    // Components: attach a MeshRenderer if this node has exactly one primitive
-    {
-        rapidjson::Value comps(rapidjson::kArrayType);
-
-        if (primCount == 1)
-        {
-            const tinygltf::Primitive& prim = model.meshes[meshIdx].primitives[0];
-            const MD5Hash& meshUID = meshPrimUIDs[meshIdx][0];
-            const MD5Hash  matUID = (prim.material >= 0 && prim.material < static_cast<int>(matUIDs.size()))
-                ? matUIDs[prim.material] : INVALID_ASSET_ID;
-            const UID rendUID = hashToUID(subAssetUID(*m_currentFilePath, "node_rend", nodeIndex));
-
-            rapidjson::Value comp(rapidjson::kObjectType);
-            comp.AddMember("UID", rendUID, alloc);
-            comp.AddMember("ComponentType", static_cast<int>(ComponentType::MODEL), alloc);
-            comp.AddMember("Active", true, alloc);
-            comp.AddMember("MeshAssetId", rapidjson::Value(meshUID.c_str(), alloc), alloc);
-            comp.AddMember("MaterialAssetId", rapidjson::Value(matUID.c_str(), alloc), alloc);
-            comps.PushBack(comp, alloc);
-        }
-
-        go.AddMember("Components", comps, alloc);
-    }
-
-    array.PushBack(go, alloc);
-
-    // ---- Multi-primitive: one child GameObject per primitive ---------------
-    if (primCount > 1)
-    {
-        const tinygltf::Mesh& gltfMesh = model.meshes[meshIdx];
-        const std::string meshName = gltfMesh.name.empty()
-            ? ("Mesh_" + std::to_string(meshIdx)) : gltfMesh.name;
-
-        for (int pi = 0; pi < primCount; ++pi)
-        {
-            const int key = nodeIndex * 1000 + pi;
-            const UID primGoUID = hashToUID(subAssetUID(*m_currentFilePath, "prim_go", key));
-            const UID primXfUID = hashToUID(subAssetUID(*m_currentFilePath, "prim_xform", key));
-            const UID primRnUID = hashToUID(subAssetUID(*m_currentFilePath, "prim_rend", key));
-
-            const tinygltf::Primitive& prim = gltfMesh.primitives[pi];
-            const MD5Hash& meshUID = meshPrimUIDs[meshIdx][pi];
-            const MD5Hash  matUID = (prim.material >= 0 && prim.material < static_cast<int>(matUIDs.size()))
-                ? matUIDs[prim.material] : INVALID_ASSET_ID;
-
-            const std::string primName = meshName + "_Prim" + std::to_string(pi);
-
-            rapidjson::Value primGo(rapidjson::kObjectType);
-            primGo.AddMember("UID", primGoUID, alloc);
-            primGo.AddMember("ParentUID", goUID, alloc);
-            primGo.AddMember("Name", rapidjson::Value(primName.c_str(), alloc), alloc);
-            primGo.AddMember("Active", true, alloc);
-            primGo.AddMember("Static", false, alloc);
-            primGo.AddMember("Layer", rapidjson::Value("DEFAULT", alloc), alloc);
-            primGo.AddMember("Tag", rapidjson::Value("DEFAULT", alloc), alloc);
-
-            // Identity transform — inherits parent's world position
-            {
-                rapidjson::Value xform(rapidjson::kObjectType);
-                xform.AddMember("UID", primXfUID, alloc);
-                rapidjson::Value pArr(rapidjson::kArrayType);
-                pArr.PushBack(0.f, alloc); pArr.PushBack(0.f, alloc); pArr.PushBack(0.f, alloc);
-                xform.AddMember("Position", pArr, alloc);
-                rapidjson::Value rArr(rapidjson::kArrayType);
-                rArr.PushBack(0.f, alloc); rArr.PushBack(0.f, alloc);
-                rArr.PushBack(0.f, alloc); rArr.PushBack(1.f, alloc);
-                xform.AddMember("Rotation", rArr, alloc);
-                rapidjson::Value sArr(rapidjson::kArrayType);
-                sArr.PushBack(1.f, alloc); sArr.PushBack(1.f, alloc); sArr.PushBack(1.f, alloc);
-                xform.AddMember("Scale", sArr, alloc);
-                primGo.AddMember("Transform", xform, alloc);
-            }
-
-            // MeshRenderer component
-            {
-                rapidjson::Value comps(rapidjson::kArrayType);
-                rapidjson::Value comp(rapidjson::kObjectType);
-                comp.AddMember("UID", primRnUID, alloc);
-                comp.AddMember("ComponentType", static_cast<int>(ComponentType::MODEL), alloc);
-                comp.AddMember("Active", true, alloc);
-                comp.AddMember("MeshAssetId", rapidjson::Value(meshUID.c_str(), alloc), alloc);
-                comp.AddMember("MaterialAssetId", rapidjson::Value(matUID.c_str(), alloc), alloc);
-                comps.PushBack(comp, alloc);
-                primGo.AddMember("Components", comps, alloc);
-            }
-
-            array.PushBack(primGo, alloc);
-        }
-    }
-
-    // ---- Recurse into GLTF child nodes ------------------------------------
-    for (int childIdx : node.children)
-        buildNodeJSON(model, childIdx, goUID, meshPrimUIDs, matUIDs, array, doc);
-
-    return goUID;
+    BinaryReader reader(buffer);
+    dst->m_json = reader.string();
+    dst->m_rootUID = reader.string();
 }
 
 void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive,
@@ -459,8 +394,7 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primit
     }
 }
 
-void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material,
-    MaterialAsset* mat)
+void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* mat)
 {
     const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
 

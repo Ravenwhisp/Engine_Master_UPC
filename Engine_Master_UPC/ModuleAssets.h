@@ -16,6 +16,7 @@ class Asset;
 class AssetMetadata;
 class ImporterMaterial;
 class ImporterMesh;
+class ImporterPrefab;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -83,6 +84,7 @@ private:
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
     WeakCache<MD5Hash, Asset>           m_assets;
 
-    ImporterMesh* m_importerMesh = nullptr;
-    ImporterMaterial* m_importerMaterial = nullptr;
+    ImporterMesh*       m_importerMesh = nullptr;
+    ImporterMaterial*   m_importerMaterial = nullptr;
+    ImporterPrefab*     m_importerPrefab = nullptr;
 };

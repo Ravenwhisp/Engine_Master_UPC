@@ -23,16 +23,29 @@ bool ModuleAssets::init()
     m_registry = std::make_unique<AssetRegistry>();
     m_importerRegistry = std::make_unique<ImporterRegistry>();
     
-  /*  m_importerRegistry->registerImporter(std::make_unique<ImporterTexture>());
-    m_importerMesh = new ImporterMesh();
-    m_importerMaterial = new ImporterMaterial();
+    m_importerRegistry->registerImporter(std::make_unique<ImporterTexture>());
 
-    m_importerRegistry->registerImporter(std::make_unique<ImporterMesh>(m_importerMesh));
-    m_importerRegistry->registerImporter(std::make_unique<ImporterMaterial>(m_importerMesh));
+    {
+        auto mesh = std::make_unique<ImporterMesh>();
+        m_importerMesh = mesh.get();
+        m_importerRegistry->registerImporter(std::move(mesh));
+    }
+    {
+        auto mat = std::make_unique<ImporterMaterial>();
+        m_importerMaterial = mat.get();
+        m_importerRegistry->registerImporter(std::move(mat));
+    }
+    {
+        auto prefab = std::make_unique<ImporterPrefab>();
+        m_importerPrefab = prefab.get();
+        m_importerRegistry->registerImporter(std::move(prefab));
+    }
 
-    m_importerRegistry->registerImporter(std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial));
-    m_importerRegistry->registerImporter(std::make_unique<ImporterPrefab>());
-    m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());*/
+    // GLTF importer holds references to the three importers above so it can
+    // delegate sub-asset serialisation without duplicating binary format logic.
+    m_importerRegistry->registerImporter( std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial));
+
+    m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
 
     ModuleFileSystem* fs = app->getModuleFileSystem();
     m_scanner = std::make_unique<AssetScanner>(fs, m_registry.get(), m_importerRegistry.get());
