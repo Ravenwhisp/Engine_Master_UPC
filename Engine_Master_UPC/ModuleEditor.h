@@ -75,7 +75,7 @@ public:
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
 	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
 
-	void               enterPrefabEdit(const std::string& prefabName);
+	void enterPrefabEdit(const std::filesystem::path& sourcePath);
 	void               exitPrefabEdit();
 	PrefabEditSession* getPrefabSession() { return &m_prefabSession; }
 

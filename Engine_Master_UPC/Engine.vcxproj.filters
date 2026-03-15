@@ -334,6 +334,8 @@
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="PrefabUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -768,6 +770,12 @@
     </ClInclude>
     <ClInclude Include="SceneSnapshot.h">
       <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="PrefabUI.h" />
+    <ClInclude Include="Extensions.h">
+      <Filter>Persistence\Importers\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

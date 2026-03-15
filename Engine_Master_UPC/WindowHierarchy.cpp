@@ -4,11 +4,10 @@
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleScene.h"
-#include "PrefabUI.h"
-#include "PrefabEditSession.h"
-#include "PrefabManager.h"
 
 #include "GameObject.h"
+#include "PrefabManager.h"
+#include "ModuleScene.h"
 
 WindowHierarchy::WindowHierarchy()
 {
@@ -24,67 +23,37 @@ void WindowHierarchy::render()
 		return;
 	}
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	const bool prefabMode = session && session->m_active;
-
-	if (prefabMode)
+	if (ImGui::Button("New game object"))
 	{
-		PrefabUI::drawModeHeader(session->m_prefabName.c_str());
-
-		if (ImGui::Button("Add Child Object"))
-			addChildToPrefabRoot(session->m_rootObject);
-		ImGui::SameLine();
-		if (ImGui::Button("Remove Selected"))
-			removeGameObject();
-		ImGui::Separator();
-
-		if (session->m_isolatedScene)
-		{
-			for (GameObject* go : session->m_isolatedScene->getRootObjects())
-				createTreeNode(go, true);
-		}
+		addGameObject();
 	}
-	else
+	ImGui::SameLine();
+	if (ImGui::Button("Remove game object"))
 	{
-		if (ImGui::Button("New game object"))
-			addGameObject();
-		ImGui::SameLine();
-		if (ImGui::Button("Remove game object"))
-			removeGameObject();
-		ImGui::Separator();
-
-		createTreeNode();
+		removeGameObject();
 	}
+
+	ImGui::Separator();
+
+	createTreeNode();
 
 	ImGui::End();
 }
 
-void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
+void WindowHierarchy::createTreeNode(GameObject* gameObject)
 {
 	Transform* transform = gameObject->GetTransform();
 	const auto children = transform->getAllChildren();
-
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	const bool isEditRoot = prefabMode && session && gameObject == session->m_rootObject;
-	const bool isPrefabInst = !isEditRoot && PrefabManager::isPrefabInstance(gameObject);
 
 	ImGuiTreeNodeFlags flags =
 		children.empty()
 		? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen
 		: ImGuiTreeNodeFlags_OpenOnArrow;
 
-	if (isEditRoot)
-		flags |= ImGuiTreeNodeFlags_DefaultOpen;
+	std::string label =
+		gameObject->GetName() + "###" + std::to_string(gameObject->GetID());
 
-	if (isEditRoot)   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
-	else if (isPrefabInst) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
-
-	const char* label = (isEditRoot && session) ? session->m_prefabName.c_str() : gameObject->GetName().c_str();
-	std::string nodeId = std::string(label) + "###" + std::to_string(gameObject->GetID());
-
-	bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
-
-	if (isEditRoot || isPrefabInst) ImGui::PopStyleColor();
+	bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
 
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
@@ -93,35 +62,8 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 		m_isDragging = false;
 	}
 
-	// --- Right-click selects before popup opens ---
-	if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-		app->getModuleEditor()->setSelectedGameObject(gameObject);
-
-	// --- Context menu ---
-	if (ImGui::BeginPopupContextItem())
-	{
-		PrefabUI::drawNodeContextMenu(gameObject, prefabMode, isEditRoot);
-
-		if (!prefabMode)
-		{
-			PrefabUI::drawPrefabSubMenu(gameObject, app->getModuleScene());
-			ImGui::Separator();
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
-			if (ImGui::MenuItem("Delete"))
-			{
-				UID id = gameObject->GetID();
-				if (app->getModuleEditor()->getSelectedGameObject() == gameObject)
-					app->getModuleEditor()->setSelectedGameObject(nullptr);
-				app->getModuleScene()->removeGameObject(id);
-			}
-			ImGui::PopStyleColor();
-		}
-
-		ImGui::EndPopup();
-	}
-
 	// --- Drag source ---
-	if (!isEditRoot && ImGui::BeginDragDropSource())
+	if (ImGui::BeginDragDropSource())
 	{
 		m_isDragging = true;
 		ImGui::SetDragDropPayload("GAME_OBJECT", &gameObject, sizeof(GameObject*));
@@ -141,6 +83,20 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 				reparent(droppedObject, gameObject);
 			}
 		}
+
+		// A prefab asset dragged from the FileDialog: instantiate it and
+		// parent the new root GO under this node.
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+		{
+			const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
+			ModuleScene* scene = app->getModuleScene();
+			GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+			if (spawned)
+			{
+				reparent(spawned, gameObject);
+				app->getModuleEditor()->setSelectedGameObject(spawned);
+			}
+		}
 		ImGui::EndDragDropTarget();
 	}
 
@@ -158,7 +114,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 	{
 		for (GameObject* child : children)
 		{
-			createTreeNode(child, prefabMode);
+			createTreeNode(child);
 		}
 		ImGui::TreePop();
 	}
@@ -214,13 +170,23 @@ void WindowHierarchy::createTreeNode()
 				GameObject* droppedObject = *(GameObject**)payload->Data;
 				reparent(droppedObject, nullptr);
 			}
+
+			// Prefab dragged from FileDialog onto the scene root: spawn at root level.
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+			{
+				const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
+				ModuleScene* scene = app->getModuleScene();
+				GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+				if (spawned)
+					app->getModuleEditor()->setSelectedGameObject(spawned);
+			}
 			ImGui::EndDragDropTarget();
 		}
 
 		const auto& roots = app->getModuleScene()->getRootObjects();
 		for (GameObject* gameObject : roots)
 		{
-			createTreeNode(gameObject, false);
+			createTreeNode(gameObject);
 		}
 
 		ImGui::TreePop();
@@ -236,12 +202,6 @@ void WindowHierarchy::removeGameObject()
 {
 	GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	if (session && session->m_active && selected == session->m_rootObject)
-	{
-		return;
-	}
-
 	if (selected)
 	{
 		UID id = selected->GetID();
@@ -249,30 +209,3 @@ void WindowHierarchy::removeGameObject()
 		app->getModuleScene()->removeGameObject(id);
 	}
 }
-
-void WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
-{
-	if (!parent)
-	{
-		return;
-	}
-
-	app->getModuleScene()->createGameObject();
-
-	const auto& roots = app->getModuleScene()->getRootObjects();
-	if (roots.empty())
-	{
-		return;
-	}
-
-	GameObject* newObj = roots.back();
-	if (!newObj || newObj == parent)
-	{
-		return;
-	}
-
-	reparent(newObj, parent);
-
-	app->getModuleEditor()->setSelectedGameObject(newObj);
-}
-

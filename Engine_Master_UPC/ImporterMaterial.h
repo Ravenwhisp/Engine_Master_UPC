@@ -2,7 +2,6 @@
 #include "ImporterNative.h"
 #include "MaterialAsset.h"
 
-constexpr const char* MATERIAL_EXTENSION = ".material";
 
 // Importer for the engine's own .material format.
 class ImporterMaterial : public ImporterNative<MaterialAsset, AssetType::MATERIAL>

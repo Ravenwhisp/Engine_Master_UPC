@@ -1,7 +1,6 @@
 #pragma once
 #include "ImporterNative.h"
 
-constexpr const char* PREFAB_EXTENSION = ".prefab";
 
 #include "PrefabAsset.h"
 
