@@ -35,6 +35,22 @@ inline MD5Hash computeMD5(const std::filesystem::path& filePath) {
 
 inline uint64_t hashToUID(const MD5Hash& hash)
 {
-    if (hash.size() < 16) return 0;
+    if (hash.size() < 16)
+    {
+        return 0;
+    }
+
+
+    for (size_t i = 0; i < 16; ++i)
+    {
+        const char c = hash[i];
+        const bool valid = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        if (!valid)
+        {
+            DEBUG_ERROR("[MD5] hashToUID: non-hex character '%c' at index %zu in hash '%s'.", c, i, hash.c_str());
+            return 0;
+        }
+    }
+
     return std::stoull(hash.substr(0, 16), nullptr, 16);
 }

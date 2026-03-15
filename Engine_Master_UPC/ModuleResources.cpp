@@ -220,7 +220,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	}
 
 
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTexture(textureAsset));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset));
 	m_resources.insert(uid, texture);
 	return texture;
 }

@@ -12,24 +12,32 @@ bool ImporterMesh::importNative(const std::filesystem::path& path, MeshAsset* ds
 	return false;
 }
 
+static uint64_t submeshSerialSize(const Submesh& sm)
+{
+    return sizeof(uint32_t)                           // indexStart
+        + sizeof(uint32_t)                           // indexCount
+        + sizeof(uint32_t) + sm.materialId.size();   // materialId string
+}
+
 uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
 {
     uint64_t size = 0;
 
-    size += sizeof(uint64_t); // uid
+    size += sizeof(uint32_t) + source->m_uid.size();         // uid string
 
-    size += sizeof(uint32_t); // vertexCount
+    size += sizeof(uint32_t);                                 // vertexCount
     size += source->vertices.size() * sizeof(Vertex);
 
-    size += sizeof(uint32_t); // indexCount
-    size += sizeof(uint32_t); // indexFormat
-    size += source->indices.size() * sizeof(uint8_t);
+    size += sizeof(uint32_t);                                 // indexByteCount
+    size += sizeof(uint32_t);                                 // indexFormat
+    size += source->indices.size();                           // raw index bytes
 
-    size += sizeof(uint32_t); // submeshCount
-    size += source->submeshes.size() * sizeof(Submesh);
+    size += sizeof(uint32_t);                                 // submeshCount
+    for (const Submesh& sm : source->submeshes)
+        size += submeshSerialSize(sm);
 
-    size += sizeof(Vector3); // boundsCenter
-    size += sizeof(Vector3); // boundsExtents
+    size += sizeof(Vector3);                                  // boundsCenter
+    size += sizeof(Vector3);                                  // boundsExtents
 
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
@@ -44,7 +52,12 @@ uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
     writer.bytes(source->indices.data(), source->indices.size());
 
     writer.u32(static_cast<uint32_t>(source->submeshes.size()));
-    writer.bytes(source->submeshes.data(), source->submeshes.size() * sizeof(Submesh));
+    for (const Submesh& sm : source->submeshes)
+    {
+        writer.u32(sm.indexStart);
+        writer.u32(sm.indexCount);
+        writer.string(sm.materialId);
+    }
 
     writer.bytes(&source->boundsCenter, sizeof(Vector3));
     writer.bytes(&source->boundsExtents, sizeof(Vector3));
@@ -57,20 +70,25 @@ void ImporterMesh::loadTyped(const uint8_t* buffer, MeshAsset* mesh)
 {
     BinaryReader reader(buffer);
 
-    mesh->m_uid = reader.u64();
+    mesh->m_uid = reader.string();
 
-    uint32_t vertexCount = reader.u32();
+    const uint32_t vertexCount = reader.u32();
     mesh->vertices.resize(vertexCount);
     reader.bytes(mesh->vertices.data(), vertexCount * sizeof(Vertex));
 
-    uint32_t indexCount = reader.u32();
+    const uint32_t indexByteCount = reader.u32();
     mesh->indexFormat = static_cast<DXGI_FORMAT>(reader.u32());
-    mesh->indices.resize(indexCount);
-    reader.bytes(mesh->indices.data(), indexCount);
+    mesh->indices.resize(indexByteCount);
+    reader.bytes(mesh->indices.data(), indexByteCount);
 
-    uint32_t submeshCount = reader.u32();
+    const uint32_t submeshCount = reader.u32();
     mesh->submeshes.resize(submeshCount);
-    reader.bytes(mesh->submeshes.data(), submeshCount * sizeof(Submesh));
+    for (Submesh& sm : mesh->submeshes)
+    {
+        sm.indexStart = reader.u32();
+        sm.indexCount = reader.u32();
+        sm.materialId = reader.string();
+    }
 
     reader.bytes(&mesh->boundsCenter, sizeof(Vector3));
     reader.bytes(&mesh->boundsExtents, sizeof(Vector3));

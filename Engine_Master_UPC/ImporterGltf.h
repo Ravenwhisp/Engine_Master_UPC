@@ -33,13 +33,8 @@ private:
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
     void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const MD5Hash& materialUID);
 
-    UID buildNodeJSON(const tinygltf::Model& model, int nodeIndex, UID parentUID,
-        const std::vector<std::vector<MD5Hash>>& meshPrimUIDs,
-        const std::vector<MD5Hash>& matUIDs,
-        rapidjson::Value& gameObjectsArray,
-        rapidjson::Document& doc);
-
     const std::filesystem::path*    m_currentFilePath = nullptr;
+
     ImporterMesh&                   m_importerMesh;
     ImporterMaterial&               m_importerMaterial;
 };

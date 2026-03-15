@@ -14,19 +14,24 @@ bool ImporterMaterial::importNative(const std::filesystem::path& path, MaterialA
 	return false;
 }
 
+static uint64_t stringSerialSize(const std::string& s)
+{
+    return sizeof(uint32_t) + s.size();
+}
+
 uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outBuffer)
 {
     uint64_t size = 0;
-    // Look a way to be able to get the size automatically
-    size += sizeof(uint64_t); // uid
-    size += sizeof(uint64_t); // baseMap
-    size += sizeof(Color);    // baseColour
-    size += sizeof(uint64_t); // metallicRoughnessMap
-    size += sizeof(uint64_t); // metallicFactor
-    size += sizeof(uint64_t); // normalMap
-    size += sizeof(uint64_t); // occlusionMap
-    size += sizeof(uint8_t);  // isEmissive
-    size += sizeof(uint64_t); // emissiveMap
+
+    size += stringSerialSize(source->m_uid);
+    size += stringSerialSize(source->baseMap);
+    size += sizeof(Color);
+    size += stringSerialSize(source->metallicRoughnessMap);
+    size += sizeof(uint32_t);                               // metallicFactor
+    size += stringSerialSize(source->normalMap);
+    size += stringSerialSize(source->occlusionMap);
+    size += sizeof(uint8_t);                                // isEmissive
+    size += stringSerialSize(source->emissiveMap);
 
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
@@ -53,7 +58,6 @@ void ImporterMaterial::loadTyped(const uint8_t* buffer, MaterialAsset* material)
 
     material->m_uid = reader.string();
     material->baseMap = reader.string();
-
     reader.bytes(&material->baseColour, sizeof(Color));
 
     material->metallicRoughnessMap = reader.string();
