@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ModuleDescriptors.h";
+#include "Application.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -82,6 +83,9 @@ public:
 
 	bool applySkyBoxSettings(const SkyBoxSettings& settings);
 
+	void setActiveScene(ModuleScene* scene) { m_activeScene = scene; }
+	ModuleScene* getActiveScene() const { return m_activeScene ? m_activeScene : app->getModuleScene(); }
+
 	int getTriangles() { return m_triangles; }
 private:
 #pragma region RENDERS
@@ -98,5 +102,8 @@ private:
 	RenderCamera getGameCamera();
 
 	void transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
+
+	//Prefab thing
+	ModuleScene* m_activeScene = nullptr;
 };
 

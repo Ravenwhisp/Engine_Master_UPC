@@ -325,6 +325,15 @@
     <ClCompile Include="ImporterPrefab.cpp">
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFactory.cpp">
+      <Filter>Core\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentFactory.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -748,6 +757,18 @@
     <ClInclude Include="PrefabAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFactory.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentFactory.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSnapshot.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -901,6 +922,9 @@
     </Filter>
     <Filter Include="Persistence\Importers\External\Gltf">
       <UniqueIdentifier>{4a5cc4af-9f57-45c8-a0f5-fafd5c606cfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting">
+      <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -6,6 +6,7 @@
 #include "ModuleD3D12.h"
 
 #include "GameObject.h"
+#include "ScriptComponent.h"
 
 ModuleGameView::ModuleGameView()
 {
@@ -51,19 +52,12 @@ void ModuleGameView::update()
 
 	if(app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
 	{
-		for (GameObject* gameObject : m_moduleScene->getAllGameObjects())
-		{
-			if (gameObject->GetActive())
-			{
-				gameObject->update();
-			}
-		}
-
 		if (keyTracker.pressed.F3)
 		{
 			m_showDebugWindow = !m_showDebugWindow;
 		}
-	} else
+	} 
+	else
 	{
 		m_showDebugWindow = false;
 	}
@@ -74,9 +68,26 @@ void ModuleGameView::startGameSimulation()
 {
 	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
 	m_sceneCloned = m_moduleScene->getClonedGameObjects();
+
+	instantiateScriptsOnPlay();
 }
 
 void ModuleGameView::stopGameSimulation()
 {
 	m_pendingStop = true;
+}
+
+void ModuleGameView::instantiateScriptsOnPlay() {
+	// scripts instantiation
+	for (GameObject* gameObject : m_moduleScene->getAllGameObjects())
+	{
+		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
+		if (scriptComponent && !scriptComponent->getScriptName().empty())
+		{
+			scriptComponent->destroyScriptInstance();
+
+			bool created = scriptComponent->createScriptInstance();
+			assert(created);
+		}
+	}
 }
