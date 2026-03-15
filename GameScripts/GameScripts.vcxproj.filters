@@ -30,6 +30,9 @@
     <ClInclude Include="GameScriptsRegistration.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerWalk.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -45,6 +48,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="GameScriptsRegistration.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerWalk.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
