@@ -2,6 +2,7 @@
 #include <vector>
 #include "Component.h"
 #include "SimpleMath.h"
+#include "EngineAPI.h"
 
 class GameObject;
 
@@ -15,15 +16,15 @@ public:
 	Matrix getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
-	const Vector3& getPosition() const { return m_position; }
+	ENGINE_API const Vector3& getPosition() const;
 	const Quaternion& getRotation() const { return m_rotation; }
 	const Vector3& getScale() const { return m_scale; }
 
-	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
+	ENGINE_API void setPosition(const Vector3& newPosition);
 	void setRotation(const Quaternion& newRotation);
 	void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
-	void markDirty();
+	ENGINE_API void markDirty();
 	bool isDirty() { return m_dirty; }
 
 	Vector3 getForward() const;
