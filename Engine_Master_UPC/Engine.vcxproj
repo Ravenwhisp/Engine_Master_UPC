@@ -285,6 +285,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
+    <ClInclude Include="AssetType.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
@@ -303,6 +304,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MaterialAsset.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MeshAsset.h" />
+    <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="PrefabAsset.h" />
     <ClInclude Include="TextureImage.h" />
@@ -532,7 +534,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Asset.cpp" />
     <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="Canvas.cpp" />

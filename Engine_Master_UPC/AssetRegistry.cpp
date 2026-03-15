@@ -4,13 +4,13 @@
 
 #include <filesystem>
 
-AssetMetadata* AssetRegistry::getMetadata(const MD5Hash& uid)
+Metadata* AssetRegistry::getMetadata(const MD5Hash& uid)
 {
     auto it = m_metadataMap.find(uid);
     return it != m_metadataMap.end() ? &it->second : nullptr;
 }
 
-const AssetMetadata* AssetRegistry::getMetadata(const MD5Hash& uid) const
+const Metadata* AssetRegistry::getMetadata(const MD5Hash& uid) const
 {
     auto it = m_metadataMap.find(uid);
     return it != m_metadataMap.end() ? &it->second : nullptr;
@@ -22,10 +22,10 @@ MD5Hash AssetRegistry::findByPath(const std::filesystem::path& sourcePath) const
     return it != m_pathIndex.end() ? it->second : INVALID_ASSET_ID;
 }
 
-void AssetRegistry::registerAsset(const AssetMetadata& meta)
+void AssetRegistry::registerAsset(const Metadata& meta)
 {
     // Normalise before inserting so findByPath always matches.
-    AssetMetadata normalised = meta;
+    Metadata normalised = meta;
     normalised.sourcePath    = meta.sourcePath.lexically_normal();
 
     m_pathIndex[normalised.sourcePath.string()] = normalised.uid;
