@@ -22,7 +22,7 @@ public:
 
 	ENGINE_API void setPosition(const Vector3& newPosition);
 	void setRotation(const Quaternion& newRotation);
-	void setRotationEuler(const Vector3& eulerDegrees);
+	ENGINE_API void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
 	ENGINE_API void markDirty();
 	bool isDirty() { return m_dirty; }

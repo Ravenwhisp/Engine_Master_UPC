@@ -294,6 +294,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ScriptAPI.h" />
+    <ClInclude Include="ScriptAutoRegister.h" />
+    <ClInclude Include="ScriptTypes.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
@@ -524,6 +526,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
+    <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />

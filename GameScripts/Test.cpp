@@ -1,7 +1,8 @@
 #include "pch.h"
 #include "Test.h"
 #include "ScriptAPI.h"
-//#include "Transform.h"
+
+IMPLEMENT_SCRIPT(Test)
 
 Test::Test(GameObject* owner)
     : Script(owner)
@@ -24,9 +25,4 @@ void Test::Update()
         pos.x += 0.005f;
         transform->setPosition(pos);
     }
-}
-
-std::unique_ptr<Script> Test::Create(GameObject* owner)
-{
-    return std::make_unique<Test>(owner);
 }

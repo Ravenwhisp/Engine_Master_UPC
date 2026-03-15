@@ -1,13 +1,8 @@
 #pragma once
 
-#include <memory>
+#include "ScriptTypes.h"
 #include <string>
 #include <unordered_map>
-
-class GameObject;
-class Script;
-
-using ScriptCreator = std::unique_ptr<Script>(*)(GameObject* owner);
 
 class ScriptFactory
 {

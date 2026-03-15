@@ -72,25 +72,9 @@ bool Application::init()
     HMODULE gameScriptsModule = LoadLibraryA("GameScripts.dll");
     assert(gameScriptsModule != nullptr);
 
-    using GetScriptNameFn = const char* (*)();
-    using GetScriptCreatorFn = ScriptCreator(*)();
-
-    GetScriptNameFn getScriptName =
-        (GetScriptNameFn)GetProcAddress(gameScriptsModule, "GetScriptName");
-    assert(getScriptName != nullptr);
-
-    GetScriptCreatorFn getScriptCreator =
-        (GetScriptCreatorFn)GetProcAddress(gameScriptsModule, "GetScriptCreator");
-    assert(getScriptCreator != nullptr);
-
-    const char* scriptName = getScriptName();
-    ScriptCreator creator = getScriptCreator();
-
-    assert(scriptName != nullptr);
-    assert(creator != nullptr);
-
-    ScriptFactory::registerScript(scriptName, creator);
     assert(ScriptFactory::isScriptRegistered("Test"));
+    assert(ScriptFactory::isScriptRegistered("PlayerWalk"));
+
     //DELL TEST
 
 	return ret;

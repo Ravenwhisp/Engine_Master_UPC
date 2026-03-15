@@ -314,6 +314,9 @@
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="EngineAPI.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -716,6 +719,12 @@
     </ClInclude>
     <ClInclude Include="ScriptAPI.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAutoRegister.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptTypes.h">
+      <Filter>Core\Scripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
