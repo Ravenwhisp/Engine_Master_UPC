@@ -25,7 +25,7 @@ void WindowInspector::render()
 
     if (prefabMode)
     {
-        PrefabUI::drawModeHeader(session->m_prefabName.c_str());
+        PrefabUI::drawModeHeader(session->m_sourcePath.stem().string().c_str());
         PrefabUI::drawApplyRevertBar(ImGui::GetContentRegionAvail().x);
     }
 
@@ -33,9 +33,6 @@ void WindowInspector::render()
     if (selectedGameObject)
     {
         selectedGameObject->drawUI();
-
-        if (!prefabMode)
-            PrefabUI::drawSavePrefabSection(selectedGameObject);
     }
 
     ImGui::End();

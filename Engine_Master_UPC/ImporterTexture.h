@@ -4,12 +4,7 @@
 
 #include "TextureAsset.h"
 
-constexpr const char* PNG_EXTENSION = ".png";
-constexpr const char* JPG_EXTENSION = ".jpg";
-constexpr const char* JPEG_EXTENSION = ".jpeg";
-constexpr const char* BMP_EXTENSION = ".bmp";
-constexpr const char* TGA_EXTENSION = ".tga";
-constexpr const char* DDS_EXTENSION = ".dds";
+
 
 class ImporterTexture : public ImporterSource<DirectX::ScratchImage, TextureAsset, AssetType::TEXTURE>
 {

@@ -1,95 +1,95 @@
-#pragma once
-#include <memory>
+﻿#pragma once
+#include <filesystem>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include <rapidjson/document.h>
 
+#include "PrefabAsset.h"   // PrefabData + PrefabOverrideRecord
+
 class GameObject;
 class ModuleScene;
-
-struct PrefabOverrideRecord
-{
-    std::unordered_map<int, std::unordered_set<std::string>> m_modifiedProperties;
-    std::vector<int>                                         m_addedComponentTypes;
-    std::vector<int>                                         m_removedComponentTypes;
-
-    bool isEmpty() const
-    {
-        return m_modifiedProperties.empty()
-            && m_addedComponentTypes.empty()
-            && m_removedComponentTypes.empty();
-    }
-
-    void clear()
-    {
-        m_modifiedProperties.clear();
-        m_addedComponentTypes.clear();
-        m_removedComponentTypes.clear();
-    }
-};
-
-struct PrefabInstanceData
-{
-    std::string          m_prefabName;
-    uint32_t             m_prefabUID = 0;
-    PrefabOverrideRecord m_overrides;
-};
 
 class PrefabManager
 {
 public:
+    // ── Editor listing ──────────────────────────────────────────────────────
     struct PrefabInfo
     {
-        std::string m_name;
-        std::string m_componentSummary;
-        std::string m_variantOf;
-        uint32_t    m_uid = 0;
-        int         m_version = 0;
-        int         m_childCount = 0;
-        bool        m_isVariant = false;
+        std::filesystem::path m_sourcePath;
+        std::string           m_name;
+        std::string           m_componentSummary;
+        std::string           m_variantOf;
+        UID                   m_uid = 0;   // root GO UID stored in the file
+        int                   m_version = 0;
+        int                   m_childCount = 0;
+        bool                  m_isVariant = false;
     };
 
-    static bool         createPrefab(const GameObject* go, const std::string& prefabName);
-    static GameObject* instantiatePrefab(const std::string& prefabName, ModuleScene* scene);
-    static bool         applyToPrefab(const GameObject* go, bool respectOverrides = true);
-    static bool         revertToPrefab(GameObject* go, ModuleScene* scene);
-    static bool         createVariant(const std::string& sourcePrefabName, const std::string& destinationPrefabName);
+    // ── Prefab authoring ────────────────────────────────────────────────────
+    // savePath is the full destination path — any folder, any name.
+    static bool createPrefab(const GameObject* go,
+        const std::filesystem::path& savePath);
 
-    static void markPropertyOverride(GameObject* go, int componentType, const std::string& propertyName);
+    // Builds the full prefab JSON document string without touching the file
+    // system.  go->GetID() becomes "PrefabUID"; savePath is stored as
+    // "SourcePath".  Both importers and createPrefab call this — the JSON
+    // schema is defined in exactly one place.
+    static std::string buildPrefabJSON(const GameObject* go,
+        const std::filesystem::path& savePath);
+
+    static bool applyToPrefab(const GameObject* go, bool respectOverrides = true);
+    static bool revertToPrefab(GameObject* go, ModuleScene* scene);
+
+    // Both source and destination are full paths; no folder is assumed.
+    static bool createVariant(const std::filesystem::path& sourcePath,
+        const std::filesystem::path& destinationPath);
+
+    // ── Instantiation ───────────────────────────────────────────────────────
+    // Primary path — caller holds a PrefabAsset loaded via ModuleAssets.
+    static GameObject* instantiatePrefab(const PrefabAsset& asset, ModuleScene* scene);
+
+    // Convenience — tries asset system first, then reads the file directly.
+    static GameObject* instantiatePrefab(const std::filesystem::path& sourcePath,
+        ModuleScene* scene);
+
+    // ── Override tracking ───────────────────────────────────────────────────
+    static void markPropertyOverride(GameObject* go, int componentType,
+        const std::string& propertyName);
     static void clearComponentOverrides(GameObject* go, int componentType);
     static void clearAllOverrides(GameObject* go);
-
     static void markComponentAdded(GameObject* go, int componentType);
     static void markComponentRemoved(GameObject* go, int componentType);
 
-    static std::string  serializeGameObject(const GameObject* go);
+    // ── Serialisation helpers ────────────────────────────────────────────────
+    static std::string serializeGameObject(const GameObject* go);
     static GameObject* deserializeGameObject(const std::string& data, ModuleScene* scene);
 
-    static bool                      isPrefabInstance(const GameObject* go);
-    static std::string               getPrefabName(const GameObject* go);
-    static uint32_t                  getPrefabUID(const GameObject* go);
-    static const PrefabInstanceData* getInstanceData(const GameObject* go);
-    static PrefabInstanceData* getInstanceDataMutable(GameObject* go);
+    // ── Instance metadata ───────────────────────────────────────────────────
+    static bool              isPrefabInstance(const GameObject* go);
+    static std::string       getPrefabName(const GameObject* go);
+    static UID               getPrefabUID(const GameObject* go);
+    static const PrefabData* getInstanceData(const GameObject* go);
+    static PrefabData* getInstanceDataMutable(GameObject* go);
 
-    static void linkInstance(GameObject* go, const PrefabInstanceData& data);
+    static void linkInstance(GameObject* go, const PrefabData& data);
     static void unlinkInstance(GameObject* go);
 
-    static std::vector<PrefabInfo>   listPrefabsInfo();
-    static std::vector<std::string>  listPrefabs();
-    static bool                      prefabExists(const std::string& prefabName);
-
-    static uint32_t makePrefabUID(const std::string& name);
+    // ── Listing ─────────────────────────────────────────────────────────────
+    // searchRoot is scanned recursively — may be "Assets/" or any subdirectory.
+    static std::vector<PrefabInfo>            listPrefabsInfo(const std::filesystem::path& searchRoot);
+    static std::vector<std::filesystem::path> listPrefabs(const std::filesystem::path& searchRoot);
+    static bool                               prefabExists(const std::filesystem::path& sourcePath);
 
 private:
-    static std::string getPrefabPath(const std::string& name);
-    static bool        writePrefabDocument(rapidjson::Document& doc, const std::string& path);
-    static bool        readPrefabDocument(const std::string& path, rapidjson::Document& doc);
+    static bool writePrefabDocument(rapidjson::Document& doc,
+        const std::filesystem::path& path);
+    static bool readPrefabDocument(const std::filesystem::path& path,
+        rapidjson::Document& doc);
 
-    struct SerialiseCtx;
-    static GameObject* deserialiseNode(const rapidjson::Value& node, ModuleScene* scene, GameObject* parent);
+    static GameObject* deserialiseNode(const rapidjson::Value& node,
+        ModuleScene* scene, GameObject* parent);
 
-    static std::unordered_map<const GameObject*, PrefabInstanceData>& registry();
+    static std::unordered_map<const GameObject*, PrefabData>& registry();
 };

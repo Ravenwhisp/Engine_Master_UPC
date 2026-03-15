@@ -9,7 +9,7 @@ class MaterialAsset;
 class MeshAsset;
 class GameObject;
 
-constexpr const char* GLTF_EXTENSION = ".gltf";
+
 
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.

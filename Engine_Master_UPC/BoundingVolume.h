@@ -1,7 +1,7 @@
 #pragma once
 namespace Engine
 {
-    class Frustum;
+    struct Frustum;
 }
 
 class BoundingVolume

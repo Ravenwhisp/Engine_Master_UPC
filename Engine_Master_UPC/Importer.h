@@ -6,6 +6,7 @@
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 #include "Globals.h"
+#include "Extensions.h"
 
 class Importer
 {

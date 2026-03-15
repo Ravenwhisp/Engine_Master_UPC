@@ -292,6 +292,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
+    <ClInclude Include="Extensions.h" />
     <ClInclude Include="FontAsset.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />

@@ -6,8 +6,8 @@
 #include <string>
 #include <DetourNavMesh.h> // dtTileRef
 
-struct dtNavMesh;
-struct dtNavMeshQuery;
+class dtNavMesh;
+class dtNavMeshQuery;
 
 struct NavMeshSettings
 {

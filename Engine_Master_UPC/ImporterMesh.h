@@ -4,7 +4,6 @@
 #include "UtilityGLFT.h"
 #include "MeshAsset.h"
 
-constexpr const char* MESH_EXTENSION = ".asset";
 
 class ImporterMesh : public ImporterNative<MeshAsset, AssetType::MESH>
 {

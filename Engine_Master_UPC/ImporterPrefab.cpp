@@ -4,14 +4,16 @@
 #include "Application.h"
 #include "ModuleFileSystem.h"
 
-#include <fstream>
-#include <sstream>
+#include <rapidjson/document.h>
 
 Asset* ImporterPrefab::createAssetInstance(const MD5Hash& uid) const
 {
     return new PrefabAsset(uid);
 }
 
+// Reads the raw .prefab JSON text from disk, stores it in PrefabData::m_json,
+// and extracts the identity fields so callers never re-parse m_json just for
+// the name or UID.
 bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset* dst)
 {
     const std::vector<uint8_t> raw = app->getModuleFileSystem()->read(path);
@@ -21,30 +23,71 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset
         return false;
     }
 
-    dst->m_json.assign(reinterpret_cast<const char*>(raw.data()), raw.size());
-    // For a native .prefab the asset UID doubles as the root UID.
-    dst->m_rootUID = dst->m_uid;
+    PrefabData& data = dst->getData();
+    data.m_json.assign(reinterpret_cast<const char*>(raw.data()), raw.size());
+    data.m_assetUID = dst->m_uid;
+    data.m_sourcePath = path;
+    data.m_name = path.stem().string();
+
+    // Extract PrefabUID (uint64_t GO UID) from the top-level JSON key.
+    rapidjson::Document doc;
+    doc.Parse(data.m_json.c_str());
+    if (!doc.HasParseError())
+    {
+        if (doc.HasMember("PrefabUID") && doc["PrefabUID"].IsUint64())
+            data.m_prefabUID = static_cast<UID>(doc["PrefabUID"].GetUint64());
+
+        // Allow the JSON to override the display name.
+        if (doc.HasMember("Name") && doc["Name"].IsString())
+            data.m_name = doc["Name"].GetString();
+    }
+
     return true;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Binary layout
+// ──────────────────────────────────────────────────────────────────────────────
+// [string  m_sourcePath  ]  uint32 len + bytes  (portable string form)
+// [string  m_name        ]  uint32 len + bytes
+// [string  m_assetUID    ]  uint32 len + bytes
+// [uint64  m_prefabUID   ]  GO UID — uint64_t, NOT a 32-bit name hash
+// [string  m_json        ]  uint32 len + bytes
+//
+// m_overrides is runtime-only and is NOT stored.
+// ──────────────────────────────────────────────────────────────────────────────
 uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
 {
-    const uint32_t jsonLen = static_cast<uint32_t>(src->m_json.size());
-    const uint32_t rootLen = static_cast<uint32_t>(src->m_rootUID.size());
-    const uint64_t totalSize = sizeof(uint32_t) + jsonLen + sizeof(uint32_t) + rootLen;
+    const PrefabData& data = src->getData();
+    const std::string  pathStr = data.m_sourcePath.string();
 
-    uint8_t* buffer = new uint8_t[totalSize];
+    uint64_t size = 0;
+    size += sizeof(uint32_t) + pathStr.size();
+    size += sizeof(uint32_t) + data.m_name.size();
+    size += sizeof(uint32_t) + data.m_assetUID.size();
+    size += sizeof(uint64_t);                            // m_prefabUID (GO UID)
+    size += sizeof(uint32_t) + data.m_json.size();
+
+    uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
-    writer.string(src->m_json);
-    writer.string(src->m_rootUID);
+    writer.string(pathStr);
+    writer.string(data.m_name);
+    writer.string(data.m_assetUID);
+    writer.u64(static_cast<uint64_t>(data.m_prefabUID));
+    writer.string(data.m_json);
 
     *outBuffer = buffer;
-    return totalSize;
+    return size;
 }
 
 void ImporterPrefab::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
 {
+    PrefabData& data = dst->getData();
     BinaryReader reader(buffer);
-    dst->m_json = reader.string();
-    dst->m_rootUID = reader.string();
+    data.m_sourcePath = reader.string();
+    data.m_name = reader.string();
+    data.m_assetUID = reader.string();
+    data.m_prefabUID = static_cast<UID>(reader.u64());
+    data.m_json = reader.string();
+    // m_overrides stays default-constructed (empty) — populated at runtime.
 }
