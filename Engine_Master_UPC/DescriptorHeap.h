@@ -43,9 +43,6 @@ struct DescriptorHandle {
 class DescriptorHeap
 {
 public:
-
-
-public:
 	DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
 
 	D3D12_DESCRIPTOR_HEAP_TYPE	getType() const { return m_type; }

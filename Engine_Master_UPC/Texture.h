@@ -8,6 +8,7 @@ public:
 	constexpr static uint32_t MAX_MIPS{ 14 };
 	Texture() = default;
 	explicit Texture(const UID uid, ID3D12Device4& device, TextureInitInfo info);
+	explicit Texture(const UID uid, ID3D12Device4& device, TextureInitInfo info, DescriptorHandle* descriptorHandle);
 	~Texture() { release(); }
 
 	void				release();

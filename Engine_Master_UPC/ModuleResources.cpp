@@ -130,6 +130,11 @@ std::unique_ptr<DepthBuffer> ModuleResources::createDepthBuffer(float windowWidt
 
 std::shared_ptr<Texture> ModuleResources::createTexture2D(const TextureAsset& textureAsset)
 {
+	return createTexture2DWithDescriptor(textureAsset, nullptr);
+}
+
+std::shared_ptr<Texture> ModuleResources::createTexture2DWithDescriptor(const TextureAsset& textureAsset, DescriptorHandle* descriptorHandle)
+{
 	UID uid = textureAsset.getId();
 
 	if (auto texture = getResource<Texture>(uid))
@@ -144,7 +149,16 @@ std::shared_ptr<Texture> ModuleResources::createTexture2D(const TextureAsset& te
 	info.desc = &desc;
 	info.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
-	auto texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
+	
+	std::shared_ptr<Texture> texture = nullptr;
+	if (descriptorHandle == nullptr)
+	{
+		 texture = std::make_shared<Texture>(uid, *m_device.Get(), info);
+	}
+	else
+	{
+		texture = std::make_shared<Texture>(uid, *m_device.Get(), info, descriptorHandle);
+	}
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());

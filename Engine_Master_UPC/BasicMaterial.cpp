@@ -8,13 +8,18 @@
 #include "Texture.h"
 #include "ModelAsset.h"
 
-BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
-	: ICacheable(uid)
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICacheable(uid)
 {
+	m_descriptors.resize(m_numAllocatedDescriptors);
+	for (DescriptorHandle handle : m_descriptors)
+	{
+		handle = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
+	}
+
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
-		m_textureColor = app->getModuleResources()->createTexture2D(*baseMapTexture);
+		m_textureColor = app->getModuleResources()->createTexture2DWithDescriptor(*baseMapTexture, &m_descriptors[0]);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else
@@ -26,7 +31,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
 	if (asset.getMetallicRoughnessMap() != INVALID_ASSET_ID)
 	{
 		TextureAsset* metallicRoughnessTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getMetallicRoughnessMap()));
-		m_textureMetallicRoughness = app->getModuleResources()->createTexture2D(*metallicRoughnessTexture);
+		m_textureMetallicRoughness = app->getModuleResources()->createTexture2DWithDescriptor(*metallicRoughnessTexture, &m_descriptors[1]);
 		m_materialData.hasMetallicRoughnessTex = true;
 	}
 	else

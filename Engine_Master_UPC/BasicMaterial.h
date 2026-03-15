@@ -55,6 +55,7 @@ public:
 	~BasicMaterial();
 
 	Texture* getTexture() const noexcept;
+	DescriptorHandle getFirstDescriptor() { return m_descriptors[0]; }
 
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
 	PbrMetallicRoughnessData&	getMaterial() { return m_materialData; }
@@ -62,8 +63,10 @@ public:
 	void setMaterial(PbrMetallicRoughnessData& material) { m_materialData = material; }
 
 private:
-	std::shared_ptr<Texture>	m_textureColor;
-	std::shared_ptr<Texture>	m_textureMetallicRoughness;
-	ComPtr<ID3D12Resource>		m_materialBuffer;
-	PbrMetallicRoughnessData	m_materialData;
+	std::shared_ptr<Texture>	  m_textureColor;
+	std::shared_ptr<Texture>	  m_textureMetallicRoughness;
+	ComPtr<ID3D12Resource>		  m_materialBuffer;
+	PbrMetallicRoughnessData	  m_materialData;
+	UINT						  m_numAllocatedDescriptors = 8;
+	std::vector<DescriptorHandle> m_descriptors{};
 };

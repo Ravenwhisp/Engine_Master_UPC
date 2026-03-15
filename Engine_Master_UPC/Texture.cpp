@@ -11,6 +11,12 @@ Texture::Texture(const UID uid, ID3D12Device4& device, TextureInitInfo info) : R
     device.CreateShaderResourceView(getD3D12Resource().Get(), info.srvDesc, m_srv.cpu);
 }
 
+Texture::Texture(const UID uid, ID3D12Device4& device, TextureInitInfo info, DescriptorHandle* descriptorHandle) : Resource(device, *info.desc, &info.clearValue), ICacheable(uid)
+{
+    m_srv = *descriptorHandle;
+    device.CreateShaderResourceView(getD3D12Resource().Get(), info.srvDesc, m_srv.cpu);
+}
+
 void Texture::release()
 {
     app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
