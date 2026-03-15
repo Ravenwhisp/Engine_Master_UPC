@@ -64,9 +64,22 @@ void ModuleScene::update()
         m_pendingSceneLoad.clear();
     }  
   
-  if (m_quadtree)
+    if (m_quadtree)
     {
         m_quadtree->resolveDirtyNodes();
+    }
+
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
+        return;
+    }
+
+    for (GameObject* root : m_rootObjects)
+    {
+        if (root && root->GetActive())
+        {
+            root->update();
+        }
     }
 
 }
@@ -816,4 +829,12 @@ void ModuleScene::addToRootList(GameObject* gameObject)
 const std::vector<GameObject*>& ModuleScene::getRootObjects() const
 {
     return m_rootObjects;
+}
+
+bool ModuleScene::initEmpty()
+{
+    m_sceneSerializer = std::make_unique<SceneSerializer>();
+    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+    return true;
 }

@@ -29,5 +29,7 @@ public:
 	void startGameSimulation();
 	void stopGameSimulation();
 
+	void instantiateScriptsOnPlay();
+
 	bool getShowDebugWindow() { return m_showDebugWindow; }
 };

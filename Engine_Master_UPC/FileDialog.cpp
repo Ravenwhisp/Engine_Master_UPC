@@ -5,6 +5,9 @@
 #include "ModuleFileSystem.h"
 #include "ModuleAssets.h"
 #include "Keyboard.h"
+#include "ModuleEditor.h"
+#include "PrefabManager.h"
+#include "PrefabUI.h"
 
 
 
@@ -222,8 +225,15 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
         ImGui::PushID(asset->displayName.c_str());
 
-        // PROVISIONAL: replace with thumbnail image
-        ImGui::Button(asset->isDirectory ? "[DIR]" : "[FILE]", ImVec2(40, 40));
+        const bool isPrefab = (!asset->isDirectory && asset->path.extension() == ".prefab");
+
+        if (isPrefab)
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
+
+        ImGui::Button(asset->isDirectory ? "[DIR]" : (isPrefab ? "[P]" : "[FILE]"), ImVec2(40, 40));
+
+        if (isPrefab)
+            ImGui::PopStyleColor();
 
         if (ImGui::IsItemClicked())
         {
@@ -244,28 +254,38 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 ImGui::EndDragDropSource();
             }
 
-            if (ImGui::BeginPopupContextItem("ItemContext"))
+            if (isPrefab)
             {
-                ImGui::Text("Options");
-                ImGui::Separator();
-
-                const std::filesystem::path sourcePath = asset->path.parent_path() / asset->path.stem();
-                const bool importable = app->getModuleAssets()->canImport(sourcePath);
-
-                if (ImGui::MenuItem("Import", nullptr, false, importable))
+                PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
+                PrefabUI::drawFileDialogItemContextMenu(asset->path.stem().string(), m_showVariantModal, m_renamingPrefab, buffers);
+            }
+            else
+            {
+                if (ImGui::BeginPopupContextItem("ItemContext"))
                 {
-                    importAsset(asset);
+                    ImGui::Text("Options");
+                    ImGui::Separator();
+
+                    std::filesystem::path originalPath = asset->path.parent_path() / asset->path.stem();
+                    Importer* importer = app->getModuleFileSystem()->findImporter(originalPath);
+
+                    if (ImGui::MenuItem("Import", nullptr, false, importer != nullptr))
+                    {
+                        importAsset(asset);
+                    }
+
+                    if (ImGui::MenuItem("Cut", "Ctrl + X", false, true))
+                    {
+                        cutItem(asset);
+                    }
+
+                    if (ImGui::MenuItem("Delete", "Del", false, true))
+                    {
+                        deleteItem(asset);
+                    }
+
+                    ImGui::EndPopup();
                 }
-
-                if (ImGui::MenuItem("Cut", "Ctrl+X"))
-                {
-                    cutItem(asset);
-                }
-
-                if (ImGui::MenuItem("Delete", "Del"))
-                    deleteItem(asset);
-
-                ImGui::EndPopup();
             }
         }
         else
@@ -326,5 +346,19 @@ void FileDialog::render()
         drawAssetGrid(dir);
     ImGui::EndChild();
 
+    PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
+    PrefabUI::drawFileDialogModals(m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab, buffers);
+
     ImGui::End();
+}
+
+PrefabUI::FileDialogBuffers FileDialog::buildFileDialogBuffers()
+{
+    PrefabUI::FileDialogBuffers buffers;
+    buffers.variantSource = m_variantSrcBuf;      buffers.variantSourceSize = sizeof(m_variantSrcBuf);
+    buffers.variantDest = m_variantDstBuf;      buffers.variantDestSize = sizeof(m_variantDstBuf);
+    buffers.renameSource = m_renameSrcBuf;       buffers.renameSourceSize = sizeof(m_renameSrcBuf);
+    buffers.renameDest = m_renameDstBuf;       buffers.renameDestSize = sizeof(m_renameDstBuf);
+    buffers.savePrefab = m_savePrefabNameBuf;  buffers.savePrefabSize = sizeof(m_savePrefabNameBuf);
+    return buffers;
 }
