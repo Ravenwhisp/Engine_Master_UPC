@@ -96,8 +96,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     std::vector<MD5Hash> materialUIDs(model.materials.size(), INVALID_ASSET_ID);
     for (int i = 0; i < static_cast<int>(model.materials.size()); ++i)
     {
-        const MD5Hash matUID =
-            computeMD5(m_currentFilePath->string() + "?mat=" + std::to_string(i));
+        const MD5Hash matUID = computeMD5(m_currentFilePath->string() + "?mat=" + std::to_string(i));
         MaterialAsset matAsset(matUID);
         loadMaterial(model, model.materials[i], &matAsset);
 
@@ -105,8 +104,8 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         const uint64_t size = m_importerMaterial.save(&matAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
-        AssetMetadata meta; meta.uid = matUID; meta.type = AssetType::MATERIAL;
-        assets->registerSubAsset(meta, rawBuf, static_cast<size_t>(size));
+        Metadata meta; meta.uid = matUID; meta.type = AssetType::MATERIAL;
+        assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
         materialUIDs[i] = matUID;
     }
 
@@ -129,8 +128,8 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         const uint64_t size = m_importerMesh.save(&meshAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
-        AssetMetadata meta; meta.uid = meshUID; meta.type = AssetType::MESH;
-        assets->registerSubAsset(meta, rawBuf, static_cast<size_t>(size));
+        Metadata meta; meta.uid = meshUID; meta.type = AssetType::MESH;
+        assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
         meshUIDs[i] = meshUID;
     }
 

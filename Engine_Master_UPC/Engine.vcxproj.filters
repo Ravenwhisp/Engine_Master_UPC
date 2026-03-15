@@ -232,9 +232,6 @@
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="Asset.cpp">
-      <Filter>Persistence\Assets</Filter>
-    </ClCompile>
     <ClCompile Include="ChangeScene.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
@@ -776,6 +773,12 @@
     <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="Extensions.h">
       <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Metadata.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetType.h">
+      <Filter>Persistence\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

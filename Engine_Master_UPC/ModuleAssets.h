@@ -11,9 +11,9 @@
 
 #include <filesystem>
 #include <memory>
+#include <Metadata.h>
 
 class Asset;
-class AssetMetadata;
 class ImporterMaterial;
 class ImporterMesh;
 class ImporterPrefab;
@@ -40,7 +40,7 @@ public:
             return cached;
         }
 
-        const AssetMetadata* meta = m_registry->getMetadata(id);
+        const Metadata* meta = m_registry->getMetadata(id);
         if (!meta)
         {
             DEBUG_ERROR("[ModuleAssets] No metadata found for UID %llu.", id);
@@ -72,11 +72,18 @@ public:
     std::shared_ptr<FileEntry> getRoot()                              const;
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
 
-    void registerSubAsset(const AssetMetadata& meta, uint8_t* binaryData, size_t binarySize);
+    bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
+    bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
+    void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID,
+        uint8_t* binaryData, size_t binarySize);
 private:
     // Loads from disk using the registered importer and inserts into cache.
-    std::shared_ptr<Asset> loadAsset(const AssetMetadata* metadata);
+    std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
+
+    void flushDependencies(const MD5Hash& parentUID,
+        const std::filesystem::path& parentSourcePath,
+        AssetType parentType);
 
     std::unique_ptr<AssetRegistry>      m_registry;
     std::unique_ptr<ImporterRegistry>   m_importerRegistry;
@@ -87,4 +94,6 @@ private:
     ImporterMesh*       m_importerMesh = nullptr;
     ImporterMaterial*   m_importerMaterial = nullptr;
     ImporterPrefab*     m_importerPrefab = nullptr;
+
+    std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
 };

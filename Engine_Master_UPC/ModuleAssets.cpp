@@ -13,6 +13,7 @@
 
 
 #include "Asset.h"
+#include "Metadata.h"
 #include "UID.h"
 
 #include <filesystem>
@@ -93,14 +94,20 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     }
 
     // Write the .metadata sidecar alongside the source file.
-    AssetMetadata meta;
+    Metadata meta;
     meta.uid = uid;
     meta.type = asset->getType();
+    
+    auto it = m_pendingDependencies.find(uid);
+    if (it != m_pendingDependencies.end()) {
+        meta.m_dependencies = std::move(it->second);
+        m_pendingDependencies.erase(it);
+    }
 
     std::filesystem::path metaPath = sourcePath;
     metaPath += METADATA_EXTENSION;
 
-    if (!AssetMetadata::saveMetaFile(meta, metaPath))
+    if (!saveMetaFile(meta, metaPath))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
         uid = INVALID_ASSET_ID;
@@ -174,7 +181,7 @@ std::shared_ptr<FileEntry> ModuleAssets::getEntry(const std::filesystem::path& p
 }
 
 
-std::shared_ptr<Asset> ModuleAssets::loadAsset(const AssetMetadata* metadata)
+std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
 {
     Importer* importer = m_importerRegistry->findImporter(metadata->type);
     if (!importer)
@@ -198,16 +205,168 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const AssetMetadata* metadata)
     return asset;
 }
 
-void ModuleAssets::registerSubAsset(const AssetMetadata& meta, uint8_t* binaryData, size_t binarySize)
+bool ModuleAssets::saveMetaFile(const Metadata& meta,
+    const std::filesystem::path& metaPath)
 {
-    m_registry->registerAsset(meta);
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
 
-    if (binaryData && binarySize > 0)
+    doc.AddMember("uid", rapidjson::Value(meta.uid.c_str(), alloc), alloc);
+    doc.AddMember("type", rapidjson::Value(static_cast<uint32_t>(meta.type)), alloc);
+    doc.AddMember("sourcePath", rapidjson::Value(meta.sourcePath.string().c_str(), alloc), alloc);
+
+    // Write the dependency list so the scanner can re-register sub-assets on
+    // the next startup without re-importing the parent source file.
+    if (!meta.m_dependencies.empty())
     {
-        if (!app->getModuleFileSystem()->write(meta.getBinaryPath(), binaryData, binarySize))
+        rapidjson::Value deps(rapidjson::kArrayType);
+        for (const DependencyRecord& dep : meta.m_dependencies)
         {
-            DEBUG_ERROR("[ModuleAssets] Failed to write binary for sub-asset UID %s.", meta.uid.c_str());
-            m_registry->remove(meta.uid);
+            rapidjson::Value entry(rapidjson::kObjectType);
+            entry.AddMember("uid", rapidjson::Value(dep.uid.c_str(), alloc), alloc);
+            entry.AddMember("type", rapidjson::Value(static_cast<uint32_t>(dep.type)), alloc);
+            deps.PushBack(entry, alloc);
+        }
+        doc.AddMember("dependencies", deps, alloc);
+    }
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    std::ofstream file(metaPath);
+    if (!file.is_open())
+    {
+        DEBUG_ERROR("[AssetMetadata] Could not open '%s' for writing.",
+            metaPath.string().c_str());
+        return false;
+    }
+
+    file << buffer.GetString();
+    if (!file)
+    {
+        DEBUG_ERROR("[AssetMetadata] Failed to write '%s'.", metaPath.string().c_str());
+        return false;
+    }
+
+    return true;
+}
+
+bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta)
+{
+    const std::string pathStr = metaPath.string();
+    FILE* fp = std::fopen(pathStr.c_str(), "rb");
+    if (!fp)
+    {
+        DEBUG_ERROR("[AssetMetadata] Could not open '%s'.", pathStr.c_str());
+        return false;
+    }
+
+    char readBuffer[65536];
+    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+    rapidjson::Document doc;
+    doc.ParseStream(is);
+    std::fclose(fp);
+
+    if (doc.HasParseError())
+    {
+        DEBUG_ERROR("[AssetMetadata] JSON parse error in '%s'.", pathStr.c_str());
+        return false;
+    }
+
+    if (doc.HasMember("uid") && doc["uid"].IsString())
+        outMeta.uid = doc["uid"].GetString();
+    else
+    {
+        DEBUG_ERROR("[AssetMetadata] Missing 'uid' in '%s'.", pathStr.c_str());
+        return false;
+    }
+
+    if (doc.HasMember("type") && doc["type"].IsNumber())
+        outMeta.type = static_cast<AssetType>(doc["type"].GetUint());
+    else
+    {
+        DEBUG_ERROR("[AssetMetadata] Missing 'type' in '%s'.", pathStr.c_str());
+        return false;
+    }
+
+    if (doc.HasMember("sourcePath") && doc["sourcePath"].IsString())
+        outMeta.sourcePath = doc["sourcePath"].GetString();
+
+    // Restore the dependency list.
+    outMeta.m_dependencies.clear();
+    if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())
+    {
+        const auto& deps = doc["dependencies"];
+        outMeta.m_dependencies.reserve(deps.Size());
+        for (rapidjson::SizeType i = 0; i < deps.Size(); ++i)
+        {
+            const auto& entry = deps[i];
+            if (!entry.HasMember("uid") || !entry["uid"].IsString())  continue;
+            if (!entry.HasMember("type") || !entry["type"].IsNumber()) continue;
+
+            DependencyRecord rec;
+            rec.uid = entry["uid"].GetString();
+            rec.type = static_cast<AssetType>(entry["type"].GetUint());
+            outMeta.m_dependencies.push_back(std::move(rec));
         }
     }
+
+    return true;
+}
+
+void ModuleAssets::registerSubAsset(const Metadata& meta,
+    const MD5Hash& parentUID,
+    uint8_t* binaryData, size_t binarySize)
+{
+    Metadata subMeta = meta;
+    subMeta.m_isSubAsset = true;
+
+    // Write the binary to Library/ — caller still owns the buffer.
+    if (binaryData && binarySize > 0)
+    {
+        if (!app->getModuleFileSystem()->write(subMeta.getBinaryPath(), binaryData, binarySize))
+        {
+            DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary '%s'.", subMeta.uid.c_str());
+            return;
+        }
+    }
+
+    m_registry->registerAsset(subMeta);
+
+    if (isValidAsset(parentUID))
+    {
+        DependencyRecord dep;
+        dep.uid = subMeta.uid;
+        dep.type = subMeta.type;
+        m_pendingDependencies[parentUID].push_back(dep);
+    }
+}
+
+void ModuleAssets::flushDependencies(const MD5Hash& parentUID,
+    const std::filesystem::path& parentSourcePath,
+    AssetType parentType)
+{
+    auto it = m_pendingDependencies.find(parentUID);
+    if (it == m_pendingDependencies.end())
+        return;
+
+    // Upsert the parent's registry entry with the collected dependency list.
+    Metadata parentMeta;
+    const Metadata* existing = m_registry->getMetadata(parentUID);
+    if (existing)
+        parentMeta = *existing;
+    else
+    {
+        parentMeta.uid = parentUID;
+        parentMeta.type = parentType;
+        parentMeta.sourcePath = parentSourcePath;
+    }
+
+    parentMeta.m_dependencies = std::move(it->second);
+    m_pendingDependencies.erase(it);
+
+    m_registry->registerAsset(parentMeta);
 }
