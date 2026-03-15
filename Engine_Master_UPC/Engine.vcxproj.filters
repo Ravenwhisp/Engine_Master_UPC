@@ -711,6 +711,12 @@
     <ClInclude Include="SceneSnapshot.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="EngineAPI.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAPI.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
