@@ -19,7 +19,7 @@ public:
 
     bool createScriptInstance();
     void destroyScriptInstance();
-    void resetForPlay();
+    void resetStartState();
 
     void update() override;
     void drawUi() override;
