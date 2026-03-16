@@ -44,7 +44,7 @@ bool ModuleAssets::init()
 
     // GLTF importer holds references to the three importers above so it can
     // delegate sub-asset serialisation without duplicating binary format logic.
-    m_importerRegistry->registerImporter( std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial));
+    m_importerRegistry->registerImporter( std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial, *m_importerPrefab));
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
 

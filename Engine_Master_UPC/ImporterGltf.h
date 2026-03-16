@@ -3,6 +3,7 @@
 #include "UtilityGLFT.h"
 #include <ImporterMesh.h>
 #include <ImporterMaterial.h>
+#include "ImporterPrefab.h"
 
 class PrefabAsset;
 class MaterialAsset;
@@ -17,7 +18,7 @@ class ImporterGltf : public ImporterSource<tinygltf::Model, PrefabAsset, AssetTy
 {
 public:
 
-    ImporterGltf(ImporterMesh& ImporterMesh, ImporterMaterial& importerMaterial);
+    ImporterGltf(ImporterMesh& ImporterMesh, ImporterMaterial& importerMaterial, ImporterPrefab& importerPrefab);
 
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(const MD5Hash& uid) const override;
@@ -37,4 +38,5 @@ private:
 
     ImporterMesh&                   m_importerMesh;
     ImporterMaterial&               m_importerMaterial;
+    ImporterPrefab&                 m_importerPrefab;
 };

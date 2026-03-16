@@ -57,9 +57,9 @@ static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,
 }
 
 ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
-    ImporterMaterial& importerMaterial)
+    ImporterMaterial& importerMaterial, ImporterPrefab& importerPrefab)
     : m_importerMesh(importerMesh)
-    , m_importerMaterial(importerMaterial)
+    , m_importerMaterial(importerMaterial), m_importerPrefab(importerPrefab)
 {
 }
 
@@ -112,8 +112,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     std::vector<MD5Hash> meshUIDs(model.meshes.size(), INVALID_ASSET_ID);
     for (int i = 0; i < static_cast<int>(model.meshes.size()); ++i)
     {
-        const MD5Hash meshUID =
-            computeMD5(m_currentFilePath->string() + "?mesh=" + std::to_string(i));
+        const MD5Hash meshUID = computeMD5(m_currentFilePath->string() + "?mesh=" + std::to_string(i));
         MeshAsset meshAsset(meshUID);
         for (const tinygltf::Primitive& prim : model.meshes[i].primitives)
         {
@@ -250,37 +249,12 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
 uint64_t ImporterGltf::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
 {
-    const PrefabData& data = src->getData();
-    const std::string pathStr = data.m_sourcePath.string();
-
-    uint64_t size = 0;
-    size += sizeof(uint32_t) + pathStr.size();
-    size += sizeof(uint32_t) + data.m_name.size();
-    size += sizeof(uint32_t) + data.m_assetUID.size();
-    size += sizeof(uint64_t);
-    size += sizeof(uint32_t) + data.m_json.size();
-
-    uint8_t* buffer = new uint8_t[size];
-    BinaryWriter writer(buffer);
-    writer.string(pathStr);
-    writer.string(data.m_name);
-    writer.string(data.m_assetUID);
-    writer.u64(static_cast<uint64_t>(data.m_prefabUID));
-    writer.string(data.m_json);
-
-    *outBuffer = buffer;
-    return size;
+    return m_importerPrefab.save(src, outBuffer);
 }
 
 void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
 {
-    PrefabData& data = dst->getData();
-    BinaryReader reader(buffer);
-    data.m_sourcePath = reader.string();
-    data.m_name = reader.string();
-    data.m_assetUID = reader.string();
-    data.m_prefabUID = static_cast<UID>(reader.u64());
-    data.m_json = reader.string();
+    m_importerPrefab.load(buffer, dst);
 }
 
 
