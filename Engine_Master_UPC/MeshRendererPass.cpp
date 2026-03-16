@@ -144,10 +144,13 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
         const auto& mesh = renderer->getMesh();
         const auto& submeshes = mesh->getSubmeshes();
+        const auto& materials = renderer->getMaterials();
 
-        for (const Submesh& submesh : submeshes)
+        if (materials.size() != submeshes.size()) return;
+
+        for (int i = 0; i < submeshes.size(); i++)
         {
-            BasicMaterial* material = renderer->getMaterial();
+            const auto& material = materials.at(i).get();
 
             ModelData modelData{};
             modelData.model = transform->getGlobalMatrix().Transpose();
@@ -167,7 +170,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
             {
                 D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
                 commandList->IASetIndexBuffer(&ibv);
-                commandList->DrawIndexedInstanced(submesh.indexCount, 1, submesh.indexStart, 0, 0);
+                commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
             }
         }
     }

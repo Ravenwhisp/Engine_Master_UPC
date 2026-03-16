@@ -32,15 +32,27 @@ static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,
     const std::filesystem::path* modelPath)
 {
     if (texIndex < 0 || texIndex >= static_cast<int>(model.textures.size()))
+    {
         return INVALID_ASSET_ID;
+    }
+
     const tinygltf::Texture& tex = model.textures[texIndex];
     if (tex.source < 0 || tex.source >= static_cast<int>(model.images.size()))
+    {
         return INVALID_ASSET_ID;
+    }
+
     const tinygltf::Image& img = model.images[tex.source];
-    if (img.uri.empty()) return INVALID_ASSET_ID;
+    if (img.uri.empty()) 
+    {
+        return INVALID_ASSET_ID;
+    }
     std::filesystem::path resolved = modelPath->parent_path() / img.uri;
     MD5Hash uid = app->getModuleAssets()->findUID(resolved);
-    if (!isValidAsset(uid)) app->getModuleAssets()->importAsset(resolved, uid);
+    if (!isValidAsset(uid)) 
+    {
+        app->getModuleAssets()->importAsset(resolved, uid);
+    }
     return uid;
 }
 
@@ -75,24 +87,11 @@ bool ImporterGltf::loadExternal(const std::filesystem::path& path, tinygltf::Mod
     return true;
 }
 
-// ---------------------------------------------------------------------------
-// importTyped — three phases:
-//
-//   Phase 1  Register MaterialAsset and MeshAsset sub-assets.
-//   Phase 2  Build a temporary GameObject tree (no ModuleScene dependency).
-//            MeshRenderer asset UIDs are set directly — no GPU allocation.
-//   Phase 3  Fill all PrefabData fields:
-//              - m_json        via PrefabManager::buildPrefabJSON
-//              - m_sourcePath  = the .gltf file path (full path, not derived)
-//              - m_name        = path stem
-//              - m_assetUID    = asset system MD5
-//              - m_prefabUID   = root->GetID() — the root GO's engine UID
-// ---------------------------------------------------------------------------
 void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 {
     ModuleAssets* assets = app->getModuleAssets();
 
-    // ── Phase 1a: materials ──────────────────────────────────────────────────
+    //Materials
     std::vector<MD5Hash> materialUIDs(model.materials.size(), INVALID_ASSET_ID);
     for (int i = 0; i < static_cast<int>(model.materials.size()); ++i)
     {
@@ -109,7 +108,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         materialUIDs[i] = matUID;
     }
 
-    // ── Phase 1b: meshes ─────────────────────────────────────────────────────
+    //Meshes
     std::vector<MD5Hash> meshUIDs(model.meshes.size(), INVALID_ASSET_ID);
     for (int i = 0; i < static_cast<int>(model.meshes.size()); ++i)
     {
@@ -118,9 +117,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         MeshAsset meshAsset(meshUID);
         for (const tinygltf::Primitive& prim : model.meshes[i].primitives)
         {
-            const MD5Hash matUID =
-                (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size()))
-                ? materialUIDs[prim.material] : INVALID_ASSET_ID;
+            const MD5Hash matUID = (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size())) ? materialUIDs[prim.material] : INVALID_ASSET_ID;
             loadMesh(model, prim, &meshAsset, matUID);
         }
 
@@ -133,7 +130,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meshUIDs[i] = meshUID;
     }
 
-    // ── Phase 2: temporary GameObject tree ───────────────────────────────────
+    // GameObject tree
     std::vector<std::unique_ptr<GameObject>> tempObjects;
 
     auto makeNode = [&](const std::string& name) -> GameObject*
@@ -156,18 +153,26 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
             Transform* tf = go->GetTransform();
 
             if (gNode.translation.size() == 3)
+            {
                 tf->setPosition(Vector3((float)gNode.translation[0],
                     (float)gNode.translation[1],
                     (float)gNode.translation[2]));
+            }
+
             if (gNode.rotation.size() == 4)
+            {
                 tf->setRotation(Quaternion((float)gNode.rotation[0],
                     (float)gNode.rotation[1],
                     (float)gNode.rotation[2],
                     (float)gNode.rotation[3]));
+            }
+
             if (gNode.scale.size() == 3)
+            {
                 tf->setScale(Vector3((float)gNode.scale[0],
                     (float)gNode.scale[1],
                     (float)gNode.scale[2]));
+            }
 
             if (parent)
             {
@@ -178,20 +183,26 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
             if (gNode.mesh >= 0 && gNode.mesh < static_cast<int>(meshUIDs.size()))
             {
-                auto* mr = static_cast<MeshRenderer*>(
-                    go->AddComponentWithUID(ComponentType::MODEL, GenerateUID()));
+                auto* mr = static_cast<MeshRenderer*>(go->AddComponentWithUID(ComponentType::MODEL, GenerateUID()));
                 if (mr)
                 {
                     mr->getMeshReference() = meshUIDs[gNode.mesh];
                     const auto& prims = model.meshes[gNode.mesh].primitives;
-                    if (!prims.empty() && prims[0].material >= 0
-                        && prims[0].material < static_cast<int>(materialUIDs.size()))
-                        mr->getMaterialReference() = materialUIDs[prims[0].material];
+                    if (!prims.empty() && prims[0].material >= 0 && prims[0].material < static_cast<int>(materialUIDs.size()))
+                    {
+                        for (const auto& materialId : materialUIDs)
+                        {
+                            mr->getMaterialsReference().push_back(materialId);
+                        }
+                    }
                 }
             }
 
             for (int childIdx : gNode.children)
+            {
                 buildNode(childIdx, go);
+            }
+
             return go;
         };
 
@@ -205,40 +216,38 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     {
         rootNodes.reserve(model.nodes.size());
         for (int i = 0; i < static_cast<int>(model.nodes.size()); ++i)
+        {
             rootNodes.push_back(i);
+        }
     }
 
     const std::string prefabName = m_currentFilePath->stem().string();
     GameObject* root = nullptr;
     if (rootNodes.size() == 1)
+    {
         root = buildNode(rootNodes[0], nullptr);
+    }
     else
     {
         root = makeNode(prefabName);
         for (int idx : rootNodes)
+        {
             buildNode(idx, root);
+        }
     }
 
-    // ── Phase 3: fill all PrefabData fields ───────────────────────────────────
-    // savePath = the .gltf source file path — full path, no hardcoded folder.
-    // m_prefabUID = root->GetID() — the root GO's uint64_t engine UID,
-    //              NOT a 32-bit name hash.
     PrefabData& data = dst->getData();
     data.m_json = PrefabManager::buildPrefabJSON(root, *m_currentFilePath);
     data.m_sourcePath = *m_currentFilePath;
     data.m_name = prefabName;
     data.m_assetUID = dst->m_uid;
-    data.m_prefabUID = root->GetID();   // GO UID — the only UID that matters
-    // m_overrides stays default-constructed (empty).
+    data.m_prefabUID = root->GetID();
 
     m_currentFilePath = nullptr;
     // tempObjects destroyed here — all temporary GameObjects are freed.
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Binary cache — same layout as ImporterPrefab for uniform load<PrefabAsset>.
-// [string m_sourcePath][string m_name][string m_assetUID][uint64 m_prefabUID][string m_json]
-// ──────────────────────────────────────────────────────────────────────────────
+
 uint64_t ImporterGltf::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
 {
     const PrefabData& data = src->getData();
@@ -274,9 +283,7 @@ void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
     data.m_json = reader.string();
 }
 
-// ---------------------------------------------------------------------------
-// Sub-object loaders
-// ---------------------------------------------------------------------------
+
 void ImporterGltf::loadMesh(const tinygltf::Model& model,
     const tinygltf::Primitive& primitive,
     MeshAsset* mesh, const MD5Hash& materialUID)
@@ -293,12 +300,9 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model,
     mesh->vertices.resize(baseVertex + vertexCount);
     uint8_t* vBase = reinterpret_cast<uint8_t*>(mesh->vertices.data() + baseVertex);
 
-    loadAccessorData(vBase + offsetof(Vertex, position), sizeof(Vector3), sizeof(Vertex),
-        vertexCount, model, itPos->second);
-    loadAccessorData(vBase + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex),
-        vertexCount, model, primitive.attributes, "NORMAL");
-    loadAccessorData(vBase + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex),
-        vertexCount, model, primitive.attributes, "TEXCOORD_0");
+    loadAccessorData(vBase + offsetof(Vertex, position), sizeof(Vector3), sizeof(Vertex), vertexCount, model, itPos->second);
+    loadAccessorData(vBase + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex), vertexCount, model, primitive.attributes, "NORMAL");
+    loadAccessorData(vBase + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex), vertexCount, model, primitive.attributes, "TEXCOORD_0");
 
     uint32_t indexCount = 0, componentSize = 0;
     if (primitive.indices >= 0)
@@ -332,17 +336,13 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model,
     Submesh submesh{};
     submesh.indexStart = baseIndex / std::max(componentSize, 1u);
     submesh.indexCount = indexCount;
-    submesh.materialId = materialUID;
+
     mesh->submeshes.push_back(submesh);
 
     if (posAcc.minValues.size() == 3 && posAcc.maxValues.size() == 3)
     {
-        const Vector3 bMin((float)posAcc.minValues[0],
-            (float)posAcc.minValues[1],
-            (float)posAcc.minValues[2]);
-        const Vector3 bMax((float)posAcc.maxValues[0],
-            (float)posAcc.maxValues[1],
-            (float)posAcc.maxValues[2]);
+        const Vector3 bMin((float)posAcc.minValues[0], (float)posAcc.minValues[1], (float)posAcc.minValues[2]);
+        const Vector3 bMax((float)posAcc.maxValues[0], (float)posAcc.maxValues[1], (float)posAcc.maxValues[2]);
         mesh->boundsCenter = (bMin + bMax) * 0.5f;
         mesh->boundsExtents = (bMax - bMin) * 0.5f;
     }
@@ -353,9 +353,7 @@ void ImporterGltf::loadMaterial(const tinygltf::Model& model,
     MaterialAsset* mat)
 {
     const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
-    mat->baseColour = Color(
-        float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]),
-        float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
+    mat->baseColour = Color( float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
     mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor * 255.0f);
     mat->baseMap = resolveTexture(model, pbr.baseColorTexture.index, m_currentFilePath);
     mat->metallicRoughnessMap = resolveTexture(model, pbr.metallicRoughnessTexture.index, m_currentFilePath);

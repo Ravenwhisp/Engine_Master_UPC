@@ -15,8 +15,7 @@ bool ImporterMesh::importNative(const std::filesystem::path& path, MeshAsset* ds
 static uint64_t submeshSerialSize(const Submesh& sm)
 {
     return sizeof(uint32_t)                           // indexStart
-        + sizeof(uint32_t)                           // indexCount
-        + sizeof(uint32_t) + sm.materialId.size();   // materialId string
+        + sizeof(uint32_t);                           // indexCount
 }
 
 uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
@@ -56,7 +55,6 @@ uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
     {
         writer.u32(sm.indexStart);
         writer.u32(sm.indexCount);
-        writer.string(sm.materialId);
     }
 
     writer.bytes(&source->boundsCenter, sizeof(Vector3));
@@ -87,7 +85,6 @@ void ImporterMesh::loadTyped(const uint8_t* buffer, MeshAsset* mesh)
     {
         sm.indexStart = reader.u32();
         sm.indexCount = reader.u32();
-        sm.materialId = reader.string();
     }
 
     reader.bytes(&mesh->boundsCenter, sizeof(Vector3));
