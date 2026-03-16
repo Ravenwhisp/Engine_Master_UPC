@@ -189,9 +189,9 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
                     const auto& prims = model.meshes[gNode.mesh].primitives;
                     if (!prims.empty() && prims[0].material >= 0 && prims[0].material < static_cast<int>(materialUIDs.size()))
                     {
-                        for (const auto& materialId : materialUIDs)
+                        for (const auto& materialId : prims)
                         {
-                            mr->getMaterialsReference().push_back(materialId);
+                            mr->getMaterialsReference().push_back(materialUIDs[materialId.material]);
                         }
                     }
                 }
