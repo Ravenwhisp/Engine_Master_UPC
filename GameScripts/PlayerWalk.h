@@ -5,8 +5,6 @@
 #include "ScriptFieldInfo.h"
 #include <Keyboard.h>
 
-class Transform;
-
 class PlayerWalk : public Script
 {
     DECLARE_SCRIPT(PlayerWalk)
@@ -49,8 +47,8 @@ private:
     bool m_yawInitialized = false;
 
     Vector3 readMoveDirection() const;
-    void applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt);
-    void applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const;
+    void applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt);
+    void applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const;
 
     void applyControlScheme();
 
