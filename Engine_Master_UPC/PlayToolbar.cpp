@@ -7,6 +7,8 @@
 #include "ModuleEditor.h"
 #include "ModuleGameView.h"
 
+#include "Scene.h"
+
 constexpr const char* PLAY_TEXT = "Play";
 constexpr const char* PAUSE_TEXT = "Pause";
 constexpr const char* STOP_TEXT = "Stop";
@@ -71,7 +73,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 		{ 
 			if (selectedIndex == SIMULATION_MODE::PAUSE || selectedIndex == SIMULATION_MODE::STOP)
 			{
-				if (!app->getModuleScene()->getDefaultCamera())
+				if (!app->getModuleScene()->getScene()->getDefaultCamera())
 				{
 					DEBUG_WARN("You need to set a defualt camera to start playing.");
 					return;

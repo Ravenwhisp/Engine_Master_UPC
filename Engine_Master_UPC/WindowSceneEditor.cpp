@@ -16,6 +16,7 @@
 
 #include "Settings.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
@@ -245,7 +246,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
         renderQuadtree();
     }
 
-    for (GameObject* root : app->getModuleScene()->getAllGameObjects()) 
+    for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects()) 
     {
         DebugDrawWindowHierarchy(root);
     }
@@ -273,7 +274,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
 
     if (m_settings->sceneEditor.showModelBoundingBoxes)
     {
-        for (const auto& renderer : app->getModuleScene()->getAllMeshRenderers())
+        for (const auto& renderer : app->getModuleScene()->getScene()->getAllMeshRenderers())
         {
             drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
         }
@@ -306,7 +307,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
             if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
                 app->getModuleNavigation()->setPathStart(hit);
-                LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
+                //LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
             }
                 
         }
@@ -317,7 +318,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
             if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
                 app->getModuleNavigation()->setPathEnd(hit);
-                LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
+                //LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
             }
                 
         }
@@ -327,7 +328,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
 
 void WindowSceneEditor::renderQuadtree()
 {
-    Quadtree* quadtree = app->getModuleScene()->getQuadtree();
+    Quadtree* quadtree = app->getModuleScene()->getScene()->getQuadtree();
     if (!quadtree)
     {
         return;

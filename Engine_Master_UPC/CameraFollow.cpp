@@ -1,11 +1,14 @@
 #include "Globals.h"
 #include "CameraFollow.h"
+
 #include "Application.h"
 #include "ModuleScene.h"
-#include "GameObject.h"
-#include "Transform.h"
 #include "ModuleTime.h"
+
+#include "Scene.h"
+#include "GameObject.h"
 #include "ComponentType.h"
+#include "Transform.h"
 
 static const float PI = 3.1415926535897931f;
 
@@ -240,7 +243,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
@@ -281,7 +284,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
