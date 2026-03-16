@@ -726,6 +726,9 @@
     <ClInclude Include="ScriptTypes.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptFieldInfo.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

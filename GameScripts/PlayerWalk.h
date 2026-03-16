@@ -2,6 +2,7 @@
 
 #include "ScriptAPI.h"
 #include "ScriptAutoRegister.h"
+#include "ScriptFieldInfo.h"
 #include <Keyboard.h>
 
 class Transform;
@@ -16,10 +17,24 @@ public:
     void Start() override;
     void Update() override;
 
-private:
+    ScriptFieldList getExposedFields() const override;
+
+    void onFieldEdited(const ScriptFieldInfo& field) override;
+    void onAfterDeserialize() override;
+
+public:
+    enum class ControlScheme : int
+    {
+        WASD = 0,
+        IJKL,
+        COUNT
+    };
+
     float m_moveSpeed = 3.5f;
     float m_shiftMultiplier = 2.0f;
+    ControlScheme m_controlScheme = ControlScheme::WASD;
 
+private:
     Keyboard::Keys m_keyUp = Keyboard::Keys::W;
     Keyboard::Keys m_keyLeft = Keyboard::Keys::A;
     Keyboard::Keys m_keyDown = Keyboard::Keys::S;
@@ -37,6 +52,8 @@ private:
     void applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt);
     void applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const;
     bool checkShiftHeld() const;
+
+    void applyControlScheme();
 
     static float moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta);
     static float wrapAngleDegrees(float angle);
