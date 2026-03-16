@@ -7,6 +7,9 @@
 #include "Keyboard.h"
 #include "ScriptFactory.h"
 
+#include "GameObject.h"
+#include "Transform.h"
+
 void registerScript(const char* scriptName, ScriptCreator creator)
 {
     ScriptFactory::registerScript(scriptName, creator);
@@ -46,5 +49,28 @@ namespace Time
         }
 
         return app->getModuleTime()->deltaTime();
+    }
+}
+
+namespace GameObjectAPI
+{
+    const Vector3& getPosition(const GameObject* gameObject)
+    {
+        return gameObject->GetTransform()->getPosition();
+    }
+
+    void setPosition(GameObject* gameObject, const Vector3& newPosition)
+    {
+        gameObject->GetTransform()->setPosition(newPosition);
+    }
+
+    const Vector3& getEulerDegrees(const GameObject* gameObject)
+    {
+        return gameObject->GetTransform()->getEulerDegrees();
+    }
+
+    void setRotationEuler(GameObject* gameObject, const Vector3& eulerDegrees)
+    {
+        gameObject->GetTransform()->setRotationEuler(eulerDegrees);
     }
 }

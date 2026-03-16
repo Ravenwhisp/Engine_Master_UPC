@@ -16,15 +16,15 @@ public:
 	Matrix getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
-	ENGINE_API const Vector3& getPosition() const;
+	const Vector3& getPosition() const;
 	const Quaternion& getRotation() const { return m_rotation; }
 	const Vector3& getScale() const { return m_scale; }
 
-	ENGINE_API void setPosition(const Vector3& newPosition);
+	void setPosition(const Vector3& newPosition);
 	void setRotation(const Quaternion& newRotation);
-	ENGINE_API void setRotationEuler(const Vector3& eulerDegrees);
+	void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
-	ENGINE_API void markDirty();
+	void markDirty();
 	bool isDirty() { return m_dirty; }
 
 	Vector3 getForward() const;

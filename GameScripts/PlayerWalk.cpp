@@ -26,21 +26,16 @@ PlayerWalk::PlayerWalk(GameObject* owner)
 
 void PlayerWalk::Start()
 {
-    Transform* transform = getOwner()->GetTransform();
-    m_initialRotationOffset = transform->getEulerDegrees();
+    GameObject* owner = getOwner();
+    m_initialRotationOffset = GameObjectAPI::getEulerDegrees(owner);
 
     applyControlScheme();
 }
 
 void PlayerWalk::Update()
 {
-    if (!getOwner())
-    {
-        return;
-    }
-
-    Transform* transform = getOwner()->GetTransform();
-    if (!transform)
+    GameObject* owner = getOwner();
+    if (!owner)
     {
         return;
     }
@@ -59,11 +54,11 @@ void PlayerWalk::Update()
     if (horizontalDir.x != 0.0f || horizontalDir.z != 0.0f)
     {
         horizontalDir.Normalize();
-        applyFacingFromDirection(transform, horizontalDir, dt);
+        applyFacingFromDirection(owner, horizontalDir, dt);
     }
 
     direction.Normalize();
-    applyTranslation(transform, direction, dt, shiftHeld);
+    applyTranslation(owner, direction, dt, shiftHeld);
 }
 
 void PlayerWalk::onFieldEdited(const ScriptFieldInfo& field)
@@ -111,7 +106,7 @@ Vector3 PlayerWalk::readMoveDirection() const
     return direction;
 }
 
-void PlayerWalk::applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt)
+void PlayerWalk::applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt)
 {
     const float yawRad = std::atan2(-direction.x, -direction.z);
     const float targetYawDeg = yawRad * (180.0f / PI);
@@ -128,10 +123,10 @@ void PlayerWalk::applyFacingFromDirection(Transform* transform, const Vector3& d
 
     const float finalYaw = wrapAngleDegrees(m_initialRotationOffset.y + m_currentYawDeg);
 
-    transform->setRotationEuler(Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
+    GameObjectAPI::setRotationEuler(owner, Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
 }
 
-void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const
+void PlayerWalk::applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const
 {
     float speed = m_moveSpeed;
 
@@ -142,10 +137,10 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
 
     float step = speed * dt;
 
-    Vector3 pos = transform->getPosition();
+    Vector3 pos = GameObjectAPI::getPosition(owner);
     pos += direction * step;
 
-    transform->setPosition(pos);
+    GameObjectAPI::setPosition(owner, pos);
 }
 
 void PlayerWalk::applyControlScheme()

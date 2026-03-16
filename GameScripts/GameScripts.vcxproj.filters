@@ -21,9 +21,6 @@
     <ClInclude Include="pch.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="Test.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerWalk.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -33,9 +30,6 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="Test.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="PlayerWalk.cpp">
