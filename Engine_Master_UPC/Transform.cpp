@@ -11,7 +11,7 @@ Transform::Transform(UID id, GameObject* gameObject) :
     m_position(Vector3::Zero),
     m_rotation(Quaternion::Identity),
     m_eulerDegrees(Vector3::Zero),
-    m_scale(Vector3(0.01f, 0.01f, 0.01f))
+    m_scale(Vector3(1.0f, 1.0f, 1.0f))
 {
 }
 

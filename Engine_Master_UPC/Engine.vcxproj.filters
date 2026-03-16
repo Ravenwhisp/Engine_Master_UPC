@@ -780,6 +780,9 @@
     <ClInclude Include="AssetType.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="Channel.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -936,6 +939,9 @@
     </Filter>
     <Filter Include="Core\Scripting">
       <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animations">
+      <UniqueIdentifier>{bd498ad4-3792-41ea-a2bc-8272d86bab68}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
