@@ -6,6 +6,7 @@
 #include "PrefabManager.h"
 #include "ModuleEditor.h"
 #include "PrefabEditSession.h"
+#include "ComponentType.h"
 
 //Should not be here
 #include "ModuleScene.h"
@@ -86,9 +87,20 @@ bool GameObject::AddComponent(ComponentType componentType)
     {
         return false;
     }
-
+    newComponent->init();
     m_components.push_back(std::move(newComponent));
-    PrefabManager::markComponentAdded(this, static_cast<int>(componentType));
+
+    GameObject* target = this;
+    while (target && !PrefabManager::isPrefabInstance(target))
+    {
+        Transform* parentTransform = target->GetTransform()->getRoot();
+        target = parentTransform ? parentTransform->getOwner() : nullptr;
+    }
+    if (target)
+    {
+        PrefabManager::markComponentAdded(target, static_cast<int>(componentType));
+    }
+     
     return true;
 }
 
@@ -129,7 +141,17 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
         ComponentType removedType = (*it)->getType();
         (*it)->cleanUp();
         m_components.erase(it);
-        PrefabManager::markComponentRemoved(this, static_cast<int>(removedType));
+        GameObject* target = this;
+        while (target && !PrefabManager::isPrefabInstance(target))
+        {
+            Transform* parentTransform = target->GetTransform()->getRoot();
+            target = parentTransform ? parentTransform->getOwner() : nullptr;
+        }
+        if (target) 
+        {
+            PrefabManager::markComponentRemoved(target, static_cast<int>(removedType));
+        }
+  
         return true;
     }
     return false;
@@ -386,9 +408,13 @@ void GameObject::drawUI()
 
             if (inPrefabMode && activeIdAfter != 0)
             {
-                const int componentType = static_cast<int>(component->getType());
-                PrefabManager::markPropertyOverride(
-                    session->m_rootObject, componentType, "properties");
+                const int componentType = static_cast<int>(component->getType()); 
+                GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
+                if (targetForOverride)
+                {
+                    PrefabManager::markPropertyOverride(
+                        targetForOverride, componentType, "properties");
+                }
             }
 
             ImGui::Separator();
