@@ -9,7 +9,6 @@ struct Submesh
 {
 	uint32_t indexStart;
 	uint32_t indexCount;
-	MD5Hash materialId;
 };
 
 

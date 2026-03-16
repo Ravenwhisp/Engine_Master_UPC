@@ -27,8 +27,9 @@ public:
 	void addMesh(MeshAsset& model);
 	void addMaterial(MaterialAsset& material);
 
-	BasicMesh* getMesh() const { return m_mesh.get(); }
-	BasicMaterial* getMaterial() const { return m_material.get(); }
+	std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
+	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
+
 	bool									hasMesh() const { return m_mesh != nullptr; }
 
 	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
@@ -43,14 +44,15 @@ public:
 	int getTriangles() const { return m_triangles; }
 
 	MD5Hash& getMeshReference() { return m_meshAsset; }
-	MD5Hash& getMaterialReference() { return m_materialAsset; }
+	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
 private:
 	std::shared_ptr<BasicMesh>		m_mesh;
-	std::shared_ptr<BasicMaterial>	m_material;
+	// The position of the material corresponds to the submesh number
+	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
 	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
-	MD5Hash							m_materialAsset = INVALID_ASSET_ID;
+	std::vector<MD5Hash>			m_materialAssets;
 
 	Engine::BoundingBox				m_boundingBox;
 

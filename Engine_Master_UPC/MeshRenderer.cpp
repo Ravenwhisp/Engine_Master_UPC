@@ -40,7 +40,7 @@ void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
 {
     auto material = app->getModuleResources()->createMaterial(materialAsset);
     if (material) {
-        m_material = material;
+        m_materials.push_back(material);
     }
 }
 
@@ -101,7 +101,17 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("MeshAssetId", rapidjson::Value(m_meshAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("MaterialAssetId", rapidjson::Value(m_materialAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    {
+        rapidjson::Value materialsData(rapidjson::kArrayType);
+
+        for (const auto& materials : m_materialAssets)
+        {
+            materialsData.PushBack(rapidjson::Value(materials.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+        }
+
+        componentInfo.AddMember("MaterialAssetId", materialsData, domTree.GetAllocator());
+    }
 
     return componentInfo;
 }
@@ -120,11 +130,16 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 
     if (componentInfo.HasMember("MaterialAssetId"))
     {
-        const MD5Hash materialId = componentInfo["MaterialAssetId"].GetString();
-        auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
-        if (materialAsset)
+        const auto& arr = componentInfo["MaterialAssetId"];
+
+        for (auto& arrayStrings : arr.GetArray())
         {
-            addMaterial(*materialAsset);
+            const MD5Hash materialId = arrayStrings.GetString();
+            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
+            if (materialAsset)
+            {
+                addMaterial(*materialAsset);
+            }
         }
     }
 
