@@ -340,7 +340,7 @@ void GameObject::drawUI()
         /*if (component->getType() == ComponentType::CAMERA)
         {
             CameraComponent* cameraComponent = static_cast<CameraComponent*>(component.get());
-            if (app->getModuleScene()->getDefaultCamera() == cameraComponent)
+            if (app->getModuleScene()->getScene()->getDefaultCamera() == cameraComponent)
             {
                 header += " (Default)";
             }

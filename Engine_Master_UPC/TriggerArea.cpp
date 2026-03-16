@@ -2,8 +2,10 @@
 #include "TriggerArea.h"
 
 #include "Application.h"
-#include "GameObject.h"
 #include "ModuleScene.h"
+
+#include "Scene.h"
+#include "GameObject.h"
 #include "QuadNode.h"
 
 TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, ComponentType::CHANGE_SCENE_ON_TRIGGER, gameObject)
@@ -60,7 +62,7 @@ void TriggerArea::update()
 	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
 	BoundingRect triggerArea(currentPosition.x - m_xWidth/2, currentPosition.z - m_zWidth/2, m_xWidth, m_zWidth);
 
-	GameObject* gameObject1 = app->getModuleScene()->findGameObjectByUID(m_object1);
+	GameObject* gameObject1 = app->getModuleScene()->getScene()->findGameObjectByUID(m_object1);
 	if (gameObject1) 
 	{
 
@@ -71,7 +73,7 @@ void TriggerArea::update()
 		}
 	}
 
-	GameObject* gameObject2 = app->getModuleScene()->findGameObjectByUID(m_object2);
+	GameObject* gameObject2 = app->getModuleScene()->getScene()->findGameObjectByUID(m_object2);
 	if (gameObject2)
 	{
 

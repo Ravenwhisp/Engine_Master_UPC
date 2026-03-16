@@ -6,6 +6,7 @@
 #include "ModuleScene.h"
 #include "ModuleAssets.h"
 
+#include "SkyBoxSettings.h"
 #include "SkyBox.h"
 #include "Texture.h"
 #include "TextureAsset.h"

@@ -14,6 +14,7 @@
 #include "RenderTexture.h"
 #include "DepthBuffer.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "CameraComponent.h"
 #include "Transform.h"
@@ -33,7 +34,7 @@ bool ModuleRender::init()
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
-    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getSkyBoxSettings());
+    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
@@ -140,7 +141,7 @@ ModuleRender::RenderCamera ModuleRender::getGameCamera()
 {
     RenderCamera camera;
 
-    const CameraComponent* c = app->getModuleScene()->getDefaultCamera();
+    const CameraComponent* c = app->getModuleScene()->getScene()->getDefaultCamera();
 
     if (!c)
     {
@@ -167,7 +168,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     m_meshRendererPass->setView(camera.view);
     m_meshRendererPass->setProjection(camera.projection);
 
-    ModuleScene* scene = app->getModuleScene();
+    Scene* scene = app->getModuleScene()->getScene();
     scene->render(commandList);
 
     const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();

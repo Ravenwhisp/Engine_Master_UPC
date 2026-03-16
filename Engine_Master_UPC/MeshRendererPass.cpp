@@ -7,11 +7,14 @@
 #include "ModuleRender.h"
 #include "ModuleScene.h"
 
+#include "Scene.h"
+#include "SceneLightingSettings.h"
+#include "SceneDataCB.h"
 #include "RingBuffer.h"
-#include "MeshRenderer.h"
-#include "GameObject.h"
-#include "LightComponent.h"
 #include "VertexBuffer.h"
+#include "GameObject.h"
+#include "MeshRenderer.h"
+#include "LightComponent.h"
 #include "Texture.h"
 
 #include "SimpleMath.h"
@@ -180,7 +183,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
 D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 {
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getAllGameObjects(), m_lighting->ambientColor, m_lighting->ambientIntensity);
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getScene()->getAllGameObjects(), m_lighting->ambientColor, m_lighting->ambientIntensity);
 
     return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }
