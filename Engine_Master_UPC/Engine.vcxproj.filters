@@ -106,9 +106,6 @@
     <ClCompile Include="RingBuffer.cpp">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="WindowHierarchy.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
@@ -224,9 +221,6 @@
     <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -313,6 +307,15 @@
     </ClCompile>
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>GameEntity\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -433,9 +436,6 @@
     <ClInclude Include="RingBuffer.h">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -464,14 +464,8 @@
     <ClInclude Include="DepthBuffer.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
-    <ClInclude Include="Layer.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Tag.h">
-      <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
@@ -708,8 +702,29 @@
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
     <ClInclude Include="SceneSnapshot.h">
-      <Filter>GameEntity</Filter>
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDataCB.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLightingSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -852,6 +867,12 @@
     </Filter>
     <Filter Include="Core\Scripting">
       <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Scene">
+      <UniqueIdentifier>{e6447ca6-f34e-489f-9468-0f4afefb06cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\GameObject">
+      <UniqueIdentifier>{e31eb276-f8f1-4837-bd1f-041ac612b48c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
