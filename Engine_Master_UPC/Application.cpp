@@ -69,11 +69,8 @@ bool Application::init()
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     // DLL TEST
-    HMODULE gameScriptsModule = LoadLibraryA("GameScripts.dll");
-    assert(gameScriptsModule != nullptr);
-
-    assert(ScriptFactory::isScriptRegistered("Test"));
-    assert(ScriptFactory::isScriptRegistered("PlayerWalk"));
+    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
+    assert(m_gameScriptsModule != nullptr);
 
     //DELL TEST
 

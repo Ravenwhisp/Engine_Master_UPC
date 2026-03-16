@@ -4,18 +4,20 @@
 
 static const float PI = 3.1415926535897931f;
 
-static const char* s_controlSchemeNames[] =
+static const char* controlSchemeNames[] =
 {
     "WASD",
     "IJKL"
 };
 
-static const ScriptFieldInfo s_playerWalkFields[] =
+static const ScriptFieldInfo playerWalkFields[] =
 {
     { "Move Speed",       ScriptFieldType::Float,   offsetof(PlayerWalk, m_moveSpeed),       0.0f, 50.0f, 0.05f },
     { "Shift Multiplier", ScriptFieldType::Float,   offsetof(PlayerWalk, m_shiftMultiplier), 1.0f, 10.0f, 0.05f },
-    { "Control Scheme",   ScriptFieldType::EnumInt, offsetof(PlayerWalk, m_controlScheme),   0.0f, 0.0f, 0.0f, s_controlSchemeNames, 2 }
+    { "Control Scheme",   ScriptFieldType::EnumInt, offsetof(PlayerWalk, m_controlScheme),   0.0f, 0.0f, 0.0f, controlSchemeNames, 2 }
 };
+
+IMPLEMENT_SCRIPT_FIELDS(PlayerWalk, playerWalkFields)
 
 PlayerWalk::PlayerWalk(GameObject* owner)
     : Script(owner)
@@ -50,8 +52,8 @@ void PlayerWalk::Update()
         return;
     }
 
-    const float dt = getDeltaSecondsFromTimer();
-    bool shiftHeld = checkShiftHeld();
+    const float dt = Time::getDeltaTime();
+    bool shiftHeld = Input::isKeyDown((int)Keyboard::Keys::LeftShift) || Input::isKeyDown((int)Keyboard::Keys::RightShift);
 
     Vector3 horizontalDir(direction.x, 0.0f, direction.z);
     if (horizontalDir.x != 0.0f || horizontalDir.z != 0.0f)
@@ -62,11 +64,6 @@ void PlayerWalk::Update()
 
     direction.Normalize();
     applyTranslation(transform, direction, dt, shiftHeld);
-}
-
-ScriptFieldList PlayerWalk::getExposedFields() const
-{
-    return { s_playerWalkFields, sizeof(s_playerWalkFields) / sizeof(ScriptFieldInfo) };
 }
 
 void PlayerWalk::onFieldEdited(const ScriptFieldInfo& field)
@@ -80,11 +77,6 @@ void PlayerWalk::onFieldEdited(const ScriptFieldInfo& field)
 void PlayerWalk::onAfterDeserialize()
 {
     applyControlScheme();
-}
-
-float PlayerWalk::getDeltaSecondsFromTimer() const
-{
-    return Time::getDeltaTime();
 }
 
 Vector3 PlayerWalk::readMoveDirection() const
@@ -130,6 +122,7 @@ void PlayerWalk::applyFacingFromDirection(Transform* transform, const Vector3& d
         m_yawInitialized = true;
     }
 
+
     const float maxStep = m_turnSpeedDegPerSec * dt;
     m_currentYawDeg = moveTowardsAngleDegrees(m_currentYawDeg, targetYawDeg, maxStep);
 
@@ -153,12 +146,6 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
     pos += direction * step;
 
     transform->setPosition(pos);
-}
-
-bool PlayerWalk::checkShiftHeld() const
-{
-    return Input::isKeyDown((int)Keyboard::Keys::LeftShift) ||
-        Input::isKeyDown((int)Keyboard::Keys::RightShift);
 }
 
 void PlayerWalk::applyControlScheme()

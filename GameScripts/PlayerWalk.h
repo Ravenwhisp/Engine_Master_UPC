@@ -51,12 +51,9 @@ private:
     Vector3 readMoveDirection() const;
     void applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt);
     void applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const;
-    bool checkShiftHeld() const;
 
     void applyControlScheme();
 
     static float moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta);
     static float wrapAngleDegrees(float angle);
-
-    float getDeltaSecondsFromTimer() const;
 };

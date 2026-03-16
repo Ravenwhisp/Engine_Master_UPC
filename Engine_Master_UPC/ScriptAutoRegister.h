@@ -15,6 +15,7 @@ public:
 public: \
     static std::unique_ptr<Script> Create(GameObject* owner);
 
+
 #define IMPLEMENT_SCRIPT(ScriptType)                                      \
     std::unique_ptr<Script> ScriptType::Create(GameObject* owner)         \
     {                                                                     \
@@ -24,3 +25,10 @@ public: \
         #ScriptType,                                                      \
         &ScriptType::Create                                               \
     );
+
+
+#define IMPLEMENT_SCRIPT_FIELDS(ScriptType, FieldArrayName) \
+    ScriptFieldList ScriptType::getExposedFields() const    \
+    {                                                       \
+        return { FieldArrayName, sizeof(FieldArrayName) / sizeof(ScriptFieldInfo) }; \
+    }
