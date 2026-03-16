@@ -3,24 +3,21 @@
 
 #include "Application.h"
 #include "Settings.h"
-
-#include "Component.h"
-#include "MeshRenderer.h"
-#include "Quadtree.h"
-
-#include "LightComponent.h"
-#include <CameraComponent.h>
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
-#include "GameObject.h"
-#include "UID.h"
 
-#include "SceneSerializer.h"
-#include "ModuleNavigation.h"
+#include "GameObject.h"
+#include "Component.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
+#include "CameraComponent.h"
+#include "LightComponent.h"
+#include "Quadtree.h"
 #include "SceneSnapshot.h"
 
-#include <queue>
+
 #include <limits>
+#include <algorithm>
 
 Scene::Scene() = default;
 Scene::~Scene() = default;

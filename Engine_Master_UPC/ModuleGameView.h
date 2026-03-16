@@ -1,6 +1,8 @@
 #pragma once
 #include "Module.h"
+
 #include "ModuleScene.h"
+#include "SceneSnapshot.h"
 
 class ModuleScene;
 class ModuleInput;

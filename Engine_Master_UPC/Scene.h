@@ -1,8 +1,14 @@
 #pragma once
 
+#include <vector>
+#include <memory>
+#include <string>
+
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+
+struct ID3D12GraphicsCommandList;
 
 class Quadtree;
 class GameObject;
@@ -14,73 +20,83 @@ struct SceneSnapshot;
 class Scene
 {
 private:
-	std::string m_name = "SampleScene";
 
-	std::vector<std::unique_ptr<GameObject>>	m_allObjects;
-	std::vector<GameObject*>					m_rootObjects;
-	std::vector<MeshRenderer*>					m_meshRenderers;
+    std::string m_name = "SampleScene";
 
-	std::unique_ptr<Quadtree>			m_quadtree;
+    std::vector<std::unique_ptr<GameObject>> m_allObjects;
+    std::vector<GameObject*> m_rootObjects;
+    std::vector<MeshRenderer*> m_meshRenderers;
 
-	SceneLightingSettings		m_lighting;
-	SceneDataCB					m_sceneDataCB;
-	SkyBoxSettings				m_skybox;
+    std::unique_ptr<Quadtree> m_quadtree;
 
-	CameraComponent* m_defaultCamera = nullptr;
+    SceneLightingSettings m_lighting;
+    SceneDataCB m_sceneDataCB;
+    SkyBoxSettings m_skybox;
+
+    CameraComponent* m_defaultCamera = nullptr;
 
 public:
-	Scene();
-	~Scene();
+
+    Scene();
+    ~Scene();
 
 #pragma region GameLoop
-	bool init();
-	void update();
-	void render(ID3D12GraphicsCommandList* commandList);
-	bool cleanUp();
+
+    bool init();
+    void update();
+    void render(ID3D12GraphicsCommandList* commandList);
+    bool cleanUp();
+
 #pragma endregion
 
-	const char* getName() { return (char*)m_name.c_str(); }
-	const void setName(const char* newName) { m_name = newName; }
+    const char* getName() const { return m_name.c_str(); }
+    void setName(const char* newName) { m_name = newName; }
 
-	SceneLightingSettings& GetLightingSettings() { return m_lighting; }
-	SceneDataCB& getCBData() { return m_sceneDataCB; }
-	SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
-	const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
+    SceneLightingSettings& GetLightingSettings() { return m_lighting; }
+    SceneDataCB& getCBData() { return m_sceneDataCB; }
 
-	bool applySkyBoxToRenderer();
+    SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
+    const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
 
-	Quadtree* getQuadtree() { return m_quadtree.get(); }
-	void createQuadtree();
-	void resetQuadtree();
+    bool applySkyBoxToRenderer();
 
-	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
-	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
+    Quadtree* getQuadtree() { return m_quadtree.get(); }
+    void createQuadtree();
+    void resetQuadtree();
 
-	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
+    CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
+    void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 
-	void createGameObject();
-	GameObject* createGameObjectWithUID(UID id, UID transformUID);
-	GameObject* findGameObjectByUID(UID uuid);
-	void removeGameObject(const UID uuid);
+    const std::vector<MeshRenderer*>& getAllMeshRenderers() const { return m_meshRenderers; }
 
-	void addGameObject(std::unique_ptr<GameObject> gameObject);
-	void destroyGameObject(GameObject* gameObject);
-	void resetGameObjects(SceneSnapshot previousScene);
+    void createGameObject();
+    GameObject* createGameObjectWithUID(UID id, UID transformUID);
+    GameObject* findGameObjectByUID(UID uuid);
+    void removeGameObject(UID uuid);
 
-	GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
-	void destroyWindowHierarchy(GameObject* obj);
+    void addGameObject(std::unique_ptr<GameObject> gameObject);
+    void destroyGameObject(GameObject* gameObject);
+    void resetGameObjects(SceneSnapshot previousScene);
 
-	void addToRootList(GameObject* gameObject);
-	void removeFromRootList(GameObject* gameObject);
-	const std::vector<GameObject*>& getRootObjects() const;
+    GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
+    void destroyWindowHierarchy(GameObject* obj);
 
-	GameObject* createDirectionalLightOnInit();
+    void addToRootList(GameObject* gameObject);
+    void removeFromRootList(GameObject* gameObject);
 
-	std::vector<GameObject*> getAllGameObjects();
+    const std::vector<GameObject*>& getRootObjects() const;
 
-	SceneSnapshot getClonedGameObjects();
-	std::unique_ptr<GameObject> cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result);
-	void fixClonedReferences(const SceneSnapshot& snapshot);
+    GameObject* createDirectionalLightOnInit();
 
-	void clearScene();
+    std::vector<GameObject*> getAllGameObjects();
+
+    SceneSnapshot getClonedGameObjects();
+
+    std::unique_ptr<GameObject> cloneGameObjectRecursive(
+        GameObject* original,
+        SceneSnapshot& result);
+
+    void fixClonedReferences(const SceneSnapshot& snapshot);
+
+    void clearScene();
 };

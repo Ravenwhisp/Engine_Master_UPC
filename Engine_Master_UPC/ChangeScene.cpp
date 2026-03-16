@@ -1,10 +1,10 @@
 #include "Globals.h"
 #include "ChangeScene.h"
-#include "GameObject.h"
-#include <UIButton.h>
+
 #include "Application.h"
 #include "ModuleScene.h"
 
+#include "GameObject.h"
 #include "UIButton.h"
 
 ChangeScene::ChangeScene(UID id, GameObject* gameObject):

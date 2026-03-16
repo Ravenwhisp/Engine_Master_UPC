@@ -18,6 +18,7 @@
 #include "GameObject.h"
 #include "CameraComponent.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
 
 #include "ImGuiPass.h"
 #include "SkyBoxPass.h"
