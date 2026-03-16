@@ -295,6 +295,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
+    <ClInclude Include="ScriptFieldInfo.h" />
     <ClInclude Include="ScriptTypes.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />

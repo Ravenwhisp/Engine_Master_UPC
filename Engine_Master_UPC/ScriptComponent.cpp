@@ -11,7 +11,7 @@ ScriptComponent::ScriptComponent(UID id, GameObject* owner)
 void ScriptComponent::setScript(std::unique_ptr<Script> script)
 {
     m_script = std::move(script);
-    m_hasStarted = false;
+    resetStartState();
 }
 
 Script* ScriptComponent::getScript() const
@@ -49,6 +49,11 @@ bool ScriptComponent::createScriptInstance()
 void ScriptComponent::destroyScriptInstance()
 {
     m_script.reset();
+    resetStartState();
+}
+
+void ScriptComponent::resetStartState()
+{
     m_hasStarted = false;
 }
 
@@ -65,7 +70,6 @@ void ScriptComponent::update()
         m_hasStarted = true;
     }
 
-    //DEBUG_LOG("Here");
     m_script->Update();
 }
 
@@ -80,15 +84,101 @@ void ScriptComponent::drawUi()
         m_scriptName = buffer;
     }
 
+    if (ImGui::Button("Load Script"))
+    {
+        destroyScriptInstance();
+        createScriptInstance();
+    }
+
     ImGui::Text("Loaded: %s", m_script ? "Yes" : "No");
+
+    if (!m_script)
+    {
+        return;
+    }
+
+    ImGui::SeparatorText("Script Variables");
+    drawScriptFieldsUi(*m_script);
 }
 
-std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
+void ScriptComponent::drawScriptFieldsUi(Script& script)
 {
-    std::unique_ptr<ScriptComponent> clonedComponent = std::make_unique<ScriptComponent>(m_uuid, newOwner);
-    clonedComponent->m_scriptName = m_scriptName;
-    clonedComponent->m_hasStarted = false;
-    return clonedComponent;
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        void* data = base + field.offset;
+        bool changed = false;
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+        {
+            float* value = reinterpret_cast<float*>(data);
+            changed = ImGui::DragFloat(field.name, value, field.dragSpeed, field.minFloat, field.maxFloat);
+            break;
+        }
+
+        case ScriptFieldType::Int:
+        {
+            int* value = reinterpret_cast<int*>(data);
+            changed = ImGui::DragInt(field.name, value);
+            break;
+        }
+
+        case ScriptFieldType::Bool:
+        {
+            bool* value = reinterpret_cast<bool*>(data);
+            changed = ImGui::Checkbox(field.name, value);
+            break;
+        }
+
+        case ScriptFieldType::Vec3:
+        {
+            Vector3* value = reinterpret_cast<Vector3*>(data);
+            changed = ImGui::DragFloat3(field.name, &value->x, 0.1f);
+            break;
+        }
+
+        case ScriptFieldType::EnumInt:
+        {
+            int* value = reinterpret_cast<int*>(data);
+
+            const char* preview = "";
+            if (*value >= 0 && *value < field.enumCount)
+            {
+                preview = field.enumNames[*value];
+            }
+
+            if (ImGui::BeginCombo(field.name, preview))
+            {
+                for (int enumIndex = 0; enumIndex < field.enumCount; ++enumIndex)
+                {
+                    bool selected = (*value == enumIndex);
+                    if (ImGui::Selectable(field.enumNames[enumIndex], selected))
+                    {
+                        *value = enumIndex;
+                        changed = true;
+                    }
+
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            break;
+        }
+        }
+
+        if (changed)
+        {
+            script.onFieldEdited(field);
+        }
+    }
 }
 
 rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
@@ -99,5 +189,207 @@ rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::SCRIPT), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
+    componentInfo.AddMember("ScriptName", rapidjson::Value(m_scriptName.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    rapidjson::Value fieldsJson(rapidjson::kObjectType);
+
+    if (m_script)
+    {
+        serializeScriptFields(*m_script, fieldsJson, domTree);
+    }
+
+    componentInfo.AddMember("ScriptFields", fieldsJson, domTree.GetAllocator());
+
     return componentInfo;
+}
+
+void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+{
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        void* data = base + field.offset;
+
+        rapidjson::Value key(field.name, domTree.GetAllocator());
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            outFieldsJson.AddMember(key, *reinterpret_cast<float*>(data), domTree.GetAllocator());
+            break;
+
+        case ScriptFieldType::Int:
+            outFieldsJson.AddMember(key, *reinterpret_cast<int*>(data), domTree.GetAllocator());
+            break;
+
+        case ScriptFieldType::Bool:
+            outFieldsJson.AddMember(key, *reinterpret_cast<bool*>(data), domTree.GetAllocator());
+            break;
+
+        case ScriptFieldType::EnumInt:
+            outFieldsJson.AddMember(key, *reinterpret_cast<int*>(data), domTree.GetAllocator());
+            break;
+
+        case ScriptFieldType::Vec3:
+        {
+            Vector3* value = reinterpret_cast<Vector3*>(data);
+
+            rapidjson::Value array(rapidjson::kArrayType);
+            array.PushBack(value->x, domTree.GetAllocator());
+            array.PushBack(value->y, domTree.GetAllocator());
+            array.PushBack(value->z, domTree.GetAllocator());
+
+            outFieldsJson.AddMember(key, array, domTree.GetAllocator());
+            break;
+        }
+        }
+    }
+}
+
+bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("ScriptName"))
+    {
+        m_scriptName = componentInfo["ScriptName"].GetString();
+    }
+
+    destroyScriptInstance();
+
+    if (!m_scriptName.empty())
+    {
+        createScriptInstance();
+    }
+
+    if (m_script && componentInfo.HasMember("ScriptFields"))
+    {
+        deserializeScriptFields(*m_script, componentInfo["ScriptFields"]);
+        m_script->onAfterDeserialize();
+    }
+
+    return true;
+}
+
+void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson)
+{
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+
+        if (!fieldsJson.HasMember(field.name))
+        {
+            continue;
+        }
+
+        void* data = base + field.offset;
+        const rapidjson::Value& valueJson = fieldsJson[field.name];
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            if (valueJson.IsNumber())
+            {
+                *reinterpret_cast<float*>(data) = valueJson.GetFloat();
+            }
+            break;
+
+        case ScriptFieldType::Int:
+            if (valueJson.IsInt())
+            {
+                *reinterpret_cast<int*>(data) = valueJson.GetInt();
+            }
+            break;
+
+        case ScriptFieldType::Bool:
+            if (valueJson.IsBool())
+            {
+                *reinterpret_cast<bool*>(data) = valueJson.GetBool();
+            }
+            break;
+
+        case ScriptFieldType::EnumInt:
+            if (valueJson.IsInt())
+            {
+                *reinterpret_cast<int*>(data) = valueJson.GetInt();
+            }
+            break;
+
+        case ScriptFieldType::Vec3:
+            if (valueJson.IsArray() && valueJson.Size() == 3)
+            {
+                Vector3* vector = reinterpret_cast<Vector3*>(data);
+                vector->x = valueJson[0].GetFloat();
+                vector->y = valueJson[1].GetFloat();
+                vector->z = valueJson[2].GetFloat();
+            }
+            break;
+        }
+    }
+}
+
+std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<ScriptComponent> clonedComponent = std::make_unique<ScriptComponent>(m_uuid, newOwner);
+    clonedComponent->m_scriptName = m_scriptName;
+    clonedComponent->m_hasStarted = false;
+    clonedComponent->setActive(this->isActive());
+
+    if (m_script && !m_scriptName.empty())
+    {
+        bool created = clonedComponent->createScriptInstance();
+        assert(created);
+
+        clonedComponent->cloneScriptFields(*m_script, *clonedComponent->m_script);
+        clonedComponent->m_script->onAfterDeserialize();
+    }
+
+    return clonedComponent;
+}
+
+void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
+{
+    ScriptFieldList sourceFields = source.getExposedFields();
+    ScriptFieldList targetFields = target.getExposedFields();
+
+    const size_t count = (sourceFields.count < targetFields.count) ? sourceFields.count : targetFields.count;
+
+    char* sourceBase = (char*)&source;
+    char* targetBase = (char*)&target;
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        const ScriptFieldInfo& sourceField = sourceFields.fields[i];
+        const ScriptFieldInfo& targetField = targetFields.fields[i];
+
+        void* sourceData = sourceBase + sourceField.offset;
+        void* targetData = targetBase + targetField.offset;
+
+        switch (sourceField.type)
+        {
+        case ScriptFieldType::Float:
+            *reinterpret_cast<float*>(targetData) = *reinterpret_cast<float*>(sourceData);
+            break;
+
+        case ScriptFieldType::Int:
+            *reinterpret_cast<int*>(targetData) = *reinterpret_cast<int*>(sourceData);
+            break;
+
+        case ScriptFieldType::Bool:
+            *reinterpret_cast<bool*>(targetData) = *reinterpret_cast<bool*>(sourceData);
+            break;
+
+        case ScriptFieldType::EnumInt:
+            *reinterpret_cast<int*>(targetData) = *reinterpret_cast<int*>(sourceData);
+            break;
+
+        case ScriptFieldType::Vec3:
+            *reinterpret_cast<Vector3*>(targetData) = *reinterpret_cast<Vector3*>(sourceData);
+            break;
+        }
+    }
 }

@@ -2,9 +2,20 @@
 #include "PlayerWalk.h"
 #include "ScriptAPI.h"
 
-IMPLEMENT_SCRIPT(PlayerWalk)
-
 static const float PI = 3.1415926535897931f;
+
+static const char* s_controlSchemeNames[] =
+{
+    "WASD",
+    "IJKL"
+};
+
+static const ScriptFieldInfo s_playerWalkFields[] =
+{
+    { "Move Speed",       ScriptFieldType::Float,   offsetof(PlayerWalk, m_moveSpeed),       0.0f, 50.0f, 0.05f },
+    { "Shift Multiplier", ScriptFieldType::Float,   offsetof(PlayerWalk, m_shiftMultiplier), 1.0f, 10.0f, 0.05f },
+    { "Control Scheme",   ScriptFieldType::EnumInt, offsetof(PlayerWalk, m_controlScheme),   0.0f, 0.0f, 0.0f, s_controlSchemeNames, 2 }
+};
 
 PlayerWalk::PlayerWalk(GameObject* owner)
     : Script(owner)
@@ -15,6 +26,8 @@ void PlayerWalk::Start()
 {
     Transform* transform = getOwner()->GetTransform();
     m_initialRotationOffset = transform->getEulerDegrees();
+
+    applyControlScheme();
 }
 
 void PlayerWalk::Update()
@@ -49,6 +62,24 @@ void PlayerWalk::Update()
 
     direction.Normalize();
     applyTranslation(transform, direction, dt, shiftHeld);
+}
+
+ScriptFieldList PlayerWalk::getExposedFields() const
+{
+    return { s_playerWalkFields, sizeof(s_playerWalkFields) / sizeof(ScriptFieldInfo) };
+}
+
+void PlayerWalk::onFieldEdited(const ScriptFieldInfo& field)
+{
+    if (std::strcmp(field.name, "Control Scheme") == 0)
+    {
+        applyControlScheme();
+    }
+}
+
+void PlayerWalk::onAfterDeserialize()
+{
+    applyControlScheme();
 }
 
 float PlayerWalk::getDeltaSecondsFromTimer() const
@@ -130,6 +161,31 @@ bool PlayerWalk::checkShiftHeld() const
         Input::isKeyDown((int)Keyboard::Keys::RightShift);
 }
 
+void PlayerWalk::applyControlScheme()
+{
+    switch (m_controlScheme)
+    {
+    case ControlScheme::IJKL:
+        m_keyUp = Keyboard::Keys::I;
+        m_keyLeft = Keyboard::Keys::J;
+        m_keyDown = Keyboard::Keys::K;
+        m_keyRight = Keyboard::Keys::L;
+        m_keyAscend = Keyboard::Keys::O;
+        m_keyDescend = Keyboard::Keys::U;
+        break;
+
+    case ControlScheme::WASD:
+    default:
+        m_keyUp = Keyboard::Keys::W;
+        m_keyLeft = Keyboard::Keys::A;
+        m_keyDown = Keyboard::Keys::S;
+        m_keyRight = Keyboard::Keys::D;
+        m_keyAscend = Keyboard::Keys::E;
+        m_keyDescend = Keyboard::Keys::Q;
+        break;
+    }
+}
+
 float PlayerWalk::wrapAngleDegrees(float angle)
 {
     while (angle > 180.0f)
@@ -159,3 +215,5 @@ float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYaw
 
     return currentYawAngle + delta;
 }
+
+IMPLEMENT_SCRIPT(PlayerWalk)
