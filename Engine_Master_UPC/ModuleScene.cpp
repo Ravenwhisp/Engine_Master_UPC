@@ -1,23 +1,19 @@
 #include "Globals.h"
-
 #include "ModuleScene.h"
-#include "LightComponent.h"
-#include <CameraComponent.h>
+
 #include "Application.h"
+#include "ModuleNavigation.h"
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
-#include "Settings.h"
-#include "GameObject.h"
-#include "UID.h"
 
-#include "Quadtree.h"
+#include "Scene.h"
 #include "SceneSerializer.h"
-#include "ModuleNavigation.h"
+#include "GameObject.h"
+#include "CameraComponent.h"
+#include "Component.h"
+#include "Transform.h"
 
-#include "Scene.h";
-
-#include <queue>
-#include <limits>
+#include <unordered_map>
 
 using namespace DirectX::SimpleMath;
 
@@ -39,7 +35,6 @@ bool ModuleScene::init()
 {
     m_scene->init();
     
-
     return true;
 }
 

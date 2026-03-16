@@ -1,14 +1,15 @@
 #pragma once
-//#include "Globals.h"
 
-#include "Transform.h"
 #include "Component.h"
-#include <vector>
-
+#include "UID.h"
 #include "Tag.h"
 #include "Layer.h"
-#include "UID.h"
 
+#include <vector>
+#include <memory>
+#include <string>
+
+class Transform;
 class ModelComponent;
 struct SceneSnapshot;
 

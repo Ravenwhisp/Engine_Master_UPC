@@ -5,6 +5,7 @@
 #include "ModuleInput.h"
 
 #include "Scene.h"
+#include "SceneSnapshot.h"
 #include "GameObject.h"
 #include "ScriptComponent.h"
 

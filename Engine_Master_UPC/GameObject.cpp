@@ -1,13 +1,17 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "Transform.h"
 #include "ComponentFactory.h"
 #include "SceneSnapshot.h"
 
+#include <algorithm>
+#include <cstring>
+#include <imgui.h>
 
 //Should not be here
-#include "ModuleScene.h"
 #include "Application.h"
+#include "ModuleScene.h"
 #include "CameraComponent.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")

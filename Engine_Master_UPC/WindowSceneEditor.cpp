@@ -18,14 +18,17 @@
 
 #include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
+#include "CameraComponent.h"
+#include "LightComponent.h"
+
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
-#include "LightComponent.h"
 #include "TriggerArea.h"
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
 
-#include "CameraComponent.h"
 #include <WindowLogger.h>
 
 
