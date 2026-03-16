@@ -175,6 +175,11 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 	if (newParentTransform && newParentTransform->isDescendantOf(childTransform))
 		return;
 
+	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+	ModuleScene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene.get() : app->getModuleScene();
+
+	Matrix worldMatrix = childTransform->getGlobalMatrix();
+
 	Transform* oldRoot = childTransform->getRoot();
 	GameObject* oldParent = oldRoot ? oldRoot->getOwner() : nullptr;
 
@@ -184,7 +189,7 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getModuleScene()->removeFromRootList(child);
+		targetScene->removeFromRootList(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -195,10 +200,10 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getModuleScene()->addToRootList(child);
+		targetScene->addToRootList(child);
 	}
 
-	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
+	childTransform->setFromGlobalMatrix(worldMatrix);
 }
 
 
@@ -244,35 +249,32 @@ void WindowHierarchy::removeGameObject()
 
 	if (selected)
 	{
+		ModuleScene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene.get() : app->getModuleScene();
+
 		UID id = selected->GetID();
 		app->getModuleEditor()->setSelectedGameObject(nullptr);
-		app->getModuleScene()->removeGameObject(id);
+		targetScene->removeGameObject(id);
 	}
 }
 
 void WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
 {
-	if (!parent)
-	{
-		return;
-	}
+	if (!parent) return;
 
-	app->getModuleScene()->createGameObject();
+	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+	ModuleScene* targetScene = (session && session->m_active && session->m_isolatedScene)
+		? session->m_isolatedScene.get()
+		: app->getModuleScene();
 
-	const auto& roots = app->getModuleScene()->getRootObjects();
-	if (roots.empty())
-	{
-		return;
-	}
+	targetScene->createGameObject();
+
+	const auto& roots = targetScene->getRootObjects();
+	if (roots.empty()) return;
 
 	GameObject* newObj = roots.back();
-	if (!newObj || newObj == parent)
-	{
-		return;
-	}
+	if (!newObj || newObj == parent) return;
 
 	reparent(newObj, parent);
-
 	app->getModuleEditor()->setSelectedGameObject(newObj);
 }
 
