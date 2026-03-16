@@ -506,6 +506,16 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
 
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
 
+    const PrefabInstanceData* instanceData = PrefabManager::getInstanceData(this);
+    if (instanceData && !instanceData->m_prefabName.empty())
+    {
+        rapidjson::Value prefabLink(rapidjson::kObjectType);
+        rapidjson::Value prefabName(instanceData->m_prefabName.c_str(), domTree.GetAllocator());
+        prefabLink.AddMember("PrefabName", prefabName, domTree.GetAllocator());
+        prefabLink.AddMember("PrefabUID", instanceData->m_prefabUID, domTree.GetAllocator());
+        gameObjectInfo.AddMember("PrefabLink", prefabLink, domTree.GetAllocator());
+    }
+
     // Components serialization //
     {
         rapidjson::Value componentsData(rapidjson::kArrayType);
