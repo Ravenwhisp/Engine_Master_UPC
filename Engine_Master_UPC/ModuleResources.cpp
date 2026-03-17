@@ -121,6 +121,8 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	desc.shaderVisibleSRV = true;
+
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
@@ -218,7 +220,6 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	{
 		return cached;
 	}
-
 
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset));
 	m_resources.insert(uid, texture);

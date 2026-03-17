@@ -130,18 +130,6 @@ void Application::update()
         }
     }
 
-    const PerfDataMap& data = getPerfData();
-
-    /*
-    for (const auto& [name, perf] : data)
-    {
-        DEBUG_LOG("%s -> last: %.3f ms | avg: %.3f ms | max: %.3f ms\n",
-            name.c_str(),
-            perf.lastMs,
-            perf.avgMs,
-            perf.maxMs);
-    }
-    */
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 

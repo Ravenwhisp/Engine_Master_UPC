@@ -13,6 +13,8 @@ ModuleDescriptors::ModuleDescriptors(ComPtr<ID3D12Device4> device)
     m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = new DescriptorHeap(m_device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096 * 8);
     m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = new DescriptorHeap(m_device, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, SampleType::COUNT);
 
+    m_stagingSRVHeap = new StagingDescriptorHeap(m_device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 4096 * 8);
+
     createDefaultSamplers();
 }
 
@@ -22,6 +24,7 @@ ModuleDescriptors::~ModuleDescriptors()
         delete pair.second;
         pair.second = nullptr;
     }
+    delete m_stagingSRVHeap;
     m_defferedDescriptors.clear();
 }
 
@@ -33,21 +36,17 @@ bool ModuleDescriptors::init()
 
 void ModuleDescriptors::preRender()
 {
-    // For now only the SRV heap is having deferred releases since it's the only one used for textures
-	UINT lastCompletedFrame = app->getModuleD3D12()->getLastCompletedFrame();
-	for (int i = 0; i < m_defferedDescriptors.size(); ++i) {
-
+    UINT lastCompletedFrame = app->getModuleD3D12()->getLastCompletedFrame();
+    for (int i = 0; i < (int)m_defferedDescriptors.size(); )
+    {
         if (lastCompletedFrame > m_defferedDescriptors[i].frame)
         {
             m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV]->free(m_defferedDescriptors[i].handle);
             m_defferedDescriptors[i] = m_defferedDescriptors.back();
             m_defferedDescriptors.pop_back();
         }
-        else
-        {
-            ++i;
-        }
-	}
+        else ++i;
+    }
 }
 
 bool ModuleDescriptors::cleanUp()

@@ -56,6 +56,7 @@ public:
 
 
 	std::shared_ptr<Texture>       createTexture(const TextureAsset& textureAsset);
+
 	std::shared_ptr<BasicMesh>     createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial> createMaterial(const MaterialAsset& materialAsset);
 

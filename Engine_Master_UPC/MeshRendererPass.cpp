@@ -32,7 +32,7 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* rin
     CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
-    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -157,10 +157,10 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
             modelData.normalMat = transform->getNormalMatrix().Transpose();
             modelData.material = material->getMaterial();
 
-                // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
-                commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+            // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
+            commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
 
-                commandList->SetGraphicsRootDescriptorTable(4, material->getFirstDescriptor().gpu);
+            commandList->SetGraphicsRootDescriptorTable(4, material->getTableGPUHandle());
 
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

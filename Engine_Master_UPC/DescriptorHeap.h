@@ -1,32 +1,7 @@
 #pragma once
-
-struct Handle {
-	UINT index : 24;
-	UINT generation : 8;
-
-	Handle() : index(0), generation(0) { ; }
-	explicit Handle(UINT handle) { *reinterpret_cast<UINT*>(this) = handle; }
-	operator UINT() { return *reinterpret_cast<UINT*>(this); }
-};
-
-//
-// Represents a pair of CPU/GPU descriptor handles along with the descriptor index
-// in the descriptor heap. This acts as a lightweight utility type returned by
-// DescriptorHeap::Allocate().
-//
-struct DescriptorHandle {
-	D3D12_CPU_DESCRIPTOR_HANDLE cpu{};
-	D3D12_GPU_DESCRIPTOR_HANDLE gpu{};
-	UINT handle{ 0 };
-
-	constexpr bool IsValid() const {
-		return cpu.ptr != 0;
-	}
-
-	constexpr bool IsShaderVisible() const {
-		return gpu.ptr != 0;
-	}
-};
+#include "DescriptorHandle.h"
+#include <Handle.h>
+#include "DescriptorHeapBlock.h"
 
 // -----------------------------------------------------------------------------
 // DescriptorHeap
@@ -43,46 +18,59 @@ struct DescriptorHandle {
 class DescriptorHeap
 {
 public:
+    DescriptorHeap(ComPtr<ID3D12Device4> device, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
 
+    D3D12_DESCRIPTOR_HEAP_TYPE getType()  const { return m_type; }
+    uint32_t                   capacity() const { return m_numDescriptors; }
 
-public:
-	DescriptorHeap(ComPtr<ID3D12Device4> device, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
+    // Allocate `count` contiguous descriptors. Returns nullptr if no run of
+    // that size is available. count must be >= 1.
+    DescriptorHeapBlock* allocateBlock(uint32_t count);
 
-	D3D12_DESCRIPTOR_HEAP_TYPE	getType() const { return m_type; }
-	bool						hasSpace() const;
-	uint32_t					freeSpace() const;
+    // Return a previously allocated block to the free pool.
+    // Merges adjacent free ranges automatically (coalescing).
+    void freeBlock(DescriptorHeapBlock* block);
 
-	DescriptorHandle			allocate();
-	void						free(UINT handle);
-	void						releaseStaleDescriptors(uint64_t frameNumber);
+    // Convenience: single descriptor — equivalent to allocateBlock(1)->getHandle(0)
+    DescriptorHandle allocate();
+    void             free(UINT handle);
 
-	ID3D12DescriptorHeap*		getHeap() const { return m_heap.Get(); }
+    ID3D12DescriptorHeap* getHeap() const { return m_heap.Get(); }
 
-	D3D12_CPU_DESCRIPTOR_HANDLE getCPUHandle(UINT handle) const {
-		return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_heap->GetCPUDescriptorHandleForHeapStart(), Handle(handle).index, m_descriptorSize);
-	}
-	D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(UINT handle) const {
-		return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_heap->GetGPUDescriptorHandleForHeapStart(), Handle(handle).index, m_descriptorSize);
-	}
+    D3D12_CPU_DESCRIPTOR_HANDLE getCPUHandle(uint32_t index) const {
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_cpuStart, static_cast<INT>(index), m_descriptorSize);
+    }
+    D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(uint32_t index) const {
+        return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_gpuStart, static_cast<INT>(index), m_descriptorSize);
+    }
 
-	bool isShaderVisible() const {
-		return m_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || m_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-	}
+    bool isShaderVisible() const {
+        return m_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ||
+            m_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+    }
+
+    uint32_t getDescriptorSize() const { return m_descriptorSize; }
 
 private:
-	bool validHandle(UINT index, UINT genNumber);
+    // A node in the free-list: a contiguous range [start, start+count).
+    struct FreeRange {
+        uint32_t start{ 0 };
+        uint32_t count{ 0 };
+    };
 
-	std::vector<Handle>					m_handles{};
-	UINT								m_firstFree = 0;
-	UINT								m_genNumber = 0;
+    // Sorted by start index. Maintained sorted after every alloc/free.
+    std::vector<FreeRange> m_freeList{};
 
-	ComPtr<ID3D12DescriptorHeap>		m_heap;
-	D3D12_CPU_DESCRIPTOR_HANDLE			m_cpuStart{};
-	D3D12_GPU_DESCRIPTOR_HANDLE			m_gpuStart{};
-	uint32_t							m_descriptorSize;
-	uint32_t							m_numDescriptors;
-	uint32_t							m_nextFreeIndex = 0;
+    // Pool of block objects — allocated lazily, reused on free.
+    // Indexed by their baseIndex so lookup is O(1).
+    std::unordered_map<uint32_t, DescriptorHeapBlock> m_blocks{};
 
-	D3D12_DESCRIPTOR_HEAP_TYPE			m_type{};
+    UINT m_genNumber{ 0 };
+
+    ComPtr<ID3D12DescriptorHeap>  m_heap;
+    D3D12_CPU_DESCRIPTOR_HANDLE   m_cpuStart{};
+    D3D12_GPU_DESCRIPTOR_HANDLE   m_gpuStart{};
+    uint32_t                      m_descriptorSize{ 0 };
+    uint32_t                      m_numDescriptors{ 0 };
+    D3D12_DESCRIPTOR_HEAP_TYPE    m_type{};
 };
-

@@ -333,6 +333,12 @@
     </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="DescriptorHeapBlock.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="StagingDescriptorHeap.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -782,6 +788,18 @@
     </ClInclude>
     <ClInclude Include="Channel.h">
       <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHandle.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Handle.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapBlock.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="StagingDescriptorheap.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

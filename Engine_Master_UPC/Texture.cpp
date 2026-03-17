@@ -195,8 +195,22 @@ void Texture::createSRV()
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
     }
 
-    m_srv = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
+    if (m_desc.shaderVisibleSRV)
+    {
+        // Render targets and other textures bound directly by GPU handle.
+        // Allocate in the shader-visible heap — .gpu is populated and valid.
+        DescriptorHeapBlock* block = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocateBlock(1);
 
+        m_srv = block->getHandle(0);
+    }
+    else
+    {
+        // Asset textures that will be copied into a material block.
+        // Allocate in the CPU-only staging heap — .gpu is zeroed, .cpu is valid.
+        m_srv.cpu = app->getModuleDescriptors()->getStagingHeap().allocate();
+        m_srv.gpu = {};
+        m_srv.block = nullptr;
+    }
     m_device.CreateShaderResourceView(m_Resource.Get(), &srvDesc, m_srv.cpu);
 }
 
@@ -232,8 +246,6 @@ void Texture::createDSV()
     m_device.CreateDepthStencilView(m_Resource.Get(), &dsvDesc, m_dsv.cpu);
 }
 
-// ----------------------------------------------------------------------------
-
 void Texture::createUAV()
 {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
@@ -248,7 +260,7 @@ void Texture::createUAV()
         m_uav[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
 
         m_device.CreateUnorderedAccessView(
-            m_Resource.Get(), /*pCounterResource=*/nullptr, &uavDesc, m_uav[mip].cpu);
+        m_Resource.Get(), /*pCounterResource=*/nullptr, &uavDesc, m_uav[mip].cpu);
     }
 }
 
@@ -257,9 +269,18 @@ void Texture::releaseViews()
 {
     auto* descriptors = app->getModuleDescriptors();
 
-    if (hasSRV() && m_srv.IsValid())
+    if (hasSRV() && m_srv.IsValid() != 0)
     {
-        descriptors->defferDescriptorRelease((Handle)m_srv.handle);
+        if (m_desc.shaderVisibleSRV)
+        {
+            // Shader-visible block — defer release (GPU may still be reading it)
+            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
+        }
+        else
+        {
+            // Staging slot — CPU-only, safe to free immediately
+            app->getModuleDescriptors()->getStagingHeap().free(m_srv.cpu);
+        }       
         m_srv = {};
     }
 
@@ -269,8 +290,7 @@ void Texture::releaseViews()
         {
             if (m_rtv[mip].IsValid())
             {
-                descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
-                    .free(m_rtv[mip].handle);
+                descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
                 m_rtv[mip] = {};
             }
         }

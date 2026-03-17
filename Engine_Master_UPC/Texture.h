@@ -37,6 +37,8 @@ struct TextureDesc
     DXGI_FORMAT             rtvFormat{ DXGI_FORMAT_UNKNOWN };
     DXGI_FORMAT             dsvFormat{ DXGI_FORMAT_UNKNOWN };
     DXGI_FORMAT             uavFormat{ DXGI_FORMAT_UNKNOWN };
+    bool                    shaderVisibleSRV{ false };
+
 };
 
 
@@ -47,6 +49,7 @@ public:
 
     Texture() = delete;
     explicit Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc);
+
     ~Texture();
 
     Texture(const Texture&) = delete;
@@ -55,7 +58,7 @@ public:
     Texture& operator=(Texture&&) = default;
 
 
-    DescriptorHandle    getSRV()                    const;
+    DescriptorHandle    getSRV() const;
     DescriptorHandle    getRTV(uint32_t mip = 0)    const;
     DescriptorHandle    getDSV()                    const;
     DescriptorHandle    getUAV(uint32_t mip = 0)    const;

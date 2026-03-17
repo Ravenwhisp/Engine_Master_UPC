@@ -15,6 +15,9 @@ public:
 
 	MD5Hash getBaseMap() const { return baseMap; }
 	Color& getBaseColour() const { return baseColour; }
+
+	MD5Hash getMetallicRoughnessMap() const { return metallicRoughnessMap; }
+	uint32_t getMetallicFactor() const { return metallicFactor; }
 protected:
 
 	MD5Hash				baseMap = INVALID_ASSET_ID;
