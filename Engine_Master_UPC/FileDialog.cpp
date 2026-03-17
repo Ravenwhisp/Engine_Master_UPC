@@ -315,8 +315,6 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                 PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
                 PrefabUI::drawFileDialogItemContextMenu(asset->path.stem().string(), m_showVariantModal, m_renamingPrefab, buffers);
             }
-            else
-            {
                 if (ImGui::BeginPopupContextItem("ItemContext"))
                 {
                     ImGui::Text("Options");
@@ -342,7 +340,7 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
 
                     ImGui::EndPopup();
                 }
-            }
+            
         }
         else
         {
