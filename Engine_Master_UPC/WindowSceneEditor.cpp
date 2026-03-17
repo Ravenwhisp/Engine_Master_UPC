@@ -277,7 +277,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
 
     if (m_settings->sceneEditor.showModelBoundingBoxes)
     {
-        for (const auto& renderer : app->getModuleScene()->getScene()->getAllMeshRenderers())
+        for (const auto& renderer : app->getModuleScene()->getAllMeshRenderers())
         {
             drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
         }
@@ -331,7 +331,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
 
 void WindowSceneEditor::renderQuadtree()
 {
-    Quadtree* quadtree = app->getModuleScene()->getScene()->getQuadtree();
+    Quadtree* quadtree = app->getModuleScene()->getQuadtree();
     if (!quadtree)
     {
         return;

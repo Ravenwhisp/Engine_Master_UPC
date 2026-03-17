@@ -27,7 +27,7 @@ public:
     MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer);
     ~MeshRendererPass();
 
-    void setMeshes(const std::vector<MeshRenderer*>& meshRenderers) { m_meshRenderers = &meshRenderers; }
+    void setMeshes(std::vector<MeshRenderer*>& meshRenderers) { m_meshRenderers = meshRenderers; }
 
     void setCameraPosition(const Vector3& cameraPos);
     void setView(const Matrix& view) { m_view = &view; }
@@ -46,7 +46,7 @@ public:
     void renderMesh(ID3D12GraphicsCommandList* commandList);
 
 private:
-    mutable const std::vector<MeshRenderer*>*     m_meshRenderers;
+    std::vector<MeshRenderer*> m_meshRenderers;
 
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;

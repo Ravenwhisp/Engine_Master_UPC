@@ -77,7 +77,6 @@ bool SceneSerializer::SaveScene(std::string sceneName, rapidjson::Document& domT
     return true;
 }
 
-
 bool SceneSerializer::LoadScene(std::string sceneName)
 {
     if (sceneName.empty()) 

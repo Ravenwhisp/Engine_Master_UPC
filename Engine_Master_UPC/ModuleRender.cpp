@@ -169,10 +169,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     m_meshRendererPass->setView(camera.view);
     m_meshRendererPass->setProjection(camera.projection);
 
-    Scene* scene = app->getModuleScene()->getScene();
-    scene->render(commandList);
-
-    const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();
+    std::vector<MeshRenderer*> meshes = app->getModuleScene()->getAllMeshRenderers();
     m_triangles = 0;
     for (MeshRenderer* mesh : meshes)
     {
