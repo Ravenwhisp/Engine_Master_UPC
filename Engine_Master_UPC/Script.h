@@ -4,12 +4,6 @@
 
 class GameObject;
 
-struct ScriptFieldList
-{
-    const ScriptFieldInfo* fields = nullptr;
-    size_t count = 0;
-};
-
 class Script
 {
 public:
@@ -27,8 +21,11 @@ public:
     //Used when changing a field in the inspector must trigger some extra action
     virtual void onFieldEdited(const ScriptFieldInfo& field) {}
 
-    //Used when needing to rebuild derived/runtime state after deserializing a field
+    //Used when needing to rebuild runtime state after deserializing a field
     virtual void onAfterDeserialize() {}
+
+    //Used when needing to rebuild runtime state after fixing references
+    virtual void onAfterReferencesFixed() {}
 
     GameObject* getOwner() const { return m_owner; }
 

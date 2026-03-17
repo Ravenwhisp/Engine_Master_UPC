@@ -188,10 +188,10 @@
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="PlayerWalk.cpp">
+    <ClCompile Include="PlayerWalkComponent.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
-    <ClCompile Include="CameraFollow.cpp">
+    <ClCompile Include="CameraFollowComponent.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="UIImage.cpp">
@@ -536,10 +536,10 @@
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerWalk.h">
+    <ClInclude Include="PlayerWalkComponent.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="CameraFollow.h">
+    <ClInclude Include="CameraFollowComponent.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.h" />
@@ -727,6 +727,9 @@
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="ScriptFieldInfo.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptComponentRef.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
   </ItemGroup>

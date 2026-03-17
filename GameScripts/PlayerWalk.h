@@ -46,6 +46,7 @@ private:
     float m_currentYawDeg = 0.0f;
     bool m_yawInitialized = false;
 
+private:
     Vector3 readMoveDirection() const;
     void applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt);
     void applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const;

@@ -20,9 +20,9 @@
 #include "UIButton.h"
 
 // Fake / behaviour components
-#include "PlayerWalk.h"
+#include "PlayerWalkComponent.h"
 #include "NavMeshWalk.h"
-#include "CameraFollow.h"
+#include "CameraFollowComponent.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
 #include "CameraSwitcher.h"
@@ -44,7 +44,7 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
         return std::make_unique<MeshRenderer>(id, owner);
 
     case ComponentType::PLAYER_WALK:
-        return std::make_unique<PlayerWalk>(id, owner);
+        return std::make_unique<PlayerWalkComponent>(id, owner);
 
     case ComponentType::CAMERA:
         return std::make_unique<CameraComponent>(id, owner);
@@ -65,7 +65,7 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
         return std::make_unique<UIButton>(id, owner);
 
     case ComponentType::CAMERA_FOLLOW:
-        return std::make_unique<CameraFollow>(id, owner);
+        return std::make_unique<CameraFollowComponent>(id, owner);
 
     case ComponentType::CHANGE_SCENE:
         return std::make_unique<ChangeScene>(id, owner);

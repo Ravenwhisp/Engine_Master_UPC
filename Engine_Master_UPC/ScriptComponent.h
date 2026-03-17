@@ -26,6 +26,7 @@ public:
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+    void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) override;
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 private:

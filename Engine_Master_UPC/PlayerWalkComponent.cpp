@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "PlayerWalk.h"
+#include "PlayerWalkComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "Application.h"
@@ -9,7 +9,7 @@
 
 static const float PI = 3.1415926535897931f;
 
-PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
+PlayerWalkComponent::PlayerWalkComponent(UID id, GameObject* gameobject) :
 	Component(id, ComponentType::PLAYER_WALK, gameobject) 
 {
 	inputModule = app->getModuleInput();
@@ -17,9 +17,9 @@ PlayerWalk::PlayerWalk(UID id, GameObject* gameobject) :
 	m_initialRotationOffset = transform->getEulerDegrees();
 }
 
-std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
+std::unique_ptr<Component> PlayerWalkComponent::clone(GameObject* newOwner) const
 {
-	std::unique_ptr<PlayerWalk> newComponent = std::make_unique<PlayerWalk>(m_uuid, newOwner);
+	std::unique_ptr<PlayerWalkComponent> newComponent = std::make_unique<PlayerWalkComponent>(m_uuid, newOwner);
 
 	newComponent->m_moveSpeed = m_moveSpeed;
 	newComponent->m_shiftMultiplier = m_shiftMultiplier;
@@ -38,18 +38,18 @@ std::unique_ptr<Component> PlayerWalk::clone(GameObject* newOwner) const
 	return newComponent;
 }
 
-float PlayerWalk::getDeltaSecondsFromTimer() const
+float PlayerWalkComponent::getDeltaSecondsFromTimer() const
 {
 	return app->getModuleTime()->deltaTime(); 
 }
 
-bool PlayerWalk::init() 
+bool PlayerWalkComponent::init()
 {
 
 	return true;
 }
 
-void PlayerWalk::update() 
+void PlayerWalkComponent::update()
 {
 	Transform* transform = m_owner->GetTransform();
 
@@ -78,7 +78,7 @@ void PlayerWalk::update()
 	applyTranslation(transform, direction, dt, shiftHeld);
 }
 
-Vector3 PlayerWalk::readMoveDirection(ModuleInput* inputModule) const
+Vector3 PlayerWalkComponent::readMoveDirection(ModuleInput* inputModule) const
 {
 	Vector3 direction(0, 0, 0);
 
@@ -110,7 +110,7 @@ Vector3 PlayerWalk::readMoveDirection(ModuleInput* inputModule) const
 	return direction;
 }
 
-void PlayerWalk::applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt)
+void PlayerWalkComponent::applyFacingFromDirection(Transform* transform, const Vector3& direction, float dt)
 {
 	const float yawRad = std::atan2(-direction.x, -direction.z);
 	const float targetYawDeg = yawRad * (180.0f / PI);
@@ -129,7 +129,7 @@ void PlayerWalk::applyFacingFromDirection(Transform* transform, const Vector3& d
 	transform->setRotationEuler(Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
 }
 
-void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const
+void PlayerWalkComponent::applyTranslation(Transform* transform, const Vector3& direction, float dt, bool shiftHeld) const
 {
 	float speed = m_moveSpeed;
 
@@ -146,14 +146,14 @@ void PlayerWalk::applyTranslation(Transform* transform, const Vector3& direction
 	transform->setPosition(pos);
 }
 
-bool PlayerWalk::checkShiftHeld(ModuleInput* inputModule) const
+bool PlayerWalkComponent::checkShiftHeld(ModuleInput* inputModule) const
 {
 	const bool shiftDown = inputModule->isKeyDown(Keyboard::Keys::LeftShift) || inputModule->isKeyDown(Keyboard::Keys::RightShift);
 	
 	return shiftDown;
 }
 
-float PlayerWalk::wrapAngleDegrees(float angle)
+float PlayerWalkComponent::wrapAngleDegrees(float angle)
 {
 	while (angle > 180.0f) 
 	{
@@ -166,7 +166,7 @@ float PlayerWalk::wrapAngleDegrees(float angle)
 	return angle;
 }
 
-float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta)
+float PlayerWalkComponent::moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta)
 {
 	float delta = wrapAngleDegrees(targetYawAngle - currentYawAngle);
 
@@ -183,7 +183,7 @@ float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYaw
 	return currentYawAngle + delta;
 }
 
-void PlayerWalk::drawUi()
+void PlayerWalkComponent::drawUi()
 {
 	ImGui::Text("Hold Left Mouse Button + WASD to move arround");
 	ImGui::Text("Press shift to go faster");
@@ -204,7 +204,7 @@ void PlayerWalk::drawUi()
 //Controls
 
 // For now let only choose between two modes, but in the end we probably have to let them choose their keys
-void PlayerWalk::applyControlScheme()
+void PlayerWalkComponent::applyControlScheme()
 {
 	switch (m_controlScheme)
 	{
@@ -229,7 +229,7 @@ void PlayerWalk::applyControlScheme()
 	}
 }
 
-bool PlayerWalk::drawControlSchemeCombo(ControlScheme& scheme)
+bool PlayerWalkComponent::drawControlSchemeCombo(ControlScheme& scheme)
 {
 	bool changed = false;
 
@@ -257,7 +257,7 @@ bool PlayerWalk::drawControlSchemeCombo(ControlScheme& scheme)
 	return changed;
 }
 
-const char* PlayerWalk::controlSchemeToString(ControlScheme scheme)
+const char* PlayerWalkComponent::controlSchemeToString(ControlScheme scheme)
 {
 	switch (scheme)
 	{
@@ -270,7 +270,7 @@ const char* PlayerWalk::controlSchemeToString(ControlScheme scheme)
 	}
 }
 
-rapidjson::Value PlayerWalk::getJSON(rapidjson::Document& domTree)
+rapidjson::Value PlayerWalkComponent::getJSON(rapidjson::Document& domTree)
 {
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
 
@@ -285,7 +285,7 @@ rapidjson::Value PlayerWalk::getJSON(rapidjson::Document& domTree)
 	return componentInfo;
 }
 
-bool PlayerWalk::deserializeJSON(const rapidjson::Value& componentInfo)
+bool PlayerWalkComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
 	if (componentInfo.HasMember("MoveSpeed"))
 		m_moveSpeed = componentInfo["MoveSpeed"].GetFloat();

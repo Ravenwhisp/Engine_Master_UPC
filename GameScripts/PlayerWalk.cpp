@@ -12,9 +12,9 @@ static const char* controlSchemeNames[] =
 
 static const ScriptFieldInfo playerWalkFields[] =
 {
-    { "Move Speed",       ScriptFieldType::Float,   offsetof(PlayerWalk, m_moveSpeed),       0.0f, 50.0f, 0.05f },
-    { "Shift Multiplier", ScriptFieldType::Float,   offsetof(PlayerWalk, m_shiftMultiplier), 1.0f, 10.0f, 0.05f },
-    { "Control Scheme",   ScriptFieldType::EnumInt, offsetof(PlayerWalk, m_controlScheme),   0.0f, 0.0f, 0.0f, controlSchemeNames, 2 }
+    { "Move Speed", ScriptFieldType::Float, offsetof(PlayerWalk, m_moveSpeed), { 0.0f, 50.0f, 0.05f } },
+    { "Shift Multiplier", ScriptFieldType::Float, offsetof(PlayerWalk, m_shiftMultiplier), { 1.0f, 10.0f, 0.05f } },
+    { "Control Scheme", ScriptFieldType::EnumInt, offsetof(PlayerWalk, m_controlScheme), {}, {controlSchemeNames, 2} }
 };
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerWalk, playerWalkFields)

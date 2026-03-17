@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include "UID.h"
+#include "ComponentType.h"
 
 enum class ScriptFieldType
 {
@@ -8,7 +10,26 @@ enum class ScriptFieldType
     Int,
     Bool,
     Vec3,
-    EnumInt
+    EnumInt,
+    ComponentRef
+};
+
+struct ScriptFieldFloatInfo
+{
+    float min = 0.0f;
+    float max = 0.0f;
+    float dragSpeed = 0.1f;
+};
+
+struct ScriptFieldEnumInfo
+{
+    const char** names = nullptr;
+    int count = 0;
+};
+
+struct ScriptFieldComponentRefInfo
+{
+    ComponentType componentType;
 };
 
 struct ScriptFieldInfo
@@ -17,12 +38,13 @@ struct ScriptFieldInfo
     ScriptFieldType type;
     size_t offset;
 
-    // These are not necessary at all, if we find them usseles or anoyiing to set we can just delete them
-    // We can also create a struct of ScriptFieldUiInfo for example so we keep things separate
-    float minFloat = 0.0f;
-    float maxFloat = 0.0f;
-    float dragSpeed = 0.1f;
+    ScriptFieldFloatInfo floatInfo{};
+    ScriptFieldEnumInfo enumInfo{};
+    ScriptFieldComponentRefInfo componentRefInfo{ ComponentType::TRANSFORM };
+};
 
-    const char** enumNames = nullptr;
-    int enumCount = 0;
+struct ScriptFieldList
+{
+    const ScriptFieldInfo* fields = nullptr;
+    size_t count = 0;
 };

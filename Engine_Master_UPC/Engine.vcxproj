@@ -295,6 +295,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
+    <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
     <ClInclude Include="ScriptTypes.h" />
     <ClInclude Include="WindowGame.h" />
@@ -308,7 +309,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="CameraFollow.h" />
+    <ClInclude Include="CameraFollowComponent.h" />
     <ClInclude Include="ModuleCamera.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -359,7 +360,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshRendererPass.h" />
     <ClInclude Include="ModelAsset.h" />
     <ClInclude Include="ModelImporter.h" />
-    <ClInclude Include="PlayerWalk.h" />
+    <ClInclude Include="PlayerWalkComponent.h" />
     <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="PointerEventData.h" />
     <ClInclude Include="QuadNode.h" />
@@ -538,7 +539,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="CameraFollow.cpp" />
+    <ClCompile Include="CameraFollowComponent.cpp" />
     <ClCompile Include="ModuleCamera.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="ModuleD3D12.cpp" />
@@ -573,7 +574,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MeshRendererPass.cpp" />
     <ClCompile Include="ModelImporter.cpp" />
-    <ClCompile Include="PlayerWalk.cpp" />
+    <ClCompile Include="PlayerWalkComponent.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />

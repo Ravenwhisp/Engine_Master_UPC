@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "CameraFollow.h"
+#include "CameraFollowComponent.h"
 #include "Application.h"
 #include "ModuleScene.h"
 #include "GameObject.h"
@@ -9,14 +9,14 @@
 
 static const float PI = 3.1415926535897931f;
 
-CameraFollow::CameraFollow(UID id, GameObject* gameObject)
+CameraFollowComponent::CameraFollowComponent(UID id, GameObject* gameObject)
     : Component(id, ComponentType::CAMERA_FOLLOW, gameObject)
 {
 }
 
-std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
+std::unique_ptr<Component> CameraFollowComponent::clone(GameObject* newOwner) const
 {
-    auto clonedComponent = std::make_unique<CameraFollow>(m_uuid, newOwner);
+    auto clonedComponent = std::make_unique<CameraFollowComponent>(m_uuid, newOwner);
 
     clonedComponent->setActive(this->isActive());
     clonedComponent->m_firstTargetTransformUid = m_firstTargetTransformUid;
@@ -36,7 +36,7 @@ std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 	return clonedComponent;
 }
 
-void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void CameraFollowComponent::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
 {
     m_firstTargetTransform = nullptr;
     m_secondTargetTransform = nullptr;
@@ -70,13 +70,13 @@ void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& refe
     }
 }
 
-bool CameraFollow::init()
+bool CameraFollowComponent::init()
 {
 
     return true;
 }
 
-void CameraFollow::update()
+void CameraFollowComponent::update()
 {
     if (!m_firstTargetTransform) return;
 
@@ -114,7 +114,7 @@ void CameraFollow::update()
     cameraTransform->setRotationEuler(m_rotationOffset);
 }
 
-Vector3 CameraFollow::computeFollowPoint() const
+Vector3 CameraFollowComponent::computeFollowPoint() const
 {
     Vector3 followPoint;
     if (!m_secondTargetTransform) {
@@ -130,7 +130,7 @@ Vector3 CameraFollow::computeFollowPoint() const
     return followPoint;
 }
 
-float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const 
+float CameraFollowComponent::computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const
 {
     const float distance = (p2 - p1).Length();
 
@@ -157,7 +157,7 @@ float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p
     return targetExtraHeight;
 }
 
-float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtraHeight, float sharpness, float dt) const 
+float CameraFollowComponent::smoothExtraHeight(float currentExtraHeight, float targetExtraHeight, float sharpness, float dt) const
 {
     if (sharpness <= 0.0f)
     {
@@ -168,7 +168,7 @@ float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtr
     return lerpFloat(currentExtraHeight, targetExtraHeight, zoomFraction);
 }
 
-Vector3 CameraFollow::computeDesiredCameraPosition(const Vector3& followPoint) const
+Vector3 CameraFollowComponent::computeDesiredCameraPosition(const Vector3& followPoint) const
 {
     Vector3 desiredPos = followPoint;
 
@@ -193,7 +193,7 @@ Vector3 CameraFollow::computeDesiredCameraPosition(const Vector3& followPoint) c
     return desiredPos;
 }
 
-Vector3 CameraFollow::smoothCameraPosition(const Vector3& currentPos, const Vector3& targetPos, float sharpness, float dt) const {
+Vector3 CameraFollowComponent::smoothCameraPosition(const Vector3& currentPos, const Vector3& targetPos, float sharpness, float dt) const {
     if (sharpness <= 0.0f)
     {
         return targetPos;
@@ -203,17 +203,17 @@ Vector3 CameraFollow::smoothCameraPosition(const Vector3& currentPos, const Vect
     return lerpVector(currentPos, targetPos, followFraction);
 }
 
-Vector3 CameraFollow::lerpVector(const Vector3& start, const Vector3& end, float alpha) const
+Vector3 CameraFollowComponent::lerpVector(const Vector3& start, const Vector3& end, float alpha) const
 {
     return start + (end - start) * alpha;
 }
 
-float CameraFollow::lerpFloat(float start, float end, float alpha) const
+float CameraFollowComponent::lerpFloat(float start, float end, float alpha) const
 {
     return start + (end - start) * alpha;
 }
 
-void CameraFollow::drawUi()
+void CameraFollowComponent::drawUi()
 {
     ImGui::Text("Camera Follow");
 
@@ -316,7 +316,7 @@ void CameraFollow::drawUi()
     ImGui::DragFloat("Max Extra Height", &m_maxExtraHeight, 0.05f, 0.0f, 1000.0f);
 }
 
-rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
+rapidjson::Value CameraFollowComponent::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
@@ -353,7 +353,7 @@ rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
-bool CameraFollow::deserializeJSON(const rapidjson::Value& componentInfo)
+bool CameraFollowComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("FirstTargetUID"))
     {

@@ -5,10 +5,10 @@
 class GameObject;
 class Transform;
 
-class CameraFollow final : public Component 
+class CameraFollowComponent final : public Component
 {
 public:
-	CameraFollow(UID id, GameObject* gameObject);
+	CameraFollowComponent(UID id, GameObject* gameObject);
 	
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
