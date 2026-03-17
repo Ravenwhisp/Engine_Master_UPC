@@ -1,7 +1,6 @@
 #pragma once
 #include "EditorWindow.h"
 #include "GameObject.h"
-#include <filesystem>
 
 
 class WindowHierarchy : public EditorWindow
@@ -16,8 +15,7 @@ public:
 
 private:
 	void createTreeNode();
-	void createTreeNode(GameObject* gameObject);
-
+	void createTreeNode(GameObject* gameObject, bool prefabMode);
 	void reparent(GameObject* child, GameObject* newParent);
 	void addChildToPrefabRoot(GameObject* parent);
 

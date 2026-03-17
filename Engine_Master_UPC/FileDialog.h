@@ -33,6 +33,8 @@ private:
     void navigateTo(const std::filesystem::path& path);
     void handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset);
 
+    PrefabUI::FileDialogBuffers buildFileDialogBuffers();
+
     void handleGameObjectDrop(const std::filesystem::path& targetDirectory);
 
 
