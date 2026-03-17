@@ -45,6 +45,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject)
 	Transform* transform = gameObject->GetTransform();
 	const auto children = transform->getAllChildren();
 
+
 	ImGuiTreeNodeFlags flags =
 		children.empty()
 		? ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen
@@ -206,6 +207,12 @@ void WindowHierarchy::addGameObject()
 void WindowHierarchy::removeGameObject()
 {
 	GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
+
+	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+	if (session && session->m_active && selected == session->m_rootObject)
+	{
+		return;
+	}
 
 	if (selected)
 	{

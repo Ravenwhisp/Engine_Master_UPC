@@ -9,6 +9,7 @@
 #include "ModuleEditor.h"
 #include "Settings.h"
 #include "GameObject.h"
+#include "PrefabAsset.h"
 #include "UID.h"
 
 #include "Quadtree.h"
@@ -588,8 +589,8 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
         if (!go) continue;
 
         const auto& prefabLink = gameObjectJson["PrefabLink"];
-        PrefabInstanceData instanceData;
-        instanceData.m_prefabName = prefabLink["PrefabName"].GetString();
+        PrefabData instanceData;
+        instanceData.m_name = prefabLink["PrefabName"].GetString();
         instanceData.m_prefabUID = prefabLink["PrefabUID"].GetUint();
         PrefabManager::linkInstance(go, instanceData);
     }
