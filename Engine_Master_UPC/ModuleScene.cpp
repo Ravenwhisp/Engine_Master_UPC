@@ -91,90 +91,9 @@ std::vector<MeshRenderer*> ModuleScene::getAllMeshRenderers() const
 }
 
 #pragma region Persistence
-rapidjson::Value ModuleScene::getJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value sceneInfo(rapidjson::kObjectType);
-
-    sceneInfo.AddMember("SkyBox", getSkyBoxJSON(domTree), domTree.GetAllocator());
-    sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
-
-    uint64_t defaultCameraOwnerUid = 0;
-    auto defaultCamera = m_scene->getDefaultCamera();
-    if (defaultCamera != nullptr) 
-    {
-        GameObject* owner = defaultCamera->getOwner();
-        defaultCameraOwnerUid = (uint64_t)owner->GetID();
-    }
-
-    sceneInfo.AddMember("DefaultCameraOwnerUID", defaultCameraOwnerUid, domTree.GetAllocator());
-
-    // GameObjects serialization //
-    {
-        rapidjson::Value gameObjectsData(rapidjson::kArrayType);
-        auto rootObjects = m_scene->getRootObjects();
-        for (GameObject* root : rootObjects)
-        {
-            serializeWindowHierarchy(root, gameObjectsData, domTree);
-        }
-
-        sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
-    }
-
-    return sceneInfo;
-}
-
-void ModuleScene::serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
-{
-    gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
-
-    for (GameObject* child : gameObject->GetTransform()->getAllChildren())
-    {
-        serializeWindowHierarchy(child, gameObjectsData, domTree);
-    }
-}
-
-rapidjson::Value ModuleScene::getLightingJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value lightingInfo(rapidjson::kObjectType);
-
-    auto lighting = m_scene->GetLightingSettings();
-    {
-        rapidjson::Value ambientColorData(rapidjson::kArrayType);
-        ambientColorData.PushBack(lighting.ambientColor.x, domTree.GetAllocator());
-        ambientColorData.PushBack(lighting.ambientColor.y, domTree.GetAllocator());
-        ambientColorData.PushBack(lighting.ambientColor.z, domTree.GetAllocator());
-
-        lightingInfo.AddMember("AmbientColor", ambientColorData, domTree.GetAllocator());
-    }
-
-    lightingInfo.AddMember("AmbientIntensity", lighting.ambientIntensity, domTree.GetAllocator());
-
-    return lightingInfo;
-}
-
-rapidjson::Value ModuleScene::getSkyBoxJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value skyboxInfo(rapidjson::kObjectType);
-
-    auto skybox = m_scene->getSkyBoxSettings();
-
-    skyboxInfo.AddMember("Enabled", skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", (uint64_t)skybox.cubemapAssetId, domTree.GetAllocator());
-
-    return skyboxInfo;
-}
-
 void ModuleScene::saveScene()
 {
-    rapidjson::Document domTree;
-    domTree.SetObject();
-
-    {
-        rapidjson::Value name(m_scene->getName(), domTree.GetAllocator());
-        domTree.AddMember(name, getJSON(domTree), domTree.GetAllocator());
-    }
-
-    m_sceneSerializer->SaveScene(m_scene->getName(), domTree);
+    m_sceneSerializer->SaveScene(m_scene.get());
 }
 
 bool ModuleScene::loadScene(const std::string& sceneName)
@@ -205,9 +124,9 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     return true;
 }
 
+#pragma endregion
+
 void ModuleScene::requestSceneChange(const std::string& sceneName)
 {
     m_pendingSceneLoad = sceneName;
 }
-#pragma endregion
-
