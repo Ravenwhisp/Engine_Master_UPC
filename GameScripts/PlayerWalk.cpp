@@ -27,7 +27,7 @@ PlayerWalk::PlayerWalk(GameObject* owner)
 void PlayerWalk::Start()
 {
     GameObject* owner = getOwner();
-    m_initialRotationOffset = GameObjectAPI::getEulerDegrees(owner);
+    m_initialRotationOffset = TransformAPI::getEulerDegrees(GameObjectAPI::getTransform(owner));
 
     applyControlScheme();
 }
@@ -123,7 +123,7 @@ void PlayerWalk::applyFacingFromDirection(GameObject* owner, const Vector3& dire
 
     const float finalYaw = wrapAngleDegrees(m_initialRotationOffset.y + m_currentYawDeg);
 
-    GameObjectAPI::setRotationEuler(owner, Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
+    TransformAPI::setRotationEuler(GameObjectAPI::getTransform(owner), Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
 }
 
 void PlayerWalk::applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const
@@ -137,10 +137,10 @@ void PlayerWalk::applyTranslation(GameObject* owner, const Vector3& direction, f
 
     float step = speed * dt;
 
-    Vector3 pos = GameObjectAPI::getPosition(owner);
+    Vector3 pos = TransformAPI::getPosition(GameObjectAPI::getTransform(owner));
     pos += direction * step;
 
-    GameObjectAPI::setPosition(owner, pos);
+    TransformAPI::setPosition(GameObjectAPI::getTransform(owner), pos);
 }
 
 void PlayerWalk::applyControlScheme()

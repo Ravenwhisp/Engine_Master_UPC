@@ -36,21 +36,11 @@ void CameraFollow::Update()
         return;
     }
 
-    GameObject* owner = getOwner();
-    if (!owner)
-    {
-        return;
-    }
-
-    GameObject* firstTargetOwner = ComponentAPI::getOwner(firstTarget);
-    if (!firstTargetOwner)
-    {
-        return;
-    }
+    GameObject* camera = getOwner();
+    Transform* cameraTransform = GameObjectAPI::getTransform(camera);
 
     Transform* secondTarget = m_secondTarget.get();
-    GameObject* secondTargetOwner = secondTarget ? ComponentAPI::getOwner(secondTarget) : nullptr;
-    const bool hasSecondTarget = (secondTargetOwner != nullptr);
+    const bool hasSecondTarget = (secondTarget != nullptr);
 
     const float dt = Time::getDeltaTime();
 
@@ -59,8 +49,8 @@ void CameraFollow::Update()
     float targetExtraHeight = 0.0f;
     if (hasSecondTarget)
     {
-        const Vector3 p1 = GameObjectAPI::getPosition(firstTargetOwner);
-        const Vector3 p2 = GameObjectAPI::getPosition(secondTargetOwner);
+        const Vector3 p1 = TransformAPI::getPosition(firstTarget);
+        const Vector3 p2 = TransformAPI::getPosition(secondTarget);
         targetExtraHeight = computeTargetExtraHeight(p1, p2);
     }
 
@@ -70,17 +60,17 @@ void CameraFollow::Update()
 
     if (m_firstUpdateAfterResolve)
     {
-        GameObjectAPI::setPosition(owner, desiredPos);
-        GameObjectAPI::setRotationEuler(owner, m_rotationOffset);
+        TransformAPI::setPosition(cameraTransform, desiredPos);
+        TransformAPI::setRotationEuler(cameraTransform, m_rotationOffset);
         m_firstUpdateAfterResolve = false;
         return;
     }
 
-    const Vector3 currentPos = GameObjectAPI::getPosition(owner);
+    const Vector3 currentPos = TransformAPI::getPosition(cameraTransform);
     const Vector3 smoothedCameraPosition = smoothCameraPosition(currentPos, desiredPos, m_followSharpness, dt);
 
-    GameObjectAPI::setPosition(owner, smoothedCameraPosition);
-    GameObjectAPI::setRotationEuler(owner, m_rotationOffset);
+    TransformAPI::setPosition(cameraTransform, smoothedCameraPosition);
+    TransformAPI::setRotationEuler(cameraTransform, m_rotationOffset);
 }
 
 void CameraFollow::onAfterReferencesFixed()
@@ -98,18 +88,16 @@ void CameraFollow::onAfterReferencesFixed()
 Vector3 CameraFollow::computeFollowPoint() const
 {
     Transform* firstTarget = m_firstTarget.get();
-    GameObject* firstTargetOwner = ComponentAPI::getOwner(firstTarget);
-
     Transform* secondTarget = m_secondTarget.get();
     if (!secondTarget)
     {
-        return GameObjectAPI::getPosition(firstTargetOwner);
+        return TransformAPI::getPosition(firstTarget);
     }
 
     GameObject* secondTargetOwner = ComponentAPI::getOwner(secondTarget);
 
-    const Vector3 p1 = GameObjectAPI::getPosition(firstTargetOwner);
-    const Vector3 p2 = GameObjectAPI::getPosition(secondTargetOwner);
+    const Vector3 p1 = TransformAPI::getPosition(firstTarget);
+    const Vector3 p2 = TransformAPI::getPosition(secondTarget);
     return (p1 + p2) * 0.5f;
 }
 
@@ -153,21 +141,18 @@ float CameraFollow::smoothExtraHeight(float current, float target, float sharpne
 Vector3 CameraFollow::computeDesiredCameraPosition(const Vector3& followPoint) const
 {
     Transform* firstTarget = m_firstTarget.get();
-    GameObject* firstTargetOwner = ComponentAPI::getOwner(firstTarget);
-
     Transform* secondTarget = m_secondTarget.get();
-    GameObject* secondTargetOwner = secondTarget ? ComponentAPI::getOwner(secondTarget) : nullptr;
 
     Vector3 desiredPos = followPoint;
 
     desiredPos.x += m_transformOffset.x;
     desiredPos.z += m_transformOffset.z;
 
-    float highestTargetY = GameObjectAPI::getPosition(firstTargetOwner).y;
+    float highestTargetY = TransformAPI::getPosition(firstTarget).y;
 
-    if (secondTargetOwner)
+    if (secondTarget)
     {
-        const float secondTargetY = GameObjectAPI::getPosition(secondTargetOwner).y;
+        const float secondTargetY = TransformAPI::getPosition(secondTarget).y;
         if (secondTargetY > highestTargetY)
         {
             highestTargetY = secondTargetY;

@@ -58,24 +58,32 @@ namespace Time
 
 namespace GameObjectAPI
 {
-    Vector3 getPosition(const GameObject* gameObject)
+    Transform* getTransform(GameObject* gameObject) 
     {
-        return gameObject->GetTransform()->getPosition();
+        return gameObject->GetTransform();
+    }
+}
+
+namespace TransformAPI
+{
+    Vector3 getPosition(Transform* transform)
+    {
+        return transform->getPosition();
     }
 
-    void setPosition(GameObject* gameObject, const Vector3& newPosition)
+    void setPosition(Transform* transform, const Vector3& newPosition)
     {
-        gameObject->GetTransform()->setPosition(newPosition);
+        transform->setPosition(newPosition);
     }
 
-    Vector3 getEulerDegrees(const GameObject* gameObject)
+    Vector3 getEulerDegrees(const Transform* transform)
     {
-        return gameObject->GetTransform()->getEulerDegrees();
+        return transform->getEulerDegrees();
     }
 
-    void setRotationEuler(GameObject* gameObject, const Vector3& eulerDegrees)
+    void setRotationEuler(Transform* transform, const Vector3& eulerDegrees)
     {
-        gameObject->GetTransform()->setRotationEuler(eulerDegrees);
+        transform->setRotationEuler(eulerDegrees);
     }
 }
 
