@@ -187,9 +187,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
     if (uiImg->consumeLoadRequest())
     {
         TextureAsset* asset = uiImg->getTextureAsset();
-        UID assetId = uiImg->getTextureAssetId();
+        MD5Hash assetId = uiImg->getTextureAssetId();
 
-        if (!asset || assetId == 0)
+        if (!asset || assetId == INVALID_ASSET_ID)
         {
             uiImg->setTexture(nullptr);
         }
@@ -198,7 +198,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
             auto textureIteration = m_uiTextures.find(assetId);
             if (textureIteration == m_uiTextures.end())
             {
-                auto texture = app->getModuleResources()->createTexture2D(*asset);
+                auto texture = app->getModuleResources()->createTexture(*asset);
                 if (texture)
                 {
                     Texture* raw = texture.get();

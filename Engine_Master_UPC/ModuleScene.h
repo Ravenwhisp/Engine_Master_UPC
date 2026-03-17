@@ -1,8 +1,9 @@
 #pragma once
 #include "Module.h"
 #include <rapidjson/document.h>
-#include "UID.h"
+#include "MD5.h"
 #include "MeshRenderer.h"
+#include "SceneSnapshot.h"
 
 class SceneSerializer;
 class GameObject;
@@ -24,17 +25,7 @@ struct SceneLightingSettings
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	UID cubemapAssetId = 0;
-};
-
-struct SceneSnapshot
-{
-	std::unordered_map<UID, Component*> componentMap;
-	//std::unordered_map<GameObject*, GameObject*> gameObjectMap; For now, not necessary
-
-	std::vector<std::unique_ptr<GameObject>> allObjects;
-	std::vector<GameObject*> rootObjects;
-	CameraComponent* defaultCamera = nullptr;
+	MD5Hash cubemapAssetId = INVALID_ASSET_ID;
 };
 
 class ModuleScene : public Module
@@ -128,4 +119,6 @@ public:
 
 	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
 	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
+
+	bool initEmpty();
 };

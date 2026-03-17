@@ -6,8 +6,8 @@
 #include <string>
 #include <DetourNavMesh.h> // dtTileRef
 
-struct dtNavMesh;
-struct dtNavMeshQuery;
+class dtNavMesh;
+class dtNavMeshQuery;
 
 struct NavMeshSettings
 {
@@ -25,7 +25,6 @@ class ModuleNavigation : public Module
 {
 public:
     bool init() override;
-    bool postInit() override;
     void update() override;
     bool cleanUp() override;
 

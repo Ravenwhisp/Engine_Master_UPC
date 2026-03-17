@@ -1,47 +1,37 @@
 #include "Globals.h"
-#include "FontImporter.h"
+#include "ImporterFont.h"
 
 #include "Application.h"
 #include "ModuleFileSystem.h"
 
+
+
 namespace fs = std::filesystem;
 
 
-bool FontImporter::loadExternal(const fs::path& path, std::vector<uint8_t>& out)
+bool ImporterFont::loadExternal(const std::filesystem::path& path, std::vector<uint8_t>& out)
 {
-    fs::path spritefontPath = runMakeSpriteFont(path);
+    const std::filesystem::path spritefontPath = runMakeSpriteFont(path);
     if (spritefontPath.empty())
     {
         return false;
     }
 
-    char* buffer = nullptr;
-    const unsigned int size = app->getModuleFileSystem()->load(spritefontPath, &buffer);
 
-    app->getModuleFileSystem()->deleteFile(spritefontPath.string().c_str());
+    out = app->getModuleFileSystem()->read(spritefontPath);
+    app->getModuleFileSystem()->remove(spritefontPath);
 
-    if (size == 0)
-    {
-        return false;
-    }
-
-    out.assign(reinterpret_cast<uint8_t*>(buffer), reinterpret_cast<uint8_t*>(buffer) + size);
-    delete[] buffer;
-    return true;
-
+    return !out.empty();
 }
 
-
-void FontImporter::importTyped(const std::vector<uint8_t>& source, FontAsset* dst)
+void ImporterFont::importTyped(const std::vector<uint8_t>& source, FontAsset* dst)
 {
     dst->spriteFontData = source;
     dst->fontFamilyName = m_lastFontFamilyName;
 }
 
-uint64_t FontImporter::saveTyped(const FontAsset* source, uint8_t** buffer)
+uint64_t ImporterFont::saveTyped(const FontAsset* source, uint8_t** buffer)
 {
-
-
     const uint64_t totalSize =
         sizeof(uint64_t) +
         sizeof(uint32_t) + source->fontFamilyName.size() +
@@ -51,7 +41,7 @@ uint64_t FontImporter::saveTyped(const FontAsset* source, uint8_t** buffer)
     *buffer = new uint8_t[totalSize];
     BinaryWriter writer(*buffer);
 
-    writer.u64(source->m_uid);
+    writer.string(source->m_uid);
     writer.string(source->fontFamilyName);
     writer.u64(static_cast<uint64_t>(source->spriteFontData.size()));
     writer.bytes(source->spriteFontData.data(), source->spriteFontData.size());
@@ -60,11 +50,11 @@ uint64_t FontImporter::saveTyped(const FontAsset* source, uint8_t** buffer)
 }
 
 
-void FontImporter::loadTyped(const uint8_t* buffer, FontAsset* dst)
+void ImporterFont::loadTyped(const uint8_t* buffer, FontAsset* dst)
 {
     BinaryReader reader(buffer);
 
-    dst->m_uid = reader.u64();
+    dst->m_uid = reader.string();
     dst->fontFamilyName = reader.string();
 
     const uint64_t dataSize = reader.u64();
@@ -143,7 +133,7 @@ static std::string readTTFFamilyName(const fs::path& ttfPath)
     return {};
 }
 
-fs::path FontImporter::runMakeSpriteFont(const fs::path& ttfPath)
+fs::path ImporterFont::runMakeSpriteFont(const fs::path& ttfPath)
 {
     const fs::path outPath = ttfPath.parent_path() / (ttfPath.stem().string() + "_temp.spritefont");
 
@@ -199,3 +189,7 @@ fs::path FontImporter::runMakeSpriteFont(const fs::path& ttfPath)
     return outPath;
 }
 
+Asset* ImporterFont::createAssetInstance(const MD5Hash& uid) const
+{
+    return new FontAsset(uid);
+}

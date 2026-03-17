@@ -6,6 +6,8 @@
 #include "ModuleScene.h"
 
 #include "GameObject.h"
+#include "PrefabManager.h"
+#include "ModuleScene.h"
 
 WindowHierarchy::WindowHierarchy()
 {
@@ -81,6 +83,20 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject)
 				reparent(droppedObject, gameObject);
 			}
 		}
+
+		// A prefab asset dragged from the FileDialog: instantiate it and
+		// parent the new root GO under this node.
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+		{
+			const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
+			ModuleScene* scene = app->getModuleScene();
+			GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+			if (spawned)
+			{
+				reparent(spawned, gameObject);
+				app->getModuleEditor()->setSelectedGameObject(spawned);
+			}
+		}
 		ImGui::EndDragDropTarget();
 	}
 
@@ -154,6 +170,16 @@ void WindowHierarchy::createTreeNode()
 				GameObject* droppedObject = *(GameObject**)payload->Data;
 				reparent(droppedObject, nullptr);
 			}
+
+			// Prefab dragged from FileDialog onto the scene root: spawn at root level.
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+			{
+				const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
+				ModuleScene* scene = app->getModuleScene();
+				GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+				if (spawned)
+					app->getModuleEditor()->setSelectedGameObject(spawned);
+			}
 			ImGui::EndDragDropTarget();
 		}
 
@@ -183,4 +209,3 @@ void WindowHierarchy::removeGameObject()
 		app->getModuleScene()->removeGameObject(id);
 	}
 }
-

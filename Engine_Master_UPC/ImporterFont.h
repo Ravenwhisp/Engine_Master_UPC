@@ -1,24 +1,13 @@
 #pragma once
-#include "TypedImporter.h"
+#include "ImporterSource.h"
+#include "FontAsset.h"
 #include <filesystem>
 #include <string>
-
-
-struct FontAsset : public Asset
-{
-public:
-    friend class FontImporter;
-
-    FontAsset(UID id) : Asset(id, AssetType::FONT) {}
-private:
-    std::string fontFamilyName;
-    std::vector<uint8_t> spriteFontData;
-};
 
 constexpr const char* TTL_EXTENSION = ".ttf";
 
 
-class FontImporter : public TypedImporter<std::vector<uint8_t>, FontAsset>
+class ImporterFont : public ImporterSource<std::vector<uint8_t>, FontAsset, AssetType::FONT>
 {
 public:
     bool canImport(const std::filesystem::path& path) const override
@@ -27,10 +16,7 @@ public:
         return ext == TTL_EXTENSION;
     }
 
-    Asset* createAssetInstance(UID uid) const override
-    {
-        return new FontAsset(uid);
-    }
+    Asset* createAssetInstance(const MD5Hash& uid) const override;
 
 protected:
     bool loadExternal(const std::filesystem::path& path, std::vector<uint8_t>& out) override;

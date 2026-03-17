@@ -26,11 +26,6 @@ static std::string MakeNavMeshPath(const char* sceneName)
 
 bool ModuleNavigation::init()
 {
-	return true;
-}
-
-bool ModuleNavigation::postInit()
-{
     const char* sceneName = app->getModuleScene()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
@@ -49,8 +44,9 @@ bool ModuleNavigation::postInit()
         LOG_INFO(__FILE__, __LINE__, "NavGeometry (Layer::NAVMESH): verts=%d tris=%d (vertsFloats=%zu trisInts=%zu)", numVerts, numTris, verts.size(), tris.size());
     }
 
-    return true;
+	return true;
 }
+
 
 void ModuleNavigation::update()
 {

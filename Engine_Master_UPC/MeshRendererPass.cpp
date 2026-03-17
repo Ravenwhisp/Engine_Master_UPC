@@ -142,38 +142,36 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         Matrix mvp = (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
         commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
+        const auto& mesh = renderer->getMesh();
+        const auto& submeshes = mesh->getSubmeshes();
         const auto& materials = renderer->getMaterials();
 
-        for (const auto& mesh : renderer->getMeshes())
+        if (materials.size() != submeshes.size()) return;
+
+        for (int i = 0; i < submeshes.size(); i++)
         {
-            const auto& submeshes = mesh->getSubmeshes();
+            const auto& material = materials.at(i).get();
 
-            for (const Submesh& submesh : submeshes)
-            {
-                BasicMaterial* material = renderer->getMaterial(submesh.materialId);
-
-                ModelData modelData{};
-                modelData.model = transform->getGlobalMatrix().Transpose();
-                modelData.normalMat = transform->getNormalMatrix().Transpose();
-                modelData.material = material->getMaterial();
+            ModelData modelData{};
+            modelData.model = transform->getGlobalMatrix().Transpose();
+            modelData.normalMat = transform->getNormalMatrix().Transpose();
+            modelData.material = material->getMaterial();
 
                 // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
                 commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
 
                 commandList->SetGraphicsRootDescriptorTable(4, material->getFirstDescriptor().gpu);
 
-                commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-                D3D12_VERTEX_BUFFER_VIEW vbv = mesh->getVertexBuffer()->getVertexBufferView();
-                commandList->IASetVertexBuffers(0, 1, &vbv);
+            D3D12_VERTEX_BUFFER_VIEW vbv = mesh->getVertexBuffer()->getVertexBufferView();
+            commandList->IASetVertexBuffers(0, 1, &vbv);
 
-                if (mesh->hasIndexBuffer())
-                {
-                    D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-                    commandList->IASetIndexBuffer(&ibv);
-
-                    commandList->DrawIndexedInstanced(submesh.indexCount, 1, submesh.indexStart, 0, 0);
-                }
+            if (mesh->hasIndexBuffer())
+            {
+                D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
+                commandList->IASetIndexBuffer(&ibv);
+                commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
             }
         }
     }
@@ -181,7 +179,12 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
 D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 {
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getAllGameObjects(), m_lighting->ambientColor, m_lighting->ambientIntensity);
+    ModuleScene* activeScene = app->getModuleRender()->getActiveScene();
+
+    const SceneLightingSettings& lighting = activeScene->GetLightingSettings();
+
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(activeScene->getAllGameObjects(), lighting.ambientColor, lighting.ambientIntensity);
+
 
     return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }

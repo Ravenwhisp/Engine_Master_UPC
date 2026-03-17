@@ -11,12 +11,11 @@
 #include "ModuleUI.h"
 
 #include "RingBuffer.h"
-#include "RenderTexture.h"
-#include "DepthBuffer.h"
-
 #include "GameObject.h"
 #include "CameraComponent.h"
 #include "Transform.h"
+
+#include "Texture.h"
 
 #include "ImGuiPass.h"
 #include "SkyBoxPass.h"
@@ -41,10 +40,12 @@ bool ModuleRender::init()
     //m_skyboxTexture = app->getModuleResources()->createTextureCubeFromFile(path(m_settings->skybox.path), "SkyBox");
     //m_hasSkyBox = (m_skyboxTexture != nullptr);
 
-    m_editorScreenRT = app->getModuleResources()->createRenderTexture(m_size.x, m_size.y);
-    m_playScreenRT = app->getModuleResources()->createRenderTexture(m_size.x, m_size.y);
-    m_editorScreenDS = app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y);
-	m_playScreenDS = app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y);
+    m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
+    m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
+    m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
+	m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
+
+    m_activeScene = app->getModuleScene();
 
     return true;
 }
@@ -75,18 +76,14 @@ void ModuleRender::preRender()
         app->getModuleD3D12()->getCommandQueue()->flush();
         m_size = newSize;
 
-        m_editorScreenRT.reset();
-        m_editorScreenRT = app->getModuleResources()->createRenderTexture(newSize.x, newSize.y);
+        m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(newSize.x, newSize.y));
         m_editorScreenRT->setName(L"editorScreenRT");
-        m_editorScreenDS.reset();
-        m_editorScreenDS = app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y);
+        m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y));
         m_editorScreenDS->setName(L"editorScreenDS");
 
-        m_playScreenRT.reset();
-        m_playScreenRT = app->getModuleResources()->createRenderTexture(newSize.x, newSize.y);
+        m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(newSize.x, newSize.y));
         m_playScreenRT->setName(L"playScreenRT");
-        m_playScreenDS.reset();
-        m_playScreenDS = app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y);
+        m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y));
         m_playScreenDS->setName(L"playScreenDS");
     }
 
@@ -159,15 +156,19 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    m_skyBoxPass->setView(camera.view);
-    m_skyBoxPass->setProjection(camera.projection);
-    m_skyBoxPass->apply(commandList);
+    ModuleScene* scene = m_activeScene ? m_activeScene : app->getModuleScene();
+
+    if (scene == app->getModuleScene())
+    {
+        m_skyBoxPass->setView(camera.view);
+        m_skyBoxPass->setProjection(camera.projection);
+        m_skyBoxPass->apply(commandList);
+    }
 
     m_meshRendererPass->setCameraPosition(camera.position);
     m_meshRendererPass->setView(camera.view);
     m_meshRendererPass->setProjection(camera.projection);
 
-    ModuleScene* scene = app->getModuleScene();
     scene->render(commandList);
 
     const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();

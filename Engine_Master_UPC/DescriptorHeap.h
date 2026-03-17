@@ -43,7 +43,10 @@ struct DescriptorHandle {
 class DescriptorHeap
 {
 public:
-	DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
+
+
+public:
+	DescriptorHeap(ComPtr<ID3D12Device4> device, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
 
 	D3D12_DESCRIPTOR_HEAP_TYPE	getType() const { return m_type; }
 	bool						hasSpace() const;
