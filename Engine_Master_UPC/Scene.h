@@ -10,7 +10,6 @@
 
 struct ID3D12GraphicsCommandList;
 
-class Quadtree;
 class GameObject;
 class CameraComponent;
 class MeshRenderer;
@@ -24,16 +23,13 @@ private:
     std::string m_name = "SampleScene";
 
     std::vector<std::unique_ptr<GameObject>> m_allObjects;
-    std::vector<GameObject*> m_rootObjects;
-    std::vector<MeshRenderer*> m_meshRenderers;
-
-    std::unique_ptr<Quadtree> m_quadtree;
 
     SceneLightingSettings m_lighting;
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
 
-    CameraComponent* m_defaultCamera = nullptr;
+    CameraComponent* m_defaultCamera;
+    std::vector<GameObject*> m_rootObjects;
 
 public:
 
@@ -44,7 +40,6 @@ public:
 
     bool init();
     void update();
-    void render(ID3D12GraphicsCommandList* commandList);
     bool cleanUp();
 
 #pragma endregion
@@ -60,14 +55,8 @@ public:
 
     bool applySkyBoxToRenderer();
 
-    Quadtree* getQuadtree() { return m_quadtree.get(); }
-    void createQuadtree();
-    void resetQuadtree();
-
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
-
-    const std::vector<MeshRenderer*>& getAllMeshRenderers() const { return m_meshRenderers; }
 
     void createGameObject();
     GameObject* createGameObjectWithUID(UID id, UID transformUID);
@@ -88,7 +77,7 @@ public:
 
     GameObject* createDirectionalLightOnInit();
 
-    std::vector<GameObject*> getAllGameObjects();
+    const std::vector<GameObject*> getAllGameObjects() const;
 
     SceneSnapshot getClonedGameObjects();
 

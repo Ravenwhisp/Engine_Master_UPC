@@ -129,7 +129,7 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
-    for (const auto& renderer : *m_meshRenderers) {
+    for (const auto& renderer : m_meshRenderers) {
 
         GameObject* owner = renderer->getOwner();
         if (owner == nullptr || !owner->IsActiveInWindowHierarchy())

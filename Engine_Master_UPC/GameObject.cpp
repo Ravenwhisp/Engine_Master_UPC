@@ -211,12 +211,6 @@ void GameObject::update()
             component->update();
         }
     }
-
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child && child->GetActive())
-            child->update();
-    }
 }
 
 bool GameObject::cleanUp()

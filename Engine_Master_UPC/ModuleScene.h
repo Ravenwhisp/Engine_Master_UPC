@@ -6,10 +6,13 @@
 #include <rapidjson/document.h>
 
 class Scene;
+class Quadtree;
 class SceneSerializer;
+
 class GameObject;
-class CameraComponent;
 class Component;
+class CameraComponent;
+class MeshRenderer;
 
 struct ID3D12GraphicsCommandList;
 
@@ -17,8 +20,12 @@ class ModuleScene : public Module
 {
 private:
     std::unique_ptr<Scene> m_scene;
+    std::unique_ptr<Quadtree> m_quadtree;
+
     std::unique_ptr<SceneSerializer> m_sceneSerializer;
     std::string m_pendingSceneLoad;
+
+    std::vector<MeshRenderer*> m_meshRenderers;
 
 public:
     ModuleScene();
@@ -49,5 +56,8 @@ public:
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 #pragma endregion
 
-    Scene* getScene();
+    Scene* getScene() { return m_scene.get(); }
+    Quadtree* getQuadtree() { return m_quadtree.get(); }
+
+    std::vector<MeshRenderer*> getAllMeshRenderers() const;
 };

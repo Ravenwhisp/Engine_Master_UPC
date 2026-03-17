@@ -29,156 +29,41 @@ bool Scene::init()
     m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
-    /// PROVISIONAL
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = gameCamera.get();
+
     gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
+
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
 
     m_allObjects.push_back(std::move(gameCamera));
     m_rootObjects.push_back(rawPtr);
 
-    for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
+    for (const auto& go : m_allObjects)
     {
-        gameObject->init();
+        go->init();
     }
 
-    m_quadtree.reset();
-
     createDirectionalLightOnInit();
-
     applySkyBoxToRenderer();
+
     return true;
 }
 
 void Scene::update()
 {
-    if (m_quadtree)
+    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        m_quadtree->resolveDirtyNodes();
-    }
-
-    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
-    {
-        return;
-    }
-
-    for (GameObject* root : m_rootObjects)
-    {
-        if (root && root->GetActive())
+        for (const auto& go : m_allObjects)
         {
-            root->update();
-        }
-    }
-}
-
-void Scene::render(ID3D12GraphicsCommandList* commandList)
-{
-    if (m_quadtree)
-    {
-        for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
-        {
-            if (!gameObject->GetActive())
+            if (go->GetActive())
             {
-                continue;
-            }
-
-            if (gameObject->GetTransform()->isDirty())
-            {
-                m_quadtree->move(*gameObject);
+                go->update();
             }
         }
     }
-
-#ifdef GAME_RELEASE
-    const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling;
-
-    if (!m_quadtree)
-    {
-        createQuadtree();
-    }
-
-    m_meshRenderers.clear();
-    if (useCulling)
-    {
-        auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
-
-        for (GameObject* gameObject : visibleObjects)
-        {
-            if (gameObject->GetActive())
-            {
-                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
-                {
-                    m_meshRenderers.push_back(meshRenderer);
-                }
-            }
-        }
-    }
-    else
-    {
-        for (GameObject* gameObject : getAllGameObjects())
-        {
-            if (gameObject->GetActive())
-            {
-                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
-                {
-                    m_meshRenderers.push_back(meshRenderer);
-                }
-            }
-        }
-    }
-
-
-#else
-    const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling && m_defaultCamera;
-
-    m_meshRenderers.clear();
-    if (useCulling)
-    {
-        if (!m_quadtree)
-        {
-            createQuadtree();
-        }
-
-        auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
-
-        for (GameObject* gameObject : visibleObjects)
-        {
-            if (gameObject->GetActive())
-            {
-                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
-                {
-                    m_meshRenderers.push_back(meshRenderer);
-                }
-            }
-        }
-    }
-    else
-    {
-        for (GameObject* gameObject : getAllGameObjects())
-        {
-            if (gameObject->GetActive())
-            {
-                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
-                {
-                    m_meshRenderers.push_back(meshRenderer);
-                }
-            }
-        }
-        if (m_quadtree)
-        {
-            m_quadtree.reset();
-            DEBUG_LOG("QUADTREE removed");
-        }
-    }
-#endif // GAME_RELEASE
-
 }
 
 bool Scene::cleanUp()
@@ -189,66 +74,6 @@ bool Scene::cleanUp()
 
 #pragma endregion
 
-void Scene::createQuadtree()
-{
-    float minX = std::numeric_limits<float>::max();
-    float minZ = std::numeric_limits<float>::max();
-    float maxX = std::numeric_limits<float>::lowest();
-    float maxZ = std::numeric_limits<float>::lowest();
-
-    for (const std::unique_ptr<GameObject>& go : m_allObjects)
-    {
-        if (!go->GetActive())
-        {
-            continue;
-        }
-
-        Component* component = go->GetComponent(ComponentType::MODEL);
-        if (component)
-        {
-            MeshRenderer* model = static_cast<MeshRenderer*>(component);
-            Engine::BoundingBox boundingBox = model->getBoundingBox();
-
-            Vector3 wmin(FLT_MAX, FLT_MAX, FLT_MAX);
-            Vector3 wmax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-
-            const Vector3* pts = boundingBox.getPoints();
-
-            for (int i = 0; i < 8; ++i)
-            {
-                wmin.x = std::min(wmin.x, pts[i].x);
-                wmin.z = std::min(wmin.z, pts[i].z);
-
-                wmax.x = std::max(wmax.x, pts[i].x);
-                wmax.z = std::max(wmax.z, pts[i].z);
-            }
-
-            minX = std::min(minX, wmin.x);
-            minZ = std::min(minZ, wmin.z);
-            maxX = std::max(maxX, wmax.x);
-            maxZ = std::max(maxZ, wmax.z);
-        }
-    }
-    minX -= app->getSettings()->frustumCulling.quadtreeXExtraSize;
-    minZ -= app->getSettings()->frustumCulling.quadtreeZExtraSize;
-    maxX += app->getSettings()->frustumCulling.quadtreeXExtraSize;
-    maxZ += app->getSettings()->frustumCulling.quadtreeZExtraSize;
-
-    auto rectangle = BoundingRect(minX, minZ, maxX - minX, maxZ - minZ);
-    m_quadtree = std::make_unique<Quadtree>(rectangle);
-
-    for (const std::unique_ptr<GameObject>& go : m_allObjects)
-    {
-        m_quadtree->insert((*go));
-    }
-
-    DEBUG_LOG("QUADTREE created");
-}
-
-void Scene::resetQuadtree()
-{
-    m_quadtree.reset();
-}
 
 #pragma region CRUD
 void Scene::createGameObject()
@@ -262,11 +87,6 @@ void Scene::createGameObject()
     m_rootObjects.push_back(rawPtr);
 
     rawPtr->onTransformChange();
-
-    if (m_quadtree)
-    {
-        m_quadtree->insert(*rawPtr);
-    }
 }
 
 GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
@@ -280,11 +100,6 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     m_rootObjects.push_back(raw);
 
     raw->onTransformChange();
-
-    if (m_quadtree)
-    {
-        m_quadtree->insert(*raw);
-    }
 
     return raw;
 }
@@ -395,11 +210,6 @@ void Scene::destroyWindowHierarchy(GameObject* obj)
         destroyWindowHierarchy(child);
     }
 
-    if (m_quadtree)
-    {
-        m_quadtree->remove(*obj);
-    }
-
     Transform* parent = obj->GetTransform()->getRoot();
 
     if (parent)
@@ -437,11 +247,6 @@ GameObject* Scene::createDirectionalLightOnInit()
     m_allObjects.push_back(std::move(go));
     m_rootObjects.push_back(raw);
 
-    if (m_quadtree)
-    {
-        m_quadtree->insert(*raw);
-    }
-
     return raw;
 }
 
@@ -452,7 +257,7 @@ bool Scene::applySkyBoxToRenderer()
 
 #pragma endregion
 
-std::vector<GameObject*> Scene::getAllGameObjects()
+const std::vector<GameObject*> Scene::getAllGameObjects() const
 {
     std::vector<GameObject*> result;
     result.reserve(m_allObjects.size());
@@ -469,25 +274,6 @@ SceneSnapshot Scene::getClonedGameObjects()
 {
     SceneSnapshot snapshot;
 
-    /*snapshot.allObjects.reserve(m_allObjects.size());
-
-      for (const auto& obj : m_rootObjects)
-      {
-          auto clone = obj->clone();
-
-          if(find(m_rootObjects.begin(), m_rootObjects.end(), obj.get()) != m_rootObjects.end())
-          {
-              snapshot.rootObjects.push_back(clone.get());
-          }
-          if(obj->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
-          {
-              snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
-          }
-
-          snapshot.allObjects.push_back(std::move(clone));
-      }
-
-      return snapshot;*/
     for (GameObject* root : m_rootObjects)
     {
         auto clonedRoot = cloneGameObjectRecursive(root, snapshot);
