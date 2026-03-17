@@ -39,19 +39,14 @@ public:
 #pragma endregion
 
 #pragma region Persistence
+    void saveScene();
+    bool loadScene(const std::string& sceneName);
+    
     rapidjson::Value getJSON(rapidjson::Document& domTree);
     void serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
     rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
     rapidjson::Value getSkyBoxJSON(rapidjson::Document& domTree);
 
-    bool loadFromJSON(const rapidjson::Value& sceneJson);
-    bool loadSceneSkyBox(const rapidjson::Value& sceneJson);
-    bool loadSceneLighting(const rapidjson::Value& sceneJson);
-    void fixLoadedSceneReferences();
-    void resolveDefaultCamera(const rapidjson::Value& sceneJson);
-
-    void saveScene();
-    bool loadScene(const std::string& sceneName);
     void requestSceneChange(const std::string& sceneName);
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 #pragma endregion

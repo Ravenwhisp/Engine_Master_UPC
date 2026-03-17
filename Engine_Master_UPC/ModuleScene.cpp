@@ -53,12 +53,8 @@ void ModuleScene::update()
 
 bool ModuleScene::cleanUp()
 {
-    m_scene->cleanUp();
     m_scene.reset();
-
-    m_quadtree->clear();
     m_quadtree.reset();
-
     m_sceneSerializer.reset();
 
     return true;
@@ -168,80 +164,6 @@ rapidjson::Value ModuleScene::getSkyBoxJSON(rapidjson::Document& domTree)
     return skyboxInfo;
 }
 
-bool ModuleScene::loadSceneSkyBox(const rapidjson::Value& sceneJson)
-{
-    if (!sceneJson.HasMember("SkyBox"))
-    {
-        return false;
-    }
-
-    auto skybox = m_scene->getSkyBoxSettings();
-    const auto& skyboxJson = sceneJson["SkyBox"];
-
-    if (!skyboxJson.HasMember("Enabled") && skyboxJson["Enabled"].IsBool())
-    {
-        return false;
-    }
-    skybox.enabled = skyboxJson["Enabled"].GetBool();
-
-    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].IsUint64())
-    {
-        return false;
-    }
-    skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
-
-    return true;
-}
-bool ModuleScene::loadSceneLighting(const rapidjson::Value& sceneJson) 
-{
-    auto lighting = m_scene->GetLightingSettings();
-    const auto& lightingJson = sceneJson["Lighting"];
-
-    const auto& color = lightingJson["AmbientColor"].GetArray();
-    lighting.ambientColor = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
-
-    lighting.ambientIntensity = lightingJson["AmbientIntensity"].GetFloat();
-    return true;
-}
-void ModuleScene::fixLoadedSceneReferences()
-{
-    std::unordered_map<UID, Component*> componentMap;
-
-    const std::vector<GameObject*> allObjects = m_scene->getAllGameObjects();
-    for (const auto& obj : allObjects)
-    {
-        for (Component* component : obj->GetAllComponents())
-        {
-            componentMap[component->getID()] = component;
-        }
-    }
-
-    for (const auto& obj : allObjects)
-    {
-        for (Component* component : obj->GetAllComponents())
-        {
-            component->fixReferences(componentMap);
-        }
-    }
-}
-void ModuleScene::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
-{
-    m_scene->setDefaultCamera(nullptr);
-
-    if (sceneJson.HasMember("DefaultCameraOwnerUID"))
-    {
-        const uint64_t cameraOwnerUID = sceneJson["DefaultCameraOwnerUID"].GetUint64();
-
-        if (cameraOwnerUID != 0)
-        {
-            GameObject* ownerGameObject = m_scene->findGameObjectByUID((UID)cameraOwnerUID);
-            CameraComponent* cameraComponent = ownerGameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
-            m_scene->setDefaultCamera( cameraComponent );
-        }
-    }
-}
-
-
 void ModuleScene::saveScene()
 {
     rapidjson::Document domTree;
@@ -257,86 +179,28 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    auto newScene = m_sceneSerializer->LoadScene(sceneName);
 
-    m_scene->clearScene();
-    m_scene.reset();
-    m_scene = std::make_unique<Scene>();
+    if (!newScene)
+    {
+        DEBUG_ERROR("[ModuleScene] Failed to load scene: %s", sceneName.c_str());
+        return false;
+    }
 
-    m_quadtree->clear();
-    m_quadtree.reset();
+    m_scene = std::move(newScene);
+    m_scene->setName(sceneName.c_str());
+
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());
 
-    const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
-    if (!fileExists)
+    if (app->getModuleNavigation()->loadNavMeshForScene(sceneName.c_str()))
     {
-        return false;
-    }
-    m_scene->setName(sceneName.c_str());
-
-    const char* s = sceneName.c_str();
-    if (app->getModuleNavigation()->loadNavMeshForScene(s))
-    {
-        DEBUG_LOG("LOADED NavMesh for scene: %s\n", s);
+        DEBUG_LOG("[ModuleScene] NavMesh loaded: %s", sceneName.c_str());
     }
     else
     {
-        DEBUG_ERROR("CANNOT load NavMesh for this scene\n");
+        DEBUG_WARN("[ModuleScene] NavMesh not found for scene: %s", sceneName.c_str());
     }
-   
-    return true;
-}
-
-bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
-{
-    const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
-
-    if (!loadSceneSkyBox(sceneJson))
-    {
-        DEBUG_LOG("Failed to load skybox settings from scene JSON. Possible wrong version of scene data.");
-        return false;
-    }
-    loadSceneLighting(sceneJson);
-
-    // Create all objects and components
-    std::unordered_map<uint64_t, GameObject*> uidToGo;
-    std::vector<std::pair<uint64_t, uint64_t>> childToParent;
-
-    for (auto& gameObjectJson : gameObjectsArray)
-    {
-        const uint64_t uid = gameObjectJson["UID"].GetUint64();
-        const uint64_t transformUid = gameObjectJson["Transform"]["UID"].GetUint64();
-        GameObject* gameObject = m_scene->createGameObjectWithUID((UID)uid, (UID)transformUid);
-
-        uint64_t parentUid = 0;
-        gameObject->deserializeJSON(gameObjectJson, parentUid);
-
-        uidToGo[uid] = gameObject;
-        childToParent.push_back({ uid, parentUid });
-    }
-
-    // Parent Child linking
-    for (const auto& pair : childToParent)
-    {
-        const uint64_t childUid = pair.first;
-        const uint64_t parentUid = pair.second;
-
-        if (parentUid == 0) {
-            continue;
-        }
-
-        GameObject* child = uidToGo[childUid];
-        GameObject* parent = uidToGo[parentUid];
-
-        child->GetTransform()->setRoot(parent->GetTransform());
-        parent->GetTransform()->addChild(child);
-
-        m_scene->removeFromRootList(child);
-    }
-
-    fixLoadedSceneReferences();
-    resolveDefaultCamera(sceneJson);
-    m_scene->applySkyBoxToRenderer();
 
     return true;
 }
