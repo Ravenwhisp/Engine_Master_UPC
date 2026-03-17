@@ -72,11 +72,8 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
 
         ModuleScene* mainScene = app->getModuleScene();
         const std::filesystem::path prefabPath = session->m_sourcePath;
-        for (GameObject* go : mainScene->getAllGameObjects())
-        {
-            if (PrefabManager::getPrefabName(go) == prefabName)
-                instances.push_back(go);
-        }
+
+        std::vector<GameObject*> instances;
 
         for (GameObject* go : instances)
         {
@@ -85,9 +82,11 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
             UID id = go->GetID();
             mainScene->removeGameObject(id);
 
-            GameObject* fresh = PrefabManager::instantiatePrefab(prefabName, mainScene);
+            GameObject* fresh = PrefabManager::instantiatePrefab(prefabPath, mainScene);
             if (fresh)
+            {
                 fresh->GetTransform()->setFromGlobalMatrix(worldMatrix);
+            }
         }
 
         app->getModuleEditor()->exitPrefabEdit();
