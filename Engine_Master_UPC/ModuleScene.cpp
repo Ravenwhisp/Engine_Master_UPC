@@ -578,6 +578,22 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
         removeFromRootList(child);
     }
 
+    for (auto& gameObjectJson : gameObjectsArray)
+    {
+        if (!gameObjectJson.HasMember("PrefabLink"))
+            continue;
+
+        const uint64_t uid = gameObjectJson["UID"].GetUint64();
+        GameObject* go = uidToGo[uid];
+        if (!go) continue;
+
+        const auto& prefabLink = gameObjectJson["PrefabLink"];
+        PrefabInstanceData instanceData;
+        instanceData.m_prefabName = prefabLink["PrefabName"].GetString();
+        instanceData.m_prefabUID = prefabLink["PrefabUID"].GetUint();
+        PrefabManager::linkInstance(go, instanceData);
+    }
+
     fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyBoxToRenderer();
