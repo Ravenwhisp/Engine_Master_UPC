@@ -38,10 +38,10 @@ public:
 	Application(int argc, wchar_t** argv, void* hWnd);
 	~Application();
 
-	bool         init();
-    bool         postInit();
-	void         update();
-	bool         cleanUp();
+	bool                        init();
+    bool                        postInit();
+	void                        update();
+	bool                        cleanUp();
 
     ModuleD3D12*                getModuleD3D12() { return m_moduleD3d12M; }
     ModuleEditor*               getModuleEditor() { return m_moduleEditor; }
@@ -67,16 +67,17 @@ public:
 
 	ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
 	void setEngineState(int index) { m_currentEngineState = static_cast<ENGINE_STATE>(index); }
+	void setEngineState(ENGINE_STATE state) { m_currentEngineState = state; }
 
-    bool        isPaused() const { return m_paused; }
-    bool        setPaused(bool p) { m_paused = p; return m_paused; }
+    bool isPaused() const { return m_paused; }
+    bool setPaused(bool p) { m_paused = p; return m_paused; }
 
     void requestApplicationExit() { m_quit = true; }
     bool shouldQuit() const { return m_quit; }
 
     HWND getWindowHandle() const { return m_hWnd; }
 
-    uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
+    uint64_t getElapsedMilis() const { return m_elapsedMilis; }
 
 private:
 

@@ -212,7 +212,7 @@ void SceneConfig::drawSkyBoxSettings()
 
 void SceneConfig::drawLightSettings()
 {
-    auto& light = m_moduleScene->getScene()->GetLightingSettings();
+    SceneLightingSettings& light = m_moduleScene->getScene()->getLightingSettings();
 
     if (ImGui::CollapsingHeader("Lighting"))
     {

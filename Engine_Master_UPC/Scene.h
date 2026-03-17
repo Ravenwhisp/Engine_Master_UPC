@@ -47,9 +47,10 @@ public:
     const char* getName() const { return m_name.c_str(); }
     void setName(const char* newName) { m_name = newName; }
 
-    SceneLightingSettings& GetLightingSettings() { return m_lighting; }
+    SceneLightingSettings& getLightingSettings() { return m_lighting; }
+    const SceneLightingSettings& getLightingSettings() const { return m_lighting; }
     SceneDataCB& getCBData() { return m_sceneDataCB; }
-
+    const SceneDataCB& getCBData() const { return m_sceneDataCB; }
     SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
 

@@ -41,11 +41,6 @@ public:
 #pragma region Persistence
     void saveScene();
     bool loadScene(const std::string& sceneName);
-    
-    rapidjson::Value getJSON(rapidjson::Document& domTree);
-    void serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
-    rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
-    rapidjson::Value getSkyBoxJSON(rapidjson::Document& domTree);
 
     void requestSceneChange(const std::string& sceneName);
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
