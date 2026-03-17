@@ -260,7 +260,7 @@
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="CameraSwitcher.cpp">
+    <ClCompile Include="CameraSwitcherComponent.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="WaypointPathComponent.cpp">
@@ -645,7 +645,7 @@
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="CameraSwitcher.h">
+    <ClInclude Include="CameraSwitcherComponent.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="WaypointPathComponent.h">

@@ -25,7 +25,7 @@
 #include "CameraFollowComponent.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
-#include "CameraSwitcher.h"
+#include "CameraSwitcherComponent.h"
 #include "TriggerArea.h"
 
 std::unique_ptr<Component> ComponentFactory::create(ComponentType type, GameObject* owner)
@@ -83,7 +83,7 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
         return std::make_unique<ExitApplication>(id, owner);
 
     case ComponentType::CAMERA_SWITCHER:
-        return std::make_unique<CameraSwitcher>(id, owner);
+        return std::make_unique<CameraSwitcherComponent>(id, owner);
 
     case ComponentType::CHANGE_SCENE_ON_TRIGGER:
         return std::make_unique<TriggerArea>(id, owner);

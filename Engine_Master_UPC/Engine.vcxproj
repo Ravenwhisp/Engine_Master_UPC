@@ -284,7 +284,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetsDictionary.h" />
-    <ClInclude Include="CameraSwitcher.h" />
+    <ClInclude Include="CameraSwitcherComponent.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="ComponentFactory.h" />
@@ -523,7 +523,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
-    <ClCompile Include="CameraSwitcher.cpp" />
+    <ClCompile Include="CameraSwitcherComponent.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />

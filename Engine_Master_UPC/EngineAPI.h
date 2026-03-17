@@ -7,6 +7,7 @@
 #endif
 
 #include "ScriptTypes.h"
+#include "ComponentType.h"
 #include "SimpleMath.h"
 
 using DirectX::SimpleMath::Vector3;
@@ -38,4 +39,14 @@ namespace GameObjectAPI
 namespace ComponentAPI
 {
     ENGINE_API GameObject* getOwner(const Component* component);
+}
+
+namespace Scene
+{
+    ENGINE_API int countGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
+    ENGINE_API int findGameObjectsByComponent(ComponentType componentType, GameObject** outputList, int maxResults, bool onlyActive = true);
+
+    ENGINE_API GameObject* getDefaultCameraGameObject();
+    ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
+
 }

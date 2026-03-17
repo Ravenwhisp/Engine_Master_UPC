@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "CameraSwitcher.h"
+#include "CameraSwitcherComponent.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -9,14 +9,14 @@
 
 #include <imgui.h>
 
-CameraSwitcher::CameraSwitcher(UID id, GameObject* gameObject)
+CameraSwitcherComponent::CameraSwitcherComponent(UID id, GameObject* gameObject)
     : Component(id, ComponentType::CAMERA_SWITCHER, gameObject)
 {
 }
 
-std::unique_ptr<Component> CameraSwitcher::clone(GameObject* newOwner) const
+std::unique_ptr<Component> CameraSwitcherComponent::clone(GameObject* newOwner) const
 {
-    std::unique_ptr<CameraSwitcher> clonedComponent = std::make_unique<CameraSwitcher>(m_uuid, newOwner);
+    std::unique_ptr<CameraSwitcherComponent> clonedComponent = std::make_unique<CameraSwitcherComponent>(m_uuid, newOwner);
     clonedComponent->setActive(this->isActive());
     clonedComponent->m_currentIndex = -1;
     clonedComponent->m_wasSwitchKeyPressed = false;
@@ -24,12 +24,12 @@ std::unique_ptr<Component> CameraSwitcher::clone(GameObject* newOwner) const
     return clonedComponent;
 }
 
-bool CameraSwitcher::init()
+bool CameraSwitcherComponent::init()
 {
     return true;
 }
 
-void CameraSwitcher::update()
+void CameraSwitcherComponent::update()
 {
     if (!m_hasBuiltCameraList)
     {
@@ -54,14 +54,14 @@ void CameraSwitcher::update()
     m_wasSwitchKeyPressed = isSwitchKeyPressed;
 }
 
-void CameraSwitcher::drawUi()
+void CameraSwitcherComponent::drawUi()
 {
     ImGui::Text("Camera Switcher");
     ImGui::Separator();
     ImGui::Text("Switch Key: T");
 }
 
-rapidjson::Value CameraSwitcher::getJSON(rapidjson::Document& domTree)
+rapidjson::Value CameraSwitcherComponent::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
@@ -72,7 +72,7 @@ rapidjson::Value CameraSwitcher::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
-void CameraSwitcher::rebuildCameraList()
+void CameraSwitcherComponent::rebuildCameraList()
 {
     m_cameras.clear();
 
@@ -91,7 +91,7 @@ void CameraSwitcher::rebuildCameraList()
     }
 }
 
-void CameraSwitcher::syncCurrentIndexWithDefaultCamera()
+void CameraSwitcherComponent::syncCurrentIndexWithDefaultCamera()
 {
     CameraComponent* defaultCamera = app->getModuleScene()->getDefaultCamera();
     m_currentIndex = -1;
@@ -106,7 +106,7 @@ void CameraSwitcher::syncCurrentIndexWithDefaultCamera()
     }
 }
 
-void CameraSwitcher::switchToNextCamera()
+void CameraSwitcherComponent::switchToNextCamera()
 {
     syncCurrentIndexWithDefaultCamera();
 

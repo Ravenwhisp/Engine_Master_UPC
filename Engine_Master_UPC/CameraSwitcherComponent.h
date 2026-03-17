@@ -4,10 +4,10 @@
 
 class CameraComponent;
 
-class CameraSwitcher final : public Component
+class CameraSwitcherComponent final : public Component
 {
 public:
-    CameraSwitcher(UID id, GameObject* gameObject);
+    CameraSwitcherComponent(UID id, GameObject* gameObject);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
