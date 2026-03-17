@@ -7,10 +7,10 @@ class ModuleInput;
 class Transform;
 class GameObject;
 
-class PlayerWalk final : public Component 
+class PlayerWalkComponent final : public Component 
 {
 public:
-	PlayerWalk(UID id, GameObject* gameObject);
+	PlayerWalkComponent(UID id, GameObject* gameObject);
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 

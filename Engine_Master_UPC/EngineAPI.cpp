@@ -9,6 +9,7 @@
 
 #include "GameObject.h"
 #include "Transform.h"
+#include "Component.h"
 
 void registerScript(const char* scriptName, ScriptCreator creator)
 {
@@ -54,7 +55,7 @@ namespace Time
 
 namespace GameObjectAPI
 {
-    const Vector3& getPosition(const GameObject* gameObject)
+    Vector3 getPosition(const GameObject* gameObject)
     {
         return gameObject->GetTransform()->getPosition();
     }
@@ -64,7 +65,7 @@ namespace GameObjectAPI
         gameObject->GetTransform()->setPosition(newPosition);
     }
 
-    const Vector3& getEulerDegrees(const GameObject* gameObject)
+    Vector3 getEulerDegrees(const GameObject* gameObject)
     {
         return gameObject->GetTransform()->getEulerDegrees();
     }
@@ -72,5 +73,13 @@ namespace GameObjectAPI
     void setRotationEuler(GameObject* gameObject, const Vector3& eulerDegrees)
     {
         gameObject->GetTransform()->setRotationEuler(eulerDegrees);
+    }
+}
+
+namespace ComponentAPI
+{
+    GameObject* getOwner(const Component* component)
+    {
+        return component->getOwner();
     }
 }

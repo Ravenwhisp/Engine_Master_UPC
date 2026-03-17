@@ -2,6 +2,11 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 #include "ScriptFactory.h"
+#include "ScriptComponentRef.h"
+
+#include "Application.h"
+#include "ModuleScene.h"
+#include "GameObject.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -117,7 +122,7 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
         case ScriptFieldType::Float:
         {
             float* value = reinterpret_cast<float*>(data);
-            changed = ImGui::DragFloat(field.name, value, field.dragSpeed, field.minFloat, field.maxFloat);
+            changed = ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max);
             break;
         }
 
@@ -147,17 +152,17 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
             int* value = reinterpret_cast<int*>(data);
 
             const char* preview = "";
-            if (*value >= 0 && *value < field.enumCount)
+            if (*value >= 0 && *value < field.enumInfo.count)
             {
-                preview = field.enumNames[*value];
+                preview = field.enumInfo.names[*value];
             }
 
             if (ImGui::BeginCombo(field.name, preview))
             {
-                for (int enumIndex = 0; enumIndex < field.enumCount; ++enumIndex)
+                for (int enumIndex = 0; enumIndex < field.enumInfo.count; ++enumIndex)
                 {
                     bool selected = (*value == enumIndex);
-                    if (ImGui::Selectable(field.enumNames[enumIndex], selected))
+                    if (ImGui::Selectable(field.enumInfo.names[enumIndex], selected))
                     {
                         *value = enumIndex;
                         changed = true;
@@ -170,6 +175,72 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
                 }
                 ImGui::EndCombo();
             }
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+        {
+            auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
+
+            Component* referencedComponent = ref->component;
+
+            if (referencedComponent)
+            {
+                ImGui::TextColored(
+                    ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
+                    "%s",
+                    referencedComponent->getOwner()->GetName().c_str()
+                );
+            }
+            else
+            {
+                ImGui::TextColored(
+                    ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+                    "None"
+                );
+            }
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+                {
+                    GameObject* droppedObject = *(GameObject**)payload->Data;
+                    GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+
+                    if (sceneObject)
+                    {
+                        Component* candidate = nullptr;
+
+                        if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
+                        {
+                            candidate = sceneObject->GetTransform();
+                        }
+                        else
+                        {
+                            candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
+                        }
+
+                        if (candidate)
+                        {
+                            ref->uid = candidate->getID();
+                            ref->component = candidate;
+                            changed = true;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SameLine();
+
+            std::string clearLabel = std::string("Clear###") + field.name;
+            if (ImGui::Button(clearLabel.c_str()))
+            {
+                ref->uid = 0;
+                ref->component = nullptr;
+                changed = true;
+            }
+
             break;
         }
         }
@@ -243,6 +314,13 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
             array.PushBack(value->z, domTree.GetAllocator());
 
             outFieldsJson.AddMember(key, array, domTree.GetAllocator());
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+        {
+            auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
+            outFieldsJson.AddMember(key, static_cast<uint64_t>(ref->uid), domTree.GetAllocator());
             break;
         }
         }
@@ -328,6 +406,58 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
                 vector->z = valueJson[2].GetFloat();
             }
             break;
+
+        case ScriptFieldType::ComponentRef:
+            if (valueJson.IsUint64())
+            {
+                auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
+                ref->uid = static_cast<UID>(valueJson.GetUint64());
+                ref->component = nullptr;
+            }
+            break;
+        }
+    }
+}
+
+void ScriptComponent::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+{
+    ScriptFieldList fieldList = m_script->getExposedFields();
+    char* base = reinterpret_cast<char*>(m_script.get());
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+
+        if (field.type != ScriptFieldType::ComponentRef)
+        {
+            continue;
+        }
+
+        void* data = base + field.offset;
+        auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
+
+        ref->component = nullptr;
+
+        if (ref->uid == 0)
+        {
+            continue;
+        }
+
+        auto it = referenceMap.find(ref->uid);
+        if (it == referenceMap.end())
+        {
+            continue;
+        }
+
+        Component* resolved = it->second;
+        if (!resolved)
+        {
+            continue;
+        }
+
+        if (resolved->getType() == field.componentRefInfo.componentType)
+        {
+            ref->component = resolved;
         }
     }
 }
@@ -389,6 +519,14 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
 
         case ScriptFieldType::Vec3:
             *reinterpret_cast<Vector3*>(targetData) = *reinterpret_cast<Vector3*>(sourceData);
+            break;
+
+        case ScriptFieldType::ComponentRef:
+            auto* sourceRef = reinterpret_cast<ScriptComponentRefStorage*>(sourceData);
+            auto* targetRef = reinterpret_cast<ScriptComponentRefStorage*>(targetData);
+
+            targetRef->uid = sourceRef->uid;
+            targetRef->component = nullptr;
             break;
         }
     }
