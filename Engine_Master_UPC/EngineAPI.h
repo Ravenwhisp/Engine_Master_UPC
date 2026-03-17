@@ -13,6 +13,7 @@
 using DirectX::SimpleMath::Vector3;
 
 class GameObject;
+class Transform;
 class Component;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
@@ -27,13 +28,18 @@ namespace Input
 	ENGINE_API bool isKeyDown(int key);
 }
 
-namespace GameObjectAPI
+namespace GameObjectAPI 
 {
-    ENGINE_API Vector3 getPosition(const GameObject* gameObject);
-    ENGINE_API void setPosition(GameObject* gameObject, const Vector3& newPosition);
+    ENGINE_API Transform* getTransform(const GameObject* gameObject);
+}
 
-    ENGINE_API Vector3 getEulerDegrees(const GameObject* gameObject);
-    ENGINE_API void setRotationEuler(GameObject* gameObject, const Vector3& eulerDegrees);
+namespace TransformAPI
+{
+    ENGINE_API Vector3 getPosition(const Transform* transform);
+    ENGINE_API void setPosition(Transform* transform, const Vector3& newPosition);
+
+    ENGINE_API Vector3 getEulerDegrees(const Transform* transform);
+    ENGINE_API void setRotationEuler(Transform* transform, const Vector3& eulerDegrees);
 }
 
 namespace ComponentAPI
