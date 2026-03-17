@@ -11,6 +11,7 @@
 #include "RenderModule.h"
 #include "SceneModule.h"
 #include "EditorToolbar.h"
+#include "PlayToolbar.h"
 
 #include "Settings.h"
 
@@ -18,9 +19,10 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
+#include "TriggerArea.h"
+#include "Quadtree.h"
 
 #include "CameraComponent.h"
-#include "Quadtree.h"
 
 
 SceneEditor::SceneEditor()
@@ -31,6 +33,7 @@ SceneEditor::SceneEditor()
     m_settings = app->getSettings();
 
     m_editorToolbar = new EditorToolbar();
+	m_playToolbar = new PlayToolbar();
 
     auto d3d12Module = app->getD3D12Module();
 }
@@ -38,6 +41,7 @@ SceneEditor::SceneEditor()
 SceneEditor::~SceneEditor()
 {
     delete m_editorToolbar;
+	delete m_playToolbar;
 }
 
 void SceneEditor::update()
@@ -54,6 +58,8 @@ void SceneEditor::render()
     }
 
     float toolbarWidth = ImGui::GetContentRegionAvail().x;
+	m_playToolbar->DrawCentered(toolbarWidth);
+    ImGui::NewLine();
     m_editorToolbar->DrawCentered(toolbarWidth);
     ImGui::NewLine();
     ImGui::Separator();
@@ -72,7 +78,7 @@ void SceneEditor::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)app->getRenderModule()->getGPUEditorScreenRT().ptr;
         ImGui::Image(textureID, m_size);
         
     }
@@ -95,15 +101,17 @@ void SceneEditor::render()
         bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
 
         EditorModule::SCENE_TOOL currentMode = app->getEditorModule()->getCurrentSceneTool();
-        switch (currentMode) {
-        case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
-        case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
-        case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
-        case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
-        default: shouldShowGizmo = false; break;
+        switch (currentMode) 
+        {
+            case EditorModule::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
+            case EditorModule::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
+            case EditorModule::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
+            case EditorModule::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
+            default: shouldShowGizmo = false; break;
         }
 
-        if (shouldShowGizmo) {
+        if (shouldShowGizmo) 
+        {
             Transform* transform = selectedGameObject->GetTransform();
             Matrix worldMatrix = transform->getGlobalMatrix();
 
@@ -133,7 +141,8 @@ void SceneEditor::render()
 bool SceneEditor::resize(ImVec2 contentRegion)
 {
     if (abs(contentRegion.x - m_size.x) > 1.0f ||
-        abs(contentRegion.y - m_size.y) > 1.0f) {
+        abs(contentRegion.y - m_size.y) > 1.0f) 
+    {
         setSize(contentRegion);
         return true;
     }
@@ -159,29 +168,45 @@ void SceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandList)
 
     for (GameObject* go : app->getSceneModule()->getAllGameObjects())
     {
-        if (!go || !go->GetActive()) {
+        if (!go || !go->GetActive()) 
+        {
             continue;
         }
 
         auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT);
 
-        if (!light) 
+        if (!light)
         {
             continue;
         }
 
-        if (!light->isDebugDrawEnabled()) 
+        if (!light->isDebugDrawEnabled())
         {
             continue;
         }
 
-        if (light->isDebugDrawDepthEnabled()) 
+        if (light->isDebugDrawDepthEnabled())
         {
             LightDebugDraw::drawLightWithDepth(*go);
         }
-        else 
+        else
         {
             LightDebugDraw::drawLightWithoutDepth(*go);
+        }
+
+        auto* area = go->GetComponentAs<TriggerArea>(ComponentType::CHANGE_SCENE_ON_TRIGGER);
+        
+        if (area) 
+        {
+            area->printArea();
+        }
+    }
+
+    if (m_settings->sceneEditor.showModelBoundingBoxes)
+    {
+        for (const auto& renderer : app->getSceneModule()->getAllMeshRenderers())
+        {
+            drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
         }
     }
 
@@ -250,4 +275,20 @@ void SceneEditor::renderQuadtree()
         Engine::BoundingBox bb = Engine::BoundingBox(min, max, bbPoints);
         bb.render();
 	}
+}
+
+void SceneEditor::drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color)
+{
+    const Vector3* c = bbox.getPoints();
+
+    ddVec3 pts[8];
+
+    for (int i = 0; i < 8; ++i)
+    {
+        pts[i][0] = c[i].x;
+        pts[i][1] = c[i].y;
+        pts[i][2] = c[i].z;
+    }
+
+    dd::box(pts, color, 0, false);
 }

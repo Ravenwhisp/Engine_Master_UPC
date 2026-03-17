@@ -7,6 +7,8 @@
 #include "RenderModule.h"
 #include "EditorModule.h"
 #include "Settings.h"
+#include "GameObject.h"
+#include "UID.h"
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
@@ -58,17 +60,9 @@ void SceneModule::update()
     {
         loadScene(m_pendingSceneLoad);
         m_pendingSceneLoad.clear();
-    }
-
-    for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
-    {
-        if (gameObject->GetActive())
-        {
-            gameObject->update();
-        }
-    }
-
-    if (m_quadtree)
+    }  
+  
+  if (m_quadtree)
     {
         m_quadtree->resolveDirtyNodes();
     }
@@ -146,7 +140,6 @@ void SceneModule::createQuadtree()
 
 void SceneModule::render(ID3D12GraphicsCommandList* commandList) 
 {
-
     if (m_quadtree)
     {
         for (const std::unique_ptr<GameObject>& gameObject : m_allObjects)
@@ -163,8 +156,51 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
         }
     }
 
+#ifdef GAME_RELEASE
+    const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling;
+
+    if (!m_quadtree)
+    {
+        createQuadtree();
+    }
+
+    m_meshRenderers.clear();
+    if (useCulling)
+    {
+        auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
+
+        for (GameObject* gameObject : visibleObjects)
+        {
+            if (gameObject->GetActive())
+            {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
+            }
+        }
+    }
+    else
+    {
+        for (GameObject* gameObject : getAllGameObjects())
+        {
+            if (gameObject->GetActive())
+            {
+                auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+                if (meshRenderer && meshRenderer->hasMeshes())
+                {
+                    m_meshRenderers.push_back(meshRenderer);
+                }
+            }
+        }
+    }
+
+
+#else
     const bool useCulling = app->getSettings()->frustumCulling.debugFrustumCulling && m_defaultCamera;
 
+    m_meshRenderers.clear();
     if (useCulling)
     {
         if (!m_quadtree)
@@ -173,8 +209,6 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
         }
 
         auto visibleObjects = m_quadtree->getObjects(&m_defaultCamera->getFrustum());
-
-        m_meshRenderers.clear();
 
         for (GameObject* gameObject : visibleObjects)
         {
@@ -190,7 +224,6 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
     }
     else
     {		
-        m_meshRenderers.clear();
         for (GameObject* gameObject : getAllGameObjects())
         {
             if (gameObject->GetActive())
@@ -208,6 +241,8 @@ void SceneModule::render(ID3D12GraphicsCommandList* commandList)
             DEBUG_LOG("QUADTREE removed");
         }
     }
+#endif // GAME_RELEASE
+
 }
 
 void SceneModule::postRender()
@@ -339,16 +374,30 @@ void SceneModule::destroyGameObject(GameObject* gameObject)
     }
 }
 
+void SceneModule::resetGameObjects(SceneSnapshot previousScene)
+{
+    m_allObjects = std::move(previousScene.allObjects);
+	m_rootObjects = std::move(previousScene.rootObjects);
+	m_defaultCamera = previousScene.defaultCamera;
+
+    //guarrada historica a continuacion
+    app->getEditorModule()->setSelectedGameObject(nullptr);
+}
+
 GameObject* SceneModule::findInHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
         if (child->GetID() == uuid)
+        {
             return child;
+        }
 
         GameObject* found = findInHierarchy(child, uuid);
         if (found)
+        {
             return found;
+        }
     }
 
     return nullptr;
@@ -418,6 +467,7 @@ bool SceneModule::applySkyboxToRenderer()
     return app->getRenderModule()->applySkyboxSettings(m_skybox);
 }
 
+
 #pragma region Persistence
 rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
 {
@@ -427,7 +477,8 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree), domTree.GetAllocator());
 
     uint64_t defaultCameraOwnerUid = 0;
-    if (m_defaultCamera != nullptr) {
+    if (m_defaultCamera != nullptr) 
+    {
         GameObject* owner = m_defaultCamera->getOwner();
         defaultCameraOwnerUid = (uint64_t)owner->GetID();
     }
@@ -438,16 +489,25 @@ rapidjson::Value SceneModule::getJSON(rapidjson::Document& domTree)
     {
         rapidjson::Value gameObjectsData(rapidjson::kArrayType);
 
-
-        for (GameObject* gameObject : getAllGameObjects())
+        for (GameObject* root : m_rootObjects)
         {
-            gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+            serializeHierarchy(root, gameObjectsData, domTree);
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
     }
 
     return sceneInfo;
+}
+
+void SceneModule::serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree)
+{
+    gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+
+    for (GameObject* child : gameObject->GetTransform()->getAllChildren())
+    {
+        serializeHierarchy(child, gameObjectsData, domTree);
+    }
 }
 
 rapidjson::Value SceneModule::getLightingJSON(rapidjson::Document& domTree)
@@ -478,7 +538,8 @@ rapidjson::Value SceneModule::getSkyboxJSON(rapidjson::Document& domTree)
     return skyboxInfo;
 }
 
-bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) 
+{
     const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
 
     clearScene();
@@ -492,7 +553,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
 
     // Create all objects and components
     std::unordered_map<uint64_t, GameObject*> uidToGo;
-    std::unordered_map<uint64_t, uint64_t> childToParent;
+    std::vector<std::pair<uint64_t, uint64_t>> childToParent;
 
     for (auto& gameObjectJson : gameObjectsArray)
     {
@@ -504,14 +565,14 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         gameObject->deserializeJSON(gameObjectJson, parentUid);
 
         uidToGo[uid] = gameObject;
-        childToParent[uid] = parentUid;
+        childToParent.push_back({ uid, parentUid });
     }
 
     // Parent Child linking
-    for (const auto& childAndParent : childToParent)
+    for (const auto& pair : childToParent)
     {
-        const uint64_t childUid = childAndParent.first;
-        const uint64_t parentUid = childAndParent.second;
+        const uint64_t childUid = pair.first;
+        const uint64_t parentUid = pair.second;
 
         if (parentUid == 0) {
             continue;
@@ -526,6 +587,7 @@ bool SceneModule::loadFromJSON(const rapidjson::Value& sceneJson) {
         removeFromRootList(child);
     }
 
+    fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyboxToRenderer();
 
@@ -557,7 +619,8 @@ bool SceneModule::loadSceneSkybox(const rapidjson::Value& sceneJson)
     return true;
 }
 
-bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
+bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) 
+{
     auto& lighting = GetLightingSettings();
     const auto& lightingJson = sceneJson["Lighting"];
 
@@ -568,7 +631,29 @@ bool SceneModule::loadSceneLighting(const rapidjson::Value& sceneJson) {
     return true;
 }
 
-void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) {
+void SceneModule::fixLoadedSceneReferences()
+{
+    std::unordered_map<UID, Component*> componentMap;
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            componentMap[component->getID()] = component;
+        }
+    }
+
+    for (const auto& obj : m_allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            component->fixReferences(componentMap);
+        }
+    }
+}
+
+void SceneModule::resolveDefaultCamera(const rapidjson::Value& sceneJson) 
+{
     m_defaultCamera = nullptr;
 
     if (sceneJson.HasMember("DefaultCameraOwnerUID"))
@@ -601,7 +686,8 @@ void SceneModule::saveScene()
 bool SceneModule::loadScene(const std::string& sceneName)
 {
     const bool fileExists = m_sceneSerializer->LoadScene(sceneName);
-    if (!fileExists) {
+    if (!fileExists) 
+    {
         return false;
     }
 
@@ -636,9 +722,83 @@ std::vector<GameObject*> SceneModule::getAllGameObjects()
     result.reserve(m_allObjects.size());
 
     for (const auto& obj : m_allObjects)
+    {
         result.push_back(obj.get());
+    }
 
     return result;
+}
+
+SceneSnapshot SceneModule::getClonedGameObjects()
+{
+	SceneSnapshot snapshot;
+
+  /*snapshot.allObjects.reserve(m_allObjects.size());
+
+    for (const auto& obj : m_rootObjects)
+    {
+        auto clone = obj->clone();
+
+        if(find(m_rootObjects.begin(), m_rootObjects.end(), obj.get()) != m_rootObjects.end())
+        {
+            snapshot.rootObjects.push_back(clone.get());
+		}
+        if(obj->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
+        {
+            snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+		}
+
+        snapshot.allObjects.push_back(std::move(clone));
+    }
+
+    return snapshot;*/
+    for (GameObject* root : m_rootObjects)
+    {
+        auto clonedRoot = cloneGameObjectRecursive(root, snapshot);
+        snapshot.rootObjects.push_back(clonedRoot.get());
+        snapshot.allObjects.push_back(std::move(clonedRoot));
+    }
+
+    fixClonedReferences(snapshot);
+
+    return snapshot;
+}
+
+std::unique_ptr<GameObject> SceneModule::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
+{
+    auto clone = original->clone(snapshot);
+
+    if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
+    {
+        snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    //clone->ClearComponents();
+
+    Transform* originalTransform = original->GetTransform();
+
+    for (GameObject* childGO : originalTransform->getAllChildren())
+    {
+        auto clonedChild = cloneGameObjectRecursive(childGO, snapshot);
+
+        clonedChild->GetTransform()->setRoot(clone->GetTransform());
+		clone->GetTransform()->addChild(clonedChild.get());
+		
+        snapshot.allObjects.push_back(std::move(clonedChild));
+    }
+
+    return clone;
+}
+
+void SceneModule::fixClonedReferences(const SceneSnapshot& snapshot)
+{
+    for (const auto& obj : snapshot.allObjects)
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+			component->fixReferences(snapshot.componentMap);
+        }
+    }
 }
 
 void SceneModule::removeFromRootList(GameObject* obj)

@@ -9,6 +9,7 @@ class LightComponent final : public Component
 {
 public:
     LightComponent(UID id, GameObject* owner);
+    virtual std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
     const LightData& getData() const { return m_data; }
     LightData& editData() { return m_data; }
