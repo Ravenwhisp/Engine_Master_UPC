@@ -31,6 +31,17 @@ LightComponent::LightComponent(UID id, GameObject* owner)
 {
 }
 
+std::unique_ptr<Component> LightComponent::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<LightComponent> newComponent = std::make_unique<LightComponent>(m_uuid, newOwner);
+
+    newComponent->m_data = m_data;
+    newComponent->m_debugDrawEnabled = m_debugDrawEnabled;
+    newComponent->m_debugDrawDepthEnabled = m_debugDrawDepthEnabled;
+
+	return newComponent;
+}
+
 void LightComponent::setTypeDirectional()
 {
     m_data.type = LightType::DIRECTIONAL;

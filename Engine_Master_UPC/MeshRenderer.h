@@ -7,7 +7,8 @@
 
 namespace tinygltf { class Model; }
 
-struct ModelData {
+struct ModelData 
+{
 	Matrix model;
 	Matrix normalMat;
 	BasicMaterial::BDRFPhongMaterialData material;
@@ -19,6 +20,8 @@ class MeshRenderer : public Component
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
 	~MeshRenderer() = default;
+
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void addModel(ModelAsset& model);
 
@@ -32,14 +35,7 @@ public:
 		return m_materials[it->second].get();
 	}
 
-	bool											getHasBounds() { return m_hasBounds; }
 	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
-
-#pragma region Loop functions
-	bool init() override;
-	void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) override;
-	bool cleanUp() override;
-#pragma endregion
 
 	void drawUi() override;
 
@@ -48,6 +44,8 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	rapidjson::Value getNewJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
+	int getTriangles() { return m_triangles; }
 
 private:
 	mutable std::vector<std::shared_ptr<BasicMesh>>		m_meshes;
@@ -61,8 +59,5 @@ private:
 	std::string m_modelPath;
 	std::string m_basePath;
 
-	bool m_boundsDepthTest = true;
-	bool m_drawWorldAabb = false;
-
-	bool    m_hasBounds = false;
+	int m_triangles;
 };

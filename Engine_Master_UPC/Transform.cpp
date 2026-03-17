@@ -15,6 +15,20 @@ Transform::Transform(UID id, GameObject* gameObject) :
 {
 }
 
+std::unique_ptr<Component> Transform::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<Transform> newTransform = std::make_unique<Transform>(m_uuid, newOwner);
+
+    newTransform->m_position = m_position;
+    newTransform->m_rotation = m_rotation;
+    newTransform->m_eulerDegrees = m_eulerDegrees;
+    newTransform->m_scale = m_scale;
+    newTransform->markDirty();
+    newTransform->m_root = m_root;
+
+	return newTransform;
+}
+
 const Matrix& Transform::getGlobalMatrix() const
 {
     if (m_dirty)

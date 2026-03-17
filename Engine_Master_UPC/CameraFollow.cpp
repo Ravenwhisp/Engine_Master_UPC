@@ -14,63 +14,74 @@ CameraFollow::CameraFollow(UID id, GameObject* gameObject)
 {
 }
 
-bool CameraFollow::init()
+std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 {
-    setFollowTargets();
-    return true;
+    auto clonedComponent = std::make_unique<CameraFollow>(m_uuid, newOwner);
+
+    clonedComponent->setActive(this->isActive());
+    clonedComponent->m_firstTargetTransformUid = m_firstTargetTransformUid;
+    clonedComponent->m_secondTargetTransformUid = m_secondTargetTransformUid;
+    clonedComponent->m_transformOffset = m_transformOffset;
+    clonedComponent->m_rotationOffset = m_rotationOffset;
+    clonedComponent->m_zoomStartDistance = m_zoomStartDistance;
+    clonedComponent->m_zoomEndDistance = m_zoomEndDistance;
+    clonedComponent->m_maxExtraHeight = m_maxExtraHeight;
+    clonedComponent->m_followSharpness = m_followSharpness;
+    clonedComponent->m_zoomSharpness = m_zoomSharpness;
+
+    clonedComponent->m_firstTargetTransform = nullptr;
+    clonedComponent->m_secondTargetTransform = nullptr;
+    clonedComponent->m_currentExtraHeight = 0.0f;
+
+	return clonedComponent;
 }
 
-void CameraFollow::setFollowTargets() 
+void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
 {
-    if (m_firstTargetUid == 0 && m_secondTargetUid != 0)
-    {
-        m_firstTargetUid = m_secondTargetUid;
-        m_secondTargetUid = 0;
-        m_firstTargetTransform = nullptr;
-        m_secondTargetTransform = nullptr;
-    }
+    m_firstTargetTransform = nullptr;
+    m_secondTargetTransform = nullptr;
+    m_currentExtraHeight = 0.0f;
+    m_firstUpdateAfterResolve = true;
 
-    if (m_firstTargetUid == 0)
+    if (m_firstTargetTransformUid != 0)
     {
-        m_firstTargetTransform = nullptr;
-    }
-
-    if (m_secondTargetUid == 0)
-    {
-        m_secondTargetTransform = nullptr;
-    }
-
-    if (m_firstTargetTransform && (m_secondTargetUid == 0 || m_secondTargetTransform))
-    {
-        return;
-    }
-
-    if (!m_firstTargetTransform && m_firstTargetUid != 0)
-    {
-        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_firstTargetUid)) {
-            m_firstTargetTransform = gameObject->GetTransform();
+        auto it = referenceMap.find(m_firstTargetTransformUid);
+        if (it != referenceMap.end())
+        {
+            m_firstTargetTransform = static_cast<Transform*>(it->second);
         }
     }
 
-    if (!m_secondTargetTransform && m_secondTargetUid != 0)
+    if (m_secondTargetTransformUid != 0)
     {
-        if (GameObject* gameObject = app->getSceneModule()->findGameObjectByUID(m_secondTargetUid)) {
-            m_secondTargetTransform = gameObject->GetTransform();
+        auto it = referenceMap.find(m_secondTargetTransformUid);
+        if (it != referenceMap.end())
+        {
+            m_secondTargetTransform = static_cast<Transform*>(it->second);
         }
     }
+
+    if (!m_firstTargetTransform && m_secondTargetTransform)
+    {
+        m_firstTargetTransform = m_secondTargetTransform;
+        m_firstTargetTransformUid = m_secondTargetTransformUid;
+        m_secondTargetTransform = nullptr;
+        m_secondTargetTransformUid = 0;
+    }
+}
+
+bool CameraFollow::init()
+{
+
+    return true;
 }
 
 void CameraFollow::update()
 {
-    if ((!m_firstTargetTransform && m_firstTargetUid != 0) || (!m_secondTargetTransform && m_secondTargetUid != 0))
-    {
-        setFollowTargets();
-    }
-        
-
     if (!m_firstTargetTransform) return;
 
     Transform* cameraTransform = m_owner->GetTransform();
+
     const float dt = app->getTimeModule()->deltaTime();
 
     const bool hasSecondTarget = (m_secondTargetTransform != nullptr);
@@ -88,6 +99,14 @@ void CameraFollow::update()
     m_currentExtraHeight = smoothExtraHeight(m_currentExtraHeight, targetExtraHeight, m_zoomSharpness, dt);
 
     const Vector3 desiredPos = computeDesiredCameraPosition(followPoint);
+
+    if (m_firstUpdateAfterResolve)
+    {
+        cameraTransform->setPosition(desiredPos);
+        cameraTransform->setRotationEuler(m_rotationOffset);
+        m_firstUpdateAfterResolve = false;
+        return;
+    }
 
     const Vector3 smoothedCameraPosition = smoothCameraPosition(cameraTransform->getPosition(), desiredPos, m_followSharpness, dt);
     cameraTransform->setPosition(smoothedCameraPosition);
@@ -111,7 +130,8 @@ Vector3 CameraFollow::computeFollowPoint() const
     return followPoint;
 }
 
-float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const {
+float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const 
+{
     const float distance = (p2 - p1).Length();
 
     const float zoomRange = m_zoomEndDistance - m_zoomStartDistance;
@@ -137,7 +157,8 @@ float CameraFollow::computeTargetExtraHeight(const Vector3& p1, const Vector3& p
     return targetExtraHeight;
 }
 
-float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtraHeight, float sharpness, float dt) const {
+float CameraFollow::smoothExtraHeight(float currentExtraHeight, float targetExtraHeight, float sharpness, float dt) const 
+{
     if (sharpness <= 0.0f)
     {
         return targetExtraHeight;
@@ -195,22 +216,36 @@ float CameraFollow::lerpFloat(float start, float end, float alpha) const
 void CameraFollow::drawUi()
 {
     ImGui::Text("Camera Follow");
+
     ImGui::SeparatorText("First Target");
 
-    m_firstTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_firstTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+    if (m_firstTargetTransform)
+    {
+        ImGui::TextColored(
+            ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
+            "%s",
+            m_firstTargetTransform->getOwner()->GetName().c_str()
+        );
+    }
+    else
+    {
+        ImGui::TextColored(
+            ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+            "Drag a PLAYER_WALK here"
+        );
+    }
 
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-
             GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
 
-            if (sceneObject->GetComponent(ComponentType::PLAYER_WALK))
+            if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
                 m_firstTargetTransform = sceneObject->GetTransform();
-                m_firstTargetUid = sceneObject->GetID();
+                m_firstTargetTransformUid = m_firstTargetTransform ? m_firstTargetTransform->getID() : 0;
             }
         }
         ImGui::EndDragDropTarget();
@@ -220,25 +255,38 @@ void CameraFollow::drawUi()
     if (ImGui::Button("Clear###ClearFirstTargetButton"))
     {
         m_firstTargetTransform = nullptr;
-        m_firstTargetUid = 0;
+        m_firstTargetTransformUid = 0;
     }
 
     ImGui::SeparatorText("Second Target");
 
-    m_secondTargetTransform ? ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), m_secondTargetTransform->getOwner()->GetName().c_str()) : ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Drag a PLAYER_WALK here");
+    if (m_secondTargetTransform)
+    {
+        ImGui::TextColored(
+            ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
+            "%s",
+            m_secondTargetTransform->getOwner()->GetName().c_str()
+        );
+    }
+    else
+    {
+        ImGui::TextColored(
+            ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+            "Drag a PLAYER_WALK here"
+        );
+    }
 
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-
             GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
 
-            if (sceneObject->GetComponent(ComponentType::PLAYER_WALK))
+            if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
                 m_secondTargetTransform = sceneObject->GetTransform();
-                m_secondTargetUid = sceneObject->GetID();
+                m_secondTargetTransformUid = m_secondTargetTransform ? m_secondTargetTransform->getID() : 0;
             }
         }
         ImGui::EndDragDropTarget();
@@ -248,7 +296,7 @@ void CameraFollow::drawUi()
     if (ImGui::Button("Clear###ClearSecondTargetButton"))
     {
         m_secondTargetTransform = nullptr;
-        m_secondTargetUid = 0;
+        m_secondTargetTransformUid = 0;
     }
 
     ImGui::SeparatorText("Camera Transform");
@@ -276,8 +324,8 @@ rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("FirstTargetUID", m_firstTargetUid, domTree.GetAllocator());
-    componentInfo.AddMember("SecondTargetUID", m_secondTargetUid, domTree.GetAllocator());
+    componentInfo.AddMember("FirstTargetUID", (uint64_t)m_firstTargetTransformUid, domTree.GetAllocator());
+    componentInfo.AddMember("SecondTargetUID", (uint64_t)m_secondTargetTransformUid, domTree.GetAllocator());
 
     {
         rapidjson::Value offset(rapidjson::kArrayType);
@@ -313,8 +361,8 @@ rapidjson::Value CameraFollow::getNewJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("FirstTargetUID", m_firstTargetUid, domTree.GetAllocator());
-    componentInfo.AddMember("SecondTargetUID", m_secondTargetUid, domTree.GetAllocator());
+    componentInfo.AddMember("FirstTargetUID", (uint64_t)m_firstTargetTransformUid, domTree.GetAllocator());
+    componentInfo.AddMember("SecondTargetUID", (uint64_t)m_secondTargetTransformUid, domTree.GetAllocator());
 
     {
         rapidjson::Value offset(rapidjson::kArrayType);
@@ -346,11 +394,11 @@ bool CameraFollow::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("FirstTargetUID"))
     {
-        m_firstTargetUid = (UID)componentInfo["FirstTargetUID"].GetUint64();
+        m_firstTargetTransformUid = (UID)componentInfo["FirstTargetUID"].GetUint64();
     }
     if (componentInfo.HasMember("SecondTargetUID"))
     {
-        m_secondTargetUid = (UID)componentInfo["SecondTargetUID"].GetUint64();
+        m_secondTargetTransformUid = (UID)componentInfo["SecondTargetUID"].GetUint64();
     }
 
     if (componentInfo.HasMember("WorldOffset"))

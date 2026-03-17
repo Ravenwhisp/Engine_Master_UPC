@@ -1,11 +1,11 @@
 #pragma once
 #include "Module.h"
-#include "GameObject.h"
-#include "Lights.h"
+#include <rapidjson/document.h>
 #include "UID.h"
 #include "MeshRenderer.h"
 
 class SceneSerializer;
+class GameObject;
 class Quadtree;
 class CameraComponent;
 
@@ -25,6 +25,16 @@ struct SkyboxSettings
 {
 	bool enabled = true;
 	UID cubemapAssetId = 0;
+};
+
+struct SceneSnapshot
+{
+	std::unordered_map<UID, Component*> componentMap;
+	//std::unordered_map<GameObject*, GameObject*> gameObjectMap; For now, not necessary
+
+	std::vector<std::unique_ptr<GameObject>> allObjects;
+	std::vector<GameObject*> rootObjects;
+	CameraComponent* defaultCamera = nullptr;
 };
 
 class SceneModule : public Module
@@ -62,12 +72,14 @@ public:
 #pragma region Persistence
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
+	void serializeHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree);
 	rapidjson::Value getLightingJSON(rapidjson::Document& domTree);
 	rapidjson::Value getSkyboxJSON(rapidjson::Document& domTree);
 
 	bool loadFromJSON(const rapidjson::Value& sceneJson);
 	bool loadSceneSkybox(const rapidjson::Value& sceneJson);
 	bool loadSceneLighting(const rapidjson::Value& sceneJson);
+	void fixLoadedSceneReferences();
 	void resolveDefaultCamera(const rapidjson::Value& sceneJson);
 
 	void saveScene();
@@ -83,6 +95,7 @@ public:
 
 	void addGameObject(std::unique_ptr<GameObject> gameObject);
 	void destroyGameObject(GameObject* gameObject);
+	void resetGameObjects(SceneSnapshot previousScene);
 
 	GameObject* findInHierarchy(GameObject* current, UID uuid);
 	void destroyHierarchy(GameObject* obj);
@@ -94,6 +107,11 @@ public:
 	GameObject* createDirectionalLightOnInit();
 
 	std::vector<GameObject*> getAllGameObjects();
+
+	SceneSnapshot getClonedGameObjects();
+	std::unique_ptr<GameObject> cloneGameObjectRecursive(GameObject* original, SceneSnapshot& result);
+	void fixClonedReferences(const SceneSnapshot& snapshot);
+
 	const std::vector<MeshRenderer*>& getAllMeshRenderers() { return m_meshRenderers; }
 
 	const char* getName() { return (char*)m_name.c_str(); }

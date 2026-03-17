@@ -20,7 +20,7 @@ struct LightDefaults
     static constexpr Vector3 DEFAULT_AMBIENT_COLOR = Vector3(0.2f, 0.2f, 0.2f);
 
     static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 4;
-    static constexpr uint32_t MAX_POINT_LIGHTS = 32;
+    static constexpr uint32_t MAX_POINT_LIGHTS = 112;
     static constexpr uint32_t MAX_SPOT_LIGHTS = 16;
 };
 
