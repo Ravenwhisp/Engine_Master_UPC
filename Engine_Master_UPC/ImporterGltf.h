@@ -34,6 +34,16 @@ private:
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
     void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const MD5Hash& materialUID);
 
+    GameObject* makeNode(const std::string& name,
+        std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
+
+    GameObject* buildNode(int nodeIdx,
+        GameObject* parent,
+        const tinygltf::Model& model,
+        const std::vector<MD5Hash>& meshUIDs,
+        const std::vector<MD5Hash>& materialUIDs,
+        std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
+
     const std::filesystem::path*    m_currentFilePath = nullptr;
 
     ImporterMesh&                   m_importerMesh;

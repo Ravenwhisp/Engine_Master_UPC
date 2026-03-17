@@ -129,81 +129,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meshUIDs[i] = meshUID;
     }
 
-    // GameObject tree
     std::vector<std::unique_ptr<GameObject>> tempObjects;
-
-    auto makeNode = [&](const std::string& name) -> GameObject*
-        {
-            auto go = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
-            go->SetName(name);
-            GameObject* raw = go.get();
-            tempObjects.push_back(std::move(go));
-            return raw;
-        };
-
-    std::function<GameObject* (int, GameObject*)> buildNode =
-        [&](int nodeIdx, GameObject* parent) -> GameObject*
-        {
-            const tinygltf::Node& gNode = model.nodes[nodeIdx];
-            const std::string name = gNode.name.empty()
-                ? ("Node_" + std::to_string(nodeIdx)) : gNode.name;
-
-            GameObject* go = makeNode(name);
-            Transform* tf = go->GetTransform();
-
-            if (gNode.translation.size() == 3)
-            {
-                tf->setPosition(Vector3((float)gNode.translation[0],
-                    (float)gNode.translation[1],
-                    (float)gNode.translation[2]));
-            }
-
-            if (gNode.rotation.size() == 4)
-            {
-                tf->setRotation(Quaternion((float)gNode.rotation[0],
-                    (float)gNode.rotation[1],
-                    (float)gNode.rotation[2],
-                    (float)gNode.rotation[3]));
-            }
-
-            if (gNode.scale.size() == 3)
-            {
-                tf->setScale(Vector3((float)gNode.scale[0],
-                    (float)gNode.scale[1],
-                    (float)gNode.scale[2]));
-            }
-
-            if (parent)
-            {
-                Transform* parentTf = parent->GetTransform();
-                tf->setRoot(parentTf);
-                parentTf->addChild(go);
-            }
-
-            if (gNode.mesh >= 0 && gNode.mesh < static_cast<int>(meshUIDs.size()))
-            {
-                auto* mr = static_cast<MeshRenderer*>(go->AddComponentWithUID(ComponentType::MODEL, GenerateUID()));
-                if (mr)
-                {
-                    mr->getMeshReference() = meshUIDs[gNode.mesh];
-                    const auto& prims = model.meshes[gNode.mesh].primitives;
-                    if (!prims.empty() && prims[0].material >= 0 && prims[0].material < static_cast<int>(materialUIDs.size()))
-                    {
-                        for (const auto& materialId : prims)
-                        {
-                            mr->getMaterialsReference().push_back(materialUIDs[materialId.material]);
-                        }
-                    }
-                }
-            }
-
-            for (int childIdx : gNode.children)
-            {
-                buildNode(childIdx, go);
-            }
-
-            return go;
-        };
 
     std::vector<int> rootNodes;
     if (!model.scenes.empty())
@@ -215,23 +141,21 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     {
         rootNodes.reserve(model.nodes.size());
         for (int i = 0; i < static_cast<int>(model.nodes.size()); ++i)
-        {
             rootNodes.push_back(i);
-        }
     }
 
     const std::string prefabName = m_currentFilePath->stem().string();
     GameObject* root = nullptr;
     if (rootNodes.size() == 1)
     {
-        root = buildNode(rootNodes[0], nullptr);
+        root = buildNode(rootNodes[0], nullptr, model, meshUIDs, materialUIDs, tempObjects);
     }
     else
     {
-        root = makeNode(prefabName);
+        root = makeNode(prefabName, tempObjects);
         for (int idx : rootNodes)
         {
-            buildNode(idx, root);
+            buildNode(idx, root, model, meshUIDs, materialUIDs, tempObjects);
         }
     }
 
@@ -335,4 +259,88 @@ void ImporterGltf::loadMaterial(const tinygltf::Model& model,
     mat->occlusionMap = resolveTexture(model, material.occlusionTexture.index, m_currentFilePath);
     mat->emissiveMap = resolveTexture(model, material.emissiveTexture.index, m_currentFilePath);
     mat->isEmissive = isValidAsset(mat->emissiveMap);
+}
+
+GameObject* ImporterGltf::makeNode(const std::string& name,
+    std::vector<std::unique_ptr<GameObject>>& tempObjects) const
+{
+    auto go = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
+    go->SetName(name);
+    GameObject* raw = go.get();
+    tempObjects.push_back(std::move(go));
+    return raw;
+}
+
+GameObject* ImporterGltf::buildNode(int nodeIdx,
+    GameObject* parent,
+    const tinygltf::Model& model,
+    const std::vector<MD5Hash>& meshUIDs,
+    const std::vector<MD5Hash>& materialUIDs,
+    std::vector<std::unique_ptr<GameObject>>& tempObjects) const
+{
+    const tinygltf::Node& gNode = model.nodes[nodeIdx];
+    const std::string name = gNode.name.empty()
+        ? ("Node_" + std::to_string(nodeIdx)) : gNode.name;
+
+    GameObject* go = makeNode(name, tempObjects);
+    Transform* tf = go->GetTransform();
+
+    if (gNode.translation.size() == 3)
+    {
+        tf->setPosition(Vector3(
+            (float)gNode.translation[0],
+            (float)gNode.translation[1],
+            (float)gNode.translation[2]));
+    }
+
+    if (gNode.rotation.size() == 4)
+    {
+        tf->setRotation(Quaternion(
+            (float)gNode.rotation[0],
+            (float)gNode.rotation[1],
+            (float)gNode.rotation[2],
+            (float)gNode.rotation[3]));
+    }
+
+    if (gNode.scale.size() == 3)
+    {
+        tf->setScale(Vector3(
+            (float)gNode.scale[0],
+            (float)gNode.scale[1],
+            (float)gNode.scale[2]));
+    }
+
+    if (parent)
+    {
+        Transform* parentTf = parent->GetTransform();
+        tf->setRoot(parentTf);
+        parentTf->addChild(go);
+    }
+
+    if (gNode.mesh >= 0 && gNode.mesh < static_cast<int>(meshUIDs.size()))
+    {
+        auto* mr = static_cast<MeshRenderer*>(go->AddComponentWithUID(ComponentType::MODEL, GenerateUID()));
+        if (mr)
+        {
+            mr->getMeshReference() = meshUIDs[gNode.mesh];
+            const auto& prims = model.meshes[gNode.mesh].primitives;
+            if (!prims.empty() && prims[0].material >= 0 &&
+                prims[0].material < static_cast<int>(materialUIDs.size()))
+            {
+                for (const tinygltf::Primitive& prim : prims)
+                {
+                    mr->getMaterialsReference().push_back(materialUIDs[prim.material]);
+
+                }
+            }
+        }
+    }
+
+    for (int childIdx : gNode.children)
+    {
+        buildNode(childIdx, go, model, meshUIDs, materialUIDs, tempObjects);
+
+    }
+
+    return go;
 }
