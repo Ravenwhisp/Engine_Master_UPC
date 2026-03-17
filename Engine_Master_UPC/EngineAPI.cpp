@@ -4,12 +4,15 @@
 #include "Application.h"
 #include "ModuleInput.h"
 #include "ModuleTime.h"
+#include "ModuleScene.h"
 #include "Keyboard.h"
 #include "ScriptFactory.h"
 
 #include "GameObject.h"
 #include "Transform.h"
 #include "Component.h"
+
+#include "CameraComponent.h"
 
 void registerScript(const char* scriptName, ScriptCreator creator)
 {
@@ -81,5 +84,138 @@ namespace ComponentAPI
     GameObject* getOwner(const Component* component)
     {
         return component->getOwner();
+    }
+}
+
+namespace Scene
+{
+    int countGameObjectsByComponent(ComponentType componentType, bool onlyActive)
+    {
+        if (!app || !app->getModuleScene())
+        {
+            return 0;
+        }
+
+        int count = 0;
+
+        for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
+        {
+            if (!gameObject)
+            {
+                continue;
+            }
+
+            if (onlyActive && !gameObject->GetActive())
+            {
+                continue;
+            }
+
+            Component* component = nullptr;
+
+            if (componentType == ComponentType::TRANSFORM)
+            {
+                component = gameObject->GetTransform();
+            }
+            else
+            {
+                component = gameObject->GetComponent(componentType);
+            }
+
+            if (!component)
+            {
+                continue;
+            }
+
+            if (onlyActive && !component->isActive())
+            {
+                continue;
+            }
+
+            ++count;
+        }
+
+        return count;
+    }
+
+    int findGameObjectsByComponent(ComponentType componentType, GameObject** outputList, int maxResults, bool onlyActive)
+    {
+        if (!app || !app->getModuleScene() || !outputList || maxResults <= 0)
+        {
+            return 0;
+        }
+
+        int count = 0;
+
+        for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
+        {
+            if (!gameObject)
+            {
+                continue;
+            }
+
+            if (onlyActive && !gameObject->GetActive())
+            {
+                continue;
+            }
+
+            Component* component = nullptr;
+
+            if (componentType == ComponentType::TRANSFORM)
+            {
+                component = gameObject->GetTransform();
+            }
+            else
+            {
+                component = gameObject->GetComponent(componentType);
+            }
+
+            if (!component)
+            {
+                continue;
+            }
+
+            if (onlyActive && !component->isActive())
+            {
+                continue;
+            }
+
+            if (count >= maxResults)
+            {
+                break;
+            }
+
+            outputList[count] = gameObject;
+            ++count;
+        }
+
+        return count;
+    }
+
+    GameObject* getDefaultCameraGameObject()
+    {
+        if (!app || !app->getModuleScene())
+        {
+            return nullptr;
+        }
+
+        CameraComponent* defaultCamera = app->getModuleScene()->getDefaultCamera();
+
+        return defaultCamera->getOwner();
+    }
+
+    void setDefaultCameraByGameObject(GameObject* gameObject)
+    {
+        if (!app || !app->getModuleScene() || !gameObject)
+        {
+            return;
+        }
+
+        CameraComponent* camera = gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+        if (!camera)
+        {
+            return;
+        }
+
+        app->getModuleScene()->setDefaultCamera(camera);
     }
 }
