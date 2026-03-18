@@ -37,6 +37,12 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 	uploadResourcesFinished.wait();
 }
 
+void FontPass::prepare(const RenderContext& ctx)
+{
+	m_viewport = &ctx.viewport;
+	m_commands = ctx.uiTextCommands;
+}
+
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
 	bool hasCommands = m_commands && !m_commands->empty();

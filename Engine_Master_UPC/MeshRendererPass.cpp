@@ -110,7 +110,7 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
 
     GPULightsConstantBuffer lightsCB = packLightsForGPU(ctx.scene->getLightComponents(), m_lighting->ambientColor, m_lighting->ambientIntensity);
 
-    m_lightsAddress = m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
+    m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {

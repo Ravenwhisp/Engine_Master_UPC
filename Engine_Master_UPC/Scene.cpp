@@ -47,7 +47,6 @@ bool Scene::init()
     }
 
     createDirectionalLightOnInit();
-    applySkyBoxToRenderer();
     markDirty();
     return true;
 }
@@ -249,11 +248,6 @@ GameObject* Scene::createDirectionalLightOnInit()
     m_rootObjects.push_back(raw);
 
     return raw;
-}
-
-bool Scene::applySkyBoxToRenderer()
-{
-    return app->getModuleRender()->applySkyBoxSettings(m_skybox);
 }
 
 #pragma endregion

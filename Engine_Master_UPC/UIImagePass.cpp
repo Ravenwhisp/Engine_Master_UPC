@@ -23,6 +23,12 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
     uploadFinished.wait();
 }
 
+void UIImagePass::prepare(const RenderContext& ctx)
+{
+    m_viewport = &ctx.viewport;
+    m_commands = ctx.uiImageCommands;
+}
+
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     if (!m_commands || m_commands->empty())

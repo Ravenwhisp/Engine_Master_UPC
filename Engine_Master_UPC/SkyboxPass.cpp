@@ -87,6 +87,13 @@ void SkyBoxPass::prepare(const RenderContext& ctx)
 {
     m_view = &ctx.view;
     m_projection = &ctx.projection;
+
+    if (ctx.skyBoxSettings && !(*ctx.skyBoxSettings == m_lastSettings))
+    {
+        setSettings(*ctx.skyBoxSettings);
+
+        m_lastSettings = *ctx.skyBoxSettings;
+    }
 }
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)

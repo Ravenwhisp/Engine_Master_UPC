@@ -9,6 +9,10 @@
 
 #include <d3dcompiler.h>
 #include "d3dx12.h"
+#include <DebugEditorOverlay.h>
+#include <DebugQuadtree.h>
+#include <DebugScene.h>
+#include <DebugNavmesh.h>
 
 
 static const char linePointSource[] = R"(
@@ -472,6 +476,11 @@ DebugDrawPass::DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQu
 {
     implementation = new DDRenderInterfaceCoreD3D12(device, uploadQueue, useMSAA, cpuText, gpuText);
     dd::initialize(implementation);
+
+    m_drawers.push_back(std::make_unique<DebugEditorOverlay>());
+    m_drawers.push_back(std::make_unique<DebugQuadtree>());
+    m_drawers.push_back(std::make_unique<DebugScene>());
+    m_drawers.push_back(std::make_unique<DebugNavMesh>());
 }
 
 DebugDrawPass::~DebugDrawPass()
@@ -487,6 +496,11 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_viewport = &ctx.viewport;
+
+    for (auto& drawer : m_drawers)
+    {
+        drawer->draw(ctx);
+    }
 }
 void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
 {

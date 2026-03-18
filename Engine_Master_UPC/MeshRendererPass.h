@@ -42,8 +42,6 @@ private:
     ComPtr<ID3D12RootSignature>		m_rootSignature;
     ComPtr<ID3D12PipelineState>		m_pipelineState;
 
-    RingBuffer*                     m_ringBuffer = nullptr;
-
     D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_lightsAddress = 0;
 

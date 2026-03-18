@@ -6,10 +6,11 @@
 #include <wrl/client.h>
 #include <memory>
 
+#include "SkyBoxSettings.h"
+
 using Microsoft::WRL::ComPtr;
 
 class SkyBox;
-struct SkyBoxSettings;
 
 namespace DirectX { namespace SimpleMath { struct Matrix; } }
 
@@ -33,4 +34,5 @@ private:
     //Not sure if this belongs here
     const Matrix*         m_projection = nullptr;
     const Matrix*         m_view = nullptr;
+    SkyBoxSettings    m_lastSettings{};
 };
