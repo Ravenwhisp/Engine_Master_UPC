@@ -9,7 +9,9 @@
 #include "GameObject.h"
 #include "PrefabEditSession.h"
 #include "PrefabManager.h"
+#include "PrefabAsset.h"
 #include "ModuleScene.h"
+#include "Transform.h"
 
 // ---------------------------------------------------------------------------
 // Internal helper

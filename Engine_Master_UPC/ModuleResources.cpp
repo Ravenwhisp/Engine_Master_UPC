@@ -16,6 +16,7 @@
 #include <DirectXTex.h>
 #include "MeshAsset.h"
 #include "MaterialAsset.h"
+#include "MD5.h"
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {

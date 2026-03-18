@@ -15,6 +15,7 @@
 
 #include "ImGuizmo.h"
 #include "GameObject.h"
+#include "Transform.h"
 
 bool ModuleCamera::init() {
     m_settings = app->getSettings();

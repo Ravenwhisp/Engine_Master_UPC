@@ -15,6 +15,7 @@
 #include "Quadtree.h"
 #include "SceneSerializer.h"
 #include "ModuleNavigation.h"
+#include "Transform.h"
 
 #include <queue>
 #include <limits>

@@ -24,6 +24,7 @@
 #include "TriggerArea.h"
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
+#include "Transform.h"
 
 #include "CameraComponent.h"
 #include <WindowLogger.h>

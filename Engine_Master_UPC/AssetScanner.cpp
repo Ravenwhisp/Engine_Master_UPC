@@ -10,6 +10,7 @@
 #include "Asset.h"
 #include "Metadata.h"
 #include "UID.h"
+#include "MD5.h"
 
 #include <filesystem>
 

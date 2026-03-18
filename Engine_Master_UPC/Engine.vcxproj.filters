@@ -783,6 +783,9 @@
     <ClInclude Include="Channel.h">
       <Filter>Animations</Filter>
     </ClInclude>
+    <ClInclude Include="MD5Fwd.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

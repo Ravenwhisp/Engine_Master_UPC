@@ -1,12 +1,10 @@
 #pragma once
 #include <filesystem>
-#include <cstdint>
-#include <vector>
-#include "Asset.h"
-#include "BinaryReader.h"
-#include "BinaryWriter.h"
-#include "Globals.h"
+#include "MD5Fwd.h"
+#include "AssetType.h"
 #include "Extensions.h"
+
+class Asset;
 
 class Importer
 {

@@ -1,16 +1,14 @@
 #pragma once
 #include "ImporterSource.h"
 #include "UtilityGLFT.h"
-#include <ImporterMesh.h>
-#include <ImporterMaterial.h>
-#include "ImporterPrefab.h"
 
 class PrefabAsset;
 class MaterialAsset;
 class MeshAsset;
 class GameObject;
-
-
+class ImporterMesh;
+class ImporterMaterial;
+class ImporterPrefab;
 
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.

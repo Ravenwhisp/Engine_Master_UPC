@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Asset.h"
-#include "MD5.h"
 #include "UID.h"
 
 #include <filesystem>

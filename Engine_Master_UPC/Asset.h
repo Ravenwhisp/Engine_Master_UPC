@@ -1,16 +1,8 @@
 #pragma once
-#include <string>
-#include "filesystem"
 
-#include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
-#include "rapidjson/filereadstream.h"
-
-#include <fstream>
-#include "MD5.h" 
+#include "MD5Fwd.h"
 #include "AssetsDictionary.h"
-#include <AssetType.h>
+#include "AssetType.h"
 
 class Asset
 {

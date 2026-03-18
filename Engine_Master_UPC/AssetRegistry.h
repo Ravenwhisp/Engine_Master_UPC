@@ -1,9 +1,8 @@
 #pragma once
-#include "Asset.h"
+#include "MD5Fwd.h"
 #include <filesystem>
-#include <unordered_map>
-#include "Metadata.h"
 
+struct Metadata;
 
 // In-memory registry of all known assets.
 class AssetRegistry

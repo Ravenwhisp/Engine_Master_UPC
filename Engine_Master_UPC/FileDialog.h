@@ -2,15 +2,18 @@
 #include "EditorWindow.h"
 #include "PrefabUI.h"
 #include <filesystem>
-#include "ModuleAssets.h"
 
-enum Command {
+struct FileEntry;
+
+enum Command 
+{
     NONE,
     MOVE,
     COPY
 };
 
-class FileDialog : public EditorWindow {
+class FileDialog : public EditorWindow 
+{
 public:
     void render() override;
     const char* getWindowName() const override { return "FileDialog"; }
