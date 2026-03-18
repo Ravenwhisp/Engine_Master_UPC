@@ -87,6 +87,16 @@ namespace GameObjectAPI
     {
         return gameObject->GetName().c_str();
     }
+
+    Tag getTag(const GameObject* gameObject)
+    {
+        return gameObject->GetTag();
+    }
+
+    void setTag(GameObject* gameObject, Tag tag)
+    {
+        gameObject->SetTag(tag);
+    }
 }
 
 namespace TransformAPI
@@ -101,6 +111,16 @@ namespace TransformAPI
         transform->setPosition(newPosition);
     }
 
+    Vector3 getScale(const Transform* transform) 
+    {
+        return transform->getScale();
+    }
+
+    void setScale(Transform* transform, const Vector3& newScale) 
+    {
+        transform->setScale(newScale);
+    }
+
     Vector3 getEulerDegrees(const Transform* transform)
     {
         return transform->getEulerDegrees();
@@ -109,6 +129,26 @@ namespace TransformAPI
     void setRotationEuler(Transform* transform, const Vector3& eulerDegrees)
     {
         transform->setRotationEuler(eulerDegrees);
+    }
+
+    Vector3 getForward(const Transform* transform)
+    {
+        return transform->getForward();
+    }
+
+    Vector3 getRight(const Transform* transform)
+    {
+        return transform->getRight();
+    }
+
+    Vector3 getUp(const Transform* transform)
+    {
+        return transform->getUp();
+    }
+
+    void translate(Transform* transform, const Vector3& delta)
+    {
+        transform->setPosition(transform->getPosition() + delta);
     }
 }
 
@@ -122,6 +162,16 @@ namespace ComponentAPI
     const GameObject* getOwner(const Component* component)
     {
         return component->getOwner();
+    }
+
+    bool isActive(const Component* component)
+    {
+        return component->isActive();
+    }
+
+    void setActive(Component* component, bool active)
+    {
+        component->setActive(active);
     }
 }
 
@@ -138,7 +188,7 @@ namespace Scene
 
         for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
         {
-            if (onlyActive && !gameObject->GetActive())
+            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
             {
                 continue;
             }
@@ -181,7 +231,7 @@ namespace Scene
 
         for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
         {
-            if (onlyActive && !gameObject->GetActive())
+            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
             {
                 continue;
             }
@@ -245,5 +295,30 @@ namespace Scene
         }
 
         app->getModuleScene()->setDefaultCamera(camera);
+    }
+
+    GameObject* findGameObjectByTag(Tag tag, bool onlyActive)
+    {
+        if (!app || !app->getModuleScene())
+        {
+            return nullptr;
+        }
+
+        for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
+        {
+            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
+            {
+                continue;
+            }
+
+            if (gameObject->GetTag() != tag)
+            {
+                continue;
+            }
+
+            return gameObject;
+        }
+
+        return nullptr;
     }
 }
