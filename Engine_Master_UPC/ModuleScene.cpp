@@ -9,11 +9,13 @@
 #include "ModuleEditor.h"
 #include "Settings.h"
 #include "GameObject.h"
+#include "PrefabAsset.h"
 #include "UID.h"
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
 #include "ModuleNavigation.h"
+#include "Transform.h"
 
 #include <queue>
 #include <limits>
@@ -576,6 +578,22 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
         parent->GetTransform()->addChild(child);
 
         removeFromRootList(child);
+    }
+
+    for (auto& gameObjectJson : gameObjectsArray)
+    {
+        if (!gameObjectJson.HasMember("PrefabLink"))
+            continue;
+
+        const uint64_t uid = gameObjectJson["UID"].GetUint64();
+        GameObject* go = uidToGo[uid];
+        if (!go) continue;
+
+        const auto& prefabLink = gameObjectJson["PrefabLink"];
+        PrefabData instanceData;
+        instanceData.m_name = prefabLink["PrefabName"].GetString();
+        instanceData.m_prefabUID = prefabLink["PrefabUID"].GetUint();
+        PrefabManager::linkInstance(go, instanceData);
     }
 
     fixLoadedSceneReferences();

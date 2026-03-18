@@ -1,9 +1,6 @@
 #pragma once
 #include "ImporterNative.h"
-#include <ModuleResources.h>
-#include "UtilityGLFT.h"
 #include "MeshAsset.h"
-
 
 class ImporterMesh : public ImporterNative<MeshAsset, AssetType::MESH>
 {

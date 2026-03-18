@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Asset.h"
 #include "Importer.h"
 
-class ImporterRegistry {
+class ImporterRegistry 
+{
 public:
     void      registerImporter(std::unique_ptr<Importer> importer);
 

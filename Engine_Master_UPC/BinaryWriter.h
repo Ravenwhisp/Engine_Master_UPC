@@ -3,11 +3,13 @@
 #include <cstring>
 #include <string>
 
-class BinaryWriter {
+class BinaryWriter 
+{
 public:
     BinaryWriter(uint8_t* buffer) : cursor(buffer) {}
 
-    void u8(uint8_t v) {
+    void u8(uint8_t v) 
+    {
         std::memcpy(cursor, &v, sizeof(v));
         cursor += sizeof(v);
     }

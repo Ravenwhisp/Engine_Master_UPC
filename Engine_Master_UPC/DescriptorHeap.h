@@ -31,7 +31,7 @@ public:
     // Merges adjacent free ranges automatically (coalescing).
     void freeBlock(DescriptorHeapBlock* block);
 
-    // Convenience: single descriptor — equivalent to allocateBlock(1)->getHandle(0)
+    // Convenience: single descriptor ï¿½ equivalent to allocateBlock(1)->getHandle(0)
     DescriptorHandle allocate();
     void             free(UINT handle);
 
@@ -61,7 +61,7 @@ private:
     // Sorted by start index. Maintained sorted after every alloc/free.
     std::vector<FreeRange> m_freeList{};
 
-    // Pool of block objects — allocated lazily, reused on free.
+    // Pool of block objects ï¿½ allocated lazily, reused on free.
     // Indexed by their baseIndex so lookup is O(1).
     std::unordered_map<uint32_t, DescriptorHeapBlock> m_blocks{};
 

@@ -1,12 +1,16 @@
 #include "Globals.h"
 #include "MeshRenderer.h"
-#include <Transform.h>
+
+#include "Transform.h"
 #include "GameObject.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
 #include "Settings.h"
+
+#include "BasicMesh.h"
+#include "MaterialAsset.h"
 
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const

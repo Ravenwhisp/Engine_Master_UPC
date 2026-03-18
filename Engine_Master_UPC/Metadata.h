@@ -1,7 +1,7 @@
 #pragma once
-#include <MD5.h>
-#include <AssetType.h>
-#include <AssetsDictionary.h>
+#include "MD5Fwd.h"
+#include "AssetType.h"
+#include "AssetsDictionary.h"
 
 struct DependencyRecord
 {

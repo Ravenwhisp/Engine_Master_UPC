@@ -1,7 +1,6 @@
 #pragma once
 #include "ImporterNative.h"
 
-
 #include "PrefabAsset.h"
 
 class ImporterPrefab : public ImporterNative<PrefabAsset, AssetType::PREFAB>

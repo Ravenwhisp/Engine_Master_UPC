@@ -1,16 +1,14 @@
 #pragma once
 #include "ImporterSource.h"
 #include "UtilityGLFT.h"
-#include <ImporterMesh.h>
-#include <ImporterMaterial.h>
-#include "ImporterPrefab.h"
 
 class PrefabAsset;
 class MaterialAsset;
 class MeshAsset;
 class GameObject;
-
-
+class ImporterMesh;
+class ImporterMaterial;
+class ImporterPrefab;
 
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.
@@ -33,6 +31,16 @@ private:
     // Kept for the duration of a single import call; reset to nullptr afterwards.
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
     void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const MD5Hash& materialUID);
+
+    GameObject* makeNode(const std::string& name,
+        std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
+
+    GameObject* buildNode(int nodeIdx,
+        GameObject* parent,
+        const tinygltf::Model& model,
+        const std::vector<MD5Hash>& meshUIDs,
+        const std::vector<MD5Hash>& materialUIDs,
+        std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
 
     const std::filesystem::path*    m_currentFilePath = nullptr;
 

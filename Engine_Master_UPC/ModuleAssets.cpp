@@ -10,11 +10,16 @@
 #include "ImporterPrefab.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
-
+#include "MD5.h"
 
 #include "Asset.h"
 #include "Metadata.h"
 #include "UID.h"
+
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include "rapidjson/filereadstream.h"
 
 #include <filesystem>
 

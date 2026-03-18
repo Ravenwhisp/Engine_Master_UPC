@@ -1,6 +1,9 @@
 #include "Globals.h"
 #include "ImporterMaterial.h"
+
 #include "MaterialAsset.h"
+#include "BinaryReader.h"
+#include "BinaryWriter.h"
 
 Asset* ImporterMaterial::createAssetInstance(const MD5Hash& uid) const
 

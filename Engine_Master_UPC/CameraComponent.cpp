@@ -5,6 +5,7 @@
 #include "ModuleScene.h"
 
 #include "GameObject.h"
+#include "Transform.h"
 
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {

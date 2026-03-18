@@ -3,6 +3,8 @@
 
 #include "Application.h"
 #include "ModuleFileSystem.h"
+#include "BinaryReader.h"
+#include "BinaryWriter.h"
 
 #include <rapidjson/document.h>
 

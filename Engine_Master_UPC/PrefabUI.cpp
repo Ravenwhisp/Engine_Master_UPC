@@ -9,7 +9,9 @@
 #include "GameObject.h"
 #include "PrefabEditSession.h"
 #include "PrefabManager.h"
+#include "PrefabAsset.h"
 #include "ModuleScene.h"
+#include "Transform.h"
 
 // ---------------------------------------------------------------------------
 // Internal helper
@@ -72,12 +74,21 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
 
         ModuleScene* mainScene = app->getModuleScene();
         const std::filesystem::path prefabPath = session->m_sourcePath;
-        for (GameObject* go : mainScene->getAllGameObjects())
+
+        std::vector<GameObject*> instances;
+
+        for (GameObject* go : instances)
         {
-            // Match by source path — not by name, since names are not unique.
-            const PrefabData* data = PrefabManager::getInstanceData(go);
-            if (data && data->m_sourcePath == prefabPath)
-                PrefabManager::revertToPrefab(go, mainScene);
+            Matrix worldMatrix = go->GetTransform()->getGlobalMatrix();
+
+            UID id = go->GetID();
+            mainScene->removeGameObject(id);
+
+            GameObject* fresh = PrefabManager::instantiatePrefab(prefabPath, mainScene);
+            if (fresh)
+            {
+                fresh->GetTransform()->setFromGlobalMatrix(worldMatrix);
+            }
         }
 
         app->getModuleEditor()->exitPrefabEdit();

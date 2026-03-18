@@ -13,6 +13,8 @@
 #include "LightComponent.h"
 #include "VertexBuffer.h"
 #include "Texture.h"
+#include "BasicMesh.h"
+#include "Transform.h"
 
 #include "SimpleMath.h"
 #include <d3dcompiler.h>
@@ -146,6 +148,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         const auto& submeshes = mesh->getSubmeshes();
         const auto& materials = renderer->getMaterials();
 
+        if (mesh.get() == nullptr) return;
         if (materials.size() != submeshes.size()) return;
 
         for (int i = 0; i < submeshes.size(); i++)

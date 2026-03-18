@@ -2,10 +2,7 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
-
-using MD5Hash = std::string;
-
-inline constexpr const char* INVALID_ASSET_ID = "";
+#include "MD5Fwd.h"
 
 std::string           to_hex_string(const std::vector<int8_t>& bytes);
 std::vector<int8_t>   to_byte_vector(const std::string& text);
@@ -14,11 +11,13 @@ std::vector<int8_t>   computeMD5(const std::vector<int8_t>& message);
 
 inline bool isValidAsset(const MD5Hash& id) { return !id.empty(); }
 
-inline MD5Hash computeMD5(const std::string& filePath) {
+inline MD5Hash computeMD5(const std::string& filePath) 
+{
 	return to_hex_string(computeMD5(to_byte_vector(filePath)));
 }
 
-inline MD5Hash computeMD5(const std::filesystem::path& filePath) {
+inline MD5Hash computeMD5(const std::filesystem::path& filePath) 
+{
     std::ifstream file(filePath, std::ios::binary);
     if (!file)
     {
