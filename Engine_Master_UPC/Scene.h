@@ -31,7 +31,11 @@ private:
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
 
+    bool m_componentCacheDirty = true;
+
+
 public:
+    friend class ModuleScene;
 
     Scene();
     ~Scene();
@@ -89,4 +93,8 @@ public:
     void fixClonedReferences(const SceneSnapshot& snapshot);
 
     void clearScene();
+
+    void  markDirty() { m_componentCacheDirty = true; }
+    bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
+    void  clearDirty() { m_componentCacheDirty = false; }
 };

@@ -482,6 +482,12 @@ DebugDrawPass::~DebugDrawPass()
     implementation = 0;
 }
 
+void DebugDrawPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+    m_viewport = &ctx.viewport;
+}
 void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "DebugDraw Pass");

@@ -13,6 +13,7 @@ public:
     DescriptorHeap* GetHeap() { return heap; }
 
     void startFrame();
+    virtual void prepare(const RenderContext& ctx) override {}
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
 private:
