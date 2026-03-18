@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ICacheable.h"
 
@@ -55,9 +55,9 @@ public:
 		Vector3     diffuseColour;
 		BOOL        hasDiffuseTex;
 
-		BOOL        hasMetallicRoughnessTex;
 		float       metallicFactor;
 		float       roughnessFactor;
+		BOOL        hasMetallicRoughnessTex;
 		float       padding;
 	};
 

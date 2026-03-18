@@ -41,7 +41,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 
 	m_materialData.diffuseColour = Vector3(asset.getBaseColour().R(), asset.getBaseColour().G(), asset.getBaseColour().B());
 	m_materialData.metallicFactor = asset.getMetallicFactor();
-	//m_materialData.roughnessFactor = asset.getRoughnessFactor(); //Missing roughness factor in MaterialAsset class
+	m_materialData.roughnessFactor = asset.getRoughnessFactor(); //Missing roughness factor in MaterialAsset class
 	m_materialBuffer = app->getModuleResources()->createDefaultBuffer(&m_materialData, alignUp(sizeof(PbrMetallicRoughnessData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 
     buildDescriptorTable();
@@ -72,7 +72,6 @@ void BasicMaterial::buildDescriptorTable()
     m_block = srvHeap.allocateBlock(SLOT_COUNT);
     assert(m_block && "Failed to allocate material descriptor block");
 
-
     for (uint32_t slot = 0; slot < SLOT_COUNT; ++slot)
     {
         writeNullDescriptor(slot);
@@ -94,8 +93,7 @@ void BasicMaterial::copyTextureIntoSlot(Texture* texture, uint32_t slot)
     DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     // Copy the SRV descriptor from the texture's private block into our slot.
-    device->CopyDescriptorsSimple(
-        1,
+    device->CopyDescriptorsSimple( 1,
         m_block->getCPUHandle(slot),   // dst: our material table slot
         texture->getSRV().cpu,                  // src: texture's own descriptor
         D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

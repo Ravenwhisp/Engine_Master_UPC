@@ -193,7 +193,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
 
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor; //Albedo = BaseColor ("Varies")
     
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(liearSample, coord).rg;
+    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(liearSample, coord).gb;
     float2 metallicRoughness = (hasMetallicRoughnessTex != 0)
                                 ? metallicRoughnessSample
                                 : float2(0, 0.5); 

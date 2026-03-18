@@ -218,8 +218,7 @@ GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<Gam
             continue;
         }
 
-        const LightComponent* lightComponent =
-            gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
+        const LightComponent* lightComponent = gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
         if (lightComponent == nullptr)
         {
             continue;

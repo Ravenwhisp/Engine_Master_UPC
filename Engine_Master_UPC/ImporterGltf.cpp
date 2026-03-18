@@ -257,7 +257,8 @@ void ImporterGltf::loadMaterial(const tinygltf::Model& model,
 {
     const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
     mat->baseColour = Color( float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
-    mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor * 255.0f);
+    mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor);
+    mat->roughnessFactor = static_cast<uint32_t>(pbr.roughnessFactor);
     mat->baseMap = resolveTexture(model, pbr.baseColorTexture.index, m_currentFilePath);
     mat->metallicRoughnessMap = resolveTexture(model, pbr.metallicRoughnessTexture.index, m_currentFilePath);
     mat->normalMap = resolveTexture(model, material.normalTexture.index, m_currentFilePath);
