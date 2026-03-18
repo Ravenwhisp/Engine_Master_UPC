@@ -3,13 +3,14 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "UID.h"
 
 #include <rapidjson/document.h>
 
-#include "PrefabAsset.h"
-
 class GameObject;
 class ModuleScene;
+class PrefabAsset;
+struct PrefabData;
 
 class PrefabManager
 {

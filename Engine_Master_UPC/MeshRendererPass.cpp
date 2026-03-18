@@ -13,6 +13,8 @@
 #include "LightComponent.h"
 #include "VertexBuffer.h"
 #include "Texture.h"
+#include "BasicMesh.h"
+#include "Transform.h"
 
 #include "SimpleMath.h"
 #include <d3dcompiler.h>

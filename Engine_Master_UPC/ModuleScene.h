@@ -1,7 +1,7 @@
 #pragma once
 #include "Module.h"
 #include <rapidjson/document.h>
-#include "MD5.h"
+#include "MD5Fwd.h"
 #include "MeshRenderer.h"
 #include "SceneSnapshot.h"
 

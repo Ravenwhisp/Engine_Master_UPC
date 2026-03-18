@@ -4,7 +4,10 @@
 #include "Application.h"
 #include "ModuleFileSystem.h"
 
+#include "BinaryReader.h"
+#include "BinaryWriter.h"
 
+#include <fstream>
 
 namespace fs = std::filesystem;
 

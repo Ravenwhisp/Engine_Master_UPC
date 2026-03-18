@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "AssetRegistry.h"
 #include "UID.h"
+#include "Metadata.h"
 
 #include <filesystem>
 

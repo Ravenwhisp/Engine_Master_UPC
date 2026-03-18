@@ -2,8 +2,8 @@
 
 #include "Module.h"
 #include <unordered_set>
-#include "MD5.h"
 #include "UICommands.h"
+#include "MD5Fwd.h"
 
 class FontPass;
 class GameObject;

@@ -1,10 +1,11 @@
 #pragma once
 #include "Component.h"
-#include "BasicMesh.h"
 #include "BasicMaterial.h"
-#include "BoundingBox.h"
 #include "MeshAsset.h"
-#include "MaterialAsset.h"
+#include "BoundingBox.h"
+
+class BasicMesh;
+class MaterialAsset;
 
 namespace tinygltf { class Model; }
 

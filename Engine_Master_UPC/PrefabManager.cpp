@@ -8,6 +8,7 @@
 #include "GameObject.h"
 #include "ModuleScene.h"
 #include "Transform.h"
+#include "MD5.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <functional>
+#include "PrefabAsset.h"
 
 using namespace rapidjson;
 namespace fs = std::filesystem;

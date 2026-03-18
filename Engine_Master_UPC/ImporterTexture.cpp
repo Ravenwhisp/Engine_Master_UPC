@@ -1,6 +1,10 @@
 ﻿#include "Globals.h"
 #include "ImporterTexture.h"
+
 #include <WindowLogger.h>
+
+#include "BinaryReader.h"
+#include "BinaryWriter.h"
 
 using namespace DirectX;
 

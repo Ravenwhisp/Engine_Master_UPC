@@ -18,6 +18,7 @@
 #include "UIImage.h"
 #include "Transform2D.h"
 #include "UIText.h"
+#include <unordered_map>
 
 bool ModuleUI::init()
 {

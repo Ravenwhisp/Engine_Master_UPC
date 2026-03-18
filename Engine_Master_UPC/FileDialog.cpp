@@ -10,6 +10,7 @@
 #include "PrefabManager.h"
 #include "PrefabAsset.h"
 #include "Keyboard.h"
+#include "Extensions.h"
 
 
 // ---------------------------------------------------------------------------

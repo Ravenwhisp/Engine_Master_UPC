@@ -1,9 +1,12 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "Transform.h"
+#include "Component.h"
 #include "ComponentFactory.h"
 #include "SceneSnapshot.h"
 #include "PrefabManager.h"
+#include "PrefabAsset.h"
 #include "ModuleEditor.h"
 #include "PrefabEditSession.h"
 #include "ComponentType.h"

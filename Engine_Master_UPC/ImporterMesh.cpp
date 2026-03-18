@@ -1,12 +1,14 @@
 #include "Globals.h"
 #include "ImporterMesh.h"
-#include "MeshAsset.h"
+
+#include "BinaryReader.h"
+#include "BinaryWriter.h"
 
 Asset* ImporterMesh::createAssetInstance(const MD5Hash& uid) const
-
 {
     return new MeshAsset(uid);
 }
+
 bool ImporterMesh::importNative(const std::filesystem::path& path, MeshAsset* dst)
 {
 	return false;

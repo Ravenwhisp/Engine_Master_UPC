@@ -5,10 +5,10 @@
 
 #include "ICacheable.h"
 #include "SimpleMath.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
 
 class MeshAsset;
+class VertexBuffer;
+class IndexBuffer;
 
 struct Submesh;
 

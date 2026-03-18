@@ -22,6 +22,11 @@
 
 #include "Application.h"
 #include "ModuleAssets.h"
+#include "MD5.h"
+
+#include "ImporterMesh.h"
+#include "ImporterMaterial.h"
+#include "ImporterPrefab.h"
 
 #include <functional>
 
