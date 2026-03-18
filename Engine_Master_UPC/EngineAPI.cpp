@@ -62,11 +62,16 @@ namespace GameObjectAPI
     {
         return gameObject->GetTransform();
     }
+
+    const Transform* getTransform(const GameObject* gameObject)
+    {
+        return gameObject->GetTransform();
+    }
 }
 
 namespace TransformAPI
 {
-    Vector3 getPosition(Transform* transform)
+    Vector3 getPosition(const Transform* transform)
     {
         return transform->getPosition();
     }
@@ -89,7 +94,12 @@ namespace TransformAPI
 
 namespace ComponentAPI
 {
-    GameObject* getOwner(const Component* component)
+    GameObject* getOwner(Component* component)
+    {
+        return component->getOwner();
+    }
+
+    const GameObject* getOwner(const Component* component)
     {
         return component->getOwner();
     }
@@ -108,11 +118,6 @@ namespace Scene
 
         for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
         {
-            if (!gameObject)
-            {
-                continue;
-            }
-
             if (onlyActive && !gameObject->GetActive())
             {
                 continue;
@@ -156,11 +161,6 @@ namespace Scene
 
         for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
         {
-            if (!gameObject)
-            {
-                continue;
-            }
-
             if (onlyActive && !gameObject->GetActive())
             {
                 continue;

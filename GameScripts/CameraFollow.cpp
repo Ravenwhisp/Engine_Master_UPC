@@ -94,8 +94,6 @@ Vector3 CameraFollow::computeFollowPoint() const
         return TransformAPI::getPosition(firstTarget);
     }
 
-    GameObject* secondTargetOwner = ComponentAPI::getOwner(secondTarget);
-
     const Vector3 p1 = TransformAPI::getPosition(firstTarget);
     const Vector3 p2 = TransformAPI::getPosition(secondTarget);
     return (p1 + p2) * 0.5f;
