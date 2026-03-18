@@ -1,5 +1,4 @@
 #pragma once
-#include "Globals.h"
 
 #ifdef GAME_RELEASE
 constexpr bool DEFAULT_DEBUG = false;
@@ -34,13 +33,14 @@ struct CameraSettings
     float flyPitchClamp = 0.01f;
 };
 
-struct SceneEditorSettings
+struct WindowSceneEditorSettings
 {
     bool showGrid = DEFAULT_DEBUG;
     bool showAxis = DEFAULT_DEBUG;
     bool showGuizmo = DEFAULT_DEBUG;
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
+    bool showNavPath = true;
 };
 
 struct FrustumCullingSettings
@@ -62,7 +62,7 @@ class Settings
 public:
     EngineInformation engine;
     CameraSettings camera;
-    SceneEditorSettings sceneEditor;
+    WindowSceneEditorSettings sceneEditor;
     FrustumCullingSettings frustumCulling;
     DebugGame debugGame;
 

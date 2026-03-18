@@ -1,12 +1,15 @@
 #pragma once
 #include "IRenderPass.h"
+
+#include "DescriptorHeap.h"
+
 #include "ResourceUploadBatch.h"
 #include <SpriteBatch.h>
 #include "SpriteFont.h"
-#include "DescriptorHeap.h"
-#include "UICommands.h"
 
 class Settings;
+
+struct UITextCommand;
 
 class FontPass : public IRenderPass {
 public:
@@ -25,7 +28,7 @@ private:
 private:
 	Settings* m_settings;
 
-	mutable const D3D12_VIEWPORT* m_viewport = nullptr;
+	const D3D12_VIEWPORT* m_viewport = nullptr;
 	const std::vector<UITextCommand>* m_commands = nullptr;
 
 	std::unique_ptr<DescriptorHeap>			m_fontHeap;

@@ -2,7 +2,7 @@
 #include "CameraComponent.h"
 
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
 #include "GameObject.h"
 
@@ -45,12 +45,6 @@ void CameraComponent::recalculateFrustum()
 	m_frustum.m_bottomFace  = Plane(m_frustum.m_points[3], m_frustum.m_points[2], m_frustum.m_points[6]);
 	m_frustum.m_leftFace    = Plane(m_frustum.m_points[4], m_frustum.m_points[0], m_frustum.m_points[3]);
 	m_frustum.m_rightFace   = Plane(m_frustum.m_points[1], m_frustum.m_points[5], m_frustum.m_points[6]);
-}
-
-void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
-{
-	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
-
 }
 
 void CameraComponent::update()
@@ -100,7 +94,7 @@ void CameraComponent::drawUi()
 	
 	if (ImGui::Button("Set as Default Camera"))
 	{
-		app->getSceneModule()->setDefaultCamera(this);
+		app->getModuleScene()->setDefaultCamera(this);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
@@ -121,9 +115,9 @@ bool CameraComponent::cleanUp()
 	{
 		app->setCurrentCameraPerspective(nullptr);
 	}
-	if (app->getSceneModule()->getDefaultCamera() == this)
+	if (app->getModuleScene()->getDefaultCamera() == this)
 	{
-		app->getSceneModule()->setDefaultCamera(nullptr);
+		app->getModuleScene()->setDefaultCamera(nullptr);
 	}
 	return true;
 }

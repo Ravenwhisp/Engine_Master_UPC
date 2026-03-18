@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-#include "Logger.h"
+#include "WindowLogger.h"
 
 void debug_log(const char file[], int line, const char* format, ...)
 {
@@ -15,7 +15,7 @@ void debug_log(const char file[], int line, const char* format, ...)
 	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugStringA(tmp_string2);
 
-	Logger::log(file, line, "%s", tmp_string);
+	WindowLogger::log(file, line, "%s", tmp_string);
 }
 
 void debug_warn(const char file[], int line, const char* format, ...)
@@ -31,7 +31,7 @@ void debug_warn(const char file[], int line, const char* format, ...)
 	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugStringA(tmp_string2);
 
-	Logger::warning(file, line, "%s", tmp_string);
+	WindowLogger::warning(file, line, "%s", tmp_string);
 }
 
 void debug_error(const char file[], int line, const char* format, ...)
@@ -47,5 +47,5 @@ void debug_error(const char file[], int line, const char* format, ...)
 	sprintf_s(tmp_string2, 4095, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugStringA(tmp_string2);
 
-	Logger::error(file, line, "%s", tmp_string);
+	WindowLogger::error(file, line, "%s", tmp_string);
 }
