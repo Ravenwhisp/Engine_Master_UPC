@@ -24,6 +24,8 @@
 #include "SkyBoxPass.h"
 #include "MeshRendererPass.h"
 #include "DebugDrawPass.h"
+#include "UIImagePass.h"
+#include "FontPass.h"
 
 bool ModuleRender::init()
 {
@@ -35,10 +37,17 @@ bool ModuleRender::init()
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
-    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
-    m_meshRendererPass = new MeshRendererPass(device);
-    m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
-    m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
+    m_renderPasses.push_back(std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
+    m_renderPasses.push_back(std::make_unique<MeshRendererPass>(device));
+    m_renderPasses.push_back(std::make_unique<DebugDrawPass>(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false));
+    m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
+    m_renderPasses.push_back(std::make_unique<FontPass>(device));
+
+    m_imGuiPass = std::make_unique<ImGuiPass>(
+        device,
+        d3d12->getWindowHandle(),
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0),
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
 
     //m_skyboxTexture = app->getModuleResources()->createTextureCubeFromFile(path(m_settings->skybox.path), "SkyBox");
     //m_hasSkyBox = (m_skyboxTexture != nullptr);
@@ -171,7 +180,10 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .scissorRect = scissorRect,
         .ringBuffer = m_ringBuffer,
         .scene = app->getModuleScene(),
-        .renderDebug = renderDebug
+        .renderDebug = renderDebug,
+        .uiTextCommands = &app->getModuleUI()->getTextCommands(),
+        .uiImageCommands = &app->getModuleUI()->getImageCommands(),
+        .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
     };
 
     for (auto& pass : m_renderPasses)
@@ -179,14 +191,10 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         pass->prepare(ctx);
     }
 
-
     for (auto& pass : m_renderPasses)
     {
         pass->apply(commandList);
     }
-
-
-    app->getModuleUI()->renderUI(commandList, viewport);
 }
 
 void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
@@ -256,17 +264,6 @@ bool ModuleRender::cleanUp()
     m_playScreenRT.reset();
     m_playScreenDS.reset();
 
-    delete m_skyBoxPass;
-    m_skyBoxPass = nullptr;
-
-    delete m_meshRendererPass;
-    m_meshRendererPass = nullptr;
-
-    delete m_imGuiPass;
-    m_imGuiPass = nullptr;
-
-    delete m_debugDrawPass;
-    m_debugDrawPass = nullptr;
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
@@ -288,12 +285,6 @@ D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
 }
 
-bool ModuleRender::applySkyBoxSettings(const SkyBoxSettings& settings)
-{
-    m_skyBoxPass->setSettings(settings);
-
-    return true;
-}
 
 void ModuleRender::transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState)
 {

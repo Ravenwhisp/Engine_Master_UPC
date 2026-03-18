@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "ModuleDescriptors.h";
+#include "ImGuiPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -22,7 +23,6 @@ class Texture;
 class SkyBoxPass;
 class MeshRendererPass;
 class DebugDrawPass;
-class ImGuiPass;
 class IRenderPass;
 
 struct SkyBoxSettings;
@@ -58,13 +58,10 @@ private:
 	ImVec2							m_size = ImVec2(800, 600);
 
 
-	/// NEEEEEEEEEEEEEW
-	SkyBoxPass* m_skyBoxPass = nullptr;
-	MeshRendererPass* m_meshRendererPass = nullptr;
-	DebugDrawPass* m_debugDrawPass = nullptr;
-	ImGuiPass* m_imGuiPass = nullptr;
+	std::vector<std::unique_ptr<IRenderPass>> m_renderPasses;
 
-	std::vector<IRenderPass*> m_renderPasses;
+	// ImGui is special: it straddles the frame with startFrame() / apply()
+	std::unique_ptr<ImGuiPass> m_imGuiPass;
 
 	int m_triangles;
 
@@ -78,8 +75,6 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE getGPUPlayScreenRT();
 	
 	D3D12_GPU_VIRTUAL_ADDRESS	allocateInRingBuffer(const void* data, size_t size);
-
-	bool applySkyBoxSettings(const SkyBoxSettings& settings);
 
 	int getTriangles() { return m_triangles; }
 private:

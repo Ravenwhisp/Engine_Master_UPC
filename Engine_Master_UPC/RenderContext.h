@@ -4,6 +4,9 @@
 
 class RingBuffer;
 class ModuleScene;
+struct UITextCommand;
+struct UIImageCommand;
+struct SkyBoxSettings;
 
 struct RenderContext
 {
@@ -15,4 +18,10 @@ struct RenderContext
     RingBuffer*                         ringBuffer = nullptr;
     ModuleScene*                        scene = nullptr;
     bool                                renderDebug = false;
+
+    const std::vector<UITextCommand>* uiTextCommands = nullptr;
+    const std::vector<UIImageCommand>* uiImageCommands = nullptr;
+
+    const SkyBoxSettings* skyBoxSettings = nullptr;
+
 };

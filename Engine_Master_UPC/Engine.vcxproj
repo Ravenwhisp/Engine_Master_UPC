@@ -288,9 +288,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="ComponentFactory.h" />
+    <ClInclude Include="DebugEditorOverlay.h" />
+    <ClInclude Include="DebugNavMesh.h" />
+    <ClInclude Include="DebugQuadtree.h" />
+    <ClInclude Include="DebugScene.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FontImporter.h" />
+    <ClInclude Include="IDebugDrawer.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Scene.h" />
@@ -525,6 +530,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
+    <ClCompile Include="DebugEditorOverlay.cpp" />
+    <ClCompile Include="DebugNavMesh.cpp" />
+    <ClCompile Include="DebugQuadtree.cpp" />
+    <ClCompile Include="DebugScene.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />

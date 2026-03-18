@@ -36,7 +36,7 @@ public:
 		return m_materials[it->second].get();
 	}
 
-	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
+	Engine::BoundingBox&	getBoundingBox() const { return m_boundingBox; }
 
 	void drawUi() override;
 
@@ -52,7 +52,7 @@ private:
 	mutable std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 	std::unordered_map<UID, uint32_t>					m_materialIndexByUID;
 
-	Engine::BoundingBox									m_boundingBox;
+	mutable Engine::BoundingBox									m_boundingBox;
 
 	UID m_modelAssetId = 0;
 

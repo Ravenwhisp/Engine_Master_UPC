@@ -16,6 +16,8 @@
 #include "Transform.h"
 #include "CameraComponent.h"
 #include "MeshRenderer.h"
+#include "LightComponent.h"
+#include "ScriptComponent.h"
 
 #include <unordered_map>
 

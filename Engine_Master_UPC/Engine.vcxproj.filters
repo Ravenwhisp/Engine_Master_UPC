@@ -317,6 +317,18 @@
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
+    <ClCompile Include="DebugEditorOverlay.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugQuadtree.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugScene.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugNavMesh.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -723,6 +735,21 @@
     <ClInclude Include="UIImagePass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
+    <ClInclude Include="IDebugDrawer.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugEditorOverlay.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugQuadtree.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugScene.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugNavMesh.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -870,6 +897,9 @@
     </Filter>
     <Filter Include="GameEntity\GameObject">
       <UniqueIdentifier>{e31eb276-f8f1-4837-bd1f-041ac612b48c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\DebugDraw">
+      <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
