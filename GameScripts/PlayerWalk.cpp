@@ -117,7 +117,6 @@ void PlayerWalk::applyFacingFromDirection(GameObject* owner, const Vector3& dire
         m_yawInitialized = true;
     }
 
-
     const float maxStep = m_turnSpeedDegPerSec * dt;
     m_currentYawDeg = moveTowardsAngleDegrees(m_currentYawDeg, targetYawDeg, maxStep);
 
