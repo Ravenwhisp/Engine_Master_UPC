@@ -30,7 +30,8 @@ namespace Input
 
 namespace GameObjectAPI 
 {
-    ENGINE_API Transform* getTransform(const GameObject* gameObject);
+    ENGINE_API Transform* getTransform(GameObject* gameObject);
+    ENGINE_API const Transform* getTransform(const GameObject* gameObject);
 }
 
 namespace TransformAPI
@@ -44,7 +45,8 @@ namespace TransformAPI
 
 namespace ComponentAPI
 {
-    ENGINE_API GameObject* getOwner(const Component* component);
+    ENGINE_API GameObject* getOwner(Component* component);
+    ENGINE_API const GameObject* getOwner(const Component* component);
 }
 
 namespace Scene
@@ -54,5 +56,4 @@ namespace Scene
 
     ENGINE_API GameObject* getDefaultCameraGameObject();
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
-
 }
