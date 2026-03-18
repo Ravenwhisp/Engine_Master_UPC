@@ -67,6 +67,26 @@ namespace GameObjectAPI
     {
         return gameObject->GetTransform();
     }
+
+    bool isActiveSelf(const GameObject* gameObject)
+    {
+        return gameObject->GetActive();
+    }
+
+    bool isActiveInHierarchy(const GameObject* gameObject) 
+    {
+        return gameObject->IsActiveInWindowHierarchy();
+    }
+
+    void setActive(GameObject* gameObject, bool active)
+    {
+        gameObject->SetActive(active);
+    }
+
+    const char* getName(const GameObject* gameObject)
+    {
+        return gameObject->GetName().c_str();
+    }
 }
 
 namespace TransformAPI

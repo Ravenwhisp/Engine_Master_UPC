@@ -32,6 +32,10 @@ namespace GameObjectAPI
 {
     ENGINE_API Transform* getTransform(GameObject* gameObject);
     ENGINE_API const Transform* getTransform(const GameObject* gameObject);
+    ENGINE_API bool isActiveSelf(const GameObject* gameObject);
+    ENGINE_API bool isActiveInHierarchy(const GameObject* gameObject);
+    ENGINE_API void setActive(GameObject* gameObject, bool active);
+    ENGINE_API const char* getName(const GameObject* gameObject);
 }
 
 namespace TransformAPI
