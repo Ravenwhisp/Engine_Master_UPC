@@ -36,7 +36,7 @@ bool ModuleRender::init()
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
     m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
-    m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
+    m_meshRendererPass = new MeshRendererPass(device);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
 
@@ -161,34 +161,30 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    m_skyBoxPass->setView(camera.view);
-    m_skyBoxPass->setProjection(camera.projection);
-    m_skyBoxPass->apply(commandList);
+    renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    m_meshRendererPass->setCameraPosition(camera.position);
-    m_meshRendererPass->setView(camera.view);
-    m_meshRendererPass->setProjection(camera.projection);
+    RenderContext ctx{
+        .view = camera.view,
+        .projection = camera.projection,
+        .cameraPosition = camera.position,
+        .viewport = viewport,
+        .scissorRect = scissorRect,
+        .ringBuffer = m_ringBuffer,
+        .scene = app->getModuleScene(),
+        .renderDebug = renderDebug
+    };
 
-    std::vector<MeshRenderer*> meshes = app->getModuleScene()->getAllMeshRenderers();
-    m_triangles = 0;
-    for (MeshRenderer* mesh : meshes)
+    for (auto& pass : m_renderPasses)
     {
-        m_triangles += mesh->getTriangles();
+        pass->prepare(ctx);
     }
 
-    m_meshRendererPass->setMeshes(meshes);
-    m_meshRendererPass->apply(commandList);
 
-    //Debug
-    if (renderDebug)
+    for (auto& pass : m_renderPasses)
     {
-        m_debugDrawPass->setView(camera.view);
-        m_debugDrawPass->setProjection(camera.projection);
-        m_debugDrawPass->setViewport(viewport);
-
-        app->getModuleEditor()->getWindowSceneEditor()->renderDebugDrawPass(commandList);
-        m_debugDrawPass->apply(commandList);
+        pass->apply(commandList);
     }
+
 
     app->getModuleUI()->renderUI(commandList, viewport);
 }

@@ -18,11 +18,7 @@ public:
     DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQueue, bool useMSAA, D3D12_CPU_DESCRIPTOR_HANDLE cpuText = { 0 }, D3D12_GPU_DESCRIPTOR_HANDLE gpuText = { 0 });
     ~DebugDrawPass();
 
-
-    void setView(const Matrix& view) { m_view = &view; }
-    void setProjection(const Matrix& projection) { m_projection = &projection; }
-    void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
-
+    virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 private:
 

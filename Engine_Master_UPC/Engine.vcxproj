@@ -292,6 +292,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
@@ -329,8 +330,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="framework.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="ILightPass.h" />
-    <ClInclude Include="IMatrixPass.h" />
     <ClInclude Include="Importer.h" />
     <ClInclude Include="IPointerEventHandler.h" />
     <ClInclude Include="IRenderPass.h" />

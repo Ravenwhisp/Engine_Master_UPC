@@ -83,7 +83,11 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) :
     DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-SkyBoxPass::~SkyBoxPass() = default;
+void SkyBoxPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+}
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {

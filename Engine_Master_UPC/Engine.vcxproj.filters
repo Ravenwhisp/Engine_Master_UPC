@@ -194,9 +194,6 @@
     <ClCompile Include="UIImage.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UIImagePass.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -316,6 +313,9 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -537,9 +537,6 @@
     <ClInclude Include="UIImage.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="UIImagePass.h">
-      <Filter>UI</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleUI.h">
       <Filter>UI</Filter>
     </ClInclude>
@@ -678,12 +675,6 @@
     <ClInclude Include="FontPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="ILightPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="IMatrixPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
     <ClInclude Include="IRenderPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
@@ -725,6 +716,12 @@
     </ClInclude>
     <ClInclude Include="SkyBoxSettings.h">
       <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderContext.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImagePass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
