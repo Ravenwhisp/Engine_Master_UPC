@@ -251,23 +251,14 @@
     <ClCompile Include="Asset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="ViewHierarchyDialog.cpp">
-      <Filter>Editor\EditorWindows\Hierarchy</Filter>
-    </ClCompile>
     <ClCompile Include="WindowGame.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="CameraSwitcher.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="WaypointPathComponent.cpp">
       <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="TriggerArea.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="ExitApplication.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
@@ -279,9 +270,6 @@
       <Filter>D3D12\Entities</Filter>
     </ClCompile>
     <ClCompile Include="EditorToolbar.cpp">
-      <Filter>Editor\Toolbars</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayToolbar.cpp">
       <Filter>Editor\Toolbars</Filter>
     </ClCompile>
     <ClCompile Include="PerformanceProfiler.cpp">
@@ -313,6 +301,17 @@
     </ClCompile>
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="ChangeScene.cpp" />
+    <ClCompile Include="ViewHierarchyDialog.cpp" />
+    <ClCompile Include="CameraSwitcher.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerArea.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -633,26 +632,14 @@
     <ClInclude Include="TextureAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="ViewHierarchyDialog.h">
-      <Filter>Editor\EditorWindows\Hierarchy</Filter>
-    </ClInclude>
     <ClInclude Include="WindowGame.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="CameraSwitcher.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="WaypointPathComponent.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="TriggerArea.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
-    <ClInclude Include="ExitApplication.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
@@ -664,9 +651,6 @@
       <Filter>D3D12\Entities</Filter>
     </ClInclude>
     <ClInclude Include="EditorToolbar.h">
-      <Filter>Editor\Toolbars</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayToolbar.h">
       <Filter>Editor\Toolbars</Filter>
     </ClInclude>
     <ClInclude Include="PerformanceProfiler.h">
@@ -710,6 +694,17 @@
     </ClInclude>
     <ClInclude Include="SceneSnapshot.h">
       <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="ChangeScene.h" />
+    <ClInclude Include="ViewHierarchyDialog.h" />
+    <ClInclude Include="CameraSwitcher.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerArea.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

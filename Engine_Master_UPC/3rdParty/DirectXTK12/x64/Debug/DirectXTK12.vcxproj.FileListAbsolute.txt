@@ -3,6 +3,7 @@ D:\ReposVS\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\Di
 C:\ReposVS\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 C:\Users\INVICTUS\Documents\GitHub\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 D:\Proyectos\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
-E:\MÁSTER\Ravenwhisp\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
+E:\Mï¿½STER\Ravenwhisp\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 D:\Development\MyRepository\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 C:\Users\Hector\Desktop\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
+D:\Engine_Master\Engine_Master_UPC\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib

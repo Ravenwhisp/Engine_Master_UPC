@@ -4,24 +4,24 @@
 #include "rapidjson/document.h"
 #include "UID.h"
 
-class EditorModule;
-class SceneModule;
+class ModuleEditor;
+class ModuleScene;
 
-class Hierarchy;
+class WindowHierarchy;
 class GameObject;
 
 class ViewHierarchyDialog : public EditorWindow
 {
 private:
-	EditorModule* m_editorModule;
-	SceneModule* m_sceneModule;
+	ModuleEditor* m_editorModule;
+	ModuleScene* m_sceneModule;
 
-	Hierarchy* m_hierarchy;
+	WindowHierarchy* m_hierarchy;
 
 	rapidjson::Document domTree; // for saving JSON data
 
 public:
-	ViewHierarchyDialog(Hierarchy* hierarchy);
+	ViewHierarchyDialog(WindowHierarchy* hierarchy);
 
 	void		render() override;
 	const char* getWindowName() const override { return "HierarchyDialog"; }

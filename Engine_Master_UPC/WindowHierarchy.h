@@ -1,15 +1,15 @@
 #pragma once
 #include "EditorWindow.h"
 
-class EditorModule;
-class SceneModule;
+class ModuleEditor;
+class ModuleScene;
 class ViewHierarchyDialog;
 class GameObject;
 class WindowHierarchy: public EditorWindow
 {
 private:
-	EditorModule* m_editorModule;
-	SceneModule* m_sceneModule;
+	ModuleEditor* m_editorModule;
+	ModuleScene* m_sceneModule;
 
 	ViewHierarchyDialog* m_viewHierarchyDialog;
 

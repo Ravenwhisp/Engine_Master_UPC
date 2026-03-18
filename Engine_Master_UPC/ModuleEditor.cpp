@@ -20,10 +20,13 @@
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
+#include "Mouse.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleGameView.h";
+
+
 
 using namespace std;
 

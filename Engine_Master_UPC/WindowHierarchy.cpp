@@ -11,8 +11,8 @@
 
 WindowHierarchy::WindowHierarchy()
 {
-	m_editorModule = app->getEditorModule();
-	m_sceneModule = app->getSceneModule();
+	m_editorModule = app->getModuleEditor();
+	m_sceneModule = app->getModuleScene();
 
 	m_viewHierarchyDialog = new ViewHierarchyDialog(this);
 }

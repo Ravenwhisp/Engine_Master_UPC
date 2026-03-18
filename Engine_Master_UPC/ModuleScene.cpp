@@ -258,7 +258,7 @@ bool ModuleScene::cleanUp()
 }
 #pragma endregion
 
-void ModuleScene::createGameObject()
+GameObject* ModuleScene::createGameObject()
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();

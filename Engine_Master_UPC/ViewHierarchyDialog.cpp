@@ -2,21 +2,21 @@
 #include "ViewHierarchyDialog.h"
 
 #include "Application.h"
-#include "EditorModule.h"
-#include "SceneModule.h"
+#include "ModuleEditor.h"
+#include "ModuleScene.h"
 
 #include "GameObject.h"
 #include "Canvas.h"
 #include "UIButton.h"
 #include "UIImage.h"
 #include "Quadtree.h"
-#include "Hierarchy.h"
+#include "WindowHierarchy.h"
 #include <LightComponent.h>
 
-ViewHierarchyDialog::ViewHierarchyDialog(Hierarchy* hierarchy)
+ViewHierarchyDialog::ViewHierarchyDialog(WindowHierarchy* hierarchy)
 {
-	m_editorModule = app->getEditorModule();
-    m_sceneModule = app->getSceneModule();
+	m_editorModule = app->getModuleEditor();
+    m_sceneModule = app->getModuleScene();
 
 	m_hierarchy = hierarchy;
 
@@ -63,12 +63,12 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Create Empty"))
     {
-        app->getSceneModule()->createGameObject();
+        m_sceneModule->createGameObject();
     }
 
     if (ImGui::MenuItem("Create Camera"))
     {
-		GameObject* camera = app->getSceneModule()->createGameObject();
+		GameObject* camera = m_sceneModule->createGameObject();
 		camera->AddComponent(ComponentType::CAMERA);
     }
 
@@ -76,21 +76,21 @@ void ViewHierarchyDialog::render()
     {
         if (ImGui::MenuItem("Point"))
         {
-            GameObject* light = app->getSceneModule()->createGameObject();
+            GameObject* light = m_sceneModule->createGameObject();
             LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
             lightComp->setTypePoint(10.f);
         }
 
         if (ImGui::MenuItem("Directional"))
         {
-            GameObject* light = app->getSceneModule()->createGameObject();
+            GameObject* light = m_sceneModule->createGameObject();
             LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
             lightComp->setTypeDirectional();
         }
 
         if (ImGui::MenuItem("Spot"))
         {
-            GameObject* light = app->getSceneModule()->createGameObject();
+            GameObject* light = m_sceneModule->createGameObject();
             LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
             lightComp->setTypeSpot(10.f, 20.f, 30.f);
         }
@@ -100,7 +100,7 @@ void ViewHierarchyDialog::render()
 
     if (ImGui::MenuItem("Create Model"))
     {
-        GameObject* model = app->getSceneModule()->createGameObject();
+        GameObject* model = m_sceneModule->createGameObject();
         model->AddComponent(ComponentType::MODEL);
     }
 
@@ -108,13 +108,13 @@ void ViewHierarchyDialog::render()
     {
         if (ImGui::MenuItem("Canvas"))
         {
-            GameObject* canvas = app->getSceneModule()->createGameObject();
+            GameObject* canvas = m_sceneModule->createGameObject();
             canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
         }
 
         if (ImGui::MenuItem("Button"))
         {
-            GameObject* button = app->getSceneModule()->createGameObject();
+            GameObject* button = m_sceneModule->createGameObject();
             button->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
             
             UIButton* buttonComp = (UIButton*) button->AddComponentWithUID(ComponentType::UIBUTTON, GenerateUID());
@@ -123,46 +123,46 @@ void ViewHierarchyDialog::render()
 
             if (not canvasExists()) 
             {
-                GameObject* canvas = app->getSceneModule()->createGameObject();
+                GameObject* canvas = m_sceneModule->createGameObject();
                 canvas->SetName("New Canvas");
                 canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
 
                 canvas->GetTransform()->addChild(button);
-                app->getSceneModule()->removeFromRootList(button); // so that it is not shown twice in the hierarchy
+                m_sceneModule->removeFromRootList(button); // so that it is not shown twice in the hierarchy
             }
         }
 
         if (ImGui::MenuItem("Text"))
         {
-            GameObject* text = app->getSceneModule()->createGameObject();
+            GameObject* text = m_sceneModule->createGameObject();
             text->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
             text->AddComponentWithUID(ComponentType::UITEXT, GenerateUID());
 
             if (not canvasExists())
             {
-                GameObject* canvas = app->getSceneModule()->createGameObject();
+                GameObject* canvas = m_sceneModule->createGameObject();
                 canvas->SetName("New Canvas");
                 canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
 
                 canvas->GetTransform()->addChild(text);
-                app->getSceneModule()->removeFromRootList(text); // same
+                m_sceneModule->removeFromRootList(text); // same
             }
         }
 
         if (ImGui::MenuItem("Image"))
         {
-            GameObject* image = app->getSceneModule()->createGameObject();
+            GameObject* image = m_sceneModule->createGameObject();
             image->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
             image->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
 
             if (not canvasExists())
             {
-                GameObject* canvas = app->getSceneModule()->createGameObject();
+                GameObject* canvas = m_sceneModule->createGameObject();
                 canvas->SetName("New Canvas");
                 canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
 
                 canvas->GetTransform()->addChild(image);
-                app->getSceneModule()->removeFromRootList(image); // same
+                m_sceneModule->removeFromRootList(image); // same
             }
         }
 

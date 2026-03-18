@@ -229,12 +229,15 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetsDictionary.h" />
+    <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="FontImporter.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="PlayToolbar.h" />
+    <ClInclude Include="TriggerArea.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
@@ -434,6 +437,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -441,6 +445,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FontImporter.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="PlayToolbar.cpp" />
+    <ClCompile Include="TriggerArea.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />

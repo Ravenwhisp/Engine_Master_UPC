@@ -18,7 +18,6 @@
 #include "UIImage.h"
 #include "Transform2D.h"
 #include "UIText.h"
-#include "SceneEditor.h"
 
 bool ModuleUI::init()
 {
