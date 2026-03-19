@@ -11,7 +11,8 @@ enum class ScriptFieldType
     Bool,
     Vec3,
     EnumInt,
-    ComponentRef
+    ComponentRef,
+    String
 };
 
 struct ScriptFieldFloatInfo

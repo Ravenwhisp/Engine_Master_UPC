@@ -1,12 +1,12 @@
 #include "Globals.h"
-#include "TriggerArea.h"
+#include "TriggerAreaComponent.h"
 
 #include "Application.h"
 #include "GameObject.h"
 #include "ModuleScene.h"
 #include "QuadNode.h"
 
-TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, ComponentType::CHANGE_SCENE_ON_TRIGGER, gameObject)
+TriggerAreaComponent::TriggerAreaComponent(UID id, GameObject* gameObject): Component(id, ComponentType::CHANGE_SCENE_ON_TRIGGER, gameObject)
 {
 	m_xWidth = m_zWidth = 2.f;
 	m_sceneToLoad = "";
@@ -16,9 +16,9 @@ TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, Componen
 }
 
 
-std::unique_ptr<Component> TriggerArea::clone(GameObject* newOwner) const
+std::unique_ptr<Component> TriggerAreaComponent::clone(GameObject* newOwner) const
 {
-	std::unique_ptr<TriggerArea> newComponent = std::make_unique<TriggerArea>(GenerateUID(), newOwner);
+	std::unique_ptr<TriggerAreaComponent> newComponent = std::make_unique<TriggerAreaComponent>(GenerateUID(), newOwner);
 
 	newComponent->m_xWidth = m_xWidth;
 	newComponent->m_zWidth = m_zWidth;
@@ -32,7 +32,7 @@ std::unique_ptr<Component> TriggerArea::clone(GameObject* newOwner) const
 	return newComponent;
 }
 
-void TriggerArea::drawUi()
+void TriggerAreaComponent::drawUi()
 {
 	ImGui::DragFloat("X Width", &m_xWidth, 1.f, 0.0f, FLT_MAX, "%.3f");
 	ImGui::DragFloat("Z Width", &m_zWidth, 1.f, 0.0f, FLT_MAX, "%.3f");
@@ -55,7 +55,7 @@ void TriggerArea::drawUi()
 
 }
 
-void TriggerArea::update()
+void TriggerAreaComponent::update()
 {
 	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
 	BoundingRect triggerArea(currentPosition.x - m_xWidth/2, currentPosition.z - m_zWidth/2, m_xWidth, m_zWidth);
@@ -88,7 +88,7 @@ void TriggerArea::update()
 }
 */
 
-void TriggerArea::onChangeScene()
+void TriggerAreaComponent::onChangeScene()
 {
 	if (m_sceneToLoad == "") 
 	{
@@ -101,7 +101,7 @@ void TriggerArea::onChangeScene()
 	app->getModuleScene()->requestSceneChange(m_sceneToLoad);
 }
 
-void TriggerArea::printArea()
+void TriggerAreaComponent::printArea()
 {
 	Vector3 currentPosition = m_owner->GetTransform()->getPosition();
 
@@ -111,7 +111,7 @@ void TriggerArea::printArea()
 	dd::box(center, dd::colors::Green, m_xWidth, height, m_zWidth);
 }
 
-rapidjson::Value TriggerArea::getJSON(rapidjson::Document& domTree) 
+rapidjson::Value TriggerAreaComponent::getJSON(rapidjson::Document& domTree)
 {
 
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
@@ -132,7 +132,7 @@ rapidjson::Value TriggerArea::getJSON(rapidjson::Document& domTree)
 	return componentInfo;
 }
 
-bool TriggerArea::deserializeJSON(const rapidjson::Value& componentInfo)
+bool TriggerAreaComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
 	m_xWidth = componentInfo["XWidth"].GetFloat();
 	m_zWidth = componentInfo["ZWidth"].GetFloat();

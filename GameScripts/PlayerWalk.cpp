@@ -134,12 +134,7 @@ void PlayerWalk::applyTranslation(GameObject* owner, const Vector3& direction, f
         speed *= m_shiftMultiplier;
     }
 
-    float step = speed * dt;
-
-    Vector3 pos = TransformAPI::getPosition(GameObjectAPI::getTransform(owner));
-    pos += direction * step;
-
-    TransformAPI::setPosition(GameObjectAPI::getTransform(owner), pos);
+    TransformAPI::translate(GameObjectAPI::getTransform(owner), direction * speed * dt);
 }
 
 void PlayerWalk::applyControlScheme()
