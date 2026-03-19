@@ -357,6 +357,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PlayerWalk.h" />
     <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="PointerEventData.h" />
+    <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="SceneConfig.h" />
@@ -569,6 +572,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SceneConfig.cpp" />

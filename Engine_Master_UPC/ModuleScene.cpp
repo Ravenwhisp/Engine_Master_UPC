@@ -577,6 +577,22 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
         removeFromRootList(child);
     }
 
+    for (auto& gameObjectJson : gameObjectsArray)
+    {
+        if (!gameObjectJson.HasMember("PrefabLink"))
+            continue;
+
+        const uint64_t uid = gameObjectJson["UID"].GetUint64();
+        GameObject* go = uidToGo[uid];
+        if (!go) continue;
+
+        const auto& prefabLink = gameObjectJson["PrefabLink"];
+        PrefabInstanceData instanceData;
+        instanceData.m_prefabName = prefabLink["PrefabName"].GetString();
+        instanceData.m_prefabUID = prefabLink["PrefabUID"].GetUint();
+        PrefabManager::linkInstance(go, instanceData);
+    }
+
     fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyBoxToRenderer();
@@ -827,4 +843,12 @@ void ModuleScene::addToRootList(GameObject* gameObject)
 const std::vector<GameObject*>& ModuleScene::getRootObjects() const
 {
     return m_rootObjects;
+}
+
+bool ModuleScene::initEmpty()
+{
+    m_sceneSerializer = std::make_unique<SceneSerializer>();
+    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+    return true;
 }

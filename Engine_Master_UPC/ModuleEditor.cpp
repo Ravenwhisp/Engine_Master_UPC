@@ -20,6 +20,8 @@
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
+#include "PrefabManager.h"
+#include "ModuleRender.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -275,6 +277,8 @@ void ModuleEditor::update()
     #ifdef GAME_RELEASE
         return;
     #endif
+
+    flushExitPrefabEdit();
     
     if (m_sceneEditor->isFocused())
     {
@@ -445,4 +449,59 @@ void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState)
         currentSceneTool = NAVIGATION;
         currentNavigationMode = PAN;
     }
+}
+
+void ModuleEditor::enterPrefabEdit(const std::string& prefabName)
+{
+    app->getModuleD3D12()->getCommandQueue()->flush();
+
+    if (m_prefabSession.m_active)
+    {
+        app->getModuleRender()->setActiveScene(app->getModuleScene());
+        m_prefabSession.clear();
+    }
+
+    m_prefabSession.m_isolatedScene = std::make_unique<ModuleScene>();
+    m_prefabSession.m_isolatedScene->initEmpty();
+
+    GameObject* loaded = PrefabManager::instantiatePrefab(
+        prefabName, m_prefabSession.m_isolatedScene.get());
+
+    if (!loaded)
+    {
+        m_prefabSession.clear();
+        return;
+    }
+
+    m_prefabSession.m_prefabName = prefabName;
+    m_prefabSession.m_rootObject = loaded;
+    m_prefabSession.m_active = true;
+    m_prefabSession.m_editingInMainScene = false;
+
+    m_selectedGameObject = loaded;
+
+    app->getModuleRender()->setActiveScene(m_prefabSession.m_isolatedScene.get());
+}
+
+void ModuleEditor::exitPrefabEdit()
+{
+    if (!m_prefabSession.m_active)
+    {
+        return;
+    }
+    m_pendingExitPrefab = true;
+}
+
+void ModuleEditor::flushExitPrefabEdit()
+{
+    if (!m_pendingExitPrefab)
+    {
+        return;
+    }
+
+    m_pendingExitPrefab = false;
+    app->getModuleD3D12()->getCommandQueue()->flush();
+    app->getModuleRender()->setActiveScene(app->getModuleScene());
+    m_selectedGameObject = nullptr;
+    m_prefabSession.clear();
 }

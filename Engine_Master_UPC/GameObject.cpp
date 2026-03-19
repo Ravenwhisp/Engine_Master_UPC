@@ -3,7 +3,10 @@
 
 #include "ComponentFactory.h"
 #include "SceneSnapshot.h"
-
+#include "PrefabManager.h"
+#include "ModuleEditor.h"
+#include "PrefabEditSession.h"
+#include "ComponentType.h"
 
 //Should not be here
 #include "ModuleScene.h"
@@ -84,8 +87,20 @@ bool GameObject::AddComponent(ComponentType componentType)
     {
         return false;
     }
-
+    newComponent->init();
     m_components.push_back(std::move(newComponent));
+
+    GameObject* target = this;
+    while (target && !PrefabManager::isPrefabInstance(target))
+    {
+        Transform* parentTransform = target->GetTransform()->getRoot();
+        target = parentTransform ? parentTransform->getOwner() : nullptr;
+    }
+    if (target)
+    {
+        PrefabManager::markComponentAdded(target, static_cast<int>(componentType));
+    }
+     
     return true;
 }
 
@@ -123,8 +138,20 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     if (it != m_components.end())
     {
+        ComponentType removedType = (*it)->getType();
         (*it)->cleanUp();
         m_components.erase(it);
+        GameObject* target = this;
+        while (target && !PrefabManager::isPrefabInstance(target))
+        {
+            Transform* parentTransform = target->GetTransform()->getRoot();
+            target = parentTransform ? parentTransform->getOwner() : nullptr;
+        }
+        if (target) 
+        {
+            PrefabManager::markComponentRemoved(target, static_cast<int>(removedType));
+        }
+  
         return true;
     }
     return false;
@@ -372,7 +399,23 @@ void GameObject::drawUI()
         {
             ImGui::Separator();
 
+            PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+            const bool inPrefabMode = session && session->m_active && session->m_rootObject;
+
+            const ImGuiID activeIdBefore = ImGui::GetActiveID();
             component->drawUi();
+            const ImGuiID activeIdAfter = ImGui::GetActiveID();
+
+            if (inPrefabMode && activeIdAfter != 0)
+            {
+                const int componentType = static_cast<int>(component->getType()); 
+                GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
+                if (targetForOverride)
+                {
+                    PrefabManager::markPropertyOverride(
+                        targetForOverride, componentType, "properties");
+                }
+            }
 
             ImGui::Separator();
 
@@ -462,6 +505,16 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
     gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
 
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
+
+    const PrefabInstanceData* instanceData = PrefabManager::getInstanceData(this);
+    if (instanceData && !instanceData->m_prefabName.empty())
+    {
+        rapidjson::Value prefabLink(rapidjson::kObjectType);
+        rapidjson::Value prefabName(instanceData->m_prefabName.c_str(), domTree.GetAllocator());
+        prefabLink.AddMember("PrefabName", prefabName, domTree.GetAllocator());
+        prefabLink.AddMember("PrefabUID", instanceData->m_prefabUID, domTree.GetAllocator());
+        gameObjectInfo.AddMember("PrefabLink", prefabLink, domTree.GetAllocator());
+    }
 
     // Components serialization //
     {
