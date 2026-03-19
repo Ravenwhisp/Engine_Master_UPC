@@ -79,7 +79,9 @@ void Quadtree::update()
 {
     const std::vector<GameObject*>& objects = m_scene->getAllGameObjects();
     if (!m_root)
+    {
         return;
+    }
 
     for (const auto& go : objects)
     {

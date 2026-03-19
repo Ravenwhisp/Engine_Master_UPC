@@ -317,6 +317,12 @@
     <ClCompile Include="Scene.cpp">
       <Filter>GameEntity\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -724,6 +730,9 @@
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
     <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneReferenceResolver.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
   </ItemGroup>

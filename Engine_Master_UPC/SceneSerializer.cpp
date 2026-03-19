@@ -23,6 +23,8 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
 
+#include "SceneReferenceResolver.h"
+
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
 constexpr std::string_view SCENE_FILE_EXTENSION = ".scene";
@@ -366,18 +368,24 @@ void SceneSerializer::LinkHierarchy(
 
 void SceneSerializer::FixReferences(Scene& scene)
 {
-    std::unordered_map<UID, Component*> map;
+    SceneReferenceResolver resolver;
 
-    for (auto obj : scene.getAllGameObjects())
+    for (GameObject* obj : scene.getAllGameObjects())
     {
+        resolver.registerGameObject(obj, obj);
+
         for (Component* c : obj->GetAllComponents())
-            map[c->getID()] = c;
+        {
+            resolver.registerComponent(c->getID(), c);
+        }
     }
 
-    for (auto obj : scene.getAllGameObjects())
+    for (GameObject* obj : scene.getAllGameObjects())
     {
         for (Component* c : obj->GetAllComponents())
-            c->fixReferences(map);
+        {
+            c->fixReferences(resolver);
+        }
     }
 }
 

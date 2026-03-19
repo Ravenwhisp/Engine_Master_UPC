@@ -7,9 +7,9 @@
 #include "ModuleEditor.h"
 
 #include "Scene.h"
-#include "SceneSerializer.h"
-
 #include "Quadtree.h"
+#include "SceneSerializer.h"
+#include "SceneSnapshot.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -130,3 +130,22 @@ void ModuleScene::requestSceneChange(const std::string& sceneName)
 {
     m_pendingSceneLoad = sceneName;
 }
+
+#pragma region Snapshot
+SceneSnapshot* ModuleScene::takeSnapshot() const
+{
+    SceneSnapshot * sceneSnapshot = new SceneSnapshot();
+    sceneSnapshot->init(*m_scene.get());
+
+    return sceneSnapshot;
+}
+
+void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
+{
+    snapshot.applyTo(*m_scene.get());
+
+    m_quadtree = std::make_unique<Quadtree>();
+    m_quadtree->init(m_scene.get());
+}
+#pragma endregion
+

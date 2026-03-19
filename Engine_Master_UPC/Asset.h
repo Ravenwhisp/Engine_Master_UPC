@@ -2,7 +2,7 @@
 #include <string>
 #include "filesystem"
 
-#include <rapidjson/document.h>
+
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include "rapidjson/filereadstream.h"

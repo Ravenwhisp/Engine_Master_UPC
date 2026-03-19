@@ -2,8 +2,6 @@
 #include <memory>
 #include <string>
 
-#include <rapidjson/document.h>
-
 class Scene;
 class GameObject;
 

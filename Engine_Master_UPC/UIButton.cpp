@@ -1,7 +1,10 @@
 #include "Globals.h"
 #include "UIButton.h"
-#include "UIImage.h"
+
 #include <imgui.h>
+
+#include "UIImage.h"
+#include "SceneReferenceResolver.h"
 
 UIButton::UIButton(UID id, GameObject* owner)
     : Component(id, ComponentType::UIBUTTON, owner)
@@ -93,7 +96,7 @@ bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
     return true;
 }
 
-void UIButton::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void UIButton::fixReferences(const SceneReferenceResolver& resolver)
 {
     if (m_targetGraphicUid == 0)
     {
@@ -101,13 +104,5 @@ void UIButton::fixReferences(const std::unordered_map<UID, Component*>& referenc
         return;
     }
 
-    auto it = referenceMap.find(m_targetGraphicUid);
-    if (it != referenceMap.end())
-    {
-        m_targetGraphic = static_cast<UIImage*>(it->second);
-    }
-    else
-    {
-        m_targetGraphic = nullptr;
-    }
+    m_targetGraphic = static_cast<UIImage*>(resolver.getClonedComponent(m_targetGraphicUid));
 }
