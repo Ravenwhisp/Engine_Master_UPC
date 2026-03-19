@@ -528,7 +528,7 @@ rapidjson::Value ModuleScene::getSkyBoxJSON(rapidjson::Document& domTree)
     return skyboxInfo;
 }
 
-bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
+bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson) 
 {
     const auto& gameObjectsArray = sceneJson["GameObjects"].GetArray();
 
@@ -536,11 +536,12 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
 
     if (!loadSceneSkyBox(sceneJson))
     {
-        DEBUG_LOG("Failed to load skybox settings from scene JSON. Possible wrong version of scene data.");
+		DEBUG_LOG("Failed to load skybox settings from scene JSON. Possible wrong version of scene data.");
         return false;
     }
     loadSceneLighting(sceneJson);
 
+    // Create all objects and components
     std::unordered_map<uint64_t, GameObject*> uidToGo;
     std::vector<std::pair<uint64_t, uint64_t>> childToParent;
 
@@ -548,54 +549,31 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
     {
         const uint64_t uid = gameObjectJson["UID"].GetUint64();
         const uint64_t transformUid = gameObjectJson["Transform"]["UID"].GetUint64();
+        GameObject* gameObject = createGameObjectWithUID((UID)uid, (UID)transformUid);
 
-        GameObject* gameObject = nullptr;
-        uint64_t    parentUid = 0;
-
-        if (gameObjectJson.HasMember("PrefabLink") && gameObjectJson["PrefabLink"].IsObject())
-        {
-            const auto& prefabLink = gameObjectJson["PrefabLink"];
-            const std::string prefabName = prefabLink["PrefabName"].GetString();
-
-            if (PrefabManager::prefabExists(prefabName))
-            {
-                gameObject = PrefabManager::instantiatePrefab(prefabName, this);
-                if (gameObject)
-                {
-                    if (gameObjectJson.HasMember("Active"))
-                        gameObject->SetActive(gameObjectJson["Active"].GetBool());
-                    if (gameObjectJson.HasMember("Name"))
-                        gameObject->SetName(gameObjectJson["Name"].GetString());
-
-                    if (gameObjectJson.HasMember("ParentUID"))
-                        parentUid = gameObjectJson["ParentUID"].GetUint64();
-                }
-            }
-        }
-
-        if (!gameObject)
-        {
-            gameObject = createGameObjectWithUID((UID)uid, (UID)transformUid);
-            gameObject->deserializeJSON(gameObjectJson, parentUid);
-        }
+        uint64_t parentUid = 0;
+        gameObject->deserializeJSON(gameObjectJson, parentUid);
 
         uidToGo[uid] = gameObject;
         childToParent.push_back({ uid, parentUid });
     }
 
+    // Parent Child linking
     for (const auto& pair : childToParent)
     {
         const uint64_t childUid = pair.first;
         const uint64_t parentUid = pair.second;
 
-        if (parentUid == 0)
+        if (parentUid == 0) {
             continue;
+        }
 
         GameObject* child = uidToGo[childUid];
         GameObject* parent = uidToGo[parentUid];
 
         child->GetTransform()->setRoot(parent->GetTransform());
         parent->GetTransform()->addChild(child);
+
         removeFromRootList(child);
     }
 
