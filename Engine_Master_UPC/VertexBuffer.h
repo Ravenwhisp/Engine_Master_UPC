@@ -2,7 +2,7 @@
 #include "Buffer.h"
 
 class ModuleResources;
-class BasicMeshMesh;;
+class BasicMeshMesh;
 
 class VertexBuffer: public Buffer
 {

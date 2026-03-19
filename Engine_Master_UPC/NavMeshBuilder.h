@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <DetourNavMesh.h>
 
-struct dtNavMesh;
-struct dtNavMeshQuery;
+class dtNavMesh;
+class dtNavMeshQuery;
 
 struct NavMeshBuildSettings
 {

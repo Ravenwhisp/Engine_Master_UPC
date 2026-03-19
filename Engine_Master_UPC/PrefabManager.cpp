@@ -1,13 +1,14 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "PrefabManager.h"
 
 #include "Application.h"
 #include "Component.h"
 #include "ComponentType.h"
-#include "ModuleFileSystem.h"
+#include "ModuleAssets.h"
 #include "GameObject.h"
 #include "ModuleScene.h"
 #include "Transform.h"
+#include "MD5.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -17,272 +18,285 @@
 #include <rapidjson/writer.h>
 
 #include <algorithm>
-#include <cassert>
 #include <filesystem>
 #include <functional>
+#include "PrefabAsset.h"
 
 using namespace rapidjson;
 namespace fs = std::filesystem;
 
-static constexpr int  PREFAB_FORMAT_VERSION = 2;
-static constexpr char PREFAB_DIR[] = "Assets/Prefabs/";
-static constexpr char PREFAB_EXT[] = ".prefab";
+static constexpr int         PREFAB_FORMAT_VERSION = 2;
+static constexpr const char* PREFAB_EXT = ".prefab";
 
-std::unordered_map<const GameObject*, PrefabInstanceData>& PrefabManager::registry()
+
+std::unordered_map<const GameObject*, PrefabData>& PrefabManager::registry()
 {
-    static std::unordered_map<const GameObject*, PrefabInstanceData> s_registry;
+    static std::unordered_map<const GameObject*, PrefabData> s_registry;
     return s_registry;
 }
 
-std::string PrefabManager::getPrefabPath(const std::string& name)
-{
-    return std::string(PREFAB_DIR) + name + PREFAB_EXT;
-}
 
-uint32_t PrefabManager::makePrefabUID(const std::string& name)
+bool PrefabManager::writePrefabDocument(Document& doc, const fs::path& path)
 {
-    uint32_t hash = 2166136261u;
-    for (unsigned char character : name)
-    {
-        hash ^= character;
-        hash *= 16777619u;
-    }
-    return hash ? hash : 1u;
-}
-
-bool PrefabManager::writePrefabDocument(Document& doc, const std::string& path)
-{
-    fs::create_directories(fs::path(path).parent_path());
-
-    FILE* file = fopen(path.c_str(), "wb");
+    fs::create_directories(path.parent_path());
+    FILE* file = fopen(path.string().c_str(), "wb");
     if (!file)
     {
         return false;
     }
+    char buf[65536];
 
-    char writeBuffer[65536];
-    FileWriteStream outputStream(file, writeBuffer, sizeof(writeBuffer));
-    PrettyWriter<FileWriteStream> writer(outputStream);
+    FileWriteStream os(file, buf, sizeof(buf));
+    PrettyWriter<FileWriteStream> writer(os);
     writer.SetIndent(' ', 2);
     doc.Accept(writer);
     fclose(file);
     return true;
 }
 
-bool PrefabManager::readPrefabDocument(const std::string& path, Document& doc)
+bool PrefabManager::readPrefabDocument(const fs::path& path, Document& doc)
 {
-    FILE* file = fopen(path.c_str(), "rb");
+    FILE* file = fopen(path.string().c_str(), "rb");
     if (!file)
     {
         return false;
     }
-
-    char readBuffer[65536];
-    FileReadStream inputStream(file, readBuffer, sizeof(readBuffer));
-    doc.ParseStream(inputStream);
+    char buf[65536];
+    FileReadStream is(file, buf, sizeof(buf));
+    doc.ParseStream(is);
     fclose(file);
     return !doc.HasParseError();
 }
 
-static void serialiseTransform(const GameObject* go, Value& out, Document::AllocatorType& allocator)
+
+static void serialiseTransform(const GameObject* go, Value& out,
+    Document::AllocatorType& alloc)
 {
-    const Transform* transform = go->GetTransform();
-    const Vector3& position = transform->getPosition();
-    const Quaternion rotation = transform->getRotation();
-    const Vector3& scale = transform->getScale();
+    const Transform* tf = go->GetTransform();
+    const Vector3& pos = tf->getPosition();
+    const Quaternion rot = tf->getRotation();
+    const Vector3& sc = tf->getScale();
 
-    Value positionArray(kArrayType);
-    positionArray.PushBack(position.x, allocator).PushBack(position.y, allocator).PushBack(position.z, allocator);
+    Value posArr(kArrayType);
+    posArr.PushBack(pos.x, alloc).PushBack(pos.y, alloc).PushBack(pos.z, alloc);
 
-    Value rotationArray(kArrayType);
-    rotationArray.PushBack(rotation.x, allocator).PushBack(rotation.y, allocator)
-        .PushBack(rotation.z, allocator).PushBack(rotation.w, allocator);
+    Value rotArr(kArrayType);
+    rotArr.PushBack(rot.x, alloc).PushBack(rot.y, alloc).PushBack(rot.z, alloc).PushBack(rot.w, alloc);
 
-    Value scaleArray(kArrayType);
-    scaleArray.PushBack(scale.x, allocator).PushBack(scale.y, allocator).PushBack(scale.z, allocator);
+    Value scArr(kArrayType);
+    scArr.PushBack(sc.x, alloc).PushBack(sc.y, alloc).PushBack(sc.z, alloc);
 
-    Value transformNode(kObjectType);
-    transformNode.AddMember("position", positionArray, allocator);
-    transformNode.AddMember("rotation", rotationArray, allocator);
-    transformNode.AddMember("scale", scaleArray, allocator);
-
-    out.AddMember("Transform", transformNode, allocator);
+    Value tfNode(kObjectType);
+    tfNode.AddMember("position", posArr, alloc);
+    tfNode.AddMember("rotation", rotArr, alloc);
+    tfNode.AddMember("scale", scArr, alloc);
+    out.AddMember("Transform", tfNode, alloc);
 }
 
-static void serialiseComponents(const GameObject* go, Value& out, Document::AllocatorType& allocator)
+static void serialiseComponents(const GameObject* go, Value& out,
+    Document::AllocatorType& alloc)
 {
-    Value componentArray(kArrayType);
+    Value compArray(kArrayType);
     Document helperDoc;
     helperDoc.SetObject();
 
-    for (Component* component : go->GetAllComponents())
+    for (Component* comp : go->GetAllComponents())
     {
-        if (component->getType() == ComponentType::TRANSFORM)
-        {
-            continue;
-        }
+        if (comp->getType() == ComponentType::TRANSFORM) continue;
 
-        Value componentData = component->getJSON(helperDoc);
-        Value componentDataCopy;
-        componentDataCopy.CopyFrom(componentData, allocator);
+        Value data = comp->getJSON(helperDoc);
+        Value dataCopy;
+        dataCopy.CopyFrom(data, alloc);
 
-        Value componentNode(kObjectType);
-        componentNode.AddMember("Type", static_cast<int>(component->getType()), allocator);
-        componentNode.AddMember("Data", componentDataCopy, allocator);
-
-        componentArray.PushBack(componentNode, allocator);
+        Value compNode(kObjectType);
+        compNode.AddMember("Type", static_cast<int>(comp->getType()), alloc);
+        compNode.AddMember("Data", dataCopy, alloc);
+        compArray.PushBack(compNode, alloc);
     }
 
-    out.AddMember("Components", componentArray, allocator);
+    out.AddMember("Components", compArray, alloc);
 }
 
-static void serialiseNodeInto(const GameObject* go, Value& out, Document::AllocatorType& allocator)
+static void serialiseNodeInto(const GameObject* go, Value& out,
+    Document::AllocatorType& alloc)
 {
     out.SetObject();
-    out.AddMember("Name", Value(go->GetName().c_str(), allocator), allocator);
-    out.AddMember("Active", go->GetActive(), allocator);
+    out.AddMember("Name", Value(go->GetName().c_str(), alloc), alloc);
+    out.AddMember("Active", go->GetActive(), alloc);
 
-    const PrefabInstanceData* instanceData = PrefabManager::getInstanceData(go);
-    if (instanceData)
+
+    const PrefabData* data = PrefabManager::getInstanceData(go);
+    if (data)
     {
         Value prefabLink(kObjectType);
-        prefabLink.AddMember("PrefabName", Value(instanceData->m_prefabName.c_str(), allocator), allocator);
-        prefabLink.AddMember("PrefabUID", instanceData->m_prefabUID, allocator);
-        out.AddMember("PrefabLink", prefabLink, allocator);
+        prefabLink.AddMember("SourcePath", Value(data->m_sourcePath.string().c_str(), alloc), alloc);
+        prefabLink.AddMember("AssetUID", Value(data->m_assetUID.c_str(), alloc), alloc);
+        prefabLink.AddMember("PrefabUID", static_cast<uint64_t>(data->m_prefabUID), alloc);
+        out.AddMember("PrefabLink", prefabLink, alloc);
     }
 
-    serialiseTransform(go, out, allocator);
-    serialiseComponents(go, out, allocator);
+    serialiseTransform(go, out, alloc);
+    serialiseComponents(go, out, alloc);
 
     Value childrenArray(kArrayType);
     for (GameObject* child : go->GetTransform()->getAllChildren())
     {
         Value childNode;
-        serialiseNodeInto(child, childNode, allocator);
-        childrenArray.PushBack(childNode, allocator);
+        serialiseNodeInto(child, childNode, alloc);
+        childrenArray.PushBack(childNode, alloc);
     }
-    out.AddMember("Children", childrenArray, allocator);
+    out.AddMember("Children", childrenArray, alloc);
 }
+
 
 static void deserialiseTransform(const Value& node, GameObject* go)
 {
-    if (!node.HasMember("Transform") || !node["Transform"].IsObject())
-    {
-        return;
-    }
+    if (!node.HasMember("Transform") || !node["Transform"].IsObject()) return;
+    Transform* tf = go->GetTransform();
+    const Value& tfNode = node["Transform"];
 
-    Transform* transform = go->GetTransform();
-    const Value& transformNode = node["Transform"];
-
-    if (transformNode.HasMember("position") && transformNode["position"].IsArray())
+    if (tfNode.HasMember("position") && tfNode["position"].IsArray())
     {
-        const auto& position = transformNode["position"];
-        transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
+        const auto& p = tfNode["position"];
+        tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
     }
-    if (transformNode.HasMember("rotation") && transformNode["rotation"].IsArray())
+    if (tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
     {
-        const auto& rotation = transformNode["rotation"];
-        transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(),
-            rotation[2].GetFloat(), rotation[3].GetFloat()));
+        const auto& r = tfNode["rotation"];
+        tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(),
+            r[2].GetFloat(), r[3].GetFloat()));
     }
-    if (transformNode.HasMember("scale") && transformNode["scale"].IsArray())
+    if (tfNode.HasMember("scale") && tfNode["scale"].IsArray())
     {
-        const auto& scale = transformNode["scale"];
-        transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
+        const auto& s = tfNode["scale"];
+        tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
     }
 }
 
 static void deserialiseComponents(const Value& node, GameObject* go)
 {
-    if (!node.HasMember("Components") || !node["Components"].IsArray())
+    if (!node.HasMember("Components") || !node["Components"].IsArray()) return;
+    for (SizeType i = 0; i < node["Components"].Size(); ++i)
     {
-        return;
-    }
-
-    for (SizeType index = 0; index < node["Components"].Size(); ++index)
-    {
-        const Value& componentNode = node["Components"][index];
-        auto         componentType = static_cast<ComponentType>(componentNode["Type"].GetInt());
-        Component* component = go->AddComponentWithUID(componentType, GenerateUID());
-
-        if (component && componentNode.HasMember("Data") && componentNode["Data"].IsObject())
+        const Value& cn = node["Components"][i];
+        auto         type = static_cast<ComponentType>(cn["Type"].GetInt());
+        Component* comp = go->AddComponentWithUID(type, GenerateUID());
+        if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
         {
-            component->deserializeJSON(componentNode["Data"]);
+            comp->deserializeJSON(cn["Data"]);
         }
     }
 }
 
 GameObject* PrefabManager::deserialiseNode(const Value& node, ModuleScene* scene, GameObject* parent)
 {
-    if (!node.IsObject())
-    {
-        return nullptr;
-    }
+    if (!node.IsObject()) return nullptr;
 
     const char* name = node.HasMember("Name") ? node["Name"].GetString() : "Unnamed";
-    GameObject* gameObject = scene->createGameObjectWithUID(GenerateUID(), GenerateUID());
+    GameObject* go = scene->createGameObjectWithUID(GenerateUID(), GenerateUID());
+    if (!go) return nullptr;
 
-    if (!gameObject)
-    {
-        return nullptr;
-    }
-
-    gameObject->SetName(name);
-    gameObject->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
+    go->SetName(name);
+    go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
 
     if (parent)
     {
-        Transform* parentTransform = parent->GetTransform();
-        Transform* childTransform = gameObject->GetTransform();
-        childTransform->setRoot(parentTransform);
-        parentTransform->addChild(gameObject);
-        scene->removeFromRootList(gameObject);
+        Transform* parentTf = parent->GetTransform();
+        Transform* childTf = go->GetTransform();
+        childTf->setRoot(parentTf);
+        parentTf->addChild(go);
+        scene->removeFromRootList(go);
     }
 
+    // Restore the prefab link using full source path + GO UID.
     if (node.HasMember("PrefabLink") && node["PrefabLink"].IsObject())
     {
-        const Value& prefabLink = node["PrefabLink"];
-        PrefabInstanceData linkData;
-        linkData.m_prefabName = prefabLink.HasMember("PrefabName") ? prefabLink["PrefabName"].GetString() : "";
-        linkData.m_prefabUID = prefabLink.HasMember("PrefabUID") ? prefabLink["PrefabUID"].GetUint() : 0;
-        if (!linkData.m_prefabName.empty())
+        const Value& pl = node["PrefabLink"];
+        PrefabData linkData;
+        if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
         {
-            linkInstance(gameObject, linkData);
+            linkData.m_sourcePath = pl["SourcePath"].GetString();
+        }
+
+        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
+        {
+            linkData.m_assetUID = pl["AssetUID"].GetString();
+        }
+
+        if (pl.HasMember("PrefabUID") && pl["PrefabUID"].IsUint64())
+        {
+            linkData.m_prefabUID = static_cast<UID>(pl["PrefabUID"].GetUint64());
+        }
+
+        linkData.m_name = linkData.m_sourcePath.stem().string();
+
+        if (!linkData.m_sourcePath.empty())
+        {
+            linkInstance(go, linkData);
         }
     }
 
-    deserialiseTransform(node, gameObject);
-    deserialiseComponents(node, gameObject);
+    deserialiseTransform(node, go);
+    deserialiseComponents(node, go);
 
     if (node.HasMember("Children") && node["Children"].IsArray())
     {
-        for (SizeType index = 0; index < node["Children"].Size(); ++index)
+        for (SizeType i = 0; i < node["Children"].Size(); ++i)
         {
-            deserialiseNode(node["Children"][index], scene, gameObject);
+            deserialiseNode(node["Children"][i], scene, go);
         }
     }
 
-    return gameObject;
+    return go;
+}
+
+std::string PrefabManager::buildPrefabJSON(const GameObject* go, const fs::path& savePath)
+{
+    if (!go || savePath.empty()) return {};
+
+    Document doc;
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
+
+    const std::string pathStr = savePath.string();
+    const std::string name = savePath.stem().string();
+
+    doc.AddMember("SourcePath", Value(pathStr.c_str(), alloc), alloc);
+    doc.AddMember("Name", Value(name.c_str(), alloc), alloc);
+    doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
+
+    doc.AddMember("PrefabUID", static_cast<UID>(go->GetID()), alloc);
+
+    // Record variant relationship when this GO is itself a prefab instance
+    // of a different prefab.
+    const PrefabData* existing = getInstanceData(go);
+    if (existing && !existing->m_sourcePath.empty() && existing->m_sourcePath != savePath)
+    {
+        doc.AddMember("VariantOf", Value(existing->m_sourcePath.string().c_str(), alloc), alloc);
+    }
+
+    Value gameObjectNode;
+    serialiseNodeInto(go, gameObjectNode, alloc);
+    doc.AddMember("GameObject", gameObjectNode, alloc);
+
+    StringBuffer sb;
+    Writer<StringBuffer> writer(sb);
+    doc.Accept(writer);
+    return sb.GetString();
 }
 
 std::string PrefabManager::serializeGameObject(const GameObject* go)
 {
-    if (!go)
-    {
-        return {};
-    }
-
+    if (!go) return {};
     Document doc;
     doc.SetObject();
-
-    Value gameObjectNode;
-    serialiseNodeInto(go, gameObjectNode, doc.GetAllocator());
-    doc.AddMember("GameObject", gameObjectNode, doc.GetAllocator());
-
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
+    Value goNode;
+    serialiseNodeInto(go, goNode, doc.GetAllocator());
+    doc.AddMember("GameObject", goNode, doc.GetAllocator());
+    StringBuffer sb;
+    Writer<StringBuffer> writer(sb);
     doc.Accept(writer);
-    return buffer.GetString();
+    return sb.GetString();
 }
 
 GameObject* PrefabManager::deserializeGameObject(const std::string& data, ModuleScene* scene)
@@ -294,7 +308,6 @@ GameObject* PrefabManager::deserializeGameObject(const std::string& data, Module
 
     Document doc;
     doc.Parse(data.c_str());
-
     if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
     {
         return nullptr;
@@ -303,6 +316,264 @@ GameObject* PrefabManager::deserializeGameObject(const std::string& data, Module
     return deserialiseNode(doc["GameObject"], scene, nullptr);
 }
 
+
+GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset,
+    ModuleScene* scene)
+{
+    if (!scene || asset.getJSON().empty()) return nullptr;
+
+    Document doc;
+    doc.Parse(asset.getJSON().c_str());
+    if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
+    {
+        DEBUG_ERROR("[PrefabManager] Malformed JSON in asset '%s'.", asset.getId().c_str());
+        return nullptr;
+    }
+
+    GameObject* go = deserialiseNode(doc["GameObject"], scene, nullptr);
+    if (!go) return nullptr;
+
+
+    PrefabData instanceData = asset.getData();
+    instanceData.m_json = {};
+    linkInstance(go, instanceData);
+    return go;
+}
+
+// Convenience overload: resolve by full path, asset system first.
+GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath,
+    ModuleScene* scene)
+{
+    if (!scene || sourcePath.empty()) return nullptr;
+
+    auto asset = app->getModuleAssets()->loadAtPath<PrefabAsset>(sourcePath);
+    if (asset) {
+        return instantiatePrefab(*asset, scene);
+    }
+
+    if (!fs::exists(sourcePath)) 
+    {
+        return nullptr;
+    }
+
+    Document doc;
+    if (!readPrefabDocument(sourcePath, doc) || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
+    {
+        return nullptr;
+    }
+
+
+    GameObject* go = deserialiseNode(doc["GameObject"], scene, nullptr);
+    if (!go)
+    {
+        return nullptr;
+    }
+
+    PrefabData instanceData;
+    instanceData.m_sourcePath = sourcePath;
+    instanceData.m_name = sourcePath.stem().string();
+    instanceData.m_prefabUID = doc.HasMember("PrefabUID") && doc["PrefabUID"].IsUint64() ? static_cast<UID>(doc["PrefabUID"].GetUint64()) : 0;
+    linkInstance(go, instanceData);
+    return go;
+}
+
+// ============================================================================
+// Prefab authoring
+// ============================================================================
+bool PrefabManager::createPrefab(const GameObject* go, const fs::path& savePath)
+{
+    if (!go || savePath.empty()) return false;
+
+    const std::string json = buildPrefabJSON(go, savePath);
+    if (json.empty()) return false;
+
+    Document doc;
+    doc.Parse(json.c_str());
+    if (!writePrefabDocument(doc, savePath)) return false;
+
+    app->getModuleAssets()->refresh();
+    return true;
+}
+
+bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
+{
+    const PrefabData* data = getInstanceData(go);
+    if (!data || data->m_sourcePath.empty()) return false;
+    if (!respectOverrides) return createPrefab(go, data->m_sourcePath);
+
+    Document doc;
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
+
+    const std::string pathStr = data->m_sourcePath.string();
+    doc.AddMember("SourcePath", Value(pathStr.c_str(), alloc), alloc);
+    doc.AddMember("Name", Value(data->m_name.c_str(), alloc), alloc);
+    doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
+    doc.AddMember("PrefabUID", static_cast<uint64_t>(data->m_prefabUID), alloc);
+
+    if (!data->m_overrides.isEmpty())
+    {
+        Value overrideMap(kObjectType);
+        Value modProps(kObjectType);
+        for (const auto& [ct, props] : data->m_overrides.m_modifiedProperties)
+        {
+            Value arr(kArrayType);
+            for (const auto& p : props)
+            {
+                arr.PushBack(Value(p.c_str(), alloc), alloc);
+
+            }
+            const std::string key = std::to_string(ct);
+            modProps.AddMember(Value(key.c_str(), alloc), arr, alloc);
+        }
+        overrideMap.AddMember("ModifiedProperties", modProps, alloc);
+
+        Value addedArr(kArrayType);
+        for (int t : data->m_overrides.m_addedComponentTypes)
+        {
+            addedArr.PushBack(t, alloc);
+        }
+
+        overrideMap.AddMember("AddedComponents", addedArr, alloc);
+
+        Value removedArr(kArrayType);
+        for (int t : data->m_overrides.m_removedComponentTypes)
+        {
+            removedArr.PushBack(t, alloc);
+        }
+
+        overrideMap.AddMember("RemovedComponents", removedArr, alloc);
+
+        doc.AddMember("OverrideMap", overrideMap, alloc);
+    }
+
+    Value goNode;
+    serialiseNodeInto(go, goNode, alloc);
+    doc.AddMember("GameObject", goNode, alloc);
+
+    return writePrefabDocument(doc, data->m_sourcePath);
+}
+
+bool PrefabManager::revertToPrefab(GameObject* go, ModuleScene* scene)
+{
+    PrefabData* data = getInstanceDataMutable(go);
+    if (!data || data->m_sourcePath.empty()) return false;
+
+    Document doc;
+    bool loaded = false;
+
+    if (isValidAsset(data->m_assetUID))
+    {
+        auto asset = app->getModuleAssets()->load<PrefabAsset>(data->m_assetUID);
+        if (asset && !asset->getJSON().empty())
+        {
+            doc.Parse(asset->getJSON().c_str());
+            loaded = !doc.HasParseError() && doc.HasMember("GameObject");
+        }
+    }
+    if (!loaded)
+    {
+        if (!fs::exists(data->m_sourcePath))
+        {
+            return false;
+        }
+
+        if (!readPrefabDocument(data->m_sourcePath, doc) || !doc.HasMember("GameObject")) 
+        {
+            return false;
+        }
+    }
+
+    const Value& goNode = doc["GameObject"];
+    PrefabOverrideRecord savedOverrides = data->m_overrides;
+    const int            transformType = static_cast<int>(ComponentType::TRANSFORM);
+
+    if (goNode.HasMember("Transform") && goNode["Transform"].IsObject())
+    {
+        Transform* tf = go->GetTransform();
+        const Value& tfNode = goNode["Transform"];
+
+        auto oit = savedOverrides.m_modifiedProperties.find(transformType);
+        const std::unordered_set<std::string>* overrideSet =
+            (oit != savedOverrides.m_modifiedProperties.end()) ? &oit->second : nullptr;
+
+        auto isOverridden = [&](const char* prop)
+            { 
+                return overrideSet && overrideSet->count(prop) > 0; 
+            };
+
+        if (!isOverridden("position") && tfNode.HasMember("position") && tfNode["position"].IsArray())
+        {
+            const auto& p = tfNode["position"];
+            tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
+        }
+        if (!isOverridden("rotation") && tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
+        {
+            const auto& r = tfNode["rotation"];
+            tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(),
+                r[2].GetFloat(), r[3].GetFloat()));
+        }
+        if (!isOverridden("scale") && tfNode.HasMember("scale") && tfNode["scale"].IsArray())
+        {
+            const auto& s = tfNode["scale"];
+            tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
+        }
+        tf->markDirty();
+    }
+
+    if (goNode.HasMember("Components") && goNode["Components"].IsArray())
+    {
+        for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
+        {
+            const Value& cn = goNode["Components"][i];
+            if (!cn.HasMember("Type") || !cn.HasMember("Data")) continue;
+            const int ct = cn["Type"].GetInt();
+            auto oit = savedOverrides.m_modifiedProperties.find(ct);
+            if (oit != savedOverrides.m_modifiedProperties.end() && oit->second.count("properties") > 0) continue;
+            Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
+            if (comp) comp->deserializeJSON(cn["Data"]);
+        }
+    }
+
+    data->m_overrides = savedOverrides;
+    return true;
+}
+
+bool PrefabManager::createVariant(const fs::path& sourcePath,
+    const fs::path& destinationPath)
+{
+    if (sourcePath.empty() || destinationPath.empty()) return false;
+    if (!fs::exists(sourcePath)) return false;
+
+    Document doc;
+    if (!readPrefabDocument(sourcePath, doc)) return false;
+    auto& alloc = doc.GetAllocator();
+
+    const std::string dstStr = destinationPath.string();
+    const std::string dstName = destinationPath.stem().string();
+    const std::string srcStr = sourcePath.string();
+
+    auto setOrAdd = [&](const char* key, const std::string& value)
+        {
+            if (doc.HasMember(key))
+            {
+                doc[key].SetString(value.c_str(), alloc);
+            }
+            else
+            {
+                doc.AddMember(Value(key, alloc), Value(value.c_str(), alloc), alloc);
+            }
+        };
+
+    setOrAdd("SourcePath", dstStr);
+    setOrAdd("Name", dstName);
+    setOrAdd("VariantOf", srcStr);
+
+
+    return writePrefabDocument(doc, destinationPath);
+}
+
+
 bool PrefabManager::isPrefabInstance(const GameObject* go)
 {
     return go && registry().count(go) > 0;
@@ -310,415 +581,117 @@ bool PrefabManager::isPrefabInstance(const GameObject* go)
 
 std::string PrefabManager::getPrefabName(const GameObject* go)
 {
-    const PrefabInstanceData* data = getInstanceData(go);
-    return data ? data->m_prefabName : "";
+    const PrefabData* d = getInstanceData(go);
+    return d ? d->m_name : "";
 }
 
-uint32_t PrefabManager::getPrefabUID(const GameObject* go)
+UID PrefabManager::getPrefabUID(const GameObject* go)
 {
-    const PrefabInstanceData* data = getInstanceData(go);
-    return data ? data->m_prefabUID : 0;
+    const PrefabData* d = getInstanceData(go);
+    return d ? d->m_prefabUID : 0;
 }
 
-const PrefabInstanceData* PrefabManager::getInstanceData(const GameObject* go)
-{
-    auto it = registry().find(go);
-    return (it != registry().end()) ? &it->second : nullptr;
-}
-
-PrefabInstanceData* PrefabManager::getInstanceDataMutable(GameObject* go)
+const PrefabData* PrefabManager::getInstanceData(const GameObject* go)
 {
     auto it = registry().find(go);
     return (it != registry().end()) ? &it->second : nullptr;
 }
 
-void PrefabManager::linkInstance(GameObject* go, const PrefabInstanceData& data)
+PrefabData* PrefabManager::getInstanceDataMutable(GameObject* go)
 {
-    if (go)
-    {
-        registry()[go] = data;
-    }
+    auto it = registry().find(go);
+    return (it != registry().end()) ? &it->second : nullptr;
+}
+
+void PrefabManager::linkInstance(GameObject* go, const PrefabData& data)
+{
+    if (go) registry()[go] = data;
 }
 
 void PrefabManager::unlinkInstance(GameObject* go)
 {
-    if (go)
-    {
-        registry().erase(go);
-    }
+    if (go) registry().erase(go);
 }
 
-void PrefabManager::markPropertyOverride(GameObject* go, int componentType, const std::string& propertyName)
+void PrefabManager::markPropertyOverride(GameObject* go, int ct,
+    const std::string& prop)
 {
-    PrefabInstanceData* instance = getInstanceDataMutable(go);
-    if (instance)
-    {
-        instance->m_overrides.m_modifiedProperties[componentType].insert(propertyName);
-    }
+    PrefabData* d = getInstanceDataMutable(go);
+    if (d) d->m_overrides.m_modifiedProperties[ct].insert(prop);
 }
 
-void PrefabManager::clearComponentOverrides(GameObject* go, int componentType)
+void PrefabManager::clearComponentOverrides(GameObject* go, int ct)
 {
-    PrefabInstanceData* instance = getInstanceDataMutable(go);
-    if (!instance)
-    {
-        return;
-    }
-
-    instance->m_overrides.m_modifiedProperties.erase(componentType);
-
-    auto eraseType = [componentType](std::vector<int>& vec)
-        {
-            vec.erase(std::remove(vec.begin(), vec.end(), componentType), vec.end());
+    PrefabData* d = getInstanceDataMutable(go);
+    if (!d) return;
+    d->m_overrides.m_modifiedProperties.erase(ct);
+    auto erase = [ct](std::vector<int>& v)
+        { 
+            v.erase(std::remove(v.begin(), v.end(), ct), v.end()); 
         };
-    eraseType(instance->m_overrides.m_addedComponentTypes);
-    eraseType(instance->m_overrides.m_removedComponentTypes);
+    erase(d->m_overrides.m_addedComponentTypes);
+    erase(d->m_overrides.m_removedComponentTypes);
 }
 
 void PrefabManager::clearAllOverrides(GameObject* go)
 {
-    PrefabInstanceData* instance = getInstanceDataMutable(go);
-    if (instance)
-    {
-        instance->m_overrides.clear();
+    PrefabData* d = getInstanceDataMutable(go);
+    if (d) {
+        d->m_overrides.clear();
     }
 }
 
-void PrefabManager::markComponentAdded(GameObject* go, int componentType)
+void PrefabManager::markComponentAdded(GameObject* go, int ct)
 {
-    PrefabInstanceData* instance = getInstanceDataMutable(go);
-    if (!instance)
+    PrefabData* d = getInstanceDataMutable(go);
+    if (!d) return;
+    auto& added = d->m_overrides.m_addedComponentTypes;
+    if (std::find(added.begin(), added.end(), ct) == added.end())
     {
-        return;
+        added.push_back(ct);
     }
 
-    auto& added = instance->m_overrides.m_addedComponentTypes;
-    if (std::find(added.begin(), added.end(), componentType) == added.end())
-    {
-        added.push_back(componentType);
-    }
-
-    auto& removed = instance->m_overrides.m_removedComponentTypes;
-    removed.erase(std::remove(removed.begin(), removed.end(), componentType), removed.end());
+    auto& removed = d->m_overrides.m_removedComponentTypes;
+    removed.erase(std::remove(removed.begin(), removed.end(), ct), removed.end());
 }
 
-void PrefabManager::markComponentRemoved(GameObject* go, int componentType)
+void PrefabManager::markComponentRemoved(GameObject* go, int ct)
 {
-    PrefabInstanceData* instance = getInstanceDataMutable(go);
-    if (!instance)
+    PrefabData* d = getInstanceDataMutable(go);
+    if (!d) return;
+    auto& removed = d->m_overrides.m_removedComponentTypes;
+    if (std::find(removed.begin(), removed.end(), ct) == removed.end())
     {
-        return;
+        removed.push_back(ct);
     }
 
-    auto& removed = instance->m_overrides.m_removedComponentTypes;
-    if (std::find(removed.begin(), removed.end(), componentType) == removed.end())
-    {
-        removed.push_back(componentType);
-    }
-
-    auto& added = instance->m_overrides.m_addedComponentTypes;
-    added.erase(std::remove(added.begin(), added.end(), componentType), added.end());
-
-    instance->m_overrides.m_modifiedProperties.erase(componentType);
+    auto& added = d->m_overrides.m_addedComponentTypes;
+    added.erase(std::remove(added.begin(), added.end(), ct), added.end());
+    d->m_overrides.m_modifiedProperties.erase(ct);
 }
 
-bool PrefabManager::createPrefab(const GameObject* go, const std::string& prefabName)
+
+std::vector<fs::path> PrefabManager::listPrefabs(const fs::path& searchRoot)
 {
-    if (!go || prefabName.empty())
-    {
-        return false;
-    }
-
-    std::error_code errorCode;
-    fs::create_directories(PREFAB_DIR, errorCode);
-
-    Document doc;
-    doc.SetObject();
-    auto& allocator = doc.GetAllocator();
-
-    doc.AddMember("PrefabName", Value(prefabName.c_str(), allocator), allocator);
-    doc.AddMember("Version", PREFAB_FORMAT_VERSION, allocator);
-    doc.AddMember("PrefabUID", makePrefabUID(prefabName), allocator);
-
-    const PrefabInstanceData* instanceData = getInstanceData(go);
-    if (instanceData && !instanceData->m_prefabName.empty() && instanceData->m_prefabName != prefabName)
-    {
-        doc.AddMember("VariantOf", Value(instanceData->m_prefabName.c_str(), allocator), allocator);
-    }
-
-    Value gameObjectNode;
-    serialiseNodeInto(go, gameObjectNode, allocator);
-    doc.AddMember("GameObject", gameObjectNode, allocator);
-
-    if (!writePrefabDocument(doc, getPrefabPath(prefabName)))
-    {
-        return false;
-    }
-
-    app->getModuleFileSystem()->rebuild();
-    return true;
-}
-
-GameObject* PrefabManager::instantiatePrefab(const std::string& prefabName, ModuleScene* scene)
-{
-    if (!scene || prefabName.empty())
-    {
-        return nullptr;
-    }
-
-    std::string prefabPath = getPrefabPath(prefabName);
-    if (!fs::exists(prefabPath))
-    {
-        return nullptr;
-    }
-
-    Document doc;
-    if (!readPrefabDocument(prefabPath, doc) || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
-    {
-        return nullptr;
-    }
-
-    GameObject* gameObject = deserialiseNode(doc["GameObject"], scene, nullptr);
-    if (!gameObject)
-    {
-        return nullptr;
-    }
-
-    PrefabInstanceData instanceData;
-    instanceData.m_prefabName = prefabName;
-    instanceData.m_prefabUID = doc.HasMember("PrefabUID") ? doc["PrefabUID"].GetUint() : makePrefabUID(prefabName);
-    linkInstance(gameObject, instanceData);
-
-    return gameObject;
-}
-
-bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
-{
-    const PrefabInstanceData* instance = getInstanceData(go);
-    if (!instance || instance->m_prefabName.empty())
-    {
-        return false;
-    }
-
-    if (!respectOverrides)
-    {
-        return createPrefab(go, instance->m_prefabName);
-    }
-
-    fs::create_directories(PREFAB_DIR);
-
-    Document doc;
-    doc.SetObject();
-    auto& allocator = doc.GetAllocator();
-
-    doc.AddMember("PrefabName", Value(instance->m_prefabName.c_str(), allocator), allocator);
-    doc.AddMember("Version", PREFAB_FORMAT_VERSION, allocator);
-    doc.AddMember("PrefabUID", instance->m_prefabUID, allocator);
-
-    if (!instance->m_overrides.isEmpty())
-    {
-        Value overrideMap(kObjectType);
-
-        Value modifiedProperties(kObjectType);
-        for (const auto& [componentType, properties] : instance->m_overrides.m_modifiedProperties)
-        {
-            Value propertyArray(kArrayType);
-            for (const auto& propertyName : properties)
-            {
-                propertyArray.PushBack(Value(propertyName.c_str(), allocator), allocator);
-            }
-            std::string key = std::to_string(componentType);
-            modifiedProperties.AddMember(Value(key.c_str(), allocator), propertyArray, allocator);
-        }
-        overrideMap.AddMember("ModifiedProperties", modifiedProperties, allocator);
-
-        Value addedArray(kArrayType);
-        for (int componentType : instance->m_overrides.m_addedComponentTypes)
-        {
-            addedArray.PushBack(componentType, allocator);
-        }
-        overrideMap.AddMember("AddedComponents", addedArray, allocator);
-
-        Value removedArray(kArrayType);
-        for (int componentType : instance->m_overrides.m_removedComponentTypes)
-        {
-            removedArray.PushBack(componentType, allocator);
-        }
-        overrideMap.AddMember("RemovedComponents", removedArray, allocator);
-
-        doc.AddMember("OverrideMap", overrideMap, allocator);
-    }
-
-    Value gameObjectNode;
-    serialiseNodeInto(go, gameObjectNode, allocator);
-    doc.AddMember("GameObject", gameObjectNode, allocator);
-
-    return writePrefabDocument(doc, getPrefabPath(instance->m_prefabName));
-}
-
-bool PrefabManager::revertToPrefab(GameObject* go, ModuleScene* scene)
-{
-    PrefabInstanceData* instance = getInstanceDataMutable(go);
-    if (!instance || instance->m_prefabName.empty())
-        return false;
-
-    std::string prefabPath = getPrefabPath(instance->m_prefabName);
-    if (!fs::exists(prefabPath))
-        return false;
-
-    Document doc;
-    if (!readPrefabDocument(prefabPath, doc) || !doc.HasMember("GameObject"))
-        return false;
-
-    const Value& gameObjectNode = doc["GameObject"];
-    PrefabOverrideRecord savedOverrides = instance->m_overrides;
-    const int transformType = static_cast<int>(ComponentType::TRANSFORM);
-
-    if (gameObjectNode.HasMember("Transform") && gameObjectNode["Transform"].IsObject())
-    {
-        Transform* transform = go->GetTransform();
-        const Value& transformNode = gameObjectNode["Transform"];
-
-        auto overrideIterator = savedOverrides.m_modifiedProperties.find(transformType);
-        const std::unordered_set<std::string>* overrideSet =
-            (overrideIterator != savedOverrides.m_modifiedProperties.end()) ? &overrideIterator->second : nullptr;
-
-        auto isOverridden = [&](const char* propertyName)
-            {
-                return overrideSet && overrideSet->count(propertyName) > 0;
-            };
-
-        if (!isOverridden("position") && transformNode.HasMember("position") && transformNode["position"].IsArray())
-        {
-            const auto& position = transformNode["position"];
-            transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
-        }
-        if (!isOverridden("rotation") && transformNode.HasMember("rotation") && transformNode["rotation"].IsArray())
-        {
-            const auto& rotation = transformNode["rotation"];
-            transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(),
-                rotation[2].GetFloat(), rotation[3].GetFloat()));
-        }
-        if (!isOverridden("scale") && transformNode.HasMember("scale") && transformNode["scale"].IsArray())
-        {
-            const auto& scale = transformNode["scale"];
-            transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
-        }
-        transform->markDirty();
-    }
-
-    if (gameObjectNode.HasMember("Components") && gameObjectNode["Components"].IsArray())
-    {
-        const Value& componentsArray = gameObjectNode["Components"];
-        for (SizeType i = 0; i < componentsArray.Size(); ++i)
-        {
-            const Value& componentNode = componentsArray[i];
-            if (!componentNode.HasMember("Type") || !componentNode.HasMember("Data"))
-                continue;
-
-            const int componentType = componentNode["Type"].GetInt();
-
-            auto overrideIt = savedOverrides.m_modifiedProperties.find(componentType);
-            if (overrideIt != savedOverrides.m_modifiedProperties.end()
-                && overrideIt->second.count("properties") > 0)
-                continue;
-
-            Component* component = go->GetComponent(static_cast<ComponentType>(componentType));
-            if (component)
-            {
-                component->deserializeJSON(componentNode["Data"]);
-            }
-        }
-    }
-
-    instance->m_overrides = savedOverrides;
-    return true;
-}
-
-bool PrefabManager::createVariant(const std::string& sourcePrefabName, const std::string& destinationPrefabName)
-{
-    if (sourcePrefabName.empty() || destinationPrefabName.empty())
-    {
-        return false;
-    }
-
-    std::string sourcePath = getPrefabPath(sourcePrefabName);
-    if (!fs::exists(sourcePath))
-    {
-        return false;
-    }
-
-    fs::create_directories(PREFAB_DIR);
-
-    Document doc;
-    if (!readPrefabDocument(sourcePath, doc))
-    {
-        return false;
-    }
-
-    auto& allocator = doc.GetAllocator();
-
-    auto setOrAdd = [&](const char* key, const std::string& value)
-        {
-            if (doc.HasMember(key))
-            {
-                doc[key].SetString(value.c_str(), allocator);
-            }
-            else
-            {
-                doc.AddMember(Value(key, allocator), Value(value.c_str(), allocator), allocator);
-            }
-        };
-
-    setOrAdd("PrefabName", destinationPrefabName);
-    setOrAdd("VariantOf", sourcePrefabName);
-
-    const uint32_t destinationUID = makePrefabUID(destinationPrefabName);
-    if (doc.HasMember("PrefabUID"))
-    {
-        doc["PrefabUID"].SetUint(destinationUID);
-    }
-    else
-    {
-        doc.AddMember("PrefabUID", destinationUID, allocator);
-    }
-
-    return writePrefabDocument(doc, getPrefabPath(destinationPrefabName));
-}
-
-std::vector<std::string> PrefabManager::listPrefabs()
-{
-    std::vector<std::string> names;
-    if (!fs::exists(PREFAB_DIR))
-    {
-        return names;
-    }
-
-    std::error_code errorCode;
-    fs::directory_iterator iterator(PREFAB_DIR, errorCode);
-    if (errorCode)
-    {
-        return names;
-    }
-
-    for (const auto& entry : iterator)
+    std::vector<fs::path> paths;
+    if (!fs::exists(searchRoot)) return paths;
+    std::error_code ec;
+    for (const auto& entry : fs::recursive_directory_iterator(searchRoot, ec))
     {
         if (entry.is_regular_file() && entry.path().extension() == PREFAB_EXT)
         {
-            names.push_back(entry.path().stem().string());
+            paths.push_back(entry.path());
         }
     }
 
-    return names;
+    return paths;
 }
 
-std::vector<PrefabManager::PrefabInfo> PrefabManager::listPrefabsInfo()
+std::vector<PrefabManager::PrefabInfo> PrefabManager::listPrefabsInfo(
+    const fs::path& searchRoot)
 {
     std::vector<PrefabInfo> results;
-    if (!fs::exists(PREFAB_DIR))
-    {
-        return results;
-    }
+    if (!fs::exists(searchRoot)) return results;
 
     auto countChildren = [](auto& self, const Value& node) -> int
         {
@@ -726,38 +699,36 @@ std::vector<PrefabManager::PrefabInfo> PrefabManager::listPrefabsInfo()
             if (node.HasMember("Children") && node["Children"].IsArray())
             {
                 count += static_cast<int>(node["Children"].Size());
-                for (SizeType index = 0; index < node["Children"].Size(); ++index)
+                for (SizeType i = 0; i < node["Children"].Size(); ++i)
                 {
-                    count += self(self, node["Children"][index]);
+                    count += self(self, node["Children"][i]);
                 }
+
             }
             return count;
         };
 
-    std::error_code errorCode;
-    fs::directory_iterator iterator(PREFAB_DIR, errorCode);
-    if (errorCode)
-    {
-        return results;
-    }
-
-    for (const auto& entry : iterator)
+    std::error_code ec;
+    for (const auto& entry :
+        fs::recursive_directory_iterator(searchRoot, ec))
     {
         if (!entry.is_regular_file() || entry.path().extension() != PREFAB_EXT)
-        {
             continue;
-        }
 
         Document doc;
-        if (!readPrefabDocument(entry.path().string(), doc))
-        {
-            continue;
-        }
+        if (!readPrefabDocument(entry.path(), doc)) continue;
 
         PrefabInfo info;
+        info.m_sourcePath = entry.path();
         info.m_name = entry.path().stem().string();
-        info.m_uid = doc.HasMember("PrefabUID") ? doc["PrefabUID"].GetUint() : 0;
         info.m_version = doc.HasMember("Version") ? doc["Version"].GetInt() : 0;
+
+        // PrefabUID is now a uint64_t GO UID.
+        if (doc.HasMember("PrefabUID") && doc["PrefabUID"].IsUint64())
+        {
+            info.m_uid = static_cast<UID>(doc["PrefabUID"].GetUint64());
+        }
+
 
         if (doc.HasMember("VariantOf") && doc["VariantOf"].IsString())
         {
@@ -767,37 +738,32 @@ std::vector<PrefabManager::PrefabInfo> PrefabManager::listPrefabsInfo()
 
         if (doc.HasMember("GameObject") && doc["GameObject"].IsObject())
         {
-            const Value& gameObjectNode = doc["GameObject"];
-
-            std::vector<std::string> componentNames = { "Transform" };
-            if (gameObjectNode.HasMember("Components") && gameObjectNode["Components"].IsArray())
+            const Value& goNode = doc["GameObject"];
+            std::vector<std::string> compNames = { "Transform" };
+            if (goNode.HasMember("Components") && goNode["Components"].IsArray())
             {
-                for (SizeType index = 0; index < gameObjectNode["Components"].Size(); ++index)
+                for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
                 {
-                    auto type = static_cast<ComponentType>(gameObjectNode["Components"][index]["Type"].GetInt());
-                    componentNames.push_back(ComponentTypeToString(type));
+                    compNames.push_back(ComponentTypeToString( static_cast<ComponentType>(goNode["Components"][i]["Type"].GetInt())));
                 }
+
             }
 
-            for (size_t index = 0; index < componentNames.size(); ++index)
+            for (size_t i = 0; i < compNames.size(); ++i)
             {
-                if (index)
-                {
+                if (i) {
                     info.m_componentSummary += ", ";
                 }
-                info.m_componentSummary += componentNames[index];
+                info.m_componentSummary += compNames[i];
             }
-
-            info.m_childCount = countChildren(countChildren, gameObjectNode);
+            info.m_childCount = countChildren(countChildren, goNode);
         }
-
         results.push_back(std::move(info));
     }
-
     return results;
 }
 
-bool PrefabManager::prefabExists(const std::string& prefabName)
+bool PrefabManager::prefabExists(const fs::path& sourcePath)
 {
-    return fs::exists(getPrefabPath(prefabName));
+    return fs::exists(sourcePath);
 }

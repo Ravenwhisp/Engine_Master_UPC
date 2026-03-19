@@ -9,6 +9,7 @@
 #include "PrefabManager.h"
 
 #include "GameObject.h"
+#include "Transform.h"
 
 WindowHierarchy::WindowHierarchy()
 {
@@ -29,7 +30,9 @@ void WindowHierarchy::render()
 
 	if (prefabMode)
 	{
-		PrefabUI::drawModeHeader(session->m_prefabName.c_str());
+		std::string filenameStr = session->m_sourcePath.filename().string();
+		const char* cstr = filenameStr.c_str();
+		PrefabUI::drawModeHeader(cstr);
 
 		if (ImGui::Button("Add Child Object"))
 			addChildToPrefabRoot(session->m_rootObject);
@@ -79,7 +82,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 	if (isEditRoot)   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
 	else if (isPrefabInst) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
 
-	const char* label = (isEditRoot && session) ? session->m_prefabName.c_str() : gameObject->GetName().c_str();
+	const char* label = (isEditRoot && session) ? session->m_sourcePath.filename().string().c_str() : gameObject->GetName().c_str();
 	std::string nodeId = std::string(label) + "###" + std::to_string(gameObject->GetID());
 
 	bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
@@ -139,6 +142,18 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 			if (droppedObject != gameObject)
 			{
 				reparent(droppedObject, gameObject);
+			}
+		}
+
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+		{
+			const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
+			ModuleScene* scene = app->getModuleScene();
+			GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+			if (spawned)
+			{
+				reparent(spawned, gameObject);
+				app->getModuleEditor()->setSelectedGameObject(spawned);
 			}
 		}
 		ImGui::EndDragDropTarget();
@@ -219,6 +234,15 @@ void WindowHierarchy::createTreeNode()
 				GameObject* droppedObject = *(GameObject**)payload->Data;
 				reparent(droppedObject, nullptr);
 			}
+
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+			{
+				const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
+				ModuleScene* scene = app->getModuleScene();
+				GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+				if (spawned)
+					app->getModuleEditor()->setSelectedGameObject(spawned);
+			}
 			ImGui::EndDragDropTarget();
 		}
 
@@ -277,4 +301,3 @@ void WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
 	reparent(newObj, parent);
 	app->getModuleEditor()->setSelectedGameObject(newObj);
 }
-

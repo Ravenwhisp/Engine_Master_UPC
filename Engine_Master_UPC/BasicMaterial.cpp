@@ -4,22 +4,22 @@
 #include "Application.h"
 #include "ModuleResources.h"
 #include "ModuleAssets.h"
-
+#include "MaterialAsset.h"
+#include "TextureAsset.h"
 #include "Texture.h"
-#include "ModelAsset.h"
 
 BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
 	: ICacheable(uid)
 {
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
-		TextureAsset* baseMapTexture = static_cast<TextureAsset*>(app->getAssetModule()->requestAsset(asset.getBaseMap()));
-		m_textureColor = app->getModuleResources()->createTexture2D(*baseMapTexture);
+		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
+		m_textureColor = app->getModuleResources()->createTexture(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else
 	{
-		m_textureColor = app->getModuleResources()->createNullTexture2D();
+		m_textureColor.reset(app->getModuleResources()->createNullTexture2D());
 		m_materialData.hasDiffuseTex = false;
 	}
 
@@ -31,7 +31,8 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
 
 BasicMaterial::~BasicMaterial()
 {
-	app->getModuleResources()->defferResourceRelease(m_materialBuffer);
+	app->getModuleResources()->deferResourceRelease(m_materialBuffer);
+
 }
 
 Texture* BasicMaterial::getTexture() const noexcept

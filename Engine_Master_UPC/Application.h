@@ -21,6 +21,7 @@ class ModuleGameView;
 class ModuleFileSystem;
 class ModuleAssets;
 class ModuleEventSystem;
+class ModuleFlyweight;
 
 class CameraComponent;
 class Settings;
@@ -39,7 +40,6 @@ public:
 	~Application();
 
 	bool         init();
-    bool         postInit();
 	void         update();
 	bool         cleanUp();
 
@@ -56,7 +56,7 @@ public:
     ModuleScene*                getModuleScene() { return m_moduleScene; }
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
     ModuleFileSystem*           getModuleFileSystem() { return m_moduleFileSystem; }
-    ModuleAssets*               getAssetModule() { return m_moduleAssets; }
+    ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
 
     Settings*                   getSettings() { return m_settings; }

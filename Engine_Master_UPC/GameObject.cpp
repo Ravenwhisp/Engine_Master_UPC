@@ -1,9 +1,12 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include "Transform.h"
+#include "Component.h"
 #include "ComponentFactory.h"
 #include "SceneSnapshot.h"
 #include "PrefabManager.h"
+#include "PrefabAsset.h"
 #include "ModuleEditor.h"
 #include "PrefabEditSession.h"
 #include "ComponentType.h"
@@ -506,11 +509,11 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
 
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
 
-    const PrefabInstanceData* instanceData = PrefabManager::getInstanceData(this);
-    if (instanceData && !instanceData->m_prefabName.empty())
+    const PrefabData* instanceData = PrefabManager::getInstanceData(this);
+    if (instanceData && !instanceData->m_sourcePath.empty())
     {
         rapidjson::Value prefabLink(rapidjson::kObjectType);
-        rapidjson::Value prefabName(instanceData->m_prefabName.c_str(), domTree.GetAllocator());
+        rapidjson::Value prefabName(instanceData->m_name.c_str(), domTree.GetAllocator());
         prefabLink.AddMember("PrefabName", prefabName, domTree.GetAllocator());
         prefabLink.AddMember("PrefabUID", instanceData->m_prefabUID, domTree.GetAllocator());
         gameObjectInfo.AddMember("PrefabLink", prefabLink, domTree.GetAllocator());

@@ -2,15 +2,18 @@
 #include "EditorWindow.h"
 #include "PrefabUI.h"
 #include <filesystem>
-#include "ModuleFileSystem.h"
 
-enum Command {
+struct FileEntry;
+
+enum Command 
+{
     NONE,
     MOVE,
     COPY
 };
 
-class FileDialog : public EditorWindow {
+class FileDialog : public EditorWindow 
+{
 public:
     void render() override;
     const char* getWindowName() const override { return "FileDialog"; }
@@ -34,6 +37,10 @@ private:
     void handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset);
 
     PrefabUI::FileDialogBuffers buildFileDialogBuffers();
+
+    void handleGameObjectDrop(const std::filesystem::path& targetDirectory);
+
+
 
     std::filesystem::path m_currentDirectory;
     std::shared_ptr<FileEntry> m_selectedItem;

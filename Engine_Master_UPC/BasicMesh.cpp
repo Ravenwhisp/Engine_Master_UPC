@@ -4,9 +4,10 @@
 #include "Application.h"
 #include "ModuleResources.h"
 
-#include "ModelAsset.h"
-#include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexBuffer.h"
+#include "MeshAsset.h"
+
 
 BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 {
@@ -15,11 +16,11 @@ BasicMesh::BasicMesh(const UID uid, const MeshAsset& asset) : ICacheable(uid)
 	m_vertexPositions = asset.getVerticesPositions();
 	m_indices = asset.getIndexDataVector();
 
-	m_vertexBuffer = app->getModuleResources()->createVertexBuffer(asset.getVertexData(), asset.getVertexCount(), asset.getVertexStride());
+	m_vertexBuffer.reset(app->getModuleResources()->createVertexBuffer(asset.getVertexData(), asset.getVertexCount(), asset.getVertexStride()));
 
 	if (asset.getIndexBufferSize() > 0) 
 	{
-		m_indexBuffer = app->getModuleResources()->createIndexBuffer(asset.getIndexData(), asset.getIndexCount(), asset.getIndexFormat());
+		m_indexBuffer.reset(app->getModuleResources()->createIndexBuffer(asset.getIndexData(), asset.getIndexCount(), asset.getIndexFormat()));
 	}
 }
 

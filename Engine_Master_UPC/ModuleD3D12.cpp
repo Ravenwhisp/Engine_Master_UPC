@@ -14,6 +14,7 @@
 ModuleD3D12::ModuleD3D12(HWND hwnd) 
 {
     m_hwnd = hwnd;
+    loadPipeline();
 }
 
 ModuleD3D12::~ModuleD3D12()
@@ -24,17 +25,11 @@ ModuleD3D12::~ModuleD3D12()
 
 bool ModuleD3D12::init()
 {
-    loadPipeline();
-
-    return true;
-}
-
-bool ModuleD3D12::postInit() {
     m_swapChain = new SwapChain(m_hwnd);
     m_graphicsMemory = std::make_unique<GraphicsMemory>(m_device.Get());
-
     return true;
 }
+
 
 void ModuleD3D12::preRender()
 {
