@@ -3,7 +3,7 @@
 #include "GameObject.h"
 
 
-class WindowHierarchy: public EditorWindow
+class WindowHierarchy : public EditorWindow
 {
 public:
 	WindowHierarchy();
@@ -22,4 +22,3 @@ private:
 	GameObject* m_pendingSelection = nullptr;
 	bool m_isDragging = false;
 };
-

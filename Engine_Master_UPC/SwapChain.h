@@ -3,7 +3,7 @@
 #include "Resources.h"
 #include <cstdint>
 #include <dxgi1_6.h>
-#include "DepthBuffer.h"
+#include "Texture.h"
 
 using D3D12SwapChain = IDXGISwapChain4;
 
