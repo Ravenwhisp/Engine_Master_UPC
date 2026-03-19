@@ -4,4 +4,4 @@
 
 using MD5Hash = std::string;
 
-inline const MD5Hash INVALID_ASSET_ID = "";
+inline constexpr const char* INVALID_ASSET_ID = "";
