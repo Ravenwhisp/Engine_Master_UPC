@@ -9,46 +9,71 @@ static const float PI = 3.14159265f;
 static const float EPS = 1e-5f;
 static const float3 DIELECTRIC_FRESNEL = 0.04;
 
-float3 SchlickFresnel(float3 F0, float cosTheta)
+//float3 SchlickFresnel(float3 F0, float cosTheta)
+//{
+    
+    
+//    float x = 1.0f - cosTheta;
+//    float x2 = x * x;
+//    float x5 = x2 * x2 * x;
+//    return F0 + (1.0f - F0) * x5;
+//}
+
+float3 SchlickFresnel(float LdotH)
 {
-    float x = 1.0f - cosTheta;
+    float x = clamp(1.0 - LdotH, 0.0, 1.0);
     float x2 = x * x;
-    float x5 = x2 * x2 * x;
-    return F0 + (1.0f - F0) * x5;
+    return x2 * x2 * x;
 }
 
 float3 SchlickFresnelMicrofacets(float3 F0, float LdotH)
 {
-    float x = 1.0f - LdotH;
-    float x2 = x * x;
-    float x5 = x2 * x2 * x;
-    return F0 + (1.0f - F0) * x5;
+    return F0 + (1 - F0) * SchlickFresnel(LdotH);
+    
+    //float x = 1.0f - LdotH;
+    //float x2 = x * x;
+    //float x5 = x2 * x2 * x;
+    //return F0 + (1.0f - F0) * x5;
 }
 
 float SmithVisibilityFunction(float NdotL, float NdotV, float roughness)
 {
-    float x1 = NdotV * (1 - roughness) + roughness;
-    float x2 = NdotL * x1;
+    float roughnessSqr = roughness * roughness;
+    float NdotLSqr = NdotL * NdotL;
+    float NdotVSqr = NdotV * NdotV;
+    
+    float smithL = (2 * NdotL) / (NdotL + sqrt(roughnessSqr + (1 - roughnessSqr) * NdotLSqr));
+    float smithV = (2 * NdotV) / (NdotV + sqrt(roughnessSqr + (1 - roughnessSqr) * NdotVSqr));
+    
+    return smithL * smithV;
+    
+    //float x1 = NdotV * (1 - roughness) + roughness;
+    //float x2 = NdotL * x1;
 
-    float y1 = NdotL * (1 - roughness) + roughness;
-    float y2 = NdotV * y1;
+    //float y1 = NdotL * (1 - roughness) + roughness;
+    //float y2 = NdotV * y1;
 
-    float z = x2 + y2;
+    //float z = x2 + y2;
 
-    return 0.5 / z;
+    //return 0.5 / z;
 }
 
 float NormalDistributionFunction(float NdotH, float roughness)
 {
-    float x = NdotH * NdotH;
-    float y = roughness * roughness;
+    float roughnessSqr = roughness * roughness;
+    float ndotHSqr = NdotH * NdotH;
+    float tanNdotHSqr = (1 - ndotHSqr) / ndotHSqr;
+    
+    
+    return (1.0 / PI) * pow(roughness / (ndotHSqr * (roughnessSqr + tanNdotHSqr)), 2);
+    
+    
+    //float z = x * y + 1;
+    //float z2 = z * z;
 
-    float z = x * y + 1;
-    float z2 = z * z;
+    //float w = PI * z2;
 
-    float w = PI * z2;
-
-    return y / w;
+    //return y / w;
 }
 
 float EpicAttenuation(float distanceValue, float radiusValue)
@@ -73,22 +98,27 @@ float SpotConeAttenuation(float cosineAngle, float cosineInner, float cosineOute
     return saturate((cosineAngle - cosineOuter) / denominator);
 }
 
-float3 PhongSpecularBRDF(float3 F0, float NdotL, float VdotR, float shininess)
-{
-    float3 fresnel = SchlickFresnel(F0, NdotL);
-    float normalization = (shininess + 2.0f) / (2.0f * PI);
-    return normalization * fresnel * pow(VdotR, shininess);
-}
+//float3 PhongSpecularBRDF(float3 F0, float NdotL, float VdotR, float shininess)
+//{
+//    float3 fresnel = SchlickFresnel(F0, NdotL);
+//    float normalization = (shininess + 2.0f) / (2.0f * PI);
+//    return normalization * fresnel * pow(VdotR, shininess);
+//}
 
 float3 MetalicPBR(float3 F0, float LdotH, float NdotL, float NdotV, float NdotH, float roughness)
 {
-    float3 fresnel = SchlickFresnelMicrofacets(F0, LdotH);
-    float visibility = SmithVisibilityFunction(NdotL, NdotV, roughness);
-    float distribution = NormalDistributionFunction(NdotH, roughness);
+    float geometricShadow = 1;
+    geometricShadow *= SmithVisibilityFunction(NdotL, NdotV, roughness);
+    
+    float3 specularDistribution = 0;
+    specularDistribution = NormalDistributionFunction(NdotH, roughness);
+    
+    float3 fresnel = F0;
+    fresnel *= SchlickFresnelMicrofacets(F0, LdotH);
 
     float normalization = 0.25;
 
-    return normalization * fresnel * visibility * distribution;
+    return (specularDistribution * fresnel * geometricShadow) / (4 * (NdotL * NdotV));
 }
 
 float3 PBRNeutralToneMapping(float3 color)
@@ -130,7 +160,9 @@ float3 EvaluateLight(float3 lightDirection, float3 lightColor, float3 normalVect
     
     float3 metalicPBR = MetalicPBR(F0, lightDotHalf, normalDotLight, normalDotView, noramlDotHalf, roughness);
     
-    return (diffuseBRDF + metalicPBR) * lightColor * normalDotLight;
+    float3 lightModel = (diffuseBRDF + metalicPBR);
+    lightModel *= normalDotLight;
+    return lightModel * lightColor;
 }
 
 float3 ComputeDirectionalLight(uint lightIndex, float3 normalVector, float3 viewDirection, float3 F0, float3 diffuseBRDF, float roughness)
@@ -194,9 +226,8 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor; //Albedo = BaseColor ("Varies")
     
     float2 metallicRoughnessSample = metallicRoughnessTex.Sample(liearSample, coord).gb;
-    float2 metallicRoughness = (hasMetallicRoughnessTex != 0)
-                                ? metallicRoughnessSample
-                                : float2(0, 0.5); 
+    float roughness = hasMetallicRoughnessTex != 0 ? metallicRoughnessSample.x : roughnessFactor;
+    float metallic = hasMetallicRoughnessTex != 0 ? metallicRoughnessSample.y : metallicFactor;
 
     float3 normalVector = normalize(normal);
     float3 viewDirection = normalize(viewPos - worldPos);
@@ -214,7 +245,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 directLightingMetallic = 0.0f;
     float3 directLightingNonMetallic = 0.0f;
     
-    float roughness = pow(roughnessFactor, 2);
+    //roughness = pow(roughness, 2);
 
     // Directional lights
     for (uint i = 0; i < directionalCount; ++i)
@@ -237,7 +268,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
         directLightingNonMetallic += ComputeSpotLight(i, worldPos, normalVector, viewDirection, F0NonMetallic, diffuseColorNonMetallic, roughness);
     }
     
-    float3 finalDirectLighting = lerp(directLightingMetallic, directLightingNonMetallic, metallicFactor);
+    float3 finalDirectLighting = lerp(directLightingMetallic, directLightingNonMetallic, metallic);
     
     // Ambient
     float3 indirectLighting = ambientColor * ambientIntensity * albedoEnergy;

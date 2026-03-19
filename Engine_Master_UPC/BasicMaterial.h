@@ -58,6 +58,7 @@ public:
 		float       metallicFactor;
 		float       roughnessFactor;
 		BOOL        hasMetallicRoughnessTex;
+
 		float       padding;
 	};
 
