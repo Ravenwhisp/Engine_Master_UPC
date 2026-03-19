@@ -19,43 +19,6 @@ void registerScript(const char* scriptName, ScriptCreator creator)
     ScriptFactory::registerScript(scriptName, creator);
 }
 
-namespace Input 
-{
-    bool isKeyDown(int key)
-    {
-        if (!app)
-        {
-            return false;
-        }
-
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
-
-        return input->isKeyDown(static_cast<Keyboard::Keys>(key));
-    }
-}
-
-namespace Time
-{
-    float getDeltaTime()
-    {
-        if (!app)
-        {
-            return 0.0f;
-        }
-
-        if (!app->getModuleTime())
-        {
-            return 0.0f;
-        }
-
-        return app->getModuleTime()->deltaTime();
-    }
-}
-
 namespace GameObjectAPI
 {
     Transform* getTransform(GameObject* gameObject) 
@@ -330,5 +293,96 @@ namespace Scene
         }
 
         app->getModuleScene()->requestSceneChange(sceneName);
+    }
+}
+
+namespace Input
+{
+    bool isKeyDown(int key)
+    {
+        if (!app)
+        {
+            return false;
+        }
+
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return input->isKeyDown(static_cast<Keyboard::Keys>(key));
+    }
+}
+
+namespace Time
+{
+    float getDeltaTime()
+    {
+        if (!app)
+        {
+            return 0.0f;
+        }
+
+        if (!app->getModuleTime())
+        {
+            return 0.0f;
+        }
+
+        return app->getModuleTime()->deltaTime();
+    }
+}
+
+namespace Debug
+{
+    void log(const char* message, ...)
+    {
+        if (!message)
+        {
+            return;
+        }
+
+        char buffer[1024];
+
+        va_list args;
+        va_start(args, message);
+        vsnprintf(buffer, sizeof(buffer), message, args);
+        va_end(args);
+
+        DEBUG_LOG("%s", buffer);
+    }
+
+    void warn(const char* message, ...)
+    {
+        if (!message)
+        {
+            return;
+        }
+
+        char buffer[1024];
+
+        va_list args;
+        va_start(args, message);
+        vsnprintf(buffer, sizeof(buffer), message, args);
+        va_end(args);
+
+        DEBUG_WARN("%s", buffer);
+    }
+
+    void error(const char* message, ...)
+    {
+        if (!message)
+        {
+            return;
+        }
+
+        char buffer[1024];
+
+        va_list args;
+        va_start(args, message);
+        vsnprintf(buffer, sizeof(buffer), message, args);
+        va_end(args);
+
+        DEBUG_ERROR("%s", buffer);
     }
 }

@@ -128,7 +128,6 @@ void PlayerWalk::applyFacingFromDirection(GameObject* owner, const Vector3& dire
 void PlayerWalk::applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const
 {
     float speed = m_moveSpeed;
-
     if (shiftHeld)
     {
         speed *= m_shiftMultiplier;

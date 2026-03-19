@@ -19,16 +19,6 @@ class Component;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
-namespace Time
-{
-	ENGINE_API float getDeltaTime();
-}
-
-namespace Input 
-{
-	ENGINE_API bool isKeyDown(int key);
-}
-
 namespace GameObjectAPI 
 {
     ENGINE_API Transform* getTransform(GameObject* gameObject);
@@ -81,4 +71,21 @@ namespace Scene
     ENGINE_API GameObject* findGameObjectByTag(Tag tag, bool onlyActive = true);
 
     ENGINE_API void requestSceneChange(const char* sceneName);
+}
+
+namespace Time
+{
+    ENGINE_API float getDeltaTime();
+}
+
+namespace Input
+{
+    ENGINE_API bool isKeyDown(int key);
+}
+
+namespace Debug
+{
+    ENGINE_API void log(const char* message, ...);
+    ENGINE_API void warn(const char* message, ...);
+    ENGINE_API void error(const char* message, ...);
 }
