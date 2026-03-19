@@ -494,6 +494,9 @@ void ModuleScene::serializeWindowHierarchy(GameObject* gameObject, rapidjson::Va
 {
     gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
 
+    if (PrefabManager::isPrefabInstance(gameObject))
+        return;
+
     for (GameObject* child : gameObject->GetTransform()->getAllChildren())
     {
         serializeWindowHierarchy(child, gameObjectsData, domTree);
@@ -580,7 +583,10 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
         }
 
         uidToGo[uid] = gameObject;
-        childToParent.push_back({ uid, parentUid });
+        if (!gameObjectJson.HasMember("PrefabLink"))
+        {
+            childToParent.push_back({ uid, parentUid });
+        }
     }
 
     for (const auto& pair : childToParent)
