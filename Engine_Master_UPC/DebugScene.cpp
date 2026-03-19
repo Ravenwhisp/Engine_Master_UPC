@@ -34,7 +34,9 @@ void DebugScene::drawGameObject(const GameObject* go) const
     if (auto* agent = go->GetComponentAs<NavigationAgentComponent>(ComponentType::NAVIGATION_AGENT))
     {
         if (agent->isActive())
+        {
             agent->drawDebugPath();
+        }
     }
 
     for (GameObject* child : go->GetTransform()->getAllChildren())

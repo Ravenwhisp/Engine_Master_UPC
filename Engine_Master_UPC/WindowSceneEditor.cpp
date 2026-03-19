@@ -4,10 +4,8 @@
 #include <imgui.h>
 
 #include "Application.h"
-#include "ModuleD3D12.h"
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
-#include "ModuleNavigation.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -19,90 +17,10 @@
 #include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "MeshRenderer.h"
-#include "CameraComponent.h"
-#include "LightComponent.h"
 
-#include "DebugDrawPass.h"
-#include "LightDebugDraw.h"
 #include "TriggerArea.h"
-#include "NavigationAgentComponent.h"
-#include "Quadtree.h"
 
 #include <WindowLogger.h>
-
-
-static bool ScreenToWorldOnPlaneY0(
-    const ImVec2& mousePos,
-    const ImVec2& vpPos,
-    const ImVec2& vpSize,
-    const Matrix& view,
-    const Matrix& proj,
-    Vector3& outWorld)
-{
-    if (vpSize.x <= 1 || vpSize.y <= 1) return false;
-
-    // mouse -> viewport UV [0..1]
-    float u = (mousePos.x - vpPos.x) / vpSize.x;
-    float v = (mousePos.y - vpPos.y) / vpSize.y;
-    if (u < 0 || u > 1 || v < 0 || v > 1) return false;
-
-    // UV -> NDC (D3D: z=0..1). Ojo con Y invertida.
-    float ndcX = 2.0f * u - 1.0f;
-    float ndcY = 1.0f - 2.0f * v;
-
-    Matrix invViewProj = (view * proj).Invert();
-
-    Vector4 nearClip(ndcX, ndcY, 0.0f, 1.0f);
-    Vector4 farClip(ndcX, ndcY, 1.0f, 1.0f);
-
-    Vector4 nearWorld4 = Vector4::Transform(nearClip, invViewProj);
-    Vector4 farWorld4 = Vector4::Transform(farClip, invViewProj);
-
-    if (nearWorld4.w == 0 || farWorld4.w == 0) return false;
-
-    Vector3 nearWorld(nearWorld4.x / nearWorld4.w, nearWorld4.y / nearWorld4.w, nearWorld4.z / nearWorld4.w);
-    Vector3 farWorld(farWorld4.x / farWorld4.w, farWorld4.y / farWorld4.w, farWorld4.z / farWorld4.w);
-
-    Vector3 dir = farWorld - nearWorld;
-    dir.Normalize();
-
-    if (fabsf(dir.y) < 1e-5f) return false;
-    float t = (0.0f - nearWorld.y) / dir.y;
-    if (t < 0.0f) return false;
-
-    outWorld = nearWorld + dir * t;
-    return true;
-}
-
-static void DebugDrawWindowHierarchy(GameObject* go)
-{
-    if (!go || !go->GetActive())
-        return;
-
-    // --- Lights  ---
-    if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
-    {
-        if (light->isDebugDrawEnabled())
-        {
-            if (light->isDebugDrawDepthEnabled())
-                LightDebugDraw::drawLightWithDepth(*go);
-            else
-                LightDebugDraw::drawLightWithoutDepth(*go);
-        }
-    }
-
-    // --- Navigation Agent path ---
-    if (auto* agent = go->GetComponentAs<NavigationAgentComponent>(ComponentType::NAVIGATION_AGENT))
-    {
-        if (agent->isActive())
-            agent->drawDebugPath();
-    }
-
-    // recurse children
-    for (GameObject* child : go->GetTransform()->getAllChildren())
-        DebugDrawWindowHierarchy(child);
-}
 
 WindowSceneEditor::WindowSceneEditor()
 {
