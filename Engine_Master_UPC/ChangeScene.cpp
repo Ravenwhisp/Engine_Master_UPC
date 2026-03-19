@@ -7,6 +7,8 @@
 #include "GameObject.h"
 #include "UIButton.h"
 
+#include "SceneReferenceResolver.h"
+
 ChangeScene::ChangeScene(UID id, GameObject* gameObject):
 	Component(id, ComponentType::CHANGE_SCENE, gameObject)
 {
@@ -116,7 +118,7 @@ bool ChangeScene::deserializeJSON(const rapidjson::Value& componentInfo)
 	return true;
 }
 
-void ChangeScene::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void ChangeScene::fixReferences(const SceneReferenceResolver& resolver)
 {
 	if (m_uiButton)
 	{
@@ -129,11 +131,14 @@ void ChangeScene::fixReferences(const std::unordered_map<UID, Component*>& refer
 		return;
 	}
 
-	auto it = referenceMap.find(m_uiButtonUid);
-	if (it != referenceMap.end())
+	Component* comp = resolver.getClonedComponent(m_uiButtonUid);
+
+	if (comp)
 	{
-		m_uiButton = static_cast<UIButton*>(it->second);
+		m_uiButton = static_cast<UIButton*>(comp);
+
 		m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
+
 		DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
 	}
 	else

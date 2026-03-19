@@ -1,9 +1,7 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include "Transform.h"
 #include "ComponentFactory.h"
-#include "SceneSnapshot.h"
 
 #include <algorithm>
 #include <cstring>
@@ -12,6 +10,8 @@
 //Should not be here
 #include "Application.h"
 #include "ModuleScene.h"
+
+#include "Transform.h"
 #include "CameraComponent.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -33,11 +33,9 @@ GameObject::~GameObject()
 
 }
 
-std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
+std::unique_ptr<GameObject> GameObject::clone() const
 {
-    std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
-
-	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
+    auto newGameObject = std::make_unique<GameObject>(m_uuid);
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -45,30 +43,27 @@ std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
 
-    //std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
-
-    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarqu�a
-    newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
+    newGameObject->RemoveComponent(
+        newGameObject->GetComponent(ComponentType::TRANSFORM)
+    );
 
     for (const std::unique_ptr<Component>& component : m_components)
     {
-        std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
+        auto clonedComponent = component->clone(newGameObject.get());
 
         if (clonedComponent)
         {
-			snapshot.componentMap[component->getID()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
             }
+
             newGameObject->AddClonedComponent(std::move(clonedComponent));
         }
         else
         {
-            DEBUG_WARN("[Clone] Component '%s' (type=%d, uid=%llu) returned nullptr in clone(). It will NOT exist in the cloned scene.",
+            DEBUG_WARN("[Clone] Component '%s' failed to clone (uid=%llu)",
                 ComponentTypeToString(component->getType()),
-                (int)component->getType(),
-                (unsigned long long)component->getType(),
                 (unsigned long long)component->getID());
         }
     }

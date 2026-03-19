@@ -10,6 +10,8 @@
 #include "ComponentType.h"
 #include "Transform.h"
 
+#include "SceneReferenceResolver.h"
+
 static const float PI = 3.1415926535897931f;
 
 CameraFollow::CameraFollow(UID id, GameObject* gameObject)
@@ -39,7 +41,7 @@ std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 	return clonedComponent;
 }
 
-void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void CameraFollow::fixReferences(const SceneReferenceResolver& resolver)
 {
     m_firstTargetTransform = nullptr;
     m_secondTargetTransform = nullptr;
@@ -48,19 +50,19 @@ void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& refe
 
     if (m_firstTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_firstTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_firstTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_firstTargetTransform = static_cast<Transform*>(it->second);
+            m_firstTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
     if (m_secondTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_secondTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_secondTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_secondTargetTransform = static_cast<Transform*>(it->second);
+            m_secondTargetTransform = static_cast<Transform*>(comp);
         }
     }
 

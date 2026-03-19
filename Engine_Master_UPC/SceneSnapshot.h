@@ -1,21 +1,51 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "UID.h"
 
-class Component;
+class Scene;
 class GameObject;
+class Component;
 class CameraComponent;
 
-struct SceneSnapshot
+class SceneSnapshot
 {
-    std::unordered_map<UID, Component*> componentMap;
-    // std::unordered_map<GameObject*, GameObject*> gameObjectMap;
+private:
+    Scene* m_scene = nullptr;
 
-    std::vector<std::unique_ptr<GameObject>> allObjects;
-    std::vector<GameObject*> rootObjects;
-    CameraComponent* defaultCamera = nullptr;
+    std::vector<UID> m_originalComponentIDs;
+    std::vector<Component*> m_clonedComponents;
+
+    std::vector<const GameObject*> m_originalGameObjects;
+    std::vector<GameObject*> m_clonedGameObjects;
+
+    std::vector<std::unique_ptr<GameObject>> m_allObjects;
+    std::vector<GameObject*> m_rootObjects;
+    CameraComponent* m_defaultCamera = nullptr;
+
+public:
+    SceneSnapshot();
+    ~SceneSnapshot();
+
+    void init(const Scene& scene);
+    void applyTo(Scene& scene);
+
+    void registerComponent(UID id, Component* component);
+    void registerGameObject(const GameObject* original, GameObject* clone);
+
+    GameObject* getClonedGameObject(const GameObject* original) const;
+    Component* getClonedComponent(UID id) const;
+
+    template<typename T>
+    T* getClonedComponentAs(UID id) const
+    {
+        Component* comp = getClonedComponent(id);
+        return comp ? dynamic_cast<T*>(comp) : nullptr;
+    }
+
+private:
+    std::unique_ptr<GameObject> cloneRecursive(GameObject* original);
+    void fixReferences();
 };

@@ -3,11 +3,12 @@
 
 #include <memory>
 #include <string>
-#include <rapidjson/document.h>
+
 
 class Scene;
 class Quadtree;
 class SceneSerializer;
+class SceneSnapshot;
 
 class GameObject;
 class Component;
@@ -46,8 +47,13 @@ public:
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 #pragma endregion
 
+#pragma region SnapShot 
+    SceneSnapshot* takeSnapshot() const;
+    void loadFromSnapshot(SceneSnapshot& snapshot);
+#pragma endregion
+
+
     Scene* getScene() { return m_scene.get(); }
     Quadtree* getQuadtree() { return m_quadtree.get(); }
-
     std::vector<MeshRenderer*> getAllMeshRenderers() const;
 };

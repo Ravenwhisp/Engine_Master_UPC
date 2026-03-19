@@ -21,7 +21,7 @@ TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, Componen
 
 std::unique_ptr<Component> TriggerArea::clone(GameObject* newOwner) const
 {
-	std::unique_ptr<TriggerArea> newComponent = std::make_unique<TriggerArea>(GenerateUID(), newOwner);
+	std::unique_ptr<TriggerArea> newComponent = std::make_unique<TriggerArea>(m_uuid, newOwner);
 
 	newComponent->m_xWidth = m_xWidth;
 	newComponent->m_zWidth = m_zWidth;
