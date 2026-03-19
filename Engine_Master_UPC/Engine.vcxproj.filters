@@ -266,7 +266,7 @@
     <ClCompile Include="WaypointPathComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="TriggerArea.cpp">
+    <ClCompile Include="TriggerAreaComponent.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="ExitApplication.cpp">
@@ -651,7 +651,7 @@
     <ClInclude Include="WaypointPathComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="TriggerArea.h">
+    <ClInclude Include="TriggerAreaComponent.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="ExitApplication.h">

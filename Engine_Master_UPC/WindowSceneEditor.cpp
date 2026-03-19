@@ -20,7 +20,6 @@
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
 #include "LightComponent.h"
-#include "TriggerArea.h"
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
 

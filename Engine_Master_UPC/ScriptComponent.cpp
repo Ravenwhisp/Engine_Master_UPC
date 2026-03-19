@@ -243,6 +243,22 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
 
             break;
         }
+
+        case ScriptFieldType::String:
+        {
+            std::string* value = reinterpret_cast<std::string*>(data);
+
+            char buffer[256];
+            std::strncpy(buffer, value->c_str(), sizeof(buffer));
+            buffer[sizeof(buffer) - 1] = '\0';
+
+            if (ImGui::InputText(field.name, buffer, sizeof(buffer)))
+            {
+                *value = buffer;
+                changed = true;
+            }
+            break;
+        }
         }
 
         if (changed)
@@ -321,6 +337,13 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
         {
             auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
             outFieldsJson.AddMember(key, static_cast<uint64_t>(ref->uid), domTree.GetAllocator());
+            break;
+        }
+
+        case ScriptFieldType::String:
+        {
+            std::string* value = reinterpret_cast<std::string*>(data);
+            outFieldsJson.AddMember(key, rapidjson::Value(value->c_str(), domTree.GetAllocator()), domTree.GetAllocator());
             break;
         }
         }
@@ -415,6 +438,13 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
                 ref->component = nullptr;
             }
             break;
+
+        case ScriptFieldType::String:
+            if (valueJson.IsString())
+            {
+                *reinterpret_cast<std::string*>(data) = valueJson.GetString();
+            }
+            break;
         }
     }
 }
@@ -460,6 +490,8 @@ void ScriptComponent::fixReferences(const std::unordered_map<UID, Component*>& r
             ref->component = resolved;
         }
     }
+
+    m_script->onAfterReferencesFixed();
 }
 
 std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
@@ -522,11 +554,17 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
             break;
 
         case ScriptFieldType::ComponentRef:
+        {
             auto* sourceRef = reinterpret_cast<ScriptComponentRefStorage*>(sourceData);
             auto* targetRef = reinterpret_cast<ScriptComponentRefStorage*>(targetData);
 
             targetRef->uid = sourceRef->uid;
             targetRef->component = nullptr;
+            break;
+        }
+
+        case ScriptFieldType::String:
+            *reinterpret_cast<std::string*>(targetData) = *reinterpret_cast<std::string*>(sourceData);
             break;
         }
     }

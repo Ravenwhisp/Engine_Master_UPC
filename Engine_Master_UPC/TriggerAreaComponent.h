@@ -2,10 +2,10 @@
 #include "Component.h"
 
 
-class TriggerArea final : public Component {
+class TriggerAreaComponent final : public Component {
 
 public:
-	TriggerArea(UID id, GameObject* gameObject);
+	TriggerAreaComponent(UID id, GameObject* gameObject);
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 

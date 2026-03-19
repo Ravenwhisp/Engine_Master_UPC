@@ -321,4 +321,14 @@ namespace Scene
 
         return nullptr;
     }
+
+    void requestSceneChange(const char* sceneName)
+    {
+        if (!app || !app->getModuleScene() || !sceneName || sceneName[0] == '\0')
+        {
+            return;
+        }
+
+        app->getModuleScene()->requestSceneChange(sceneName);
+    }
 }

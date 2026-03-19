@@ -79,4 +79,6 @@ namespace Scene
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
 
     ENGINE_API GameObject* findGameObjectByTag(Tag tag, bool onlyActive = true);
+
+    ENGINE_API void requestSceneChange(const char* sceneName);
 }
