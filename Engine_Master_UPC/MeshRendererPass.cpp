@@ -180,7 +180,12 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
 D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 {
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getAllGameObjects(), m_lighting->ambientColor, m_lighting->ambientIntensity);
+    ModuleScene* activeScene = app->getModuleRender()->getActiveScene();
+
+    const SceneLightingSettings& lighting = activeScene->GetLightingSettings();
+
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(activeScene->getAllGameObjects(), lighting.ambientColor, lighting.ambientIntensity);
+
 
     return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }
