@@ -30,7 +30,7 @@ void CameraFollow::Start()
 
 void CameraFollow::Update()
 {
-    Transform* firstTarget = m_firstTarget.get();
+    Transform* firstTarget = m_firstTarget.getReferencedComponent();
     if (!firstTarget)
     {
         return;
@@ -39,7 +39,7 @@ void CameraFollow::Update()
     GameObject* camera = getOwner();
     Transform* cameraTransform = GameObjectAPI::getTransform(camera);
 
-    Transform* secondTarget = m_secondTarget.get();
+    Transform* secondTarget = m_secondTarget.getReferencedComponent();
     const bool hasSecondTarget = (secondTarget != nullptr);
 
     const float dt = Time::getDeltaTime();
@@ -78,17 +78,18 @@ void CameraFollow::onAfterReferencesFixed()
     m_currentExtraHeight = 0.0f;
     m_firstUpdateAfterResolve = true;
 
-    if (!m_firstTarget.get() && m_secondTarget.get())
+    if (m_firstTarget.getReferencedComponent() && m_secondTarget.getReferencedComponent())
     {
         m_firstTarget = m_secondTarget;
-        m_secondTarget.clear();
+        m_secondTarget.uid = 0;
+        m_secondTarget.component = nullptr;
     }
 }
 
 Vector3 CameraFollow::computeFollowPoint() const
 {
-    Transform* firstTarget = m_firstTarget.get();
-    Transform* secondTarget = m_secondTarget.get();
+    Transform* firstTarget = m_firstTarget.getReferencedComponent();
+    Transform* secondTarget = m_secondTarget.getReferencedComponent();
     if (!secondTarget)
     {
         return TransformAPI::getPosition(firstTarget);
@@ -138,8 +139,8 @@ float CameraFollow::smoothExtraHeight(float current, float target, float sharpne
 
 Vector3 CameraFollow::computeDesiredCameraPosition(const Vector3& followPoint) const
 {
-    Transform* firstTarget = m_firstTarget.get();
-    Transform* secondTarget = m_secondTarget.get();
+    Transform* firstTarget = m_firstTarget.getReferencedComponent();
+    Transform* secondTarget = m_secondTarget.getReferencedComponent();
 
     Vector3 desiredPos = followPoint;
 

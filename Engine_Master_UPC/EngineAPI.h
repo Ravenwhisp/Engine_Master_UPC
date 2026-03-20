@@ -6,7 +6,7 @@
 #define ENGINE_API __declspec(dllimport)
 #endif
 
-#include "ScriptTypes.h"
+#include "ScriptCreator.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"

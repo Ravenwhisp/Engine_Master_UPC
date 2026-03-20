@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ScriptTypes.h"
+#include "ScriptCreator.h"
 #include <string>
 #include <unordered_map>
 
