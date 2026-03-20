@@ -5,6 +5,8 @@
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
 
+#include "Scene.h"
+
 SceneConfig::SceneConfig()
 {
 	m_moduleScene = app->getModuleScene();
@@ -91,7 +93,7 @@ void SceneConfig::drawSaveSceneSettings()
             }
             else
             {
-                m_moduleScene->setName(m_saveSceneName.c_str());
+                m_moduleScene->getScene()->setName(m_saveSceneName.c_str());
                 m_moduleScene->saveScene();
             }
         }
@@ -144,7 +146,7 @@ void SceneConfig::drawNavmeshSettings()
         // Temporary Button, this must happen automatically when loading the scene
         if (ImGui::Button("Load Navmesh"))
         {
-            const char* sceneName = m_moduleScene->getName();
+            const char* sceneName = m_moduleScene->getScene()->getName();
             const bool ok = app->getModuleNavigation()->loadNavMeshForScene(sceneName);
 
             if (ok) DEBUG_LOG("Navmesh loaded successfully.");
@@ -175,7 +177,7 @@ void SceneConfig::drawNavmeshSettings()
 
 void SceneConfig::drawSkyBoxSettings() 
 {
-    auto& skyboxSettings = m_moduleScene->getSkyBoxSettings();
+    auto& skyboxSettings = m_moduleScene->getScene()->getSkyBoxSettings();
 
     if (ImGui::CollapsingHeader("SkyBox")) 
     {
@@ -200,7 +202,7 @@ void SceneConfig::drawSkyBoxSettings()
 
         if (ImGui::Button("Apply###SkyApply") && m_skyboxDirty)
         {
-            if (m_moduleScene->applySkyBoxToRenderer())
+            if (m_moduleScene->getScene()->applySkyBoxToRenderer())
             {
                 m_skyboxDirty = false;
             }
@@ -210,7 +212,7 @@ void SceneConfig::drawSkyBoxSettings()
 
 void SceneConfig::drawLightSettings()
 {
-    auto& light = m_moduleScene->GetLightingSettings();
+    SceneLightingSettings& light = m_moduleScene->getScene()->getLightingSettings();
 
     if (ImGui::CollapsingHeader("Lighting"))
     {

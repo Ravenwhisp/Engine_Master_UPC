@@ -4,7 +4,9 @@
 #include "Application.h"
 #include "ModuleScene.h"
 
+#include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
 
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
@@ -94,7 +96,7 @@ void CameraComponent::drawUi()
 	
 	if (ImGui::Button("Set as Default Camera"))
 	{
-		app->getModuleScene()->setDefaultCamera(this);
+		app->getModuleScene()->getScene()->setDefaultCamera(this);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
@@ -115,9 +117,9 @@ bool CameraComponent::cleanUp()
 	{
 		app->setCurrentCameraPerspective(nullptr);
 	}
-	if (app->getModuleScene()->getDefaultCamera() == this)
+	if (app->getModuleScene()->getScene()->getDefaultCamera() == this)
 	{
-		app->getModuleScene()->setDefaultCamera(nullptr);
+		app->getModuleScene()->getScene()->setDefaultCamera(nullptr);
 	}
 	return true;
 }

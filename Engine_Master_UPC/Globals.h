@@ -99,4 +99,5 @@ namespace Engine
 	struct Frustum;
 }
 
+#include <rapidjson/document.h>
 

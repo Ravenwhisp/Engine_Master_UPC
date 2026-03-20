@@ -5,7 +5,9 @@
 #include "ModuleEditor.h"
 #include "ModuleScene.h"
 
+#include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
 
 WindowHierarchy::WindowHierarchy()
 {
@@ -124,7 +126,7 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getModuleScene()->removeFromRootList(child);
+		app->getModuleScene()->getScene()->removeFromRootList(child);
 	}
 
 	childTransform->setRoot(newParentTransform);
@@ -135,7 +137,7 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 	}
 	else
 	{
-		app->getModuleScene()->addToRootList(child);
+		app->getModuleScene()->getScene()->addToRootList(child);
 	}
 
 	child->GetTransform()->setFromGlobalMatrix(child->GetTransform()->getGlobalMatrix());
@@ -144,7 +146,7 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 
 void WindowHierarchy::createTreeNode()
 {
-	if (ImGui::TreeNodeEx(app->getModuleScene()->getName()))
+	if (ImGui::TreeNodeEx(app->getModuleScene()->getScene()->getName()))
 	{
 
 		if (ImGui::BeginDragDropTarget())
@@ -157,7 +159,7 @@ void WindowHierarchy::createTreeNode()
 			ImGui::EndDragDropTarget();
 		}
 
-		const auto& roots = app->getModuleScene()->getRootObjects();
+		const auto& roots = app->getModuleScene()->getScene()->getRootObjects();
 		for (GameObject* gameObject : roots)
 		{
 			createTreeNode(gameObject);
@@ -169,7 +171,7 @@ void WindowHierarchy::createTreeNode()
 
 void WindowHierarchy::addGameObject()
 {
-	app->getModuleScene()->createGameObject();
+	app->getModuleScene()->getScene()->createGameObject();
 }
 
 void WindowHierarchy::removeGameObject()
@@ -180,7 +182,7 @@ void WindowHierarchy::removeGameObject()
 	{
 		UID id = selected->GetID();
 		app->getModuleEditor()->setSelectedGameObject(nullptr);
-		app->getModuleScene()->removeGameObject(id);
+		app->getModuleScene()->getScene()->removeGameObject(id);
 	}
 }
 

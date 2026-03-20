@@ -2,10 +2,14 @@
 #include "CameraFollowComponent.h"
 #include "Application.h"
 #include "ModuleScene.h"
-#include "GameObject.h"
-#include "Transform.h"
 #include "ModuleTime.h"
+
+#include "Scene.h"
+#include "GameObject.h"
 #include "ComponentType.h"
+#include "Transform.h"
+
+#include "SceneReferenceResolver.h"
 
 static const float PI = 3.1415926535897931f;
 
@@ -36,7 +40,7 @@ std::unique_ptr<Component> CameraFollowComponent::clone(GameObject* newOwner) co
 	return clonedComponent;
 }
 
-void CameraFollowComponent::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void CameraFollowComponent::fixReferences(const SceneReferenceResolver& resolver)
 {
     m_firstTargetTransform = nullptr;
     m_secondTargetTransform = nullptr;
@@ -45,19 +49,19 @@ void CameraFollowComponent::fixReferences(const std::unordered_map<UID, Componen
 
     if (m_firstTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_firstTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_firstTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_firstTargetTransform = static_cast<Transform*>(it->second);
+            m_firstTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
     if (m_secondTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_secondTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_secondTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_secondTargetTransform = static_cast<Transform*>(it->second);
+            m_secondTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
@@ -240,7 +244,7 @@ void CameraFollowComponent::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
@@ -281,7 +285,7 @@ void CameraFollowComponent::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {

@@ -2,21 +2,16 @@
 #include "ModuleGameView.h"
 
 #include "Application.h"
+#include "ModuleScene.h"
 #include "ModuleInput.h"
 
+#include "Scene.h"
+#include "SceneSnapshot.h"
 #include "GameObject.h"
 #include "ScriptComponent.h"
 
-ModuleGameView::ModuleGameView()
-{
-	m_moduleScene = nullptr;
-	m_moduleInput = nullptr;
-}
-
-ModuleGameView::~ModuleGameView()
-{
-
-}
+ModuleGameView::ModuleGameView() = default;
+ModuleGameView::~ModuleGameView() = default;
 
 bool ModuleGameView::init()
 {
@@ -55,24 +50,20 @@ void ModuleGameView::update()
 }
 
 void ModuleGameView::startGameSimulation()
-{
-	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
-	m_sceneCloned = m_moduleScene->getClonedGameObjects();
-
+{	
+	m_sceneCloned = std::unique_ptr<SceneSnapshot>(m_moduleScene->takeSnapshot());
 	instantiateScriptsOnPlay();
 }
 
 void ModuleGameView::stopGameSimulation()
 {
-	// When we hit stop, we restore the scene's game objects with the copy we created when we hit play
-	m_moduleScene->resetGameObjects(std::move(m_sceneCloned));
-
-	m_sceneCloned = SceneSnapshot();
+	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
+	m_sceneCloned.reset();
 }
 
 void ModuleGameView::instantiateScriptsOnPlay() {
 	// scripts instantiation
-	for (GameObject* gameObject : m_moduleScene->getAllGameObjects())
+	for (GameObject* gameObject : m_moduleScene->getScene()->getAllGameObjects())
 	{
 		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
 		if (!scriptComponent || scriptComponent->getScriptName().empty())

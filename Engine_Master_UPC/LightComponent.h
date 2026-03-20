@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "Lights.h"
 
-#include <rapidjson/document.h>
+
 
 
 class LightComponent final : public Component
