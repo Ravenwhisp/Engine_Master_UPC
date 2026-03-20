@@ -38,14 +38,14 @@ void TriggerArea::Update()
 
     const Vector3 triggerCenter = TransformAPI::getPosition(ownerTransform);
 
-    Transform* firstTarget = m_firstTarget.get();
+    Transform* firstTarget = m_firstTarget.getReferencedComponent();
     if (firstTarget && containsPoint(triggerCenter, TransformAPI::getPosition(firstTarget)))
     {
         triggerSceneChange();
         return;
     }
 
-    Transform* secondTarget = m_secondTarget.get();
+    Transform* secondTarget = m_secondTarget.getReferencedComponent();
     if (secondTarget && containsPoint(triggerCenter, TransformAPI::getPosition(secondTarget)))
     {
         triggerSceneChange();

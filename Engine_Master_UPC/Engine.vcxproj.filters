@@ -723,7 +723,7 @@
     <ClInclude Include="ScriptAutoRegister.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptTypes.h">
+    <ClInclude Include="ScriptCreator.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="ScriptFieldInfo.h">

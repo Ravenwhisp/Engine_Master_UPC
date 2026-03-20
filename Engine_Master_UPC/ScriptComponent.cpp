@@ -180,24 +180,17 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
 
         case ScriptFieldType::ComponentRef:
         {
-            auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
+            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
-            Component* referencedComponent = ref->component;
+            Component* component = componentReference->component;
 
-            if (referencedComponent)
+            if (component)
             {
-                ImGui::TextColored(
-                    ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
-                    "%s",
-                    referencedComponent->getOwner()->GetName().c_str()
-                );
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str() );
             }
             else
             {
-                ImGui::TextColored(
-                    ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
-                    "None"
-                );
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
             }
 
             if (ImGui::BeginDragDropTarget())
@@ -222,8 +215,8 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
 
                         if (candidate)
                         {
-                            ref->uid = candidate->getID();
-                            ref->component = candidate;
+                            componentReference->uid = candidate->getID();
+                            componentReference->component = candidate;
                             changed = true;
                         }
                     }
@@ -236,8 +229,8 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
             std::string clearLabel = std::string("Clear###") + field.name;
             if (ImGui::Button(clearLabel.c_str()))
             {
-                ref->uid = 0;
-                ref->component = nullptr;
+                componentReference->uid = 0;
+                componentReference->component = nullptr;
                 changed = true;
             }
 
@@ -335,8 +328,9 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
         case ScriptFieldType::ComponentRef:
         {
-            auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
-            outFieldsJson.AddMember(key, static_cast<uint64_t>(ref->uid), domTree.GetAllocator());
+            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+
+            outFieldsJson.AddMember(key, static_cast<uint64_t>(componentReference->uid), domTree.GetAllocator());
             break;
         }
 
@@ -433,9 +427,9 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
         case ScriptFieldType::ComponentRef:
             if (valueJson.IsUint64())
             {
-                auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
-                ref->uid = static_cast<UID>(valueJson.GetUint64());
-                ref->component = nullptr;
+                ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+                componentReference->uid = static_cast<UID>(valueJson.GetUint64());
+                componentReference->component = nullptr;
             }
             break;
 
@@ -464,16 +458,16 @@ void ScriptComponent::fixReferences(const std::unordered_map<UID, Component*>& r
         }
 
         void* data = base + field.offset;
-        auto* ref = reinterpret_cast<ScriptComponentRefStorage*>(data);
+        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
-        ref->component = nullptr;
+        componentReference->component = nullptr;
 
-        if (ref->uid == 0)
+        if (componentReference->uid == 0)
         {
             continue;
         }
 
-        auto it = referenceMap.find(ref->uid);
+        auto it = referenceMap.find(componentReference->uid);
         if (it == referenceMap.end())
         {
             continue;
@@ -487,7 +481,7 @@ void ScriptComponent::fixReferences(const std::unordered_map<UID, Component*>& r
 
         if (resolved->getType() == field.componentRefInfo.componentType)
         {
-            ref->component = resolved;
+            componentReference->component = resolved;
         }
     }
 
@@ -518,7 +512,7 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
     ScriptFieldList sourceFields = source.getExposedFields();
     ScriptFieldList targetFields = target.getExposedFields();
 
-    const size_t count = (sourceFields.count < targetFields.count) ? sourceFields.count : targetFields.count;
+    const size_t count = sourceFields.count;
 
     char* sourceBase = (char*)&source;
     char* targetBase = (char*)&target;
@@ -555,8 +549,8 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
 
         case ScriptFieldType::ComponentRef:
         {
-            auto* sourceRef = reinterpret_cast<ScriptComponentRefStorage*>(sourceData);
-            auto* targetRef = reinterpret_cast<ScriptComponentRefStorage*>(targetData);
+            ScriptComponentRef<Component>* sourceRef = reinterpret_cast<ScriptComponentRef<Component>*>(sourceData);
+            ScriptComponentRef<Component>* targetRef = reinterpret_cast<ScriptComponentRef<Component>*>(targetData);
 
             targetRef->uid = sourceRef->uid;
             targetRef->component = nullptr;
