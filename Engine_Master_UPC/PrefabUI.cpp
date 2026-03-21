@@ -2,40 +2,34 @@
 #include "PrefabUI.h"
 
 #include "Application.h"
-#include "ComponentType.h"
 #include "ModuleEditor.h"
-#include "ModuleAssets.h"
 #include "ModuleFileSystem.h"
-#include "GameObject.h"
-#include "PrefabEditSession.h"
-#include "PrefabManager.h"
-#include "PrefabAsset.h"
+#include "ModuleAssets.h"
 #include "ModuleScene.h"
+
+#include "Scene.h"
+#include "GameObject.h"
+#include "ComponentType.h"
 #include "Transform.h"
 
-// ---------------------------------------------------------------------------
-// Internal helper
-// Creates the prefab file at savePath, then links the GO to it.
-// savePath is a full relative path, e.g. "Assets/Characters/Hero.prefab".
-// The UID is taken from go->GetID() inside createPrefab/buildPrefabJSON —
-// we no longer compute a name hash here.
-// ---------------------------------------------------------------------------
+#include "PrefabManager.h"
+#include "PrefabAsset.h"
+#include "PrefabEditSession.h"
+
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
 {
     if (!PrefabManager::createPrefab(go, savePath))
+    {
         return;
+    }
 
-    // The PrefabData the registry needs is already built by createPrefab.
-    // Re-read it from the file so m_prefabUID (the GO UID) is set correctly
-    // without duplicating the JSON-parsing logic here.
     PrefabData instanceData;
     instanceData.m_sourcePath = savePath;
     instanceData.m_name = savePath.stem().string();
-    instanceData.m_prefabUID = go->GetID();   // GO UID — no name hash
+    instanceData.m_prefabUID = go->GetID();
     PrefabManager::linkInstance(go, instanceData);
 }
 
-// ============================================================================
 void PrefabUI::drawModeHeader(const char* prefabName)
 {
     ImVec2 topLeft = ImGui::GetCursorScreenPos();
@@ -72,7 +66,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     {
         PrefabManager::applyToPrefab(session->m_rootObject);
 
-        ModuleScene* mainScene = app->getModuleScene();
+        Scene* currentScene = app->getModuleScene()->getScene();
         const std::filesystem::path prefabPath = session->m_sourcePath;
 
         std::vector<GameObject*> instances;
@@ -82,9 +76,9 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
             Matrix worldMatrix = go->GetTransform()->getGlobalMatrix();
 
             UID id = go->GetID();
-            mainScene->removeGameObject(id);
+            currentScene->removeGameObject(id);
 
-            GameObject* fresh = PrefabManager::instantiatePrefab(prefabPath, mainScene);
+            GameObject* fresh = PrefabManager::instantiatePrefab(prefabPath, currentScene);
             if (fresh)
             {
                 fresh->GetTransform()->setFromGlobalMatrix(worldMatrix);
@@ -104,7 +98,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     ImGui::BeginDisabled(!hasChanges);
     if (ImGui::Button("Revert", ImVec2(buttonWidth, 0)))
     {
-        PrefabManager::revertToPrefab(session->m_rootObject, session->m_isolatedScene.get());
+        PrefabManager::revertToPrefab(session->m_rootObject, session->m_isolatedScene);
         app->getModuleEditor()->setSelectedGameObject(session->m_rootObject);
     }
     ImGui::EndDisabled();
@@ -248,7 +242,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     ImGui::BeginDisabled(!hasOverrides);
     if (ImGui::SmallButton("Revert"))
     {
-        PrefabManager::revertToPrefab(go, app->getModuleScene());
+        PrefabManager::revertToPrefab(go, app->getModuleScene()->getScene());
         app->getModuleEditor()->setSelectedGameObject(go);
     }
     ImGui::EndDisabled();
@@ -307,7 +301,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     ImGui::BeginDisabled(!hasChanges);
     if (ImGui::MenuItem("Revert  -  Reload from prefab file"))
     {
-        PrefabManager::revertToPrefab(session->m_rootObject, session->m_isolatedScene.get());
+        PrefabManager::revertToPrefab(session->m_rootObject, session->m_isolatedScene);
         app->getModuleEditor()->setSelectedGameObject(session->m_rootObject);
     }
     ImGui::EndDisabled();
@@ -331,7 +325,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     ImGui::Separator();
 }
 
-void PrefabUI::drawPrefabSubMenu(GameObject* go, ModuleScene* scene)
+void PrefabUI::drawPrefabSubMenu(GameObject* go, Scene* scene)
 {
     if (!go || !ImGui::BeginMenu("Prefab")) return;
 
@@ -424,7 +418,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
 
     if (ImGui::MenuItem("Add to Scene"))
     {
-        ModuleScene* scene = app->getModuleScene();
+        Scene* scene = app->getModuleScene()->getScene();
         if (scene)
         {
 
@@ -451,7 +445,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         PrefabManager::applyToPrefab(selected);
     if (ImGui::MenuItem("Revert to Prefab"))
     {
-        PrefabManager::revertToPrefab(selected, app->getModuleScene());
+        PrefabManager::revertToPrefab(selected, app->getModuleScene()->getScene());
         app->getModuleEditor()->setSelectedGameObject(selected);
     }
     ImGui::EndDisabled();

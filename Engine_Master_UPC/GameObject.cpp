@@ -1,26 +1,25 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include "Transform.h"
+#include "Application.h"
+#include "ModuleEditor.h"
+#include "ModuleScene.h"
+
+#include "Scene.h"
+#include "ComponentType.h"
 #include "Component.h"
+#include "Transform.h"
+#include "CameraComponent.h"
 #include "ComponentFactory.h"
 
 #include <algorithm>
 #include <cstring>
 #include <imgui.h>
-#include "SceneSnapshot.h"
+
 #include "PrefabManager.h"
 #include "PrefabAsset.h"
-#include "ModuleEditor.h"
 #include "PrefabEditSession.h"
-#include "ComponentType.h"
 
-//Should not be here
-#include "Application.h"
-#include "ModuleScene.h"
-
-#include "Transform.h"
-#include "CameraComponent.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -51,9 +50,8 @@ std::unique_ptr<GameObject> GameObject::clone() const
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
 
-    newGameObject->RemoveComponent(
-        newGameObject->GetComponent(ComponentType::TRANSFORM)
-    );
+    newGameObject->GetTransform()->setRoot(nullptr);
+    newGameObject->cleanUp();
 
     for (const std::unique_ptr<Component>& component : m_components)
     {
@@ -65,8 +63,10 @@ std::unique_ptr<GameObject> GameObject::clone() const
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
             }
-
-            newGameObject->AddClonedComponent(std::move(clonedComponent));
+            else
+            {
+                newGameObject->AddClonedComponent(std::move(clonedComponent));
+            }
         }
         else
         {
@@ -134,11 +134,7 @@ bool GameObject::AddClonedComponent(std::unique_ptr<Component> component)
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
-    auto it = std::find_if(
-        m_components.begin(),
-        m_components.end(),
-        [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; }
-    );
+    auto it = std::find_if(m_components.begin(), m_components.end(), [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; });
 
     if (it != m_components.end())
     {
@@ -352,9 +348,6 @@ void GameObject::drawUI()
 #pragma endregion
 
 #pragma region Components
-    ImGui::Text("Components");
-    ImGui::Separator();
-
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         const std::unique_ptr<Component>& component = m_components[i];
@@ -362,14 +355,14 @@ void GameObject::drawUI()
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        /*if (component->getType() == ComponentType::CAMERA)
+        if (component->getType() == ComponentType::CAMERA)
         {
             CameraComponent* cameraComponent = static_cast<CameraComponent*>(component.get());
             if (app->getModuleScene()->getScene()->getDefaultCamera() == cameraComponent)
             {
                 header += " (Default)";
             }
-        }*/
+        }
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
 
@@ -395,8 +388,6 @@ void GameObject::drawUI()
 
         if (isOpen)
         {
-            ImGui::Separator();
-
             PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
             const bool inPrefabMode = session && session->m_active && session->m_rootObject;
 
@@ -414,8 +405,6 @@ void GameObject::drawUI()
                         targetForOverride, componentType, "properties");
                 }
             }
-
-            ImGui::Separator();
 
             if (component->getType() != ComponentType::TRANSFORM)
             {

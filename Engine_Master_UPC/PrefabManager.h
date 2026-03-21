@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 
 class GameObject;
-class ModuleScene;
+class Scene;
 class PrefabAsset;
 struct PrefabData;
 
@@ -33,15 +33,15 @@ public:
     static std::string buildPrefabJSON(const GameObject* go, const std::filesystem::path& savePath);
 
     static bool applyToPrefab(const GameObject* go, bool respectOverrides = true);
-    static bool revertToPrefab(GameObject* go, ModuleScene* scene);
+    static bool revertToPrefab(GameObject* go, Scene* scene);
 
     static bool createVariant(const std::filesystem::path& sourcePath,
         const std::filesystem::path& destinationPath);
 
 
-    static GameObject* instantiatePrefab(const PrefabAsset& asset, ModuleScene* scene);
+    static GameObject* instantiatePrefab(const PrefabAsset& asset, Scene* scene);
 
-    static GameObject* instantiatePrefab(const std::filesystem::path& sourcePath, ModuleScene* scene);
+    static GameObject* instantiatePrefab(const std::filesystem::path& sourcePath, Scene* scene);
 
     static void markPropertyOverride(GameObject* go, int componentType, const std::string& propertyName);
     static void clearComponentOverrides(GameObject* go, int componentType);
@@ -50,7 +50,7 @@ public:
     static void markComponentRemoved(GameObject* go, int componentType);
 
     static std::string serializeGameObject(const GameObject* go);
-    static GameObject* deserializeGameObject(const std::string& data, ModuleScene* scene);
+    static GameObject* deserializeGameObject(const std::string& data, Scene* scene);
 
     static bool              isPrefabInstance(const GameObject* go);
     static std::string       getPrefabName(const GameObject* go);
@@ -69,7 +69,7 @@ private:
     static bool writePrefabDocument(rapidjson::Document& doc, const std::filesystem::path& path);
     static bool readPrefabDocument(const std::filesystem::path& path, rapidjson::Document& doc);
 
-    static GameObject* deserialiseNode(const rapidjson::Value& node, ModuleScene* scene, GameObject* parent);
+    static GameObject* deserialiseNode(const rapidjson::Value& node, Scene* scene, GameObject* parent);
 
     static std::unordered_map<const GameObject*, PrefabData>& registry();
 };

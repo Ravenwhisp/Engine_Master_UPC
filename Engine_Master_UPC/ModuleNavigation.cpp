@@ -28,11 +28,6 @@ static std::string MakeNavMeshPath(const char* sceneName)
 
 bool ModuleNavigation::init()
 {
-	return true;
-}
-
-bool ModuleNavigation::postInit()
-{
     const char* sceneName = app->getModuleScene()->getScene()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
@@ -52,13 +47,6 @@ bool ModuleNavigation::postInit()
     }
 
 	return true;
-}
-
-
-void ModuleNavigation::update()
-{
-   
-
 }
 
 bool ModuleNavigation::cleanUp()

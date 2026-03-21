@@ -16,6 +16,7 @@
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
+#include "MD5Fwd.h"
 
 SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) : m_device(device)
 {

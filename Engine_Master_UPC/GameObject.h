@@ -1,22 +1,13 @@
 #pragma once
 
-#include "Component.h"
 #include "UID.h"
 #include "Tag.h"
 #include "Layer.h"
+#include "ComponentType.h"
 
 #include <vector>
 #include <memory>
 #include <string>
-
-class Transform;
-class ModelComponent;
-#include <vector>
-
-#include "Tag.h"
-#include "Layer.h"
-#include "UID.h"
-#include "ComponentType.h"
 
 #include <rapidjson/document.h>
 
@@ -70,9 +61,6 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
-
-#pragma endregion
-
 
 #pragma region GameLoop
 	bool init();

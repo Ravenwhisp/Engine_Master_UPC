@@ -108,7 +108,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 
 		if (!prefabMode)
 		{
-			PrefabUI::drawPrefabSubMenu(gameObject, app->getModuleScene());
+			PrefabUI::drawPrefabSubMenu(gameObject, app->getModuleScene()->getScene());
 			ImGui::Separator();
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
 			if (ImGui::MenuItem("Delete"))
@@ -116,7 +116,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 				UID id = gameObject->GetID();
 				if (app->getModuleEditor()->getSelectedGameObject() == gameObject)
 					app->getModuleEditor()->setSelectedGameObject(nullptr);
-				app->getModuleScene()->removeGameObject(id);
+				app->getModuleScene()->getScene()->removeGameObject(id);
 			}
 			ImGui::PopStyleColor();
 		}
@@ -149,7 +149,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
 		{
 			const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
-			ModuleScene* scene = app->getModuleScene();
+			Scene* scene = app->getModuleScene()->getScene();
 			GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
 			if (spawned)
 			{
@@ -192,7 +192,7 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 		return;
 
 	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	ModuleScene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene.get() : app->getModuleScene();
+	Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
 
 	Matrix worldMatrix = childTransform->getGlobalMatrix();
 
@@ -239,7 +239,7 @@ void WindowHierarchy::createTreeNode()
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
 			{
 				const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
-				ModuleScene* scene = app->getModuleScene();
+				Scene* scene = app->getModuleScene()->getScene();
 				GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
 				if (spawned)
 					app->getModuleEditor()->setSelectedGameObject(spawned);
@@ -274,7 +274,7 @@ void WindowHierarchy::removeGameObject()
 
 	if (selected)
 	{
-		ModuleScene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene.get() : app->getModuleScene();
+		Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
 
 		UID id = selected->GetID();
 		app->getModuleEditor()->setSelectedGameObject(nullptr);
@@ -287,9 +287,7 @@ void WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
 	if (!parent) return;
 
 	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	ModuleScene* targetScene = (session && session->m_active && session->m_isolatedScene)
-		? session->m_isolatedScene.get()
-		: app->getModuleScene();
+	Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
 
 	targetScene->createGameObject();
 

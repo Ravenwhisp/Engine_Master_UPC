@@ -4,7 +4,7 @@
 #include <string>
 
 class GameObject;
-class ModuleScene;
+class Scene;
 
 class PrefabUI
 {
@@ -18,7 +18,7 @@ public:
     static void drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditRoot);
 
     // scene is passed so the sub-menu can call instantiatePrefab directly.
-    static void drawPrefabSubMenu(GameObject* go, ModuleScene* scene);
+    static void drawPrefabSubMenu(GameObject* go, Scene* scene);
 
     static void drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize);
     static void markTransformOverride(GameObject* go);
