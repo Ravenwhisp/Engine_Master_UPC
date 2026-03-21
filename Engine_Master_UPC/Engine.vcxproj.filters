@@ -342,6 +342,9 @@
     <ClCompile Include="DebugDrawPass.cpp">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSurface.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -812,6 +815,9 @@
     </ClInclude>
     <ClInclude Include="DebugDrawPass.h">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSurface.h">
+      <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

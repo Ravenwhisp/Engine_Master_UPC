@@ -310,6 +310,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="RenderContext.h" />
+    <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
@@ -558,6 +559,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="RenderSurface.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneReferenceResolver.cpp" />
     <ClCompile Include="SceneSnapshot.cpp" />
