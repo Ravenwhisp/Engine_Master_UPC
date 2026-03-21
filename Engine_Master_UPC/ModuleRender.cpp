@@ -86,15 +86,11 @@ void ModuleRender::preRender()
         app->getModuleD3D12()->getCommandQueue()->flush();
         m_size = newSize;
 
-        m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(newSize.x, newSize.y));
-        m_editorScreenRT->setName(L"editorScreenRT");
-        m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y));
-        m_editorScreenDS->setName(L"editorScreenDS");
+        m_editorScreenRT->resize(newSize.x, newSize.y);
+        m_editorScreenDS->resize(newSize.x, newSize.y);
 
-        m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(newSize.x, newSize.y));
-        m_playScreenRT->setName(L"playScreenRT");
-        m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y));
-        m_playScreenDS->setName(L"playScreenDS");
+        m_playScreenRT->resize(newSize.x, newSize.y);
+        m_playScreenDS->resize(newSize.x, newSize.y);
     }
 
     renderToTexture(commandList, m_editorScreenRT.get(), m_editorScreenDS.get(),
@@ -175,7 +171,6 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .viewport = viewport,
         .scissorRect = scissorRect,
         .ringBuffer = m_ringBuffer,
-        .scene = app->getModuleScene(),
         .renderDebug = renderDebug,
         .uiTextCommands = &app->getModuleUI()->getTextCommands(),
         .uiImageCommands = &app->getModuleUI()->getImageCommands(),

@@ -27,7 +27,7 @@ void DebugEditorOverlay::draw(const RenderContext& ctx)
 
     if (s->sceneEditor.showModelBoundingBoxes)
     {
-        for (const MeshRenderer* renderer : ctx.scene->getMeshRenderers())
+        for (const MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
         {
             drawBoundingBox(renderer->getBoundingBox(), dd::colors::Yellow);
         }

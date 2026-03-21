@@ -106,11 +106,11 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
     m_sceneDataCB->viewPos = ctx.cameraPosition;
 
     // Previously called app->getModuleRender()->getActiveScene()
-    m_meshRenderers = ctx.scene->getMeshRenderers();
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
 
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
 
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(ctx.scene->getLightComponents(), m_lighting->ambientColor, m_lighting->ambientIntensity);
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getLightComponents(), m_lighting->ambientColor, m_lighting->ambientIntensity);
 
     m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }

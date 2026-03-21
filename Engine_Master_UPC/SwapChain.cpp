@@ -118,8 +118,7 @@ void SwapChain::resize()
         }
 
         createRenderTargetViews(app->getModuleD3D12()->getDevice());
-        m_depthStencil.reset(app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight));
-        m_depthStencil->setName(L"SwapChainDS");
+        m_depthStencil->resize(m_windowWidth, m_windowHeight);
     }
 }
 
@@ -163,9 +162,7 @@ bool SwapChain::checkTearingSupport() const
         ComPtr<IDXGIFactory5> factory5;
         if (SUCCEEDED(factory4.As(&factory5)))
         {
-            if (FAILED(factory5->CheckFeatureSupport(
-                DXGI_FEATURE_PRESENT_ALLOW_TEARING,
-                &allowTearing, sizeof(allowTearing))))
+            if (FAILED(factory5->CheckFeatureSupport( DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing))))
             {
                 allowTearing = FALSE;
             }
