@@ -1,7 +1,7 @@
 #pragma once
 #include "Module.h"
 #include <rapidjson/document.h>
-#include "UID.h"
+#include "MD5Fwd.h"
 #include "MeshRenderer.h"
 #include "SceneSnapshot.h"
 
@@ -25,7 +25,7 @@ struct SceneLightingSettings
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	UID cubemapAssetId = 0;
+	MD5Hash cubemapAssetId = INVALID_ASSET_ID;
 };
 
 class ModuleScene : public Module
@@ -119,4 +119,6 @@ public:
 
 	CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
 	void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
+
+	bool initEmpty();
 };

@@ -2,7 +2,8 @@
 #include "Buffer.h"
 
 
-static int getSizeByFormat(DXGI_FORMAT format) {
+static int getSizeByFormat(DXGI_FORMAT format) 
+{
     return (format == DXGI_FORMAT_R8_UINT) ? 1 : (format == DXGI_FORMAT_R16_UINT) ? 2 : 4;
 }
 

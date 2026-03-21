@@ -4,15 +4,18 @@
 #include "LightComponent.h"
 #include <CameraComponent.h>
 #include "Application.h"
+#include "ModuleD3D12.h"
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
 #include "Settings.h"
 #include "GameObject.h"
+#include "PrefabAsset.h"
 #include "UID.h"
 
 #include "Quadtree.h"
 #include "SceneSerializer.h"
 #include "ModuleNavigation.h"
+#include "Transform.h"
 
 #include <queue>
 #include <limits>
@@ -217,7 +220,7 @@ void ModuleScene::render(ID3D12GraphicsCommandList* commandList)
             if (gameObject->GetActive())
             {
                 auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
+                if (meshRenderer)
                 {
                     m_meshRenderers.push_back(meshRenderer);
                 }
@@ -231,7 +234,7 @@ void ModuleScene::render(ID3D12GraphicsCommandList* commandList)
             if (gameObject->GetActive())
             {
                 auto meshRenderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-                if (meshRenderer && meshRenderer->hasMeshes())
+                if (meshRenderer)
                 {
                     m_meshRenderers.push_back(meshRenderer);
                 }
@@ -524,7 +527,7 @@ rapidjson::Value ModuleScene::getSkyBoxJSON(rapidjson::Document& domTree)
     rapidjson::Value skyboxInfo(rapidjson::kObjectType);
 
     skyboxInfo.AddMember("Enabled", m_skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", (uint64_t)m_skybox.cubemapAssetId, domTree.GetAllocator());
+    skyboxInfo.AddMember("CubemapAssetId", rapidjson::Value(m_skybox.cubemapAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -578,6 +581,22 @@ bool ModuleScene::loadFromJSON(const rapidjson::Value& sceneJson)
         removeFromRootList(child);
     }
 
+    for (auto& gameObjectJson : gameObjectsArray)
+    {
+        if (!gameObjectJson.HasMember("PrefabLink"))
+            continue;
+
+        const uint64_t uid = gameObjectJson["UID"].GetUint64();
+        GameObject* go = uidToGo[uid];
+        if (!go) continue;
+
+        const auto& prefabLink = gameObjectJson["PrefabLink"];
+        PrefabData instanceData;
+        instanceData.m_name = prefabLink["PrefabName"].GetString();
+        instanceData.m_prefabUID = prefabLink["PrefabUID"].GetUint();
+        PrefabManager::linkInstance(go, instanceData);
+    }
+
     fixLoadedSceneReferences();
     resolveDefaultCamera(sceneJson);
     applySkyBoxToRenderer();
@@ -601,11 +620,11 @@ bool ModuleScene::loadSceneSkyBox(const rapidjson::Value& sceneJson)
     }
     skybox.enabled = skyboxJson["Enabled"].GetBool();
 
-    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].IsUint64())
+    if (!skyboxJson.HasMember("CubemapAssetId") && skyboxJson["CubemapAssetId"].GetString())
     {
         return false;
     }
-    skybox.cubemapAssetId = (UID)skyboxJson["CubemapAssetId"].GetUint64();
+    skybox.cubemapAssetId = skyboxJson["CubemapAssetId"].GetString();
 
     return true;
 }
@@ -715,6 +734,7 @@ void ModuleScene::clearScene()
 
     m_rootObjects.clear();
     m_allObjects.clear();
+  
 
     m_defaultCamera = nullptr;
 }
@@ -828,4 +848,12 @@ void ModuleScene::addToRootList(GameObject* gameObject)
 const std::vector<GameObject*>& ModuleScene::getRootObjects() const
 {
     return m_rootObjects;
+}
+
+bool ModuleScene::initEmpty()
+{
+    m_sceneSerializer = std::make_unique<SceneSerializer>();
+    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+    return true;
 }

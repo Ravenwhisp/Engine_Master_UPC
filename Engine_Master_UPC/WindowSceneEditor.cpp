@@ -8,6 +8,7 @@
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
 #include "ModuleNavigation.h"
+#include "PrefabUI.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -23,6 +24,7 @@
 #include "TriggerArea.h"
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
+#include "Transform.h"
 
 #include "CameraComponent.h"
 #include <WindowLogger.h>
@@ -207,6 +209,7 @@ void WindowSceneEditor::render()
             if (ImGuizmo::IsUsing())
             {
                 transform->setFromGlobalMatrix(worldMatrix);
+                PrefabUI::markTransformOverride(selectedGameObject);
             }
         }
     }

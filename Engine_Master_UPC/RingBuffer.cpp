@@ -15,7 +15,7 @@ RingBuffer::~RingBuffer() {
     m_mappedData = nullptr;
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, UINT currentFrame)
+D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, uint64_t currentFrame)
 {
 
 
@@ -67,7 +67,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
 }
 
 
-void RingBuffer::free(UINT lastCompletedFrame)
+void RingBuffer::free(uint64_t lastCompletedFrame)
 {
 	while (!m_allocationQueue.empty() && m_allocationQueue.front().frameIndex < lastCompletedFrame)
 	{

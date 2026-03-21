@@ -31,6 +31,5 @@ public:
 	void reparent(GameObject* child, GameObject* newParent);
 private:
 	void createTreeNode();
-	void createTreeNode(GameObject* gameObject);
+	void createTreeNode(GameObject* gameObject, bool prefabMode);
 };
-
