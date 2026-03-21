@@ -39,6 +39,7 @@ const Matrix& Transform::getGlobalMatrix() const
         m_dirty = false;
         m_owner->onTransformChange();
     }
+
     return m_globalMatrix;
 }
 
