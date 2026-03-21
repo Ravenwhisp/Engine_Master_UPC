@@ -119,7 +119,7 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject)
 		opened = ImGui::TreeNodeEx(label.c_str(), flags);
 	}
 	// --- Selection ---
-	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+	if ( (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1)) && !ImGui::IsItemToggledOpen())
 	{
 		//float time = ImGui::GetTime();
 
