@@ -52,7 +52,7 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
 
     swapChain1.As(&m_swapChain);
 
-    m_depthStencil = app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight);
+    m_depthStencil.reset(app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight));
     createRenderTargetViews(app->getModuleD3D12()->getDevice());
 
     m_viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_windowWidth), float(m_windowHeight) , 0.0, 1.0 };
@@ -114,11 +114,11 @@ void SwapChain::resize()
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
         {
             app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_renderTargets[n].rtv.handle);
-            app->getModuleResources()->defferResourceRelease(m_renderTargets[n].resource);
+            app->getModuleResources()->deferResourceRelease(m_renderTargets[n].resource);
         }
 
         createRenderTargetViews(app->getModuleD3D12()->getDevice());
-        m_depthStencil = app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight);
+        m_depthStencil.reset(app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight));
         m_depthStencil->setName(L"SwapChainDS");
     }
 }

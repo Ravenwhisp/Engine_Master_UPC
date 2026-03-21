@@ -1,6 +1,7 @@
 #pragma once
-#include <vector>
 #include "Component.h"
+
+#include <vector>
 #include "SimpleMath.h"
 #include "EngineAPI.h"
 

@@ -283,23 +283,49 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="CameraSwitcherComponent.h" />
+    <ClInclude Include="AssetType.h" />
+
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
+    <ClInclude Include="Channel.h" />
     <ClInclude Include="ComponentFactory.h" />
+    <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="EngineAPI.h" />
     <ClInclude Include="ExitApplication.h" />
-    <ClInclude Include="FontImporter.h" />
+    <ClInclude Include="Extensions.h" />
+    <ClInclude Include="FontAsset.h" />
+    <ClInclude Include="ImporterFont.h" />
+    <ClInclude Include="ImporterGltf.h" />
+    <ClInclude Include="ImporterMaterial.h" />
+    <ClInclude Include="ImporterMesh.h" />
+    <ClInclude Include="ImporterNative.h" />
+    <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="MaterialAsset.h" />
+    <ClInclude Include="MD5.h" />
+    <ClInclude Include="MD5Fwd.h" />
+    <ClInclude Include="MeshAsset.h" />
+    <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
     <ClInclude Include="ScriptCreator.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneDataCB.h" />
+    <ClInclude Include="SceneLightingSettings.h" />
+    <ClInclude Include="SceneReferenceResolver.h" />
+    <ClInclude Include="SkyBoxSettings.h" />
+    <ClInclude Include="PrefabAsset.h" />
+    <ClInclude Include="TextureImage.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
+    <ClInclude Include="ImporterRegistry.h" />
+    <ClInclude Include="AssetRegistry.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="ModuleAssets.h" />
@@ -318,7 +344,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleD3D12.h" />
     <ClInclude Include="DebugDrawPass.h" />
     <ClInclude Include="debug_draw.hpp" />
-    <ClInclude Include="DepthBuffer.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="ModuleDescriptors.h" />
     <ClInclude Include="ModuleEditor.h" />
@@ -358,11 +383,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="NavMeshWalk.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MeshRendererPass.h" />
-    <ClInclude Include="ModelAsset.h" />
-    <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="PlayerWalkComponent.h" />
     <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="PointerEventData.h" />
+    <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="QuadNode.h" />
     <ClInclude Include="Quadtree.h" />
     <ClInclude Include="SceneConfig.h" />
@@ -386,7 +412,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PlatformHelpers.h" />
     <ClInclude Include="ReadData.h" />
     <ClInclude Include="ModuleRender.h" />
-    <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="ModuleResources.h" />
@@ -404,12 +429,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Tag.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureAsset.h" />
-    <ClInclude Include="TextureImporter.h" />
+    <ClInclude Include="ImporterTexture.h" />
     <ClInclude Include="ModuleTime.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transform2D.h" />
     <ClInclude Include="TriggerAreaComponent.h" />
-    <ClInclude Include="TypedImporter.h" />
+    <ClInclude Include="ImporterSource.h" />
     <ClInclude Include="UIButton.h" />
     <ClInclude Include="UIImage.h" />
     <ClInclude Include="UIImagePass.h" />
@@ -426,6 +451,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="WaypointPathComponent.h" />
     <ClInclude Include="WindowGameDebug.h" />
+    <ClInclude Include="WeakCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -522,16 +548,27 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="CameraSwitcherComponent.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
-    <ClCompile Include="FontImporter.cpp" />
+    <ClCompile Include="ImporterFont.cpp" />
+    <ClCompile Include="ImporterGltf.cpp" />
+    <ClCompile Include="ImporterMaterial.cpp" />
+    <ClCompile Include="ImporterMesh.cpp" />
+    <ClCompile Include="ImporterPrefab.cpp" />
+    <ClCompile Include="ImporterRegistry.cpp" />
+    <ClCompile Include="AssetRegistry.cpp" />
+    <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneReferenceResolver.cpp" />
+    <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
@@ -548,7 +585,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="DepthBuffer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="ModuleDescriptors.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />
@@ -573,9 +609,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="NavMeshWalk.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MeshRendererPass.cpp" />
-    <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="PlayerWalkComponent.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="QuadNode.cpp" />
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SceneConfig.cpp" />
@@ -610,7 +647,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="PerformanceProfiler.cpp" />
     <ClCompile Include="WindowPerformance.cpp" />
     <ClCompile Include="ModuleRender.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
@@ -627,7 +663,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SkyBoxPass.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureImporter.cpp" />
+    <ClCompile Include="ImporterTexture.cpp" />
     <ClCompile Include="ModuleTime.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />

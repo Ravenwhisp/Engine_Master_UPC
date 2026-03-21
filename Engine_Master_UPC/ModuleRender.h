@@ -7,14 +7,13 @@
 #include <vector>
 
 #include "ModuleDescriptors.h";
+#include "Application.h"
 
 using Microsoft::WRL::ComPtr;
 
 class ModuleGameView;
 class Settings;
 class RingBuffer;
-class RenderTexture;
-class DepthBuffer;
 class GameObject;
 class VertexBuffer;
 class IndexBuffer;
@@ -24,6 +23,9 @@ class MeshRendererPass;
 class DebugDrawPass;
 class ImGuiPass;
 class IRenderPass;
+
+using RenderTexture = Texture;
+using DepthBuffer = Texture;
 
 struct SkyBoxSettings;
 
@@ -50,15 +52,12 @@ private:
 	RingBuffer* m_ringBuffer;
 	ModuleDescriptors::SampleType	m_sampleType = ModuleDescriptors::SampleType::POINT_CLAMP;
 
-	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_editorScreenRT{};
 	std::unique_ptr<RenderTexture>	m_playScreenRT{};
 	std::unique_ptr<DepthBuffer>	m_editorScreenDS{};
 	std::unique_ptr<DepthBuffer>	m_playScreenDS{};
 	ImVec2							m_size = ImVec2(800, 600);
 
-
-	/// NEEEEEEEEEEEEEW
 	SkyBoxPass* m_skyBoxPass = nullptr;
 	MeshRendererPass* m_meshRendererPass = nullptr;
 	DebugDrawPass* m_debugDrawPass = nullptr;

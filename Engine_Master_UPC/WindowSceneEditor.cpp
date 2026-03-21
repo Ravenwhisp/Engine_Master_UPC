@@ -8,6 +8,7 @@
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
 #include "ModuleNavigation.h"
+#include "PrefabUI.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -16,14 +17,20 @@
 
 #include "Settings.h"
 
+#include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
+#include "CameraComponent.h"
+#include "LightComponent.h"
+
 #include "DebugDrawPass.h"
 #include "LightDebugDraw.h"
-#include "LightComponent.h"
+
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
+#include "Transform.h"
 
-#include "CameraComponent.h"
 #include <WindowLogger.h>
 
 
@@ -206,6 +213,7 @@ void WindowSceneEditor::render()
             if (ImGuizmo::IsUsing())
             {
                 transform->setFromGlobalMatrix(worldMatrix);
+                PrefabUI::markTransformOverride(selectedGameObject);
             }
         }
     }
@@ -244,7 +252,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
         renderQuadtree();
     }
 
-    for (GameObject* root : app->getModuleScene()->getAllGameObjects()) 
+    for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects()) 
     {
         DebugDrawWindowHierarchy(root);
     }
@@ -305,7 +313,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
             if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
                 app->getModuleNavigation()->setPathStart(hit);
-                LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
+                //LOG_INFO(__FILE__, __LINE__, "Pick start: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
             }
                 
         }
@@ -316,7 +324,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
             if (ScreenToWorldOnPlaneY0(mouse, m_viewportPos, getSize(), viewMatrix, projectionMatrix, hit))
             {
                 app->getModuleNavigation()->setPathEnd(hit);
-                LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
+                //LOG_INFO(__FILE__, __LINE__, "Pick end: %.2f %.2f %.2f", hit.x, hit.y, hit.z);
             }
                 
         }

@@ -20,6 +20,8 @@
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
+#include "PrefabManager.h"
+#include "ModuleRender.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -275,6 +277,8 @@ void ModuleEditor::update()
     #ifdef GAME_RELEASE
         return;
     #endif
+
+    flushExitPrefabEdit();
     
     if (m_sceneEditor->isFocused())
     {
@@ -445,4 +449,55 @@ void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState)
         currentSceneTool = NAVIGATION;
         currentNavigationMode = PAN;
     }
+}
+
+void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
+{
+    app->getModuleD3D12()->getCommandQueue()->flush();
+
+    // Exit any active session before starting a new one.
+    if (m_prefabSession.m_active)
+    {
+        m_prefabSession.clear();
+    }
+
+    m_prefabSession.m_isolatedScene = app->getModuleScene()->getScene();
+    
+    // Instantiate by full path — PrefabManager uses the asset system first,
+    // then falls back to a direct file read for prefabs not yet registered.
+    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, m_prefabSession.m_isolatedScene);
+
+    if (!loaded)
+    {
+        m_prefabSession.clear();
+        return;
+    }
+
+    m_prefabSession.m_sourcePath = sourcePath;  // store full path
+    m_prefabSession.m_rootObject = loaded;
+    m_prefabSession.m_active = true;
+    m_prefabSession.m_editingInMainScene = false;
+    m_selectedGameObject = loaded;
+}
+
+void ModuleEditor::exitPrefabEdit()
+{
+    if (!m_prefabSession.m_active)
+    {
+        return;
+    }
+    m_pendingExitPrefab = true;
+}
+
+void ModuleEditor::flushExitPrefabEdit()
+{
+    if (!m_pendingExitPrefab)
+    {
+        return;
+    }
+
+    m_pendingExitPrefab = false;
+    app->getModuleD3D12()->getCommandQueue()->flush();
+    m_selectedGameObject = nullptr;
+    m_prefabSession.clear();
 }

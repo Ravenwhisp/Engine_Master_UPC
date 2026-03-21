@@ -106,9 +106,6 @@
     <ClCompile Include="RingBuffer.cpp">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="WindowHierarchy.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
@@ -125,12 +122,6 @@
       <Filter>Core\Timers</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthBuffer.cpp">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTexture.cpp">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClCompile>
     <ClCompile Include="Transform.cpp">
@@ -169,7 +160,6 @@
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="SceneSerializer.cpp" />
-    <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
@@ -224,9 +214,6 @@
     <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -238,18 +225,6 @@
     </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="FontImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="Asset.cpp">
-      <Filter>Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="ChangeScene.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
@@ -305,6 +280,42 @@
     <ClCompile Include="SkyBoxPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterTexture.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterFont.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMesh.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMaterial.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterGltf.cpp">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterPrefab.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -314,6 +325,23 @@
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -436,9 +464,6 @@
     <ClInclude Include="RingBuffer.h">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -472,9 +497,6 @@
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Tag.h">
-      <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
@@ -517,7 +539,6 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="SceneSerializer.h" />
-    <ClInclude Include="UID.h" />
     <ClInclude Include="ModuleNavigation.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -609,28 +630,10 @@
     <ClInclude Include="UID.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="Importer.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TypedImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="FontImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
     <ClInclude Include="Asset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="AssetsDictionary.h">
-      <Filter>Persistence\Assets</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="TextureAsset.h">
@@ -702,6 +705,69 @@
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="WeakCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetScanner.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="FontAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImage.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterSource.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterNative.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterTexture.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterFont.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMesh.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMaterial.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterGltf.h">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterPrefab.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
     <ClInclude Include="Script.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
@@ -711,8 +777,50 @@
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
     <ClInclude Include="SceneSnapshot.h">
-      <Filter>GameEntity</Filter>
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDataCB.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLightingSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneReferenceResolver.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="PrefabUI.h" />
+    <ClInclude Include="Extensions.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Metadata.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetType.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Channel.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5Fwd.h">
+      <Filter>Persistence\UID</Filter>
     </ClInclude>
     <ClInclude Include="EngineAPI.h">
       <Filter>Core</Filter>
@@ -871,8 +979,32 @@
     <Filter Include="D3D12\Rendering\Pass">
       <UniqueIdentifier>{c00f1a7c-5fee-4c5c-a935-e6462080d839}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Persistence\UID">
+      <UniqueIdentifier>{447188c5-ed03-4870-940c-f644cc7d601b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\Core">
+      <UniqueIdentifier>{18769d40-df5d-46aa-8177-cdc32142975b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\Native">
+      <UniqueIdentifier>{504f1747-70c4-4ffd-ba99-2eb9af3ddd57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\External">
+      <UniqueIdentifier>{d77e5b0d-aeb5-4b14-84d3-9385c4b82cd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\External\Gltf">
+      <UniqueIdentifier>{4a5cc4af-9f57-45c8-a0f5-fafd5c606cfd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core\Scripting">
       <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Scene">
+      <UniqueIdentifier>{e6447ca6-f34e-489f-9468-0f4afefb06cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\GameObject">
+      <UniqueIdentifier>{e31eb276-f8f1-4837-bd1f-041ac612b48c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animations">
+      <UniqueIdentifier>{bd498ad4-3792-41ea-a2bc-8272d86bab68}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

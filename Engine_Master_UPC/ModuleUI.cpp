@@ -12,12 +12,14 @@
 #include "ModuleEditor.h"
 #include "Texture.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "Canvas.h"
 #include "UIImage.h"
 #include "Transform2D.h"
 #include "UIText.h"
+#include <unordered_map>
 
 bool ModuleUI::init()
 {
@@ -54,7 +56,7 @@ void ModuleUI::preRender()
     m_rootScreenRect.w = screenSize.x;
     m_rootScreenRect.h = screenSize.y;
 
-    const auto& roots = app->getModuleScene()->getAllGameObjects();
+    const auto& roots = app->getModuleScene()->getScene()->getAllGameObjects();
 
     for (GameObject* go : roots)
     {
@@ -187,9 +189,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
     if (uiImg->consumeLoadRequest())
     {
         TextureAsset* asset = uiImg->getTextureAsset();
-        UID assetId = uiImg->getTextureAssetId();
+        MD5Hash assetId = uiImg->getTextureAssetId();
 
-        if (!asset || assetId == 0)
+        if (!asset || assetId == INVALID_ASSET_ID)
         {
             uiImg->setTexture(nullptr);
         }
@@ -198,7 +200,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
             auto textureIteration = m_uiTextures.find(assetId);
             if (textureIteration == m_uiTextures.end())
             {
-                auto texture = app->getModuleResources()->createTexture2D(*asset);
+                auto texture = app->getModuleResources()->createTexture(*asset);
                 if (texture)
                 {
                     Texture* raw = texture.get();

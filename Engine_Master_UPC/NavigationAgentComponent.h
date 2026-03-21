@@ -4,7 +4,7 @@
 #include <vector>
 #include <SimpleMath.h>
 
-#include <rapidjson/document.h>
+
 
 class NavigationAgentComponent : public Component
 {
