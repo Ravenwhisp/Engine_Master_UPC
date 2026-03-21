@@ -171,8 +171,6 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
-
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,

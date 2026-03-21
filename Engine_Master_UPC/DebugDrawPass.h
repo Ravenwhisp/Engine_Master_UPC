@@ -28,7 +28,6 @@ private:
     static DDRenderInterfaceCoreD3D12* implementation;
 
     std::vector<IDebugDrawable*> m_dynamicDrawers;
-
     std::vector<IDebugDrawable*> m_staticDrawers;
 
     mutable const D3D12_VIEWPORT* m_viewport = nullptr;

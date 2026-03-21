@@ -2,8 +2,9 @@
 #include "Globals.h"
 #include "Component.h"
 #include "Frustum.h"
+#include "IDebugDrawable.h"
 
-class CameraComponent : public Component 
+class CameraComponent : public Component, IDebugDrawable
 {
 public:
 	CameraComponent(UID id, GameObject* gameObject);
@@ -31,6 +32,7 @@ public:
 	void recalculateFrustum();
 
 	void drawUi() override;
+	void debugDraw() override;
 
 	void onTransformChange() override;
 
