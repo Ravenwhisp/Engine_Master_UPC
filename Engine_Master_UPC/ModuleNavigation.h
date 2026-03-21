@@ -1,6 +1,6 @@
 #pragma once
 #include "Module.h"
-
+#include "IDebugDrawable.h"
 
 #include <vector>
 #include <string>
@@ -21,7 +21,7 @@ struct NavMeshSettings
     float agentMaxSlope = 45.0f;
 };
 
-class ModuleNavigation : public Module
+class ModuleNavigation : public Module, public IDebugDrawable
 {
 public:
     bool init() override;
@@ -60,6 +60,7 @@ public:
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const;
 
+    void debugDraw() override;
 private:
     NavMeshSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;

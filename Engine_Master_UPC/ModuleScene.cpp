@@ -70,6 +70,9 @@ void ModuleScene::rebuildComponentCaches()
     m_meshRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
+    m_debugDrawables.clear();
+
+    m_debugDrawables.push_back(m_quadtree.get());
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -91,6 +94,14 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* script = go->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT))
         {
             m_scriptComponents.push_back(script);
+        }
+
+        for (Component* c : go->GetAllComponents())
+        {
+            if (IDebugDrawable* drawable = dynamic_cast<IDebugDrawable*>(c))
+            {
+                m_debugDrawables.push_back(drawable);
+            }
         }
     }
 
@@ -123,6 +134,16 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
     }
 
     return m_scriptComponents;
+}
+
+const std::vector<IDebugDrawable*>& ModuleScene::getDebugDrawables()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_debugDrawables;
 }
 
 

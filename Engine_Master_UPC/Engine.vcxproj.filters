@@ -265,9 +265,6 @@
     <ClCompile Include="WindowLogger.cpp">
       <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClCompile>
     <ClCompile Include="FontPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -342,16 +339,7 @@
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="DebugEditorOverlay.cpp">
-      <Filter>D3D12\Rendering\DebugDraw</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugQuadtree.cpp">
-      <Filter>D3D12\Rendering\DebugDraw</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugScene.cpp">
-      <Filter>D3D12\Rendering\DebugDraw</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugNavMesh.cpp">
+    <ClCompile Include="DebugDrawPass.cpp">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
     </ClCompile>
   </ItemGroup>
@@ -493,12 +481,6 @@
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthBuffer.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
     <ClInclude Include="Layer.h">
@@ -690,9 +672,6 @@
     <ClInclude Include="WindowLogger.h">
       <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
     <ClInclude Include="FontPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
@@ -828,19 +807,10 @@
     <ClInclude Include="UIImagePass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="IDebugDrawer.h">
+    <ClInclude Include="IDebugDrawable.h">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
     </ClInclude>
-    <ClInclude Include="DebugEditorOverlay.h">
-      <Filter>D3D12\Rendering\DebugDraw</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugQuadtree.h">
-      <Filter>D3D12\Rendering\DebugDraw</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugScene.h">
-      <Filter>D3D12\Rendering\DebugDraw</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugNavMesh.h">
+    <ClInclude Include="DebugDrawPass.h">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
     </ClInclude>
   </ItemGroup>

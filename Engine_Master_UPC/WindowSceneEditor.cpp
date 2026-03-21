@@ -152,3 +152,19 @@ bool WindowSceneEditor::resize(ImVec2 contentRegion)
     return false;
 }
 
+void WindowSceneEditor::debugDraw()
+{
+    const Settings* s = app->getSettings();
+
+    if (s->sceneEditor.showGrid)
+    {
+        dd::xzSquareGrid(-10.0f, 10.f, 0.0f, 1.0f, dd::colors::LightGray);
+    }
+
+    if (s->sceneEditor.showAxis)
+    {
+        dd::axisTriad(ddConvert(Matrix::Identity), 0.1f, 1.0f);
+
+    }
+}
+

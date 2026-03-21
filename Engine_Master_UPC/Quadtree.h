@@ -5,11 +5,12 @@
 
 #include "Frustum.h"
 #include "QuadNode.h"
+#include "IDebugDrawable.h"
 
 class Scene;
 class GameObject;
 
-class Quadtree
+class Quadtree: public IDebugDrawable
 {
 public:
     static const int MAX_OBJECTS = 1;
@@ -36,6 +37,8 @@ public:
 
     std::vector<GameObject*> query() const;
     std::vector<BoundingRect> getQuadrants() const;
+
+    void debugDraw() override;
 
     QuadNode& getRoot() { return *m_root; }
 

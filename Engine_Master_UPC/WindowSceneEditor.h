@@ -3,6 +3,7 @@
 
 #include "ImGuizmo.h"
 #include <vector>
+#include "IDebugDrawable.h"
 
 class ModuleInput;
 class ModuleCamera;
@@ -16,7 +17,7 @@ class PlayToolbar;
 class DebugDrawPass;
 class GameObject;
 
-class WindowSceneEditor: public EditorWindow
+class WindowSceneEditor: public EditorWindow, public IDebugDrawable
 {
 private:
     ModuleInput* m_moduleInput;
@@ -41,7 +42,7 @@ public:
     void        render() override;
     bool        resize(ImVec2 contentRegion);
 
-
+    void debugDraw() override;
 
     float  getViewportX()      const { return m_viewportX; }
     float  getViewportY()      const { return m_viewportY; }
