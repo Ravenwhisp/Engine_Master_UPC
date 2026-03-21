@@ -2,19 +2,15 @@
 #include "Globals.h"
 #include "Asset.h"
 
-struct TextureImage
-{
-	uint32_t slicePitch = 0;
-	uint32_t rowPitch = 0;
-	std::vector<uint8_t> pixels;
-};
+#include "TextureImage.h"
 
 class TextureAsset : public Asset
 {
 public:
-	friend class TextureImporter;
+	friend class ImporterTexture;
+
 	TextureAsset() {}
-	TextureAsset(UID id) : Asset(id, AssetType::TEXTURE) {}
+	TextureAsset(MD5Hash id) : Asset(id, AssetType::TEXTURE) {}
 
 	uint32_t	getWidth() const { return width; }
 	uint32_t	getHeight() const { return height; }

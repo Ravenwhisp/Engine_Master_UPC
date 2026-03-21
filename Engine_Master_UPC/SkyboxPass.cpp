@@ -132,15 +132,15 @@ void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
         return;
     }
 
-    if (settings.cubemapAssetId == 0)
+    if (settings.cubemapAssetId == INVALID_ASSET_ID)
     {
         m_skyBox.reset();
         return;
     }
 
-    auto assetModule = app->getAssetModule();
+    auto assetModule = app->getModuleAssets();
 
-    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(settings.cubemapAssetId));
+    auto asset = assetModule->load<TextureAsset>(settings.cubemapAssetId);
 
     if (!asset)
     {

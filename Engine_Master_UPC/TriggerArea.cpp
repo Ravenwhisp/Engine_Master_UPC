@@ -8,6 +8,7 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "QuadNode.h"
+#include "Transform.h"
 
 TriggerArea::TriggerArea(UID id, GameObject* gameObject): Component(id, ComponentType::CHANGE_SCENE_ON_TRIGGER, gameObject)
 {
