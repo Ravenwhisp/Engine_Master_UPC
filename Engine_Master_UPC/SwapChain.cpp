@@ -4,8 +4,10 @@
 #include "ModuleResources.h"
 #include "ModuleCamera.h"
 #include "ModuleD3D12.h"
+#include "CommandQueue.h"
+#include "Texture.h"
 
-SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
+SwapChain::SwapChain(HWND hWnd, ComPtr<ID3D12Device4> device, CommandQueue* queue): m_hwnd(hWnd), m_device(device), m_commandQueue(*queue)
 {
     getWindowSize(m_windowWidth, m_windowHeight);
    
@@ -40,9 +42,8 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
    //DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING: Allow tearing in windowed mode (VSync off)
 
     ComPtr<IDXGISwapChain1> swapChain1;
-    auto commandQueue = app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue();
     DXCall(dxgiFactory4->CreateSwapChainForHwnd(
-        commandQueue.Get(),
+        m_commandQueue.getD3D12CommandQueue().Get(),
         hWnd,
         &swapChainDesc,
         nullptr, // fullscreen desc
@@ -52,21 +53,23 @@ SwapChain::SwapChain(HWND hWnd): m_hwnd(hWnd)
 
     swapChain1.As(&m_swapChain);
 
-    m_depthStencil.reset(app->getModuleResources()->createDepthBuffer(m_windowWidth, m_windowHeight));
-    createRenderTargetViews(app->getModuleD3D12()->getDevice());
-
     m_viewport = D3D12_VIEWPORT{ 0.0, 0.0, float(m_windowWidth), float(m_windowHeight) , 0.0, 1.0 };
     m_scissorRect = D3D12_RECT { 0, 0, long(m_windowWidth), long(m_windowHeight) };
+
+    createRenderTargetViews(device);
+
+    auto* depthTexture = app->getModuleResources()->createDepthBuffer(float(m_windowWidth), float(m_windowHeight));
+    m_renderSurface.attachTexture( RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(depthTexture));
 }
 
 SwapChain::~SwapChain()
 {
-    m_depthStencil.reset();
     // 3. Flush GPU commands
     app->getModuleD3D12()->getCommandQueue()->flush();
 
     // 4. Release swap chain
     m_swapChain.Reset();
+    m_renderSurface.reset();
 }
 
 void SwapChain::present()
@@ -100,7 +103,7 @@ void SwapChain::resize()
         // Release the render targets
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
         {
-            m_renderTargets[n].resource.Reset();
+            m_backBufferTextures[n]->release();
         }
 
         // Resize the swap chain
@@ -110,43 +113,29 @@ void SwapChain::resize()
 
         DXCall(m_swapChain->ResizeBuffers(FRAMES_IN_FLIGHT, width, height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
 
-        // Recreate the render target views
-        for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
-        {
-            app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_renderTargets[n].rtv.handle);
-            app->getModuleResources()->deferResourceRelease(m_renderTargets[n].resource);
-        }
-
         createRenderTargetViews(app->getModuleD3D12()->getDevice());
-        m_depthStencil->resize(m_windowWidth, m_windowHeight);
+        m_renderSurface.resize(m_windowWidth, m_windowHeight);
     }
 }
 
 
 void SwapChain::createRenderTargetViews(ComPtr<ID3D12Device2> device)
 {    
-    for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
+    for (UINT n = 0; n < FRAMES_IN_FLIGHT; ++n)
     {
-        auto rtvHandle = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
-        m_renderTargets[n].rtv = rtvHandle;
-        DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n].resource)));
-        m_renderTargets[n].resource->SetName(L"BackBuffer");
+        ComPtr<ID3D12Resource> backBuffer;
+        DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&backBuffer)));
 
 #ifdef GAME_RELEASE
-        D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-        rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-        rtvDesc.Texture2D.MipSlice = 0;
-        rtvDesc.Texture2D.PlaneSlice = 0;
-
-        device->CreateRenderTargetView(m_renderTargets[n].resource.Get(), &rtvDesc, rtvHandle.cpu);
+        constexpr DXGI_FORMAT rtvFmt = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 #else
-        device->CreateRenderTargetView(m_renderTargets[n].resource.Get(), nullptr, rtvHandle.cpu);
-
+        constexpr DXGI_FORMAT rtvFmt = DXGI_FORMAT_UNKNOWN;
 #endif
+
+        m_backBufferTextures[n] = app->getModuleResources()->createTexture(backBuffer, TextureView::RTV, rtvFmt);
+        m_renderSurface.attachTexture(RenderSurface::COLOR_0, m_backBufferTextures[n]);
     }
 }
-
 
 bool SwapChain::checkTearingSupport() const
 {
@@ -170,4 +159,14 @@ bool SwapChain::checkTearingSupport() const
     }
 
     return allowTearing == TRUE;
+}
+
+void SwapChain::updateCurrentBackBuffer()
+{
+    UINT index = m_swapChain->GetCurrentBackBufferIndex();
+    m_renderSurface.attachTexture(RenderSurface::COLOR_0, m_backBufferTextures[index]);
+}
+const RenderSurface& SwapChain::getRenderSurface() const
+{
+    return m_renderSurface;
 }
