@@ -205,7 +205,8 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 viewDirection, 
     if (distanceProjected <= 0.0f) return 0.0f;
 
     float3 lightDirection = normalize(toSurface);
-
+    lightDirection *= -1;
+    
     float attenuation = EpicAttenuation(distanceProjected, spotLights[lightIndex].radius);
     float cosineAngle = dot(lightDirection, spotDirection);
     float coneAttenuation = SpotConeAttenuation( cosineAngle, spotLights[lightIndex].cosineInnerAngle, spotLights[lightIndex].cosineOuterAngle );
