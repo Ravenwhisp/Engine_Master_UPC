@@ -1,5 +1,8 @@
 #pragma once
 
+//provisional test
+#include "Globals.h"
+
 #include "UID.h"
 #include "Tag.h"
 #include "Layer.h"
