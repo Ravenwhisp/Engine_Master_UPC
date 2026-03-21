@@ -23,6 +23,9 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
 
+#include "SceneReferenceResolver.h"
+#include "MD5Fwd.h"
+
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
 constexpr std::string_view SCENE_FILE_EXTENSION = ".scene";
@@ -174,7 +177,7 @@ rapidjson::Value SceneSerializer::getSkyBoxJSON(rapidjson::Document& domTree, co
     const SkyBoxSettings& skybox = scene->getSkyBoxSettings();
 
     skyboxInfo.AddMember("Enabled", skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", (uint64_t)skybox.cubemapAssetId, domTree.GetAllocator());
+    skyboxInfo.AddMember("CubemapAssetId", rapidjson::Value(skybox.cubemapAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -276,9 +279,9 @@ bool SceneSerializer::LoadSkybox(Scene& scene, const rapidjson::Value& json)
         DEBUG_WARN("[SceneSerializer] Skybox Enabled missing");
     }
 
-    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsUint64())
+    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsString())
     {
-        skyboxSettings.cubemapAssetId = (UID)data["CubemapAssetId"].GetUint64();
+        skyboxSettings.cubemapAssetId = (MD5Hash)data["CubemapAssetId"].GetString();
     }
     else
     {
@@ -364,18 +367,24 @@ void SceneSerializer::LinkHierarchy(
 
 void SceneSerializer::FixReferences(Scene& scene)
 {
-    std::unordered_map<UID, Component*> map;
+    SceneReferenceResolver resolver;
 
-    for (auto obj : scene.getAllGameObjects())
+    for (GameObject* obj : scene.getAllGameObjects())
     {
+        resolver.registerGameObject(obj, obj);
+
         for (Component* c : obj->GetAllComponents())
-            map[c->getID()] = c;
+        {
+            resolver.registerComponent(c->getID(), c);
+        }
     }
 
-    for (auto obj : scene.getAllGameObjects())
+    for (GameObject* obj : scene.getAllGameObjects())
     {
         for (Component* c : obj->GetAllComponents())
-            c->fixReferences(map);
+        {
+            c->fixReferences(resolver);
+        }
     }
 }
 

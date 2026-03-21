@@ -27,7 +27,7 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
-	void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) override;
+	void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
 	UIImage*		m_targetGraphic = nullptr;

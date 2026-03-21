@@ -7,6 +7,7 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+#include "UID.h"
 
 struct ID3D12GraphicsCommandList;
 
@@ -14,12 +15,10 @@ class GameObject;
 class CameraComponent;
 class MeshRenderer;
 
-struct SceneSnapshot;
-
 class Scene
 {
+    friend class SceneSnapshot;
 private:
-
     std::string m_name = "SampleScene";
 
     std::vector<std::unique_ptr<GameObject>> m_allObjects;
@@ -69,8 +68,6 @@ public:
 
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);
-    void resetGameObjects(SceneSnapshot previousScene);
-
     GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
     void destroyWindowHierarchy(GameObject* obj);
 
@@ -82,14 +79,6 @@ public:
     GameObject* createDirectionalLightOnInit();
 
     const std::vector<GameObject*> getAllGameObjects() const;
-
-    SceneSnapshot getClonedGameObjects();
-
-    std::unique_ptr<GameObject> cloneGameObjectRecursive(
-        GameObject* original,
-        SceneSnapshot& result);
-
-    void fixClonedReferences(const SceneSnapshot& snapshot);
 
     void clearScene();
 
