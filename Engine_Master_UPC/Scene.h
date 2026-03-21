@@ -7,6 +7,7 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+#include "UID.h"
 
 struct ID3D12GraphicsCommandList;
 

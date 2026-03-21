@@ -2,16 +2,16 @@
 #include <memory>
 #include <string>
 #include <filesystem>
-#include "ModuleScene.h"
 
+class Scene;
 class GameObject;
 
 struct PrefabEditSession
 {
     bool                         m_active = false;
     bool                         m_editingInMainScene = false;
-    std::filesystem::path        m_sourcePath;           // full path — replaces m_prefabName
-    std::unique_ptr<ModuleScene> m_isolatedScene;
+    std::filesystem::path        m_sourcePath;
+    Scene* m_isolatedScene;
     GameObject* m_rootObject = nullptr;
 
     void clear()
@@ -20,6 +20,6 @@ struct PrefabEditSession
         m_editingInMainScene = false;
         m_sourcePath.clear();
         m_rootObject = nullptr;
-        m_isolatedScene.reset();
+        m_isolatedScene = nullptr;
     }
 };

@@ -11,8 +11,6 @@
 #include "ModuleUI.h"
 
 #include "RingBuffer.h"
-#include "RenderTexture.h"
-#include "DepthBuffer.h"
 
 #include "Scene.h"
 #include "GameObject.h"
@@ -48,9 +46,7 @@ bool ModuleRender::init()
     m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
     m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
     m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
-	m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
-
-    m_activeScene = app->getModuleScene();
+    m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
 
     return true;
 }
@@ -161,14 +157,11 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    ModuleScene* scene = m_activeScene ? m_activeScene : app->getModuleScene();
+    Scene* scene = app->getModuleScene()->getScene();
 
-    if (scene == app->getModuleScene())
-    {
-        m_skyBoxPass->setView(camera.view);
-        m_skyBoxPass->setProjection(camera.projection);
-        m_skyBoxPass->apply(commandList);
-    }
+    m_skyBoxPass->setView(camera.view);
+    m_skyBoxPass->setProjection(camera.projection);
+    m_skyBoxPass->apply(commandList);
 
     m_meshRendererPass->setCameraPosition(camera.position);
     m_meshRendererPass->setView(camera.view);

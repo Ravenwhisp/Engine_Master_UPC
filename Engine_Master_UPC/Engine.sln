@@ -6,7 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine.vcxproj", "{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
-		{4145AC11-C2E4-4B43-A4CB-5F4C11ADF5BD} = {4145AC11-C2E4-4B43-A4CB-5F4C11ADF5BD}
 		{6653A880-BA2D-4202-A0E6-90EC3C2FC81D} = {6653A880-BA2D-4202-A0E6-90EC3C2FC81D}
 	EndProjectSection
 EndProject
@@ -20,6 +19,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RecastNavigationLib", "lib\RecastNavigationLib\RecastNavigationLib.vcxproj", "{774B9801-92F3-4576-8AD8-5DD82D9AEB33}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameScripts", "..\GameScripts\GameScripts.vcxproj", "{4145AC11-C2E4-4B43-A4CB-5F4C11ADF5BD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E} = {1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

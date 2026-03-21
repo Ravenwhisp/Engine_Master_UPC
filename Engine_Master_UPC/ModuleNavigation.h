@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <string>
-#include <DetourNavMesh.h> // dtTileRef
+#include <DetourNavMesh.h>
 
 class dtNavMesh;
 class dtNavMeshQuery;
@@ -25,7 +25,6 @@ class ModuleNavigation : public Module
 {
 public:
     bool init() override;
-    void update() override;
     bool cleanUp() override;
 
     // Access

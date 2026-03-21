@@ -83,7 +83,7 @@ std::vector<MeshRenderer*> ModuleScene::getAllMeshRenderers() const
 
         auto mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-        if (mesh && mesh->hasMeshes())
+        if (mesh && mesh->hasMesh())
             result.push_back(mesh);
     }
 
@@ -120,6 +120,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     {
         DEBUG_WARN("[ModuleScene] NavMesh not found for scene: %s", sceneName.c_str());
     }
+
+    app->getModuleEditor()->setSelectedGameObject(nullptr);
 
     return true;
 }

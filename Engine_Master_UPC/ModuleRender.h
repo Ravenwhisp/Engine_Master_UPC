@@ -52,15 +52,12 @@ private:
 	RingBuffer* m_ringBuffer;
 	ModuleDescriptors::SampleType	m_sampleType = ModuleDescriptors::SampleType::POINT_CLAMP;
 
-	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_editorScreenRT{};
 	std::unique_ptr<RenderTexture>	m_playScreenRT{};
 	std::unique_ptr<DepthBuffer>	m_editorScreenDS{};
 	std::unique_ptr<DepthBuffer>	m_playScreenDS{};
 	ImVec2							m_size = ImVec2(800, 600);
 
-
-	/// NEEEEEEEEEEEEEW
 	SkyBoxPass* m_skyBoxPass = nullptr;
 	MeshRendererPass* m_meshRendererPass = nullptr;
 	DebugDrawPass* m_debugDrawPass = nullptr;
@@ -83,9 +80,6 @@ public:
 
 	bool applySkyBoxSettings(const SkyBoxSettings& settings);
 
-	void setActiveScene(ModuleScene* scene) { m_activeScene = scene; }
-	ModuleScene* getActiveScene() const { return m_activeScene ? m_activeScene : app->getModuleScene(); }
-
 	int getTriangles() { return m_triangles; }
 private:
 #pragma region RENDERS
@@ -102,8 +96,5 @@ private:
 	RenderCamera getGameCamera();
 
 	void transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
-
-	//Prefab thing
-	ModuleScene* m_activeScene = nullptr;
 };
 
