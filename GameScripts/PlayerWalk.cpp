@@ -2,6 +2,8 @@
 #include "PlayerWalk.h"
 #include "ScriptAPI.h"
 
+#include <cmath>
+
 static const float PI = 3.1415926535897931f;
 
 static const char* controlSchemeNames[] =
@@ -48,7 +50,7 @@ void PlayerWalk::Update()
     }
 
     const float dt = Time::getDeltaTime();
-    bool shiftHeld = Input::isKeyDown((int)Keyboard::Keys::LeftShift) || Input::isKeyDown((int)Keyboard::Keys::RightShift);
+    bool shiftHeld = Input::isKeyDown((int)DirectX::Keyboard::Keys::LeftShift) || Input::isKeyDown((int)DirectX::Keyboard::Keys::RightShift);
 
     Vector3 horizontalDir(direction.x, 0.0f, direction.z);
     if (horizontalDir.x != 0.0f || horizontalDir.z != 0.0f)

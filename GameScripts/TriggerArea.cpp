@@ -70,7 +70,7 @@ void TriggerArea::triggerSceneChange()
         return;
     }
 
-    Scene::requestSceneChange(m_sceneToLoad.c_str());
+    SceneAPI::requestSceneChange(m_sceneToLoad.c_str());
 }
 
 IMPLEMENT_SCRIPT(TriggerArea)

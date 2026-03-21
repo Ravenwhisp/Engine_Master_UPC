@@ -3,11 +3,13 @@
 #include "Script.h"
 #include "ScriptFactory.h"
 #include "ScriptComponentRef.h"
+#include "SceneReferenceResolver.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
 #include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -444,8 +446,13 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
     }
 }
 
-void ScriptComponent::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
 {
+    if (!m_script)
+    {
+        return;
+    }
+
     ScriptFieldList fieldList = m_script->getExposedFields();
     char* base = reinterpret_cast<char*>(m_script.get());
 
@@ -468,13 +475,7 @@ void ScriptComponent::fixReferences(const std::unordered_map<UID, Component*>& r
             continue;
         }
 
-        auto it = referenceMap.find(componentReference->uid);
-        if (it == referenceMap.end())
-        {
-            continue;
-        }
-
-        Component* resolved = it->second;
+        Component* resolved = resolver.getClonedComponent(componentReference->uid);
         if (!resolved)
         {
             continue;
