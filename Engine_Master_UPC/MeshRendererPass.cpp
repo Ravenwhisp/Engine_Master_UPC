@@ -7,10 +7,14 @@
 #include "ModuleRender.h"
 #include "ModuleScene.h"
 
-#include "RingBuffer.h"
-#include "MeshRenderer.h"
+#include "Scene.h"
+#include "SceneLightingSettings.h"
+#include "SceneDataCB.h"
 #include "GameObject.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
 #include "LightComponent.h"
+#include "RingBuffer.h"
 #include "VertexBuffer.h"
 #include "Texture.h"
 #include "BasicMesh.h"
@@ -127,7 +131,7 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
-    for (const auto& renderer : *m_meshRenderers) {
+    for (const auto& renderer : m_meshRenderers) {
 
         GameObject* owner = renderer->getOwner();
         if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
@@ -181,12 +185,7 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
 D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
 {
-    ModuleScene* activeScene = app->getModuleRender()->getActiveScene();
-
-    const SceneLightingSettings& lighting = activeScene->GetLightingSettings();
-
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(activeScene->getAllGameObjects(), lighting.ambientColor, lighting.ambientIntensity);
-
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getScene()->getAllGameObjects(), m_lighting->ambientColor, m_lighting->ambientIntensity);
 
     return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 }

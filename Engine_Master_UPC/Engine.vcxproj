@@ -308,6 +308,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneDataCB.h" />
+    <ClInclude Include="SceneLightingSettings.h" />
+    <ClInclude Include="SceneReferenceResolver.h" />
+    <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
     <ClInclude Include="TextureImage.h" />
     <ClInclude Include="WindowGame.h" />
@@ -553,6 +558,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneReferenceResolver.cpp" />
+    <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
