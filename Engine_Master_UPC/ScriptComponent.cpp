@@ -6,6 +6,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
+#include "Scene.h"
 #include "GameObject.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
@@ -198,7 +199,7 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
                 {
                     GameObject* droppedObject = *(GameObject**)payload->Data;
-                    GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+                    GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
                     if (sceneObject)
                     {

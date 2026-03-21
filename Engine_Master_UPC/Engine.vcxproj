@@ -287,7 +287,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="CameraSwitcherComponent.h" />
     <ClInclude Include="AssetType.h" />
-
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Channel.h" />
@@ -310,12 +309,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
     <ClInclude Include="ScriptCreator.h" />
-    <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
