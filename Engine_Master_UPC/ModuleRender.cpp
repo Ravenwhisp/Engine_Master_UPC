@@ -11,12 +11,14 @@
 #include "ModuleUI.h"
 
 #include "RingBuffer.h"
-#include "RenderTexture.h"
-#include "DepthBuffer.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "CameraComponent.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+
+#include "Texture.h"
 
 #include "ImGuiPass.h"
 #include "SkyBoxPass.h"
@@ -33,7 +35,7 @@ bool ModuleRender::init()
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
-    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getSkyBoxSettings());
+    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
@@ -41,10 +43,10 @@ bool ModuleRender::init()
     //m_skyboxTexture = app->getModuleResources()->createTextureCubeFromFile(path(m_settings->skybox.path), "SkyBox");
     //m_hasSkyBox = (m_skyboxTexture != nullptr);
 
-    m_editorScreenRT = app->getModuleResources()->createRenderTexture(m_size.x, m_size.y);
-    m_playScreenRT = app->getModuleResources()->createRenderTexture(m_size.x, m_size.y);
-    m_editorScreenDS = app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y);
-	m_playScreenDS = app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y);
+    m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
+    m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
+    m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
+    m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
 
     return true;
 }
@@ -75,18 +77,14 @@ void ModuleRender::preRender()
         app->getModuleD3D12()->getCommandQueue()->flush();
         m_size = newSize;
 
-        m_editorScreenRT.reset();
-        m_editorScreenRT = app->getModuleResources()->createRenderTexture(newSize.x, newSize.y);
+        m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(newSize.x, newSize.y));
         m_editorScreenRT->setName(L"editorScreenRT");
-        m_editorScreenDS.reset();
-        m_editorScreenDS = app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y);
+        m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y));
         m_editorScreenDS->setName(L"editorScreenDS");
 
-        m_playScreenRT.reset();
-        m_playScreenRT = app->getModuleResources()->createRenderTexture(newSize.x, newSize.y);
+        m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(newSize.x, newSize.y));
         m_playScreenRT->setName(L"playScreenRT");
-        m_playScreenDS.reset();
-        m_playScreenDS = app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y);
+        m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(newSize.x, newSize.y));
         m_playScreenDS->setName(L"playScreenDS");
     }
 
@@ -140,7 +138,7 @@ ModuleRender::RenderCamera ModuleRender::getGameCamera()
 {
     RenderCamera camera;
 
-    const CameraComponent* c = app->getModuleScene()->getDefaultCamera();
+    const CameraComponent* c = app->getModuleScene()->getScene()->getDefaultCamera();
 
     if (!c)
     {
@@ -159,6 +157,8 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
+    Scene* scene = app->getModuleScene()->getScene();
+
     m_skyBoxPass->setView(camera.view);
     m_skyBoxPass->setProjection(camera.projection);
     m_skyBoxPass->apply(commandList);
@@ -167,10 +167,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     m_meshRendererPass->setView(camera.view);
     m_meshRendererPass->setProjection(camera.projection);
 
-    ModuleScene* scene = app->getModuleScene();
-    scene->render(commandList);
-
-    const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();
+    std::vector<MeshRenderer*> meshes = app->getModuleScene()->getAllMeshRenderers();
     m_triangles = 0;
     for (MeshRenderer* mesh : meshes)
     {

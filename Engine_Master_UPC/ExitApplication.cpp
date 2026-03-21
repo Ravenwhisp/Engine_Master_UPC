@@ -1,8 +1,10 @@
 #include "Globals.h"
 #include "ExitApplication.h"
+
+#include "Application.h"
 #include "GameObject.h"
 #include "UIButton.h"
-#include "Application.h"
+#include "SceneReferenceResolver.h"
 
 ExitApplication::ExitApplication(UID id, GameObject* gameObject)
     : Component(id, ComponentType::EXIT_APPLICATION, gameObject)
@@ -94,7 +96,7 @@ bool ExitApplication::deserializeJSON(const rapidjson::Value& componentInfo)
     return true;
 }
 
-void ExitApplication::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void ExitApplication::fixReferences(const SceneReferenceResolver& resolver)
 {
     if (m_uiButton)
     {
@@ -107,10 +109,15 @@ void ExitApplication::fixReferences(const std::unordered_map<UID, Component*>& r
         return;
     }
 
-    auto it = referenceMap.find(m_uiButtonUid);
-    if (it != referenceMap.end())
+    Component* comp = resolver.getClonedComponent(m_uiButtonUid);
+
+    if (comp && comp->getType() == ComponentType::UIBUTTON)
     {
-        m_uiButton = static_cast<UIButton*>(it->second);
+        m_uiButton = static_cast<UIButton*>(comp);
         m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ExitApplication::onExitApplication);
+    }
+    else
+    {
+        m_uiButton = nullptr;
     }
 }

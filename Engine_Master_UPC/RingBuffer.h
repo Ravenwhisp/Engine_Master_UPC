@@ -8,7 +8,7 @@ class ModuleResources;
 
 struct AllocationInfo
 {
-    UINT frameIndex;
+    uint64_t frameIndex;
     size_t offset;
     size_t size;
 };
@@ -18,8 +18,8 @@ class RingBuffer : public Buffer
 public:
     ~RingBuffer();
 
-    D3D12_GPU_VIRTUAL_ADDRESS allocate(const void* data, size_t size, UINT currentFrame);
-    void free(UINT lastCompletedFrame);
+    D3D12_GPU_VIRTUAL_ADDRESS allocate(const void* data, size_t size, uint64_t currentFrame);
+    void free(uint64_t lastCompletedFrame);
     void reset();
 
     size_t getTotalSize() const { return m_totalMemorySize; }

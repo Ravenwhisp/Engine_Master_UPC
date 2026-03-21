@@ -1,11 +1,11 @@
 #pragma once
 #include "Importer.h"
 
-template<typename ExternalFormat, typename AssetFormat>
-class TypedImporter : public Importer
+template<typename ExternalFormat, typename AssetFormat, AssetType TType>
+class ImporterSource : public Importer
 {
 public:
-    bool import(const std::filesystem::path& path, Asset * outAsset) final
+    bool import(const std::filesystem::path& path, Asset* outAsset) final
     {
         ExternalFormat external{};
         if (!loadExternal(path, external))
@@ -19,6 +19,11 @@ public:
         return true;
     }
 
+    AssetType getAssetType() const override
+    {
+        return TType;
+    }
+
     uint64_t save(const Asset* asset, uint8_t** outBuffer) final
     {
         return saveTyped(static_cast<const AssetFormat*>(asset),outBuffer);
@@ -26,7 +31,7 @@ public:
 
     void load(const uint8_t* buffer, Asset* outAsset) final
     {
-        loadTyped(buffer,static_cast<AssetFormat*>(outAsset));
+        loadTyped(buffer, static_cast<AssetFormat*>(outAsset));
     }
 
 protected:

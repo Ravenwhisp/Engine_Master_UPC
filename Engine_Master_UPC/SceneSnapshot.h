@@ -1,21 +1,34 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "UID.h"
+#include "SceneReferenceResolver.h"
 
-class Component;
+class Scene;
 class GameObject;
+class Component;
 class CameraComponent;
 
-struct SceneSnapshot
-{
-    std::unordered_map<UID, Component*> componentMap;
-    // std::unordered_map<GameObject*, GameObject*> gameObjectMap;
 
-    std::vector<std::unique_ptr<GameObject>> allObjects;
-    std::vector<GameObject*> rootObjects;
-    CameraComponent* defaultCamera = nullptr;
+class SceneSnapshot
+{
+private:
+    SceneReferenceResolver m_resolver;
+
+    std::vector<std::unique_ptr<GameObject>> m_allObjects;
+    std::vector<GameObject*> m_rootObjects;
+    CameraComponent* m_defaultCamera = nullptr;
+
+public:
+    SceneSnapshot();
+    ~SceneSnapshot();
+
+    void init(const Scene& scene);
+    void applyTo(Scene& scene);
+
+private:
+    std::unique_ptr<GameObject> cloneRecursive(GameObject* original);
+    void fixReferences();
 };

@@ -1,13 +1,12 @@
 #include "Globals.h"
 #include "NavMeshGeometryExtractor.h"
 
-#include "ModuleScene.h"
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "ModelAsset.h"
 #include <WindowLogger.h>
 
 static bool DecodeIndices(const MeshAsset& mesh, std::vector<uint32_t>& out)
@@ -128,32 +127,35 @@ static void CollectFromObject(
         MeshRenderer* renderer = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (renderer)
         {
-            const UID modelId = renderer->getModelAssetId();
-            if (modelId != 0)
+            const MD5Hash meshId = renderer->getMeshReference();
+            if (meshId != INVALID_ASSET_ID)
             {
-                ModelAsset* model = static_cast<ModelAsset*>(app->getAssetModule()->requestAsset(modelId));
-                if (model)
+                auto mesh = app->getModuleAssets()->load<MeshAsset>(meshId);
+                if (mesh)
                 {
                     const Matrix world = obj->GetTransform()->getGlobalMatrix();
-                    for (const MeshAsset& mesh : model->getMeshes())
-                        AppendMeshAssetToSoup(mesh, world, outVerts, outTris, inOutBaseVertex);
+                    AppendMeshAssetToSoup(*mesh.get(), world, outVerts, outTris, inOutBaseVertex);
                 }
             }
         }
     }
 
     for (GameObject* child : obj->GetTransform()->getAllChildren())
+    {
         CollectFromObject(child, outVerts, outTris, inOutBaseVertex, requiredLayer, onlyActive);
+    }
 }
 
-bool NavMeshGeometryExtractor::Extract(ModuleScene& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
+bool NavMeshGeometryExtractor::Extract(Scene& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
 {
     out.vertices.clear();
     out.indices.clear();
 
     int baseVertex = 0;
     for (GameObject* root : scene.getAllGameObjects())
+    {
         CollectFromObject(root, out.vertices, out.indices, baseVertex, requiredLayer, onlyActive);
+    }
 
     return !out.vertices.empty() && !out.indices.empty();
 }
