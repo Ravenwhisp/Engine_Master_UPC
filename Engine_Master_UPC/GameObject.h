@@ -11,6 +11,19 @@
 
 class Transform;
 class ModelComponent;
+#include <vector>
+
+#include "Tag.h"
+#include "Layer.h"
+#include "UID.h"
+#include "ComponentType.h"
+
+#include <rapidjson/document.h>
+
+class Component;
+class ModelComponent;
+class Transform;
+struct SceneSnapshot;
 
 class GameObject 
 {

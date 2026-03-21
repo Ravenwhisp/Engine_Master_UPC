@@ -27,14 +27,14 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_moduleTime = new ModuleTime(120));
     modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
     modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
-    modules.push_back(m_moduleDescriptors = new ModuleDescriptors());
-    modules.push_back(m_moduleResources = new ModuleResources());
+    modules.push_back(m_moduleDescriptors = new ModuleDescriptors(m_moduleD3d12M->getDevice()));
+    modules.push_back(m_moduleResources = new ModuleResources(m_moduleD3d12M->getDevice(), m_moduleD3d12M->getCommandQueue()));
 
     //Needed to create the LOGs
     modules.push_back(m_moduleEditor = new ModuleEditor());
 
-    modules.push_back(m_moduleAssets = new ModuleAssets());
     modules.push_back(m_moduleFileSystem = new ModuleFileSystem());
+    modules.push_back(m_moduleAssets = new ModuleAssets());
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
     modules.push_back(m_moduleUI = new ModuleUI());
@@ -96,15 +96,6 @@ bool Application::init()
 	return ret;
 }
 
-bool Application::postInit()
-{
-    bool ret = true;
-
-    for (auto it = modules.begin(); it != modules.end() && ret; ++it)
-        ret = (*it)->postInit();
-
-    return ret;
-}
 
 void Application::update()
 {
@@ -156,7 +147,7 @@ void Application::update()
 
     m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
 
-    //m_moduleTime->waitForNextFrame();
+    m_moduleTime->waitForNextFrame();
 }
 
 bool Application::cleanUp()

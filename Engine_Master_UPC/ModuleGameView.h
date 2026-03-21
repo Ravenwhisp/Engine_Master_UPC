@@ -17,6 +17,7 @@ private:
 	std::unique_ptr<SceneSnapshot>				m_sceneCloned;
 
 	bool										m_showDebugWindow;
+	bool m_pendingStop = false;
 
 public:
 	ModuleGameView();

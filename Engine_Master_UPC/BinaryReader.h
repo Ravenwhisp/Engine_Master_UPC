@@ -3,11 +3,13 @@
 #include <cstring>
 #include <string>
 
-class BinaryReader {
+class BinaryReader 
+{
 public:
     BinaryReader(const uint8_t* buffer) : cursor(buffer) {}
 
-    uint8_t u8() {
+    uint8_t u8() 
+    {
         uint8_t v;
         std::memcpy(&v, cursor, sizeof(v));
         cursor += sizeof(v);
@@ -36,7 +38,8 @@ public:
         cursor += size;
     }
 
-    std::string string() {
+    std::string string() 
+    {
         uint32_t len = u32();
         std::string s(len, '\0');
         bytes(s.data(), len);

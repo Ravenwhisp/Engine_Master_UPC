@@ -149,13 +149,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        return FALSE;
    }
 
-   if (!app->postInit())
-   {
-       delete app;
-
-       return FALSE;
-   }
-
    // Set the window to be the size of the monitor
    MONITORINFO monitor = {};
    monitor.cbSize = sizeof(monitor);

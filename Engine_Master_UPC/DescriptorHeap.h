@@ -1,6 +1,7 @@
 #pragma once
 
-struct Handle {
+struct Handle 
+{
 	UINT index : 24;
 	UINT generation : 8;
 
@@ -14,7 +15,8 @@ struct Handle {
 // in the descriptor heap. This acts as a lightweight utility type returned by
 // DescriptorHeap::Allocate().
 //
-struct DescriptorHandle {
+struct DescriptorHandle 
+{
 	D3D12_CPU_DESCRIPTOR_HANDLE cpu{};
 	D3D12_GPU_DESCRIPTOR_HANDLE gpu{};
 	UINT handle{ 0 };
@@ -43,10 +45,7 @@ struct DescriptorHandle {
 class DescriptorHeap
 {
 public:
-
-
-public:
-	DescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
+	DescriptorHeap(ComPtr<ID3D12Device4> device, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32_t numDescriptors);
 
 	D3D12_DESCRIPTOR_HEAP_TYPE	getType() const { return m_type; }
 	bool						hasSpace() const;
@@ -58,14 +57,17 @@ public:
 
 	ID3D12DescriptorHeap*		getHeap() const { return m_heap.Get(); }
 
-	D3D12_CPU_DESCRIPTOR_HANDLE getCPUHandle(UINT handle) const {
+	D3D12_CPU_DESCRIPTOR_HANDLE getCPUHandle(UINT handle) const 
+	{
 		return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_heap->GetCPUDescriptorHandleForHeapStart(), Handle(handle).index, m_descriptorSize);
 	}
-	D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(UINT handle) const {
+	D3D12_GPU_DESCRIPTOR_HANDLE getGPUHandle(UINT handle) const 
+	{
 		return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_heap->GetGPUDescriptorHandleForHeapStart(), Handle(handle).index, m_descriptorSize);
 	}
 
-	bool isShaderVisible() const {
+	bool isShaderVisible() const 
+	{
 		return m_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || m_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 	}
 
