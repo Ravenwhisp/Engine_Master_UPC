@@ -13,7 +13,7 @@
 
 void DebugScene::draw(const RenderContext& ctx)
 {
-    for (GameObject* root : ctx.scene->getScene()->getRootObjects())
+    for (GameObject* root : app->getModuleScene()->getScene()->getRootObjects())
     {
         drawGameObject(root);
     }

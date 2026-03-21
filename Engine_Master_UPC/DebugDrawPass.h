@@ -27,7 +27,6 @@ private:
 
     std::vector<std::unique_ptr<IDebugDrawer>> m_drawers;
 
-
     mutable const D3D12_VIEWPORT* m_viewport = nullptr;
 
     mutable const Matrix* m_projection = nullptr;

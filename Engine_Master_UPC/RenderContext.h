@@ -3,7 +3,6 @@
 #include "SimpleMath.h"
 
 class RingBuffer;
-class ModuleScene;
 struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
@@ -16,7 +15,6 @@ struct RenderContext
     D3D12_VIEWPORT                      viewport;
     D3D12_RECT                          scissorRect;
     RingBuffer*                         ringBuffer = nullptr;
-    ModuleScene*                        scene = nullptr;
     bool                                renderDebug = false;
 
     const std::vector<UITextCommand>* uiTextCommands = nullptr;

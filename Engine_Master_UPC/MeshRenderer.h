@@ -33,7 +33,7 @@ public:
 
 	bool									hasMesh() const { return m_mesh != nullptr; }
 
-	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
+	Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
 
 	void drawUi() override;
 
@@ -55,7 +55,7 @@ private:
 	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
 	std::vector<MD5Hash>			m_materialAssets;
 
-	Engine::BoundingBox				m_boundingBox;
+	mutable Engine::BoundingBox				m_boundingBox;
 
 	int m_triangles = 0;
 };

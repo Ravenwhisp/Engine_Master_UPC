@@ -2,9 +2,7 @@
 #include "Component.h"
 #include "Lights.h"
 
-
-
-
+    
 class LightComponent final : public Component
 {
 public:
