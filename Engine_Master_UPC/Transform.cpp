@@ -26,7 +26,7 @@ std::unique_ptr<Component> Transform::clone(GameObject* newOwner) const
     newTransform->m_eulerDegrees = m_eulerDegrees;
     newTransform->m_scale = m_scale;
     newTransform->markDirty();
-    newTransform->m_root = nullptr;
+    newTransform->m_root = m_root;
 
 	return newTransform;
 }
