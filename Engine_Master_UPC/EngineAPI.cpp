@@ -5,6 +5,7 @@
 #include "ModuleInput.h"
 #include "ModuleTime.h"
 #include "ModuleScene.h"
+#include "Scene.h"
 #include "Keyboard.h"
 #include "ScriptFactory.h"
 
@@ -138,7 +139,7 @@ namespace ComponentAPI
     }
 }
 
-namespace Scene
+namespace SceneAPI
 {
     int countGameObjectsByComponent(ComponentType componentType, bool onlyActive)
     {
@@ -149,7 +150,7 @@ namespace Scene
 
         int count = 0;
 
-        for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
+        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
         {
             if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
             {
@@ -192,7 +193,7 @@ namespace Scene
 
         int count = 0;
 
-        for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
+        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
         {
             if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
             {
@@ -239,7 +240,7 @@ namespace Scene
             return nullptr;
         }
 
-        CameraComponent* defaultCamera = app->getModuleScene()->getDefaultCamera();
+        CameraComponent* defaultCamera = app->getModuleScene()->getScene()->getDefaultCamera();
 
         return defaultCamera->getOwner();
     }
@@ -257,7 +258,7 @@ namespace Scene
             return;
         }
 
-        app->getModuleScene()->setDefaultCamera(camera);
+        app->getModuleScene()->getScene()->setDefaultCamera(camera);
     }
 
     GameObject* findGameObjectByTag(Tag tag, bool onlyActive)
@@ -267,7 +268,7 @@ namespace Scene
             return nullptr;
         }
 
-        for (GameObject* gameObject : app->getModuleScene()->getAllGameObjects())
+        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
         {
             if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
             {

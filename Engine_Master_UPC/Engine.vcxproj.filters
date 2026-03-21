@@ -486,12 +486,6 @@
     <ClInclude Include="Texture.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthBuffer.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
     <ClInclude Include="Layer.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -789,9 +783,6 @@
     <ClInclude Include="SceneSnapshot.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>GameEntity\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="SceneDataCB.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
@@ -839,6 +830,9 @@
     </ClInclude>
     <ClInclude Include="ScriptComponentRef.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

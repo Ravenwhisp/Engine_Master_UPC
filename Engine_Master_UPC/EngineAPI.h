@@ -60,7 +60,7 @@ namespace ComponentAPI
     ENGINE_API void setActive(Component* component, bool active);
 }
 
-namespace Scene
+namespace SceneAPI
 {
     ENGINE_API int countGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
     ENGINE_API int findGameObjectsByComponent(ComponentType componentType, GameObject** outputList, int maxResults, bool onlyActive = true);

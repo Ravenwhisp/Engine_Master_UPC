@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CameraSwitcher.h"
-#include "EngineAPI.h"
 #include "Keyboard.h"
+#include "ScriptAPI.h"
 
 CameraSwitcher::CameraSwitcher(GameObject* owner)
     : Script(owner)
@@ -31,7 +31,7 @@ void CameraSwitcher::Update()
         syncCurrentIndexWithDefaultCamera();
     }
 
-    const bool isSwitchKeyPressed = Input::isKeyDown((int)Keyboard::Keys::T);
+    const bool isSwitchKeyPressed = Input::isKeyDown((int)DirectX::Keyboard::Keys::T);
 
     if (isSwitchKeyPressed && !m_wasSwitchKeyPressed)
     {
@@ -45,11 +45,11 @@ void CameraSwitcher::rebuildCameraList()
 {
     m_cameras.clear();
 
-    const int cameraCount = Scene::countGameObjectsByComponent(ComponentType::CAMERA, true);
+    const int cameraCount = SceneAPI::countGameObjectsByComponent(ComponentType::CAMERA, true);
 
     std::vector<GameObject*> cameraList(cameraCount, nullptr);
 
-    const int count = Scene::findGameObjectsByComponent(ComponentType::CAMERA, cameraList.data(), cameraCount, true);
+    const int count = SceneAPI::findGameObjectsByComponent(ComponentType::CAMERA, cameraList.data(), cameraCount, true);
 
     for (int i = 0; i < count; ++i)
     {
@@ -62,7 +62,7 @@ void CameraSwitcher::rebuildCameraList()
 
 void CameraSwitcher::syncCurrentIndexWithDefaultCamera()
 {
-    GameObject* defaultCameraObject = Scene::getDefaultCameraGameObject();
+    GameObject* defaultCameraObject = SceneAPI::getDefaultCameraGameObject();
     m_currentIndex = -1;
 
     for (int i = 0; i < (int)m_cameras.size(); ++i)
@@ -93,7 +93,7 @@ void CameraSwitcher::switchToNextCamera()
         m_currentIndex = (m_currentIndex + 1) % (int)m_cameras.size();
     }
 
-    Scene::setDefaultCameraByGameObject(m_cameras[m_currentIndex]);
+    SceneAPI::setDefaultCameraByGameObject(m_cameras[m_currentIndex]);
 }
 
 IMPLEMENT_SCRIPT(CameraSwitcher)
