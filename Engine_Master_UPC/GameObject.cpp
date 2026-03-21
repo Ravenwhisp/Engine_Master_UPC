@@ -63,10 +63,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
             }
-            else
-            {
-                newGameObject->AddClonedComponent(std::move(clonedComponent));
-            }
+            newGameObject->AddClonedComponent(std::move(clonedComponent));
         }
         else
         {

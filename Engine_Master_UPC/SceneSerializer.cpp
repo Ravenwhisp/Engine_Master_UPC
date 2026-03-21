@@ -247,11 +247,17 @@ bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
         return false;
     }
 
-    std::unordered_map<uint64_t, GameObject*> uidToGo;
-    std::vector<std::pair<uint64_t, uint64_t>> hierarchy;
+    size_t goNumber = scene.getAllGameObjects().size();
+    std::vector<uint64_t> uidSet;
+    uidSet.reserve(goNumber);
+    std::vector<GameObject*> goSet;
+    goSet.reserve(goNumber);
 
-    CreateGameObjects(scene, json["GameObjects"], uidToGo, hierarchy);
-    LinkHierarchy(scene, uidToGo, hierarchy);
+    std::vector<std::pair<uint64_t, uint64_t>> hierarchy;
+    hierarchy.reserve(goNumber);
+
+    CreateGameObjects(scene, json["GameObjects"], uidSet, goSet, hierarchy);
+    LinkHierarchy(scene, uidSet, goSet, hierarchy);
 
     FixReferences(scene);
     ResolveDefaultCamera(scene, json);
@@ -329,7 +335,8 @@ void SceneSerializer::LoadLighting(Scene& scene, const rapidjson::Value& json)
 void SceneSerializer::CreateGameObjects(
     Scene& scene,
     const rapidjson::Value& array,
-    std::unordered_map<uint64_t, GameObject*>& uidToGo,
+    std::vector<uint64_t>& uidSet,
+    std::vector<GameObject*>& goSet,
     std::vector<std::pair<uint64_t, uint64_t>>& hierarchy)
 {
     for (auto& json : array.GetArray())
@@ -342,23 +349,48 @@ void SceneSerializer::CreateGameObjects(
         uint64_t parentUid = 0;
         go->deserializeJSON(json, parentUid);
 
-        uidToGo[uid] = go;
+        uidSet.push_back(uid);
+        goSet.push_back(go);
+
         hierarchy.emplace_back(uid, parentUid);
     }
 }
 
 void SceneSerializer::LinkHierarchy(
     Scene& scene,
-    const std::unordered_map<uint64_t, GameObject*>& uidToGo,
+    std::vector<uint64_t>& uidSet,
+    std::vector<GameObject*>& goSet,
     const std::vector<std::pair<uint64_t, uint64_t>>& hierarchy)
 {
+    int childIdx, parentIdx;
     for (const auto& [childUid, parentUid] : hierarchy)
     {
         if (parentUid == 0)
+        {
             continue;
+        }
 
-        GameObject* child = uidToGo.at(childUid);
-        GameObject* parent = uidToGo.at(parentUid);
+        childIdx = -1;
+        parentIdx = -1;
+
+        for (int i = 0; i < uidSet.size() && (childIdx == -1  || parentIdx == -1); i++) {
+            if (uidSet[i] == childUid) {
+                childIdx = i;
+            }
+
+            if (uidSet[i] == parentUid) {
+                parentIdx = i;
+            }
+        }
+
+        if (childIdx == -1 || parentIdx == -1)
+        {
+            DEBUG_ERROR("Hierarchy link failed: UID not found");
+            continue;
+        }
+
+        GameObject* child = goSet[childIdx];
+        GameObject* parent = goSet[parentIdx];
 
         child->GetTransform()->setRoot(parent->GetTransform());
         parent->GetTransform()->addChild(child);
