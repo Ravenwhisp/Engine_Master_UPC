@@ -3,10 +3,10 @@
 #include "Component.h"
 #include <vector>
 #include <SimpleMath.h>
+#include "IDebugDrawable.h"
 
 
-
-class NavigationAgentComponent : public Component
+class NavigationAgentComponent : public Component, public IDebugDrawable
 {
 public:
 	NavigationAgentComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::NAVIGATION_AGENT, gameObject) {}
@@ -19,13 +19,13 @@ public:
 	void update() override;
 
 	void drawUi() override;
-	void drawDebugPath();
 
 	void reset();
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
+	void debugDraw() override;
 private:
 	std::vector<DirectX::SimpleMath::Vector3> m_path;
 	size_t m_currentIndex = 0;

@@ -7,7 +7,7 @@
 #include "IRenderPass.h"
 
 class DDRenderInterfaceCoreD3D12;
-class IDebugDrawer;
+class IDebugDrawable;
 
 // DebugDrawPass provides an interface for rendering debug geometry (lines, points, text, etc.) in a DirectX 12 application.
 // It wraps the DebugDraw library's D3D12 implementation, manages its lifetime, and exposes a simple API for recording debug draw commands.
@@ -19,13 +19,17 @@ public:
     DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQueue, bool useMSAA, D3D12_CPU_DESCRIPTOR_HANDLE cpuText = { 0 }, D3D12_GPU_DESCRIPTOR_HANDLE gpuText = { 0 });
     ~DebugDrawPass();
 
-    virtual void prepare(const RenderContext& ctx) override;
+    void registerStatic(IDebugDrawable* draw);
+
+    void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 private:
 
     static DDRenderInterfaceCoreD3D12* implementation;
 
-    std::vector<std::unique_ptr<IDebugDrawer>> m_drawers;
+    std::vector<IDebugDrawable*> m_dynamicDrawers;
+
+    std::vector<IDebugDrawable*> m_staticDrawers;
 
     mutable const D3D12_VIEWPORT* m_viewport = nullptr;
 

@@ -4,15 +4,13 @@
 
 #include "Globals.h"
 #include "DebugDrawPass.h"
-
+#include "IDebugDrawable.h"
 #include "SimpleMath.h"
+#include "Application.h"
+#include "ModuleScene.h"
 
 #include <d3dcompiler.h>
 #include "d3dx12.h"
-#include <DebugEditorOverlay.h>
-#include <DebugQuadtree.h>
-#include <DebugScene.h>
-#include <DebugNavmesh.h>
 
 
 static const char linePointSource[] = R"(
@@ -471,16 +469,11 @@ private:
 
 DDRenderInterfaceCoreD3D12* DebugDrawPass::implementation = 0;
 
-DebugDrawPass::DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQueue,
-    bool useMSAA, D3D12_CPU_DESCRIPTOR_HANDLE cpuText, D3D12_GPU_DESCRIPTOR_HANDLE gpuText)
+DebugDrawPass::DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQueue, bool useMSAA, D3D12_CPU_DESCRIPTOR_HANDLE cpuText, D3D12_GPU_DESCRIPTOR_HANDLE gpuText)
 {
     implementation = new DDRenderInterfaceCoreD3D12(device, uploadQueue, useMSAA, cpuText, gpuText);
     dd::initialize(implementation);
 
-    m_drawers.push_back(std::make_unique<DebugEditorOverlay>());
-    m_drawers.push_back(std::make_unique<DebugQuadtree>());
-    m_drawers.push_back(std::make_unique<DebugScene>());
-    m_drawers.push_back(std::make_unique<DebugNavMesh>());
 }
 
 DebugDrawPass::~DebugDrawPass()
@@ -491,17 +484,30 @@ DebugDrawPass::~DebugDrawPass()
     implementation = 0;
 }
 
+void DebugDrawPass::registerStatic(IDebugDrawable* draw)
+{
+    m_staticDrawers.push_back(draw);
+}
+
 void DebugDrawPass::prepare(const RenderContext& ctx)
 {
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_viewport = &ctx.viewport;
 
-    for (auto& drawer : m_drawers)
+    m_dynamicDrawers = app->getModuleScene()->getDebugDrawables();
+
+    std::vector<IDebugDrawable*> allDrawables;
+    allDrawables.reserve(m_staticDrawers.size() + m_dynamicDrawers.size());
+    allDrawables.insert(allDrawables.end(), m_staticDrawers.begin(), m_staticDrawers.end());
+    allDrawables.insert(allDrawables.end(), m_dynamicDrawers.begin(), m_dynamicDrawers.end());
+
+    for (IDebugDrawable* drawable : allDrawables)
     {
-        drawer->draw(ctx);
+        drawable->debugDraw();
     }
 }
+
 void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "DebugDraw Pass");

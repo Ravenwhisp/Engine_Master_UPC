@@ -292,14 +292,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Channel.h" />
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="ContentRegistry.h" />
-    <ClInclude Include="DebugEditorOverlay.h" />
-    <ClInclude Include="DebugNavMesh.h" />
-    <ClInclude Include="DebugQuadtree.h" />
-    <ClInclude Include="DebugScene.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="FontAsset.h" />
+    <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterMaterial.h" />
@@ -551,10 +548,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
-    <ClCompile Include="DebugEditorOverlay.cpp" />
-    <ClCompile Include="DebugNavMesh.cpp" />
-    <ClCompile Include="DebugQuadtree.cpp" />
-    <ClCompile Include="DebugScene.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />

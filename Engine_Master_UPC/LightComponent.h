@@ -1,9 +1,9 @@
 #pragma once
 #include "Component.h"
 #include "Lights.h"
-
+#include "IDebugDrawable.h"
     
-class LightComponent final : public Component
+class LightComponent final : public Component, public IDebugDrawable
 {
 public:
     LightComponent(UID id, GameObject* owner);
@@ -27,6 +27,7 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
+    void debugDraw() override;
 private:
     LightData m_data{};
 
