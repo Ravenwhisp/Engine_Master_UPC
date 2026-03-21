@@ -43,7 +43,8 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
 void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
 {
     auto material = app->getModuleResources()->createMaterial(materialAsset);
-    if (material) {
+    if (material) 
+    {
         m_materials.push_back(material);
     }
 }
@@ -125,6 +126,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("MeshAssetId"))
     {
         const MD5Hash meshId = componentInfo["MeshAssetId"].GetString();
+        m_meshAsset = meshId;
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
@@ -139,6 +141,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         for (auto& arrayStrings : arr.GetArray())
         {
             const MD5Hash materialId = arrayStrings.GetString();
+            m_materialAssets.push_back(materialId);
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
             if (materialAsset)
             {

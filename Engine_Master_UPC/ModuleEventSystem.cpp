@@ -8,6 +8,7 @@
 #include "WindowGame.h"
 #include "ModuleD3D12.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "Transform2D.h"
@@ -234,7 +235,7 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     screenRect.w = size.x;
     screenRect.h = size.y;
 
-    for (GameObject* root : app->getModuleScene()->getAllGameObjects())
+    for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!root || !root->GetActive()) continue;
 

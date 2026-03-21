@@ -11,9 +11,12 @@
 #include "ModuleUI.h"
 
 #include "RingBuffer.h"
+
+#include "Scene.h"
 #include "GameObject.h"
 #include "CameraComponent.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
 
 #include "Texture.h"
 
@@ -32,7 +35,7 @@ bool ModuleRender::init()
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
-    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getSkyBoxSettings());
+    m_skyBoxPass = new SkyBoxPass(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_meshRendererPass = new MeshRendererPass(device, m_ringBuffer);
     m_imGuiPass = new ImGuiPass(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
     m_debugDrawPass = new DebugDrawPass(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(), false);
@@ -43,9 +46,7 @@ bool ModuleRender::init()
     m_editorScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
     m_playScreenRT.reset(app->getModuleResources()->createRenderTexture(m_size.x, m_size.y));
     m_editorScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
-	m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
-
-    m_activeScene = app->getModuleScene();
+    m_playScreenDS.reset(app->getModuleResources()->createDepthBuffer(m_size.x, m_size.y));
 
     return true;
 }
@@ -137,7 +138,7 @@ ModuleRender::RenderCamera ModuleRender::getGameCamera()
 {
     RenderCamera camera;
 
-    const CameraComponent* c = app->getModuleScene()->getDefaultCamera();
+    const CameraComponent* c = app->getModuleScene()->getScene()->getDefaultCamera();
 
     if (!c)
     {
@@ -156,22 +157,17 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
-    ModuleScene* scene = m_activeScene ? m_activeScene : app->getModuleScene();
+    Scene* scene = app->getModuleScene()->getScene();
 
-    if (scene == app->getModuleScene())
-    {
-        m_skyBoxPass->setView(camera.view);
-        m_skyBoxPass->setProjection(camera.projection);
-        m_skyBoxPass->apply(commandList);
-    }
+    m_skyBoxPass->setView(camera.view);
+    m_skyBoxPass->setProjection(camera.projection);
+    m_skyBoxPass->apply(commandList);
 
     m_meshRendererPass->setCameraPosition(camera.position);
     m_meshRendererPass->setView(camera.view);
     m_meshRendererPass->setProjection(camera.projection);
 
-    scene->render(commandList);
-
-    const std::vector<MeshRenderer*>& meshes = scene->getAllMeshRenderers();
+    std::vector<MeshRenderer*> meshes = app->getModuleScene()->getAllMeshRenderers();
     m_triangles = 0;
     for (MeshRenderer* mesh : meshes)
     {

@@ -1,12 +1,14 @@
 #include "Globals.h"
 #include "ModuleNavigation.h"
+
 #include "Application.h"
 #include "ModuleScene.h"
+
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "BasicMesh.h"
-
 #include "NavMeshResource.h"
 
 #include <fstream>
@@ -26,14 +28,14 @@ static std::string MakeNavMeshPath(const char* sceneName)
 
 bool ModuleNavigation::init()
 {
-    const char* sceneName = app->getModuleScene()->getName();
+    const char* sceneName = app->getModuleScene()->getScene()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
 
     if (WindowLogger::Instance())
     {
         TriangleSoup soup;
-        NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
+        NavMeshGeometryExtractor::Extract(*app->getModuleScene()->getScene(), soup, Layer::NAVMESH, true);
 
         const auto& verts = soup.vertices;
         const auto& tris = soup.indices;
@@ -45,13 +47,6 @@ bool ModuleNavigation::init()
     }
 
 	return true;
-}
-
-
-void ModuleNavigation::update()
-{
-   
-
 }
 
 bool ModuleNavigation::cleanUp()
@@ -191,7 +186,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     if (!WindowLogger::Instance()) return false;
 
     TriangleSoup soup;
-    NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
+    NavMeshGeometryExtractor::Extract(*app->getModuleScene()->getScene(), soup, Layer::NAVMESH, true);
 
     const auto& verts = soup.vertices;
     const auto& tris = soup.indices;
@@ -228,7 +223,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     m_tileRefs.clear();
     m_tileRefs.push_back(result.tileRef);
 
-    const char* sceneName = app->getModuleScene()->getName();
+    const char* sceneName = app->getModuleScene()->getScene()->getName();
     const bool saved = saveNavMeshForScene(sceneName);
 
     LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");

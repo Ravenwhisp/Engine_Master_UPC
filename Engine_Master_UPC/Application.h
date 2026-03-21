@@ -21,7 +21,6 @@ class ModuleGameView;
 class ModuleFileSystem;
 class ModuleAssets;
 class ModuleEventSystem;
-class ModuleFlyweight;
 
 class CameraComponent;
 class Settings;
@@ -67,16 +66,17 @@ public:
 
 	ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
 	void setEngineState(int index) { m_currentEngineState = static_cast<ENGINE_STATE>(index); }
-
-    bool        isPaused() const { return m_paused; }
-    bool        setPaused(bool p) { m_paused = p; return m_paused; }
+	void setEngineState(ENGINE_STATE state) { m_currentEngineState = state; }
+	
+    bool isPaused() const { return m_paused; }
+    bool setPaused(bool p) { m_paused = p; return m_paused; }
 
     void requestApplicationExit() { m_quit = true; }
     bool shouldQuit() const { return m_quit; }
 
     HWND getWindowHandle() const { return m_hWnd; }
 
-    uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
+    uint64_t getElapsedMilis() const { return m_elapsedMilis; }
 
 private:
 

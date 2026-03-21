@@ -12,6 +12,7 @@
 #include "ModuleEditor.h"
 #include "Texture.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "Canvas.h"
@@ -55,7 +56,7 @@ void ModuleUI::preRender()
     m_rootScreenRect.w = screenSize.x;
     m_rootScreenRect.h = screenSize.y;
 
-    const auto& roots = app->getModuleScene()->getAllGameObjects();
+    const auto& roots = app->getModuleScene()->getScene()->getAllGameObjects();
 
     for (GameObject* go : roots)
     {

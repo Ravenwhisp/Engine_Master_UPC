@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "NavMeshGeometryExtractor.h"
 
-#include "ModuleScene.h"
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
@@ -146,7 +146,7 @@ static void CollectFromObject(
     }
 }
 
-bool NavMeshGeometryExtractor::Extract(ModuleScene& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
+bool NavMeshGeometryExtractor::Extract(Scene& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
 {
     out.vertices.clear();
     out.indices.clear();

@@ -19,6 +19,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RecastNavigationLib", "lib\RecastNavigationLib\RecastNavigationLib.vcxproj", "{774B9801-92F3-4576-8AD8-5DD82D9AEB33}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameScripts", "..\GameScripts\GameScripts.vcxproj", "{4145AC11-C2E4-4B43-A4CB-5F4C11ADF5BD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E} = {1EEA1523-1CAF-4CA4-97B8-1C77FF6F7D9E}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

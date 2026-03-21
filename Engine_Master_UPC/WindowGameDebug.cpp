@@ -5,8 +5,9 @@
 
 #include "Application.h"
 #include "Settings.h"
-
 #include "ModuleScene.h"
+
+#include "Scene.h"
 #include "GameObject.h"
 #include "NavMeshWalk.h"
 
@@ -44,7 +45,7 @@ void WindowGameDebug::render()
     if (!s_initConstrain)
     {
        
-        for (GameObject* go : app->getModuleScene()->getAllGameObjects())
+        for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
         {
             if (!go) continue;
             if (auto* n = go->GetComponentAs<NavMeshWalk>(ComponentType::NAVMESH_WALK))
@@ -58,7 +59,7 @@ void WindowGameDebug::render()
 
     if (ImGui::Checkbox("Constrain NavMeshWalk to NavMesh", &s_constrainAllNavMeshWalk))
     {
-        for (GameObject* go : app->getModuleScene()->getAllGameObjects())
+        for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
         {
             if (!go) continue;
 
