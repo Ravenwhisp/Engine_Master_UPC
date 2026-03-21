@@ -121,16 +121,16 @@ void WindowHierarchy::createTreeNode(GameObject* gameObject)
 	// --- Selection ---
 	if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 	{
-		float time = ImGui::GetTime();
+		//float time = ImGui::GetTime();
 
-		if (m_editorModule->getSelectedGameObject() == gameObject && (time - m_lastClickTime) > 0.4f)
+		if (m_editorModule->getSelectedGameObject() == gameObject && ImGui::IsMouseDoubleClicked(0) /*&& (time - m_lastClickTime) > 0.4f*/)
 		{
 			m_renamingObject = gameObject;
 			strcpy(m_renameBuffer, gameObject->GetName().c_str());
 		}
 
 		m_editorModule->setSelectedGameObject(gameObject);
-		m_lastClickTime = time;
+		//m_lastClickTime = time;
 	}
 
 	// --- Drag source ---

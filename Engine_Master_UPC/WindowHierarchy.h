@@ -13,13 +13,10 @@ private:
 
 	ViewHierarchyDialog* m_viewHierarchyDialog;
 
-	GameObject* m_pendingSelection = nullptr;
-	bool m_isDragging = false;
-
 #pragma region Rename Variables
 	GameObject* m_renamingObject = nullptr;
 	char m_renameBuffer[256];
-	float m_lastClickTime = 0.0f;
+//	float m_lastClickTime = 0.0f;
 #pragma endregion
 
 public:
