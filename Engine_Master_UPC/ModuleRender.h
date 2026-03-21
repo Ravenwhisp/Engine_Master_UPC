@@ -14,8 +14,6 @@ using Microsoft::WRL::ComPtr;
 class ModuleGameView;
 class Settings;
 class RingBuffer;
-class RenderTexture;
-class DepthBuffer;
 class GameObject;
 class VertexBuffer;
 class IndexBuffer;
@@ -24,6 +22,9 @@ class SkyBoxPass;
 class MeshRendererPass;
 class DebugDrawPass;
 class IRenderPass;
+
+using RenderTexture = Texture;
+using DepthBuffer = Texture;
 
 struct SkyBoxSettings;
 
@@ -50,7 +51,6 @@ private:
 	RingBuffer* m_ringBuffer;
 	ModuleDescriptors::SampleType	m_sampleType = ModuleDescriptors::SampleType::POINT_CLAMP;
 
-	//Scene Editor Offscreen Render Target
 	std::unique_ptr<RenderTexture>	m_editorScreenRT{};
 	std::unique_ptr<RenderTexture>	m_playScreenRT{};
 	std::unique_ptr<DepthBuffer>	m_editorScreenDS{};

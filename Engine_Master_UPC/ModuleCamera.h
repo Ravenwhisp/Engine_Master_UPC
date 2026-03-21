@@ -54,7 +54,6 @@ private:
 
 public:
     bool init() override;
-    bool postInit() override;
     void update() override;
 
     // --- Getters ---

@@ -2,11 +2,10 @@
 #include "ComponentType.h"
 #include "UID.h" 
 
-#include <rapidjson/document.h>
-#include <unordered_map>
-
 class Transform;
 class GameObject;
+
+class SceneReferenceResolver;
 
 class Component {
 public:
@@ -35,7 +34,7 @@ public:
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
-    virtual void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) {};
+    virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
 protected:
     GameObject* m_owner;

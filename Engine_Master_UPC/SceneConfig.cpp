@@ -115,10 +115,7 @@ void SceneConfig::drawLoadSceneSettings()
 
         if (ImGui::Button("Load"))
         {
-            if (!m_moduleScene->loadScene(m_loadSceneName))
-            {
-                DEBUG_WARN("Scene '%s' doesn't exist.", m_loadSceneName.c_str());
-            }
+            m_moduleScene->requestSceneChange(m_loadSceneName);
         }
     }
 }

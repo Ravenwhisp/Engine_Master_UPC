@@ -174,17 +174,6 @@ void Scene::destroyGameObject(GameObject* gameObject)
     markDirty();
 }
 
-void Scene::resetGameObjects(SceneSnapshot previousScene)
-{
-    m_allObjects = std::move(previousScene.allObjects);
-    m_rootObjects = std::move(previousScene.rootObjects);
-    m_defaultCamera = previousScene.defaultCamera;
-
-    //guarrada historica a continuacion
-    app->getModuleEditor()->setSelectedGameObject(nullptr);
-    markDirty();
-}
-
 GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
@@ -263,59 +252,6 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
     }
 
     return result;
-}
-
-SceneSnapshot Scene::getClonedGameObjects()
-{
-    SceneSnapshot snapshot;
-
-    for (GameObject* root : m_rootObjects)
-    {
-        auto clonedRoot = cloneGameObjectRecursive(root, snapshot);
-        snapshot.rootObjects.push_back(clonedRoot.get());
-        snapshot.allObjects.push_back(std::move(clonedRoot));
-    }
-
-    fixClonedReferences(snapshot);
-
-    return snapshot;
-}
-
-std::unique_ptr<GameObject> Scene::cloneGameObjectRecursive(GameObject* original, SceneSnapshot& snapshot)
-{
-    auto clone = original->clone(snapshot);
-
-    if (original->GetComponent(ComponentType::CAMERA) == m_defaultCamera)
-    {
-        snapshot.defaultCamera = clone->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
-    }
-
-    //clone->ClearComponents();
-
-    Transform* originalTransform = original->GetTransform();
-
-    for (GameObject* childGO : originalTransform->getAllChildren())
-    {
-        auto clonedChild = cloneGameObjectRecursive(childGO, snapshot);
-
-        clonedChild->GetTransform()->setRoot(clone->GetTransform());
-        clone->GetTransform()->addChild(clonedChild.get());
-
-        snapshot.allObjects.push_back(std::move(clonedChild));
-    }
-
-    return clone;
-}
-
-void Scene::fixClonedReferences(const SceneSnapshot& snapshot)
-{
-    for (const auto& obj : snapshot.allObjects)
-    {
-        for (Component* component : obj->GetAllComponents())
-        {
-            component->fixReferences(snapshot.componentMap);
-        }
-    }
 }
 
 void Scene::removeFromRootList(GameObject* obj)

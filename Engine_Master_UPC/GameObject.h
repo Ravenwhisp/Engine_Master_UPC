@@ -1,16 +1,19 @@
 #pragma once
 
-#include "Component.h"
 #include "UID.h"
 #include "Tag.h"
 #include "Layer.h"
+#include "ComponentType.h"
 
 #include <vector>
 #include <memory>
 #include <string>
 
-class Transform;
+#include <rapidjson/document.h>
+
+class Component;
 class ModelComponent;
+class Transform;
 struct SceneSnapshot;
 
 class GameObject 
@@ -19,7 +22,7 @@ public:
 	GameObject(UID newUuid);
 	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
-	std::unique_ptr<GameObject> clone(SceneSnapshot& snapshot) const;
+	std::unique_ptr<GameObject> clone() const;
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }
@@ -58,9 +61,6 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 #pragma endregion
-
-#pragma endregion
-
 
 #pragma region GameLoop
 	bool init();

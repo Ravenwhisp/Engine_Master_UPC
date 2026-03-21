@@ -3,9 +3,8 @@
 #include "Application.h"
 #include "ModuleD3D12.h"
 
-DescriptorHeap::DescriptorHeap(const D3D12_DESCRIPTOR_HEAP_TYPE type, const uint32_t numDescriptors): m_type(type), m_numDescriptors(numDescriptors)
+DescriptorHeap::DescriptorHeap(ComPtr<ID3D12Device4> device, const D3D12_DESCRIPTOR_HEAP_TYPE type, const uint32_t numDescriptors): m_type(type), m_numDescriptors(numDescriptors)
 {
-	auto device = app->getModuleD3D12()->getDevice();
 	bool isShaderVisible = false;
 	if (type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) {
 		isShaderVisible = true;

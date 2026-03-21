@@ -129,6 +129,7 @@ void WindowSceneEditor::render()
             if (ImGuizmo::IsUsing())
             {
                 transform->setFromGlobalMatrix(worldMatrix);
+                PrefabUI::markTransformOverride(selectedGameObject);
             }
         }
     }
