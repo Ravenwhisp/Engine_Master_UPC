@@ -357,7 +357,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="IRenderPass.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
-    <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="NavigationAgentComponent.h" />
     <ClInclude Include="ModuleNavigation.h">
@@ -590,7 +589,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
