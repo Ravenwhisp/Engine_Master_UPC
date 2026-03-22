@@ -10,6 +10,7 @@
 #include "ImporterPrefab.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
+#include "ImporterAnimation.h"
 #include "MD5.h"
 
 #include "Asset.h"
@@ -46,10 +47,15 @@ bool ModuleAssets::init()
         m_importerPrefab = prefab.get();
         m_importerRegistry->registerImporter(std::move(prefab));
     }
+    {
+        auto anim = std::make_unique<ImporterAnimation>();
+        m_importerAnimation = anim.get();
+		m_importerRegistry->registerImporter(std::move(anim));
+    }
 
     // GLTF importer holds references to the three importers above so it can
     // delegate sub-asset serialisation without duplicating binary format logic.
-    m_importerRegistry->registerImporter( std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial, *m_importerPrefab));
+    m_importerRegistry->registerImporter( std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial, *m_importerPrefab, *m_importerAnimation));
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
 
@@ -104,7 +110,8 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     meta.type = asset->getType();
     
     auto it = m_pendingDependencies.find(uid);
-    if (it != m_pendingDependencies.end()) {
+    if (it != m_pendingDependencies.end()) 
+    {
         meta.m_dependencies = std::move(it->second);
         m_pendingDependencies.erase(it);
     }

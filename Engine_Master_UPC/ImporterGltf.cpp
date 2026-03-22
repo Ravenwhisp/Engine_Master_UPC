@@ -27,8 +27,12 @@
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
 #include "ImporterPrefab.h"
+#include "ImporterAnimation.h"
 
 #include <functional>
+#include "AnimationAsset.h"
+#include <unordered_map>
+#include <assert.h>
 
 static const DXGI_FORMAT INDEX_FORMATS[3] = {
     DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
@@ -62,9 +66,13 @@ static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,
 }
 
 ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
-    ImporterMaterial& importerMaterial, ImporterPrefab& importerPrefab)
+    ImporterMaterial& importerMaterial, 
+    ImporterPrefab& importerPrefab,
+    ImporterAnimation& importerAnimation)
     : m_importerMesh(importerMesh)
-    , m_importerMaterial(importerMaterial), m_importerPrefab(importerPrefab)
+    , m_importerMaterial(importerMaterial)
+    , m_importerPrefab(importerPrefab)
+    , m_importerAnimation(importerAnimation)
 {
 }
 
@@ -134,6 +142,23 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meshUIDs[i] = meshUID;
     }
 
+    //Animations
+	std::vector<MD5Hash> animationUIDs(model.animations.size(), INVALID_ASSET_ID);
+    for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
+    {
+		const MD5Hash animUID = computeMD5(m_currentFilePath->string() + "?anim=" + std::to_string(i));
+		AnimationAsset animAsset(animUID);
+		loadAnimation(model, model.animations[i], &animAsset);
+
+        uint8_t* rawBuf = nullptr;
+        const uint64_t size = m_importerAnimation.save(&animAsset, &rawBuf);
+        std::unique_ptr<uint8_t[]> guard(rawBuf);
+
+        Metadata meta; meta.uid = animUID; meta.type = AssetType::ANIMATION;
+		assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
+		animationUIDs[i] = animUID;
+    }
+
     std::vector<std::unique_ptr<GameObject>> tempObjects;
 
     std::vector<int> rootNodes;
@@ -186,6 +211,20 @@ void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
     m_importerPrefab.load(buffer, dst);
 }
 
+void ImporterGltf::loadMaterial(const tinygltf::Model& model,
+    const tinygltf::Material& material,
+    MaterialAsset* mat)
+{
+    const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
+    mat->baseColour = Color(float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
+    mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor * 255.0f);
+    mat->baseMap = resolveTexture(model, pbr.baseColorTexture.index, m_currentFilePath);
+    mat->metallicRoughnessMap = resolveTexture(model, pbr.metallicRoughnessTexture.index, m_currentFilePath);
+    mat->normalMap = resolveTexture(model, material.normalTexture.index, m_currentFilePath);
+    mat->occlusionMap = resolveTexture(model, material.occlusionTexture.index, m_currentFilePath);
+    mat->emissiveMap = resolveTexture(model, material.emissiveTexture.index, m_currentFilePath);
+    mat->isEmissive = isValidAsset(mat->emissiveMap);
+}
 
 void ImporterGltf::loadMesh(const tinygltf::Model& model,
     const tinygltf::Primitive& primitive,
@@ -251,19 +290,149 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model,
     }
 }
 
-void ImporterGltf::loadMaterial(const tinygltf::Model& model,
-    const tinygltf::Material& material,
-    MaterialAsset* mat)
+void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::Animation& animation, AnimationAsset* anim)
 {
-    const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
-    mat->baseColour = Color( float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
-    mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor * 255.0f);
-    mat->baseMap = resolveTexture(model, pbr.baseColorTexture.index, m_currentFilePath);
-    mat->metallicRoughnessMap = resolveTexture(model, pbr.metallicRoughnessTexture.index, m_currentFilePath);
-    mat->normalMap = resolveTexture(model, material.normalTexture.index, m_currentFilePath);
-    mat->occlusionMap = resolveTexture(model, material.occlusionTexture.index, m_currentFilePath);
-    mat->emissiveMap = resolveTexture(model, material.emissiveTexture.index, m_currentFilePath);
-    mat->isEmissive = isValidAsset(mat->emissiveMap);
+	const auto& channels = animation.channels;
+    for (int i = 0; i < static_cast<int>(channels.size()); ++i)
+    {
+        const tinygltf::AnimationChannel& channel = channels[i];
+        const tinygltf::Node& targetNode = model.nodes[channel.target_node];
+
+        const tinygltf::AnimationSampler& sampler = animation.samplers[channel.sampler];
+
+        const tinygltf::Accessor& inputAcc = model.accessors[sampler.input];
+        const tinygltf::BufferView& inputView = model.bufferViews[inputAcc.bufferView];
+        const tinygltf::Buffer& inputBuffer = model.buffers[inputView.buffer];
+        const unsigned char* inputPtr = inputBuffer.data.data() +
+            inputView.byteOffset +
+            inputAcc.byteOffset;
+        const float* timestamps = reinterpret_cast<const float*>(inputPtr);
+
+        const tinygltf::Accessor& outputAcc = model.accessors[sampler.output];
+        const tinygltf::BufferView& outputView = model.bufferViews[outputAcc.bufferView];
+        const tinygltf::Buffer& outputBuffer = model.buffers[outputView.buffer];
+        const unsigned char* outputPtr = outputBuffer.data.data() +
+            outputView.byteOffset +
+            outputAcc.byteOffset;
+        const float* properties = reinterpret_cast<const float*>(outputPtr);
+
+        if (channel.target_path == "translation")
+        {
+            if (outputAcc.type != TINYGLTF_TYPE_VEC3)
+            {
+                DEBUG_WARN("Output accessor type does not match with target property type.");
+                return;
+            }
+            std::vector<float> channelPosTimeStamps;
+            for (int j = 0; j < inputAcc.count; ++j)
+            {
+                channelPosTimeStamps.push_back(timestamps[j]);
+                if(anim->duration < timestamps[j])
+                {
+                    anim->duration = timestamps[j];
+				}
+            }
+
+            auto& channelData = anim->channels[targetNode.name];
+            if(!channelData.posTimeStamps)
+            {
+                channelData.posTimeStamps = std::make_unique<float[]>(inputAcc.count);
+            }
+            std::copy(channelPosTimeStamps.begin(),
+                channelPosTimeStamps.end(),
+                channelData.posTimeStamps.get());
+
+            std::vector<Vector3> channelPositions;
+            for (int j = 0; j < outputAcc.count; ++j)
+            {
+                channelPositions.emplace_back(
+                    properties[j * 3 + 0],
+                    properties[j * 3 + 1],
+                    properties[j * 3 + 2]);
+            }
+
+            if(!channelData.positions)
+            {
+                channelData.positions = std::make_unique<Vector3[]>(outputAcc.count);
+			}
+            std::copy(reinterpret_cast<const Vector3*>(properties),
+                reinterpret_cast<const Vector3*>(properties) + outputAcc.count,
+                channelData.positions.get());
+		    channelData.numPositions = outputAcc.count;
+        }
+        if (channel.target_path == "rotation")
+        {
+            if (outputAcc.type != TINYGLTF_TYPE_VEC4)
+            {
+                DEBUG_WARN("Output accessor type does not match with target property type.");
+                return;
+            }
+            std::vector<float> channelRotTimeStamps;
+            for (int j = 0; j < inputAcc.count; ++j)
+            {
+				channelRotTimeStamps.push_back(timestamps[j]);
+            }
+
+            auto& channelData = anim->channels[targetNode.name];
+            if(!channelData.rotTimeStamps)
+            {
+                channelData.rotTimeStamps = std::make_unique<float[]>(inputAcc.count);
+			}
+            std::copy(timestamps, 
+                timestamps + inputAcc.count, 
+                channelData.rotTimeStamps.get());
+
+            std::vector<Quaternion> channelRotations;
+            for (int j = 0; j < outputAcc.count; ++j)
+            {
+                channelRotations.emplace_back(
+                    properties[j * 4 + 0],
+                    properties[j * 4 + 1],
+                    properties[j * 4 + 2],
+                    properties[j * 4 + 3]);
+            }
+
+            if (!channelData.rotations)
+            {
+                channelData.rotations = std::make_unique<Quaternion[]>(outputAcc.count);
+            }
+            std::copy(reinterpret_cast<const Quaternion*>(properties),
+                reinterpret_cast<const Quaternion*>(properties) + outputAcc.count,
+                channelData.rotations.get());
+            channelData.numRotations = outputAcc.count;
+        }
+        /* Scales optional
+        if (channel.target_path == "scale")
+        {
+            if (outputAcc.type != TINYGLTF_TYPE_VEC3)
+            {
+                DEBUG_WARN("Output accessor type does not match with target property type.");
+                return;
+            }
+            std::vector<float> channelScaleTimeStamps;
+            for (int j = 0; j < inputAcc.count; ++j)
+            {
+                //anim->channels[targetNode.name].scaleTimeStamps.push_back(timestamps[j]);
+            }
+            auto& channelData = anim->channels[targetNode.name];
+            std::copy(timestamps, timestamps + inputAcc.count, channelData.scaleTimeStamps.get());
+            std::vector<Vector3> channelScales;
+            for (int j = 0; j < outputAcc.count; ++j)
+            {
+                //anim->channels[targetNode.name].scales.push_back(Vector3(
+                //    properties[j * 3 + 0],
+                //    properties[j * 3 + 1],
+                //    properties[j * 3 + 2]));
+                channelScales.emplace_back(
+                    properties[j * 3 + 0],
+                    properties[j * 3 + 1],
+                    properties[j * 3 + 2]);
+            }
+            std::copy(reinterpret_cast<const Vector3*>(properties),
+                reinterpret_cast<const Vector3*>(properties) + outputAcc.count,
+                channelData.scales.get());
+        }*/
+    }
 }
 
 GameObject* ImporterGltf::makeNode(const std::string& name,
