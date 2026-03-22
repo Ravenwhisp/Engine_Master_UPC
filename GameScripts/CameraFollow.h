@@ -18,7 +18,6 @@ public:
     void Update() override;
 
     ScriptFieldList getExposedFields() const override;
-    void onAfterReferencesFixed() override;
 
 public:
     ScriptComponentRef<Transform> m_firstTarget;

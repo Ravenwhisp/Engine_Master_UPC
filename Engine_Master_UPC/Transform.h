@@ -4,6 +4,10 @@
 #include <vector>
 #include "SimpleMath.h"
 
+using DirectX::SimpleMath::Matrix;
+using DirectX::SimpleMath::Vector3;
+using DirectX::SimpleMath::Quaternion;
+
 class GameObject;
 
 class Transform final : public Component 
