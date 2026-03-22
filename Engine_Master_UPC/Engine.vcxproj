@@ -285,7 +285,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
-    <ClInclude Include="CameraSwitcherComponent.h" />
     <ClInclude Include="AssetType.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeScene.h" />
@@ -334,7 +333,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="BoundingVolume.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="CameraFollowComponent.h" />
     <ClInclude Include="ModuleCamera.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -382,7 +380,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="NavMeshWalk.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MeshRendererPass.h" />
-    <ClInclude Include="PlayerWalkComponent.h" />
     <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="PointerEventData.h" />
     <ClInclude Include="PrefabEditSession.h" />
@@ -432,7 +429,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleTime.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transform2D.h" />
-    <ClInclude Include="TriggerAreaComponent.h" />
     <ClInclude Include="ImporterSource.h" />
     <ClInclude Include="UIButton.h" />
     <ClInclude Include="UIImage.h" />
@@ -548,7 +544,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetScanner.cpp" />
-    <ClCompile Include="CameraSwitcherComponent.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -575,7 +570,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="CameraFollowComponent.cpp" />
     <ClCompile Include="ModuleCamera.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="ModuleD3D12.cpp" />
@@ -608,7 +602,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="NavMeshWalk.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MeshRendererPass.cpp" />
-    <ClCompile Include="PlayerWalkComponent.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
@@ -667,7 +660,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Transform2D.cpp" />
-    <ClCompile Include="TriggerAreaComponent.cpp" />
     <ClCompile Include="UIButton.cpp" />
     <ClCompile Include="UID.cpp" />
     <ClCompile Include="UIImage.cpp" />

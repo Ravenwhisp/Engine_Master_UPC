@@ -78,16 +78,7 @@ bool SceneSerializer::SaveScene(const Scene* scene)
 
     rapidjson::Value sceneValue = getJSON(domTree, scene);
 
-    const std::string& version = app->getSettings()->engine.version;
-
-    sceneValue.AddMember(
-        "Version",
-        rapidjson::Value(version.c_str(), domTree.GetAllocator()),
-        domTree.GetAllocator()
-    );
-
-    rapidjson::Value key(sceneName.c_str(), domTree.GetAllocator());
-    domTree.AddMember(key, sceneValue, domTree.GetAllocator());
+    domTree.Swap(sceneValue);
 
     FILE* fileOpened = std::fopen(path.c_str(), "wb");
     if (!fileOpened)
@@ -112,6 +103,11 @@ bool SceneSerializer::SaveScene(const Scene* scene)
 rapidjson::Value SceneSerializer::getJSON(rapidjson::Document& domTree, const Scene* scene)
 {
     rapidjson::Value sceneInfo(rapidjson::kObjectType);
+
+    sceneInfo.AddMember("Scene", rapidjson::Value(scene->getName(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    const std::string& version = app->getSettings()->engine.version;
+    sceneInfo.AddMember("Version", rapidjson::Value(version.c_str(), domTree.GetAllocator()),domTree.GetAllocator());
 
     sceneInfo.AddMember("SkyBox", getSkyBoxJSON(domTree, scene), domTree.GetAllocator());
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree, scene), domTree.GetAllocator());
@@ -214,26 +210,40 @@ std::unique_ptr<Scene> SceneSerializer::LoadScene(const std::string& sceneName)
         return nullptr;
     }
 
-    if (!doc.HasMember(sceneName.c_str()))
+    if (!doc.IsObject())
     {
-        DEBUG_ERROR("[SceneSerializer] Scene root not found in JSON");
+        DEBUG_ERROR("[SceneSerializer] Scene JSON root is not an object");
         return nullptr;
     }
 
     auto scene = std::make_unique<Scene>();
 
-    if (!LoadFromJSON(*scene, doc[sceneName.c_str()]))
+    if (!LoadFromJSON(*scene, doc))
     {
         DEBUG_ERROR("[SceneSerializer] Failed to load scene from JSON");
         return nullptr;
     }
 
-    DEBUG_LOG("[SceneSerializer] Scene loaded successfully: %s", sceneName.c_str());
+    DEBUG_LOG("[SceneSerializer] Scene loaded successfully: %s", scene->getName());
     return scene;
 }
 
 bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
 {
+    if (json.HasMember("Scene") && json["Scene"].IsString())
+    {
+        scene.setName(json["Scene"].GetString());
+    }
+    else
+    {
+        DEBUG_WARN("[SceneSerializer] Scene field missing or invalid");
+    }
+
+    if (!ValidateVersion(json))
+    {
+        return false;
+    }
+
     if (!LoadSkybox(scene, json))
     {
         DEBUG_WARN("[SceneSerializer] Skybox missing or invalid");
@@ -247,7 +257,7 @@ bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
         return false;
     }
 
-    size_t goNumber = scene.getAllGameObjects().size();
+    size_t goNumber = json["GameObjects"].Size();
     std::vector<uint64_t> uidSet;
     uidSet.reserve(goNumber);
     std::vector<GameObject*> goSet;
@@ -263,6 +273,26 @@ bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
     ResolveDefaultCamera(scene, json);
 
     scene.applySkyBoxToRenderer();
+
+    return true;
+}
+
+bool SceneSerializer::ValidateVersion(const rapidjson::Value& json)
+{
+    if (!json.HasMember("Version") || !json["Version"].IsString())
+    {
+        DEBUG_ERROR("[SceneSerializer] Version field missing or invalid");
+        return false;
+    }
+
+    const std::string fileVersion = json["Version"].GetString();
+    const std::string& engineVersion = app->getSettings()->engine.version;
+
+    if (fileVersion != engineVersion)
+    {
+        DEBUG_ERROR("[SceneSerializer] Scene version mismatch. File version: %s | Engine version: %s", fileVersion.c_str(), engineVersion.c_str());
+        return false;
+    }
 
     return true;
 }

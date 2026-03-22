@@ -20,13 +20,9 @@
 #include "UIButton.h"
 
 // Fake / behaviour components
-#include "PlayerWalkComponent.h"
 #include "NavMeshWalk.h"
-#include "CameraFollowComponent.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
-#include "CameraSwitcherComponent.h"
-#include "TriggerAreaComponent.h"
 
 std::unique_ptr<Component> ComponentFactory::create(ComponentType type, GameObject* owner)
 {
@@ -37,14 +33,14 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 {
     switch (type)
     {
-    case ComponentType::LIGHT:
-        return std::make_unique<LightComponent>(id, owner);
-
     case ComponentType::MODEL:
         return std::make_unique<MeshRenderer>(id, owner);
 
-    case ComponentType::PLAYER_WALK:
-        return std::make_unique<PlayerWalkComponent>(id, owner);
+    case ComponentType::LIGHT:
+        return std::make_unique<LightComponent>(id, owner);
+
+    case ComponentType::SCRIPT:
+        return std::make_unique<ScriptComponent>(id, owner);
 
     case ComponentType::CAMERA:
         return std::make_unique<CameraComponent>(id, owner);
@@ -64,32 +60,20 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
     case ComponentType::UIBUTTON:
         return std::make_unique<UIButton>(id, owner);
 
-    case ComponentType::CAMERA_FOLLOW:
-        return std::make_unique<CameraFollowComponent>(id, owner);
-
-    case ComponentType::CHANGE_SCENE:
-        return std::make_unique<ChangeScene>(id, owner);
-
-    case ComponentType::NAVMESH_WALK:
-        return std::make_unique<NavMeshWalk>(id, owner);
-
     case ComponentType::NAVIGATION_AGENT:
         return std::make_unique<NavigationAgentComponent>(id, owner);
 
     case ComponentType::WAYPOINT_PATH:
         return std::make_unique<WaypointPathComponent>(id, owner);
 
+    case ComponentType::CHANGE_SCENE:
+        return std::make_unique<ChangeScene>(id, owner);
+
     case ComponentType::EXIT_APPLICATION:
         return std::make_unique<ExitApplication>(id, owner);
 
-    case ComponentType::CAMERA_SWITCHER:
-        return std::make_unique<CameraSwitcherComponent>(id, owner);
-
-    case ComponentType::CHANGE_SCENE_ON_TRIGGER:
-        return std::make_unique<TriggerAreaComponent>(id, owner);
-
-    case ComponentType::SCRIPT:
-        return std::make_unique<ScriptComponent>(id, owner);
+    case ComponentType::NAVMESH_WALK:
+        return std::make_unique<NavMeshWalk>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:
