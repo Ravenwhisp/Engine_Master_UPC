@@ -1,6 +1,7 @@
 #pragma once
-#include <vector>
 #include "Component.h"
+
+#include <vector>
 #include "SimpleMath.h"
 
 class GameObject;
@@ -49,7 +50,6 @@ public:
 
 #pragma region Filesystem
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basics! (no children nor parent)
-	rapidjson::Value getNewJSON(rapidjson::Document& domTree) override;
 #pragma endregion
 
 private:

@@ -254,6 +254,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="PrefabAsset.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneDataCB.h" />
+    <ClInclude Include="SceneLightingSettings.h" />
+    <ClInclude Include="SceneReferenceResolver.h" />
+    <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="TextureImage.h" />
     <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="TriggerArea.h" />
@@ -367,7 +372,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleTime.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Transform2D.h" />
-    <ClInclude Include="TriggerArea.h" />
     <ClInclude Include="ImporterSource.h" />
     <ClInclude Include="TypedImporter.h" />
     <ClInclude Include="UIButton.h" />
@@ -477,6 +481,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneReferenceResolver.cpp" />
+    <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
@@ -518,7 +525,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MeshRendererPass.cpp" />
     <ClCompile Include="PlayerWalk.cpp" />
-    <ClCompile Include="PlayToolbar.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="QuadNode.cpp" />

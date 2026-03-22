@@ -18,9 +18,8 @@ public:
 	void drawUi() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	rapidjson::Value getNewJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
-	void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) override;
+	void fixReferences(const SceneReferenceResolver& resolver) override;
 
 
 private:

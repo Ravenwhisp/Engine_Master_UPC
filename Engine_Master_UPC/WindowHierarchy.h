@@ -32,4 +32,5 @@ public:
 private:
 	void createTreeNode();
 	void createTreeNode(GameObject* gameObject, bool prefabMode);
+	void addChildToPrefabRoot(GameObject* parent);
 };

@@ -25,6 +25,9 @@
 #include "NavigationAgentComponent.h"
 #include "Quadtree.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+#include "Scene.h"
+
 
 #include "CameraComponent.h"
 #include <WindowLogger.h>
@@ -248,7 +251,7 @@ void WindowSceneEditor::renderDebugDrawPass(ID3D12GraphicsCommandList* commandLi
         renderQuadtree();
     }
 
-    for (GameObject* root : app->getModuleScene()->getAllGameObjects()) 
+    for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         DebugDrawWindowHierarchy(root);
     }

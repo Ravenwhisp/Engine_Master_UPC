@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 
@@ -95,7 +96,7 @@ void CameraComponent::drawUi()
 	
 	if (ImGui::Button("Set as Default Camera"))
 	{
-		app->getModuleScene()->setDefaultCamera(this);
+		app->getModuleScene()->getScene()->setDefaultCamera(this);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
@@ -116,9 +117,9 @@ bool CameraComponent::cleanUp()
 	{
 		app->setCurrentCameraPerspective(nullptr);
 	}
-	if (app->getModuleScene()->getDefaultCamera() == this)
+	if (app->getModuleScene()->getScene()->getDefaultCamera() == this)
 	{
-		app->getModuleScene()->setDefaultCamera(nullptr);
+		app->getModuleScene()->getScene()->setDefaultCamera(nullptr);
 	}
 	return true;
 }
@@ -128,22 +129,6 @@ rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
 
 	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
-	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
-	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
-
-	return componentInfo;
-}
-
-rapidjson::Value CameraComponent::getNewJSON(rapidjson::Document& domTree)
-{
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-	componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
 	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 

@@ -106,9 +106,6 @@
     <ClCompile Include="RingBuffer.cpp">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="WindowHierarchy.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
@@ -217,9 +214,6 @@
     <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -231,21 +225,6 @@
     </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="FontImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="Asset.cpp">
-      <Filter>Persistence\Assets</Filter>
-    </ClCompile>
-    <ClCompile Include="ChangeScene.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="WindowGame.cpp">
       <Filter>Editor\Views</Filter>
@@ -347,6 +326,24 @@
     </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="Scene.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="ChangeScene.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -466,9 +463,6 @@
     <ClInclude Include="RingBuffer.h">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -491,14 +485,8 @@
     <ClInclude Include="Texture.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
-    <ClInclude Include="Layer.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Tag.h">
-      <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
@@ -764,10 +752,6 @@
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSnapshot.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
-    <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
     <ClInclude Include="CameraSwitcher.h">
       <Filter>GameEntity\Components\Scripts</Filter>
@@ -795,6 +779,40 @@
     </ClInclude>
     <ClInclude Include="MD5Fwd.h">
       <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedImporter.h" />
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLightingSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDataCB.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneReferenceResolver.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="ChangeScene.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="ExitApplication.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSnapshot.h">
+      <Filter>GameEntity\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -955,6 +973,12 @@
     </Filter>
     <Filter Include="Animations">
       <UniqueIdentifier>{bd498ad4-3792-41ea-a2bc-8272d86bab68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Scene">
+      <UniqueIdentifier>{ed9f3bc3-354f-4b03-a6c6-d3dc178f7d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\GameObject">
+      <UniqueIdentifier>{1d0ab06f-a368-47ce-a36e-1fb0553aeeab}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -1,20 +1,25 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include "Transform.h"
+#include "Application.h"
+#include "ModuleEditor.h"
+#include "ModuleScene.h"
+
+#include "Scene.h"
+#include "ComponentType.h"
 #include "Component.h"
+#include "Transform.h"
+#include "CameraComponent.h"
 #include "ComponentFactory.h"
-#include "SceneSnapshot.h"
+
+#include <algorithm>
+#include <cstring>
+#include <imgui.h>
+
 #include "PrefabManager.h"
 #include "PrefabAsset.h"
-#include "ModuleEditor.h"
 #include "PrefabEditSession.h"
-#include "ComponentType.h"
 
-//Should not be here
-#include "ModuleScene.h"
-#include "Application.h"
-#include "CameraComponent.h"
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -35,11 +40,9 @@ GameObject::~GameObject()
 
 }
 
-std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
+std::unique_ptr<GameObject> GameObject::clone() const
 {
-    std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(m_uuid);
-
-	//snapshot.GameObjectMap[this] = newGameObject.get(); for now, not necessary
+    auto newGameObject = std::make_unique<GameObject>(m_uuid);
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -47,18 +50,15 @@ std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
 
-    //std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(*this);
-
-    // Hay que eliminar el transform que se crea por defecto y luego clonar el transform original, para mantener la misma jerarqu�a
-    newGameObject->RemoveComponent(newGameObject->GetComponent(ComponentType::TRANSFORM));
+    newGameObject->GetTransform()->setRoot(nullptr);
+    newGameObject->cleanUp();
 
     for (const std::unique_ptr<Component>& component : m_components)
     {
-        std::unique_ptr<Component> clonedComponent = component->clone(newGameObject.get());
+        auto clonedComponent = component->clone(newGameObject.get());
 
         if (clonedComponent)
         {
-			snapshot.componentMap[component->getID()] = clonedComponent.get();
             if (clonedComponent->getType() == ComponentType::TRANSFORM)
             {
                 newGameObject->m_transform = static_cast<Transform*>(clonedComponent.get());
@@ -67,10 +67,8 @@ std::unique_ptr<GameObject> GameObject::clone(SceneSnapshot& snapshot) const
         }
         else
         {
-            DEBUG_WARN("[Clone] Component '%s' (type=%d, uid=%llu) returned nullptr in clone(). It will NOT exist in the cloned scene.",
+            DEBUG_WARN("[Clone] Component '%s' failed to clone (uid=%llu)",
                 ComponentTypeToString(component->getType()),
-                (int)component->getType(),
-                (unsigned long long)component->getType(),
                 (unsigned long long)component->getID());
         }
     }
@@ -133,11 +131,7 @@ bool GameObject::AddClonedComponent(std::unique_ptr<Component> component)
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
-    auto it = std::find_if(
-        m_components.begin(),
-        m_components.end(),
-        [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; }
-    );
+    auto it = std::find_if(m_components.begin(), m_components.end(), [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; });
 
     if (it != m_components.end())
     {
@@ -236,12 +230,6 @@ void GameObject::update()
         {
             component->update();
         }
-    }
-
-    for (GameObject* child : m_transform->getAllChildren())
-    {
-        if (child && child->GetActive())
-            child->update();
     }
 }
 
@@ -357,9 +345,6 @@ void GameObject::drawUI()
 #pragma endregion
 
 #pragma region Components
-    ImGui::Text("Components");
-    ImGui::Separator();
-
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         const std::unique_ptr<Component>& component = m_components[i];
@@ -367,14 +352,14 @@ void GameObject::drawUI()
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 
-        /*if (component->getType() == ComponentType::CAMERA)
+        if (component->getType() == ComponentType::CAMERA)
         {
             CameraComponent* cameraComponent = static_cast<CameraComponent*>(component.get());
-            if (app->getModuleScene()->getDefaultCamera() == cameraComponent)
+            if (app->getModuleScene()->getScene()->getDefaultCamera() == cameraComponent)
             {
                 header += " (Default)";
             }
-        }*/
+        }
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap;
 
@@ -400,8 +385,6 @@ void GameObject::drawUI()
 
         if (isOpen)
         {
-            ImGui::Separator();
-
             PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
             const bool inPrefabMode = session && session->m_active && session->m_rootObject;
 
@@ -419,8 +402,6 @@ void GameObject::drawUI()
                         targetForOverride, componentType, "properties");
                 }
             }
-
-            ImGui::Separator();
 
             if (component->getType() != ComponentType::TRANSFORM)
             {
@@ -535,100 +516,6 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
     }
 
     return gameObjectInfo;
-}
-
-rapidjson::Value GameObject::getNewHierarchyJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
-
-    UID newUID = GenerateUID();
-    gameObjectInfo.AddMember("UID", newUID, domTree.GetAllocator());
-    gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator()); // we ignore the parent for the new object
-   
-
-    rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
-
-    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
-    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
-
-    rapidjson::Value layer(LayerToString(m_layer), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
-
-    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
-
-    gameObjectInfo.AddMember("Transform", m_transform->getNewJSON(domTree), domTree.GetAllocator());
-
-    // Components serialization //
-    {
-        rapidjson::Value componentsData(rapidjson::kArrayType);
-
-        for (const std::unique_ptr<Component>& component : m_components)
-        {
-            if (component->getType() == ComponentType::TRANSFORM)
-                continue;
-
-            componentsData.PushBack(component->getNewJSON(domTree), domTree.GetAllocator());
-        }
-
-        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
-    }
-
-
-    rapidjson::Value objectList(rapidjson::kArrayType);
-    objectList.PushBack(gameObjectInfo, domTree.GetAllocator());
-    for (GameObject* gameObject : m_transform->getAllChildren()) 
-    {
-        gameObject->getNewHierarchyJSON(domTree, objectList, newUID);
-    }
-
-    return objectList;
-}
-
-void GameObject::getNewHierarchyJSON(rapidjson::Document& domTree, rapidjson::Value& objectList, UID parentUID)
-{
-    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
-
-    UID newUID = GenerateUID();
-    gameObjectInfo.AddMember("UID", newUID, domTree.GetAllocator());
-    gameObjectInfo.AddMember("ParentUID", parentUID, domTree.GetAllocator());
-
-
-    rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
-
-    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
-    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
-
-    rapidjson::Value layer(LayerToString(m_layer), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
-
-    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
-
-    gameObjectInfo.AddMember("Transform", m_transform->getNewJSON(domTree), domTree.GetAllocator());
-
-    // Components serialization //
-    {
-        rapidjson::Value componentsData(rapidjson::kArrayType);
-
-        for (const std::unique_ptr<Component>& component : m_components)
-        {
-            if (component->getType() == ComponentType::TRANSFORM)
-                continue;
-
-            componentsData.PushBack(component->getNewJSON(domTree), domTree.GetAllocator());
-        }
-
-        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
-    }
-
-    objectList.PushBack(gameObjectInfo, domTree.GetAllocator());
-    for (GameObject* gameObject : m_transform->getAllChildren())
-    {
-        gameObject->getNewHierarchyJSON(domTree, objectList, newUID);
-    }
 }
 
 bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)

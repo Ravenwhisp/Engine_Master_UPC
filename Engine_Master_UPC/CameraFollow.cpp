@@ -1,11 +1,16 @@
 #include "Globals.h"
 #include "CameraFollow.h"
+
 #include "Application.h"
 #include "ModuleScene.h"
-#include "GameObject.h"
-#include "Transform.h"
 #include "ModuleTime.h"
+
+#include "Scene.h"
+#include "GameObject.h"
 #include "ComponentType.h"
+#include "Transform.h"
+
+#include "SceneReferenceResolver.h"
 
 static const float PI = 3.1415926535897931f;
 
@@ -36,7 +41,7 @@ std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 	return clonedComponent;
 }
 
-void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void CameraFollow::fixReferences(const SceneReferenceResolver& resolver)
 {
     m_firstTargetTransform = nullptr;
     m_secondTargetTransform = nullptr;
@@ -45,19 +50,19 @@ void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& refe
 
     if (m_firstTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_firstTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_firstTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_firstTargetTransform = static_cast<Transform*>(it->second);
+            m_firstTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
     if (m_secondTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_secondTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_secondTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_secondTargetTransform = static_cast<Transform*>(it->second);
+            m_secondTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
@@ -240,7 +245,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
@@ -281,7 +286,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getModuleScene()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
@@ -321,43 +326,6 @@ rapidjson::Value CameraFollow::getJSON(rapidjson::Document& domTree)
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("FirstTargetUID", (uint64_t)m_firstTargetTransformUid, domTree.GetAllocator());
-    componentInfo.AddMember("SecondTargetUID", (uint64_t)m_secondTargetTransformUid, domTree.GetAllocator());
-
-    {
-        rapidjson::Value offset(rapidjson::kArrayType);
-        offset.PushBack(m_transformOffset.x, domTree.GetAllocator());
-        offset.PushBack(m_transformOffset.y, domTree.GetAllocator());
-        offset.PushBack(m_transformOffset.z, domTree.GetAllocator());
-        componentInfo.AddMember("WorldOffset", offset, domTree.GetAllocator());
-    }
-
-    {
-        rapidjson::Value rot(rapidjson::kArrayType);
-        rot.PushBack(m_rotationOffset.x, domTree.GetAllocator());
-        rot.PushBack(m_rotationOffset.y, domTree.GetAllocator());
-        rot.PushBack(m_rotationOffset.z, domTree.GetAllocator());
-        componentInfo.AddMember("FixedRotation", rot, domTree.GetAllocator());
-    }
-
-    componentInfo.AddMember("FollowSharpness", m_followSharpness, domTree.GetAllocator());
-    componentInfo.AddMember("ZoomSharpness", m_zoomSharpness, domTree.GetAllocator());
-
-    componentInfo.AddMember("ZoomStartDistance", m_zoomStartDistance, domTree.GetAllocator());
-    componentInfo.AddMember("ZoomEndDistance", m_zoomEndDistance, domTree.GetAllocator());
-    componentInfo.AddMember("MaxExtraHeight", m_maxExtraHeight, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-rapidjson::Value CameraFollow::getNewJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA_FOLLOW), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 

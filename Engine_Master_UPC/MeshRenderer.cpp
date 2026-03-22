@@ -43,7 +43,8 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
 void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
 {
     auto material = app->getModuleResources()->createMaterial(materialAsset);
-    if (material) {
+    if (material) 
+    {
         m_materials.push_back(material);
     }
 }
@@ -120,24 +121,12 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     return componentInfo;
 }
 
-rapidjson::Value MeshRenderer::getNewJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", GenerateUID(), domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("ModelAssetId", m_modelAssetId, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
 bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("MeshAssetId"))
     {
         const MD5Hash meshId = componentInfo["MeshAssetId"].GetString();
+        m_meshAsset = meshId;
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
@@ -152,6 +141,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         for (auto& arrayStrings : arr.GetArray())
         {
             const MD5Hash materialId = arrayStrings.GetString();
+            m_materialAssets.push_back(materialId);
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
             if (materialAsset)
             {

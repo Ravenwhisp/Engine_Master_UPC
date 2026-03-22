@@ -2,13 +2,15 @@
 #include "PrefabManager.h"
 
 #include "Application.h"
-#include "Component.h"
-#include "ComponentType.h"
 #include "ModuleAssets.h"
-#include "GameObject.h"
 #include "ModuleScene.h"
-#include "Transform.h"
+
+#include "Scene.h"
 #include "MD5.h"
+#include "GameObject.h"
+#include "ComponentType.h"
+#include "Component.h"
+#include "Transform.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -188,7 +190,7 @@ static void deserialiseComponents(const Value& node, GameObject* go)
     }
 }
 
-GameObject* PrefabManager::deserialiseNode(const Value& node, ModuleScene* scene, GameObject* parent)
+GameObject* PrefabManager::deserialiseNode(const Value& node, Scene* scene, GameObject* parent)
 {
     if (!node.IsObject()) return nullptr;
 
@@ -299,7 +301,7 @@ std::string PrefabManager::serializeGameObject(const GameObject* go)
     return sb.GetString();
 }
 
-GameObject* PrefabManager::deserializeGameObject(const std::string& data, ModuleScene* scene)
+GameObject* PrefabManager::deserializeGameObject(const std::string& data, Scene* scene)
 {
     if (data.empty() || !scene)
     {
@@ -317,8 +319,7 @@ GameObject* PrefabManager::deserializeGameObject(const std::string& data, Module
 }
 
 
-GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset,
-    ModuleScene* scene)
+GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset, Scene* scene)
 {
     if (!scene || asset.getJSON().empty()) return nullptr;
 
@@ -341,8 +342,7 @@ GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset,
 }
 
 // Convenience overload: resolve by full path, asset system first.
-GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath,
-    ModuleScene* scene)
+GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath, Scene* scene)
 {
     if (!scene || sourcePath.empty()) return nullptr;
 
@@ -377,9 +377,6 @@ GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath,
     return go;
 }
 
-// ============================================================================
-// Prefab authoring
-// ============================================================================
 bool PrefabManager::createPrefab(const GameObject* go, const fs::path& savePath)
 {
     if (!go || savePath.empty()) return false;
@@ -454,7 +451,7 @@ bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
     return writePrefabDocument(doc, data->m_sourcePath);
 }
 
-bool PrefabManager::revertToPrefab(GameObject* go, ModuleScene* scene)
+bool PrefabManager::revertToPrefab(GameObject* go, Scene* scene)
 {
     PrefabData* data = getInstanceDataMutable(go);
     if (!data || data->m_sourcePath.empty()) return false;

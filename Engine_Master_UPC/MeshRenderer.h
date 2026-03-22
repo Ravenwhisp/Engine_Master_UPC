@@ -40,7 +40,6 @@ public:
 	void onTransformChange() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	rapidjson::Value getNewJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 	int getTriangles() const { return m_triangles; }
