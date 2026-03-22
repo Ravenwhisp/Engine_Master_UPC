@@ -333,6 +333,7 @@
     </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -785,6 +786,12 @@
     </ClInclude>
     <ClInclude Include="MD5Fwd.h">
       <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterAnimation.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationAsset.h">
+      <Filter>Persistence\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

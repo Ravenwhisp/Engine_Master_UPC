@@ -16,6 +16,8 @@
 #include <DirectXTex.h>
 #include "MeshAsset.h"
 #include "MaterialAsset.h"
+#include "AnimationAsset.h"
+#include "Animation.h"
 #include "MD5.h"
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
@@ -253,4 +255,18 @@ std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAss
 	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
 	m_resources.insert(uid, material);
 	return material;
+}
+
+std::shared_ptr<Animation> ModuleResources::createAnimation(const AnimationAsset& animationAsset)
+{
+	const UID uid = hashToUID(animationAsset.getId());
+
+	if(auto cached = m_resources.getAs<Animation>(uid))
+	{
+		return cached;
+	}
+
+	auto animation = std::make_shared<Animation>();
+	m_resources.insert(uid, animation);
+	return animation;
 }

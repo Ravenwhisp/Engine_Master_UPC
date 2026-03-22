@@ -20,6 +20,8 @@ class BasicMaterial;
 class BasicMesh;
 class MeshAsset;
 class MaterialAsset;
+class AnimationAsset;
+class Animation;
 class ICacheable;
 
 // Responsible for creation and management of raw GPU resources in D3D12.
@@ -58,6 +60,7 @@ public:
 	std::shared_ptr<Texture>       createTexture(const TextureAsset& textureAsset);
 	std::shared_ptr<BasicMesh>     createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial> createMaterial(const MaterialAsset& materialAsset);
+	std::shared_ptr<Animation>     createAnimation(const AnimationAsset& animationAsset);
 
 private:
 	ComPtr<ID3D12Device4>				m_device;
