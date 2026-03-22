@@ -73,19 +73,6 @@ void CameraFollow::Update()
     TransformAPI::setRotationEuler(cameraTransform, m_rotationOffset);
 }
 
-void CameraFollow::onAfterReferencesFixed()
-{
-    m_currentExtraHeight = 0.0f;
-    m_firstUpdateAfterResolve = true;
-
-    if (m_firstTarget.getReferencedComponent() && m_secondTarget.getReferencedComponent())
-    {
-        m_firstTarget = m_secondTarget;
-        m_secondTarget.uid = 0;
-        m_secondTarget.component = nullptr;
-    }
-}
-
 Vector3 CameraFollow::computeFollowPoint() const
 {
     Transform* firstTarget = m_firstTarget.getReferencedComponent();

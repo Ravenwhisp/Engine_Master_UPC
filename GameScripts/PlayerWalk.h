@@ -5,6 +5,8 @@
 #include "ScriptFieldInfo.h"
 #include <Keyboard.h>
 
+using DirectX::Keyboard;
+
 class PlayerWalk : public Script
 {
     DECLARE_SCRIPT(PlayerWalk)
