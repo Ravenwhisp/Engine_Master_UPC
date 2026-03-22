@@ -178,12 +178,6 @@
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="PlayerWalkComponent.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraFollowComponent.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="UIImage.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -235,17 +229,8 @@
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="CameraSwitcherComponent.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="WaypointPathComponent.cpp">
       <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="TriggerAreaComponent.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
-    <ClCompile Include="ExitApplication.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="WindowGameDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
@@ -344,6 +329,9 @@
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ExitApplication.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -551,12 +539,6 @@
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerWalkComponent.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraFollowComponent.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="UIImage.h">
       <Filter>UI</Filter>
@@ -642,14 +624,8 @@
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="CameraSwitcherComponent.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="WaypointPathComponent.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="TriggerAreaComponent.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="ExitApplication.h">
       <Filter>GameEntity\Components\Scripts</Filter>
