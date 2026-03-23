@@ -28,6 +28,7 @@
 #include "UIImagePass.h"
 #include "FontPass.h"
 #include "Quadtree.h"
+#include "RenderContext.h"
 
 std::unique_ptr<RenderSurface> ModuleRender::createSurface(float width, float height)
 {

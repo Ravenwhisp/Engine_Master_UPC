@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "SkyBoxPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"

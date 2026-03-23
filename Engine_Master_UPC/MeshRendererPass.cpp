@@ -1,6 +1,8 @@
 ﻿#include "Globals.h"
 #include "MeshRendererPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleD3D12.h"
 #include "ModuleDescriptors.h"

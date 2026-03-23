@@ -134,7 +134,7 @@
       <Filter>DataStructure</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
-    <ClCompile Include="EditorSettings.cpp">
+    <ClCompile Include="WindowEditorSettings.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp">
@@ -502,7 +502,7 @@
     <ClInclude Include="Settings.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="EditorSettings.h">
+    <ClInclude Include="WindowEditorSettings.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h">

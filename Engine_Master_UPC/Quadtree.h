@@ -44,7 +44,6 @@ public:
 
     void registerDirtyNode(QuadNode* node);
     void resolveDirtyNodes();
-
 private:
     void insert(GameObject& object);
     void remove(GameObject& object);

@@ -26,6 +26,8 @@ public:
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 	void debugDraw() override;
+
+	IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
 private:
 	std::vector<DirectX::SimpleMath::Vector3> m_path;
 	size_t m_currentIndex = 0;
