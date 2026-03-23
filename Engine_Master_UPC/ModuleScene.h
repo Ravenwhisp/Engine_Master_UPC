@@ -32,7 +32,6 @@ private:
     std::vector<MeshRenderer*>       m_meshRenderers;
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
-    std::vector<IDebugDrawable*>     m_debugDrawables;
 
     void rebuildComponentCaches();
 
@@ -66,5 +65,4 @@ public:
     const std::vector<MeshRenderer*>& getMeshRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
-    const std::vector<IDebugDrawable*>& getDebugDrawables();
 };

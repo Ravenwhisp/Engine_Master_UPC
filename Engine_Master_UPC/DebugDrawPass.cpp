@@ -2,12 +2,25 @@
 #define DEBUG_DRAW_VERTEX_BUFFER_SIZE 32768
 #define DEBUG_DRAW_MAX_LINES 65536
 
+
 #include "Globals.h"
+
 #include "DebugDrawPass.h"
+#include "RenderContext.h"
+
 #include "IDebugDrawable.h"
 #include "SimpleMath.h"
+
 #include "Application.h"
+#include "Settings.h"
 #include "ModuleScene.h"
+#include "ModuleEditor.h"
+
+#include "Scene.h"
+#include "Quadtree.h"
+#include "GameObject.h"
+#include "Component.h"
+
 
 #include <d3dcompiler.h>
 #include "d3dx12.h"
@@ -495,12 +508,67 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
     m_projection = &ctx.projection;
     m_viewport = &ctx.viewport;
 
-    m_dynamicDrawers = app->getModuleScene()->getDebugDrawables();
-
+    ModuleScene* moduleScene = app->getModuleScene();
+    Settings* settings = app->getSettings();
     std::vector<IDebugDrawable*> allDrawables;
-    allDrawables.reserve(m_staticDrawers.size() + m_dynamicDrawers.size());
     allDrawables.insert(allDrawables.end(), m_staticDrawers.begin(), m_staticDrawers.end());
-    allDrawables.insert(allDrawables.end(), m_dynamicDrawers.begin(), m_dynamicDrawers.end());
+
+    if (settings->sceneEditor.showQuadTree)
+    {
+        if (Quadtree* quadtree = moduleScene->getQuadtree())
+        {
+            allDrawables.push_back(static_cast<IDebugDrawable*>(quadtree));
+        }
+    }
+ 
+#ifdef GAME_RELEASE
+    bool isGameRelease = true;
+#else
+    bool isGameRelease = false;
+#endif
+
+    for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
+    {
+        bool showDebug = isGameRelease || app->getModuleEditor()->getSelectedGameObject() == go;
+        if (!showDebug)
+        {
+            continue;
+        }
+
+        for (Component* component : go->GetAllComponents())
+        {
+            if (IDebugDrawable* drawable = component->getAsDebugDrawable())
+            {
+                switch (component->getType())
+                {
+                case ComponentType::LIGHT:
+                    if (settings->sceneEditor.showLightComponent)
+                    {
+                        allDrawables.push_back(drawable);
+                    }
+                    break;
+                case ComponentType::MODEL:
+                    if (settings->sceneEditor.showModelBoundingBoxes)
+                    {
+                        allDrawables.push_back(drawable);
+                    }
+                    break;
+                case ComponentType::CAMERA:
+                    if (settings->sceneEditor.showCameraFrustum)
+                    {
+                        allDrawables.push_back(drawable);
+                    }
+                    break;
+                case ComponentType::NAVIGATION_AGENT:
+                    if (settings->sceneEditor.showNavPath)
+                    {
+                        allDrawables.push_back(drawable);
+                    }
+                    break;
+                }
+            }
+        }
+    }
 
     for (IDebugDrawable* drawable : allDrawables)
     {

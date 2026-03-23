@@ -343,7 +343,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="ModuleDescriptors.h" />
     <ClInclude Include="ModuleEditor.h" />
-    <ClInclude Include="EditorSettings.h" />
+    <ClInclude Include="WindowEditorSettings.h" />
     <ClInclude Include="EditorToolbar.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="Engine.h" />
@@ -581,7 +581,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="ModuleDescriptors.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />
-    <ClCompile Include="EditorSettings.cpp" />
+    <ClCompile Include="WindowEditorSettings.cpp" />
     <ClCompile Include="EditorToolbar.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="ModuleFileSystem.cpp" />

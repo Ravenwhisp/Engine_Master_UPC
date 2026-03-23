@@ -1,5 +1,8 @@
 #include "Globals.h"
 #include "UIImagePass.h"
+
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleD3D12.h"
 #include "CommandQueue.h"

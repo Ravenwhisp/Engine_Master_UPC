@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "FontPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleRender.h"
 #include "ModuleD3D12.h"
