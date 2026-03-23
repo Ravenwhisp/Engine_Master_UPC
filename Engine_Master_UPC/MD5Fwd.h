@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include <string>
 
 using MD5Hash = std::string;
