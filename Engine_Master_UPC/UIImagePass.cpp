@@ -89,7 +89,28 @@ void UIImagePass::drawImage(const UIImageCommand& command)
     dst.right = (LONG)(command.rect.x + command.rect.w);
     dst.bottom = (LONG)(command.rect.y + command.rect.h);
 
-    m_spriteBatch->Draw(srv.gpu, texSize, dst, DirectX::Colors::White);
+    RECT src;
+    src.left = 0;
+    src.top = 0;
+    src.right = desc.Width;
+    src.bottom = desc.Height;
+
+    if (command.fillAmount < 1.0f)
+    {
+        if (command.fillMethod == 0 /* Horizontal */) 
+        {
+            src.right = static_cast<LONG>(desc.Width * command.fillAmount);
+            dst.right = dst.left + static_cast<LONG>(command.rect.w * command.fillAmount);
+        }
+        else if (command.fillMethod == 1 /* Vertical */)
+        {
+            src.top = static_cast<LONG>(desc.Height * (1.0f - command.fillAmount)); // Assuming bottom to top
+            dst.top = dst.bottom - static_cast<LONG>(command.rect.h * command.fillAmount);
+        }
+    }
+
+    // Call the overload of SpriteBatch::Draw that takes a source rectangle pointer
+    m_spriteBatch->Draw(srv.gpu, texSize, dst, &src, DirectX::Colors::White);
 }
 
 void UIImagePass::end()

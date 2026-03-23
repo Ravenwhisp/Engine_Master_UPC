@@ -2,6 +2,7 @@
 
 #include "Module.h"
 #include <unordered_set>
+#include <unordered_map>
 #include "UICommands.h"
 #include "MD5Fwd.h"
 
@@ -10,6 +11,8 @@ class GameObject;
 class UIImagePass;
 class Texture;
 class Transform2D;
+class UIImage;
+class UISlider;
 
 class ModuleUI : public Module
 {
@@ -34,6 +37,7 @@ private:
     std::vector<UIImageCommand> m_imageCommands;
 
     std::unordered_map<MD5Hash, std::shared_ptr<Texture>> m_uiTextures;
+    std::unordered_map<UIImage*, UISlider*> m_sliderTargets;
 
 private:
     void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect);

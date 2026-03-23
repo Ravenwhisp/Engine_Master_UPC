@@ -17,4 +17,8 @@ struct UIImageCommand
 {
     Texture* texture = nullptr;
     Rect2D  rect;
+    
+    float fillAmount = 1.0f;
+    int fillMethod = 0; 
+    bool clockwise = true;
 };

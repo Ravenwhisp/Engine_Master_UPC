@@ -55,7 +55,7 @@ void UIButton::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
         {
-            Component* data = static_cast<Component*>(payload->Data);
+            Component* data = *static_cast<Component**>(payload->Data);
             UIImage* image = static_cast<UIImage*>(data);
             if (image) 
             {
