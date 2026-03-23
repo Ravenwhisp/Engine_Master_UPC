@@ -47,6 +47,7 @@ public:
 
     Texture() = delete;
     explicit Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc);
+    explicit Texture(UID uid, ID3D12Device4& device, ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
     ~Texture();
 
     Texture(const Texture&) = delete;
@@ -72,6 +73,11 @@ public:
 
     bool resize(uint32_t newWidth, uint32_t newHeight);
 
+    void release()
+    {
+        m_Resource.Reset();
+    }
+
 private:
 
     void allocateResource();
@@ -87,6 +93,7 @@ private:
     {
         return (m_desc.views & v) != TextureView::None;
     }
+
 
     DXGI_FORMAT resolvedSRVFormat() const;
     DXGI_FORMAT resolvedRTVFormat() const;

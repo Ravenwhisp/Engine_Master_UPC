@@ -3,11 +3,11 @@
 
 class Settings;
 
-class EditorSettings : public EditorWindow
+class WindowEditorSettings : public EditorWindow
 {
 public:
-    EditorSettings();
-    ~EditorSettings() override = default;
+    WindowEditorSettings();
+    ~WindowEditorSettings() override = default;
 
     const char* getWindowName() const override { return "Editor Settings"; }
     void render() override;

@@ -25,7 +25,7 @@ ModuleD3D12::~ModuleD3D12()
 
 bool ModuleD3D12::init()
 {
-    m_swapChain = new SwapChain(m_hwnd);
+    m_swapChain = new SwapChain(m_hwnd, m_device, m_commandQueue.get());
     m_graphicsMemory = std::make_unique<GraphicsMemory>(m_device.Get());
     return true;
 }
@@ -35,15 +35,11 @@ void ModuleD3D12::preRender()
 {
     m_frameIndex = m_swapChain->getCurrentBackBufferIndex();
     m_commandQueue->waitForFenceValue(m_fenceValues[m_frameIndex]);
+    m_swapChain->updateCurrentBackBuffer();
     m_lastCompletedFenceValue = std::max(m_lastCompletedFenceValue, m_fenceValues[m_frameIndex]);
 
     // Reset command list and allocator
     m_commandList = m_commandQueue->getCommandList();
-}
-
-void ModuleD3D12::render()
-{
-
 }
 
 void ModuleD3D12::postRender()

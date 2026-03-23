@@ -14,6 +14,9 @@ struct UITextCommand;
 class FontPass : public IRenderPass {
 public:
 	FontPass(ComPtr<ID3D12Device4> device);
+
+	virtual void prepare(const RenderContext& ctx) override;
+
 	void apply(ID3D12GraphicsCommandList4* commandList) override;
 	void setTextCommands(const std::vector<UITextCommand>* commands) { m_commands = commands; }
 	void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
