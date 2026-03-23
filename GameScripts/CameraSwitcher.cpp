@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "CameraSwitcher.h"
 #include "Keyboard.h"
-#include "ScriptAPI.h"
 
 CameraSwitcher::CameraSwitcher(GameObject* owner)
     : Script(owner)

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "ScriptAPI.h"
-#include "ScriptAutoRegister.h"
-#include "ScriptFieldInfo.h"
 
 #include <vector>
 

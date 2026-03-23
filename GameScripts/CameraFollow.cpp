@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "CameraFollow.h"
-#include "ScriptAPI.h"
 
 static const float PI = 3.1415926535897931f;
 
