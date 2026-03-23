@@ -133,25 +133,31 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 {
     auto it = std::find_if(m_components.begin(), m_components.end(), [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; });
 
-    if (it != m_components.end())
+    if (it == m_components.end())
     {
-        ComponentType removedType = (*it)->getType();
-        (*it)->cleanUp();
-        m_components.erase(it);
-        GameObject* target = this;
-        while (target && !PrefabManager::isPrefabInstance(target))
-        {
-            Transform* parentTransform = target->GetTransform()->getRoot();
-            target = parentTransform ? parentTransform->getOwner() : nullptr;
-        }
-        if (target) 
-        {
-            PrefabManager::markComponentRemoved(target, static_cast<int>(removedType));
-        }
-  
-        return true;
+        return false;
     }
-    return false;
+
+    ComponentType removedType = (*it)->getType();
+
+    // Resolve the prefab root BEFORE cleanup — cleanUp() may invalidate
+    // parent pointers if it releases references or triggers notifications.
+    GameObject* target = this;
+    while (target && !PrefabManager::isPrefabInstance(target))
+    {
+        Transform* parentTransform = target->GetTransform()->getRoot();
+        target = parentTransform ? parentTransform->getOwner() : nullptr;
+    }
+
+    (*it)->cleanUp();
+    m_components.erase(it);
+
+    if (target)
+    {
+        PrefabManager::markComponentRemoved(target, static_cast<int>(removedType));
+    }
+
+    return true;
 }
 
 std::vector<Component*> GameObject::GetAllComponents() const
