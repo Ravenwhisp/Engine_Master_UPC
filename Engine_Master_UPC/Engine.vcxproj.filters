@@ -342,6 +342,30 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="AddGameObjectAction.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyUtils.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="RemoveGameObjectAction.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="ReparentAction.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="RenameGameObjectAction.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTreeRenderer.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="AddChildToPrefabRootAction.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="InstantiatePrefabAction.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -813,6 +837,30 @@
     <ClInclude Include="RenderSurface.h">
       <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="AddGameObjectAction.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyUtils.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="RemoveGameObjectAction.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ReparentAction.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="RenameGameObjectAction.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyTreeRenderer.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="AddChildToPrefabRootAction.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="InstantiatePrefabAction.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -981,6 +1029,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\DebugDraw">
       <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Hierarchy\Actions">
+      <UniqueIdentifier>{3492417c-0812-42e1-b819-d39510fbf30e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
