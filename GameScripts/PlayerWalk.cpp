@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "PlayerWalk.h"
-#include "ScriptAPI.h"
 
 #include <cmath>
 

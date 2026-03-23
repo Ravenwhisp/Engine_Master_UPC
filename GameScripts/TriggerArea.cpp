@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "TriggerArea.h"
-#include "ScriptAPI.h"
 
 static const ScriptFieldInfo triggerAreaFields[] =
 {

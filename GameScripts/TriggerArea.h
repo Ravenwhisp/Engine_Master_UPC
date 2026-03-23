@@ -1,9 +1,8 @@
 #pragma once
 
 #include "ScriptAPI.h"
-#include "ScriptAutoRegister.h"
-#include "ScriptFieldInfo.h"
-#include "ScriptComponentRef.h"
+
+#include <string>
 
 class Transform;
 
