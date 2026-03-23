@@ -134,14 +134,11 @@
       <Filter>DataStructure</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
-    <ClCompile Include="EditorSettings.cpp">
+    <ClCompile Include="WindowEditorSettings.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
-    </ClCompile>
-    <ClCompile Include="LightDebugDraw.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
       <Filter>GameEntity\Components</Filter>
@@ -185,9 +182,6 @@
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="UIImage.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
-    <ClCompile Include="UIImagePass.cpp">
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="ModuleUI.cpp">
@@ -268,9 +262,6 @@
     <ClCompile Include="WindowLogger.cpp">
       <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClCompile>
     <ClCompile Include="FontPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -342,6 +333,15 @@
     </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSurface.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -483,12 +483,6 @@
     <ClInclude Include="Texture.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthBuffer.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
     <ClInclude Include="Layer.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -508,14 +502,11 @@
     <ClInclude Include="Settings.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="EditorSettings.h">
+    <ClInclude Include="WindowEditorSettings.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
-    </ClInclude>
-    <ClInclude Include="LightDebugDraw.h">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>GameEntity\Components</Filter>
@@ -562,9 +553,6 @@
     </ClInclude>
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="UIImage.h">
-      <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIImagePass.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="ModuleUI.h">
@@ -681,16 +669,7 @@
     <ClInclude Include="WindowLogger.h">
       <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
     <ClInclude Include="FontPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="ILightPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="IMatrixPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="IRenderPass.h">
@@ -818,6 +797,21 @@
     </ClInclude>
     <ClInclude Include="MD5Fwd.h">
       <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderContext.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImagePass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IDebugDrawable.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSurface.h">
+      <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -984,6 +978,9 @@
     </Filter>
     <Filter Include="Animations">
       <UniqueIdentifier>{bd498ad4-3792-41ea-a2bc-8272d86bab68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\DebugDraw">
+      <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

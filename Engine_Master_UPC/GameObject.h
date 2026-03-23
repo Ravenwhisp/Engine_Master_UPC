@@ -14,7 +14,7 @@
 class Component;
 class ModelComponent;
 class Transform;
-struct SceneSnapshot;
+class SceneSnapshot;
 
 class GameObject 
 {

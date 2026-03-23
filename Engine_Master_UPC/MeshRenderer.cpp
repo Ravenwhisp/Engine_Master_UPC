@@ -12,7 +12,6 @@
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
 
-
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
     std::unique_ptr<MeshRenderer> newMeshRenderer = std::make_unique<MeshRenderer>(m_uuid, newOwner);
@@ -103,6 +102,11 @@ void MeshRenderer::drawUi()
     auto max = m_boundingBox.getMax();
     ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
     ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
+}
+
+void MeshRenderer::debugDraw()
+{
+    m_boundingBox.render();
 }
 
 void MeshRenderer::onTransformChange()

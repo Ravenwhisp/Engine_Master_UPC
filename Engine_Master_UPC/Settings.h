@@ -5,6 +5,7 @@ constexpr bool DEFAULT_DEBUG = false;
 #else
 constexpr bool DEFAULT_DEBUG = true;
 #endif
+
 struct EngineInformation
 {
     std::string version = "alpha-v0.9";
@@ -41,6 +42,8 @@ struct WindowSceneEditorSettings
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
     bool showNavPath = true;
+    bool showLightComponent = DEFAULT_DEBUG;
+    bool showCameraFrustum = DEFAULT_DEBUG;
 };
 
 struct FrustumCullingSettings

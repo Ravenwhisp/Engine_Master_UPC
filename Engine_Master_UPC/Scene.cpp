@@ -47,8 +47,7 @@ bool Scene::init()
     }
 
     createDirectionalLightOnInit();
-    applySkyBoxToRenderer();
-
+    markDirty();
     return true;
 }
 
@@ -87,6 +86,7 @@ void Scene::createGameObject()
     m_rootObjects.push_back(rawPtr);
 
     rawPtr->onTransformChange();
+    markDirty();
 }
 
 GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
@@ -100,7 +100,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     m_rootObjects.push_back(raw);
 
     raw->onTransformChange();
-
+    markDirty();
     return raw;
 }
 
@@ -151,6 +151,7 @@ void Scene::removeGameObject(UID uuid)
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
     m_allObjects.push_back(std::move(gameObject));
+    markDirty();
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
@@ -170,6 +171,7 @@ void Scene::destroyGameObject(GameObject* gameObject)
         (*it)->cleanUp();
         m_allObjects.erase(it);
     }
+    markDirty();
 }
 
 GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
@@ -215,9 +217,6 @@ GameObject* Scene::createDirectionalLightOnInit()
     auto go = std::make_unique<GameObject>(GenerateUID());
     GameObject* raw = go.get();
 
-    auto component = raw->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-    raw->RemoveComponent(component);
-
     raw->SetName("Directional Light");
     raw->AddComponent(ComponentType::LIGHT);
 
@@ -238,11 +237,6 @@ GameObject* Scene::createDirectionalLightOnInit()
     m_rootObjects.push_back(raw);
 
     return raw;
-}
-
-bool Scene::applySkyBoxToRenderer()
-{
-    return app->getModuleRender()->applySkyBoxSettings(m_skybox);
 }
 
 #pragma endregion
@@ -298,4 +292,5 @@ void Scene::clearScene()
     m_allObjects.clear();
 
     m_defaultCamera = nullptr;
+    markDirty();
 }

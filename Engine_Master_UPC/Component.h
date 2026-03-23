@@ -7,6 +7,8 @@ class GameObject;
 
 class SceneReferenceResolver;
 
+class IDebugDrawable;
+
 class Component {
 public:
     friend class GameObject;
@@ -36,6 +38,7 @@ public:
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
+    virtual IDebugDrawable* getAsDebugDrawable()  { return nullptr; }
 protected:
     GameObject* m_owner;
 

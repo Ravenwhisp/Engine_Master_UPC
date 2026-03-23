@@ -199,10 +199,7 @@ void SceneConfig::drawSkyBoxSettings()
 
         if (ImGui::Button("Apply###SkyApply") && m_skyboxDirty)
         {
-            if (m_moduleScene->getScene()->applySkyBoxToRenderer())
-            {
-                m_skyboxDirty = false;
-            }
+            m_skyboxDirty = false;
         }
     }
 }

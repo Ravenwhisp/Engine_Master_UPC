@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "FontPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleRender.h"
 #include "ModuleD3D12.h"
@@ -35,6 +37,12 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 	auto uploadResourcesFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
 	uploadResourcesFinished.wait();
+}
+
+void FontPass::prepare(const RenderContext& ctx)
+{
+	m_viewport = &ctx.viewport;
+	m_commands = ctx.uiTextCommands;
 }
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)

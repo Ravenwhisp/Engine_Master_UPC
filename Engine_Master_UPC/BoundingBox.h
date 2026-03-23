@@ -27,7 +27,6 @@ namespace Engine
 
         void update(const Matrix& world);
         void render() override;
-
     private:
 
         bool isPointInsidePlane(const Vector3& point, const Plane& plane) const;
