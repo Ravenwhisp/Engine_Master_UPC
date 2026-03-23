@@ -342,6 +342,9 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="UISlider.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -812,6 +815,9 @@
     </ClInclude>
     <ClInclude Include="RenderSurface.h">
       <Filter>D3D12\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="UISlider.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
