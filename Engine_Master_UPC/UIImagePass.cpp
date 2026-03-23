@@ -21,7 +21,7 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 
     m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
-    auto uploadFinished = m_upload->End( app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
+    auto uploadFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
     uploadFinished.wait();
 }
