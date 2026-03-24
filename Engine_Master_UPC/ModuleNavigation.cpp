@@ -351,6 +351,31 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     return true;
 }
 
+void ModuleNavigation::debugDraw()
+{
+    if (getDrawNavMesh() && getNavMesh())
+    {
+        for (const auto& l : getNavMeshDebugLines())
+        {
+            dd::line(ddConvert(l.a), ddConvert(l.b), dd::colors::Green);
+
+        }
+    }
+
+    if (hasDebugPath())
+    {
+        const auto& pts = getDebugPathPoints();
+        for (size_t i = 1; i < pts.size(); ++i)
+        {
+            dd::line(ddConvert(pts[i - 1]), ddConvert(pts[i]), dd::colors::Yellow);
+        }
+
+
+        dd::line(ddConvert(pts.front()), ddConvert(pts.front() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+        dd::line(ddConvert(pts.back()), ddConvert(pts.back() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+    }
+}
+
 bool ModuleNavigation::computeDebugPath()
 {
     m_debugPathPoints.clear();

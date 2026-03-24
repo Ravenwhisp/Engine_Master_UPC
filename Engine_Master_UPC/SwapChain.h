@@ -4,8 +4,12 @@
 #include <cstdint>
 #include <dxgi1_6.h>
 #include "Texture.h"
+#include <RenderSurface.h>
 
 using D3D12SwapChain = IDXGISwapChain4;
+
+
+class CommandQueue;
 
 //
 // -------------------------------------------------------------------------------------------------
@@ -21,7 +25,7 @@ class SwapChain
 {
 public:
 	constexpr static DXGI_FORMAT DEFAULT_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
-	SwapChain(HWND hWnd);
+	SwapChain(HWND hWnd, ComPtr<ID3D12Device4> device, CommandQueue* queue);
 	~SwapChain();
 
 	void present();
@@ -29,22 +33,22 @@ public:
 	void createRenderTargetViews(ComPtr<ID3D12Device2> device);
 	void getWindowSize(unsigned& width, unsigned& height);
 	bool checkTearingSupport() const;
+	void updateCurrentBackBuffer();
 
-	constexpr uint32_t		width() const { return (uint32_t)m_viewport.Width; }
-	constexpr uint32_t		height() const { return (uint32_t)m_viewport.Height; }
-
-	ID3D12Resource*					getCurrentRenderTarget() const { return m_renderTargets[getCurrentBackBufferIndex()].resource.Get(); }
-	DescriptorHandle				getCurrentRenderTargetView() const { return m_renderTargets[getCurrentBackBufferIndex()].rtv; }
-	D3D12_CPU_DESCRIPTOR_HANDLE		getDepthStencilView() { return m_depthStencil->getDSV().cpu; }
 	constexpr const D3D12_VIEWPORT& getViewport() { return m_viewport; }
 	constexpr const D3D12_RECT&		getScissorRect() { return m_scissorRect; }
 	constexpr uint32_t				getCurrentBackBufferIndex() const { return m_swapChain.Get()->GetCurrentBackBufferIndex(); }
-	RenderTarget*					getRenderTargets() { return m_renderTargets; }
+
+	const RenderSurface&			getRenderSurface() const;
+	const std::shared_ptr<Texture>& getCurrentRenderTarget() const { return m_backBufferTextures[getCurrentBackBufferIndex()]; }
 private:
 
+	ComPtr<ID3D12Device4>			m_device;
+	CommandQueue&					m_commandQueue;
 	ComPtr<D3D12SwapChain>			m_swapChain;
-	RenderTarget					m_renderTargets[FRAMES_IN_FLIGHT]{};
-	std::unique_ptr<DepthBuffer>	m_depthStencil;
+	std::shared_ptr<Texture> 		m_backBufferTextures[FRAMES_IN_FLIGHT]{};
+	mutable RenderSurface			m_renderSurface;
+	UINT index;
 
 	UINT32							m_flags{ 0 };
 

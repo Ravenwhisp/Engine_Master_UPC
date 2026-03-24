@@ -40,10 +40,7 @@ namespace
 
 }
 
-Texture::Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc)
-    : Resource(device,
-        buildResourceDesc(desc),
-        desc.hasClearValue ? &desc.clearValue : nullptr)
+Texture::Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc) : Resource(device, buildResourceDesc(desc), desc.hasClearValue ? &desc.clearValue : nullptr)
     , ICacheable(uid)
     , m_desc(desc)
 {
@@ -54,13 +51,35 @@ Texture::Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc)
     createViews();
 }
 
+Texture::Texture(UID uid, ID3D12Device4& device, ComPtr<ID3D12Resource> existingResource, TextureView views,  DXGI_FORMAT rtvFormat) : Resource(device, existingResource)
+    , ICacheable(uid)
+{
+    assert(existingResource && "existingResource must not be null");
+
+    // Derive desc fields directly from the resource so TextureDesc is consistent.
+    const D3D12_RESOURCE_DESC d = existingResource->GetDesc();
+
+    m_desc.format = d.Format;
+    m_desc.width = static_cast<uint32_t>(d.Width);
+    m_desc.height = static_cast<uint32_t>(d.Height);
+    m_desc.arraySize = static_cast<uint16_t>(d.DepthOrArraySize);
+    m_desc.mipLevels = static_cast<uint16_t>(d.MipLevels);
+    m_desc.views = views;
+
+    // Caller can specify an explicit RTV format (e.g. UNORM_SRGB over a UNORM resource).
+    m_desc.rtvFormat = (rtvFormat != DXGI_FORMAT_UNKNOWN) ? rtvFormat : d.Format;
+
+    m_mipCount = static_cast<uint32_t>(d.MipLevels);
+    assert(m_mipCount > 0 && m_mipCount <= MAX_MIPS);
+
+    createViews();
+}
+
 Texture::~Texture()
 {
     releaseViews();
     app->getModuleResources()->deferResourceRelease(getD3D12Resource());
 }
-
-
 
 DescriptorHandle Texture::getSRV() const
 {

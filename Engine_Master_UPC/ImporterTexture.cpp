@@ -109,8 +109,7 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
 
         if (FAILED(hr))
         {
-            DEBUG_ERROR("[ImporterTexture] Failed to generate mipmaps (HRESULT: %08X) — "
-                "importing without mips.", static_cast<unsigned>(hr));
+            DEBUG_WARN("[ImporterTexture] Failed to generate mipmaps (HRESULT: %08X) — " "importing without mips.", static_cast<unsigned>(hr));
         }
         else
         {
