@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "FontPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleRender.h"
 #include "ModuleD3D12.h"
@@ -15,7 +17,7 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
 	m_settings = app->getSettings();
 
-	m_fontHeap = std::make_unique<DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
+	m_fontHeap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
 
 	m_upload = std::make_unique<ResourceUploadBatch>(device.Get());
 
@@ -35,6 +37,12 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 	auto uploadResourcesFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
 	uploadResourcesFinished.wait();
+}
+
+void FontPass::prepare(const RenderContext& ctx)
+{
+	m_viewport = &ctx.viewport;
+	m_commands = ctx.uiTextCommands;
 }
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)

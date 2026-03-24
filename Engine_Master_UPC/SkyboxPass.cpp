@@ -1,11 +1,14 @@
 #include "Globals.h"
 #include "SkyBoxPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"
 #include "ModuleAssets.h"
 
+#include "SkyBoxSettings.h"
 #include "SkyBox.h"
 #include "Texture.h"
 #include "TextureAsset.h"
@@ -15,6 +18,7 @@
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
+#include "MD5Fwd.h"
 
 SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) : m_device(device)
 {
@@ -82,7 +86,18 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) :
     DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-SkyBoxPass::~SkyBoxPass() = default;
+void SkyBoxPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+
+    if (ctx.skyBoxSettings && !(*ctx.skyBoxSettings == m_lastSettings))
+    {
+        setSettings(*ctx.skyBoxSettings);
+
+        m_lastSettings = *ctx.skyBoxSettings;
+    }
+}
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
@@ -131,15 +146,15 @@ void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
         return;
     }
 
-    if (settings.cubemapAssetId == 0)
+    if (settings.cubemapAssetId == INVALID_ASSET_ID)
     {
         m_skyBox.reset();
         return;
     }
 
-    auto assetModule = app->getAssetModule();
+    auto assetModule = app->getModuleAssets();
 
-    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(settings.cubemapAssetId));
+    auto asset = assetModule->load<TextureAsset>(settings.cubemapAssetId);
 
     if (!asset)
     {

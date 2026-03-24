@@ -19,7 +19,7 @@ class WindowPerformance;
 class WindowSceneEditor;
 class WindowHierarchy;
 class DebugDrawPass;
-class EditorSettings;
+class WindowEditorSettings;
 class SceneConfig;
 class WindowGame;
 
@@ -73,9 +73,9 @@ public:
 	WindowGame*		getWindowGame() { return m_gameWindow; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
-	GameObject*		getSelectedGameObject() { return m_selectedGameObject; }
+	GameObject*		getSelectedGameObject() const { return m_selectedGameObject; }
 
-	void               enterPrefabEdit(const std::string& prefabName);
+	void enterPrefabEdit(const std::filesystem::path& sourcePath);
 	void               exitPrefabEdit();
 	PrefabEditSession* getPrefabSession() { return &m_prefabSession; }
 
@@ -100,7 +100,7 @@ private:
 	WindowHardware*				m_hardwareWindow = nullptr;
 	WindowPerformance*			m_performanceWindow = nullptr;
 	WindowSceneEditor*				m_sceneEditor = nullptr;
-	EditorSettings*				m_editorSettings = nullptr;
+	WindowEditorSettings*				m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
 	WindowGame*					m_gameWindow = nullptr;
 

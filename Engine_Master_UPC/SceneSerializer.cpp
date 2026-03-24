@@ -2,22 +2,29 @@
 #include "SceneSerializer.h"
 
 #include <filesystem>
-#include <iostream>
-
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
 
-#include "Application.h"
-#include "ModuleScene.h"
+#include <cstdio>
+
+#include "Scene.h"
+#include "SceneLightingSettings.h"
+#include "SkyBoxSettings.h"
+
 #include "GameObject.h"
 #include "Transform.h"
 #include "Component.h"
-#include "ComponentType.h"
+#include "CameraComponent.h"
 
-#include <rapidjson/document.h>
-#include "rapidjson/filewritestream.h"
+#include "Application.h"
+#include "Settings.h"
+
+#include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
+
+#include "SceneReferenceResolver.h"
+#include "MD5Fwd.h"
 
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
@@ -30,85 +37,408 @@ SceneSerializer::SceneSerializer()
     {
         if (std::filesystem::create_directories(SCENE_FOLDER))
         {
-            DEBUG_LOG("Created scene folder: %s\n", SCENE_FOLDER.data());
+            DEBUG_LOG("[SceneSerializer] Scene folder created");
         }
         else
         {
-            DEBUG_ERROR("Failed to create scene folder: %s\n", SCENE_FOLDER.data());
+            DEBUG_ERROR("[SceneSerializer] Failed to create scene folder");
         }
     }
 }
 
-
-SceneSerializer::~SceneSerializer()
+std::string SceneSerializer::BuildScenePath(const std::string& sceneName)
 {
+    return std::string(SCENE_FOLDER) + sceneName + std::string(SCENE_FILE_EXTENSION);
 }
 
-bool SceneSerializer::SaveScene(std::string sceneName, rapidjson::Document& domTree)
+#pragma region Save
+bool SceneSerializer::SaveScene(const Scene* scene)
 {
-    if (sceneName.empty())
+    if (!scene)
     {
-        DEBUG_LOG("Scene name cannot be empty.\n");
-        return false;
-	}
-
-    const std::string path = std::string(SCENE_FOLDER) + sceneName + std::string(SCENE_FILE_EXTENSION);
-
-    // Save file //
-
-    FILE* fileOpened = std::fopen(path.c_str(), "wb"); // w for writing, b disables special handling of '\n' and '\x1A'
-    if (!fileOpened) 
-    {
-        DEBUG_ERROR("Error opening file");
+        DEBUG_ERROR("[SceneSerializer] SaveScene: scene is null");
         return false;
     }
 
-    // Create a FileWriteStream
+    std::string sceneName = scene->getName();
+
+    if (sceneName.empty())
+    {
+        DEBUG_ERROR("[SceneSerializer] Scene name cannot be empty");
+        return false;
+    }
+
+    const std::string path = BuildScenePath(sceneName);
+
+    DEBUG_LOG("[SceneSerializer] Saving scene: %s", sceneName.c_str());
+    DEBUG_LOG("[SceneSerializer] Path: %s", path.c_str());
+
+    rapidjson::Document domTree;
+    domTree.SetObject();
+
+    rapidjson::Value sceneValue = getJSON(domTree, scene);
+
+    const std::string& version = app->getSettings()->engine.version;
+
+    sceneValue.AddMember(
+        "Version",
+        rapidjson::Value(version.c_str(), domTree.GetAllocator()),
+        domTree.GetAllocator()
+    );
+
+    rapidjson::Value key(sceneName.c_str(), domTree.GetAllocator());
+    domTree.AddMember(key, sceneValue, domTree.GetAllocator());
+
+    FILE* fileOpened = std::fopen(path.c_str(), "wb");
+    if (!fileOpened)
+    {
+        DEBUG_ERROR("[SceneSerializer] Failed to open file for writing: %s", path.c_str());
+        return false;
+    }
+
     char writeBuffer[65536];
     rapidjson::FileWriteStream stream(fileOpened, writeBuffer, sizeof(writeBuffer));
 
-    // Write JSON to file
     rapidjson::Writer<rapidjson::FileWriteStream> writer(stream);
     domTree.Accept(writer);
 
-    // Close file
     std::fclose(fileOpened);
+
+    DEBUG_LOG("[SceneSerializer] Scene saved successfully");
 
     return true;
 }
 
-
-bool SceneSerializer::LoadScene(std::string sceneName)
+rapidjson::Value SceneSerializer::getJSON(rapidjson::Document& domTree, const Scene* scene)
 {
-    if (sceneName.empty()) 
+    rapidjson::Value sceneInfo(rapidjson::kObjectType);
+
+    sceneInfo.AddMember("SkyBox", getSkyBoxJSON(domTree, scene), domTree.GetAllocator());
+    sceneInfo.AddMember("Lighting", getLightingJSON(domTree, scene), domTree.GetAllocator());
+
+    uint64_t defaultCameraOwnerUid = 0;
+    auto defaultCamera = scene->getDefaultCamera();
+    if (defaultCamera != nullptr)
     {
-        return false;
+        GameObject* owner = defaultCamera->getOwner();
+        defaultCameraOwnerUid = (uint64_t)owner->GetID();
     }
 
-    const std::string path = std::string(SCENE_FOLDER) + sceneName + std::string(SCENE_FILE_EXTENSION);
+    sceneInfo.AddMember("DefaultCameraOwnerUID", defaultCameraOwnerUid, domTree.GetAllocator());
 
-    // Read file
-    std::ifstream file(path, std::ios::binary);
-    if (!file) 
+    // GameObjects serialization //
     {
-        return false;
+        rapidjson::Value gameObjectsData(rapidjson::kArrayType);
+        auto rootObjects = scene->getRootObjects();
+        for (GameObject* root : rootObjects)
+        {
+            serializeWindowHierarchy(root, gameObjectsData, domTree, scene);
+        }
+
+        sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());
+    }
+
+    return sceneInfo;
+}
+
+void SceneSerializer::serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree, const Scene* scene)
+{
+    gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+
+    for (GameObject* child : gameObject->GetTransform()->getAllChildren())
+    {
+        serializeWindowHierarchy(child, gameObjectsData, domTree, scene);
+    }
+}
+
+rapidjson::Value SceneSerializer::getLightingJSON(rapidjson::Document& domTree, const Scene* scene)
+{
+    rapidjson::Value lightingInfo(rapidjson::kObjectType);
+
+    const SceneLightingSettings& lighting = scene->getLightingSettings();
+    {
+        rapidjson::Value ambientColorData(rapidjson::kArrayType);
+        ambientColorData.PushBack(lighting.ambientColor.x, domTree.GetAllocator());
+        ambientColorData.PushBack(lighting.ambientColor.y, domTree.GetAllocator());
+        ambientColorData.PushBack(lighting.ambientColor.z, domTree.GetAllocator());
+
+        lightingInfo.AddMember("AmbientColor", ambientColorData, domTree.GetAllocator());
+    }
+
+    lightingInfo.AddMember("AmbientIntensity", lighting.ambientIntensity, domTree.GetAllocator());
+
+    return lightingInfo;
+}
+
+rapidjson::Value SceneSerializer::getSkyBoxJSON(rapidjson::Document& domTree, const Scene* scene)
+{
+    rapidjson::Value skyboxInfo(rapidjson::kObjectType);
+
+    const SkyBoxSettings& skybox = scene->getSkyBoxSettings();
+
+    skyboxInfo.AddMember("Enabled", skybox.enabled, domTree.GetAllocator());
+    skyboxInfo.AddMember("CubemapAssetId", rapidjson::Value(skybox.cubemapAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    return skyboxInfo;
+}
+
+#pragma endregion
+
+#pragma region Load
+std::unique_ptr<Scene> SceneSerializer::LoadScene(const std::string& sceneName)
+{
+    if (sceneName.empty())
+    {
+        DEBUG_ERROR("[SceneSerializer] Scene name is empty");
+        return nullptr;
+    }
+
+    const std::string path = BuildScenePath(sceneName);
+
+    std::ifstream file(path, std::ios::binary);
+    if (!file)
+    {
+        DEBUG_ERROR("[SceneSerializer] Scene file not found: %s", path.c_str());
+        return nullptr;
     }
 
     std::ostringstream ss;
     ss << file.rdbuf();
-    const std::string json = ss.str();
 
-    // Parse JSON
     rapidjson::Document doc;
-    doc.Parse(json.c_str());
-    if (doc.HasParseError()) 
+    doc.Parse(ss.str().c_str());
+
+    if (doc.HasParseError())
     {
+        DEBUG_ERROR("[SceneSerializer] JSON parse error");
+        return nullptr;
+    }
+
+    if (!doc.HasMember(sceneName.c_str()))
+    {
+        DEBUG_ERROR("[SceneSerializer] Scene root not found in JSON");
+        return nullptr;
+    }
+
+    auto scene = std::make_unique<Scene>();
+
+    if (!LoadFromJSON(*scene, doc[sceneName.c_str()]))
+    {
+        DEBUG_ERROR("[SceneSerializer] Failed to load scene from JSON");
+        return nullptr;
+    }
+
+    DEBUG_LOG("[SceneSerializer] Scene loaded successfully: %s", sceneName.c_str());
+    return scene;
+}
+
+bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
+{
+    if (!LoadSkybox(scene, json))
+    {
+        DEBUG_WARN("[SceneSerializer] Skybox missing or invalid");
+    }
+
+    LoadLighting(scene, json);
+
+    if (!json.HasMember("GameObjects") || !json["GameObjects"].IsArray())
+    {
+        DEBUG_ERROR("[SceneSerializer] GameObjects missing or invalid");
         return false;
     }
 
-    const rapidjson::Value& sceneJson = doc[sceneName.c_str()];
-    ModuleScene* sceneModule = app->getModuleScene();
+    size_t goNumber = scene.getAllGameObjects().size();
+    std::vector<uint64_t> uidSet;
+    uidSet.reserve(goNumber);
+    std::vector<GameObject*> goSet;
+    goSet.reserve(goNumber);
 
-    return sceneModule->loadFromJSON(sceneJson);
+    std::vector<std::pair<uint64_t, uint64_t>> hierarchy;
+    hierarchy.reserve(goNumber);
 
+    CreateGameObjects(scene, json["GameObjects"], uidSet, goSet, hierarchy);
+    LinkHierarchy(scene, uidSet, goSet, hierarchy);
+
+    FixReferences(scene);
+    ResolveDefaultCamera(scene, json);
+
+    return true;
 }
+
+bool SceneSerializer::LoadSkybox(Scene& scene, const rapidjson::Value& json)
+{
+    if (!json.HasMember("SkyBox"))
+    {
+        DEBUG_WARN("[SceneSerializer] Skybox json object missing.");
+        return false;
+    }
+
+    SkyBoxSettings& skyboxSettings = scene.getSkyBoxSettings();
+    const auto& data = json["SkyBox"];
+
+    if (data.HasMember("Enabled") && data["Enabled"].IsBool())
+    {
+        skyboxSettings.enabled = data["Enabled"].GetBool();
+    }
+    else
+    {
+        DEBUG_WARN("[SceneSerializer] Skybox Enabled missing");
+    }
+
+    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsString())
+    {
+        skyboxSettings.cubemapAssetId = (MD5Hash)data["CubemapAssetId"].GetString();
+    }
+    else
+    {
+        DEBUG_WARN("[SceneSerializer] Skybox Cubemap missing");
+    }
+
+    return true;
+}
+
+void SceneSerializer::LoadLighting(Scene& scene, const rapidjson::Value& json)
+{
+    if (!json.HasMember("Lighting"))
+    {
+        DEBUG_WARN("[SceneSerializer] Lighting missing");
+        return;
+    }
+
+    SceneLightingSettings& lighting = scene.getLightingSettings();
+    const auto& data = json["Lighting"];
+
+    if (data.HasMember("AmbientColor") && data["AmbientColor"].IsArray() && data["AmbientColor"].Size() == 3)
+    {
+        const auto& color = data["AmbientColor"].GetArray();
+        lighting.ambientColor = {
+            color[0].GetFloat(),
+            color[1].GetFloat(),
+            color[2].GetFloat()
+        };
+    }
+    else
+    {
+        DEBUG_WARN("[SceneSerializer] Invalid AmbientColor");
+    }
+
+    if (data.HasMember("AmbientIntensity")) {
+        lighting.ambientIntensity = data["AmbientIntensity"].GetFloat();
+    }
+    else {
+        DEBUG_WARN("[SceneSerializer] Invalid AmbientIntensity");
+    }
+}
+
+void SceneSerializer::CreateGameObjects(
+    Scene& scene,
+    const rapidjson::Value& array,
+    std::vector<uint64_t>& uidSet,
+    std::vector<GameObject*>& goSet,
+    std::vector<std::pair<uint64_t, uint64_t>>& hierarchy)
+{
+    for (auto& json : array.GetArray())
+    {
+        const uint64_t uid = json["UID"].GetUint64();
+        const uint64_t transformUid = json["Transform"]["UID"].GetUint64();
+
+        GameObject* go = scene.createGameObjectWithUID((UID)uid, (UID)transformUid);
+
+        uint64_t parentUid = 0;
+        go->deserializeJSON(json, parentUid);
+
+        uidSet.push_back(uid);
+        goSet.push_back(go);
+
+        hierarchy.emplace_back(uid, parentUid);
+    }
+}
+
+void SceneSerializer::LinkHierarchy(
+    Scene& scene,
+    std::vector<uint64_t>& uidSet,
+    std::vector<GameObject*>& goSet,
+    const std::vector<std::pair<uint64_t, uint64_t>>& hierarchy)
+{
+    int childIdx, parentIdx;
+    for (const auto& [childUid, parentUid] : hierarchy)
+    {
+        if (parentUid == 0)
+        {
+            continue;
+        }
+
+        childIdx = -1;
+        parentIdx = -1;
+
+        for (int i = 0; i < uidSet.size() && (childIdx == -1  || parentIdx == -1); i++) {
+            if (uidSet[i] == childUid) {
+                childIdx = i;
+            }
+
+            if (uidSet[i] == parentUid) {
+                parentIdx = i;
+            }
+        }
+
+        if (childIdx == -1 || parentIdx == -1)
+        {
+            DEBUG_ERROR("Hierarchy link failed: UID not found");
+            continue;
+        }
+
+        GameObject* child = goSet[childIdx];
+        GameObject* parent = goSet[parentIdx];
+
+        child->GetTransform()->setRoot(parent->GetTransform());
+        parent->GetTransform()->addChild(child);
+
+        scene.removeFromRootList(child);
+    }
+}
+
+void SceneSerializer::FixReferences(Scene& scene)
+{
+    SceneReferenceResolver resolver;
+
+    for (GameObject* obj : scene.getAllGameObjects())
+    {
+        resolver.registerGameObject(obj, obj);
+
+        for (Component* c : obj->GetAllComponents())
+        {
+            resolver.registerComponent(c->getID(), c);
+        }
+    }
+
+    for (GameObject* obj : scene.getAllGameObjects())
+    {
+        for (Component* c : obj->GetAllComponents())
+        {
+            c->fixReferences(resolver);
+        }
+    }
+}
+
+void SceneSerializer::ResolveDefaultCamera(Scene& scene, const rapidjson::Value& json)
+{
+    scene.setDefaultCamera(nullptr);
+
+    if (!json.HasMember("DefaultCameraOwnerUID"))
+        return;
+
+    const uint64_t uid = json["DefaultCameraOwnerUID"].GetUint64();
+    if (uid == 0)
+        return;
+
+    GameObject* go = scene.findGameObjectByUID((UID)uid);
+    if (!go)
+    {
+        DEBUG_WARN("[SceneSerializer] Default camera owner not found");
+        return;
+    }
+
+    auto* cam = go->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    scene.setDefaultCamera(cam);
+}
+#pragma endregion

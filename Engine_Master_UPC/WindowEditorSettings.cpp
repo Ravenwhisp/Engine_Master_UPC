@@ -1,17 +1,18 @@
 #include "Globals.h"
-#include "EditorSettings.h"
+#include "WindowEditorSettings.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
 
 #include "Settings.h"
+#include "Scene.h"
 
-EditorSettings::EditorSettings()
+WindowEditorSettings::WindowEditorSettings()
 {
     m_settings = app->getSettings();
 }
 
-void EditorSettings::render()
+void WindowEditorSettings::render()
 {
     if (!ImGui::Begin(getWindowName(), getOpenPtr()))
     {
@@ -31,13 +32,13 @@ void EditorSettings::render()
     ImGui::End();
 }
 
-void EditorSettings::drawEngineInformation()
+void WindowEditorSettings::drawEngineInformation()
 {
     std::string str = "Engine versions " + m_settings->engine.version;
     ImGui::Text(str.c_str());
 }
 
-void EditorSettings::drawCameraSettings() 
+void WindowEditorSettings::drawCameraSettings()
 {
     if (ImGui::CollapsingHeader("Camera")) 
     {
@@ -78,7 +79,7 @@ void EditorSettings::drawCameraSettings()
     }
 }
 
-void EditorSettings::drawSceneSettings() 
+void WindowEditorSettings::drawSceneSettings()
 {
     if (ImGui::CollapsingHeader("Scene")) 
     {
@@ -87,11 +88,13 @@ void EditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
         ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
         ImGui::Checkbox("Show Model Bounding Boxes###ModelShowBoundingBoxes", &m_settings->sceneEditor.showModelBoundingBoxes);
-        ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);
+        ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);        
+        ImGui::Checkbox("Show Light Component###SceneLightComponent", &m_settings->sceneEditor.showLightComponent);
+        ImGui::Checkbox("Show Camera Frustum###SceneCameraFrustum", &m_settings->sceneEditor.showCameraFrustum);
     }
 }
 
-void EditorSettings::drawFrustumCullingSettings()
+void WindowEditorSettings::drawFrustumCullingSettings()
 {
     if (ImGui::CollapsingHeader("Frustum culling"))
     {
@@ -100,7 +103,7 @@ void EditorSettings::drawFrustumCullingSettings()
         ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
     }
 
-    if (m_settings->frustumCulling.debugFrustumCulling && !app->getModuleScene()->getDefaultCamera())
+    if (m_settings->frustumCulling.debugFrustumCulling && !app->getModuleScene()->getScene()->getDefaultCamera())
     {
         m_settings->frustumCulling.debugFrustumCulling = false;
         DEBUG_WARN("Cannot show quadtree because there is no default camera set in the scene.");
