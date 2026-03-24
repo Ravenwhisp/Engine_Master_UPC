@@ -3,7 +3,6 @@
 
 #include "Application.h"
 #include "ModuleEditor.h"
-#include "ModuleFileSystem.h"
 #include "ModuleAssets.h"
 #include "ModuleScene.h"
 
@@ -15,6 +14,7 @@
 #include "PrefabManager.h"
 #include "PrefabAsset.h"
 #include "PrefabEditSession.h"
+#include <FileIO.h>
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
 {
@@ -482,9 +482,9 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     if (ImGui::MenuItem("Delete Prefab File"))
     {
         // Use the source path directly — no "Assets/Prefabs/" assumption.
-        if (app->getModuleFileSystem()->exists(sourcePath))
+        if (FileIO::exists(sourcePath))
         {
-            app->getModuleFileSystem()->remove(sourcePath);
+            FileIO::remove(sourcePath);
             app->getModuleAssets()->refresh();
         }
     }
@@ -547,7 +547,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
             && strcmp(buffers.renameSource, buffers.renameDest) != 0)
         {
             // Both buffers hold full paths — no folder is assumed.
-            if (app->getModuleFileSystem()->move(
+            if (FileIO::move(
                 std::filesystem::path(buffers.renameSource),
                 std::filesystem::path(buffers.renameDest)))
             {

@@ -10,7 +10,6 @@
 #include "ModuleUI.h"
 #include "ModuleRender.h"
 #include "ModuleScene.h"
-#include "ModuleFileSystem.h"
 #include "ModuleAssets.h"
 #include "ModuleEventSystem.h"
 #include "ModuleGameView.h"
@@ -33,7 +32,6 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     //Needed to create the LOGs
     modules.push_back(m_moduleEditor = new ModuleEditor());
 
-    modules.push_back(m_moduleFileSystem = new ModuleFileSystem());
     modules.push_back(m_moduleAssets = new ModuleAssets());
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
