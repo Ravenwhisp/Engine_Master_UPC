@@ -17,7 +17,7 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
     clonedSlider->setActive(this->isActive());
     clonedSlider->m_targetGraphic = this->m_targetGraphic;
     clonedSlider->m_targetGraphicUid = this->m_targetGraphicUid;
-    
+
     clonedSlider->m_fillAmount = this->m_fillAmount;
     clonedSlider->m_fillMethod = this->m_fillMethod;
     clonedSlider->m_clockwise = this->m_clockwise;
@@ -25,10 +25,41 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
     return clonedSlider;
 }
 
+void UISlider::applyToTarget()
+{
+    if (!m_targetGraphic)
+    {
+        return;
+    }
+
+    m_targetGraphic->setFillAmount(m_fillAmount);
+    m_targetGraphic->setFillMethod(m_fillMethod);
+    m_targetGraphic->setClockwise(m_clockwise);
+}
+
 void UISlider::setTargetGraphic(UIImage* img)
 {
     m_targetGraphic = img;
     m_targetGraphicUid = img ? img->getID() : 0;
+    applyToTarget();
+}
+
+void UISlider::setFillAmount(float amount)
+{
+    m_fillAmount = amount;
+    applyToTarget();
+}
+
+void UISlider::setFillMethod(FillMethod method)
+{
+    m_fillMethod = method;
+    applyToTarget();
+}
+
+void UISlider::setClockwise(bool clockwise)
+{
+    m_clockwise = clockwise;
+    applyToTarget();
 }
 
 void UISlider::drawUi()
@@ -43,7 +74,7 @@ void UISlider::drawUi()
         {
             Component* data = *static_cast<Component**>(payload->Data);
             UIImage* image = static_cast<UIImage*>(data);
-            if (image) 
+            if (image)
             {
                 setTargetGraphic(image);
             }
@@ -53,19 +84,26 @@ void UISlider::drawUi()
     ImGui::Text("Target Graphic: %s", m_targetGraphic ? "Assigned" : "None");
 
     ImGui::Separator();
-    
-    ImGui::SliderFloat("Fill Amount", &m_fillAmount, 0.0f, 1.0f);
+
+    bool changed = false;
+    changed |= ImGui::SliderFloat("Fill Amount", &m_fillAmount, 0.0f, 1.0f);
 
     const char* fillMethods[] = { "Horizontal", "Vertical", "Radial 90", "Radial 180", "Radial 360" };
     int currentMethod = static_cast<int>(m_fillMethod);
     if (ImGui::Combo("Fill Method", &currentMethod, fillMethods, IM_ARRAYSIZE(fillMethods)))
     {
         m_fillMethod = static_cast<FillMethod>(currentMethod);
+        changed = true;
     }
 
     if (m_fillMethod >= FillMethod::Radial90)
     {
-        ImGui::Checkbox("Clockwise", &m_clockwise);
+        changed |= ImGui::Checkbox("Clockwise", &m_clockwise);
+    }
+
+    if (changed)
+    {
+        applyToTarget();
     }
 }
 
@@ -115,4 +153,5 @@ void UISlider::fixReferences(const SceneReferenceResolver& resolver)
     }
 
     m_targetGraphic = static_cast<UIImage*>(resolver.getClonedComponent(m_targetGraphicUid));
+    applyToTarget();
 }

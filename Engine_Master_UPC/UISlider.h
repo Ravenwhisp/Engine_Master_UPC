@@ -2,15 +2,6 @@
 #include "Component.h"
 #include "UIImage.h"
 
-enum class FillMethod
-{
-    Horizontal,
-    Vertical,
-    Radial90,
-    Radial180,
-    Radial360
-};
-
 class UISlider : public Component
 {
 public:
@@ -20,21 +11,25 @@ public:
 
     UIImage* getTargetGraphic() const { return m_targetGraphic; }
     void setTargetGraphic(UIImage* img);
+    void setTargetImage(UIImage* img) { setTargetGraphic(img); }
 
     float getFillAmount() const { return m_fillAmount; }
-    void setFillAmount(float amount) { m_fillAmount = amount; }
+    void setFillAmount(float amount);
 
     FillMethod getFillMethod() const { return m_fillMethod; }
-    void setFillMethod(FillMethod method) { m_fillMethod = method; }
+    void setFillMethod(FillMethod method);
 
     bool getClockwise() const { return m_clockwise; }
-    void setClockwise(bool clockwise) { m_clockwise = clockwise; }
+    void setClockwise(bool clockwise);
 
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
     void fixReferences(const SceneReferenceResolver& resolver) override;
+
+private:
+    void applyToTarget();
 
 private:
     UIImage* m_targetGraphic = nullptr;

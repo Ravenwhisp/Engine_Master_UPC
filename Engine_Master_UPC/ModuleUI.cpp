@@ -19,14 +19,12 @@
 #include "UIImage.h"
 #include "Transform2D.h"
 #include "UIText.h"
-#include "UISlider.h"
 #include <unordered_map>
 
 void ModuleUI::preRender()
 {
     m_textCommands.clear();
     m_imageCommands.clear();
-    m_sliderTargets.clear();
 
 #ifdef GAME_RELEASE
     auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
@@ -116,14 +114,8 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
         return;
     }
 
-    UISlider* slider = gameObject->GetComponentAs<UISlider>(ComponentType::UISLIDER);
-    if (slider && slider->isActive() && slider->getTargetGraphic())
-    {
-        m_sliderTargets[slider->getTargetGraphic()] = slider;
-    }
-    
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
-    
+
     Rect2D myRect = parentRect;
 
     if (t2d && t2d->isActive())
@@ -189,13 +181,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
         UIImageCommand command;
         command.texture = uiImg->getTexture();
         command.rect = myRect;
-        auto sliderIt = m_sliderTargets.find(uiImg);
-        if (sliderIt != m_sliderTargets.end() && sliderIt->second)
-        {
-            command.fillAmount = sliderIt->second->getFillAmount();
-            command.fillMethod = static_cast<int>(sliderIt->second->getFillMethod());
-            command.clockwise = sliderIt->second->getClockwise();
-        }
+        command.fillAmount = uiImg->getFillAmount();
+        command.fillMethod = static_cast<int>(uiImg->getFillMethod());
+        command.clockwise = uiImg->getClockwise();
         m_imageCommands.push_back(command);
     }
 }
