@@ -2,11 +2,12 @@
 #include "Buffer.h"
 
 
-static int getSizeByFormat(DXGI_FORMAT format) {
+static int getSizeByFormat(DXGI_FORMAT format) 
+{
     return (format == DXGI_FORMAT_R8_UINT) ? 1 : (format == DXGI_FORMAT_R16_UINT) ? 2 : 4;
 }
 
-class ResourcesModule;
+class ModuleResources;
 class BasicMesh;
 
 class IndexBuffer: public Buffer
@@ -20,14 +21,12 @@ public:
     size_t                  getNumIndices() const{ return m_NumIndices; }
     DXGI_FORMAT             getIndexFormat() const { return m_IndexFormat; }
 
-    friend class ResourcesModule;
+    friend class ModuleResources;
     friend class BasicMesh;
 
 protected:
-
-
-
     void createIndexBufferView();
+
 private:
     size_t      m_NumIndices;
     DXGI_FORMAT m_IndexFormat;

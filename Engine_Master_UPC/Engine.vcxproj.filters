@@ -31,10 +31,10 @@
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
       <Filter>Editor\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="D3D12Module.cpp">
+    <ClCompile Include="ModuleD3D12.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="InputModule.cpp">
+    <ClCompile Include="ModuleInput.cpp">
       <Filter>Inputs</Filter>
     </ClCompile>
     <ClCompile Include="SimpleMath.cpp">
@@ -49,19 +49,16 @@
     <ClCompile Include="Timer.cpp">
       <Filter>Core\Timers</Filter>
     </ClCompile>
-    <ClCompile Include="EditorModule.cpp">
+    <ClCompile Include="ModuleEditor.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="ResourcesModule.cpp">
+    <ClCompile Include="ModuleResources.cpp">
       <Filter>D3D12\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraModule.cpp">
+    <ClCompile Include="ModuleCamera.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorsModule.cpp">
+    <ClCompile Include="ModuleDescriptors.cpp">
       <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorHeap.cpp">
@@ -91,20 +88,11 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="SceneEditor.cpp">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClCompile Include="WindowSceneEditor.cpp">
+      <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="HardwareWindow.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceWindow.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceProfiler.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClCompile Include="WindowPerformance.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
     <ClCompile Include="Buffer.cpp">
       <Filter>D3D12\Resources\Buffers</Filter>
@@ -118,31 +106,22 @@
     <ClCompile Include="RingBuffer.cpp">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>GameEntity</Filter>
+    <ClCompile Include="WindowHierarchy.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
-    <ClCompile Include="Hierarchy.cpp">
-      <Filter>Editor\EditorWindows\Hierarchy</Filter>
+    <ClCompile Include="WindowInspector.cpp">
+      <Filter>Editor\Views\Inspector</Filter>
     </ClCompile>
-    <ClCompile Include="Inspector.cpp">
-      <Filter>Editor\EditorWindows\Inspector</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderModule.cpp">
+    <ClCompile Include="ModuleRender.cpp">
       <Filter>D3D12\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="SceneModule.cpp">
+    <ClCompile Include="ModuleScene.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="TimeModule.cpp">
+    <ClCompile Include="ModuleTime.cpp">
       <Filter>Core\Timers</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthBuffer.cpp">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTexture.cpp">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClCompile>
     <ClCompile Include="Transform.cpp">
@@ -155,17 +134,11 @@
       <Filter>DataStructure</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
-    <ClCompile Include="EditorSettings.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="EditorToolbar.cpp">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClCompile Include="WindowEditorSettings.cpp">
+      <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
-    </ClCompile>
-    <ClCompile Include="LightDebugDraw.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
       <Filter>GameEntity\Components</Filter>
@@ -184,9 +157,8 @@
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="SceneSerializer.cpp" />
-    <ClCompile Include="UID.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="NavigationModule.cpp">
+    <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshBuilder.cpp">
@@ -212,16 +184,13 @@
     <ClCompile Include="UIImage.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UIImagePass.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
-    <ClCompile Include="UIModule.cpp">
+    <ClCompile Include="ModuleUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="UIText.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="FileSystemModule.cpp">
+    <ClCompile Include="ModuleFileSystem.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="FileDialog.cpp">
@@ -236,23 +205,11 @@
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="AssetsModule.cpp">
+    <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>UI</Filter>
-    </ClCompile>
-    <ClCompile Include="FontPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshRendererPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyboxPass.cpp">
-      <Filter>D3D12\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderer.cpp">
       <Filter>GameEntity\Components</Filter>
@@ -260,34 +217,16 @@
     <ClCompile Include="ModuleEventSystem.cpp">
       <Filter>UI\Events</Filter>
     </ClCompile>
-    <ClCompile Include="Skybox.cpp">
-      <Filter>D3D12\Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="FontImporter.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="Asset.cpp">
-      <Filter>Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="ChangeScene.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
-    <ClCompile Include="GameWindow.cpp">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClCompile Include="WindowGame.cpp">
+      <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="PlayToolbar.cpp">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClCompile>
-    <ClCompile Include="GameViewModule.cpp">
+    <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="CameraSwitcher.cpp">
@@ -302,8 +241,106 @@
     <ClCompile Include="ExitApplication.cpp">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
-    <ClCompile Include="ViewGameDebug.cpp">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClCompile Include="WindowGameDebug.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBox.cpp">
+      <Filter>D3D12\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
+    </ClCompile>
+    <ClCompile Include="PerformanceProfiler.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowHardware.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowLogger.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="FontPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBoxPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterTexture.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterFont.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMesh.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMaterial.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterGltf.cpp">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterPrefab.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFactory.cpp">
+      <Filter>Core\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentFactory.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSurface.cpp">
+      <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -337,10 +374,10 @@
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
       <Filter>Editor\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="D3D12Module.h">
+    <ClInclude Include="ModuleD3D12.h">
       <Filter>D3D12</Filter>
     </ClInclude>
-    <ClInclude Include="InputModule.h">
+    <ClInclude Include="ModuleInput.h">
       <Filter>Inputs</Filter>
     </ClInclude>
     <ClInclude Include="SimpleMath.h">
@@ -358,22 +395,19 @@
     <ClInclude Include="Timer.h">
       <Filter>Core\Timers</Filter>
     </ClInclude>
-    <ClInclude Include="EditorModule.h">
+    <ClInclude Include="ModuleEditor.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="ResourcesModule.h">
+    <ClInclude Include="ModuleResources.h">
       <Filter>D3D12\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraModule.h">
+    <ClInclude Include="ModuleCamera.h">
       <Filter>D3D12</Filter>
     </ClInclude>
     <ClInclude Include="UtilityGLFT.h">
       <Filter>D3D12\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorsModule.h">
+    <ClInclude Include="ModuleDescriptors.h">
       <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClInclude>
     <ClInclude Include="DescriptorHeap.h">
@@ -400,7 +434,7 @@
     <ClInclude Include="CommandQueue.h">
       <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="TimeModule.h">
+    <ClInclude Include="ModuleTime.h">
       <Filter>Core\Timers</Filter>
     </ClInclude>
     <ClInclude Include="SwapChain.h">
@@ -409,20 +443,11 @@
     <ClInclude Include="EditorWindow.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="SceneEditor.h">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClInclude Include="WindowSceneEditor.h">
+      <Filter>Editor\Views</Filter>
     </ClInclude>
-    <ClInclude Include="Logger.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="HardwareWindow.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="PerformanceWindow.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
-    </ClInclude>
-    <ClInclude Include="PerformanceProfiler.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClInclude Include="WindowPerformance.h">
+      <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
       <Filter>D3D12\Resources\Buffers</Filter>
@@ -436,35 +461,26 @@
     <ClInclude Include="RingBuffer.h">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="ScriptComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Hierarchy.h">
-      <Filter>Editor\EditorWindows\Hierarchy</Filter>
+    <ClInclude Include="WindowHierarchy.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
-    <ClInclude Include="Inspector.h">
-      <Filter>Editor\EditorWindows\Inspector</Filter>
+    <ClInclude Include="WindowInspector.h">
+      <Filter>Editor\Views\Inspector</Filter>
     </ClInclude>
-    <ClInclude Include="RenderModule.h">
+    <ClInclude Include="ModuleRender.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="cvector.h" />
-    <ClInclude Include="SceneModule.h">
+    <ClInclude Include="ModuleScene.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderTexture.h">
-      <Filter>D3D12\Resources\Textures</Filter>
-    </ClInclude>
-    <ClInclude Include="DepthBuffer.h">
       <Filter>D3D12\Resources\Textures</Filter>
     </ClInclude>
     <ClInclude Include="Layer.h">
@@ -472,9 +488,6 @@
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Tag.h">
-      <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
@@ -489,23 +502,11 @@
     <ClInclude Include="Settings.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="EditorSettings.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorToolbar.h">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClInclude Include="WindowEditorSettings.h">
+      <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
-    </ClInclude>
-    <ClInclude Include="LightDebugDraw.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="Lights.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Skybox.h">
-      <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>GameEntity\Components</Filter>
@@ -526,8 +527,7 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="SceneSerializer.h" />
-    <ClInclude Include="UID.h" />
-    <ClInclude Include="NavigationModule.h">
+    <ClInclude Include="ModuleNavigation.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshResource.h">
@@ -555,10 +555,7 @@
     <ClInclude Include="UIImage.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="UIImagePass.h">
-      <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIModule.h">
+    <ClInclude Include="ModuleUI.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="UIRect.h">
@@ -573,7 +570,7 @@
     <ClInclude Include="BinaryWriter.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="FileSystemModule.h">
+    <ClInclude Include="ModuleFileSystem.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="FileDialog.h">
@@ -594,29 +591,11 @@
     <ClInclude Include="SceneSerializer.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="AssetsModule.h">
+    <ClInclude Include="ModuleAssets.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">
       <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="FontPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ILightPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="IMatrixPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="IRenderPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshRendererPass.h">
-      <Filter>D3D12\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyboxPass.h">
-      <Filter>D3D12\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="MeshRenderer.h">
       <Filter>GameEntity\Components</Filter>
@@ -636,28 +615,10 @@
     <ClInclude Include="UID.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="Importer.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="TypedImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="FontImporter.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
     <ClInclude Include="Asset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="AssetsDictionary.h">
-      <Filter>Persistence\Assets</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="TextureAsset.h">
@@ -666,13 +627,10 @@
     <ClInclude Include="ChangeScene.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="GameWindow.h">
-      <Filter>Editor\EditorWindows</Filter>
+    <ClInclude Include="WindowGame.h">
+      <Filter>Editor\Views</Filter>
     </ClInclude>
-    <ClInclude Include="PlayToolbar.h">
-      <Filter>Editor\EditorWindows</Filter>
-    </ClInclude>
-    <ClInclude Include="GameViewModule.h">
+    <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="CameraSwitcher.h">
@@ -687,8 +645,173 @@
     <ClInclude Include="ExitApplication.h">
       <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="ViewGameDebug.h">
-      <Filter>Editor\EditorWindows\Performance</Filter>
+    <ClInclude Include="WindowGameDebug.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>D3D12\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBox.h">
+      <Filter>D3D12\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
+    </ClInclude>
+    <ClInclude Include="PerformanceProfiler.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowHardware.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowLogger.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="FontPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="WeakCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetScanner.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="FontAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImage.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterSource.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterNative.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterTexture.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterFont.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMesh.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMaterial.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterGltf.h">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterPrefab.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFactory.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentFactory.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSnapshot.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDataCB.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLightingSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneReferenceResolver.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="PrefabUI.h" />
+    <ClInclude Include="Extensions.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Metadata.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetType.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Channel.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5Fwd.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderContext.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImagePass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IDebugDrawable.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSurface.h">
+      <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -754,12 +877,6 @@
     <Filter Include="D3D12\Wrappers\Descriptors">
       <UniqueIdentifier>{7881f684-8e13-48ef-b782-2e85ff9bfc29}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor\EditorWindows">
-      <UniqueIdentifier>{a038094e-e82e-4c57-905b-c620699451e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Performance">
-      <UniqueIdentifier>{24930ee1-012e-4ad2-89ed-af29a2fd287c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="D3D12\Resources\Buffers">
       <UniqueIdentifier>{e3267ec7-8f64-4d4b-be4a-4aeaedf9a5f3}</UniqueIdentifier>
     </Filter>
@@ -777,12 +894,6 @@
     </Filter>
     <Filter Include="GameEntity\Components">
       <UniqueIdentifier>{8282f70e-5018-4bd5-84c6-112035a6869a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Hierarchy">
-      <UniqueIdentifier>{318d021a-20db-41d1-9cc7-097580be7c80}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\EditorWindows\Inspector">
-      <UniqueIdentifier>{8d8770ea-210a-4dc3-8b2a-be29d2ae3343}</UniqueIdentifier>
     </Filter>
     <Filter Include="D3D12\Rendering">
       <UniqueIdentifier>{f8d98a8f-e8f1-4a90-b4c9-9473b976ab71}</UniqueIdentifier>
@@ -820,6 +931,57 @@
     <Filter Include="Persistence\Assets">
       <UniqueIdentifier>{8d27eb04-c0da-431b-8da1-e70ef57cd788}</UniqueIdentifier>
     </Filter>
+    <Filter Include="D3D12\Entities">
+      <UniqueIdentifier>{53615f82-6135-49b9-8f7d-595d4737b088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views">
+      <UniqueIdentifier>{a038094e-e82e-4c57-905b-c620699451e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Hierarchy">
+      <UniqueIdentifier>{318d021a-20db-41d1-9cc7-097580be7c80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Inspector">
+      <UniqueIdentifier>{8d8770ea-210a-4dc3-8b2a-be29d2ae3343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Debugging">
+      <UniqueIdentifier>{24930ee1-012e-4ad2-89ed-af29a2fd287c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Toolbars">
+      <UniqueIdentifier>{2ac420dc-456e-4836-bbad-d43c6c2c4223}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\Pass">
+      <UniqueIdentifier>{c00f1a7c-5fee-4c5c-a935-e6462080d839}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\UID">
+      <UniqueIdentifier>{447188c5-ed03-4870-940c-f644cc7d601b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\Core">
+      <UniqueIdentifier>{18769d40-df5d-46aa-8177-cdc32142975b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\Native">
+      <UniqueIdentifier>{504f1747-70c4-4ffd-ba99-2eb9af3ddd57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\External">
+      <UniqueIdentifier>{d77e5b0d-aeb5-4b14-84d3-9385c4b82cd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\Importers\External\Gltf">
+      <UniqueIdentifier>{4a5cc4af-9f57-45c8-a0f5-fafd5c606cfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting">
+      <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\Scene">
+      <UniqueIdentifier>{e6447ca6-f34e-489f-9468-0f4afefb06cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\GameObject">
+      <UniqueIdentifier>{e31eb276-f8f1-4837-bd1f-041ac612b48c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animations">
+      <UniqueIdentifier>{bd498ad4-3792-41ea-a2bc-8272d86bab68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\DebugDraw">
+      <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -839,13 +1001,13 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxVertexShader.hlsl">
+    <FxCompile Include="SkyBoxVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="LightPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxPixelShader.hlsl">
+    <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -1,0 +1,68 @@
+#pragma once
+#include "Module.h"
+
+#include <memory>
+#include <string>
+
+
+class Scene;
+class Quadtree;
+class SceneSerializer;
+class SceneSnapshot;
+
+class GameObject;
+class Component;
+class CameraComponent;
+class MeshRenderer;
+class ScriptComponent;
+class LightComponent;
+class IDebugDrawable;
+
+struct ID3D12GraphicsCommandList;
+
+class ModuleScene : public Module
+{
+private:
+    std::unique_ptr<Scene> m_scene;
+    std::unique_ptr<Quadtree> m_quadtree;
+
+    std::unique_ptr<SceneSerializer> m_sceneSerializer;
+    std::string m_pendingSceneLoad;
+
+    std::vector<MeshRenderer*>       m_meshRenderers;
+    std::vector<LightComponent*>     m_lightComponents;
+    std::vector<ScriptComponent*>    m_scriptComponents;
+
+    void rebuildComponentCaches();
+
+public:
+    ModuleScene();
+    ~ModuleScene();
+
+#pragma region GameLoop
+    bool init() override;
+    void update() override;
+    bool cleanUp() override;
+#pragma endregion
+
+#pragma region Persistence
+    void saveScene();
+    bool loadScene(const std::string& sceneName);
+
+    void requestSceneChange(const std::string& sceneName);
+    bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
+#pragma endregion
+
+#pragma region SnapShot 
+    SceneSnapshot* takeSnapshot() const;
+    void loadFromSnapshot(SceneSnapshot& snapshot);
+#pragma endregion
+
+
+    Scene* getScene() { return m_scene.get(); }
+    Quadtree* getQuadtree() { return m_quadtree.get(); }
+
+    const std::vector<MeshRenderer*>& getMeshRenderers();
+    const std::vector<LightComponent*>& getLightComponents();
+    const std::vector<ScriptComponent*>& getScriptComponents();
+};

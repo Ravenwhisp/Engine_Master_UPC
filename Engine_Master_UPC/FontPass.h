@@ -1,16 +1,22 @@
 #pragma once
 #include "IRenderPass.h"
+
+#include "DescriptorHeap.h"
+
 #include "ResourceUploadBatch.h"
 #include <SpriteBatch.h>
 #include "SpriteFont.h"
-#include "DescriptorHeap.h"
-#include "UICommands.h"
 
 class Settings;
+
+struct UITextCommand;
 
 class FontPass : public IRenderPass {
 public:
 	FontPass(ComPtr<ID3D12Device4> device);
+
+	virtual void prepare(const RenderContext& ctx) override;
+
 	void apply(ID3D12GraphicsCommandList4* commandList) override;
 	void setTextCommands(const std::vector<UITextCommand>* commands) { m_commands = commands; }
 	void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
@@ -25,7 +31,7 @@ private:
 private:
 	Settings* m_settings;
 
-	mutable const D3D12_VIEWPORT* m_viewport = nullptr;
+	const D3D12_VIEWPORT* m_viewport = nullptr;
 	const std::vector<UITextCommand>* m_commands = nullptr;
 
 	std::unique_ptr<DescriptorHeap>			m_fontHeap;

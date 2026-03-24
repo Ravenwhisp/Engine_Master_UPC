@@ -12,9 +12,9 @@ class UIImagePass : public IRenderPass
 {
 public:
     explicit UIImagePass(ComPtr<ID3D12Device4> device);
+
+    virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
-    void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
-    void setImageCommands(const std::vector<UIImageCommand>* commands) { m_commands = commands; }
 
 private:
     void begin(ID3D12GraphicsCommandList4* commandList);

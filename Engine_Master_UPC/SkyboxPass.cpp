@@ -1,15 +1,26 @@
 #include "Globals.h"
-#include "SkyboxPass.h"
-#include "Skybox.h"
+#include "SkyBoxPass.h"
+
+#include "RenderContext.h"
 
 #include "Application.h"
-#include "DescriptorsModule.h"
-#include "SceneModule.h"
-#include "AssetsModule.h"
-#include <PlatformHelpers.h>
-#include <d3dcompiler.h>
+#include "ModuleDescriptors.h"
+#include "ModuleScene.h"
+#include "ModuleAssets.h"
 
-SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) : m_device(device)
+#include "SkyBoxSettings.h"
+#include "SkyBox.h"
+#include "Texture.h"
+#include "TextureAsset.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+
+#include <d3dx12.h>
+#include <d3dcompiler.h>
+#include <PlatformHelpers.h>
+#include "MD5Fwd.h"
+
+SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) : m_device(device)
 {
     setSettings(settings);
 
@@ -21,7 +32,7 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) :
     CD3DX12_DESCRIPTOR_RANGE sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, DescriptorsModule::SampleType::COUNT, 0);
+    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants(sizeof(SkyParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -43,10 +54,10 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) :
 #endif
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkyboxVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxVertexShader.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkyboxPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxPixelShader.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
@@ -75,6 +86,18 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyboxSettings& settings) :
     DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
+void SkyBoxPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+
+    if (ctx.skyBoxSettings && !(*ctx.skyBoxSettings == m_lastSettings))
+    {
+        setSettings(*ctx.skyBoxSettings);
+
+        m_lastSettings = *ctx.skyBoxSettings;
+    }
+}
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
@@ -98,12 +121,12 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyParams) / sizeof(UINT32), &params, 0);
     commandList->SetGraphicsRootDescriptorTable(1, m_skyBox->getTexture()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(2, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(DescriptorsModule::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView = m_skyBox->getVertexBuffer()->getVertexBufferView();
     D3D12_INDEX_BUFFER_VIEW  indexBufferView = m_skyBox->getIndexBuffer()->getIndexBufferView();
@@ -115,7 +138,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->DrawIndexedInstanced(m_skyBox->getIndexBuffer()->getNumIndices(), 1, 0, 0, 0);
 }
 
-void SkyBoxPass::setSettings(const SkyboxSettings& settings)
+void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
 {
     if (!settings.enabled)
     {
@@ -123,19 +146,19 @@ void SkyBoxPass::setSettings(const SkyboxSettings& settings)
         return;
     }
 
-    if (settings.cubemapAssetId == 0)
+    if (settings.cubemapAssetId == INVALID_ASSET_ID)
     {
         m_skyBox.reset();
         return;
     }
 
-    auto assetModule = app->getAssetModule();
+    auto assetModule = app->getModuleAssets();
 
-    TextureAsset* asset = static_cast<TextureAsset*>(assetModule->requestAsset(settings.cubemapAssetId));
+    auto asset = assetModule->load<TextureAsset>(settings.cubemapAssetId);
 
     if (!asset)
     {
-        DEBUG_ERROR("Skybox cubemap asset not found");
+        DEBUG_ERROR("SkyBox cubemap asset not found");
         m_skyBox.reset();
         return;
     }

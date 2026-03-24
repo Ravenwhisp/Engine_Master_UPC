@@ -2,9 +2,11 @@
 #include "CameraComponent.h"
 
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
 
+#include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
 
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
@@ -47,12 +49,6 @@ void CameraComponent::recalculateFrustum()
 	m_frustum.m_rightFace   = Plane(m_frustum.m_points[1], m_frustum.m_points[5], m_frustum.m_points[6]);
 }
 
-void CameraComponent::render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix)
-{
-	// For now just render the frustum itself. Later on, render the whole scene if we're in Game mode
-
-}
-
 void CameraComponent::update()
 {
 	// No se si es optimo, pero es para comprobar que aqui esta el error
@@ -72,19 +68,18 @@ void CameraComponent::onTransformChange()
 
 void CameraComponent::drawUi() 
 {
-	m_frustum.render(m_world);
-
-
     ImGui::Separator();
 
 	float fov = m_horizontalFov;
 	float nearPlane = m_nearPlane;
 	float farPlane = m_farPlane;
 	float aspectRatio = m_aspectRatio;
+
     ImGui::DragFloat("FOV (horizontal)", &fov, 1.0f, 5.0f, 120.0f);
 	ImGui::DragFloat("Near plane", &nearPlane, 0.005f, 0.01f, 1.0f);
 	ImGui::DragFloat("Far plane", &farPlane, 1.0f, 10.0f, 100.0f);
 	ImGui::DragFloat("Aspect ratio", &aspectRatio, 0.001f, 1.333333f, 2.333333f); // 4:3 to 21:9 -- FIXME : change to a dropdown menu with several options
+
 	if (fov != m_horizontalFov || nearPlane != m_nearPlane || farPlane != m_farPlane || aspectRatio != m_aspectRatio) 
 	{
 		m_horizontalFov = fov;
@@ -100,7 +95,7 @@ void CameraComponent::drawUi()
 	
 	if (ImGui::Button("Set as Default Camera"))
 	{
-		app->getSceneModule()->setDefaultCamera(this);
+		app->getModuleScene()->getScene()->setDefaultCamera(this);
 	}
 
 	bool showThisCameraPerspective = app->getCurrentCameraPerspective() == this;
@@ -115,15 +110,20 @@ void CameraComponent::drawUi()
 	}
 }
 
+void CameraComponent::debugDraw()
+{
+	m_frustum.render(m_world);
+}
+
 bool CameraComponent::cleanUp() 
 {
 	if (app->getCurrentCameraPerspective() == this)
 	{
 		app->setCurrentCameraPerspective(nullptr);
 	}
-	if (app->getSceneModule()->getDefaultCamera() == this)
+	if (app->getModuleScene()->getScene()->getDefaultCamera() == this)
 	{
-		app->getSceneModule()->setDefaultCamera(nullptr);
+		app->getModuleScene()->getScene()->setDefaultCamera(nullptr);
 	}
 	return true;
 }

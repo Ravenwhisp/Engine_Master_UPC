@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Globals.h"
-
 class Module
 {
 public:
@@ -18,11 +16,6 @@ public:
 	virtual bool init() 
 	{
 		return true; 
-	}
-
-	virtual bool postInit()
-	{
-		return true;
 	}
 
 	virtual void update()

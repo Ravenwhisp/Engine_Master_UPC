@@ -1,29 +1,45 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "MeshRendererPass.h"
-#include <LightComponent.h>
+
+#include "RenderContext.h"
 
 #include "Application.h"
-#include "DescriptorsModule.h"
-#include "RenderModule.h"
-#include <MeshRenderer.h>
-#include "D3D12Module.h"
-#include <PlatformHelpers.h>
+#include "ModuleD3D12.h"
+#include "ModuleDescriptors.h"
+#include "ModuleRender.h"
+#include "ModuleScene.h"
+
+#include "Scene.h"
+#include "SceneLightingSettings.h"
+#include "SceneDataCB.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
+#include "LightComponent.h"
+#include "RingBuffer.h"
+#include "VertexBuffer.h"
+#include "Texture.h"
+#include "BasicMesh.h"
+#include "Transform.h"
+
+#include "SimpleMath.h"
 #include <d3dcompiler.h>
-#include "Settings.h"
+#include "PlatformHelpers.h"
 
-MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer): m_device(device)
+MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
-    m_lighting.ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
-    m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+	m_lighting = std::make_unique<SceneLightingSettings>();
+	m_sceneDataCB = std::make_unique<SceneDataCB>();
 
-    m_ringBuffer = ringBuffer;
+    m_lighting->ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, DescriptorsModule::SampleType::COUNT, 0);
+    sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -84,6 +100,22 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* rin
 
 }
 
+
+void MeshRendererPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+    m_sceneDataCB->viewPos = ctx.cameraPosition;
+
+    // Previously called app->getModuleRender()->getActiveScene()
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
+
+    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getLightComponents(), m_lighting->ambientColor, m_lighting->ambientIntensity);
+
+    m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
+}
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
 
@@ -92,15 +124,14 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
     //Set input assembler
-    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&m_sceneDataCB, sizeof(SceneDataCB), app->getD3D12Module()->getCurrentFrame()));
+    commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
 
-    const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
-    commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
+    commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(5, app->getDescriptorsModule()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(DescriptorsModule::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     renderMesh(commandList);
 }
@@ -108,10 +139,10 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
-    for (const auto& renderer : *m_meshRenderers) {
+    for (const auto& renderer : m_meshRenderers) {
 
         GameObject* owner = renderer->getOwner();
-        if (owner == nullptr || !owner->IsActiveInHierarchy())
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
         {
             continue;
         }
@@ -125,185 +156,110 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         Matrix mvp = (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
         commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
+        const auto& mesh = renderer->getMesh();
+        const auto& submeshes = mesh->getSubmeshes();
         const auto& materials = renderer->getMaterials();
 
-        for (const auto& mesh : renderer->getMeshes())
+        if (mesh.get() == nullptr) return;
+        if (materials.size() != submeshes.size()) return;
+
+        for (int i = 0; i < submeshes.size(); i++)
         {
-            const auto& submeshes = mesh->getSubmeshes();
+            const auto& material = materials.at(i).get();
 
-            for (const Submesh& submesh : submeshes)
-            {
-                BasicMaterial* material = renderer->getMaterial(submesh.materialId);
-
-                ModelData modelData{};
-                modelData.model = transform->getGlobalMatrix().Transpose();
-                modelData.normalMat = transform->getNormalMatrix().Transpose();
-                modelData.material = material->getMaterial();
+            ModelData modelData{};
+            modelData.model = transform->getGlobalMatrix().Transpose();
+            modelData.normalMat = transform->getNormalMatrix().Transpose();
+            modelData.material = material->getMaterial();
 
                 // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
-                commandList->SetGraphicsRootConstantBufferView(2, app->getRenderModule()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
-                commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
+            commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+            commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
 
-                commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-                D3D12_VERTEX_BUFFER_VIEW vbv = mesh->getVertexBuffer()->getVertexBufferView();
-                commandList->IASetVertexBuffers(0, 1, &vbv);
+            D3D12_VERTEX_BUFFER_VIEW vbv = mesh->getVertexBuffer()->getVertexBufferView();
+            commandList->IASetVertexBuffers(0, 1, &vbv);
 
-                if (mesh->hasIndexBuffer())
-                {
-                    D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-                    commandList->IASetIndexBuffer(&ibv);
-
-                    commandList->DrawIndexedInstanced(submesh.indexCount, 1, submesh.indexStart, 0, 0);
-                }
+            if (mesh->hasIndexBuffer())
+            {
+                D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
+                commandList->IASetIndexBuffer(&ibv);
+                commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
             }
         }
     }
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
+GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
+    const std::vector<LightComponent*>& lights,
+    const Vector3& ambientColor,
+    float ambientIntensity) const
 {
+    GPULightsConstantBuffer cb{};
+    cb.ambientColor = ambientColor;
+    cb.ambientIntensity = ambientIntensity;
 
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getSceneModule()->getAllGameObjects(), m_lighting.ambientColor, m_lighting.ambientIntensity);
-
-    return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getD3D12Module()->getCurrentFrame());
-}
-
-GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const
-{
-    GPULightsConstantBuffer constantBuffer{};
-    constantBuffer.ambientColor = ambientColor;
-    constantBuffer.ambientIntensity = ambientIntensity;
-
-    std::vector<GPUDirectionalLight> directionalLights;
-    std::vector<GPUPointLight> pointLights;
-    std::vector<GPUSpotLight> spotLights;
-
-    directionalLights.reserve(LightDefaults::MAX_DIRECTIONAL_LIGHTS);
-    pointLights.reserve(LightDefaults::MAX_POINT_LIGHTS);
-    spotLights.reserve(LightDefaults::MAX_SPOT_LIGHTS);
-
-    for (GameObject* gameObject : objects)
+    for (const LightComponent* light : lights)
     {
-        if (gameObject == nullptr)
-        {
+        if (!light->isActive())
             continue;
-        }
 
-        if (!gameObject->IsActiveInHierarchy())
-        {
+        const GameObject* owner = light->getOwner();
+        if (!owner || !owner->IsActiveInWindowHierarchy())
             continue;
-        }
 
-        const LightComponent* lightComponent =
-            gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
-        if (lightComponent == nullptr)
-        {
+        const Transform* transform = owner->GetTransform();
+        if (!transform)
             continue;
-        }
 
-        const LightData& lightData = lightComponent->getData();
-        const LightCommon& common = lightData.common;
-
-        if (!lightComponent->isActive())
-        {
-            continue;
-        }
-
-        const Transform* transform = gameObject->GetTransform();
-        if (transform == nullptr)
-        {
-            continue;
-        }
-
+        const LightData& data = light->getData();
+        const LightCommon& common = data.common;
         const Matrix& world = transform->getGlobalMatrix();
-        const Vector3 position(world._41, world._42, world._43);
+        const Vector3      pos(world._41, world._42, world._43);
+        const Vector3      fwd = transform->getForward();
 
-        Vector3 forward = transform->getForward();
-        forward.Normalize();
-
-        switch (lightData.type)
+        switch (data.type)
         {
         case LightType::DIRECTIONAL:
-        {
-            if (directionalLights.size() >= LightDefaults::MAX_DIRECTIONAL_LIGHTS)
+            if (cb.directionalCount < LightDefaults::MAX_DIRECTIONAL_LIGHTS)
             {
-                break;
+                auto& l = cb.directionalLights[cb.directionalCount++];
+                l.direction = fwd;
+                l.color = common.color;
+                l.intensity = common.intensity;
             }
-
-            GPUDirectionalLight gpuLight{};
-            gpuLight.direction = forward;
-            gpuLight.color = common.color;
-            gpuLight.intensity = common.intensity;
-
-            directionalLights.push_back(gpuLight);
             break;
-        }
 
         case LightType::POINT:
-        {
-            if (pointLights.size() >= LightDefaults::MAX_POINT_LIGHTS)
+            if (cb.pointCount < LightDefaults::MAX_POINT_LIGHTS)
             {
-                break;
+                auto& l = cb.pointLights[cb.pointCount++];
+                l.position = pos;
+                l.radius = data.parameters.point.radius;
+                l.color = common.color;
+                l.intensity = common.intensity;
             }
-
-            GPUPointLight gpuLight{};
-            gpuLight.position = position;
-            gpuLight.radius = lightData.parameters.point.radius;
-            gpuLight.color = common.color;
-            gpuLight.intensity = common.intensity;
-
-            pointLights.push_back(gpuLight);
             break;
-        }
 
         case LightType::SPOT:
-        {
-            if (spotLights.size() >= LightDefaults::MAX_SPOT_LIGHTS)
+            if (cb.spotCount < LightDefaults::MAX_SPOT_LIGHTS)
             {
-                break;
+                const auto& sp = data.parameters.spot;
+                auto& l = cb.spotLights[cb.spotCount++];
+                l.position = pos;
+                l.direction = fwd;
+                l.radius = sp.radius;
+                l.color = common.color;
+                l.intensity = common.intensity;
+                l.cosineInnerAngle = std::cos(XMConvertToRadians(sp.innerAngleDegrees));
+                l.cosineOuterAngle = std::cos(XMConvertToRadians(sp.outerAngleDegrees));
             }
-
-            const SpotLightParameters& spotParameters = lightData.parameters.spot;
-
-            GPUSpotLight gpuLight{};
-            gpuLight.position = position;
-            gpuLight.direction = forward;
-            gpuLight.radius = spotParameters.radius;
-            gpuLight.color = common.color;
-            gpuLight.intensity = common.intensity;
-            gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(spotParameters.innerAngleDegrees));
-            gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(spotParameters.outerAngleDegrees));
-
-            spotLights.push_back(gpuLight);
             break;
-        }
 
-        default:
-        {
-            break;
-        }
+        default: break;
         }
     }
 
-    constantBuffer.directionalCount = static_cast<uint32_t>(directionalLights.size());
-    constantBuffer.pointCount = static_cast<uint32_t>(pointLights.size());
-    constantBuffer.spotCount = static_cast<uint32_t>(spotLights.size());
-
-    for (uint32_t i = 0; i < constantBuffer.directionalCount; ++i)
-    {
-        constantBuffer.directionalLights[i] = directionalLights[i];
-    }
-
-    for (uint32_t i = 0; i < constantBuffer.pointCount; ++i)
-    {
-        constantBuffer.pointLights[i] = pointLights[i];
-    }
-
-    for (uint32_t i = 0; i < constantBuffer.spotCount; ++i)
-    {
-        constantBuffer.spotLights[i] = spotLights[i];
-    }
-
-    return constantBuffer;
+    return cb;
 }

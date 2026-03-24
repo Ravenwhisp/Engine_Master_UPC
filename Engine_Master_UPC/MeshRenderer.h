@@ -1,13 +1,16 @@
 #pragma once
 #include "Component.h"
-#include "BasicMesh.h"
 #include "BasicMaterial.h"
+#include "MeshAsset.h"
 #include "BoundingBox.h"
-#include "ModelAsset.h"
+#include "IDebugDrawable.h"
+
+class BasicMesh;
+class MaterialAsset;
 
 namespace tinygltf { class Model; }
 
-struct ModelData 
+struct ModelData
 {
 	Matrix model;
 	Matrix normalMat;
@@ -15,7 +18,7 @@ struct ModelData
 };
 
 
-class MeshRenderer : public Component
+class MeshRenderer : public Component, public IDebugDrawable
 {
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
@@ -23,41 +26,37 @@ public:
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	void addModel(ModelAsset& model);
+	void addMesh(MeshAsset& model);
+	void addMaterial(MaterialAsset& material);
 
-	std::vector<std::shared_ptr<BasicMesh>>&		getMeshes() const { return m_meshes; }
-	std::vector<std::shared_ptr<BasicMaterial>>&	getMaterials() const { return m_materials; }
-	bool											hasMeshes() { return m_meshes.size() != 0; }
-	UID												getModelAssetId() const { return m_modelAssetId; }
+	std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
+	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
 
-	BasicMaterial* getMaterial(UID materialId)
-	{
-		auto it = m_materialIndexByUID.find(materialId);
-		return m_materials[it->second].get();
-	}
+	bool									hasMesh() const { return m_mesh != nullptr; }
 
-	Engine::BoundingBox&							getBoundingBox() { return m_boundingBox; }
+	Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
 
 	void drawUi() override;
-
+	void debugDraw() override;
 	void onTransformChange() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
-	int getTriangles() { return m_triangles; }
+	int getTriangles() const { return m_triangles; }
+
+	MD5Hash& getMeshReference() { return m_meshAsset; }
+	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
 private:
-	mutable std::vector<std::shared_ptr<BasicMesh>>		m_meshes;
-	mutable std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
-	std::unordered_map<UID, uint32_t>					m_materialIndexByUID;
+	std::shared_ptr<BasicMesh>		m_mesh;
+	// The position of the material corresponds to the submesh number
+	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
-	Engine::BoundingBox									m_boundingBox;
+	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
+	std::vector<MD5Hash>			m_materialAssets;
 
-	UID m_modelAssetId = 0;
+	mutable Engine::BoundingBox				m_boundingBox;
 
-	std::string m_modelPath;
-	std::string m_basePath;
-
-	int m_triangles;
+	int m_triangles = 0;
 };

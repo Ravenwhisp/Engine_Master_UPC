@@ -2,9 +2,12 @@
 #include "ComponentType.h"
 #include "UID.h" 
 
-#include <rapidjson/document.h>
 class Transform;
 class GameObject;
+
+class SceneReferenceResolver;
+
+class IDebugDrawable;
 
 class Component {
 public:
@@ -22,11 +25,7 @@ public:
 
     #pragma region Loop functions
     virtual bool init() { return true; }
-    virtual bool postInit() { return true; }
     virtual void update() {}
-    virtual void preRender() {}
-    virtual void postRender() {}
-    virtual void render(ID3D12GraphicsCommandList* commandList, Matrix& viewMatrix, Matrix& projectionMatrix) {}
     virtual bool cleanUp() { return true; }
     #pragma endregion
 
@@ -37,8 +36,9 @@ public:
 
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
-    virtual void fixReferences(const std::unordered_map<UID, Component*>& referenceMap) {};
+    virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
+    virtual IDebugDrawable* getAsDebugDrawable()  { return nullptr; }
 protected:
     GameObject* m_owner;
 

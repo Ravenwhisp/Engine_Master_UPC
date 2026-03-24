@@ -2,7 +2,7 @@
 #include <vector>
 #include "Layer.h"
 
-class SceneModule;
+class Scene;
 
 struct TriangleSoup
 {
@@ -13,5 +13,5 @@ struct TriangleSoup
 class NavMeshGeometryExtractor
 {
 public:
-    static bool Extract(SceneModule& scene, TriangleSoup& out, Layer requiredLayer = Layer::NAVMESH, bool onlyActive = true);
+    static bool Extract(Scene& scene, TriangleSoup& out, Layer requiredLayer = Layer::NAVMESH, bool onlyActive = true);
 };

@@ -1,28 +1,31 @@
 #include "Globals.h"
 #include "FontPass.h"
+
+#include "RenderContext.h"
+
 #include "Application.h"
+#include "ModuleRender.h"
+#include "ModuleD3D12.h"
+#include "ModuleTime.h"
+
 #include "Settings.h"
-#include "RenderModule.h"
-#include "D3D12Module.h"
-
 #include "CommandQueue.h"
-#include "TimeModule.h"
 
-FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
+#include "UICommands.h"
+
+FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
 	m_settings = app->getSettings();
 
-	m_fontHeap = std::make_unique<DescriptorHeap>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
+	m_fontHeap = std::make_unique<DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 16);
 
-	m_upload =  std::make_unique<ResourceUploadBatch>(device.Get());
+	m_upload = std::make_unique<ResourceUploadBatch>(device.Get());
 
 	m_upload->Begin();
 
 	RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);
 
 	const SpriteBatchPipelineStateDescription pd(rtState);
-
-	auto upload2 = m_upload.get();
 
 	m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
@@ -31,9 +34,15 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device): m_device(device)
 		m_fontHeap->getCPUHandle(0),
 		m_fontHeap->getGPUHandle(0));
 
-	auto uploadResourcesFinished = m_upload->End(app->getD3D12Module()->getCommandQueue()->getD3D12CommandQueue().Get());
+	auto uploadResourcesFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
 	uploadResourcesFinished.wait();
+}
+
+void FontPass::prepare(const RenderContext& ctx)
+{
+	m_viewport = &ctx.viewport;
+	m_commands = ctx.uiTextCommands;
 }
 
 void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -63,7 +72,7 @@ void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
 {
-	if (!m_viewport)
+	if (!m_viewport || !m_spriteBatch)
 	{
 		return;
 	}
@@ -94,7 +103,7 @@ void FontPass::end()
 void FontPass::showDebugInformation() {
 	if (m_settings->debugGame.showFPS)
 	{
-		float deltaTime = app->getTimeModule()->deltaTime();
+		float deltaTime = app->getModuleTime()->deltaTime();
 		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
 		wchar_t buffer[64];
@@ -104,7 +113,7 @@ void FontPass::showDebugInformation() {
 	}
 	if (m_settings->debugGame.showFrametime)
 	{
-		float deltaTime = app->getTimeModule()->deltaTime();
+		float deltaTime = app->getModuleTime()->deltaTime();
 		float ms = deltaTime * 1000.0f;
 
 		wchar_t buffer[64];
@@ -114,7 +123,7 @@ void FontPass::showDebugInformation() {
 	}
 	if (m_settings->debugGame.showTrianglesNumber)
 	{
-		int triangles = app->getRenderModule()->getTriangles();
+		int triangles = app->getModuleRender()->getTriangles();
 
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Triangles: %d", triangles);

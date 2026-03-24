@@ -18,8 +18,8 @@ public:
     class Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
-    TextureAsset* getTextureAsset() const { return m_textureAsset; }
-    UID getTextureAssetId() const { return m_textureAssetId; }
+    TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
+    MD5Hash getTextureAssetId() const { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 
@@ -31,8 +31,8 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
-    UID m_textureAssetId = 0;
+    MD5Hash m_textureAssetId = INVALID_ASSET_ID;
     Texture* m_texture = nullptr;
-    TextureAsset* m_textureAsset = nullptr;
+    std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
 };
