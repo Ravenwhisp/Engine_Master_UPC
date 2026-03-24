@@ -20,7 +20,7 @@ public:
 	Matrix getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
-	const Vector3& getPosition() const;
+	const Vector3& getPosition() const { return m_position; }
 	const Quaternion& getRotation() const { return m_rotation; }
 	const Vector3& getScale() const { return m_scale; }
 
