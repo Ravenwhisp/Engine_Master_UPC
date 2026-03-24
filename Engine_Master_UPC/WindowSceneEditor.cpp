@@ -6,6 +6,7 @@
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
+#include "ModuleResources.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -20,6 +21,8 @@
 
 #include <WindowLogger.h>
 #include <PrefabUI.h>
+#include "RenderSurface.h"
+#include "Texture.h"
 
 WindowSceneEditor::WindowSceneEditor()
 {
@@ -31,6 +34,8 @@ WindowSceneEditor::WindowSceneEditor()
 	m_playToolbar = new PlayToolbar();
 
     auto d3d12Module = app->getModuleD3D12();
+
+    m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
 }
 
 WindowSceneEditor::~WindowSceneEditor()
@@ -73,7 +78,7 @@ void WindowSceneEditor::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getModuleRender()->getGPUEditorScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
         ImGui::Image(textureID, m_size);
         
     }
@@ -144,6 +149,7 @@ bool WindowSceneEditor::resize(ImVec2 contentRegion)
         abs(contentRegion.y - m_size.y) > 1.0f) 
     {
         setSize(contentRegion);
+        app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::EDITOR, contentRegion.x, contentRegion.y);
         return true;
     }
     return false;

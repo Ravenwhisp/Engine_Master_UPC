@@ -1,9 +1,7 @@
 #pragma once
 #include "EditorWindow.h"
-
-#include "ImGuizmo.h"
-#include <vector>
 #include "IDebugDrawable.h"
+#include "Delegates.h"
 
 class ModuleInput;
 class ModuleCamera;
@@ -17,6 +15,10 @@ class PlayToolbar;
 class DebugDrawPass;
 class GameObject;
 class RenderSurface;
+
+
+DECLARE_EVENT(OnResize, WindowSceneEditor);
+
 
 class WindowSceneEditor: public EditorWindow, public IDebugDrawable
 {

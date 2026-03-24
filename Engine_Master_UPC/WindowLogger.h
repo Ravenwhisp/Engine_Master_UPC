@@ -1,7 +1,5 @@
 #pragma once
 #include "EditorWindow.h"
-#include <vector>
-#include <string>
 #include <imgui.h>
 
 class WindowLogger : public EditorWindow

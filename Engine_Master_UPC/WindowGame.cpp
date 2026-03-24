@@ -5,11 +5,16 @@
 #include "Application.h"
 
 #include "ModuleRender.h"
+#include "ModuleResources.h"
 #include "PlayToolbar.h"
+#include "RenderSurface.h"
+#include "Texture.h"
 
 WindowGame::WindowGame()
 {
     m_playToolbar = new PlayToolbar();
+
+    m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
 }
 
 WindowGame::~WindowGame()
@@ -45,7 +50,7 @@ void WindowGame::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getModuleRender()->getGPUPlayScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
         ImGui::Image(textureID, m_size);
 
     }
@@ -74,6 +79,7 @@ bool WindowGame::resize(ImVec2 contentRegion)
         abs(contentRegion.y - m_size.y) > 1.0f)
     {
         setSize(contentRegion);
+        app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::EDITOR, contentRegion.x, contentRegion.y);
         return true;
     }
     return false;

@@ -3,9 +3,8 @@
 
 #include "ModuleD3D12.h"
 #include "ModuleCamera.h"
-#include "vector"
 #include <backends/imgui_impl_dx12.h>
-#include "Resources.h"
+
 #include "WindowSceneEditor.h"
 #include "WindowHardware.h"
 #include "WindowPerformance.h"
@@ -26,6 +25,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleGameView.h";
+#include "Mouse.h"
 
 using namespace std;
 
@@ -293,6 +293,8 @@ void ModuleEditor::update()
 
 void ModuleEditor::render()
 {
+    ImGuizmo::BeginFrame();
+
     #ifdef GAME_RELEASE
         if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
         {

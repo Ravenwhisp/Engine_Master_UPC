@@ -1,6 +1,5 @@
 #pragma once
 #include "EditorWindow.h"
-#include <dxgi1_6.h>
 
 class WindowHardware: public EditorWindow
 {

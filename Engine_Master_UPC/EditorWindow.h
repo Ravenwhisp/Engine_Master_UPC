@@ -2,7 +2,6 @@
 class EditorWindow
 {
 public:
-    EditorWindow(){}
     virtual ~EditorWindow() = default;
 
     virtual const char* getWindowName() const = 0;

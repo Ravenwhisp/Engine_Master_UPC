@@ -24,7 +24,7 @@
 
 WindowHierarchy::WindowHierarchy()
 {
-    m_treeRenderer.OnSelect.AddRaw( this, &WindowHierarchy::onSelect);
+    m_treeRenderer.OnSelect.AddRaw(this, &WindowHierarchy::onSelect);
 
     m_treeRenderer.OnReparent.AddRaw(this, &WindowHierarchy::onReparent);
 

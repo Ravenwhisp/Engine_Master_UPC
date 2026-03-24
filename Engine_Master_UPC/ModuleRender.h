@@ -77,7 +77,6 @@ public:
 private:
     // Surface helpers
     std::unique_ptr<RenderSurface> createSurface(float width, float height);
-    void                           resizeSurface(RenderSurface& surface, float width, float height);
 
     void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)> renderFunc);
 

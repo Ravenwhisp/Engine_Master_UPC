@@ -17,6 +17,8 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+#include "WindowSceneEditor.h"
+
 bool ModuleCamera::init() {
     m_settings = app->getSettings();
 

@@ -3,6 +3,7 @@
 
 class PlayToolbar;
 class ModuleInput;
+class RenderSurface;
 
 class WindowGame : public EditorWindow
 {

@@ -1,29 +1,24 @@
 #pragma once
 #include <Module.h>
-#include "DescriptorHeap.h"
-#include "EditorWindow.h"
-#include "WindowSceneEditor.h"
-#include <vector>
-#include "Keyboard.h"
-#include "Mouse.h"
 #include "PrefabEditSession.h"
-#include "PrefabManager.h"
+#include "Keyboard.h"
 
 class ModuleGameView;
-
-class ImGuiPass;
 
 class WindowLogger;
 class WindowHardware;
 class WindowPerformance;
 class WindowSceneEditor;
 class WindowHierarchy;
-class DebugDrawPass;
 class WindowEditorSettings;
-class SceneConfig;
 class WindowGame;
-
+class WindowSceneEditor;
+class EditorWindow;
 class WindowGameDebug;
+
+class SceneConfig;
+struct PrefabEditSession;
+
 
 class ModuleEditor: public Module
 {
@@ -64,7 +59,6 @@ public:
 #pragma endregion
 
 	WindowSceneEditor*	getWindowSceneEditor() { return m_sceneEditor; }
-	ImVec2			getWindowSceneEditorSize() { return m_sceneEditor->getSize();}
 
 	ImVec2 getEventViewport() const;
 	ImVec2 getEventViewportSize() const;
@@ -91,7 +85,7 @@ public:
 private:
 	void			setupDockLayout(ImGuiID dockspace_id);
 	void			mainDockspace(bool* open);
-private:
+
 	ModuleGameView* m_moduleGameView;
 
 #pragma region Views

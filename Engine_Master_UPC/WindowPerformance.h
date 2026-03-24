@@ -2,7 +2,6 @@
 #include "EditorWindow.h"
 #include "cvector.h"
 
-
 class WindowPerformance: public EditorWindow
 {
 public:
