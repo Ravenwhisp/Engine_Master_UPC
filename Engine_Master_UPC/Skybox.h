@@ -1,25 +1,11 @@
 #pragma once
 
-#include <cstdint>
 #include <memory>
-#include "SimpleMath.h"
-
-using DirectX::SimpleMath::Matrix;
 
 class TextureAsset;
 class VertexBuffer;
 class IndexBuffer;
 class Texture;
-
-struct SkyParams
-{
-    Matrix vp;
-    uint32_t flipX;
-    uint32_t flipZ;
-    uint32_t padding[2];
-};
-
-static_assert(sizeof(SkyParams) % 4 == 0);
 
 class SkyBox {
 public:
