@@ -1,8 +1,8 @@
 #pragma once
 #include "Buffer.h"
 
-class ResourcesModule;
-class BasicMeshMesh;;
+class ModuleResources;
+class BasicMeshMesh;
 
 class VertexBuffer: public Buffer
 {
@@ -14,7 +14,7 @@ public:
     D3D12_VERTEX_BUFFER_VIEW    getVertexBufferView() const{ return m_VertexBufferView; }
     size_t                      getNumVertices() const{ return m_NumVertices; }
 
-    friend class ResourcesModule;
+    friend class ModuleResources;
     friend class BasicMesh;
 
 protected:

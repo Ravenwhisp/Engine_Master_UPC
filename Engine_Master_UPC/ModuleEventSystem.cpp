@@ -2,12 +2,13 @@
 #include "ModuleEventSystem.h"
 
 #include "Application.h"
-#include "InputModule.h"
-#include "SceneModule.h"
-#include "EditorModule.h"
-#include "GameWindow.h"
-#include "D3D12Module.h"
+#include "ModuleInput.h"
+#include "ModuleScene.h"
+#include "ModuleEditor.h"
+#include "WindowGame.h"
+#include "ModuleD3D12.h"
 
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "Transform2D.h"
@@ -16,7 +17,7 @@
 
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
-#include <SceneEditor.h>
+#include <WindowSceneEditor.h>
 #include "Delegates.h"
 
 unsigned int DelegateHandle::CURRENT_ID = 0;
@@ -24,12 +25,12 @@ unsigned int DelegateHandle::CURRENT_ID = 0;
 
 static Vector2 GetMouseScreenPos()
 {
-    return app->getInputModule()->getMousePosition();
+    return app->getModuleInput()->getMousePosition();
 }
 
 static bool IsMouseButtonPressed(PointerButton btn)
 {
-    InputModule* input = app->getInputModule();
+    ModuleInput* input = app->getModuleInput();
     switch (btn)
     {
     case PointerButton::Left:   return input->isLeftMousePressed();
@@ -41,7 +42,7 @@ static bool IsMouseButtonPressed(PointerButton btn)
 
 static bool IsMouseButtonReleased(PointerButton btn)
 {
-    InputModule* input = app->getInputModule();
+    ModuleInput* input = app->getModuleInput();
     switch (btn)
     {
     case PointerButton::Left:   return input->isLeftMouseReleased();
@@ -58,7 +59,7 @@ bool ModuleEventSystem::init()
 
 void ModuleEventSystem::update()
 {
-    if (app->getSceneModule()->isPendingSceneLoad()) {
+    if (app->getModuleScene()->isPendingSceneLoad()) {
         clearHoverState();
         return;
 
@@ -151,22 +152,22 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
 #ifdef GAME_RELEASE
 
-    auto viewport = app->getD3D12Module()->getSwapChain()->getViewport();
+    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
 
     const ImVec2 size(viewport.Width, viewport.Height);
     const float winX = viewport.TopLeftX;
     const float winY = viewport.TopLeftY;
 
 #else
-    auto viewport = app->getEditorModule()->getEventViewport();
-    auto size = app->getEditorModule()->getEventViewportSize();
+    auto viewport = app->getModuleEditor()->getEventViewport();
+    auto size = app->getModuleEditor()->getEventViewportSize();
     const float winX = viewport.x;
     const float winY = viewport.y;
 
 #endif // GAME_RELEASE
 
     // Raw mouse position in screen pixels
-    const Vector2 rawMouse = app->getInputModule()->getMousePosition();
+    const Vector2 rawMouse = app->getModuleInput()->getMousePosition();
     
     // Viewport top-left in screen pixels
     
@@ -218,13 +219,13 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
 
 #ifdef GAME_RELEASE
 
-    auto viewport = app->getD3D12Module()->getSwapChain()->getViewport();
+    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
 
     const ImVec2 size(viewport.Width, viewport.Height);
 
 #else
 
-    auto size = app->getEditorModule()->getEventViewportSize();
+    auto size = app->getModuleEditor()->getEventViewportSize();
 
 #endif // GAME_RELEASE
 
@@ -234,7 +235,7 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     screenRect.w = size.x;
     screenRect.h = size.y;
 
-    for (GameObject* root : app->getSceneModule()->getAllGameObjects())
+    for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!root || !root->GetActive()) continue;
 

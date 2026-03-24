@@ -18,7 +18,8 @@
     X(CHANGE_SCENE_ON_TRIGGER) \
     X(NAVMESH_WALK)         \
     X(NAVIGATION_AGENT)     \
-    X(WAYPOINT_PATH)         
+    X(WAYPOINT_PATH)        \
+    X(SCRIPT)               
 
 enum class ComponentType
 {

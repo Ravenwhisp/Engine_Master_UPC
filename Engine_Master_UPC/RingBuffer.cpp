@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "RingBuffer.h"
 #include "Application.h"
-#include "ResourcesModule.h"
+#include "ModuleResources.h"
 
 RingBuffer::RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t size) : Buffer(device, buffer), m_totalMemorySize(size)
 {
@@ -15,7 +15,7 @@ RingBuffer::~RingBuffer() {
     m_mappedData = nullptr;
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, UINT currentFrame)
+D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, uint64_t currentFrame)
 {
 
 
@@ -67,7 +67,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
 }
 
 
-void RingBuffer::free(UINT lastCompletedFrame)
+void RingBuffer::free(uint64_t lastCompletedFrame)
 {
 	while (!m_allocationQueue.empty() && m_allocationQueue.front().frameIndex < lastCompletedFrame)
 	{

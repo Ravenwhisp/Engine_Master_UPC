@@ -1,47 +1,53 @@
 #pragma once
+
 #include "IRenderPass.h"
 #include "Lights.h"
-#include "GameObject.h"
-#include <RingBuffer.h>
-#include <MeshRenderer.h>
-#include "SceneModule.h"
 
-class Submesh;
+#include <vector>
+#include <d3d12.h>
+#include <wrl/client.h>
+
+using Microsoft::WRL::ComPtr;
+
+struct Submesh;
+class RingBuffer;
+class MeshRenderer;
+class GameObject;
+class LightComponent;
+
+struct SceneLightingSettings;
+struct SceneDataCB;
+
+namespace DirectX { namespace SimpleMath { struct Vector3; struct Matrix; } }
+
+using Vector3 = DirectX::SimpleMath::Vector3;
+using Matrix = DirectX::SimpleMath::Matrix;
 
 class MeshRendererPass : public IRenderPass {
 public:
-    MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer);
-
-    void setMeshes(const std::vector<MeshRenderer*>& meshRenderers) { m_meshRenderers = &meshRenderers; }
-
-    void setCameraPosition(const Vector3& cameraPos) { m_sceneDataCB.viewPos = cameraPos; }
-    void setView(const Matrix& view) { m_view = &view; }
-    void setProjection(const Matrix& projection) { m_projection = &projection; }
-
-    /*void setRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle) { m_rtvHandle = rtvHandle; }
-    void setDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle) { m_dsvHandle = dsvHandle; }
-
-    void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
-    void setRectScissor(const D3D12_RECT& scissorRect) { m_scissorRect = &scissorRect; }*/
+    MeshRendererPass(ComPtr<ID3D12Device4> device);
 
 
+    virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
-    D3D12_GPU_VIRTUAL_ADDRESS buildAndUploadLightsCB();
-    GPULightsConstantBuffer packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const;
+
+    GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
+
     void renderMesh(ID3D12GraphicsCommandList* commandList);
 
 private:
-    mutable const std::vector<MeshRenderer*>*     m_meshRenderers;
+    std::vector<MeshRenderer*> m_meshRenderers;
 
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
     ComPtr<ID3D12PipelineState>		m_pipelineState;
 
-    RingBuffer*                     m_ringBuffer;
+    D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_lightsAddress = 0;
 
-    SceneLightingSettings		    m_lighting;
-    SceneDataCB				        m_sceneDataCB;
+    std::unique_ptr<SceneLightingSettings> m_lighting;
+    std::unique_ptr<SceneDataCB> m_sceneDataCB;
 
-    mutable const Matrix* m_projection;
-    mutable const Matrix* m_view;
+    const Matrix* m_projection = nullptr;
+    const Matrix* m_view = nullptr;
 };

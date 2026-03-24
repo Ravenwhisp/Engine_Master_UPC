@@ -1,16 +1,21 @@
 #include "Globals.h"
-#include "Skybox.h"
+#include "SkyBox.h"
 
 #include "Application.h"
-#include "ResourcesModule.h"
+#include "ModuleResources.h"
+
+#include "Texture.h"
+#include "TextureAsset.h"
+#include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "ModuleResources.h"
+#include "TextureAsset.h"
 
-struct SkyboxVertex { Vector3 position; };
-
+struct SkyBoxVertex { Vector3 position; };
 
 SkyBox::SkyBox(TextureAsset& asset)
 {
-    static const SkyboxVertex vertexes[] =
+    static const SkyBoxVertex vertexes[] =
     {
         {{-1, -1, -1}}, {{-1,  1, -1}}, {{ 1,  1, -1}}, {{ 1, -1, -1}},
         {{-1, -1,  1}}, {{-1,  1,  1}}, {{ 1,  1,  1}}, {{ 1, -1,  1}},
@@ -26,8 +31,10 @@ SkyBox::SkyBox(TextureAsset& asset)
         4,0,3, 4,3,7
     };
 
-	m_vertexBuffer = app->getResourcesModule()->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyboxVertex));
-	m_indexBuffer = app->getResourcesModule()->createIndexBuffer(indexes, _countof(indexes) , DXGI_FORMAT_R16_UINT);
-
-    m_texture = app->getResourcesModule()->createTextureCubeFromFile(asset);
+    m_vertexBuffer.reset(app->getModuleResources()->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyBoxVertex)));
+    m_vertexBuffer->setName(L"Vertex SkyBox");
+    m_indexBuffer.reset(app->getModuleResources()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT, "IndexBuffer skybox"));
+    m_texture = app->getModuleResources()->createTexture(asset);
 }
+
+SkyBox::~SkyBox() = default;

@@ -3,10 +3,10 @@
 #include "NavigationAgentComponent.h"
 #include "WaypointPathComponent.h"
 #include "Application.h"
-#include "NavigationModule.h"
+#include "ModuleNavigation.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "TimeModule.h"
+#include "ModuleTime.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -41,7 +41,7 @@ std::unique_ptr<Component> NavigationAgentComponent::clone(GameObject* newOwner)
 
 void NavigationAgentComponent::setTarget(const Vector3& target)
 {
-	auto* navigationModule = app->getNavigationModule();
+	auto* navigationModule = app->getModuleNavigation();
 	if (!navigationModule || !navigationModule->hasNavMesh())
 		return;
 
@@ -122,7 +122,7 @@ void NavigationAgentComponent::update()
 
 	direction.Normalize();
 
-	float dt = app->getTimeModule()->deltaTime();
+	float dt = app->getModuleTime()->deltaTime();
 	current += direction * m_speed * dt;
 
 	// rotate towards the target
@@ -215,13 +215,17 @@ void NavigationAgentComponent::drawUi()
 	}
 }
 
-void NavigationAgentComponent::drawDebugPath()
+void NavigationAgentComponent::debugDraw()
 {
 	if (!m_drawPath)
+	{
 		return;
+	}
 
 	if (m_path.size() < 2)
+	{
 		return;
+	}
 
 	for (size_t i = 0; i + 1 < m_path.size(); ++i)
 	{

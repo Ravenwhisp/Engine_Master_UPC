@@ -7,7 +7,7 @@
 #include "Engine.h"
 
 #include "Application.h"
-#include "D3D12Module.h"
+#include "ModuleD3D12.h"
 
 #include <shellapi.h>
 
@@ -149,13 +149,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        return FALSE;
    }
 
-   if (!app->postInit())
-   {
-       delete app;
-
-       return FALSE;
-   }
-
    // Set the window to be the size of the monitor
    MONITORINFO monitor = {};
    monitor.cbSize = sizeof(monitor);
@@ -245,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         else {
             app->setPaused(false);
-            app->getD3D12Module()->getSwapChain()->resize();
+            app->getModuleD3D12()->getSwapChain()->resize();
         }
         break;
     case WM_SYSKEYDOWN:

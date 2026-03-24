@@ -1,11 +1,16 @@
 #include "Globals.h"
 #include "CameraFollow.h"
+
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
+#include "ModuleTime.h"
+
+#include "Scene.h"
 #include "GameObject.h"
-#include "Transform.h"
-#include "TimeModule.h"
 #include "ComponentType.h"
+#include "Transform.h"
+
+#include "SceneReferenceResolver.h"
 
 static const float PI = 3.1415926535897931f;
 
@@ -36,7 +41,7 @@ std::unique_ptr<Component> CameraFollow::clone(GameObject* newOwner) const
 	return clonedComponent;
 }
 
-void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& referenceMap)
+void CameraFollow::fixReferences(const SceneReferenceResolver& resolver)
 {
     m_firstTargetTransform = nullptr;
     m_secondTargetTransform = nullptr;
@@ -45,19 +50,19 @@ void CameraFollow::fixReferences(const std::unordered_map<UID, Component*>& refe
 
     if (m_firstTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_firstTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_firstTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_firstTargetTransform = static_cast<Transform*>(it->second);
+            m_firstTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
     if (m_secondTargetTransformUid != 0)
     {
-        auto it = referenceMap.find(m_secondTargetTransformUid);
-        if (it != referenceMap.end())
+        Component* comp = resolver.getClonedComponent(m_secondTargetTransformUid);
+        if (comp && comp->getType() == ComponentType::TRANSFORM)
         {
-            m_secondTargetTransform = static_cast<Transform*>(it->second);
+            m_secondTargetTransform = static_cast<Transform*>(comp);
         }
     }
 
@@ -82,7 +87,7 @@ void CameraFollow::update()
 
     Transform* cameraTransform = m_owner->GetTransform();
 
-    const float dt = app->getTimeModule()->deltaTime();
+    const float dt = app->getModuleTime()->deltaTime();
 
     const bool hasSecondTarget = (m_secondTargetTransform != nullptr);
 
@@ -240,7 +245,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {
@@ -281,7 +286,7 @@ void CameraFollow::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
         {
             GameObject* droppedObject = *(GameObject**)payload->Data;
-            GameObject* sceneObject = app->getSceneModule()->findGameObjectByUID(droppedObject->GetID());
+            GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
             if (sceneObject && sceneObject->GetComponent(ComponentType::PLAYER_WALK))
             {

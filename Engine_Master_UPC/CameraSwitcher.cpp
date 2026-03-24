@@ -2,10 +2,12 @@
 #include "CameraSwitcher.h"
 
 #include "Application.h"
-#include "SceneModule.h"
+#include "ModuleScene.h"
+#include "ModuleInput.h"
+
+#include "Scene.h"
 #include "GameObject.h"
 #include "CameraComponent.h"
-#include "InputModule.h"
 
 #include <imgui.h>
 
@@ -44,7 +46,7 @@ void CameraSwitcher::update()
         syncCurrentIndexWithDefaultCamera();
     }
 
-    const bool isSwitchKeyPressed = app->getInputModule()->isKeyDown(Keyboard::Keys::T);
+    const bool isSwitchKeyPressed = app->getModuleInput()->isKeyDown(Keyboard::Keys::T);
 
     if (isSwitchKeyPressed && !m_wasSwitchKeyPressed)
     {
@@ -76,7 +78,7 @@ void CameraSwitcher::rebuildCameraList()
 {
     m_cameras.clear();
 
-    for (GameObject* gameObject : app->getSceneModule()->getAllGameObjects())
+    for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!gameObject || !gameObject->GetActive())
         {
@@ -93,7 +95,7 @@ void CameraSwitcher::rebuildCameraList()
 
 void CameraSwitcher::syncCurrentIndexWithDefaultCamera()
 {
-    CameraComponent* defaultCamera = app->getSceneModule()->getDefaultCamera();
+    CameraComponent* defaultCamera = app->getModuleScene()->getScene()->getDefaultCamera();
     m_currentIndex = -1;
 
     for (int i = 0; i < (int)m_cameras.size(); ++i)
@@ -119,7 +121,7 @@ void CameraSwitcher::switchToNextCamera()
         m_currentIndex = (m_currentIndex + 1) % (int)m_cameras.size();
     }
 
-    app->getSceneModule()->setDefaultCamera(m_cameras[m_currentIndex]);
+    app->getModuleScene()->getScene()->setDefaultCamera(m_cameras[m_currentIndex]);
 
     GameObject* owner = m_cameras[m_currentIndex] ? m_cameras[m_currentIndex]->getOwner() : nullptr;
 }
