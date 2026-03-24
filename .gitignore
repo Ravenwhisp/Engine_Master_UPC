@@ -9,6 +9,10 @@ Engine_OUT/Assets/
 Engine_OUT/Engine.exe
 Engine_OUT/*.cso
 
+Engine_OUT/Engine.exp
+Engine_OUT/Engine.lib
+Engine_OUT/GameScripts.dll
+
 # User-specific files
 *.rsuser
 *.suo
@@ -422,3 +426,4 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/Engine_Master_UPC/3rdParty/DirectXTK12/x64/Debug/DirectXTK12.vcxproj.FileListAbsolute.txt
