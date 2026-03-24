@@ -272,8 +272,6 @@ bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
     FixReferences(scene);
     ResolveDefaultCamera(scene, json);
 
-    scene.applySkyBoxToRenderer();
-
     return true;
 }
 

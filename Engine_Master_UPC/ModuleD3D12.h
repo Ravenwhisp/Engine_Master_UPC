@@ -11,10 +11,6 @@
 #include "SwapChain.h"
 #include <GraphicsMemory.h>
 
-
-// -----------------------------------------------------------------------------
-// ModuleD3D12
-// -----------------------------------------------------------------------------
 class ModuleD3D12 : public Module
 {
 public:
@@ -23,7 +19,6 @@ public:
 
 	bool init() override;
 	void preRender() override;
-	void render() override;
 	void postRender() override;
 	bool cleanUp() override;
 

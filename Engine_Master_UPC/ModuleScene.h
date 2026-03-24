@@ -14,6 +14,9 @@ class GameObject;
 class Component;
 class CameraComponent;
 class MeshRenderer;
+class ScriptComponent;
+class LightComponent;
+class IDebugDrawable;
 
 struct ID3D12GraphicsCommandList;
 
@@ -26,7 +29,11 @@ private:
     std::unique_ptr<SceneSerializer> m_sceneSerializer;
     std::string m_pendingSceneLoad;
 
-    std::vector<MeshRenderer*> m_meshRenderers;
+    std::vector<MeshRenderer*>       m_meshRenderers;
+    std::vector<LightComponent*>     m_lightComponents;
+    std::vector<ScriptComponent*>    m_scriptComponents;
+
+    void rebuildComponentCaches();
 
 public:
     ModuleScene();
@@ -35,7 +42,6 @@ public:
 #pragma region GameLoop
     bool init() override;
     void update() override;
-    void render(ID3D12GraphicsCommandList* commandList);
     bool cleanUp() override;
 #pragma endregion
 
@@ -55,5 +61,8 @@ public:
 
     Scene* getScene() { return m_scene.get(); }
     Quadtree* getQuadtree() { return m_quadtree.get(); }
-    std::vector<MeshRenderer*> getAllMeshRenderers() const;
+
+    const std::vector<MeshRenderer*>& getMeshRenderers();
+    const std::vector<LightComponent*>& getLightComponents();
+    const std::vector<ScriptComponent*>& getScriptComponents();
 };

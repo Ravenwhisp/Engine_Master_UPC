@@ -2,6 +2,7 @@
 #include "ModuleScene.h"
 
 #include "Application.h"
+#include "Settings.h"
 #include "ModuleNavigation.h"
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
@@ -16,10 +17,14 @@
 #include "Transform.h"
 #include "CameraComponent.h"
 #include "MeshRenderer.h"
+#include "LightComponent.h"
+#include "ScriptComponent.h"
 
 #include <unordered_map>
 
 using namespace DirectX::SimpleMath;
+
+
 
 ModuleScene::ModuleScene()
 {
@@ -61,33 +66,65 @@ bool ModuleScene::cleanUp()
 }
 #pragma endregion
 
-std::vector<MeshRenderer*> ModuleScene::getAllMeshRenderers() const
+void ModuleScene::rebuildComponentCaches()
 {
-    std::vector<MeshRenderer*> result;
-    std::vector<GameObject*> objects;
+    m_meshRenderers.clear();
+    m_lightComponents.clear();
+    m_scriptComponents.clear();
 
-    bool useCulling = false;
-    if (useCulling && m_scene->getDefaultCamera())
-    {
-        objects = m_quadtree->query();
-    }
-    else
-    {
-        objects = m_scene->getAllGameObjects();
-    }
 
-    for (GameObject* go : objects)
+    for (GameObject* go : m_scene->getAllGameObjects())
     {
         if (!go->GetActive())
+        {
             continue;
+        }
 
-        auto mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+        if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+        {
+            m_meshRenderers.push_back(mesh);
+        }
 
-        if (mesh && mesh->hasMesh())
-            result.push_back(mesh);
+        if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
+        {
+            m_lightComponents.push_back(light);
+        }
+
+        if (auto* script = go->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT))
+        {
+            m_scriptComponents.push_back(script);
+        }
     }
 
-    return result;
+    m_scene->clearDirty();
+}
+
+const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+    return m_meshRenderers;
+}
+
+const std::vector<LightComponent*>& ModuleScene::getLightComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+    return m_lightComponents;
+}
+
+const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_scriptComponents;
 }
 
 #pragma region Persistence

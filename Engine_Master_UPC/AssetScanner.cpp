@@ -70,8 +70,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     Metadata meta;
     if (!app->getModuleAssets()->loadMetaFile(metadataPath, meta))
     {
-        DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.",
-            metadataPath.string().c_str());
+        DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.",  metadataPath.string().c_str());
         return;
     }
 

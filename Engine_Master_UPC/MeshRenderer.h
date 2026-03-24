@@ -3,6 +3,7 @@
 #include "BasicMaterial.h"
 #include "MeshAsset.h"
 #include "BoundingBox.h"
+#include "IDebugDrawable.h"
 
 class BasicMesh;
 class MaterialAsset;
@@ -17,7 +18,7 @@ struct ModelData
 };
 
 
-class MeshRenderer : public Component
+class MeshRenderer : public Component, public IDebugDrawable
 {
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
@@ -33,10 +34,10 @@ public:
 
 	bool									hasMesh() const { return m_mesh != nullptr; }
 
-	Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
+	Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
 
 	void drawUi() override;
-
+	void debugDraw() override;
 	void onTransformChange() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -55,7 +56,7 @@ private:
 	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
 	std::vector<MD5Hash>			m_materialAssets;
 
-	Engine::BoundingBox				m_boundingBox;
+	mutable Engine::BoundingBox				m_boundingBox;
 
 	int m_triangles = 0;
 };

@@ -14,11 +14,12 @@ class Transform2D;
 class ModuleUI : public Module
 {
 public:
-    bool init() override;
     void preRender() override;
     bool cleanUp() override;
 
-    void renderUI(ID3D12GraphicsCommandList4* commandList, D3D12_VIEWPORT viewport);
+    const std::vector<UITextCommand>& getTextCommands()  const { return m_textCommands; }
+    const std::vector<UIImageCommand>& getImageCommands() const { return m_imageCommands; }
+
 
     void text(const wchar_t* msg, float x, float y);
     void text(const std::wstring& msg, float x, float y);

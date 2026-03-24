@@ -68,19 +68,18 @@ void CameraComponent::onTransformChange()
 
 void CameraComponent::drawUi() 
 {
-	m_frustum.render(m_world);
-
-
     ImGui::Separator();
 
 	float fov = m_horizontalFov;
 	float nearPlane = m_nearPlane;
 	float farPlane = m_farPlane;
 	float aspectRatio = m_aspectRatio;
+
     ImGui::DragFloat("FOV (horizontal)", &fov, 1.0f, 5.0f, 120.0f);
 	ImGui::DragFloat("Near plane", &nearPlane, 0.005f, 0.01f, 1.0f);
 	ImGui::DragFloat("Far plane", &farPlane, 1.0f, 10.0f, 100.0f);
 	ImGui::DragFloat("Aspect ratio", &aspectRatio, 0.001f, 1.333333f, 2.333333f); // 4:3 to 21:9 -- FIXME : change to a dropdown menu with several options
+
 	if (fov != m_horizontalFov || nearPlane != m_nearPlane || farPlane != m_farPlane || aspectRatio != m_aspectRatio) 
 	{
 		m_horizontalFov = fov;
@@ -109,6 +108,11 @@ void CameraComponent::drawUi()
 	{
 		app->setCurrentCameraPerspective(nullptr);
 	}
+}
+
+void CameraComponent::debugDraw()
+{
+	m_frustum.render(m_world);
 }
 
 bool CameraComponent::cleanUp() 

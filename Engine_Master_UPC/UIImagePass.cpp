@@ -1,5 +1,8 @@
 #include "Globals.h"
 #include "UIImagePass.h"
+
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleD3D12.h"
 #include "CommandQueue.h"
@@ -18,9 +21,15 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 
     m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
-    auto uploadFinished = m_upload->End( app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
+    auto uploadFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
     uploadFinished.wait();
+}
+
+void UIImagePass::prepare(const RenderContext& ctx)
+{
+    m_viewport = &ctx.viewport;
+    m_commands = ctx.uiImageCommands;
 }
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)

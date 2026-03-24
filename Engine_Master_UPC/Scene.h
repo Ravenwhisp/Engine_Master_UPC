@@ -30,7 +30,11 @@ private:
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
 
+    bool m_componentCacheDirty = true;
+
+
 public:
+    friend class ModuleScene;
 
     Scene();
     ~Scene();
@@ -53,7 +57,6 @@ public:
     SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
 
-    bool applySkyBoxToRenderer();
 
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
@@ -78,4 +81,8 @@ public:
     const std::vector<GameObject*> getAllGameObjects() const;
 
     void clearScene();
+
+    void  markDirty() { m_componentCacheDirty = true; }
+    bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
+    void  clearDirty() { m_componentCacheDirty = false; }
 };
