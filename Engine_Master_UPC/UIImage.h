@@ -5,14 +5,23 @@
 
 struct Rect2D;
 
+enum class FillMethod
+{
+    Horizontal,
+    Vertical,
+    Radial90,
+    Radial180,
+    Radial360
+};
+
 class UIImage : public Component
 {
 public:
     UIImage(UID id, GameObject* owner);
 
-	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+    std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-    void requestLoad() { m_loadRequested = true; }              
+    void requestLoad() { m_loadRequested = true; }
     bool consumeLoadRequest();
 
     class Texture* getTexture() const { return m_texture; }
@@ -25,6 +34,15 @@ public:
 
     bool hasTexture() const { return m_texture != nullptr; }
 
+    float getFillAmount() const { return m_fillAmount; }
+    void setFillAmount(float amount) { m_fillAmount = amount; }
+
+    FillMethod getFillMethod() const { return m_fillMethod; }
+    void setFillMethod(FillMethod method) { m_fillMethod = method; }
+
+    bool getClockwise() const { return m_clockwise; }
+    void setClockwise(bool clockwise) { m_clockwise = clockwise; }
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -35,4 +53,8 @@ private:
     Texture* m_texture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
+
+    float m_fillAmount = 1.0f;
+    FillMethod m_fillMethod = FillMethod::Horizontal;
+    bool m_clockwise = true;
 };
