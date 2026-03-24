@@ -24,27 +24,15 @@
 
 WindowHierarchy::WindowHierarchy()
 {
-    m_treeRenderer.onSelect = [this](GameObject* go)
-        {
-            onSelectCallback(go);
-        };
+    m_treeRenderer.OnSelect.AddRaw( this, &WindowHierarchy::onSelect);
 
-    m_treeRenderer.onReparent = [this](GameObject* child, GameObject* newParent)
-        {
-            onReparentCallback(child, newParent);
-        };
+    m_treeRenderer.OnReparent.AddRaw(this, &WindowHierarchy::onReparent);
 
-    m_treeRenderer.onPrefabDropOnNode = [this](const std::filesystem::path& path,
-        GameObject* parent)
-        {
-            onPrefabDropOnNode(path, parent);
-        };
+    m_treeRenderer.OnPrefabDropOnNode.AddRaw(this, &WindowHierarchy::onPrefabDropOnNode);
 
-    m_treeRenderer.onDeleteRequested = [this](GameObject* go)
-        {
-            onDeleteRequestedCallback(go);
-        };
+    m_treeRenderer.OnDeleteRequested.AddRaw(this, &WindowHierarchy::onDeleteRequested);
 }
+
 
 void WindowHierarchy::render()
 {
@@ -140,7 +128,7 @@ void WindowHierarchy::drawSceneTree()
         {
             if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
             {
-                onReparentCallback(*static_cast<GameObject**>(p->Data), nullptr);
+                onReparent(*static_cast<GameObject**>(p->Data), nullptr);
             }
 
             if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
@@ -230,12 +218,12 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 }
 
 
-void WindowHierarchy::onSelectCallback(GameObject* go)
+void WindowHierarchy::onSelect(GameObject* go)
 {
     app->getModuleEditor()->setSelectedGameObject(go);
 }
 
-void WindowHierarchy::onReparentCallback(GameObject* child, GameObject* newParent)
+void WindowHierarchy::onReparent(GameObject* child, GameObject* newParent)
 {
     reparent(child, newParent);
 }
@@ -247,7 +235,7 @@ void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath
     InstantiatePrefabAction(scene, sourcePath, parent).run();
 }
 
-void WindowHierarchy::onDeleteRequestedCallback(GameObject* go)
+void WindowHierarchy::onDeleteRequested(GameObject* go)
 {
     if (!go) return;
 

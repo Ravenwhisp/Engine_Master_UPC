@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "EditorWindow.h"
 #include "HierarchyTreeRenderer.h"
+#include "Delegates.h"
 
 class GameObject;
 class Scene;
@@ -28,10 +29,10 @@ private:
 
     void drawInlineRename();
 
-    void onSelectCallback(GameObject* go);
-    void onReparentCallback(GameObject* child, GameObject* newParent);
+    void onSelect(GameObject* go);
+    void onReparent(GameObject* child, GameObject* newParent);
     void onPrefabDropOnNode(const std::filesystem::path& sourcePath, GameObject* parent);
-    void onDeleteRequestedCallback(GameObject* go);
+    void onDeleteRequested(GameObject* go);
 
     HierarchyTreeRenderer               m_treeRenderer;
     HierarchyTreeRenderer::SelectionState m_selectionState;

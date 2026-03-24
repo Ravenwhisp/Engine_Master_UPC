@@ -1,18 +1,24 @@
 #pragma once
+#include "Delegates.h"
 #include <functional>
 #include <filesystem>
 
 class GameObject;
 class Scene;
 
+DECLARE_EVENT(HierarchySelectEvent, HierarchyTreeRenderer, GameObject*);
+DECLARE_EVENT(HierarchyReparentEvent, HierarchyTreeRenderer, GameObject*, GameObject*);
+DECLARE_EVENT(HierarchyPrefabDropEvent, HierarchyTreeRenderer, const std::filesystem::path&, GameObject*);
+DECLARE_EVENT(HierarchyDeleteRequestEvent, HierarchyTreeRenderer, GameObject*);
+
 class HierarchyTreeRenderer
 {
 public:
 
-    std::function<void(GameObject*)>                                    onSelect;
-    std::function<void(GameObject*, GameObject*)>                       onReparent;
-    std::function<void(const std::filesystem::path&, GameObject*)>      onPrefabDropOnNode;
-    std::function<void(GameObject*)>                                    onDeleteRequested;
+    HierarchySelectEvent        OnSelect;
+    HierarchyReparentEvent      OnReparent;
+    HierarchyPrefabDropEvent    OnPrefabDropOnNode;
+    HierarchyDeleteRequestEvent OnDeleteRequested;
 
     struct SelectionState
     {
@@ -24,6 +30,6 @@ public:
 
 private:
     void drawContextMenu(GameObject* go, bool prefabMode, bool isEditRoot) const;
-    void handleDragDropSource(GameObject* go, bool isEditRoot) const;
+    void handleDragDropSource(GameObject* go, bool isEditRoot, SelectionState& state) const;
     void handleDragDropTarget(GameObject* go) const;
 };

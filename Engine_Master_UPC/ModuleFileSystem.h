@@ -6,10 +6,9 @@
 #include <cstddef>
 
 // Pure file-system I/O module.
-class ModuleFileSystem : public Module
+class ModuleFileSystem: public Module
 {
 public:
-    bool init() override;
 
     std::vector<uint8_t> read(const std::filesystem::path& filePath) const;
 

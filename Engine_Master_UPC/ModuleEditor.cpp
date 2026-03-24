@@ -16,7 +16,7 @@
 #include "WindowHierarchy.h"
 #include "WindowInspector.h"
 #include "WindowEditorSettings.h"
-#include "FileDialog.h"
+#include "WindowFileDialog.h"
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
@@ -252,7 +252,7 @@ bool ModuleEditor::init()
     m_editorWindows.push_back(m_hardwareWindow = new WindowHardware());
     m_editorWindows.push_back(m_performanceWindow = new WindowPerformance());
     m_editorWindows.push_back(m_editorSettings = new WindowEditorSettings());
-    m_editorWindows.push_back(new FileDialog());
+    m_editorWindows.push_back(new WindowFileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
 	ModuleD3D12* _d3d12 = app->getModuleD3D12();

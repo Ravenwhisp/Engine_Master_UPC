@@ -4,10 +4,6 @@
 #include <fstream>
 #include <filesystem>
 
-bool ModuleFileSystem::init()
-{
-    return true;
-}
 
 std::vector<uint8_t> ModuleFileSystem::read(const std::filesystem::path& filePath) const
 {

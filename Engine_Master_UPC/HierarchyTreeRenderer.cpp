@@ -1,4 +1,4 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "HierarchyTreeRenderer.h"
 
 #include <imgui.h>
@@ -14,13 +14,14 @@
 #include "PrefabUI.h"
 #include "PrefabManager.h"
 #include "PrefabEditSession.h"
-#include "PrefabAsset.h"
 
 
-void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool  prefabMode, SelectionState& state) const
+void HierarchyTreeRenderer::renderNode(GameObject* gameObject,
+    bool           prefabMode,
+    SelectionState& state) const
 {
     Transform* transform = gameObject->GetTransform();
-    const auto children = transform->getAllChildren();
+    const auto  children = transform->getAllChildren();
 
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     const bool isEditRoot = prefabMode && session && gameObject == session->m_rootObject;
@@ -33,17 +34,15 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool  prefabMode,
 
     if (isEditRoot) flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
-    if (isEditRoot) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
-    }
-    else if (isPrefabInst) {
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
-    }
+    if (isEditRoot)   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
+    else if (isPrefabInst) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
 
-    const char* rawLabel = (isEditRoot && session) ? session->m_sourcePath.filename().string().c_str() : gameObject->GetName().c_str();
+    const char* rawLabel = (isEditRoot && session)
+        ? session->m_sourcePath.filename().string().c_str()
+        : gameObject->GetName().c_str();
 
-    std::string nodeId = std::string(rawLabel) + "###" + std::to_string(gameObject->GetID());
-    bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
+    const std::string nodeId = std::string(rawLabel) + "###" + std::to_string(gameObject->GetID());
+    const bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
 
     if (isEditRoot || isPrefabInst) ImGui::PopStyleColor();
 
@@ -53,22 +52,22 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool  prefabMode,
         state.isDragging = false;
     }
 
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
+    {
         app->getModuleEditor()->setSelectedGameObject(gameObject);
     }
 
     drawContextMenu(gameObject, prefabMode, isEditRoot);
-
-    handleDragDropSource(gameObject, isEditRoot);
+    handleDragDropSource(gameObject, isEditRoot, state);
     handleDragDropTarget(gameObject);
 
-    if (state.pendingSelection == gameObject && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+    if (state.pendingSelection == gameObject &&
+        ImGui::IsMouseReleased(ImGuiMouseButton_Left))
     {
-        if (!state.isDragging && onSelect)
+        if (!state.isDragging)
         {
-            onSelect(gameObject);
+            const_cast<HierarchySelectEvent&>(OnSelect).Broadcast(gameObject);
         }
-
         state.pendingSelection = nullptr;
     }
 
@@ -82,7 +81,10 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool  prefabMode,
     }
 }
 
-void HierarchyTreeRenderer::drawContextMenu(GameObject* go, bool prefabMode, bool isEditRoot) const
+
+void HierarchyTreeRenderer::drawContextMenu(GameObject* go,
+    bool prefabMode,
+    bool isEditRoot) const
 {
     if (!ImGui::BeginPopupContextItem()) return;
 
@@ -92,16 +94,14 @@ void HierarchyTreeRenderer::drawContextMenu(GameObject* go, bool prefabMode, boo
     }
     else
     {
-        // Standard scene menu
         PrefabUI::drawPrefabSubMenu(go, app->getModuleScene()->getScene());
         ImGui::Separator();
 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
-        if (ImGui::MenuItem("Delete") && onDeleteRequested)
+        if (ImGui::MenuItem("Delete"))
         {
-            onDeleteRequested(go);
+            const_cast<HierarchyDeleteRequestEvent&>(OnDeleteRequested).Broadcast(go);
         }
-
         ImGui::PopStyleColor();
     }
 
@@ -109,12 +109,15 @@ void HierarchyTreeRenderer::drawContextMenu(GameObject* go, bool prefabMode, boo
 }
 
 
-void HierarchyTreeRenderer::handleDragDropSource(GameObject* go, bool isEditRoot) const
+void HierarchyTreeRenderer::handleDragDropSource(GameObject* go,
+    bool        isEditRoot,
+    SelectionState& state) const
 {
     if (isEditRoot) return;
 
     if (ImGui::BeginDragDropSource())
     {
+        state.isDragging = true;
         ImGui::SetDragDropPayload("GAME_OBJECT", &go, sizeof(GameObject*));
         ImGui::Text("%s", go->GetName().c_str());
         ImGui::EndDragDropSource();
@@ -126,22 +129,19 @@ void HierarchyTreeRenderer::handleDragDropTarget(GameObject* go) const
 {
     if (!ImGui::BeginDragDropTarget()) return;
 
-    // Reparent via drag-drop of a hierarchy node
-    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+    if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
     {
-        GameObject* dropped = *static_cast<GameObject**>(payload->Data);
-        if (dropped && dropped != go && onReparent)
-            onReparent(dropped, go);
+        GameObject* dropped = *static_cast<GameObject**>(p->Data);
+        if (dropped && dropped != go)
+        {
+            const_cast<HierarchyReparentEvent&>(OnReparent).Broadcast(dropped, go);
+        }
     }
 
-    // Instantiate prefab as a child of this node
-    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
+    if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("PREFAB_ASSET"))
     {
-        const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
-        if (onPrefabDropOnNode)
-        {
-            onPrefabDropOnNode(sourcePath, go);
-        }
+        const std::filesystem::path sourcePath(static_cast<const char*>(p->Data));
+        const_cast<HierarchyPrefabDropEvent&>(OnPrefabDropOnNode).Broadcast(sourcePath, go);
     }
 
     ImGui::EndDragDropTarget();

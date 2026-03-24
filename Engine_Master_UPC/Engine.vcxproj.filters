@@ -193,9 +193,6 @@
     <ClCompile Include="ModuleFileSystem.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="FileDialog.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
     <ClCompile Include="Transform2D.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -365,6 +362,33 @@
     </ClCompile>
     <ClCompile Include="InstantiatePrefabAction.cpp">
       <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowFileDialog.cpp">
+      <Filter>Editor\Views\FileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveGameObjectAsPrefabAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="PasteFileAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveFileAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportAssetAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="DeleteFolderAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="DeleteAssetAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="CutItemAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateFolderAction.cpp">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -595,9 +619,6 @@
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ModuleFileSystem.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="FileDialog.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ICacheable.h">
@@ -861,6 +882,36 @@
     <ClInclude Include="InstantiatePrefabAction.h">
       <Filter>Editor\Views\Hierarchy\Actions</Filter>
     </ClInclude>
+    <ClInclude Include="WindowFileDialog.h">
+      <Filter>Editor\Views\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateFolderAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="DeleteAssetAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="DeleteFolderAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportAssetAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="CutItemAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialogClipboard.h">
+      <Filter>Editor\Views\FileDialog\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="PasteFileAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveGameObjectAsPrefabAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveFileAction.h">
+      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1032,6 +1083,15 @@
     </Filter>
     <Filter Include="Editor\Views\Hierarchy\Actions">
       <UniqueIdentifier>{3492417c-0812-42e1-b819-d39510fbf30e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\FileDialog">
+      <UniqueIdentifier>{93d034d0-a185-435f-8ec6-59068d32670d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\FileDialog\Actions">
+      <UniqueIdentifier>{5e65593b-4de6-42be-b46a-b46f60a68623}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\FileDialog\Commands">
+      <UniqueIdentifier>{dbb8bfdd-5c13-4634-9081-7c5220d1b9b9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
