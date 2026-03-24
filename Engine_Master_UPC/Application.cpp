@@ -128,7 +128,7 @@ void Application::update()
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 
-    m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
+    m_elapsedMilis = static_cast<uint64_t>(std::chrono::duration<float, std::milli>(frameEnd - frameStart).count());
 
     m_moduleTime->waitForNextFrame();
 }

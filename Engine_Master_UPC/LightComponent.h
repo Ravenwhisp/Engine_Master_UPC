@@ -21,9 +21,6 @@ public:
     void drawUi() override;
     void onTransformChange() override {}
 
-    bool isDebugDrawEnabled() const { return m_debugDrawEnabled; }
-    bool isDebugDrawDepthEnabled() const { return m_debugDrawDepthEnabled; }
-
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
@@ -31,7 +28,4 @@ public:
     IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
 private:
     LightData m_data{};
-
-    bool m_debugDrawEnabled = false;
-    bool m_debugDrawDepthEnabled = true;
 };

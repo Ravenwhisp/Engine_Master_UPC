@@ -30,6 +30,6 @@ VertexBuffer::~VertexBuffer()
 void VertexBuffer::createVertexBufferView()
 {
 	m_VertexBufferView.BufferLocation = getD3D12Resource()->GetGPUVirtualAddress();
-	m_VertexBufferView.StrideInBytes = m_VertexStride;
-	m_VertexBufferView.SizeInBytes = m_NumVertices * m_VertexStride;
+	m_VertexBufferView.StrideInBytes = static_cast<UINT>(m_VertexStride);
+	m_VertexBufferView.SizeInBytes = static_cast<UINT>(m_NumVertices * m_VertexStride);
 }
