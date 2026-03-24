@@ -10,6 +10,7 @@
 
 #include "SkyBoxSettings.h"
 #include "SkyBox.h"
+#include "SkyboxParams.h"
 #include "Texture.h"
 #include "TextureAsset.h"
 #include "VertexBuffer.h"
@@ -34,7 +35,7 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) :
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
-    rootParameters[0].InitAsConstants(sizeof(SkyParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+    rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -113,7 +114,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     vp = vp.Transpose();
 
-    SkyParams params{};
+    SkyboxParams params{};
     params.vp = vp;
     params.flipX = 0;
     params.flipZ = 0;
@@ -124,7 +125,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyParams) / sizeof(UINT32), &params, 0);
+    commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
     commandList->SetGraphicsRootDescriptorTable(1, m_skyBox->getTexture()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 

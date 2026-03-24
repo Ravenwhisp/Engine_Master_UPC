@@ -113,15 +113,15 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 Texture* ModuleResources::createRenderTexture(float width, float height)
 {
 	TextureDesc desc{};
-	desc.format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	desc.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.width = static_cast<uint32_t>(width);
 	desc.height = static_cast<uint32_t>(height);
 	desc.views = TextureView::SRV | TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
 	desc.hasClearValue = true;
-	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
