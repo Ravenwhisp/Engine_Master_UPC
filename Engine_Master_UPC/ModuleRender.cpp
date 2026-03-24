@@ -81,12 +81,18 @@ bool ModuleRender::init()
         app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0),
         app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
 
-    // Create initial render surfaces at the default viewport size.
-    m_editorSurface = createSurface(m_size.x, m_size.y);
-    m_playSurface = createSurface(m_size.x, m_size.y);
-
     return true;
 }
+
+void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type,
+    float width, float height)
+{
+    if (!surface || width <= 0.0f || height <= 0.0f)
+        return;
+
+    m_viewports.push_back({ surface, type, width, height });
+}
+
 
 void ModuleRender::preRender()
 {
@@ -107,34 +113,36 @@ void ModuleRender::preRender()
         swapChain->getViewport(),
         swapChain->getScissorRect());
 #else
-    const ImVec2 newSize = app->getModuleEditor()->getWindowSceneEditorSize();
-
-    // Resize both surfaces lazily when the viewport size changes.
-    if (m_size.x != newSize.x || m_size.y != newSize.y)
+    for (const ViewportEntry& entry : m_viewports)
     {
-        app->getModuleD3D12()->getCommandQueue()->flush();
-        m_size = newSize;
-
-        resizeSurface(*m_editorSurface, newSize.x, newSize.y);
-        resizeSurface(*m_playSurface, newSize.x, newSize.y);
-    }
-
-    // Editor viewport
-    renderToSurface(commandList, *m_editorSurface,
-        [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+        // Skip play viewports while the engine is not running.
+        if (entry.type == ViewportType::PLAY && app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
         {
-            renderEditorScene(commandList, rtv, dsv, m_size.x, m_size.y);
-        });
+            continue;
+        }
 
-    // Play viewport (only when the engine is in play mode)
-    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
-    {
-        renderToSurface(commandList, *m_playSurface,
+        // Lazy resize: flush the GPU only when the surface dimensions
+        // actually differ from what was registered this frame.
+        const Vector2 currentSize = entry.surface->getSize();
+        if (std::abs(currentSize.x - entry.width) > 1.0f ||
+            std::abs(currentSize.y - entry.height) > 1.0f)
+        {
+            app->getModuleD3D12()->getCommandQueue()->flush();
+            resizeSurface(*entry.surface, entry.width, entry.height);
+        }
+
+        renderToSurface(commandList, *entry.surface,
             [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
             {
-                renderPlayScene(commandList, rtv, dsv, m_size.x, m_size.y);
+                if (entry.type == ViewportType::EDITOR)
+                    renderEditorScene(commandList, rtv, dsv, entry.width, entry.height);
+                else
+                    renderPlayScene(commandList, rtv, dsv, entry.width, entry.height);
             });
     }
+
+    // Clear for the next frame.
+    m_viewports.clear();
 
     transitionResource(commandList, swapChain->getCurrentRenderTarget()->getD3D12Resource(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -160,24 +168,10 @@ bool ModuleRender::cleanUp()
     m_renderPasses.clear();
     m_imGuiPass.reset();
 
-    m_editorSurface.reset();
-    m_playSurface.reset();
-
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
 
     return true;
-}
-
-
-D3D12_GPU_DESCRIPTOR_HANDLE ModuleRender::getGPUEditorScreenRT()
-{
-    return m_editorSurface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu;
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE ModuleRender::getGPUPlayScreenRT()
-{
-    return m_playSurface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)

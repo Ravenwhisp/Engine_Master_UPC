@@ -7,6 +7,8 @@ class ModuleInput;
 class WindowGame : public EditorWindow
 {
 private:
+	std::unique_ptr<RenderSurface> m_surface;
+
 	PlayToolbar* m_playToolbar;
 
 	float m_viewportX = 0.0f;

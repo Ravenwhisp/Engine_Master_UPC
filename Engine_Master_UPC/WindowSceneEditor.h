@@ -16,15 +16,16 @@ class PlayToolbar;
 
 class DebugDrawPass;
 class GameObject;
+class RenderSurface;
 
 class WindowSceneEditor: public EditorWindow, public IDebugDrawable
 {
 private:
-    ModuleInput* m_moduleInput;
+    std::unique_ptr<RenderSurface> m_surface;
+
     ModuleCamera* m_moduleCamera;
 
     Settings* m_settings;
-    Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
 	PlayToolbar* m_playToolbar;

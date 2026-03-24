@@ -18,15 +18,12 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-#include "TriggerArea.h"
-
 #include <WindowLogger.h>
 #include <PrefabUI.h>
 
 WindowSceneEditor::WindowSceneEditor()
 {
     m_moduleCamera = app->getModuleCamera();
-    m_moduleInput = app->getModuleInput();
 
     m_settings = app->getSettings();
 
