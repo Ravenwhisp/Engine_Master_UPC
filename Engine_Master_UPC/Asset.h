@@ -15,5 +15,5 @@ public:
 	AssetType	getType() const { return m_type; }
 protected:
 	MD5Hash 			m_uid = INVALID_ASSET_ID;
-	AssetType			m_type;
+	AssetType			m_type = AssetType::UNKNOWN;
 };

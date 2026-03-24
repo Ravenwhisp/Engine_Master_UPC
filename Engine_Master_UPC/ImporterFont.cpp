@@ -177,6 +177,10 @@ fs::path ImporterFont::runMakeSpriteFont(const fs::path& ttfPath)
         char buf[256];
         while (fgets(buf, sizeof(buf), pipe)) output << buf;
     }
+    else {
+        DEBUG_ERROR("FontImporter: MakeSpriteFont.exe failed:", output.str().c_str());
+        return {};
+    }
     const int result = _pclose(pipe);
 
     RemoveFontResourceExW(ttfPath.wstring().c_str(), 0, nullptr);
