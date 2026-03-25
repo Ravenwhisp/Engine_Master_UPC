@@ -14,7 +14,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset)
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
-		m_textureColor = app->getModuleResources()->createTexture(*baseMapTexture);
+		m_textureColor = app->getModuleResources()->createTextureLinear(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else
