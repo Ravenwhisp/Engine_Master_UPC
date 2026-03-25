@@ -810,6 +810,9 @@
     <ClInclude Include="Scene.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptRegistry.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
