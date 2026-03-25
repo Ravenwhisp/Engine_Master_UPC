@@ -281,7 +281,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="3rdParty\imgui-docking\imgui.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationAsset.h" />
+    <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="AnimationController.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="AssetScanner.h" />
@@ -537,6 +540,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AnimationController.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />

@@ -333,7 +333,15 @@
     </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationController.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -781,9 +789,6 @@
     <ClInclude Include="AssetType.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="Channel.h">
-      <Filter>Animations</Filter>
-    </ClInclude>
     <ClInclude Include="MD5Fwd.h">
       <Filter>Persistence\UID</Filter>
     </ClInclude>
@@ -792,6 +797,18 @@
     </ClInclude>
     <ClInclude Include="AnimationAsset.h">
       <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="Channel.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationController.h">
+      <Filter>Animations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
