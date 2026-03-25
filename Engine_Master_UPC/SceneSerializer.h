@@ -27,6 +27,8 @@ private:
 #pragma region Load
     static bool LoadFromJSON(Scene& scene, const rapidjson::Value& sceneJson);
 
+    static bool ValidateVersion(const rapidjson::Value& sceneJson);
+
     static bool LoadSkybox(Scene& scene, const rapidjson::Value& json);
     static void LoadLighting(Scene& scene, const rapidjson::Value& json);
 
