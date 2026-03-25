@@ -345,6 +345,9 @@
     <ClCompile Include="ImporterAnimation.cpp">
       <Filter>Animations</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationController.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -820,6 +823,9 @@
       <Filter>Animations</Filter>
     </ClInclude>
     <ClInclude Include="ImporterAnimation.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationController.h">
       <Filter>Animations</Filter>
     </ClInclude>
   </ItemGroup>
