@@ -11,6 +11,7 @@
 #include "tiny_gltf.h"
 #pragma warning(pop)
 
+#include "AnimationAsset.h"
 #include "PrefabAsset.h"
 #include "MeshAsset.h"
 #include "MaterialAsset.h"
@@ -27,6 +28,7 @@
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
 #include "ImporterPrefab.h"
+#include "ImporterAnimation.h"
 
 #include <functional>
 
@@ -59,7 +61,49 @@ static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex, const 
     return uid;
 }
 
-ImporterGltf::ImporterGltf(ImporterMesh& importerMesh, ImporterMaterial& importerMaterial, ImporterPrefab& importerPrefab) : m_importerMesh(importerMesh), m_importerMaterial(importerMaterial), m_importerPrefab(importerPrefab)
+static std::string resolveNodeName(const tinygltf::Model& model, int nodeIdx)
+{
+    if (nodeIdx < 0 || nodeIdx >= (int)model.nodes.size()) return "";
+    const std::string& n = model.nodes[nodeIdx].name;
+    if (!n.empty()) return n;
+    return "Node_" + std::to_string(nodeIdx);
+}
+
+static bool loadFloats(const tinygltf::Model& model, int accessorIdx, std::vector<float>& out)
+{
+    if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
+    const auto& acc = model.accessors[accessorIdx];
+    out.resize(acc.count);
+    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()),
+        sizeof(float), sizeof(float), (uint32_t)acc.count, model, accessorIdx);
+}
+
+static bool loadVec3(const tinygltf::Model& model, int accessorIdx, std::vector<Vector3>& out)
+{
+    if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
+    const auto& acc = model.accessors[accessorIdx];
+    out.resize(acc.count);
+    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()),
+        sizeof(Vector3), sizeof(Vector3), (uint32_t)acc.count, model, accessorIdx);
+}
+
+static bool loadQuat(const tinygltf::Model& model, int accessorIdx, std::vector<Quaternion>& out)
+{
+    if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
+    const auto& acc = model.accessors[accessorIdx];
+    out.resize(acc.count);
+    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()),
+        sizeof(Quaternion), sizeof(Quaternion), (uint32_t)acc.count, model, accessorIdx);
+}
+
+ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
+    ImporterMaterial& importerMaterial,
+    ImporterPrefab& importerPrefab,
+    ImporterAnimation& importerAnimation)
+    : m_importerMesh(importerMesh)
+    , m_importerMaterial(importerMaterial)
+    , m_importerPrefab(importerPrefab)
+    , m_importerAnimation(importerAnimation)
 {
 }
 
@@ -127,6 +171,25 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         Metadata meta; meta.uid = meshUID; meta.type = AssetType::MESH;
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
         meshUIDs[i] = meshUID;
+    }
+
+    // Animations (as sub-assets)
+    for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
+    {
+        const MD5Hash animUID = computeMD5(m_currentFilePath->string() + "?anim=" + std::to_string(i));
+
+        AnimationAsset animAsset(animUID);
+        loadAnimation(model, model.animations[i], &animAsset);
+
+        uint8_t* rawBuf = nullptr;
+        const uint64_t size = m_importerAnimation.save(&animAsset, &rawBuf);
+        std::unique_ptr<uint8_t[]> guard(rawBuf);
+
+        Metadata meta;
+        meta.uid = animUID;
+        meta.type = AssetType::ANIMATION;
+
+        assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
     }
 
     std::vector<std::unique_ptr<GameObject>> tempObjects;
@@ -239,6 +302,62 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primit
         const Vector3 bMax((float)posAcc.maxValues[0], (float)posAcc.maxValues[1], (float)posAcc.maxValues[2]);
         mesh->boundsCenter = (bMin + bMax) * 0.5f;
         mesh->boundsExtents = (bMax - bMin) * 0.5f;
+    }
+}
+
+void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::Animation& anim, AnimationAsset* outAnim)
+{
+    outAnim->m_name = anim.name.empty() ? "Anim" : anim.name;
+    outAnim->m_durationSeconds = 0.0f;
+    outAnim->m_channels.clear();
+
+    for (const auto& ch : anim.channels)
+    {
+        if (ch.target_node < 0) continue;
+        if (ch.sampler < 0 || ch.sampler >= (int)anim.samplers.size()) continue;
+
+        const std::string nodeName = resolveNodeName(model, ch.target_node);
+        if (nodeName.empty()) continue;
+
+        const auto& sampler = anim.samplers[ch.sampler];
+
+        std::vector<float> times;
+        if (!loadFloats(model, sampler.input, times) || times.empty()) continue;
+
+        outAnim->m_durationSeconds = std::max(outAnim->m_durationSeconds, times.back());
+
+        AnimChannel& dst = outAnim->m_channels[nodeName];
+
+        if (ch.target_path == "translation")
+        {
+            std::vector<Vector3> values;
+            if (!loadVec3(model, sampler.output, values)) continue;
+
+            const size_t n = std::min(times.size(), values.size());
+            dst.posKeys.reserve(dst.posKeys.size() + n);
+            for (size_t i = 0; i < n; ++i)
+                dst.posKeys.push_back({ times[i], values[i] });
+        }
+        else if (ch.target_path == "rotation")
+        {
+            std::vector<Quaternion> values;
+            if (!loadQuat(model, sampler.output, values)) continue;
+
+            const size_t n = std::min(times.size(), values.size());
+            dst.rotKeys.reserve(dst.rotKeys.size() + n);
+            for (size_t i = 0; i < n; ++i)
+                dst.rotKeys.push_back({ times[i], values[i] });
+        }
+        else if (ch.target_path == "scale")
+        {
+            std::vector<Vector3> values;
+            if (!loadVec3(model, sampler.output, values)) continue;
+
+            const size_t n = std::min(times.size(), values.size());
+            dst.scaleKeys.reserve(dst.scaleKeys.size() + n);
+            for (size_t i = 0; i < n; ++i)
+                dst.scaleKeys.push_back({ times[i], values[i] });
+        }
     }
 }
 
