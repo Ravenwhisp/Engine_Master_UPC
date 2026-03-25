@@ -41,9 +41,9 @@ public:
     ~WindowSceneEditor();
 
     const char* getWindowName() const override { return "Scene Editor"; }
-    void        update() override;
-    void        render() override;
+    void        drawInternal() override;
     bool        resize(ImVec2 contentRegion);
+    void drawGizmo();
 
     void debugDraw() override;
 

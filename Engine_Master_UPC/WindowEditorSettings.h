@@ -10,7 +10,7 @@ public:
     ~WindowEditorSettings() override = default;
 
     const char* getWindowName() const override { return "Editor Settings"; }
-    void render() override;
+    void drawInternal() override;
 
 private:
     void drawEngineInformation();

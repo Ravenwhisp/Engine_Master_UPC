@@ -20,7 +20,7 @@ public:
 	~WindowGame();
 
 	const char* getWindowName() const override { return "Game"; }
-	void		render() override;
+	void		drawInternal() override;
 
 	bool        resize(ImVec2 contentRegion);
 

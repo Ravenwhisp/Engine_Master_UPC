@@ -83,15 +83,26 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
         return;
     }
 
-    for (ViewportEntry entry : m_viewports) 
+    uint32_t w = static_cast<uint32_t>(width);
+    uint32_t h = static_cast<uint32_t>(height);
+
+    for (ViewportEntry& entry : m_viewports)
     {
         if (entry.surface == surface) 
         {
-            surface->resize(width, height);
+            if (entry.width != w || entry.height != h)
+            {
+                app->getModuleD3D12()->getCommandQueue()->flush();
+                entry.width = w;
+                entry.height = h;
+                surface->resize(w, h);
+            }
             return;
         }
     }
 
+    app->getModuleD3D12()->getCommandQueue()->flush();
+    surface->resize(w, h);
     m_viewports.push_back({ surface, type, width, height });
 }
 

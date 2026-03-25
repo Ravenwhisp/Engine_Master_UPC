@@ -7,8 +7,7 @@ class WindowPerformance: public EditorWindow
 public:
 	WindowPerformance();
 	const char* getWindowName() const override { return "Performance"; }
-	void		update() override;
-	void		render() override;
+	void		drawInternal() override;
 
 private:
 	cvector<float> m_fps{ 100 };

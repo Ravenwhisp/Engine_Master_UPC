@@ -63,7 +63,7 @@ public:
 	ImVec2 getEventViewport() const;
 	ImVec2 getEventViewportSize() const;
 
-
+	void mainMenuBar();
 	WindowGame*		getWindowGame() { return m_gameWindow; }
 
 	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
@@ -90,11 +90,11 @@ private:
 
 #pragma region Views
 	std::vector<EditorWindow*>	m_editorWindows;
-	WindowLogger*						m_logger = nullptr;
+	WindowLogger*				m_logger = nullptr;
 	WindowHardware*				m_hardwareWindow = nullptr;
 	WindowPerformance*			m_performanceWindow = nullptr;
-	WindowSceneEditor*				m_sceneEditor = nullptr;
-	WindowEditorSettings*				m_editorSettings = nullptr;
+	WindowSceneEditor*			m_sceneEditor = nullptr;
+	WindowEditorSettings*		m_editorSettings = nullptr;
 	SceneConfig*				m_sceneConfig = nullptr;
 	WindowGame*					m_gameWindow = nullptr;
 

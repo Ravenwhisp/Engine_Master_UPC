@@ -11,15 +11,8 @@ WindowInspector::WindowInspector()
 
 }
 
-void WindowInspector::render()
+void WindowInspector::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(),
-        ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::End();
-        return;
-    }
-
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     const bool prefabMode = session && session->m_active;
 
@@ -34,6 +27,4 @@ void WindowInspector::render()
     {
         selectedGameObject->drawUI();
     }
-
-    ImGui::End();
 }

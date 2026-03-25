@@ -14,7 +14,7 @@ public:
     ~SceneConfig() = default;
 
     const char* getWindowName() const override { return "Scene Configuration"; }
-    void render() override;
+    void drawInternal() override;
 
 private:
     void drawSaveSceneSettings();

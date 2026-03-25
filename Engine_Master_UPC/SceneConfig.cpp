@@ -12,13 +12,8 @@ SceneConfig::SceneConfig()
 	m_moduleScene = app->getModuleScene();
 }
 
-void SceneConfig::render()
+void SceneConfig::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr()))
-    {
-        ImGui::End();
-        return;
-    }
     
     /*ImGui::SeparatorText("Scene");
 
@@ -66,8 +61,6 @@ void SceneConfig::render()
     drawLightSettings();
 
     ImGui::Separator();
-
-    ImGui::End();
 
 }
 

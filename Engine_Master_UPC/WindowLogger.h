@@ -29,7 +29,7 @@ public:
     ~WindowLogger();
 
     const char* getWindowName() const override { return "Console"; }
-    void render() override;
+    void drawInternal() override;
 
     template<typename... Args>
     static void log(const char* file, int line, const char* fmt, Args... args)

@@ -22,14 +22,8 @@ WindowGame::~WindowGame()
     delete m_playToolbar;
 }
 
-void WindowGame::render()
+void WindowGame::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::End();
-        return;
-    }
-
     float toolbarWidth = ImGui::GetContentRegionAvail().x;
     m_playToolbar->DrawCentered(toolbarWidth);
 
@@ -68,8 +62,6 @@ void WindowGame::render()
 
     m_isViewportHovered = ImGui::IsWindowHovered();
     m_isViewportFocused = ImGui::IsWindowFocused();
-
-    ImGui::End();
 }
 
 
@@ -79,7 +71,7 @@ bool WindowGame::resize(ImVec2 contentRegion)
         abs(contentRegion.y - m_size.y) > 1.0f)
     {
         setSize(contentRegion);
-        app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::EDITOR, contentRegion.x, contentRegion.y);
+        app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::PLAY, contentRegion.x, contentRegion.y);
         return true;
     }
     return false;

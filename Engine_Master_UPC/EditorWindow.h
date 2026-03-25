@@ -5,8 +5,6 @@ public:
     virtual ~EditorWindow() = default;
 
     virtual const char* getWindowName() const = 0;
-    virtual void        update() { }
-    virtual void        render() = 0;
     virtual void        cleanUp() { }
 
     bool                isOpen() const { return m_isOpen; }
@@ -23,7 +21,22 @@ public:
 
     bool isHovered() const { return m_isViewportHovered; }
     bool isFocused() const { return m_isViewportFocused; }
+
+    void draw() {
+
+        if (!m_isOpen) return;
+
+        if (ImGui::Begin(getWindowName(), &m_isOpen))
+        {
+            drawInternal();
+        }
+        ImGui::End();
+    }
+
 protected:
+
+    virtual void        drawInternal() = 0;
+
     float   m_windowX, m_windowY = 0;
     bool    m_isOpen = true;
     ImVec2  m_size = { 400, 300 };

@@ -29,7 +29,7 @@
 
 using namespace std;
 
-void mainMenuBar()
+void ModuleEditor::mainMenuBar()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -41,6 +41,20 @@ void mainMenuBar()
         {
             ImGui::EndMenu();
         }
+
+        if (ImGui::BeginMenu("Window"))
+        {
+            for (EditorWindow* window : m_editorWindows)
+            {
+                bool open = window->isOpen();
+                if (ImGui::MenuItem(window->getWindowName(), nullptr, &open))
+                {
+                    window->setOpen(open);
+                }
+            }
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 }
@@ -227,7 +241,7 @@ void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderDockWindow("WindowInspector", dock_inspector);
     ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
 
-    ImGui::DockBuilderDockWindow("WindowHierarchy", dock_hierarchy);
+    ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
 
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
@@ -254,8 +268,6 @@ bool ModuleEditor::init()
     m_editorWindows.push_back(m_editorSettings = new WindowEditorSettings());
     m_editorWindows.push_back(new WindowFileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
-
-	ModuleD3D12* _d3d12 = app->getModuleD3D12();
 
     m_sceneEditor = new WindowSceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
@@ -285,10 +297,6 @@ void ModuleEditor::update()
         handleKeyboardShortcuts();
     }
 
-    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
-    {
-        (*it)->update();
-    }
 }
 
 void ModuleEditor::render()
@@ -309,7 +317,7 @@ void ModuleEditor::render()
 
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
     {
-        (*it)->render();
+        (*it)->draw();
     }
 
     if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)

@@ -5,7 +5,7 @@ class WindowHardware: public EditorWindow
 {
 public:
 	const char* getWindowName() const override { return "Hardware Info"; }
-	void render() override;
+	void drawInternal() override;
 
 private:
 	void cpu();

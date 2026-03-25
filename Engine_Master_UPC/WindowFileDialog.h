@@ -16,7 +16,7 @@ enum Command
 class WindowFileDialog : public EditorWindow 
 {
 public:
-    void render() override;
+    void drawInternal() override;
     const char* getWindowName() const override { return "FileDialog"; }
 
 private:

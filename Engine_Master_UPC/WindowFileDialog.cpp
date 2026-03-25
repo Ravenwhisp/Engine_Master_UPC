@@ -304,14 +304,8 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 }
 
 
-void WindowFileDialog::render()
+void WindowFileDialog::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::End();
-        return;
-    }
-
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
     drawDirectoryTree(app->getModuleAssets()->getRoot());
     ImGui::EndChild();
@@ -325,7 +319,6 @@ void WindowFileDialog::render()
     }
     ImGui::EndChild();
 
-    ImGui::End();
 }
 
 PrefabUI::FileDialogBuffers WindowFileDialog::buildFileDialogBuffers()

@@ -34,14 +34,8 @@ WindowHierarchy::WindowHierarchy()
 }
 
 
-void WindowHierarchy::render()
+void WindowHierarchy::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::End();
-        return;
-    }
-
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     const bool prefabMode = session && session->m_active;
 
@@ -66,8 +60,6 @@ void WindowHierarchy::render()
     }
 
     drawInlineRename();
-
-    ImGui::End();
 }
 
 

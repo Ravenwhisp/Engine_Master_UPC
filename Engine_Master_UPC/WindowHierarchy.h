@@ -13,7 +13,7 @@ class WindowHierarchy : public EditorWindow
 public:
     WindowHierarchy();
 
-    void        render()        override;
+    void        drawInternal()        override;
     const char* getWindowName() const override { return "Hierarchy"; }
 
     void reparent(GameObject* child, GameObject* newParent);

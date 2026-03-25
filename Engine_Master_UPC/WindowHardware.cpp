@@ -3,22 +3,14 @@
 #include "Application.h"
 #include "ModuleD3D12.h"
 
-void WindowHardware::render()
+void WindowHardware::drawInternal()
 {
-	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
-		ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::End();
-		return;
-	}
 
 	if (ImGui::CollapsingHeader("CPU", ImGuiTreeNodeFlags_DefaultOpen)){ cpu(); }
 	if (ImGui::CollapsingHeader("System Memory", ImGuiTreeNodeFlags_DefaultOpen)){ systemVRAM(); }
 	if (ImGui::CollapsingHeader("GPU", ImGuiTreeNodeFlags_DefaultOpen)) { gpu(); }
 	if (ImGui::CollapsingHeader("Video Memory (VRAM)", ImGuiTreeNodeFlags_DefaultOpen)) { vram(); }
 	if (ImGui::CollapsingHeader("GPU Capabilities")) { gpuFeatures(); }
-
-	ImGui::End();
 }
 
 

@@ -9,32 +9,24 @@ WindowPerformance::WindowPerformance()
    
 }
 
-void WindowPerformance::update()
+
+
+void WindowPerformance::drawInternal()
 {
     float deltaTime = app->getModuleTime()->deltaTime();
     float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
     m_fps.push_back(fps);
     m_milliseconds.push_back(deltaTime * 1000.0f);
-}
 
-void WindowPerformance::render()
-{
-	if (!ImGui::Begin(getWindowName(), getOpenPtr(),
-		ImGuiWindowFlags_AlwaysAutoResize))
-	{
-		ImGui::End();
-		return;
-	}
-
-    auto fps = m_fps.linearized();
-    auto ms = m_milliseconds.linearized();
+    auto fpsL = m_fps.linearized();
+    auto msL = m_milliseconds.linearized();
 
 	char title[64];
-	sprintf_s(title, sizeof(title), "Framerate %.1f", fps.back());
-	ImGui::PlotHistogram("##framerate", &fps[0], fps.size(), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
-	sprintf_s(title, sizeof(title), "Milliseconds %0.1f", ms.back());
-	ImGui::PlotHistogram("##milliseconds", &ms[0], ms.size(), 0, title, 0.0f, 50.0f, ImVec2(310, 100));
+	sprintf_s(title, sizeof(title), "Framerate %.1f", fpsL.back());
+	ImGui::PlotHistogram("##framerate", &fpsL[0], fpsL.size(), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
+	sprintf_s(title, sizeof(title), "Milliseconds %0.1f", msL.back());
+	ImGui::PlotHistogram("##milliseconds", &msL[0], msL.size(), 0, title, 0.0f, 50.0f, ImVec2(310, 100));
 
     ImGui::Separator();
     ImGui::TextDisabled("CPU Profiling");
@@ -72,5 +64,4 @@ void WindowPerformance::render()
         ImGui::EndTable();
     }
 
-	ImGui::End();
 }

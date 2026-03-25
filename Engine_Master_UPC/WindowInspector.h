@@ -9,7 +9,7 @@ class WindowInspector: public EditorWindow
 public:
 	WindowInspector();
 	const char* getWindowName() const override { return "WindowInspector"; }
-	void		render() override;
+	void		drawInternal() override;
 
 };
 

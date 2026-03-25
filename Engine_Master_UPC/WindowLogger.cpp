@@ -110,19 +110,11 @@ ImVec4 WindowLogger::getColor(LogType type)
     }
 }
 
-void WindowLogger::render()
+void WindowLogger::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(), getWindowFlags()))
-    {
-        ImGui::End();
-        return;
-    }
-
     drawHeader();
     ImGui::Separator();
     drawMessages();
-
-    ImGui::End();
 }
 
 void WindowLogger::drawHeader()

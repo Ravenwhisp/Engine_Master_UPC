@@ -12,14 +12,8 @@ WindowEditorSettings::WindowEditorSettings()
     m_settings = app->getSettings();
 }
 
-void WindowEditorSettings::render()
+void WindowEditorSettings::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr()))
-    {
-        ImGui::End();
-        return;
-    }
-
     ImGui::Separator();
     drawEngineInformation();
     ImGui::Separator();
@@ -28,8 +22,6 @@ void WindowEditorSettings::render()
     drawSceneSettings();
     ImGui::Separator();
     drawFrustumCullingSettings();
-
-    ImGui::End();
 }
 
 void WindowEditorSettings::drawEngineInformation()
