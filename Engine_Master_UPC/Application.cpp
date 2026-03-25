@@ -63,7 +63,7 @@ bool Application::init()
 {
 	bool ret = true;
 
-	for(auto it = modules.begin(); it != modules.end() && ret; ++it)
+    for (auto it = modules.begin(); it != modules.end() && ret; ++it)
     {
         ret = (*it)->init();
     }

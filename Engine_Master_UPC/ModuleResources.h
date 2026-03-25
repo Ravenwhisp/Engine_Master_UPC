@@ -16,6 +16,7 @@ class IndexBuffer;
 class RingBuffer;
 class Texture;
 class TextureAsset;
+enum class TextureView : uint8_t;
 class BasicMaterial;
 class BasicMesh;
 class MeshAsset;
@@ -26,7 +27,7 @@ class ICacheable;
 
 // Responsible for creation and management of raw GPU resources in D3D12.
 // Handles buffers, textures, render targets, depth stencils, and deferred GPU release.
-// Owns no asset-level objects — callers own everything returned here.
+// Owns no asset-level objects ï¿½ callers own everything returned here.
 class ModuleResources : public Module
 {
 public:
@@ -57,9 +58,10 @@ public:
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
 
-	std::shared_ptr<Texture>       createTexture(const TextureAsset& textureAsset);
-	std::shared_ptr<BasicMesh>     createMesh(const MeshAsset& meshAsset);
-	std::shared_ptr<BasicMaterial> createMaterial(const MaterialAsset& materialAsset);
+	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset);
+	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
+	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
+	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);
 	std::shared_ptr<Animation>     createAnimation(const AnimationAsset& animationAsset);
 
 private:

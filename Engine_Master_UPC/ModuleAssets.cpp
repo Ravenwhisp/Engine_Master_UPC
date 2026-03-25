@@ -108,6 +108,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     Metadata meta;
     meta.uid = uid;
     meta.type = asset->getType();
+    meta.sourcePath = sourcePath;
     
     auto it = m_pendingDependencies.find(uid);
     if (it != m_pendingDependencies.end()) 
@@ -289,7 +290,9 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("uid") && doc["uid"].IsString())
+    {
         outMeta.uid = doc["uid"].GetString();
+    }
     else
     {
         DEBUG_ERROR("[AssetMetadata] Missing 'uid' in '%s'.", pathStr.c_str());
@@ -297,7 +300,9 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("type") && doc["type"].IsNumber())
+    {
         outMeta.type = static_cast<AssetType>(doc["type"].GetUint());
+    }
     else
     {
         DEBUG_ERROR("[AssetMetadata] Missing 'type' in '%s'.", pathStr.c_str());
@@ -305,7 +310,10 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("sourcePath") && doc["sourcePath"].IsString())
+    {
         outMeta.sourcePath = doc["sourcePath"].GetString();
+    }
+
 
     // Restore the dependency list.
     outMeta.m_dependencies.clear();

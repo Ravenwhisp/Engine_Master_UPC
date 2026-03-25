@@ -300,6 +300,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="FontAsset.h" />
+    <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="ImporterAnimation.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
@@ -313,6 +314,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="RenderContext.h" />
+    <ClInclude Include="RenderSurface.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneDataCB.h" />
+    <ClInclude Include="SceneLightingSettings.h" />
+    <ClInclude Include="SceneReferenceResolver.h" />
+    <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
     <ClInclude Include="TextureImage.h" />
     <ClInclude Include="WindowGame.h" />
@@ -340,7 +348,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="ModuleDescriptors.h" />
     <ClInclude Include="ModuleEditor.h" />
-    <ClInclude Include="EditorSettings.h" />
+    <ClInclude Include="WindowEditorSettings.h" />
     <ClInclude Include="EditorToolbar.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="Engine.h" />
@@ -349,14 +357,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="framework.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="ILightPass.h" />
-    <ClInclude Include="IMatrixPass.h" />
     <ClInclude Include="Importer.h" />
     <ClInclude Include="IPointerEventHandler.h" />
     <ClInclude Include="IRenderPass.h" />
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
-    <ClInclude Include="LightDebugDraw.h" />
     <ClInclude Include="Lights.h" />
     <ClInclude Include="NavigationAgentComponent.h" />
     <ClInclude Include="ModuleNavigation.h">
@@ -561,6 +566,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="RenderSurface.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneReferenceResolver.cpp" />
+    <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="FileDialog.cpp" />
@@ -580,7 +589,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="ModuleDescriptors.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />
-    <ClCompile Include="EditorSettings.cpp" />
+    <ClCompile Include="WindowEditorSettings.cpp" />
     <ClCompile Include="EditorToolbar.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="ModuleFileSystem.cpp" />
@@ -588,7 +597,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="LightDebugDraw.cpp" />
     <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

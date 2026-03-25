@@ -106,9 +106,6 @@
     <ClCompile Include="RingBuffer.cpp">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
     <ClCompile Include="WindowHierarchy.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
@@ -137,14 +134,11 @@
       <Filter>DataStructure</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp" />
-    <ClCompile Include="EditorSettings.cpp">
+    <ClCompile Include="WindowEditorSettings.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="Quadtree.cpp">
       <Filter>DataStructure</Filter>
-    </ClCompile>
-    <ClCompile Include="LightDebugDraw.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
       <Filter>GameEntity\Components</Filter>
@@ -190,9 +184,6 @@
     <ClCompile Include="UIImage.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="UIImagePass.cpp">
-      <Filter>UI</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -216,9 +207,6 @@
     </ClCompile>
     <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>UI</Filter>
@@ -274,9 +262,6 @@
     <ClCompile Include="WindowLogger.cpp">
       <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
-    <ClCompile Include="DebugDrawPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClCompile>
     <ClCompile Include="FontPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -331,8 +316,31 @@
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSurface.cpp">
+      <Filter>D3D12\Wrappers</Filter>
     <ClCompile Include="ImporterAnimation.cpp">
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
@@ -461,9 +469,6 @@
     <ClInclude Include="RingBuffer.h">
       <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -492,9 +497,6 @@
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Tag.h">
-      <Filter>GameEntity</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -508,14 +510,11 @@
     <ClInclude Include="Settings.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="EditorSettings.h">
+    <ClInclude Include="WindowEditorSettings.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="Quadtree.h">
       <Filter>DataStructure</Filter>
-    </ClInclude>
-    <ClInclude Include="LightDebugDraw.h">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>GameEntity\Components</Filter>
@@ -562,9 +561,6 @@
     </ClInclude>
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="UIImage.h">
-      <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIImagePass.h">
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="ModuleUI.h">
@@ -681,16 +677,7 @@
     <ClInclude Include="WindowLogger.h">
       <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
-    <ClInclude Include="DebugDrawPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
     <ClInclude Include="FontPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="ILightPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="IMatrixPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="IRenderPass.h">
@@ -774,8 +761,32 @@
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
     <ClInclude Include="SceneSnapshot.h">
-      <Filter>GameEntity</Filter>
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDataCB.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLightingSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneReferenceResolver.h">
+      <Filter>GameEntity\Scene</Filter>
     </ClInclude>
     <ClInclude Include="PrefabEditSession.h" />
     <ClInclude Include="PrefabManager.h" />
@@ -809,6 +820,21 @@
     </ClInclude>
     <ClInclude Include="AnimationController.h">
       <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderContext.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImagePass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IDebugDrawable.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawPass.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSurface.h">
+      <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -967,8 +993,17 @@
     <Filter Include="Core\Scripting">
       <UniqueIdentifier>{b8558522-0ee9-4d58-97a5-e629dd0ac8ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameEntity\Scene">
+      <UniqueIdentifier>{e6447ca6-f34e-489f-9468-0f4afefb06cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameEntity\GameObject">
+      <UniqueIdentifier>{e31eb276-f8f1-4837-bd1f-041ac612b48c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Animations">
       <UniqueIdentifier>{bd498ad4-3792-41ea-a2bc-8272d86bab68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\DebugDraw">
+      <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,7 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "MeshRendererPass.h"
+
+#include "RenderContext.h"
 
 #include "Application.h"
 #include "ModuleD3D12.h"
@@ -7,10 +9,14 @@
 #include "ModuleRender.h"
 #include "ModuleScene.h"
 
-#include "RingBuffer.h"
-#include "MeshRenderer.h"
+#include "Scene.h"
+#include "SceneLightingSettings.h"
+#include "SceneDataCB.h"
 #include "GameObject.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
 #include "LightComponent.h"
+#include "RingBuffer.h"
 #include "VertexBuffer.h"
 #include "Texture.h"
 #include "BasicMesh.h"
@@ -20,15 +26,13 @@
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
 
-MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer): m_device(device)
+MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
 	m_lighting = std::make_unique<SceneLightingSettings>();
 	m_sceneDataCB = std::make_unique<SceneDataCB>();
 
     m_lighting->ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
-
-    m_ringBuffer = ringBuffer;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
@@ -96,13 +100,22 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* rin
 
 }
 
-MeshRendererPass::~MeshRendererPass() = default;
 
-void MeshRendererPass::setCameraPosition(const Vector3& cameraPos)
+void MeshRendererPass::prepare(const RenderContext& ctx)
 {
-    m_sceneDataCB->viewPos = cameraPos;
-}
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+    m_sceneDataCB->viewPos = ctx.cameraPosition;
 
+    // Previously called app->getModuleRender()->getActiveScene()
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
+
+    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getLightComponents(), m_lighting->ambientColor, m_lighting->ambientIntensity);
+
+    m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
+}
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
 
@@ -114,10 +127,9 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(1, m_ringBuffer->allocate(&m_sceneDataCB, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame()));
+    commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
 
-    const D3D12_GPU_VIRTUAL_ADDRESS lightsAddress = buildAndUploadLightsCB();
-    commandList->SetGraphicsRootConstantBufferView(3, lightsAddress);
+    commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
     commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
@@ -127,7 +139,7 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
-    for (const auto& renderer : *m_meshRenderers) {
+    for (const auto& renderer : m_meshRenderers) {
 
         GameObject* owner = renderer->getOwner();
         if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
@@ -179,152 +191,75 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
     }
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS MeshRendererPass::buildAndUploadLightsCB()
+GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
+    const std::vector<LightComponent*>& lights,
+    const Vector3& ambientColor,
+    float ambientIntensity) const
 {
-    ModuleScene* activeScene = app->getModuleRender()->getActiveScene();
+    GPULightsConstantBuffer cb{};
+    cb.ambientColor = ambientColor;
+    cb.ambientIntensity = ambientIntensity;
 
-    const SceneLightingSettings& lighting = activeScene->GetLightingSettings();
-
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(activeScene->getAllGameObjects(), lighting.ambientColor, lighting.ambientIntensity);
-
-
-    return m_ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
-}
-
-GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const
-{
-    GPULightsConstantBuffer constantBuffer{};
-    constantBuffer.ambientColor = ambientColor;
-    constantBuffer.ambientIntensity = ambientIntensity;
-
-    std::vector<GPUDirectionalLight> directionalLights;
-    std::vector<GPUPointLight> pointLights;
-    std::vector<GPUSpotLight> spotLights;
-
-    directionalLights.reserve(LightDefaults::MAX_DIRECTIONAL_LIGHTS);
-    pointLights.reserve(LightDefaults::MAX_POINT_LIGHTS);
-    spotLights.reserve(LightDefaults::MAX_SPOT_LIGHTS);
-
-    for (GameObject* gameObject : objects)
+    for (const LightComponent* light : lights)
     {
-        if (gameObject == nullptr)
-        {
+        if (!light->isActive())
             continue;
-        }
 
-        if (!gameObject->IsActiveInWindowHierarchy())
-        {
+        const GameObject* owner = light->getOwner();
+        if (!owner || !owner->IsActiveInWindowHierarchy())
             continue;
-        }
 
-        const LightComponent* lightComponent =
-            gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
-        if (lightComponent == nullptr)
-        {
+        const Transform* transform = owner->GetTransform();
+        if (!transform)
             continue;
-        }
 
-        const LightData& lightData = lightComponent->getData();
-        const LightCommon& common = lightData.common;
-
-        if (!lightComponent->isActive())
-        {
-            continue;
-        }
-
-        const Transform* transform = gameObject->GetTransform();
-        if (transform == nullptr)
-        {
-            continue;
-        }
-
+        const LightData& data = light->getData();
+        const LightCommon& common = data.common;
         const Matrix& world = transform->getGlobalMatrix();
-        const Vector3 position(world._41, world._42, world._43);
+        const Vector3      pos(world._41, world._42, world._43);
+        const Vector3      fwd = transform->getForward();
 
-        Vector3 forward = transform->getForward();
-
-        switch (lightData.type)
+        switch (data.type)
         {
         case LightType::DIRECTIONAL:
-        {
-            if (directionalLights.size() >= LightDefaults::MAX_DIRECTIONAL_LIGHTS)
+            if (cb.directionalCount < LightDefaults::MAX_DIRECTIONAL_LIGHTS)
             {
-                break;
+                auto& l = cb.directionalLights[cb.directionalCount++];
+                l.direction = fwd;
+                l.color = common.color;
+                l.intensity = common.intensity;
             }
-
-            GPUDirectionalLight gpuLight{};
-            gpuLight.direction = forward;
-            gpuLight.color = common.color;
-            gpuLight.intensity = common.intensity;
-
-            directionalLights.push_back(gpuLight);
             break;
-        }
 
         case LightType::POINT:
-        {
-            if (pointLights.size() >= LightDefaults::MAX_POINT_LIGHTS)
+            if (cb.pointCount < LightDefaults::MAX_POINT_LIGHTS)
             {
-                break;
+                auto& l = cb.pointLights[cb.pointCount++];
+                l.position = pos;
+                l.radius = data.parameters.point.radius;
+                l.color = common.color;
+                l.intensity = common.intensity;
             }
-
-            GPUPointLight gpuLight{};
-            gpuLight.position = position;
-            gpuLight.radius = lightData.parameters.point.radius;
-            gpuLight.color = common.color;
-            gpuLight.intensity = common.intensity;
-
-            pointLights.push_back(gpuLight);
             break;
-        }
 
         case LightType::SPOT:
-        {
-            if (spotLights.size() >= LightDefaults::MAX_SPOT_LIGHTS)
+            if (cb.spotCount < LightDefaults::MAX_SPOT_LIGHTS)
             {
-                break;
+                const auto& sp = data.parameters.spot;
+                auto& l = cb.spotLights[cb.spotCount++];
+                l.position = pos;
+                l.direction = fwd;
+                l.radius = sp.radius;
+                l.color = common.color;
+                l.intensity = common.intensity;
+                l.cosineInnerAngle = std::cos(XMConvertToRadians(sp.innerAngleDegrees));
+                l.cosineOuterAngle = std::cos(XMConvertToRadians(sp.outerAngleDegrees));
             }
-
-            const SpotLightParameters& spotParameters = lightData.parameters.spot;
-
-            GPUSpotLight gpuLight{};
-            gpuLight.position = position;
-            gpuLight.direction = forward;
-            gpuLight.radius = spotParameters.radius;
-            gpuLight.color = common.color;
-            gpuLight.intensity = common.intensity;
-            gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(spotParameters.innerAngleDegrees));
-            gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(spotParameters.outerAngleDegrees));
-
-            spotLights.push_back(gpuLight);
             break;
-        }
 
-        default:
-        {
-            break;
-        }
+        default: break;
         }
     }
 
-    constantBuffer.directionalCount = static_cast<uint32_t>(directionalLights.size());
-    constantBuffer.pointCount = static_cast<uint32_t>(pointLights.size());
-    constantBuffer.spotCount = static_cast<uint32_t>(spotLights.size());
-
-    for (uint32_t i = 0; i < constantBuffer.directionalCount; ++i)
-    {
-        constantBuffer.directionalLights[i] = directionalLights[i];
-    }
-
-    for (uint32_t i = 0; i < constantBuffer.pointCount; ++i)
-    {
-        constantBuffer.pointLights[i] = pointLights[i];
-    }
-
-    for (uint32_t i = 0; i < constantBuffer.spotCount; ++i)
-    {
-        constantBuffer.spotLights[i] = spotLights[i];
-    }
-
-    return constantBuffer;
+    return cb;
 }

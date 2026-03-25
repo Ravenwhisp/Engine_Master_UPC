@@ -228,6 +228,15 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	return texture;
 }
 
+std::shared_ptr<Texture> ModuleResources::createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat)
+{
+	assert(existingResource && "existingResource must not be null");
+
+	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), existingResource, views, rtvFormat);
+
+	return texture;
+}
+
 std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsset)
 {
 	const UID uid = hashToUID(meshAsset.getId());

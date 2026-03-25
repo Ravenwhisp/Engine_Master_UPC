@@ -1,14 +1,6 @@
 #pragma once
 #include "DescriptorHeap.h"
 
-
-
-struct RenderTarget {
-	ComPtr<ID3D12Resource>	resource{ nullptr };
-	DescriptorHandle		rtv{};
-};
-
-
 class Resource {
 public:
 	ComPtr<ID3D12Resource>	getD3D12Resource() const { return m_Resource; }

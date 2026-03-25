@@ -215,13 +215,17 @@ void NavigationAgentComponent::drawUi()
 	}
 }
 
-void NavigationAgentComponent::drawDebugPath()
+void NavigationAgentComponent::debugDraw()
 {
 	if (!m_drawPath)
+	{
 		return;
+	}
 
 	if (m_path.size() < 2)
+	{
 		return;
+	}
 
 	for (size_t i = 0; i + 1 < m_path.size(); ++i)
 	{

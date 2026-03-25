@@ -34,11 +34,9 @@
 #include <unordered_map>
 #include <assert.h>
 
-static const DXGI_FORMAT INDEX_FORMATS[3] = {
-    DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
+static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
 
-static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,
-    const std::filesystem::path* modelPath)
+static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex, const std::filesystem::path* modelPath)
 {
     if (texIndex < 0 || texIndex >= static_cast<int>(model.textures.size()))
     {
@@ -65,14 +63,7 @@ static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex,
     return uid;
 }
 
-ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
-    ImporterMaterial& importerMaterial, 
-    ImporterPrefab& importerPrefab,
-    ImporterAnimation& importerAnimation)
-    : m_importerMesh(importerMesh)
-    , m_importerMaterial(importerMaterial)
-    , m_importerPrefab(importerPrefab)
-    , m_importerAnimation(importerAnimation)
+ImporterGltf::ImporterGltf(ImporterMesh& importerMesh, ImporterMaterial& importerMaterial, ImporterPrefab& importerPrefab, ImporterAnimation& importerAnimation) : m_importerMesh(importerMesh), m_importerMaterial(importerMaterial), m_importerPrefab(importerPrefab), m_importerAnimation(importerAnimation)
 {
 }
 
@@ -216,7 +207,7 @@ void ImporterGltf::loadMaterial(const tinygltf::Model& model,
     MaterialAsset* mat)
 {
     const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
-    mat->baseColour = Color(float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
+    mat->baseColour = Color( float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
     mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor * 255.0f);
     mat->baseMap = resolveTexture(model, pbr.baseColorTexture.index, m_currentFilePath);
     mat->metallicRoughnessMap = resolveTexture(model, pbr.metallicRoughnessTexture.index, m_currentFilePath);
@@ -226,9 +217,7 @@ void ImporterGltf::loadMaterial(const tinygltf::Model& model,
     mat->isEmissive = isValidAsset(mat->emissiveMap);
 }
 
-void ImporterGltf::loadMesh(const tinygltf::Model& model,
-    const tinygltf::Primitive& primitive,
-    MeshAsset* mesh, const MD5Hash& materialUID)
+void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive, MeshAsset* mesh, const MD5Hash& materialUID)
 {
     const uint32_t baseVertex = static_cast<uint32_t>(mesh->vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(mesh->indices.size());
@@ -251,9 +240,7 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model,
     {
         const tinygltf::Accessor& idxAcc = model.accessors[primitive.indices];
         const int ct = idxAcc.componentType;
-        if (ct == TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE ||
-            ct == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT ||
-            ct == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT)
+        if (ct == TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE || ct == TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT || ct == TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT)
         {
             componentSize = tinygltf::GetComponentSizeInBytes(ct);
             indexCount = static_cast<uint32_t>(idxAcc.count);
@@ -435,8 +422,7 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::A
     }
 }
 
-GameObject* ImporterGltf::makeNode(const std::string& name,
-    std::vector<std::unique_ptr<GameObject>>& tempObjects) const
+GameObject* ImporterGltf::makeNode(const std::string& name, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
 {
     auto go = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
     go->SetName(name);
@@ -445,12 +431,7 @@ GameObject* ImporterGltf::makeNode(const std::string& name,
     return raw;
 }
 
-GameObject* ImporterGltf::buildNode(int nodeIdx,
-    GameObject* parent,
-    const tinygltf::Model& model,
-    const std::vector<MD5Hash>& meshUIDs,
-    const std::vector<MD5Hash>& materialUIDs,
-    std::vector<std::unique_ptr<GameObject>>& tempObjects) const
+GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinygltf::Model& model, const std::vector<MD5Hash>& meshUIDs, const std::vector<MD5Hash>& materialUIDs, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
 {
     const tinygltf::Node& gNode = model.nodes[nodeIdx];
     const std::string name = gNode.name.empty()
@@ -461,27 +442,17 @@ GameObject* ImporterGltf::buildNode(int nodeIdx,
 
     if (gNode.translation.size() == 3)
     {
-        tf->setPosition(Vector3(
-            (float)gNode.translation[0],
-            (float)gNode.translation[1],
-            (float)gNode.translation[2]));
+        tf->setPosition(Vector3( (float)gNode.translation[0], (float)gNode.translation[1], (float)gNode.translation[2]));
     }
 
     if (gNode.rotation.size() == 4)
     {
-        tf->setRotation(Quaternion(
-            (float)gNode.rotation[0],
-            (float)gNode.rotation[1],
-            (float)gNode.rotation[2],
-            (float)gNode.rotation[3]));
+        tf->setRotation(Quaternion( (float)gNode.rotation[0], (float)gNode.rotation[1], (float)gNode.rotation[2], (float)gNode.rotation[3]));
     }
 
     if (gNode.scale.size() == 3)
     {
-        tf->setScale(Vector3(
-            (float)gNode.scale[0],
-            (float)gNode.scale[1],
-            (float)gNode.scale[2]));
+        tf->setScale(Vector3( (float)gNode.scale[0], (float)gNode.scale[1], (float)gNode.scale[2]));
     }
 
     if (parent)
@@ -498,13 +469,11 @@ GameObject* ImporterGltf::buildNode(int nodeIdx,
         {
             mr->getMeshReference() = meshUIDs[gNode.mesh];
             const auto& prims = model.meshes[gNode.mesh].primitives;
-            if (!prims.empty() && prims[0].material >= 0 &&
-                prims[0].material < static_cast<int>(materialUIDs.size()))
+            if (!prims.empty() && prims[0].material >= 0 && prims[0].material < static_cast<int>(materialUIDs.size()))
             {
                 for (const tinygltf::Primitive& prim : prims)
                 {
                     mr->getMaterialsReference().push_back(materialUIDs[prim.material]);
-
                 }
             }
         }
@@ -513,7 +482,6 @@ GameObject* ImporterGltf::buildNode(int nodeIdx,
     for (int childIdx : gNode.children)
     {
         buildNode(childIdx, go, model, meshUIDs, materialUIDs, tempObjects);
-
     }
 
     return go;
