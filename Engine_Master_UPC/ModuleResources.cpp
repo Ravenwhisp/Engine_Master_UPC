@@ -142,12 +142,10 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	//DXGI_FORMAT baseFormat = textureAsset.getFormat();
 	if (colorSpace == TextureColorSpace::SRGB)
 	{
-		//desc.format = DirectX::MakeSRGB(baseFormat);
 		desc.format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	}
 	else
 	{
-		//desc.format = baseFormat;
 		desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
 
