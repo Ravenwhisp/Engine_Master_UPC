@@ -175,12 +175,6 @@
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
     <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="PlayerWalk.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraFollow.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="UIImage.cpp">
       <Filter>UI</Filter>
     </ClCompile>
@@ -229,17 +223,8 @@
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="CameraSwitcher.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="WaypointPathComponent.cpp">
       <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="TriggerArea.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
-    <ClCompile Include="ExitApplication.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClCompile>
     <ClCompile Include="WindowGameDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
@@ -333,6 +318,12 @@
     </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
+    <ClCompile Include="EngineAPI.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ExitApplication.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -545,12 +536,6 @@
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerWalk.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraFollow.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="UIImage.h">
       <Filter>UI</Filter>
@@ -633,14 +618,8 @@
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="CameraSwitcher.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="WaypointPathComponent.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="TriggerArea.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="ExitApplication.h">
       <Filter>GameEntity\Components\Scripts</Filter>
@@ -765,9 +744,6 @@
     <ClInclude Include="SceneSnapshot.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>GameEntity\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="SceneDataCB.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
@@ -812,6 +788,30 @@
     </ClInclude>
     <ClInclude Include="RenderSurface.h">
       <Filter>D3D12\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineAPI.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAPI.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAutoRegister.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptCreator.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFieldInfo.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptComponentRef.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptRegistry.h">
+      <Filter>Core\Scripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

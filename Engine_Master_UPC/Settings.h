@@ -8,7 +8,7 @@ constexpr bool DEFAULT_DEBUG = true;
 
 struct EngineInformation
 {
-    std::string version = "alpha-v0.9";
+    std::string version = "alpha-v0.10";
 };
 
 struct CameraSettings
