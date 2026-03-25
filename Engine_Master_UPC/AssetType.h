@@ -9,6 +9,7 @@ enum class AssetType : uint32_t
 	MESH = 3,
 	FONT = 4,
 	PREFAB = 5,
+	ANIMATION = 6,
 
-	UNKNOWN = 6
+	UNKNOWN = 7
 };
