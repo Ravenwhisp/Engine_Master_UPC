@@ -15,7 +15,8 @@
     X(WAYPOINT_PATH)        \
     X(CHANGE_SCENE)         \
     X(EXIT_APPLICATION)     \
-    X(NAVMESH_WALK)         
+    X(NAVMESH_WALK)         \
+    X(ANIMATION)
 
 enum class ComponentType
 {
