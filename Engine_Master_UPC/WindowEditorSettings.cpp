@@ -125,7 +125,7 @@ void WindowEditorSettings::drawFrustumCullingSettings()
 
         if (!app->getModuleScene()->getQuadtree()->getIsBuilded()) {
             m_settings->frustumCulling.debugFrustumCulling = false;
-            DEBUG_WARN("Cannot debug frustum culling because quadtree is not builded.")
+            DEBUG_WARN("Cannot debug frustum culling because quadtree is not builded.");
         }
     }
 }
