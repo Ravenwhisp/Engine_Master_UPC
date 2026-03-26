@@ -96,6 +96,8 @@ private:
 
     Settings*               m_settings = nullptr;
 
+    HMODULE m_gameScriptsModule = nullptr;
+
     bool m_paused = false;
     bool m_quit = false;
 

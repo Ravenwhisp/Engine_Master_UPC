@@ -1,7 +1,9 @@
 #include "Globals.h"
 #include "WindowInspector.h"
-#include "Application.h";
+
+#include "Application.h"
 #include "ModuleEditor.h"
+
 #include "GameObject.h"
 #include "PrefabUI.h"
 #include "PrefabEditSession.h"
