@@ -9,6 +9,8 @@
 #include <DirectXColors.h>
 #include <algorithm>
 #include "UIFill.h"
+#include <d3dcompiler.h>
+#include "PlatformHelpers.h"
 
 UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 {
@@ -18,7 +20,16 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 
     RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, DXGI_FORMAT_D32_FLOAT);
 
-    const SpriteBatchPipelineStateDescription pd(rtState);
+    SpriteBatchPipelineStateDescription pd(rtState);
+
+    ComPtr<ID3DBlob> vertexShaderBlob;
+    ThrowIfFailed(D3DReadFileToBlob(L"UIFillSpriteVertexShader.cso", &vertexShaderBlob));
+
+    ComPtr<ID3DBlob> pixelShaderBlob;
+    ThrowIfFailed(D3DReadFileToBlob(L"UIFillSpritePixelShader.cso", &pixelShaderBlob));
+
+    pd.customVertexShader = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
+    pd.customPixelShader = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
 
     m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
@@ -96,22 +107,13 @@ void UIImagePass::drawImage(const UIImageCommand& command)
     src.right = desc.Width;
     src.bottom = desc.Height;
 
-    if (command.fillAmount < 1.0f)
-    {
-        if (command.fillMethod == FillMethod::Horizontal)
-        {
-            src.right = static_cast<LONG>(desc.Width * command.fillAmount);
-            dst.right = dst.left + static_cast<LONG>(command.rect.w * command.fillAmount);
-        }
-        else if (command.fillMethod == FillMethod::Vertical)
-        {
-            src.top = static_cast<LONG>(desc.Height * (1.0f - command.fillAmount));
-            dst.top = dst.bottom - static_cast<LONG>(command.rect.h * command.fillAmount);
-        }
-    }
+    const DirectX::XMVECTOR fillData = DirectX::XMVectorSet(
+        command.fillAmount,
+        static_cast<float>(command.fillMethod),
+        command.clockwise ? 1.0f : 0.0f,
+        1.0f);
 
-    // Call the overload of SpriteBatch::Draw that takes a source rectangle pointer
-    m_spriteBatch->Draw(srv.gpu, texSize, dst, &src, DirectX::Colors::White);
+    m_spriteBatch->Draw(srv.gpu, texSize, dst, &src, fillData);
 }
 
 void UIImagePass::end()
