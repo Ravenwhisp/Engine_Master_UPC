@@ -12,6 +12,18 @@
 #include <imgui.h>
 #include <cstring>
 
+namespace
+{
+    void DebugLine(const Vector3& from, const Vector3& to, const Vector3& color, bool depthEnabled = false)
+    {
+        const float p0[3] = { from.x, from.y, from.z };
+        const float p1[3] = { to.x, to.y, to.z };
+        const float c[3] = { color.x, color.y, color.z };
+
+        dd::line(p0, p1, c, 0, depthEnabled);
+    }
+}
+
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::ANIMATION, owner)
     , m_animationUIDInput(m_animationUID)
@@ -37,6 +49,7 @@ bool AnimationComponent::init()
     ensureAnimationLoaded();
     startPlaybackIfNeeded();
     return true;
+
 }
 
 bool AnimationComponent::cleanUp()
@@ -132,6 +145,11 @@ void AnimationComponent::update()
     {
         forceWorldRecursive(owner);
     }
+
+    if (m_debugDrawHierarchy)
+    {
+        debugDrawRecursive(owner);
+    }
 }
 
 void AnimationComponent::applyRecursive(GameObject* go)
@@ -187,6 +205,58 @@ void AnimationComponent::forceWorldRecursive(GameObject* go)
     }
 }
 
+void AnimationComponent::debugDrawRecursive(GameObject* go)
+{
+    if (!go)
+        return;
+
+    Transform* transform = go->GetTransform();
+    if (!transform)
+        return;
+
+    const Matrix& worldMatrix = transform->getGlobalMatrix();
+    const Vector3 worldPos = worldMatrix.Translation();
+
+    Transform* parentTransform = transform->getRoot();
+    if (parentTransform)
+    {
+        const Vector3 parentWorldPos = parentTransform->getGlobalMatrix().Translation();
+
+        // Parent -> child
+        DebugLine(parentWorldPos, worldPos, Vector3(1.0f, 1.0f, 1.0f), false);
+    }
+
+    drawAxisTriad(worldMatrix, 0.15f);
+
+    const auto& children = transform->getAllChildren();
+    for (GameObject* child : children)
+    {
+        if (child)
+            debugDrawRecursive(child);
+    }
+}
+
+void AnimationComponent::drawAxisTriad(const Matrix& worldMatrix, float axisLength)
+{
+    const Vector3 origin = worldMatrix.Translation();
+
+    const Vector3 right(worldMatrix._11, worldMatrix._12, worldMatrix._13);
+    const Vector3 up(worldMatrix._21, worldMatrix._22, worldMatrix._23);
+    const Vector3 forward(worldMatrix._31, worldMatrix._32, worldMatrix._33);
+
+    Vector3 x = right;
+    Vector3 y = up;
+    Vector3 z = forward;
+
+    if (x.LengthSquared() > 0.0f) x.Normalize();
+    if (y.LengthSquared() > 0.0f) y.Normalize();
+    if (z.LengthSquared() > 0.0f) z.Normalize();
+
+    DebugLine(origin, origin + x * axisLength, Vector3(1.0f, 0.0f, 0.0f), true);
+    DebugLine(origin, origin + y * axisLength, Vector3(0.0f, 1.0f, 0.0f), true);
+    DebugLine(origin, origin + z * axisLength, Vector3(0.0f, 0.0f, 1.0f), true);
+}
+
 void AnimationComponent::drawUi()
 {
     char uidBuffer[128];
@@ -210,6 +280,7 @@ void AnimationComponent::drawUi()
     ImGui::Checkbox("Play On Start", &m_playOnStart);
     ImGui::Checkbox("Apply Scale", &m_applyScale);
     ImGui::Checkbox("Force World Update", &m_forceWorldAfterApply);
+    ImGui::Checkbox("Debug Draw Hierarchy", &m_debugDrawHierarchy);
 
     const char* stateText = m_controller.IsPlaying() ? "Playing" : "Stopped / Paused";
     ImGui::Text("State: %s", stateText);
@@ -238,6 +309,7 @@ void AnimationComponent::drawUi()
         m_controller.Stop();
         m_hasStartedPlayback = true;
     }
+
 }
 
 rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
