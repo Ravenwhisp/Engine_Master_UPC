@@ -2,7 +2,7 @@
 #include "ImporterFont.h"
 
 #include "Application.h"
-#include "ModuleFileSystem.h"
+#include "FileIO.h"
 
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
@@ -20,8 +20,8 @@ bool ImporterFont::loadExternal(const std::filesystem::path& path, std::vector<u
         return false;
     }
 
-    out = app->getModuleFileSystem()->read(spritefontPath);
-    app->getModuleFileSystem()->remove(spritefontPath);
+    out = FileIO::read(spritefontPath);
+    FileIO::remove(spritefontPath);
 
     return !out.empty();
 }

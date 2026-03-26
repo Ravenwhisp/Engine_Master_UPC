@@ -37,7 +37,7 @@ class ContentRegistry
 {
 public:
     // Both pointers must outlive this object.
-    ContentRegistry(ModuleFileSystem* fs, AssetRegistry* registry);
+    ContentRegistry(AssetRegistry* registry);
 
     void rebuild(const std::filesystem::path& rootPath);
 
@@ -51,7 +51,6 @@ private:
 
     std::shared_ptr<FileEntry> getEntryRecursive( const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
 
-    ModuleFileSystem* m_fs{ nullptr };
     AssetRegistry* m_registry{ nullptr };
 
     std::shared_ptr<FileEntry> m_root;

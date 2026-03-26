@@ -184,7 +184,7 @@
     <ClCompile Include="UIText.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleFileSystem.cpp">
+    <ClCompile Include="FileIO.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="FileDialog.cpp">
@@ -555,7 +555,7 @@
     <ClInclude Include="BinaryWriter.h">
       <Filter>Persistence</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleFileSystem.h">
+    <ClInclude Include="FileIO.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="FileDialog.h">
