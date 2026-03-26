@@ -2,17 +2,9 @@
 #include "Component.h"
 #include <string>
 #include <TextureAsset.h>
+#include "UIFill.h"
 
 struct Rect2D;
-
-enum class FillMethod
-{
-    Horizontal,
-    Vertical,
-    Radial90,
-    Radial180,
-    Radial360
-};
 
 class UIImage : public Component
 {

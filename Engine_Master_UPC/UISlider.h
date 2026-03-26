@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 #include "UIImage.h"
+#include "UIFill.h"
 
 class UISlider : public Component
 {

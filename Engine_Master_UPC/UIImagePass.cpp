@@ -8,6 +8,7 @@
 #include "CommandQueue.h"
 #include <DirectXColors.h>
 #include <algorithm>
+#include "UIFill.h"
 
 UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device): m_device(device)
 {
@@ -97,14 +98,14 @@ void UIImagePass::drawImage(const UIImageCommand& command)
 
     if (command.fillAmount < 1.0f)
     {
-        if (command.fillMethod == 0 /* Horizontal */) 
+        if (command.fillMethod == FillMethod::Horizontal)
         {
             src.right = static_cast<LONG>(desc.Width * command.fillAmount);
             dst.right = dst.left + static_cast<LONG>(command.rect.w * command.fillAmount);
         }
-        else if (command.fillMethod == 1 /* Vertical */)
+        else if (command.fillMethod == FillMethod::Vertical)
         {
-            src.top = static_cast<LONG>(desc.Height * (1.0f - command.fillAmount)); // Assuming bottom to top
+            src.top = static_cast<LONG>(desc.Height * (1.0f - command.fillAmount));
             dst.top = dst.bottom - static_cast<LONG>(command.rect.h * command.fillAmount);
         }
     }

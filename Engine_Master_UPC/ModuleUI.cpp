@@ -182,7 +182,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
         command.texture = uiImg->getTexture();
         command.rect = myRect;
         command.fillAmount = uiImg->getFillAmount();
-        command.fillMethod = static_cast<int>(uiImg->getFillMethod());
+        command.fillMethod = uiImg->getFillMethod();
         command.clockwise = uiImg->getClockwise();
         m_imageCommands.push_back(command);
     }
