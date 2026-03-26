@@ -10,9 +10,11 @@
 #include "Transform.h"
 
 #include <imgui.h>
+#include <cstring>
 
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::ANIMATION, owner)
+    , m_animationUIDInput(m_animationUID)
 {
 }
 
@@ -52,6 +54,7 @@ void AnimationComponent::setAnimationUID(const MD5Hash& uid)
         return;
 
     m_animationUID = uid;
+    m_animationUIDInput = m_animationUID;
 
     m_controller.Stop();
     m_controller.SetAnimation(std::shared_ptr<AnimationAsset>{});
@@ -186,7 +189,20 @@ void AnimationComponent::forceWorldRecursive(GameObject* go)
 
 void AnimationComponent::drawUi()
 {
-    ImGui::Text("Animation UID: %s", m_animationUID.c_str());
+    char uidBuffer[128];
+    std::strncpy(uidBuffer, m_animationUIDInput.c_str(), sizeof(uidBuffer));
+    uidBuffer[sizeof(uidBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("Animation UID", uidBuffer, sizeof(uidBuffer)))
+    {
+        m_animationUIDInput = uidBuffer;
+    }
+
+    if (ImGui::Button("Apply Animation UID"))
+    {
+        setAnimationUID(m_animationUIDInput);
+    }
+
     ImGui::Text("Duration: %.3f", m_controller.GetDuration());
     ImGui::Text("Current Time: %.3f", m_controller.GetTime());
 
@@ -274,6 +290,7 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
     m_controller.Stop();
     m_controller.SetAnimation(std::shared_ptr<AnimationAsset>{});
     m_hasStartedPlayback = false;
+    m_animationUIDInput = m_animationUID;
 
     return true;
 }
