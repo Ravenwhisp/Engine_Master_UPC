@@ -181,7 +181,7 @@ RingBuffer* ModuleResources::createRingBuffer(size_t size)
 {
 	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 	ComPtr<ID3D12Resource> buffer = createUploadBuffer(totalMemorySize);
-	return new RingBuffer(*m_device.Get(), buffer, totalMemorySize);
+	return new RingBuffer(*m_device.Get(), buffer, static_cast<uint32_t>(totalMemorySize));
 }
 
 VertexBuffer* ModuleResources::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)

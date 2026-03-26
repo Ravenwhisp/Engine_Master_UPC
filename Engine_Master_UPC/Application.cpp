@@ -10,7 +10,6 @@
 #include "ModuleUI.h"
 #include "ModuleRender.h"
 #include "ModuleScene.h"
-#include "ModuleFileSystem.h"
 #include "ModuleAssets.h"
 #include "ModuleEventSystem.h"
 #include "ModuleGameView.h"
@@ -33,7 +32,6 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     //Needed to create the LOGs
     modules.push_back(m_moduleEditor = new ModuleEditor());
 
-    modules.push_back(m_moduleFileSystem = new ModuleFileSystem());
     modules.push_back(m_moduleAssets = new ModuleAssets());
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
@@ -71,28 +69,9 @@ bool Application::init()
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     // DLL TEST
-    HMODULE gameScriptsModule = LoadLibraryA("GameScripts.dll");
-    assert(gameScriptsModule != nullptr);
+    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
+    assert(m_gameScriptsModule != nullptr);
 
-    using GetScriptNameFn = const char* (*)();
-    using GetScriptCreatorFn = ScriptCreator(*)();
-
-    GetScriptNameFn getScriptName =
-        (GetScriptNameFn)GetProcAddress(gameScriptsModule, "GetScriptName");
-    assert(getScriptName != nullptr);
-
-    GetScriptCreatorFn getScriptCreator =
-        (GetScriptCreatorFn)GetProcAddress(gameScriptsModule, "GetScriptCreator");
-    assert(getScriptCreator != nullptr);
-
-    const char* scriptName = getScriptName();
-    ScriptCreator creator = getScriptCreator();
-
-    assert(scriptName != nullptr);
-    assert(creator != nullptr);
-
-    ScriptFactory::registerScript(scriptName, creator);
-    assert(ScriptFactory::isScriptRegistered("Test"));
     //DELL TEST
 
 	return ret;
@@ -147,7 +126,7 @@ void Application::update()
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 
-    m_elapsedMilis = std::chrono::duration<float, std::milli>(frameEnd - frameStart).count();
+    m_elapsedMilis = static_cast<uint64_t>(std::chrono::duration<float, std::milli>(frameEnd - frameStart).count());
 
     m_moduleTime->waitForNextFrame();
 }

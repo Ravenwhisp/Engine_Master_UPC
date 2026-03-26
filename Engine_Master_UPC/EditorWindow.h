@@ -25,7 +25,7 @@ public:
     bool isHovered() const { return m_isViewportHovered; }
     bool isFocused() const { return m_isViewportFocused; }
 protected:
-    float   m_windowX, m_windowY = 0;
+    float   m_windowX = 0, m_windowY = 0;
     bool    m_isOpen = true;
     ImVec2  m_size = { 400, 300 };
     bool    m_isViewportHovered = false;

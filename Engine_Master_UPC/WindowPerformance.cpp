@@ -32,9 +32,9 @@ void WindowPerformance::render()
 
 	char title[64];
 	sprintf_s(title, sizeof(title), "Framerate %.1f", fps.back());
-	ImGui::PlotHistogram("##framerate", &fps[0], fps.size(), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
+	ImGui::PlotHistogram("##framerate", &fps[0], static_cast<int>(fps.size()), 0, title, 0.0f, 100.0f, ImVec2(310, 100));
 	sprintf_s(title, sizeof(title), "Milliseconds %0.1f", ms.back());
-	ImGui::PlotHistogram("##milliseconds", &ms[0], ms.size(), 0, title, 0.0f, 50.0f, ImVec2(310, 100));
+	ImGui::PlotHistogram("##milliseconds", &ms[0], static_cast<int>(ms.size()), 0, title, 0.0f, 50.0f, ImVec2(310, 100));
 
     ImGui::Separator();
     ImGui::TextDisabled("CPU Profiling");
