@@ -843,9 +843,6 @@
     <ClInclude Include="WindowFileDialog.h">
       <Filter>Editor\Views\FileDialog</Filter>
     </ClInclude>
-    <ClInclude Include="FileDialogClipboard.h">
-      <Filter>Editor\Views\FileDialog\Commands</Filter>
-    </ClInclude>
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="CommandSaveGameObjectAsPrefab.h">
       <Filter>Editor\Views\Commands</Filter>
@@ -912,6 +909,9 @@
     </ClInclude>
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialogClipboard.h">
+      <Filter>Editor\Views\FileDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1087,12 +1087,6 @@
     </Filter>
     <Filter Include="Editor\Views\FileDialog">
       <UniqueIdentifier>{93d034d0-a185-435f-8ec6-59068d32670d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Views\FileDialog\Actions">
-      <UniqueIdentifier>{5e65593b-4de6-42be-b46a-b46f60a68623}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Views\FileDialog\Commands">
-      <UniqueIdentifier>{dbb8bfdd-5c13-4634-9081-7c5220d1b9b9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Editor\Views\Commands">
       <UniqueIdentifier>{aa4c7b9c-59bc-413e-b1d6-b7ec38567f04}</UniqueIdentifier>

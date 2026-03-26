@@ -1,8 +1,7 @@
 #include "Globals.h"
 #include "CommandDeleteAsset.h"
 
-#include "Application.h"
-#include "ModuleFileSystem.h"
+#include "FileIO.h"
 
 CommandDeleteAsset::CommandDeleteAsset(const std::filesystem::path& metaPath)
     : m_metaPath(metaPath)
@@ -11,11 +10,9 @@ CommandDeleteAsset::CommandDeleteAsset(const std::filesystem::path& metaPath)
 
 void CommandDeleteAsset::run()
 {
-    ModuleFileSystem* fs = app->getModuleFileSystem();
-
     const std::filesystem::path sourcePath = m_metaPath.parent_path() / m_metaPath.stem();
-    const bool deletedMeta = fs->remove(m_metaPath);
-    const bool deletedSource = fs->remove(sourcePath);
+    const bool deletedMeta = FileIO::remove(m_metaPath);
+    const bool deletedSource = FileIO::remove(sourcePath);
     m_result = deletedMeta && deletedSource;
 }
 

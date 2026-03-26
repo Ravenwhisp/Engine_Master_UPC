@@ -5,7 +5,6 @@
 #include "ModuleAssets.h"
 #include "ModuleEditor.h"
 #include "ModuleScene.h"
-#include "ModuleFileSystem.h"
 
 #include "GameObject.h"
 #include "PrefabManager.h"
@@ -19,6 +18,7 @@
 #include <CommandImportAsset.h>
 #include <CommandDeleteAsset.h>
 #include <CommandDeleteFolder.h>
+#include <FileIO.h>
 
 void WindowFileDialog::navigateTo(const std::filesystem::path& path)
 {
@@ -272,7 +272,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 
                 if (ImGui::MenuItem("Delete Folder", "Del"))
                 {
-                    if (!app->getModuleFileSystem()->exists(m_clipboard.fileToManage))
+                    if (!FileIO::exists(m_clipboard.fileToManage))
                     {
                         m_clipboard.clear();
                     }

@@ -27,6 +27,8 @@
 #include "ModuleGameView.h"
 #include "Mouse.h"
 
+#include <fstream>
+
 using namespace std;
 
 void ModuleEditor::mainMenuBar()
@@ -168,7 +170,11 @@ void ModuleEditor::mainDockspace(bool* p_open)
 
     if (m_firstFrame)
     {
-        setupDockLayout(dockspace_id);
+        std::ifstream iniFile("imgui.ini");
+        if (!iniFile.good())
+        {
+            setupDockLayout(dockspace_id);
+        }
         style();
         m_firstFrame = false;
     }
