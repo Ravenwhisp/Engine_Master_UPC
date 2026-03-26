@@ -12,13 +12,13 @@
 
 #include "PrefabUI.h"
 #include "PrefabEditSession.h"
-#include <AddGameObjectAction.h>
-#include <RemoveGameObjectAction.h>
-#include <RenameGameObjectAction.h>
+#include <CommandAddGameObject.h>
+#include <CommandRemoveGameObject.h>
+#include <CommandRenameGameObject.h>
 #include <HierarchyUtils.h>
-#include <ReparentAction.h>
-#include <AddChildToPrefabRootAction.h>
-#include <InstantiatePrefabAction.h>
+#include <CommandReparent.h>
+#include <CommandAddChildToPrefabRoot.h>
+#include <CommandInstantiatePrefab.h>
 
 #include "UID.h"
 
@@ -69,9 +69,8 @@ void WindowHierarchy::drawSceneHeader()
 
     if (ImGui::Button("New Object"))
     {
-        AddGameObjectAction(scene).run();
+        CommandAddGameObject(scene).run();
     }
-
 
     ImGui::SameLine();
 
@@ -79,7 +78,7 @@ void WindowHierarchy::drawSceneHeader()
     ImGui::BeginDisabled(selected == nullptr);
     if (ImGui::Button("Remove") && selected)
     {
-        RemoveGameObjectAction(scene, selected).run();
+        CommandRemoveGameObject(scene, selected).run();
     }
 
     ImGui::EndDisabled();
@@ -93,7 +92,7 @@ void WindowHierarchy::drawPrefabHeader(PrefabEditSession* session)
 
     if (ImGui::Button("Add Child Object") && session->m_rootObject)
     {
-        AddChildToPrefabRootAction(isolatedScene, session->m_rootObject).run();
+        CommandAddChildToPrefabRoot(isolatedScene, session->m_rootObject).run();
     }
 
 
@@ -103,7 +102,7 @@ void WindowHierarchy::drawPrefabHeader(PrefabEditSession* session)
     ImGui::BeginDisabled(selected == nullptr || selected == session->m_rootObject);
     if (ImGui::Button("Remove Selected") && selected && selected != session->m_rootObject)
     {
-        RemoveGameObjectAction(isolatedScene, selected).run();
+        CommandRemoveGameObject(isolatedScene, selected).run();
     }
     ImGui::EndDisabled();
 }
@@ -187,7 +186,7 @@ void WindowHierarchy::drawInlineRename()
             Scene* scene = HierarchyUtils::resolveTargetScene();
             if (GameObject* go = HierarchyUtils::findByUID(scene, m_renameTargetID))
             {
-                RenameGameObjectAction(scene, go, m_renameBuffer).run();
+                CommandRenameGameObject(scene, go, m_renameBuffer).run();
             }
 
             m_renameTargetID = 0;
@@ -206,7 +205,7 @@ void WindowHierarchy::drawInlineRename()
 void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 {
     Scene* scene = HierarchyUtils::resolveTargetScene();
-    ReparentAction(scene, child, newParent).run();
+    CommandReparent(scene, child, newParent).run();
 }
 
 
@@ -224,7 +223,7 @@ void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath
     GameObject* parent)
 {
     Scene* scene = HierarchyUtils::resolveTargetScene();
-    InstantiatePrefabAction(scene, sourcePath, parent).run();
+    CommandInstantiatePrefab(scene, sourcePath, parent).run();
 }
 
 void WindowHierarchy::onDeleteRequested(GameObject* go)
@@ -236,5 +235,5 @@ void WindowHierarchy::onDeleteRequested(GameObject* go)
         return; // prefab root is protected
 
     Scene* scene = HierarchyUtils::resolveTargetScene();
-    RemoveGameObjectAction(scene, go).run();
+    CommandRemoveGameObject(scene, go).run();
 }

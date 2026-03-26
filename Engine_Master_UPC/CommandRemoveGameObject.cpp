@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "RemoveGameObjectAction.h"
+#include "CommandRemoveGameObject.h"
 
 #include "Application.h"
 #include "ModuleEditor.h"
@@ -9,13 +9,13 @@
 #include <HierarchyUtils.h>
 
 
-RemoveGameObjectAction::RemoveGameObjectAction(Scene* scene, GameObject* target)
+CommandRemoveGameObject::CommandRemoveGameObject(Scene* scene, GameObject* target)
     : m_scene(scene)
     , m_targetID(target ? target->GetID() : 0)
 {
 }
 
-void RemoveGameObjectAction::run()
+void CommandRemoveGameObject::run()
 {
     if (!m_scene || m_targetID == 0) return;
 

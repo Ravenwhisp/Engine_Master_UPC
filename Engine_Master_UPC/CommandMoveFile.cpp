@@ -1,31 +1,37 @@
 #include "Globals.h"
-#include "MoveFileAction.h"
+#include "CommandMoveFile.h"
 
 #include "Application.h"
 #include <ModuleFileSystem.h>
 
-MoveFileAction::MoveFileAction(const std::filesystem::path& source,
+CommandMoveFile::CommandMoveFile(const std::filesystem::path& source,
     const std::filesystem::path& targetDir)
     : m_source(source)
     , m_targetDir(targetDir)
 {
 }
 
-bool MoveFileAction::run()
+void CommandMoveFile::run()
 {
     ModuleFileSystem* fs = app->getModuleFileSystem();
 
     const std::filesystem::path target = m_targetDir / m_source.filename();
 
-    // Directories: move the whole tree in one call
     if (fs->isDirectory(m_source))
-        return fs->move(m_source, target);
+    {
+        m_result = fs->move(m_source, target);
+        return;
+    }
 
-    // Files: move the .metadata sidecar and its source counterpart
     const std::filesystem::path sourceStem = m_source.parent_path() / m_source.stem();
     const std::filesystem::path targetStem = m_targetDir / m_source.stem();
 
     const bool movedMeta = fs->move(m_source, target);
     const bool movedSource = fs->move(sourceStem, targetStem);
-    return movedMeta && movedSource;
+    m_result = movedMeta && movedSource;
+}
+
+bool CommandMoveFile::getResult() const
+{
+    return m_result;
 }

@@ -339,56 +339,56 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="AddGameObjectAction.cpp">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClCompile>
     <ClCompile Include="HierarchyUtils.cpp">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClCompile>
-    <ClCompile Include="RemoveGameObjectAction.cpp">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClCompile>
-    <ClCompile Include="ReparentAction.cpp">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClCompile>
-    <ClCompile Include="RenameGameObjectAction.cpp">
       <Filter>Editor\Views\Hierarchy\Actions</Filter>
     </ClCompile>
     <ClCompile Include="HierarchyTreeRenderer.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
-    <ClCompile Include="AddChildToPrefabRootAction.cpp">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClCompile>
-    <ClCompile Include="InstantiatePrefabAction.cpp">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClCompile>
     <ClCompile Include="WindowFileDialog.cpp">
       <Filter>Editor\Views\FileDialog</Filter>
     </ClCompile>
-    <ClCompile Include="SaveGameObjectAsPrefabAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="PasteFileAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandAddGameObject.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="MoveFileAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandCreateFolder.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="ImportAssetAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandCutItem.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="DeleteFolderAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandDeleteAsset.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="DeleteAssetAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandDeleteFolder.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="CutItemAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandImportAsset.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="CreateFolderAction.cpp">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClCompile Include="CommandInstantiatePrefab.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandMoveFile.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPasteFile.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRemoveGameObject.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRenameGameObject.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandReparent.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -858,59 +858,60 @@
     <ClInclude Include="RenderSurface.h">
       <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
-    <ClInclude Include="AddGameObjectAction.h">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="HierarchyUtils.h">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="RemoveGameObjectAction.h">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="ReparentAction.h">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="RenameGameObjectAction.h">
       <Filter>Editor\Views\Hierarchy\Actions</Filter>
     </ClInclude>
     <ClInclude Include="HierarchyTreeRenderer.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
-    <ClInclude Include="AddChildToPrefabRootAction.h">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="InstantiatePrefabAction.h">
-      <Filter>Editor\Views\Hierarchy\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="WindowFileDialog.h">
       <Filter>Editor\Views\FileDialog</Filter>
-    </ClInclude>
-    <ClInclude Include="CreateFolderAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="DeleteAssetAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="DeleteFolderAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="ImportAssetAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="CutItemAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
     </ClInclude>
     <ClInclude Include="FileDialogClipboard.h">
       <Filter>Editor\Views\FileDialog\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="PasteFileAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClInclude Include="ICommand.h" />
+    <ClInclude Include="CommandSaveGameObjectAsPrefab.h">
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="SaveGameObjectAsPrefabAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClInclude Include="CommandAddChildToPrefabRoot.h">
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="MoveFileAction.h">
-      <Filter>Editor\Views\FileDialog\Actions</Filter>
+    <ClInclude Include="CommandAddGameObject.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandCreateFolder.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandCutItem.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandDeleteAsset.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandDeleteFolder.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandImportAsset.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandInstantiatePrefab.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandMoveFile.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandPasteFile.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandRemoveGameObject.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandRenameGameObject.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandReparent.h">
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1092,6 +1093,9 @@
     </Filter>
     <Filter Include="Editor\Views\FileDialog\Commands">
       <UniqueIdentifier>{dbb8bfdd-5c13-4634-9081-7c5220d1b9b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Commands">
+      <UniqueIdentifier>{aa4c7b9c-59bc-413e-b1d6-b7ec38567f04}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

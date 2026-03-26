@@ -1,15 +1,15 @@
 #include "Globals.h"
-#include "CreateFolderAction.h"
+#include "CommandCreateFolder.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
 
-CreateFolderAction::CreateFolderAction(const std::filesystem::path& parentDir)
+CommandCreateFolder::CommandCreateFolder(const std::filesystem::path& parentDir)
     : m_parentDir(parentDir)
 {
 }
 
-void CreateFolderAction::run()
+void CommandCreateFolder::run()
 {
     std::filesystem::path newPath = m_parentDir / "New Folder";
 

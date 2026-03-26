@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "SaveGameObjectAsPrefabAction.h"
+#include "CommandSaveGameObjectAsPrefab.h"
 
 
 #include "Application.h"
@@ -11,7 +11,7 @@
 #include "PrefabAsset.h"
 #include <Extensions.h>
 
-SaveGameObjectAsPrefabAction::SaveGameObjectAsPrefabAction(
+CommandSaveGameObjectAsPrefab::CommandSaveGameObjectAsPrefab(
     GameObject* go,
     const std::filesystem::path& targetDir)
     : m_go(go)
@@ -19,11 +19,10 @@ SaveGameObjectAsPrefabAction::SaveGameObjectAsPrefabAction(
 {
 }
 
-void SaveGameObjectAsPrefabAction::run()
+void CommandSaveGameObjectAsPrefab::run()
 {
     if (!m_go) return;
 
-    // Build a unique save path: targetDir / GoName.prefab
     std::filesystem::path savePath = m_targetDir / (m_go->GetName() + PREFAB_EXTENSION);
     int suffix = 1;
     while (app->getModuleFileSystem()->exists(savePath))

@@ -13,13 +13,13 @@
 #include "PrefabAsset.h"
 #include "Keyboard.h"
 #include "Extensions.h"
-#include <SaveGameObjectAsPrefabAction.h>
-#include <CreateFolderAction.h>
-#include <PasteFileAction.h>
-#include <CutItemAction.h>
-#include <ImportAssetAction.h>
-#include <DeleteAssetAction.h>
-#include <DeleteFolderAction.h>
+#include <CommandSaveGameObjectAsPrefab.h>
+#include <CommandCreateFolder.h>
+#include <CommandPasteFile.h>
+#include <CommandCutItem.h>
+#include <CommandImportAsset.h>
+#include <CommandDeleteAsset.h>
+#include <CommandDeleteFolder.h>
 
 
 void WindowFileDialog::navigateTo(const std::filesystem::path& path)
@@ -40,7 +40,7 @@ void WindowFileDialog::handleGameObjectDrop(const std::filesystem::path& targetD
     GameObject* go = app->getModuleEditor()->getSelectedGameObject();
     if (!go) return;
 
-    SaveGameObjectAsPrefabAction(go, targetDirectory).run();
+    CommandSaveGameObjectAsPrefab(go, targetDirectory).run();
 }
 
 
@@ -82,7 +82,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
         ImGui::Separator();
         if (ImGui::MenuItem("New Folder"))
         {
-            CreateFolderAction(m_currentDirectory).run();
+            CommandCreateFolder(m_currentDirectory).run();
         }
 
         ImGui::Spacing(); ImGui::Spacing();
@@ -90,7 +90,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
         ImGui::Separator();
         if (m_clipboard.hasPending() && ImGui::MenuItem("Paste"))
         {
-            PasteFileAction(m_clipboard, directory->path).run();
+            CommandPasteFile(m_clipboard, directory->path).run();
         }
 
         ImGui::EndPopup();
@@ -135,7 +135,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
     {
         if (keyState.X && m_selectedItem)
         {
-            CutItemAction(m_clipboard, m_selectedItem->path).run();
+            CommandCutItem(m_clipboard, m_selectedItem->path).run();
         }
         else if (keyState.V && m_clipboard.hasPending())
         {
@@ -144,7 +144,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                 ? m_selectedItem->path
                 : directory->path;
 
-            PasteFileAction(m_clipboard, pasteTarget).run();
+            CommandPasteFile(m_clipboard, pasteTarget).run();
         }
     }
 
@@ -223,11 +223,11 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 
                 if (ImGui::MenuItem("Import", nullptr, false, canImport))
                 {
-                    ImportAssetAction(originalPath, asset->uid).run();
+                    CommandImportAsset(originalPath, asset->uid).run();
                 }
 
                 if (ImGui::MenuItem("Cut", "Ctrl+X"))
-                    CutItemAction(m_clipboard, asset->path).run();
+                    CommandCutItem(m_clipboard, asset->path).run();
 
                 if (ImGui::MenuItem("Delete", "Del"))
                 {
@@ -237,9 +237,13 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                         m_clipboard.clear();
                     }
 
-                    if (DeleteAssetAction(asset->path).run())
                     {
-                        m_selectedItem = nullptr;
+                        CommandDeleteAsset deleteAction(asset->path);
+                        deleteAction.run();
+                        if (deleteAction.getResult())
+                        {
+                            m_selectedItem = nullptr;
+                        }
                     }
 
                     app->getModuleAssets()->refresh();
@@ -257,7 +261,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                 m_selectedItem = asset;
 
                 if (ImGui::MenuItem("Cut Folder", "Ctrl+X"))
-                    CutItemAction(m_clipboard, asset->path).run();
+                    CommandCutItem(m_clipboard, asset->path).run();
 
                 if (ImGui::MenuItem("Delete Folder", "Del"))
                 {
@@ -267,7 +271,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                         m_clipboard.clear();
                     }
 
-                    const std::filesystem::path redirect = DeleteFolderAction(asset->path, m_currentDirectory).run();
+                    const std::filesystem::path redirect = CommandDeleteFolder(asset->path, m_currentDirectory).getResult();
 
                     if (!redirect.empty())
                     {
@@ -285,7 +289,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                     m_clipboard.fileToManage != asset->path &&
                     ImGui::MenuItem("Paste", "Ctrl+V"))
                 {
-                    PasteFileAction(m_clipboard, asset->path).run();
+                    CommandPasteFile(m_clipboard, asset->path).run();
                 }
 
                 ImGui::EndPopup();
