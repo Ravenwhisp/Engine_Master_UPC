@@ -73,6 +73,8 @@ void Quadtree::build()
             insert(*go);
         }
     }
+
+    isBuilded = true;
 }
 
 void Quadtree::update()
@@ -101,6 +103,8 @@ void Quadtree::clear()
 {
     m_dirtyNodes.clear();
     m_objectLocationMap.clear();
+
+    isBuilded = false;
 }
 
 void Quadtree::insert(GameObject& object)

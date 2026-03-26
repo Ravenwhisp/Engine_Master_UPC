@@ -2,7 +2,6 @@
 #include "FileDialog.h"
 
 #include "Application.h"
-#include "ModuleFileSystem.h"
 #include "ModuleAssets.h"
 #include "ModuleEditor.h"
 #include "ModuleScene.h"
@@ -11,6 +10,7 @@
 #include "PrefabAsset.h"
 #include "Keyboard.h"
 #include "Extensions.h"
+#include <FileIO.h>
 
 
 // ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ void FileDialog::handleGameObjectDrop(const std::filesystem::path& targetDirecto
     std::filesystem::path basePath = targetDirectory / (go->GetName() + ".prefab");
     std::filesystem::path savePath = basePath;
     int suffix = 1;
-    while (app->getModuleFileSystem()->exists(savePath))
+    while (FileIO::exists(savePath))
     {
         savePath = targetDirectory /
             (go->GetName() + "_" + std::to_string(suffix++) + ".prefab");
@@ -108,7 +108,7 @@ void FileDialog::deleteFolder(const std::shared_ptr<FileEntry>& asset)
     std::filesystem::remove_all(asset->getPath());
 
     if (m_lastActionRequested != Command::NONE &&
-        !app->getModuleFileSystem()->exists(m_fileToManage))
+        !FileIO::exists(m_fileToManage))
         m_lastActionRequested = Command::NONE;
 
     if (m_currentDirectory == asset->path ||
@@ -133,26 +133,24 @@ void FileDialog::handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset)
 
 inline bool FileDialog::moveFile(FileEntry* targetDirectory)
 {
-    ModuleFileSystem* fs = app->getModuleFileSystem();
     const std::filesystem::path target = targetDirectory->path / m_fileToManage.filename();
 
-    if (fs->isDirectory(m_fileToManage))
-        return fs->move(m_fileToManage, target);
+    if (FileIO::isDirectory(m_fileToManage))
+        return FileIO::move(m_fileToManage, target);
 
     const std::filesystem::path sourcePath = m_fileToManage.parent_path() / m_fileToManage.stem();
     const std::filesystem::path sourcePathTarget = targetDirectory->path / m_fileToManage.stem();
 
-    const bool movedMeta = fs->move(m_fileToManage, target);
-    const bool movedSource = fs->move(sourcePath, sourcePathTarget);
+    const bool movedMeta = FileIO::move(m_fileToManage, target);
+    const bool movedSource = FileIO::move(sourcePath, sourcePathTarget);
     return movedMeta && movedSource;
 }
 
 inline bool FileDialog::deleteAsset(FileEntry* file)
 {
-    ModuleFileSystem* fs = app->getModuleFileSystem();
     const std::filesystem::path sourcePath = file->path.parent_path() / file->path.stem();
-    const bool deletedMeta = fs->remove(file->path);
-    const bool deletedSource = fs->remove(sourcePath);
+    const bool deletedMeta = FileIO::remove(file->path);
+    const bool deletedSource = FileIO::remove(sourcePath);
     return deletedMeta && deletedSource;
 }
 

@@ -354,7 +354,7 @@ void GameObject::drawUI()
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         const std::unique_ptr<Component>& component = m_components[i];
-        ImGui::PushID(component->getID());
+        ImGui::PushID(static_cast<int>(component->getID()));
 
         std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
 

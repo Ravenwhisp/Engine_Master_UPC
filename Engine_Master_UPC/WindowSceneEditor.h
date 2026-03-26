@@ -24,7 +24,6 @@ private:
     ModuleCamera* m_moduleCamera;
 
     Settings* m_settings;
-    Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
 	PlayToolbar* m_playToolbar;

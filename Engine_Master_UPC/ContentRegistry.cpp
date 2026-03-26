@@ -1,14 +1,11 @@
 ﻿#include "Globals.h"
 #include "ContentRegistry.h"
-#include "ModuleFileSystem.h"
 #include "AssetRegistry.h"
 #include "Asset.h"
+#include <FileIO.h>
 
-#include <filesystem>
-
-ContentRegistry::ContentRegistry(ModuleFileSystem* fs, AssetRegistry* registry)
-    : m_fs(fs)
-    , m_registry(registry)
+ContentRegistry::ContentRegistry(AssetRegistry* registry):
+    m_registry(registry)
 {
 }
 
@@ -29,7 +26,7 @@ std::shared_ptr<FileEntry> ContentRegistry::getEntry(const std::filesystem::path
 
 std::shared_ptr<FileEntry> ContentRegistry::buildTree(const std::filesystem::path& path) const
 {
-    if (m_fs->isDirectory(path))
+    if (FileIO::isDirectory(path))
     {
         return buildDirectoryEntry(path);
     }
