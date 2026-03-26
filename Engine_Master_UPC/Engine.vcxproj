@@ -307,6 +307,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="MaterialAsset.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MD5Fwd.h" />
@@ -325,6 +326,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
     <ClInclude Include="ScriptRegistry.h" />
+    <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
     <ClInclude Include="TextureImage.h" />
@@ -566,6 +568,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="AssetRegistry.cpp" />
+    <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="RenderSurface.cpp" />

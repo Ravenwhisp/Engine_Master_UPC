@@ -333,6 +333,10 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="AnimationController.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp" />
+    <ClCompile Include="ImporterSkin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -813,6 +817,14 @@
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationAsset.h" />
+    <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="AnimationController.h" />
+    <ClInclude Include="ImporterAnimation.h" />
+    <ClInclude Include="SkinAsset.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterSkin.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
