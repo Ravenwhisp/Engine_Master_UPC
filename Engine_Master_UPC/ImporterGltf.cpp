@@ -11,6 +11,7 @@
 #include "tiny_gltf.h"
 #pragma warning(pop)
 
+#include "SkinAsset.h"
 #include "AnimationAsset.h"
 #include "PrefabAsset.h"
 #include "MeshAsset.h"
@@ -29,6 +30,7 @@
 #include "ImporterMaterial.h"
 #include "ImporterPrefab.h"
 #include "ImporterAnimation.h"
+#include "ImporterSkin.h"
 
 #include <functional>
 
@@ -96,14 +98,25 @@ static bool loadQuat(const tinygltf::Model& model, int accessorIdx, std::vector<
         sizeof(Quaternion), sizeof(Quaternion), (uint32_t)acc.count, model, accessorIdx);
 }
 
+static bool loadMatrices(const tinygltf::Model& model, int accessorIdx, std::vector<Matrix>& out)
+{
+    if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
+    const auto& acc = model.accessors[accessorIdx];
+    out.resize(acc.count);
+    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()),
+        sizeof(Matrix), sizeof(Matrix), (uint32_t)acc.count, model, accessorIdx);
+}
+
 ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
     ImporterMaterial& importerMaterial,
     ImporterPrefab& importerPrefab,
-    ImporterAnimation& importerAnimation)
+    ImporterAnimation& importerAnimation,
+    ImporterSkin& importerSkin)
     : m_importerMesh(importerMesh)
     , m_importerMaterial(importerMaterial)
     , m_importerPrefab(importerPrefab)
     , m_importerAnimation(importerAnimation)
+    , m_importerSkin(importerSkin)
 {
 }
 
@@ -127,6 +140,8 @@ bool ImporterGltf::loadExternal(const std::filesystem::path& path, tinygltf::Mod
             path.string().c_str(), err.c_str());
         return false;
     }
+
+    DEBUG_LOG("IMPORTED");
     m_currentFilePath = &path;
     return true;
 }
@@ -188,6 +203,25 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         Metadata meta;
         meta.uid = animUID;
         meta.type = AssetType::ANIMATION;
+
+        assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
+    }
+
+    // Skins (as sub-assets)
+    for (int i = 0; i < static_cast<int>(model.skins.size()); ++i)
+    {
+        const MD5Hash skinUID = computeMD5(m_currentFilePath->string() + "?skin=" + std::to_string(i));
+
+        SkinAsset skinAsset(skinUID);
+        loadSkin(model, model.skins[i], &skinAsset);
+
+        uint8_t* rawBuf = nullptr;
+        const uint64_t size = m_importerSkin.save(&skinAsset, &rawBuf);
+        std::unique_ptr<uint8_t[]> guard(rawBuf);
+
+        Metadata meta;
+        meta.uid = skinUID;
+        meta.type = AssetType::SKIN;
 
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
     }
@@ -359,6 +393,10 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::A
                 dst.scaleKeys.push_back({ times[i], values[i] });
         }
     }
+}
+
+void ImporterGltf::loadSkin(const tinygltf::Model& model, const tinygltf::Skin& skin, SkinAsset* outSkin)
+{
 }
 
 void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* mat)
