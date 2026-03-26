@@ -18,6 +18,7 @@ class ImporterMaterial;
 class ImporterMesh;
 class ImporterPrefab;
 class ImporterAnimation;
+class ImporterSkin;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -96,6 +97,7 @@ private:
     ImporterMaterial*   m_importerMaterial = nullptr;
     ImporterPrefab*     m_importerPrefab = nullptr;
     ImporterAnimation*  m_importerAnimation = nullptr;
+    ImporterSkin*       m_importerSkin = nullptr;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
 };
