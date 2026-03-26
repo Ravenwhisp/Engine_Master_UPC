@@ -24,7 +24,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
-#include "ModuleGameView.h";
+#include "ModuleGameView.h"
 #include "Mouse.h"
 
 using namespace std;
@@ -37,6 +37,7 @@ void ModuleEditor::mainMenuBar()
         {
             ImGui::EndMenu();
         }
+
         if (ImGui::BeginMenu("Edit"))
         {
             ImGui::EndMenu();
@@ -52,6 +53,7 @@ void ModuleEditor::mainMenuBar()
                     window->setOpen(open);
                 }
             }
+
             ImGui::EndMenu();
         }
 
@@ -59,20 +61,16 @@ void ModuleEditor::mainMenuBar()
     }
 }
 
-
-void style() 
+void style()
 {
     ImGuiStyle& style = ImGui::GetStyle();
-
-    // --- Layout & Rounding ---
     style.WindowRounding = 4.0f;
-    style.FrameRounding = 2.0f;  // Unity uses very subtle rounding
+    style.FrameRounding = 2.0f;
     style.ScrollbarRounding = 2.0f;
     style.GrabRounding = 2.0f;
     style.TabRounding = 2.0f;
     style.ChildRounding = 2.0f;
     style.PopupRounding = 2.0f;
-
     style.WindowPadding = ImVec2(8.0f, 8.0f);
     style.FramePadding = ImVec2(5.0f, 3.0f);
     style.ItemSpacing = ImVec2(6.0f, 4.0f);
@@ -80,93 +78,57 @@ void style()
     style.IndentSpacing = 12.0f;
     style.ScrollbarSize = 12.0f;
     style.GrabMinSize = 8.0f;
-
     style.WindowBorderSize = 1.0f;
     style.FrameBorderSize = 1.0f;
     style.PopupBorderSize = 1.0f;
 
-    // --- Colors ---
     ImVec4* colors = style.Colors;
-
-    // Backgrounds
     colors[ImGuiCol_WindowBg] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
     colors[ImGuiCol_ChildBg] = ImVec4(0.19f, 0.19f, 0.19f, 1.00f);
     colors[ImGuiCol_PopupBg] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
-
-    // Borders
     colors[ImGuiCol_Border] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
     colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-
-    // Frame (inputs, checkboxes, etc.)
     colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
     colors[ImGuiCol_FrameBgHovered] = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
     colors[ImGuiCol_FrameBgActive] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
-
-    // Title bar
     colors[ImGuiCol_TitleBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
     colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-
-    // Menubar
     colors[ImGuiCol_MenuBarBg] = ImVec4(0.19f, 0.19f, 0.19f, 1.00f);
-
-    // Scrollbar
     colors[ImGuiCol_ScrollbarBg] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
     colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
     colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
     colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-
-    // Checkmark & Slider
     colors[ImGuiCol_CheckMark] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
     colors[ImGuiCol_SliderGrab] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
     colors[ImGuiCol_SliderGrabActive] = ImVec4(0.45f, 0.70f, 1.00f, 1.00f);
-
-    // Buttons
     colors[ImGuiCol_Button] = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
     colors[ImGuiCol_ButtonHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
     colors[ImGuiCol_ButtonActive] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-
-    // Headers (CollapsingHeader, TreeNode, Selectable)
     colors[ImGuiCol_Header] = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
     colors[ImGuiCol_HeaderHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
     colors[ImGuiCol_HeaderActive] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-
-    // Separator
     colors[ImGuiCol_Separator] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
     colors[ImGuiCol_SeparatorHovered] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
     colors[ImGuiCol_SeparatorActive] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
-
-    // Resize grip
     colors[ImGuiCol_ResizeGrip] = ImVec4(0.35f, 0.60f, 0.90f, 0.25f);
     colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.35f, 0.60f, 0.90f, 0.67f);
     colors[ImGuiCol_ResizeGripActive] = ImVec4(0.35f, 0.60f, 0.90f, 0.95f);
-
-    // Tabs
     colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
     colors[ImGuiCol_TabHovered] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
     colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
     colors[ImGuiCol_TabUnfocused] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
     colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.22f, 0.22f, 0.22f, 1.00f);
-
-    // Docking
     colors[ImGuiCol_DockingPreview] = ImVec4(0.35f, 0.60f, 0.90f, 0.70f);
     colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
-
-    // Plot
     colors[ImGuiCol_PlotLines] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
     colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.45f, 0.70f, 1.00f, 1.00f);
     colors[ImGuiCol_PlotHistogram] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
     colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.45f, 0.70f, 1.00f, 1.00f);
-
-    // Text
-    colors[ImGuiCol_Text] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f); 
+    colors[ImGuiCol_Text] = ImVec4(0.86f, 0.86f, 0.86f, 1.00f);
     colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
     colors[ImGuiCol_TextSelectedBg] = ImVec4(0.35f, 0.60f, 0.90f, 0.35f);
-
-    // Drag & drop
     colors[ImGuiCol_DragDropTarget] = ImVec4(0.35f, 0.60f, 0.90f, 0.90f);
-
-    // Nav highlight
     colors[ImGuiCol_NavHighlight] = ImVec4(0.35f, 0.60f, 0.90f, 1.00f);
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
@@ -174,11 +136,11 @@ void style()
 }
 
 ModuleEditor::ModuleEditor() = default;
+
 ModuleEditor::~ModuleEditor() = default;
 
 void ModuleEditor::mainDockspace(bool* p_open)
 {
-    // Fullscreen window flags
     ImGuiWindowFlags window_flags =
         ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoCollapse |
@@ -201,62 +163,56 @@ void ModuleEditor::mainDockspace(bool* p_open)
     ImGui::PopStyleVar(2);
 
     mainMenuBar();
-    // Create the DockSpace
     ImGuiID dockspace_id = ImGui::GetID("MainDockspace");
     ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_None);
 
-    if (m_firstFrame) 
+    if (m_firstFrame)
     {
         setupDockLayout(dockspace_id);
         style();
         m_firstFrame = false;
-    } 
+    }
 
     ImGui::End();
 }
 
-
 void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
 {
-    // Clear previous layout
     ImGui::DockBuilderRemoveNodeDockedWindows(dockspace_id);
     ImGui::DockBuilderRemoveNode(dockspace_id);
     ImGui::DockBuilderAddNode(dockspace_id);
     ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
     ImGuiID dock_main = dockspace_id;
-
-    ImGuiID dock_left, dock_inspector;
+    ImGuiID dock_left;
+    ImGuiID dock_inspector;
     ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.75f, &dock_left, &dock_inspector);
 
-    ImGuiID dock_bottom, dock_top;
+    ImGuiID dock_bottom;
+    ImGuiID dock_top;
     ImGui::DockBuilderSplitNode(dock_left, ImGuiDir_Down, 0.25f, &dock_bottom, &dock_top);
 
-    ImGuiID dock_hierarchy, dock_scene;
+    ImGuiID dock_hierarchy;
+    ImGuiID dock_scene;
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
     ImGuiID dock_playmode_buttons;
-	ImGui::DockBuilderSplitNode(dock_scene, ImGuiDir_Up, 0.1f, &dock_playmode_buttons, &dock_scene);
+    ImGui::DockBuilderSplitNode(dock_scene, ImGuiDir_Up, 0.1f, &dock_playmode_buttons, &dock_scene);
 
     ImGui::DockBuilderDockWindow("WindowInspector", dock_inspector);
     ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
-
     ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
     ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
-
     ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
     ImGui::DockBuilderDockWindow("Game", dock_scene);
-
     ImGui::DockBuilderDockWindow("FileDialog", dock_bottom);
     ImGui::DockBuilderDockWindow("Console", dock_bottom);
     ImGui::DockBuilderDockWindow("Hardware Info", dock_bottom);
     ImGui::DockBuilderDockWindow("Performance", dock_bottom);
-
-	ImGui::DockBuilderDockWindow("Play Mode Buttons", dock_playmode_buttons);
+    ImGui::DockBuilderDockWindow("Play Mode Buttons", dock_playmode_buttons);
 
     ImGui::DockBuilderFinish(dockspace_id);
 }
-
 
 bool ModuleEditor::init()
 {
@@ -271,48 +227,48 @@ bool ModuleEditor::init()
 
     m_sceneEditor = new WindowSceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
-    
+
     WindowHierarchy* hierarchy = new WindowHierarchy();
     WindowInspector* inspector = new WindowInspector();
 
     m_editorWindows.push_back(hierarchy);
     m_editorWindows.push_back(inspector);
 
-	m_editorWindows.push_back(m_gameWindow = new WindowGame());
+    m_editorWindows.push_back(m_gameWindow = new WindowGame());
 
     m_viewGameDebug = std::make_unique<WindowGameDebug>();
-	return true;
+
+    return true;
 }
 
 void ModuleEditor::update()
 {
-    #ifdef GAME_RELEASE
-        return;
-    #endif
+#ifdef GAME_RELEASE
+    return;
+#endif
 
     flushExitPrefabEdit();
-    
+
     if (m_sceneEditor->isFocused())
     {
         handleKeyboardShortcuts();
     }
-
 }
 
 void ModuleEditor::render()
 {
     ImGuizmo::BeginFrame();
 
-    #ifdef GAME_RELEASE
-        if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
-        {
-            m_viewGameDebug->render();
-        }
-        ImGui::EndFrame();
-        return;
-    #endif
+#ifdef GAME_RELEASE
+    if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
+    {
+        m_viewGameDebug->render();
+    }
 
-    /// THIS MUST BE EXECUTED AFTER ModuleRender.h render functtion, if not F
+    ImGui::EndFrame();
+    return;
+#endif
+
     mainDockspace(&m_showMainDockspace);
 
     for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
@@ -341,13 +297,14 @@ bool ModuleEditor::cleanUp()
     {
         delete window;
     }
+
     m_editorWindows.clear();
 
     m_sceneEditor = nullptr;
     m_logger = nullptr;
     m_hardwareWindow = nullptr;
     m_performanceWindow = nullptr;
-	m_gameWindow = nullptr;
+    m_gameWindow = nullptr;
 
     return true;
 }
@@ -365,6 +322,7 @@ ImVec2 ModuleEditor::getEventViewport() const
     {
         return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
     }
+
     return ImVec2(-1, -1);
 }
 
@@ -381,13 +339,13 @@ ImVec2 ModuleEditor::getEventViewportSize() const
     {
         return gameWindow->getSize();
     }
+
     return ImVec2(-1, -1);
 }
 
-
-void ModuleEditor::setSceneTool(SCENE_TOOL newTool) 
+void ModuleEditor::setSceneTool(SCENE_TOOL newTool)
 {
-    if (currentSceneTool == newTool) 
+    if (currentSceneTool == newTool)
     {
         toggleGizmoMode();
         return;
@@ -396,9 +354,9 @@ void ModuleEditor::setSceneTool(SCENE_TOOL newTool)
     currentSceneTool = newTool;
 }
 
-void ModuleEditor::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode) 
+void ModuleEditor::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode)
 {
-    if (previousSceneTool == NONE) 
+    if (previousSceneTool == NONE)
     {
         previousSceneTool = currentSceneTool;
         currentSceneTool = sceneTool;
@@ -406,17 +364,18 @@ void ModuleEditor::setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode)
     }
 }
 
-void ModuleEditor::resetMode() 
+void ModuleEditor::resetMode()
 {
-    if (previousSceneTool != NONE) 
+    if (previousSceneTool != NONE)
     {
         currentSceneTool = previousSceneTool;
         previousSceneTool = NONE;
     }
+
     currentNavigationMode = PAN;
 }
 
-void ModuleEditor::handleKeyboardShortcuts() 
+void ModuleEditor::handleKeyboardShortcuts()
 {
     Keyboard::State keyboardState = Keyboard::Get().GetState();
     Mouse::State mouseState = Mouse::Get().GetState();
@@ -424,37 +383,56 @@ void ModuleEditor::handleKeyboardShortcuts()
     DirectX::Mouse::ButtonStateTracker buttonStateTracker;
     buttonStateTracker.Update(mouseState);
 
-    if (mouseState.rightButton) 
+    if (mouseState.rightButton)
     {
         setMode(NAVIGATION, FREE_LOOK);
     }
-    else if (mouseState.leftButton && (keyboardState.LeftAlt || keyboardState.RightAlt)) 
+    else if (mouseState.leftButton && (keyboardState.LeftAlt || keyboardState.RightAlt))
     {
         setMode(NAVIGATION, ORBIT);
     }
-    else if (mouseState.middleButton) 
+    else if (mouseState.middleButton)
     {
         setMode(NAVIGATION, PAN);
     }
-    else if (!mouseState.leftButton) 
+    else if (!mouseState.leftButton)
     {
         resetMode();
         handleQWERTYCases(keyboardState);
     }
 }
 
-void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState) 
+void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState)
 {
     static Keyboard::KeyboardStateTracker keyTracker;
     keyTracker.Update(keyboardState);
 
-    if (keyTracker.pressed.W) setSceneTool(MOVE);
-    if (keyTracker.pressed.E) setSceneTool(ROTATE);
-    if (keyTracker.pressed.R) setSceneTool(SCALE);
-    if (keyTracker.pressed.T) setSceneTool(RECT);
-    if (keyTracker.pressed.Y) setSceneTool(TRANSFORM);
+    if (keyTracker.pressed.W)
+    {
+        setSceneTool(MOVE);
+    }
 
-    if (keyTracker.pressed.Q) 
+    if (keyTracker.pressed.E)
+    {
+        setSceneTool(ROTATE);
+    }
+
+    if (keyTracker.pressed.R)
+    {
+        setSceneTool(SCALE);
+    }
+
+    if (keyTracker.pressed.T)
+    {
+        setSceneTool(RECT);
+    }
+
+    if (keyTracker.pressed.Y)
+    {
+        setSceneTool(TRANSFORM);
+    }
+
+    if (keyTracker.pressed.Q)
     {
         currentSceneTool = NAVIGATION;
         currentNavigationMode = PAN;
@@ -465,16 +443,13 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 {
     app->getModuleD3D12()->getCommandQueue()->flush();
 
-    // Exit any active session before starting a new one.
     if (m_prefabSession.m_active)
     {
         m_prefabSession.clear();
     }
 
     m_prefabSession.m_isolatedScene = app->getModuleScene()->getScene();
-    
-    // Instantiate by full path — PrefabManager uses the asset system first,
-    // then falls back to a direct file read for prefabs not yet registered.
+
     GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, m_prefabSession.m_isolatedScene);
 
     if (!loaded)
@@ -483,7 +458,7 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
         return;
     }
 
-    m_prefabSession.m_sourcePath = sourcePath;  // store full path
+    m_prefabSession.m_sourcePath = sourcePath;
     m_prefabSession.m_rootObject = loaded;
     m_prefabSession.m_active = true;
     m_prefabSession.m_editingInMainScene = false;
@@ -496,6 +471,7 @@ void ModuleEditor::exitPrefabEdit()
     {
         return;
     }
+
     m_pendingExitPrefab = true;
 }
 

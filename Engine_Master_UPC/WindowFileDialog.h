@@ -1,41 +1,47 @@
 #pragma once
 #include "EditorWindow.h"
 #include "PrefabUI.h"
-#include <filesystem>
 #include "FileDialogClipboard.h"
+#include <filesystem>
 
 struct FileEntry;
 
-enum Command 
+enum Command
 {
     NONE,
     MOVE,
     COPY
 };
 
-class WindowFileDialog : public EditorWindow 
+class WindowFileDialog : public EditorWindow
 {
+
 public:
+
     void drawInternal() override;
-    const char* getWindowName() const override { return "FileDialog"; }
+
+    const char* getWindowName() const override
+    {
+        return "FileDialog";
+    }
 
 private:
+
     void drawDirectoryTree(const std::shared_ptr<FileEntry>& entry);
+
     void drawAssetGrid(const std::shared_ptr<FileEntry>& directory);
 
     void navigateTo(const std::filesystem::path& path);
+
     void handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset);
 
     void handleGameObjectDrop(const std::filesystem::path& targetDirectory);
 
     PrefabUI::FileDialogBuffers buildFileDialogBuffers();
 
-    std::filesystem::path      m_currentDirectory;
+    std::filesystem::path m_currentDirectory;
     std::shared_ptr<FileEntry> m_selectedItem;
-
-    FileDialogClipboard        m_clipboard;
-
-    // Prefab modal state
+    FileDialogClipboard m_clipboard;
     bool m_showVariantModal = false;
     bool m_showSavePrefabModal = false;
     bool m_renamingPrefab = false;

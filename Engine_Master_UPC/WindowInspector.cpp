@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "WindowInspector.h"
-#include "Application.h";
+
+#include "Application.h"
 #include "ModuleEditor.h"
 #include "GameObject.h"
 #include "PrefabUI.h"
@@ -8,7 +9,6 @@
 
 WindowInspector::WindowInspector()
 {
-
 }
 
 void WindowInspector::drawInternal()
@@ -23,6 +23,7 @@ void WindowInspector::drawInternal()
     }
 
     GameObject* selectedGameObject = app->getModuleEditor()->getSelectedGameObject();
+
     if (selectedGameObject)
     {
         selectedGameObject->drawUI();

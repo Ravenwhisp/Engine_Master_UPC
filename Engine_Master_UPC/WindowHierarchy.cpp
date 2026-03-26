@@ -25,14 +25,10 @@
 WindowHierarchy::WindowHierarchy()
 {
     m_treeRenderer.OnSelect.AddRaw(this, &WindowHierarchy::onSelect);
-
     m_treeRenderer.OnReparent.AddRaw(this, &WindowHierarchy::onReparent);
-
     m_treeRenderer.OnPrefabDropOnNode.AddRaw(this, &WindowHierarchy::onPrefabDropOnNode);
-
     m_treeRenderer.OnDeleteRequested.AddRaw(this, &WindowHierarchy::onDeleteRequested);
 }
-
 
 void WindowHierarchy::drawInternal()
 {
@@ -62,7 +58,6 @@ void WindowHierarchy::drawInternal()
     drawInlineRename();
 }
 
-
 void WindowHierarchy::drawSceneHeader()
 {
     Scene* scene = app->getModuleScene()->getScene();
@@ -76,6 +71,7 @@ void WindowHierarchy::drawSceneHeader()
 
     GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
     ImGui::BeginDisabled(selected == nullptr);
+
     if (ImGui::Button("Remove") && selected)
     {
         CommandRemoveGameObject(scene, selected).run();
@@ -95,18 +91,18 @@ void WindowHierarchy::drawPrefabHeader(PrefabEditSession* session)
         CommandAddChildToPrefabRoot(isolatedScene, session->m_rootObject).run();
     }
 
-
     ImGui::SameLine();
 
     GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
     ImGui::BeginDisabled(selected == nullptr || selected == session->m_rootObject);
+
     if (ImGui::Button("Remove Selected") && selected && selected != session->m_rootObject)
     {
         CommandRemoveGameObject(isolatedScene, selected).run();
     }
+
     ImGui::EndDisabled();
 }
-
 
 void WindowHierarchy::drawSceneTree()
 {
@@ -114,7 +110,6 @@ void WindowHierarchy::drawSceneTree()
 
     if (ImGui::TreeNodeEx(scene->getName()))
     {
-        // Root-level drop targets (reparent to scene root)
         if (ImGui::BeginDragDropTarget())
         {
             if (const ImGuiPayload* p = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
@@ -141,7 +136,10 @@ void WindowHierarchy::drawSceneTree()
 
 void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
 {
-    if (!session->m_isolatedScene) return;
+    if (!session->m_isolatedScene)
+    {
+        return;
+    }
 
     for (GameObject* go : session->m_isolatedScene->getRootObjects())
     {
@@ -149,10 +147,13 @@ void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
     }
 }
 
-
 void WindowHierarchy::startRename(GameObject* target)
 {
-    if (!target) return;
+    if (!target)
+    {
+        return;
+    }
+
     m_renameTargetID = target->GetID();
     m_renameFocusPending = true;
     strncpy_s(m_renameBuffer, sizeof(m_renameBuffer), target->GetName().c_str(), sizeof(m_renameBuffer) - 1);
@@ -160,7 +161,10 @@ void WindowHierarchy::startRename(GameObject* target)
 
 void WindowHierarchy::drawInlineRename()
 {
-    if (m_renameTargetID == 0) return;
+    if (m_renameTargetID == 0)
+    {
+        return;
+    }
 
     ImGui::OpenPopup("##HierarchyRename");
     ImGui::SetNextWindowSize(ImVec2(260, 0), ImGuiCond_Always);
@@ -208,7 +212,6 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
     CommandReparent(scene, child, newParent).run();
 }
 
-
 void WindowHierarchy::onSelect(GameObject* go)
 {
     app->getModuleEditor()->setSelectedGameObject(go);
@@ -219,8 +222,7 @@ void WindowHierarchy::onReparent(GameObject* child, GameObject* newParent)
     reparent(child, newParent);
 }
 
-void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath,
-    GameObject* parent)
+void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath, GameObject* parent)
 {
     Scene* scene = HierarchyUtils::resolveTargetScene();
     CommandInstantiatePrefab(scene, sourcePath, parent).run();
@@ -228,11 +230,17 @@ void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath
 
 void WindowHierarchy::onDeleteRequested(GameObject* go)
 {
-    if (!go) return;
+    if (!go)
+    {
+        return;
+    }
 
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+
     if (session && session->m_active && go == session->m_rootObject)
-        return; // prefab root is protected
+    {
+        return;
+    }
 
     Scene* scene = HierarchyUtils::resolveTargetScene();
     CommandRemoveGameObject(scene, go).run();

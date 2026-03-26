@@ -4,7 +4,9 @@
 
 class WindowLogger : public EditorWindow
 {
+
 public:
+
     enum class LogType
     {
         LOG_INFO,
@@ -21,14 +23,20 @@ public:
         bool selected = false;
 
         LogEntry(LogType t, const std::string& msg, float time)
-            : message(msg), type(t), timeStamp(time) {
+            : message(msg), type(t), timeStamp(time)
+        {
         }
     };
 
     WindowLogger();
+
     ~WindowLogger();
 
-    const char* getWindowName() const override { return "Console"; }
+    const char* getWindowName() const override
+    {
+        return "Console";
+    }
+
     void drawInternal() override;
 
     template<typename... Args>
@@ -57,43 +65,40 @@ private:
     void addLog(LogType type, const char* file, int line, const char* fmt, Args&&... args)
     {
         char messageBuffer[2048];
-        std::snprintf(messageBuffer, sizeof(messageBuffer),
-            fmt, std::forward<Args>(args)...);
+        std::snprintf(messageBuffer, sizeof(messageBuffer), fmt, std::forward<Args>(args)...);
 
         char finalBuffer[2300];
-        std::snprintf(finalBuffer, sizeof(finalBuffer),
-            "[%s:%d] %s",
-            file, line, messageBuffer);
+        std::snprintf(finalBuffer, sizeof(finalBuffer), "[%s:%d] %s", file, line, messageBuffer);
 
         addLogEntry(type, finalBuffer);
     }
 
     void addLogEntry(LogType type, const std::string& text);
+
     void drawHeader();
+
     void drawMessages();
+
     void drawMessage(LogEntry& entry, size_t index);
+
     void clear();
+
     void clearSelection();
+
     void copyToClipboard();
 
     const char* getPrefix(LogType type);
-    ImVec4 getColor(LogType type);
 
-private:
+    ImVec4 getColor(LogType type);
 
     std::vector<LogEntry> m_items;
     ImGuiTextFilter m_filter;
-
     bool m_autoScroll = true;
-
     bool m_showLogs = true;
     bool m_showWarnings = true;
     bool m_showErrors = true;
-
     bool m_showTimestamps = true;
-
     int m_maxEntries = 2048;
-
     static WindowLogger* s_Instance;
 };
 
