@@ -819,6 +819,9 @@
     <ClInclude Include="UISlider.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="UIFill.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

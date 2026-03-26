@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "UIRect.h"
+#include "UIFill.h"
 
 class Texture;
 
@@ -19,6 +20,6 @@ struct UIImageCommand
     Rect2D  rect;
     
     float fillAmount = 1.0f;
-    int fillMethod = 0; 
+    FillMethod fillMethod = FillMethod::Horizontal;
     bool clockwise = true;
 };
