@@ -6,6 +6,7 @@
 
 #include "Settings.h"
 #include "Scene.h"
+#include "Quadtree.h"
 
 WindowEditorSettings::WindowEditorSettings()
 {
@@ -86,7 +87,19 @@ void WindowEditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show Grid###SceneShowGrid", &m_settings->sceneEditor.showGrid);
         ImGui::Checkbox("Show Axis###SceneShowAxis", &m_settings->sceneEditor.showAxis);
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
-        ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
+
+        if (ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree)) {
+            if (app->getCurrentEngineState() == ENGINE_STATE::EDITOR) {
+                if (m_settings->sceneEditor.showQuadTree && !app->getModuleScene()->getQuadtree()->getIsBuilded()) {
+                    app->getModuleScene()->getQuadtree()->build();
+                }
+
+                if (!m_settings->sceneEditor.showQuadTree && app->getModuleScene()->getQuadtree()->getIsBuilded()) {
+                    app->getModuleScene()->getQuadtree()->clear();
+                }
+            }
+        }
+
         ImGui::Checkbox("Show Model Bounding Boxes###ModelShowBoundingBoxes", &m_settings->sceneEditor.showModelBoundingBoxes);
         ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);        
         ImGui::Checkbox("Show Light Component###SceneLightComponent", &m_settings->sceneEditor.showLightComponent);
@@ -103,9 +116,16 @@ void WindowEditorSettings::drawFrustumCullingSettings()
         ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
     }
 
-    if (m_settings->frustumCulling.debugFrustumCulling && !app->getModuleScene()->getScene()->getDefaultCamera())
+    if (m_settings->frustumCulling.debugFrustumCulling)
     {
-        m_settings->frustumCulling.debugFrustumCulling = false;
-        DEBUG_WARN("Cannot show quadtree because there is no default camera set in the scene.");
+        if (!app->getModuleScene()->getScene()->getDefaultCamera()) {
+            m_settings->frustumCulling.debugFrustumCulling = false;
+            DEBUG_WARN("Cannot debug frustum culling there is no default camera set in the scene.");
+        }
+
+        if (!app->getModuleScene()->getQuadtree()->getIsBuilded()) {
+            m_settings->frustumCulling.debugFrustumCulling = false;
+            DEBUG_WARN("Cannot debug frustum culling because quadtree is not builded.");
+        }
     }
 }

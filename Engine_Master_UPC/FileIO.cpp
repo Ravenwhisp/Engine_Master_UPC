@@ -1,15 +1,11 @@
 #include "Globals.h"
-#include "ModuleFileSystem.h"
+#include "FileIO.h"
 
 #include <fstream>
 #include <filesystem>
 
-bool ModuleFileSystem::init()
-{
-    return true;
-}
 
-std::vector<uint8_t> ModuleFileSystem::read(const std::filesystem::path& filePath) const
+std::vector<uint8_t> FileIO::read(const std::filesystem::path& filePath)
 {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file)
@@ -37,7 +33,7 @@ std::vector<uint8_t> ModuleFileSystem::read(const std::filesystem::path& filePat
     return buffer;
 }
 
-bool ModuleFileSystem::write(const std::filesystem::path& filePath, const void* data, size_t size, bool append) const
+bool FileIO::write(const std::filesystem::path& filePath, const void* data, size_t size, bool append)
 {
     if (!data || size == 0)
     {
@@ -66,7 +62,7 @@ bool ModuleFileSystem::write(const std::filesystem::path& filePath, const void* 
     return true;
 }
 
-bool ModuleFileSystem::copy(const std::filesystem::path& src, const std::filesystem::path& dst) const
+bool FileIO::copy(const std::filesystem::path& src, const std::filesystem::path& dst)
 {
     std::error_code ec;
     const bool ok = std::filesystem::copy_file(src, dst, ec);
@@ -77,7 +73,7 @@ bool ModuleFileSystem::copy(const std::filesystem::path& src, const std::filesys
     return ok;
 }
 
-bool ModuleFileSystem::move(const std::filesystem::path& src, const std::filesystem::path& dst) const
+bool FileIO::move(const std::filesystem::path& src, const std::filesystem::path& dst)
 {
     std::error_code ec;
     std::filesystem::rename(src, dst, ec);
@@ -88,7 +84,7 @@ bool ModuleFileSystem::move(const std::filesystem::path& src, const std::filesys
     return ec.value() == 0;
 }
 
-bool ModuleFileSystem::remove(const std::filesystem::path& filePath) const
+bool FileIO::remove(const std::filesystem::path& filePath)
 {
     std::error_code ec;
     std::filesystem::remove(filePath, ec);
@@ -97,17 +93,17 @@ bool ModuleFileSystem::remove(const std::filesystem::path& filePath) const
     return ec.value() == 0;
 }
 
-bool ModuleFileSystem::exists(const std::filesystem::path& filePath) const
+bool FileIO::exists(const std::filesystem::path& filePath)
 {
     return std::filesystem::exists(filePath);
 }
 
-bool ModuleFileSystem::isDirectory(const std::filesystem::path& path) const
+bool FileIO::isDirectory(const std::filesystem::path& path)
 {
     return std::filesystem::is_directory(path);
 }
 
-bool ModuleFileSystem::createDirectory(const std::filesystem::path& path) const
+bool FileIO::createDirectory(const std::filesystem::path& path)
 {
     std::error_code ec;
     std::filesystem::create_directory(path, ec);

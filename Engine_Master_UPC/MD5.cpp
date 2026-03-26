@@ -51,7 +51,7 @@ std::vector<int8_t> to_byte_vector(const std::string& text) {
 
 std::vector<int8_t> computeMD5(const std::vector<int8_t>& message) {
 	uint64_t message_length_bytes = message.size();
-	uint32_t number_blocks = ((message_length_bytes + 8) >> 6) + 1;
+	uint32_t number_blocks = (uint32_t)((message_length_bytes + 8) >> 6) + 1;
 	uint32_t total_length = number_blocks << 6;
 	std::vector<int8_t> padding_bytes(total_length - message_length_bytes);
 	padding_bytes[0] = static_cast<int8_t>(0x80);

@@ -30,7 +30,7 @@ IndexBuffer::~IndexBuffer()
 
 void IndexBuffer::createIndexBufferView()
 {
-    UINT bufferSize = m_NumIndices * getSizeByFormat(m_IndexFormat);
+    UINT bufferSize = (UINT)(m_NumIndices * getSizeByFormat(m_IndexFormat));
 
     m_IndexBufferView.BufferLocation = m_Resource->GetGPUVirtualAddress();
     m_IndexBufferView.SizeInBytes = bufferSize;
