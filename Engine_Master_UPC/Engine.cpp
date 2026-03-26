@@ -108,7 +108,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, NULL); 
+    wcex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
     wcex.lpszMenuName   = NULL; 
@@ -181,9 +181,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_CREATE:
-    {
-        MessageBox(hWnd, L"Initializing engine...", L"Starting Application", MB_OK | MB_USERICON);
-    }
+        {
+            MessageBox(hWnd, L"Initializing engine...", L"Starting Application", MB_OK | MB_USERICON);
+        }
+        break;
     case WM_ACTIVATE:
     case WM_ACTIVATEAPP:
         Keyboard::ProcessMessage(message, wParam, lParam);

@@ -135,7 +135,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     commandList->IASetIndexBuffer(&indexBufferView);
 
-    commandList->DrawIndexedInstanced(m_skyBox->getIndexBuffer()->getNumIndices(), 1, 0, 0, 0);
+    commandList->DrawIndexedInstanced(static_cast<UINT>(m_skyBox->getIndexBuffer()->getNumIndices()), 1, 0, 0, 0);
 }
 
 void SkyBoxPass::setSettings(const SkyBoxSettings& settings)

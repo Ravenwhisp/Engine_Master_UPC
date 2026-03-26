@@ -143,7 +143,7 @@ void SceneConfig::drawSkyBoxSettings()
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
-                const UID* data = static_cast<const UID*>(payload->Data);
+                const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
                 skyboxSettings.cubemapAssetId = *data;
                 m_skyboxDirty = true;
             }
