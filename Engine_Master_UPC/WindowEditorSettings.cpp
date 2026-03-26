@@ -116,9 +116,16 @@ void WindowEditorSettings::drawFrustumCullingSettings()
         ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
     }
 
-    if (m_settings->frustumCulling.debugFrustumCulling && !app->getModuleScene()->getScene()->getDefaultCamera())
+    if (m_settings->frustumCulling.debugFrustumCulling)
     {
-        m_settings->frustumCulling.debugFrustumCulling = false;
-        DEBUG_WARN("Cannot show frustum culling there is no default camera set in the scene.");
+        if (!app->getModuleScene()->getScene()->getDefaultCamera()) {
+            m_settings->frustumCulling.debugFrustumCulling = false;
+            DEBUG_WARN("Cannot debug frustum culling there is no default camera set in the scene.");
+        }
+
+        if (!app->getModuleScene()->getQuadtree()->getIsBuilded()) {
+            m_settings->frustumCulling.debugFrustumCulling = false;
+            DEBUG_WARN("Cannot debug frustum culling because quadtree is not builded.")
+        }
     }
 }
