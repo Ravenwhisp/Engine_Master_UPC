@@ -19,7 +19,8 @@
     X(NAVMESH_WALK)         \
     X(NAVIGATION_AGENT)     \
     X(WAYPOINT_PATH)        \
-    X(SCRIPT)               
+    X(SCRIPT)               \
+    X(ANIMATION)
 
 enum class ComponentType
 {
