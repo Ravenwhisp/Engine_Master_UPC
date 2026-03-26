@@ -48,6 +48,7 @@ private:
     bool m_playOnStart = true;
     bool m_applyScale = false;
     bool m_forceWorldAfterApply = true;
-
     bool m_hasStartedPlayback = false;
+
+    std::string m_animationUIDInput;
 };
