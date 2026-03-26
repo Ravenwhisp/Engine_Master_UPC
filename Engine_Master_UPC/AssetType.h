@@ -10,6 +10,7 @@ enum class AssetType : uint32_t
 	FONT = 4,
 	PREFAB = 5,
 	ANIMATION = 6,
+	SKIN = 7,
 
-	UNKNOWN = 7
+	UNKNOWN = 8
 };
