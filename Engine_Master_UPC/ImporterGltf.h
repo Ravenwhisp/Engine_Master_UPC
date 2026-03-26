@@ -3,6 +3,7 @@
 #include "UtilityGLFT.h"
 
 class AnimationAsset;
+class SkinAsset;
 class PrefabAsset;
 class MaterialAsset;
 class MeshAsset;
@@ -11,6 +12,7 @@ class ImporterMesh;
 class ImporterMaterial;
 class ImporterPrefab;
 class ImporterAnimation;
+class ImporterSkin;
 
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.
@@ -21,7 +23,8 @@ public:
     ImporterGltf(ImporterMesh& importerMesh,
         ImporterMaterial& importerMaterial,
         ImporterPrefab& importerPrefab,
-        ImporterAnimation& importerAnimation);
+        ImporterAnimation& importerAnimation,
+        ImporterSkin& importerSkin);
 
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(const MD5Hash& uid) const override;
@@ -40,6 +43,10 @@ private:
         const tinygltf::Animation& anim,
         AnimationAsset* outAnim);
 
+    void loadSkin(const tinygltf::Model& model,
+        const tinygltf::Skin& skin,
+        SkinAsset* outSkin);
+
     GameObject* makeNode(const std::string& name,
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
 
@@ -56,4 +63,5 @@ private:
     ImporterMaterial&               m_importerMaterial;
     ImporterPrefab&                 m_importerPrefab;
     ImporterAnimation&              m_importerAnimation;
+    ImporterSkin&                   m_importerSkin;
 };
