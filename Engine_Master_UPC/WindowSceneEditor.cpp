@@ -18,7 +18,6 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-#include "TriggerArea.h"
 
 #include <WindowLogger.h>
 #include <PrefabUI.h>

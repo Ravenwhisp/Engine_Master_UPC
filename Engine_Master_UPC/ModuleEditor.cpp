@@ -25,7 +25,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
-#include "ModuleGameView.h";
+#include "ModuleGameView.h"
 
 using namespace std;
 

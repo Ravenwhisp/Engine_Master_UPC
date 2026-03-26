@@ -4,22 +4,18 @@
     X(TRANSFORM)            \
     X(MODEL)                \
     X(LIGHT)                \
-    X(PLAYER_WALK)          \
+    X(SCRIPT)               \
     X(CAMERA)               \
     X(TRANSFORM2D)          \
     X(CANVAS)               \
     X(UIIMAGE)              \
     X(UITEXT)               \
     X(UIBUTTON)             \
-    X(CAMERA_FOLLOW)        \
-    X(CHANGE_SCENE)         \
-    X(EXIT_APPLICATION)     \
-    X(CAMERA_SWITCHER)      \
-    X(CHANGE_SCENE_ON_TRIGGER) \
-    X(NAVMESH_WALK)         \
     X(NAVIGATION_AGENT)     \
     X(WAYPOINT_PATH)        \
-    X(SCRIPT)               \
+    X(CHANGE_SCENE)         \
+    X(EXIT_APPLICATION)     \
+    X(NAVMESH_WALK)         \
     X(UISLIDER)
 
 enum class ComponentType

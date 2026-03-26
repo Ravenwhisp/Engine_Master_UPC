@@ -15,8 +15,8 @@ void RenderSurface::attachTexture(AttachmentPoint attachmentPoint, std::shared_p
 	{
 		auto desc = texture->getD3D12ResourceDesc();
 
-		m_size.x = static_cast<uint32_t>(desc.Width);
-		m_size.y = static_cast<uint32_t>(desc.Height);
+		m_size.x = static_cast<float>(desc.Width);
+		m_size.y = static_cast<float>(desc.Height);
 	}
 }
 
@@ -31,14 +31,14 @@ void RenderSurface::resize(Vector2 size)
 	for (auto texture : m_textures) 
 	{ 
 		if (texture) {
-			texture->resize(m_size.x, m_size.y);
+			texture->resize(static_cast<uint32_t>(m_size.x), static_cast<uint32_t>(m_size.y));
 		}
 	}
 }
 
 void RenderSurface::resize(uint32_t width, uint32_t height)
 {
-	resize(Vector2(width, height));
+	resize(Vector2(static_cast<float>(width), static_cast<float>(height)));
 }
 
 Vector2 RenderSurface::getSize() const
@@ -48,12 +48,12 @@ Vector2 RenderSurface::getSize() const
 
 uint32_t RenderSurface::getWidth() const
 {
-	return m_size.x;
+	return static_cast<uint32_t>(m_size.x);
 }
 
 uint32_t RenderSurface::getHeight() const
 {
-	return m_size.y;
+	return static_cast<uint32_t>(m_size.y);
 }
 
 const std::vector<std::shared_ptr<Texture>>& RenderSurface::getTextures() const

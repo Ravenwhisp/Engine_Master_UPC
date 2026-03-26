@@ -38,8 +38,6 @@ std::unique_ptr<Component> LightComponent::clone(GameObject* newOwner) const
     std::unique_ptr<LightComponent> newComponent = std::make_unique<LightComponent>(m_uuid, newOwner);
 
     newComponent->m_data = m_data;
-    newComponent->m_debugDrawEnabled = m_debugDrawEnabled;
-    newComponent->m_debugDrawDepthEnabled = m_debugDrawDepthEnabled;
 
 	return newComponent;
 }
@@ -168,16 +166,6 @@ void LightComponent::drawUi()
         break;
     }
 
-    ImGui::Separator();
-    ImGui::Text("Debug");
-
-    if (ImGui::Checkbox("Draw Debug", &m_debugDrawEnabled));
-
-    if (m_debugDrawEnabled)
-    {
-        ImGui::Checkbox("Depth Test", &m_debugDrawDepthEnabled);
-    }
-
     if (lightChanged) {
         sanitize();
     }
@@ -281,7 +269,7 @@ bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 
 void LightComponent::debugDraw()
 {
-    if (!m_debugDrawEnabled || !isActive() || !m_owner->GetActive())
+    if ( !isActive() || !m_owner->GetActive())
     {
         return;
     }
@@ -290,7 +278,7 @@ void LightComponent::debugDraw()
     constexpr float DIRECTIONAL_ARROW_HEAD_LENGTH = 0.15f;
     constexpr float SPOT_DEBUG_MAX_ANGLE_DEGREES = 89.0f;
 
-    const bool depthEnabled = m_debugDrawDepthEnabled;
+    const bool depthEnabled = false;
 
     const Transform* transform = m_owner->GetTransform();
     const Matrix& world = transform->getGlobalMatrix();
