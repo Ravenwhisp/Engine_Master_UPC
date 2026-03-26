@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <vector>
 
-class ModuleFileSystem;
 class AssetRegistry;
 class ImporterRegistry;
 
@@ -20,7 +19,7 @@ struct ImportRequest
 class AssetScanner
 {
 public:
-    AssetScanner(ModuleFileSystem* fs, AssetRegistry* metadataStore, ImporterRegistry* importerRegistry);
+    AssetScanner(AssetRegistry* metadataStore, ImporterRegistry* importerRegistry);
 
     std::vector<ImportRequest> scan(const std::filesystem::path& rootPath);
 
@@ -33,7 +32,6 @@ private:
 
     std::filesystem::path getBinaryPath(const MD5Hash& uid) const;
 
-    ModuleFileSystem* m_fs{ nullptr };
     AssetRegistry* m_registry{ nullptr };
     ImporterRegistry* m_importerRegistry{ nullptr };
 

@@ -18,7 +18,6 @@ class ModuleRender;
 class ModuleNavigation;
 class ModuleScene;
 class ModuleGameView;
-class ModuleFileSystem;
 class ModuleAssets;
 class ModuleEventSystem;
 
@@ -54,7 +53,6 @@ public:
     ModuleNavigation*           getModuleNavigation() { return m_moduleNavigation; }
     ModuleScene*                getModuleScene() { return m_moduleScene; }
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
-    ModuleFileSystem*           getModuleFileSystem() { return m_moduleFileSystem; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
 
@@ -92,7 +90,6 @@ private:
     ModuleNavigation*       m_moduleNavigation = nullptr;
     ModuleScene*            m_moduleScene = nullptr;
     ModuleGameView*         m_moduleGameView = nullptr;
-    ModuleFileSystem*       m_moduleFileSystem = nullptr;
     ModuleAssets*           m_moduleAssets = nullptr;
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
