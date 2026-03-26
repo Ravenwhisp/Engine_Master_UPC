@@ -38,6 +38,9 @@ private:
     void applyRecursive(GameObject* go);
     void forceWorldRecursive(GameObject* go);
 
+    void debugDrawRecursive(GameObject* go);
+    void drawAxisTriad(const Matrix& worldMatrix, float axisLength);
+
 private:
     MD5Hash m_animationUID = INVALID_ASSET_ID;
 
@@ -51,4 +54,6 @@ private:
     bool m_hasStartedPlayback = false;
 
     std::string m_animationUIDInput;
+
+    bool m_debugDrawHierarchy = false;
 };
