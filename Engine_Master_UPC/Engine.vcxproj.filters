@@ -333,6 +333,9 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterScript.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -812,6 +815,12 @@
     </ClInclude>
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterScript.h">
+      <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
