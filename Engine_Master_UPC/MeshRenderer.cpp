@@ -5,6 +5,7 @@
 #include "GameObject.h"
 
 #include "Application.h"
+#include "ModuleD3D12.h"
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
 #include "Settings.h"
@@ -67,6 +68,11 @@ namespace
         normal = normal.Transpose();
         return normal;
     }
+
+    uint32_t GetCurrentSkinningFrameIndex()
+    {
+        return app->getModuleD3D12()->getCurrentFrameIndex();
+    }
 }
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
@@ -92,6 +98,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_sourceVertices = m_sourceVertices;
     newMeshRenderer->m_skinnedVertices.clear();
     newMeshRenderer->m_skinnedVertexBuffer.reset();
+    newMeshRenderer->invalidateGpuSkinningResources();
 
     newMeshRenderer->m_boundingBox = m_boundingBox;
     newMeshRenderer->m_boundingBox.update(newOwner->GetTransform()->getGlobalMatrix());
@@ -180,6 +187,10 @@ void MeshRenderer::drawUi()
 
     ImGui::Text("Source Vertices: %d", (int)m_sourceVertices.size());
     ImGui::Text("CPU Skinned VB: %s", m_skinnedVertexBuffer ? "Yes" : "No");
+
+    ImGui::Text("GPU Skinning Vertex Capacity: %d", (int)m_gpuSkinningVertexCapacity);
+    ImGui::Text("GPU Palette Joint Capacity: %d", (int)m_gpuPaletteJointCapacity);
+    ImGui::Text("GPU Skinning Resources: %s", hasGpuSkinningResources() ? "Yes" : "No");
 }
 
 void MeshRenderer::debugDraw()
@@ -207,6 +218,7 @@ void MeshRenderer::update()
     }
 
     rebuildMatrixPalette();
+    updateGpuPaletteBuffers();
     rebuildCpuSkinnedVertexBuffer();
 }
 
@@ -276,6 +288,38 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
     invalidateSkinningRuntime();
 
     return true;
+}
+
+const VertexBuffer* MeshRenderer::getCurrentGpuSkinnedVertexBuffer() const
+{
+    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    return m_gpuSkinnedVertexBuffers[frameIndex].get();
+}
+
+ID3D12Resource* MeshRenderer::getCurrentGpuSkinnedOutputResource() const
+{
+    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    return m_gpuSkinnedVertexBuffers[frameIndex] ? m_gpuSkinnedVertexBuffers[frameIndex]->getD3D12Resource().Get() : nullptr;
+}
+
+ID3D12Resource* MeshRenderer::getCurrentGpuPaletteModelResource() const
+{
+    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    return m_gpuPaletteModelBuffers[frameIndex].Get();
+}
+
+ID3D12Resource* MeshRenderer::getCurrentGpuPaletteNormalResource() const
+{
+    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    return m_gpuPaletteNormalBuffers[frameIndex].Get();
+}
+
+bool MeshRenderer::hasGpuSkinningResources() const
+{
+    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    return m_gpuSkinnedVertexBuffers[frameIndex] != nullptr
+        && m_gpuPaletteModelBuffers[frameIndex] != nullptr
+        && m_gpuPaletteNormalBuffers[frameIndex] != nullptr;
 }
 
 bool MeshRenderer::ensureSkinLoaded()
@@ -377,6 +421,93 @@ void MeshRenderer::invalidateSkinningRuntime()
 
     m_skinnedVertices.clear();
     m_skinnedVertexBuffer.reset();
+
+    invalidateGpuSkinningResources();
+}
+
+bool MeshRenderer::ensureGpuSkinningResources()
+{
+    if (!m_mesh || m_sourceVertices.empty())
+        return false;
+
+    const size_t vertexCount = m_sourceVertices.size();
+    const size_t jointCount = std::max<size_t>(m_matrixPalette.size(), 1);
+
+    const bool needsRecreate =
+        (m_gpuSkinningVertexCapacity != vertexCount) ||
+        (m_gpuPaletteJointCapacity != jointCount) ||
+        !hasGpuSkinningResources();
+
+    if (!needsRecreate)
+        return true;
+
+    invalidateGpuSkinningResources();
+
+    ModuleResources* resources = app->getModuleResources();
+    const size_t vertexBytes = vertexCount * sizeof(Vertex);
+    const size_t paletteBytes = jointCount * sizeof(Matrix);
+
+    for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+    {
+        std::string outputName = "SkinnedOutputVB_" + std::to_string(i);
+        ComPtr<ID3D12Resource> outputResource =
+            resources->createDefaultBuffer(
+                vertexBytes,
+                D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+                D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+                outputName.c_str());
+
+        m_gpuSkinnedVertexBuffers[i].reset(
+            resources->createVertexBuffer(outputResource, vertexCount, sizeof(Vertex)));
+
+        m_gpuPaletteModelBuffers[i] = resources->createUploadBuffer(paletteBytes);
+        m_gpuPaletteNormalBuffers[i] = resources->createUploadBuffer(paletteBytes);
+    }
+
+    m_gpuSkinningVertexCapacity = vertexCount;
+    m_gpuPaletteJointCapacity = jointCount;
+    return true;
+}
+
+void MeshRenderer::updateGpuPaletteBuffers()
+{
+    if (m_matrixPalette.empty() || m_normalPalette.empty())
+        return;
+
+    if (!ensureGpuSkinningResources())
+        return;
+
+    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    const size_t paletteBytes = m_matrixPalette.size() * sizeof(Matrix);
+
+    {
+        void* mapped = nullptr;
+        CD3DX12_RANGE readRange(0, 0);
+        m_gpuPaletteModelBuffers[frameIndex]->Map(0, &readRange, &mapped);
+        memcpy(mapped, m_matrixPalette.data(), paletteBytes);
+        m_gpuPaletteModelBuffers[frameIndex]->Unmap(0, nullptr);
+    }
+
+    {
+        void* mapped = nullptr;
+        CD3DX12_RANGE readRange(0, 0);
+        m_gpuPaletteNormalBuffers[frameIndex]->Map(0, &readRange, &mapped);
+        memcpy(mapped, m_normalPalette.data(), paletteBytes);
+        m_gpuPaletteNormalBuffers[frameIndex]->Unmap(0, nullptr);
+    }
+}
+
+void MeshRenderer::invalidateGpuSkinningResources()
+{
+    for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+    {
+        m_gpuSkinnedVertexBuffers[i].reset();
+        m_gpuPaletteModelBuffers[i].Reset();
+        m_gpuPaletteNormalBuffers[i].Reset();
+    }
+
+    m_gpuSkinningVertexCapacity = 0;
+    m_gpuPaletteJointCapacity = 0;
 }
 
 void MeshRenderer::cacheSourceVertices(const MeshAsset& meshAsset)
@@ -395,6 +526,8 @@ void MeshRenderer::cacheSourceVertices(const MeshAsset& meshAsset)
     m_sourceVertices.assign(src, src + count);
     m_skinnedVertices.clear();
     m_skinnedVertexBuffer.reset();
+
+    invalidateGpuSkinningResources();
 }
 
 void MeshRenderer::rebuildCpuSkinnedVertexBuffer()
