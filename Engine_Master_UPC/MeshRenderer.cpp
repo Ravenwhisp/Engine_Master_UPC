@@ -11,6 +11,52 @@
 
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
+#include "SkinAsset.h"
+
+namespace
+{
+    GameObject* FindHierarchyRoot(GameObject* go)
+    {
+        if (!go) return nullptr;
+
+        GameObject* current = go;
+        while (current)
+        {
+            Transform* parentTf = current->GetTransform()->getRoot();
+            if (!parentTf)
+                break;
+
+            current = parentTf->getOwner();
+        }
+
+        return current;
+    }
+
+    GameObject* FindByNameRecursive(GameObject* go, const std::string& name)
+    {
+        if (!go) return nullptr;
+
+        if (go->GetName() == name)
+            return go;
+
+        for (GameObject* child : go->GetTransform()->getAllChildren())
+        {
+            if (GameObject* found = FindByNameRecursive(child, name))
+                return found;
+        }
+
+        return nullptr;
+    }
+
+    Matrix BuildNormalMatrixFromSkinMatrix(const Matrix& skinMatrix)
+    {
+        Matrix normal = skinMatrix;
+        normal.Translation(Vector3::Zero);
+        normal = normal.Invert();
+        normal = normal.Transpose();
+        return normal;
+    }
+}
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
@@ -23,7 +69,13 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
     newMeshRenderer->m_meshAsset = m_meshAsset;
     newMeshRenderer->m_materialAssets = m_materialAssets;
+
     newMeshRenderer->m_skinAsset = m_skinAsset;
+    newMeshRenderer->m_skin.reset();
+    newMeshRenderer->m_jointTransforms.clear();
+    newMeshRenderer->m_matrixPalette.clear();
+    newMeshRenderer->m_normalPalette.clear();
+    newMeshRenderer->m_skinBindingsResolved = false;
 
     newMeshRenderer->m_triangles = m_triangles;
 
@@ -103,6 +155,12 @@ void MeshRenderer::drawUi()
     auto max = m_boundingBox.getMax();
     ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
     ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
+
+    ImGui::Separator();
+    ImGui::Text("Skin Asset: %s", m_skinAsset != INVALID_ASSET_ID ? m_skinAsset.c_str() : "None");
+    ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
+    ImGui::Text("Resolved Joints: %d", (int)m_jointTransforms.size());
+    ImGui::Text("Palette Size: %d", (int)m_matrixPalette.size());
 }
 
 void MeshRenderer::debugDraw()
@@ -113,6 +171,23 @@ void MeshRenderer::debugDraw()
 void MeshRenderer::onTransformChange()
 {
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+}
+
+void MeshRenderer::update()
+{
+    if (m_skinAsset == INVALID_ASSET_ID)
+        return;
+
+    if (!ensureSkinLoaded())
+        return;
+
+    if (!m_skinBindingsResolved)
+    {
+        if (!resolveSkinBindings())
+            return;
+    }
+
+    rebuildMatrixPalette();
 }
 
 rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
@@ -178,5 +253,105 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         m_skinAsset = INVALID_ASSET_ID;
     }
 
+    invalidateSkinningRuntime();
+
     return true;
+}
+
+bool MeshRenderer::ensureSkinLoaded()
+{
+    if (m_skinAsset == INVALID_ASSET_ID)
+        return false;
+
+    if (m_skin)
+        return true;
+
+    auto skinAsset = app->getModuleAssets()->load<SkinAsset>(m_skinAsset);
+    if (!skinAsset)
+    {
+        DEBUG_WARN("[MeshRenderer] Could not load SkinAsset '%s'.", m_skinAsset.c_str());
+        return false;
+    }
+
+    m_skin = skinAsset;
+    m_skinBindingsResolved = false;
+    return true;
+}
+
+bool MeshRenderer::resolveSkinBindings()
+{
+    if (!m_owner || !m_skin)
+        return false;
+
+    GameObject* root = FindHierarchyRoot(m_owner);
+    if (!root)
+        return false;
+
+    const auto& joints = m_skin->getJoints();
+
+    m_jointTransforms.clear();
+    m_jointTransforms.reserve(joints.size());
+
+    for (const SkinJoint& joint : joints)
+    {
+        GameObject* jointGo = FindByNameRecursive(root, joint.nodeName);
+        if (!jointGo || !jointGo->GetTransform())
+        {
+            DEBUG_WARN("[MeshRenderer] Joint '%s' not found while resolving skin '%s'.",
+                joint.nodeName.c_str(),
+                m_skin->getName().c_str());
+
+            m_jointTransforms.clear();
+            m_skinBindingsResolved = false;
+            return false;
+        }
+
+        m_jointTransforms.push_back(jointGo->GetTransform());
+    }
+
+    m_matrixPalette.resize(joints.size(), Matrix::Identity);
+    m_normalPalette.resize(joints.size(), Matrix::Identity);
+    m_skinBindingsResolved = true;
+    return true;
+}
+
+void MeshRenderer::rebuildMatrixPalette()
+{
+    if (!m_skin || !m_skinBindingsResolved)
+        return;
+
+    const auto& joints = m_skin->getJoints();
+    const size_t count = std::min(joints.size(), m_jointTransforms.size());
+
+    if (m_matrixPalette.size() != count)
+        m_matrixPalette.resize(count, Matrix::Identity);
+
+    if (m_normalPalette.size() != count)
+        m_normalPalette.resize(count, Matrix::Identity);
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        Transform* jointTransform = m_jointTransforms[i];
+        if (!jointTransform)
+        {
+            m_matrixPalette[i] = Matrix::Identity;
+            m_normalPalette[i] = Matrix::Identity;
+            continue;
+        }
+
+        const Matrix jointWorld = jointTransform->getGlobalMatrix();
+        const Matrix skinMatrix = joints[i].inverseBindMatrix * jointWorld;
+
+        m_matrixPalette[i] = skinMatrix;
+        m_normalPalette[i] = BuildNormalMatrixFromSkinMatrix(skinMatrix);
+    }
+}
+
+void MeshRenderer::invalidateSkinningRuntime()
+{
+    m_skin.reset();
+    m_jointTransforms.clear();
+    m_matrixPalette.clear();
+    m_normalPalette.clear();
+    m_skinBindingsResolved = false;
 }
