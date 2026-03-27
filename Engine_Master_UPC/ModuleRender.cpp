@@ -91,6 +91,13 @@ bool ModuleRender::init()
 
 void ModuleRender::preRender()
 {
+    if (m_pendingStopSimulation)
+    {
+        app->getModuleD3D12()->getCommandQueue()->flush();
+        app->getModuleGameView()->stopGameSimulation();
+        m_pendingStopSimulation = false;
+    }
+
     m_ringBuffer->free(app->getModuleD3D12()->getLastCompletedFrame());
 
     auto* commandList = app->getModuleD3D12()->getCommandList();
