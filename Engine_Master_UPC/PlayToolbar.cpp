@@ -6,6 +6,7 @@
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleGameView.h"
+#include "ModuleRender.h"
 #include "ModuleScene.h"
 
 #include "Scene.h"
@@ -101,7 +102,7 @@ void PlayToolbar::CreateButton(int selectedIndex, const char* text, int index)
 			{
 				m_moduleEditor->setCurrentSimulationMode(index);
 				app->setEngineState(index);
-				app->getModuleGameView()->stopGameSimulation();
+				app->getModuleRender()->requestStopSimulation();
 			}
 		}
     }
