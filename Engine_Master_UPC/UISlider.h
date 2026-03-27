@@ -20,8 +20,8 @@ public:
     FillMethod getFillMethod() const { return m_fillMethod; }
     void setFillMethod(FillMethod method);
 
-    bool getClockwise() const { return m_clockwise; }
-    void setClockwise(bool clockwise);
+    FillOrigin getFillOrigin() const { return m_fillOrigin; }
+    void setFillOrigin(FillOrigin origin);
 
     void drawUi() override;
 
@@ -38,5 +38,5 @@ private:
 
     float m_fillAmount = 1.0f;
     FillMethod m_fillMethod = FillMethod::Horizontal;
-    bool m_clockwise = true;
+    FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
 };

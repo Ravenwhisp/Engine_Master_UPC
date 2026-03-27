@@ -20,7 +20,7 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
 
     clonedSlider->m_fillAmount = this->m_fillAmount;
     clonedSlider->m_fillMethod = this->m_fillMethod;
-    clonedSlider->m_clockwise = this->m_clockwise;
+    clonedSlider->m_fillOrigin = this->m_fillOrigin;
 
     return clonedSlider;
 }
@@ -34,7 +34,7 @@ void UISlider::applyToTarget()
 
     m_targetGraphic->setFillAmount(m_fillAmount);
     m_targetGraphic->setFillMethod(m_fillMethod);
-    m_targetGraphic->setClockwise(m_clockwise);
+    m_targetGraphic->setFillOrigin(m_fillOrigin);
 }
 
 void UISlider::setTargetGraphic(UIImage* img)
@@ -53,12 +53,30 @@ void UISlider::setFillAmount(float amount)
 void UISlider::setFillMethod(FillMethod method)
 {
     m_fillMethod = method;
+    switch (m_fillMethod)
+    {
+    case FillMethod::Horizontal:
+        m_fillOrigin = FillOrigin::HorizontalLeft;
+        break;
+    case FillMethod::Vertical:
+        m_fillOrigin = FillOrigin::VerticalBottom;
+        break;
+    case FillMethod::Radial90:
+        m_fillOrigin = FillOrigin::Radial90BottomLeft;
+        break;
+    case FillMethod::Radial180:
+        m_fillOrigin = FillOrigin::Radial180Bottom;
+        break;
+    case FillMethod::Radial360:
+        m_fillOrigin = FillOrigin::Radial360Clockwise;
+        break;
+    }
     applyToTarget();
 }
 
-void UISlider::setClockwise(bool clockwise)
+void UISlider::setFillOrigin(FillOrigin origin)
 {
-    m_clockwise = clockwise;
+    m_fillOrigin = origin;
     applyToTarget();
 }
 
@@ -92,13 +110,58 @@ void UISlider::drawUi()
     int currentMethod = static_cast<int>(m_fillMethod);
     if (ImGui::Combo("Fill Method", &currentMethod, fillMethods, IM_ARRAYSIZE(fillMethods)))
     {
-        m_fillMethod = static_cast<FillMethod>(currentMethod);
+        setFillMethod(static_cast<FillMethod>(currentMethod));
         changed = true;
     }
 
-    if (m_fillMethod >= FillMethod::Radial90)
+    if (m_fillMethod == FillMethod::Horizontal)
     {
-        changed |= ImGui::Checkbox("Clockwise", &m_clockwise);
+        const char* horizontalOptions[] = { "Left to Right", "Right to Left" };
+        int origin = (m_fillOrigin == FillOrigin::HorizontalRight) ? 1 : 0;
+        if (ImGui::Combo("Direction", &origin, horizontalOptions, IM_ARRAYSIZE(horizontalOptions)))
+        {
+            m_fillOrigin = origin == 0 ? FillOrigin::HorizontalLeft : FillOrigin::HorizontalRight;
+            changed = true;
+        }
+    }
+    else if (m_fillMethod == FillMethod::Vertical)
+    {
+        const char* verticalOptions[] = { "Bottom to Top", "Top to Bottom" };
+        int origin = (m_fillOrigin == FillOrigin::VerticalTop) ? 1 : 0;
+        if (ImGui::Combo("Direction", &origin, verticalOptions, IM_ARRAYSIZE(verticalOptions)))
+        {
+            m_fillOrigin = origin == 0 ? FillOrigin::VerticalBottom : FillOrigin::VerticalTop;
+            changed = true;
+        }
+    }
+    else if (m_fillMethod == FillMethod::Radial90)
+    {
+        const char* radial90Options[] = { "Bottom Left", "Top Left", "Top Right", "Bottom Right" };
+        int origin = static_cast<int>(m_fillOrigin);
+        if (ImGui::Combo("Corner", &origin, radial90Options, IM_ARRAYSIZE(radial90Options)))
+        {
+            m_fillOrigin = static_cast<FillOrigin>(origin);
+            changed = true;
+        }
+    }
+    else if (m_fillMethod == FillMethod::Radial180)
+    {
+        const char* radial180Options[] = { "Bottom", "Left", "Top", "Right" };
+        int origin = static_cast<int>(m_fillOrigin);
+        if (ImGui::Combo("Side", &origin, radial180Options, IM_ARRAYSIZE(radial180Options)))
+        {
+            m_fillOrigin = static_cast<FillOrigin>(origin);
+            changed = true;
+        }
+    }
+    else if (m_fillMethod == FillMethod::Radial360)
+    {
+        bool clockwise = (m_fillOrigin != FillOrigin::Radial360CounterClockwise);
+        if (ImGui::Checkbox("Clockwise", &clockwise))
+        {
+            m_fillOrigin = clockwise ? FillOrigin::Radial360Clockwise : FillOrigin::Radial360CounterClockwise;
+            changed = true;
+        }
     }
 
     if (changed)
@@ -119,7 +182,7 @@ rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
 
     componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
-    componentInfo.AddMember("Clockwise", m_clockwise, domTree.GetAllocator());
+    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -137,8 +200,22 @@ bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("FillMethod"))
         m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
 
-    if (componentInfo.HasMember("Clockwise"))
-        m_clockwise = componentInfo["Clockwise"].GetBool();
+    if (componentInfo.HasMember("FillOrigin"))
+    {
+        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
+    }
+    else if (componentInfo.HasMember("Clockwise"))
+    {
+        const auto& clockwiseValue = componentInfo["Clockwise"];
+        if (clockwiseValue.IsBool())
+        {
+            m_fillOrigin = clockwiseValue.GetBool() ? FillOrigin::Radial360Clockwise : FillOrigin::Radial360CounterClockwise;
+        }
+        else if (clockwiseValue.IsInt())
+        {
+            m_fillOrigin = static_cast<FillOrigin>(clockwiseValue.GetInt());
+        }
+    }
 
     m_targetGraphic = nullptr;
     return true;
