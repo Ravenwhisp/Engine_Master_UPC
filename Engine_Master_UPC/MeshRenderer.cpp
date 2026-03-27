@@ -48,6 +48,17 @@ namespace
         return nullptr;
     }
 
+    static float GetWeightComponent(const Vector4& w, int index)
+    {
+        switch (index)
+        {
+        case 0: return w.x;
+        case 1: return w.y;
+        case 2: return w.z;
+        default: return w.w;
+        }
+    }
+
     Matrix BuildNormalMatrixFromSkinMatrix(const Matrix& skinMatrix)
     {
         Matrix normal = skinMatrix;
@@ -78,6 +89,9 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_skinBindingsResolved = false;
 
     newMeshRenderer->m_triangles = m_triangles;
+    newMeshRenderer->m_sourceVertices = m_sourceVertices;
+    newMeshRenderer->m_skinnedVertices.clear();
+    newMeshRenderer->m_skinnedVertexBuffer.reset();
 
     newMeshRenderer->m_boundingBox = m_boundingBox;
     newMeshRenderer->m_boundingBox.update(newOwner->GetTransform()->getGlobalMatrix());
@@ -91,6 +105,8 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
     auto mesh = app->getModuleResources()->createMesh(meshAsset);
     if (mesh)
     {
+        cacheSourceVertices(meshAsset);
+
         for (const auto& submesh : mesh->getSubmeshes())
         {
             m_triangles += submesh.indexCount / 3;
@@ -161,6 +177,9 @@ void MeshRenderer::drawUi()
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", (int)m_jointTransforms.size());
     ImGui::Text("Palette Size: %d", (int)m_matrixPalette.size());
+
+    ImGui::Text("Source Vertices: %d", (int)m_sourceVertices.size());
+    ImGui::Text("CPU Skinned VB: %s", m_skinnedVertexBuffer ? "Yes" : "No");
 }
 
 void MeshRenderer::debugDraw()
@@ -188,6 +207,7 @@ void MeshRenderer::update()
     }
 
     rebuildMatrixPalette();
+    rebuildCpuSkinnedVertexBuffer();
 }
 
 rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
@@ -354,4 +374,83 @@ void MeshRenderer::invalidateSkinningRuntime()
     m_matrixPalette.clear();
     m_normalPalette.clear();
     m_skinBindingsResolved = false;
+
+    m_skinnedVertices.clear();
+    m_skinnedVertexBuffer.reset();
+}
+
+void MeshRenderer::cacheSourceVertices(const MeshAsset& meshAsset)
+{
+    const Vertex* src = static_cast<const Vertex*>(meshAsset.getVertexData());
+    const uint32_t count = meshAsset.getVertexCount();
+
+    if (!src || count == 0)
+    {
+        m_sourceVertices.clear();
+        m_skinnedVertices.clear();
+        m_skinnedVertexBuffer.reset();
+        return;
+    }
+
+    m_sourceVertices.assign(src, src + count);
+    m_skinnedVertices.clear();
+    m_skinnedVertexBuffer.reset();
+}
+
+void MeshRenderer::rebuildCpuSkinnedVertexBuffer()
+{
+    if (!m_mesh || m_sourceVertices.empty() || m_matrixPalette.empty())
+    {
+        m_skinnedVertices.clear();
+        m_skinnedVertexBuffer.reset();
+        return;
+    }
+
+    m_skinnedVertices = m_sourceVertices;
+
+    const size_t paletteSize = m_matrixPalette.size();
+
+    for (size_t i = 0; i < m_sourceVertices.size(); ++i)
+    {
+        const Vertex& src = m_sourceVertices[i];
+        Vertex& dst = m_skinnedVertices[i];
+
+        Vector3 skinnedPos = Vector3::Zero;
+        Vector3 skinnedNormal = Vector3::Zero;
+        float totalWeight = 0.0f;
+
+        for (int j = 0; j < 4; ++j)
+        {
+            const uint32_t jointIndex = src.joints[j];
+            const float weight = GetWeightComponent(src.weights, j);
+
+            if (weight <= 0.0f)
+                continue;
+
+            if (jointIndex >= paletteSize)
+                continue;
+
+            skinnedPos += Vector3::Transform(src.position, m_matrixPalette[jointIndex]) * weight;
+            skinnedNormal += Vector3::TransformNormal(src.normal, m_normalPalette[jointIndex]) * weight;
+            totalWeight += weight;
+        }
+
+        if (totalWeight > 0.0f)
+        {
+            dst.position = skinnedPos;
+
+            if (skinnedNormal.LengthSquared() > 0.0f)
+            {
+                skinnedNormal.Normalize();
+                dst.normal = skinnedNormal;
+            }
+        }
+    }
+
+    m_skinnedVertexBuffer.reset(
+        app->getModuleResources()->createVertexBuffer(
+            m_skinnedVertices.data(),
+            m_skinnedVertices.size(),
+            sizeof(Vertex))
+    );
 }
