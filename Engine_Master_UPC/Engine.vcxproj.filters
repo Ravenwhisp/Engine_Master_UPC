@@ -816,6 +816,12 @@
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="SkyboxParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="UIParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
@@ -988,6 +994,9 @@
     <Filter Include="D3D12\Rendering\DebugDraw">
       <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="D3D12\Rendering\RenderData">
+      <UniqueIdentifier>{2de10743-3c95-4ba5-a924-0b09ffbac34f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1014,6 +1023,12 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SkyBoxPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
