@@ -23,6 +23,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
     newMeshRenderer->m_meshAsset = m_meshAsset;
     newMeshRenderer->m_materialAssets = m_materialAssets;
+    newMeshRenderer->m_skinAsset = m_skinAsset;
 
     newMeshRenderer->m_triangles = m_triangles;
 
@@ -123,6 +124,7 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("MeshAssetId", rapidjson::Value(m_meshAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("SkinAssetId", rapidjson::Value(m_skinAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
     {
         rapidjson::Value materialsData(rapidjson::kArrayType);
@@ -165,6 +167,15 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
                 addMaterial(*materialAsset);
             }
         }
+    }
+
+    if (componentInfo.HasMember("SkinAssetId") && componentInfo["SkinAssetId"].IsString())
+    {
+        m_skinAsset = componentInfo["SkinAssetId"].GetString();
+    }
+    else
+    {
+        m_skinAsset = INVALID_ASSET_ID;
     }
 
     return true;
