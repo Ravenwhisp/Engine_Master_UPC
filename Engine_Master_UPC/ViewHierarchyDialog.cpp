@@ -9,7 +9,6 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "Scene.h"
-#include "Canvas.h"
 #include "UIButton.h"
 #include "UIImage.h"
 #include "Quadtree.h"
