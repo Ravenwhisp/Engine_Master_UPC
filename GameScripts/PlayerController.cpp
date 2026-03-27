@@ -151,10 +151,6 @@ void PlayerController::applyTranslation(GameObject* owner, const Vector3& direct
     {
         TransformAPI::setPosition(transform, constrainedPos);
     }
-    else
-    {
-        TransformAPI::setPosition(transform, desiredPos);
-    }
 }
 
 void PlayerController::applyControlScheme()

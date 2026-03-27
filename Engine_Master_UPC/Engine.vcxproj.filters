@@ -167,9 +167,6 @@
     <ClCompile Include="NavigationAgentComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="NavMeshWalk.cpp">
-      <Filter>NavMesh</Filter>
-    </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
@@ -528,9 +525,6 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="NavigationAgentComponent.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
-    <ClInclude Include="NavMeshWalk.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
