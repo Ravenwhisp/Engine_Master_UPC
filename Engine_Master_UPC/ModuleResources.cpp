@@ -95,6 +95,29 @@ ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(const void* data, si
 	return buffer;
 }
 
+ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(size_t size, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initialState, const char* name)
+{
+	ComPtr<ID3D12Resource> buffer;
+
+	auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(size, flags);
+
+	m_device->CreateCommittedResource(
+		&defaultHeap,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		initialState,
+		nullptr,
+		IID_PPV_ARGS(&buffer));
+
+	if (name && name[0] != '\0')
+	{
+		buffer->SetName(std::wstring(name, name + strlen(name)).c_str());
+	}
+
+	return buffer;
+}
+
 Texture* ModuleResources::createDepthBuffer(float width, float height)
 {
 	TextureDesc desc{};
@@ -179,6 +202,11 @@ VertexBuffer* ModuleResources::createVertexBuffer(const void* data, size_t numVe
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numVertices * vertexStride, "VertexBuffer");
 	return new VertexBuffer(*m_device.Get(), defaultBuffer, numVertices, vertexStride);
+}
+
+VertexBuffer* ModuleResources::createVertexBuffer(ComPtr<ID3D12Resource> existingResource, size_t numVertices, size_t vertexStride)
+{
+	return new VertexBuffer(*m_device.Get(), existingResource, numVertices, vertexStride);
 }
 
 IndexBuffer* ModuleResources::createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat, const char* name )
