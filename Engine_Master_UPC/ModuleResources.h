@@ -45,10 +45,12 @@ public:
 
 	ComPtr<ID3D12Resource> createUploadBuffer(size_t size);
 	ComPtr<ID3D12Resource> createDefaultBuffer(const void* data, size_t size, const char* name);
+	ComPtr<ID3D12Resource> createDefaultBuffer(size_t size, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initialState, const char* name);
 
 
 	RingBuffer* createRingBuffer(size_t size);
 	VertexBuffer* createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
+	VertexBuffer* createVertexBuffer(ComPtr<ID3D12Resource> existingResource, size_t numVertices, size_t vertexStride);
 	IndexBuffer* createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat, const char* name = "IndexBuffer");
 
 
