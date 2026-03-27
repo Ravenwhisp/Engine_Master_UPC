@@ -107,16 +107,33 @@ void ModuleScene::rebuildMeshRenderersCache()
 {
     m_meshRenderers.clear();
 
-    for (GameObject* gO : m_quadtree->query())
+    if (app->getSettings()->frustumCulling.debugFrustumCulling)
     {
-        if (!gO->GetActive())
+        for (GameObject* gO : m_quadtree->query())
         {
-            continue;
-        }
+            if (!gO->GetActive())
+            {
+                continue;
+            }
 
-        if (auto* mesh = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            if (auto* mesh = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                m_meshRenderers.push_back(mesh);
+            }
+        }
+    }
+    else {
+        for (GameObject* go : m_scene->getAllGameObjects())
         {
-            m_meshRenderers.push_back(mesh);
+            if (!go->GetActive())
+            {
+                continue;
+            }
+
+            if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                m_meshRenderers.push_back(mesh);
+            }
         }
     }
 
