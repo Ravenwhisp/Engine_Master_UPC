@@ -21,7 +21,7 @@ std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
 
     cloned->m_fillAmount = m_fillAmount;
     cloned->m_fillMethod = m_fillMethod;
-    cloned->m_clockwise = m_clockwise;
+    cloned->m_fillOrigin = m_fillOrigin;
 
     return cloned;
 }
@@ -91,7 +91,7 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
     componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
-    componentInfo.AddMember("Clockwise", m_clockwise, domTree.GetAllocator());
+    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -117,8 +117,10 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("FillMethod"))
         m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
 
-    if (componentInfo.HasMember("Clockwise"))
-        m_clockwise = componentInfo["Clockwise"].GetBool();
+    if (componentInfo.HasMember("FillOrigin"))
+    {
+        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
+    }
 
     return true;
 }

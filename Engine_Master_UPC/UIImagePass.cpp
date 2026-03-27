@@ -107,11 +107,12 @@ void UIImagePass::drawImage(const UIImageCommand& command)
     src.right = desc.Width;
     src.bottom = desc.Height;
 
+    const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
     const DirectX::XMVECTOR fillData = DirectX::XMVectorSet(
         command.fillAmount,
         static_cast<float>(command.fillMethod),
-        command.clockwise ? 1.0f : 0.0f,
-        1.0f);
+        static_cast<float>(command.fillOrigin),
+        aspectRatio);
 
     m_spriteBatch->Draw(srv.gpu, texSize, dst, &src, fillData);
 }

@@ -21,5 +21,5 @@ struct UIImageCommand
     
     float fillAmount = 1.0f;
     FillMethod fillMethod = FillMethod::Horizontal;
-    bool clockwise = true;
+    FillOrigin fillOrigin = FillOrigin::HorizontalLeft;
 };
