@@ -28,6 +28,7 @@
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
+#include "SkinningComputePass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -63,8 +64,8 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
     m_renderPasses.push_back(std::make_unique<SkyBoxPass>( device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
-
     m_renderPasses.push_back(std::make_unique<MeshRendererPass>(device));
+    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));   //  <-------------- CRASH HERE
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));
