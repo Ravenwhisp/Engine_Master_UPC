@@ -107,6 +107,54 @@ static bool loadMatrices(const tinygltf::Model& model, int accessorIdx, std::vec
         sizeof(Matrix), sizeof(Matrix), (uint32_t)acc.count, model, accessorIdx);
 }
 
+static bool loadJointIndices4(const tinygltf::Model& model, int accessorIdx, uint16_t* dst, uint32_t count, uint32_t dstStride)
+{
+    if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
+
+    const tinygltf::Accessor& acc = model.accessors[accessorIdx];
+    if (acc.type != TINYGLTF_TYPE_VEC4) return false;
+    if (acc.bufferView < 0 || acc.bufferView >= (int)model.bufferViews.size()) return false;
+
+    const tinygltf::BufferView& view = model.bufferViews[acc.bufferView];
+    const tinygltf::Buffer& buffer = model.buffers[view.buffer];
+
+    const uint8_t* src = buffer.data.data() + view.byteOffset + acc.byteOffset;
+    const size_t srcStride = acc.ByteStride(view);
+    if (srcStride == 0) return false;
+
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        uint16_t* out = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(dst) + i * dstStride);
+        const uint8_t* in = src + i * srcStride;
+
+        switch (acc.componentType)
+        {
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+        {
+            const uint8_t* v = reinterpret_cast<const uint8_t*>(in);
+            out[0] = v[0];
+            out[1] = v[1];
+            out[2] = v[2];
+            out[3] = v[3];
+            break;
+        }
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+        {
+            const uint16_t* v = reinterpret_cast<const uint16_t*>(in);
+            out[0] = v[0];
+            out[1] = v[1];
+            out[2] = v[2];
+            out[3] = v[3];
+            break;
+        }
+        default:
+            return false;
+        }
+    }
+
+    return true;
+}
+
 ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
     ImporterMaterial& importerMaterial,
     ImporterPrefab& importerPrefab,
@@ -207,10 +255,13 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
     }
 
+    std::vector<MD5Hash> skinUIDs(model.skins.size(), INVALID_ASSET_ID);
+
     // Skins (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.skins.size()); ++i)
     {
         const MD5Hash skinUID = computeMD5(m_currentFilePath->string() + "?skin=" + std::to_string(i));
+        skinUIDs[i] = skinUID;
 
         SkinAsset skinAsset(skinUID);
         loadSkin(model, model.skins[i], &skinAsset);
@@ -224,6 +275,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meta.type = AssetType::SKIN;
 
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
+
     }
 
     std::vector<std::unique_ptr<GameObject>> tempObjects;
@@ -245,14 +297,14 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     GameObject* root = nullptr;
     if (rootNodes.size() == 1)
     {
-        root = buildNode(rootNodes[0], nullptr, model, meshUIDs, materialUIDs, tempObjects);
+        root = buildNode(rootNodes[0], nullptr, model, meshUIDs, materialUIDs, skinUIDs, tempObjects);
     }
     else
     {
         root = makeNode(prefabName, tempObjects);
         for (int idx : rootNodes)
         {
-            buildNode(idx, root, model, meshUIDs, materialUIDs, tempObjects);
+            buildNode(idx, root, model, meshUIDs, materialUIDs, skinUIDs, tempObjects);
         }
     }
 
@@ -296,6 +348,29 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primit
     loadAccessorData(vBase + offsetof(Vertex, position), sizeof(Vector3), sizeof(Vertex), vertexCount, model, itPos->second);
     loadAccessorData(vBase + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex), vertexCount, model, primitive.attributes, "NORMAL");
     loadAccessorData(vBase + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex), vertexCount, model, primitive.attributes, "TEXCOORD_0");
+
+    auto itJoints = primitive.attributes.find("JOINTS_0");
+    if (itJoints != primitive.attributes.end())
+    {
+        loadJointIndices4(
+            model,
+            itJoints->second,
+            reinterpret_cast<uint16_t*>(vBase + offsetof(Vertex, joints)),
+            vertexCount,
+            sizeof(Vertex));
+    }
+
+    auto itWeights = primitive.attributes.find("WEIGHTS_0");
+    if (itWeights != primitive.attributes.end())
+    {
+        loadAccessorData(
+            vBase + offsetof(Vertex, weights),
+            sizeof(Vector4),
+            sizeof(Vertex),
+            vertexCount,
+            model,
+            itWeights->second);
+    }
 
     uint32_t indexCount = 0, componentSize = 0;
     if (primitive.indices >= 0)
@@ -397,6 +472,31 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::A
 
 void ImporterGltf::loadSkin(const tinygltf::Model& model, const tinygltf::Skin& skin, SkinAsset* outSkin)
 {
+    outSkin->m_name = skin.name.empty() ? "Skin" : skin.name;
+    outSkin->m_joints.clear();
+
+    std::vector<Matrix> inverseBindMatrices;
+    if (skin.inverseBindMatrices >= 0)
+    {
+        loadMatrices(model, skin.inverseBindMatrices, inverseBindMatrices);
+    }
+
+    outSkin->m_joints.reserve(skin.joints.size());
+
+    for (size_t i = 0; i < skin.joints.size(); ++i)
+    {
+        const int nodeIdx = skin.joints[i];
+
+        SkinJoint joint;
+        joint.nodeName = resolveNodeName(model, nodeIdx);
+
+        if (i < inverseBindMatrices.size())
+            joint.inverseBindMatrix = inverseBindMatrices[i];
+        else
+            joint.inverseBindMatrix = Matrix::Identity;
+
+        outSkin->m_joints.push_back(std::move(joint));
+    }
 }
 
 void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* mat)
@@ -421,7 +521,7 @@ GameObject* ImporterGltf::makeNode(const std::string& name, std::vector<std::uni
     return raw;
 }
 
-GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinygltf::Model& model, const std::vector<MD5Hash>& meshUIDs, const std::vector<MD5Hash>& materialUIDs, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
+GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinygltf::Model& model, const std::vector<MD5Hash>& meshUIDs, const std::vector<MD5Hash>& materialUIDs, const std::vector<MD5Hash>& skinUIDs, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
 {
     const tinygltf::Node& gNode = model.nodes[nodeIdx];
     const std::string name = gNode.name.empty()
@@ -458,6 +558,12 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
         if (mr)
         {
             mr->getMeshReference() = meshUIDs[gNode.mesh];
+
+            if (gNode.skin >= 0 && gNode.skin < static_cast<int>(skinUIDs.size()))
+            {
+                mr->getSkinReference() = skinUIDs[gNode.skin];
+            }
+
             const auto& prims = model.meshes[gNode.mesh].primitives;
             if (!prims.empty() && prims[0].material >= 0 && prims[0].material < static_cast<int>(materialUIDs.size()))
             {
@@ -471,7 +577,7 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
 
     for (int childIdx : gNode.children)
     {
-        buildNode(childIdx, go, model, meshUIDs, materialUIDs, tempObjects);
+        buildNode(childIdx, go, model, meshUIDs, materialUIDs, skinUIDs,tempObjects);
     }
 
     return go;
