@@ -2,11 +2,11 @@
 #include "ImporterPrefab.h"
 
 #include "Application.h"
-#include "ModuleFileSystem.h"
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 
 #include <rapidjson/document.h>
+#include <FileIO.h>
 
 Asset* ImporterPrefab::createAssetInstance(const MD5Hash& uid) const
 {
@@ -15,7 +15,7 @@ Asset* ImporterPrefab::createAssetInstance(const MD5Hash& uid) const
 
 bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset* dst)
 {
-    const std::vector<uint8_t> raw = app->getModuleFileSystem()->read(path);
+    const std::vector<uint8_t> raw = FileIO::read(path);
     if (raw.empty())
     {
         DEBUG_ERROR("[ImporterPrefab] Could not read '%s'.", path.string().c_str());

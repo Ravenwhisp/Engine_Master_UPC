@@ -86,6 +86,12 @@ void Transform::setFromGlobalMatrix(const Matrix& globalMatrix)
     markDirty();
 }
 
+void Transform::setPosition(const Vector3& newPosition)
+{ 
+    m_position = newPosition; 
+    markDirty(); 
+}
+
 void Transform::setRotation(const Quaternion& q)
 {
     m_rotation = q;
