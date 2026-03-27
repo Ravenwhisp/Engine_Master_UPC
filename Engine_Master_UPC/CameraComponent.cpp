@@ -16,7 +16,7 @@ CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id,
 	m_world = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
 	recalculateFrustum();
 	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
+	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
 }
 
 std::unique_ptr<Component> CameraComponent::clone(GameObject* newOwner) const
@@ -47,6 +47,27 @@ void CameraComponent::recalculateFrustum()
 	m_frustum.m_bottomFace  = Plane(m_frustum.m_points[3], m_frustum.m_points[2], m_frustum.m_points[6]);
 	m_frustum.m_leftFace    = Plane(m_frustum.m_points[4], m_frustum.m_points[0], m_frustum.m_points[3]);
 	m_frustum.m_rightFace   = Plane(m_frustum.m_points[1], m_frustum.m_points[5], m_frustum.m_points[6]);
+
+	Matrix vp = m_view * m_projection;
+
+	m_frustum.m_leftFace = Plane(vp._14 + vp._11, vp._24 + vp._21, vp._34 + vp._31, vp._44 + vp._41);
+	m_frustum.m_leftFace.Normalize();
+
+	m_frustum.m_rightFace = Plane(vp._14 - vp._11, vp._24 - vp._21, vp._34 - vp._31, vp._44 - vp._41);
+	m_frustum.m_rightFace.Normalize();
+
+	m_frustum.m_bottomFace = Plane(vp._14 + vp._12, vp._24 + vp._22, vp._34 + vp._32, vp._44 + vp._42);
+	m_frustum.m_bottomFace.Normalize();
+
+	m_frustum.m_topFace = Plane(vp._14 - vp._12, vp._24 - vp._22, vp._34 - vp._32, vp._44 - vp._42);
+	m_frustum.m_topFace.Normalize();
+
+	m_frustum.m_frontFace = Plane(vp._13, vp._23, vp._33, vp._43);
+	m_frustum.m_frontFace.Normalize();
+
+	m_frustum.m_backFace = Plane(vp._14 - vp._13, vp._24 - vp._23, vp._34 - vp._33, vp._44 - vp._43);
+	m_frustum.m_backFace.Normalize();
+
 }
 
 void CameraComponent::update()
@@ -63,7 +84,9 @@ void CameraComponent::onTransformChange()
 	m_world = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
 	recalculateFrustum();
 	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
+	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
+
+	app->getModuleScene()->rebuildMeshRenderersCache();
 }
 
 void CameraComponent::drawUi() 
@@ -90,7 +113,7 @@ void CameraComponent::drawUi()
 		Transform* t = m_owner->GetTransform();
 		Vector3 position = t->getPosition();
 		m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-		m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f), m_aspectRatio, m_nearPlane, m_farPlane);
+		m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
 	}
 	
 	if (ImGui::Button("Set as Default Camera"))
