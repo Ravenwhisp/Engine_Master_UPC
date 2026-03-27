@@ -5,6 +5,10 @@
 #include "BoundingBox.h"
 #include "IDebugDrawable.h"
 
+#include "BasicMesh.h"
+#include "Vertex.h"
+#include "VertexBuffer.h"
+
 class BasicMesh;
 class MaterialAsset;
 class SkinAsset;
@@ -58,11 +62,27 @@ public:
 	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
 	bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
 
+	const VertexBuffer* getActiveVertexBuffer() const
+	{
+		if (m_skinnedVertexBuffer)
+			return m_skinnedVertexBuffer.get();
+
+		if (m_mesh)
+			return m_mesh->getVertexBuffer().get();
+
+		return nullptr;
+	}
+
+	bool hasSkinnedVertexBuffer() const { return m_skinnedVertexBuffer != nullptr; }
+
 private:
 	bool ensureSkinLoaded();
 	bool resolveSkinBindings();
 	void rebuildMatrixPalette();
 	void invalidateSkinningRuntime();
+
+	void cacheSourceVertices(const MeshAsset& meshAsset);
+	void rebuildCpuSkinnedVertexBuffer();
 
 private:
 	std::shared_ptr<SkinAsset>  m_skin;
@@ -73,6 +93,10 @@ private:
 	std::shared_ptr<BasicMesh>		m_mesh;
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
+
+	std::vector<Vertex>                m_sourceVertices;
+	std::vector<Vertex>                m_skinnedVertices;
+	std::unique_ptr<VertexBuffer>      m_skinnedVertexBuffer;
 
 	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
 	MD5Hash							m_skinAsset = INVALID_ASSET_ID;
