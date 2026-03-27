@@ -54,6 +54,7 @@ private:
     // Cached viewport size to detect resizes.
     ImVec2 m_size{ 800, 600 };
 
+    bool m_pendingStopSimulation = false;
     int m_triangles = 0;
 
 public:
@@ -68,6 +69,7 @@ public:
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
 
     int getTriangles() const { return m_triangles; }
+    void requestStopSimulation() { m_pendingStopSimulation = true; }
 
 private:
     // Surface helpers
