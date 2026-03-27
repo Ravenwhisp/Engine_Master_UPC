@@ -303,7 +303,39 @@ namespace SceneAPI
 
 namespace Input
 {
-    bool isKeyDown(int key)
+    Keyboard::Keys toKeyboardKey(KeyCode key)
+    {
+        switch (key)
+        {
+        case KeyCode::W:          return Keyboard::Keys::W;
+        case KeyCode::A:          return Keyboard::Keys::A;
+        case KeyCode::S:          return Keyboard::Keys::S;
+        case KeyCode::D:          return Keyboard::Keys::D;
+        case KeyCode::Q:          return Keyboard::Keys::Q;
+        case KeyCode::E:          return Keyboard::Keys::E;
+        case KeyCode::I:          return Keyboard::Keys::I;
+        case KeyCode::J:          return Keyboard::Keys::J;
+        case KeyCode::K:          return Keyboard::Keys::K;
+        case KeyCode::L:          return Keyboard::Keys::L;
+        case KeyCode::U:          return Keyboard::Keys::U;
+        case KeyCode::O:          return Keyboard::Keys::O;
+        case KeyCode::T:          return Keyboard::Keys::T;
+        case KeyCode::LeftShift:  return Keyboard::Keys::LeftShift;
+        case KeyCode::RightShift: return Keyboard::Keys::RightShift;
+        case KeyCode::Space:      return Keyboard::Keys::Space;
+        case KeyCode::Escape:     return Keyboard::Keys::Escape;
+        case KeyCode::Enter:      return Keyboard::Keys::Enter;
+        case KeyCode::Up:         return Keyboard::Keys::Up;
+        case KeyCode::Down:       return Keyboard::Keys::Down;
+        case KeyCode::Left:       return Keyboard::Keys::Left;
+        case KeyCode::Right:      return Keyboard::Keys::Right;
+        case KeyCode::None:
+        default:
+            return Keyboard::Keys::None;
+        }
+    }
+
+    bool isKeyDown(KeyCode key)
     {
         if (!app)
         {
@@ -316,7 +348,7 @@ namespace Input
             return false;
         }
 
-        return input->isKeyDown(static_cast<Keyboard::Keys>(key));
+        return input->isKeyDown(toKeyboardKey(key));
     }
 }
 

@@ -1,9 +1,6 @@
 #pragma once
 
 #include "ScriptAPI.h"
-#include <Keyboard.h>
-
-using DirectX::Keyboard;
 
 class PlayerController : public Script
 {
@@ -38,10 +35,10 @@ public:
     Vector3 m_navExtents = Vector3(2.0f, 4.0f, 2.0f);
 
 private:
-    Keyboard::Keys m_keyUp = Keyboard::Keys::W;
-    Keyboard::Keys m_keyLeft = Keyboard::Keys::A;
-    Keyboard::Keys m_keyDown = Keyboard::Keys::S;
-    Keyboard::Keys m_keyRight = Keyboard::Keys::D;
+    KeyCode m_keyUp = KeyCode::W;
+    KeyCode m_keyLeft = KeyCode::A;
+    KeyCode m_keyDown = KeyCode::S;
+    KeyCode m_keyRight = KeyCode::D;
 
     Vector3 m_initialRotationOffset = Vector3(0.0f, 0.0f, 0.0f);
 

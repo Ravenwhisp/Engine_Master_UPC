@@ -813,6 +813,9 @@
     <ClInclude Include="UIParams.h">
       <Filter>D3D12\Rendering\RenderData</Filter>
     </ClInclude>
+    <ClInclude Include="KeyCode.h">
+      <Filter>Inputs\Keyboard</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

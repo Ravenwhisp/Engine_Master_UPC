@@ -52,7 +52,7 @@ void PlayerController::Update()
     }
 
     const float dt = Time::getDeltaTime();
-    bool shiftHeld = Input::isKeyDown((int)DirectX::Keyboard::Keys::LeftShift) || Input::isKeyDown((int)DirectX::Keyboard::Keys::RightShift);
+    bool shiftHeld = Input::isKeyDown(KeyCode::LeftShift) || Input::isKeyDown(KeyCode::RightShift);
 
     Vector3 horizontalDir(direction.x, 0.0f, direction.z);
     if (horizontalDir.x != 0.0f || horizontalDir.z != 0.0f)
@@ -84,19 +84,19 @@ Vector3 PlayerController::readMoveDirection() const
 {
     Vector3 direction(0, 0, 0);
 
-    if (Input::isKeyDown((int)m_keyUp))
+    if (Input::isKeyDown(m_keyUp))
     {
         direction.z -= 1.0f;
     }
-    if (Input::isKeyDown((int)m_keyDown))
+    if (Input::isKeyDown(m_keyDown))
     {
         direction.z += 1.0f;
     }
-    if (Input::isKeyDown((int)m_keyLeft))
+    if (Input::isKeyDown(m_keyLeft))
     {
         direction.x -= 1.0f;
     }
-    if (Input::isKeyDown((int)m_keyRight))
+    if (Input::isKeyDown(m_keyRight))
     {
         direction.x += 1.0f;
     }
@@ -158,18 +158,18 @@ void PlayerController::applyControlScheme()
     switch (m_controlScheme)
     {
     case ControlScheme::IJKL:
-        m_keyUp = Keyboard::Keys::I;
-        m_keyLeft = Keyboard::Keys::J;
-        m_keyDown = Keyboard::Keys::K;
-        m_keyRight = Keyboard::Keys::L;
+        m_keyUp = KeyCode::I;
+        m_keyLeft = KeyCode::J;
+        m_keyDown = KeyCode::K;
+        m_keyRight = KeyCode::L;
         break;
 
     case ControlScheme::WASD:
     default:
-        m_keyUp = Keyboard::Keys::W;
-        m_keyLeft = Keyboard::Keys::A;
-        m_keyDown = Keyboard::Keys::S;
-        m_keyRight = Keyboard::Keys::D;
+        m_keyUp = KeyCode::W;
+        m_keyLeft = KeyCode::A;
+        m_keyDown = KeyCode::S;
+        m_keyRight = KeyCode::D;
         break;
     }
 }

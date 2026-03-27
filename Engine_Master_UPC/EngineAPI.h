@@ -10,6 +10,7 @@
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
+#include "KeyCode.h"
 
 using DirectX::SimpleMath::Vector3;
 
@@ -80,7 +81,7 @@ namespace Time
 
 namespace Input
 {
-    ENGINE_API bool isKeyDown(int key);
+    ENGINE_API bool isKeyDown(KeyCode key);
 }
 
 namespace Debug
