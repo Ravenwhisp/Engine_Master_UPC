@@ -381,6 +381,9 @@
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
       <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="ViewHierarchyDialog.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -913,6 +916,15 @@
     <ClInclude Include="FileDialogClipboard.h">
       <Filter>Editor\Views\FileDialog</Filter>
     </ClInclude>
+    <ClInclude Include="SkyboxParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="UIParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewHierarchyDialog.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1091,6 +1103,9 @@
     <Filter Include="Editor\Views\Commands">
       <UniqueIdentifier>{aa4c7b9c-59bc-413e-b1d6-b7ec38567f04}</UniqueIdentifier>
     </Filter>
+    <Filter Include="D3D12\Rendering\RenderData">
+      <UniqueIdentifier>{2de10743-3c95-4ba5-a924-0b09ffbac34f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1117,6 +1132,12 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SkyBoxPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

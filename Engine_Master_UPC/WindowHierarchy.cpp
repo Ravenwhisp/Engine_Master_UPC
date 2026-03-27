@@ -103,6 +103,18 @@ void WindowHierarchy::drawPrefabHeader(PrefabEditSession* session)
 
     ImGui::EndDisabled();
 }
+			if (ImGui::MenuItem("Delete"))
+			{
+				UID id = gameObject->GetID();
+				if (app->getModuleEditor()->getSelectedGameObject() == gameObject)
+					app->getModuleEditor()->setSelectedGameObject(nullptr);
+				app->getModuleScene()->getScene()->removeGameObject(id);
+			}
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndPopup();
+	}
 
 void WindowHierarchy::drawSceneTree()
 {
@@ -129,30 +141,30 @@ void WindowHierarchy::drawSceneTree()
         {
             m_treeRenderer.renderNode(go, false, m_selectionState);
         }
-
-        ImGui::TreePop();
-    }
-}
-
-void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
-{
-    if (!session->m_isolatedScene)
-    {
-        return;
-    }
-
     for (GameObject* go : session->m_isolatedScene->getRootObjects())
     {
         m_treeRenderer.renderNode(go, true, m_selectionState);
     }
-}
-
+        return;
+    }
 void WindowHierarchy::startRename(GameObject* target)
 {
     if (!target)
     {
         return;
     }
+	if (!child) return;
+
+	Transform* childTransform = child->GetTransform();
+	Transform* newParentTransform = newParent ? newParent->GetTransform() : nullptr;
+
+	if (newParentTransform && newParentTransform->isDescendantOf(childTransform))
+		return;
+
+	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+	Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
+
+	Matrix worldMatrix = childTransform->getGlobalMatrix();
 
     m_renameTargetID = target->GetID();
     m_renameFocusPending = true;
@@ -168,11 +180,10 @@ void WindowHierarchy::drawInlineRename()
 
     ImGui::OpenPopup("##HierarchyRename");
     ImGui::SetNextWindowSize(ImVec2(260, 0), ImGuiCond_Always);
-
-    if (ImGui::BeginPopupModal("##HierarchyRename", nullptr,
-        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
-    {
-        ImGui::Text("Rename object:");
+        const bool commit = ImGui::InputText("##rename", m_renameBuffer, sizeof(m_renameBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
+        ImGui::SameLine();
+        const bool okClicked = ImGui::Button("OK");
+        const bool cancelled = ImGui::IsKeyPressed(ImGuiKey_Escape);
 
         if (m_renameFocusPending)
         {
@@ -180,19 +191,8 @@ void WindowHierarchy::drawInlineRename()
             m_renameFocusPending = false;
         }
 
-        const bool commit = ImGui::InputText("##rename", m_renameBuffer, sizeof(m_renameBuffer), ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::SameLine();
-        const bool okClicked = ImGui::Button("OK");
-        const bool cancelled = ImGui::IsKeyPressed(ImGuiKey_Escape);
 
-        if ((commit || okClicked) && strlen(m_renameBuffer) > 0)
-        {
-            Scene* scene = HierarchyUtils::resolveTargetScene();
-            if (GameObject* go = HierarchyUtils::findByUID(scene, m_renameTargetID))
-            {
-                CommandRenameGameObject(scene, go, m_renameBuffer).run();
-            }
-
+void WindowHierarchy::createTreeNode()
             m_renameTargetID = 0;
             ImGui::CloseCurrentPopup();
         }
@@ -201,9 +201,21 @@ void WindowHierarchy::drawInlineRename()
             m_renameTargetID = 0;
             ImGui::CloseCurrentPopup();
         }
-
+				GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
         ImGui::EndPopup();
     }
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		const auto& roots = app->getModuleScene()->getScene()->getRootObjects();
+		for (GameObject* gameObject : roots)
+		{
+			createTreeNode(gameObject, false);
+		}
+
+		ImGui::TreePop();
+	}
 }
 
 void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
@@ -216,32 +228,36 @@ void WindowHierarchy::onSelect(GameObject* go)
 {
     app->getModuleEditor()->setSelectedGameObject(go);
 }
-
-void WindowHierarchy::onReparent(GameObject* child, GameObject* newParent)
-{
-    reparent(child, newParent);
-}
-
-void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath, GameObject* parent)
-{
-    Scene* scene = HierarchyUtils::resolveTargetScene();
-    CommandInstantiatePrefab(scene, sourcePath, parent).run();
-}
-
 void WindowHierarchy::onDeleteRequested(GameObject* go)
 {
     if (!go)
     {
         return;
     }
-
+    reparent(child, newParent);
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
 
     if (session && session->m_active && go == session->m_rootObject)
     {
         return;
     }
-
+}
     Scene* scene = HierarchyUtils::resolveTargetScene();
     CommandRemoveGameObject(scene, go).run();
+{
+	if (!parent) return;
+
+	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+	Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
+
+	targetScene->createGameObject();
+
+	const auto& roots = targetScene->getRootObjects();
+	if (roots.empty()) return;
+
+	GameObject* newObj = roots.back();
+	if (!newObj || newObj == parent) return;
+
+	reparent(newObj, parent);
+	app->getModuleEditor()->setSelectedGameObject(newObj);
 }
