@@ -84,7 +84,7 @@ void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
             else light = m_hierarchy->addChildToPrefabRoot(gameObject);
 
             light->SetName("New Point Light");
-            LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
+            LightComponent* lightComp = static_cast<LightComponent*>(light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID()) );
             lightComp->setTypePoint(10.f);
         }
 
@@ -95,7 +95,7 @@ void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
             else light = m_hierarchy->addChildToPrefabRoot(gameObject);
 
             light->SetName("New Directional Light");
-            LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
+            LightComponent* lightComp = static_cast<LightComponent*>(light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID()) );
             lightComp->setTypeDirectional();
         }
 
@@ -106,7 +106,7 @@ void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
             else light = m_hierarchy->addChildToPrefabRoot(gameObject);
 
             light->SetName("New Spot Light");
-            LightComponent* lightComp = (LightComponent*)light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID());
+            LightComponent* lightComp = static_cast<LightComponent*>(light->AddComponentWithUID(ComponentType::LIGHT, GenerateUID()) );
             lightComp->setTypeSpot(10.f, 20.f, 30.f);
         }
 
