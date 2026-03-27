@@ -62,6 +62,14 @@ public:
 	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
 	bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
 
+	const VertexBuffer* getCurrentGpuSkinnedVertexBuffer() const;
+	ID3D12Resource* getCurrentGpuSkinnedOutputResource() const;
+	ID3D12Resource* getCurrentGpuPaletteModelResource() const;
+	ID3D12Resource* getCurrentGpuPaletteNormalResource() const;
+
+	uint32_t getSkinningVertexCount() const { return static_cast<uint32_t>(m_sourceVertices.size()); }
+	bool hasGpuSkinningResources() const;
+
 	const VertexBuffer* getActiveVertexBuffer() const
 	{
 		if (m_skinnedVertexBuffer)
@@ -80,6 +88,10 @@ private:
 	bool resolveSkinBindings();
 	void rebuildMatrixPalette();
 	void invalidateSkinningRuntime();
+
+	bool ensureGpuSkinningResources();
+	void updateGpuPaletteBuffers();
+	void invalidateGpuSkinningResources();
 
 	void cacheSourceVertices(const MeshAsset& meshAsset);
 	void rebuildCpuSkinnedVertexBuffer();
@@ -105,4 +117,11 @@ private:
 	mutable Engine::BoundingBox				m_boundingBox;
 
 	int m_triangles = 0;
+
+	std::unique_ptr<VertexBuffer>  m_gpuSkinnedVertexBuffers[FRAMES_IN_FLIGHT];
+	ComPtr<ID3D12Resource>         m_gpuPaletteModelBuffers[FRAMES_IN_FLIGHT];
+	ComPtr<ID3D12Resource>         m_gpuPaletteNormalBuffers[FRAMES_IN_FLIGHT];
+
+	size_t                         m_gpuSkinningVertexCapacity = 0;
+	size_t                         m_gpuPaletteJointCapacity = 0;
 };
