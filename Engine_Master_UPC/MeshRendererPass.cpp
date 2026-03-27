@@ -164,12 +164,22 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         if (materials.size() != submeshes.size())
             continue;
 
-        const bool useSkinnedVB = renderer->hasSkinnedVertexBuffer();
-        const VertexBuffer* activeVB = renderer->getActiveVertexBuffer();
+        const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
+        const VertexBuffer* cpuSkinnedVB = renderer->hasSkinnedVertexBuffer() ? renderer->getActiveVertexBuffer() : nullptr;
+        const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
+
+        const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
+        const bool useCpuSkinnedVB = (!useGpuSkinnedVB && cpuSkinnedVB != nullptr);
+        const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
+
+        const VertexBuffer* activeVB = useGpuSkinnedVB
+            ? gpuSkinnedVB
+            : (useCpuSkinnedVB ? cpuSkinnedVB : staticVB);
+
         if (!activeVB)
             continue;
 
-        Matrix mvp = useSkinnedVB
+        Matrix mvp = useWorldSpaceSkinnedVB
             ? (*m_view * *m_projection).Transpose()
             : (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
 
@@ -180,8 +190,8 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
             const auto& material = materials.at(i).get();
 
             ModelData modelData{};
-            modelData.model = useSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
-            modelData.normalMat = useSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
+            modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
+            modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
             modelData.material = material->getMaterial();
 
             commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
