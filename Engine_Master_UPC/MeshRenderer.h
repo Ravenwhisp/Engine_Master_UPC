@@ -7,6 +7,8 @@
 
 class BasicMesh;
 class MaterialAsset;
+class SkinAsset;
+class Transform;
 
 namespace tinygltf { class Model; }
 
@@ -39,6 +41,7 @@ public:
 	void drawUi() override;
 	void debugDraw() override;
 	void onTransformChange() override;
+	void update() override;
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
@@ -53,7 +56,22 @@ public:
 	MD5Hash& getSkinReference() { return m_skinAsset; }
 	const MD5Hash& getSkinReference() const { return m_skinAsset; }
 
+	const std::vector<Matrix>& getMatrixPalette() const { return m_matrixPalette; }
+	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
+	bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
+
 private:
+	bool ensureSkinLoaded();
+	bool resolveSkinBindings();
+	void rebuildMatrixPalette();
+	void invalidateSkinningRuntime();
+
+private:
+	std::shared_ptr<SkinAsset>  m_skin;
+	std::vector<Transform*>     m_jointTransforms;
+	std::vector<Matrix>         m_matrixPalette;
+	std::vector<Matrix>         m_normalPalette;
+	bool                        m_skinBindingsResolved = false;
 	std::shared_ptr<BasicMesh>		m_mesh;
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
