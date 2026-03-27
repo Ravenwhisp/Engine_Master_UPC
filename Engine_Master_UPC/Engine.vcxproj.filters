@@ -337,6 +337,7 @@
     <ClCompile Include="AnimationController.cpp" />
     <ClCompile Include="ImporterAnimation.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />
+    <ClCompile Include="SkinningComputePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -825,6 +826,7 @@
       <Filter>Animations</Filter>
     </ClInclude>
     <ClInclude Include="ImporterSkin.h" />
+    <ClInclude Include="SkinningComputePass.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1022,5 +1024,6 @@
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="SkinningComputeShader.hlsl" />
   </ItemGroup>
 </Project>
