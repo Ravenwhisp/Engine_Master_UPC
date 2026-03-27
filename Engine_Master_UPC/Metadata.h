@@ -13,7 +13,7 @@ struct Metadata
 {
 	MD5Hash uid = INVALID_ASSET_ID;
 	std::filesystem::path sourcePath;
-	AssetType type;
+	AssetType type = AssetType::UNKNOWN;
 
 	std::vector<DependencyRecord> m_dependencies;
 	bool m_isSubAsset = false;

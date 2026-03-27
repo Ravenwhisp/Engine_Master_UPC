@@ -24,8 +24,6 @@
 
 using namespace DirectX::SimpleMath;
 
-
-
 ModuleScene::ModuleScene()
 {
     m_sceneSerializer = std::make_unique<SceneSerializer>();
@@ -34,6 +32,12 @@ ModuleScene::ModuleScene()
 }
 
 ModuleScene::~ModuleScene() = default;
+
+
+void ModuleScene::requestSceneChange(const std::string& sceneName)
+{
+    m_pendingSceneLoad = sceneName;
+}
 
 #pragma region GameLoop
 bool ModuleScene::init()
@@ -66,6 +70,7 @@ bool ModuleScene::cleanUp()
 }
 #pragma endregion
 
+#pragma region Caches
 void ModuleScene::rebuildComponentCaches()
 {
     m_meshRenderers.clear();
@@ -126,6 +131,7 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
 
     return m_scriptComponents;
 }
+#pragma endregion
 
 #pragma region Persistence
 void ModuleScene::saveScene()
@@ -160,15 +166,13 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
+#ifdef GAME_RELEASE
+    m_quadtree->build();
+#endif
     return true;
 }
 
 #pragma endregion
-
-void ModuleScene::requestSceneChange(const std::string& sceneName)
-{
-    m_pendingSceneLoad = sceneName;
-}
 
 #pragma region Snapshot
 SceneSnapshot* ModuleScene::takeSnapshot() const

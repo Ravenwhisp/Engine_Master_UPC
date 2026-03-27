@@ -1,6 +1,6 @@
 #include "Globals.h"
-#include "Scene.h"
 
+#include "Scene.h"
 #include "Application.h"
 #include "Settings.h"
 #include "ModuleRender.h"
@@ -8,13 +8,12 @@
 
 #include "GameObject.h"
 #include "Component.h"
-#include "Transform.h"
 #include "MeshRenderer.h"
 #include "CameraComponent.h"
 #include "LightComponent.h"
 #include "Quadtree.h"
 #include "SceneSnapshot.h"
-
+#include "Transform.h"
 
 #include <limits>
 #include <algorithm>

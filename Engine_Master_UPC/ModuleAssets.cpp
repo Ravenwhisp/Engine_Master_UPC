@@ -2,7 +2,6 @@
 #include "ModuleAssets.h"
 
 #include "Application.h"
-#include "ModuleFileSystem.h"
 #include "Importer.h"
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
@@ -22,6 +21,7 @@
 #include "rapidjson/filereadstream.h"
 
 #include <filesystem>
+#include <FileIO.h>
 
 
 bool ModuleAssets::init()
@@ -53,9 +53,8 @@ bool ModuleAssets::init()
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
 
-    ModuleFileSystem* fs = app->getModuleFileSystem();
-    m_scanner = std::make_unique<AssetScanner>(fs, m_registry.get(), m_importerRegistry.get());
-    m_contentRegistry = std::make_unique<ContentRegistry>(fs, m_registry.get());
+    m_scanner = std::make_unique<AssetScanner>(m_registry.get(), m_importerRegistry.get());
+    m_contentRegistry = std::make_unique<ContentRegistry>(m_registry.get());
 
     refresh();
 
@@ -127,7 +126,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     const uint64_t size = importer->save(asset.get(), &rawBuffer);
     std::unique_ptr<uint8_t[]> buffer(rawBuffer);
 
-    if (!app->getModuleFileSystem()->write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+    if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
         // Metadata was already written — roll back the in-memory store entry
@@ -198,7 +197,7 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
 
     std::shared_ptr<Asset> asset(importer->createAssetInstance(metadata->uid));
 
-    const std::vector<uint8_t> buffer = app->getModuleFileSystem()->read(metadata->getBinaryPath());
+    const std::vector<uint8_t> buffer = FileIO::read(metadata->getBinaryPath());
     if (buffer.empty())
     {
         DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID %llu.", metadata->uid);
@@ -340,7 +339,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
     // Write the binary to Library/ — caller still owns the buffer.
     if (binaryData && binarySize > 0)
     {
-        if (!app->getModuleFileSystem()->write(subMeta.getBinaryPath(), binaryData, binarySize))
+        if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
         {
             DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary '%s'.", subMeta.uid.c_str());
             return;

@@ -22,8 +22,8 @@ bool ModuleGameView::init()
 	m_showDebugWindow = false;
 
 #ifdef GAME_RELEASE
-	m_moduleScene->loadScene("main");
 	app->setEngineState(ENGINE_STATE::PLAYING);
+	m_moduleScene->loadScene("main");
 #endif
 
 	return true;
@@ -67,12 +67,17 @@ void ModuleGameView::instantiateScriptsOnPlay() {
 	for (GameObject* gameObject : m_moduleScene->getScene()->getAllGameObjects())
 	{
 		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
-		if (scriptComponent && !scriptComponent->getScriptName().empty())
+		if (!scriptComponent || scriptComponent->getScriptName().empty())
 		{
-			scriptComponent->destroyScriptInstance();
+			continue;
+		}
 
+		if (!scriptComponent->getScript())
+		{
 			bool created = scriptComponent->createScriptInstance();
 			assert(created);
 		}
+
+		scriptComponent->resetStartState();
 	}
 }

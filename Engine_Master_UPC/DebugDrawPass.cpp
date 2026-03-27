@@ -583,8 +583,8 @@ void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
     implementation->mvpMatrix = *m_view * *m_projection;
     implementation->commandList = commandList;
 
-    implementation->width = m_viewport->Width;
-    implementation->height = m_viewport->Height;
+    implementation->width = (uint32_t) m_viewport->Width;
+    implementation->height = (uint32_t) m_viewport->Height;
 
     dd::flush();
 

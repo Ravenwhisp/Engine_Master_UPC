@@ -19,7 +19,8 @@ public:
 private:
     friend class QuadNode;
 
-    Scene* m_scene;
+    Scene* m_scene = nullptr;
+    bool isBuilded = false;
 
     std::unique_ptr<QuadNode> m_root;
     std::vector<QuadNode*> m_dirtyNodes;
@@ -44,6 +45,8 @@ public:
 
     void registerDirtyNode(QuadNode* node);
     void resolveDirtyNodes();
+
+    bool getIsBuilded() { return isBuilded; }
 private:
     void insert(GameObject& object);
     void remove(GameObject& object);
