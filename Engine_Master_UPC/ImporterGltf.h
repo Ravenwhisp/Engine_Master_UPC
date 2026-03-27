@@ -55,6 +55,7 @@ private:
         const tinygltf::Model& model,
         const std::vector<MD5Hash>& meshUIDs,
         const std::vector<MD5Hash>& materialUIDs,
+        const std::vector<MD5Hash>& skinUIDs,
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
 
     const std::filesystem::path*    m_currentFilePath = nullptr;
