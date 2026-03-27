@@ -61,7 +61,7 @@ public:
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 
-    void createGameObject();
+    GameObject* createGameObject();
     GameObject* createGameObjectWithUID(UID id, UID transformUID);
     GameObject* findGameObjectByUID(UID uuid);
     void removeGameObject(UID uuid);
