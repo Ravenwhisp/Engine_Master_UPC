@@ -303,6 +303,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="KeyCode.h" />
     <ClInclude Include="MaterialAsset.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MD5Fwd.h" />
@@ -323,7 +324,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptRegistry.h" />
     <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
+    <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="TextureImage.h" />
+    <ClInclude Include="UIParams.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ImporterRegistry.h" />
@@ -378,7 +381,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="NavMeshWalk.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MeshRendererPass.h" />
     <ClInclude Include="PlayToolbar.h" />
@@ -600,7 +602,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="NavMeshBuilder.cpp" />
     <ClCompile Include="NavMeshGeometryExtractor.cpp" />
-    <ClCompile Include="NavMeshWalk.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MeshRendererPass.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
@@ -710,6 +711,22 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="UIPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="UIVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">

@@ -157,7 +157,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
             auto textureIteration = m_uiTextures.find(assetId);
             if (textureIteration == m_uiTextures.end())
             {
-                auto texture = app->getModuleResources()->createTexture(*asset);
+                auto texture = app->getModuleResources()->createTextureSRGB(*asset);
                 if (texture)
                 {
                     Texture* raw = texture.get();
