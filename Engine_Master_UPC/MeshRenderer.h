@@ -48,12 +48,16 @@ public:
 	MD5Hash& getMeshReference() { return m_meshAsset; }
 	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
+	MD5Hash& getSkinReference() { return m_skinAsset; }
+	const MD5Hash& getSkinReference() const { return m_skinAsset; }
+
 private:
 	std::shared_ptr<BasicMesh>		m_mesh;
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
 	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
+	MD5Hash							m_skinAsset = INVALID_ASSET_ID;
 	std::vector<MD5Hash>			m_materialAssets;
 
 	mutable Engine::BoundingBox				m_boundingBox;
