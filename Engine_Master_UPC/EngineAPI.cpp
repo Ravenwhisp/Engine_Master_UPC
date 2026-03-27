@@ -5,6 +5,8 @@
 #include "ModuleInput.h"
 #include "ModuleTime.h"
 #include "ModuleScene.h"
+#include "ModuleNavigation.h"
+
 #include "Scene.h"
 #include "Keyboard.h"
 #include "ScriptFactory.h"
@@ -14,6 +16,8 @@
 #include "Component.h"
 
 #include "CameraComponent.h"
+
+#include <DetourNavMeshQuery.h>
 
 void registerScript(const char* scriptName, ScriptCreator creator)
 {
@@ -385,5 +389,218 @@ namespace Debug
         va_end(args);
 
         DEBUG_ERROR("%s", buffer);
+    }
+}
+
+namespace NavigationAPI
+{
+    bool hasNavMesh()
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+        if (!navigation)
+        {
+            return false;
+        }
+
+        return navigation->hasNavMesh();
+    }
+
+    bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        dtNavMeshQuery* query = navigation->getNavQuery();
+        if (!query)
+        {
+            return false;
+        }
+
+        dtQueryFilter filter;
+        filter.setIncludeFlags(0xFFFF);
+        filter.setExcludeFlags(0);
+
+        const float position[3] = { inputPosition.x, inputPosition.y, inputPosition.z };
+        const float extents[3] = { searchExtents.x, searchExtents.y, searchExtents.z };
+
+        dtPolyRef polyRef = 0;
+        float nearest[3] = {};
+
+        const dtStatus status = query->findNearestPoly(position, extents, &filter, &polyRef, nearest);
+        if (dtStatusFailed(status) || !polyRef)
+        {
+            return false;
+        }
+
+        float height = nearest[1];
+        if (dtStatusFailed(query->getPolyHeight(polyRef, nearest, &height)))
+        {
+            return false;
+        }
+
+        outSampledPosition = Vector3(nearest[0], height, nearest[2]);
+        return true;
+    }
+
+    bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        dtNavMeshQuery* query = navigation->getNavQuery();
+        if (!query)
+        {
+            return false;
+        }
+
+        dtQueryFilter filter;
+        filter.setIncludeFlags(0xFFFF);
+        filter.setExcludeFlags(0);
+
+        const float start[3] = { startPosition.x, startPosition.y, startPosition.z };
+        const float end[3] = { targetPosition.x, targetPosition.y, targetPosition.z };
+        const float extents[3] = { searchExtents.x, searchExtents.y, searchExtents.z };
+
+        dtPolyRef startRef = 0;
+        float startNearest[3] = {};
+
+        const dtStatus nearestStatus = query->findNearestPoly(start, extents, &filter, &startRef, startNearest);
+        if (dtStatusFailed(nearestStatus) || !startRef)
+        {
+            return false;
+        }
+
+        dtPolyRef visited[64];
+        int visitedCount = 0;
+        float result[3] = {};
+
+        const dtStatus moveStatus = query->moveAlongSurface(startRef, startNearest, end, &filter, result, visited, &visitedCount, 64);
+
+        if (dtStatusFailed(moveStatus))
+        {
+            return false;
+        }
+
+        dtPolyRef lastRef = (visitedCount > 0) ? visited[visitedCount - 1] : startRef;
+
+        float height = result[1];
+        if (dtStatusFailed(query->getPolyHeight(lastRef, result, &height)))
+        {
+            return false;
+        }
+
+        outResultPosition = Vector3(result[0], height, result[2]);
+        return true;
+    }
+
+    int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents)
+    {
+        if (!outputPoints || maxPoints <= 0)
+        {
+            return 0;
+        }
+
+        ModuleNavigation* navigation = app->getModuleNavigation();
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return 0;
+        }
+
+        std::vector<Vector3> path;
+        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents))
+        {
+            return 0;
+        }
+
+        const int count = (int)path.size() < maxPoints ? (int)path.size() : maxPoints;
+
+        for (int i = 0; i < count; ++i)
+        {
+            outputPoints[i] = path[i];
+        }
+
+        return count;
+    }
+
+    bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        std::vector<Vector3> path;
+        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents))
+        {
+            return false;
+        }
+
+        return path.size() >= 2;
+    }
+
+    float getPathLength(const Vector3* pathPoints, int pointCount)
+    {
+        if (!pathPoints || pointCount < 2)
+        {
+            return 0.0f;
+        }
+
+        float totalLength = 0.0f;
+
+        for (int i = 1; i < pointCount; ++i)
+        {
+            totalLength += (pathPoints[i] - pathPoints[i - 1]).Length();
+        }
+
+        return totalLength;
+    }
+
+    bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        if (radius <= 0.0f || maxAttempts <= 0)
+        {
+            return false;
+        }
+
+        const float twoPi = 6.28318530717958647692f;
+
+        for (int attempt = 0; attempt < maxAttempts; ++attempt)
+        {
+            const float angle = ((float)std::rand() / (float)RAND_MAX) * twoPi;
+
+            const float t = (float)std::rand() / (float)RAND_MAX;
+            const float distance = std::sqrt(t) * radius;
+
+            const Vector3 candidatePosition(centerPosition.x + std::cos(angle) * distance, centerPosition.y, centerPosition.z + std::sin(angle) * distance);
+
+            Vector3 sampledPosition;
+            if (!samplePosition(candidatePosition, sampledPosition, searchExtents))
+            {
+                continue;
+            }
+
+            if (!canReachTarget(centerPosition, sampledPosition, searchExtents))
+            {
+                continue;
+            }
+
+            outPoint = sampledPosition;
+            return true;
+        }
+
+        return false;
     }
 }

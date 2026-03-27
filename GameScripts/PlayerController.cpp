@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "PlayerWalk.h"
+#include "PlayerController.h"
 
 #include <cmath>
 
@@ -13,19 +13,22 @@ static const char* controlSchemeNames[] =
 
 static const ScriptFieldInfo playerWalkFields[] =
 {
-    { "Move Speed", ScriptFieldType::Float, offsetof(PlayerWalk, m_moveSpeed), { 0.0f, 50.0f, 0.05f } },
-    { "Shift Multiplier", ScriptFieldType::Float, offsetof(PlayerWalk, m_shiftMultiplier), { 1.0f, 10.0f, 0.05f } },
-    { "Control Scheme", ScriptFieldType::EnumInt, offsetof(PlayerWalk, m_controlScheme), {}, {controlSchemeNames, 2} }
+    { "Move Speed", ScriptFieldType::Float, offsetof(PlayerController, m_moveSpeed), { 0.0f, 50.0f, 0.05f } },
+    { "Shift Multiplier", ScriptFieldType::Float, offsetof(PlayerController, m_shiftMultiplier), { 1.0f, 10.0f, 0.05f } },
+    { "Turn Speed (deg/s)", ScriptFieldType::Float, offsetof(PlayerController, m_turnSpeedDegPerSec), { 0.0f, 2000.0f, 1.0f } },
+    { "Control Scheme", ScriptFieldType::EnumInt, offsetof(PlayerController, m_controlScheme), {}, {controlSchemeNames, 2} },
+    { "Constrain To NavMesh", ScriptFieldType::Bool, offsetof(PlayerController, m_constrainToNavMesh) },
+    { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerController, m_navExtents) }
 };
 
-IMPLEMENT_SCRIPT_FIELDS(PlayerWalk, playerWalkFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerController, playerWalkFields)
 
-PlayerWalk::PlayerWalk(GameObject* owner)
+PlayerController::PlayerController(GameObject* owner)
     : Script(owner)
 {
 }
 
-void PlayerWalk::Start()
+void PlayerController::Start()
 {
     GameObject* owner = getOwner();
     m_initialRotationOffset = TransformAPI::getEulerDegrees(GameObjectAPI::getTransform(owner));
@@ -33,7 +36,7 @@ void PlayerWalk::Start()
     applyControlScheme();
 }
 
-void PlayerWalk::Update()
+void PlayerController::Update()
 {
     GameObject* owner = getOwner();
     if (!owner)
@@ -62,7 +65,7 @@ void PlayerWalk::Update()
     applyTranslation(owner, direction, dt, shiftHeld);
 }
 
-void PlayerWalk::onFieldEdited(const ScriptFieldInfo& field)
+void PlayerController::onFieldEdited(const ScriptFieldInfo& field)
 {
     if (std::strcmp(field.name, "Control Scheme") == 0)
     {
@@ -70,12 +73,14 @@ void PlayerWalk::onFieldEdited(const ScriptFieldInfo& field)
     }
 }
 
-void PlayerWalk::onAfterDeserialize()
+void PlayerController::onAfterDeserialize()
 {
     applyControlScheme();
+    m_yawInitialized = false;
+    m_currentYawDeg = 0.0f;
 }
 
-Vector3 PlayerWalk::readMoveDirection() const
+Vector3 PlayerController::readMoveDirection() const
 {
     Vector3 direction(0, 0, 0);
 
@@ -95,19 +100,11 @@ Vector3 PlayerWalk::readMoveDirection() const
     {
         direction.x += 1.0f;
     }
-    if (Input::isKeyDown((int)m_keyAscend))
-    {
-        direction.y += 1.0f;
-    }
-    if (Input::isKeyDown((int)m_keyDescend))
-    {
-        direction.y -= 1.0f;
-    }
 
     return direction;
 }
 
-void PlayerWalk::applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt)
+void PlayerController::applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt)
 {
     const float yawRad = std::atan2(-direction.x, -direction.z);
     const float targetYawDeg = yawRad * (180.0f / PI);
@@ -126,18 +123,41 @@ void PlayerWalk::applyFacingFromDirection(GameObject* owner, const Vector3& dire
     TransformAPI::setRotationEuler(GameObjectAPI::getTransform(owner), Vector3(m_initialRotationOffset.x, finalYaw, m_initialRotationOffset.z));
 }
 
-void PlayerWalk::applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const
+void PlayerController::applyTranslation(GameObject* owner, const Vector3& direction, float dt, bool shiftHeld) const
 {
+    Transform* transform = GameObjectAPI::getTransform(owner);
+    if (!transform)
+    {
+        return;
+    }
+
     float speed = m_moveSpeed;
     if (shiftHeld)
     {
         speed *= m_shiftMultiplier;
     }
 
-    TransformAPI::translate(GameObjectAPI::getTransform(owner), direction * speed * dt);
+    const Vector3 currentPos = TransformAPI::getPosition(transform);
+    const Vector3 desiredPos = currentPos + direction * speed * dt;
+
+    if (!m_constrainToNavMesh)
+    {
+        TransformAPI::setPosition(transform, desiredPos);
+        return;
+    }
+
+    Vector3 constrainedPos;
+    if (NavigationAPI::moveAlongSurface(currentPos, desiredPos, constrainedPos, m_navExtents))
+    {
+        TransformAPI::setPosition(transform, constrainedPos);
+    }
+    else
+    {
+        TransformAPI::setPosition(transform, desiredPos);
+    }
 }
 
-void PlayerWalk::applyControlScheme()
+void PlayerController::applyControlScheme()
 {
     switch (m_controlScheme)
     {
@@ -146,8 +166,6 @@ void PlayerWalk::applyControlScheme()
         m_keyLeft = Keyboard::Keys::J;
         m_keyDown = Keyboard::Keys::K;
         m_keyRight = Keyboard::Keys::L;
-        m_keyAscend = Keyboard::Keys::O;
-        m_keyDescend = Keyboard::Keys::U;
         break;
 
     case ControlScheme::WASD:
@@ -156,13 +174,11 @@ void PlayerWalk::applyControlScheme()
         m_keyLeft = Keyboard::Keys::A;
         m_keyDown = Keyboard::Keys::S;
         m_keyRight = Keyboard::Keys::D;
-        m_keyAscend = Keyboard::Keys::E;
-        m_keyDescend = Keyboard::Keys::Q;
         break;
     }
 }
 
-float PlayerWalk::wrapAngleDegrees(float angle)
+float PlayerController::wrapAngleDegrees(float angle)
 {
     while (angle > 180.0f)
     {
@@ -175,7 +191,7 @@ float PlayerWalk::wrapAngleDegrees(float angle)
     return angle;
 }
 
-float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta)
+float PlayerController::moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta)
 {
     float delta = wrapAngleDegrees(targetYawAngle - currentYawAngle);
 
@@ -192,4 +208,4 @@ float PlayerWalk::moveTowardsAngleDegrees(float currentYawAngle, float targetYaw
     return currentYawAngle + delta;
 }
 
-IMPLEMENT_SCRIPT(PlayerWalk)
+IMPLEMENT_SCRIPT(PlayerController)
