@@ -74,7 +74,7 @@ bool Scene::cleanUp()
 
 
 #pragma region CRUD
-void Scene::createGameObject()
+GameObject* Scene::createGameObject()
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();
@@ -86,6 +86,8 @@ void Scene::createGameObject()
 
     rawPtr->onTransformChange();
     markDirty();
+
+    return rawPtr;
 }
 
 GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)

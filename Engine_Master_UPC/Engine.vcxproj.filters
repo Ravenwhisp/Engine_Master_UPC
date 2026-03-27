@@ -333,6 +333,9 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
+    <ClCompile Include="ViewHierarchyDialog.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -818,6 +821,9 @@
     </ClInclude>
     <ClInclude Include="UIParams.h">
       <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewHierarchyDialog.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
