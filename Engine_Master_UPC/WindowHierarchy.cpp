@@ -6,7 +6,6 @@
 #include "ModuleScene.h"
 #include "ViewHierarchyDialog.h"
 #include "PrefabUI.h"
-#include "PrefabManager.h"
 
 #include "Scene.h"
 #include "GameObject.h"
@@ -198,7 +197,7 @@ bool WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 		{
 			const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
 			Scene* scene = app->getModuleScene()->getScene();
-			GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+			GameObject* spawned = m_editorModule->spawnPrefab(sourcePath, scene);
 			if (spawned)
 			{
 				reparent(spawned, gameObject);
@@ -300,7 +299,7 @@ bool WindowHierarchy::createTreeNode()
 			{
 				const std::filesystem::path sourcePath(static_cast<const char*>(payload->Data));
 				Scene* scene = app->getModuleScene()->getScene();
-				GameObject* spawned = PrefabManager::instantiatePrefab(sourcePath, scene);
+				GameObject* spawned = m_editorModule->spawnPrefab(sourcePath, scene);
 				if (spawned)
 					app->getModuleEditor()->setSelectedGameObject(spawned);
 			}

@@ -463,7 +463,7 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 
     m_prefabSession.m_isolatedScene = app->getModuleScene()->getScene();
     
-    // Instantiate by full path — PrefabManager uses the asset system first,
+    // Instantiate by full path
     // then falls back to a direct file read for prefabs not yet registered.
     GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, m_prefabSession.m_isolatedScene);
 
@@ -500,4 +500,9 @@ void ModuleEditor::flushExitPrefabEdit()
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_selectedGameObject = nullptr;
     m_prefabSession.clear();
+}
+
+GameObject* ModuleEditor::spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene)
+{
+    return PrefabManager::instantiatePrefab(sourcePath, scene);
 }
