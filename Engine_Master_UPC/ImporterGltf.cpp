@@ -11,6 +11,7 @@
 #include "tiny_gltf.h"
 #pragma warning(pop)
 
+#include "AnimationStateMachineAsset.h"
 #include "SkinAsset.h"
 #include "AnimationAsset.h"
 #include "PrefabAsset.h"
@@ -31,8 +32,11 @@
 #include "ImporterPrefab.h"
 #include "ImporterAnimation.h"
 #include "ImporterSkin.h"
+#include "ImporterAnimationStateMachine.h"
 
 #include <functional>
+#include <algorithm>
+#include <cctype>
 
 static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
 
@@ -159,12 +163,14 @@ ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
     ImporterMaterial& importerMaterial,
     ImporterPrefab& importerPrefab,
     ImporterAnimation& importerAnimation,
-    ImporterSkin& importerSkin)
+    ImporterSkin& importerSkin,
+    ImporterAnimationStateMachine& importerAnimationStateMachine)
     : m_importerMesh(importerMesh)
     , m_importerMaterial(importerMaterial)
     , m_importerPrefab(importerPrefab)
     , m_importerAnimation(importerAnimation)
     , m_importerSkin(importerSkin)
+    , m_importerAnimationStateMachine(importerAnimationStateMachine)
 {
 }
 
@@ -236,6 +242,8 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meshUIDs[i] = meshUID;
     }
 
+    std::vector<MD5Hash> animationUIDs(model.animations.size(), INVALID_ASSET_ID);
+
     // Animations (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
     {
@@ -253,6 +261,12 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meta.type = AssetType::ANIMATION;
 
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
+        animationUIDs[i] = animUID;
+    }
+
+    if (!animationUIDs.empty())
+    {
+        buildDefaultStateMachine(model, animationUIDs, dst);
     }
 
     std::vector<MD5Hash> skinUIDs(model.skins.size(), INVALID_ASSET_ID);
@@ -468,6 +482,82 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::A
                 dst.scaleKeys.push_back({ times[i], values[i] });
         }
     }
+}
+
+void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<MD5Hash>& animationUIDs, PrefabAsset* dst) const
+{
+    if (!m_currentFilePath || !dst || animationUIDs.empty())
+        return;
+
+    ModuleAssets* assets = app->getModuleAssets();
+    if (!assets)
+        return;
+
+    const MD5Hash stateMachineUID = computeMD5(m_currentFilePath->string() + "?animsm=0");
+
+    AnimationStateMachineAsset stateMachineAsset(stateMachineUID);
+    stateMachineAsset.m_name = m_currentFilePath->stem().string() + "_StateMachine";
+    stateMachineAsset.m_defaultStateName.clear();
+    stateMachineAsset.m_clips.clear();
+    stateMachineAsset.m_states.clear();
+    stateMachineAsset.m_transitions.clear();
+
+    for (size_t i = 0; i < model.animations.size() && i < animationUIDs.size(); ++i)
+    {
+        const tinygltf::Animation& anim = model.animations[i];
+        const MD5Hash animUID = animationUIDs[i];
+
+        if (animUID == INVALID_ASSET_ID)
+            continue;
+
+        std::string baseName = anim.name.empty()
+            ? ("Anim_" + std::to_string(i))
+            : anim.name;
+
+        AnimationStateMachineClip clip;
+        clip.name = baseName;
+        clip.animationUID = animUID;
+        clip.loop = true;
+
+        AnimationStateMachineState state;
+        state.name = baseName;
+        state.clipName = clip.name;
+        state.speed = 1.0f;
+
+        stateMachineAsset.m_clips.push_back(std::move(clip));
+        stateMachineAsset.m_states.push_back(std::move(state));
+    }
+
+    if (stateMachineAsset.m_states.empty())
+        return;
+
+    for (const AnimationStateMachineState& state : stateMachineAsset.m_states)
+    {
+        std::string lower = state.name;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+            [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+        if (lower.find("idle") != std::string::npos)
+        {
+            stateMachineAsset.m_defaultStateName = state.name;
+            break;
+        }
+    }
+
+    if (stateMachineAsset.m_defaultStateName.empty())
+    {
+        stateMachineAsset.m_defaultStateName = stateMachineAsset.m_states.front().name;
+    }
+
+    uint8_t* rawBuf = nullptr;
+    const uint64_t size = m_importerAnimationStateMachine.save(&stateMachineAsset, &rawBuf);
+    std::unique_ptr<uint8_t[]> guard(rawBuf);
+
+    Metadata meta;
+    meta.uid = stateMachineUID;
+    meta.type = AssetType::ANIMATION_STATE_MACHINE;
+
+    assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
 }
 
 void ImporterGltf::loadSkin(const tinygltf::Model& model, const tinygltf::Skin& skin, SkinAsset* outSkin)
