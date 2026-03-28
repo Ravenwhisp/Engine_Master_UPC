@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorWindow.h"
+#include "UID.h"
 
 class GameObject;
 
@@ -16,4 +17,11 @@ public:
     }
 
     void drawInternal() override;
+    void lockInspector(GameObject* go);
+    void unlockInspector();
+    bool isLocked() const;
+
+private:
+    bool m_isLocked = false;
+    UID m_lockedGameObjectUID = 0;
 };
