@@ -11,7 +11,5 @@ public:
 
 	ScriptAsset() {}
 	ScriptAsset(MD5Hash id) : Asset(id, AssetType::SCRIPT) {}
-
-
 private:
 };

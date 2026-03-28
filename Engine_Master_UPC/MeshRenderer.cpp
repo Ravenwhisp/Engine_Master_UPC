@@ -89,7 +89,9 @@ void MeshRenderer::drawUi()
             const MD5Hash* id = static_cast<const MD5Hash*>(payload->Data);
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*id);
             if (materialAsset)
+            {
                 addMaterial(*materialAsset);
+            }
         }
         ImGui::EndDragDropTarget();
     }

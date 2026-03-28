@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ImporterScript.h"
+#include "AssetsDictionary.h"
 
 Asset* ImporterScript::createAssetInstance(const MD5Hash& uid) const
 {
@@ -8,12 +9,12 @@ Asset* ImporterScript::createAssetInstance(const MD5Hash& uid) const
 
 bool ImporterScript::importNative(const std::filesystem::path& path, ScriptAsset* dst)
 {
-    return false;
+    return true;
 }
 
 uint64_t ImporterScript::saveTyped(const ScriptAsset* source, uint8_t** outBuffer)
 {
-    return 0;
+    return NO_BINARY_ASSET;
 }
 
 void ImporterScript::loadTyped(const uint8_t* buffer, ScriptAsset* dst)

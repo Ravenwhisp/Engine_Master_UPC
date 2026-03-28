@@ -11,6 +11,9 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+#include "ModuleAssets.h"
+#include <Metadata.h>
+
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
 {
@@ -83,20 +86,30 @@ void ScriptComponent::update()
 
 void ScriptComponent::drawUi()
 {
-    char buffer[256];
-    std::strncpy(buffer, m_scriptName.c_str(), sizeof(buffer));
-    buffer[sizeof(buffer) - 1] = '\0';
 
-    if (ImGui::InputText("Script Name", buffer, sizeof(buffer)))
+    ImGui::Button("Load Script");
+
+    if (ImGui::BeginDragDropTarget())
     {
-        m_scriptName = buffer;
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            const MD5Hash* id = static_cast<const MD5Hash*>(payload->Data);
+
+            const Metadata* meta = app->getModuleAssets()->getMetadata(*id);
+
+            if (meta && meta->type == AssetType::SCRIPT)
+            {
+                // Extract script name from source path (e.g., "Assets/MyScript.h" -> "MyScript")
+                std::string scriptName = meta->sourcePath.stem().string();
+                setScriptName(scriptName);
+                destroyScriptInstance();
+                createScriptInstance();
+            }
+        }
+        ImGui::EndDragDropTarget();
     }
 
-    if (ImGui::Button("Load Script"))
-    {
-        destroyScriptInstance();
-        createScriptInstance();
-    }
+
 
     ImGui::Text("Loaded: %s", m_script ? "Yes" : "No");
 
