@@ -5,7 +5,7 @@
 #include "MD5Fwd.h"
 
 #include <memory>
-
+#include "AnimationStateMachineAsset.h"
 class AnimationAsset;
 class GameObject;
 
@@ -25,16 +25,24 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
-    void setAnimationUID(const MD5Hash& uid);
-    const MD5Hash& getAnimationUID() const { return m_animationUID; }
+    void setStateMachineUID(const MD5Hash& uid);
+    const MD5Hash& getStateMachineUID() const { return m_stateMachineUID; }
+
+    bool SendTrigger(const std::string& triggerName);
 
     AnimationController& getController() { return m_controller; }
     const AnimationController& getController() const { return m_controller; }
 
 private:
-    bool ensureAnimationLoaded();
-    void startPlaybackIfNeeded();
+    bool ensureStateMachineLoaded();
+    void startStateMachineIfNeeded();
+    void resetRuntime();
 
+    const AnimationStateMachineClip* findClipByName(const std::string& clipName) const;
+    const AnimationStateMachineState* findStateByName(const std::string& stateName) const;
+    const AnimationStateMachineTransition* findTransitionByTrigger(const std::string& triggerName) const;
+
+    bool activateState(const std::string& stateName, bool autoPlay);
     void applyRecursive(GameObject* go);
     void forceWorldRecursive(GameObject* go);
 
@@ -42,18 +50,21 @@ private:
     void drawAxisTriad(const Matrix& worldMatrix, float axisLength);
 
 private:
-    MD5Hash m_animationUID = INVALID_ASSET_ID;
+    MD5Hash m_stateMachineUID = INVALID_ASSET_ID;
 
-    std::shared_ptr<AnimationAsset> m_animationAsset;
+    std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
+    std::shared_ptr<AnimationAsset> m_currentAnimationAsset;
     AnimationController m_controller;
 
-    bool m_loop = true;
+    std::string m_activeStateName;
+
     bool m_playOnStart = true;
     bool m_applyScale = false;
     bool m_forceWorldAfterApply = true;
     bool m_hasStartedPlayback = false;
 
-    std::string m_animationUIDInput;
+    std::string m_stateMachineUIDInput;
+    std::string m_triggerInput;
 
     bool m_debugDrawHierarchy = false;
 };
