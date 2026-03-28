@@ -30,6 +30,9 @@ public:
     bool IsLooping() const { return m_loop; }
     bool IsPlaying() const { return m_playing; }
 
+    void SetSpeed(float speed);
+    float GetSpeed() const { return m_speed; }
+
     void SetTime(float seconds);
     float GetTime() const { return m_currentTime; }
     float GetDuration() const;
@@ -41,6 +44,7 @@ public:
 private:
     std::shared_ptr<AnimationAsset> m_animation;
     float m_currentTime = 0.0f;
+    float m_speed = 1.0f;
     bool m_loop = true;
     bool m_playing = false;
 };
