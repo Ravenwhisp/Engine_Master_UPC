@@ -35,7 +35,13 @@ static constexpr const char* PREFAB_EXT = ".prefab";
 
 bool PrefabManager::writePrefabDocument(Document& doc, const fs::path& path)
 {
-    fs::create_directories(path.parent_path());
+    std::error_code ec;
+    fs::create_directories(path.parent_path(), ec);
+    if (ec)
+    {
+        return false;
+    }
+
     FILE* file = fopen(path.string().c_str(), "wb");
     if (!file) return false;
 
@@ -58,6 +64,13 @@ bool PrefabManager::readPrefabDocument(const fs::path& path, Document& doc)
     doc.ParseStream(is);
     fclose(file);
     return !doc.HasParseError();
+}
+
+bool PrefabManager::loadDocument(const fs::path& path, Document& doc)
+{
+    return readPrefabDocument(path, doc)
+        && doc.HasMember("GameObject")
+        && doc["GameObject"].IsObject();
 }
 
 static void serialiseTransform(const GameObject* go, Value& out,
@@ -263,32 +276,6 @@ std::string PrefabManager::buildPrefabJSON(const GameObject* go, const fs::path&
     return sb.GetString();
 }
 
-std::string PrefabManager::serializeGameObject(const GameObject* go)
-{
-    if (!go) return {};
-    Document doc;
-    doc.SetObject();
-    Value goNode;
-    serialiseNodeInto(go, goNode, doc.GetAllocator());
-    doc.AddMember("GameObject", goNode, doc.GetAllocator());
-    StringBuffer sb;
-    Writer<StringBuffer> writer(sb);
-    doc.Accept(writer);
-    return sb.GetString();
-}
-
-GameObject* PrefabManager::deserializeGameObject(const std::string& data, Scene* scene)
-{
-    if (data.empty() || !scene) return nullptr;
-
-    Document doc;
-    doc.Parse(data.c_str());
-    if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
-        return nullptr;
-
-    return deserialiseNode(doc["GameObject"], scene, nullptr);
-}
-
 GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset, Scene* scene)
 {
     if (!scene || asset.getJSON().empty()) return nullptr;
@@ -305,7 +292,7 @@ GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset, Scene* sc
     if (!go) return nullptr;
 
     PrefabInfo& info = go->GetPrefabInfo();
-    const auto& assetData = asset.getData();   
+    const auto& assetData = asset.getData();
 
     info.m_sourcePath = assetData.m_sourcePath;
     info.m_assetUID = assetData.m_assetUID;
@@ -322,18 +309,11 @@ GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath, Scene* 
 
     auto asset = app->getModuleAssets()->loadAtPath<PrefabAsset>(sourcePath);
     if (asset)
-    {
         return instantiatePrefab(*asset, scene);
-    }
-
-    if (!fs::exists(sourcePath)) return nullptr;
 
     Document doc;
-    if (!readPrefabDocument(sourcePath, doc) ||
-        !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
-    {
+    if (!loadDocument(sourcePath, doc))
         return nullptr;
-    }
 
     GameObject* go = deserialiseNode(doc["GameObject"], scene, nullptr);
     if (!go) return nullptr;
@@ -349,7 +329,7 @@ GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath, Scene* 
     return go;
 }
 
-// createPrefab  (now also links the instance back onto the GO)
+// createPrefab — writes the file and links the instance back onto the GO
 bool PrefabManager::createPrefab(GameObject* go, const fs::path& savePath)
 {
     if (!go || savePath.empty()) return false;
@@ -378,9 +358,7 @@ bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
     if (!info.isInstance()) return false;
 
     if (!respectOverrides)
-    {
         return createPrefab(const_cast<GameObject*>(go), info.m_sourcePath);
-    }
 
     Document doc;
     doc.SetObject();
@@ -445,11 +423,9 @@ bool PrefabManager::revertToPrefab(GameObject* go, Scene* scene)
         }
     }
     if (!loaded)
-    {
-        if (!fs::exists(info.m_sourcePath)) return false;
-        if (!readPrefabDocument(info.m_sourcePath, doc) || !doc.HasMember("GameObject"))
-            return false;
-    }
+        loaded = loadDocument(info.m_sourcePath, doc);
+
+    if (!loaded) return false;
 
     const Value& goNode = doc["GameObject"];
 
@@ -509,7 +485,6 @@ bool PrefabManager::revertToPrefab(GameObject* go, Scene* scene)
 bool PrefabManager::createVariant(const fs::path& sourcePath, const fs::path& destinationPath)
 {
     if (sourcePath.empty() || destinationPath.empty()) return false;
-    if (!fs::exists(sourcePath)) return false;
 
     Document doc;
     if (!readPrefabDocument(sourcePath, doc)) return false;
@@ -608,9 +583,4 @@ std::vector<PrefabManager::PrefabFileInfo> PrefabManager::listPrefabsInfo(const 
         results.push_back(std::move(info));
     }
     return results;
-}
-
-bool PrefabManager::prefabExists(const fs::path& sourcePath)
-{
-    return fs::exists(sourcePath);
 }

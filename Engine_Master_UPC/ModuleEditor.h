@@ -73,6 +73,8 @@ public:
 	void enterPrefabEdit(const std::filesystem::path& sourcePath);
 	void exitPrefabEdit();
 
+	GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
+
 	bool isInPrefabEditMode() const{return m_prefabSession.m_active && m_prefabSession.m_rootObject != nullptr;}
 	GameObject* getPrefabEditRoot() const{return isInPrefabEditMode() ? m_prefabSession.m_rootObject : nullptr;}
 	const std::filesystem::path& getPrefabEditSourcePath() const{return m_prefabSession.m_sourcePath;}
