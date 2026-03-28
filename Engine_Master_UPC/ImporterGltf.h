@@ -4,6 +4,7 @@
 
 class AnimationAsset;
 class SkinAsset;
+class AnimationStateMachineAsset;
 class PrefabAsset;
 class MaterialAsset;
 class MeshAsset;
@@ -13,6 +14,7 @@ class ImporterMaterial;
 class ImporterPrefab;
 class ImporterAnimation;
 class ImporterSkin;
+class ImporterAnimationStateMachine;
 
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.
@@ -24,7 +26,8 @@ public:
         ImporterMaterial& importerMaterial,
         ImporterPrefab& importerPrefab,
         ImporterAnimation& importerAnimation,
-        ImporterSkin& importerSkin);
+        ImporterSkin& importerSkin,
+        ImporterAnimationStateMachine& importerAnimationStateMachine);
 
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(const MD5Hash& uid) const override;
@@ -42,6 +45,9 @@ private:
     void loadAnimation(const tinygltf::Model& model,
         const tinygltf::Animation& anim,
         AnimationAsset* outAnim);
+    void buildDefaultStateMachine(const tinygltf::Model& model,
+        const std::vector<MD5Hash>& animationUIDs,
+        PrefabAsset* dst) const;
 
     void loadSkin(const tinygltf::Model& model,
         const tinygltf::Skin& skin,
@@ -65,4 +71,5 @@ private:
     ImporterPrefab&                 m_importerPrefab;
     ImporterAnimation&              m_importerAnimation;
     ImporterSkin&                   m_importerSkin;
+    ImporterAnimationStateMachine&  m_importerAnimationStateMachine;
 };

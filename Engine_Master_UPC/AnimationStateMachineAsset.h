@@ -6,6 +6,7 @@
 #include <vector>
 
 class ImporterAnimationStateMachine;
+class ImporterGltf;
 
 struct AnimationStateMachineClip
 {
@@ -33,6 +34,7 @@ class AnimationStateMachineAsset : public Asset
 {
 public:
     friend class ImporterAnimationStateMachine;
+    friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;
     explicit AnimationStateMachineAsset(MD5Hash id)
