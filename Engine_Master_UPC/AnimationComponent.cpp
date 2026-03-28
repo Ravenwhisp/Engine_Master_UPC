@@ -12,6 +12,7 @@
 
 #include <imgui.h>
 #include <cstring>
+#include <algorithm>
 
 namespace
 {
@@ -22,6 +23,21 @@ namespace
         const float c[3] = { color.x, color.y, color.z };
 
         dd::line(p0, p1, c, 0, depthEnabled);
+    }
+
+    bool InputTextString(const char* label, std::string& value)
+    {
+        char buffer[256];
+        std::strncpy(buffer, value.c_str(), sizeof(buffer));
+        buffer[sizeof(buffer) - 1] = '\0';
+
+        if (ImGui::InputText(label, buffer, sizeof(buffer)))
+        {
+            value = buffer;
+            return true;
+        }
+
+        return false;
     }
 }
 
@@ -359,6 +375,7 @@ bool AnimationComponent::samplePlaybackNodeRecursive(const FadingPlayback* playb
     blendSamples(previousSample, currentSample, weight, outSample);
     return true;
 }
+
 void AnimationComponent::blendSamples(const AnimationSample& fromSample,
     const AnimationSample& toSample,
     float weight,
@@ -413,6 +430,175 @@ void AnimationComponent::blendSamples(const AnimationSample& fromSample,
     {
         outSample.scale = fromSample.scale;
         outSample.hasScale = true;
+    }
+}
+
+void AnimationComponent::drawStateMachineResourceUi()
+{
+    if (!ensureStateMachineLoaded())
+        return;
+
+    if (!ImGui::CollapsingHeader("State Machine Resource", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    InputTextString("Resource Name", m_stateMachineAsset->getNameMutable());
+
+    drawClipsUi();
+    drawStatesUi();
+    drawTransitionsUi();
+
+    sanitizeStateMachineAfterEdit();
+}
+
+void AnimationComponent::drawClipsUi()
+{
+    if (!m_stateMachineAsset)
+        return;
+
+    auto& clips = m_stateMachineAsset->getClipsMutable();
+
+    if (!ImGui::CollapsingHeader("Clips", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    for (size_t i = 0; i < clips.size(); ++i)
+    {
+        AnimationStateMachineClip& clip = clips[i];
+        ImGui::PushID(static_cast<int>(i));
+
+        if (ImGui::TreeNode("Clip", "Clip %zu", i))
+        {
+            InputTextString("Name", clip.name);
+            InputTextString("Animation UID", clip.animationUID);
+            ImGui::Checkbox("Loop", &clip.loop);
+
+            if (ImGui::Button("Delete Clip"))
+            {
+                clips.erase(clips.begin() + static_cast<std::ptrdiff_t>(i));
+                ImGui::TreePop();
+                ImGui::PopID();
+                sanitizeStateMachineAfterEdit();
+                return;
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+
+    if (ImGui::Button("Add Clip"))
+    {
+        AnimationStateMachineClip clip;
+        clip.name = "NewClip";
+        clip.animationUID = INVALID_ASSET_ID;
+        clip.loop = true;
+        clips.push_back(std::move(clip));
+        sanitizeStateMachineAfterEdit();
+    }
+}
+void AnimationComponent::drawStatesUi()
+{
+    if (!m_stateMachineAsset)
+        return;
+
+    auto& states = m_stateMachineAsset->getStatesMutable();
+    std::string& defaultState = m_stateMachineAsset->getDefaultStateNameMutable();
+
+    if (!ImGui::CollapsingHeader("States", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    drawStateCombo("Default State", defaultState);
+
+    for (size_t i = 0; i < states.size(); ++i)
+    {
+        AnimationStateMachineState& state = states[i];
+        ImGui::PushID(static_cast<int>(i));
+
+        if (ImGui::TreeNode("State", "State %zu", i))
+        {
+            InputTextString("Name", state.name);
+            drawClipCombo("Clip", state.clipName);
+            ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f);
+
+            const bool isDefault = (defaultState == state.name);
+            ImGui::Text("Default: %s", isDefault ? "Yes" : "No");
+
+            if (ImGui::Button("Set As Default"))
+            {
+                defaultState = state.name;
+            }
+
+            if (ImGui::Button("Delete State"))
+            {
+                states.erase(states.begin() + static_cast<std::ptrdiff_t>(i));
+                ImGui::TreePop();
+                ImGui::PopID();
+                sanitizeStateMachineAfterEdit();
+                return;
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+
+    if (ImGui::Button("Add State"))
+    {
+        AnimationStateMachineState state;
+        state.name = "NewState";
+        state.clipName.clear();
+        state.speed = 1.0f;
+        states.push_back(std::move(state));
+        sanitizeStateMachineAfterEdit();
+    }
+}
+void AnimationComponent::drawTransitionsUi()
+{
+    if (!m_stateMachineAsset)
+        return;
+
+    auto& transitions = m_stateMachineAsset->getTransitionsMutable();
+
+    if (!ImGui::CollapsingHeader("Transitions", ImGuiTreeNodeFlags_DefaultOpen))
+        return;
+
+    for (size_t i = 0; i < transitions.size(); ++i)
+    {
+        AnimationStateMachineTransition& transition = transitions[i];
+        ImGui::PushID(static_cast<int>(i));
+
+        if (ImGui::TreeNode("Transition", "Transition %zu", i))
+        {
+            drawStateCombo("Source", transition.sourceStateName);
+            drawStateCombo("Target", transition.targetStateName);
+            InputTextString("Trigger", transition.triggerName);
+            ImGui::DragFloat("Blend Time", &transition.blendTimeSeconds, 0.01f, 0.0f, 10.0f);
+
+            if (ImGui::Button("Delete Transition"))
+            {
+                transitions.erase(transitions.begin() + static_cast<std::ptrdiff_t>(i));
+                ImGui::TreePop();
+                ImGui::PopID();
+                sanitizeStateMachineAfterEdit();
+                return;
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopID();
+    }
+
+    if (ImGui::Button("Add Transition"))
+    {
+        AnimationStateMachineTransition transition;
+        transition.sourceStateName.clear();
+        transition.targetStateName.clear();
+        transition.triggerName = "trigger";
+        transition.blendTimeSeconds = 0.25f;
+        transitions.push_back(std::move(transition));
+        sanitizeStateMachineAfterEdit();
     }
 }
 void AnimationComponent::debugDrawRecursive(GameObject* go)
@@ -547,6 +733,8 @@ void AnimationComponent::drawUi()
 
     ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
     ImGui::Text("Transition Time: %.3f", m_currentTransitionTime);
+
+    drawStateMachineResourceUi();
 
 }
 
@@ -742,4 +930,128 @@ const AnimationStateMachineTransition* AnimationComponent::findTransitionByTrigg
     }
 
     return nullptr;
+}
+
+void AnimationComponent::drawStateCombo(const char* label, std::string& value)
+{
+    if (!m_stateMachineAsset)
+        return;
+
+    const auto& states = m_stateMachineAsset->getStates();
+    const char* preview = value.empty() ? "<none>" : value.c_str();
+
+    if (ImGui::BeginCombo(label, preview))
+    {
+        for (const AnimationStateMachineState& state : states)
+        {
+            const bool selected = (state.name == value);
+            if (ImGui::Selectable(state.name.c_str(), selected))
+            {
+                value = state.name;
+            }
+
+            if (selected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+}
+
+void AnimationComponent::drawClipCombo(const char* label, std::string& value)
+{
+    if (!m_stateMachineAsset)
+        return;
+
+    const auto& clips = m_stateMachineAsset->getClips();
+    const char* preview = value.empty() ? "<none>" : value.c_str();
+
+    if (ImGui::BeginCombo(label, preview))
+    {
+        for (const AnimationStateMachineClip& clip : clips)
+        {
+            const bool selected = (clip.name == value);
+            if (ImGui::Selectable(clip.name.c_str(), selected))
+            {
+                value = clip.name;
+            }
+
+            if (selected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+}
+
+void AnimationComponent::sanitizeStateMachineAfterEdit()
+{
+    if (!m_stateMachineAsset)
+        return;
+
+    auto& states = m_stateMachineAsset->getStatesMutable();
+    auto& clips = m_stateMachineAsset->getClipsMutable();
+    auto& transitions = m_stateMachineAsset->getTransitionsMutable();
+    std::string& defaultState = m_stateMachineAsset->getDefaultStateNameMutable();
+
+    auto stateExists = [&](const std::string& name) -> bool
+        {
+            return std::any_of(states.begin(), states.end(),
+                [&](const AnimationStateMachineState& state) { return state.name == name; });
+        };
+
+    auto clipExists = [&](const std::string& name) -> bool
+        {
+            return std::any_of(clips.begin(), clips.end(),
+                [&](const AnimationStateMachineClip& clip) { return clip.name == name; });
+        };
+
+    for (AnimationStateMachineState& state : states)
+    {
+        if (!clipExists(state.clipName))
+        {
+            state.clipName.clear();
+        }
+
+        if (state.speed < 0.0f)
+        {
+            state.speed = 0.0f;
+        }
+    }
+
+    transitions.erase(
+        std::remove_if(transitions.begin(), transitions.end(),
+            [&](const AnimationStateMachineTransition& transition)
+            {
+                return !stateExists(transition.sourceStateName) ||
+                    !stateExists(transition.targetStateName);
+            }),
+        transitions.end());
+
+    for (AnimationStateMachineTransition& transition : transitions)
+    {
+        if (transition.blendTimeSeconds < 0.0f)
+        {
+            transition.blendTimeSeconds = 0.0f;
+        }
+    }
+
+    if (!defaultState.empty() && !stateExists(defaultState))
+    {
+        defaultState.clear();
+    }
+
+    if (defaultState.empty() && !states.empty())
+    {
+        defaultState = states.front().name;
+    }
+
+    if (!m_activeStateName.empty() && !stateExists(m_activeStateName))
+    {
+        resetRuntime();
+    }
 }
