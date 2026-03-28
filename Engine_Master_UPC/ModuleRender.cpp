@@ -102,7 +102,7 @@ void ModuleRender::preRender()
         D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     renderGameToBackbuffer(commandList,
-        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
+        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu, 
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
         swapChain->getScissorRect());
