@@ -529,6 +529,7 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
 
     for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
     {
+        // Not sure what the point of only showing debug for the selected object is. I think it should be a toggle for each object (e.g. true for the CameraComponent)
         bool showDebug = isGameRelease || app->getModuleEditor()->getSelectedGameObject() == go;
         if (!showDebug)
         {

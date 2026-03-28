@@ -10,6 +10,9 @@
 #include <algorithm>
 #include <limits>
 
+#include "Application.h"
+#include "ModuleScene.h"
+
 Quadtree::Quadtree() = default;
 Quadtree::~Quadtree() = default;
 
@@ -190,7 +193,6 @@ void Quadtree::debugDraw()
             {center.x + extents.x, center.y + extents.y, center.z - extents.z},
             {center.x + extents.x, center.y + extents.y, center.z + extents.z},
         };
-        Engine::BoundingBox(min, max, pts).render();
     }
 }
 
@@ -220,4 +222,6 @@ void Quadtree::resolveDirtyNodes()
     }
 
     m_dirtyNodes.clear();
+
+    app->getModuleScene()->rebuildMeshRenderersCache();
 }
