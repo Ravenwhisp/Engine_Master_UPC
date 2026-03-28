@@ -649,6 +649,28 @@ namespace Input
             return false;
         }
     }
+
+    void setPlayerKeyboard(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return;
+        }
+
+        input->setPlayerBinding(player, DeviceType::Keyboard, 0);
+    }
+
+    void setPlayerGamepad(int player, int gamepadIndex)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return;
+        }
+
+        input->setPlayerBinding(player, DeviceType::Gamepad, gamepadIndex);
+    }
 }
 
 namespace Time

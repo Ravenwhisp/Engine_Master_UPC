@@ -98,6 +98,9 @@ namespace Input
     ENGINE_API bool isRightTriggerPressed(int player = 0);
 
     ENGINE_API bool isPausePressed(int player = 0);
+
+    ENGINE_API void setPlayerKeyboard(int player);
+    ENGINE_API void setPlayerGamepad(int player, int gamepadIndex);
 }
 
 namespace Debug
