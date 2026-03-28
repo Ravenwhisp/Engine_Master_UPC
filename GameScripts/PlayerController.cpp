@@ -5,18 +5,12 @@
 
 static const float PI = 3.1415926535897931f;
 
-static const char* controlSchemeNames[] =
-{
-    "WASD",
-    "IJKL"
-};
-
 static const ScriptFieldInfo playerWalkFields[] =
 {
     { "Move Speed", ScriptFieldType::Float, offsetof(PlayerController, m_moveSpeed), { 0.0f, 50.0f, 0.05f } },
     { "Shift Multiplier", ScriptFieldType::Float, offsetof(PlayerController, m_shiftMultiplier), { 1.0f, 10.0f, 0.05f } },
     { "Turn Speed (deg/s)", ScriptFieldType::Float, offsetof(PlayerController, m_turnSpeedDegPerSec), { 0.0f, 2000.0f, 1.0f } },
-    { "Control Scheme", ScriptFieldType::EnumInt, offsetof(PlayerController, m_controlScheme), {}, {controlSchemeNames, 2} },
+    { "Player Index", ScriptFieldType::Int, offsetof(PlayerController, m_playerIndex) },
     { "Constrain To NavMesh", ScriptFieldType::Bool, offsetof(PlayerController, m_constrainToNavMesh) },
     { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerController, m_navExtents) }
 };
@@ -32,8 +26,6 @@ void PlayerController::Start()
 {
     GameObject* owner = getOwner();
     m_initialRotationOffset = TransformAPI::getEulerDegrees(GameObjectAPI::getTransform(owner));
-
-    applyControlScheme();
 }
 
 void PlayerController::Update()
@@ -65,43 +57,17 @@ void PlayerController::Update()
     applyTranslation(owner, direction, dt, shiftHeld);
 }
 
-void PlayerController::onFieldEdited(const ScriptFieldInfo& field)
-{
-    if (std::strcmp(field.name, "Control Scheme") == 0)
-    {
-        applyControlScheme();
-    }
-}
-
 void PlayerController::onAfterDeserialize()
 {
-    applyControlScheme();
     m_yawInitialized = false;
     m_currentYawDeg = 0.0f;
 }
 
 Vector3 PlayerController::readMoveDirection() const
 {
-    Vector3 direction(0, 0, 0);
+    const Vector2 moveAxis = Input::getMoveAxis(m_playerIndex);
 
-    if (Input::isKeyDown(m_keyUp))
-    {
-        direction.z -= 1.0f;
-    }
-    if (Input::isKeyDown(m_keyDown))
-    {
-        direction.z += 1.0f;
-    }
-    if (Input::isKeyDown(m_keyLeft))
-    {
-        direction.x -= 1.0f;
-    }
-    if (Input::isKeyDown(m_keyRight))
-    {
-        direction.x += 1.0f;
-    }
-
-    return direction;
+    return Vector3(moveAxis.x, 0.0f, moveAxis.y);
 }
 
 void PlayerController::applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt)
@@ -150,27 +116,6 @@ void PlayerController::applyTranslation(GameObject* owner, const Vector3& direct
     if (NavigationAPI::moveAlongSurface(currentPos, desiredPos, constrainedPos, m_navExtents))
     {
         TransformAPI::setPosition(transform, constrainedPos);
-    }
-}
-
-void PlayerController::applyControlScheme()
-{
-    switch (m_controlScheme)
-    {
-    case ControlScheme::IJKL:
-        m_keyUp = KeyCode::I;
-        m_keyLeft = KeyCode::J;
-        m_keyDown = KeyCode::K;
-        m_keyRight = KeyCode::L;
-        break;
-
-    case ControlScheme::WASD:
-    default:
-        m_keyUp = KeyCode::W;
-        m_keyLeft = KeyCode::A;
-        m_keyDown = KeyCode::S;
-        m_keyRight = KeyCode::D;
-        break;
     }
 }
 

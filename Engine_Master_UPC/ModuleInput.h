@@ -72,6 +72,8 @@ public:
     bool isGamePadDPadLeftPressed(int player = 0) const;
     bool isGamePadDPadRightPressed(int player = 0) const;
 
+    bool isGamePadStartPressed(int player = 0) const;
+
 private:
     std::unique_ptr<Keyboard>           m_keyboard;
     std::unique_ptr<Mouse>              m_mouse;

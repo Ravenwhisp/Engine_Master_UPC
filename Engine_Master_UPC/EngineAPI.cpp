@@ -313,6 +313,7 @@ namespace Input
         case KeyCode::D:          return Keyboard::Keys::D;
         case KeyCode::Q:          return Keyboard::Keys::Q;
         case KeyCode::E:          return Keyboard::Keys::E;
+        case KeyCode::R:          return Keyboard::Keys::R;
         case KeyCode::I:          return Keyboard::Keys::I;
         case KeyCode::J:          return Keyboard::Keys::J;
         case KeyCode::K:          return Keyboard::Keys::K;
@@ -329,6 +330,10 @@ namespace Input
         case KeyCode::Down:       return Keyboard::Keys::Down;
         case KeyCode::Left:       return Keyboard::Keys::Left;
         case KeyCode::Right:      return Keyboard::Keys::Right;
+        case KeyCode::Num1:       return Keyboard::Keys::D1;
+        case KeyCode::Num2:       return Keyboard::Keys::D2;
+        case KeyCode::Num3:       return Keyboard::Keys::D3;
+        case KeyCode::Num4:       return Keyboard::Keys::D4;
         case KeyCode::None:
         default:
             return Keyboard::Keys::None;
@@ -351,54 +356,159 @@ namespace Input
         return input->isKeyDown(toKeyboardKey(key));
     }
 
-    //GamePad Test
-
-    bool isGamePadConnected(int player)
+    Vector2 getMoveAxis(int player)
     {
-        if (!app)
-        {
-            return false;
-        }
-
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
-
-        return input->isGamePadConnected(player);
-    }
-
-    Vector2 getGamePadLeftStick(int player)
-    {
-        if (!app)
-        {
-            return Vector2(0.0f, 0.0f);
-        }
-
         ModuleInput* input = app->getModuleInput();
         if (!input)
         {
             return Vector2(0.0f, 0.0f);
         }
 
-        return input->getLeftStick(player);
-    }
+        Vector2 keyboardAxis(0.0f, 0.0f);
 
-    bool isGamePadAPressed(int player)
-    {
-        if (!app)
+        if (isKeyDown(KeyCode::A))
         {
-            return false;
+            keyboardAxis.x -= 1.0f;
+        }
+        if (isKeyDown(KeyCode::D))
+        {
+            keyboardAxis.x += 1.0f;
+        }
+        if (isKeyDown(KeyCode::W))
+        {
+            keyboardAxis.y -= 1.0f;
+        }
+        if (isKeyDown(KeyCode::S))
+        {
+            keyboardAxis.y += 1.0f;
         }
 
+        if (keyboardAxis.LengthSquared() > 1.0f)
+        {
+            keyboardAxis.Normalize();
+        }
+
+        const Vector2 gamepadAxis = input->getLeftStick(player);
+
+        // Priorize gamepad if it is being moved enough, otherwise keyboard
+        if (gamepadAxis.LengthSquared() > 0.01f)
+        {
+            return gamepadAxis;
+        }
+
+        return keyboardAxis;
+    }
+
+    Vector2 getLookAxis(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+
+        //Need to add mouse delta mapping, for now we only have gamepad
+
+        return input->getRightStick(player);
+    }
+
+    bool isFaceButtonBottomPressed(int player)
+    {
         ModuleInput* input = app->getModuleInput();
         if (!input)
         {
             return false;
         }
 
-        return input->isGamePadAPressed(player);
+        return isKeyDown(KeyCode::Space) || input->isGamePadAPressed(player);
+    }
+
+    bool isFaceButtonRightPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::E) || input->isGamePadBPressed(player);
+    }
+
+    bool isFaceButtonLeftPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::Q) || input->isGamePadXPressed(player);
+    }
+
+    bool isFaceButtonTopPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::R) || input->isGamePadYPressed(player);
+    }
+
+    bool isLeftShoulderPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::Num1) || input->isGamePadLeftShoulderPressed(player);
+    }
+
+    bool isRightShoulderPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::Num2) || input->isGamePadRightShoulderPressed(player);
+    }
+
+    bool isLeftTriggerPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::Num3) || input->getLeftTrigger(player) > 0.5f;
+    }
+
+    bool isRightTriggerPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::Num4) || input->getRightTrigger(player) > 0.5f;
+    }
+
+    bool isPausePressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return isKeyDown(KeyCode::Escape) || input->isGamePadStartPressed(player);
     }
 }
 

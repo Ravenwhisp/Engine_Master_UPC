@@ -33,9 +33,6 @@
     <ClInclude Include="TriggerArea.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="GamepadInputTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -54,9 +51,6 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="TriggerArea.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="GamepadInputTest.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

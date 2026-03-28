@@ -298,3 +298,9 @@ bool ModuleInput::isGamePadDPadRightPressed(int player) const
     return isGamePadConnected(player)
         && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 }
+
+bool ModuleInput::isGamePadStartPressed(int player) const
+{
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_START);
+}

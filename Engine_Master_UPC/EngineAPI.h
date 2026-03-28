@@ -84,11 +84,20 @@ namespace Input
 {
     ENGINE_API bool isKeyDown(KeyCode key);
 
-    // GamePad Test
+    ENGINE_API Vector2 getMoveAxis(int player = 0);
+    ENGINE_API Vector2 getLookAxis(int player = 0);
 
-    ENGINE_API bool isGamePadConnected(int player);
-    ENGINE_API Vector2 getGamePadLeftStick(int player);
-    ENGINE_API bool isGamePadAPressed(int player);
+    ENGINE_API bool isFaceButtonBottomPressed(int player = 0);
+    ENGINE_API bool isFaceButtonRightPressed(int player = 0);
+    ENGINE_API bool isFaceButtonLeftPressed(int player = 0);
+    ENGINE_API bool isFaceButtonTopPressed(int player = 0);
+
+    ENGINE_API bool isLeftShoulderPressed(int player = 0);
+    ENGINE_API bool isRightShoulderPressed(int player = 0);
+    ENGINE_API bool isLeftTriggerPressed(int player = 0);
+    ENGINE_API bool isRightTriggerPressed(int player = 0);
+
+    ENGINE_API bool isPausePressed(int player = 0);
 }
 
 namespace Debug
