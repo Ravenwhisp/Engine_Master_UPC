@@ -26,7 +26,6 @@ void FileDialog::handleGameObjectDrop(const std::filesystem::path& targetDirecto
     if (!go) return;
 
     // Build a unique save path: targetDir / GoName.prefab
-    // If a file with that name already exists, append a numeric suffix.
     std::filesystem::path basePath = targetDirectory / (go->GetName() + ".prefab");
     std::filesystem::path savePath = basePath;
     int suffix = 1;
@@ -36,6 +35,7 @@ void FileDialog::handleGameObjectDrop(const std::filesystem::path& targetDirecto
             (go->GetName() + "_" + std::to_string(suffix++) + ".prefab");
     }
 
+    // createPrefab writes the file AND links go->GetPrefabInfo() in-place.
     if (!PrefabManager::createPrefab(go, savePath))
     {
         DEBUG_ERROR("[FileDialog] Failed to create prefab at '%s'.",
@@ -43,14 +43,6 @@ void FileDialog::handleGameObjectDrop(const std::filesystem::path& targetDirecto
         return;
     }
 
-    // Link the live instance so the GO is immediately marked as a prefab.
-    PrefabData instanceData;
-    instanceData.m_sourcePath = savePath;
-    instanceData.m_name = savePath.stem().string();
-    instanceData.m_prefabUID = go->GetID();
-    PrefabManager::linkInstance(go, instanceData);
-
-    // Refresh the asset browser so the new file appears immediately.
     app->getModuleAssets()->refresh();
 }
 
