@@ -14,7 +14,6 @@ ModuleInput::ModuleInput(HWND hWnd)
 {
     m_keyboard = std::make_unique<Keyboard>();
     m_mouse = std::make_unique<Mouse>();
-    m_gamePad = std::make_unique<GamePad>();
 
     m_mouse->SetWindow(hWnd);
 
@@ -31,9 +30,9 @@ ModuleInput::ModuleInput(HWND hWnd)
         return;
     }
 
-    if (count > 0)
+    for (int i = 0; i < count && i < MAX_GAMEPADS; ++i)
     {
-        m_sdlGamepad = SDL_OpenGamepad(gamepads[0]);
+        m_sdlGamepads[i] = SDL_OpenGamepad(gamepads[i]);
     }
 
     SDL_free(gamepads);
@@ -41,10 +40,13 @@ ModuleInput::ModuleInput(HWND hWnd)
 
 ModuleInput::~ModuleInput()
 {
-    if (m_sdlGamepad)
+    for (SDL_Gamepad*& gamepad : m_sdlGamepads)
     {
-        SDL_CloseGamepad(m_sdlGamepad);
-        m_sdlGamepad = nullptr;
+        if (gamepad)
+        {
+            SDL_CloseGamepad(gamepad);
+            gamepad = nullptr;
+        }
     }
 
     if (m_sdlInitialized)
@@ -59,23 +61,10 @@ void ModuleInput::update()
 {
     m_mouseTracker.Update(m_mouse->GetState());
 
-    //Test
-    SDL_PumpEvents();
-    // or SDL_UpdateGamepads();
-
-    if (m_sdlGamepad)
+    if (m_sdlInitialized)
     {
-        const Sint16 lxRaw = SDL_GetGamepadAxis(m_sdlGamepad, SDL_GAMEPAD_AXIS_LEFTX);
-        const Sint16 lyRaw = SDL_GetGamepadAxis(m_sdlGamepad, SDL_GAMEPAD_AXIS_LEFTY);
-        const bool south = SDL_GetGamepadButton(m_sdlGamepad, SDL_GAMEPAD_BUTTON_SOUTH);
-
-        DEBUG_LOG("SDL Gamepad: LX=%d LY=%d SOUTH=%d", (int)lxRaw, (int)lyRaw, south ? 1 : 0);
+        SDL_PumpEvents();
     }
-    else
-    {
-        DEBUG_LOG("SDL Gamepad NOT opened");
-    }
-    //Test
 
     if (!isLeftMouseHeld() && !isRightMouseHeld())
     {
@@ -194,110 +183,118 @@ void ModuleInput::getMouseWheel(float& delta)
 
 bool ModuleInput::isGamePadConnected(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected();
+    if (player < 0 || player >= MAX_GAMEPADS)
+    {
+        return false;
+    }
+
+    return m_sdlGamepads[player] != nullptr;
 }
 
 Vector2 ModuleInput::getLeftStick(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    if (!state.IsConnected())
+    if (!isGamePadConnected(player))
     {
         return Vector2(0.0f, 0.0f);
     }
 
-    return Vector2(state.thumbSticks.leftX, state.thumbSticks.leftY);
+    const float x = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFTX)) / 32767.0f;
+    const float y = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFTY)) / 32767.0f;
+
+    return Vector2(x, y);
 }
 
 Vector2 ModuleInput::getRightStick(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    if (!state.IsConnected())
+    if (!isGamePadConnected(player))
     {
         return Vector2(0.0f, 0.0f);
     }
 
-    return Vector2(state.thumbSticks.rightX, state.thumbSticks.rightY);
+    const float x = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHTX)) / 32767.0f;
+    const float y = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHTY)) / 32767.0f;
+
+    return Vector2(x, y);
 }
 
 float ModuleInput::getLeftTrigger(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    if (!state.IsConnected())
+    if (!isGamePadConnected(player))
     {
         return 0.0f;
     }
 
-    return state.triggers.left;
+    return std::max(0.0f,
+        static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) / 32767.0f);
 }
 
 float ModuleInput::getRightTrigger(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    if (!state.IsConnected())
+    if (!isGamePadConnected(player))
     {
         return 0.0f;
     }
 
-    return state.triggers.right;
+    return std::max(0.0f,
+        static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / 32767.0f);
 }
 
 bool ModuleInput::isGamePadAPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsAPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_SOUTH);
 }
 
 bool ModuleInput::isGamePadBPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsBPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_EAST);
 }
 
 bool ModuleInput::isGamePadXPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsXPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_WEST);
 }
 
 bool ModuleInput::isGamePadYPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsYPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_NORTH);
 }
 
 bool ModuleInput::isGamePadLeftShoulderPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsLeftShoulderPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
 }
 
 bool ModuleInput::isGamePadRightShoulderPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsRightShoulderPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
 }
 
 bool ModuleInput::isGamePadDPadUpPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsDPadUpPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_DPAD_UP);
 }
 
 bool ModuleInput::isGamePadDPadDownPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsDPadDownPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_DPAD_DOWN);
 }
 
 bool ModuleInput::isGamePadDPadLeftPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsDPadLeftPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_DPAD_LEFT);
 }
 
 bool ModuleInput::isGamePadDPadRightPressed(int player) const
 {
-    const auto state = m_gamePad->GetState(player);
-    return state.IsConnected() && state.IsDPadRightPressed();
+    return isGamePadConnected(player)
+        && SDL_GetGamepadButton(m_sdlGamepads[player], SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 }

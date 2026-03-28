@@ -3,7 +3,8 @@
 #include "Module.h"
 #include "Keyboard.h"
 #include "Mouse.h"
-#include <GamePad.h>
+
+#include <array>
 
 struct SDL_Gamepad;
 
@@ -74,7 +75,6 @@ public:
 private:
     std::unique_ptr<Keyboard>           m_keyboard;
     std::unique_ptr<Mouse>              m_mouse;
-    std::unique_ptr<GamePad>            m_gamePad;
     Mouse::ButtonStateTracker           m_mouseTracker;
 
     float m_mouseDeltaX = 0.0f;
@@ -85,6 +85,8 @@ private:
     int m_windowWidth = 1920;
     int m_windowHeight = 1080;
 
-    SDL_Gamepad* m_sdlGamepad = nullptr;
     bool m_sdlInitialized = false;
+    static constexpr int MAX_GAMEPADS = 2;
+    std::array<SDL_Gamepad*, MAX_GAMEPADS> m_sdlGamepads{};
+
 };
