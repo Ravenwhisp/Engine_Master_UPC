@@ -339,6 +339,7 @@
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
+    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -827,6 +828,10 @@
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
+    <ClInclude Include="AnimationStateMachineAsset.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterAnimationStateMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
