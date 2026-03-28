@@ -74,6 +74,7 @@ void AnimationController::SetAnimation(const std::shared_ptr<AnimationAsset>& an
 {
     m_animation = animation;
     m_currentTime = 0.0f;
+    m_speed = 1.0f;
     m_playing = false;
 }
 
@@ -94,6 +95,12 @@ void AnimationController::Stop()
 {
     m_playing = false;
     m_currentTime = 0.0f;
+    m_speed = 1.0f;
+}
+
+void AnimationController::SetSpeed(float speed)
+{
+    m_speed = std::max(0.0f, speed);
 }
 
 void AnimationController::SetTime(float seconds)
@@ -139,7 +146,7 @@ void AnimationController::Update(float deltaTimeSeconds)
         return;
     }
 
-    m_currentTime += deltaTimeSeconds;
+    m_currentTime += deltaTimeSeconds * m_speed;
 
     if (m_loop)
     {
