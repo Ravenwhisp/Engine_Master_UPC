@@ -10,20 +10,21 @@ DECLARE_EVENT(HierarchySelectEvent, HierarchyTreeRenderer, GameObject*);
 DECLARE_EVENT(HierarchyReparentEvent, HierarchyTreeRenderer, GameObject*, GameObject*);
 DECLARE_EVENT(HierarchyPrefabDropEvent, HierarchyTreeRenderer, const std::filesystem::path&, GameObject*);
 DECLARE_EVENT(HierarchyDeleteRequestEvent, HierarchyTreeRenderer, GameObject*);
+DECLARE_EVENT(HierarchyContextMenuOpenEvent, HierarchyTreeRenderer, GameObject*, bool, bool);
 
 class HierarchyTreeRenderer
 {
 public:
-
-    HierarchySelectEvent        OnSelect;
-    HierarchyReparentEvent      OnReparent;
-    HierarchyPrefabDropEvent    OnPrefabDropOnNode;
+    HierarchySelectEvent OnSelect;
+    HierarchyReparentEvent OnReparent;
+    HierarchyPrefabDropEvent OnPrefabDropOnNode;
     HierarchyDeleteRequestEvent OnDeleteRequested;
+    HierarchyContextMenuOpenEvent OnContextMenuOpen;
 
     struct SelectionState
     {
         GameObject* pendingSelection = nullptr;
-        bool        isDragging = false;
+        bool isDragging = false;
     };
 
     void renderNode(GameObject* gameObject, bool prefabMode, SelectionState& state) const;
