@@ -25,8 +25,6 @@ using Matrix = DirectX::SimpleMath::Matrix;
 
 class MeshRendererPass : public IRenderPass {
 public:
-    constexpr static uint32_t BLOCK_SIZE{ 8 };
-    
     MeshRendererPass(ComPtr<ID3D12Device4> device);
 
 
