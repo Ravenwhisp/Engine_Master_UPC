@@ -4,6 +4,8 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 
+#include "DeviceType.h"
+#include "PlayerBinding.h"
 #include <array>
 
 struct SDL_Gamepad;
@@ -22,6 +24,8 @@ public:
         m_windowHeight = height;
     }
 
+    void setPlayerBinding(int player, DeviceType deviceType, int deviceIndex = 0);
+    PlayerBinding getPlayerBinding(int player) const;
 
     bool isKeyDown(Keyboard::Keys key);
 
@@ -86,9 +90,11 @@ private:
 
     int m_windowWidth = 1920;
     int m_windowHeight = 1080;
+    
+    static constexpr int MAX_LOCAL_PLAYERS = 2;
+    std::array<PlayerBinding, MAX_LOCAL_PLAYERS> m_playerBindings{};
 
     bool m_sdlInitialized = false;
     static constexpr int MAX_GAMEPADS = 2;
     std::array<SDL_Gamepad*, MAX_GAMEPADS> m_sdlGamepads{};
-
 };

@@ -287,6 +287,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="Delegates.h" />
+    <ClInclude Include="DeviceType.h" />
     <ClInclude Include="EngineAPI.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
@@ -305,6 +306,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="Scene.h" />

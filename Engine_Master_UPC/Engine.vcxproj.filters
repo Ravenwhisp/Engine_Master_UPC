@@ -816,6 +816,12 @@
     <ClInclude Include="KeyCode.h">
       <Filter>Inputs\Keyboard</Filter>
     </ClInclude>
+    <ClInclude Include="DeviceType.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerBinding.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

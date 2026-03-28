@@ -17,6 +17,9 @@ ModuleInput::ModuleInput(HWND hWnd)
 
     m_mouse->SetWindow(hWnd);
 
+    m_playerBindings[0] = { DeviceType::Keyboard, 0 };
+    m_playerBindings[1] = { DeviceType::Gamepad, 0 };
+
     m_sdlInitialized = SDL_Init(SDL_INIT_GAMEPAD);
     if (!m_sdlInitialized)
     {
@@ -72,6 +75,39 @@ void ModuleInput::update()
     }
 }
 
+void ModuleInput::setPlayerBinding(int player, DeviceType deviceType, int deviceIndex)
+{
+    if (player < 0 || player >= MAX_LOCAL_PLAYERS)
+    {
+        return;
+    }
+
+    if (deviceType == DeviceType::Keyboard)
+    {
+        deviceIndex = 0;
+    }
+
+    if (deviceType == DeviceType::Gamepad)
+    {
+        if (deviceIndex < 0 || deviceIndex >= MAX_GAMEPADS)
+        {
+            return;
+        }
+    }
+
+    m_playerBindings[player].deviceType = deviceType;
+    m_playerBindings[player].deviceIndex = deviceIndex;
+}
+
+PlayerBinding ModuleInput::getPlayerBinding(int player) const
+{
+    if (player < 0 || player >= MAX_LOCAL_PLAYERS)
+    {
+        return {};
+    }
+
+    return m_playerBindings[player];
+}
 
 bool ModuleInput::isKeyDown(Keyboard::Keys key)
 {

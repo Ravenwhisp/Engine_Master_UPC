@@ -17,6 +17,9 @@
 
 #include "CameraComponent.h"
 
+#include "DeviceType.h"
+#include "PlayerBinding.h"
+
 #include <DetourNavMeshQuery.h>
 
 void registerScript(const char* scriptName, ScriptCreator creator)
@@ -364,39 +367,46 @@ namespace Input
             return Vector2(0.0f, 0.0f);
         }
 
-        Vector2 keyboardAxis(0.0f, 0.0f);
+        const PlayerBinding binding = input->getPlayerBinding(player);
 
-        if (isKeyDown(KeyCode::A))
+        switch (binding.deviceType)
         {
-            keyboardAxis.x -= 1.0f;
-        }
-        if (isKeyDown(KeyCode::D))
+        case DeviceType::Keyboard:
         {
-            keyboardAxis.x += 1.0f;
-        }
-        if (isKeyDown(KeyCode::W))
-        {
-            keyboardAxis.y -= 1.0f;
-        }
-        if (isKeyDown(KeyCode::S))
-        {
-            keyboardAxis.y += 1.0f;
+            Vector2 keyboardAxis(0.0f, 0.0f);
+
+            if (isKeyDown(KeyCode::A))
+            {
+                keyboardAxis.x -= 1.0f;
+            }
+            if (isKeyDown(KeyCode::D))
+            {
+                keyboardAxis.x += 1.0f;
+            }
+            if (isKeyDown(KeyCode::W))
+            {
+                keyboardAxis.y -= 1.0f;
+            }
+            if (isKeyDown(KeyCode::S))
+            {
+                keyboardAxis.y += 1.0f;
+            }
+
+            if (keyboardAxis.LengthSquared() > 1.0f)
+            {
+                keyboardAxis.Normalize();
+            }
+
+            return keyboardAxis;
         }
 
-        if (keyboardAxis.LengthSquared() > 1.0f)
-        {
-            keyboardAxis.Normalize();
+        case DeviceType::Gamepad:
+            return input->getLeftStick(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return Vector2(0.0f, 0.0f);
         }
-
-        const Vector2 gamepadAxis = input->getLeftStick(player);
-
-        // Priorize gamepad if it is being moved enough, otherwise keyboard
-        if (gamepadAxis.LengthSquared() > 0.01f)
-        {
-            return gamepadAxis;
-        }
-
-        return keyboardAxis;
     }
 
     Vector2 getLookAxis(int player)
@@ -408,8 +418,20 @@ namespace Input
         }
 
         //Need to add mouse delta mapping, for now we only have gamepad
+        const PlayerBinding binding = input->getPlayerBinding(player);
 
-        return input->getRightStick(player);
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return Vector2(0.0f, 0.0f);
+
+        case DeviceType::Gamepad:
+            return input->getRightStick(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return Vector2(0.0f, 0.0f);
+        }
     }
 
     bool isFaceButtonBottomPressed(int player)
@@ -420,7 +442,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Space) || input->isGamePadAPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Space);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadAPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isFaceButtonRightPressed(int player)
@@ -431,7 +466,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::E) || input->isGamePadBPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::E);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadBPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isFaceButtonLeftPressed(int player)
@@ -442,7 +490,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Q) || input->isGamePadXPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Q);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadXPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isFaceButtonTopPressed(int player)
@@ -453,7 +514,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::R) || input->isGamePadYPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::R);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadYPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isLeftShoulderPressed(int player)
@@ -464,7 +538,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Num1) || input->isGamePadLeftShoulderPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num1);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadLeftShoulderPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isRightShoulderPressed(int player)
@@ -475,7 +562,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Num2) || input->isGamePadRightShoulderPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num2);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadRightShoulderPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isLeftTriggerPressed(int player)
@@ -486,7 +586,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Num3) || input->getLeftTrigger(player) > 0.5f;
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num3);
+
+        case DeviceType::Gamepad:
+            return input->getLeftTrigger(binding.deviceIndex) > 0.5f;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isRightTriggerPressed(int player)
@@ -497,7 +610,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Num4) || input->getRightTrigger(player) > 0.5f;
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num4);
+
+        case DeviceType::Gamepad:
+            return input->getRightTrigger(binding.deviceIndex) > 0.5f;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 
     bool isPausePressed(int player)
@@ -508,7 +634,20 @@ namespace Input
             return false;
         }
 
-        return isKeyDown(KeyCode::Escape) || input->isGamePadStartPressed(player);
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Escape);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadStartPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
     }
 }
 
