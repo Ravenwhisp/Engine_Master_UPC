@@ -26,21 +26,6 @@ using Matrix = DirectX::SimpleMath::Matrix;
 class MeshRendererPass : public IRenderPass {
 public:
     constexpr static uint32_t BLOCK_SIZE{ 8 };
-
-    MeshRendererPass(ComPtr<ID3D12Device4> device, RingBuffer* ringBuffer);
-    ~MeshRendererPass();
-
-    void setMeshes(const std::vector<MeshRenderer*>& meshRenderers) { m_meshRenderers = &meshRenderers; }
-
-    void setCameraPosition(const Vector3& cameraPos);
-    void setView(const Matrix& view) { m_view = &view; }
-    void setProjection(const Matrix& projection) { m_projection = &projection; }
-
-    /*void setRenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle) { m_rtvHandle = rtvHandle; }
-    void setDepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle) { m_dsvHandle = dsvHandle; }
-
-    void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
-    void setRectScissor(const D3D12_RECT& scissorRect) { m_scissorRect = &scissorRect; }*/
     
     MeshRendererPass(ComPtr<ID3D12Device4> device);
 
