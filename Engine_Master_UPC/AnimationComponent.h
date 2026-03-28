@@ -34,6 +34,19 @@ public:
     const AnimationController& getController() const { return m_controller; }
 
 private:
+
+    struct FadingPlayback
+    {
+        std::string stateName;
+        std::shared_ptr<AnimationAsset> animationAsset;
+        AnimationController controller;
+
+        float fadeTime = 0.0f;
+        float transitionTime = 0.0f;
+
+        std::unique_ptr<FadingPlayback> next;
+    };
+
     bool ensureStateMachineLoaded();
     void startStateMachineIfNeeded();
     void resetRuntime();
@@ -42,14 +55,23 @@ private:
     const AnimationStateMachineState* findStateByName(const std::string& stateName) const;
     const AnimationStateMachineTransition* findTransitionByTrigger(const std::string& triggerName) const;
 
-    bool activateState(const std::string& stateName, bool autoPlay);
+    bool activateState(const std::string& stateName, bool autoPlay, float transitionTimeSeconds);
     void applyRecursive(GameObject* go);
     void forceWorldRecursive(GameObject* go);
+
+    void pushCurrentPlaybackToHistory(float transitionTimeSeconds);
+
+    void updateFadingPlaybackRecursive(FadingPlayback* playback, float deltaTimeSeconds);
+    bool samplePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const;
+    bool samplePlaybackNodeRecursive(const FadingPlayback* playback, const std::string& channelName, AnimationSample& outSample) const;
+
+    void blendSamples(const AnimationSample& fromSample, const AnimationSample& toSample, float weight, AnimationSample& outSample) const;
 
     void debugDrawRecursive(GameObject* go);
     void drawAxisTriad(const Matrix& worldMatrix, float axisLength);
 
 private:
+
     MD5Hash m_stateMachineUID = INVALID_ASSET_ID;
 
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
@@ -57,6 +79,10 @@ private:
     AnimationController m_controller;
 
     std::string m_activeStateName;
+    float m_currentFadeTime = 0.0f;
+    float m_currentTransitionTime = 0.0f;
+
+    std::unique_ptr<FadingPlayback> m_previousPlayback;
 
     bool m_playOnStart = true;
     bool m_applyScale = false;
