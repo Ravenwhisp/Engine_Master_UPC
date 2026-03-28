@@ -2,7 +2,7 @@
 #include "ImporterFont.h"
 
 #include "Application.h"
-#include "ModuleFileSystem.h"
+#include "FileIO.h"
 
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
@@ -20,9 +20,8 @@ bool ImporterFont::loadExternal(const std::filesystem::path& path, std::vector<u
         return false;
     }
 
-
-    out = app->getModuleFileSystem()->read(spritefontPath);
-    app->getModuleFileSystem()->remove(spritefontPath);
+    out = FileIO::read(spritefontPath);
+    FileIO::remove(spritefontPath);
 
     return !out.empty();
 }
@@ -177,6 +176,10 @@ fs::path ImporterFont::runMakeSpriteFont(const fs::path& ttfPath)
     {
         char buf[256];
         while (fgets(buf, sizeof(buf), pipe)) output << buf;
+    }
+    else {
+        DEBUG_ERROR("FontImporter: MakeSpriteFont.exe failed:", output.str().c_str());
+        return {};
     }
     const int result = _pclose(pipe);
 

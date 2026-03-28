@@ -13,6 +13,7 @@ struct Submesh;
 class RingBuffer;
 class MeshRenderer;
 class GameObject;
+class LightComponent;
 
 struct SceneLightingSettings;
 struct SceneDataCB;
@@ -40,25 +41,30 @@ public:
 
     void setViewport(const D3D12_VIEWPORT& viewport) { m_viewport = &viewport; }
     void setRectScissor(const D3D12_RECT& scissorRect) { m_scissorRect = &scissorRect; }*/
+    
+    MeshRendererPass(ComPtr<ID3D12Device4> device);
 
 
+    virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
-    D3D12_GPU_VIRTUAL_ADDRESS buildAndUploadLightsCB();
-    GPULightsConstantBuffer packLightsForGPU(const std::vector<GameObject*>& objects, const Vector3& ambientColor, float ambientIntensity) const;
+
+    GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
+
     void renderMesh(ID3D12GraphicsCommandList* commandList);
 
 private:
-    mutable const std::vector<MeshRenderer*>*     m_meshRenderers;
+    std::vector<MeshRenderer*> m_meshRenderers;
 
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
     ComPtr<ID3D12PipelineState>		m_pipelineState;
 
-    RingBuffer*                     m_ringBuffer;
+    D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_lightsAddress = 0;
 
     std::unique_ptr<SceneLightingSettings> m_lighting;
     std::unique_ptr<SceneDataCB> m_sceneDataCB;
 
-    const Matrix* m_projection;
-    const Matrix* m_view;
+    const Matrix* m_projection = nullptr;
+    const Matrix* m_view = nullptr;
 };

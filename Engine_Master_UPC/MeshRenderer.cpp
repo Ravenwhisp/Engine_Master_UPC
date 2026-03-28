@@ -12,10 +12,22 @@
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
 
-
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
     std::unique_ptr<MeshRenderer> newMeshRenderer = std::make_unique<MeshRenderer>(m_uuid, newOwner);
+
+    newMeshRenderer->setActive(this->isActive());
+
+    newMeshRenderer->m_mesh = m_mesh;
+    newMeshRenderer->m_materials = m_materials;
+
+    newMeshRenderer->m_meshAsset = m_meshAsset;
+    newMeshRenderer->m_materialAssets = m_materialAssets;
+
+    newMeshRenderer->m_triangles = m_triangles;
+
+    newMeshRenderer->m_boundingBox = m_boundingBox;
+    newMeshRenderer->m_boundingBox.update(newOwner->GetTransform()->getGlobalMatrix());
 
     return newMeshRenderer;
 }
@@ -43,7 +55,8 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
 void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
 {
     auto material = app->getModuleResources()->createMaterial(materialAsset);
-    if (material) {
+    if (material) 
+    {
         m_materials.push_back(material);
     }
 }
@@ -91,6 +104,11 @@ void MeshRenderer::drawUi()
     ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
 }
 
+void MeshRenderer::debugDraw()
+{
+    m_boundingBox.render();
+}
+
 void MeshRenderer::onTransformChange()
 {
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
@@ -125,6 +143,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("MeshAssetId"))
     {
         const MD5Hash meshId = componentInfo["MeshAssetId"].GetString();
+        m_meshAsset = meshId;
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
@@ -139,6 +158,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         for (auto& arrayStrings : arr.GetArray())
         {
             const MD5Hash materialId = arrayStrings.GetString();
+            m_materialAssets.push_back(materialId);
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
             if (materialAsset)
             {

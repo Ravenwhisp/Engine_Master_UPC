@@ -18,10 +18,8 @@ class ModuleRender;
 class ModuleNavigation;
 class ModuleScene;
 class ModuleGameView;
-class ModuleFileSystem;
 class ModuleAssets;
 class ModuleEventSystem;
-class ModuleFlyweight;
 
 class CameraComponent;
 class Settings;
@@ -55,7 +53,6 @@ public:
     ModuleNavigation*           getModuleNavigation() { return m_moduleNavigation; }
     ModuleScene*                getModuleScene() { return m_moduleScene; }
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
-    ModuleFileSystem*           getModuleFileSystem() { return m_moduleFileSystem; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
 
@@ -67,16 +64,17 @@ public:
 
 	ENGINE_STATE getCurrentEngineState() const { return m_currentEngineState; }
 	void setEngineState(int index) { m_currentEngineState = static_cast<ENGINE_STATE>(index); }
-
-    bool        isPaused() const { return m_paused; }
-    bool        setPaused(bool p) { m_paused = p; return m_paused; }
+	void setEngineState(ENGINE_STATE state) { m_currentEngineState = state; }
+	
+    bool isPaused() const { return m_paused; }
+    bool setPaused(bool p) { m_paused = p; return m_paused; }
 
     void requestApplicationExit() { m_quit = true; }
     bool shouldQuit() const { return m_quit; }
 
     HWND getWindowHandle() const { return m_hWnd; }
 
-    uint64_t                    getElapsedMilis() const { return m_elapsedMilis; }
+    uint64_t getElapsedMilis() const { return m_elapsedMilis; }
 
 private:
 
@@ -92,12 +90,13 @@ private:
     ModuleNavigation*       m_moduleNavigation = nullptr;
     ModuleScene*            m_moduleScene = nullptr;
     ModuleGameView*         m_moduleGameView = nullptr;
-    ModuleFileSystem*       m_moduleFileSystem = nullptr;
     ModuleAssets*           m_moduleAssets = nullptr;
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
 
     Settings*               m_settings = nullptr;
+
+    HMODULE m_gameScriptsModule = nullptr;
 
     bool m_paused = false;
     bool m_quit = false;

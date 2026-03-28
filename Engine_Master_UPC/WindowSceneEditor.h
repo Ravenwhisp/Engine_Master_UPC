@@ -3,6 +3,7 @@
 
 #include "ImGuizmo.h"
 #include <vector>
+#include "IDebugDrawable.h"
 
 class ModuleInput;
 class ModuleCamera;
@@ -16,14 +17,13 @@ class PlayToolbar;
 class DebugDrawPass;
 class GameObject;
 
-class WindowSceneEditor: public EditorWindow
+class WindowSceneEditor: public EditorWindow, public IDebugDrawable
 {
 private:
     ModuleInput* m_moduleInput;
     ModuleCamera* m_moduleCamera;
 
     Settings* m_settings;
-    Quadtree* m_quadtree;
 
     EditorToolbar* m_editorToolbar;
 	PlayToolbar* m_playToolbar;
@@ -41,10 +41,7 @@ public:
     void        render() override;
     bool        resize(ImVec2 contentRegion);
 
-    void renderDebugDrawPass(ID3D12GraphicsCommandList* commandList);
-    void renderQuadtree();
-    void drawBoundingBox(const Engine::BoundingBox& bbox, const ddVec3& color);
-
+    void debugDraw() override;
 
     float  getViewportX()      const { return m_viewportX; }
     float  getViewportY()      const { return m_viewportY; }

@@ -25,7 +25,7 @@ ModuleD3D12::~ModuleD3D12()
 
 bool ModuleD3D12::init()
 {
-    m_swapChain = new SwapChain(m_hwnd);
+    m_swapChain = new SwapChain(m_hwnd, m_device, m_commandQueue.get());
     m_graphicsMemory = std::make_unique<GraphicsMemory>(m_device.Get());
     return true;
 }
@@ -35,15 +35,11 @@ void ModuleD3D12::preRender()
 {
     m_frameIndex = m_swapChain->getCurrentBackBufferIndex();
     m_commandQueue->waitForFenceValue(m_fenceValues[m_frameIndex]);
+    m_swapChain->updateCurrentBackBuffer();
     m_lastCompletedFenceValue = std::max(m_lastCompletedFenceValue, m_fenceValues[m_frameIndex]);
 
     // Reset command list and allocator
     m_commandList = m_commandQueue->getCommandList();
-}
-
-void ModuleD3D12::render()
-{
-
 }
 
 void ModuleD3D12::postRender()
@@ -110,6 +106,30 @@ void ModuleD3D12::loadPipeline() {
         info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
         info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
         info_queue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+
+        // Suppress whole categories of messages
+        D3D12_MESSAGE_CATEGORY Categories[] = { D3D12_MESSAGE_CATEGORY_STATE_CREATION  };
+
+        // Suppress messages based on their severity level
+        D3D12_MESSAGE_SEVERITY Severities[] =
+        {
+            D3D12_MESSAGE_SEVERITY_WARNING
+        };
+
+        // Suppress individual messages by their ID
+        D3D12_MESSAGE_ID DenyIds[] = {
+            D3D12_MESSAGE_ID_CREATERESOURCE_STATE_IGNORED,   // I'm really not sure how to avoid this message.
+        };
+
+        D3D12_INFO_QUEUE_FILTER NewFilter = {};
+        NewFilter.DenyList.NumCategories = _countof(Categories);
+        NewFilter.DenyList.pCategoryList = Categories;
+        NewFilter.DenyList.NumSeverities = _countof(Severities);
+        NewFilter.DenyList.pSeverityList = Severities;
+        NewFilter.DenyList.NumIDs = _countof(DenyIds);
+        NewFilter.DenyList.pIDList = DenyIds;
+
+        info_queue->PushStorageFilter(&NewFilter);
     }
 #endif
 

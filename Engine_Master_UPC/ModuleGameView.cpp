@@ -2,22 +2,17 @@
 #include "ModuleGameView.h"
 
 #include "Application.h"
+#include "ModuleScene.h"
 #include "ModuleInput.h"
 #include "ModuleD3D12.h"
 
+#include "Scene.h"
+#include "SceneSnapshot.h"
 #include "GameObject.h"
 #include "ScriptComponent.h"
 
-ModuleGameView::ModuleGameView()
-{
-	m_moduleScene = nullptr;
-	m_moduleInput = nullptr;
-}
-
-ModuleGameView::~ModuleGameView()
-{
-
-}
+ModuleGameView::ModuleGameView() = default;
+ModuleGameView::~ModuleGameView() = default;
 
 bool ModuleGameView::init()
 {
@@ -27,8 +22,8 @@ bool ModuleGameView::init()
 	m_showDebugWindow = false;
 
 #ifdef GAME_RELEASE
-	m_moduleScene->loadScene("main");
 	app->setEngineState(ENGINE_STATE::PLAYING);
+	m_moduleScene->loadScene("main");
 #endif
 
 	return true;
@@ -36,15 +31,6 @@ bool ModuleGameView::init()
 
 void ModuleGameView::update()
 {
-
-	if (m_pendingStop)
-	{
-		m_pendingStop = false;
-		m_moduleScene->resetGameObjects(std::move(m_sceneCloned));
-		m_sceneCloned = SceneSnapshot();
-	}
-
-
 	static Keyboard::KeyboardStateTracker keyTracker;
 
 	Keyboard::State state = Keyboard::Get().GetState();
@@ -65,29 +51,33 @@ void ModuleGameView::update()
 }
 
 void ModuleGameView::startGameSimulation()
-{
-	// When we hit play, we create an exact copy of the game objects in the scene, so that we can restore them when we hit stop
-	m_sceneCloned = m_moduleScene->getClonedGameObjects();
-
+{	
+	m_sceneCloned = std::unique_ptr<SceneSnapshot>(m_moduleScene->takeSnapshot());
 	instantiateScriptsOnPlay();
 }
 
 void ModuleGameView::stopGameSimulation()
 {
-	m_pendingStop = true;
+	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
+	m_sceneCloned.reset();
 }
 
 void ModuleGameView::instantiateScriptsOnPlay() {
 	// scripts instantiation
-	for (GameObject* gameObject : m_moduleScene->getAllGameObjects())
+	for (GameObject* gameObject : m_moduleScene->getScene()->getAllGameObjects())
 	{
 		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
-		if (scriptComponent && !scriptComponent->getScriptName().empty())
+		if (!scriptComponent || scriptComponent->getScriptName().empty())
 		{
-			scriptComponent->destroyScriptInstance();
+			continue;
+		}
 
+		if (!scriptComponent->getScript())
+		{
 			bool created = scriptComponent->createScriptInstance();
 			assert(created);
 		}
+
+		scriptComponent->resetStartState();
 	}
 }

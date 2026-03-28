@@ -1,12 +1,16 @@
 #include "Globals.h"
 #include "SkyBoxPass.h"
 
+#include "RenderContext.h"
+
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"
 #include "ModuleAssets.h"
 
+#include "SkyBoxSettings.h"
 #include "SkyBox.h"
+#include "SkyboxParams.h"
 #include "Texture.h"
 #include "TextureAsset.h"
 #include "VertexBuffer.h"
@@ -15,6 +19,7 @@
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
+#include "MD5Fwd.h"
 
 SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) : m_device(device)
 {
@@ -30,7 +35,7 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) :
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
-    rootParameters[0].InitAsConstants(sizeof(SkyParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+    rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -76,13 +81,24 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) :
     desc.SampleMask = UINT_MAX;
     desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     desc.NumRenderTargets = 1;
-    desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc = { 1, 0 };
 
     DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-SkyBoxPass::~SkyBoxPass() = default;
+void SkyBoxPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+
+    if (ctx.skyBoxSettings && !(*ctx.skyBoxSettings == m_lastSettings))
+    {
+        setSettings(*ctx.skyBoxSettings);
+
+        m_lastSettings = *ctx.skyBoxSettings;
+    }
+}
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
@@ -98,7 +114,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     vp = vp.Transpose();
 
-    SkyParams params{};
+    SkyboxParams params{};
     params.vp = vp;
     params.flipX = 0;
     params.flipZ = 0;
@@ -109,7 +125,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyParams) / sizeof(UINT32), &params, 0);
+    commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
     commandList->SetGraphicsRootDescriptorTable(1, m_skyBox->getTexture()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
@@ -120,7 +136,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
     commandList->IASetIndexBuffer(&indexBufferView);
 
-    commandList->DrawIndexedInstanced(m_skyBox->getIndexBuffer()->getNumIndices(), 1, 0, 0, 0);
+    commandList->DrawIndexedInstanced(static_cast<UINT>(m_skyBox->getIndexBuffer()->getNumIndices()), 1, 0, 0, 0);
 }
 
 void SkyBoxPass::setSettings(const SkyBoxSettings& settings)

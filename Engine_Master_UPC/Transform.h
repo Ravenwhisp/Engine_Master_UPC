@@ -1,7 +1,12 @@
 #pragma once
-#include <vector>
 #include "Component.h"
+
+#include <vector>
 #include "SimpleMath.h"
+
+using DirectX::SimpleMath::Matrix;
+using DirectX::SimpleMath::Vector3;
+using DirectX::SimpleMath::Quaternion;
 
 class GameObject;
 
@@ -19,7 +24,7 @@ public:
 	const Quaternion& getRotation() const { return m_rotation; }
 	const Vector3& getScale() const { return m_scale; }
 
-	void setPosition(const Vector3 &newPosition) { m_position = newPosition; markDirty(); }
+	void setPosition(const Vector3& newPosition);
 	void setRotation(const Quaternion& newRotation);
 	void setRotationEuler(const Vector3& eulerDegrees);
 	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }

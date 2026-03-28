@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "Transform.h"
+
 #include "GameObject.h"
+#include "UID.h"
 #include <cmath>
 
 Transform::Transform(UID id, GameObject* gameObject) :
@@ -37,6 +39,7 @@ const Matrix& Transform::getGlobalMatrix() const
         m_dirty = false;
         m_owner->onTransformChange();
     }
+
     return m_globalMatrix;
 }
 
@@ -81,6 +84,12 @@ void Transform::setFromGlobalMatrix(const Matrix& globalMatrix)
     }
 
     markDirty();
+}
+
+void Transform::setPosition(const Vector3& newPosition)
+{ 
+    m_position = newPosition; 
+    markDirty(); 
 }
 
 void Transform::setRotation(const Quaternion& q)
@@ -194,6 +203,16 @@ bool Transform::isDescendantOf(const Transform* potentialParent) const
 
 void Transform::drawUi()
 {
+    if (m_root)
+    {
+        ImGui::Text("Parent UID: %llu", m_root->getID());
+    }
+    else
+    {
+        ImGui::Text("Parent: nullptr");
+    }
+    ImGui::Separator();
+
     if (ImGui::DragFloat3("Position", &m_position.x, 0.01f))
     {
         markDirty();

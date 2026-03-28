@@ -1,12 +1,14 @@
 #include "Globals.h"
 #include "ModuleNavigation.h"
+
 #include "Application.h"
 #include "ModuleScene.h"
+
+#include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "BasicMesh.h"
-
 #include "NavMeshResource.h"
 
 #include <fstream>
@@ -26,14 +28,14 @@ static std::string MakeNavMeshPath(const char* sceneName)
 
 bool ModuleNavigation::init()
 {
-    const char* sceneName = app->getModuleScene()->getName();
+    const char* sceneName = app->getModuleScene()->getScene()->getName();
     m_triedLoadOnce = true;
     loadNavMeshForScene(sceneName);
 
     if (WindowLogger::Instance())
     {
         TriangleSoup soup;
-        NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
+        NavMeshGeometryExtractor::Extract(*app->getModuleScene()->getScene(), soup, Layer::NAVMESH, true);
 
         const auto& verts = soup.vertices;
         const auto& tris = soup.indices;
@@ -45,13 +47,6 @@ bool ModuleNavigation::init()
     }
 
 	return true;
-}
-
-
-void ModuleNavigation::update()
-{
-   
-
 }
 
 bool ModuleNavigation::cleanUp()
@@ -191,7 +186,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     if (!WindowLogger::Instance()) return false;
 
     TriangleSoup soup;
-    NavMeshGeometryExtractor::Extract(*app->getModuleScene(), soup, Layer::NAVMESH, true);
+    NavMeshGeometryExtractor::Extract(*app->getModuleScene()->getScene(), soup, Layer::NAVMESH, true);
 
     const auto& verts = soup.vertices;
     const auto& tris = soup.indices;
@@ -228,7 +223,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     m_tileRefs.clear();
     m_tileRefs.push_back(result.tileRef);
 
-    const char* sceneName = app->getModuleScene()->getName();
+    const char* sceneName = app->getModuleScene()->getScene()->getName();
     const bool saved = saveNavMeshForScene(sceneName);
 
     LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");
@@ -354,6 +349,31 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     }
 
     return true;
+}
+
+void ModuleNavigation::debugDraw()
+{
+    if (getDrawNavMesh() && getNavMesh())
+    {
+        for (const auto& l : getNavMeshDebugLines())
+        {
+            dd::line(ddConvert(l.a), ddConvert(l.b), dd::colors::Green);
+
+        }
+    }
+
+    if (hasDebugPath())
+    {
+        const auto& pts = getDebugPathPoints();
+        for (size_t i = 1; i < pts.size(); ++i)
+        {
+            dd::line(ddConvert(pts[i - 1]), ddConvert(pts[i]), dd::colors::Yellow);
+        }
+
+
+        dd::line(ddConvert(pts.front()), ddConvert(pts.front() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+        dd::line(ddConvert(pts.back()), ddConvert(pts.back() + Vector3(0, 0.25f, 0)), dd::colors::Yellow);
+    }
 }
 
 bool ModuleNavigation::computeDebugPath()
