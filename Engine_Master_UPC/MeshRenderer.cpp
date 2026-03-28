@@ -99,6 +99,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_skinnedVertices.clear();
     newMeshRenderer->m_skinnedVertexBuffer.reset();
     newMeshRenderer->invalidateGpuSkinningResources();
+    newMeshRenderer->m_enableCpuSkinningFallback = m_enableCpuSkinningFallback;
 
     newMeshRenderer->m_boundingBox = m_boundingBox;
     newMeshRenderer->m_boundingBox.update(newOwner->GetTransform()->getGlobalMatrix());
@@ -191,6 +192,8 @@ void MeshRenderer::drawUi()
     ImGui::Text("GPU Skinning Vertex Capacity: %d", (int)m_gpuSkinningVertexCapacity);
     ImGui::Text("GPU Palette Joint Capacity: %d", (int)m_gpuPaletteJointCapacity);
     ImGui::Text("GPU Skinning Resources: %s", hasGpuSkinningResources() ? "Yes" : "No");
+
+    ImGui::Checkbox("Enable CPU Skinning Fallback", &m_enableCpuSkinningFallback);
 }
 
 void MeshRenderer::debugDraw()
@@ -217,9 +220,19 @@ void MeshRenderer::update()
             return;
     }
 
+
     rebuildMatrixPalette();
     updateGpuPaletteBuffers();
-    rebuildCpuSkinnedVertexBuffer();
+
+    if (m_enableCpuSkinningFallback)
+    {
+        rebuildCpuSkinnedVertexBuffer();
+    }
+    else
+    {
+        m_skinnedVertices.clear();
+        m_skinnedVertexBuffer.reset();
+    }
 }
 
 rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
