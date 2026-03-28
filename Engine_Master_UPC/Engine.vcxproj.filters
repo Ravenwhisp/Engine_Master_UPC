@@ -333,9 +333,12 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="ViewHierarchyDialog.cpp">
-      <Filter>Editor\Views\Hierarchy</Filter>
-    </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="AnimationController.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp" />
+    <ClCompile Include="ImporterSkin.cpp" />
+    <ClCompile Include="SkinningComputePass.cpp" />
+    <ClCompile Include="ViewHierarchyDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -816,15 +819,14 @@
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="SkyboxParams.h">
-      <Filter>D3D12\Rendering\RenderData</Filter>
-    </ClInclude>
-    <ClInclude Include="UIParams.h">
-      <Filter>D3D12\Rendering\RenderData</Filter>
-    </ClInclude>
-    <ClInclude Include="ViewHierarchyDialog.h">
-      <Filter>Editor\Views\Hierarchy</Filter>
-    </ClInclude>
+    <ClInclude Include="AnimationAsset.h" />
+    <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="AnimationController.h" />
+    <ClInclude Include="ImporterAnimation.h" />
+    <ClInclude Include="ImporterSkin.h" />
+    <ClInclude Include="SkinAsset.h" />
+    <ClInclude Include="SkinningComputePass.h" />
+    <ClInclude Include="ViewHierarchyDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1025,11 +1027,6 @@
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="UIPixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="UIVertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
+    <FxCompile Include="SkinningComputeShader.hlsl" />
   </ItemGroup>
 </Project>
