@@ -9,6 +9,7 @@
 #include "ImporterPrefab.h"
 #include "ImporterAnimation.h"
 #include "ImporterSkin.h"
+#include "ImporterAnimationStateMachine.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
 #include "MD5.h"
@@ -60,6 +61,8 @@ bool ModuleAssets::init()
         m_importerSkin = skin.get();
         m_importerRegistry->registerImporter(std::move(skin));
     }
+
+    m_importerRegistry->registerImporter(std::make_unique<ImporterAnimationStateMachine>());
 
     // GLTF importer holds references to the three importers above so it can
     // delegate sub-asset serialisation without duplicating binary format logic.
