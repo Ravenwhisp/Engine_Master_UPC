@@ -13,6 +13,7 @@
 #include "KeyCode.h"
 
 using DirectX::SimpleMath::Vector3;
+using DirectX::SimpleMath::Vector2;
 
 class GameObject;
 class Transform;
@@ -82,6 +83,12 @@ namespace Time
 namespace Input
 {
     ENGINE_API bool isKeyDown(KeyCode key);
+
+    // GamePad Test
+
+    ENGINE_API bool isGamePadConnected(int player);
+    ENGINE_API Vector2 getGamePadLeftStick(int player);
+    ENGINE_API bool isGamePadAPressed(int player);
 }
 
 namespace Debug

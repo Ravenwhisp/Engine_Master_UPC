@@ -350,6 +350,56 @@ namespace Input
 
         return input->isKeyDown(toKeyboardKey(key));
     }
+
+    //GamePad Test
+
+    bool isGamePadConnected(int player)
+    {
+        if (!app)
+        {
+            return false;
+        }
+
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return input->isGamePadConnected(player);
+    }
+
+    Vector2 getGamePadLeftStick(int player)
+    {
+        if (!app)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+
+        return input->getLeftStick(player);
+    }
+
+    bool isGamePadAPressed(int player)
+    {
+        if (!app)
+        {
+            return false;
+        }
+
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        return input->isGamePadAPressed(player);
+    }
 }
 
 namespace Time
