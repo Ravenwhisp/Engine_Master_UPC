@@ -36,6 +36,7 @@ bool Scene::init()
 
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
+    setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
     m_allObjects.push_back(std::move(gameCamera));
     m_rootObjects.push_back(rawPtr);
