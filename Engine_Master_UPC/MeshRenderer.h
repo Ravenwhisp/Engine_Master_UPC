@@ -72,18 +72,8 @@ public:
 	uint32_t getSkinningVertexCount() const { return static_cast<uint32_t>(m_sourceVertices.size()); }
 	bool hasGpuSkinningResources() const;
 
-	const VertexBuffer* getActiveVertexBuffer() const
-	{
-		if (m_skinnedVertexBuffer)
-			return m_skinnedVertexBuffer.get();
-
-		if (m_mesh)
-			return m_mesh->getVertexBuffer().get();
-
-		return nullptr;
-	}
-
-	bool hasSkinnedVertexBuffer() const { return m_skinnedVertexBuffer != nullptr; }
+	const VertexBuffer* getCpuSkinnedVertexBuffer() const { return m_skinnedVertexBuffer.get(); }
+	bool isCpuSkinningFallbackEnabled() const { return m_enableCpuSkinningFallback; }
 
 private:
 	bool ensureSkinLoaded();
@@ -104,6 +94,7 @@ private:
 	std::vector<Matrix>         m_matrixPalette;
 	std::vector<Matrix>         m_normalPalette;
 	bool                        m_skinBindingsResolved = false;
+	bool						m_enableCpuSkinningFallback = false;
 	std::shared_ptr<BasicMesh>		m_mesh;
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;

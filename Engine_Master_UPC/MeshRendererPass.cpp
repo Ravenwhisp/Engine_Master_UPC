@@ -165,7 +165,8 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
             continue;
 
         const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
-        const VertexBuffer* cpuSkinnedVB = renderer->hasSkinnedVertexBuffer() ? renderer->getActiveVertexBuffer() : nullptr;
+        const VertexBuffer* cpuSkinnedVB =
+            renderer->isCpuSkinningFallbackEnabled() ? renderer->getCpuSkinnedVertexBuffer() : nullptr;
         const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
 
         const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);

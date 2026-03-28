@@ -565,12 +565,20 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
             }
 
             const auto& prims = model.meshes[gNode.mesh].primitives;
-            if (!prims.empty() && prims[0].material >= 0 && prims[0].material < static_cast<int>(materialUIDs.size()))
+            auto& materialRefs = mr->getMaterialsReference();
+            materialRefs.clear();
+            materialRefs.reserve(prims.size());
+
+            for (const tinygltf::Primitive& prim : prims)
             {
-                for (const tinygltf::Primitive& prim : prims)
+                MD5Hash matRef = INVALID_ASSET_ID;
+
+                if (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size()))
                 {
-                    mr->getMaterialsReference().push_back(materialUIDs[prim.material]);
+                    matRef = materialUIDs[prim.material];
                 }
+
+                materialRefs.push_back(matRef);
             }
         }
     }
