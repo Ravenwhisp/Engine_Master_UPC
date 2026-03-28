@@ -49,6 +49,13 @@ public:
     const std::vector<AnimationStateMachineState>& getStates() const { return m_states; }
     const std::vector<AnimationStateMachineTransition>& getTransitions() const { return m_transitions; }
 
+    std::string& getNameMutable() { return m_name; }
+    std::string& getDefaultStateNameMutable() { return m_defaultStateName; }
+
+    std::vector<AnimationStateMachineClip>& getClipsMutable() { return m_clips; }
+    std::vector<AnimationStateMachineState>& getStatesMutable() { return m_states; }
+    std::vector<AnimationStateMachineTransition>& getTransitionsMutable() { return m_transitions; }
+
 private:
     std::string m_name;
     std::string m_defaultStateName;

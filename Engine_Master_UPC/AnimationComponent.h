@@ -66,6 +66,15 @@ private:
     bool samplePlaybackNodeRecursive(const FadingPlayback* playback, const std::string& channelName, AnimationSample& outSample) const;
 
     void blendSamples(const AnimationSample& fromSample, const AnimationSample& toSample, float weight, AnimationSample& outSample) const;
+    void drawStateMachineResourceUi();
+    void drawClipsUi();
+    void drawStatesUi();
+    void drawTransitionsUi();
+
+    void drawStateCombo(const char* label, std::string& value);
+    void drawClipCombo(const char* label, std::string& value);
+
+    void sanitizeStateMachineAfterEdit();
 
     void debugDrawRecursive(GameObject* go);
     void drawAxisTriad(const Matrix& worldMatrix, float axisLength);
