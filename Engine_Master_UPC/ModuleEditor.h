@@ -7,10 +7,8 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "PrefabEditSession.h"
-#include "PrefabManager.h"
 
 class ModuleGameView;
-
 class ImGuiPass;
 
 class WindowLogger;
@@ -22,13 +20,12 @@ class DebugDrawPass;
 class WindowEditorSettings;
 class SceneConfig;
 class WindowGame;
-
 class WindowGameDebug;
 
-class ModuleEditor: public Module
+class ModuleEditor : public Module
 {
 public:
-	enum SCENE_TOOL 
+	enum SCENE_TOOL
 	{
 		NONE = -1,
 		NAVIGATION = 0,
@@ -38,7 +35,7 @@ public:
 		RECT = 4,
 		TRANSFORM = 5
 	};
-	enum NAVIGATION_MODE 
+	enum NAVIGATION_MODE
 	{
 		PAN = 0,
 		ORBIT = 1,
@@ -63,49 +60,52 @@ public:
 	bool cleanUp() override;
 #pragma endregion
 
-	WindowSceneEditor*	getWindowSceneEditor() { return m_sceneEditor; }
-	ImVec2			getWindowSceneEditorSize() { return m_sceneEditor->getSize();}
+	WindowSceneEditor* getWindowSceneEditor() { return m_sceneEditor; }
+	ImVec2              getWindowSceneEditorSize() { return m_sceneEditor->getSize(); }
+	ImVec2              getEventViewport()     const;
+	ImVec2              getEventViewportSize() const;
 
-	ImVec2 getEventViewport() const;
-	ImVec2 getEventViewportSize() const;
+	WindowGame* getWindowGame() { return m_gameWindow; }
 
-
-	WindowGame*		getWindowGame() { return m_gameWindow; }
-
-	void			setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
-	GameObject*		getSelectedGameObject() const { return m_selectedGameObject; }
+	void        setSelectedGameObject(GameObject* selectedGameObject) { m_selectedGameObject = selectedGameObject; }
+	GameObject* getSelectedGameObject() const { return m_selectedGameObject; }
 
 	void enterPrefabEdit(const std::filesystem::path& sourcePath);
-	void               exitPrefabEdit();
-	PrefabEditSession* getPrefabSession() { return &m_prefabSession; }
+	void exitPrefabEdit();
 
-	SCENE_TOOL		getCurrentSceneTool() const { return currentSceneTool; }
-	NAVIGATION_MODE getCurrentNavigationMode() const { return currentNavigationMode; }
-	SIMULATION_MODE	getCurrentSimulationMode() const { return currentSimulationMode; }
+	bool isInPrefabEditMode() const{return m_prefabSession.m_active && m_prefabSession.m_rootObject != nullptr;}
+	GameObject* getPrefabEditRoot() const{return isInPrefabEditMode() ? m_prefabSession.m_rootObject : nullptr;}
+	const std::filesystem::path& getPrefabEditSourcePath() const{return m_prefabSession.m_sourcePath;}
+	Scene* getPrefabEditScene() const {return isInPrefabEditMode() ? m_prefabSession.m_isolatedScene : nullptr; }
 
-	void			setCurrentSceneTool(int tool) { currentSceneTool = static_cast<SCENE_TOOL>(tool); }
-	void			setCurrentSimulationMode(int mode) { currentSimulationMode = static_cast<SIMULATION_MODE>(mode); }
-	bool			isGizmoLocal() const { return gizmoUseLocal; }
-	void			toggleGizmoMode() { gizmoUseLocal = !gizmoUseLocal; }
+	SCENE_TOOL      getCurrentSceneTool()       const { return currentSceneTool; }
+	NAVIGATION_MODE getCurrentNavigationMode()  const { return currentNavigationMode; }
+	SIMULATION_MODE getCurrentSimulationMode()  const { return currentSimulationMode; }
+
+	void setCurrentSceneTool(int tool) { currentSceneTool = static_cast<SCENE_TOOL>(tool); }
+	void setCurrentSimulationMode(int mode) { currentSimulationMode = static_cast<SIMULATION_MODE>(mode); }
+	bool isGizmoLocal()  const { return gizmoUseLocal; }
+	void toggleGizmoMode() { gizmoUseLocal = !gizmoUseLocal; }
 
 private:
-	void			setupDockLayout(ImGuiID dockspace_id);
-	void			mainDockspace(bool* open);
+	void setupDockLayout(ImGuiID dockspace_id);
+	void mainDockspace(bool* open);
+
 private:
 	ModuleGameView* m_moduleGameView;
 
 #pragma region Views
-	std::vector<EditorWindow*>	m_editorWindows;
-	WindowLogger*						m_logger = nullptr;
-	WindowHardware*				m_hardwareWindow = nullptr;
-	WindowPerformance*			m_performanceWindow = nullptr;
-	WindowSceneEditor*				m_sceneEditor = nullptr;
-	WindowEditorSettings*				m_editorSettings = nullptr;
-	SceneConfig*				m_sceneConfig = nullptr;
-	WindowGame*					m_gameWindow = nullptr;
+	std::vector<EditorWindow*>  m_editorWindows;
+	WindowLogger* m_logger = nullptr;
+	WindowHardware* m_hardwareWindow = nullptr;
+	WindowPerformance* m_performanceWindow = nullptr;
+	WindowSceneEditor* m_sceneEditor = nullptr;
+	WindowEditorSettings* m_editorSettings = nullptr;
+	SceneConfig* m_sceneConfig = nullptr;
+	WindowGame* m_gameWindow = nullptr;
 
-    bool m_showMainDockspace = true;
-    bool m_firstFrame = true;
+	bool m_showMainDockspace = true;
+	bool m_firstFrame = true;
 
 	std::unique_ptr<WindowGameDebug> m_viewGameDebug;
 #pragma endregion
@@ -115,14 +115,13 @@ private:
 	void setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode);
 	void setSimulationMode(SIMULATION_MODE newMode);
 	void resetMode();
-
 	void handleKeyboardShortcuts();
 	void handleQWERTYCases(Keyboard::State keyboardState);
 	void flushExitPrefabEdit();
 
-	SCENE_TOOL currentSceneTool;
+	SCENE_TOOL      currentSceneTool;
 	NAVIGATION_MODE currentNavigationMode;
-	SCENE_TOOL previousSceneTool;
+	SCENE_TOOL      previousSceneTool;
 	SIMULATION_MODE currentSimulationMode = STOP;
 
 	GameObject* m_selectedGameObject = nullptr;
@@ -134,4 +133,3 @@ private:
 	bool              m_pendingExitPrefab = false;
 #pragma endregion
 };
-

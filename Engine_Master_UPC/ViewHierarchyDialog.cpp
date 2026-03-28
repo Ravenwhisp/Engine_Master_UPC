@@ -148,7 +148,7 @@ void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
             }
             else 
             {
-                currentScene = app->getModuleEditor()->getPrefabSession()->m_isolatedScene;
+                currentScene = app->getModuleEditor()->getPrefabEditScene();
                 button = m_hierarchy->addChildToPrefabRoot(gameObject);
             }
 
@@ -185,8 +185,12 @@ void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
             }
             else
             {
-                currentScene = app->getModuleEditor()->getPrefabSession()->m_isolatedScene;
+                currentScene = app->getModuleEditor()->getPrefabEditScene();
                 text = m_hierarchy->addChildToPrefabRoot(gameObject);
+
+                Scene* currentScene = gameObject
+                    ? m_editorModule->getPrefabEditScene()
+                    : m_sceneModule->getScene();
             }
 
             text->SetName("New Text");
@@ -219,7 +223,7 @@ void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
             }
             else
             {
-                currentScene = app->getModuleEditor()->getPrefabSession()->m_isolatedScene;
+                currentScene = app->getModuleEditor()->getPrefabEditScene();
                 image = m_hierarchy->addChildToPrefabRoot(gameObject);
             }
 

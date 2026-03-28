@@ -6,7 +6,6 @@
 
 #include "GameObject.h"
 #include "PrefabUI.h"
-#include "PrefabEditSession.h"
 
 WindowInspector::WindowInspector()
 {
@@ -22,12 +21,11 @@ void WindowInspector::render()
         return;
     }
 
-    PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-    const bool prefabMode = session && session->m_active;
+    const bool prefabMode = app->getModuleEditor()->isInPrefabEditMode();;
 
     if (prefabMode)
     {
-        PrefabUI::drawModeHeader(session->m_sourcePath.stem().string().c_str());
+        PrefabUI::drawModeHeader(app->getModuleEditor()->getPrefabEditSourcePath().stem().string().c_str());
         PrefabUI::drawApplyRevertBar(ImGui::GetContentRegionAvail().x);
     }
 

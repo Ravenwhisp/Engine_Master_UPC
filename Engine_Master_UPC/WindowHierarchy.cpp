@@ -6,7 +6,6 @@
 #include "ModuleScene.h"
 #include "ViewHierarchyDialog.h"
 #include "PrefabUI.h"
-#include "PrefabEditSession.h"
 #include "PrefabManager.h"
 
 #include "Scene.h"
@@ -32,25 +31,24 @@ void WindowHierarchy::render()
 	
 	bool contextMenuOpened = false;
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	const bool prefabMode = session && session->m_active;
+	const bool prefabMode = m_editorModule->isInPrefabEditMode();
 
 	if (prefabMode)
 	{
-		std::string filenameStr = session->m_sourcePath.filename().string();
-		const char* cstr = filenameStr.c_str();
-		PrefabUI::drawModeHeader(cstr);
+		std::string filenameStr = m_editorModule->getPrefabEditSourcePath().filename().string();
+		PrefabUI::drawModeHeader(filenameStr.c_str());
 
 		if (ImGui::Button("Add Child Object"))
-			addChildToPrefabRoot(session->m_rootObject);
+			addChildToPrefabRoot(m_editorModule->getPrefabEditRoot());
 		ImGui::SameLine();
 		if (ImGui::Button("Remove Selected"))
 			removeGameObject();
 		ImGui::Separator();
 
-		if (session->m_isolatedScene)
+		Scene* isolatedScene = m_editorModule->getPrefabEditScene();
+		if (isolatedScene)
 		{
-			for (GameObject* go : session->m_isolatedScene->getRootObjects())
+			for (GameObject* go : isolatedScene->getRootObjects())
 				contextMenuOpened = contextMenuOpened || createTreeNode(go, true);
 		}
 	}
@@ -74,11 +72,10 @@ void WindowHierarchy::render()
 
 	if (ImGui::BeginPopup("HierarchyDialogPopup"))
 	{
-		if (prefabMode) m_viewHierarchyDialog->renderHierarchyMenu(session->m_rootObject);
+		if (prefabMode) m_viewHierarchyDialog->renderHierarchyMenu(m_editorModule->getPrefabEditRoot());
 		else m_viewHierarchyDialog->renderHierarchyMenu(nullptr);
 		ImGui::EndPopup();
 	}
-
 
 	ImGui::End();
 }
@@ -88,9 +85,9 @@ bool WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 	Transform* transform = gameObject->GetTransform();
 	const auto children = transform->getAllChildren();
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	const bool isEditRoot = prefabMode && session && gameObject == session->m_rootObject;
-	const bool isPrefabInst = !isEditRoot && PrefabManager::isPrefabInstance(gameObject);
+	GameObject* editRoot = m_editorModule->getPrefabEditRoot();
+	const bool isEditRoot = prefabMode && (gameObject == editRoot);
+	const bool isPrefabInst = !isEditRoot && gameObject->IsPrefabInstance();
 
 	ImGuiTreeNodeFlags flags =
 		children.empty()
@@ -103,7 +100,7 @@ bool WindowHierarchy::createTreeNode(GameObject* gameObject, bool prefabMode)
 	if (isEditRoot)   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.75f, 0.20f, 1.f));
 	else if (isPrefabInst) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
 
-	const char* label = (isEditRoot && session) ? session->m_sourcePath.filename().string().c_str() : gameObject->GetName().c_str();
+	const char* label = isEditRoot ? m_editorModule->getPrefabEditSourcePath().filename().string().c_str() : gameObject->GetName().c_str();
 	std::string nodeId = std::string(label) + "###" + std::to_string(gameObject->GetID());
 
 	bool opened = false;
@@ -252,8 +249,8 @@ void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)
 	if (newParentTransform && newParentTransform->isDescendantOf(childTransform))
 		return;
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
+	// Use the isolated scene during prefab editing, main scene otherwise.
+	Scene* targetScene = m_editorModule->getPrefabEditScene() ? m_editorModule->getPrefabEditScene() : app->getModuleScene()->getScene();
 
 	Matrix worldMatrix = childTransform->getGlobalMatrix();
 
@@ -329,21 +326,23 @@ void WindowHierarchy::addGameObject()
 
 void WindowHierarchy::removeGameObject()
 {
-	GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
+	GameObject* selected = m_editorModule->getSelectedGameObject();
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	if (session && session->m_active && selected == session->m_rootObject)
+	if (selected && m_editorModule->isInPrefabEditMode()
+		&& selected == m_editorModule->getPrefabEditRoot())
 	{
 		return;
 	}
 
 	if (selected)
 	{
-		Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
+		Scene* targetScene = m_editorModule->getPrefabEditScene()
+			? m_editorModule->getPrefabEditScene()
+			: app->getModuleScene()->getScene();
 
 		UID id = selected->GetID();
-		app->getModuleEditor()->setSelectedGameObject(nullptr);
-		app->getModuleScene()->getScene()->removeGameObject(id);
+		m_editorModule->setSelectedGameObject(nullptr);
+		targetScene->removeGameObject(id);
 	}
 }
 
@@ -351,13 +350,10 @@ GameObject* WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
 {
 	if (!parent) return nullptr;
 
-	PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-	Scene* targetScene = (session && session->m_active && session->m_isolatedScene) ? session->m_isolatedScene : app->getModuleScene()->getScene();
+	Scene* targetScene = m_editorModule->getPrefabEditScene() ? m_editorModule->getPrefabEditScene() : app->getModuleScene()->getScene();
 
 	GameObject* newObj = targetScene->createGameObject();
-
 	reparent(newObj, parent);
-	app->getModuleEditor()->setSelectedGameObject(newObj);
-
+	m_editorModule->setSelectedGameObject(newObj);
 	return newObj;
 }
