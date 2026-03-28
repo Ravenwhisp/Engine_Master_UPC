@@ -1,18 +1,27 @@
 #pragma once
 #include "EditorWindow.h"
-#include <dxgi1_6.h>
 
-class WindowHardware: public EditorWindow
+class WindowHardware : public EditorWindow
 {
+
 public:
-	const char* getWindowName() const override { return "Hardware Info"; }
-	void render() override;
+
+    const char* getWindowName() const override
+    {
+        return "Hardware Info";
+    }
+
+    void drawInternal() override;
 
 private:
-	void cpu();
-	void systemVRAM();
-	void vram();
-	void gpu();
-	void gpuFeatures();
-};
 
+    void cpu();
+
+    void systemVRAM();
+
+    void vram();
+
+    void gpu();
+
+    void gpuFeatures();
+};
