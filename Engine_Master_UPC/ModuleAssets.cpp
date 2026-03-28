@@ -62,7 +62,11 @@ bool ModuleAssets::init()
         m_importerRegistry->registerImporter(std::move(skin));
     }
 
-    m_importerRegistry->registerImporter(std::make_unique<ImporterAnimationStateMachine>());
+    {
+        auto animStateMachine = std::make_unique<ImporterAnimationStateMachine>();
+        m_importerAnimationStateMachine = animStateMachine.get();
+        m_importerRegistry->registerImporter(std::move(animStateMachine));
+    }
 
     // GLTF importer holds references to the three importers above so it can
     // delegate sub-asset serialisation without duplicating binary format logic.
@@ -72,7 +76,8 @@ bool ModuleAssets::init()
             *m_importerMaterial,
             *m_importerPrefab,
             *m_importerAnimation,
-            *m_importerSkin));
+            *m_importerSkin,
+            *m_importerAnimationStateMachine));
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
 
