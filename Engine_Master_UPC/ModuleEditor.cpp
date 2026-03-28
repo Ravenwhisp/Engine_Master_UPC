@@ -182,6 +182,44 @@ void ModuleEditor::mainDockspace(bool* p_open)
     ImGui::End();
 }
 
+
+static const char* WINDOW_STATES_FILE = "editor_windows.ini";
+
+void ModuleEditor::saveWindowStates()
+{
+    std::ofstream file(WINDOW_STATES_FILE);
+    if (!file) return;
+
+    for (EditorWindow* window : m_editorWindows)
+    {
+        file << window->getWindowName() << "=" << (window->isOpen() ? 1 : 0) << "\n";
+    }
+}
+
+void ModuleEditor::loadWindowStates()
+{
+    std::ifstream file(WINDOW_STATES_FILE);
+    if (!file) return;
+
+    std::unordered_map<std::string, bool> states;
+    std::string line;
+    while (std::getline(file, line))
+    {
+        const size_t eq = line.find('=');
+        if (eq == std::string::npos) continue;
+        const std::string name = line.substr(0, eq);
+        const bool open = line.substr(eq + 1) == "1";
+        states[name] = open;
+    }
+
+    for (EditorWindow* window : m_editorWindows)
+    {
+        auto it = states.find(window->getWindowName());
+        if (it != states.end())
+            window->setOpen(it->second);
+    }
+}
+
 void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
 {
     ImGui::DockBuilderRemoveNodeDockedWindows(dockspace_id);
@@ -244,6 +282,8 @@ bool ModuleEditor::init()
 
     m_viewGameDebug = std::make_unique<WindowGameDebug>();
 
+    loadWindowStates();
+
     return true;
 }
 
@@ -293,6 +333,8 @@ void ModuleEditor::render()
 bool ModuleEditor::cleanUp()
 {
     app->getModuleD3D12()->getCommandQueue()->flush();
+
+    saveWindowStates();
 
     for (auto window : m_editorWindows)
     {

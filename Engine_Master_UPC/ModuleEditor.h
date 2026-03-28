@@ -140,6 +140,9 @@ public:
 
 private:
 
+    void saveWindowStates();
+    void loadWindowStates();
+
     void setupDockLayout(ImGuiID dockspace_id);
 
     void mainDockspace(bool* open);
