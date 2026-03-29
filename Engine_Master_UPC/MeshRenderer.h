@@ -48,6 +48,8 @@ public:
 	MD5Hash& getMeshReference() { return m_meshAsset; }
 	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
+	IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
+
 private:
 	std::shared_ptr<BasicMesh>		m_mesh;
 	// The position of the material corresponds to the submesh number

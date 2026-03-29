@@ -77,7 +77,6 @@ void ModuleScene::rebuildComponentCaches()
     m_lightComponents.clear();
     m_scriptComponents.clear();
 
-
     for (GameObject* go : m_scene->getAllGameObjects())
     {
         if (!go->GetActive())
@@ -98,6 +97,43 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* script = go->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT))
         {
             m_scriptComponents.push_back(script);
+        }
+    }
+
+    m_scene->clearDirty();
+}
+
+void ModuleScene::rebuildMeshRenderersCache()
+{
+    m_meshRenderers.clear();
+
+    if (app->getSettings()->frustumCulling.debugFrustumCulling)
+    {
+        for (GameObject* gO : m_quadtree->query())
+        {
+            if (!gO->GetActive())
+            {
+                continue;
+            }
+
+            if (auto* mesh = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                m_meshRenderers.push_back(mesh);
+            }
+        }
+    }
+    else {
+        for (GameObject* go : m_scene->getAllGameObjects())
+        {
+            if (!go->GetActive())
+            {
+                continue;
+            }
+
+            if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                m_meshRenderers.push_back(mesh);
+            }
         }
     }
 
