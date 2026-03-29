@@ -10,6 +10,7 @@
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
+#include "KeyCode.h"
 
 using DirectX::SimpleMath::Vector3;
 
@@ -80,7 +81,7 @@ namespace Time
 
 namespace Input
 {
-    ENGINE_API bool isKeyDown(int key);
+    ENGINE_API bool isKeyDown(KeyCode key);
 }
 
 namespace Debug
@@ -88,4 +89,15 @@ namespace Debug
     ENGINE_API void log(const char* message, ...);
     ENGINE_API void warn(const char* message, ...);
     ENGINE_API void error(const char* message, ...);
+}
+
+namespace NavigationAPI
+{
+    ENGINE_API bool hasNavMesh();
+    ENGINE_API bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents);
+    ENGINE_API bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents);
+    ENGINE_API int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents);
+    ENGINE_API bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents);
+    ENGINE_API float getPathLength(const Vector3* pathPoints, int pointCount);
+    ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts);
 }

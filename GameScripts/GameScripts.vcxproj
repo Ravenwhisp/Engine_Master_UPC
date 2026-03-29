@@ -169,7 +169,7 @@
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PlayerWalk.h" />
+    <ClInclude Include="PlayerController.h" />
     <ClInclude Include="TriggerArea.h" />
   </ItemGroup>
   <ItemGroup>
@@ -182,7 +182,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="PlayerWalk.cpp" />
+    <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
