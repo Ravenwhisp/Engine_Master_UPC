@@ -17,6 +17,9 @@
 
 #include "CameraComponent.h"
 
+#include "DeviceType.h"
+#include "PlayerBinding.h"
+
 #include <DetourNavMeshQuery.h>
 
 void registerScript(const char* scriptName, ScriptCreator creator)
@@ -313,6 +316,7 @@ namespace Input
         case KeyCode::D:          return Keyboard::Keys::D;
         case KeyCode::Q:          return Keyboard::Keys::Q;
         case KeyCode::E:          return Keyboard::Keys::E;
+        case KeyCode::R:          return Keyboard::Keys::R;
         case KeyCode::I:          return Keyboard::Keys::I;
         case KeyCode::J:          return Keyboard::Keys::J;
         case KeyCode::K:          return Keyboard::Keys::K;
@@ -329,6 +333,10 @@ namespace Input
         case KeyCode::Down:       return Keyboard::Keys::Down;
         case KeyCode::Left:       return Keyboard::Keys::Left;
         case KeyCode::Right:      return Keyboard::Keys::Right;
+        case KeyCode::Num1:       return Keyboard::Keys::D1;
+        case KeyCode::Num2:       return Keyboard::Keys::D2;
+        case KeyCode::Num3:       return Keyboard::Keys::D3;
+        case KeyCode::Num4:       return Keyboard::Keys::D4;
         case KeyCode::None:
         default:
             return Keyboard::Keys::None;
@@ -349,6 +357,319 @@ namespace Input
         }
 
         return input->isKeyDown(toKeyboardKey(key));
+    }
+
+    Vector2 getMoveAxis(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+        {
+            Vector2 keyboardAxis(0.0f, 0.0f);
+
+            if (isKeyDown(KeyCode::A))
+            {
+                keyboardAxis.x -= 1.0f;
+            }
+            if (isKeyDown(KeyCode::D))
+            {
+                keyboardAxis.x += 1.0f;
+            }
+            if (isKeyDown(KeyCode::W))
+            {
+                keyboardAxis.y -= 1.0f;
+            }
+            if (isKeyDown(KeyCode::S))
+            {
+                keyboardAxis.y += 1.0f;
+            }
+
+            if (keyboardAxis.LengthSquared() > 1.0f)
+            {
+                keyboardAxis.Normalize();
+            }
+
+            return keyboardAxis;
+        }
+
+        case DeviceType::Gamepad:
+            return input->getLeftStick(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return Vector2(0.0f, 0.0f);
+        }
+    }
+
+    Vector2 getLookAxis(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+
+        //Need to add mouse delta mapping, for now we only have gamepad
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return Vector2(0.0f, 0.0f);
+
+        case DeviceType::Gamepad:
+            return input->getRightStick(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return Vector2(0.0f, 0.0f);
+        }
+    }
+
+    bool isFaceButtonBottomPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Space);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadAPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isFaceButtonRightPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::E);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadBPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isFaceButtonLeftPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Q);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadXPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isFaceButtonTopPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::R);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadYPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isLeftShoulderPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num1);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadLeftShoulderPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isRightShoulderPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num2);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadRightShoulderPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isLeftTriggerPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num3);
+
+        case DeviceType::Gamepad:
+            return input->getLeftTrigger(binding.deviceIndex) > 0.5f;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isRightTriggerPressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Num4);
+
+        case DeviceType::Gamepad:
+            return input->getRightTrigger(binding.deviceIndex) > 0.5f;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isPausePressed(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return isKeyDown(KeyCode::Escape);
+
+        case DeviceType::Gamepad:
+            return input->isGamePadStartPressed(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    void setPlayerKeyboard(int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return;
+        }
+
+        input->setPlayerBinding(player, DeviceType::Keyboard, 0);
+    }
+
+    void setPlayerGamepad(int player, int gamepadIndex)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return;
+        }
+
+        input->setPlayerBinding(player, DeviceType::Gamepad, gamepadIndex);
     }
 }
 
