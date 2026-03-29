@@ -28,8 +28,6 @@ public:
     constexpr static uint32_t BLOCK_SIZE{ 8 };
 
     MeshRendererPass(ComPtr<ID3D12Device4> device);
-    ~MeshRendererPass();
-
 
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;

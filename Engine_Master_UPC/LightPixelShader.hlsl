@@ -9,6 +9,9 @@ static const float PI = 3.14159265f;
 static const float EPS = 1e-5f;
 static const float3 DIELECTRIC_FRESNEL = 0.04;
 
+static const float GAMMA = 2.2;
+static const float INV_GAMMA = 1.0 / GAMMA;
+
 //float3 SchlickFresnel(float3 F0, float cosTheta)
 //{
     
@@ -38,16 +41,9 @@ float SmithVisibilityFunction(float NdotL, float NdotV, float roughness)
     
     return 0.5 / (smithL + smithV);
 }
-static const float GAMMA = 2.2;
-static const float INV_GAMMA = 1.0 / GAMMA;
 
-float3 SchlickFresnel(float3 F0, float cosTheta)
-{
-    float x = 1.0f - cosTheta;
-    float x2 = x * x;
-    float x5 = x2 * x2 * x;
-    return F0 + (1.0f - F0) * x5;
-}
+
+
 
 float NormalDistributionFunction(float NdotH, float roughness)
 {
@@ -308,13 +304,13 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
         colorMetallic += ComputeSpotLight(i, worldPos, viewDirection, normalVector, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
         colorNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, normalVector, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
-    
-    float3 finalColor = lerp(colorMetallic, colorNonMetallic, metallic);
-    
+        
     // Ambient
-    //float3 indirectLighting = ambientColor * ambientIntensity * albedoEnergy;
+    float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
     float3 indirectLighting = ambientColor * ambientIntensity;
-    float3 colorMapped = PBRNeutralToneMapping(finalColor + indirectLighting);
+
+    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
     float3 finalColor = LinearToSRGB(colorMapped);
+
     return float4(finalColor, 1.0f);
 }

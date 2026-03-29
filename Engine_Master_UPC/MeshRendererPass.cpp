@@ -210,9 +210,8 @@ GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
         if (!owner || !owner->IsActiveInWindowHierarchy())
             continue;
 
-        const LightComponent* lightComponent = gameObject->GetComponentAs<LightComponent>(ComponentType::LIGHT);
-        if (lightComponent == nullptr)
-        {
+        const Transform* transform = owner->GetTransform();
+        if (!transform)
             continue;
 
         const LightData& data = light->getData();
