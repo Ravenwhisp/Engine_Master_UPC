@@ -2,8 +2,9 @@
 #include "Globals.h"
 #include "Component.h"
 #include "Frustum.h"
+#include "IDebugDrawable.h"
 
-class CameraComponent : public Component 
+class CameraComponent : public Component, public IDebugDrawable
 {
 public:
 	CameraComponent(UID id, GameObject* gameObject);
@@ -31,6 +32,7 @@ public:
 	void recalculateFrustum();
 
 	void drawUi() override;
+	void debugDraw() override;
 
 	void onTransformChange() override;
 
@@ -39,7 +41,7 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
-
+	IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
 private:
 	float m_horizontalFov = 90.0f;
 	float m_nearPlane = 0.5f;

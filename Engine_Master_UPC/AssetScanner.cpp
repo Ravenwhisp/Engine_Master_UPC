@@ -2,7 +2,6 @@
 #include "AssetScanner.h"
 
 #include "Application.h"
-#include "ModuleFileSystem.h"
 #include "ModuleAssets.h"
 #include "AssetRegistry.h"
 #include "ImporterRegistry.h"
@@ -13,12 +12,12 @@
 #include "MD5.h"
 
 #include <filesystem>
+#include <FileIO.h>
 
-AssetScanner::AssetScanner(ModuleFileSystem* fs,
+AssetScanner::AssetScanner(
     AssetRegistry* registry,
     ImporterRegistry* importerRegistry)
-    : m_fs(fs)
-    , m_registry(registry)
+    : m_registry(registry)
     , m_importerRegistry(importerRegistry)
 {
 }
@@ -36,7 +35,7 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
 
 void AssetScanner::checkFile(const std::filesystem::path& path)
 {
-    if (m_fs->isDirectory(path))
+    if (FileIO::isDirectory(path))
     {
         for (const auto& entry : std::filesystem::directory_iterator(path))
             checkFile(entry.path());
@@ -52,7 +51,7 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
     // Raw source file — check that its .metadata sidecar exists.
     std::filesystem::path metadataPath = path;
     metadataPath += METADATA_EXTENSION;
-    if (!m_fs->exists(metadataPath))
+    if (!FileIO::exists(metadataPath))
         handleMissingMetadata(path);
 }
 
@@ -61,7 +60,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     const std::filesystem::path sourcePath =
         metadataPath.parent_path() / metadataPath.stem();
 
-    if (!m_fs->exists(sourcePath))
+    if (!FileIO::exists(sourcePath))
     {
         handleOrphanedMetadata(metadataPath);
         return;
@@ -70,8 +69,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     Metadata meta;
     if (!app->getModuleAssets()->loadMetaFile(metadataPath, meta))
     {
-        DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.",
-            metadataPath.string().c_str());
+        DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.",  metadataPath.string().c_str());
         return;
     }
 
@@ -96,7 +94,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
 
         // If the sub-asset binary is missing, queue the parent for re-import
         // so the binary is regenerated.
-        if (!m_fs->exists(getBinaryPath(dep.uid)))
+        if (!FileIO::exists(getBinaryPath(dep.uid)))
         {
             // Only add one re-import request per parent, even if several
             // sub-assets are missing.
@@ -110,7 +108,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     }
 
     // Binary missing for the parent itself — queue for re-import.
-    if (!m_fs->exists(getBinaryPath(meta.uid)))
+    if (!FileIO::exists(getBinaryPath(meta.uid)))
     {
         bool alreadyQueued = false;
         for (const auto& req : m_pendingImports)
@@ -134,16 +132,18 @@ void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataP
     {
         // Also delete binaries for any sub-assets that were owned by this asset.
         for (const DependencyRecord& dep : meta.m_dependencies)
-            m_fs->remove(getBinaryPath(dep.uid));
+        {
+            FileIO::remove(getBinaryPath(dep.uid));
+        }
 
-        m_fs->remove(getBinaryPath(meta.uid));
+        FileIO::remove(getBinaryPath(meta.uid));
     }
-    m_fs->remove(metadataPath);
+    FileIO::remove(metadataPath);
 }
 
 void AssetScanner::cleanOrphanedBinaries()
 {
-    if (!m_fs->exists(LIBRARY_FOLDER))
+    if (!FileIO::exists(LIBRARY_FOLDER))
         return;
 
     for (const auto& entry : std::filesystem::directory_iterator(LIBRARY_FOLDER))
@@ -156,7 +156,7 @@ void AssetScanner::cleanOrphanedBinaries()
 
         DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata).",
             entry.path().string().c_str());
-        m_fs->remove(entry.path());
+        FileIO::remove(entry.path());
     }
 }
 

@@ -5,6 +5,7 @@
 
 namespace Engine
 {
+    const float EPSILON = 0.001f;
 
     BoundingBox::BoundingBox(const Vector3& min, const Vector3& max)
         : m_min(min), m_max(max)
@@ -19,7 +20,8 @@ namespace Engine
 
     bool BoundingBox::isPointInsidePlane(const Vector3& point, const Plane& plane) const
     {
-        return plane.Normal().Dot(point) + plane.D() < 0;
+        bool testRes = plane.Normal().Dot(point) + plane.D() >= -EPSILON;
+        return testRes;
     }
 
     bool BoundingBox::isFullyOutsideOfPlane(const Plane& plane) const
@@ -46,26 +48,6 @@ namespace Engine
         return true;
     }
 
-    void BoundingBox::render()
-    {
-        float color[3] = { 0.3f, 0.3f, 0.3f };
-
-        dd::line(&m_points[0].x, &m_points[1].x, color);
-        dd::line(&m_points[2].x, &m_points[3].x, color);
-        dd::line(&m_points[0].x, &m_points[2].x, color);
-        dd::line(&m_points[1].x, &m_points[3].x, color);
-
-        dd::line(&m_points[4].x, &m_points[5].x, color);
-        dd::line(&m_points[6].x, &m_points[7].x, color);
-        dd::line(&m_points[4].x, &m_points[6].x, color);
-        dd::line(&m_points[7].x, &m_points[5].x, color);
-
-        dd::line(&m_points[0].x, &m_points[4].x, color);
-        dd::line(&m_points[2].x, &m_points[6].x, color);
-        dd::line(&m_points[1].x, &m_points[5].x, color);
-        dd::line(&m_points[3].x, &m_points[7].x, color);
-    }
-
     void BoundingBox::update(const Matrix& world)
     {
         m_points[0] = Vector3::Transform(Vector3(m_min.x, m_min.y, m_min.z), world);
@@ -77,6 +59,21 @@ namespace Engine
         m_points[5] = Vector3::Transform(Vector3(m_max.x, m_min.y, m_max.z), world);
         m_points[6] = Vector3::Transform(Vector3(m_max.x, m_max.y, m_max.z), world);
         m_points[7] = Vector3::Transform(Vector3(m_min.x, m_max.y, m_max.z), world);
+    }
+
+    void BoundingBox::render()
+    {
+        float color[3] = { 0.3f, 0.3f, 0.3f };
+
+        const Vector3* c = getPoints();
+        ddVec3 pts[8];
+        for (int i = 0; i < 8; ++i)
+        {
+            pts[i][0] = c[i].x;
+            pts[i][1] = c[i].y;
+            pts[i][2] = c[i].z;
+        }
+        dd::box(pts, color, 0, false);
     }
 
 }

@@ -38,6 +38,16 @@ float SmithVisibilityFunction(float NdotL, float NdotV, float roughness)
     
     return 0.5 / (smithL + smithV);
 }
+static const float GAMMA = 2.2;
+static const float INV_GAMMA = 1.0 / GAMMA;
+
+float3 SchlickFresnel(float3 F0, float cosTheta)
+{
+    float x = 1.0f - cosTheta;
+    float x2 = x * x;
+    float x5 = x2 * x2 * x;
+    return F0 + (1.0f - F0) * x5;
+}
 
 float NormalDistributionFunction(float NdotH, float roughness)
 {
@@ -228,6 +238,11 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 viewDirection, 
     //-----------------------------------------//
 }
 
+float3 LinearToSRGB(float3 color)
+{
+    return pow(color, INV_GAMMA);
+}
+
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
     float minRoughness = 0.04;
@@ -300,6 +315,6 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     //float3 indirectLighting = ambientColor * ambientIntensity * albedoEnergy;
     float3 indirectLighting = ambientColor * ambientIntensity;
     float3 colorMapped = PBRNeutralToneMapping(finalColor + indirectLighting);
-
+    float3 finalColor = LinearToSRGB(colorMapped);
     return float4(finalColor, 1.0f);
 }

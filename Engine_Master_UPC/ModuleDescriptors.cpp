@@ -36,9 +36,10 @@ bool ModuleDescriptors::init()
 
 void ModuleDescriptors::preRender()
 {
-    UINT lastCompletedFrame = app->getModuleD3D12()->getLastCompletedFrame();
-    for (int i = 0; i < (int)m_defferedDescriptors.size(); )
-    {
+    // For now only the SRV heap is having deferred releases since it's the only one used for textures
+	UINT lastCompletedFrame = (UINT)app->getModuleD3D12()->getLastCompletedFrame();
+	for (int i = 0; i < m_defferedDescriptors.size(); ++i) {
+
         if (lastCompletedFrame > m_defferedDescriptors[i].frame)
         {
             m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV]->free(m_defferedDescriptors[i].handle);

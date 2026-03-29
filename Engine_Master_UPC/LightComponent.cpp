@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include "LightComponent.h"
+#include "GameObject.h"
+#include "Transform.h"
 
 #include <algorithm>
 #include <cmath>
@@ -36,8 +38,6 @@ std::unique_ptr<Component> LightComponent::clone(GameObject* newOwner) const
     std::unique_ptr<LightComponent> newComponent = std::make_unique<LightComponent>(m_uuid, newOwner);
 
     newComponent->m_data = m_data;
-    newComponent->m_debugDrawEnabled = m_debugDrawEnabled;
-    newComponent->m_debugDrawDepthEnabled = m_debugDrawDepthEnabled;
 
 	return newComponent;
 }
@@ -166,16 +166,6 @@ void LightComponent::drawUi()
         break;
     }
 
-    ImGui::Separator();
-    ImGui::Text("Debug");
-
-    if (ImGui::Checkbox("Draw Debug", &m_debugDrawEnabled));
-
-    if (m_debugDrawEnabled)
-    {
-        ImGui::Checkbox("Depth Test", &m_debugDrawDepthEnabled);
-    }
-
     if (lightChanged) {
         sanitize();
     }
@@ -274,5 +264,83 @@ bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 
     sanitize();
     return true;
+}
+
+
+void LightComponent::debugDraw()
+{
+    if ( !isActive() || !m_owner->GetActive())
+    {
+        return;
+    }
+
+    constexpr float DIRECTIONAL_ARROW_LENGTH = 2.0f;
+    constexpr float DIRECTIONAL_ARROW_HEAD_LENGTH = 0.15f;
+    constexpr float SPOT_DEBUG_MAX_ANGLE_DEGREES = 89.0f;
+
+    const bool depthEnabled = false;
+
+    const Transform* transform = m_owner->GetTransform();
+    const Matrix& world = transform->getGlobalMatrix();
+    const Vector3    position(world._41, world._42, world._43);
+
+    Vector3 forward = transform->getForward();
+    forward.Normalize();
+
+    const Vector3 color = Vector3(1.0f, 1.0f, 0.0f);
+
+    auto asFloat3 = [](const Vector3& v) { return &v.x; };
+
+    switch (m_data.type)
+    {
+    case LightType::DIRECTIONAL:
+    {
+        const Vector3 endPosition = position + forward * DIRECTIONAL_ARROW_LENGTH;
+        dd::arrow(asFloat3(position), asFloat3(endPosition), asFloat3(color), DIRECTIONAL_ARROW_HEAD_LENGTH, 0, depthEnabled);
+        break;
+    }
+    case LightType::POINT:
+    {
+        dd::sphere(asFloat3(position), asFloat3(color), m_data.parameters.point.radius, 0, depthEnabled);
+        break;
+    }
+    case LightType::SPOT:
+    {
+        const float length = m_data.parameters.spot.radius;
+
+        float outerRadians = XMConvertToRadians(std::clamp(m_data.parameters.spot.outerAngleDegrees, 0.0f, SPOT_DEBUG_MAX_ANGLE_DEGREES));
+        float innerRadians = XMConvertToRadians(std::clamp(m_data.parameters.spot.innerAngleDegrees, 0.0f, SPOT_DEBUG_MAX_ANGLE_DEGREES));
+
+        Vector3 referenceAxis = (std::abs(forward.y) > 0.99f) ? Vector3(1.0f, 0.0f, 0.0f) : Vector3(0.0f, 1.0f, 0.0f);
+
+        Vector3 x = referenceAxis.Cross(forward); x.Normalize();
+        Vector3 y = forward.Cross(x);             y.Normalize();
+
+        auto drawConeWire = [&](float angleRad)
+            {
+                float    baseCircleRadius = std::tan(angleRad) * length;
+                Vector3  baseCenter = position + forward * length;
+                Vector3  previousCirclePoint = baseCenter + y * baseCircleRadius;
+
+                for (int angleDeg = 20; angleDeg <= 360; angleDeg += 20)
+                {
+                    float   s = std::sin(XMConvertToRadians((float)angleDeg));
+                    float   c = std::cos(XMConvertToRadians((float)angleDeg));
+                    Vector3 circlePoint = baseCenter + (x * s + y * c) * baseCircleRadius;
+
+                    dd::line(asFloat3(previousCirclePoint), asFloat3(circlePoint), asFloat3(color), 0, depthEnabled);
+                    dd::line(asFloat3(circlePoint), asFloat3(position), asFloat3(color), 0, depthEnabled);
+
+                    previousCirclePoint = circlePoint;
+                }
+            };
+
+        drawConeWire(outerRadians);
+        drawConeWire(innerRadians);
+        break;
+    }
+    default:
+        break;
+    }
 }
 

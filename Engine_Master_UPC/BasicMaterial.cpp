@@ -16,8 +16,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
-		m_textureColor = app->getModuleResources()->createTexture(*baseMapTexture);
-
+		m_textureColor = app->getModuleResources()->createTextureSRGB(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else
@@ -30,7 +29,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 	{
 		auto metallicRoughnessTexture = app->getModuleAssets()->load<TextureAsset>(asset.getMetallicRoughnessMap());
 
-		m_textureMetallicRoughness = app->getModuleResources()->createTexture(*metallicRoughnessTexture);
+		m_textureMetallicRoughness = app->getModuleResources()->createTextureSRGB(*metallicRoughnessTexture);
 		m_materialData.hasMetallicRoughnessTex = true;
 	}
 	else

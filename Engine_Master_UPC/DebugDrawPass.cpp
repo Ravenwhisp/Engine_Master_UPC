@@ -2,10 +2,25 @@
 #define DEBUG_DRAW_VERTEX_BUFFER_SIZE 32768
 #define DEBUG_DRAW_MAX_LINES 65536
 
-#include "Globals.h"
-#include "DebugDrawPass.h"
 
+#include "Globals.h"
+
+#include "DebugDrawPass.h"
+#include "RenderContext.h"
+
+#include "IDebugDrawable.h"
 #include "SimpleMath.h"
+
+#include "Application.h"
+#include "Settings.h"
+#include "ModuleScene.h"
+#include "ModuleEditor.h"
+
+#include "Scene.h"
+#include "Quadtree.h"
+#include "GameObject.h"
+#include "Component.h"
+
 
 #include <d3dcompiler.h>
 #include "d3dx12.h"
@@ -164,7 +179,7 @@ public:
         textPSODesc.VS = { textVS->GetBufferPointer(),  textVS->GetBufferSize() };
         textPSODesc.PS = { textPS->GetBufferPointer(), textPS->GetBufferSize() };
         textPSODesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        textPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        textPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         textPSODesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         textPSODesc.SampleDesc = { useMSAA ? UINT(4) : UINT(1) , 0 };
         textPSODesc.SampleMask = 0xffffffff;
@@ -221,7 +236,7 @@ public:
         pointPSODesc.VS = { linePointVS->GetBufferPointer(),  linePointVS->GetBufferSize() };
         pointPSODesc.PS = { linePointPS->GetBufferPointer(), linePointPS->GetBufferSize() };
         pointPSODesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-        pointPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        pointPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         pointPSODesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         pointPSODesc.SampleDesc = { useMSAA ? UINT(4) : UINT(1), 0 };
         pointPSODesc.SampleMask = 0xffffffff;
@@ -467,11 +482,11 @@ private:
 
 DDRenderInterfaceCoreD3D12* DebugDrawPass::implementation = 0;
 
-DebugDrawPass::DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQueue,
-    bool useMSAA, D3D12_CPU_DESCRIPTOR_HANDLE cpuText, D3D12_GPU_DESCRIPTOR_HANDLE gpuText)
+DebugDrawPass::DebugDrawPass(ID3D12Device4* device, ID3D12CommandQueue* uploadQueue, bool useMSAA, D3D12_CPU_DESCRIPTOR_HANDLE cpuText, D3D12_GPU_DESCRIPTOR_HANDLE gpuText)
 {
     implementation = new DDRenderInterfaceCoreD3D12(device, uploadQueue, useMSAA, cpuText, gpuText);
     dd::initialize(implementation);
+
 }
 
 DebugDrawPass::~DebugDrawPass()
@@ -482,6 +497,84 @@ DebugDrawPass::~DebugDrawPass()
     implementation = 0;
 }
 
+void DebugDrawPass::registerStatic(IDebugDrawable* draw)
+{
+    m_staticDrawers.push_back(draw);
+}
+
+void DebugDrawPass::prepare(const RenderContext& ctx)
+{
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+    m_viewport = &ctx.viewport;
+
+    ModuleScene* moduleScene = app->getModuleScene();
+    Settings* settings = app->getSettings();
+    std::vector<IDebugDrawable*> allDrawables;
+    allDrawables.insert(allDrawables.end(), m_staticDrawers.begin(), m_staticDrawers.end());
+
+    if (settings->sceneEditor.showQuadTree)
+    {
+        if (Quadtree* quadtree = moduleScene->getQuadtree())
+        {
+            allDrawables.push_back(static_cast<IDebugDrawable*>(quadtree));
+        }
+    }
+ 
+#ifdef GAME_RELEASE
+    constexpr bool isGameRelease = true;
+#else
+    constexpr bool isGameRelease = false;
+#endif
+
+    auto processComponents = [&](GameObject* go, bool forced)
+        {
+            for (Component* component : go->GetAllComponents())
+            {
+                if (IDebugDrawable* drawable = component->getAsDebugDrawable())
+                {
+                    switch (component->getType())
+                    {
+                    case ComponentType::LIGHT:
+                        if (forced || settings->sceneEditor.showLightComponent)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::MODEL:
+                        if (forced || settings->sceneEditor.showModelBoundingBoxes)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::CAMERA:
+                        if (forced || settings->sceneEditor.showCameraFrustum)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::NAVIGATION_AGENT:
+                        if (forced || settings->sceneEditor.showNavPath)
+                            allDrawables.push_back(drawable);
+                        break;
+                    }
+                }
+            }
+        };
+
+    for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
+    {
+        processComponents(go, false);
+
+        if (app->getModuleEditor()->getSelectedGameObject() == go)
+        {
+            processComponents(go, true);
+        }
+    }
+
+    for (IDebugDrawable* drawable : allDrawables)
+    {
+        drawable->debugDraw();
+    }
+}
+
 void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "DebugDraw Pass");
@@ -489,8 +582,8 @@ void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
     implementation->mvpMatrix = *m_view * *m_projection;
     implementation->commandList = commandList;
 
-    implementation->width = m_viewport->Width;
-    implementation->height = m_viewport->Height;
+    implementation->width = (uint32_t) m_viewport->Width;
+    implementation->height = (uint32_t) m_viewport->Height;
 
     dd::flush();
 

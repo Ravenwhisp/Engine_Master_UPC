@@ -82,7 +82,7 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
 
         if (FAILED(hr))
         {
-            DEBUG_ERROR("[ImporterTexture] Failed to convert format %u → R8G8B8A8_UNORM_SRGB " "(HRESULT: %08X). Falling back to unconverted data.", static_cast<unsigned>(meta.format), static_cast<unsigned>(hr));
+            DEBUG_ERROR("[ImporterTexture] Failed to convert format %u -> R8G8B8A8_UNORM_SRGB " "(HRESULT: %08X). Falling back to unconverted data.", static_cast<unsigned>(meta.format), static_cast<unsigned>(hr));
             // Fall back: keep working data as-is so we still get something usable.
         }
         else
@@ -109,8 +109,7 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
 
         if (FAILED(hr))
         {
-            DEBUG_ERROR("[ImporterTexture] Failed to generate mipmaps (HRESULT: %08X) — "
-                "importing without mips.", static_cast<unsigned>(hr));
+            DEBUG_WARN("[ImporterTexture] Failed to generate mipmaps (HRESULT: %08X) — " "importing without mips.", static_cast<unsigned>(hr));
         }
         else
         {

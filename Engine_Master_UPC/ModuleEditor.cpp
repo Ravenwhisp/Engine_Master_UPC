@@ -15,7 +15,7 @@
 #include "ImGuiPass.h"
 #include "WindowHierarchy.h"
 #include "WindowInspector.h"
-#include "EditorSettings.h"
+#include "WindowEditorSettings.h"
 #include "FileDialog.h"
 #include "SceneConfig.h"
 #include "WindowGame.h"
@@ -25,7 +25,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
-#include "ModuleGameView.h";
+#include "ModuleGameView.h"
 
 using namespace std;
 
@@ -251,7 +251,7 @@ bool ModuleEditor::init()
     m_editorWindows.push_back(m_logger = new WindowLogger());
     m_editorWindows.push_back(m_hardwareWindow = new WindowHardware());
     m_editorWindows.push_back(m_performanceWindow = new WindowPerformance());
-    m_editorWindows.push_back(m_editorSettings = new EditorSettings());
+    m_editorWindows.push_back(m_editorSettings = new WindowEditorSettings());
     m_editorWindows.push_back(new FileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
 
@@ -458,17 +458,14 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     // Exit any active session before starting a new one.
     if (m_prefabSession.m_active)
     {
-        app->getModuleRender()->setActiveScene(app->getModuleScene());
         m_prefabSession.clear();
     }
 
-    m_prefabSession.m_isolatedScene = std::make_unique<ModuleScene>();
-    m_prefabSession.m_isolatedScene->initEmpty();
-
+    m_prefabSession.m_isolatedScene = app->getModuleScene()->getScene();
+    
     // Instantiate by full path — PrefabManager uses the asset system first,
     // then falls back to a direct file read for prefabs not yet registered.
-    GameObject* loaded = PrefabManager::instantiatePrefab(
-        sourcePath, m_prefabSession.m_isolatedScene.get());
+    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, m_prefabSession.m_isolatedScene);
 
     if (!loaded)
     {
@@ -481,8 +478,6 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     m_prefabSession.m_active = true;
     m_prefabSession.m_editingInMainScene = false;
     m_selectedGameObject = loaded;
-
-    app->getModuleRender()->setActiveScene(m_prefabSession.m_isolatedScene.get());
 }
 
 void ModuleEditor::exitPrefabEdit()
@@ -503,7 +498,6 @@ void ModuleEditor::flushExitPrefabEdit()
 
     m_pendingExitPrefab = false;
     app->getModuleD3D12()->getCommandQueue()->flush();
-    app->getModuleRender()->setActiveScene(app->getModuleScene());
     m_selectedGameObject = nullptr;
     m_prefabSession.clear();
 }

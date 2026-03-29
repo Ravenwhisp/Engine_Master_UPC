@@ -1,15 +1,20 @@
 ﻿#include "Globals.h"
+
 #include "QuadNode.h"
 #include "Quadtree.h"
-#include "MeshRenderer.h"
-#include "GameObject.h"
-#include "BoundingBox.h"
 
-QuadNode::QuadNode(const BoundingRect& bounds,
+#include "GameObject.h"
+#include "MeshRenderer.h"
+
+#include <algorithm>
+
+QuadNode::QuadNode(
+    const BoundingRect& bounds,
     UINT depth,
     Quadtree& tree,
     QuadNode* parent)
-    : m_bounds(bounds),
+    :
+    m_bounds(bounds),
     m_depth(depth),
     m_tree(tree),
     m_parent(parent)
@@ -18,14 +23,14 @@ QuadNode::QuadNode(const BoundingRect& bounds,
 
 void QuadNode::insert(GameObject& object)
 {
-    auto model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+    auto* model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     if (!model) return;
 
     const auto& box = model->getBoundingBox();
 
-    if (!m_bounds.containsFully(box)) return;
+    if (!m_bounds.containsFully(box))
+        return;
 
-    // Try to push object down if possible
     if (!isLeaf())
     {
         if (QuadNode* child = findBestFitChild(box))
@@ -38,7 +43,6 @@ void QuadNode::insert(GameObject& object)
     m_objects.push_back(&object);
     m_tree.m_objectLocationMap[&object] = this;
 
-    // Subdivide only if needed
     if (isLeaf() &&
         m_objects.size() > Quadtree::MAX_OBJECTS &&
         m_depth < Quadtree::MAX_DEPTH)
@@ -49,103 +53,97 @@ void QuadNode::insert(GameObject& object)
     markDirty();
 }
 
-
 void QuadNode::refit(GameObject& object)
 {
-    auto model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+    auto* model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     if (!model) return;
 
     const auto& box = model->getBoundingBox();
 
-    // Object no longer fits -> move upward
     if (!m_bounds.containsFully(box))
     {
         QuadNode* target = findContainingAncestor(box);
+
         if (!target)
-        {
             target = &m_tree.getRoot();
-        }
 
         remove(object);
         target->insert(object);
+
         return;
     }
 
-    // Object fits here, but maybe can go deeper
     if (!isLeaf())
     {
         if (QuadNode* child = findBestFitChild(box))
         {
             remove(object);
             child->insert(object);
+            return;
         }
     }
 
     markDirty();
 }
 
-
 void QuadNode::remove(GameObject& object)
 {
     auto it = std::find(m_objects.begin(), m_objects.end(), &object);
-    if (it != m_objects.end())
-    {
-        m_objects.erase(it);
-    }
+
+    if (it == m_objects.end())
+        return;
+
+    m_objects.erase(it);
 
     m_tree.m_objectLocationMap.erase(&object);
 
     markDirty();
 }
 
-
 void QuadNode::subdivide()
 {
-    float halfwidth = m_bounds.width * 0.5f;
-    float halfheight = m_bounds.height * 0.5f;
+    const float halfWidth = m_bounds.width * 0.5f;
+    const float halfHeight = m_bounds.height * 0.5f;
 
     m_children[TOP_LEFT] = std::make_unique<QuadNode>(
-        BoundingRect(m_bounds.x, m_bounds.y, halfwidth, halfheight),
+        BoundingRect(m_bounds.x, m_bounds.y, halfWidth, halfHeight),
         m_depth + 1, m_tree, this);
 
     m_children[TOP_RIGHT] = std::make_unique<QuadNode>(
-        BoundingRect(m_bounds.x + halfwidth, m_bounds.y, halfwidth, halfheight),
+        BoundingRect(m_bounds.x + halfWidth, m_bounds.y, halfWidth, halfHeight),
         m_depth + 1, m_tree, this);
 
     m_children[BOTTOM_LEFT] = std::make_unique<QuadNode>(
-        BoundingRect(m_bounds.x, m_bounds.y + halfheight, halfwidth, halfheight),
+        BoundingRect(m_bounds.x, m_bounds.y + halfHeight, halfWidth, halfHeight),
         m_depth + 1, m_tree, this);
 
     m_children[BOTTOM_RIGHT] = std::make_unique<QuadNode>(
-        BoundingRect(m_bounds.x + halfwidth, m_bounds.y + halfheight, halfwidth, halfheight),
+        BoundingRect(m_bounds.x + halfWidth, m_bounds.y + halfHeight, halfWidth, halfHeight),
         m_depth + 1, m_tree, this);
 
-    std::vector<GameObject*> oldObjects = std::move(m_objects);
-    m_objects.clear();
+    auto oldObjects = std::move(m_objects);
 
     for (GameObject* obj : oldObjects)
-    {
         insert(*obj);
-    }
-
 }
 
 bool QuadNode::canMerge() const
 {
-    if (isLeaf()) return false;
+    if (isLeaf())
+        return false;
 
-    int total = static_cast<int>(m_objects.size());
+    int total = (int)m_objects.size();
 
     for (const auto& child : m_children)
     {
-        if (!child->isLeaf()) return false;
+        if (!child->isLeaf())
+            return false;
 
-        total += static_cast<int>(child->m_objects.size());
+        total += (int)child->m_objects.size();
     }
 
     return total <= Quadtree::MAX_OBJECTS;
 }
-
 
 void QuadNode::merge()
 {
@@ -157,73 +155,54 @@ void QuadNode::merge()
             m_tree.m_objectLocationMap[obj] = this;
         }
 
+        child->m_objects.clear();
         child.reset();
     }
 }
 
 void QuadNode::markDirty()
 {
-    if (m_dirty) return;
+    if (m_dirty)
+        return;
 
     m_dirty = true;
+
     m_tree.registerDirtyNode(this);
 
     if (m_parent)
-    {
         m_parent->markDirty();
-    }
 }
 
-bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& rectangle, int minY, int maxY) const
+bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& rectangle) const
 {
-    Vector2 center;
-    center.x = rectangle.x + rectangle.width * 0.5f;
-    center.y = rectangle.y + rectangle.height * 0.5f;
+    float fMinX = frustum.m_points[0].x;
+    float fMaxX = frustum.m_points[0].x;
+    float fMinZ = frustum.m_points[0].z;
+    float fMaxZ = frustum.m_points[0].z;
 
-    Vector2 extents;
-    extents.x = rectangle.width * 0.5f;
-    extents.y = rectangle.height * 0.5f;
-
-    std::vector<Vector2> frustumXZ;
-    for (int i = 0; i < 8; i++) 
+    for (int i = 1; i < 8; ++i)
     {
-        frustumXZ.push_back(Vector2(frustum.m_points[i].x, frustum.m_points[i].z));
+        fMinX = std::min(fMinX, frustum.m_points[i].x);
+        fMaxX = std::max(fMaxX, frustum.m_points[i].x);
+
+        fMinZ = std::min(fMinZ, frustum.m_points[i].z);
+        fMaxZ = std::max(fMaxZ, frustum.m_points[i].z);
     }
 
-    Vector2 fMin = frustumXZ[0];
-    Vector2 fMax = frustumXZ[0];
-    for (const auto& p : frustumXZ) 
-    {
-        fMin.x = std::min(fMin.x, p.x);
-        fMin.y = std::min(fMin.y, p.y);
-        fMax.x = std::max(fMax.x, p.x);
-        fMax.y = std::max(fMax.y, p.y);
-    }
+    float nMinX = rectangle.minX();
+    float nMaxX = rectangle.maxX();
+    float nMinZ = rectangle.minZ();
+    float nMaxZ = rectangle.maxZ();
 
-    // Compute node AABB in XZ
-    Vector2 nMin = center - extents;
-    Vector2 nMax = center + extents;
-
-    // Test overlap
-    bool overlapX = !(nMax.x < fMin.x || nMin.x > fMax.x);
-    bool overlapZ = !(nMax.y < fMin.y || nMin.y > fMax.y);
+    bool overlapX = !(nMaxX < fMinX || nMinX > fMaxX);
+    bool overlapZ = !(nMaxZ < fMinZ || nMinZ > fMaxZ);
 
     return overlapX && overlapZ;
 }
 
-void QuadNode::gatherObjects(const Engine::Frustum* frustum, std::vector<GameObject*>& out) const
+void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const
 {
-    if (!frustum)
-    {
-        for (GameObject* obj : m_objects)
-        {
-            auto model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-            out.push_back(obj);
-        }
-        return;
-    }
-
-    if (!intersects(*frustum, m_bounds))
+    if (!intersects(frustum, m_bounds))
     {
         m_bounds.m_debugIsCulled = true;
         return;
@@ -233,19 +212,20 @@ void QuadNode::gatherObjects(const Engine::Frustum* frustum, std::vector<GameObj
 
     for (GameObject* obj : m_objects)
     {
-        auto model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-        if (model && model->getBoundingBox().test(*frustum))
-        {
+        auto* model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+        if (!model || !obj->GetActive())
+            continue;
+
+        if (model->getBoundingBox().test(frustum))
             out.push_back(obj);
-        }
     }
 
-    if (isLeaf()) return;
+    if (isLeaf())
+        return;
 
     for (const auto& child : m_children)
-    {
         child->gatherObjects(frustum, out);
-    }
 }
 
 void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
@@ -255,31 +235,27 @@ void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const
     for (const auto& child : m_children)
     {
         if (child)
-        {
             child->gatherRectangles(out);
-        }
     }
 }
-
 
 QuadNode* QuadNode::findBestFitChild(const Engine::BoundingBox& box) const
 {
     for (const auto& child : m_children)
     {
-        if (child->m_bounds.containsFully(box))
-        {
+        if (child && child->m_bounds.containsFully(box))
             return child.get();
-        }
     }
+
     return nullptr;
 }
 
 QuadNode* QuadNode::findContainingAncestor(const Engine::BoundingBox& box)
 {
     QuadNode* node = this;
+
     while (node && !node->m_bounds.containsFully(box))
-    {
         node = node->m_parent;
-    }
+
     return node;
 }
