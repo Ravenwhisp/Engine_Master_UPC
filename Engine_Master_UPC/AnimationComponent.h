@@ -56,6 +56,7 @@ private:
     const AnimationStateMachineTransition* findTransitionByTrigger(const std::string& triggerName) const;
 
     bool activateState(const std::string& stateName, bool autoPlay, float transitionTimeSeconds);
+    bool previewState(const std::string& stateName);
     void applyRecursive(GameObject* go);
     void forceWorldRecursive(GameObject* go);
 
