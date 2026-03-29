@@ -455,7 +455,10 @@ void AnimationComponent::drawStateMachineResourceUi()
     if (!ImGui::CollapsingHeader("State Machine Resource", ImGuiTreeNodeFlags_DefaultOpen))
         return;
 
-    InputTextString("Resource Name", m_stateMachineAsset->getNameMutable());
+    if (InputTextString("Resource Name", m_stateMachineAsset->getNameMutable()))
+    {
+        m_stateMachineDirty = true;
+    }
 
     drawClipsUi();
     drawStatesUi();
@@ -481,9 +484,20 @@ void AnimationComponent::drawClipsUi()
 
         if (ImGui::TreeNode("Clip", "Clip %zu", i))
         {
-            InputTextString("Name", clip.name);
-            InputTextString("Animation UID", clip.animationUID);
-            ImGui::Checkbox("Loop", &clip.loop);
+            if (InputTextString("Name", clip.name))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (InputTextString("Animation UID", clip.animationUID))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (ImGui::Checkbox("Loop", &clip.loop))
+            {
+                m_stateMachineDirty = true;
+            }
 
             if (ImGui::Button("Delete Clip"))
             {
@@ -491,6 +505,7 @@ void AnimationComponent::drawClipsUi()
                 ImGui::TreePop();
                 ImGui::PopID();
                 sanitizeStateMachineAfterEdit();
+                m_stateMachineDirty = true;
                 return;
             }
 
@@ -507,6 +522,7 @@ void AnimationComponent::drawClipsUi()
         clip.animationUID = INVALID_ASSET_ID;
         clip.loop = true;
         clips.push_back(std::move(clip));
+        m_stateMachineDirty = true;
         sanitizeStateMachineAfterEdit();
     }
 }
@@ -521,7 +537,12 @@ void AnimationComponent::drawStatesUi()
     if (!ImGui::CollapsingHeader("States", ImGuiTreeNodeFlags_DefaultOpen))
         return;
 
+    std::string oldDefaultState = defaultState;
     drawStateCombo("Default State", defaultState);
+    if (defaultState != oldDefaultState)
+    {
+        m_stateMachineDirty = true;
+    }
 
     for (size_t i = 0; i < states.size(); ++i)
     {
@@ -530,9 +551,22 @@ void AnimationComponent::drawStatesUi()
 
         if (ImGui::TreeNode("State", "State %zu", i))
         {
-            InputTextString("Name", state.name);
+            if (InputTextString("Name", state.name))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            std::string oldClipName = state.clipName;
             drawClipCombo("Clip", state.clipName);
-            ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f);
+            if (state.clipName != oldClipName)
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f))
+            {
+                m_stateMachineDirty = true;
+            }
 
             const bool isDefault = (defaultState == state.name);
             ImGui::Text("Default: %s", isDefault ? "Yes" : "No");
@@ -540,6 +574,7 @@ void AnimationComponent::drawStatesUi()
             if (ImGui::Button("Set As Default"))
             {
                 defaultState = state.name;
+                m_stateMachineDirty = true;
             }
 
             ImGui::SameLine();
@@ -557,6 +592,7 @@ void AnimationComponent::drawStatesUi()
                 ImGui::TreePop();
                 ImGui::PopID();
                 sanitizeStateMachineAfterEdit();
+                m_stateMachineDirty = true;
                 return;
             }
 
@@ -574,6 +610,7 @@ void AnimationComponent::drawStatesUi()
         state.speed = 1.0f;
         states.push_back(std::move(state));
         sanitizeStateMachineAfterEdit();
+        m_stateMachineDirty = true;
     }
 }
 void AnimationComponent::drawTransitionsUi()
@@ -593,10 +630,29 @@ void AnimationComponent::drawTransitionsUi()
 
         if (ImGui::TreeNode("Transition", "Transition %zu", i))
         {
+            std::string oldSource = transition.sourceStateName;
             drawStateCombo("Source", transition.sourceStateName);
+            if (transition.sourceStateName != oldSource)
+            {
+                m_stateMachineDirty = true;
+            }
+
+            std::string oldTarget = transition.targetStateName;
             drawStateCombo("Target", transition.targetStateName);
-            InputTextString("Trigger", transition.triggerName);
-            ImGui::DragFloat("Blend Time", &transition.blendTimeSeconds, 0.01f, 0.0f, 10.0f);
+            if (transition.targetStateName != oldTarget)
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (InputTextString("Trigger", transition.triggerName))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (ImGui::DragFloat("Blend Time", &transition.blendTimeSeconds, 0.01f, 0.0f, 10.0f))
+            {
+                m_stateMachineDirty = true;
+            }
 
             if (ImGui::Button("Delete Transition"))
             {
@@ -604,6 +660,7 @@ void AnimationComponent::drawTransitionsUi()
                 ImGui::TreePop();
                 ImGui::PopID();
                 sanitizeStateMachineAfterEdit();
+                m_stateMachineDirty = true;
                 return;
             }
 
@@ -628,6 +685,7 @@ void AnimationComponent::drawTransitionsUi()
 
         transitions.push_back(std::move(transition));
         sanitizeStateMachineAfterEdit();
+        m_stateMachineDirty = true;
     }
 }
 void AnimationComponent::debugDrawRecursive(GameObject* go)
@@ -697,6 +755,15 @@ void AnimationComponent::drawUi()
     {
         setStateMachineUID(m_stateMachineUIDInput);
     }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Save State Machine"))
+    {
+        saveStateMachineAsset();
+    }
+
+    ImGui::Text("State Machine Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
 
     ImGui::Text("Active State: %s", m_activeStateName.empty() ? "<none>" : m_activeStateName.c_str());
     ImGui::Text("Duration: %.3f", m_controller.GetDuration());
@@ -812,6 +879,8 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
     m_stateMachineUIDInput = m_stateMachineUID;
     m_triggerInput.clear();
 
+    m_stateMachineDirty = false;
+
     return true;
 }
 
@@ -825,6 +894,8 @@ void AnimationComponent::setStateMachineUID(const MD5Hash& uid)
 
     resetRuntime();
     m_stateMachineAsset.reset();
+
+    m_stateMachineDirty = false;
 }
 
 bool AnimationComponent::SendTrigger(const std::string& triggerName)
@@ -865,6 +936,8 @@ bool AnimationComponent::ensureStateMachineLoaded()
         DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", m_stateMachineUID.c_str());
         return false;
     }
+
+    m_stateMachineDirty = false;
 
     return true;
 }
@@ -914,6 +987,22 @@ void AnimationComponent::resetRuntime()
     m_previousPlayback.reset();
 
     m_hasStartedPlayback = false;
+}
+
+bool AnimationComponent::saveStateMachineAsset()
+{
+    if (!m_stateMachineAsset)
+        return false;
+
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    if (!moduleAssets->saveAnimationStateMachine(m_stateMachineAsset))
+        return false;
+
+    m_stateMachineDirty = false;
+    return true;
 }
 
 const AnimationStateMachineClip* AnimationComponent::findClipByName(const std::string& clipName) const
