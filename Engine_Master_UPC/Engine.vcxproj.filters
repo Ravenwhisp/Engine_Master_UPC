@@ -336,6 +336,8 @@
     <ClCompile Include="ViewHierarchyDialog.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
+    <ClCompile Include="StagingDescriptorHeap.cpp" />
+    <ClCompile Include="DescriptorHeapBlock.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -774,18 +776,6 @@
     <ClInclude Include="Channel.h">
       <Filter>Animations</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorHandle.h">
-      <Filter>D3D12\Wrappers\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="Handle.h">
-      <Filter>D3D12\Wrappers\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="DescriptorHeapBlock.h">
-      <Filter>D3D12\Wrappers\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="StagingDescriptorheap.h">
-      <Filter>D3D12\Wrappers\Descriptors</Filter>
-    </ClInclude>
     <ClInclude Include="RenderContext.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
@@ -834,6 +824,7 @@
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
+    <ClInclude Include="MD5Fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
