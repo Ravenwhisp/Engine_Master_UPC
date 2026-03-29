@@ -522,51 +522,50 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
     }
  
 #ifdef GAME_RELEASE
-    bool isGameRelease = true;
+    constexpr bool isGameRelease = true;
 #else
-    bool isGameRelease = false;
+    constexpr bool isGameRelease = false;
 #endif
+
+    auto processComponents = [&](GameObject* go, bool forced)
+        {
+            for (Component* component : go->GetAllComponents())
+            {
+                if (IDebugDrawable* drawable = component->getAsDebugDrawable())
+                {
+                    switch (component->getType())
+                    {
+                    case ComponentType::LIGHT:
+                        if (forced || settings->sceneEditor.showLightComponent)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::MODEL:
+                        if (forced || settings->sceneEditor.showModelBoundingBoxes)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::CAMERA:
+                        if (forced || settings->sceneEditor.showCameraFrustum)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::NAVIGATION_AGENT:
+                        if (forced || settings->sceneEditor.showNavPath)
+                            allDrawables.push_back(drawable);
+                        break;
+                    }
+                }
+            }
+        };
 
     for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
     {
-        bool showDebug = isGameRelease || app->getModuleEditor()->getSelectedGameObject() == go;
-        if (!showDebug)
-        {
-            continue;
-        }
+        processComponents(go, false);
 
-        for (Component* component : go->GetAllComponents())
+        if (app->getModuleEditor()->getSelectedGameObject() == go)
         {
-            if (IDebugDrawable* drawable = component->getAsDebugDrawable())
-            {
-                switch (component->getType())
-                {
-                case ComponentType::LIGHT:
-                    if (settings->sceneEditor.showLightComponent)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                case ComponentType::MODEL:
-                    if (settings->sceneEditor.showModelBoundingBoxes)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                case ComponentType::CAMERA:
-                    if (settings->sceneEditor.showCameraFrustum)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                case ComponentType::NAVIGATION_AGENT:
-                    if (settings->sceneEditor.showNavPath)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                }
-            }
+            processComponents(go, true);
         }
     }
 

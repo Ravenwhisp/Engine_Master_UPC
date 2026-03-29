@@ -214,7 +214,7 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
     {
         auto* model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-        if (!model)
+        if (!model || !obj->GetActive())
             continue;
 
         if (model->getBoundingBox().test(frustum))

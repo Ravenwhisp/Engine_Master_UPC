@@ -9,7 +9,6 @@
 
 #include "Scene.h"
 #include "GameObject.h"
-#include "NavMeshWalk.h"
 
 WindowGameDebug::WindowGameDebug()
 {
@@ -31,44 +30,6 @@ void WindowGameDebug::render()
     ImGui::Checkbox("Show FPS", &m_settings->debugGame.showFPS);
     ImGui::Checkbox("Show Frame time", &m_settings->debugGame.showFrametime);
     ImGui::Checkbox("Show triangles number", &m_settings->debugGame.showTrianglesNumber);
-
-    static bool s_initConstrain = false;
-    static bool s_constrainAllNavMeshWalk = true;
-
-    if (!s_initConstrain)
-    {
-        for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
-        {
-            if (!go)
-            {
-                continue;
-            }
-
-            if (auto* n = go->GetComponentAs<NavMeshWalk>(ComponentType::NAVMESH_WALK))
-            {
-                s_constrainAllNavMeshWalk = n->getNavmeshConstrain();
-                break;
-            }
-        }
-
-        s_initConstrain = true;
-    }
-
-    if (ImGui::Checkbox("Constrain NavMeshWalk to NavMesh", &s_constrainAllNavMeshWalk))
-    {
-        for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
-        {
-            if (!go)
-            {
-                continue;
-            }
-
-            if (auto* n = go->GetComponentAs<NavMeshWalk>(ComponentType::NAVMESH_WALK))
-            {
-                n->setNavmeshConstrain(s_constrainAllNavMeshWalk);
-            }
-        }
-    }
 
     ImGui::End();
 }

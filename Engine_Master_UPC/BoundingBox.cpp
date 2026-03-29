@@ -5,6 +5,7 @@
 
 namespace Engine
 {
+    const float EPSILON = 0.001f;
 
     BoundingBox::BoundingBox(const Vector3& min, const Vector3& max)
         : m_min(min), m_max(max)
@@ -19,7 +20,8 @@ namespace Engine
 
     bool BoundingBox::isPointInsidePlane(const Vector3& point, const Plane& plane) const
     {
-        return plane.Normal().Dot(point) + plane.D() < 0;
+        bool testRes = plane.Normal().Dot(point) + plane.D() >= -EPSILON;
+        return testRes;
     }
 
     bool BoundingBox::isFullyOutsideOfPlane(const Plane& plane) const

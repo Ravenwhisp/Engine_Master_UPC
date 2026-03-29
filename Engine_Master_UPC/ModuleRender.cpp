@@ -116,13 +116,13 @@ void ModuleRender::preRender()
 
 #ifdef GAME_RELEASE
     transitionResource(commandList,
-        swapChain->getCurrentRenderTarget(),
+        swapChain->getCurrentRenderTarget()->getD3D12Resource(),
         D3D12_RESOURCE_STATE_PRESENT,
         D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     renderGameToBackbuffer(commandList,
-        swapChain->getCurrentRenderTargetView().cpu,
-        swapChain->getDepthStencilView(),
+        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
+        swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
         swapChain->getScissorRect());
 #else

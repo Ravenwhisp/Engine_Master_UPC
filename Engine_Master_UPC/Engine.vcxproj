@@ -314,6 +314,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="MaterialAsset.h" />
     <ClInclude Include="MD5.h" />
@@ -399,7 +400,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="NavMeshWalk.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MeshRendererPass.h" />
     <ClInclude Include="PlayToolbar.h" />
@@ -638,7 +638,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="NavMeshBuilder.cpp" />
     <ClCompile Include="NavMeshGeometryExtractor.cpp" />
-    <ClCompile Include="NavMeshWalk.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MeshRendererPass.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
