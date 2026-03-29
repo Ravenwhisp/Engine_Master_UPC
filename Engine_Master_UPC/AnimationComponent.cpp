@@ -199,6 +199,20 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
     return true;
 }
 
+bool AnimationComponent::previewState(const std::string& stateName)
+{
+    if (!ensureStateMachineLoaded())
+        return false;
+
+    const bool ok = activateState(stateName, true, 0.0f);
+    if (ok)
+    {
+        m_hasStartedPlayback = true;
+    }
+
+    return ok;
+}
+
 void AnimationComponent::applyRecursive(GameObject* go)
 {
     if (!go)
@@ -528,6 +542,15 @@ void AnimationComponent::drawStatesUi()
                 defaultState = state.name;
             }
 
+            ImGui::SameLine();
+
+            if (ImGui::Button("Preview State"))
+            {
+                previewState(state.name);
+            }
+
+            ImGui::SameLine();
+
             if (ImGui::Button("Delete State"))
             {
                 states.erase(states.begin() + static_cast<std::ptrdiff_t>(i));
@@ -592,11 +615,17 @@ void AnimationComponent::drawTransitionsUi()
 
     if (ImGui::Button("Add Transition"))
     {
+        const auto& states = m_stateMachineAsset->getStates();
+
+        if (states.empty())
+            return;
+
         AnimationStateMachineTransition transition;
-        transition.sourceStateName.clear();
-        transition.targetStateName.clear();
+        transition.sourceStateName = states.front().name;
+        transition.targetStateName = (states.size() > 1) ? states[1].name : states.front().name;
         transition.triggerName = "trigger";
         transition.blendTimeSeconds = 0.25f;
+
         transitions.push_back(std::move(transition));
         sanitizeStateMachineAfterEdit();
     }
