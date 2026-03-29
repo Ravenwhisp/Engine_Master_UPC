@@ -14,6 +14,7 @@
 #include <Metadata.h>
 
 class Asset;
+class AnimationStateMachineAsset;
 class ImporterMaterial;
 class ImporterMesh;
 class ImporterPrefab;
@@ -80,6 +81,9 @@ public:
 
     void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID,
         uint8_t* binaryData, size_t binarySize);
+
+    bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
