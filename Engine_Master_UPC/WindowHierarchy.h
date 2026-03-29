@@ -1,40 +1,49 @@
 #pragma once
 #include "EditorWindow.h"
+#include "HierarchyTreeRenderer.h"
+#include "Delegates.h"
 
-class ModuleEditor;
-class ModuleScene;
-class ViewHierarchyDialog;
 class GameObject;
+class Scene;
+class ViewHierarchyDialog;
+
 class WindowHierarchy : public EditorWindow
 {
-
 public:
-	WindowHierarchy();
+    WindowHierarchy();
+    ~WindowHierarchy();
 
-	void		render() override;
-	const char* getWindowName() const override { return "WindowHierarchy"; }
-	void		addGameObject();
-	void		removeGameObject();
+    void drawInternal() override;
 
-	void startRename(GameObject* go);
-	void reparent(GameObject* child, GameObject* newParent);
-	GameObject* addChildToPrefabRoot(GameObject* parent);
+    const char* getWindowName() const override
+    {
+        return "Hierarchy";
+    }
+
+    void reparent(GameObject* child, GameObject* newParent);
+    void startRename(GameObject* target);
+    void addChildToPrefabRoot(GameObject* parent);
+
 private:
-	bool createTreeNode();
-	bool createTreeNode(GameObject* gameObject, bool prefabMode);
+    void drawSceneHeader();
+    void drawPrefabHeader(struct PrefabEditSession* session);
+    void drawSceneTree();
+    void drawPrefabTree(struct PrefabEditSession* session);
+    void drawInlineRename();
+    void drawBackgroundContextMenu(bool prefabMode, struct PrefabEditSession* session);
 
+    void onSelect(GameObject* go);
+    void onReparent(GameObject* child, GameObject* newParent);
+    void onPrefabDropOnNode(const std::filesystem::path& sourcePath, GameObject* parent);
+    void onDeleteRequested(GameObject* go);
+    void onContextMenuOpen(GameObject* go, bool prefabMode, bool isEditRoot);
 
-	GameObject* m_pendingSelection = nullptr;
-	bool m_isDragging = false;
+    HierarchyTreeRenderer m_treeRenderer;
+    HierarchyTreeRenderer::SelectionState m_selectionState;
 
-	ModuleEditor* m_editorModule;
-	ModuleScene* m_sceneModule;
+    ViewHierarchyDialog* m_viewHierarchyDialog = nullptr;
 
-	ViewHierarchyDialog* m_viewHierarchyDialog;
-
-#pragma region Rename Variables
-	GameObject* m_renamingObject = nullptr;
-	char m_renameBuffer[256];
-	//	float m_lastClickTime = 0.0f;
-#pragma endregion
+    uint64_t m_renameTargetID = 0;
+    char m_renameBuffer[256] = {};
+    bool m_renameFocusPending = false;
 };

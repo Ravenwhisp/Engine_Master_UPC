@@ -8,6 +8,7 @@
 #include "IndexBuffer.h"
 #include "RingBuffer.h"
 #include "Texture.h"
+#include "RenderSurface.h"
 
 #include "ModuleAssets.h"
 #include "BasicMesh.h"
@@ -123,6 +124,20 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
+RenderSurface* ModuleResources::createRenderSurface(float width, float height)
+{
+	auto surface = new RenderSurface();
+
+	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
+
+	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
+
+	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
+
+	return surface;
 }
 
 Texture* ModuleResources::createNullTexture2D()

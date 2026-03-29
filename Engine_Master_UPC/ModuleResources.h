@@ -28,6 +28,7 @@ class BasicMesh;
 class MeshAsset;
 class MaterialAsset;
 class ICacheable;
+class RenderSurface;
 
 // Responsible for creation and management of raw GPU resources in D3D12.
 // Handles buffers, textures, render targets, depth stencils, and deferred GPU release.
@@ -53,6 +54,7 @@ public:
 
 	Texture* createDepthBuffer(float width, float height);
 	Texture* createRenderTexture(float width, float height);
+	RenderSurface* createRenderSurface(float width, float height);
 	Texture* createNullTexture2D();
 
 	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
