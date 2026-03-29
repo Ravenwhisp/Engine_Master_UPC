@@ -26,9 +26,6 @@ public:
     bool m_constrainToNavMesh = true;
     Vector3 m_navExtents = Vector3(2.0f, 4.0f, 2.0f);
 
-    bool m_constrainToNavMesh = true;
-    Vector3 m_navExtents = Vector3(2.0f, 4.0f, 2.0f);
-
 private:
     Vector3 m_initialRotationOffset = Vector3(0.0f, 0.0f, 0.0f);
 
