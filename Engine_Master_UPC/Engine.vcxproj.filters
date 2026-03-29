@@ -922,6 +922,12 @@
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
+    <ClInclude Include="DeviceType.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerBinding.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
