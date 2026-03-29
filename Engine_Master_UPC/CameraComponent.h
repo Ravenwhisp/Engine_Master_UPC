@@ -4,7 +4,7 @@
 #include "Frustum.h"
 #include "IDebugDrawable.h"
 
-class CameraComponent : public Component,public IDebugDrawable
+class CameraComponent : public Component, public IDebugDrawable
 {
 public:
 	CameraComponent(UID id, GameObject* gameObject);

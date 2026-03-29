@@ -39,6 +39,8 @@ public:
     ModuleScene();
     ~ModuleScene();
 
+    void rebuildMeshRenderersCache();
+
 #pragma region GameLoop
     bool init() override;
     void update() override;
@@ -62,6 +64,7 @@ public:
     Scene* getScene() { return m_scene.get(); }
     Quadtree* getQuadtree() { return m_quadtree.get(); }
 
+    // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
     const std::vector<MeshRenderer*>& getMeshRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
