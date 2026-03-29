@@ -20,7 +20,6 @@
 #include "UIButton.h"
 
 // Fake / behaviour components
-#include "NavMeshWalk.h"
 #include "ChangeScene.h"
 #include "ExitApplication.h"
 
@@ -71,9 +70,6 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::EXIT_APPLICATION:
         return std::make_unique<ExitApplication>(id, owner);
-
-    case ComponentType::NAVMESH_WALK:
-        return std::make_unique<NavMeshWalk>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

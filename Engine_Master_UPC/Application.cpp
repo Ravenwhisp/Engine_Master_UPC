@@ -61,18 +61,15 @@ bool Application::init()
 {
 	bool ret = true;
 
+    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
+    assert(m_gameScriptsModule != nullptr);
+
     for (auto it = modules.begin(); it != modules.end() && ret; ++it)
     {
         ret = (*it)->init();
     }
 
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-    // DLL TEST
-    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
-    assert(m_gameScriptsModule != nullptr);
-
-    //DELL TEST
 
 	return ret;
 }
