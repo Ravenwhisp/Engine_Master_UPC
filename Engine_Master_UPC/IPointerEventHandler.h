@@ -3,8 +3,11 @@
 class IPointerEventHandler
 {
 public:
-    virtual void onPointerClick(PointerEventData& data) = 0;
-    virtual void onPointerUp(PointerEventData& data) = 0;
+    virtual void onPointerEnter(PointerEventData&) {}
+    virtual void onPointerExit(PointerEventData&) {}
+    virtual void onPointerDown(PointerEventData&) {}
+    virtual void onPointerUp(PointerEventData&) {}
+    virtual void onPointerClick(PointerEventData&) {}
     virtual ~IPointerEventHandler() = default;
 };
 

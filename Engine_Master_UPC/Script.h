@@ -2,6 +2,9 @@
 
 #include "ScriptFieldInfo.h"
 
+#include "ScriptMethodInfo.h"
+#include "ScriptMethodList.h"
+
 class GameObject;
 
 class Script
@@ -14,6 +17,11 @@ public:
     virtual void Update() {}
 
     virtual ScriptFieldList getExposedFields() const
+    {
+        return {};
+    }
+
+    virtual ScriptMethodList getExposedMethods() const
     {
         return {};
     }

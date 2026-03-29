@@ -922,6 +922,12 @@
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptMethodInfo.h">
+      <Filter>Core\Scripting\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptMethodList.h">
+      <Filter>Core\Scripting\Structs</Filter>
+    </ClInclude>
     <ClInclude Include="DeviceType.h">
       <Filter>Inputs</Filter>
     </ClInclude>
@@ -1108,6 +1114,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\RenderData">
       <UniqueIdentifier>{2de10743-3c95-4ba5-a924-0b09ffbac34f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\Structs">
+      <UniqueIdentifier>{c4b40910-f73d-40f0-86b6-d0d9ce8c7708}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

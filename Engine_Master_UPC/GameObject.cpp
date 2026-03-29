@@ -378,8 +378,10 @@ void GameObject::drawUI()
 
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
         {
-            ImGui::SetDragDropPayload("COMPONENT", &component, sizeof(Component));
-            ImGui::Text("Component UID %s");
+            Component* raw = component.get();
+            ImGui::SetDragDropPayload("COMPONENT", &raw, sizeof(Component*));
+
+            ImGui::Text("%s", std::format("Component UID {}", component->getID()).c_str());
             ImGui::EndDragDropSource();
         }
 

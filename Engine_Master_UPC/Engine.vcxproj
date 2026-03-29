@@ -336,6 +336,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
+    <ClInclude Include="ScriptMethodInfo.h" />
+    <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="ScriptRegistry.h" />
     <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
