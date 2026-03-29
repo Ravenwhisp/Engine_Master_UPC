@@ -13,6 +13,13 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
+    void setKeyboardGamepad();
+    void setTwoGamepad();
+
+private:
+    void setMode(int mode);
+    void chooseConfiguration();
+
 public:
     int m_setupMode = 0;
 };

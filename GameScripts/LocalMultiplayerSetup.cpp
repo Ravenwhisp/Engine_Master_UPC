@@ -21,9 +21,30 @@ LocalMultiplayerSetup::LocalMultiplayerSetup(GameObject* owner)
 
 void LocalMultiplayerSetup::Start()
 {
+    chooseConfiguration();
+}
+
+void LocalMultiplayerSetup::setKeyboardGamepad()
+{
+    setMode(0);
+}
+
+void LocalMultiplayerSetup::setTwoGamepad()
+{
+    setMode(1);
+}
+
+void LocalMultiplayerSetup::setMode(int mode)
+{
+    m_setupMode = mode;
+    chooseConfiguration();
+}
+
+void LocalMultiplayerSetup::chooseConfiguration()
+{
     switch (m_setupMode)
     {
-    case 0: 
+    case 0:
         Input::setPlayerKeyboard(0);
         Input::setPlayerGamepad(1, 0);
         break;
