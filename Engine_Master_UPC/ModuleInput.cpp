@@ -237,7 +237,15 @@ Vector2 ModuleInput::getLeftStick(int player) const
     const float x = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFTX)) / 32767.0f;
     const float y = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFTY)) / 32767.0f;
 
-    return Vector2(x, y);
+    Vector2 stick(x, y);
+
+    const float deadzone = 0.15f;
+    if (stick.LengthSquared() < deadzone * deadzone)
+    {
+        return Vector2(0.0f, 0.0f);
+    }
+
+    return stick;
 }
 
 Vector2 ModuleInput::getRightStick(int player) const
@@ -250,7 +258,15 @@ Vector2 ModuleInput::getRightStick(int player) const
     const float x = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHTX)) / 32767.0f;
     const float y = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHTY)) / 32767.0f;
 
-    return Vector2(x, y);
+    Vector2 stick(x, y);
+
+    const float deadzone = 0.15f;
+    if (stick.LengthSquared() < deadzone * deadzone)
+    {
+        return Vector2(0.0f, 0.0f);
+    }
+
+    return stick;
 }
 
 float ModuleInput::getLeftTrigger(int player) const
