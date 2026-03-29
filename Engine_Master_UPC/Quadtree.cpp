@@ -1,6 +1,10 @@
 ﻿#include "Globals.h"
 #include "Quadtree.h"
 
+#include "Application.h"
+#include "ModuleScene.h"
+#include "Settings.h"
+
 #include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
@@ -9,9 +13,6 @@
 
 #include <algorithm>
 #include <limits>
-
-#include "Application.h"
-#include "ModuleScene.h"
 
 Quadtree::Quadtree() = default;
 Quadtree::~Quadtree() = default;
@@ -65,7 +66,12 @@ void Quadtree::build()
         return;
     }
 
-    BoundingRect rect(minX, minZ, maxX - minX, maxZ - minZ);
+    BoundingRect rect(
+        minX - app->getSettings()->frustumCulling.quadtreeXExtraSize, 
+        minZ - app->getSettings()->frustumCulling.quadtreeZExtraSize,
+        maxX - minX + app->getSettings()->frustumCulling.quadtreeXExtraSize * 2,
+        maxZ - minZ + app->getSettings()->frustumCulling.quadtreeZExtraSize * 2
+    );
 
     m_root = std::make_unique<QuadNode>(rect, 0, *this, nullptr);
 
