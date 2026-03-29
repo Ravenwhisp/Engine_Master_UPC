@@ -314,7 +314,7 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
         return false;
 
     dtPolyRef pathPolys[128];
-    int pathCount;
+    int pathCount = 0;
 
     if (!dtStatusSucceed(m_navQuery->findPath(
         startRef, endRef,

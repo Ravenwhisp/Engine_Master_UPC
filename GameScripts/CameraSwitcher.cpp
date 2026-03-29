@@ -30,7 +30,7 @@ void CameraSwitcher::Update()
         syncCurrentIndexWithDefaultCamera();
     }
 
-    const bool isSwitchKeyPressed = Input::isKeyDown((int)DirectX::Keyboard::Keys::T);
+    const bool isSwitchKeyPressed = Input::isKeyDown(KeyCode::T);
 
     if (isSwitchKeyPressed && !m_wasSwitchKeyPressed)
     {
