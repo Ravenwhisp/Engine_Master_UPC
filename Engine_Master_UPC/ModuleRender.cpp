@@ -8,6 +8,7 @@
 #include "ModuleCamera.h"
 #include "ModuleGameView.h"
 #include "ModuleScene.h"
+
 #include "ModuleNavigation.h"
 #include "ModuleUI.h"
 
@@ -29,6 +30,7 @@
 #include "FontPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
+#include "WindowSceneEditor.h"
 
 std::unique_ptr<RenderSurface> ModuleRender::createSurface(float width, float height)
 {
@@ -43,12 +45,6 @@ std::unique_ptr<RenderSurface> ModuleRender::createSurface(float width, float he
 
     return surface;
 }
-
-void ModuleRender::resizeSurface(RenderSurface& surface, float width, float height)
-{
-    surface.resize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-}
-
 
 bool ModuleRender::init()
 {
@@ -75,18 +71,41 @@ bool ModuleRender::init()
 
     // ImGui lives outside the pass list because startFrame() / apply() must
     // bracket the entire editor render, not just the scene render.
-    m_imGuiPass = std::make_unique<ImGuiPass>(
-        device,
-        d3d12->getWindowHandle(),
-        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0),
-        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
-
-    // Create initial render surfaces at the default viewport size.
-    m_editorSurface = createSurface(m_size.x, m_size.y);
-    m_playSurface = createSurface(m_size.x, m_size.y);
+    m_imGuiPass = std::make_unique<ImGuiPass>(device, d3d12->getWindowHandle(),app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
 
     return true;
 }
+
+void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, float width, float height)
+{
+    if (!surface || width <= 0.0f || height <= 0.0f)
+    {
+        return;
+    }
+
+    uint32_t w = static_cast<uint32_t>(width);
+    uint32_t h = static_cast<uint32_t>(height);
+
+    for (ViewportEntry& entry : m_viewports)
+    {
+        if (entry.surface == surface) 
+        {
+            if (entry.width != w || entry.height != h)
+            {
+                app->getModuleD3D12()->getCommandQueue()->flush();
+                entry.width = w;
+                entry.height = h;
+                surface->resize(w, h);
+            }
+            return;
+        }
+    }
+
+    app->getModuleD3D12()->getCommandQueue()->flush();
+    surface->resize(w, h);
+    m_viewports.push_back({ surface, type, width, height });
+}
+
 
 void ModuleRender::preRender()
 {
@@ -107,34 +126,21 @@ void ModuleRender::preRender()
         swapChain->getViewport(),
         swapChain->getScissorRect());
 #else
-    const ImVec2 newSize = app->getModuleEditor()->getWindowSceneEditorSize();
-
-    // Resize both surfaces lazily when the viewport size changes.
-    if (m_size.x != newSize.x || m_size.y != newSize.y)
+    for (const ViewportEntry& entry : m_viewports)
     {
-        app->getModuleD3D12()->getCommandQueue()->flush();
-        m_size = newSize;
-
-        resizeSurface(*m_editorSurface, newSize.x, newSize.y);
-        resizeSurface(*m_playSurface, newSize.x, newSize.y);
-    }
-
-    // Editor viewport
-    renderToSurface(commandList, *m_editorSurface,
-        [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
-        {
-            renderEditorScene(commandList, rtv, dsv, m_size.x, m_size.y);
-        });
-
-    // Play viewport (only when the engine is in play mode)
-    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
-    {
-        renderToSurface(commandList, *m_playSurface,
-            [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+        renderToSurface(commandList, *entry.surface,[&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
             {
-                renderPlayScene(commandList, rtv, dsv, m_size.x, m_size.y);
+                if (entry.type == ViewportType::EDITOR)
+                {
+                    renderEditorScene(commandList, rtv, dsv, entry.width, entry.height);
+                }
+                else
+                {
+                    renderPlayScene(commandList, rtv, dsv, entry.width, entry.height);
+                }
             });
     }
+
 
     transitionResource(commandList, swapChain->getCurrentRenderTarget()->getD3D12Resource(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -142,7 +148,6 @@ void ModuleRender::preRender()
 #endif
 
     m_imGuiPass->startFrame();
-    ImGuizmo::BeginFrame();
 }
 
 void ModuleRender::render()
@@ -160,24 +165,10 @@ bool ModuleRender::cleanUp()
     m_renderPasses.clear();
     m_imGuiPass.reset();
 
-    m_editorSurface.reset();
-    m_playSurface.reset();
-
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
 
     return true;
-}
-
-
-D3D12_GPU_DESCRIPTOR_HANDLE ModuleRender::getGPUEditorScreenRT()
-{
-    return m_editorSurface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu;
-}
-
-D3D12_GPU_DESCRIPTOR_HANDLE ModuleRender::getGPUPlayScreenRT()
-{
-    return m_playSurface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)
@@ -268,9 +259,7 @@ void ModuleRender::renderBackground( ID3D12GraphicsCommandList4* commandList, D3
 {
     const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    commandList->ClearDepthStencilView(dsvHandle,
-        D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-        1.0f, 0, 0, nullptr);
+    commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
     commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
     commandList->RSSetViewports(1, &viewport);
@@ -306,7 +295,6 @@ void ModuleRender::renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandLi
 
 void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES  beforeState,D3D12_RESOURCE_STATES  afterState)
 {
-    CD3DX12_RESOURCE_BARRIER barrier =
-        CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), beforeState, afterState);
+    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), beforeState, afterState);
     commandList->ResourceBarrier(1, &barrier);
 }
