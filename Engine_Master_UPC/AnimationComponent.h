@@ -50,6 +50,7 @@ private:
     bool ensureStateMachineLoaded();
     void startStateMachineIfNeeded();
     void resetRuntime();
+    bool saveStateMachineAsset();
 
     const AnimationStateMachineClip* findClipByName(const std::string& clipName) const;
     const AnimationStateMachineState* findStateByName(const std::string& stateName) const;
@@ -98,6 +99,7 @@ private:
     bool m_applyScale = false;
     bool m_forceWorldAfterApply = true;
     bool m_hasStartedPlayback = false;
+    bool m_stateMachineDirty = false;
 
     std::string m_stateMachineUIDInput;
     std::string m_triggerInput;

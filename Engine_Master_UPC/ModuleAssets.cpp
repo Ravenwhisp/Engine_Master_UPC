@@ -15,6 +15,7 @@
 #include "MD5.h"
 
 #include "Asset.h"
+#include "AnimationStateMachineAsset.h"
 #include "Metadata.h"
 #include "UID.h"
 
@@ -383,6 +384,52 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
         dep.type = subMeta.type;
         m_pendingDependencies[parentUID].push_back(dep);
     }
+}
+
+bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
+{
+    if (!asset)
+    {
+        DEBUG_ERROR("[ModuleAssets] saveAnimationStateMachine called with null asset.");
+        return false;
+    }
+
+    if (!m_importerAnimationStateMachine)
+    {
+        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine importer is not initialized.");
+        return false;
+    }
+
+    const Metadata* meta = m_registry->getMetadata(asset->getId());
+    if (!meta)
+    {
+        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
+        return false;
+    }
+
+    if (meta->type != AssetType::ANIMATION_STATE_MACHINE)
+    {
+        DEBUG_ERROR("[ModuleAssets] Asset '%s' is not an AnimationStateMachine.", asset->getId().c_str());
+        return false;
+    }
+
+    uint8_t* rawBuffer = nullptr;
+    const uint64_t size = m_importerAnimationStateMachine->save(asset.get(), &rawBuffer);
+    std::unique_ptr<uint8_t[]> buffer(rawBuffer);
+
+    if (!rawBuffer || size == 0)
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to serialize AnimationStateMachine '%s'.", asset->getId().c_str());
+        return false;
+    }
+
+    if (!FileIO::write(meta->getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to write AnimationStateMachine binary '%s'.", asset->getId().c_str());
+        return false;
+    }
+
+    return true;
 }
 
 void ModuleAssets::flushDependencies(const MD5Hash& parentUID,
