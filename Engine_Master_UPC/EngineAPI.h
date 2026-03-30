@@ -64,13 +64,11 @@ namespace ComponentAPI
 
 namespace SceneAPI
 {
-    ENGINE_API int countGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
-    ENGINE_API int findGameObjectsByComponent(ComponentType componentType, GameObject** outputList, int maxResults, bool onlyActive = true);
+    ENGINE_API std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
+    ENGINE_API std::vector<GameObject*> findAllGameObjectsByTag(Tag tag, bool onlyActive = true);
 
     ENGINE_API GameObject* getDefaultCameraGameObject();
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
-
-    ENGINE_API GameObject* findGameObjectByTag(Tag tag, bool onlyActive = true);
 
     ENGINE_API void requestSceneChange(const char* sceneName);
 }
