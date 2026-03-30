@@ -167,9 +167,6 @@
     <ClCompile Include="NavigationAgentComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="NavMeshWalk.cpp">
-      <Filter>NavMesh</Filter>
-    </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
@@ -185,9 +182,6 @@
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="FileIO.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="FileDialog.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="Transform2D.cpp">
@@ -333,13 +327,7 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="AnimationComponent.cpp" />
-    <ClCompile Include="AnimationController.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterSkin.cpp" />
-    <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
     <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClCompile>
@@ -351,6 +339,41 @@
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
+    <ClCompile Include="CommandAddGameObject.cpp" />
+    <ClCompile Include="CommandCreateFolder.cpp" />
+    <ClCompile Include="CommandCutItem.cpp" />
+    <ClCompile Include="CommandDeleteAsset.cpp" />
+    <ClCompile Include="CommandDeleteFolder.cpp" />
+    <ClCompile Include="HierarchyTreeRenderer.cpp" />
+    <ClCompile Include="HierarchyUtils.cpp" />
+    <ClCompile Include="CommandImportAsset.cpp" />
+    <ClCompile Include="CommandInstantiatePrefab.cpp" />
+    <ClCompile Include="CommandMoveFile.cpp" />
+    <ClCompile Include="CommandPasteFile.cpp" />
+    <ClCompile Include="CommandRemoveGameObject.cpp" />
+    <ClCompile Include="CommandRenameGameObject.cpp" />
+    <ClCompile Include="CommandReparent.cpp" />
+    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
+    <ClCompile Include="WindowFileDialog.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationController.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinningComputePass.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterAnimationStateMachine.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterSkin.cpp">
+      <Filter>Persistence\Importers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -549,9 +572,6 @@
     <ClInclude Include="NavigationAgentComponent.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshWalk.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -575,9 +595,6 @@
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="FileIO.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="FileDialog.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ICacheable.h">
@@ -832,18 +849,7 @@
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationAsset.h" />
-    <ClInclude Include="AnimationComponent.h" />
-    <ClInclude Include="AnimationController.h" />
-    <ClInclude Include="ImporterAnimation.h" />
-    <ClInclude Include="ImporterSkin.h" />
-    <ClInclude Include="SkinAsset.h" />
-    <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
-    <ClInclude Include="AnimationStateMachineAsset.h">
-      <Filter>Animations</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterAnimationStateMachine.h" />
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClInclude>
@@ -861,6 +867,59 @@
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h">
       <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAddChildToPrefabRoot.h" />
+    <ClInclude Include="CommandAddGameObject.h" />
+    <ClInclude Include="CommandCreateFolder.h" />
+    <ClInclude Include="CommandCutItem.h" />
+    <ClInclude Include="DeviceType.h" />
+    <ClInclude Include="CommandDeleteAsset.h" />
+    <ClInclude Include="CommandDeleteFolder.h" />
+    <ClInclude Include="FileDialogClipboard.h" />
+    <ClInclude Include="HierarchyTreeRenderer.h" />
+    <ClInclude Include="HierarchyUtils.h" />
+    <ClInclude Include="ICommand.h" />
+    <ClInclude Include="CommandImportAsset.h" />
+    <ClInclude Include="KeyCode.h" />
+    <ClInclude Include="CommandInstantiatePrefab.h" />
+    <ClInclude Include="PlayerBinding.h" />
+    <ClInclude Include="CommandMoveFile.h" />
+    <ClInclude Include="CommandPasteFile.h" />
+    <ClInclude Include="CommandRemoveGameObject.h" />
+    <ClInclude Include="CommandRenameGameObject.h" />
+    <ClInclude Include="CommandReparent.h" />
+    <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
+    <ClInclude Include="ScriptMethodInfo.h" />
+    <ClInclude Include="ScriptMethodList.h" />
+    <ClInclude Include="SkyboxParams.h" />
+    <ClInclude Include="UIParams.h" />
+    <ClInclude Include="WindowFileDialog.h" />
+    <ClInclude Include="ImporterAnimation.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationComponent.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationStateMachineAsset.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationController.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationAsset.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinningComputePass.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinAsset.h">
+      <Filter>Animations</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterAnimationStateMachine.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterSkin.h">
+      <Filter>Persistence\Importers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1074,6 +1133,10 @@
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkinningComputeShader.hlsl" />
+    <FxCompile Include="UIPixelShader.hlsl" />
+    <FxCompile Include="UIVertexShader.hlsl" />
+    <FxCompile Include="SkinningComputeShader.hlsl">
+      <Filter>Animations</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
