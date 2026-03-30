@@ -366,6 +366,16 @@ bool ModuleInput::isGamePadRightStickJustPressed(int player) const
     return isGamePadButtonJustPressedInternal(player, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
 }
 
+bool ModuleInput::isGamePadLeftStickReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_LEFT_STICK);
+}
+
+bool ModuleInput::isGamePadRightStickReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_RIGHT_STICK);
+}
+
 bool ModuleInput::isGamePadAPressed(int player) const
 {
     return isGamePadButtonDown(player, SDL_GAMEPAD_BUTTON_SOUTH);
@@ -406,6 +416,26 @@ bool ModuleInput::isGamePadYJustPressed(int player) const
     return isGamePadButtonJustPressedInternal(player, SDL_GAMEPAD_BUTTON_NORTH);
 }
 
+bool ModuleInput::isGamePadAReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_SOUTH);
+}
+
+bool ModuleInput::isGamePadBReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_EAST);
+}
+
+bool ModuleInput::isGamePadXReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_WEST);
+}
+
+bool ModuleInput::isGamePadYReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_NORTH);
+}
+
 bool ModuleInput::isGamePadLeftShoulderPressed(int player) const
 {
     return isGamePadButtonDown(player, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
@@ -424,6 +454,16 @@ bool ModuleInput::isGamePadLeftShoulderJustPressed(int player) const
 bool ModuleInput::isGamePadRightShoulderJustPressed(int player) const
 {
     return isGamePadButtonJustPressedInternal(player, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+}
+
+bool ModuleInput::isGamePadLeftShoulderReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+}
+
+bool ModuleInput::isGamePadRightShoulderReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
 }
 
 float ModuleInput::getLeftTrigger(int player) const
@@ -473,8 +513,7 @@ bool ModuleInput::isGamePadLeftTriggerJustPressed(int player) const
         return false;
     }
 
-    return m_currentLeftTrigger[player] > TRIGGER_PRESS_THRESHOLD &&
-        m_prevLeftTrigger[player] <= TRIGGER_PRESS_THRESHOLD;
+    return m_currentLeftTrigger[player] > TRIGGER_PRESS_THRESHOLD && m_prevLeftTrigger[player] <= TRIGGER_PRESS_THRESHOLD;
 }
 
 bool ModuleInput::isGamePadRightTriggerJustPressed(int player) const
@@ -484,8 +523,27 @@ bool ModuleInput::isGamePadRightTriggerJustPressed(int player) const
         return false;
     }
 
-    return m_currentRightTrigger[player] > TRIGGER_PRESS_THRESHOLD &&
-        m_prevRightTrigger[player] <= TRIGGER_PRESS_THRESHOLD;
+    return m_currentRightTrigger[player] > TRIGGER_PRESS_THRESHOLD && m_prevRightTrigger[player] <= TRIGGER_PRESS_THRESHOLD;
+}
+
+bool ModuleInput::isGamePadLeftTriggerReleased(int player) const
+{
+    if (player < 0 || player >= MAX_GAMEPADS)
+    {
+        return false;
+    }
+
+    return m_currentLeftTrigger[player] <= TRIGGER_PRESS_THRESHOLD && m_prevLeftTrigger[player] > TRIGGER_PRESS_THRESHOLD;
+}
+
+bool ModuleInput::isGamePadRightTriggerReleased(int player) const
+{
+    if (player < 0 || player >= MAX_GAMEPADS)
+    {
+        return false;
+    }
+
+    return m_currentRightTrigger[player] <= TRIGGER_PRESS_THRESHOLD && m_prevRightTrigger[player] > TRIGGER_PRESS_THRESHOLD;
 }
 
 bool ModuleInput::isGamePadDPadUpPressed(int player) const
@@ -528,6 +586,26 @@ bool ModuleInput::isGamePadDPadRightJustPressed(int player) const
     return isGamePadButtonJustPressedInternal(player, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 }
 
+bool ModuleInput::isGamePadDPadUpReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_DPAD_UP);
+}
+
+bool ModuleInput::isGamePadDPadDownReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+}
+
+bool ModuleInput::isGamePadDPadLeftReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+}
+
+bool ModuleInput::isGamePadDPadRightReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+}
+
 bool ModuleInput::isGamePadStartPressed(int player) const
 {
     return isGamePadButtonDown(player, SDL_GAMEPAD_BUTTON_START);
@@ -536,6 +614,11 @@ bool ModuleInput::isGamePadStartPressed(int player) const
 bool ModuleInput::isGamePadStartJustPressed(int player) const
 {
     return isGamePadButtonJustPressedInternal(player, SDL_GAMEPAD_BUTTON_START);
+}
+
+bool ModuleInput::isGamePadStartReleased(int player) const
+{
+    return isGamePadButtonReleasedInternal(player, SDL_GAMEPAD_BUTTON_START);
 }
 
 #pragma endregion
