@@ -62,6 +62,7 @@ ModuleInput::~ModuleInput()
 
 void ModuleInput::update()
 {
+    m_keyboardTracker.Update(m_keyboard->GetState());
     m_mouseTracker.Update(m_mouse->GetState());
 
     if (m_sdlInitialized)
@@ -137,10 +138,22 @@ PlayerBinding ModuleInput::getPlayerBinding(int player) const
     return m_playerBindings[player];
 }
 
+#pragma region Keyboard
 bool ModuleInput::isKeyDown(Keyboard::Keys key)
 {
     return m_keyboard->GetState().IsKeyDown(key);
 }
+
+bool ModuleInput::isKeyJustPressed(Keyboard::Keys key) const
+{
+    return m_keyboardTracker.IsKeyPressed(key);
+}
+
+bool ModuleInput::isKeyReleased(Keyboard::Keys key) const
+{
+    return m_keyboardTracker.IsKeyReleased(key);
+}
+#pragma endregion
 
 #pragma region Mouse
 

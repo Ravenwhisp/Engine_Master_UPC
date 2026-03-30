@@ -27,7 +27,11 @@ public:
     void setPlayerBinding(int player, DeviceType deviceType, int deviceIndex = 0);
     PlayerBinding getPlayerBinding(int player) const;
 
+#pragma region Keyboard
     bool isKeyDown(Keyboard::Keys key);
+    bool isKeyJustPressed(Keyboard::Keys key) const;
+    bool isKeyReleased(Keyboard::Keys key) const;
+#pragma endregion
 
 #pragma region Mouse
     bool isLeftMouseDown();
@@ -141,6 +145,7 @@ private:
     // Core input devices
     std::unique_ptr<Keyboard> m_keyboard;
     std::unique_ptr<Mouse> m_mouse;
+    Keyboard::KeyboardStateTracker m_keyboardTracker;
     Mouse::ButtonStateTracker m_mouseTracker;
 
     // Mouse state

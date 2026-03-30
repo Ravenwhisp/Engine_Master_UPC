@@ -80,6 +80,7 @@ namespace Time
 
 namespace Input
 {
+    // Normally we should not need this but I let here just in case
     ENGINE_API bool isKeyDown(KeyCode key);
 
     ENGINE_API Vector2 getMoveAxis(int player = 0);
