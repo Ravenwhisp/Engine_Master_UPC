@@ -280,6 +280,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_canvas.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_extra_math.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h" />
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="AnimationAsset.h" />
     <ClInclude Include="AnimationComponent.h" />
@@ -537,6 +543,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">
       </PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp" />
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_canvas.cpp" />
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor.cpp" />
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp" />
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -700,6 +710,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl" />
+    <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
+    <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
     <None Include="MakeSpriteFont.exe" />
     <None Include="NewCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
