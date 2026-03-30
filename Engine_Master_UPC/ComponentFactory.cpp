@@ -67,12 +67,10 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
         return std::make_unique<WaypointPathComponent>(id, owner);
 
     case ComponentType::CHANGE_SCENE:
-        return std::make_unique<Cha
+        return std::make_unique<ChangeScene>(id, owner);
+
     case ComponentType::EXIT_APPLICATION:
         return std::make_unique<ExitApplication>(id, owner);
-
-    case ComponentType::NAVMESH_WALK:
-        return std::make_unique<NavMeshWalk>(id, owner);
 
     case ComponentType::ANIMATION:
         return std::make_unique<AnimationComponent>(id, owner);
