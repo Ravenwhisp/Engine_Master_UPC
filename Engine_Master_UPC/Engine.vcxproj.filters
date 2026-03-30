@@ -340,6 +340,18 @@
     <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
     <ClCompile Include="ImporterAnimationStateMachine.cpp" />
+    <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_canvas.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -832,6 +844,24 @@
       <Filter>Animations</Filter>
     </ClInclude>
     <ClInclude Include="ImporterAnimationStateMachine.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.h">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_canvas.h">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_extra_math.h">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor.h">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1004,6 +1034,9 @@
     <Filter Include="D3D12\Rendering\RenderData">
       <UniqueIdentifier>{2de10743-3c95-4ba5-a924-0b09ffbac34f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor\imgui\NodeEditor">
+      <UniqueIdentifier>{57c3d734-6f4a-45d6-9477-4460d087040b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1018,6 +1051,15 @@
       <Filter>D3D12\Shaders</Filter>
     </None>
     <None Include="MakeSpriteFont.exe" />
+    <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </None>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </None>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
