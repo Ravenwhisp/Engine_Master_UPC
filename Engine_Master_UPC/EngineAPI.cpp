@@ -148,14 +148,14 @@ namespace ComponentAPI
 
 namespace SceneAPI
 {
-    int countGameObjectsByComponent(ComponentType componentType, bool onlyActive)
+    std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive)
     {
+        std::vector<GameObject*> result;
+
         if (!app || !app->getModuleScene())
         {
-            return 0;
+            return result;
         }
-
-        int count = 0;
 
         for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
         {
@@ -185,20 +185,20 @@ namespace SceneAPI
                 continue;
             }
 
-            ++count;
+            result.push_back(gameObject);
         }
 
-        return count;
+        return result;
     }
 
-    int findGameObjectsByComponent(ComponentType componentType, GameObject** outputList, int maxResults, bool onlyActive)
+    std::vector<GameObject*> findAllGameObjectsByTag(Tag tag, bool onlyActive)
     {
-        if (!app || !app->getModuleScene() || !outputList || maxResults <= 0)
-        {
-            return 0;
-        }
+        std::vector<GameObject*> result;
 
-        int count = 0;
+        if (!app || !app->getModuleScene())
+        {
+            return result;
+        }
 
         for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
         {
@@ -207,37 +207,15 @@ namespace SceneAPI
                 continue;
             }
 
-            Component* component = nullptr;
-
-            if (componentType == ComponentType::TRANSFORM)
-            {
-                component = gameObject->GetTransform();
-            }
-            else
-            {
-                component = gameObject->GetComponent(componentType);
-            }
-
-            if (!component)
+            if (gameObject->GetTag() != tag)
             {
                 continue;
             }
 
-            if (onlyActive && !component->isActive())
-            {
-                continue;
-            }
-
-            if (count >= maxResults)
-            {
-                break;
-            }
-
-            outputList[count] = gameObject;
-            ++count;
+            result.push_back(gameObject);
         }
 
-        return count;
+        return result;
     }
 
     GameObject* getDefaultCameraGameObject()
@@ -266,31 +244,6 @@ namespace SceneAPI
         }
 
         app->getModuleScene()->getScene()->setDefaultCamera(camera);
-    }
-
-    GameObject* findGameObjectByTag(Tag tag, bool onlyActive)
-    {
-        if (!app || !app->getModuleScene())
-        {
-            return nullptr;
-        }
-
-        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
-        {
-            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
-            {
-                continue;
-            }
-
-            if (gameObject->GetTag() != tag)
-            {
-                continue;
-            }
-
-            return gameObject;
-        }
-
-        return nullptr;
     }
 
     void requestSceneChange(const char* sceneName)
@@ -495,6 +448,7 @@ namespace Input
                 {
                     return input->isGamePadAJustPressed(binding.deviceIndex);
                 }
+
                 return input->isGamePadAReleased(binding.deviceIndex);
 
             case FaceButton::Right:
