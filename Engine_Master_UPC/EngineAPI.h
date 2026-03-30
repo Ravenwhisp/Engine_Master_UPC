@@ -87,17 +87,51 @@ namespace Input
     ENGINE_API Vector2 getMoveAxis(int player = 0);
     ENGINE_API Vector2 getLookAxis(int player = 0);
 
+    ENGINE_API bool isLeftStickPressed(int player = 0);
+    ENGINE_API bool isRightStickPressed(int player = 0);
+
+    ENGINE_API bool isLeftStickJustPressed(int player = 0);
+    ENGINE_API bool isRightStickJustPressed(int player = 0);
+
+    ENGINE_API bool isLeftStickReleased(int player = 0);
+    ENGINE_API bool isRightStickReleased(int player = 0);
+
     ENGINE_API bool isFaceButtonBottomPressed(int player = 0);
     ENGINE_API bool isFaceButtonRightPressed(int player = 0);
     ENGINE_API bool isFaceButtonLeftPressed(int player = 0);
     ENGINE_API bool isFaceButtonTopPressed(int player = 0);
 
+    ENGINE_API bool isFaceButtonBottomJustPressed(int player = 0);
+    ENGINE_API bool isFaceButtonRightJustPressed(int player = 0);
+    ENGINE_API bool isFaceButtonLeftJustPressed(int player = 0);
+    ENGINE_API bool isFaceButtonTopJustPressed(int player = 0);
+
+    ENGINE_API bool isFaceButtonBottomReleased(int player = 0);
+    ENGINE_API bool isFaceButtonRightReleased(int player = 0);
+    ENGINE_API bool isFaceButtonLeftReleased(int player = 0);
+    ENGINE_API bool isFaceButtonTopReleased(int player = 0);
+
     ENGINE_API bool isLeftShoulderPressed(int player = 0);
     ENGINE_API bool isRightShoulderPressed(int player = 0);
+
+    ENGINE_API bool isLeftShoulderJustPressed(int player = 0);
+    ENGINE_API bool isRightShoulderJustPressed(int player = 0);
+
+    ENGINE_API bool isLeftShoulderReleased(int player = 0);
+    ENGINE_API bool isRightShoulderReleased(int player = 0);
+
     ENGINE_API bool isLeftTriggerPressed(int player = 0);
     ENGINE_API bool isRightTriggerPressed(int player = 0);
 
+    ENGINE_API bool isLeftTriggerJustPressed(int player = 0);
+    ENGINE_API bool isRightTriggerJustPressed(int player = 0);
+
+    ENGINE_API bool isLeftTriggerReleased(int player = 0);
+    ENGINE_API bool isRightTriggerReleased(int player = 0);
+
     ENGINE_API bool isPausePressed(int player = 0);
+    ENGINE_API bool isPauseJustPressed(int player = 0);
+    ENGINE_API bool isPauseReleased(int player = 0);
 
     ENGINE_API void setPlayerKeyboard(int player);
     ENGINE_API void setPlayerGamepad(int player, int gamepadIndex);
