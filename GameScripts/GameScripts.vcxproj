@@ -245,6 +245,7 @@
     <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="InputTest.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerController.h" />
@@ -254,6 +255,7 @@
     <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
