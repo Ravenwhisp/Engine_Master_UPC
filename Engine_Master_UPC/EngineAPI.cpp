@@ -277,11 +277,13 @@ namespace Input
         case KeyCode::U:          return Keyboard::Keys::U;
         case KeyCode::O:          return Keyboard::Keys::O;
         case KeyCode::T:          return Keyboard::Keys::T;
+        case KeyCode::F:          return Keyboard::Keys::F;
         case KeyCode::LeftShift:  return Keyboard::Keys::LeftShift;
         case KeyCode::RightShift: return Keyboard::Keys::RightShift;
         case KeyCode::Space:      return Keyboard::Keys::Space;
         case KeyCode::Escape:     return Keyboard::Keys::Escape;
         case KeyCode::Enter:      return Keyboard::Keys::Enter;
+        case KeyCode::Tab:        return Keyboard::Keys::Tab;
         case KeyCode::Up:         return Keyboard::Keys::Up;
         case KeyCode::Down:       return Keyboard::Keys::Down;
         case KeyCode::Left:       return Keyboard::Keys::Left;
@@ -511,7 +513,12 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return false;
+            if (phase != ButtonPhase::Pressed)
+            {
+                return false;
+            }
+
+            return stickButton == StickButton::Left ? isKeyDown(KeyCode::Tab) : isKeyDown(KeyCode::F);
 
         case DeviceType::Gamepad:
             switch (stickButton)
