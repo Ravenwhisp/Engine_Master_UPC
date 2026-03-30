@@ -343,6 +343,39 @@ namespace Input
         }
     }
 
+    enum class ButtonPhase
+    {
+        Pressed,
+        JustPressed,
+        Released
+    };
+
+    enum class FaceButton
+    {
+        Bottom,
+        Right,
+        Left,
+        Top
+    };
+
+    enum class StickButton
+    {
+        Left,
+        Right
+    };
+
+    enum class ShoulderButton
+    {
+        Left,
+        Right
+    };
+
+    enum class TriggerButton
+    {
+        Left,
+        Right
+    };
+
     bool isKeyDown(KeyCode key)
     {
         if (!app)
@@ -434,7 +467,7 @@ namespace Input
         }
     }
 
-    bool isFaceButtonBottomPressed(int player)
+    static bool queryFaceButton(FaceButton faceButton, ButtonPhase phase, int player)
     {
         ModuleInput* input = app->getModuleInput();
         if (!input)
@@ -447,207 +480,440 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Space);
+            return false;
 
         case DeviceType::Gamepad:
-            return input->isGamePadAPressed(binding.deviceIndex);
+            switch (faceButton)
+            {
+            case FaceButton::Bottom:
+                if (phase == ButtonPhase::Pressed)
+                { 
+                    return input->isGamePadAPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed)
+                {
+                    return input->isGamePadAJustPressed(binding.deviceIndex);
+                }
+                return input->isGamePadAReleased(binding.deviceIndex);
+
+            case FaceButton::Right:
+                if (phase == ButtonPhase::Pressed)
+                {
+                    return input->isGamePadBPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed)
+                {
+                    return input->isGamePadBJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadBReleased(binding.deviceIndex);
+
+            case FaceButton::Left:
+                if (phase == ButtonPhase::Pressed)
+                {
+                    return input->isGamePadXPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed) 
+                {
+                    return input->isGamePadXJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadXReleased(binding.deviceIndex);
+
+            case FaceButton::Top:
+                if (phase == ButtonPhase::Pressed)
+                {
+                    return input->isGamePadYPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed) 
+                {
+                    return input->isGamePadYJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadYReleased(binding.deviceIndex);
+            }
+            return false;
 
         case DeviceType::None:
         default:
             return false;
         }
+    }
+
+    static bool queryStickButton(StickButton stickButton, ButtonPhase phase, int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return false;
+
+        case DeviceType::Gamepad:
+            switch (stickButton)
+            {
+            case StickButton::Left:
+                if (phase == ButtonPhase::Pressed) 
+                {
+                    return input->isGamePadLeftStickPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed)
+                {
+                    return input->isGamePadLeftStickJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadLeftStickReleased(binding.deviceIndex);
+
+            case StickButton::Right:
+                if (phase == ButtonPhase::Pressed) 
+                {
+                    return input->isGamePadRightStickPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed) 
+                {
+                    return input->isGamePadRightStickJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadRightStickReleased(binding.deviceIndex);
+            }
+
+            return false;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    static bool queryShoulderButton(ShoulderButton shoulderButton, ButtonPhase phase, int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            if (phase != ButtonPhase::Pressed)
+            {
+                return false;
+            }
+
+            return shoulderButton == ShoulderButton::Left ? isKeyDown(KeyCode::Num1) : isKeyDown(KeyCode::Num2);
+
+        case DeviceType::Gamepad:
+            switch (shoulderButton)
+            {
+            case ShoulderButton::Left:
+                if (phase == ButtonPhase::Pressed) 
+                {
+                    return input->isGamePadLeftShoulderPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed) 
+                {
+                    return input->isGamePadLeftShoulderJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadLeftShoulderReleased(binding.deviceIndex);
+
+            case ShoulderButton::Right:
+                if (phase == ButtonPhase::Pressed) 
+                {
+                    return input->isGamePadRightShoulderPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed)
+                {
+                    return input->isGamePadRightShoulderJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadRightShoulderReleased(binding.deviceIndex);
+            }
+
+            return false;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    static bool queryTriggerButton(TriggerButton triggerButton, ButtonPhase phase, int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            if (phase != ButtonPhase::Pressed)
+            {
+                return false;
+            }
+
+            return triggerButton == TriggerButton::Left ? isKeyDown(KeyCode::Num3) : isKeyDown(KeyCode::Num4);
+
+        case DeviceType::Gamepad:
+            switch (triggerButton)
+            {
+            case TriggerButton::Left:
+                if (phase == ButtonPhase::Pressed)
+                {
+                    return input->isGamePadLeftTriggerPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed)
+                {
+                     return input->isGamePadLeftTriggerJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadLeftTriggerReleased(binding.deviceIndex);
+
+            case TriggerButton::Right:
+                if (phase == ButtonPhase::Pressed) 
+                {
+                    return input->isGamePadRightTriggerPressed(binding.deviceIndex);
+                }
+
+                if (phase == ButtonPhase::JustPressed) 
+                {
+                    return input->isGamePadRightTriggerJustPressed(binding.deviceIndex);
+                }
+
+                return input->isGamePadRightTriggerReleased(binding.deviceIndex);
+            }
+
+            return false;
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    static bool queryPauseButton(ButtonPhase phase, int player)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            if (phase != ButtonPhase::Pressed)
+            {
+                return false;
+            }
+            return isKeyDown(KeyCode::Escape);
+
+        case DeviceType::Gamepad:
+            if (phase == ButtonPhase::Pressed) 
+            {
+                return input->isGamePadStartPressed(binding.deviceIndex);
+            }
+
+            if (phase == ButtonPhase::JustPressed)
+            {
+                return input->isGamePadStartJustPressed(binding.deviceIndex);
+            }
+
+            return input->isGamePadStartReleased(binding.deviceIndex);
+
+        case DeviceType::None:
+        default:
+            return false;
+        }
+    }
+
+    bool isLeftStickPressed(int player)
+    {
+        return queryStickButton(StickButton::Left, ButtonPhase::Pressed, player);
+    }
+
+    bool isRightStickPressed(int player)
+    {
+        return queryStickButton(StickButton::Right, ButtonPhase::Pressed, player);
+    }
+
+    bool isLeftStickJustPressed(int player)
+    {
+        return queryStickButton(StickButton::Left, ButtonPhase::JustPressed, player);
+    }
+
+    bool isRightStickJustPressed(int player)
+    {
+        return queryStickButton(StickButton::Right, ButtonPhase::JustPressed, player);
+    }
+
+    bool isLeftStickReleased(int player)
+    {
+        return queryStickButton(StickButton::Left, ButtonPhase::Released, player);
+    }
+
+    bool isRightStickReleased(int player)
+    {
+        return queryStickButton(StickButton::Right, ButtonPhase::Released, player);
+    }
+
+    bool isFaceButtonBottomPressed(int player)
+    {
+        return queryFaceButton(FaceButton::Bottom, ButtonPhase::Pressed, player);
     }
 
     bool isFaceButtonRightPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
-
-        const PlayerBinding binding = input->getPlayerBinding(player);
-
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::E);
-
-        case DeviceType::Gamepad:
-            return input->isGamePadBPressed(binding.deviceIndex);
-
-        case DeviceType::None:
-        default:
-            return false;
-        }
+        return queryFaceButton(FaceButton::Right, ButtonPhase::Pressed, player);
     }
 
     bool isFaceButtonLeftPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
-
-        const PlayerBinding binding = input->getPlayerBinding(player);
-
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Q);
-
-        case DeviceType::Gamepad:
-            return input->isGamePadXPressed(binding.deviceIndex);
-
-        case DeviceType::None:
-        default:
-            return false;
-        }
+        return queryFaceButton(FaceButton::Left, ButtonPhase::Pressed, player);
     }
 
     bool isFaceButtonTopPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
+        return queryFaceButton(FaceButton::Top, ButtonPhase::Pressed, player);
+    }
 
-        const PlayerBinding binding = input->getPlayerBinding(player);
+    bool isFaceButtonBottomJustPressed(int player)
+    {
+        return queryFaceButton(FaceButton::Bottom, ButtonPhase::JustPressed, player);
+    }
 
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::R);
+    bool isFaceButtonRightJustPressed(int player)
+    {
+        return queryFaceButton(FaceButton::Right, ButtonPhase::JustPressed, player);
+    }
 
-        case DeviceType::Gamepad:
-            return input->isGamePadYPressed(binding.deviceIndex);
+    bool isFaceButtonLeftJustPressed(int player)
+    {
+        return queryFaceButton(FaceButton::Left, ButtonPhase::JustPressed, player);
+    }
 
-        case DeviceType::None:
-        default:
-            return false;
-        }
+    bool isFaceButtonTopJustPressed(int player)
+    {
+        return queryFaceButton(FaceButton::Top, ButtonPhase::JustPressed, player);
+    }
+
+    bool isFaceButtonBottomReleased(int player)
+    {
+        return queryFaceButton(FaceButton::Bottom, ButtonPhase::Released, player);
+    }
+
+    bool isFaceButtonRightReleased(int player)
+    {
+        return queryFaceButton(FaceButton::Right, ButtonPhase::Released, player);
+    }
+
+    bool isFaceButtonLeftReleased(int player)
+    {
+        return queryFaceButton(FaceButton::Left, ButtonPhase::Released, player);
+    }
+
+    bool isFaceButtonTopReleased(int player)
+    {
+        return queryFaceButton(FaceButton::Top, ButtonPhase::Released, player);
     }
 
     bool isLeftShoulderPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
-
-        const PlayerBinding binding = input->getPlayerBinding(player);
-
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Num1);
-
-        case DeviceType::Gamepad:
-            return input->isGamePadLeftShoulderPressed(binding.deviceIndex);
-
-        case DeviceType::None:
-        default:
-            return false;
-        }
+        return queryShoulderButton(ShoulderButton::Left, ButtonPhase::Pressed, player);
     }
 
     bool isRightShoulderPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
+        return queryShoulderButton(ShoulderButton::Right, ButtonPhase::Pressed, player);
+    }
 
-        const PlayerBinding binding = input->getPlayerBinding(player);
+    bool isLeftShoulderJustPressed(int player)
+    {
+        return queryShoulderButton(ShoulderButton::Left, ButtonPhase::JustPressed, player);
+    }
 
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Num2);
+    bool isRightShoulderJustPressed(int player)
+    {
+        return queryShoulderButton(ShoulderButton::Right, ButtonPhase::JustPressed, player);
+    }
 
-        case DeviceType::Gamepad:
-            return input->isGamePadRightShoulderPressed(binding.deviceIndex);
+    bool isLeftShoulderReleased(int player)
+    {
+        return queryShoulderButton(ShoulderButton::Left, ButtonPhase::Released, player);
+    }
 
-        case DeviceType::None:
-        default:
-            return false;
-        }
+    bool isRightShoulderReleased(int player)
+    {
+        return queryShoulderButton(ShoulderButton::Right, ButtonPhase::Released, player);
     }
 
     bool isLeftTriggerPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
-
-        const PlayerBinding binding = input->getPlayerBinding(player);
-
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Num3);
-
-        case DeviceType::Gamepad:
-            return input->getLeftTrigger(binding.deviceIndex) > 0.5f;
-
-        case DeviceType::None:
-        default:
-            return false;
-        }
+        return queryTriggerButton(TriggerButton::Left, ButtonPhase::Pressed, player);
     }
 
     bool isRightTriggerPressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
+        return queryTriggerButton(TriggerButton::Right, ButtonPhase::Pressed, player);
+    }
 
-        const PlayerBinding binding = input->getPlayerBinding(player);
+    bool isLeftTriggerJustPressed(int player)
+    {
+        return queryTriggerButton(TriggerButton::Left, ButtonPhase::JustPressed, player);
+    }
 
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Num4);
+    bool isRightTriggerJustPressed(int player)
+    {
+        return queryTriggerButton(TriggerButton::Right, ButtonPhase::JustPressed, player);
+    }
 
-        case DeviceType::Gamepad:
-            return input->getRightTrigger(binding.deviceIndex) > 0.5f;
+    bool isLeftTriggerReleased(int player)
+    {
+        return queryTriggerButton(TriggerButton::Left, ButtonPhase::Released, player);
+    }
 
-        case DeviceType::None:
-        default:
-            return false;
-        }
+    bool isRightTriggerReleased(int player)
+    {
+        return queryTriggerButton(TriggerButton::Right, ButtonPhase::Released, player);
     }
 
     bool isPausePressed(int player)
     {
-        ModuleInput* input = app->getModuleInput();
-        if (!input)
-        {
-            return false;
-        }
+        return queryPauseButton(ButtonPhase::Pressed, player);
+    }
 
-        const PlayerBinding binding = input->getPlayerBinding(player);
+    bool isPauseJustPressed(int player)
+    {
+        return queryPauseButton(ButtonPhase::JustPressed, player);
+    }
 
-        switch (binding.deviceType)
-        {
-        case DeviceType::Keyboard:
-            return isKeyDown(KeyCode::Escape);
-
-        case DeviceType::Gamepad:
-            return input->isGamePadStartPressed(binding.deviceIndex);
-
-        case DeviceType::None:
-        default:
-            return false;
-        }
+    bool isPauseReleased(int player)
+    {
+        return queryPauseButton(ButtonPhase::Released, player);
     }
 
     void setPlayerKeyboard(int player)
