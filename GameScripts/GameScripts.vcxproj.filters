@@ -39,6 +39,9 @@
     <ClInclude Include="InputTest.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerTargetController.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -63,6 +66,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="InputTest.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerTargetController.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
