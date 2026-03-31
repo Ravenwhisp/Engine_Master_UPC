@@ -375,6 +375,7 @@
     <ClCompile Include="ImporterSkin.cpp">
       <Filter>Persistence\Importers</Filter>
     </ClCompile>
+    <ClCompile Include="WindowAnimationStateMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -921,6 +922,7 @@
     <ClInclude Include="ImporterSkin.h">
       <Filter>Persistence\Importers</Filter>
     </ClInclude>
+    <ClInclude Include="WindowAnimationStateMachine.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
