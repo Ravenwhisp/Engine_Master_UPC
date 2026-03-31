@@ -201,9 +201,19 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                     ImGui::SetDragDropPayload("PREFAB_ASSET", pathStr.c_str(), pathStr.size() + 1);
                     ImGui::Text("[Prefab]  %s", asset->displayName.c_str());
                 }
+                else if (sourcePath.extension() == SCRIPT_EXTENSION)
+                {
+                    auto scriptName = asset->displayName;
+                    scriptName.erase(scriptName.size() - std::strlen(SCRIPT_EXTENSION));
+
+                    ImGui::SetDragDropPayload("SCRIPT_ASSET", scriptName.c_str(), scriptName.size() + 1);
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.85f, 1.0f, 1.f));
+                    ImGui::Text("[Script]  %s", scriptName.c_str());
+                    ImGui::PopStyleColor();
+                }
                 else
                 {
-                    ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(MD5Hash));
+                    ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
                     ImGui::Text("Dragging %s", asset->displayName.c_str());
                 }
 

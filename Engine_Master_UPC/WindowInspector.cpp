@@ -77,6 +77,11 @@ void WindowInspector::drawInternal()
         displayObject = app->getModuleEditor()->getSelectedGameObject();
     }
 
+    if (displayObject)
+    {
+        displayObject->drawUI();
+    }
+
     ImGui::Spacing();
     ImGui::Separator();
 
@@ -107,6 +112,7 @@ void WindowInspector::drawInternal()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCRIPT_ASSET"))
         {
             const char* scriptName = static_cast<const char*>(payload->Data);
+            GameObject* selectedGameObject = app->getModuleEditor()->getSelectedGameObject();
 
             if (scriptName && selectedGameObject && ScriptFactory::isScriptRegistered(scriptName))
             {
@@ -126,8 +132,5 @@ void WindowInspector::drawInternal()
         }
         ImGui::EndDragDropTarget();
     }
-    if (displayObject)
-    {
-        displayObject->drawUI();
-    }
+
 }
