@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "ModuleTime.h"
+#include "ModuleEditor.h"
+#include "WindowAnimationStateMachine.h"
 
 #include "AnimationAsset.h"
 #include "AnimationStateMachineAsset.h"
@@ -762,6 +764,23 @@ void AnimationComponent::drawUi()
     {
         saveStateMachineAsset();
     }
+
+    ImGui::SameLine();
+
+    ImGui::BeginDisabled(m_stateMachineUID == INVALID_ASSET_ID);
+    if (ImGui::Button("Open State Machine Editor"))
+    {
+        ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
+        WindowAnimationStateMachine* stateMachineWindow =
+            moduleEditor ? moduleEditor->getWindowAnimationStateMachine() : nullptr;
+
+        if (stateMachineWindow)
+        {
+            stateMachineWindow->setTargetStateMachineUID(m_stateMachineUID);
+            stateMachineWindow->setOpen(true);
+        }
+    }
+    ImGui::EndDisabled();
 
     ImGui::Text("State Machine Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
 
