@@ -16,6 +16,8 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
+    GameObject* getCurrentTarget() const { return m_currentTarget; };
+
 public:
     float m_targetRange = 8.0f;
 
