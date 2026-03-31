@@ -6,6 +6,14 @@
 
 class AnimationStateMachineAsset;
 
+namespace ax
+{
+    namespace NodeEditor
+    {
+        struct EditorContext;
+    }
+}
+
 class WindowAnimationStateMachine final : public EditorWindow
 {
 public:
@@ -16,6 +24,8 @@ public:
     {
         return "Animation State Machine";
     }
+
+    void cleanUp() override;
 
     void setTargetStateMachineUID(const MD5Hash& uid);
     const MD5Hash& getTargetStateMachineUID() const
@@ -28,8 +38,10 @@ protected:
 
 private:
     bool ensureAssetLoaded();
+    bool ensureEditorContext();
 
 private:
     MD5Hash m_targetStateMachineUID = INVALID_ASSET_ID;
     std::shared_ptr<AnimationStateMachineAsset> m_asset;
+    ax::NodeEditor::EditorContext* m_editorContext = nullptr;
 };
