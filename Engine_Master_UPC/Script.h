@@ -37,6 +37,8 @@ public:
 
     GameObject* getOwner() const { return m_owner; }
 
+    virtual void drawGizmo() {}
+
 protected:
     GameObject* m_owner = nullptr;
 };
