@@ -554,6 +554,10 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
                         if (forced || settings->sceneEditor.showNavPath)
                             allDrawables.push_back(drawable);
                         break;
+                    case ComponentType::SCRIPT:
+                        if (forced)
+                            allDrawables.push_back(drawable);
+                        break;
                     }
                 }
             }
