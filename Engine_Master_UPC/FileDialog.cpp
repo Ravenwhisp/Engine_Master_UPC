@@ -11,6 +11,7 @@
 #include "Keyboard.h"
 #include "Extensions.h"
 #include <FileIO.h>
+#include <ScriptFactory.h>
 
 
 // ---------------------------------------------------------------------------
@@ -272,18 +273,26 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
         const bool isPrefab = (!asset->isDirectory && (realPath.extension() == PREFAB_EXTENSION || realPath.extension() == GLTF_EXTENSION));
 
         if (isPrefab)
+        {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
+        }
 
         ImGui::Button(asset->isDirectory ? "[DIR]" : (isPrefab ? "[P]" : "[FILE]"), ImVec2(40, 40));
 
         if (isPrefab)
+        {
             ImGui::PopStyleColor();
+        }
 
         if (ImGui::IsItemClicked())
+        {
             m_selectedItem = asset;
+        }
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+        {
             handleAssetDoubleClick(asset);
+        }
 
         if (!asset->isDirectory)
         {
@@ -301,9 +310,19 @@ void FileDialog::drawAssetGrid(const std::shared_ptr<FileEntry> directory)
                     ImGui::SetDragDropPayload("PREFAB_ASSET", pathStr.c_str(), pathStr.size() + 1);
                     ImGui::Text("[Prefab]  %s", asset->displayName.c_str());
                 }
+                else if (sourcePath.extension() == SCRIPT_EXTENSION)
+                {
+                    auto scriptName = asset->displayName;
+                    scriptName.erase(scriptName.size() - std::strlen(SCRIPT_EXTENSION));
+
+                    ImGui::SetDragDropPayload("SCRIPT_ASSET", scriptName.c_str(), scriptName.size() + 1);
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.85f, 1.0f, 1.f));
+                    ImGui::Text("[Script]  %s", scriptName.c_str());
+                    ImGui::PopStyleColor();
+                }
                 else
                 {
-                    ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(MD5Hash));
+                    ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
                     ImGui::Text("Dragging %s", asset->displayName.c_str());
                 }
                 ImGui::EndDragDropSource();

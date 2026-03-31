@@ -86,39 +86,6 @@ void ScriptComponent::update()
 
 void ScriptComponent::drawUi()
 {
-
-    ImGui::Button("Load Script");
-
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
-        {
-            const MD5Hash* id = static_cast<const MD5Hash*>(payload->Data);
-
-            const Metadata* meta = app->getModuleAssets()->getMetadata(*id);
-
-            if (meta && meta->type == AssetType::SCRIPT)
-            {
-                // Extract script name from source path (e.g., "Assets/MyScript.h" -> "MyScript")
-                std::string scriptName = meta->sourcePath.stem().string();
-                setScriptName(scriptName);
-                destroyScriptInstance();
-                createScriptInstance();
-            }
-        }
-        ImGui::EndDragDropTarget();
-    }
-
-
-
-    ImGui::Text("Loaded: %s", m_script ? "Yes" : "No");
-
-    if (!m_script)
-    {
-        return;
-    }
-
-    ImGui::SeparatorText("Script Variables");
     drawScriptFieldsUi(*m_script);
 }
 
