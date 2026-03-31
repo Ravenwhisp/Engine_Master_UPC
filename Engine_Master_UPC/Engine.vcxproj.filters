@@ -381,6 +381,12 @@
     <ClCompile Include="ViewHierarchyDialog.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
+    <ClCompile Include="SpriteRenderer.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -934,6 +940,16 @@
     <ClInclude Include="PlayerBinding.h">
       <Filter>Inputs</Filter>
     </ClInclude>
+    <ClInclude Include="SpriteRenderer.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteVertex.h" />
+    <ClInclude Include="SpriteParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1150,6 +1166,9 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="UIVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SpriteVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
