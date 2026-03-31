@@ -3,7 +3,7 @@
 
 void Engine::Frustum::render(const Matrix& world) const
 {
-	float color[3] = { 0.3f, 0.3f, 0.3f };
+	float color[3] = { 0.25f, 1.0f, 0.0f };
 
 	dd::line(&m_points[0].x, &m_points[1].x, color);
 	dd::line(&m_points[1].x, &m_points[2].x, color);

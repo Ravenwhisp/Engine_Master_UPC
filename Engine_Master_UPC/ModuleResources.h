@@ -11,6 +11,12 @@ struct DeferredResource
 	ComPtr<ID3D12Resource> resource;
 };
 
+enum class TextureColorSpace
+{
+	SRGB,
+	Linear
+};
+
 class VertexBuffer;
 class IndexBuffer;
 class RingBuffer;
@@ -22,6 +28,7 @@ class BasicMesh;
 class MeshAsset;
 class MaterialAsset;
 class ICacheable;
+class RenderSurface;
 
 // Responsible for creation and management of raw GPU resources in D3D12.
 // Handles buffers, textures, render targets, depth stencils, and deferred GPU release.
@@ -47,16 +54,18 @@ public:
 
 	Texture* createDepthBuffer(float width, float height);
 	Texture* createRenderTexture(float width, float height);
+	RenderSurface* createRenderSurface(float width, float height);
 	Texture* createNullTexture2D();
 
-	Texture* createTextureInternal(const TextureAsset& textureAsset);
+	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
 
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
-
-	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset);
+	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
+	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset);
+	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);

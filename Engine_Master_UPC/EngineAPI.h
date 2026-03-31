@@ -10,8 +10,10 @@
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
+#include "KeyCode.h"
 
 using DirectX::SimpleMath::Vector3;
+using DirectX::SimpleMath::Vector2;
 
 class GameObject;
 class Transform;
@@ -62,13 +64,11 @@ namespace ComponentAPI
 
 namespace SceneAPI
 {
-    ENGINE_API int countGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
-    ENGINE_API int findGameObjectsByComponent(ComponentType componentType, GameObject** outputList, int maxResults, bool onlyActive = true);
+    ENGINE_API std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
+    ENGINE_API std::vector<GameObject*> findAllGameObjectsByTag(Tag tag, bool onlyActive = true);
 
     ENGINE_API GameObject* getDefaultCameraGameObject();
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
-
-    ENGINE_API GameObject* findGameObjectByTag(Tag tag, bool onlyActive = true);
 
     ENGINE_API void requestSceneChange(const char* sceneName);
 }
@@ -80,7 +80,60 @@ namespace Time
 
 namespace Input
 {
-    ENGINE_API bool isKeyDown(int key);
+    // Normally we should not need this but I let here just in case
+    ENGINE_API bool isKeyDown(KeyCode key);
+
+    ENGINE_API Vector2 getMoveAxis(int player = 0);
+    ENGINE_API Vector2 getLookAxis(int player = 0);
+
+    ENGINE_API bool isLeftStickPressed(int player = 0);
+    ENGINE_API bool isRightStickPressed(int player = 0);
+
+    ENGINE_API bool isLeftStickJustPressed(int player = 0);
+    ENGINE_API bool isRightStickJustPressed(int player = 0);
+
+    ENGINE_API bool isLeftStickReleased(int player = 0);
+    ENGINE_API bool isRightStickReleased(int player = 0);
+
+    ENGINE_API bool isFaceButtonBottomPressed(int player = 0);
+    ENGINE_API bool isFaceButtonRightPressed(int player = 0);
+    ENGINE_API bool isFaceButtonLeftPressed(int player = 0);
+    ENGINE_API bool isFaceButtonTopPressed(int player = 0);
+
+    ENGINE_API bool isFaceButtonBottomJustPressed(int player = 0);
+    ENGINE_API bool isFaceButtonRightJustPressed(int player = 0);
+    ENGINE_API bool isFaceButtonLeftJustPressed(int player = 0);
+    ENGINE_API bool isFaceButtonTopJustPressed(int player = 0);
+
+    ENGINE_API bool isFaceButtonBottomReleased(int player = 0);
+    ENGINE_API bool isFaceButtonRightReleased(int player = 0);
+    ENGINE_API bool isFaceButtonLeftReleased(int player = 0);
+    ENGINE_API bool isFaceButtonTopReleased(int player = 0);
+
+    ENGINE_API bool isLeftShoulderPressed(int player = 0);
+    ENGINE_API bool isRightShoulderPressed(int player = 0);
+
+    ENGINE_API bool isLeftShoulderJustPressed(int player = 0);
+    ENGINE_API bool isRightShoulderJustPressed(int player = 0);
+
+    ENGINE_API bool isLeftShoulderReleased(int player = 0);
+    ENGINE_API bool isRightShoulderReleased(int player = 0);
+
+    ENGINE_API bool isLeftTriggerPressed(int player = 0);
+    ENGINE_API bool isRightTriggerPressed(int player = 0);
+
+    ENGINE_API bool isLeftTriggerJustPressed(int player = 0);
+    ENGINE_API bool isRightTriggerJustPressed(int player = 0);
+
+    ENGINE_API bool isLeftTriggerReleased(int player = 0);
+    ENGINE_API bool isRightTriggerReleased(int player = 0);
+
+    ENGINE_API bool isPausePressed(int player = 0);
+    ENGINE_API bool isPauseJustPressed(int player = 0);
+    ENGINE_API bool isPauseReleased(int player = 0);
+
+    ENGINE_API void setPlayerKeyboard(int player);
+    ENGINE_API void setPlayerGamepad(int player, int gamepadIndex);
 }
 
 namespace Debug
@@ -88,4 +141,15 @@ namespace Debug
     ENGINE_API void log(const char* message, ...);
     ENGINE_API void warn(const char* message, ...);
     ENGINE_API void error(const char* message, ...);
+}
+
+namespace NavigationAPI
+{
+    ENGINE_API bool hasNavMesh();
+    ENGINE_API bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents);
+    ENGINE_API bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents);
+    ENGINE_API int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents);
+    ENGINE_API bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents);
+    ENGINE_API float getPathLength(const Vector3* pathPoints, int pointCount);
+    ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts);
 }

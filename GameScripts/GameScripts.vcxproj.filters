@@ -21,7 +21,7 @@
     <ClInclude Include="pch.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerWalk.h">
+    <ClInclude Include="PlayerController.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="CameraFollow.h">
@@ -33,6 +33,12 @@
     <ClInclude Include="TriggerArea.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="LocalMultiplayerSetup.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="InputTest.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -41,7 +47,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerWalk.cpp">
+    <ClCompile Include="PlayerController.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="CameraFollow.cpp">
@@ -51,6 +57,12 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="TriggerArea.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMultiplayerSetup.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="InputTest.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

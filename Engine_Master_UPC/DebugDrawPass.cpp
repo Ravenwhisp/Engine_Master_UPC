@@ -179,7 +179,7 @@ public:
         textPSODesc.VS = { textVS->GetBufferPointer(),  textVS->GetBufferSize() };
         textPSODesc.PS = { textPS->GetBufferPointer(), textPS->GetBufferSize() };
         textPSODesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        textPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        textPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         textPSODesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         textPSODesc.SampleDesc = { useMSAA ? UINT(4) : UINT(1) , 0 };
         textPSODesc.SampleMask = 0xffffffff;
@@ -236,7 +236,7 @@ public:
         pointPSODesc.VS = { linePointVS->GetBufferPointer(),  linePointVS->GetBufferSize() };
         pointPSODesc.PS = { linePointPS->GetBufferPointer(), linePointPS->GetBufferSize() };
         pointPSODesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-        pointPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        pointPSODesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
         pointPSODesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
         pointPSODesc.SampleDesc = { useMSAA ? UINT(4) : UINT(1), 0 };
         pointPSODesc.SampleMask = 0xffffffff;
@@ -522,51 +522,50 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
     }
  
 #ifdef GAME_RELEASE
-    bool isGameRelease = true;
+    constexpr bool isGameRelease = true;
 #else
-    bool isGameRelease = false;
+    constexpr bool isGameRelease = false;
 #endif
+
+    auto processComponents = [&](GameObject* go, bool forced)
+        {
+            for (Component* component : go->GetAllComponents())
+            {
+                if (IDebugDrawable* drawable = component->getAsDebugDrawable())
+                {
+                    switch (component->getType())
+                    {
+                    case ComponentType::LIGHT:
+                        if (forced || settings->sceneEditor.showLightComponent)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::MODEL:
+                        if (forced || settings->sceneEditor.showModelBoundingBoxes)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::CAMERA:
+                        if (forced || settings->sceneEditor.showCameraFrustum)
+                            allDrawables.push_back(drawable);
+                        break;
+
+                    case ComponentType::NAVIGATION_AGENT:
+                        if (forced || settings->sceneEditor.showNavPath)
+                            allDrawables.push_back(drawable);
+                        break;
+                    }
+                }
+            }
+        };
 
     for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
     {
-        bool showDebug = isGameRelease || app->getModuleEditor()->getSelectedGameObject() == go;
-        if (!showDebug)
-        {
-            continue;
-        }
+        processComponents(go, false);
 
-        for (Component* component : go->GetAllComponents())
+        if (app->getModuleEditor()->getSelectedGameObject() == go)
         {
-            if (IDebugDrawable* drawable = component->getAsDebugDrawable())
-            {
-                switch (component->getType())
-                {
-                case ComponentType::LIGHT:
-                    if (settings->sceneEditor.showLightComponent)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                case ComponentType::MODEL:
-                    if (settings->sceneEditor.showModelBoundingBoxes)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                case ComponentType::CAMERA:
-                    if (settings->sceneEditor.showCameraFrustum)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                case ComponentType::NAVIGATION_AGENT:
-                    if (settings->sceneEditor.showNavPath)
-                    {
-                        allDrawables.push_back(drawable);
-                    }
-                    break;
-                }
-            }
+            processComponents(go, true);
         }
     }
 

@@ -167,9 +167,6 @@
     <ClCompile Include="NavigationAgentComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="NavMeshWalk.cpp">
-      <Filter>NavMesh</Filter>
-    </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
@@ -185,9 +182,6 @@
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="FileIO.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="FileDialog.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="Transform2D.cpp">
@@ -332,6 +326,60 @@
     </ClCompile>
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyUtils.cpp">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTreeRenderer.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowFileDialog.cpp">
+      <Filter>Editor\Views\FileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddGameObject.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCreateFolder.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCutItem.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteAsset.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteFolder.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandImportAsset.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandInstantiatePrefab.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandMoveFile.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPasteFile.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRemoveGameObject.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRenameGameObject.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandReparent.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewHierarchyDialog.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
     <ClCompile Include="ImporterScript.cpp">
       <Filter>Persistence\Importers\Native</Filter>
@@ -533,9 +581,6 @@
     <ClInclude Include="NavigationAgentComponent.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshWalk.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -559,9 +604,6 @@
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="FileIO.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="FileDialog.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ICacheable.h">
@@ -792,6 +834,58 @@
     <ClInclude Include="RenderSurface.h">
       <Filter>D3D12\Wrappers</Filter>
     </ClInclude>
+    <ClInclude Include="HierarchyUtils.h">
+      <Filter>Editor\Views\Hierarchy\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyTreeRenderer.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowFileDialog.h">
+      <Filter>Editor\Views\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ICommand.h" />
+    <ClInclude Include="CommandSaveGameObjectAsPrefab.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAddChildToPrefabRoot.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAddGameObject.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandCreateFolder.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandCutItem.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandDeleteAsset.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandDeleteFolder.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandImportAsset.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandInstantiatePrefab.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandMoveFile.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandPasteFile.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandRemoveGameObject.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandRenameGameObject.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandReparent.h">
+      <Filter>Editor\Views\Commands</Filter>
+    </ClInclude>
     <ClInclude Include="EngineAPI.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -815,6 +909,33 @@
     </ClInclude>
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialogClipboard.h">
+      <Filter>Editor\Views\FileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="UIParams.h">
+      <Filter>D3D12\Rendering\RenderData</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyCode.h">
+      <Filter>Inputs\Keyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewHierarchyDialog.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptMethodInfo.h">
+      <Filter>Core\Scripting\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptMethodList.h">
+      <Filter>Core\Scripting\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceType.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerBinding.h">
+      <Filter>Inputs</Filter>
     </ClInclude>
     <ClInclude Include="ScriptAsset.h">
       <Filter>Persistence\Assets</Filter>
@@ -991,6 +1112,21 @@
     <Filter Include="D3D12\Rendering\DebugDraw">
       <UniqueIdentifier>{baa370ef-4e5e-4e9e-bacd-d8fa9b6f1edb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor\Views\Hierarchy\Actions">
+      <UniqueIdentifier>{3492417c-0812-42e1-b819-d39510fbf30e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\FileDialog">
+      <UniqueIdentifier>{93d034d0-a185-435f-8ec6-59068d32670d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Views\Commands">
+      <UniqueIdentifier>{aa4c7b9c-59bc-413e-b1d6-b7ec38567f04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\RenderData">
+      <UniqueIdentifier>{2de10743-3c95-4ba5-a924-0b09ffbac34f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\Structs">
+      <UniqueIdentifier>{c4b40910-f73d-40f0-86b6-d0d9ce8c7708}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1017,6 +1153,12 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SkyBoxPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -8,6 +8,7 @@
 #include "IndexBuffer.h"
 #include "RingBuffer.h"
 #include "Texture.h"
+#include "RenderSurface.h"
 
 #include "ModuleAssets.h"
 #include "BasicMesh.h"
@@ -113,16 +114,30 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 Texture* ModuleResources::createRenderTexture(float width, float height)
 {
 	TextureDesc desc{};
-	desc.format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	desc.rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.width = static_cast<uint32_t>(width);
 	desc.height = static_cast<uint32_t>(height);
 	desc.views = TextureView::SRV | TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
 	desc.hasClearValue = true;
-	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
+RenderSurface* ModuleResources::createRenderSurface(float width, float height)
+{
+	auto surface = new RenderSurface();
+
+	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
+
+	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
+
+	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
+
+	return surface;
 }
 
 Texture* ModuleResources::createNullTexture2D()
@@ -136,10 +151,19 @@ Texture* ModuleResources::createNullTexture2D()
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset)
+Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace)
 {
 	TextureDesc desc{};
-	desc.format = DirectX::MakeSRGB(textureAsset.getFormat());
+	//DXGI_FORMAT baseFormat = textureAsset.getFormat();
+	if (colorSpace == TextureColorSpace::SRGB)
+	{
+		desc.format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	}
+	else
+	{
+		desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	}
+
 	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
 	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
 	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
@@ -211,9 +235,9 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	m_queue->flush();
 }
 
-std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset)
+std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace)
 {
-	const UID uid = hashToUID(textureAsset.getId());
+	const UID uid = hashToUID(textureAsset.getId() + (colorSpace == TextureColorSpace::SRGB ? "_srgb" : "_linear"));
 
 	if (auto cached = m_resources.getAs<Texture>(uid))
 	{
@@ -221,9 +245,19 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	}
 
 
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace));
 	m_resources.insert(uid, texture);
 	return texture;
+}
+
+std::shared_ptr<Texture> ModuleResources::createTextureSRGB(const TextureAsset& textureAsset)
+{
+	return createTexture(textureAsset, TextureColorSpace::SRGB);
+}
+
+std::shared_ptr<Texture> ModuleResources::createTextureLinear(const TextureAsset& textureAsset)
+{
+	return createTexture(textureAsset, TextureColorSpace::Linear);
 }
 
 std::shared_ptr<Texture> ModuleResources::createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat)
