@@ -19,11 +19,18 @@ public:
 public:
     float m_targetRange = 8.0f;
 
-private:
-    GameObject* m_currentTarget = nullptr;
+    int m_playerIndex = 0;
 
 private:
-    void updateAutoTarget();
-    GameObject* findNearestEnemyInRange() const;
+    GameObject* m_currentTarget = nullptr;
+    std::vector<GameObject*> m_enemiesInRange;
+
+private:
+    void updateEnemiesInRange();
+    void ensureValidCurrentTarget();
+    void cycleTarget();
+
+    bool isEnemyInRange(GameObject* enemy) const;
+    int findTargetIndex(GameObject* target) const;
 
 };
