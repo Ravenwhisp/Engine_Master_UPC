@@ -20,6 +20,8 @@
 #include "DeviceType.h"
 #include "PlayerBinding.h"
 
+#include "HierarchyUtils.h"
+
 #include <DetourNavMeshQuery.h>
 
 void registerScript(const char* scriptName, ScriptCreator creator)
@@ -67,6 +69,21 @@ namespace GameObjectAPI
     void setTag(GameObject* gameObject, Tag tag)
     {
         gameObject->SetTag(tag);
+    }
+    
+    GameObject* createGameObject(const char* name, GameObject* parentObject)
+    {
+        Scene* currentScene = app->getModuleScene()->getScene();
+
+        GameObject* createdObject = currentScene->createGameObject();
+        createdObject->SetName(name);
+
+        if (parentObject) 
+        {
+            HierarchyUtils::reparent(currentScene, createdObject, parentObject);
+        }
+
+        return createdObject;
     }
 }
 
