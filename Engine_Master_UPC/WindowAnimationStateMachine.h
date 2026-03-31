@@ -44,4 +44,7 @@ private:
     MD5Hash m_targetStateMachineUID = INVALID_ASSET_ID;
     std::shared_ptr<AnimationStateMachineAsset> m_asset;
     ax::NodeEditor::EditorContext* m_editorContext = nullptr;
+    bool m_needsInitialNodeLayout = true;
+    std::string m_editorSettingsFile;
+    bool m_focusContentNextFrame = false;
 };
