@@ -40,6 +40,20 @@ private:
     bool ensureAssetLoaded();
     bool ensureEditorContext();
 
+    void destroyEditorContext();
+
+    void drawHeaderUi();
+    void drawAssetSummaryUi() const;
+
+    void drawGraphContent();
+    void drawUnavailableGraphMessage(const char* message);
+
+    void drawStateNodes();
+    void drawTransitionLinks();
+
+    void finalizeInitialLayout();
+    void finalizeGraphFocus();
+
 private:
     MD5Hash m_targetStateMachineUID = INVALID_ASSET_ID;
     std::shared_ptr<AnimationStateMachineAsset> m_asset;
