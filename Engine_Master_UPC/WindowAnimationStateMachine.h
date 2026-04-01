@@ -61,6 +61,8 @@ private:
     void drawBackgroundContextMenuPopup();
     void handleNodeContextMenuInteraction();
     void drawNodeContextMenuPopup();
+    void requestGraphEditorReset(bool clearSavedLayout);
+    void applyPendingGraphEditorReset();
 
     bool tryGetStateIndex(ax::NodeEditor::NodeId nodeId, int& outStateIndex) const;
     bool renameStateAndReferences(int stateIndex, const std::string& newStateName);
@@ -74,11 +76,11 @@ private:
     bool tryGetInputStateIndex(ax::NodeEditor::PinId pinId, int& outStateIndex) const;
     bool tryGetOutputStateIndex(ax::NodeEditor::PinId pinId, int& outStateIndex) const;
     bool tryGetTransitionIndex(ax::NodeEditor::LinkId linkId, int& outTransitionIndex) const;
-
     bool tryResolveTransitionEndpoints(ax::NodeEditor::PinId firstPinId, ax::NodeEditor::PinId secondPinId,int& outSourceStateIndex, int& outTargetStateIndex) const;
+    bool hasTransitionBetweenStates(const std::string& sourceStateName, const std::string& targetStateName) const;
 
-    bool hasTransitionBetweenStates(const std::string& sourceStateName,
-        const std::string& targetStateName) const;
+    bool deleteStateAndReferences(int stateIndex);
+    void resetGraphEditorStateAfterStructuralChange(bool clearSavedLayout);
 
     void markDirty();
     void sanitizeAssetAfterEdit();
@@ -96,4 +98,6 @@ private:
     int m_contextStateIndex = -1;
     int m_pendingNewStatePlacementIndex = -1;
     ImVec2 m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
+    bool m_pendingGraphEditorReset = false;
+    bool m_pendingClearSavedLayout = false;
 };
