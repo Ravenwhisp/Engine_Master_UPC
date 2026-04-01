@@ -555,7 +555,6 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
                             allDrawables.push_back(drawable);
                         break;
                     case ComponentType::SCRIPT:
-                        if (forced)
                             allDrawables.push_back(drawable);
                         break;
                     }
