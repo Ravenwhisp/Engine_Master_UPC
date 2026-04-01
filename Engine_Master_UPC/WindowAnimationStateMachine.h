@@ -54,6 +54,8 @@ private:
     void drawStateNodes();
     void drawTransitionLinks();
     void handleCreateTransitionInteraction();
+    void handleLinkContextMenuInteraction();
+    void drawLinkContextMenuPopup();
 
     void finalizeInitialLayout();
     void finalizeGraphFocus();
@@ -79,4 +81,5 @@ private:
     std::string m_editorSettingsFile;
     bool m_focusContentNextFrame = false;
     bool m_isDirty = false;
+    int m_contextTransitionIndex = -1;
 };
