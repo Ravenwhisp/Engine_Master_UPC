@@ -85,6 +85,8 @@ void WindowAnimationStateMachine::cleanUp()
     m_focusContentNextFrame = false;
     m_isDirty = false;
     m_contextTransitionIndex = -1;
+    m_pendingNewStatePlacementIndex = -1;
+    m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
 }
 
 void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
@@ -100,6 +102,8 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     m_asset.reset();
     m_isDirty = false;
     m_contextTransitionIndex = -1;
+    m_pendingNewStatePlacementIndex = -1;
+    m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
 
     if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
@@ -241,6 +245,7 @@ void WindowAnimationStateMachine::drawGraphContent()
     drawTransitionLinks();
     handleCreateTransitionInteraction();
     handleLinkContextMenuInteraction();
+    handleBackgroundContextMenuInteraction();
 }
 
 void WindowAnimationStateMachine::drawUnavailableGraphMessage(const char* message)
@@ -313,6 +318,12 @@ void WindowAnimationStateMachine::drawStateNodes()
             const float x = 40.0f + static_cast<float>(i % 3) * 260.0f;
             const float y = 40.0f + static_cast<float>(i / 3) * 170.0f;
             ed::SetNodePosition(nodeId, ImVec2(x, y));
+        }
+
+        if (m_pendingNewStatePlacementIndex == i)
+        {
+            ed::SetNodePosition(nodeId, m_pendingNewStatePosition);
+            m_pendingNewStatePlacementIndex = -1;
         }
     }
 }
@@ -493,6 +504,101 @@ void WindowAnimationStateMachine::drawLinkContextMenuPopup()
     }
 
     ImGui::EndPopup();
+}
+
+void WindowAnimationStateMachine::handleBackgroundContextMenuInteraction()
+{
+    if (!m_asset)
+    {
+        return;
+    }
+
+    ed::Suspend();
+
+    if (ed::ShowBackgroundContextMenu())
+    {
+        m_pendingNewStatePosition = ed::ScreenToCanvas(ImGui::GetMousePos());
+        ImGui::OpenPopup("StateMachineBackgroundContextMenu");
+    }
+
+    drawBackgroundContextMenuPopup();
+
+    ed::Resume();
+}
+
+void WindowAnimationStateMachine::drawBackgroundContextMenuPopup()
+{
+    if (!ImGui::BeginPopup("StateMachineBackgroundContextMenu"))
+    {
+        return;
+    }
+
+    if (ImGui::Button("Create State"))
+    {
+        auto& states = m_asset->getStatesMutable();
+
+        AnimationStateMachineState state;
+        state.name = makeUniqueStateName("NewState");
+        state.clipName.clear();
+        state.speed = 1.0f;
+
+        states.push_back(std::move(state));
+
+        sanitizeAssetAfterEdit();
+        markDirty();
+
+        m_pendingNewStatePlacementIndex = static_cast<int>(states.size()) - 1;
+
+        ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+        return;
+    }
+
+    if (ImGui::Button("Close"))
+    {
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+}
+
+bool WindowAnimationStateMachine::hasStateWithName(const std::string& stateName) const
+{
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    const auto& states = m_asset->getStates();
+    for (const AnimationStateMachineState& state : states)
+    {
+        if (state.name == stateName)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::string WindowAnimationStateMachine::makeUniqueStateName(const std::string& baseStateName) const
+{
+    if (!hasStateWithName(baseStateName))
+    {
+        return baseStateName;
+    }
+
+    int suffix = 1;
+    while (true)
+    {
+        const std::string candidate = baseStateName + std::to_string(suffix);
+        if (!hasStateWithName(candidate))
+        {
+            return candidate;
+        }
+
+        ++suffix;
+    }
 }
 
 void WindowAnimationStateMachine::finalizeInitialLayout()
