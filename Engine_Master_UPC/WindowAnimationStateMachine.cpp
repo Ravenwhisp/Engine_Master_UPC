@@ -5,8 +5,6 @@
 #include "ModuleAssets.h"
 #include "AnimationStateMachineAsset.h"
 
-#include <filesystem>
-#include <system_error>
 #include <imgui.h>
 #include "imgui_node_editor.h"
 
@@ -15,7 +13,7 @@ namespace ed = ax::NodeEditor;
 namespace
 {
     constexpr const char* NODE_EDITOR_ID = "AnimationStateMachineGraph";
-    constexpr const char* NODE_EDITOR_SETTINGS_FOLDER = "EditorSettings/AnimationStateMachines";
+    constexpr const char* NODE_EDITOR_SETTINGS_FILE = "AnimationStateMachineEditor.json";
 
     constexpr int STATE_NODE_ID_BASE = 1000;
     constexpr int STATE_INPUT_PIN_ID_BASE = 100000;
@@ -79,10 +77,7 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     }
     else
     {
-        const std::filesystem::path settingsDir = NODE_EDITOR_SETTINGS_FOLDER;
-
-        m_editorSettingsFile =
-            (settingsDir / ("AnimationStateMachineEditor_" + m_targetStateMachineUID + ".json")).string();
+        m_editorSettingsFile = "AnimationStateMachineEditor_" + m_targetStateMachineUID + ".json";
     }
 
     m_needsInitialNodeLayout = true;
@@ -123,21 +118,7 @@ bool WindowAnimationStateMachine::ensureEditorContext()
 
     if (!m_editorSettingsFile.empty())
     {
-        const std::filesystem::path settingsPath(m_editorSettingsFile);
-
-        std::error_code ec;
-        std::filesystem::create_directories(settingsPath.parent_path(), ec);
-
-        if (ec)
-        {
-            DEBUG_WARN("[WindowAnimationStateMachine] Could not create settings folder '%s' (%s).",
-                settingsPath.parent_path().string().c_str(),
-                ec.message().c_str());
-        }
-        else
-        {
-            config.SettingsFile = m_editorSettingsFile.c_str();
-        }
+        config.SettingsFile = m_editorSettingsFile.c_str();
     }
 
     m_editorContext = ed::CreateEditor(&config);
