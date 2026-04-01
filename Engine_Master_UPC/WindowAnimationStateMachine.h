@@ -56,6 +56,11 @@ private:
     void handleCreateTransitionInteraction();
     void handleLinkContextMenuInteraction();
     void drawLinkContextMenuPopup();
+    void handleBackgroundContextMenuInteraction();
+    void drawBackgroundContextMenuPopup();
+
+    bool hasStateWithName(const std::string& stateName) const;
+    std::string makeUniqueStateName(const std::string& baseStateName) const;
 
     void finalizeInitialLayout();
     void finalizeGraphFocus();
@@ -82,4 +87,6 @@ private:
     bool m_focusContentNextFrame = false;
     bool m_isDirty = false;
     int m_contextTransitionIndex = -1;
+    int m_pendingNewStatePlacementIndex = -1;
+    ImVec2 m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
 };
