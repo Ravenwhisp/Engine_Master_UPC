@@ -53,6 +53,7 @@ private:
 
     void drawStateNodes();
     void drawTransitionLinks();
+    void handleCreateTransitionInteraction();
 
     void finalizeInitialLayout();
     void finalizeGraphFocus();
