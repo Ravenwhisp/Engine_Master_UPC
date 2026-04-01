@@ -5,6 +5,7 @@
 #include "ModuleAssets.h"
 #include "AnimationStateMachineAsset.h"
 
+#include <filesystem>
 #include <cstring>
 #include <imgui.h>
 #include "imgui_node_editor.h"
@@ -84,6 +85,8 @@ void WindowAnimationStateMachine::cleanUp()
     m_needsInitialNodeLayout = true;
     m_focusContentNextFrame = false;
     m_isDirty = false;
+    m_pendingGraphEditorReset = false;
+    m_pendingClearSavedLayout = false;
     m_contextTransitionIndex = -1;
     m_contextStateIndex = -1;
     m_pendingNewStatePlacementIndex = -1;
@@ -102,6 +105,8 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     m_targetStateMachineUID = uid;
     m_asset.reset();
     m_isDirty = false;
+    m_pendingGraphEditorReset = false;
+    m_pendingClearSavedLayout = false;
     m_contextTransitionIndex = -1;
     m_contextStateIndex = -1;
     m_pendingNewStatePlacementIndex = -1;
@@ -675,6 +680,20 @@ void WindowAnimationStateMachine::drawNodeContextMenuPopup()
 
     ImGui::SameLine();
 
+    ImGui::Separator();
+
+    if (ImGui::Button("Delete State"))
+    {
+        if (deleteStateAndReferences(m_contextStateIndex))
+        {
+            ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+            return;
+        }
+    }
+
+    ImGui::SameLine();
+
     if (ImGui::Button("Close"))
     {
         m_contextStateIndex = -1;
@@ -682,6 +701,39 @@ void WindowAnimationStateMachine::drawNodeContextMenuPopup()
     }
 
     ImGui::EndPopup();
+}
+
+void WindowAnimationStateMachine::requestGraphEditorReset(bool clearSavedLayout)
+{
+    m_pendingGraphEditorReset = true;
+    m_pendingClearSavedLayout = m_pendingClearSavedLayout || clearSavedLayout;
+}
+
+void WindowAnimationStateMachine::applyPendingGraphEditorReset()
+{
+    if (!m_pendingGraphEditorReset)
+    {
+        return;
+    }
+
+    destroyEditorContext();
+
+    if (m_pendingClearSavedLayout && !m_editorSettingsFile.empty())
+    {
+        std::error_code ec;
+        std::filesystem::remove(m_editorSettingsFile, ec);
+    }
+
+    m_contextTransitionIndex = -1;
+    m_contextStateIndex = -1;
+    m_pendingNewStatePlacementIndex = -1;
+    m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
+
+    m_needsInitialNodeLayout = true;
+    m_focusContentNextFrame = true;
+
+    m_pendingGraphEditorReset = false;
+    m_pendingClearSavedLayout = false;
 }
 
 bool WindowAnimationStateMachine::tryGetStateIndex(ax::NodeEditor::NodeId nodeId, int& outStateIndex) const
@@ -938,6 +990,34 @@ bool WindowAnimationStateMachine::hasTransitionBetweenStates(const std::string& 
     return false;
 }
 
+bool WindowAnimationStateMachine::deleteStateAndReferences(int stateIndex)
+{
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    auto& states = m_asset->getStatesMutable();
+
+    if (stateIndex < 0 || stateIndex >= static_cast<int>(states.size()))
+    {
+        return false;
+    }
+
+    states.erase(states.begin() + static_cast<std::ptrdiff_t>(stateIndex));
+
+    sanitizeAssetAfterEdit();
+    markDirty();
+    resetGraphEditorStateAfterStructuralChange(true);
+
+    return true;
+}
+
+void WindowAnimationStateMachine::resetGraphEditorStateAfterStructuralChange(bool clearSavedLayout)
+{
+    requestGraphEditorReset(clearSavedLayout);
+}
+
 void WindowAnimationStateMachine::markDirty()
 {
     m_isDirty = true;
@@ -1080,4 +1160,6 @@ void WindowAnimationStateMachine::drawInternal()
 
     ed::End();
     ed::SetCurrentEditor(nullptr);
+
+    applyPendingGraphEditorReset();
 }
