@@ -221,6 +221,7 @@ void WindowAnimationStateMachine::drawGraphContent()
 
     drawStateNodes();
     drawTransitionLinks();
+    handleCreateTransitionInteraction();
 }
 
 void WindowAnimationStateMachine::drawUnavailableGraphMessage(const char* message)
@@ -325,6 +326,67 @@ void WindowAnimationStateMachine::drawTransitionLinks()
 
         ed::Link(linkId, sourcePinId, targetPinId);
     }
+}
+
+void WindowAnimationStateMachine::handleCreateTransitionInteraction()
+{
+    if (!m_asset)
+    {
+        return;
+    }
+
+    const auto& states = m_asset->getStates();
+    if (states.empty())
+    {
+        return;
+    }
+
+    const bool canCreate = ed::BeginCreate();
+
+    if (canCreate)
+    {
+        ed::PinId startPinId;
+        ed::PinId endPinId;
+
+        if (ed::QueryNewLink(&startPinId, &endPinId))
+        {
+            int sourceStateIndex = -1;
+            int targetStateIndex = -1;
+
+            const bool validEndpoints =
+                tryResolveTransitionEndpoints(startPinId, endPinId, sourceStateIndex, targetStateIndex);
+
+            if (!validEndpoints)
+            {
+                ed::RejectNewItem();
+            }
+            else
+            {
+                const std::string& sourceStateName = states[sourceStateIndex].name;
+                const std::string& targetStateName = states[targetStateIndex].name;
+
+                if (hasTransitionBetweenStates(sourceStateName, targetStateName))
+                {
+                    ed::RejectNewItem();
+                }
+                else if (ed::AcceptNewItem())
+                {
+                    AnimationStateMachineTransition transition;
+                    transition.sourceStateName = sourceStateName;
+                    transition.targetStateName = targetStateName;
+                    transition.triggerName = "trigger";
+                    transition.blendTimeSeconds = 0.25f;
+
+                    m_asset->getTransitionsMutable().push_back(std::move(transition));
+
+                    sanitizeAssetAfterEdit();
+                    markDirty();
+                }
+            }
+        }
+    }
+
+    ed::EndCreate();
 }
 
 void WindowAnimationStateMachine::finalizeInitialLayout()
