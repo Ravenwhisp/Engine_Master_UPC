@@ -5,6 +5,7 @@
 #include "ModuleAssets.h"
 #include "AnimationStateMachineAsset.h"
 
+#include <cstring>
 #include <imgui.h>
 #include "imgui_node_editor.h"
 
@@ -52,6 +53,21 @@ namespace
 
         return -1;
     }
+
+    bool InputTextString(const char* label, std::string& value)
+    {
+        char buffer[256];
+        std::strncpy(buffer, value.c_str(), sizeof(buffer));
+        buffer[sizeof(buffer) - 1] = '\0';
+
+        if (ImGui::InputText(label, buffer, sizeof(buffer)))
+        {
+            value = buffer;
+            return true;
+        }
+
+        return false;
+    }
 }
 
 WindowAnimationStateMachine::WindowAnimationStateMachine()
@@ -68,6 +84,7 @@ void WindowAnimationStateMachine::cleanUp()
     m_needsInitialNodeLayout = true;
     m_focusContentNextFrame = false;
     m_isDirty = false;
+    m_contextTransitionIndex = -1;
 }
 
 void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
@@ -82,6 +99,7 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     m_targetStateMachineUID = uid;
     m_asset.reset();
     m_isDirty = false;
+    m_contextTransitionIndex = -1;
 
     if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
@@ -222,6 +240,7 @@ void WindowAnimationStateMachine::drawGraphContent()
     drawStateNodes();
     drawTransitionLinks();
     handleCreateTransitionInteraction();
+    handleLinkContextMenuInteraction();
 }
 
 void WindowAnimationStateMachine::drawUnavailableGraphMessage(const char* message)
@@ -387,6 +406,93 @@ void WindowAnimationStateMachine::handleCreateTransitionInteraction()
     }
 
     ed::EndCreate();
+}
+
+void WindowAnimationStateMachine::handleLinkContextMenuInteraction()
+{
+    if (!m_asset)
+    {
+        return;
+    }
+
+    ed::Suspend();
+
+    ed::LinkId contextLinkId;
+    if (ed::ShowLinkContextMenu(&contextLinkId))
+    {
+        int transitionIndex = -1;
+        if (tryGetTransitionIndex(contextLinkId, transitionIndex))
+        {
+            m_contextTransitionIndex = transitionIndex;
+            ImGui::OpenPopup("TransitionContextMenu");
+        }
+    }
+
+    drawLinkContextMenuPopup();
+
+    ed::Resume();
+}
+
+void WindowAnimationStateMachine::drawLinkContextMenuPopup()
+{
+    if (!ImGui::BeginPopup("TransitionContextMenu"))
+    {
+        return;
+    }
+
+    auto& transitions = m_asset->getTransitionsMutable();
+
+    if (m_contextTransitionIndex < 0 ||
+        m_contextTransitionIndex >= static_cast<int>(transitions.size()))
+    {
+        ImGui::TextDisabled("Invalid transition.");
+        if (ImGui::Button("Close"))
+        {
+            m_contextTransitionIndex = -1;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+        return;
+    }
+
+    AnimationStateMachineTransition& transition = transitions[m_contextTransitionIndex];
+
+    ImGui::Text("Source: %s", transition.sourceStateName.c_str());
+    ImGui::Text("Target: %s", transition.targetStateName.c_str());
+    ImGui::Separator();
+
+    if (InputTextString("Trigger", transition.triggerName))
+    {
+        markDirty();
+    }
+
+    if (ImGui::DragFloat("Blend Time", &transition.blendTimeSeconds, 0.01f, 0.0f, 10.0f))
+    {
+        sanitizeAssetAfterEdit();
+        markDirty();
+    }
+
+    if (ImGui::Button("Delete Transition"))
+    {
+        transitions.erase(transitions.begin() + static_cast<std::ptrdiff_t>(m_contextTransitionIndex));
+        sanitizeAssetAfterEdit();
+        markDirty();
+        m_contextTransitionIndex = -1;
+        ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+        return;
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Close"))
+    {
+        m_contextTransitionIndex = -1;
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
 }
 
 void WindowAnimationStateMachine::finalizeInitialLayout()
