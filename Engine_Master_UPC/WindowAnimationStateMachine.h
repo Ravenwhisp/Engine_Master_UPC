@@ -3,7 +3,6 @@
 #include "MD5Fwd.h"
 
 #include <memory>
-#include <string>
 
 class AnimationStateMachineAsset;
 
