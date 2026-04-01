@@ -576,6 +576,18 @@ void WindowAnimationStateMachine::drawInternal()
     ImGui::Spacing();
     ImGui::Separator();
 
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    {
+        ImGui::TextDisabled("Graph unavailable without a selected state machine.");
+        return;
+    }
+
+    if (!m_asset)
+    {
+        ImGui::TextDisabled("Graph unavailable without a loaded state machine.");
+        return;
+    }
+
     if (!ensureEditorContext())
     {
         ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Could not create imgui-node-editor context.");
