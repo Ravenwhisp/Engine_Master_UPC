@@ -14,6 +14,7 @@ namespace ax
         struct EditorContext;
         struct PinId;
         struct LinkId;
+        struct NodeId;
     }
 }
 
@@ -58,6 +59,11 @@ private:
     void drawLinkContextMenuPopup();
     void handleBackgroundContextMenuInteraction();
     void drawBackgroundContextMenuPopup();
+    void handleNodeContextMenuInteraction();
+    void drawNodeContextMenuPopup();
+
+    bool tryGetStateIndex(ax::NodeEditor::NodeId nodeId, int& outStateIndex) const;
+    bool renameStateAndReferences(int stateIndex, const std::string& newStateName);
 
     bool hasStateWithName(const std::string& stateName) const;
     std::string makeUniqueStateName(const std::string& baseStateName) const;
@@ -87,6 +93,7 @@ private:
     bool m_focusContentNextFrame = false;
     bool m_isDirty = false;
     int m_contextTransitionIndex = -1;
+    int m_contextStateIndex = -1;
     int m_pendingNewStatePlacementIndex = -1;
     ImVec2 m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
 };
