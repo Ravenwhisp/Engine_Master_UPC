@@ -18,6 +18,7 @@ namespace
     constexpr int STATE_NODE_ID_BASE = 1000;
     constexpr int STATE_INPUT_PIN_ID_BASE = 100000;
     constexpr int STATE_OUTPUT_PIN_ID_BASE = 200000;
+    constexpr int TRANSITION_LINK_ID_BASE = 300000;
 
     ed::NodeId getStateNodeId(int stateIndex)
     {
@@ -32,6 +33,24 @@ namespace
     ed::PinId getStateOutputPinId(int stateIndex)
     {
         return ed::PinId(STATE_OUTPUT_PIN_ID_BASE + stateIndex);
+    }
+
+    ed::LinkId getTransitionLinkId(int transitionIndex)
+    {
+        return ed::LinkId(TRANSITION_LINK_ID_BASE + transitionIndex);
+    }
+
+    int findStateIndexByName(const std::vector<AnimationStateMachineState>& states, const std::string& stateName)
+    {
+        for (int i = 0; i < static_cast<int>(states.size()); ++i)
+        {
+            if (states[i].name == stateName)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }
 
@@ -181,6 +200,7 @@ void WindowAnimationStateMachine::drawInternal()
     else
     {
         const auto& states = m_asset->getStates();
+        const auto& transitions = m_asset->getTransitions();
         const std::string& defaultStateName = m_asset->getDefaultStateName();
 
         if (states.empty())
@@ -245,6 +265,25 @@ void WindowAnimationStateMachine::drawInternal()
                     const float y = 40.0f + static_cast<float>(i / 3) * 170.0f;
                     ed::SetNodePosition(nodeId, ImVec2(x, y));
                 }
+            }
+
+            for (int transitionIndex = 0; transitionIndex < static_cast<int>(transitions.size()); ++transitionIndex)
+            {
+                const AnimationStateMachineTransition& transition = transitions[transitionIndex];
+
+                const int sourceStateIndex = findStateIndexByName(states, transition.sourceStateName);
+                const int targetStateIndex = findStateIndexByName(states, transition.targetStateName);
+
+                if (sourceStateIndex < 0 || targetStateIndex < 0)
+                {
+                    continue;
+                }
+
+                const ed::LinkId linkId = getTransitionLinkId(transitionIndex);
+                const ed::PinId sourcePinId = getStateOutputPinId(sourceStateIndex);
+                const ed::PinId targetPinId = getStateInputPinId(targetStateIndex);
+
+                ed::Link(linkId, sourcePinId, targetPinId);
             }
 
             if (m_needsInitialNodeLayout)
