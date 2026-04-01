@@ -109,6 +109,14 @@ void ScriptComponent::drawUi()
     drawScriptFieldsUi(*m_script);
 }
 
+void ScriptComponent::debugDraw()
+{
+    if (m_script) 
+    {
+        m_script->drawGizmo();
+    }
+}
+
 void ScriptComponent::drawScriptFieldsUi(Script& script)
 {
     ScriptFieldList fieldList = script.getExposedFields();
