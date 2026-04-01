@@ -129,13 +129,18 @@ bool WindowAnimationStateMachine::ensureEditorContext()
     {
         return true;
     }
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    {
+        return false;
+    }
+
+    if (m_editorSettingsFile.empty())
+    {
+        return false;
+    }
 
     ed::Config config;
-
-    if (!m_editorSettingsFile.empty())
-    {
-        config.SettingsFile = m_editorSettingsFile.c_str();
-    }
+    config.SettingsFile = m_editorSettingsFile.c_str();
 
     m_editorContext = ed::CreateEditor(&config);
     return m_editorContext != nullptr;
