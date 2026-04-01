@@ -85,6 +85,7 @@ void WindowAnimationStateMachine::cleanUp()
     m_focusContentNextFrame = false;
     m_isDirty = false;
     m_contextTransitionIndex = -1;
+    m_contextStateIndex = -1;
     m_pendingNewStatePlacementIndex = -1;
     m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
 }
@@ -102,6 +103,7 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     m_asset.reset();
     m_isDirty = false;
     m_contextTransitionIndex = -1;
+    m_contextStateIndex = -1;
     m_pendingNewStatePlacementIndex = -1;
     m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
 
@@ -246,6 +248,7 @@ void WindowAnimationStateMachine::drawGraphContent()
     handleCreateTransitionInteraction();
     handleLinkContextMenuInteraction();
     handleBackgroundContextMenuInteraction();
+    handleNodeContextMenuInteraction();
 }
 
 void WindowAnimationStateMachine::drawUnavailableGraphMessage(const char* message)
@@ -560,6 +563,206 @@ void WindowAnimationStateMachine::drawBackgroundContextMenuPopup()
     }
 
     ImGui::EndPopup();
+}
+
+void WindowAnimationStateMachine::handleNodeContextMenuInteraction()
+{
+    if (!m_asset)
+    {
+        return;
+    }
+
+    ed::Suspend();
+
+    ed::NodeId contextNodeId;
+    if (ed::ShowNodeContextMenu(&contextNodeId))
+    {
+        int stateIndex = -1;
+        if (tryGetStateIndex(contextNodeId, stateIndex))
+        {
+            m_contextStateIndex = stateIndex;
+            ImGui::OpenPopup("StateContextMenu");
+        }
+    }
+
+    drawNodeContextMenuPopup();
+
+    ed::Resume();
+}
+
+void WindowAnimationStateMachine::drawNodeContextMenuPopup()
+{
+    if (!ImGui::BeginPopup("StateContextMenu"))
+    {
+        return;
+    }
+
+    auto& states = m_asset->getStatesMutable();
+
+    if (m_contextStateIndex < 0 ||
+        m_contextStateIndex >= static_cast<int>(states.size()))
+    {
+        ImGui::TextDisabled("Invalid state.");
+        if (ImGui::Button("Close"))
+        {
+            m_contextStateIndex = -1;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+        return;
+    }
+
+    AnimationStateMachineState& state = states[m_contextStateIndex];
+
+    ImGui::Text("State");
+    ImGui::Separator();
+
+    std::string editedName = state.name;
+    if (InputTextString("Name", editedName))
+    {
+        if (renameStateAndReferences(m_contextStateIndex, editedName))
+        {
+            sanitizeAssetAfterEdit();
+            markDirty();
+        }
+    }
+
+    std::string oldClipName = state.clipName;
+    const auto& clips = m_asset->getClips();
+    const char* preview = state.clipName.empty() ? "<none>" : state.clipName.c_str();
+
+    if (ImGui::BeginCombo("Clip", preview))
+    {
+        for (const AnimationStateMachineClip& clip : clips)
+        {
+            const bool selected = (clip.name == state.clipName);
+            if (ImGui::Selectable(clip.name.c_str(), selected))
+            {
+                state.clipName = clip.name;
+            }
+
+            if (selected)
+            {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+
+        ImGui::EndCombo();
+    }
+
+    if (state.clipName != oldClipName)
+    {
+        sanitizeAssetAfterEdit();
+        markDirty();
+    }
+
+    if (ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f))
+    {
+        sanitizeAssetAfterEdit();
+        markDirty();
+    }
+
+    const bool isDefaultState = (m_asset->getDefaultStateName() == state.name);
+    ImGui::Text("Default: %s", isDefaultState ? "Yes" : "No");
+
+    if (ImGui::Button("Set As Default"))
+    {
+        m_asset->getDefaultStateNameMutable() = state.name;
+        sanitizeAssetAfterEdit();
+        markDirty();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Close"))
+    {
+        m_contextStateIndex = -1;
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+}
+
+bool WindowAnimationStateMachine::tryGetStateIndex(ax::NodeEditor::NodeId nodeId, int& outStateIndex) const
+{
+    outStateIndex = -1;
+
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    const auto& states = m_asset->getStates();
+
+    for (int i = 0; i < static_cast<int>(states.size()); ++i)
+    {
+        if (nodeId == getStateNodeId(i))
+        {
+            outStateIndex = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool WindowAnimationStateMachine::renameStateAndReferences(int stateIndex, const std::string& newStateName)
+{
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    auto& states = m_asset->getStatesMutable();
+    auto& transitions = m_asset->getTransitionsMutable();
+    std::string& defaultStateName = m_asset->getDefaultStateNameMutable();
+
+    if (stateIndex < 0 || stateIndex >= static_cast<int>(states.size()))
+    {
+        return false;
+    }
+
+    if (newStateName.empty())
+    {
+        return false;
+    }
+
+    const std::string oldStateName = states[stateIndex].name;
+    if (oldStateName == newStateName)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < static_cast<int>(states.size()); ++i)
+    {
+        if (i != stateIndex && states[i].name == newStateName)
+        {
+            return false;
+        }
+    }
+
+    states[stateIndex].name = newStateName;
+
+    if (defaultStateName == oldStateName)
+    {
+        defaultStateName = newStateName;
+    }
+
+    for (AnimationStateMachineTransition& transition : transitions)
+    {
+        if (transition.sourceStateName == oldStateName)
+        {
+            transition.sourceStateName = newStateName;
+        }
+
+        if (transition.targetStateName == oldStateName)
+        {
+            transition.targetStateName = newStateName;
+        }
+    }
+
+    return true;
 }
 
 bool WindowAnimationStateMachine::hasStateWithName(const std::string& stateName) const
