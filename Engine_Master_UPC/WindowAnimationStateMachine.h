@@ -3,6 +3,7 @@
 #include "MD5Fwd.h"
 
 #include <memory>
+#include <string>
 
 class AnimationStateMachineAsset;
 
@@ -11,6 +12,8 @@ namespace ax
     namespace NodeEditor
     {
         struct EditorContext;
+        struct PinId;
+        struct LinkId;
     }
 }
 
@@ -54,6 +57,19 @@ private:
     void finalizeInitialLayout();
     void finalizeGraphFocus();
 
+    bool tryGetInputStateIndex(ax::NodeEditor::PinId pinId, int& outStateIndex) const;
+    bool tryGetOutputStateIndex(ax::NodeEditor::PinId pinId, int& outStateIndex) const;
+    bool tryGetTransitionIndex(ax::NodeEditor::LinkId linkId, int& outTransitionIndex) const;
+
+    bool tryResolveTransitionEndpoints(ax::NodeEditor::PinId firstPinId, ax::NodeEditor::PinId secondPinId,int& outSourceStateIndex, int& outTargetStateIndex) const;
+
+    bool hasTransitionBetweenStates(const std::string& sourceStateName,
+        const std::string& targetStateName) const;
+
+    void markDirty();
+    void sanitizeAssetAfterEdit();
+    bool saveAsset();
+
 private:
     MD5Hash m_targetStateMachineUID = INVALID_ASSET_ID;
     std::shared_ptr<AnimationStateMachineAsset> m_asset;
@@ -61,4 +77,5 @@ private:
     bool m_needsInitialNodeLayout = true;
     std::string m_editorSettingsFile;
     bool m_focusContentNextFrame = false;
+    bool m_isDirty = false;
 };

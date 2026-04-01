@@ -67,6 +67,7 @@ void WindowAnimationStateMachine::cleanUp()
     m_asset.reset();
     m_needsInitialNodeLayout = true;
     m_focusContentNextFrame = false;
+    m_isDirty = false;
 }
 
 void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
@@ -80,6 +81,7 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
 
     m_targetStateMachineUID = uid;
     m_asset.reset();
+    m_isDirty = false;
 
     if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
@@ -114,6 +116,10 @@ bool WindowAnimationStateMachine::ensureAssetLoaded()
     }
 
     m_asset = moduleAssets->load<AnimationStateMachineAsset>(m_targetStateMachineUID);
+    if (m_asset)
+    {
+        m_isDirty = false;
+    }
     return m_asset != nullptr;
 }
 
@@ -331,6 +337,231 @@ void WindowAnimationStateMachine::finalizeGraphFocus()
         ed::NavigateToContent();
         m_focusContentNextFrame = false;
     }
+}
+
+bool WindowAnimationStateMachine::tryGetInputStateIndex(ax::NodeEditor::PinId pinId, int& outStateIndex) const
+{
+    outStateIndex = -1;
+
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    const auto& states = m_asset->getStates();
+    for (int i = 0; i < static_cast<int>(states.size()); ++i)
+    {
+        if (pinId == getStateInputPinId(i))
+        {
+            outStateIndex = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool WindowAnimationStateMachine::tryGetOutputStateIndex(ax::NodeEditor::PinId pinId, int& outStateIndex) const
+{
+    outStateIndex = -1;
+
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    const auto& states = m_asset->getStates();
+    for (int i = 0; i < static_cast<int>(states.size()); ++i)
+    {
+        if (pinId == getStateOutputPinId(i))
+        {
+            outStateIndex = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool WindowAnimationStateMachine::tryGetTransitionIndex(ax::NodeEditor::LinkId linkId, int& outTransitionIndex) const
+{
+    outTransitionIndex = -1;
+
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    const auto& transitions = m_asset->getTransitions();
+    const int linkValue = static_cast<int>(linkId.Get());
+    const int transitionIndex = linkValue - TRANSITION_LINK_ID_BASE;
+
+    if (transitionIndex < 0 || transitionIndex >= static_cast<int>(transitions.size()))
+    {
+        return false;
+    }
+
+    outTransitionIndex = transitionIndex;
+    return true;
+}
+
+bool WindowAnimationStateMachine::tryResolveTransitionEndpoints(ax::NodeEditor::PinId firstPinId, ax::NodeEditor::PinId secondPinId, int& outSourceStateIndex, int& outTargetStateIndex) const
+{
+    outSourceStateIndex = -1;
+    outTargetStateIndex = -1;
+
+    if (!firstPinId || !secondPinId)
+    {
+        return false;
+    }
+
+    const bool firstIsOutput = tryGetOutputStateIndex(firstPinId, outSourceStateIndex);
+    const bool secondIsInput = tryGetInputStateIndex(secondPinId, outTargetStateIndex);
+
+    if (firstIsOutput && secondIsInput)
+    {
+        return true;
+    }
+
+    const bool firstIsInput = tryGetInputStateIndex(firstPinId, outTargetStateIndex);
+    const bool secondIsOutput = tryGetOutputStateIndex(secondPinId, outSourceStateIndex);
+
+    if (firstIsInput && secondIsOutput)
+    {
+        return true;
+    }
+
+    outSourceStateIndex = -1;
+    outTargetStateIndex = -1;
+    return false;
+}
+
+bool WindowAnimationStateMachine::hasTransitionBetweenStates(const std::string& sourceStateName, const std::string& targetStateName) const
+{
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    const auto& transitions = m_asset->getTransitions();
+    for (const AnimationStateMachineTransition& transition : transitions)
+    {
+        if (transition.sourceStateName == sourceStateName &&
+            transition.targetStateName == targetStateName)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void WindowAnimationStateMachine::markDirty()
+{
+    m_isDirty = true;
+}
+
+void WindowAnimationStateMachine::sanitizeAssetAfterEdit()
+{
+    if (!m_asset)
+    {
+        return;
+    }
+
+    auto& clips = m_asset->getClipsMutable();
+    auto& states = m_asset->getStatesMutable();
+    auto& transitions = m_asset->getTransitionsMutable();
+    std::string& defaultStateName = m_asset->getDefaultStateNameMutable();
+
+    auto clipExists = [&](const std::string& clipName) -> bool
+        {
+            for (const AnimationStateMachineClip& clip : clips)
+            {
+                if (clip.name == clipName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+    auto stateExists = [&](const std::string& stateName) -> bool
+        {
+            for (const AnimationStateMachineState& state : states)
+            {
+                if (state.name == stateName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+    for (AnimationStateMachineState& state : states)
+    {
+        if (!clipExists(state.clipName))
+        {
+            state.clipName.clear();
+        }
+
+        if (state.speed < 0.0f)
+        {
+            state.speed = 0.0f;
+        }
+    }
+
+    transitions.erase(
+        std::remove_if(
+            transitions.begin(),
+            transitions.end(),
+            [&](const AnimationStateMachineTransition& transition)
+            {
+                return !stateExists(transition.sourceStateName) ||
+                    !stateExists(transition.targetStateName);
+            }),
+        transitions.end());
+
+    for (AnimationStateMachineTransition& transition : transitions)
+    {
+        if (transition.blendTimeSeconds < 0.0f)
+        {
+            transition.blendTimeSeconds = 0.0f;
+        }
+    }
+
+    if (!defaultStateName.empty() && !stateExists(defaultStateName))
+    {
+        defaultStateName.clear();
+    }
+
+    if (defaultStateName.empty() && !states.empty())
+    {
+        defaultStateName = states.front().name;
+    }
+}
+
+bool WindowAnimationStateMachine::saveAsset()
+{
+    if (!m_asset)
+    {
+        return false;
+    }
+
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+    {
+        return false;
+    }
+
+    if (!moduleAssets->saveAnimationStateMachine(m_asset))
+    {
+        return false;
+    }
+
+    m_isDirty = false;
+    return true;
 }
 
 void WindowAnimationStateMachine::drawInternal()
