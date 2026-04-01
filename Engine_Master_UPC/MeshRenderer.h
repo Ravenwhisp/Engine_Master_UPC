@@ -18,7 +18,7 @@ struct ModelData
 };
 
 
-class MeshRenderer : public Component, public IDebugDrawable
+class MeshRenderer : public Component
 {
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
@@ -48,7 +48,6 @@ public:
 	MD5Hash& getMeshReference() { return m_meshAsset; }
 	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
-	IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
 
 private:
 	std::shared_ptr<BasicMesh>		m_mesh;
