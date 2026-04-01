@@ -14,6 +14,8 @@ public:
     void Start() override;
     void Update() override;
 
+    void drawGizmo() override;
+
     ScriptFieldList getExposedFields() const override;
 
     GameObject* getCurrentTarget() const { return m_currentTarget; };

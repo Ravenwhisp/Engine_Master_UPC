@@ -29,6 +29,31 @@ void PlayerTargetController::Update()
     }
 }
 
+void PlayerTargetController::drawGizmo()
+{
+    using namespace DebugDrawAPI;
+
+    GameObject* owner = getOwner();
+    Transform* ownerTransform = GameObjectAPI::getTransform(owner);
+
+    const Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+
+    const Vector3 green = { 0.0f, 1.0f, 0.0f };
+    const Vector3 yellow = { 1.0f, 1.0f, 0.0f };
+
+    drawCircle(ownerPosition, Vector3(0.0f, 1.0f, 0.0f), green, m_targetRange, 32.0f, 0, true);
+
+    if (m_currentTarget != nullptr)
+    {
+        Transform* targetTransform = GameObjectAPI::getTransform(m_currentTarget);
+        if (targetTransform != nullptr)
+        {
+            const Vector3 targetPosition = TransformAPI::getPosition(targetTransform);
+            drawLine(ownerPosition, targetPosition, yellow, 0, true);
+        }
+    }
+}
+
 void PlayerTargetController::updateEnemiesInRange()
 {
     m_enemiesInRange.clear();
