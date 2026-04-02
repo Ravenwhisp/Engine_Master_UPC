@@ -30,8 +30,11 @@ private:
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
 
+    std::vector<UID> m_objectsToRemove;
+
     bool m_componentCacheDirty = true;
 
+    void removePendingGameObjects();
 
 public:
     friend class ModuleScene;
@@ -65,6 +68,7 @@ public:
     GameObject* createGameObjectWithUID(UID id, UID transformUID);
     GameObject* findGameObjectByUID(UID uuid);
     void removeGameObject(UID uuid);
+    void markGameObjectForRemoval(UID uuid);
 
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);

@@ -36,6 +36,7 @@ namespace GameObjectAPI
     ENGINE_API void setTag(GameObject* gameObject, Tag tag);
 
     ENGINE_API GameObject* createGameObject(const char* name, GameObject* parentObject = nullptr);
+    ENGINE_API void removeGameObject(GameObject* gameObject);
 }
 
 namespace TransformAPI

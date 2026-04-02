@@ -55,6 +55,8 @@ void Scene::update()
 {
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
+        removePendingGameObjects();
+
         for (const auto& go : m_allObjects)
         {
             if (go->GetActive())
@@ -148,6 +150,28 @@ void Scene::removeGameObject(UID uuid)
     }
 
     destroyWindowHierarchy(target);
+}
+
+void Scene::markGameObjectForRemoval(UID uuid)
+{
+    if (!findGameObjectByUID(uuid)) return;
+
+    for (const UID& objectUid : m_objectsToRemove)
+    {
+        if (objectUid == uuid) return;
+    }
+
+    m_objectsToRemove.push_back(uuid);
+}
+
+void Scene::removePendingGameObjects()
+{
+    for (const UID& objectUid : m_objectsToRemove)
+    {
+        removeGameObject(objectUid);
+    }
+
+    m_objectsToRemove.clear();
 }
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
