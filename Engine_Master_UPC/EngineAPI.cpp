@@ -21,6 +21,7 @@
 #include "PlayerBinding.h"
 
 #include "HierarchyUtils.h"
+#include "PrefabManager.h"
 
 #include <DetourNavMeshQuery.h>
 
@@ -90,6 +91,31 @@ namespace GameObjectAPI
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         currentScene->markGameObjectForRemoval(gameObject->GetID());
+    }
+
+    ENGINE_API GameObject* instantiate(GameObject* gameObject, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    {
+        return nullptr;
+    }
+
+    ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    {
+        Scene* currentScene = app->getModuleScene()->getScene();
+        
+        GameObject* prefabInstance = PrefabManager::instantiatePrefab(path, currentScene);
+
+        if (!prefabInstance) return nullptr;
+
+        Transform* instanceTransform = prefabInstance->GetTransform();
+        instanceTransform->setPosition(position);
+        instanceTransform->setRotationEuler(rotationEuler);
+
+        if (parentObject) 
+        {
+            HierarchyUtils::reparent(currentScene, prefabInstance, parentObject);
+        }
+
+        return prefabInstance;
     }
 }
 
