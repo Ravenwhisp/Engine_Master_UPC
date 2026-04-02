@@ -195,6 +195,9 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
 
             Component* component = componentReference->component;
 
+            ImGui::Text("%s", field.name);
+            ImGui::SameLine(100.0f);
+
             if (component)
             {
                 ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str() );
