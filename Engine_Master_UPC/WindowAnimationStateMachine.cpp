@@ -91,6 +91,8 @@ void WindowAnimationStateMachine::cleanUp()
     m_contextStateIndex = -1;
     m_pendingNewStatePlacementIndex = -1;
     m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
+    m_hasSaveFeedback = false;
+    m_lastSaveSucceeded = false;
 }
 
 void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
@@ -111,6 +113,8 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     m_contextStateIndex = -1;
     m_pendingNewStatePlacementIndex = -1;
     m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
+    m_hasSaveFeedback = false;
+    m_lastSaveSucceeded = false;
 
     if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
@@ -148,6 +152,8 @@ bool WindowAnimationStateMachine::ensureAssetLoaded()
     if (m_asset)
     {
         m_isDirty = false;
+        m_hasSaveFeedback = false;
+        m_lastSaveSucceeded = false;
     }
     return m_asset != nullptr;
 }
@@ -736,6 +742,47 @@ void WindowAnimationStateMachine::applyPendingGraphEditorReset()
     m_pendingClearSavedLayout = false;
 }
 
+void WindowAnimationStateMachine::drawSaveControlsUi()
+{
+    if (!m_asset)
+    {
+        return;
+    }
+
+    ImGui::Text("Dirty: %s", m_isDirty ? "Yes" : "No");
+    ImGui::SameLine();
+
+    ImGui::BeginDisabled(!m_isDirty);
+    if (ImGui::Button("Save"))
+    {
+        m_lastSaveSucceeded = saveAsset();
+        m_hasSaveFeedback = true;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Reset Layout"))
+    {
+        requestGraphEditorReset(true);
+        m_hasSaveFeedback = false;
+    }
+
+    if (m_hasSaveFeedback)
+    {
+        ImGui::SameLine();
+
+        if (m_lastSaveSucceeded)
+        {
+            ImGui::TextColored(ImVec4(0.35f, 0.85f, 0.35f, 1.0f), "Saved");
+        }
+        else
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Save failed");
+        }
+    }
+}
+
 bool WindowAnimationStateMachine::tryGetStateIndex(ax::NodeEditor::NodeId nodeId, int& outStateIndex) const
 {
     outStateIndex = -1;
@@ -1021,6 +1068,8 @@ void WindowAnimationStateMachine::resetGraphEditorStateAfterStructuralChange(boo
 void WindowAnimationStateMachine::markDirty()
 {
     m_isDirty = true;
+    m_hasSaveFeedback = false;
+
 }
 
 void WindowAnimationStateMachine::sanitizeAssetAfterEdit()
@@ -1129,6 +1178,7 @@ bool WindowAnimationStateMachine::saveAsset()
 void WindowAnimationStateMachine::drawInternal()
 {
     drawHeaderUi();
+    drawSaveControlsUi();
 
     ImGui::Spacing();
     ImGui::Separator();
