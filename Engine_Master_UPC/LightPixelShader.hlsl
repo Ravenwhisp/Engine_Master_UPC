@@ -253,6 +253,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
     float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.y * metallicFactor) : metallicFactor;
+    metallic = 1 - metallic;
     float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp(metallicRoughnessSample.x * roughnessFactor, minRoughness, 1.0) : roughnessFactor;
 
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
@@ -307,10 +308,13 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
         
     // Ambient
     float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
+    
+    //Will be IBL
     float3 indirectLighting = ambientColor * ambientIntensity;
 
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
-    float3 finalColor = LinearToSRGB(colorMapped);
+    //float3 finalColor = LinearToSRGB(colorMapped);
+    float3 finalColor = LinearToSRGB(directLighting);
 
     return float4(finalColor, 1.0f);
 }
