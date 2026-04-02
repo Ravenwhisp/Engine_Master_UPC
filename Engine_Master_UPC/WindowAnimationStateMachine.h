@@ -63,6 +63,7 @@ private:
     void drawNodeContextMenuPopup();
     void requestGraphEditorReset(bool clearSavedLayout);
     void applyPendingGraphEditorReset();
+    void drawSaveControlsUi();
 
     bool tryGetStateIndex(ax::NodeEditor::NodeId nodeId, int& outStateIndex) const;
     bool renameStateAndReferences(int stateIndex, const std::string& newStateName);
@@ -100,4 +101,6 @@ private:
     ImVec2 m_pendingNewStatePosition = ImVec2(40.0f, 40.0f);
     bool m_pendingGraphEditorReset = false;
     bool m_pendingClearSavedLayout = false;
+    bool m_hasSaveFeedback = false;
+    bool m_lastSaveSucceeded = false;
 };
