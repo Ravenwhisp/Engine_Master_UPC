@@ -55,7 +55,7 @@ public:
 	MD5Hash& getMeshReference() { return m_meshAsset; }
 	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
-	IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
+	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
 	MD5Hash& getSkinReference() { return m_skinAsset; }
 	const MD5Hash& getSkinReference() const { return m_skinAsset; }
