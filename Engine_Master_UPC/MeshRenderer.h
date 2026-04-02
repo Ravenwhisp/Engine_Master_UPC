@@ -60,6 +60,7 @@ public:
 	MD5Hash& getSkinReference() { return m_skinAsset; }
 	const MD5Hash& getSkinReference() const { return m_skinAsset; }
 
+
 	const std::vector<Matrix>& getMatrixPalette() const { return m_matrixPalette; }
 	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
 	bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
