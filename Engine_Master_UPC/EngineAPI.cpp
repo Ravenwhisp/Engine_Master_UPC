@@ -14,6 +14,8 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "Component.h"
+#include "ScriptComponent.h"
+#include "Script.h"
 
 #include "CameraComponent.h"
 
@@ -37,6 +39,60 @@ namespace GameObjectAPI
     const Transform* getTransform(const GameObject* gameObject)
     {
         return gameObject->GetTransform();
+    }
+
+    Script* GameObjectAPI::getScript(GameObject* gameObject, const char* scriptName)
+    {
+        if (gameObject == nullptr || scriptName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component);
+
+            if (scriptComponent->getScriptName() == scriptName)
+            {
+                return scriptComponent->getScript();
+            }
+        }
+
+        return nullptr;
+    }
+
+    const Script* GameObjectAPI::getScript(const GameObject* gameObject, const char* scriptName)
+    {
+        if (gameObject == nullptr || scriptName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            const ScriptComponent* scriptComponent = static_cast<const ScriptComponent*>(component);
+
+            if (scriptComponent->getScriptName() == scriptName)
+            {
+                return scriptComponent->getScript();
+            }
+        }
+
+        return nullptr;
     }
 
     bool isActiveSelf(const GameObject* gameObject)
@@ -120,6 +176,66 @@ namespace TransformAPI
     void translate(Transform* transform, const Vector3& delta)
     {
         transform->setPosition(transform->getPosition() + delta);
+    }
+
+    Transform* TransformAPI::getParent(Transform* transform)
+    {
+        return transform->getRoot();
+    }
+
+    const Transform* TransformAPI::getParent(const Transform* transform)
+    {
+        return transform->getRoot();
+    }
+
+    Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
+    {
+        if (transform == nullptr || childName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        for (GameObject* child : children)
+        {
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            if (child->GetName() == childName)
+            {
+                return child->GetTransform();
+            }
+        }
+
+        return nullptr;
+    }
+
+    const Transform* TransformAPI::findChildByName(const Transform* transform, const char* childName)
+    {
+        if (transform == nullptr || childName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        for (GameObject* child : children)
+        {
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            if (child->GetName() == childName)
+            {
+                return child->GetTransform();
+            }
+        }
+
+        return nullptr;
     }
 }
 

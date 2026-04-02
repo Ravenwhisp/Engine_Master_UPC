@@ -18,6 +18,7 @@ using DirectX::SimpleMath::Vector2;
 class GameObject;
 class Transform;
 class Component;
+class Script;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
@@ -25,6 +26,9 @@ namespace GameObjectAPI
 {
     ENGINE_API Transform* getTransform(GameObject* gameObject);
     ENGINE_API const Transform* getTransform(const GameObject* gameObject);
+
+    ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
+    ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
 
     ENGINE_API bool isActiveSelf(const GameObject* gameObject);
     ENGINE_API bool isActiveInHierarchy(const GameObject* gameObject);
@@ -51,6 +55,12 @@ namespace TransformAPI
     ENGINE_API Vector3 getRight(const Transform* transform);
     ENGINE_API Vector3 getUp(const Transform* transform);
     ENGINE_API void translate(Transform* transform, const Vector3& delta);
+
+    ENGINE_API Transform* getParent(Transform* transform);
+    ENGINE_API const Transform* getParent(const Transform* transform);
+
+    ENGINE_API Transform* findChildByName(Transform* transform, const char* childName);
+    ENGINE_API const Transform* findChildByName(const Transform* transform, const char* childName);
 }
 
 namespace ComponentAPI
