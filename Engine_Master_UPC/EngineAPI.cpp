@@ -85,6 +85,12 @@ namespace GameObjectAPI
 
         return createdObject;
     }
+
+    void removeGameObject(GameObject* gameObject)
+    {
+        Scene* currentScene = app->getModuleScene()->getScene();
+        currentScene->markGameObjectForRemoval(gameObject->GetID());
+    }
 }
 
 namespace TransformAPI
