@@ -153,32 +153,54 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         }
 
         Transform* transform = renderer->getTransform();
-        Matrix mvp = (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
-        commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
         const auto& mesh = renderer->getMesh();
+        if (mesh.get() == nullptr)
+            continue;
+
         const auto& submeshes = mesh->getSubmeshes();
         const auto& materials = renderer->getMaterials();
 
-        if (mesh.get() == nullptr) return;
-        if (materials.size() != submeshes.size()) return;
+        if (materials.size() != submeshes.size())
+            continue;
+
+        const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
+        const VertexBuffer* cpuSkinnedVB =
+            renderer->isCpuSkinningFallbackEnabled() ? renderer->getCpuSkinnedVertexBuffer() : nullptr;
+        const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
+
+        const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
+        const bool useCpuSkinnedVB = (!useGpuSkinnedVB && cpuSkinnedVB != nullptr);
+        const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
+
+        const VertexBuffer* activeVB = useGpuSkinnedVB
+            ? gpuSkinnedVB
+            : (useCpuSkinnedVB ? cpuSkinnedVB : staticVB);
+
+        if (!activeVB)
+            continue;
+
+        Matrix mvp = useWorldSpaceSkinnedVB
+            ? (*m_view * *m_projection).Transpose()
+            : (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
+
+        commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
         for (int i = 0; i < submeshes.size(); i++)
         {
             const auto& material = materials.at(i).get();
 
             ModelData modelData{};
-            modelData.model = transform->getGlobalMatrix().Transpose();
-            modelData.normalMat = transform->getNormalMatrix().Transpose();
+            modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
+            modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
             modelData.material = material->getMaterial();
 
-                // The numbers of the Root Parameters Index are hardcoded right now, maybe implement it in a enum
             commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
             commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
 
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            D3D12_VERTEX_BUFFER_VIEW vbv = mesh->getVertexBuffer()->getVertexBufferView();
+            D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
             commandList->IASetVertexBuffers(0, 1, &vbv);
 
             if (mesh->hasIndexBuffer())

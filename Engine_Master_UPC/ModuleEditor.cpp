@@ -21,6 +21,7 @@
 #include "WindowGameDebug.h"
 #include "PrefabManager.h"
 #include "ModuleRender.h"
+#include "WindowAnimationStateMachine.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -268,6 +269,7 @@ bool ModuleEditor::init()
     m_editorWindows.push_back(m_editorSettings = new WindowEditorSettings());
     m_editorWindows.push_back(new WindowFileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
+    
 
     m_sceneEditor = new WindowSceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
@@ -279,6 +281,8 @@ bool ModuleEditor::init()
     m_editorWindows.push_back(inspector);
 
     m_editorWindows.push_back(m_gameWindow = new WindowGame());
+
+    m_editorWindows.push_back(m_windowAnimationStateMachine = new WindowAnimationStateMachine());
 
     m_viewGameDebug = std::make_unique<WindowGameDebug>();
 
@@ -353,6 +357,7 @@ bool ModuleEditor::cleanUp()
     m_hardwareWindow = nullptr;
     m_performanceWindow = nullptr;
     m_gameWindow = nullptr;
+    m_windowAnimationStateMachine = nullptr;
 
     return true;
 }
