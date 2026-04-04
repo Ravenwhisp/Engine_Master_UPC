@@ -131,7 +131,7 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     renderMesh(commandList);
 }
