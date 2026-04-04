@@ -36,6 +36,15 @@ private:
 
     void removePendingGameObjects();
 
+    //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
+    bool m_isUpdating = false;
+
+    std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
+    std::vector<GameObject*> m_pendingRootObjectsToAdd;
+
+    void flushPendingGameObjects();
+    //
+
 public:
     friend class ModuleScene;
 
