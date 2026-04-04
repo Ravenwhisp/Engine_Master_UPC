@@ -19,4 +19,5 @@ private:
     std::unique_ptr<VertexBuffer>   m_vertexBuffer;
     std::unique_ptr<IndexBuffer>    m_indexBuffer;
     std::shared_ptr<Texture>        m_texture;
+    std::shared_ptr<Texture>        m_irradiance;
 };

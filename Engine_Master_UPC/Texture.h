@@ -58,10 +58,11 @@ public:
     Texture& operator=(Texture&&) = default;
 
 
-    DescriptorHandle    getSRV()                    const;
-    DescriptorHandle    getRTV(uint32_t mip = 0)    const;
-    DescriptorHandle    getDSV()                    const;
-    DescriptorHandle    getUAV(uint32_t mip = 0)    const;
+    DescriptorHandle    getSRV()                         const;
+    DescriptorHandle    getRTV(uint32_t mip = 0)         const;
+    DescriptorHandle    getDSV()                         const;
+    DescriptorHandle    getUAV(uint32_t mip = 0)         const;
+    DescriptorHandle    getContiguousRTV(uint32_t index) const;
 
 
     bool        hasSRV()    const { return hasView(TextureView::SRV); }
@@ -110,6 +111,8 @@ private:
     DescriptorHandle    m_rtv[MAX_MIPS]{};
     DescriptorHandle    m_dsv{};
     DescriptorHandle    m_uav[MAX_MIPS]{};
+
+    std::unique_ptr <DescriptorHeapBlock> m_contiguousRTV;
 };
 
 

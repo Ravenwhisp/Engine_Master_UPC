@@ -56,12 +56,14 @@ public:
 	Texture* createNullTexture2D();
 
 	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
+	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer);
 
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
+	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexbuffer);
 	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset);
 	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);

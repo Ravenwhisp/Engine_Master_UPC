@@ -179,6 +179,51 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	return texture;
 }
 
+Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer)
+{
+	TextureDesc desc{};
+	
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+
+	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
+	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
+	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
+	desc.mipLevels = static_cast<uint16_t>(textureAsset.getMipCount());
+	desc.views = TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
+
+	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
+
+	//CREATE PIPELINESTATE OBJECT
+	//CREATE ROOT SIGNATURE
+	//commandList->SetPipelineState(pipelinestate)
+	//commandList->SetGraphicsRootSignature(rootSignature)
+	//LOOK INTO SkyBoxPass.cpp LINE 103.
+
+	for (size_t i = 0; i < desc.arraySize; i++)
+	{
+		UINT subResourceIndex = D3D12CalcSubresource(0, i, 0, desc.mipLevels, desc.arraySize);
+
+		CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
+		commandList->ResourceBarrier(1, &barrierIn);
+
+		commandList->OMSetRenderTargets(1, &texture->getContiguousRTV(i).cpu, 0, nullptr);
+		commandList->DrawIndexedInstanced(static_cast<UINT>(indexBuffer->getNumIndices()), 1,0,0,0);
+		
+		CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
+		commandList->ResourceBarrier(1, &barrierOut);
+		
+	}
+
+	m_queue->executeCommandList(commandList);
+	m_queue->flush();
+
+	return texture;
+}
+
 RingBuffer* ModuleResources::createRingBuffer(size_t size)
 {
 	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -233,6 +278,20 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 
 
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace));
+	m_resources.insert(uid, texture);
+	return texture;
+}
+
+std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer)
+{
+	const UID uid = hashToUID(textureAsset.getId() + "_irradiance");
+
+	if (auto cached = m_resources.getAs<Texture>(uid))
+	{
+		return cached;
+	}
+
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer));
 	m_resources.insert(uid, texture);
 	return texture;
 }

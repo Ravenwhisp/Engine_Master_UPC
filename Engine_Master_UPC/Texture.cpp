@@ -107,6 +107,12 @@ DescriptorHandle Texture::getUAV(uint32_t mip) const
     return m_uav[mip];
 }
 
+DescriptorHandle Texture::getContiguousRTV(uint32_t index) const
+{
+    //Put Assert Here.
+    return m_contiguousRTV->getHandle(index);
+}
+
 
 bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
 {
@@ -237,18 +243,42 @@ void Texture::createSRV()
 void Texture::createRTV()
 {
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+
     rtvDesc.Format = resolvedRTVFormat();
-    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-    rtvDesc.Texture2D.PlaneSlice = 0;
 
-    for (uint32_t mip = 0; mip < m_mipCount; ++mip)
+    if (m_desc.arraySize == 6)
     {
-        rtvDesc.Texture2D.MipSlice = mip;
+        
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+        rtvDesc.Texture2DArray.ArraySize = 1;
+        rtvDesc.Texture2DArray.MipSlice = 0;
+        rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-        m_rtv[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
+        m_contiguousRTV = std::make_unique<DescriptorHeapBlock>(app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize));
 
-        m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_rtv[mip].cpu);
+        for (size_t i = 0; i < m_desc.arraySize; i++)
+        {
+            rtvDesc.Texture2DArray.FirstArraySlice = i;
+
+            m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_contiguousRTV->getCPUHandle(i));
+        }
     }
+    else
+    {
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.PlaneSlice = 0;
+
+        for (uint32_t mip = 0; mip < m_mipCount; ++mip)
+        {
+            rtvDesc.Texture2D.MipSlice = mip;
+
+            m_rtv[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
+
+            m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_rtv[mip].cpu);
+        }
+    }
+
+    
 }
 
 
