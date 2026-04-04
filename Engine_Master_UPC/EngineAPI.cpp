@@ -101,10 +101,12 @@ namespace GameObjectAPI
         currentScene->markGameObjectForRemoval(gameObject->GetID());
     }
 
+    /*
     ENGINE_API GameObject* instantiate(GameObject* gameObject, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         return nullptr;
     }
+    */
 
     ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
