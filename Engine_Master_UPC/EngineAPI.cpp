@@ -6,6 +6,7 @@
 #include "ModuleTime.h"
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
+#include "ModuleEditor.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -89,6 +90,13 @@ namespace GameObjectAPI
 
     void removeGameObject(GameObject* gameObject)
     {
+        ModuleEditor* editorModule = app->getModuleEditor();
+
+        if (editorModule->getSelectedGameObject() == gameObject)
+        {
+            editorModule->setSelectedGameObject(nullptr);
+        }
+
         Scene* currentScene = app->getModuleScene()->getScene();
         currentScene->markGameObjectForRemoval(gameObject->GetID());
     }
