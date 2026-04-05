@@ -41,9 +41,9 @@ struct WindowSceneEditorSettings
     bool showGuizmo = DEFAULT_DEBUG;
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
-    bool showNavPath = true;
-    bool showLightComponent = DEFAULT_DEBUG;
-    bool showCameraFrustum = DEFAULT_DEBUG;
+    bool showNavPath = false;
+    bool showLightComponent = false;
+    bool showCameraFrustum = false;
 };
 
 struct FrustumCullingSettings

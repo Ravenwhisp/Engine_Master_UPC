@@ -13,6 +13,7 @@
     X(UIBUTTON)             \
     X(NAVIGATION_AGENT)     \
     X(WAYPOINT_PATH)        \
+    X(SPRITE_RENDERER)      \
     X(CHANGE_SCENE)         \
     X(EXIT_APPLICATION)     \
     X(NAVMESH_WALK)         \
