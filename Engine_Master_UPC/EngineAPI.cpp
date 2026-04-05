@@ -14,6 +14,8 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "Component.h"
+#include "ScriptComponent.h"
+#include "Script.h"
 
 #include "CameraComponent.h"
 
@@ -37,6 +39,60 @@ namespace GameObjectAPI
     const Transform* getTransform(const GameObject* gameObject)
     {
         return gameObject->GetTransform();
+    }
+
+    Script* GameObjectAPI::getScript(GameObject* gameObject, const char* scriptName)
+    {
+        if (gameObject == nullptr || scriptName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component);
+
+            if (scriptComponent->getScriptName() == scriptName)
+            {
+                return scriptComponent->getScript();
+            }
+        }
+
+        return nullptr;
+    }
+
+    const Script* GameObjectAPI::getScript(const GameObject* gameObject, const char* scriptName)
+    {
+        if (gameObject == nullptr || scriptName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            const ScriptComponent* scriptComponent = static_cast<const ScriptComponent*>(component);
+
+            if (scriptComponent->getScriptName() == scriptName)
+            {
+                return scriptComponent->getScript();
+            }
+        }
+
+        return nullptr;
     }
 
     bool isActiveSelf(const GameObject* gameObject)
@@ -120,6 +176,66 @@ namespace TransformAPI
     void translate(Transform* transform, const Vector3& delta)
     {
         transform->setPosition(transform->getPosition() + delta);
+    }
+
+    Transform* TransformAPI::getParent(Transform* transform)
+    {
+        return transform->getRoot();
+    }
+
+    const Transform* TransformAPI::getParent(const Transform* transform)
+    {
+        return transform->getRoot();
+    }
+
+    Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
+    {
+        if (transform == nullptr || childName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        for (GameObject* child : children)
+        {
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            if (child->GetName() == childName)
+            {
+                return child->GetTransform();
+            }
+        }
+
+        return nullptr;
+    }
+
+    const Transform* TransformAPI::findChildByName(const Transform* transform, const char* childName)
+    {
+        if (transform == nullptr || childName == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        for (GameObject* child : children)
+        {
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            if (child->GetName() == childName)
+            {
+                return child->GetTransform();
+            }
+        }
+
+        return nullptr;
     }
 }
 
@@ -1160,5 +1276,93 @@ namespace NavigationAPI
         }
 
         return false;
+    }
+}
+
+namespace DebugDrawAPI
+{
+    void drawPoint(const Vector3& pos, const Vector3& color, float size, int durationMillis, bool depthEnabled)
+    {
+        dd::point(ddConvert(pos), ddConvert(color), size, durationMillis, depthEnabled);
+    }
+
+    void drawLine(const Vector3& from, const Vector3& to, const Vector3& color, int durationMillis, bool depthEnabled)
+    {
+        dd::line(ddConvert(from), ddConvert(to), ddConvert(color), durationMillis, depthEnabled);
+    }
+
+    void drawScreenText(const char* str, const Vector3& pos, const Vector3& color, float scaling, int durationMillis)
+    {
+        dd::screenText(str, ddConvert(pos), ddConvert(color), scaling, durationMillis);
+    }
+
+    void drawProjectedText(const char* str, const Vector3& pos, const Vector3& color, const Matrix& vpMatrix, int sx, int sy, int sw, int sh, float scaling, int durationMillis)
+    {
+        dd::projectedText(str, ddConvert(pos), ddConvert(color), ddConvert(vpMatrix), sx, sy, sw, sh, scaling, durationMillis);
+    }
+
+    void drawAxisTriad(const Matrix& transform, float size, float length, int durationMillis, bool depthEnabled)
+    {
+        dd::axisTriad(ddConvert(transform), size, length, durationMillis, depthEnabled);
+    }
+
+    void drawArrow(const Vector3& from, const Vector3& to, const Vector3& color, float size, int durationMillis, bool depthEnabled)
+    {
+        dd::arrow(ddConvert(from), ddConvert(to), ddConvert(color), size, durationMillis, depthEnabled);
+    }
+
+    void drawCross(const Vector3& center, float length, int durationMillis, bool depthEnabled)
+    {
+        dd::cross(ddConvert(center), length, durationMillis, depthEnabled);
+    }
+
+    void drawCircle(const Vector3& center, const Vector3& planeNormal, const Vector3& color, float radius, float numSteps, int durationMillis, bool depthEnabled)
+    {
+        dd::circle(ddConvert(center), ddConvert(planeNormal), ddConvert(color), radius, numSteps, durationMillis, depthEnabled);
+    }
+
+    void drawPlane(const Vector3& center, const Vector3& planeNormal, const Vector3& planeColor, const Vector3& normalVecColor, float planeScale, float normalVecScale, int durationMillis, bool depthEnabled)
+    {
+        dd::plane(ddConvert(center), ddConvert(planeNormal), ddConvert(planeColor), ddConvert(normalVecColor), planeScale, normalVecScale, durationMillis, depthEnabled);
+    }
+
+    void drawSphere(const Vector3& center, const Vector3& color, float radius, int durationMillis, bool depthEnabled)
+    {
+        dd::sphere(ddConvert(center), ddConvert(color), radius, durationMillis, depthEnabled);
+    }
+
+    void drawCone(const Vector3& apex, const Vector3& dir, const Vector3& color, float baseRadius, float apexRadius, int durationMillis, bool depthEnabled)
+    {
+        dd::cone(ddConvert(apex), ddConvert(dir), ddConvert(color), baseRadius, apexRadius, durationMillis, depthEnabled);
+    }
+
+    void drawBox(const Vector3& center, const Vector3& color, float width, float height, float depth, int durationMillis, bool depthEnabled)
+    {
+        dd::box(ddConvert(center), ddConvert(color), width, height, depth, durationMillis, depthEnabled);
+    }
+
+    void drawAABB(const Vector3& mins, const Vector3& maxs, const Vector3& color, int durationMillis, bool depthEnabled)
+    {
+        dd::aabb(ddConvert(mins), ddConvert(maxs), ddConvert(color), durationMillis, depthEnabled);
+    }
+
+    void drawFrustum(const Matrix& invClipMatrix, const Vector3& color, int durationMillis, bool depthEnabled)
+    {
+        dd::frustum(ddConvert(invClipMatrix), ddConvert(color), durationMillis, depthEnabled);
+    }
+
+    void drawVertexNormal(const Vector3& origin, const Vector3& normal, float length, int durationMillis, bool depthEnabled)
+    {
+        dd::vertexNormal(ddConvert(origin), ddConvert(normal), length, durationMillis, depthEnabled);
+    }
+
+    void drawTangentBasis(const Vector3& origin, const Vector3& normal, const Vector3& tangent, const Vector3& bitangent, float lengths, int durationMillis, bool depthEnabled)
+    {
+        dd::tangentBasis(ddConvert(origin), ddConvert(normal), ddConvert(tangent), ddConvert(bitangent), lengths, durationMillis, depthEnabled);
+    }
+
+    void drawXZSquareGrid(float mins, float maxs, float y, float step, const Vector3& color, int durationMillis, bool depthEnabled)
+    {
+        dd::xzSquareGrid(mins, maxs, y, step, ddConvert(color), durationMillis, depthEnabled);
     }
 }

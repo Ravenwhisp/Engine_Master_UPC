@@ -3,7 +3,7 @@
 #include "Lights.h"
 #include "IDebugDrawable.h"
     
-class LightComponent final : public Component, public IDebugDrawable
+class LightComponent final : public Component
 {
 public:
     LightComponent(UID id, GameObject* owner);
@@ -25,7 +25,6 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
     void debugDraw() override;
-    IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
 private:
     LightData m_data{};
 };
