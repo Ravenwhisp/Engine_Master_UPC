@@ -153,7 +153,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <AdditionalIncludeDirectories>3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;.</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -275,7 +275,17 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui.h" />
     <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_canvas.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_extra_math.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor.h" />
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h" />
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
+    <ClInclude Include="AnimationAsset.h" />
+    <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="AnimationController.h" />
+    <ClInclude Include="AnimationStateMachineAsset.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
@@ -304,12 +314,15 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
+    <ClInclude Include="ImporterAnimation.h" />
+    <ClInclude Include="ImporterAnimationStateMachine.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterMaterial.h" />
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="MaterialAsset.h" />
@@ -339,6 +352,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="ScriptRegistry.h" />
+    <ClInclude Include="SkinAsset.h" />
+    <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
     <ClInclude Include="SkyboxParams.h" />
@@ -349,6 +364,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="TextureImage.h" />
     <ClInclude Include="UIParams.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
+    <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ImporterRegistry.h" />
@@ -551,6 +567,18 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">
       </PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_canvas.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -567,6 +595,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="AnimationController.cpp" />
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
     <ClCompile Include="CommandAddGameObject.cpp" />
     <ClCompile Include="Application.cpp" />
@@ -585,6 +615,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp" />
+    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
     <ClCompile Include="ImporterMaterial.cpp" />
@@ -593,6 +625,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
+    <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
@@ -607,7 +640,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="SpriteRendererPass.cpp" />
+    <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
+    <ClCompile Include="WindowAnimationStateMachine.cpp" />
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="WindowFileDialog.cpp" />
@@ -725,6 +760,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl" />
+    <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
+    <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
     <None Include="MakeSpriteFont.exe" />
     <None Include="NewCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
@@ -737,6 +775,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="SkinningComputeShader.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
     </FxCompile>
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>

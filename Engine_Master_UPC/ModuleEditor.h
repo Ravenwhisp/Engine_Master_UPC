@@ -18,6 +18,7 @@ class EditorWindow;
 class WindowGameDebug;
 class SceneConfig;
 class GameObject;
+class WindowAnimationStateMachine;
 
 class ModuleEditor : public Module
 {
@@ -82,6 +83,11 @@ public:
     WindowGame* getWindowGame()
     {
         return m_gameWindow;
+    }
+
+    WindowAnimationStateMachine* getWindowAnimationStateMachine()
+    {
+        return m_windowAnimationStateMachine;
     }
 
     void setSelectedGameObject(GameObject* selectedGameObject)
@@ -159,9 +165,11 @@ private:
     WindowEditorSettings* m_editorSettings = nullptr;
     SceneConfig* m_sceneConfig = nullptr;
     WindowGame* m_gameWindow = nullptr;
+    WindowAnimationStateMachine* m_windowAnimationStateMachine = nullptr;
     bool m_showMainDockspace = true;
     bool m_firstFrame = true;
     std::unique_ptr<WindowGameDebug> m_viewGameDebug;
+  
 
 #pragma endregion
 

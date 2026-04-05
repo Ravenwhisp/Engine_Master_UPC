@@ -29,6 +29,7 @@
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
+#include "SkinningComputePass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -64,7 +65,7 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
     m_renderPasses.push_back(std::make_unique<SkyBoxPass>( device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
-
+    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));   //  <-------------- CRASH HERE
     m_renderPasses.push_back(std::make_unique<MeshRendererPass>(device));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
@@ -111,6 +112,13 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
 
 void ModuleRender::preRender()
 {
+    if (m_pendingStopSimulation)
+    {
+        app->getModuleD3D12()->getCommandQueue()->flush();
+        app->getModuleGameView()->stopGameSimulation();
+        m_pendingStopSimulation = false;
+    }
+
     m_ringBuffer->free(app->getModuleD3D12()->getLastCompletedFrame());
 
     auto* commandList = app->getModuleD3D12()->getCommandList();
