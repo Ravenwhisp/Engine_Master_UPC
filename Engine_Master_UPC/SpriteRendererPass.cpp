@@ -193,5 +193,26 @@ Matrix SpriteRendererPass::buildSpriteMVP(SpriteRenderer* sprite) const
     GameObject* owner = sprite->getOwner();
     Transform* transform = owner->GetTransform();
 
-    return transform->getGlobalMatrix() * (*m_view) * (*m_projection);
+    Matrix world;
+
+    if (sprite->getLookAtCamera())
+    {
+        Vector3 position = transform->getPosition();
+        Vector3 scale = transform->getScale();
+
+        Matrix view = *m_view;
+
+        Matrix rot = view;
+        rot._41 = rot._42 = rot._43 = 0.0f;
+
+        Matrix rotInv = rot.Transpose();
+
+        world = Matrix::CreateScale(scale) * rotInv * Matrix::CreateTranslation(position);
+    }
+    else
+    {
+        world = transform->getGlobalMatrix();
+    }
+
+    return world * (*m_view) * (*m_projection);
 }

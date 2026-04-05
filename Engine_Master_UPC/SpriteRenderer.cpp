@@ -7,10 +7,7 @@
 #include "ModuleAssets.h"
 #include "Texture.h"
 
-SpriteRenderer::SpriteRenderer(UID id, GameObject* owner)
-    : Component(id, ComponentType::SPRITE_RENDERER, owner)
-{
-}
+SpriteRenderer::SpriteRenderer(UID id, GameObject* owner) : Component(id, ComponentType::SPRITE_RENDERER, owner) { }
 
 std::unique_ptr<Component> SpriteRenderer::clone(GameObject* newOwner) const
 {
@@ -21,6 +18,7 @@ std::unique_ptr<Component> SpriteRenderer::clone(GameObject* newOwner) const
     cloned->m_texture = cloned->m_gpuTexture.get();
     cloned->m_textureAsset = m_textureAsset;
     cloned->m_loadRequested = false;
+    cloned->m_lookAtCamera = m_lookAtCamera;
     cloned->setActive(this->isActive());
 
     return cloned;
@@ -67,6 +65,8 @@ void SpriteRenderer::drawUi()
 
     ImGui::SameLine();
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
+
+    ImGui::Checkbox("Look At Camera", &m_lookAtCamera);
 }
 
 rapidjson::Value SpriteRenderer::getJSON(rapidjson::Document& domTree)
@@ -78,6 +78,7 @@ rapidjson::Value SpriteRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("LookAtCamera", bool(this->m_lookAtCamera), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -96,6 +97,11 @@ bool SpriteRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         {
             m_loadRequested = true;
         }
+    }
+
+    if (componentInfo.HasMember("LookAtCamera"))
+    {
+        m_lookAtCamera = componentInfo["LookAtCamera"].GetBool();
     }
 
     return true;
