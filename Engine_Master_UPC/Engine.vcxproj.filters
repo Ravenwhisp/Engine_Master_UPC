@@ -327,7 +327,6 @@
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
     </ClCompile>
-    <ClCompile Include="ViewHierarchyDialog.cpp" />
     <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClCompile>
@@ -340,23 +339,6 @@
     <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClCompile>
-    <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
-    <ClCompile Include="CommandAddGameObject.cpp" />
-    <ClCompile Include="CommandCreateFolder.cpp" />
-    <ClCompile Include="CommandCutItem.cpp" />
-    <ClCompile Include="CommandDeleteAsset.cpp" />
-    <ClCompile Include="CommandDeleteFolder.cpp" />
-    <ClCompile Include="HierarchyTreeRenderer.cpp" />
-    <ClCompile Include="HierarchyUtils.cpp" />
-    <ClCompile Include="CommandImportAsset.cpp" />
-    <ClCompile Include="CommandInstantiatePrefab.cpp" />
-    <ClCompile Include="CommandMoveFile.cpp" />
-    <ClCompile Include="CommandPasteFile.cpp" />
-    <ClCompile Include="CommandRemoveGameObject.cpp" />
-    <ClCompile Include="CommandRenameGameObject.cpp" />
-    <ClCompile Include="CommandReparent.cpp" />
-    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
-    <ClCompile Include="WindowFileDialog.cpp" />
     <ClCompile Include="ImporterAnimation.cpp">
       <Filter>Persistence\Importers</Filter>
     </ClCompile>
@@ -381,7 +363,63 @@
     <ClCompile Include="SpriteRendererPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="WindowAnimationStateMachine.cpp" />
+    <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddGameObject.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCreateFolder.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCutItem.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteAsset.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteFolder.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandImportAsset.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandInstantiatePrefab.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandMoveFile.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPasteFile.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRemoveGameObject.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRenameGameObject.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandReparent.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTreeRenderer.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyUtils.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewHierarchyDialog.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowFileDialog.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowAnimationStateMachine.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -856,7 +894,6 @@
     <ClInclude Include="ScriptRegistry.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="ViewHierarchyDialog.h" />
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClInclude>
@@ -875,32 +912,14 @@
     <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClInclude>
-    <ClInclude Include="CommandAddChildToPrefabRoot.h" />
-    <ClInclude Include="CommandAddGameObject.h" />
-    <ClInclude Include="CommandCreateFolder.h" />
-    <ClInclude Include="CommandCutItem.h" />
     <ClInclude Include="DeviceType.h" />
-    <ClInclude Include="CommandDeleteAsset.h" />
-    <ClInclude Include="CommandDeleteFolder.h" />
-    <ClInclude Include="FileDialogClipboard.h" />
-    <ClInclude Include="HierarchyTreeRenderer.h" />
-    <ClInclude Include="HierarchyUtils.h" />
     <ClInclude Include="ICommand.h" />
-    <ClInclude Include="CommandImportAsset.h" />
     <ClInclude Include="KeyCode.h" />
-    <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="CommandMoveFile.h" />
-    <ClInclude Include="CommandPasteFile.h" />
-    <ClInclude Include="CommandRemoveGameObject.h" />
-    <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="CommandReparent.h" />
-    <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="UIParams.h" />
-    <ClInclude Include="WindowFileDialog.h" />
     <ClInclude Include="ImporterAnimation.h">
       <Filter>Persistence\Importers</Filter>
     </ClInclude>
@@ -938,7 +957,66 @@
     <ClInclude Include="ImporterSkin.h">
       <Filter>Persistence\Importers</Filter>
     </ClInclude>
-    <ClInclude Include="WindowAnimationStateMachine.h" />
+    <ClInclude Include="CommandAddChildToPrefabRoot.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAddGameObject.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandCreateFolder.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandCutItem.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandDeleteAsset.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandDeleteFolder.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandImportAsset.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandInstantiatePrefab.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandMoveFile.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandPasteFile.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandRemoveGameObject.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandRenameGameObject.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandReparent.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandSaveGameObjectAsPrefab.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialogClipboard.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyTreeRenderer.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyUtils.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewHierarchyDialog.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowFileDialog.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowAnimationStateMachine.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1114,6 +1192,9 @@
     <Filter Include="Editor\imgui\NodeEditor">
       <UniqueIdentifier>{57c3d734-6f4a-45d6-9477-4460d087040b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Commands">
+      <UniqueIdentifier>{67e7f84d-9329-42d5-822d-44df3c1bebbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1151,12 +1232,16 @@
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="UIPixelShader.hlsl" />
-    <FxCompile Include="UIVertexShader.hlsl" />
     <FxCompile Include="SkinningComputeShader.hlsl">
       <Filter>Animations</Filter>
     </FxCompile>
     <FxCompile Include="SpriteVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
