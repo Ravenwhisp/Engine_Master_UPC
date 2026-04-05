@@ -11,6 +11,7 @@
 #include "NavigationAgentComponent.h"
 #include "WaypointPathComponent.h"
 #include "ScriptComponent.h"
+#include "SpriteRenderer.h"
 #include "AnimationComponent.h"
 
 // UI components
@@ -65,6 +66,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::WAYPOINT_PATH:
         return std::make_unique<WaypointPathComponent>(id, owner);
+
+    case ComponentType::SPRITE_RENDERER:
+        return std::make_unique<SpriteRenderer>(id, owner);
 
     case ComponentType::CHANGE_SCENE:
         return std::make_unique<ChangeScene>(id, owner);
