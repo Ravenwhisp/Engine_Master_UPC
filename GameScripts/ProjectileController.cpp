@@ -43,6 +43,9 @@ void ProjectileController::Update()
         {
             GameObject* test = GameObjectAPI::instantiatePrefab(m_prefabToInstantiate.c_str(), TransformAPI::getPosition(m_objectTransform), TransformAPI::getEulerDegrees(m_objectTransform), m_objectTransform->getOwner());
             if (test) Debug::log("I exist!");
+
+            if (Input::isKeyDown(KeyCode::D)) GameObjectAPI::removeGameObject(m_objectTransform->getOwner());
+
             pressed = true;
         }
     }
