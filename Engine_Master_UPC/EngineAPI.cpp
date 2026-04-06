@@ -16,6 +16,7 @@
 #include "Component.h"
 #include "ScriptComponent.h"
 #include "Script.h"
+#include "AnimationComponent.h"
 
 #include "CameraComponent.h"
 
@@ -259,6 +260,149 @@ namespace ComponentAPI
     void setActive(Component* component, bool active)
     {
         component->setActive(active);
+    }
+}
+
+namespace AnimationAPI
+{
+    AnimationComponent* getAnimationComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<AnimationComponent>(ComponentType::ANIMATION);
+    }
+
+    const AnimationComponent* getAnimationComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<AnimationComponent>(ComponentType::ANIMATION);
+    }
+
+    bool hasStateMachine(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasStateMachine() : false;
+    }
+
+    bool hasActiveState(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasActiveState() : false;
+    }
+
+    const char* getActiveStateName(const AnimationComponent* animation)
+    {
+        if (!animation)
+        {
+            return "";
+        }
+
+        return animation->getActiveStateName().c_str();
+    }
+
+    bool playState(AnimationComponent* animation, const char* stateName, float transitionTimeSeconds)
+    {
+        if (!animation || !stateName)
+        {
+            return false;
+        }
+
+        return animation->playState(stateName, transitionTimeSeconds);
+    }
+
+    bool playDefaultState(AnimationComponent* animation, float transitionTimeSeconds)
+    {
+        if (!animation)
+        {
+            return false;
+        }
+
+        return animation->playDefaultState(transitionTimeSeconds);
+    }
+
+    bool sendTrigger(AnimationComponent* animation, const char* triggerName)
+    {
+        if (!animation || !triggerName)
+        {
+            return false;
+        }
+
+        return animation->sendTrigger(triggerName);
+    }
+
+    void play(AnimationComponent* animation)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->play();
+    }
+
+    void pause(AnimationComponent* animation)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->pause();
+    }
+
+    void stop(AnimationComponent* animation)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->stop();
+    }
+
+    bool isPlaying(const AnimationComponent* animation)
+    {
+        return animation ? animation->isPlaying() : false;
+    }
+
+    float getPlaybackTime(const AnimationComponent* animation)
+    {
+        return animation ? animation->getPlaybackTime() : 0.0f;
+    }
+
+    void setPlaybackTime(AnimationComponent* animation, float seconds)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->setPlaybackTime(seconds);
+    }
+
+    float getPlaybackDuration(const AnimationComponent* animation)
+    {
+        return animation ? animation->getPlaybackDuration() : 0.0f;
+    }
+
+    float getSpeedMultiplier(const AnimationComponent* animation)
+    {
+        return animation ? animation->getSpeedMultiplier() : 0.0f;
+    }
+
+    void setSpeedMultiplier(AnimationComponent* animation, float speedMultiplier)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->setSpeedMultiplier(speedMultiplier);
     }
 }
 
