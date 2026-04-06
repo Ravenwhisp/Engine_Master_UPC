@@ -837,6 +837,7 @@
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
+    <ClInclude Include="MD5Fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1041,6 +1042,9 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="UIVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxIrradiancePixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

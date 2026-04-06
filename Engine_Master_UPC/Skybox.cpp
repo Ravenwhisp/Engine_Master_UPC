@@ -35,7 +35,7 @@ SkyBox::SkyBox(TextureAsset& asset)
     m_vertexBuffer->setName(L"Vertex SkyBox");
     m_indexBuffer.reset(app->getModuleResources()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT, "IndexBuffer skybox"));
     m_texture = app->getModuleResources()->createTextureSRGB(asset);
-    m_irradiance = app->getModuleResources()->createIrradiance(asset, m_indexBuffer.get());
+    m_irradiance = app->getModuleResources()->createIrradiance(asset, m_indexBuffer.get(), this);
 }
 
 SkyBox::~SkyBox() = default;

@@ -6,3 +6,4 @@ E:\MÁSTER\Ravenwhisp\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x
 D:\Development\MyRepository\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 C:\Users\Hector\Desktop\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
 D:\Engine_Master\Engine_Master_UPC\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib
+C:\Master\Ravenwhisp\repo\Engine_Master_UPC\Engine_Master_UPC\3rdParty\DirectXTK12\x64\Debug\DirectXTK12.lib

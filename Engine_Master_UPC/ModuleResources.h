@@ -5,6 +5,8 @@
 #include "UID.h"
 #include "WeakCache.h"
 
+class SkyBox;
+
 struct DeferredResource
 {
 	uint64_t               frame{ 0 };
@@ -16,6 +18,8 @@ enum class TextureColorSpace
 	SRGB,
 	Linear
 };
+
+static const float PI = 3.14159265f;
 
 class VertexBuffer;
 class IndexBuffer;
@@ -56,14 +60,14 @@ public:
 	Texture* createNullTexture2D();
 
 	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
-	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer);
+	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
-	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexbuffer);
+	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexbuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset);
 	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);

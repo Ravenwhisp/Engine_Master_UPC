@@ -17,6 +17,14 @@
 #include "MeshAsset.h"
 #include "MaterialAsset.h"
 #include "MD5.h"
+#include "SkyboxParams.h"
+#include "SkyBox.h"
+
+#include <d3dx12.h>
+#include <d3dcompiler.h>
+#include <PlatformHelpers.h>
+#include "MD5Fwd.h"
+
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {
@@ -179,12 +187,11 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	return texture;
 }
 
-Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer)
+Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	TextureDesc desc{};
 	
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
 
 	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
 	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
@@ -196,21 +203,113 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
+	
+	//ROOT SIGNATURE
+	ComPtr<ID3D12RootSignature> rootSignature;
 
-	//CREATE PIPELINESTATE OBJECT
-	//CREATE ROOT SIGNATURE
-	//commandList->SetPipelineState(pipelinestate)
-	//commandList->SetGraphicsRootSignature(rootSignature)
-	//LOOK INTO SkyBoxPass.cpp LINE 103.
+	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
+	CD3DX12_DESCRIPTOR_RANGE srvRange;
+	CD3DX12_DESCRIPTOR_RANGE sampRange;
+
+	srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+	sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+
+	rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+	DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+	DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+
+	//PIPELINESTATE OBJECT
+	ComPtr<ID3D12PipelineState> pso;
+
+#if defined(_DEBUG)
+	UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+	UINT compileFlags = 0;
+#endif
+
+	ComPtr<ID3DBlob> vertexShaderBlob;
+	ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxVertexShader.cso", &vertexShaderBlob)); 
+
+	ComPtr<ID3DBlob> skyboxIrradiancePixelShaderBlob;
+	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxIrradiancePixelShader.cso", &skyboxIrradiancePixelShaderBlob)); //change for new shaders.
+
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+	psoDesc.pRootSignature = rootSignature.Get();
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
+	psoDesc.PS = CD3DX12_SHADER_BYTECODE(skyboxIrradiancePixelShaderBlob.Get());
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.DepthStencilState.DepthEnable = TRUE;
+	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.SampleDesc = { 1, 0 };
+
+	DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
+
+	commandList->SetPipelineState(pso.Get());
+	commandList->SetGraphicsRootSignature(rootSignature.Get());
+	
+	Matrix proj = Matrix::CreatePerspectiveFieldOfView(PI / 2.0f, 1.0f, 0.1f, 100.0f);
+
+	Vector3 front[] = { Vector3(1,0,0), Vector3(-1,0,0), Vector3(0,1,0), Vector3(0,-1,0), Vector3(0,0,1), Vector3(0,0,-1) };
+	Vector3 up[]    = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
 
 	for (size_t i = 0; i < desc.arraySize; i++)
 	{
+		Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
+		Matrix viewProjection = view * proj;
+
+		viewProjection = viewProjection.Transpose();
+
+		SkyboxParams params{};
+		params.vp = viewProjection;
+		params.flipX = i <= 1 ? 0 : 1;
+		params.flipZ = i <= 1 ? 1 : 0;
+
+		ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+		commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+		commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
+		commandList->SetGraphicsRootDescriptorTable(1, texture->getSRV().gpu);
+		commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = skybox->getVertexBuffer()->getVertexBufferView();
+		D3D12_INDEX_BUFFER_VIEW  indexBufferView = skybox->getIndexBuffer()->getIndexBufferView();
+
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+		commandList->IASetIndexBuffer(&indexBufferView);
+
+
 		UINT subResourceIndex = D3D12CalcSubresource(0, i, 0, desc.mipLevels, desc.arraySize);
 
 		CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
 		commandList->ResourceBarrier(1, &barrierIn);
 
-		commandList->OMSetRenderTargets(1, &texture->getContiguousRTV(i).cpu, 0, nullptr);
+		auto handle = texture->getContiguousRTV(i).cpu;
+
+		commandList->OMSetRenderTargets(1, &handle, 0, nullptr);
 		commandList->DrawIndexedInstanced(static_cast<UINT>(indexBuffer->getNumIndices()), 1,0,0,0);
 		
 		CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
@@ -282,7 +381,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	return texture;
 }
 
-std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer)
+std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	const UID uid = hashToUID(textureAsset.getId() + "_irradiance");
 
@@ -291,7 +390,7 @@ std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& t
 		return cached;
 	}
 
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer, skybox));
 	m_resources.insert(uid, texture);
 	return texture;
 }

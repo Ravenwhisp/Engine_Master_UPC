@@ -705,6 +705,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="SkyboxIrradiancePixelShader.hlsl" />
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
