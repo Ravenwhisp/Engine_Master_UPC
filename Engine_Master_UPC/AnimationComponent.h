@@ -33,6 +33,26 @@ public:
     AnimationController& getController() { return m_controller; }
     const AnimationController& getController() const { return m_controller; }
 
+    bool hasStateMachine() const;
+    bool hasActiveState() const;
+    const std::string& getActiveStateName() const;
+
+    bool playState(const std::string& stateName, float transitionTimeSeconds = 0.0f);
+    bool playDefaultState(float transitionTimeSeconds = 0.0f);
+    bool sendTrigger(const std::string& triggerName);
+
+    void play();
+    void pause();
+    void stop();
+    bool isPlaying() const;
+
+    float getPlaybackTime() const;
+    void setPlaybackTime(float seconds);
+    float getPlaybackDuration() const;
+
+    float getSpeedMultiplier() const;
+    void setSpeedMultiplier(float speedMultiplier);
+
 private:
 
     struct FadingPlayback
@@ -81,6 +101,10 @@ private:
     void debugDrawRecursive(GameObject* go);
     void drawAxisTriad(const Matrix& worldMatrix, float axisLength);
 
+    const AnimationStateMachineState* findDefaultState() const;
+    bool activateDefaultState(bool autoPlay, float transitionTimeSeconds);
+    void applyActiveStatePlaybackSpeed();
+
 private:
 
     MD5Hash m_stateMachineUID = INVALID_ASSET_ID;
@@ -92,6 +116,8 @@ private:
     std::string m_activeStateName;
     float m_currentFadeTime = 0.0f;
     float m_currentTransitionTime = 0.0f;
+
+    float m_runtimeSpeedMultiplier = 1.0f;
 
     std::unique_ptr<FadingPlayback> m_previousPlayback;
 
