@@ -191,7 +191,7 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
     m_controller.Stop();
     m_controller.SetAnimation(m_currentAnimationAsset);
     m_controller.SetLoop(clip->loop);
-    m_controller.SetSpeed(state->speed);
+    applyActiveStatePlaybackSpeed();
 
     if (autoPlay)
     {
@@ -742,6 +742,49 @@ void AnimationComponent::drawAxisTriad(const Matrix& worldMatrix, float axisLeng
     DebugLine(origin, origin + z * axisLength, Vector3(0.0f, 0.0f, 1.0f), true);
 }
 
+const AnimationStateMachineState* AnimationComponent::findDefaultState() const
+{
+    if (!m_stateMachineAsset)
+        return nullptr;
+
+    const std::string& defaultStateName = m_stateMachineAsset->getDefaultStateName();
+    if (!defaultStateName.empty())
+    {
+        return findStateByName(defaultStateName);
+    }
+
+    const auto& states = m_stateMachineAsset->getStates();
+    if (states.empty())
+        return nullptr;
+
+    return &states.front();
+}
+
+bool AnimationComponent::activateDefaultState(bool autoPlay, float transitionTimeSeconds)
+{
+    if (!ensureStateMachineLoaded())
+        return false;
+
+    const AnimationStateMachineState* defaultState = findDefaultState();
+    if (!defaultState)
+        return false;
+
+    return activateState(defaultState->name, autoPlay, transitionTimeSeconds);
+}
+
+void AnimationComponent::applyActiveStatePlaybackSpeed()
+{
+    float effectiveSpeed = std::max(0.0f, m_runtimeSpeedMultiplier);
+
+    const AnimationStateMachineState* state = findStateByName(m_activeStateName);
+    if (state)
+    {
+        effectiveSpeed *= std::max(0.0f, state->speed);
+    }
+
+    m_controller.SetSpeed(effectiveSpeed);
+}
+
 void AnimationComponent::drawUi()
 {
     char uidBuffer[128];
@@ -800,34 +843,21 @@ void AnimationComponent::drawUi()
 
     if (ImGui::Button("Play"))
     {
-        if (ensureStateMachineLoaded())
-        {
-            if (m_activeStateName.empty())
-            {
-                startStateMachineIfNeeded();
-            }
-            else
-            {
-                m_controller.Play(m_controller.IsLooping());
-                m_hasStartedPlayback = true;
-            }
-        }
+        play();
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Pause"))
     {
-        m_controller.Pause();
-        m_hasStartedPlayback = true;
+        pause();
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Stop"))
     {
-        m_controller.Stop();
-        m_hasStartedPlayback = true;
+        stop();
     }
 
 
@@ -843,7 +873,7 @@ void AnimationComponent::drawUi()
 
     if (ImGui::Button("Send Trigger"))
     {
-        SendTrigger(m_triggerInput);
+        sendTrigger(m_triggerInput);
     }
 
     ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
@@ -927,14 +957,139 @@ bool AnimationComponent::SendTrigger(const std::string& triggerName)
 
     if (m_activeStateName.empty())
     {
-        startStateMachineIfNeeded();
+        if (!activateDefaultState(true, 0.0f))
+            return false;
+
+        m_hasStartedPlayback = true;
     }
 
     const AnimationStateMachineTransition* transition = findTransitionByTrigger(triggerName);
     if (!transition)
         return false;
 
-    return activateState(transition->targetStateName, true, transition->blendTimeSeconds);
+    const bool ok = activateState(transition->targetStateName, true, transition->blendTimeSeconds);
+    if (ok)
+    {
+        m_hasStartedPlayback = true;
+    }
+
+    return ok;
+}
+
+bool AnimationComponent::hasStateMachine() const
+{
+    return m_stateMachineUID != INVALID_ASSET_ID;
+}
+
+bool AnimationComponent::hasActiveState() const
+{
+    return !m_activeStateName.empty();
+}
+
+const std::string& AnimationComponent::getActiveStateName() const
+{
+    return m_activeStateName;
+}
+
+bool AnimationComponent::playState(const std::string& stateName, float transitionTimeSeconds)
+{
+    if (stateName.empty())
+        return false;
+
+    const bool ok = activateState(stateName, true, transitionTimeSeconds);
+    if (ok)
+    {
+        m_hasStartedPlayback = true;
+    }
+
+    return ok;
+}
+
+bool AnimationComponent::playDefaultState(float transitionTimeSeconds)
+{
+    const bool ok = activateDefaultState(true, transitionTimeSeconds);
+    if (ok)
+    {
+        m_hasStartedPlayback = true;
+    }
+
+    return ok;
+}
+
+bool AnimationComponent::sendTrigger(const std::string& triggerName)
+{
+    return SendTrigger(triggerName);
+}
+
+void AnimationComponent::play()
+{
+    m_hasStartedPlayback = true;
+
+    if (!ensureStateMachineLoaded())
+        return;
+
+    if (m_activeStateName.empty())
+    {
+        playDefaultState(0.0f);
+        return;
+    }
+
+    applyActiveStatePlaybackSpeed();
+    m_controller.Play(m_controller.IsLooping());
+}
+
+void AnimationComponent::pause()
+{
+    m_controller.Pause();
+    m_hasStartedPlayback = true;
+}
+
+void AnimationComponent::stop()
+{
+    m_controller.Stop();
+    m_hasStartedPlayback = true;
+}
+
+bool AnimationComponent::isPlaying() const
+{
+    return m_controller.IsPlaying();
+}
+
+float AnimationComponent::getPlaybackTime() const
+{
+    return m_controller.GetTime();
+}
+
+void AnimationComponent::setPlaybackTime(float seconds)
+{
+    if (m_activeStateName.empty())
+    {
+        if (!activateDefaultState(false, 0.0f))
+            return;
+    }
+
+    m_controller.SetTime(seconds);
+    m_hasStartedPlayback = true;
+}
+
+float AnimationComponent::getPlaybackDuration() const
+{
+    return m_controller.GetDuration();
+}
+
+float AnimationComponent::getSpeedMultiplier() const
+{
+    return m_runtimeSpeedMultiplier;
+}
+
+void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
+{
+    m_runtimeSpeedMultiplier = std::max(0.0f, speedMultiplier);
+
+    if (!m_activeStateName.empty())
+    {
+        applyActiveStatePlaybackSpeed();
+    }
 }
 
 bool AnimationComponent::ensureStateMachineLoaded()
@@ -969,24 +1124,7 @@ void AnimationComponent::startStateMachineIfNeeded()
     if (m_hasStartedPlayback)
         return;
 
-    if (!ensureStateMachineLoaded())
-        return;
-
-    std::string defaultStateName = m_stateMachineAsset->getDefaultStateName();
-
-    if (defaultStateName.empty())
-    {
-        const auto& states = m_stateMachineAsset->getStates();
-        if (!states.empty())
-        {
-            defaultStateName = states.front().name;
-        }
-    }
-
-    if (defaultStateName.empty())
-        return;
-
-    if (activateState(defaultStateName, true, 0.0f))
+    if (activateDefaultState(true, 0.0f))
     {
         m_hasStartedPlayback = true;
     }
@@ -1003,6 +1141,7 @@ void AnimationComponent::resetRuntime()
 
     m_currentFadeTime = 0.0f;
     m_currentTransitionTime = 0.0f;
+    m_runtimeSpeedMultiplier = 1.0f;
     m_previousPlayback.reset();
 
     m_hasStartedPlayback = false;
