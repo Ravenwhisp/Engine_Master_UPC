@@ -244,6 +244,7 @@
   <ItemGroup>
     <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
+    <ClInclude Include="DebugDrawTest.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
@@ -255,6 +256,7 @@
   <ItemGroup>
     <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
+    <ClCompile Include="DebugDrawTest.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
