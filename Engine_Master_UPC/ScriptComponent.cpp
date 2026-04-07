@@ -109,6 +109,14 @@ void ScriptComponent::drawUi()
     drawScriptFieldsUi(*m_script);
 }
 
+void ScriptComponent::debugDraw()
+{
+    if (m_script) 
+    {
+        m_script->drawGizmo();
+    }
+}
+
 void ScriptComponent::drawScriptFieldsUi(Script& script)
 {
     ScriptFieldList fieldList = script.getExposedFields();
@@ -186,6 +194,9 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
             ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
             Component* component = componentReference->component;
+
+            ImGui::Text("%s", field.name);
+            ImGui::SameLine(100.0f);
 
             if (component)
             {

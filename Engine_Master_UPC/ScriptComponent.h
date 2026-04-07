@@ -23,6 +23,7 @@ public:
 
     void update() override;
     void drawUi() override;
+    void debugDraw() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
