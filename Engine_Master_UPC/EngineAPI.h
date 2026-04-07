@@ -38,6 +38,12 @@ namespace GameObjectAPI
 
     ENGINE_API Tag getTag(const GameObject* gameObject);
     ENGINE_API void setTag(GameObject* gameObject, Tag tag);
+
+    ENGINE_API GameObject* createGameObject(const char* name, GameObject* parentObject = nullptr);
+    ENGINE_API void removeGameObject(GameObject* gameObject);
+
+    //ENGINE_API GameObject* instantiate(GameObject* gameObject, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
+    ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
 }
 
 namespace TransformAPI
