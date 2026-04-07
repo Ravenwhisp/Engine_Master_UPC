@@ -19,6 +19,7 @@ class GameObject;
 class Transform;
 class Component;
 class Script;
+class AnimationComponent;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
@@ -76,6 +77,32 @@ namespace ComponentAPI
 
     ENGINE_API bool isActive(const Component* component);
     ENGINE_API void setActive(Component* component, bool active);
+}
+
+namespace AnimationAPI
+{
+    ENGINE_API AnimationComponent* getAnimationComponent(GameObject* gameObject);
+    ENGINE_API const AnimationComponent* getAnimationComponent(const GameObject* gameObject);
+
+    ENGINE_API bool hasStateMachine(const AnimationComponent* animation);
+    ENGINE_API bool hasActiveState(const AnimationComponent* animation);
+    ENGINE_API const char* getActiveStateName(const AnimationComponent* animation);
+
+    ENGINE_API bool playState(AnimationComponent* animation, const char* stateName, float transitionTimeSeconds = 0.0f);
+    ENGINE_API bool playDefaultState(AnimationComponent* animation, float transitionTimeSeconds = 0.0f);
+    ENGINE_API bool sendTrigger(AnimationComponent* animation, const char* triggerName);
+
+    ENGINE_API void play(AnimationComponent* animation);
+    ENGINE_API void pause(AnimationComponent* animation);
+    ENGINE_API void stop(AnimationComponent* animation);
+    ENGINE_API bool isPlaying(const AnimationComponent* animation);
+
+    ENGINE_API float getPlaybackTime(const AnimationComponent* animation);
+    ENGINE_API void setPlaybackTime(AnimationComponent* animation, float seconds);
+    ENGINE_API float getPlaybackDuration(const AnimationComponent* animation);
+
+    ENGINE_API float getSpeedMultiplier(const AnimationComponent* animation);
+    ENGINE_API void setSpeedMultiplier(AnimationComponent* animation, float speedMultiplier);
 }
 
 namespace SceneAPI

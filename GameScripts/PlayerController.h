@@ -26,6 +26,12 @@ public:
     bool m_constrainToNavMesh = true;
     Vector3 m_navExtents = Vector3(2.0f, 4.0f, 2.0f);
 
+    // Animations
+    std::string m_idleStateName = "Idle";
+    std::string m_runStateName = "Run";
+
+    float m_animationTransitionTime = 0.15f;
+
 private:
     Vector3 m_initialRotationOffset = Vector3(0.0f, 0.0f, 0.0f);
 
@@ -39,4 +45,8 @@ private:
 
     static float moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta);
     static float wrapAngleDegrees(float angle);
+
+    // Animations 
+    void updateLocomotionAnimation(GameObject* owner, bool isMoving, bool isRunning) const;
+    static bool isZeroMovement(const Vector3& direction);
 };
