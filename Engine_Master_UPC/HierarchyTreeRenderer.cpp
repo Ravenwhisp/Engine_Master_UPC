@@ -22,7 +22,7 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
 
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     const bool isEditRoot = prefabMode && session && gameObject == session->m_rootObject;
-    const bool isPrefabInst = !isEditRoot && PrefabManager::isPrefabInstance(gameObject);
+    const bool isPrefabInst = !isEditRoot && gameObject->IsPrefabInstance();
 
     ImGuiTreeNodeFlags flags = children.empty()
         ? (ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen)
