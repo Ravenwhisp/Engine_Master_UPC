@@ -1,6 +1,10 @@
 ﻿#include "Globals.h"
 #include "Quadtree.h"
 
+#include "Application.h"
+#include "ModuleScene.h"
+#include "Settings.h"
+
 #include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"
@@ -62,7 +66,12 @@ void Quadtree::build()
         return;
     }
 
-    BoundingRect rect(minX, minZ, maxX - minX, maxZ - minZ);
+    BoundingRect rect(
+        minX - app->getSettings()->frustumCulling.quadtreeXExtraSize, 
+        minZ - app->getSettings()->frustumCulling.quadtreeZExtraSize,
+        maxX - minX + app->getSettings()->frustumCulling.quadtreeXExtraSize * 2,
+        maxZ - minZ + app->getSettings()->frustumCulling.quadtreeZExtraSize * 2
+    );
 
     m_root = std::make_unique<QuadNode>(rect, 0, *this, nullptr);
 
@@ -190,7 +199,6 @@ void Quadtree::debugDraw()
             {center.x + extents.x, center.y + extents.y, center.z - extents.z},
             {center.x + extents.x, center.y + extents.y, center.z + extents.z},
         };
-        Engine::BoundingBox(min, max, pts).render();
     }
 }
 
@@ -220,4 +228,6 @@ void Quadtree::resolveDirtyNodes()
     }
 
     m_dirtyNodes.clear();
+
+    app->getModuleScene()->rebuildMeshRenderersCache();
 }

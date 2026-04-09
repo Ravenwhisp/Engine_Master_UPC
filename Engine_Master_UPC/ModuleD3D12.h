@@ -31,6 +31,7 @@ public:
 	IDXGIAdapter4*					getAdapter() const { return m_adapter.Get(); }
 
 	uint64_t						getCurrentFrame() const { return m_fenceValues[m_frameIndex]; }
+	uint32_t						getCurrentFrameIndex() const { return static_cast<uint32_t>(m_frameIndex); }
 	uint64_t						getLastCompletedFrame() const { return m_lastCompletedFenceValue; }
 
 	ComPtr<ID3D12RootSignature>		createRootSignature();

@@ -20,6 +20,7 @@
 #include "Transform2D.h"
 #include "UIText.h"
 #include <unordered_map>
+#include "WindowSceneEditor.h"
 
 void ModuleUI::preRender()
 {
@@ -30,7 +31,7 @@ void ModuleUI::preRender()
     auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
     const ImVec2 screenSize(viewport.Width, viewport.Height);
 #else
-    const ImVec2 screenSize = app->getModuleEditor()->getWindowSceneEditorSize();
+    const ImVec2 screenSize = app->getModuleEditor()->getWindowSceneEditor()->getSize();
 #endif
 
     if (screenSize.x <= 0.0f || screenSize.y <= 0.0f)
