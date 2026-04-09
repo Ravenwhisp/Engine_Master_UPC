@@ -36,11 +36,5 @@ void CommandSaveGameObjectAsPrefab::run()
         return;
     }
 
-    PrefabData instanceData;
-    instanceData.m_sourcePath = savePath;
-    instanceData.m_name = savePath.stem().string();
-    instanceData.m_prefabUID = m_go->GetID();
-    PrefabManager::linkInstance(m_go, instanceData);
-
     app->getModuleAssets()->refresh();
 }
