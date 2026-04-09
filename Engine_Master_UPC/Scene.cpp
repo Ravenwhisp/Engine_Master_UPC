@@ -310,6 +310,7 @@ GameObject* Scene::createDirectionalLightOnInit()
 
     m_allObjects.push_back(std::move(go));
     m_rootObjects.push_back(raw);
+    markDirty();
 
     return raw;
 }
@@ -375,4 +376,14 @@ void Scene::clearScene()
 
     m_defaultCamera = nullptr;
     markDirty();
+}
+
+void Scene::markDirty()
+{
+    m_componentCacheDirty = true;
+
+    if (app && app->getModuleRender())
+    {
+        app->getModuleRender()->markDebugDrawCacheDirty();
+    }
 }

@@ -30,6 +30,7 @@ void WindowGameDebug::render()
     ImGui::Checkbox("Show FPS", &m_settings->debugGame.showFPS);
     ImGui::Checkbox("Show Frame time", &m_settings->debugGame.showFrametime);
     ImGui::Checkbox("Show triangles number", &m_settings->debugGame.showTrianglesNumber);
+    ImGui::Checkbox("Show Script Debug", &m_settings->debugGame.showScriptDebug);
 
     ImGui::End();
 }

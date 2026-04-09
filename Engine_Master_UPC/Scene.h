@@ -95,7 +95,7 @@ public:
 
     void clearScene();
 
-    void  markDirty() { m_componentCacheDirty = true; }
+    void  markDirty();
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
 };
