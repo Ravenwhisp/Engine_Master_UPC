@@ -55,27 +55,9 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     if (ImGui::Button("Apply", ImVec2(buttonWidth, 0)))
     {
         PrefabManager::applyToPrefab(root);
-
-        Scene* currentScene = app->getModuleScene()->getScene();
-        const std::filesystem::path prefabPath = app->getModuleEditor()->getPrefabEditSourcePath();
-
-        std::vector<GameObject*> instances;
-
-        for (GameObject* go : instances)
-        {
-            Matrix worldMatrix = go->GetTransform()->getGlobalMatrix();
-
-            UID id = go->GetID();
-            currentScene->removeGameObject(id);
-
-            GameObject* fresh = PrefabManager::instantiatePrefab(prefabPath, currentScene);
-            if (fresh)
-            {
-                fresh->GetTransform()->setFromGlobalMatrix(worldMatrix);
-            }
-        }
-
+        app->getModuleAssets()->refresh();
         app->getModuleEditor()->exitPrefabEdit();
+
     }
 
     ImGui::PopStyleColor(2);
@@ -298,6 +280,7 @@ void PrefabUI::drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditR
     if (ImGui::MenuItem("Apply  -  Save changes to prefab file"))
     {
         PrefabManager::applyToPrefab(root);
+        app->getModuleAssets()->refresh();
         app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor();
@@ -436,7 +419,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         {
 
             GameObject* go = PrefabManager::instantiatePrefab(realPath, scene);
-            if (go) 
+            if (go)
             {
                 app->getModuleEditor()->setSelectedGameObject(go);
             }
@@ -577,9 +560,9 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
         ImGui::EndPopup();
     }
 
-    if (showSavePrefabModal) 
-    { 
-        ImGui::OpenPopup("##pfSaveModal"); showSavePrefabModal = false; 
+    if (showSavePrefabModal)
+    {
+        ImGui::OpenPopup("##pfSaveModal"); showSavePrefabModal = false;
     }
 
     ImGui::SetNextWindowPos(screenCenter, ImGuiCond_Appearing, { 0.5f, 0.5f });

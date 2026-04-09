@@ -329,6 +329,35 @@ GameObject* PrefabManager::instantiatePrefab(const fs::path& sourcePath, Scene* 
     return go;
 }
 
+void PrefabManager::refreshInstances(const std::filesystem::path& prefabPath)
+{
+    if (prefabPath.empty())
+        return;
+
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+        return;
+
+    // You need a way to iterate all GameObjects in the scene.
+    // Replace this with your actual method if different.
+    const std::vector<GameObject*>& allGOs = scene->getAllGameObjects();
+
+    for (GameObject* go : allGOs)
+    {
+        if (!go)
+            continue;
+
+        PrefabInfo& info = go->GetPrefabInfo();
+
+        // Check if this GameObject is an instance of this prefab
+        if (info.isInstance() && info.m_sourcePath == prefabPath)
+        {
+            // Reapply prefab data
+            revertToPrefab(go, scene);
+        }
+    }
+}
+
 // createPrefab — writes the file and links the instance back onto the GO
 bool PrefabManager::createPrefab(GameObject* go, const fs::path& savePath)
 {
@@ -348,7 +377,15 @@ bool PrefabManager::createPrefab(GameObject* go, const fs::path& savePath)
     info.m_prefabUID = go->GetID();
     info.m_isPrefabRoot = true;
 
-    app->getModuleAssets()->refresh();
+    // Update asset cache immediately
+    auto asset = app->getModuleAssets()->loadAtPath<PrefabAsset>(savePath);
+    if (asset)
+    {
+        asset->getData().m_json = json;
+    }
+
+    refreshInstances(savePath);
+
     return true;
 }
 
@@ -402,7 +439,23 @@ bool PrefabManager::applyToPrefab(const GameObject* go, bool respectOverrides)
     serialiseNodeInto(go, goNode, alloc);
     doc.AddMember("GameObject", goNode, alloc);
 
-    return writePrefabDocument(doc, info.m_sourcePath);
+    bool success = writePrefabDocument(doc, info.m_sourcePath);
+
+    if (success)
+    {
+        auto asset = app->getModuleAssets()->loadAtPath<PrefabAsset>(info.m_sourcePath);
+        if (asset)
+        {
+            // Update JSON directly so future instantiates use NEW data
+            rapidjson::StringBuffer sb;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+            doc.Accept(writer);
+
+            asset->getData().m_json = sb.GetString();
+        }
+
+        refreshInstances(info.m_sourcePath);
+    }
 }
 
 bool PrefabManager::revertToPrefab(GameObject* go, Scene* scene)
