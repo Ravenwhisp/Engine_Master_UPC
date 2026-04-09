@@ -2,6 +2,9 @@
 
 #include "ScriptFieldInfo.h"
 
+#include "ScriptMethodInfo.h"
+#include "ScriptMethodList.h"
+
 class GameObject;
 
 class Script
@@ -18,6 +21,11 @@ public:
         return {};
     }
 
+    virtual ScriptMethodList getExposedMethods() const
+    {
+        return {};
+    }
+
     //Used when changing a field in the inspector must trigger some extra action
     virtual void onFieldEdited(const ScriptFieldInfo& field) {}
 
@@ -28,6 +36,8 @@ public:
     virtual void onAfterReferencesFixed() {}
 
     GameObject* getOwner() const { return m_owner; }
+
+    virtual void drawGizmo() {}
 
 protected:
     GameObject* m_owner = nullptr;

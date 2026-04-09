@@ -30,8 +30,20 @@ private:
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
 
+    std::vector<UID> m_objectsToRemove;
+
     bool m_componentCacheDirty = true;
 
+    void removePendingGameObjects();
+
+    //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
+    bool m_isUpdating = false;
+
+    std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
+    std::vector<GameObject*> m_pendingRootObjectsToAdd;
+
+    void flushPendingGameObjects();
+    //
 
 public:
     friend class ModuleScene;
@@ -61,10 +73,11 @@ public:
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
 
-    void createGameObject();
+    GameObject* createGameObject();
     GameObject* createGameObjectWithUID(UID id, UID transformUID);
     GameObject* findGameObjectByUID(UID uuid);
     void removeGameObject(UID uuid);
+    void markGameObjectForRemoval(UID uuid);
 
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);

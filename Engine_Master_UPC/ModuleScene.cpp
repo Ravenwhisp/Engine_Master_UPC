@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "Settings.h"
 #include "ModuleNavigation.h"
-#include "ModuleRender.h"
 #include "ModuleEditor.h"
 
 #include "Scene.h"
@@ -13,16 +12,10 @@
 #include "SceneSnapshot.h"
 
 #include "GameObject.h"
-#include "Component.h"
-#include "Transform.h"
-#include "CameraComponent.h"
 #include "MeshRenderer.h"
+#include "SpriteRenderer.h"
 #include "LightComponent.h"
 #include "ScriptComponent.h"
-
-#include <unordered_map>
-
-using namespace DirectX::SimpleMath;
 
 ModuleScene::ModuleScene()
 {
@@ -74,9 +67,9 @@ bool ModuleScene::cleanUp()
 void ModuleScene::rebuildComponentCaches()
 {
     m_meshRenderers.clear();
+    m_spriteRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
-
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -88,6 +81,11 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
         {
             m_meshRenderers.push_back(mesh);
+        }
+
+        if (auto* sprite = go->GetComponentAs<SpriteRenderer>(ComponentType::SPRITE_RENDERER))
+        {
+            m_spriteRenderers.push_back(sprite);
         }
 
         if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
@@ -104,6 +102,45 @@ void ModuleScene::rebuildComponentCaches()
     m_scene->clearDirty();
 }
 
+void ModuleScene::rebuildMeshRenderersCache()
+{
+    m_meshRenderers.clear();
+
+    if (app->getSettings()->frustumCulling.debugFrustumCulling)
+    {
+        for (GameObject* gO : m_quadtree->query())
+        {
+            if (!gO->GetActive())
+            {
+                continue;
+            }
+
+            if (auto* mesh = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                m_meshRenderers.push_back(mesh);
+            }
+
+            // WE might need to add the Sprite_Renderer also here to apply the frustum culling to them also
+        }
+    }
+    else {
+        for (GameObject* go : m_scene->getAllGameObjects())
+        {
+            if (!go->GetActive())
+            {
+                continue;
+            }
+
+            if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                m_meshRenderers.push_back(mesh);
+            }
+        }
+    }
+
+    m_scene->clearDirty();
+}
+
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
 {
     if (m_scene->isComponentCacheDirty())
@@ -111,6 +148,16 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
         rebuildComponentCaches();
     }
     return m_meshRenderers;
+}
+
+const std::vector<SpriteRenderer*>& ModuleScene::getSpriteRenderers()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_spriteRenderers;
 }
 
 const std::vector<LightComponent*>& ModuleScene::getLightComponents()

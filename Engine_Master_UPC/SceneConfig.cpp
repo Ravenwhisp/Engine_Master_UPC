@@ -9,73 +9,27 @@
 
 SceneConfig::SceneConfig()
 {
-	m_moduleScene = app->getModuleScene();
+    m_moduleScene = app->getModuleScene();
 }
 
-void SceneConfig::render()
+void SceneConfig::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr()))
-    {
-        ImGui::End();
-        return;
-    }
-    
-    /*ImGui::SeparatorText("Scene");
-
-    // Scene Name input
-    static char sceneBuffer[256];
-    strcpy_s(sceneBuffer, m_sceneName.c_str());
-
-    if (ImGui::InputText("Scene Name", sceneBuffer, IM_ARRAYSIZE(sceneBuffer)))
-    {
-        m_sceneName = sceneBuffer;
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Save"))
-    {
-		m_moduleScene->setName(m_sceneName.c_str());
-        m_moduleScene->saveScene();
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Load"))
-    {
-        m_moduleScene->setName(m_sceneName.c_str());
-        m_moduleScene->loadScene();
-    }*/
-
     drawSaveSceneSettings();
-
     ImGui::Separator();
-
     drawLoadSceneSettings();
-
     ImGui::Separator();
-
     drawNavmeshSettings();
-
     ImGui::Separator();
-
     drawSkyBoxSettings();
-
     ImGui::Separator();
-
     drawLightSettings();
-
     ImGui::Separator();
-
-    ImGui::End();
-
 }
 
-void SceneConfig::drawSaveSceneSettings() 
+void SceneConfig::drawSaveSceneSettings()
 {
-    if (ImGui::CollapsingHeader("Save Scene")) 
+    if (ImGui::CollapsingHeader("Save Scene"))
     {
-
         static char saveSceneBuffer[256];
         strcpy_s(saveSceneBuffer, m_saveSceneName.c_str());
 
@@ -87,6 +41,7 @@ void SceneConfig::drawSaveSceneSettings()
         if (ImGui::Button("Save"))
         {
             const bool blank = (m_saveSceneName.find_first_not_of(" \t\n\r") == std::string::npos);
+
             if (blank)
             {
                 DEBUG_WARN("Cannot save scene: name is empty.");
@@ -100,10 +55,9 @@ void SceneConfig::drawSaveSceneSettings()
     }
 }
 
-
-void SceneConfig::drawLoadSceneSettings() 
+void SceneConfig::drawLoadSceneSettings()
 {
-    if (ImGui::CollapsingHeader("Load Scene")) 
+    if (ImGui::CollapsingHeader("Load Scene"))
     {
         static char loadSceneBuffer[256];
         strcpy_s(loadSceneBuffer, m_loadSceneName.c_str());
@@ -122,10 +76,10 @@ void SceneConfig::drawLoadSceneSettings()
 
 void SceneConfig::drawNavmeshSettings()
 {
-    if (ImGui::CollapsingHeader("Navmesh")) 
+    if (ImGui::CollapsingHeader("Navmesh"))
     {
         ModuleNavigation* nav = app->getModuleNavigation();
-            
+
         if (ImGui::Button("Bake NavMesh"))
         {
             if (app->getModuleNavigation()->buildNavMeshForCurrentScene())
@@ -140,45 +94,44 @@ void SceneConfig::drawNavmeshSettings()
 
         ImGui::SameLine();
 
-        // Temporary Button, this must happen automatically when loading the scene
         if (ImGui::Button("Load Navmesh"))
         {
             const char* sceneName = m_moduleScene->getScene()->getName();
             const bool ok = app->getModuleNavigation()->loadNavMeshForScene(sceneName);
 
-            if (ok) DEBUG_LOG("Navmesh loaded successfully.");
-            else    DEBUG_WARN("Navmesh for scene '%s' not found.", sceneName);
+            if (ok)
+            {
+                DEBUG_LOG("Navmesh loaded successfully.");
+            }
+            else
+            {
+                DEBUG_WARN("Navmesh for scene '%s' not found.", sceneName);
+            }
         }
 
         bool show = nav->getDrawNavMesh();
+
         if (ImGui::Checkbox("Show NavMesh###ShowNavMesh", &show))
         {
             nav->setDrawNavMesh(show);
         }
 
         ImGui::Separator();
-
         ImGui::DragFloat("Cell Size", &nav->getSettings().cellSize, 0.01f, 0.05f, 1.0f);
         ImGui::DragFloat("Cell Height", &nav->getSettings().cellHeight, 0.01f, 0.05f, 1.0f);
-
         ImGui::DragFloat("Agent Height", &nav->getSettings().agentHeight, 0.05f, 0.5f, 5.0f);
         ImGui::DragFloat("Agent Radius", &nav->getSettings().agentRadius, 0.01f, 0.1f, 2.0f);
-
         ImGui::DragFloat("Max Climb", &nav->getSettings().agentMaxClimb, 0.01f, 0.0f, 2.0f);
         ImGui::DragFloat("Max Slope", &nav->getSettings().agentMaxSlope, 1.0f, 0.0f, 60.0f);
-
     }
-
 }
 
-
-void SceneConfig::drawSkyBoxSettings() 
+void SceneConfig::drawSkyBoxSettings()
 {
     auto& skyboxSettings = m_moduleScene->getScene()->getSkyBoxSettings();
 
-    if (ImGui::CollapsingHeader("SkyBox")) 
+    if (ImGui::CollapsingHeader("SkyBox"))
     {
-
         if (ImGui::Checkbox("Enabled###SkyEnabled", &skyboxSettings.enabled))
         {
             m_skyboxDirty = true;
@@ -194,6 +147,7 @@ void SceneConfig::drawSkyBoxSettings()
                 skyboxSettings.cubemapAssetId = *data;
                 m_skyboxDirty = true;
             }
+
             ImGui::EndDragDropTarget();
         }
 
@@ -211,8 +165,6 @@ void SceneConfig::drawLightSettings()
     if (ImGui::CollapsingHeader("Lighting"))
     {
         ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
-
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
     }
 }
-

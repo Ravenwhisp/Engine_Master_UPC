@@ -12,6 +12,9 @@ Engine_OUT/Engine.exp
 Engine_OUT/Engine.lib
 Engine_OUT/GameScripts.dll
 Engine_OUT/imgui.ini
+Engine_OUT/editor_windows.ini
+
+export
 
 # User-specific files
 *.rsuser
