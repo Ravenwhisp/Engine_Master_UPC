@@ -23,15 +23,32 @@ public:
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
+
+    void markCacheDirty() { m_cacheDirty = true; }
+
+private:
+    void rebuildDrawableCache();
+
 private:
 
     static DDRenderInterfaceCoreD3D12* implementation;
 
-    std::vector<IDebugDrawable*> m_dynamicDrawers;
     std::vector<IDebugDrawable*> m_staticDrawers;
 
     mutable const D3D12_VIEWPORT* m_viewport = nullptr;
 
     mutable const Matrix* m_projection = nullptr;
     mutable const Matrix* m_view = nullptr;
+
+
+    std::vector<IDebugDrawable*> m_lightDrawables;
+    std::vector<IDebugDrawable*> m_modelDrawables;
+    std::vector<IDebugDrawable*> m_cameraDrawables;
+    std::vector<IDebugDrawable*> m_navDrawables;
+    std::vector<IDebugDrawable*> m_scriptDrawables;
+
+    std::vector<IDebugDrawable*> m_tempDrawables;
+
+    bool m_shouldRenderDebug = false;
+    bool m_cacheDirty = true;
 };

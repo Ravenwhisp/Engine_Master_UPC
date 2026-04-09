@@ -25,6 +25,8 @@
 #include <d3dcompiler.h>
 #include "d3dx12.h"
 
+#include "OptickProfiler.h"
+
 
 static const char linePointSource[] = R"(
     cbuffer Transforms : register(b0)
@@ -504,75 +506,86 @@ void DebugDrawPass::registerStatic(IDebugDrawable* draw)
 
 void DebugDrawPass::prepare(const RenderContext& ctx)
 {
+    PERF_RENDER("DebugDrawPass::prepare");
+
+    m_shouldRenderDebug = ctx.renderDebug;
+
+    if (!m_shouldRenderDebug)
+    {
+        return;
+    }
+
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_viewport = &ctx.viewport;
 
     ModuleScene* moduleScene = app->getModuleScene();
     Settings* settings = app->getSettings();
-    std::vector<IDebugDrawable*> allDrawables;
-    allDrawables.insert(allDrawables.end(), m_staticDrawers.begin(), m_staticDrawers.end());
+
+    if (m_cacheDirty)
+    {
+        rebuildDrawableCache();
+    }
+
+    m_tempDrawables.clear();
+    m_tempDrawables.reserve(m_staticDrawers.size() + 128);
+    m_tempDrawables.insert(m_tempDrawables.end(), m_staticDrawers.begin(), m_staticDrawers.end());
 
     if (settings->sceneEditor.showQuadTree)
     {
         if (Quadtree* quadtree = moduleScene->getQuadtree())
         {
-            allDrawables.push_back(static_cast<IDebugDrawable*>(quadtree));
+            m_tempDrawables.push_back(static_cast<IDebugDrawable*>(quadtree));
         }
     }
- 
+
+    if (settings->sceneEditor.showLightComponent)
+    {
+        m_tempDrawables.insert(m_tempDrawables.end(), m_lightDrawables.begin(), m_lightDrawables.end());
+    }
+
+    if (settings->sceneEditor.showModelBoundingBoxes)
+    {
+        m_tempDrawables.insert(m_tempDrawables.end(), m_modelDrawables.begin(), m_modelDrawables.end());
+    }
+
+    if (settings->sceneEditor.showCameraFrustum)
+    {
+        m_tempDrawables.insert(m_tempDrawables.end(), m_cameraDrawables.begin(), m_cameraDrawables.end());
+    }
+
+    if (settings->sceneEditor.showNavPath)
+    {
+        m_tempDrawables.insert(m_tempDrawables.end(), m_navDrawables.begin(), m_navDrawables.end());
+    }
+
 #ifdef GAME_RELEASE
-    constexpr bool isGameRelease = true;
+    if (settings->debugGame.showScriptDebug)
+    {
+        m_tempDrawables.insert(m_tempDrawables.end(), m_scriptDrawables.begin(), m_scriptDrawables.end());
+    }
 #else
-    constexpr bool isGameRelease = false;
+    m_tempDrawables.insert(m_tempDrawables.end(), m_scriptDrawables.begin(), m_scriptDrawables.end());
 #endif
 
-    auto processComponents = [&](GameObject* go, bool forced)
-        {
-            for (Component* component : go->GetAllComponents())
-            {
-                if (IDebugDrawable* drawable = component->getAsDebugDrawable())
-                {
-                    switch (component->getType())
-                    {
-                    case ComponentType::LIGHT:
-                        if (forced || settings->sceneEditor.showLightComponent)
-                            allDrawables.push_back(drawable);
-                        break;
-
-                    case ComponentType::MODEL:
-                        if (forced || settings->sceneEditor.showModelBoundingBoxes)
-                            allDrawables.push_back(drawable);
-                        break;
-
-                    case ComponentType::CAMERA:
-                        if (forced || settings->sceneEditor.showCameraFrustum)
-                            allDrawables.push_back(drawable);
-                        break;
-
-                    case ComponentType::NAVIGATION_AGENT:
-                        if (forced || settings->sceneEditor.showNavPath)
-                            allDrawables.push_back(drawable);
-                        break;
-                    case ComponentType::SCRIPT:
-                            allDrawables.push_back(drawable);
-                        break;
-                    }
-                }
-            }
-        };
-
-    for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
+    GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
+    if (selected)
     {
-        processComponents(go, false);
-
-        if (app->getModuleEditor()->getSelectedGameObject() == go)
+        for (Component* component : selected->GetAllComponents())
         {
-            processComponents(go, true);
+            if (IDebugDrawable* drawable = component->getAsDebugDrawable())
+            {
+                if (component->getType() == ComponentType::SCRIPT)
+                {
+                    continue;
+                }
+
+                m_tempDrawables.push_back(drawable);
+            }
         }
     }
 
-    for (IDebugDrawable* drawable : allDrawables)
+    for (IDebugDrawable* drawable : m_tempDrawables)
     {
         drawable->debugDraw();
     }
@@ -580,6 +593,11 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
 
 void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    if (!m_shouldRenderDebug)
+    {
+        return;
+    }
+
     BEGIN_EVENT(commandList, "DebugDraw Pass");
 
     implementation->mvpMatrix = *m_view * *m_projection;
@@ -591,4 +609,46 @@ void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
     dd::flush();
 
     END_EVENT(commandList);
+}
+
+void DebugDrawPass::rebuildDrawableCache()
+{
+    m_lightDrawables.clear();
+    m_modelDrawables.clear();
+    m_cameraDrawables.clear();
+    m_navDrawables.clear();
+    m_scriptDrawables.clear();
+
+    ModuleScene* moduleScene = app->getModuleScene();
+
+    for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
+    {
+        for (Component* component : go->GetAllComponents())
+        {
+            IDebugDrawable* drawable = component->getAsDebugDrawable();
+            if (!drawable)
+                continue;
+
+            switch (component->getType())
+            {
+            case ComponentType::LIGHT:
+                m_lightDrawables.push_back(drawable);
+                break;
+            case ComponentType::MODEL:
+                m_modelDrawables.push_back(drawable);
+                break;
+            case ComponentType::CAMERA:
+                m_cameraDrawables.push_back(drawable);
+                break;
+            case ComponentType::NAVIGATION_AGENT:
+                m_navDrawables.push_back(drawable);
+                break;
+            case ComponentType::SCRIPT:
+                m_scriptDrawables.push_back(drawable);
+                break;
+            }
+        }
+    }
+
+    m_cacheDirty = false;
 }

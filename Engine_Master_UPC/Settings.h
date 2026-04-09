@@ -58,6 +58,7 @@ struct DebugGame
     bool showFPS = false;
     bool showFrametime = false;
     bool showTrianglesNumber = false;
+    bool showScriptDebug = false;
 };
 
 class Settings

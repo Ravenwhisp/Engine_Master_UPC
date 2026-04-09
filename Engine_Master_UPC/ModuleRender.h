@@ -19,6 +19,7 @@ class RenderSurface;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
+class DebugDrawPass;
 
 namespace DirectX { namespace SimpleMath { struct Matrix; struct Vector3; } }
 
@@ -63,6 +64,8 @@ private:
     bool m_pendingStopSimulation = false;
     int m_triangles = 0;
 
+    DebugDrawPass* m_debugDrawPass = nullptr;
+
 public:
     bool init()     override;
     void preRender() override;
@@ -75,6 +78,9 @@ public:
 
     int getTriangles() const { return m_triangles; }
     void requestStopSimulation() { m_pendingStopSimulation = true; }
+
+    // DebugDraw helper
+    void markDebugDrawCacheDirty();
 
 private:
     // Surface helpers
