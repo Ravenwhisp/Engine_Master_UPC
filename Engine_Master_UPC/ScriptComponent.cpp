@@ -11,6 +11,9 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+#include "ModuleAssets.h"
+#include <Metadata.h>
+
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
 {
@@ -83,29 +86,6 @@ void ScriptComponent::update()
 
 void ScriptComponent::drawUi()
 {
-    char buffer[256];
-    std::strncpy(buffer, m_scriptName.c_str(), sizeof(buffer));
-    buffer[sizeof(buffer) - 1] = '\0';
-
-    if (ImGui::InputText("Script Name", buffer, sizeof(buffer)))
-    {
-        m_scriptName = buffer;
-    }
-
-    if (ImGui::Button("Load Script"))
-    {
-        destroyScriptInstance();
-        createScriptInstance();
-    }
-
-    ImGui::Text("Loaded: %s", m_script ? "Yes" : "No");
-
-    if (!m_script)
-    {
-        return;
-    }
-
-    ImGui::SeparatorText("Script Variables");
     drawScriptFieldsUi(*m_script);
 }
 

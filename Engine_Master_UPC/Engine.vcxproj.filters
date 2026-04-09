@@ -414,6 +414,9 @@
     <ClCompile Include="ViewHierarchyDialog.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterScript.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
     <ClCompile Include="WindowFileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
@@ -1016,6 +1019,12 @@
     </ClInclude>
     <ClInclude Include="WindowAnimationStateMachine.h">
       <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterScript.h">
+      <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

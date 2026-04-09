@@ -8,3 +8,5 @@ constexpr const char* LIBRARY_FOLDER = "Library/";
 
 constexpr const char* ASSET_EXTENSION = ".asset";
 constexpr const char* METADATA_EXTENSION = ".metadata";
+
+constexpr uint64_t NO_BINARY_ASSET = static_cast<uint64_t>(-1);

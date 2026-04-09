@@ -3,6 +3,7 @@
 constexpr const char* PREFAB_EXTENSION = ".prefab";
 constexpr const char* MESH_EXTENSION = ".asset";
 constexpr const char* MATERIAL_EXTENSION = ".material";
+constexpr const char* SCRIPT_EXTENSION = ".h";
 
 constexpr const char* PNG_EXTENSION = ".png";
 constexpr const char* JPG_EXTENSION = ".jpg";

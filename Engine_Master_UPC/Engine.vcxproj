@@ -322,6 +322,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="ImporterScript.h" />
     <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
@@ -342,6 +343,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScriptAPI.h" />
+    <ClInclude Include="ScriptAsset.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
@@ -633,6 +635,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="AssetRegistry.cpp" />
+    <ClCompile Include="ImporterScript.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />

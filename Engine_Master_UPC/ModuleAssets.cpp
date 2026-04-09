@@ -26,6 +26,7 @@
 
 #include <filesystem>
 #include <FileIO.h>
+#include <ImporterScript.h>
 
 
 bool ModuleAssets::init()
@@ -81,6 +82,7 @@ bool ModuleAssets::init()
             *m_importerAnimationStateMachine));
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
+    m_importerRegistry->registerImporter(std::make_unique<ImporterScript>());
 
     m_scanner = std::make_unique<AssetScanner>(m_registry.get(), m_importerRegistry.get());
     m_contentRegistry = std::make_unique<ContentRegistry>(m_registry.get());
@@ -116,7 +118,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
         uid = computeMD5(sourcePath);
     }
 
-    // Scoped to this function — not cached, not shared.
+    // Scoped to this function ï¿½ not cached, not shared.
     std::unique_ptr<Asset> asset(importer->createAssetInstance(uid));
 
     if (!importer->import(sourcePath, asset.get()))
@@ -155,14 +157,15 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     const uint64_t size = importer->save(asset.get(), &rawBuffer);
     std::unique_ptr<uint8_t[]> buffer(rawBuffer);
 
-    if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+    if (size != NO_BINARY_ASSET)
     {
-        DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
-        // Metadata was already written — roll back the in-memory store entry
-        // so it doesn't reference a binary that doesn't exist.
-        m_registry->remove(uid);
-        uid = INVALID_ASSET_ID;
-        return;
+        if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+        {
+            DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
+            m_registry->remove(uid);
+            uid = INVALID_ASSET_ID;
+            return;
+        }
     }
 
     return;
@@ -214,6 +217,11 @@ std::shared_ptr<FileEntry> ModuleAssets::getEntry(const std::filesystem::path& p
     return m_contentRegistry->getEntry(path);
 }
 
+Metadata* ModuleAssets::getMetadata(MD5Hash uid) const
+{
+    return m_registry->getMetadata(uid);
+}
+
 
 std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
 {
@@ -227,13 +235,11 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
     std::shared_ptr<Asset> asset(importer->createAssetInstance(metadata->uid));
 
     const std::vector<uint8_t> buffer = FileIO::read(metadata->getBinaryPath());
-    if (buffer.empty())
+    if (!buffer.empty())
     {
-        DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID %llu.", metadata->uid);
-        return nullptr;
+        importer->load(buffer.data(), asset.get());
     }
 
-    importer->load(buffer.data(), asset.get());
     m_assets.insert(metadata->uid, asset);
 
     return asset;
@@ -365,7 +371,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
     Metadata subMeta = meta;
     subMeta.m_isSubAsset = true;
 
-    // Write the binary to Library/ — caller still owns the buffer.
+    // Write the binary to Library/ ï¿½ caller still owns the buffer.
     if (binaryData && binarySize > 0)
     {
         if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
