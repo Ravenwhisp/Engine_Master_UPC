@@ -1,11 +1,13 @@
 #include "Globals.h"
 #include "WindowSceneEditor.h"
+
 #include "ImGuizmo.h"
 #include <imgui.h>
 
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
+#include "ModuleResources.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -18,136 +20,135 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-
 #include <WindowLogger.h>
 #include <PrefabUI.h>
+
+#include "RenderSurface.h"
+#include "Texture.h"
 
 WindowSceneEditor::WindowSceneEditor()
 {
     m_moduleCamera = app->getModuleCamera();
-    m_moduleInput = app->getModuleInput();
-
     m_settings = app->getSettings();
-
     m_editorToolbar = new EditorToolbar();
-	m_playToolbar = new PlayToolbar();
-
+    m_playToolbar = new PlayToolbar();
     auto d3d12Module = app->getModuleD3D12();
+    m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
 }
 
 WindowSceneEditor::~WindowSceneEditor()
 {
     delete m_editorToolbar;
-	delete m_playToolbar;
+    delete m_playToolbar;
 }
 
-void WindowSceneEditor::update()
+void WindowSceneEditor::drawInternal()
 {
+    float toolbarWidth = ImGui::GetContentRegionAvail().x;
+    m_playToolbar->DrawCentered(toolbarWidth);
+    ImGui::NewLine();
+    m_editorToolbar->DrawCentered(toolbarWidth);
+    ImGui::Separator();
 
-}
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-void WindowSceneEditor::render()
-{
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
+    ImGui::BeginChild("SceneViewport", ImGui::GetContentRegionAvail(), false,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+
+    if (viewportSize.x < 1.0f || viewportSize.y < 1.0f)
     {
-        ImGui::End();
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
         return;
     }
 
-    float toolbarWidth = ImGui::GetContentRegionAvail().x;
-	m_playToolbar->DrawCentered(toolbarWidth);
-    ImGui::NewLine();
-    m_editorToolbar->DrawCentered(toolbarWidth);
-    ImGui::NewLine();
-    ImGui::Separator();
+    resize(viewportSize);
 
-    ImVec2 windowPos = ImGui::GetWindowPos();
-    m_windowX = windowPos.x;
-    m_windowY = windowPos.y;
+    app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::EDITOR, viewportSize.x, viewportSize.y);
 
-    ImVec2 contentRegion = ImGui::GetContentRegionAvail();
+    ImVec2 imagePos = ImGui::GetCursorScreenPos();
+    m_viewportX = imagePos.x;
+    m_viewportY = imagePos.y;
+    m_size = viewportSize;
 
-    if (contentRegion.x > 0 && contentRegion.y > 0) 
-    {
-        resize(contentRegion);
+    ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
+    ImGui::Image(textureID, viewportSize);
 
-        ImVec2 imageTopLeft = ImGui::GetCursorScreenPos();
-        m_viewportX = imageTopLeft.x;
-        m_viewportY = imageTopLeft.y;
-
-        ImTextureID textureID = (ImTextureID)app->getModuleRender()->getGPUEditorScreenRT().ptr;
-        ImGui::Image(textureID, m_size);
-        
-    }
+    m_isViewportHovered = ImGui::IsItemHovered();
+    m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     ImGuizmo::SetOrthographic(false);
     ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
-
-    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
-    ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
-    ImVec2 contentPos(windowPos.x + contentMin.x, windowPos.y + contentMin.y);
-    ImVec2 contentSize(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
-
-    m_viewportPos = contentPos;
-
-    ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
+    ImGuizmo::SetRect(m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
     ImGuizmo::Enable(true);
 
-    GameObject* selectedGameObject = app->getModuleEditor()->getSelectedGameObject();
+    drawGizmo();
 
-    if (selectedGameObject && m_moduleCamera)
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+}
+
+void WindowSceneEditor::drawGizmo()
+{
+    GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
+
+    if (!selected || !m_moduleCamera)
     {
-        ImGuizmo::OPERATION op = ImGuizmo::TRANSLATE;
-        bool shouldShowGizmo = m_settings->sceneEditor.showGuizmo;
-
-        ModuleEditor::SCENE_TOOL currentMode = app->getModuleEditor()->getCurrentSceneTool();
-
-        switch (currentMode) 
-        {
-        case ModuleEditor::SCENE_TOOL::MOVE:          op = ImGuizmo::TRANSLATE; break;
-        case ModuleEditor::SCENE_TOOL::ROTATE:        op = ImGuizmo::ROTATE; break;
-        case ModuleEditor::SCENE_TOOL::SCALE:         op = ImGuizmo::SCALE; break;
-        case ModuleEditor::SCENE_TOOL::TRANSFORM:     op = ImGuizmo::UNIVERSAL; break;
-        default: shouldShowGizmo = false; break;
-        }
-
-        if (shouldShowGizmo) 
-        {
-            Transform* transform = selectedGameObject->GetTransform();
-            Matrix worldMatrix = transform->getGlobalMatrix();
-
-            ImGuizmo::MODE gizmoMode = app->getModuleEditor()->isGizmoLocal() ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
-
-            ImGuizmo::Manipulate(
-                (float*)&m_moduleCamera->getView(),
-                (float*)&m_moduleCamera->getProjection(),
-                op,
-                gizmoMode,
-                (float*)&worldMatrix
-            );
-
-            if (ImGuizmo::IsUsing())
-            {
-                transform->setFromGlobalMatrix(worldMatrix);
-                PrefabUI::markTransformOverride(selectedGameObject);
-            }
-        }
+        return;
     }
 
-    m_isViewportHovered = ImGui::IsWindowHovered();
-    m_isViewportFocused = ImGui::IsWindowFocused();
+    if (!m_settings->sceneEditor.showGuizmo)
+    {
+        return;
+    }
 
-    ImGui::End();
+    ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+
+    switch (app->getModuleEditor()->getCurrentSceneTool())
+    {
+    case ModuleEditor::MOVE:
+        operation = ImGuizmo::TRANSLATE;
+        break;
+    case ModuleEditor::ROTATE:
+        operation = ImGuizmo::ROTATE;
+        break;
+    case ModuleEditor::SCALE:
+        operation = ImGuizmo::SCALE;
+        break;
+    case ModuleEditor::TRANSFORM:
+        operation = ImGuizmo::UNIVERSAL;
+        break;
+    default:
+        return;
+    }
+
+    Transform* transform = selected->GetTransform();
+    Matrix worldMatrix = transform->getGlobalMatrix();
+    ImGuizmo::MODE mode = app->getModuleEditor()->isGizmoLocal() ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+
+    ImGuizmo::Manipulate(
+        (float*)&m_moduleCamera->getView(),
+        (float*)&m_moduleCamera->getProjection(),
+        operation, mode,
+        (float*)&worldMatrix);
+
+    if (ImGuizmo::IsUsing())
+    {
+        transform->setFromGlobalMatrix(worldMatrix);
+        PrefabUI::markTransformOverride(selected);
+    }
 }
 
 bool WindowSceneEditor::resize(ImVec2 contentRegion)
 {
-    if (abs(contentRegion.x - m_size.x) > 1.0f ||
-        abs(contentRegion.y - m_size.y) > 1.0f) 
+    if (abs(contentRegion.x - m_size.x) > 1.0f || abs(contentRegion.y - m_size.y) > 1.0f)
     {
         setSize(contentRegion);
         return true;
     }
+
     return false;
 }
 
@@ -163,7 +164,5 @@ void WindowSceneEditor::debugDraw()
     if (s->sceneEditor.showAxis)
     {
         dd::axisTriad(ddConvert(Matrix::Identity), 0.1f, 1.0f);
-
     }
 }
-

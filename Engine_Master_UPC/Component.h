@@ -1,6 +1,7 @@
 #pragma once
 #include "ComponentType.h"
 #include "UID.h" 
+#include "IDebugDrawable.h"
 
 class Transform;
 class GameObject;
@@ -9,7 +10,7 @@ class SceneReferenceResolver;
 
 class IDebugDrawable;
 
-class Component {
+class Component: public IDebugDrawable {
 public:
     friend class GameObject;
 
@@ -30,6 +31,7 @@ public:
     #pragma endregion
 
     virtual void drawUi() {}
+    void debugDraw() override {}
 
     virtual void onTransformChange() {};
     Transform* getTransform();
@@ -38,7 +40,8 @@ public:
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
-    virtual IDebugDrawable* getAsDebugDrawable()  { return nullptr; }
+    IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
+
 protected:
     GameObject* m_owner;
 

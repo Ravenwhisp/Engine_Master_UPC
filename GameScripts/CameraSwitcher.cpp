@@ -30,7 +30,7 @@ void CameraSwitcher::Update()
         syncCurrentIndexWithDefaultCamera();
     }
 
-    const bool isSwitchKeyPressed = Input::isKeyDown((int)DirectX::Keyboard::Keys::T);
+    const bool isSwitchKeyPressed = Input::isKeyDown(KeyCode::T);
 
     if (isSwitchKeyPressed && !m_wasSwitchKeyPressed)
     {
@@ -44,19 +44,7 @@ void CameraSwitcher::rebuildCameraList()
 {
     m_cameras.clear();
 
-    const int cameraCount = SceneAPI::countGameObjectsByComponent(ComponentType::CAMERA, true);
-
-    std::vector<GameObject*> cameraList(cameraCount, nullptr);
-
-    const int count = SceneAPI::findGameObjectsByComponent(ComponentType::CAMERA, cameraList.data(), cameraCount, true);
-
-    for (int i = 0; i < count; ++i)
-    {
-        if (cameraList[i])
-        {
-            m_cameras.push_back(cameraList[i]);
-        }
-    }
+    m_cameras = SceneAPI::findAllGameObjectsByComponent(ComponentType::CAMERA, true);
 }
 
 void CameraSwitcher::syncCurrentIndexWithDefaultCamera()

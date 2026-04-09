@@ -126,13 +126,7 @@ void SwapChain::createRenderTargetViews(ComPtr<ID3D12Device2> device)
         ComPtr<ID3D12Resource> backBuffer;
         DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&backBuffer)));
 
-#ifdef GAME_RELEASE
-        constexpr DXGI_FORMAT rtvFmt = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-#else
-        constexpr DXGI_FORMAT rtvFmt = DXGI_FORMAT_UNKNOWN;
-#endif
-
-        m_backBufferTextures[n] = app->getModuleResources()->createTexture(backBuffer, TextureView::RTV, rtvFmt);
+        m_backBufferTextures[n] = app->getModuleResources()->createTexture(backBuffer, TextureView::RTV, DXGI_FORMAT_R8G8B8A8_UNORM);
         m_renderSurface.attachTexture(RenderSurface::COLOR_0, m_backBufferTextures[n]);
     }
 }
