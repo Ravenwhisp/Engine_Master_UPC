@@ -559,14 +559,12 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
         m_tempDrawables.insert(m_tempDrawables.end(), m_navDrawables.begin(), m_navDrawables.end());
     }
 
-#ifdef GAME_RELEASE
-    if (settings->debugGame.showScriptDebug)
+    const bool includeScriptDebug = (ctx.viewType == RenderViewType::Editor) || settings->debugGame.showScriptDebug;
+
+    if (includeScriptDebug)
     {
         m_tempDrawables.insert(m_tempDrawables.end(), m_scriptDrawables.begin(), m_scriptDrawables.end());
     }
-#else
-    m_tempDrawables.insert(m_tempDrawables.end(), m_scriptDrawables.begin(), m_scriptDrawables.end());
-#endif
 
     GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
     if (selected)

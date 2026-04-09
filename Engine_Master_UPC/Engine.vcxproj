@@ -341,6 +341,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="CommandReparent.h" />
     <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
+    <ClInclude Include="RenderViewType.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />

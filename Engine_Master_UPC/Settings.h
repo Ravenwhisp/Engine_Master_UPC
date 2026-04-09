@@ -82,6 +82,6 @@ public:
     }
 
     bool hasDebugInformationEnabled() {
-        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber;
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber || debugGame.showScriptDebug;
     }
 };

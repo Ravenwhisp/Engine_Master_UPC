@@ -263,7 +263,7 @@ void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> command
     commandList->ResourceBarrier(1, &barrier);
 }
 
-void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug)
+void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType)
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
 
@@ -280,6 +280,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .scissorRect = scissorRect,
         .ringBuffer = m_ringBuffer,
         .renderDebug = renderDebug,
+        .viewType = viewType,
         .uiTextCommands = &app->getModuleUI()->getTextCommands(),
         .uiImageCommands = &app->getModuleUI()->getImageCommands(),
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
@@ -319,7 +320,7 @@ void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true);
+    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
 }
 
 void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
@@ -330,7 +331,7 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow());
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 
 void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
@@ -338,7 +339,7 @@ void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandLis
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow());
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 #pragma endregion
 
