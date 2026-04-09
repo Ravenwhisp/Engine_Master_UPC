@@ -19,9 +19,6 @@
 #include "VertexBuffer.h"
 #include "Texture.h"
 
-#include <d3dcompiler.h>
-#include "PlatformHelpers.h"
-
 UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
@@ -36,17 +33,6 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
     rootParameters[2].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
 
-    SpriteBatchPipelineStateDescription pd(rtState);
-
-    ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIFillSpriteVertexShader.cso", &vertexShaderBlob));
-
-    ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIFillSpritePixelShader.cso", &pixelShaderBlob));
-
-    pd.customVertexShader = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
-    pd.customPixelShader = { pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize() };
-    
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -183,45 +169,5 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
     pixelToNDC._41 = -1.0f;
     pixelToNDC._42 = 1.0f;
 
-    const auto srv = command.texture->getSRV();
-    if (!srv.IsShaderVisible() || srv.gpu.ptr == 0)
-    {
-        return;
-    }
-
-    auto resource = command.texture->getD3D12Resource();
-    if (!resource)
-    {
-        return;
-    }
-        
-    const auto desc = resource->GetDesc();
-    const DirectX::XMUINT2 texSize(static_cast<uint32_t>(desc.Width),static_cast<uint32_t>(desc.Height));
-
-    RECT dst;
-    dst.left = (LONG)command.rect.x;
-    dst.top = (LONG)command.rect.y;
-    dst.right = (LONG)(command.rect.x + command.rect.w);
-    dst.bottom = (LONG)(command.rect.y + command.rect.h);
-
-    RECT src;
-    src.left = 0;
-    src.top = 0;
-    src.right = desc.Width;
-    src.bottom = desc.Height;
-
-    const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
-    const DirectX::XMVECTOR fillData = DirectX::XMVectorSet(
-        command.fillAmount,
-        static_cast<float>(command.fillMethod),
-        static_cast<float>(command.fillOrigin),
-        aspectRatio);
-
-    m_spriteBatch->Draw(srv.gpu, texSize, dst, &src, fillData);
-}
-
-void UIImagePass::end()
-{
-    m_spriteBatch->End();
     return scale * translate * pixelToNDC;
 }
