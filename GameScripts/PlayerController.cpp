@@ -2,6 +2,7 @@
 #include "PlayerController.h"
 
 #include <cmath>
+#include <cstring>
 
 static const float PI = 3.1415926535897931f;
 
@@ -12,7 +13,12 @@ static const ScriptFieldInfo playerWalkFields[] =
     { "Turn Speed (deg/s)", ScriptFieldType::Float, offsetof(PlayerController, m_turnSpeedDegPerSec), { 0.0f, 2000.0f, 1.0f } },
     { "Player Index", ScriptFieldType::Int, offsetof(PlayerController, m_playerIndex) },
     { "Constrain To NavMesh", ScriptFieldType::Bool, offsetof(PlayerController, m_constrainToNavMesh) },
-    { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerController, m_navExtents) }
+    { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerController, m_navExtents) },
+
+    // Animations
+    { "Idle State", ScriptFieldType::String, offsetof(PlayerController, m_idleStateName) },
+    { "Run State", ScriptFieldType::String, offsetof(PlayerController, m_runStateName) },
+    { "Animation Transition Time", ScriptFieldType::Float, offsetof(PlayerController, m_animationTransitionTime), { 0.0f, 2.0f, 0.01f } },
 };
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerController, playerWalkFields)
@@ -36,25 +42,31 @@ void PlayerController::Update()
         return;
     }
 
-    Vector3 direction = readMoveDirection();
+    const Vector3 direction = readMoveDirection();
+    const bool isMoving = !isZeroMovement(direction);
+    const bool shiftHeld = Input::isKeyDown(KeyCode::LeftShift) || Input::isKeyDown(KeyCode::RightShift);
+    const bool isRunning = isMoving && shiftHeld;
 
-    if (direction.x == 0.0f && direction.y == 0.0f && direction.z == 0.0f)
+    updateLocomotionAnimation(owner, isMoving, isRunning);
+
+    if (!isMoving)
     {
         return;
     }
 
     const float dt = Time::getDeltaTime();
-    bool shiftHeld = Input::isKeyDown(KeyCode::LeftShift) || Input::isKeyDown(KeyCode::RightShift);
 
     Vector3 horizontalDir(direction.x, 0.0f, direction.z);
     if (horizontalDir.x != 0.0f || horizontalDir.z != 0.0f)
     {
         horizontalDir.Normalize();
-        applyFacingFromDirection(owner, horizontalDir, dt);
+        applyFacingFromDirection(owner, -horizontalDir, dt); // Dani: positive horizontalDir makes character facing the opposite direction
     }
 
-    direction.Normalize();
-    applyTranslation(owner, direction, dt, shiftHeld);
+    Vector3 normalizedDirection = direction;
+    normalizedDirection.Normalize();
+
+    applyTranslation(owner, normalizedDirection, dt, shiftHeld);
 }
 
 void PlayerController::onAfterDeserialize()
@@ -67,7 +79,7 @@ Vector3 PlayerController::readMoveDirection() const
 {
     const Vector2 moveAxis = Input::getMoveAxis(m_playerIndex);
 
-    return Vector3(moveAxis.x, 0.0f, moveAxis.y);
+    return Vector3(-moveAxis.x, 0.0f, -moveAxis.y); // Dani: positive axis applies opposite direction from game perspective
 }
 
 void PlayerController::applyFacingFromDirection(GameObject* owner, const Vector3& direction, float dt)
@@ -130,6 +142,45 @@ float PlayerController::wrapAngleDegrees(float angle)
         angle += 360.0f;
     }
     return angle;
+}
+
+void PlayerController::updateLocomotionAnimation(GameObject* owner, bool isMoving, bool isRunning) const
+{
+    if (!owner)
+    {
+        return;
+    }
+
+    AnimationComponent* animation = AnimationAPI::getAnimationComponent(owner);
+    if (!animation || !AnimationAPI::hasStateMachine(animation))
+    {
+        return;
+    }
+
+    const char* desiredStateName = m_idleStateName.c_str();
+
+    if (isMoving)
+    {
+        desiredStateName = isRunning ? m_runStateName.c_str() : m_runStateName.c_str();
+    }
+
+    if (!desiredStateName || desiredStateName[0] == '\0')
+    {
+        return;
+    }
+
+    const char* activeStateName = AnimationAPI::getActiveStateName(animation);
+    if (activeStateName && std::strcmp(activeStateName, desiredStateName) == 0)
+    {
+        return;
+    }
+
+    AnimationAPI::playState(animation, desiredStateName, m_animationTransitionTime);
+}
+
+bool PlayerController::isZeroMovement(const Vector3& direction)
+{
+    return direction.x == 0.0f && direction.y == 0.0f && direction.z == 0.0f;
 }
 
 float PlayerController::moveTowardsAngleDegrees(float currentYawAngle, float targetYawAngle, float maxDelta)

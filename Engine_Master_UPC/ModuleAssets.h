@@ -14,9 +14,13 @@
 #include <Metadata.h>
 
 class Asset;
+class AnimationStateMachineAsset;
 class ImporterMaterial;
 class ImporterMesh;
 class ImporterPrefab;
+class ImporterAnimation;
+class ImporterSkin;
+class ImporterAnimationStateMachine;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -78,6 +82,9 @@ public:
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
     void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID, uint8_t* binaryData, size_t binarySize);
+
+    bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
@@ -95,6 +102,9 @@ private:
     ImporterMesh*       m_importerMesh = nullptr;
     ImporterMaterial*   m_importerMaterial = nullptr;
     ImporterPrefab*     m_importerPrefab = nullptr;
+    ImporterAnimation*  m_importerAnimation = nullptr;
+    ImporterSkin*       m_importerSkin = nullptr;
+    ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
 };

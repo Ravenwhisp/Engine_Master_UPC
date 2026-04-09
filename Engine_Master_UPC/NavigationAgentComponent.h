@@ -6,7 +6,7 @@
 #include "IDebugDrawable.h"
 
 
-class NavigationAgentComponent : public Component, public IDebugDrawable
+class NavigationAgentComponent : public Component
 {
 public:
 	NavigationAgentComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::NAVIGATION_AGENT, gameObject) {}
@@ -26,8 +26,6 @@ public:
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 	void debugDraw() override;
-
-	IDebugDrawable* getAsDebugDrawable() override { return static_cast<IDebugDrawable*>(this); }
 private:
 	std::vector<DirectX::SimpleMath::Vector3> m_path;
 	size_t m_currentIndex = 0;

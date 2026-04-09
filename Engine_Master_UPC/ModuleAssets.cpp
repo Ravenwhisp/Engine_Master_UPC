@@ -7,11 +7,15 @@
 #include "ImporterMaterial.h"
 #include "ImporterTexture.h"
 #include "ImporterPrefab.h"
+#include "ImporterAnimation.h"
+#include "ImporterSkin.h"
+#include "ImporterAnimationStateMachine.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
 #include "MD5.h"
 
 #include "Asset.h"
+#include "AnimationStateMachineAsset.h"
 #include "Metadata.h"
 #include "UID.h"
 
@@ -48,9 +52,34 @@ bool ModuleAssets::init()
         m_importerRegistry->registerImporter(std::move(prefab));
     }
 
+    {
+        auto anim = std::make_unique<ImporterAnimation>();
+        m_importerAnimation = anim.get();
+        m_importerRegistry->registerImporter(std::move(anim));
+    }
+
+    {
+        auto skin = std::make_unique<ImporterSkin>();
+        m_importerSkin = skin.get();
+        m_importerRegistry->registerImporter(std::move(skin));
+    }
+
+    {
+        auto animStateMachine = std::make_unique<ImporterAnimationStateMachine>();
+        m_importerAnimationStateMachine = animStateMachine.get();
+        m_importerRegistry->registerImporter(std::move(animStateMachine));
+    }
+
     // GLTF importer holds references to the three importers above so it can
     // delegate sub-asset serialisation without duplicating binary format logic.
-    m_importerRegistry->registerImporter( std::make_unique<ImporterGltf>(*m_importerMesh, *m_importerMaterial, *m_importerPrefab));
+    m_importerRegistry->registerImporter(
+        std::make_unique<ImporterGltf>(
+            *m_importerMesh,
+            *m_importerMaterial,
+            *m_importerPrefab,
+            *m_importerAnimation,
+            *m_importerSkin,
+            *m_importerAnimationStateMachine));
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
     m_importerRegistry->registerImporter(std::make_unique<ImporterScript>());
@@ -361,6 +390,52 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
         dep.type = subMeta.type;
         m_pendingDependencies[parentUID].push_back(dep);
     }
+}
+
+bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
+{
+    if (!asset)
+    {
+        DEBUG_ERROR("[ModuleAssets] saveAnimationStateMachine called with null asset.");
+        return false;
+    }
+
+    if (!m_importerAnimationStateMachine)
+    {
+        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine importer is not initialized.");
+        return false;
+    }
+
+    const Metadata* meta = m_registry->getMetadata(asset->getId());
+    if (!meta)
+    {
+        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
+        return false;
+    }
+
+    if (meta->type != AssetType::ANIMATION_STATE_MACHINE)
+    {
+        DEBUG_ERROR("[ModuleAssets] Asset '%s' is not an AnimationStateMachine.", asset->getId().c_str());
+        return false;
+    }
+
+    uint8_t* rawBuffer = nullptr;
+    const uint64_t size = m_importerAnimationStateMachine->save(asset.get(), &rawBuffer);
+    std::unique_ptr<uint8_t[]> buffer(rawBuffer);
+
+    if (!rawBuffer || size == 0)
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to serialize AnimationStateMachine '%s'.", asset->getId().c_str());
+        return false;
+    }
+
+    if (!FileIO::write(meta->getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to write AnimationStateMachine binary '%s'.", asset->getId().c_str());
+        return false;
+    }
+
+    return true;
 }
 
 void ModuleAssets::flushDependencies(const MD5Hash& parentUID,

@@ -90,6 +90,7 @@ bool GameObject::AddComponent(ComponentType componentType)
     }
     newComponent->init();
     m_components.push_back(std::move(newComponent));
+    app->getModuleScene()->getScene()->markDirty();
 
     GameObject* target = this;
     while (target && !PrefabManager::isPrefabInstance(target))
@@ -120,6 +121,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
 
     Component* rawPtr = newComponent.get();
     m_components.push_back(std::move(newComponent));
+    app->getModuleScene()->getScene()->markDirty();
     return rawPtr;
 }
 
@@ -151,6 +153,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     (*it)->cleanUp();
     m_components.erase(it);
+    app->getModuleScene()->getScene()->markDirty();
 
     if (target)
     {
