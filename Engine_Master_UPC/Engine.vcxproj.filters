@@ -1017,6 +1017,12 @@
     <ClInclude Include="WindowAnimationStateMachine.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
+    <ClInclude Include="OptickProfiler.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderViewType.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
