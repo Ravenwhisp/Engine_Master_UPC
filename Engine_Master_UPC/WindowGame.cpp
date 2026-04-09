@@ -1,15 +1,20 @@
 #include "Globals.h"
 #include "WindowGame.h"
+
 #include <imgui.h>
 
 #include "Application.h"
 
 #include "ModuleRender.h"
+#include "ModuleResources.h"
 #include "PlayToolbar.h"
+#include "RenderSurface.h"
+#include "Texture.h"
 
 WindowGame::WindowGame()
 {
     m_playToolbar = new PlayToolbar();
+    m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
 }
 
 WindowGame::~WindowGame()
@@ -17,17 +22,10 @@ WindowGame::~WindowGame()
     delete m_playToolbar;
 }
 
-void WindowGame::render()
+void WindowGame::drawInternal()
 {
-    if (!ImGui::Begin(getWindowName(), getOpenPtr(), ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::End();
-        return;
-    }
-
     float toolbarWidth = ImGui::GetContentRegionAvail().x;
     m_playToolbar->DrawCentered(toolbarWidth);
-
     ImGui::NewLine();
     ImGui::Separator();
 
@@ -45,36 +43,27 @@ void WindowGame::render()
         m_viewportX = imageTopLeft.x;
         m_viewportY = imageTopLeft.y;
 
-        ImTextureID textureID = (ImTextureID)app->getModuleRender()->getGPUPlayScreenRT().ptr;
+        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
         ImGui::Image(textureID, m_size);
-
     }
-
-    //ImGuizmo::SetOrthographic(false);
-    //ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
 
     ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
     ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
-    ImVec2 contentPos(windowPos.x + contentMin.x, windowPos.y + contentMin.y);
-    ImVec2 contentSize(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
-
-    //ImGuizmo::SetRect(contentPos.x, contentPos.y, contentSize.x, contentSize.y);
-    //ImGuizmo::Enable(true);
+    ImVec2 contentPos = ImVec2(windowPos.x + contentMin.x, windowPos.y + contentMin.y);
+    ImVec2 contentSize = ImVec2(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
 
     m_isViewportHovered = ImGui::IsWindowHovered();
     m_isViewportFocused = ImGui::IsWindowFocused();
-
-    ImGui::End();
 }
-
 
 bool WindowGame::resize(ImVec2 contentRegion)
 {
-    if (abs(contentRegion.x - m_size.x) > 1.0f ||
-        abs(contentRegion.y - m_size.y) > 1.0f)
+    if (abs(contentRegion.x - m_size.x) > 1.0f || abs(contentRegion.y - m_size.y) > 1.0f)
     {
         setSize(contentRegion);
+        app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::PLAY, contentRegion.x, contentRegion.y);
         return true;
     }
+
     return false;
 }

@@ -22,7 +22,7 @@
 
 unsigned int DelegateHandle::CURRENT_ID = 0;
 
-
+#pragma region Statics
 static Vector2 GetMouseScreenPos()
 {
     return app->getModuleInput()->getMousePosition();
@@ -51,7 +51,9 @@ static bool IsMouseButtonReleased(PointerButton btn)
     default:                    return false;
     }
 }
+#pragma endregion
 
+#pragma region Game Loop
 bool ModuleEventSystem::init()
 {
     return true;
@@ -73,80 +75,7 @@ bool ModuleEventSystem::cleanUp()
         state = ButtonState{};
     return true;
 }
-
-void ModuleEventSystem::process()
-{
-    Vector2 mousePos;
-    if (!getViewportMousePos(mousePos))
-    {
-        clearHoverState();
-        return;
-    }
-
-    // Find the topmost UI element under the cursor
-    GameObject* hovered = raycast(mousePos);
-
-    constexpr PointerButton buttons[] = 
-    {
-        PointerButton::Left,
-        PointerButton::Right,
-        PointerButton::Middle
-    };
-
-    for (PointerButton btn : buttons)
-    {
-        const int    idx = static_cast<int>(btn);
-        ButtonState& state = m_buttonStates[idx];
-
-        PointerEventData data;
-        data.button = btn;
-        data.position = mousePos;
-        data.pointerEnter = hovered;
-
-        if (hovered != state.pointerEnterLast)
-        {
-            if (state.pointerEnterLast)
-            {
-                data.pointerEnter = state.pointerEnterLast;
-                data.pointerEnter = hovered;
-            }
-
-            state.pointerEnterLast = hovered;
-
-        }
-
-       
-        if (IsMouseButtonPressed(btn) && hovered)
-        {
-            state.pointerPress = hovered;
-            state.pressPosition = mousePos;
-
-            data.pointerPress = hovered;
-            data.pressPosition = mousePos;
-        }
-
-        if (IsMouseButtonReleased(btn) && state.pointerPress)
-        {
-            data.pressPosition = state.pressPosition;
-            data.pointerPress = state.pointerPress;
-
-            if (state.pointerPress)
-            {
-                sendPointerUp(state.pointerPress, data);
-
-                // Click = Down and Up landing on the same object
-                if (state.pointerPress == hovered)
-                {
-                    data.pointerClick = hovered;
-                    sendPointerClick(hovered, data);
-                }
-
-                state.pointerPress = nullptr;
-            }
-        }
-    }
-}
-
+#pragma endregion
 
 bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
@@ -207,9 +136,9 @@ void ModuleEventSystem::clearHoverState()
             state.pointerEnterLast = nullptr;
         }
 
-        // Cancel any in-progress press so no ghost click fires on re-entry
         state.pointerPress = nullptr;
     }
+    m_hoveredLast = nullptr;
 }
 
 GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
@@ -274,6 +203,144 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
     }
 }
 
+#pragma region Events
+void ModuleEventSystem::process()
+{
+    Vector2 mousePos;
+    if (!getViewportMousePos(mousePos))
+    {
+        clearHoverState();
+        return;
+    }
+
+    GameObject* hovered = raycast(mousePos);
+
+    if (hovered != m_hoveredLast)
+    {
+        PointerEventData data;
+        data.position = mousePos;
+
+        if (m_hoveredLast)
+        {
+            data.pointerEnter = m_hoveredLast;
+            sendPointerExit(m_hoveredLast, data);
+        }
+
+        if (hovered)
+        {
+            data.pointerEnter = hovered;
+            sendPointerEnter(hovered, data);
+        }
+
+        m_hoveredLast = hovered;
+    }
+
+    constexpr PointerButton buttons[] =
+    {
+        PointerButton::Left,
+        PointerButton::Right,
+        PointerButton::Middle
+    };
+
+    for (PointerButton btn : buttons)
+    {
+        int idx = (int)btn;
+        ButtonState& state = m_buttonStates[idx];
+
+        PointerEventData data;
+        data.button = btn;
+        data.position = mousePos;
+
+        if (IsMouseButtonPressed(btn) && hovered)
+        {
+            state.pointerPress = hovered;
+            state.pressPosition = mousePos;
+
+            data.pointerPress = hovered;
+            data.pressPosition = mousePos;
+
+            sendPointerDown(hovered, data);
+        }
+
+        if (IsMouseButtonReleased(btn) && state.pointerPress)
+        {
+            data.pointerPress = state.pointerPress;
+            data.pressPosition = state.pressPosition;
+
+            sendPointerUp(state.pointerPress, data);
+
+            if (state.pointerPress == hovered)
+            {
+                sendPointerClick(hovered, data);
+            }
+
+            state.pointerPress = nullptr;
+        }
+    }
+}
+void ModuleEventSystem::sendPointerEnter(GameObject* go, PointerEventData& data)
+{
+    if (!go)
+    {
+        return;
+    }
+
+    for (Component* c : go->GetAllComponents())
+    {
+        if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
+        {
+            h->onPointerEnter(data);
+        }
+    }
+}
+
+void ModuleEventSystem::sendPointerExit(GameObject* go, PointerEventData& data)
+{
+    if (!go)
+    {
+        return;
+    }
+
+    for (Component* c : go->GetAllComponents())
+    {
+        if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
+        {
+            h->onPointerExit(data);
+        }
+    }
+}
+
+void ModuleEventSystem::sendPointerDown(GameObject* go, PointerEventData& data)
+{
+    if (!go)
+    {
+        return;
+    }
+
+    for (Component* c : go->GetAllComponents())
+    {
+        if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
+        {
+            h->onPointerDown(data);
+        }
+    }
+}
+
+void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
+{
+    if (!go)
+    {
+        return;
+    }
+
+    for (Component* c : go->GetAllComponents())
+    {
+        if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
+        {
+            h->onPointerUp(data);
+        }
+    }
+}
 
 void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
@@ -290,17 +357,4 @@ void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
         }
     }
 }
-
-void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
-{
-    if(!go)
-    {
-        return;
-	}
-
-    for (Component* c : go->GetAllComponents())
-    {
-        if (auto* h = dynamic_cast<IPointerEventHandler*>(c)) h->onPointerUp(data);
-    }
- 
-}
+#pragma endregion
