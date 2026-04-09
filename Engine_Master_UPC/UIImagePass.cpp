@@ -138,6 +138,12 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
+        const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
+        params.fillData = Vector4(
+            command.fillAmount,
+            static_cast<float>(command.fillMethod),
+            static_cast<float>(command.fillOrigin),
+            aspectRatio);
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
