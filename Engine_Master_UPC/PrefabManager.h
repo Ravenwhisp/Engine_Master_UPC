@@ -33,6 +33,7 @@ public:
     static bool applyToPrefab(const GameObject* go, bool respectOverrides = true);
     static bool revertToPrefab(GameObject* go, Scene* scene);
     static bool createVariant(const std::filesystem::path& sourcePath, const std::filesystem::path& destinationPath);
+    static void refreshInstances(const std::filesystem::path& prefabPath);
 
     static std::string buildPrefabJSON(const GameObject* go, const std::filesystem::path& savePath);
 

@@ -6,6 +6,7 @@
 #include <backends/imgui_impl_dx12.h>
 
 #include "Scene.h"
+#include "GameObject.h"
 #include "WindowSceneEditor.h"
 #include "WindowHardware.h"
 #include "WindowPerformance.h"
@@ -270,7 +271,7 @@ bool ModuleEditor::init()
     m_editorWindows.push_back(m_editorSettings = new WindowEditorSettings());
     m_editorWindows.push_back(new WindowFileDialog());
     m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
-    
+
 
     m_sceneEditor = new WindowSceneEditor();
     m_editorWindows.push_back(m_sceneEditor);
@@ -499,21 +500,21 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 
     if (m_prefabSession.m_active)
     {
-        if (m_prefabSession.m_isolatedScene && m_prefabSession.m_isolatedScene != app->getModuleScene()->getScene())
+        // Clean up any previous session's temporary root from the main scene.
+        if (m_prefabSession.m_rootObject && m_prefabSession.m_isolatedScene)
         {
-            delete m_prefabSession.m_isolatedScene;
+            m_prefabSession.m_isolatedScene->removeGameObject(m_prefabSession.m_rootObject->GetID());
         }
         m_prefabSession.clear();
     }
 
-    Scene* isolatedScene = new Scene();
-    m_prefabSession.m_isolatedScene = isolatedScene;
+    Scene* mainScene = app->getModuleScene()->getScene();
+    m_prefabSession.m_isolatedScene = mainScene;
 
-    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, isolatedScene);
+    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, mainScene);
 
     if (!loaded)
     {
-        delete isolatedScene;
         m_prefabSession.clear();
         return;
     }
@@ -546,10 +547,9 @@ void ModuleEditor::flushExitPrefabEdit()
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_selectedGameObject = nullptr;
 
-    if (m_prefabSession.m_isolatedScene && m_prefabSession.m_isolatedScene != app->getModuleScene()->getScene())
+    if (m_prefabSession.m_rootObject && m_prefabSession.m_isolatedScene)
     {
-        delete m_prefabSession.m_isolatedScene;
-        m_prefabSession.m_isolatedScene = nullptr;
+        m_prefabSession.m_isolatedScene->removeGameObject(m_prefabSession.m_rootObject->GetID());
     }
 
     m_prefabSession.clear();
