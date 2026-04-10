@@ -1,6 +1,6 @@
 #define DEBUG_DRAW_IMPLEMENTATION
-#define DEBUG_DRAW_VERTEX_BUFFER_SIZE 32768
-#define DEBUG_DRAW_MAX_LINES 65536
+#define DEBUG_DRAW_VERTEX_BUFFER_SIZE 131072
+#define DEBUG_DRAW_MAX_LINES 131072
 
 
 #include "Globals.h"
@@ -303,7 +303,7 @@ public:
             freeSpace = DEBUG_DRAW_VERTEX_BUFFER_SIZE;
         }
 
-        if (freeSpace > count)
+        if (freeSpace >= count)
         {
             BYTE* uploadData = nullptr;
 
@@ -546,7 +546,22 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
 
     if (settings->sceneEditor.showModelBoundingBoxes)
     {
-        m_tempDrawables.insert(m_tempDrawables.end(), m_modelDrawables.begin(), m_modelDrawables.end());
+        for (IDebugDrawable* drawable : m_modelDrawables)
+        {
+            Component* component = dynamic_cast<Component*>(drawable);
+            if (!component)
+            {
+                continue;
+            }
+
+            GameObject* owner = component->getOwner();
+            if (!owner || !owner->IsActiveInWindowHierarchy())
+            {
+                continue;
+            }
+
+            m_tempDrawables.push_back(drawable);
+        }
     }
 
     if (settings->sceneEditor.showCameraFrustum)
@@ -609,6 +624,17 @@ void DebugDrawPass::apply(ID3D12GraphicsCommandList4* commandList)
     END_EVENT(commandList);
 }
 
+void DebugDrawPass::markCacheDirty()
+{
+    m_cacheDirty = true;
+    m_lightDrawables.clear();
+    m_modelDrawables.clear();
+    m_cameraDrawables.clear();
+    m_navDrawables.clear();
+    m_scriptDrawables.clear();
+    m_tempDrawables.clear();
+}
+
 void DebugDrawPass::rebuildDrawableCache()
 {
     m_lightDrawables.clear();
@@ -621,6 +647,11 @@ void DebugDrawPass::rebuildDrawableCache()
 
     for (GameObject* go : moduleScene->getScene()->getAllGameObjects())
     {
+        if (!go->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
         for (Component* component : go->GetAllComponents())
         {
             IDebugDrawable* drawable = component->getAsDebugDrawable();

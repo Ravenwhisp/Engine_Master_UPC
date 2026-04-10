@@ -24,7 +24,7 @@ public:
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
-    void markCacheDirty() { m_cacheDirty = true; }
+    void markCacheDirty();
 
 private:
     void rebuildDrawableCache();
