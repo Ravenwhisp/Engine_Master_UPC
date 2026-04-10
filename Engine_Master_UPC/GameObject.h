@@ -64,7 +64,6 @@ public:
 	const PrefabInfo& GetPrefabInfo() const { return m_prefabInfo; }
 
 	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
-	bool IsPrefabRoot()     const { return m_prefabInfo.isInstance(); }
 #pragma endregion
 
 #pragma region Components
