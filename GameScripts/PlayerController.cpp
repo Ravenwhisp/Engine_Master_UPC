@@ -15,10 +15,11 @@ static const ScriptFieldInfo playerWalkFields[] =
     { "Constrain To NavMesh", ScriptFieldType::Bool, offsetof(PlayerController, m_constrainToNavMesh) },
     { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerController, m_navExtents) },
 
-    // Animations
-    { "Idle State", ScriptFieldType::String, offsetof(PlayerController, m_idleStateName) },
-    { "Run State", ScriptFieldType::String, offsetof(PlayerController, m_runStateName) },
-    { "Animation Transition Time", ScriptFieldType::Float, offsetof(PlayerController, m_animationTransitionTime), { 0.0f, 2.0f, 0.01f } },
+    // Animation triggers
+    { "Start Move Trigger", ScriptFieldType::String, offsetof(PlayerController, m_startMoveTriggerName) },
+    { "Stop Move Trigger", ScriptFieldType::String, offsetof(PlayerController, m_stopMoveTriggerName) },
+    { "Start Run Trigger", ScriptFieldType::String, offsetof(PlayerController, m_startRunTriggerName) },
+    { "Stop Run Trigger", ScriptFieldType::String, offsetof(PlayerController, m_stopRunTriggerName) },
 };
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerController, playerWalkFields)
@@ -41,6 +42,9 @@ void PlayerController::Update()
     {
         return;
     }
+
+   /* if (dead)
+        return;*/
 
     const Vector3 direction = readMoveDirection();
     const bool isMoving = !isZeroMovement(direction);
@@ -131,6 +135,58 @@ void PlayerController::applyTranslation(GameObject* owner, const Vector3& direct
     }
 }
 
+void PlayerController::updateLocomotionAnimation(GameObject* owner, bool isMoving, bool isRunning)
+{
+    // No state machine authority here: only notify changes through triggers.
+
+    if (!owner)
+    {
+        return;
+    }
+
+    // Enter locomotion
+    if (!m_wasMoving && isMoving)
+    {
+        sendAnimationTrigger(owner, isRunning ? m_startRunTriggerName : m_startMoveTriggerName);
+    }
+    // Exit locomotion
+    else if (m_wasMoving && !isMoving)
+    {
+        sendAnimationTrigger(owner, m_wasRunning ? m_stopRunTriggerName : m_stopMoveTriggerName);
+    }
+    // Change locomotion mode while moving
+    else if (m_wasMoving && isMoving)
+    {
+        if (!m_wasRunning && isRunning)
+        {
+            sendAnimationTrigger(owner, m_startRunTriggerName);
+        }
+        else if (m_wasRunning && !isRunning)
+        {
+            sendAnimationTrigger(owner, m_stopRunTriggerName);
+        }
+    }
+
+    m_wasMoving = isMoving;
+    m_wasRunning = isRunning;
+}
+
+void PlayerController::sendAnimationTrigger(GameObject* owner, const std::string& triggerName) const
+{
+    if (!owner || triggerName.empty())
+    {
+        return;
+    }
+
+    AnimationComponent* animation = AnimationAPI::getAnimationComponent(owner);
+    if (!animation || !AnimationAPI::hasStateMachine(animation))
+    {
+        return;
+    }
+
+    AnimationAPI::sendTrigger(animation, triggerName.c_str());
+}
+
 float PlayerController::wrapAngleDegrees(float angle)
 {
     while (angle > 180.0f)
@@ -144,39 +200,6 @@ float PlayerController::wrapAngleDegrees(float angle)
     return angle;
 }
 
-void PlayerController::updateLocomotionAnimation(GameObject* owner, bool isMoving, bool isRunning) const
-{
-    if (!owner)
-    {
-        return;
-    }
-
-    AnimationComponent* animation = AnimationAPI::getAnimationComponent(owner);
-    if (!animation || !AnimationAPI::hasStateMachine(animation))
-    {
-        return;
-    }
-
-    const char* desiredStateName = m_idleStateName.c_str();
-
-    if (isMoving)
-    {
-        desiredStateName = isRunning ? m_runStateName.c_str() : m_runStateName.c_str();
-    }
-
-    if (!desiredStateName || desiredStateName[0] == '\0')
-    {
-        return;
-    }
-
-    const char* activeStateName = AnimationAPI::getActiveStateName(animation);
-    if (activeStateName && std::strcmp(activeStateName, desiredStateName) == 0)
-    {
-        return;
-    }
-
-    AnimationAPI::playState(animation, desiredStateName, m_animationTransitionTime);
-}
 
 bool PlayerController::isZeroMovement(const Vector3& direction)
 {
