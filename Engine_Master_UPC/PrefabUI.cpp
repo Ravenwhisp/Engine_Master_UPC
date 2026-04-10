@@ -176,7 +176,6 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
 
     const PrefabInfo& info = go->GetPrefabInfo();
     const bool        hasOverrides = !info.m_overrides.isEmpty();
-    const std::string displayName = info.m_name;
 
     ImVec2 topLeft = ImGui::GetCursorScreenPos();
     ImVec2 bottomRight = { topLeft.x + ImGui::GetContentRegionAvail().x, topLeft.y + 52.f };
@@ -191,7 +190,6 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     ImGui::Text("%s", go->GetName().c_str());
     ImGui::SameLine(0, 4);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.55f, 0.55f, 1.f));
-    ImGui::Text("->  %s", displayName.c_str());
     ImGui::PopStyleColor();
 
     if (hasOverrides)
