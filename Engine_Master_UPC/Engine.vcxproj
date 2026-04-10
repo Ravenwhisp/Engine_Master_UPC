@@ -446,8 +446,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Module.h" />
     <ClInclude Include="ModuleInput.h" />
     <ClInclude Include="Mouse.h" />
-    <ClInclude Include="PerformanceProfiler.h" />
-    <ClInclude Include="WindowPerformance.h" />
     <ClInclude Include="PlatformHelpers.h" />
     <ClInclude Include="ReadData.h" />
     <ClInclude Include="ModuleRender.h" />
@@ -725,8 +723,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="BasicMaterial.cpp" />
     <ClCompile Include="BasicMesh.cpp" />
     <ClCompile Include="Mouse.cpp" />
-    <ClCompile Include="PerformanceProfiler.cpp" />
-    <ClCompile Include="WindowPerformance.cpp" />
     <ClCompile Include="ModuleRender.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="ModuleResources.cpp" />

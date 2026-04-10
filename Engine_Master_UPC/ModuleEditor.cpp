@@ -7,7 +7,6 @@
 
 #include "WindowSceneEditor.h"
 #include "WindowHardware.h"
-#include "WindowPerformance.h"
 #include "EditorWindow.h"
 #include "ImGuizmo.h"
 #include "WindowLogger.h"
@@ -32,39 +31,9 @@
 
 using namespace std;
 
-void ModuleEditor::mainMenuBar()
-{
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            ImGui::EndMenu();
-        }
+static const char* WINDOW_STATES_FILE = "editor_windows.ini";
 
-        if (ImGui::BeginMenu("Edit"))
-        {
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Window"))
-        {
-            for (EditorWindow* window : m_editorWindows)
-            {
-                bool open = window->isOpen();
-                if (ImGui::MenuItem(window->getWindowName(), nullptr, &open))
-                {
-                    window->setOpen(open);
-                }
-            }
-
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
-}
-
-void style()
+static void applyImGuiStyle()
 {
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowRounding = 4.0f;
@@ -138,9 +107,245 @@ void style()
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.55f);
 }
 
-ModuleEditor::ModuleEditor() = default;
 
+ModuleEditor::ModuleEditor() = default;
 ModuleEditor::~ModuleEditor() = default;
+
+
+EditorWindow* ModuleEditor::openWindow(const std::string& typeKey)
+{
+    auto it = m_windowFactories.find(typeKey);
+    if (it == m_windowFactories.end())
+    {
+        return nullptr;
+    }
+
+    EditorWindow* window = it->second();
+    window->setInstanceId(m_nextInstanceId++);
+    m_editorWindows.push_back(window);
+    return window;
+}
+
+
+bool ModuleEditor::init()
+{
+    m_moduleGameView = app->getModuleGameView();
+
+    // ---- Register all spawnable window types ----
+    registerWindowType<WindowLogger>("Console");
+    registerWindowType<WindowHardware>("Hardware Info");
+    registerWindowType<WindowEditorSettings>("Editor Settings");
+    registerWindowType<WindowFileDialog>("FileDialog");
+    registerWindowType<SceneConfig>("Scene Configuration");
+    registerWindowType<WindowSceneEditor>("Scene Editor");
+    registerWindowType<WindowHierarchy>("Hierarchy");
+    registerWindowType<WindowInspector>("WindowInspector");
+    registerWindowType<WindowGame>("Game");
+    registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
+
+    // ---- Spawn the default set of windows (one each) ----
+    openWindow("Console");
+    openWindow("Hardware Info");
+    openWindow("Performance");
+    openWindow("Editor Settings");
+    openWindow("FileDialog");
+    openWindow("Scene Configuration");
+    openWindow("Scene Editor");
+    openWindow("Hierarchy");
+    openWindow("WindowInspector");
+    openWindow("Game");
+    openWindow("Animation State Machine");
+
+    m_viewGameDebug = std::make_unique<WindowGameDebug>();
+
+    loadWindowStates();
+
+    return true;
+}
+
+void ModuleEditor::update()
+{
+#ifdef GAME_RELEASE
+    return;
+#endif
+
+    flushExitPrefabEdit();
+
+    if (WindowSceneEditor* sceneEditor = findWindow<WindowSceneEditor>())
+    {
+        if (sceneEditor->isFocused())
+        {
+            handleKeyboardShortcuts();
+        }
+    }
+}
+
+void ModuleEditor::render()
+{
+    ImGuizmo::BeginFrame();
+
+#ifdef GAME_RELEASE
+    if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
+    {
+        m_viewGameDebug->render();
+    }
+    ImGui::EndFrame();
+    return;
+#endif
+
+    mainDockspace(&m_showMainDockspace);
+
+    for (EditorWindow* window : m_editorWindows)
+    {
+        window->draw();
+    }
+
+    if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
+    {
+        m_viewGameDebug->render();
+    }
+
+    ImGui::EndFrame();
+}
+
+bool ModuleEditor::cleanUp()
+{
+    app->getModuleD3D12()->getCommandQueue()->flush();
+
+    saveWindowStates();
+
+    for (EditorWindow* window : m_editorWindows)
+    {
+        window->cleanUp();
+    }
+
+    for (EditorWindow* window : m_editorWindows)
+    {
+        delete window;
+    }
+
+    m_editorWindows.clear();
+
+    return true;
+}
+
+WindowSceneEditor* ModuleEditor::getWindowSceneEditor() const
+{
+    return findWindow<WindowSceneEditor>();
+}
+
+WindowGame* ModuleEditor::getWindowGame() const
+{
+    return findWindow<WindowGame>();
+}
+
+WindowAnimationStateMachine* ModuleEditor::getWindowAnimationStateMachine() const
+{
+    return findWindow<WindowAnimationStateMachine>();
+}
+
+ImVec2 ModuleEditor::getEventViewport() const
+{
+    if (WindowSceneEditor* s = findWindow<WindowSceneEditor>())
+    {
+        if (s->isFocused())
+        {
+            return ImVec2(s->getViewportX(), s->getViewportY());
+        }
+    }
+
+    if (WindowGame* g = findWindow<WindowGame>())
+    {
+        if (g->isFocused())
+        {
+            return ImVec2(g->getViewportX(), g->getViewportY());
+        }
+    }
+
+    return ImVec2(-1, -1);
+}
+
+ImVec2 ModuleEditor::getEventViewportSize() const
+{
+    if (WindowSceneEditor* s = findWindow<WindowSceneEditor>())
+    {
+        if (s->isFocused())
+        {
+            return s->getSize();
+        }
+    }
+
+    if (WindowGame* g = findWindow<WindowGame>())
+    {
+        if (g->isFocused())
+        {
+            return g->getSize();
+        }
+    }
+
+    return ImVec2(-1, -1);
+}
+
+
+void ModuleEditor::mainMenuBar()
+{
+    if (!ImGui::BeginMainMenuBar())
+    {
+        return;
+    }
+
+    if (ImGui::BeginMenu("File"))
+    {
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Edit"))
+    {
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Window"))
+    {
+        // Toggle visibility of existing windows.
+        for (EditorWindow* window : m_editorWindows)
+        {
+            bool open = window->isOpen();
+            // Show "Inspector (2)" style labels when multiple instances exist.
+            std::string label = window->getWindowName();
+            if (window->getInstanceId() > 1)
+            {
+                label += " (" + std::to_string(window->getInstanceId()) + ")";
+            }
+
+            if (ImGui::MenuItem(label.c_str(), nullptr, &open))
+            {
+                window->setOpen(open);
+            }
+        }
+
+        // ---- New Window submenu — spawn additional instances ----
+        if (!m_windowFactories.empty())
+        {
+            ImGui::Separator();
+            if (ImGui::BeginMenu("New Window"))
+            {
+                for (const auto& [key, factory] : m_windowFactories)
+                {
+                    if (ImGui::MenuItem(key.c_str()))
+                    {
+                        openWindow(key);
+                    }
+                }
+                ImGui::EndMenu();
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    ImGui::EndMainMenuBar();
+}
+
 
 void ModuleEditor::mainDockspace(bool* p_open)
 {
@@ -166,6 +371,7 @@ void ModuleEditor::mainDockspace(bool* p_open)
     ImGui::PopStyleVar(2);
 
     mainMenuBar();
+
     ImGuiID dockspace_id = ImGui::GetID("MainDockspace");
     ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_None);
 
@@ -176,49 +382,11 @@ void ModuleEditor::mainDockspace(bool* p_open)
         {
             setupDockLayout(dockspace_id);
         }
-        style();
+        applyImGuiStyle();
         m_firstFrame = false;
     }
 
     ImGui::End();
-}
-
-
-static const char* WINDOW_STATES_FILE = "editor_windows.ini";
-
-void ModuleEditor::saveWindowStates()
-{
-    std::ofstream file(WINDOW_STATES_FILE);
-    if (!file) return;
-
-    for (EditorWindow* window : m_editorWindows)
-    {
-        file << window->getWindowName() << "=" << (window->isOpen() ? 1 : 0) << "\n";
-    }
-}
-
-void ModuleEditor::loadWindowStates()
-{
-    std::ifstream file(WINDOW_STATES_FILE);
-    if (!file) return;
-
-    std::unordered_map<std::string, bool> states;
-    std::string line;
-    while (std::getline(file, line))
-    {
-        const size_t eq = line.find('=');
-        if (eq == std::string::npos) continue;
-        const std::string name = line.substr(0, eq);
-        const bool open = line.substr(eq + 1) == "1";
-        states[name] = open;
-    }
-
-    for (EditorWindow* window : m_editorWindows)
-    {
-        auto it = states.find(window->getWindowName());
-        if (it != states.end())
-            window->setOpen(it->second);
-    }
 }
 
 void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
@@ -229,172 +397,92 @@ void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
     ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
 
     ImGuiID dock_main = dockspace_id;
-    ImGuiID dock_left;
-    ImGuiID dock_inspector;
+    ImGuiID dock_left, dock_inspector;
     ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.75f, &dock_left, &dock_inspector);
 
-    ImGuiID dock_bottom;
-    ImGuiID dock_top;
+    ImGuiID dock_bottom, dock_top;
     ImGui::DockBuilderSplitNode(dock_left, ImGuiDir_Down, 0.25f, &dock_bottom, &dock_top);
 
-    ImGuiID dock_hierarchy;
-    ImGuiID dock_scene;
+    ImGuiID dock_hierarchy, dock_scene;
     ImGui::DockBuilderSplitNode(dock_top, ImGuiDir_Left, 0.25f, &dock_hierarchy, &dock_scene);
 
     ImGuiID dock_playmode_buttons;
     ImGui::DockBuilderSplitNode(dock_scene, ImGuiDir_Up, 0.1f, &dock_playmode_buttons, &dock_scene);
 
-    ImGui::DockBuilderDockWindow("WindowInspector", dock_inspector);
-    ImGui::DockBuilderDockWindow("Scene Configuration", dock_inspector);
-    ImGui::DockBuilderDockWindow("Hierarchy", dock_hierarchy);
-    ImGui::DockBuilderDockWindow("Editor Settings", dock_hierarchy);
-    ImGui::DockBuilderDockWindow("Scene Editor", dock_scene);
-    ImGui::DockBuilderDockWindow("Game", dock_scene);
-    ImGui::DockBuilderDockWindow("FileDialog", dock_bottom);
-    ImGui::DockBuilderDockWindow("Console", dock_bottom);
-    ImGui::DockBuilderDockWindow("Hardware Info", dock_bottom);
-    ImGui::DockBuilderDockWindow("Performance", dock_bottom);
-    ImGui::DockBuilderDockWindow("Play Mode Buttons", dock_playmode_buttons);
+    // Helper: dock the first window whose display name matches the given type key.
+    auto dockFirstOfType = [&](const char* typeKey, ImGuiID node)
+        {
+            for (EditorWindow* w : m_editorWindows)
+            {
+                if (strcmp(w->getWindowName(), typeKey) == 0)
+                {
+                    ImGui::DockBuilderDockWindow(w->getImGuiId(), node);
+                    break;
+                }
+            }
+        };
+
+    dockFirstOfType("WindowInspector", dock_inspector);
+    dockFirstOfType("Scene Configuration", dock_inspector);
+    dockFirstOfType("Hierarchy", dock_hierarchy);
+    dockFirstOfType("Editor Settings", dock_hierarchy);
+    dockFirstOfType("Scene Editor", dock_scene);
+    dockFirstOfType("Game", dock_scene);
+    dockFirstOfType("FileDialog", dock_bottom);
+    dockFirstOfType("Console", dock_bottom);
+    dockFirstOfType("Hardware Info", dock_bottom);
+    dockFirstOfType("Performance", dock_bottom);
+    dockFirstOfType("Play Mode Buttons", dock_playmode_buttons);
 
     ImGui::DockBuilderFinish(dockspace_id);
 }
 
-bool ModuleEditor::init()
+
+void ModuleEditor::saveWindowStates()
 {
-    m_moduleGameView = app->getModuleGameView();
-
-    m_editorWindows.push_back(m_logger = new WindowLogger());
-    m_editorWindows.push_back(m_hardwareWindow = new WindowHardware());
-    m_editorWindows.push_back(m_performanceWindow = new WindowPerformance());
-    m_editorWindows.push_back(m_editorSettings = new WindowEditorSettings());
-    m_editorWindows.push_back(new WindowFileDialog());
-    m_editorWindows.push_back(m_sceneConfig = new SceneConfig());
-    
-
-    m_sceneEditor = new WindowSceneEditor();
-    m_editorWindows.push_back(m_sceneEditor);
-
-    WindowHierarchy* hierarchy = new WindowHierarchy();
-    WindowInspector* inspector = new WindowInspector();
-
-    m_editorWindows.push_back(hierarchy);
-    m_editorWindows.push_back(inspector);
-
-    m_editorWindows.push_back(m_gameWindow = new WindowGame());
-
-    m_editorWindows.push_back(m_windowAnimationStateMachine = new WindowAnimationStateMachine());
-
-    m_viewGameDebug = std::make_unique<WindowGameDebug>();
-
-    loadWindowStates();
-
-    return true;
-}
-
-void ModuleEditor::update()
-{
-#ifdef GAME_RELEASE
-    return;
-#endif
-
-    flushExitPrefabEdit();
-
-    if (m_sceneEditor->isFocused())
+    std::ofstream file(WINDOW_STATES_FILE);
+    if (!file)
     {
-        handleKeyboardShortcuts();
+        return;
+    }
+
+    // Key format: "Inspector##2=1"  (ImGui ID = open flag)
+    for (EditorWindow* window : m_editorWindows)
+    {
+        file << window->getImGuiId() << "=" << (window->isOpen() ? 1 : 0) << "\n";
     }
 }
 
-void ModuleEditor::render()
+void ModuleEditor::loadWindowStates()
 {
-    ImGuizmo::BeginFrame();
-
-#ifdef GAME_RELEASE
-    if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
+    std::ifstream file(WINDOW_STATES_FILE);
+    if (!file)
     {
-        m_viewGameDebug->render();
+        return;
     }
 
-    ImGui::EndFrame();
-    return;
-#endif
-
-    mainDockspace(&m_showMainDockspace);
-
-    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); ++it)
+    std::unordered_map<std::string, bool> states;
+    std::string line;
+    while (std::getline(file, line))
     {
-        (*it)->draw();
+        const size_t eq = line.find('=');
+        if (eq == std::string::npos)
+        {
+            continue;
+        }
+        states[line.substr(0, eq)] = (line.substr(eq + 1) == "1");
     }
 
-    if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
+    for (EditorWindow* window : m_editorWindows)
     {
-        m_viewGameDebug->render();
+        auto it = states.find(window->getImGuiId());
+        if (it != states.end())
+        {
+            window->setOpen(it->second);
+        }
     }
-
-    ImGui::EndFrame();
 }
 
-bool ModuleEditor::cleanUp()
-{
-    app->getModuleD3D12()->getCommandQueue()->flush();
-
-    saveWindowStates();
-
-    for (auto window : m_editorWindows)
-    {
-        window->cleanUp();
-    }
-
-    for (auto window : m_editorWindows)
-    {
-        delete window;
-    }
-
-    m_editorWindows.clear();
-
-    m_sceneEditor = nullptr;
-    m_logger = nullptr;
-    m_hardwareWindow = nullptr;
-    m_performanceWindow = nullptr;
-    m_gameWindow = nullptr;
-    m_windowAnimationStateMachine = nullptr;
-
-    return true;
-}
-
-ImVec2 ModuleEditor::getEventViewport() const
-{
-    WindowSceneEditor* sceneEditor = app->getModuleEditor()->getWindowSceneEditor();
-    if (sceneEditor && sceneEditor->isFocused())
-    {
-        return ImVec2(sceneEditor->getViewportX(), sceneEditor->getViewportY());
-    }
-
-    WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
-    if (gameWindow && gameWindow->isFocused())
-    {
-        return ImVec2(gameWindow->getViewportX(), gameWindow->getViewportY());
-    }
-
-    return ImVec2(-1, -1);
-}
-
-ImVec2 ModuleEditor::getEventViewportSize() const
-{
-    WindowSceneEditor* sceneEditor = app->getModuleEditor()->getWindowSceneEditor();
-    if (sceneEditor && sceneEditor->isFocused())
-    {
-        return sceneEditor->getSize();
-    }
-
-    WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
-    if (gameWindow && gameWindow->isFocused())
-    {
-        return gameWindow->getSize();
-    }
-
-    return ImVec2(-1, -1);
-}
 
 void ModuleEditor::setSceneTool(SCENE_TOOL newTool)
 {
@@ -403,7 +491,6 @@ void ModuleEditor::setSceneTool(SCENE_TOOL newTool)
         toggleGizmoMode();
         return;
     }
-
     currentSceneTool = newTool;
 }
 
@@ -424,14 +511,13 @@ void ModuleEditor::resetMode()
         currentSceneTool = previousSceneTool;
         previousSceneTool = NONE;
     }
-
     currentNavigationMode = PAN;
 }
 
 void ModuleEditor::handleKeyboardShortcuts()
 {
     Keyboard::State keyboardState = Keyboard::Get().GetState();
-    Mouse::State mouseState = Mouse::Get().GetState();
+    Mouse::State    mouseState = Mouse::Get().GetState();
 
     DirectX::Mouse::ButtonStateTracker buttonStateTracker;
     buttonStateTracker.Update(mouseState);
@@ -460,30 +546,11 @@ void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState)
     static Keyboard::KeyboardStateTracker keyTracker;
     keyTracker.Update(keyboardState);
 
-    if (keyTracker.pressed.W)
-    {
-        setSceneTool(MOVE);
-    }
-
-    if (keyTracker.pressed.E)
-    {
-        setSceneTool(ROTATE);
-    }
-
-    if (keyTracker.pressed.R)
-    {
-        setSceneTool(SCALE);
-    }
-
-    if (keyTracker.pressed.T)
-    {
-        setSceneTool(RECT);
-    }
-
-    if (keyTracker.pressed.Y)
-    {
-        setSceneTool(TRANSFORM);
-    }
+    if (keyTracker.pressed.W) setSceneTool(MOVE);
+    if (keyTracker.pressed.E) setSceneTool(ROTATE);
+    if (keyTracker.pressed.R) setSceneTool(SCALE);
+    if (keyTracker.pressed.T) setSceneTool(RECT);
+    if (keyTracker.pressed.Y) setSceneTool(TRANSFORM);
 
     if (keyTracker.pressed.Q)
     {
@@ -491,6 +558,7 @@ void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState)
         currentNavigationMode = PAN;
     }
 }
+
 
 void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 {
@@ -524,7 +592,6 @@ void ModuleEditor::exitPrefabEdit()
     {
         return;
     }
-
     m_pendingExitPrefab = true;
 }
 
