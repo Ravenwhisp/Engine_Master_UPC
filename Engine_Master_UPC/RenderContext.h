@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d12.h>
 #include "SimpleMath.h"
+#include "RenderViewType.h"
 
 class RingBuffer;
 struct UITextCommand;
@@ -16,6 +17,7 @@ struct RenderContext
     D3D12_RECT                          scissorRect;
     RingBuffer*                         ringBuffer = nullptr;
     bool                                renderDebug = false;
+    RenderViewType viewType = RenderViewType::Game;
 
     const std::vector<UITextCommand>* uiTextCommands = nullptr;
     const std::vector<UIImageCommand>* uiImageCommands = nullptr;

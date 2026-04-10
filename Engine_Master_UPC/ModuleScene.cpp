@@ -48,6 +48,8 @@ void ModuleScene::update()
         loadScene(m_pendingSceneLoad);
         m_pendingSceneLoad.clear();
     }  
+
+    syncQuadtreeWithSettings();
   
     m_scene->update();
     m_quadtree->update();
@@ -239,3 +241,23 @@ void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 }
 #pragma endregion
 
+#pragma region Quadtree
+void ModuleScene::syncQuadtreeWithSettings()
+{
+    if (!m_quadtree)
+    {
+        return;
+    }
+
+    const bool shouldShowQuadtree = app->getSettings()->sceneEditor.showQuadTree;
+
+    if (shouldShowQuadtree && !m_quadtree->getIsBuilded())
+    {
+        m_quadtree->build();
+    }
+    else if (!shouldShowQuadtree && m_quadtree->getIsBuilded())
+    {
+        m_quadtree->clear();
+    }
+}
+#pragma endregion
