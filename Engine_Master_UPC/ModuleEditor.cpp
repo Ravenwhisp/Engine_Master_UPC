@@ -446,10 +446,11 @@ void ModuleEditor::saveWindowStates()
         return;
     }
 
-    // Key format: "Inspector##2=1"  (ImGui ID = open flag)
     for (EditorWindow* window : m_editorWindows)
     {
-        file << window->getImGuiId() << "=" << (window->isOpen() ? 1 : 0) << "\n";
+        file << window->getWindowName() << "|"
+            << window->getInstanceId() << "|"
+            << (window->isOpen() ? 1 : 0) << "\n";
     }
 }
 
@@ -461,24 +462,67 @@ void ModuleEditor::loadWindowStates()
         return;
     }
 
-    std::unordered_map<std::string, bool> states;
+    // Build a map from instanceId to open-state for each type key.
+    // e.g. savedStates["WindowInspector"][2] = false
+    std::unordered_map<std::string,
+        std::unordered_map<int, bool>> savedStates;
+
+    int maxInstanceId = 0;
+
     std::string line;
     while (std::getline(file, line))
     {
-        const size_t eq = line.find('=');
-        if (eq == std::string::npos)
-        {
-            continue;
-        }
-        states[line.substr(0, eq)] = (line.substr(eq + 1) == "1");
+        const size_t sep1 = line.find('|');
+        if (sep1 == std::string::npos) continue;
+
+        const size_t sep2 = line.find('|', sep1 + 1);
+        if (sep2 == std::string::npos) continue;
+
+        const std::string typeKey = line.substr(0, sep1);
+        const int         instanceId = std::stoi(line.substr(sep1 + 1, sep2 - sep1 - 1));
+        const bool        isOpen = (line.substr(sep2 + 1) == "1");
+
+        savedStates[typeKey][instanceId] = isOpen;
+        maxInstanceId = std::max(maxInstanceId, instanceId);
     }
 
-    for (EditorWindow* window : m_editorWindows)
+    // Advance the counter so new windows never reuse a saved ID.
+    if (maxInstanceId >= m_nextInstanceId)
     {
-        auto it = states.find(window->getImGuiId());
-        if (it != states.end())
+        m_nextInstanceId = maxInstanceId + 1;
+    }
+
+    for (const auto& [typeKey, instances] : savedStates)
+    {
+        for (const auto& [instanceId, isOpen] : instances)
         {
-            window->setOpen(it->second);
+            // Check whether this instance already exists.
+            EditorWindow* target = nullptr;
+            for (EditorWindow* w : m_editorWindows)
+            {
+                if (strcmp(w->getWindowName(), typeKey.c_str()) == 0 &&
+                    w->getInstanceId() == instanceId)
+                {
+                    target = w;
+                    break;
+                }
+            }
+
+            if (!target)
+            {
+                auto it = m_windowFactories.find(typeKey);
+                if (it != m_windowFactories.end())
+                {
+                    target = it->second();           // construct
+                    target->setInstanceId(instanceId); // restore original ID
+                    m_editorWindows.push_back(target);
+                }
+            }
+
+            if (target)
+            {
+                target->setOpen(isOpen);
+            }
         }
     }
 }
