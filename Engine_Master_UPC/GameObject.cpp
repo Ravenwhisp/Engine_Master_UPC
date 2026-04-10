@@ -91,7 +91,7 @@ bool GameObject::AddComponent(ComponentType componentType)
     // Walk up the hierarchy to find the prefab root and record the override there.
     // We do this directly on the struct — no PrefabManager call needed.
     GameObject* target = this;
-    while (target && !target->IsPrefabRoot())
+    while (target && !target->IsPrefabInstance())
     {
         Transform* parentTransform = target->GetTransform()->getRoot();
         target = parentTransform ? parentTransform->getOwner() : nullptr;
@@ -150,7 +150,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     // parent pointers if it releases references or triggers notifications.
     GameObject* target = this;
-    while (target && !target->IsPrefabRoot())
+    while (target && !target->IsPrefabInstance())
     {
         Transform* parentTransform = target->GetTransform()->getRoot();
         target = parentTransform ? parentTransform->getOwner() : nullptr;
