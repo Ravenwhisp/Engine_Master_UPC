@@ -137,20 +137,32 @@ void UISlider::drawUi()
     else if (m_fillMethod == FillMethod::Radial90)
     {
         const char* radial90Options[] = { "Bottom Left", "Top Left", "Top Right", "Bottom Right" };
-        int origin = static_cast<int>(m_fillOrigin);
+        int origin = static_cast<int>(m_fillOrigin) & 3;
+        bool clockwise = (static_cast<int>(m_fillOrigin) & 4) == 0;
         if (ImGui::Combo("Corner", &origin, radial90Options, IM_ARRAYSIZE(radial90Options)))
         {
-            m_fillOrigin = static_cast<FillOrigin>(origin);
+            m_fillOrigin = static_cast<FillOrigin>((clockwise ? 0 : 4) + origin);
+            changed = true;
+        }
+        if (ImGui::Checkbox("Clockwise", &clockwise))
+        {
+            m_fillOrigin = static_cast<FillOrigin>((clockwise ? 0 : 4) + origin);
             changed = true;
         }
     }
     else if (m_fillMethod == FillMethod::Radial180)
     {
         const char* radial180Options[] = { "Bottom", "Left", "Top", "Right" };
-        int origin = static_cast<int>(m_fillOrigin);
+        int origin = static_cast<int>(m_fillOrigin) & 3;
+        bool clockwise = (static_cast<int>(m_fillOrigin) & 4) == 0;
         if (ImGui::Combo("Side", &origin, radial180Options, IM_ARRAYSIZE(radial180Options)))
         {
-            m_fillOrigin = static_cast<FillOrigin>(origin);
+            m_fillOrigin = static_cast<FillOrigin>((clockwise ? 0 : 4) + origin);
+            changed = true;
+        }
+        if (ImGui::Checkbox("Clockwise", &clockwise))
+        {
+            m_fillOrigin = static_cast<FillOrigin>((clockwise ? 0 : 4) + origin);
             changed = true;
         }
     }
