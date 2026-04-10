@@ -77,17 +77,7 @@ void WindowEditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show Axis###SceneShowAxis", &m_settings->sceneEditor.showAxis);
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
 
-        if (ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree)) {
-            if (app->getCurrentEngineState() == ENGINE_STATE::EDITOR) {
-                if (m_settings->sceneEditor.showQuadTree && !app->getModuleScene()->getQuadtree()->getIsBuilded()) {
-                    app->getModuleScene()->getQuadtree()->build();
-                }
-
-                if (!m_settings->sceneEditor.showQuadTree && app->getModuleScene()->getQuadtree()->getIsBuilded()) {
-                    app->getModuleScene()->getQuadtree()->clear();
-                }
-            }
-        }
+        ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
 
         ImGui::Checkbox("Show Model Bounding Boxes###ModelShowBoundingBoxes", &m_settings->sceneEditor.showModelBoundingBoxes);
         ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);
