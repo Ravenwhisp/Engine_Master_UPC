@@ -81,6 +81,7 @@ bool AnimationComponent::cleanUp()
 
 void AnimationComponent::update()
 {
+    PERF_LOGIC("AnimationComponent::update");
     GameObject* owner = getOwner();
     if (!owner)
         return;

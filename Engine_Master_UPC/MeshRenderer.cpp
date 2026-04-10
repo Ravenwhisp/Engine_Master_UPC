@@ -208,6 +208,8 @@ void MeshRenderer::onTransformChange()
 
 void MeshRenderer::update()
 {
+    PERF_LOGIC("MeshRenderer::update");
+
     if (m_skinAsset == INVALID_ASSET_ID)
         return;
 

@@ -34,8 +34,6 @@
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
 
-#include "OptickProfiler.h"
-
 #pragma region GameLoop
 bool ModuleRender::init()
 {
@@ -71,8 +69,6 @@ bool ModuleRender::init()
 
 void ModuleRender::preRender()
 {
-    PERF_RENDER("ModuleRender::preRender");
-
     if (m_pendingStopSimulation)
     {
         app->getModuleD3D12()->getCommandQueue()->flush();
@@ -86,25 +82,22 @@ void ModuleRender::preRender()
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
 #ifndef GAME_RELEASE
+
+    for (const ViewportEntry& entry : m_viewports)
     {
-        PERF_RENDER("ModuleRender::RenderViewports");
-        for (const ViewportEntry& entry : m_viewports)
-        {
-            renderToSurface(commandList, *entry.surface, [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+        renderToSurface(commandList, *entry.surface, [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+            {
+                if (entry.type == ViewportType::EDITOR)
                 {
-                    if (entry.type == ViewportType::EDITOR)
-                    {
-                        PERF_RENDER("ModuleRender::RenderEditorScene");
-                        renderEditorScene(commandList, rtv, dsv, entry.width, entry.height);
-                    }
-                    else
-                    {
-                        PERF_RENDER("ModuleRender::RenderPlayScene");
-                        renderPlayScene(commandList, rtv, dsv, entry.width, entry.height);
-                    }
-                });
-        }
+                    renderEditorScene(commandList, rtv, dsv, entry.width, entry.height);
+                }
+                else
+                {
+                    renderPlayScene(commandList, rtv, dsv, entry.width, entry.height);
+                }
+            });
     }
+
 
 
     transitionResource(commandList,
@@ -265,12 +258,7 @@ void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> command
 
 void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType)
 {
-    PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
-
-    {
-        PERF_RENDER("ModuleRender::renderScene::Background");
-        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
-    }
+    renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
 
     RenderContext ctx{
         .view = camera.view,
@@ -286,20 +274,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
     };
 
+
+    for (auto& pass : m_renderPasses)
     {
-        PERF_RENDER("ModuleRender::renderScene::PreparePasses");
-        for (auto& pass : m_renderPasses)
-        {
-            pass->prepare(ctx);
-        }
+        pass->prepare(ctx);
     }
 
+
+    for (auto& pass : m_renderPasses)
     {
-        PERF_RENDER("ModuleRender::renderScene::ApplyPasses");
-        for (auto& pass : m_renderPasses)
-        {
-            pass->apply(commandList);
-        }
+        pass->apply(commandList);
     }
 }
 

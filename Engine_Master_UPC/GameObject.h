@@ -28,13 +28,14 @@ public:
 	UID GetID() const { return m_uuid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
-	bool IsActiveInWindowHierarchy() const;
+	bool IsActiveInWindowHierarchy() const { return m_activeInHierarchy; }
+	void refreshActiveInHierarchy();
 	bool GetStatic() const { return m_isStatic; }
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
 
 	void SetName(std::string newName) { m_name = newName; }
-	void SetActive(bool newActive) { m_active = newActive; }
+	void SetActive(bool newActive);
 	void SetStatic(bool newIsStatic) { m_isStatic = newIsStatic; }
 	void SetLayer(Layer newLayer) { m_layer = newLayer; }
 	void SetTag(Tag newTag) { m_tag = newTag; }
@@ -76,7 +77,10 @@ private:
 	UID m_uuid;
 
 	std::string m_name;
+
 	bool m_active = true;
+	bool m_activeInHierarchy = true;
+
 	bool m_isStatic = false;
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;

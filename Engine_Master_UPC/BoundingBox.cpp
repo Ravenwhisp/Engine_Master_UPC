@@ -38,6 +38,7 @@ namespace Engine
 
     bool BoundingBox::test(const Frustum& frustum) const
     {
+        PERF_LOGIC("testBB");
         if (isFullyOutsideOfPlane(frustum.m_frontFace)) return false;
         if (isFullyOutsideOfPlane(frustum.m_backFace)) return false;
         if (isFullyOutsideOfPlane(frustum.m_leftFace)) return false;

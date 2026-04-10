@@ -61,6 +61,8 @@ bool ModuleEventSystem::init()
 
 void ModuleEventSystem::update()
 {
+    PERF_LOGIC("ModuleEventSystem::update");
+
     if (app->getModuleScene()->isPendingSceneLoad()) {
         clearHoverState();
         return;

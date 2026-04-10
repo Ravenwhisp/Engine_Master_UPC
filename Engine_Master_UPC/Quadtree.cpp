@@ -88,6 +88,8 @@ void Quadtree::build()
 
 void Quadtree::update()
 {
+    PERF_LOGIC("Quadtree::update");
+
     const std::vector<GameObject*>& objects = m_scene->getAllGameObjects();
     if (!m_root)
     {
@@ -151,6 +153,7 @@ void Quadtree::move(GameObject& object)
 
 std::vector<GameObject*> Quadtree::query() const
 {
+    PERF_LOGIC("Quadtree::query");
     auto frustum = m_scene->getDefaultCamera()->getFrustum();
     std::vector<GameObject*> result;
 

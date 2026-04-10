@@ -66,20 +66,27 @@ void CameraComponent::recalculateFrustum()
 void CameraComponent::update()
 {
 	// No se si es optimo, pero es para comprobar que aqui esta el error
+	PERF_LOGIC("CameraComponent::update");
 	onTransformChange();
 }
 
 void CameraComponent::onTransformChange()
 {
+	PERF_LOGIC("onTransformChange");
 	Transform* t = m_owner->GetTransform();
 	Vector3 position = t->getPosition();
 	Quaternion rotation = t->getRotation();
 	m_world = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
-	recalculateFrustum();
+	{
+		PERF_LOGIC("recalculatefrustum");
+		recalculateFrustum();
+	}
 	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
 
-	app->getModuleScene()->rebuildMeshRenderersCache();
+	{
+		PERF_LOGIC("rebuildMRcache");
+		app->getModuleScene()->rebuildMeshRenderersCache();
+	}
 }
 
 void CameraComponent::drawUi() 

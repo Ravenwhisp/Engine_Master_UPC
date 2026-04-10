@@ -175,6 +175,22 @@ void Transform::calculateMatrix() const
     }
 }
 
+void Transform::setRoot(Transform* root)
+{
+    if (m_root == root)
+    {
+        return;
+    }
+
+    m_root = root;
+    markDirty();
+
+    if (m_owner)
+    {
+        m_owner->refreshActiveInHierarchy();
+    }
+}
+
 void Transform::removeChild(UID id)
 {
     for (auto it = m_children.begin(); it != m_children.end(); ++it)

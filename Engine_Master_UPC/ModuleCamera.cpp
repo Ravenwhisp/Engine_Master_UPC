@@ -39,6 +39,8 @@ bool ModuleCamera::init() {
 
 
 void ModuleCamera::update() {
+    PERF_LOGIC("ModuleCamera::update");
+
     if (!app->getModuleEditor()->getWindowSceneEditor()->isFocused() || !app->getModuleEditor()->getWindowSceneEditor()->isHovered()) {
         m_lastWheel = Mouse::Get().GetState().scrollWheelValue;
         return;

@@ -76,6 +76,17 @@ std::unique_ptr<GameObject> GameObject::clone() const
     return newGameObject;
 }
 
+void GameObject::SetActive(bool active)
+{
+    if (m_active == active)
+    {
+        return;
+    }
+
+    m_active = active;
+    refreshActiveInHierarchy();
+}
+
 bool GameObject::AddComponent(ComponentType componentType)
 {
     if (componentType == ComponentType::TRANSFORM || componentType == ComponentType::COUNT)
@@ -188,26 +199,36 @@ Component* GameObject::GetComponent(ComponentType type) const
 
 #pragma region Properties
 
-bool GameObject::IsActiveInWindowHierarchy() const
+void GameObject::refreshActiveInHierarchy()
 {
-    if (!m_active)
-    {
-        return false;
-    }
+    bool parentActiveInHierarchy = true;
 
     Transform* parentTransform = m_transform->getRoot();
-    if (parentTransform == nullptr)
+    if (parentTransform != nullptr)
     {
-        return true;
+        GameObject* parent = parentTransform->getOwner();
+        if (parent != nullptr)
+        {
+            parentActiveInHierarchy = parent->IsActiveInWindowHierarchy();
+        }
     }
 
-    GameObject* parent = parentTransform->getOwner();
-    if (parent != nullptr)
+    const bool newActiveInHierarchy = m_active && parentActiveInHierarchy;
+
+    if (m_activeInHierarchy == newActiveInHierarchy)
     {
-        return parent->IsActiveInWindowHierarchy();
+        return;
     }
 
-    return true;
+    m_activeInHierarchy = newActiveInHierarchy;
+
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child)
+        {
+            child->refreshActiveInHierarchy();
+        }
+    }
 }
 
 #pragma endregion
@@ -228,11 +249,6 @@ bool GameObject::init()
 
 void GameObject::update()
 {
-    if (!IsActiveInWindowHierarchy())
-    {
-        return;
-    }
-
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->isActive())
@@ -319,7 +335,11 @@ void GameObject::drawUI()
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted("Active");
         ImGui::TableSetColumnIndex(1);
-        ImGui::Checkbox("##Active", &m_active);
+        bool active = m_active;
+        if (ImGui::Checkbox("##Active", &active))
+        {
+            SetActive(active);
+        }
 
         char buffer[256];
         std::strncpy(buffer, m_name.c_str(), sizeof(buffer));

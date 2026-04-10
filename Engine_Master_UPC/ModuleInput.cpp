@@ -62,6 +62,8 @@ ModuleInput::~ModuleInput()
 
 void ModuleInput::update()
 {
+    PERF_LOGIC("ModuleInput::update");
+
     m_keyboardTracker.Update(m_keyboard->GetState());
     m_mouseTracker.Update(m_mouse->GetState());
 

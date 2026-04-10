@@ -88,6 +88,7 @@ public:
     void removeFromRootList(GameObject* gameObject);
 
     const std::vector<GameObject*>& getRootObjects() const;
+    void refreshAllActiveInHierarchy();
 
     GameObject* createDirectionalLightOnInit();
 

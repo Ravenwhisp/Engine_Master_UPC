@@ -67,6 +67,8 @@ void ScriptComponent::resetStartState()
 
 void ScriptComponent::update()
 {
+    PERF_LOGIC("ScriptComponent::update");
+
     if (!m_script)
     {
         return;

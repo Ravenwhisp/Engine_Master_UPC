@@ -25,9 +25,6 @@
 #include <d3dcompiler.h>
 #include "d3dx12.h"
 
-#include "OptickProfiler.h"
-
-
 static const char linePointSource[] = R"(
     cbuffer Transforms : register(b0)
     {
@@ -506,8 +503,6 @@ void DebugDrawPass::registerStatic(IDebugDrawable* draw)
 
 void DebugDrawPass::prepare(const RenderContext& ctx)
 {
-    PERF_RENDER("DebugDrawPass::prepare");
-
     m_shouldRenderDebug = ctx.renderDebug;
 
     if (!m_shouldRenderDebug)

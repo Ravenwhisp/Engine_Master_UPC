@@ -47,29 +47,41 @@ bool Scene::init()
     }
 
     createDirectionalLightOnInit();
+    refreshAllActiveInHierarchy();
     markDirty();
     return true;
 }
 
 void Scene::update()
 {
+    PERF_LOGIC("Scene::update");
+
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        removePendingGameObjects();
+        {
+            PERF_LOGIC("Scene::removePendingGameObjects");
+            removePendingGameObjects();
+        }
 
         m_isUpdating = true;
 
-        for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            PERF_LOGIC("Scene::updateActiveGameObjects");
+            for (const auto& go : m_allObjects)
             {
-                go->update();
+                if (go->IsActiveInWindowHierarchy())
+                {
+                    go->update();
+                }
             }
         }
 
         m_isUpdating = false;
 
-        flushPendingGameObjects();
+        {
+            PERF_LOGIC("Scene::flushPendingGameObjects");
+            flushPendingGameObjects();
+        }
     }
 }
 
@@ -220,6 +232,7 @@ void Scene::flushPendingGameObjects()
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
 
+    refreshAllActiveInHierarchy();
     markDirty();
 }
 
@@ -360,6 +373,17 @@ void Scene::addToRootList(GameObject* gameObject)
 const std::vector<GameObject*>& Scene::getRootObjects() const
 {
     return m_rootObjects;
+}
+
+void Scene::refreshAllActiveInHierarchy()
+{
+    for (GameObject* root : m_rootObjects)
+    {
+        if (root)
+        {
+            root->refreshActiveInHierarchy();
+        }
+    }
 }
 
 void Scene::clearScene()

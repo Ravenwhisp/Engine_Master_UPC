@@ -100,4 +100,5 @@ namespace Engine
 }
 
 #include <rapidjson/document.h>
+#include "OptickProfiler.h"
 

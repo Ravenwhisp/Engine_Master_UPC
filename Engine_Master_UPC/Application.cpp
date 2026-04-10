@@ -18,7 +18,6 @@
 #include "ScriptFactory.h"
 
 #include "Settings.h"
-#include "OptickProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)

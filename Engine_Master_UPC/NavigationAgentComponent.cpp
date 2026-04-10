@@ -65,7 +65,7 @@ void NavigationAgentComponent::setTarget(const Vector3& target)
 
 void NavigationAgentComponent::update()
 {
-
+	PERF_LOGIC("NavigationAgentComponent::update");
 	if (!m_running)
 		return;
 

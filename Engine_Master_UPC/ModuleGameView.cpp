@@ -31,6 +31,8 @@ bool ModuleGameView::init()
 
 void ModuleGameView::update()
 {
+	PERF_LOGIC("ModuleGameView::update");
+
 	static Keyboard::KeyboardStateTracker keyTracker;
 
 	Keyboard::State state = Keyboard::Get().GetState();

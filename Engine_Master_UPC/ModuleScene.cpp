@@ -43,6 +43,8 @@ bool ModuleScene::init()
 
 void ModuleScene::update()
 {
+    PERF_LOGIC("ModuleScene::update");
+
     if (!m_pendingSceneLoad.empty())
     {
         loadScene(m_pendingSceneLoad);
@@ -112,7 +114,7 @@ void ModuleScene::rebuildMeshRenderersCache()
     {
         for (GameObject* gO : m_quadtree->query())
         {
-            if (!gO->GetActive())
+            if (!gO->IsActiveInWindowHierarchy())
             {
                 continue;
             }
@@ -128,7 +130,7 @@ void ModuleScene::rebuildMeshRenderersCache()
     else {
         for (GameObject* go : m_scene->getAllGameObjects())
         {
-            if (!go->GetActive())
+            if (!go->IsActiveInWindowHierarchy())
             {
                 continue;
             }
@@ -201,6 +203,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     m_scene = std::move(newScene);
     m_scene->setName(sceneName.c_str());
 
+    m_scene->refreshAllActiveInHierarchy();
+
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());
 
@@ -235,6 +239,8 @@ SceneSnapshot* ModuleScene::takeSnapshot() const
 void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 {
     snapshot.applyTo(*m_scene.get());
+
+    m_scene->refreshAllActiveInHierarchy();
 
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());

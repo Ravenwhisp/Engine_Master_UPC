@@ -25,7 +25,6 @@
 #include "SimpleMath.h"
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
-#include "OptickProfiler.h"
 
 MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
@@ -104,44 +103,29 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
 
 void MeshRendererPass::prepare(const RenderContext& ctx)
 {
-    PERF_RENDER("MeshRendererPass::prepare");
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+    m_sceneDataCB->viewPos = ctx.cameraPosition;
 
-    {
-        PERF_RENDER("MeshRendererPass::prepare::SetupCamera");
-        m_view = &ctx.view;
-        m_projection = &ctx.projection;
-        m_sceneDataCB->viewPos = ctx.cameraPosition;
-    }
+     m_meshRenderers = app->getModuleScene()->getMeshRenderers();
 
-    {
-        PERF_RENDER("MeshRendererPass::prepare::GetMeshRenderers");
-        m_meshRenderers = app->getModuleScene()->getMeshRenderers();
-    }
+    m_sceneDataCBAddress = ctx.ringBuffer->allocate(
+        m_sceneDataCB.get(),
+        sizeof(SceneDataCB),
+        app->getModuleD3D12()->getCurrentFrame());
 
-    {
-        PERF_RENDER("MeshRendererPass::prepare::UploadSceneDataCB");
-        m_sceneDataCBAddress = ctx.ringBuffer->allocate(
-            m_sceneDataCB.get(),
-            sizeof(SceneDataCB),
-            app->getModuleD3D12()->getCurrentFrame());
-    }
 
     GPULightsConstantBuffer lightsCB{};
-    {
-        PERF_RENDER("MeshRendererPass::prepare::PackLights");
-        lightsCB = packLightsForGPU(
-            app->getModuleScene()->getLightComponents(),
-            m_lighting->ambientColor,
-            m_lighting->ambientIntensity);
-    }
 
-    {
-        PERF_RENDER("MeshRendererPass::prepare::UploadLightsCB");
-        m_lightsAddress = ctx.ringBuffer->allocate(
-            &lightsCB,
-            sizeof(GPULightsConstantBuffer),
-            app->getModuleD3D12()->getCurrentFrame());
-    }
+    lightsCB = packLightsForGPU(
+        app->getModuleScene()->getLightComponents(),
+        m_lighting->ambientColor,
+        m_lighting->ambientIntensity);
+
+    m_lightsAddress = ctx.ringBuffer->allocate(
+        &lightsCB,
+        sizeof(GPULightsConstantBuffer),
+        app->getModuleD3D12()->getCurrentFrame());
 }
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -167,23 +151,17 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
-    PERF_RENDER("MeshRendererPass::renderMesh");
-
     for (const auto& renderer : m_meshRenderers)
     {
+        GameObject* owner = renderer->getOwner();
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
         {
-            PERF_RENDER("MeshRendererPass::renderMesh::RendererValidation");
+            continue;
+        }
 
-            GameObject* owner = renderer->getOwner();
-            if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-            {
-                continue;
-            }
-
-            if (!renderer->isActive())
-            {
-                continue;
-            }
+        if (!renderer->isActive())
+        {
+            continue;
         }
 
         Transform* transform = renderer->getTransform();
@@ -198,68 +176,53 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         if (materials.size() != submeshes.size())
             continue;
 
+        const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
+        const VertexBuffer* cpuSkinnedVB =
+            renderer->isCpuSkinningFallbackEnabled() ? renderer->getCpuSkinnedVertexBuffer() : nullptr;
+        const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
+
+        const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
+        const bool useCpuSkinnedVB = (!useGpuSkinnedVB && cpuSkinnedVB != nullptr);
+        const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
+
+        const VertexBuffer* activeVB = useGpuSkinnedVB
+            ? gpuSkinnedVB
+            : (useCpuSkinnedVB ? cpuSkinnedVB : staticVB);
+
+        if (!activeVB)
+            continue;
+
+        Matrix mvp = useWorldSpaceSkinnedVB
+            ? (*m_view * *m_projection).Transpose()
+            : (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
+
+        commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
+
+        for (int i = 0; i < submeshes.size(); i++)
         {
-            PERF_RENDER("MeshRendererPass::renderMesh::VertexBufferSelection");
+            const auto& material = materials.at(i).get();
 
-            const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
-            const VertexBuffer* cpuSkinnedVB =
-                renderer->isCpuSkinningFallbackEnabled() ? renderer->getCpuSkinnedVertexBuffer() : nullptr;
-            const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
+            ModelData modelData{};
+            modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
+            modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
+            modelData.material = material->getMaterial();
 
-            const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
-            const bool useCpuSkinnedVB = (!useGpuSkinnedVB && cpuSkinnedVB != nullptr);
-            const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
+            commandList->SetGraphicsRootConstantBufferView(
+                2,
+                app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData))
+            );
 
-            const VertexBuffer* activeVB = useGpuSkinnedVB
-                ? gpuSkinnedVB
-                : (useCpuSkinnedVB ? cpuSkinnedVB : staticVB);
+            commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            if (!activeVB)
-                continue;
+            D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
+            commandList->IASetVertexBuffers(0, 1, &vbv);
 
-            Matrix mvp = useWorldSpaceSkinnedVB
-                ? (*m_view * *m_projection).Transpose()
-                : (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
-
-            commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
-
+            if (mesh->hasIndexBuffer())
             {
-                PERF_RENDER("MeshRendererPass::renderMesh::SubmeshLoop");
-
-                for (int i = 0; i < submeshes.size(); i++)
-                {
-                    const auto& material = materials.at(i).get();
-
-                    {
-                        PERF_RENDER("MeshRendererPass::renderMesh::ModelDataUpload");
-                        ModelData modelData{};
-                        modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
-                        modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
-                        modelData.material = material->getMaterial();
-
-                        commandList->SetGraphicsRootConstantBufferView(
-                            2,
-                            app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData))
-                        );
-                    }
-
-                    {
-                        PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
-                        commandList->SetGraphicsRootDescriptorTable(4, material->getTexture()->getSRV().gpu);
-                        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-                        D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
-                        commandList->IASetVertexBuffers(0, 1, &vbv);
-                    }
-
-                    if (mesh->hasIndexBuffer())
-                    {
-                        PERF_RENDER("MeshRendererPass::renderMesh::DrawIndexed");
-                        D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-                        commandList->IASetIndexBuffer(&ibv);
-                        commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
-                    }
-                }
+                D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
+                commandList->IASetIndexBuffer(&ibv);
+                commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
             }
         }
     }
