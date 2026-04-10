@@ -91,9 +91,6 @@
     <ClCompile Include="WindowSceneEditor.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="WindowPerformance.cpp">
-      <Filter>Editor\Views\Debugging</Filter>
-    </ClCompile>
     <ClCompile Include="Buffer.cpp">
       <Filter>D3D12\Resources\Buffers</Filter>
     </ClCompile>
@@ -231,9 +228,6 @@
     </ClCompile>
     <ClCompile Include="PlayToolbar.cpp">
       <Filter>Editor\Toolbars</Filter>
-    </ClCompile>
-    <ClCompile Include="PerformanceProfiler.cpp">
-      <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
     <ClCompile Include="WindowHardware.cpp">
       <Filter>Editor\Views\Debugging</Filter>
@@ -524,9 +518,6 @@
     <ClInclude Include="WindowSceneEditor.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
-    <ClInclude Include="WindowPerformance.h">
-      <Filter>Editor\Views\Debugging</Filter>
-    </ClInclude>
     <ClInclude Include="Buffer.h">
       <Filter>D3D12\Resources\Buffers</Filter>
     </ClInclude>
@@ -719,9 +710,6 @@
     </ClInclude>
     <ClInclude Include="PlayToolbar.h">
       <Filter>Editor\Toolbars</Filter>
-    </ClInclude>
-    <ClInclude Include="PerformanceProfiler.h">
-      <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
     <ClInclude Include="WindowHardware.h">
       <Filter>Editor\Views\Debugging</Filter>

@@ -2,21 +2,18 @@
 #include <Module.h>
 #include "PrefabEditSession.h"
 #include "Keyboard.h"
+#include <functional>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 #include <filesystem>
 
 class ModuleGameView;
-class WindowLogger;
-class WindowHardware;
-class WindowPerformance;
 class WindowSceneEditor;
-class WindowHierarchy;
-class WindowEditorSettings;
 class WindowGame;
 class EditorWindow;
 class WindowGameDebug;
-class SceneConfig;
 class GameObject;
 class WindowAnimationStateMachine;
 
@@ -54,75 +51,73 @@ public:
 public:
 
     ModuleEditor();
-
     ~ModuleEditor();
 
 #pragma region Game Loop
 
-    bool init() override;
-
-    void update() override;
-
-    void render() override;
-
+    bool init()    override;
+    void update()  override;
+    void render()  override;
     bool cleanUp() override;
 
 #pragma endregion
 
-    WindowSceneEditor* getWindowSceneEditor()
+    template<class T>
+    void registerWindowType(const char* typeKey)
     {
-        return m_sceneEditor;
+        m_windowFactories[typeKey] = [typeKey]() -> EditorWindow*
+            {
+                return new T();
+            };
     }
 
-    ImVec2 getEventViewport() const;
+    EditorWindow* openWindow(const std::string& typeKey);
 
+    template<class T>
+    T* findWindow() const
+    {
+        for (EditorWindow* w : m_editorWindows)
+        {
+            if (T* typed = dynamic_cast<T*>(w))
+            {
+                return typed;
+            }
+        }
+        return nullptr;
+    }
+
+    template<class T>
+    std::vector<T*> findAllWindows() const
+    {
+        std::vector<T*> result;
+        for (EditorWindow* w : m_editorWindows)
+        {
+            if (T* typed = dynamic_cast<T*>(w))
+            {
+                result.push_back(typed);
+            }
+        }
+        return result;
+    }
+
+    WindowSceneEditor* getWindowSceneEditor() const;
+    WindowGame* getWindowGame()                 const;
+    WindowAnimationStateMachine* getWindowAnimationStateMachine() const;
+
+    ImVec2 getEventViewport()     const;
     ImVec2 getEventViewportSize() const;
 
-    void mainMenuBar();
+    void        setSelectedGameObject(GameObject* go) { m_selectedGameObject = go; }
+    GameObject* getSelectedGameObject()         const { return m_selectedGameObject; }
 
-    WindowGame* getWindowGame()
-    {
-        return m_gameWindow;
-    }
+    void              enterPrefabEdit(const std::filesystem::path& sourcePath);
+    void              exitPrefabEdit();
+    PrefabEditSession* getPrefabSession() { return &m_prefabSession; }
 
-    WindowAnimationStateMachine* getWindowAnimationStateMachine()
-    {
-        return m_windowAnimationStateMachine;
-    }
 
-    void setSelectedGameObject(GameObject* selectedGameObject)
-    {
-        m_selectedGameObject = selectedGameObject;
-    }
-
-    GameObject* getSelectedGameObject() const
-    {
-        return m_selectedGameObject;
-    }
-
-    void enterPrefabEdit(const std::filesystem::path& sourcePath);
-
-    void exitPrefabEdit();
-
-    PrefabEditSession* getPrefabSession()
-    {
-        return &m_prefabSession;
-    }
-
-    SCENE_TOOL getCurrentSceneTool() const
-    {
-        return currentSceneTool;
-    }
-
-    NAVIGATION_MODE getCurrentNavigationMode() const
-    {
-        return currentNavigationMode;
-    }
-
-    SIMULATION_MODE getCurrentSimulationMode() const
-    {
-        return currentSimulationMode;
-    }
+    SCENE_TOOL      getCurrentSceneTool()      const { return currentSceneTool; }
+    NAVIGATION_MODE getCurrentNavigationMode() const { return currentNavigationMode; }
+    SIMULATION_MODE getCurrentSimulationMode() const { return currentSimulationMode; }
 
     void setCurrentSceneTool(int tool)
     {
@@ -134,74 +129,47 @@ public:
         currentSimulationMode = static_cast<SIMULATION_MODE>(mode);
     }
 
-    bool isGizmoLocal() const
-    {
-        return gizmoUseLocal;
-    }
+    bool isGizmoLocal()  const { return gizmoUseLocal; }
+    void toggleGizmoMode() { gizmoUseLocal = !gizmoUseLocal; }
 
-    void toggleGizmoMode()
-    {
-        gizmoUseLocal = !gizmoUseLocal;
-    }
+    void mainMenuBar();
 
 private:
 
     void saveWindowStates();
     void loadWindowStates();
-
     void setupDockLayout(ImGuiID dockspace_id);
-
     void mainDockspace(bool* open);
 
-    ModuleGameView* m_moduleGameView;
-
-#pragma region Views
-
-    std::vector<EditorWindow*> m_editorWindows;
-    WindowLogger* m_logger = nullptr;
-    WindowHardware* m_hardwareWindow = nullptr;
-    WindowPerformance* m_performanceWindow = nullptr;
-    WindowSceneEditor* m_sceneEditor = nullptr;
-    WindowEditorSettings* m_editorSettings = nullptr;
-    SceneConfig* m_sceneConfig = nullptr;
-    WindowGame* m_gameWindow = nullptr;
-    WindowAnimationStateMachine* m_windowAnimationStateMachine = nullptr;
-    bool m_showMainDockspace = true;
-    bool m_firstFrame = true;
-    std::unique_ptr<WindowGameDebug> m_viewGameDebug;
-  
-
-#pragma endregion
-
-#pragma region Editor
-
     void setSceneTool(SCENE_TOOL newTool);
-
     void setMode(SCENE_TOOL sceneTool, NAVIGATION_MODE navigationMode);
-
-    void setSimulationMode(SIMULATION_MODE newMode);
-
     void resetMode();
-
     void handleKeyboardShortcuts();
-
     void handleQWERTYCases(Keyboard::State keyboardState);
-
     void flushExitPrefabEdit();
 
-    SCENE_TOOL currentSceneTool;
-    NAVIGATION_MODE currentNavigationMode;
-    SCENE_TOOL previousSceneTool;
+    ModuleGameView* m_moduleGameView = nullptr;
+
+    std::vector<EditorWindow*>   m_editorWindows;
+
+    std::unordered_map<std::string, std::function<EditorWindow* ()>> m_windowFactories;
+
+    int m_nextInstanceId = 1;
+
+    bool m_showMainDockspace = true;
+    bool m_firstFrame = true;
+
+    std::unique_ptr<WindowGameDebug> m_viewGameDebug;
+
+    // Editor state
+    SCENE_TOOL      currentSceneTool = NONE;
+    NAVIGATION_MODE currentNavigationMode = PAN;
+    SCENE_TOOL      previousSceneTool = NONE;
     SIMULATION_MODE currentSimulationMode = STOP;
     GameObject* m_selectedGameObject = nullptr;
-    bool gizmoUseLocal = true;
+    bool            gizmoUseLocal = true;
 
-#pragma endregion
-
-#pragma region Prefab Editing
-
+    // Prefab editing
     PrefabEditSession m_prefabSession;
-    bool m_pendingExitPrefab = false;
-
-#pragma endregion
+    bool              m_pendingExitPrefab = false;
 };
