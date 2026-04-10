@@ -676,6 +676,30 @@ namespace Input
         }
     }
 
+    static bool queryRightMouseButton(ButtonPhase phase)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        switch (phase)
+        {
+        case ButtonPhase::Pressed:
+            return input->isRightMouseHeld();
+
+        case ButtonPhase::JustPressed:
+            return input->isRightMousePressed();
+
+        case ButtonPhase::Released:
+            return input->isRightMouseReleased();
+
+        default:
+            return false;
+        }
+    }
+
     static bool queryGamepadButton(ModuleInput* input, int deviceIndex, SDL_GamepadButton button, ButtonPhase phase)
     {
         switch (button)
@@ -787,13 +811,13 @@ namespace Input
                 return queryKeyboardKey(KeyCode::Space, phase);
 
             case FaceButton::Right:
-                return queryKeyboardKey(KeyCode::E, phase);
+                return queryKeyboardKey(KeyCode::R, phase);
 
             case FaceButton::Left:
-                return queryKeyboardKey(KeyCode::Q, phase);
+                return queryKeyboardKey(KeyCode::T, phase);
 
             case FaceButton::Top:
-                return queryKeyboardKey(KeyCode::R, phase);
+                return queryKeyboardKey(KeyCode::Q, phase);
             }
 
             return false;
@@ -859,7 +883,7 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return shoulderButton == ShoulderButton::Left ? queryKeyboardKey(KeyCode::Num1, phase) : queryKeyboardKey(KeyCode::Num2, phase);
+            return shoulderButton == ShoulderButton::Left ? queryKeyboardKey(KeyCode::LeftShift, phase) : queryRightMouseButton(phase);
 
         case DeviceType::Gamepad:
             return shoulderButton == ShoulderButton::Left ? queryGamepadButton(input, binding.deviceIndex, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, phase) : queryGamepadButton(input, binding.deviceIndex, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, phase);
@@ -883,7 +907,7 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return triggerButton == TriggerButton::Left ? queryKeyboardKey(KeyCode::Num3, phase) : queryKeyboardKey(KeyCode::Num4, phase);
+            return triggerButton == TriggerButton::Left ? queryKeyboardKey(KeyCode::E, phase) : queryRightMouseButton(phase);
 
         case DeviceType::Gamepad:
             return queryGamepadTrigger(input, triggerButton, binding.deviceIndex, phase);
