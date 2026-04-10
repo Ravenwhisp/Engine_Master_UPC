@@ -18,7 +18,7 @@
 #include "ScriptFactory.h"
 
 #include "Settings.h"
-#include "PerformanceProfiler.h"
+#include "OptickProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
@@ -77,6 +77,9 @@ bool Application::init()
 
 void Application::update()
 {
+    PERF_FRAME("MainThread");
+    PERF_LOGIC("Application::update");
+
     auto frameStart = std::chrono::high_resolution_clock::now();
 
     float dt = 0.f;
@@ -87,39 +90,38 @@ void Application::update()
 
     if (!app->m_paused)
     {
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->update();
+            PERF_LOGIC("Application::ModulesUpdate");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->update();
+            }
         }
 
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->preRender();
+            PERF_RENDER("Application::ModulesPreRender");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->preRender();
+            }
         }
 
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->render();
+            PERF_RENDER("Application::ModulesRender");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->render();
+            }
         }
 
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->postRender();
+            PERF_RENDER("Application::ModulesPostRender");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->postRender();
+            }
         }
     }
-
-    const PerfDataMap& data = getPerfData();
-
-    /*
-    for (const auto& [name, perf] : data)
-    {
-        DEBUG_LOG("%s -> last: %.3f ms | avg: %.3f ms | max: %.3f ms\n",
-            name.c_str(),
-            perf.lastMs,
-            perf.avgMs,
-            perf.maxMs);
-    }
-    */
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 

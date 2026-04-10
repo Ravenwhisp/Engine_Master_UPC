@@ -62,9 +62,12 @@ public:
     void loadFromSnapshot(SceneSnapshot& snapshot);
 #pragma endregion
 
+#pragma region Quadree
+    void syncQuadtreeWithSettings();
+    Quadtree* getQuadtree() { return m_quadtree.get(); }
+#pragma endregion
 
     Scene* getScene() { return m_scene.get(); }
-    Quadtree* getQuadtree() { return m_quadtree.get(); }
 
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
     const std::vector<MeshRenderer*>& getMeshRenderers();
