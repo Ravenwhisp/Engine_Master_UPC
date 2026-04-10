@@ -48,7 +48,13 @@ void ModuleUI::preRender()
         if (!canvas || !canvas->isActive())
             continue;
 
-        buildUIDrawCommands(go, m_rootScreenRect);
+        Rect2D rootRect = m_rootScreenRect;
+        if (canvas->renderMode != CanvasRenderMode::SCREEN_SPACE)
+        {
+            rootRect = { 0.0f, 0.0f, 1.0f, 1.0f };
+        }
+
+        buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix());
     }
 }
 
@@ -108,7 +114,7 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect) 
+void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld)
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -123,7 +129,7 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
     {
         myRect = t2d->getRect(parentRect);
 
-        buildUIImage(gameObject, myRect);
+        buildUIImage(gameObject, myRect, renderMode, canvasWorld);
         buildUIText(gameObject, myRect);
     }
 
@@ -131,11 +137,11 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 
     for (GameObject* child : transform->getAllChildren())
     {
-        buildUIDrawCommands(child, myRect);
+        buildUIDrawCommands(child, myRect, renderMode, canvasWorld);
     }
 }
 
-void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
+void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
@@ -185,6 +191,10 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();
+        command.renderMode = renderMode;
+        command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
+            ? Matrix::Identity
+            : gameObject->GetTransform()->getGlobalMatrix();
         m_imageCommands.push_back(command);
     }
 }
