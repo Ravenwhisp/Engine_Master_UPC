@@ -19,27 +19,22 @@ class SceneSnapshot;
 
 struct PrefabInfo
 {
-	UID m_prefabUID = 0; 
-	MD5Hash m_assetUID;      
 	std::filesystem::path m_sourcePath;
-	std::string m_name;           
+	MD5Hash m_assetUID;
 
-	PrefabOverrideRecord m_overrides;    
+	PrefabOverrideRecord m_overrides;
 
-	bool m_isPrefabRoot = false;
-
-	bool isInstance() const { return m_prefabUID != 0 && !m_sourcePath.empty(); }
+	bool isInstance() const { return !m_sourcePath.empty(); }
+	std::string getName() const { return m_sourcePath.stem().string(); }
 
 	void clear()
 	{
-		m_prefabUID = 0;
-		m_assetUID = {};
 		m_sourcePath.clear();
-		m_name.clear();
+		m_assetUID = {};
 		m_overrides.clear();
-		m_isPrefabRoot = false;
 	}
 };
+
 class GameObject 
 {
 public:
@@ -64,13 +59,12 @@ public:
 	void SetTag(Tag newTag) { m_tag = newTag; }
 #pragma endregion
 
-
 #pragma region Prefab
 	PrefabInfo& GetPrefabInfo() { return m_prefabInfo; }
 	const PrefabInfo& GetPrefabInfo() const { return m_prefabInfo; }
 
 	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
-	bool IsPrefabRoot()     const { return m_prefabInfo.m_isPrefabRoot; }
+	bool IsPrefabRoot()     const { return m_prefabInfo.isInstance(); }
 #pragma endregion
 
 #pragma region Components
