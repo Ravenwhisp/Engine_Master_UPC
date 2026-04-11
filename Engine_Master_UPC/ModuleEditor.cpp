@@ -306,23 +306,6 @@ void ModuleEditor::mainMenuBar()
 
     if (ImGui::BeginMenu("Window"))
     {
-        // Toggle visibility of existing windows.
-        for (EditorWindow* window : m_editorWindows)
-        {
-            bool open = window->isOpen();
-            // Show "Inspector (2)" style labels when multiple instances exist.
-            std::string label = window->getWindowName();
-            if (window->getInstanceId() > 1)
-            {
-                label += " (" + std::to_string(window->getInstanceId()) + ")";
-            }
-
-            if (ImGui::MenuItem(label.c_str(), nullptr, &open))
-            {
-                window->setOpen(open);
-            }
-        }
-
         // ---- New Window submenu — spawn additional instances ----
         if (!m_windowFactories.empty())
         {
