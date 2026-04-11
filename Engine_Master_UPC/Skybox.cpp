@@ -8,8 +8,6 @@
 #include "TextureAsset.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "ModuleResources.h"
-#include "TextureAsset.h"
 
 struct SkyBoxVertex { Vector3 position; };
 

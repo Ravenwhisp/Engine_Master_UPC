@@ -235,11 +235,11 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	UINT compileFlags = 0;
 #endif
 
-	ComPtr<ID3DBlob> vertexShaderBlob;
-	ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxVertexShader.cso", &vertexShaderBlob)); 
+	ComPtr<ID3DBlob> skyboxIrradianceVertexShaderBlob;
+	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxIrradianceVertexShader.cso", &skyboxIrradianceVertexShaderBlob)); 
 
 	ComPtr<ID3DBlob> skyboxIrradiancePixelShaderBlob;
-	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxIrradiancePixelShader.cso", &skyboxIrradiancePixelShaderBlob)); //change for new shaders.
+	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxIrradiancePixelShader.cso", &skyboxIrradiancePixelShaderBlob)); 
 
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
@@ -249,7 +249,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
 	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 	psoDesc.pRootSignature = rootSignature.Get();
-	psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(skyboxIrradianceVertexShaderBlob.Get());
 	psoDesc.PS = CD3DX12_SHADER_BYTECODE(skyboxIrradiancePixelShaderBlob.Get());
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);

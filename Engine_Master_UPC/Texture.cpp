@@ -254,7 +254,7 @@ void Texture::createRTV()
         rtvDesc.Texture2DArray.MipSlice = 0;
         rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-        m_contiguousRTV = std::make_unique<DescriptorHeapBlock>(app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize));
+        m_contiguousRTV = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize);
 
         for (size_t i = 0; i < m_desc.arraySize; i++)
         {

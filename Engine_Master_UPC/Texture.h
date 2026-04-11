@@ -112,7 +112,7 @@ private:
     DescriptorHandle    m_dsv{};
     DescriptorHandle    m_uav[MAX_MIPS]{};
 
-    std::unique_ptr <DescriptorHeapBlock> m_contiguousRTV;
+    DescriptorHeapBlock* m_contiguousRTV;
 };
 
 
