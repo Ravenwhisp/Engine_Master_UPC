@@ -170,6 +170,25 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
             }
         }
 
+        if (ImGui::MenuItem("Container"))
+        {
+            if (GameObject* container = createGO(scene, parent))
+            {
+                container->SetName("New Container");
+                container->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+
+                if (!canvasExists(scene))
+                {
+                    if (GameObject* canvas = createGO(scene, parent))
+                    {
+                        canvas->SetName("New Canvas");
+                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+                        m_hierarchy->reparent(container, canvas);
+                    }
+                }
+            }
+        }
+
         if (ImGui::MenuItem("Button"))
         {
             if (GameObject* button = createGO(scene, parent))
