@@ -245,6 +245,9 @@
     <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="DebugDrawTest.h" />
+    <ClInclude Include="EnemyATTACK.h" />
+    <ClInclude Include="EnemyCHASE.h" />
+    <ClInclude Include="EnemyIDLE.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
@@ -259,6 +262,9 @@
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="DebugDrawTest.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="EnemyATTACK.cpp" />
+    <ClCompile Include="EnemyCHASE.cpp" />
+    <ClCompile Include="EnemyIDLE.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
     <ClCompile Include="pch.cpp">

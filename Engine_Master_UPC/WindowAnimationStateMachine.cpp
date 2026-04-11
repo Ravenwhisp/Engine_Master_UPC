@@ -302,6 +302,18 @@ void WindowAnimationStateMachine::drawStateNodes()
         ImGui::Separator();
         ImGui::Text("Clip: %s", state.clipName.empty() ? "<none>" : state.clipName.c_str());
 
+        ImGui::Text("Behaviour: %s",
+            state.behaviourScriptName.empty() ? "<none>" : state.behaviourScriptName.c_str());
+
+        if (state.overrideLoop)
+        {
+            ImGui::Text("Loop Override: %s", state.loop ? "Loop" : "No Loop");
+        }
+        else
+        {
+            ImGui::TextUnformatted("Loop Override: <clip>");
+        }
+
         if (isDefaultState)
         {
             ImGui::TextUnformatted("Default");
@@ -555,6 +567,9 @@ void WindowAnimationStateMachine::drawBackgroundContextMenuPopup()
         state.name = makeUniqueStateName("NewState");
         state.clipName.clear();
         state.speed = 1.0f;
+        state.behaviourScriptName.clear();
+        state.overrideLoop = false;
+        state.loop = true;
 
         states.push_back(std::move(state));
 
@@ -668,10 +683,45 @@ void WindowAnimationStateMachine::drawNodeContextMenuPopup()
         markDirty();
     }
 
+    if (InputTextString("Behaviour Script", state.behaviourScriptName))
+    {
+        markDirty();
+    }
+
     if (ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f))
     {
         sanitizeAssetAfterEdit();
         markDirty();
+    }
+
+    if (ImGui::Checkbox("Override Loop", &state.overrideLoop))
+    {
+        markDirty();
+    }
+
+    if (state.overrideLoop)
+    {
+        if (ImGui::Checkbox("Loop", &state.loop))
+        {
+            markDirty();
+        }
+    }
+    else
+    {
+        const bool effectiveLoop = state.clipName.empty() ? true : [&]()
+            {
+                for (const AnimationStateMachineClip& clip : m_asset->getClips())
+                {
+                    if (clip.name == state.clipName)
+                    {
+                        return clip.loop;
+                    }
+                }
+
+                return true;
+            }();
+
+            ImGui::Text("Effective Loop From Clip: %s", effectiveLoop ? "Yes" : "No");
     }
 
     const bool isDefaultState = (m_asset->getDefaultStateName() == state.name);
