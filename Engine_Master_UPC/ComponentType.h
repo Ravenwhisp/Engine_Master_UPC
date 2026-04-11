@@ -17,7 +17,8 @@
     X(CHANGE_SCENE)         \
     X(EXIT_APPLICATION)     \
     X(NAVMESH_WALK)         \
-    X(ANIMATION)
+    X(ANIMATION)            \
+    X(UISLIDER)
 
 enum class ComponentType
 {

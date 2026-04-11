@@ -286,6 +286,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AnimationComponent.h" />
     <ClInclude Include="AnimationController.h" />
     <ClInclude Include="AnimationStateMachineAsset.h" />
+    <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
@@ -364,6 +365,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SpriteRendererPass.h" />
     <ClInclude Include="SpriteVertex.h" />
     <ClInclude Include="TextureImage.h" />
+    <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
     <ClInclude Include="WindowAnimationStateMachine.h" />
@@ -649,6 +652,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneReferenceResolver.cpp" />
     <ClCompile Include="SceneSnapshot.cpp" />
+    <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="SpriteRendererPass.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />

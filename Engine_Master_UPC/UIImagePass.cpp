@@ -6,15 +6,14 @@
 
 #include "Application.h"
 #include "ModuleD3D12.h"
+#include <d3dcompiler.h>
+#include "PlatformHelpers.h"
 #include "ModuleDescriptors.h"
 #include "ModuleRender.h"
 #include "ModuleResources.h"
 
 #include "VertexBuffer.h"
 #include "Texture.h"
-
-#include <d3dcompiler.h>
-#include "PlatformHelpers.h"
 
 UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     : m_device(device)
@@ -57,6 +56,7 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
     psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
     psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
@@ -97,6 +97,8 @@ void UIImagePass::prepare(const RenderContext& ctx)
 {
     m_viewport = &ctx.viewport;
     m_commands = ctx.uiImageCommands;
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
 }
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -135,6 +137,12 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
+        const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
+        params.fillData = Vector4(
+            command.fillAmount,
+            static_cast<float>(command.fillMethod),
+            static_cast<float>(command.fillOrigin),
+            aspectRatio);
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
@@ -149,9 +157,6 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
 Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
 {
-    const float viewportWidth = m_viewport->Width;
-    const float viewportHeight = m_viewport->Height;
-
     const float x = command.rect.x;
     const float y = command.rect.y;
     const float w = command.rect.w;
@@ -159,12 +164,31 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
 
     Matrix scale = Matrix::CreateScale(w, h, 1.0f);
     Matrix translate = Matrix::CreateTranslation(x, y, 0.0f);
+    Matrix local = scale * translate;
 
-    Matrix pixelToNDC = Matrix::Identity;
-    pixelToNDC._11 = 2.0f / viewportWidth;
-    pixelToNDC._22 = -2.0f / viewportHeight;
-    pixelToNDC._41 = -1.0f;
-    pixelToNDC._42 = 1.0f;
+    if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
+    {
+        const float viewportWidth = m_viewport->Width;
+        const float viewportHeight = m_viewport->Height;
 
-    return scale * translate * pixelToNDC;
+        Matrix pixelToNDC = Matrix::Identity;
+        pixelToNDC._11 = 2.0f / viewportWidth;
+        pixelToNDC._22 = -2.0f / viewportHeight;
+        pixelToNDC._41 = -1.0f;
+        pixelToNDC._42 = 1.0f;
+
+        return local * pixelToNDC;
+    }
+
+    Matrix world = command.world;
+    if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
+    {
+        Matrix invView = m_view->Invert();
+        invView._41 = world._41;
+        invView._42 = world._42;
+        invView._43 = world._43;
+        world = invView;
+    }
+
+    return (local * world) * (*m_view) * (*m_projection);
 }

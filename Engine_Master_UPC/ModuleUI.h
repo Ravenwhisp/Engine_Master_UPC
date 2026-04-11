@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Module.h"
-#include <unordered_set>
 #include "UICommands.h"
 #include "MD5Fwd.h"
 
@@ -20,7 +19,6 @@ public:
     const std::vector<UITextCommand>& getTextCommands()  const { return m_textCommands; }
     const std::vector<UIImageCommand>& getImageCommands() const { return m_imageCommands; }
 
-
     void text(const wchar_t* msg, float x, float y);
     void text(const std::wstring& msg, float x, float y);
 
@@ -36,9 +34,8 @@ private:
     std::unordered_map<MD5Hash, std::shared_ptr<Texture>> m_uiTextures;
 
 private:
-    void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect);
+    void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld);
 
-    void buildUIImage(GameObject* go, const Rect2D& parentRect);
+    void buildUIImage(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld);
     void buildUIText(GameObject* go, const Rect2D& parentRect);
-
 };

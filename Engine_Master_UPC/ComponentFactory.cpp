@@ -20,6 +20,7 @@
 #include "UIImage.h"
 #include "UIText.h"
 #include "UIButton.h"
+#include "UISlider.h"
 
 // Fake / behaviour components
 #include "ChangeScene.h"
@@ -78,6 +79,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::ANIMATION:
         return std::make_unique<AnimationComponent>(id, owner);
+
+    case ComponentType::UISLIDER:
+		return std::make_unique<UISlider>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

@@ -19,7 +19,11 @@ std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
     cloned->m_textureAsset = m_textureAsset;
     cloned->m_loadRequested = m_loadRequested;
 
-	return cloned;
+    cloned->m_fillAmount = m_fillAmount;
+    cloned->m_fillMethod = m_fillMethod;
+    cloned->m_fillOrigin = m_fillOrigin;
+
+    return cloned;
 }
 
 bool UIImage::containsPoint(const Rect2D& rect, const Vector2& screenPos) const
@@ -69,7 +73,6 @@ void UIImage::drawUi()
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
 }
 
-
 bool UIImage::consumeLoadRequest()
 {
     const bool was = m_loadRequested;
@@ -86,6 +89,9 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
+    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
+    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -103,6 +109,17 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
         {
             m_loadRequested = true;
         }
+    }
+
+    if (componentInfo.HasMember("FillAmount"))
+        m_fillAmount = componentInfo["FillAmount"].GetFloat();
+
+    if (componentInfo.HasMember("FillMethod"))
+        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
+
+    if (componentInfo.HasMember("FillOrigin"))
+    {
+        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
     }
 
     return true;
