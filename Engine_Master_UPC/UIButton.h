@@ -7,6 +7,10 @@
 #include <string>
 
 #include "Delegates.h"
+#include "ScriptMethodInfo.h"
+#include "SimpleMath.h"
+
+using Vector3 = DirectX::SimpleMath::Vector3;
 
 class UIImage;
 class ScriptComponent;
@@ -28,6 +32,14 @@ private:
 
 		using MethodPtr = void(*)(Script*);
 		MethodPtr function = nullptr;
+		ScriptMethodParamFunc paramFunc = nullptr;
+		ScriptMethodParamType paramType = ScriptMethodParamType::None;
+		std::string paramName;
+		float paramFloat = 0.0f;
+		int paramInt = 0;
+		bool paramBool = false;
+		Vector3 paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+		std::string paramString;
 	};
 
 public:
