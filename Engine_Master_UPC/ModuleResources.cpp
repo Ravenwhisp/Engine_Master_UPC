@@ -201,7 +201,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
+	auto irradianceTexture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
 	
@@ -255,15 +255,11 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-	psoDesc.DepthStencilState.DepthEnable = TRUE;
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
-	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	psoDesc.SampleDesc = { 1, 0 };
 
 	DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
@@ -275,6 +271,11 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 
 	Vector3 front[] = { Vector3(1,0,0), Vector3(-1,0,0), Vector3(0,1,0), Vector3(0,-1,0), Vector3(0,0,1), Vector3(0,0,-1) };
 	Vector3 up[]    = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+	BEGIN_EVENT(commandList.Get(), "Irradiance Generation");
 
 	for (size_t i = 0; i < desc.arraySize; i++)
 	{
@@ -288,11 +289,10 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 		params.flipX = i <= 1 ? 0 : 1;
 		params.flipZ = i <= 1 ? 1 : 0;
 
-		ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
-		commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+		
 
 		commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
-		commandList->SetGraphicsRootDescriptorTable(1, texture->getSRV().gpu);
+		commandList->SetGraphicsRootDescriptorTable(1, skybox->getTexture()->getSRV().gpu);
 		commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = skybox->getVertexBuffer()->getVertexBufferView();
@@ -305,23 +305,27 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 
 		UINT subResourceIndex = D3D12CalcSubresource(0, i, 0, desc.mipLevels, desc.arraySize);
 
-		CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
+		CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(irradianceTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
 		commandList->ResourceBarrier(1, &barrierIn);
 
-		auto handle = texture->getContiguousRTV(i).cpu;
-
+		auto handle = irradianceTexture->getContiguousRTV(i).cpu;
 		commandList->OMSetRenderTargets(1, &handle, 0, nullptr);
+
+		if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 		commandList->DrawIndexedInstanced(static_cast<UINT>(indexBuffer->getNumIndices()), 1,0,0,0);
+		if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 		
-		CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(texture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
+		CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(irradianceTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
 		commandList->ResourceBarrier(1, &barrierOut);
 		
 	}
 
+	END_EVENT(commandList.Get());
+
 	m_queue->executeCommandList(commandList);
 	m_queue->flush();
 
-	return texture;
+	return irradianceTexture;
 }
 
 RingBuffer* ModuleResources::createRingBuffer(size_t size)
@@ -386,13 +390,12 @@ std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& t
 {
 	const UID uid = hashToUID(textureAsset.getId() + "_irradiance");
 
-	if (auto cached = m_resources.getAs<Texture>(uid))
+	//Temporaly disable this to be able to test the createIrradianceInternal function.
+	/*if (auto cached = m_resources.getAs<Texture>(uid))
 	{
 		return cached;
-	}
-	if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+	}*/
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer, skybox));
-	if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 	m_resources.insert(uid, texture);
 	return texture;
 }
