@@ -251,6 +251,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="ProjectileController.h" />
+    <ClInclude Include="TransformGlobalTest.h" />
     <ClInclude Include="TriggerArea.h" />
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +271,7 @@
     </ClCompile>
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="ProjectileController.cpp" />
+    <ClCompile Include="TransformGlobalTest.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
