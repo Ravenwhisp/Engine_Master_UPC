@@ -11,6 +11,8 @@
 #include "AnimationStateMachineAsset.h"
 #include "GameObject.h"
 #include "Transform.h"
+#include "StateMachineScript.h"
+#include "ScriptFactory.h"
 
 #include <imgui.h>
 #include <cstring>
@@ -48,6 +50,8 @@ AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     , m_stateMachineUIDInput(m_stateMachineUID)
 {
 }
+
+AnimationComponent::~AnimationComponent() = default;
 
 std::unique_ptr<Component> AnimationComponent::clone(GameObject* newOwner) const
 {
@@ -104,7 +108,7 @@ void AnimationComponent::update()
     if (m_activeStateName.empty())
         return;
 
-    
+    dispatchStateUpdate();
 
     const float deltaTimeSeconds = moduleTime->deltaTime();
     m_controller.Update(deltaTimeSeconds);
@@ -185,17 +189,26 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
         m_currentTransitionTime = 0.0f;
     }
 
+    const std::string previousStateName = m_activeStateName;
+    const bool stateChanged = (previousStateName != state->name);
+
     m_currentAnimationAsset = animation;
     m_activeStateName = state->name;
 
     m_controller.Stop();
     m_controller.SetAnimation(m_currentAnimationAsset);
-    m_controller.SetLoop(clip->loop);
+    m_controller.SetLoop(resolveLoopForState(*state, *clip));
     applyActiveStatePlaybackSpeed();
 
     if (autoPlay)
     {
-        m_controller.Play(clip->loop);
+        m_controller.Play(resolveLoopForState(*state, *clip));
+    }
+
+    if (stateChanged)
+    {
+        dispatchStateExit(previousStateName);
+        dispatchStateEnter(m_activeStateName);
     }
 
     return true;
@@ -1143,7 +1156,7 @@ void AnimationComponent::resetRuntime()
     m_currentTransitionTime = 0.0f;
     m_runtimeSpeedMultiplier = 1.0f;
     m_previousPlayback.reset();
-
+    m_stateBehaviours.clear();
     m_hasStartedPlayback = false;
 }
 
@@ -1161,6 +1174,134 @@ bool AnimationComponent::saveStateMachineAsset()
 
     m_stateMachineDirty = false;
     return true;
+}
+
+StateMachineScript* AnimationComponent::getStateBehaviour(const std::string& stateName)
+{
+    auto it = m_stateBehaviours.find(stateName);
+    if (it == m_stateBehaviours.end())
+    {
+        return nullptr;
+    }
+
+    return it->second.get();
+}
+
+const StateMachineScript* AnimationComponent::getStateBehaviour(const std::string& stateName) const
+{
+    auto it = m_stateBehaviours.find(stateName);
+    if (it == m_stateBehaviours.end())
+    {
+        return nullptr;
+    }
+
+    return it->second.get();
+}
+
+StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const AnimationStateMachineState& state)
+{
+    if (state.behaviourScriptName.empty())
+    {
+        return nullptr;
+    }
+
+    if (StateMachineScript* existing = getStateBehaviour(state.name))
+    {
+        return existing;
+    }
+
+    std::unique_ptr<Script> newScript = ScriptFactory::createScript(state.behaviourScriptName, getOwner());
+    if (!newScript)
+    {
+        DEBUG_WARN("[AnimationComponent] Could not create StateMachineScript '%s' for state '%s'.",
+            state.behaviourScriptName.c_str(),
+            state.name.c_str());
+        return nullptr;
+    }
+
+    StateMachineScript* behaviour = dynamic_cast<StateMachineScript*>(newScript.get());
+    if (!behaviour)
+    {
+        DEBUG_WARN("[AnimationComponent] Script '%s' for state '%s' is not a StateMachineScript.",
+            state.behaviourScriptName.c_str(),
+            state.name.c_str());
+        return nullptr;
+    }
+
+    m_stateBehaviours[state.name] = std::unique_ptr<StateMachineScript>(behaviour);
+    newScript.release();
+
+    return behaviour;
+}
+
+void AnimationComponent::dispatchStateEnter(const std::string& stateName)
+{
+    if (stateName.empty())
+    {
+        return;
+    }
+
+    const AnimationStateMachineState* state = findStateByName(stateName);
+    if (!state)
+    {
+        return;
+    }
+
+    StateMachineScript* behaviour = createStateBehaviourIfNeeded(*state);
+    if (!behaviour)
+    {
+        return;
+    }
+
+    behaviour->OnStateEnter();
+}
+
+void AnimationComponent::dispatchStateUpdate()
+{
+    if (m_activeStateName.empty())
+    {
+        return;
+    }
+
+    const AnimationStateMachineState* state = findStateByName(m_activeStateName);
+    if (!state)
+    {
+        return;
+    }
+
+    StateMachineScript* behaviour = createStateBehaviourIfNeeded(*state);
+    if (!behaviour)
+    {
+        return;
+    }
+
+    behaviour->OnStateUpdate();
+}
+
+void AnimationComponent::dispatchStateExit(const std::string& stateName)
+{
+    if (stateName.empty())
+    {
+        return;
+    }
+
+    StateMachineScript* behaviour = getStateBehaviour(stateName);
+    if (!behaviour)
+    {
+        return;
+    }
+
+    behaviour->OnStateExit();
+}
+
+bool AnimationComponent::resolveLoopForState(const AnimationStateMachineState& state, const AnimationStateMachineClip& clip) const
+{
+    if (state.overrideLoop)
+    {
+        return state.loop;
+    }
+
+    return clip.loop;
 }
 
 const AnimationStateMachineClip* AnimationComponent::findClipByName(const std::string& clipName) const

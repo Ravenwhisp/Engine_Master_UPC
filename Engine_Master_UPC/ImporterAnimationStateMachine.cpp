@@ -96,7 +96,6 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
     BinaryReader reader(buffer);
 
     const uint32_t version = reader.u32();
-    (void)version;
 
     dst->m_uid = reader.string();
     dst->m_name = reader.string();

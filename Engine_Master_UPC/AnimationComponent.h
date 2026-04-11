@@ -5,14 +5,17 @@
 #include "MD5Fwd.h"
 
 #include <memory>
+#include <unordered_map>
 #include "AnimationStateMachineAsset.h"
 class AnimationAsset;
 class GameObject;
+class StateMachineScript;
 
 class AnimationComponent final : public Component
 {
 public:
     AnimationComponent(UID id, GameObject* owner);
+    ~AnimationComponent() override;
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
@@ -72,6 +75,16 @@ private:
     void resetRuntime();
     bool saveStateMachineAsset();
 
+    StateMachineScript* getStateBehaviour(const std::string& stateName);
+    const StateMachineScript* getStateBehaviour(const std::string& stateName) const;
+    StateMachineScript* createStateBehaviourIfNeeded(const AnimationStateMachineState& state);
+
+    void dispatchStateEnter(const std::string& stateName);
+    void dispatchStateUpdate();
+    void dispatchStateExit(const std::string& stateName);
+
+    bool resolveLoopForState(const AnimationStateMachineState& state, const AnimationStateMachineClip& clip) const;
+
     const AnimationStateMachineClip* findClipByName(const std::string& clipName) const;
     const AnimationStateMachineState* findStateByName(const std::string& stateName) const;
     const AnimationStateMachineTransition* findTransitionByTrigger(const std::string& triggerName) const;
@@ -112,6 +125,8 @@ private:
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
     std::shared_ptr<AnimationAsset> m_currentAnimationAsset;
     AnimationController m_controller;
+
+    std::unordered_map<std::string, std::unique_ptr<StateMachineScript>> m_stateBehaviours;
 
     std::string m_activeStateName;
     float m_currentFadeTime = 0.0f;
