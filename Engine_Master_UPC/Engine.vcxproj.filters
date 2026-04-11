@@ -1023,6 +1023,9 @@
     <ClInclude Include="RenderViewType.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="StateMachineScript.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
