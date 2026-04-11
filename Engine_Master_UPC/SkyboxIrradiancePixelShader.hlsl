@@ -1,7 +1,7 @@
 TextureCube skyTexture : register(t0);
 SamplerState skySampler : register(s0);
 
-static const uint NUM_SAMPLES = 100;
+static const uint NUM_SAMPLES = 1;
 static const float PI = 3.14159265f;
 
 

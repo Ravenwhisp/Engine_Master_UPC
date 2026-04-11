@@ -277,8 +277,6 @@ void Texture::createRTV()
             m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_rtv[mip].cpu);
         }
     }
-
-    
 }
 
 

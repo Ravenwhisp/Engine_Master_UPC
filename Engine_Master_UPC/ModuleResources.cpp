@@ -165,6 +165,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	desc.mipLevels = static_cast<uint16_t>(textureAsset.getMipCount());
 	desc.views = TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+	desc.shaderVisibleSRV = true;
 
 	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
@@ -389,8 +390,9 @@ std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& t
 	{
 		return cached;
 	}
-
+	if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer, skybox));
+	if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 	m_resources.insert(uid, texture);
 	return texture;
 }
