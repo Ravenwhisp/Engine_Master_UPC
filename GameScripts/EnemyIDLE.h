@@ -16,7 +16,11 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
+private:
+    GameObject* findPlayer() const;
+
 public:
     float m_speed = 5.0f;
     bool m_debugEnabled = true;
+    float m_detectionRadius = 8.0f;
 };
