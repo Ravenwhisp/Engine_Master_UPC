@@ -198,6 +198,29 @@ namespace TransformAPI
         transform->setPosition(newPosition);
     }
 
+    Vector3 getGlobalPosition(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        return transform->getGlobalMatrix().Translation();
+    }
+
+    void setGlobalPosition(Transform* transform, const Vector3& worldPosition)
+    {
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        Matrix globalMatrix = transform->getGlobalMatrix();
+        globalMatrix.Translation(worldPosition);
+
+        transform->setFromGlobalMatrix(globalMatrix);
+    }
+
     Vector3 getScale(const Transform* transform) 
     {
         return transform->getScale();
@@ -236,6 +259,17 @@ namespace TransformAPI
     void translate(Transform* transform, const Vector3& delta)
     {
         transform->setPosition(transform->getPosition() + delta);
+    }
+
+    void translateGlobal(Transform* transform, const Vector3& delta)
+    {
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        const Vector3 currentGlobalPosition = getGlobalPosition(transform);
+        setGlobalPosition(transform, currentGlobalPosition + delta);
     }
 
     Transform* TransformAPI::getParent(Transform* transform)
