@@ -583,6 +583,30 @@ void AnimationComponent::drawStatesUi()
                 m_stateMachineDirty = true;
             }
 
+            if (InputTextString("Behaviour Script", state.behaviourScriptName))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (ImGui::Checkbox("Override Loop", &state.overrideLoop))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (state.overrideLoop)
+            {
+                if (ImGui::Checkbox("Loop", &state.loop))
+                {
+                    m_stateMachineDirty = true;
+                }
+            }
+            else
+            {
+                const AnimationStateMachineClip* assignedClip = findClipByName(state.clipName);
+                const bool effectiveLoop = assignedClip ? assignedClip->loop : true;
+                ImGui::Text("Effective Loop From Clip: %s", effectiveLoop ? "Yes" : "No");
+            }
+
             const bool isDefault = (defaultState == state.name);
             ImGui::Text("Default: %s", isDefault ? "Yes" : "No");
 
@@ -623,6 +647,9 @@ void AnimationComponent::drawStatesUi()
         state.name = "NewState";
         state.clipName.clear();
         state.speed = 1.0f;
+        state.behaviourScriptName.clear();
+        state.overrideLoop = false;
+        state.loop = true;
         states.push_back(std::move(state));
         sanitizeStateMachineAfterEdit();
         m_stateMachineDirty = true;
