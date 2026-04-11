@@ -35,6 +35,9 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
         size += SerializedStringSize(state.name);
         size += SerializedStringSize(state.clipName);
         size += sizeof(float);
+        size += SerializedStringSize(state.behaviourScriptName);
+        size += sizeof(uint8_t); // overrideLoop
+        size += sizeof(uint8_t); // loop
     }
 
     size += sizeof(uint32_t); // transition count
@@ -49,7 +52,7 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    const uint32_t version = 1;
+    const uint32_t version = 2;
     writer.u32(version);
 
     writer.string(source->m_uid);
@@ -70,6 +73,9 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
         writer.string(state.name);
         writer.string(state.clipName);
         writer.bytes(&state.speed, sizeof(float));
+        writer.string(state.behaviourScriptName);
+        writer.u8(state.overrideLoop ? 1u : 0u);
+        writer.u8(state.loop ? 1u : 0u);
     }
 
     writer.u32(static_cast<uint32_t>(source->m_transitions.size()));
@@ -118,6 +124,19 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
         state.name = reader.string();
         state.clipName = reader.string();
         reader.bytes(&state.speed, sizeof(float));
+
+        if (version >= 2)
+        {
+            state.behaviourScriptName = reader.string();
+            state.overrideLoop = reader.u8() != 0;
+            state.loop = reader.u8() != 0;
+        }
+        else
+        {
+            state.behaviourScriptName.clear();
+            state.overrideLoop = false;
+            state.loop = true;
+        }
     }
 
     const uint32_t transitionCount = reader.u32();

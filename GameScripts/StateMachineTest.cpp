@@ -21,6 +21,7 @@ void StateMachineTest::OnStateEnter()
 
 void StateMachineTest::OnStateUpdate()
 {
+    Debug::log("HOLA");
 }
 
 void StateMachineTest::OnStateExit()

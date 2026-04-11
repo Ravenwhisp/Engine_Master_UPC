@@ -20,6 +20,10 @@ struct AnimationStateMachineState
     std::string name;
     std::string clipName;
     float speed = 1.0f;
+    std::string behaviourScriptName;
+
+    bool overrideLoop = false;
+    bool loop = true;
 };
 
 struct AnimationStateMachineTransition
