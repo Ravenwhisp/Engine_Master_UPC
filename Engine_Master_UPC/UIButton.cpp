@@ -120,9 +120,11 @@ void UIButton::drawUi()
 
 void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>& bindings)
 {
-	ImGui::Separator();
-	ImGui::Text("%s Events", label);
-
+	std::string headerLabel = std::format("{} Events", label);
+	if (!ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		return;
+	}
 	std::string addLabel = std::format("Add {}###Add{}", label, label);
 	if (ImGui::Button(addLabel.c_str()))
 	{
@@ -130,91 +132,108 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 	}
 
 	ImGui::PushID(label);
+	
+	ImGui::BeginGroup();
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 6));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4(ImGuiCol_Border));
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+
+	ImGui::BeginGroup();
 
 	for (int i = 0; i < bindings.size(); ++i)
 	{
 		auto& binding = bindings[i];
 
 		ImGui::PushID(i);
-		ImGui::Separator();
 
-		//ImGui::Text("Element %d", i);
-
-		std::string removeLabel = std::format("Remove###Remove{}_{}", label, i);
-		if (ImGui::Button(removeLabel.c_str()))
+		if (ImGui::BeginTable("BindingTable", 2, ImGuiTableFlags_SizingStretchProp))
 		{
-			bindings.erase(bindings.begin() + i);
-			ImGui::PopID();
-			break;
-		}
+			ImGui::TableSetupColumn("Binding", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Remove", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
 
-		ImGui::Text("Script:");
-		std::string scriptLabel;
-		if (binding.component)
-		{
-			scriptLabel = std::format("{} ({})###Script{}_{}", binding.component->getOwner()->GetName(), binding.component->getScriptName(), label, i);
-		}
-		else
-		{
-			scriptLabel = std::format("Drop Script###Script{}_{}", label, i);
-		}
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-
-		ImGui::Button(scriptLabel.c_str());
-
-		ImGui::PopStyleColor(3);
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+			ImGui::Text("Script:");
+			std::string scriptLabel;
+			if (binding.component)
 			{
-				Component* comp = *(Component**)payload->Data;
-
-				if (comp && comp->getType() == ComponentType::SCRIPT)
-				{
-					binding.component = static_cast<ScriptComponent*>(comp);
-					binding.componentUid = comp->getID();
-					binding.gameObjectUid = comp->getOwner()->GetID();
-				}
+				scriptLabel = std::format("{} ({})###Script{}_{}", binding.component->getOwner()->GetName(), binding.component->getScriptName(), label, i);
 			}
-			ImGui::EndDragDropTarget();
-		}
-
-
-		if (binding.component)
-		{
-			Script* script = binding.component->getScript();
-
-			if (script)
+			else
 			{
-				ScriptMethodList methods = script->getExposedMethods();
-				const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
-				std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+				scriptLabel = std::format("Drop Script###Script{}_{}", label, i);
+			}
 
-				if (ImGui::BeginCombo(comboLabel.c_str(), preview))
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+
+			ImGui::Button(scriptLabel.c_str());
+
+			ImGui::PopStyleColor(3);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
 				{
-					for (size_t j = 0; j < methods.count; ++j)
+					Component* comp = *(Component**)payload->Data;
+
+					if (comp && comp->getType() == ComponentType::SCRIPT)
 					{
-						const auto& method = methods.methods[j];
-						bool selected = (binding.methodName == method.name);
-
-						if (ImGui::Selectable(method.name, selected))
-						{
-							binding.methodName = method.name;
-							binding.function = method.func;
-						}
-
-						if (selected)
-						{
-							ImGui::SetItemDefaultFocus();
-						}
+						binding.component = static_cast<ScriptComponent*>(comp);
+						binding.componentUid = comp->getID();
+						binding.gameObjectUid = comp->getOwner()->GetID();
 					}
-					ImGui::EndCombo();
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (binding.component)
+			{
+				Script* script = binding.component->getScript();
+
+				if (script)
+				{
+					ScriptMethodList methods = script->getExposedMethods();
+					const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
+					std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+					if (ImGui::BeginCombo(comboLabel.c_str(), preview))
+					{
+						for (size_t j = 0; j < methods.count; ++j)
+						{
+							const auto& method = methods.methods[j];
+							bool selected = (binding.methodName == method.name);
+							if (ImGui::Selectable(method.name, selected))
+							{
+								binding.methodName = method.name;
+								binding.function = method.func;
+							}
+
+							if (selected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
 				}
 			}
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.75f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+			std::string removeLabel = std::format("X###Remove{}_{}", label, i);
+			if (ImGui::SmallButton(removeLabel.c_str()))
+			{
+				bindings.erase(bindings.begin() + i);
+				ImGui::PopStyleColor(3);
+				ImGui::EndTable();
+				ImGui::PopID();
+				break;
+			}
+			ImGui::PopStyleColor(3);
+			ImGui::EndTable();
 		}
 
 #pragma endregion
@@ -223,6 +242,15 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 	}
 
 	ImGui::PopID();
+	ImGui::EndGroup();
+
+	ImGui::PopStyleColor(2);
+	ImGui::PopStyleVar();
+
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	ImGui::GetWindowDrawList()->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border));
+	ImGui::EndGroup();
 }
 
 #pragma endregion
