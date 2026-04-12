@@ -3,6 +3,8 @@
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 
+TextureCube irradianceTexture : register(t8);
+
 SamplerState liearSample : register(s0);
 
 static const float PI = 3.14159265f;
@@ -154,6 +156,7 @@ float3 PBRNeutralToneMapping(float3 color)
 float3 ComputeDirectionalLight(uint lightIndex, float3 viewDirection, float3 normalVector, float NdotV, float alphaRoughness, float3 F0, float3 diffuseColor)
 {
     float3 lightDirection = normalize(directionalLights[lightIndex].direction);
+    lightDirection *= -1;
     float3 lightColor = directionalLights[lightIndex].color * directionalLights[lightIndex].intensity;
     
     //------Move into function and return------//
@@ -239,6 +242,13 @@ float3 LinearToSRGB(float3 color)
     return pow(color, INV_GAMMA);
 }
 
+float3 getDiffuseAmbientLight(in float3 normal, in float3 baseColour)
+{
+    float3 irradiance = irradianceTexture.SampleLevel(liearSample, normal, 0).rgb;
+
+    return baseColour * irradiance;
+}
+
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
     float minRoughness = 0.04;
@@ -310,11 +320,12 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
     
     //Will be IBL
-    float3 indirectLighting = ambientColor * ambientIntensity;
+    //float3 indirectLighting = ambientColor * ambientIntensity;
+    float3 indirectLighting = getDiffuseAmbientLight(normalVector, baseColor);
 
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
     //float3 finalColor = LinearToSRGB(colorMapped);
-    float3 finalColor = LinearToSRGB(directLighting);
+    float3 finalColor = LinearToSRGB(colorMapped);
 
     return float4(finalColor, 1.0f);
 }

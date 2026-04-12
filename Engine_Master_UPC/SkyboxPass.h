@@ -23,6 +23,8 @@ public:
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
+    SkyBox* getSkyBox() { return m_skyBox.get(); }
+
     void setSettings(const SkyBoxSettings& settings);
 private:
     ComPtr<ID3D12Device4>           m_device;

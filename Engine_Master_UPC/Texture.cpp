@@ -65,6 +65,7 @@ Texture::Texture(UID uid, ID3D12Device4& device, ComPtr<ID3D12Resource> existing
     m_desc.arraySize = static_cast<uint16_t>(d.DepthOrArraySize);
     m_desc.mipLevels = static_cast<uint16_t>(d.MipLevels);
     m_desc.views = views;
+    m_desc.shaderVisibleSRV = true;
 
     // Caller can specify an explicit RTV format (e.g. UNORM_SRGB over a UNORM resource).
     m_desc.rtvFormat = (rtvFormat != DXGI_FORMAT_UNKNOWN) ? rtvFormat : d.Format;

@@ -16,6 +16,7 @@ class Settings;
 class RingBuffer;
 class IRenderPass;
 class RenderSurface;
+class SkyBoxPass;
 
 struct SkyBoxSettings;
 
@@ -56,6 +57,8 @@ private:
 
     int m_triangles = 0;
 
+    SkyBoxPass* m_skyBoxPass;
+
 public:
     bool init()     override;
     void preRender() override;
@@ -64,6 +67,8 @@ public:
 
     D3D12_GPU_DESCRIPTOR_HANDLE getGPUEditorScreenRT();
     D3D12_GPU_DESCRIPTOR_HANDLE getGPUPlayScreenRT();
+
+    SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
 

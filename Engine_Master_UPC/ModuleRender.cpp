@@ -66,7 +66,9 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleNavigation());
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
-    m_renderPasses.push_back(std::make_unique<SkyBoxPass>( device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
+    auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
+    m_skyBoxPass = skyBoxPass.get();
+    m_renderPasses.push_back(std::move(skyBoxPass));
 
     m_renderPasses.push_back(std::make_unique<MeshRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));

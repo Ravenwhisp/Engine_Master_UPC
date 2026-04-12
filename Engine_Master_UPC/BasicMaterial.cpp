@@ -40,7 +40,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 
 	m_materialData.diffuseColour = Vector3(asset.getBaseColour().R(), asset.getBaseColour().G(), asset.getBaseColour().B());
 	m_materialData.metallicFactor = asset.getMetallicFactor();
-	m_materialData.roughnessFactor = asset.getRoughnessFactor(); //Missing roughness factor in MaterialAsset class
+	m_materialData.roughnessFactor = asset.getRoughnessFactor();
 	m_materialBuffer = app->getModuleResources()->createDefaultBuffer(&m_materialData, alignUp(sizeof(PbrMetallicRoughnessData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 
     buildDescriptorTable();
