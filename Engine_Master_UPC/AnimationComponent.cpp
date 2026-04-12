@@ -570,12 +570,10 @@ void AnimationComponent::drawStatesUi()
 
         if (ImGui::TreeNode("State", "State %zu", i))
         {
-            const std::string oldStateName = state.name;
-            if (InputTextString("Name", state.name))
-            {
-                invalidateAllStateBehaviours();
-                m_stateMachineDirty = true;
-            }
+            ImGui::BeginDisabled();
+            InputTextString("Name", state.name);
+            ImGui::EndDisabled();
+            ImGui::TextDisabled("Rename states from the graph editor to keep transitions/default state in sync.");
 
             std::string oldClipName = state.clipName;
             drawClipCombo("Clip", state.clipName);
@@ -664,6 +662,7 @@ void AnimationComponent::drawStatesUi()
         state.clipName.clear();
         state.speed = 1.0f;
         state.behaviourScriptName.clear();
+        state.behaviourFieldsJson.clear();
         state.overrideLoop = false;
         state.loop = true;
         states.push_back(std::move(state));
