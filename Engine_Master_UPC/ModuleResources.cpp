@@ -205,6 +205,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
 	
+
 	//ROOT SIGNATURE
 	ComPtr<ID3D12RootSignature> rootSignature;
 
@@ -274,11 +275,13 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 
 	ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
 	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-
-	BEGIN_EVENT(commandList.Get(), "Irradiance Generation");
-
+	
+	if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 	for (size_t i = 0; i < desc.arraySize; i++)
 	{
+		
+		BEGIN_EVENT(commandList.Get(), "Irradiance Generation");
+
 		Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
 		Matrix viewProjection = view * proj;
 
@@ -311,19 +314,21 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 		auto handle = irradianceTexture->getContiguousRTV(i).cpu;
 		commandList->OMSetRenderTargets(1, &handle, 0, nullptr);
 
-		if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+		
 		commandList->DrawIndexedInstanced(static_cast<UINT>(indexBuffer->getNumIndices()), 1,0,0,0);
-		if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
+		
 		
 		CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(irradianceTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
 		commandList->ResourceBarrier(1, &barrierOut);
 		
+		END_EVENT(commandList.Get());
+		
 	}
-
-	END_EVENT(commandList.Get());
 
 	m_queue->executeCommandList(commandList);
 	m_queue->flush();
+	
+	if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 
 	return irradianceTexture;
 }
