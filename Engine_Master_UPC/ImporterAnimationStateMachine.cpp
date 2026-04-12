@@ -36,6 +36,7 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
         size += SerializedStringSize(state.clipName);
         size += sizeof(float);
         size += SerializedStringSize(state.behaviourScriptName);
+        size += SerializedStringSize(state.behaviourFieldsJson);
         size += sizeof(uint8_t); // overrideLoop
         size += sizeof(uint8_t); // loop
     }
@@ -52,7 +53,7 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    const uint32_t version = 2;
+    const uint32_t version = 3;
     writer.u32(version);
 
     writer.string(source->m_uid);
@@ -74,6 +75,7 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
         writer.string(state.clipName);
         writer.bytes(&state.speed, sizeof(float));
         writer.string(state.behaviourScriptName);
+        writer.string(state.behaviourFieldsJson);
         writer.u8(state.overrideLoop ? 1u : 0u);
         writer.u8(state.loop ? 1u : 0u);
     }
@@ -124,15 +126,24 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
         state.clipName = reader.string();
         reader.bytes(&state.speed, sizeof(float));
 
-        if (version >= 2)
+        if (version >= 3)
         {
             state.behaviourScriptName = reader.string();
+            state.behaviourFieldsJson = reader.string();
+            state.overrideLoop = reader.u8() != 0;
+            state.loop = reader.u8() != 0;
+        }
+        else if (version >= 2)
+        {
+            state.behaviourScriptName = reader.string();
+            state.behaviourFieldsJson.clear();
             state.overrideLoop = reader.u8() != 0;
             state.loop = reader.u8() != 0;
         }
         else
         {
             state.behaviourScriptName.clear();
+            state.behaviourFieldsJson.clear();
             state.overrideLoop = false;
             state.loop = true;
         }

@@ -21,6 +21,7 @@ struct AnimationStateMachineState
     std::string clipName;
     float speed = 1.0f;
     std::string behaviourScriptName;
+    std::string behaviourFieldsJson;
 
     bool overrideLoop = false;
     bool loop = true;

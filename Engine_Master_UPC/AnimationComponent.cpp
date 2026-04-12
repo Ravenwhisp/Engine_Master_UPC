@@ -16,6 +16,9 @@
 #include "Script.h"
 
 #include <imgui.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #include <cstring>
 #include <algorithm>
 
@@ -567,8 +570,10 @@ void AnimationComponent::drawStatesUi()
 
         if (ImGui::TreeNode("State", "State %zu", i))
         {
+            const std::string oldStateName = state.name;
             if (InputTextString("Name", state.name))
             {
+                invalidateAllStateBehaviours();
                 m_stateMachineDirty = true;
             }
 
@@ -584,8 +589,15 @@ void AnimationComponent::drawStatesUi()
                 m_stateMachineDirty = true;
             }
 
+            const std::string oldBehaviourScriptName = state.behaviourScriptName;
             if (InputTextString("Behaviour Script", state.behaviourScriptName))
             {
+                if (state.behaviourScriptName != oldBehaviourScriptName)
+                {
+                    invalidateStateBehaviour(state.name);
+                    state.behaviourFieldsJson.clear();
+                }
+
                 m_stateMachineDirty = true;
             }
 
@@ -630,6 +642,7 @@ void AnimationComponent::drawStatesUi()
 
             if (ImGui::Button("Delete State"))
             {
+                invalidateAllStateBehaviours();
                 states.erase(states.begin() + static_cast<std::ptrdiff_t>(i));
                 ImGui::TreePop();
                 ImGui::PopID();
@@ -733,7 +746,7 @@ void AnimationComponent::drawTransitionsUi()
         m_stateMachineDirty = true;
     }
 }
-void AnimationComponent::drawStateBehaviourFieldsUi(const AnimationStateMachineState& state)
+void AnimationComponent::drawStateBehaviourFieldsUi(AnimationStateMachineState& state)
 {
     if (state.behaviourScriptName.empty())
     {
@@ -750,6 +763,7 @@ void AnimationComponent::drawStateBehaviourFieldsUi(const AnimationStateMachineS
 
     ImGui::SeparatorText("Behaviour Fields");
     drawScriptFieldsUi(*behaviour);
+    state.behaviourFieldsJson = serializeScriptFields(*behaviour);
 }
 
 void AnimationComponent::drawScriptFieldsUi(Script& script)
@@ -1383,6 +1397,11 @@ StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const Anima
     m_stateBehaviours[state.name] = std::unique_ptr<StateMachineScript>(behaviour);
     newScript.release();
 
+    if (!state.behaviourFieldsJson.empty())
+    {
+        deserializeScriptFields(*behaviour, state.behaviourFieldsJson);
+    }
+
     return behaviour;
 }
 
@@ -1444,6 +1463,161 @@ void AnimationComponent::dispatchStateExit(const std::string& stateName)
     }
 
     behaviour->OnStateExit();
+}
+
+void AnimationComponent::invalidateStateBehaviour(const std::string& stateName)
+{
+    if (stateName.empty())
+    {
+        return;
+    }
+
+    m_stateBehaviours.erase(stateName);
+}
+
+void AnimationComponent::invalidateAllStateBehaviours()
+{
+    m_stateBehaviours.clear();
+}
+
+std::string AnimationComponent::serializeScriptFields(const Script& script) const
+{
+    rapidjson::Document document;
+    document.SetObject();
+    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+
+    ScriptFieldList fieldList = script.getExposedFields();
+    const char* base = reinterpret_cast<const char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        const void* data = base + field.offset;
+
+        rapidjson::Value key(field.name, allocator);
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            document.AddMember(key, *reinterpret_cast<const float*>(data), allocator);
+            break;
+
+        case ScriptFieldType::Int:
+        case ScriptFieldType::EnumInt:
+            document.AddMember(key, *reinterpret_cast<const int*>(data), allocator);
+            break;
+
+        case ScriptFieldType::Bool:
+            document.AddMember(key, *reinterpret_cast<const bool*>(data), allocator);
+            break;
+
+        case ScriptFieldType::Vec3:
+        {
+            const Vector3* value = reinterpret_cast<const Vector3*>(data);
+            rapidjson::Value array(rapidjson::kArrayType);
+            array.PushBack(value->x, allocator);
+            array.PushBack(value->y, allocator);
+            array.PushBack(value->z, allocator);
+            document.AddMember(key, array, allocator);
+            break;
+        }
+
+        case ScriptFieldType::String:
+        {
+            const std::string* value = reinterpret_cast<const std::string*>(data);
+            document.AddMember(key, rapidjson::Value(value->c_str(), allocator), allocator);
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+            break;
+        }
+    }
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    return buffer.GetString();
+}
+
+void AnimationComponent::deserializeScriptFields(Script& script, const std::string& fieldsJson)
+{
+    if (fieldsJson.empty())
+    {
+        return;
+    }
+
+    rapidjson::Document document;
+    document.Parse(fieldsJson.c_str());
+
+    if (!document.IsObject())
+    {
+        return;
+    }
+
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+
+        if (!document.HasMember(field.name))
+        {
+            continue;
+        }
+
+        void* data = base + field.offset;
+        const rapidjson::Value& valueJson = document[field.name];
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            if (valueJson.IsNumber())
+            {
+                *reinterpret_cast<float*>(data) = valueJson.GetFloat();
+            }
+            break;
+
+        case ScriptFieldType::Int:
+        case ScriptFieldType::EnumInt:
+            if (valueJson.IsInt())
+            {
+                *reinterpret_cast<int*>(data) = valueJson.GetInt();
+            }
+            break;
+
+        case ScriptFieldType::Bool:
+            if (valueJson.IsBool())
+            {
+                *reinterpret_cast<bool*>(data) = valueJson.GetBool();
+            }
+            break;
+
+        case ScriptFieldType::Vec3:
+            if (valueJson.IsArray() && valueJson.Size() == 3)
+            {
+                Vector3* vector = reinterpret_cast<Vector3*>(data);
+                vector->x = valueJson[0].GetFloat();
+                vector->y = valueJson[1].GetFloat();
+                vector->z = valueJson[2].GetFloat();
+            }
+            break;
+
+        case ScriptFieldType::String:
+            if (valueJson.IsString())
+            {
+                *reinterpret_cast<std::string*>(data) = valueJson.GetString();
+            }
+            break;
+
+        case ScriptFieldType::ComponentRef:
+            break;
+        }
+    }
+
+    script.onAfterDeserialize();
 }
 
 bool AnimationComponent::resolveLoopForState(const AnimationStateMachineState& state, const AnimationStateMachineClip& clip) const
