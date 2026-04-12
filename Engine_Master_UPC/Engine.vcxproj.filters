@@ -916,10 +916,8 @@
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="SkyboxParams.h" />
-    <ClInclude Include="UIParams.h" />
     <ClInclude Include="ImporterAnimation.h">
       <Filter>Persistence\Importers</Filter>
     </ClInclude>
@@ -941,7 +939,6 @@
     <ClInclude Include="SpriteRendererPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="SpriteVertex.h" />
     <ClInclude Include="SpriteParams.h">
       <Filter>D3D12\Rendering\RenderData</Filter>
     </ClInclude>
@@ -1022,6 +1019,15 @@
     </ClInclude>
     <ClInclude Include="RenderViewType.h">
       <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="UIParams.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteVertex.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptMethodInfo.h">
+      <Filter>UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
