@@ -1,0 +1,15 @@
+<VSTemplate Version="3.0.0" Type="Item"
+    xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+	<TemplateData>
+		<Name>UPC Engine State Machine Script</Name>
+		<Description>Creates a .h and .cpp pair for the UPC Engine Script system derived from StateMachineScript.</Description>
+		<ProjectType>VC</ProjectType>
+		<DefaultName>NewStateMachineScript</DefaultName>
+		<SortOrder>1000</SortOrder>
+	</TemplateData>
+
+	<TemplateContent>
+		<ProjectItem ReplaceParameters="true" TargetFileName="$safeitemname$.h">StateMachineScript.h</ProjectItem>
+		<ProjectItem ReplaceParameters="true" TargetFileName="$safeitemname$.cpp">StateMachineScript.cpp</ProjectItem>
+	</TemplateContent>
+</VSTemplate>
