@@ -11,6 +11,22 @@ public:
     virtual const char* getWindowName() const = 0;
     virtual void cleanUp() { }
 
+    void setInstanceId(int id)
+    {
+        m_instanceId = id;
+        m_imguiId = std::string(getWindowName()) + "##" + std::to_string(id);
+    }
+
+    int getInstanceId() const
+    {
+        return m_instanceId;
+    }
+
+    const char* getImGuiId() const
+    {
+        return m_imguiId.empty() ? getWindowName() : m_imguiId.c_str();
+    }
+
     bool isOpen() const
     {
         return m_isOpen;
@@ -73,7 +89,7 @@ public:
             return;
         }
 
-        if (ImGui::Begin(getWindowName(), &m_isOpen))
+        if (ImGui::Begin(getImGuiId(), &m_isOpen))
         {
             drawInternal();
         }
@@ -91,4 +107,9 @@ protected:
     ImVec2 m_size = { 400, 300 };
     bool m_isViewportHovered = false;
     bool m_isViewportFocused = false;
+
+private:
+    int         m_instanceId = 0;
+    std::string m_imguiId;
+
 };
