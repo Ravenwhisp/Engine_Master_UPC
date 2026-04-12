@@ -18,6 +18,12 @@ struct PSInput
     float4 position : SV_POSITION;
 };
 
+float3 LinearToSRGB(float3 color)
+{
+    color = max(color, 0.0f);
+    return pow(color, INV_GAMMA);
+}
+
 float ComputeRadialMask(float2 uv, float fillAmount, float clockwise, float range, float offset, float2 center, float aspectRatio)
 {
     if (fillAmount <= 0.0f)
@@ -120,6 +126,6 @@ float4 main(PSInput input) : SV_TARGET
     float4 texColor = uiTexture.Sample(uiSampler, input.texCoord);
     texColor.a *= mask;
     clip(texColor.a - 0.001f);
-    return texColor;
+    return float4(LinearToSRGB(texColor.rgb), texColor.a);
 
 }
