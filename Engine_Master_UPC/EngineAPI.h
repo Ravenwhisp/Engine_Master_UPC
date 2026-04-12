@@ -51,17 +51,25 @@ namespace TransformAPI
 {
     ENGINE_API Vector3 getPosition(const Transform* transform);
     ENGINE_API void setPosition(Transform* transform, const Vector3& newPosition);
+    ENGINE_API Vector3 getGlobalPosition(const Transform* transform);
+    ENGINE_API void setGlobalPosition(Transform* transform, const Vector3& worldPosition);
 
     ENGINE_API Vector3 getScale(const Transform* transform);
     ENGINE_API void setScale(Transform* transform, const Vector3& newScale);
 
     ENGINE_API Vector3 getEulerDegrees(const Transform* transform);
     ENGINE_API void setRotationEuler(Transform* transform, const Vector3& eulerDegrees);
+    ENGINE_API Vector3 getGlobalEulerDegrees(const Transform* transform);
+    ENGINE_API void setGlobalRotationEuler(Transform* transform, const Vector3& eulerDegrees);
 
     ENGINE_API Vector3 getForward(const Transform* transform);
     ENGINE_API Vector3 getRight(const Transform* transform);
     ENGINE_API Vector3 getUp(const Transform* transform);
+
     ENGINE_API void translate(Transform* transform, const Vector3& delta);
+    ENGINE_API void translateGlobal(Transform* transform, const Vector3& delta);
+
+    ENGINE_API void lookAt(Transform* transform, const Vector3& targetWorldPosition);
 
     ENGINE_API Transform* getParent(Transform* transform);
     ENGINE_API const Transform* getParent(const Transform* transform);
