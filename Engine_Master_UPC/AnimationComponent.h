@@ -10,6 +10,7 @@
 class AnimationAsset;
 class GameObject;
 class StateMachineScript;
+class Script;
 
 class AnimationComponent final : public Component
 {
@@ -105,6 +106,8 @@ private:
     void drawClipsUi();
     void drawStatesUi();
     void drawTransitionsUi();
+    void drawStateBehaviourFieldsUi(const AnimationStateMachineState& state);
+    void drawScriptFieldsUi(Script& script);
 
     void drawStateCombo(const char* label, std::string& value);
     void drawClipCombo(const char* label, std::string& value);
@@ -117,6 +120,7 @@ private:
     const AnimationStateMachineState* findDefaultState() const;
     bool activateDefaultState(bool autoPlay, float transitionTimeSeconds);
     void applyActiveStatePlaybackSpeed();
+
 
 private:
 
