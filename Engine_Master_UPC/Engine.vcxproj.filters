@@ -1050,5 +1050,11 @@
     <FxCompile Include="SkyboxIrradianceVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="SkyboxEnvironmentPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxEnvironmentVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

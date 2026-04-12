@@ -360,6 +360,185 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	return finalTexture;
 }
 
+Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
+{
+	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
+
+	//Texture to render
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
+	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
+	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
+	desc.mipLevels = 5; //roughness levels
+	desc.views = TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+	auto environmentTexture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
+
+
+	//ROOT SIGNATURE
+	ComPtr<ID3D12RootSignature> rootSignature;
+	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+	CD3DX12_DESCRIPTOR_RANGE srvRange;
+	CD3DX12_DESCRIPTOR_RANGE sampRange;
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+
+	srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+	sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+
+	rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[1].InitAsConstants(sizeof(SkyBox::EnvironmentData) / sizeof(UINT16), 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[3].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	rootSignatureDesc.Init(4, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+	DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+
+
+	//PIPELINESTATE OBJECT
+	ComPtr<ID3D12PipelineState> pso;
+	ComPtr<ID3DBlob> skyboxEnvironmentVertexShaderBlob;
+	ComPtr<ID3DBlob> skyboxEnvironmentPixelShaderBlob;
+
+#if defined(_DEBUG)
+	UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+	UINT compileFlags = 0;
+#endif
+
+	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxEnvironmentVertexShader.cso", &skyboxEnvironmentVertexShaderBlob));
+	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxEnvironmentPixelShader.cso", &skyboxEnvironmentPixelShaderBlob));
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
+	psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+	psoDesc.pRootSignature = rootSignature.Get();
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(skyboxEnvironmentVertexShaderBlob.Get());
+	psoDesc.PS = CD3DX12_SHADER_BYTECODE(skyboxEnvironmentPixelShaderBlob.Get());
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	psoDesc.SampleDesc = { 1, 0 };
+
+	DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
+
+	commandList->SetPipelineState(pso.Get());
+	commandList->SetGraphicsRootSignature(rootSignature.Get());
+
+
+
+	//Viewport and scissor
+	D3D12_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = (float)desc.width;
+	viewport.Height = (float)desc.height;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+
+	D3D12_RECT scissor = {};
+	scissor.left = 0;
+	scissor.top = 0;
+	scissor.right = (LONG)desc.width;
+	scissor.bottom = (LONG)desc.height;
+
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &scissor);
+
+
+
+	//Descriptors heap
+	ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+
+
+	//Projection matrix
+	Matrix proj = Matrix::CreatePerspectiveFieldOfView(PI / 2.0f, 1.0f, 0.1f, 100.0f);
+
+	Vector3 front[] = { Vector3(1,0,0), Vector3(-1,0,0), Vector3(0,1,0), Vector3(0,-1,0), Vector3(0,0,1), Vector3(0,0,-1) };
+	Vector3 up[] = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
+
+
+	//if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+
+	for (size_t mip = 0; mip < desc.mipLevels; mip++)
+	{
+		SkyBox::EnvironmentData environmentData{};
+		environmentData.roughness = mip/4.0f; //clamp 
+
+		for (size_t i = 0; i < desc.arraySize; i++)
+		{
+			//BEGIN_EVENT(commandList.Get(), "Environment Generation");
+
+			Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
+			Matrix viewProjection = view * proj;
+			viewProjection = viewProjection.Transpose();
+
+			SkyboxParams params{};
+			params.vp = viewProjection;
+			params.flipX = i <= 1 ? 0 : 1;
+			params.flipZ = i <= 1 ? 1 : 0;
+
+
+			D3D12_VERTEX_BUFFER_VIEW vertexBufferView = skybox->getVertexBuffer()->getVertexBufferView();
+			D3D12_INDEX_BUFFER_VIEW  indexBufferView = skybox->getIndexBuffer()->getIndexBufferView();
+
+			UINT subResourceIndex = D3D12CalcSubresource(0, i, 0, desc.mipLevels, desc.arraySize);
+
+			auto currentRtvHandle = environmentTexture->getContiguousRTV(i).cpu;
+
+			CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(environmentTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
+			CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(environmentTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
+
+
+
+			commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
+			commandList->SetGraphicsRoot32BitConstants(1, sizeof(SkyBox::EnvironmentData) / sizeof(UINT16), &environmentData, 1);
+			commandList->SetGraphicsRootDescriptorTable(2, skybox->getTexture()->getSRV().gpu);
+			commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+			commandList->IASetIndexBuffer(&indexBufferView);
+
+			commandList->ResourceBarrier(1, &barrierIn);
+
+			commandList->OMSetRenderTargets(1, &currentRtvHandle, 0, nullptr);
+			float clearColor[4] = { 0, 0, 0, 1 };
+			commandList->ClearRenderTargetView(currentRtvHandle, clearColor, 0, nullptr);
+			commandList->DrawIndexedInstanced(static_cast<UINT>(indexBuffer->getNumIndices()), 1, 0, 0, 0);
+
+			commandList->ResourceBarrier(1, &barrierOut);
+
+			//END_EVENT(commandList.Get());
+		}
+	}
+
+	m_queue->executeCommandList(commandList);
+	//if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
+
+	m_queue->flush();
+
+
+
+
+	auto finalTexture = new Texture(hashToUID(textureAsset.getId() + "_environment"), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	return finalTexture;
+}
+
 RingBuffer* ModuleResources::createRingBuffer(size_t size)
 {
 	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -428,6 +607,21 @@ std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& t
 		return cached;
 	}*/
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer, skybox));
+	m_resources.insert(uid, texture);
+	return texture;
+}
+
+std::shared_ptr<Texture> ModuleResources::createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
+{
+	const UID uid = hashToUID(textureAsset.getId() + "_environment");
+
+	//Temporaly disable this to be able to test the createEnvironmentInternal function.
+	/*if (auto cached = m_resources.getAs<Texture>(uid))
+	{
+		return cached;
+	}*/
+
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createEnvironmentInternal(textureAsset, indexBuffer, skybox));
 	m_resources.insert(uid, texture);
 	return texture;
 }
