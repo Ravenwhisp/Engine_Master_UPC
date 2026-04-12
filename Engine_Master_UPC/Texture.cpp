@@ -254,7 +254,7 @@ void Texture::createRTV()
         rtvDesc.Texture2DArray.ArraySize = 1;
         rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-        m_contiguousRTV = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize);
+        m_contiguousRTV = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize * m_mipCount);
 
         for (size_t mip = 0; mip < m_mipCount; mip++)
         {
@@ -264,7 +264,7 @@ void Texture::createRTV()
             {
                 rtvDesc.Texture2DArray.FirstArraySlice = i;
 
-                m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_contiguousRTV->getCPUHandle(i));
+                m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_contiguousRTV->getCPUHandle(mip * m_desc.arraySize + i));
             }
         }
 

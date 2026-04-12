@@ -198,7 +198,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
 	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
 	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
-	desc.mipLevels = static_cast<uint16_t>(textureAsset.getMipCount());
+	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
@@ -390,7 +390,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 	sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
 	rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsConstants(sizeof(SkyBox::EnvironmentData) / sizeof(UINT16), 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[1].InitAsConstants(sizeof(SkyBox::EnvironmentData) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[3].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -478,7 +478,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 	for (size_t mip = 0; mip < desc.mipLevels; mip++)
 	{
 		SkyBox::EnvironmentData environmentData{};
-		environmentData.roughness = mip/4.0f; //clamp 
+		environmentData.roughness = (float)mip / (desc.mipLevels - 1); //clamp 
 
 		for (size_t i = 0; i < desc.arraySize; i++)
 		{
@@ -497,9 +497,9 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 			D3D12_VERTEX_BUFFER_VIEW vertexBufferView = skybox->getVertexBuffer()->getVertexBufferView();
 			D3D12_INDEX_BUFFER_VIEW  indexBufferView = skybox->getIndexBuffer()->getIndexBufferView();
 
-			UINT subResourceIndex = D3D12CalcSubresource(0, i, 0, desc.mipLevels, desc.arraySize);
+			UINT subResourceIndex = D3D12CalcSubresource(mip, i, 0, desc.mipLevels, desc.arraySize);
 
-			auto currentRtvHandle = environmentTexture->getContiguousRTV(i).cpu;
+			auto currentRtvHandle = environmentTexture->getContiguousRTV(mip * desc.arraySize + i).cpu;
 
 			CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(environmentTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
 			CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(environmentTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
@@ -507,7 +507,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 
 			commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
-			commandList->SetGraphicsRoot32BitConstants(1, sizeof(SkyBox::EnvironmentData) / sizeof(UINT16), &environmentData, 1);
+			commandList->SetGraphicsRoot32BitConstants(1, sizeof(SkyBox::EnvironmentData) / sizeof(UINT32), &environmentData, 0);
 			commandList->SetGraphicsRootDescriptorTable(2, skybox->getTexture()->getSRV().gpu);
 			commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

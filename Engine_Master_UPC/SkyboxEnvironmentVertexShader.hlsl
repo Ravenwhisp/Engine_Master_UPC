@@ -6,6 +6,12 @@ cbuffer SkyBoxParams : register(b0)
     uint padding[2];
 };
 
+cbuffer EnvironmentData : register(b1)
+{
+    float roughness;
+    float3 environmentPadding;
+};
+
 struct VSOut
 {
     float3 texCoord : TEXCOORD;

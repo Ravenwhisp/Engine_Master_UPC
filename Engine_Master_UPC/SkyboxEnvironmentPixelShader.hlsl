@@ -1,5 +1,13 @@
 TextureCube skyTexture : register(t0);
 SamplerState skySampler : register(s0);
+cbuffer SkyBoxParams : register(b0)
+{
+    float4x4 vp;
+    uint flipX;
+    uint flipZ;
+    uint padding[2];
+};
+
 cbuffer EnvironmentData : register(b1)
 {
     float roughness;
