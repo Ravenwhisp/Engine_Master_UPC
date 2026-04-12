@@ -181,6 +181,9 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
     }
 
     Matrix world = command.world;
+    Matrix normalFlip = Matrix::CreateScale(-0.01f, -0.01f, 1.0f);
+    world = normalFlip * world;
+
     if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
     {
         Matrix invView = m_view->Invert();
