@@ -1019,6 +1019,9 @@
     <ClInclude Include="ScriptMethodList.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="StateMachineScript.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
