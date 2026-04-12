@@ -13,6 +13,7 @@
 #include "Transform.h"
 #include "StateMachineScript.h"
 #include "ScriptFactory.h"
+#include "Script.h"
 
 #include <imgui.h>
 #include <cstring>
@@ -578,7 +579,7 @@ void AnimationComponent::drawStatesUi()
                 m_stateMachineDirty = true;
             }
 
-            if (ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f))
+            if (ImGui::DragFloat("Anim. speed", &state.speed, 0.05f, 0.0f, 10.0f))
             {
                 m_stateMachineDirty = true;
             }
@@ -587,6 +588,8 @@ void AnimationComponent::drawStatesUi()
             {
                 m_stateMachineDirty = true;
             }
+
+            drawStateBehaviourFieldsUi(state);
 
             if (ImGui::Checkbox("Override Loop", &state.overrideLoop))
             {
@@ -728,6 +731,128 @@ void AnimationComponent::drawTransitionsUi()
         transitions.push_back(std::move(transition));
         sanitizeStateMachineAfterEdit();
         m_stateMachineDirty = true;
+    }
+}
+void AnimationComponent::drawStateBehaviourFieldsUi(const AnimationStateMachineState& state)
+{
+    if (state.behaviourScriptName.empty())
+    {
+        ImGui::TextDisabled("Behaviour Fields: no script assigned");
+        return;
+    }
+
+    StateMachineScript* behaviour = createStateBehaviourIfNeeded(state);
+    if (!behaviour)
+    {
+        ImGui::TextDisabled("Behaviour Fields: could not create script '%s'", state.behaviourScriptName.c_str());
+        return;
+    }
+
+    ImGui::SeparatorText("Behaviour Fields");
+    drawScriptFieldsUi(*behaviour);
+}
+
+void AnimationComponent::drawScriptFieldsUi(Script& script)
+{
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        void* data = base + field.offset;
+        bool changed = false;
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+        {
+            float* value = reinterpret_cast<float*>(data);
+            changed = ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max);
+            break;
+        }
+
+        case ScriptFieldType::Int:
+        {
+            int* value = reinterpret_cast<int*>(data);
+            changed = ImGui::DragInt(field.name, value);
+            break;
+        }
+
+        case ScriptFieldType::Bool:
+        {
+            bool* value = reinterpret_cast<bool*>(data);
+            changed = ImGui::Checkbox(field.name, value);
+            break;
+        }
+
+        case ScriptFieldType::Vec3:
+        {
+            Vector3* value = reinterpret_cast<Vector3*>(data);
+            changed = ImGui::DragFloat3(field.name, &value->x, 0.1f);
+            break;
+        }
+
+        case ScriptFieldType::EnumInt:
+        {
+            int* value = reinterpret_cast<int*>(data);
+
+            const char* preview = "";
+            if (*value >= 0 && *value < field.enumInfo.count)
+            {
+                preview = field.enumInfo.names[*value];
+            }
+
+            if (ImGui::BeginCombo(field.name, preview))
+            {
+                for (int enumIndex = 0; enumIndex < field.enumInfo.count; ++enumIndex)
+                {
+                    bool selected = (*value == enumIndex);
+                    if (ImGui::Selectable(field.enumInfo.names[enumIndex], selected))
+                    {
+                        *value = enumIndex;
+                        changed = true;
+                    }
+
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+
+                ImGui::EndCombo();
+            }
+            break;
+        }
+
+        case ScriptFieldType::String:
+        {
+            std::string* value = reinterpret_cast<std::string*>(data);
+
+            char buffer[256];
+            std::strncpy(buffer, value->c_str(), sizeof(buffer));
+            buffer[sizeof(buffer) - 1] = '\0';
+
+            if (ImGui::InputText(field.name, buffer, sizeof(buffer)))
+            {
+                *value = buffer;
+                changed = true;
+            }
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+        {
+            ImGui::TextDisabled("%s: ComponentRef not supported yet in state behaviour inspector", field.name);
+            break;
+        }
+        }
+
+        if (changed)
+        {
+            script.onFieldEdited(field);
+            m_stateMachineDirty = true;
+        }
     }
 }
 void AnimationComponent::debugDrawRecursive(GameObject* go)
