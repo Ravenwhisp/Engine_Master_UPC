@@ -1,303 +1,830 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="LightPixelShader.hlsl" />
-    <FxCompile Include="SkinningComputeShader.hlsl" />
-    <FxCompile Include="SkyBoxPixelShader.hlsl" />
-    <FxCompile Include="SkyBoxVertexShader.hlsl" />
-    <FxCompile Include="SpriteVertexShader.hlsl" />
-    <FxCompile Include="UIPixelShader.hlsl" />
-    <FxCompile Include="UIVertexShader.hlsl" />
-    <FxCompile Include="VertexShader.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
-    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_win32.cpp" />
-    <ClCompile Include="3rdParty\imgui-docking\imgui.cpp" />
-    <ClCompile Include="3rdParty\imgui-docking\imgui_demo.cpp" />
-    <ClCompile Include="3rdParty\imgui-docking\imgui_draw.cpp" />
-    <ClCompile Include="3rdParty\imgui-docking\imgui_tables.cpp" />
-    <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp" />
-    <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp" />
-    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_canvas.cpp" />
-    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor.cpp" />
-    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp" />
-    <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp" />
+    <ClCompile Include="Engine.cpp">
+      <Filter>Core\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_demo.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_draw.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_win32.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_tables.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiPass.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Editor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleD3D12.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleInput.cpp">
+      <Filter>Inputs</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>Maths</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Core\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Core\Timers</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEditor.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleResources.cpp">
+      <Filter>D3D12\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleCamera.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleDescriptors.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>D3D12\Resources\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePad.cpp">
+      <Filter>Inputs\GamePad</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>Inputs\Mouse</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Inputs\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicMesh.cpp">
+      <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicMaterial.cpp">
+      <Filter>D3D12\Geometry\BasicModel\BasicMaterial</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowSceneEditor.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>D3D12\Resources\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\IndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\VertexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowHierarchy.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowInspector.cpp">
+      <Filter>Editor\Views\Inspector</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleRender.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleScene.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleTime.cpp">
+      <Filter>Core\Timers</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>D3D12\Resources\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadNode.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="Quadtree.cpp" />
+    <ClCompile Include="WindowEditorSettings.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingBox.cpp">
+      <Filter>D3D12\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>D3D12\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneConfig.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="AnimationComponent.cpp" />
-    <ClCompile Include="AnimationController.cpp" />
-    <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
-    <ClCompile Include="CommandAddGameObject.cpp" />
-    <ClCompile Include="Application.cpp" />
-    <ClCompile Include="AssetScanner.cpp" />
-    <ClCompile Include="Canvas.cpp" />
-    <ClCompile Include="ChangeScene.cpp" />
-    <ClCompile Include="Component.cpp" />
-    <ClCompile Include="ContentRegistry.cpp" />
-    <ClCompile Include="ComponentFactory.cpp" />
-    <ClCompile Include="CommandCreateFolder.cpp" />
-    <ClCompile Include="CommandCutItem.cpp" />
-    <ClCompile Include="CommandDeleteAsset.cpp" />
-    <ClCompile Include="CommandDeleteFolder.cpp" />
-    <ClCompile Include="EngineAPI.cpp" />
-    <ClCompile Include="ExitApplication.cpp" />
-    <ClCompile Include="HierarchyTreeRenderer.cpp" />
-    <ClCompile Include="HierarchyUtils.cpp" />
-    <ClCompile Include="CommandImportAsset.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
-    <ClCompile Include="ImporterFont.cpp" />
-    <ClCompile Include="ImporterGltf.cpp" />
-    <ClCompile Include="ImporterMaterial.cpp" />
-    <ClCompile Include="ImporterMesh.cpp" />
-    <ClCompile Include="ImporterPrefab.cpp" />
-    <ClCompile Include="ImporterRegistry.cpp" />
-    <ClCompile Include="AssetRegistry.cpp" />
-    <ClCompile Include="CommandInstantiatePrefab.cpp" />
-    <ClCompile Include="ImporterSkin.cpp" />
-    <ClCompile Include="MD5.cpp" />
-    <ClCompile Include="ModuleGameView.cpp" />
-    <ClCompile Include="CommandMoveFile.cpp" />
-    <ClCompile Include="CommandPasteFile.cpp" />
-    <ClCompile Include="CommandRemoveGameObject.cpp" />
-    <ClCompile Include="CommandRenameGameObject.cpp" />
-    <ClCompile Include="RenderSurface.cpp" />
-    <ClCompile Include="CommandReparent.cpp" />
-    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SceneReferenceResolver.cpp" />
-    <ClCompile Include="SceneSnapshot.cpp" />
-    <ClCompile Include="UISlider.cpp" />
-    <ClCompile Include="SpriteRenderer.cpp" />
-    <ClCompile Include="SpriteRendererPass.cpp" />
-    <ClCompile Include="SkinningComputePass.cpp" />
-    <ClCompile Include="ViewHierarchyDialog.cpp" />
-    <ClCompile Include="WindowAnimationStateMachine.cpp" />
-    <ClCompile Include="WindowGame.cpp" />
-    <ClCompile Include="ModuleEventSystem.cpp" />
-    <ClCompile Include="WindowFileDialog.cpp" />
-    <ClCompile Include="ModuleAssets.cpp" />
-    <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="ModuleCamera.cpp" />
-    <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="ModuleD3D12.cpp" />
-    <ClCompile Include="DebugDrawPass.cpp" />
-    <ClCompile Include="DescriptorHeap.cpp" />
-    <ClCompile Include="ModuleDescriptors.cpp" />
-    <ClCompile Include="ModuleEditor.cpp" />
-    <ClCompile Include="WindowEditorSettings.cpp" />
-    <ClCompile Include="EditorToolbar.cpp" />
-    <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="FileIO.cpp" />
-    <ClCompile Include="FontPass.cpp" />
-    <ClCompile Include="Frustum.cpp" />
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="NavigationAgentComponent.cpp" />
-    <ClCompile Include="ModuleNavigation.cpp" />
-    <ClCompile Include="NavMeshBuilder.cpp" />
-    <ClCompile Include="NavMeshGeometryExtractor.cpp" />
-    <ClCompile Include="MeshRenderer.cpp" />
-    <ClCompile Include="MeshRendererPass.cpp" />
-    <ClCompile Include="PlayToolbar.cpp" />
+    <ClCompile Include="SceneSerializer.cpp" />
+    <ClCompile Include="UtilityGLFT.cpp" />
+    <ClCompile Include="ModuleNavigation.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshBuilder.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="NavigationAgentComponent.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshGeometryExtractor.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
+    <ClCompile Include="UtilityGLFT.cpp" />
+    <ClCompile Include="UIImage.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleUI.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIText.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIO.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform2D.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButton.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSerializer.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleAssets.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEventSystem.cpp">
+      <Filter>UI\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ChangeScene.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowGame.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleGameView.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="WaypointPathComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowGameDebug.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBox.cpp">
+      <Filter>D3D12\Entities</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Editor\Toolbars</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowHardware.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowLogger.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="FontPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBoxPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Persistence\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterTexture.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterFont.cpp">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMesh.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterMaterial.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterGltf.cpp">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterPrefab.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFactory.cpp">
+      <Filter>Core\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentFactory.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
-    <ClCompile Include="QuadNode.cpp" />
-    <ClCompile Include="Quadtree.cpp" />
-    <ClCompile Include="SceneConfig.cpp" />
-    <ClCompile Include="ModuleScene.cpp" />
-    <ClCompile Include="GamePad.cpp" />
-    <ClCompile Include="Globals.cpp" />
-    <ClCompile Include="WindowHardware.cpp" />
-    <ClCompile Include="WindowHierarchy.cpp" />
-    <ClCompile Include="ImGuiPass.cpp" />
-    <ClCompile Include="IndexBuffer.cpp" />
-    <ClCompile Include="WindowInspector.cpp" />
-    <ClCompile Include="Keyboard.cpp" />
-    <ClCompile Include="ModuleInput.cpp" />
-    <ClCompile Include="WindowLogger.cpp" />
-    <ClCompile Include="BasicMaterial.cpp" />
-    <ClCompile Include="BasicMesh.cpp" />
-    <ClCompile Include="Mouse.cpp" />
-    <ClCompile Include="PerformanceProfiler.cpp" />
-    <ClCompile Include="WindowPerformance.cpp" />
-    <ClCompile Include="ModuleRender.cpp" />
-    <ClCompile Include="Resources.cpp" />
-    <ClCompile Include="ModuleResources.cpp" />
-    <ClCompile Include="RingBuffer.cpp" />
-    <ClCompile Include="WindowSceneEditor.cpp" />
-    <ClCompile Include="SceneSerializer.cpp" />
-    <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptFactory.cpp" />
-    <ClCompile Include="SimpleMath.cpp" />
-    <ClCompile Include="SkyBox.cpp" />
-    <ClCompile Include="SkyBoxPass.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="ImporterTexture.cpp" />
-    <ClCompile Include="ModuleTime.cpp" />
-    <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="Transform2D.cpp" />
-    <ClCompile Include="UIButton.cpp" />
-    <ClCompile Include="UID.cpp" />
-    <ClCompile Include="UIImage.cpp" />
-    <ClCompile Include="UIImagePass.cpp" />
-    <ClCompile Include="ModuleUI.cpp" />
-    <ClCompile Include="UIText.cpp" />
-    <ClCompile Include="UtilityGLFT.cpp" />
-    <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="WaypointPathComponent.cpp" />
-    <ClCompile Include="WindowGameDebug.cpp" />
+    <ClCompile Include="EngineAPI.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ExitApplication.cpp">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSurface.cpp">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_canvas.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
+      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterAnimation.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationController.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinningComputePass.cpp">
+      <Filter>Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterAnimationStateMachine.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterSkin.cpp">
+      <Filter>Persistence\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteRenderer.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddGameObject.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCreateFolder.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCutItem.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteAsset.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteFolder.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandImportAsset.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandInstantiatePrefab.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandMoveFile.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPasteFile.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRemoveGameObject.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRenameGameObject.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandReparent.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTreeRenderer.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyUtils.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewHierarchyDialog.cpp">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowFileDialog.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowAnimationStateMachine.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h" />
-    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h" />
-    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h" />
-    <ClInclude Include="3rdParty\imgui-docking\imgui.h" />
-    <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h" />
-    <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h" />
-    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.h" />
-    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_canvas.h" />
-    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_extra_math.h" />
-    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor.h" />
-    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h" />
-    <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h" />
-    <ClInclude Include="AnimationAsset.h" />
-    <ClInclude Include="AnimationComponent.h" />
-    <ClInclude Include="AnimationController.h" />
-    <ClInclude Include="AnimationStateMachineAsset.h" />
-    <ClInclude Include="CommandAddChildToPrefabRoot.h" />
-    <ClInclude Include="CommandAddGameObject.h" />
-    <ClInclude Include="Application.h" />
-    <ClInclude Include="Asset.h" />
-    <ClInclude Include="AssetScanner.h" />
-    <ClInclude Include="AssetsDictionary.h" />
-    <ClInclude Include="AssetType.h" />
-    <ClInclude Include="Canvas.h" />
-    <ClInclude Include="ChangeScene.h" />
-    <ClInclude Include="Channel.h" />
-    <ClInclude Include="ComponentFactory.h" />
-    <ClInclude Include="ContentRegistry.h" />
-    <ClInclude Include="CommandCreateFolder.h" />
-    <ClInclude Include="CommandCutItem.h" />
-    <ClInclude Include="Delegates.h" />
-    <ClInclude Include="DeviceType.h" />
-    <ClInclude Include="CommandDeleteAsset.h" />
-    <ClInclude Include="CommandDeleteFolder.h" />
-    <ClInclude Include="EngineAPI.h" />
-    <ClInclude Include="ExitApplication.h" />
-    <ClInclude Include="Extensions.h" />
-    <ClInclude Include="FileDialogClipboard.h" />
-    <ClInclude Include="FontAsset.h" />
-    <ClInclude Include="HierarchyTreeRenderer.h" />
-    <ClInclude Include="HierarchyUtils.h" />
-    <ClInclude Include="ICommand.h" />
-    <ClInclude Include="IDebugDrawable.h" />
-    <ClInclude Include="CommandImportAsset.h" />
-    <ClInclude Include="ImporterAnimation.h" />
-    <ClInclude Include="ImporterAnimationStateMachine.h" />
-    <ClInclude Include="ImporterFont.h" />
-    <ClInclude Include="ImporterGltf.h" />
-    <ClInclude Include="ImporterMaterial.h" />
-    <ClInclude Include="ImporterMesh.h" />
-    <ClInclude Include="ImporterNative.h" />
-    <ClInclude Include="ImporterPrefab.h" />
-    <ClInclude Include="ImporterSkin.h" />
-    <ClInclude Include="KeyCode.h" />
-    <ClInclude Include="CommandInstantiatePrefab.h" />
-    <ClInclude Include="MaterialAsset.h" />
-    <ClInclude Include="MD5.h" />
-    <ClInclude Include="MD5Fwd.h" />
-    <ClInclude Include="MeshAsset.h" />
-    <ClInclude Include="Metadata.h" />
-    <ClInclude Include="ModuleGameView.h" />
-    <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="CommandMoveFile.h" />
-    <ClInclude Include="CommandPasteFile.h" />
-    <ClInclude Include="CommandRemoveGameObject.h" />
-    <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="RenderContext.h" />
-    <ClInclude Include="RenderSurface.h" />
-    <ClInclude Include="CommandReparent.h" />
-    <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="ScriptAPI.h" />
-    <ClInclude Include="ScriptAutoRegister.h" />
-    <ClInclude Include="ScriptComponentRef.h" />
-    <ClInclude Include="ScriptFieldInfo.h" />
-    <ClInclude Include="ScriptCreator.h" />
-    <ClInclude Include="SceneDataCB.h" />
-    <ClInclude Include="SceneLightingSettings.h" />
-    <ClInclude Include="SceneReferenceResolver.h" />
-    <ClInclude Include="ScriptMethodInfo.h" />
-    <ClInclude Include="ScriptMethodList.h" />
-    <ClInclude Include="ScriptRegistry.h" />
-    <ClInclude Include="SkinAsset.h" />
-    <ClInclude Include="SkinningComputePass.h" />
-    <ClInclude Include="SkyBoxSettings.h" />
-    <ClInclude Include="PrefabAsset.h" />
-    <ClInclude Include="SkyboxParams.h" />
-    <ClInclude Include="SpriteParams.h" />
-    <ClInclude Include="SpriteRenderer.h" />
-    <ClInclude Include="SpriteRendererPass.h" />
-    <ClInclude Include="SpriteVertex.h" />
-    <ClInclude Include="TextureImage.h" />
-    <ClInclude Include="UIFill.h" />
-    <ClInclude Include="UISlider.h" />
-    <ClInclude Include="UIParams.h" />
-    <ClInclude Include="ViewHierarchyDialog.h" />
-    <ClInclude Include="WindowAnimationStateMachine.h" />
-    <ClInclude Include="WindowGame.h" />
-    <ClInclude Include="ICacheable.h" />
-    <ClInclude Include="ImporterRegistry.h" />
-    <ClInclude Include="AssetRegistry.h" />
-    <ClInclude Include="ModuleEventSystem.h" />
-    <ClInclude Include="WindowFileDialog.h" />
-    <ClInclude Include="ModuleAssets.h" />
-    <ClInclude Include="BinaryReader.h" />
-    <ClInclude Include="BinaryWriter.h" />
-    <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="BoundingVolume.h" />
-    <ClInclude Include="Buffer.h" />
-    <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="ModuleCamera.h" />
-    <ClInclude Include="CommandQueue.h" />
-    <ClInclude Include="Component.h" />
-    <ClInclude Include="ComponentType.h" />
-    <ClInclude Include="cvector.h" />
-    <ClInclude Include="ModuleD3D12.h" />
-    <ClInclude Include="DebugDrawPass.h" />
     <ClInclude Include="debug_draw.hpp" />
-    <ClInclude Include="DescriptorHeap.h" />
-    <ClInclude Include="ModuleDescriptors.h" />
-    <ClInclude Include="ModuleEditor.h" />
-    <ClInclude Include="WindowEditorSettings.h" />
-    <ClInclude Include="EditorToolbar.h" />
-    <ClInclude Include="EditorWindow.h" />
-    <ClInclude Include="Engine.h" />
-    <ClInclude Include="FileIO.h" />
-    <ClInclude Include="FontPass.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Frustum.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="Importer.h" />
-    <ClInclude Include="IPointerEventHandler.h" />
-    <ClInclude Include="IRenderPass.h" />
-    <ClInclude Include="Layer.h" />
-    <ClInclude Include="LightComponent.h" />
-    <ClInclude Include="Lights.h" />
-    <ClInclude Include="NavigationAgentComponent.h" />
-    <ClInclude Include="ModuleNavigation.h" />
-    <ClInclude Include="NavMeshBuilder.h" />
-    <ClInclude Include="NavMeshGeometryExtractor.h" />
-    <ClInclude Include="NavMeshResource.h" />
-    <ClInclude Include="MeshRenderer.h" />
-    <ClInclude Include="MeshRendererPass.h" />
-    <ClInclude Include="PlayToolbar.h" />
-    <ClInclude Include="PointerEventData.h" />
+    <ClInclude Include="PlatformHelpers.h" />
+    <ClInclude Include="ReadData.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Engine.h">
+      <Filter>Core\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\imgui.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiPass.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleD3D12.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleInput.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Core\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Core\Timers</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleEditor.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleResources.h">
+      <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleCamera.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilityGLFT.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleDescriptors.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeap.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>D3D12\Resources\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePad.h">
+      <Filter>Inputs\GamePad</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Inputs\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Inputs\Keyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicMesh.h">
+      <Filter>D3D12\Geometry\BasicModel\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicMaterial.h">
+      <Filter>D3D12\Geometry\BasicModel\BasicMaterial</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleTime.h">
+      <Filter>Core\Timers</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>D3D12\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorWindow.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowSceneEditor.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>D3D12\Resources\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBuffer.h">
+      <Filter>D3D12\Resources\Buffers\IndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>D3D12\Resources\Buffers\VertexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>D3D12\Resources\Buffers\RingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowHierarchy.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowInspector.h">
+      <Filter>Editor\Views\Inspector</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleRender.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="cvector.h" />
+    <ClInclude Include="ModuleScene.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>D3D12\Resources\Textures</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentType.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="QuadNode.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Quadtree.h" />
+    <ClInclude Include="Settings.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowEditorSettings.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="Quadtree.h">
+      <Filter>DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingBox.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingVolume.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Frustum.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneConfig.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h" />
+    <ClInclude Include="ModuleNavigation.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshResource.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshBuilder.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavigationAgentComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshGeometryExtractor.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="UIImage.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleUI.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRect.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIText.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryReader.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryWriter.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ICacheable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform2D.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UICommands.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIButton.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSerializer.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleAssets.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Delegates.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="IPointerEventHandler.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleEventSystem.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="PointerEventData.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Asset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetsDictionary.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ChangeScene.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowGame.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleGameView.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="WaypointPathComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ExitApplication.h">
+      <Filter>GameEntity\Components\Scripts</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowGameDebug.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="Lights.h">
+      <Filter>D3D12\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBox.h">
+      <Filter>D3D12\Entities</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayToolbar.h">
+      <Filter>Editor\Toolbars</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowHardware.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowLogger.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="FontPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="IRenderPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="WeakCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetScanner.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="UID.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>Persistence\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="FontAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureImage.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterSource.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterNative.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Importer.h">
+      <Filter>Persistence\Importers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterTexture.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterFont.h">
+      <Filter>Persistence\Importers\External</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMesh.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterMaterial.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterGltf.h">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterPrefab.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFactory.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentFactory.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Tag.h">
+      <Filter>GameEntity\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneSnapshot.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDataCB.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLightingSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneReferenceResolver.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="PrefabEditSession.h" />
     <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="PrefabUI.h" />
