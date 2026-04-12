@@ -15,6 +15,7 @@
 #include "Settings.h"
 #include "ModuleScene.h"
 #include "ModuleEditor.h"
+#include "ModuleNavigation.h"
 
 #include "Scene.h"
 #include "Quadtree.h"
@@ -557,6 +558,7 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
     if (settings->sceneEditor.showNavPath)
     {
         m_tempDrawables.insert(m_tempDrawables.end(), m_navDrawables.begin(), m_navDrawables.end());
+        m_tempDrawables.push_back(app->getModuleNavigation()->getAsDebugDrawable());
     }
 
     const bool includeScriptDebug = (ctx.viewType == RenderViewType::Editor) || settings->debugGame.showScriptDebug;
