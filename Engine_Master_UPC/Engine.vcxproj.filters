@@ -904,7 +904,6 @@
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="ImporterAnimation.h">
       <Filter>Persistence\Importers</Filter>
@@ -1015,7 +1014,10 @@
       <Filter>UI</Filter>
     </ClInclude>
     <ClInclude Include="ScriptMethodInfo.h">
-      <Filter>UI</Filter>
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptMethodList.h">
+      <Filter>Core\Scripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
