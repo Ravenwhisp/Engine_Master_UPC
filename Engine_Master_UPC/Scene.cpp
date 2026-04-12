@@ -31,8 +31,8 @@ bool Scene::init()
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = gameCamera.get();
 
-    gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
-    gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
+    gameCamera->GetTransform()->setPosition(Vector3(5.0f, 10.0f, 5.0f));
+    gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(-IM_PI / 4, -IM_PI / 4, 0.0f));
 
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
@@ -88,7 +88,7 @@ GameObject* Scene::createGameObject()
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();
     rawPtr->init();
-    rawPtr->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
+    rawPtr->GetTransform()->setPosition(Vector3(0.0f, 0.0f, 0.0f));
 
     rawPtr->onTransformChange();
 
