@@ -84,6 +84,12 @@ private:
     void dispatchStateUpdate();
     void dispatchStateExit(const std::string& stateName);
 
+    void invalidateStateBehaviour(const std::string& stateName);
+    void invalidateAllStateBehaviours();
+
+    std::string serializeScriptFields(const Script& script) const;
+    void deserializeScriptFields(Script& script, const std::string& fieldsJson);
+
     bool resolveLoopForState(const AnimationStateMachineState& state, const AnimationStateMachineClip& clip) const;
 
     const AnimationStateMachineClip* findClipByName(const std::string& clipName) const;
@@ -106,7 +112,7 @@ private:
     void drawClipsUi();
     void drawStatesUi();
     void drawTransitionsUi();
-    void drawStateBehaviourFieldsUi(const AnimationStateMachineState& state);
+    void drawStateBehaviourFieldsUi(AnimationStateMachineState& state);
     void drawScriptFieldsUi(Script& script);
 
     void drawStateCombo(const char* label, std::string& value);
