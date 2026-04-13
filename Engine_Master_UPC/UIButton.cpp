@@ -9,6 +9,7 @@
 
 #include <imgui.h>
 #include <format>
+#include <cstring>
 
 
 UIButton::UIButton(UID id, GameObject* owner) : Component(id, ComponentType::UIBUTTON, owner) { }
@@ -20,6 +21,14 @@ std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
 	cloned->setActive(isActive());
 	cloned->m_targetGraphic = m_targetGraphic;
 	cloned->m_targetGraphicUid = m_targetGraphicUid;
+	cloned->m_defaultTextureAssetId = m_defaultTextureAssetId;
+	cloned->m_hoverTextureAssetId = m_hoverTextureAssetId;
+	cloned->m_pressedTextureAssetId = m_pressedTextureAssetId;
+	cloned->m_isHovered = m_isHovered;
+	cloned->m_isPressed = m_isPressed;
+	cloned->m_bindingsOnHover = m_bindingsOnHover;
+	cloned->m_bindingsOnPress = m_bindingsOnPress;
+	cloned->m_bindingsOnRelease = m_bindingsOnRelease;
 
 	return cloned;
 }
@@ -28,19 +37,80 @@ void UIButton::setTargetGraphic(UIImage* img)
 {
 	m_targetGraphic = img;
 	m_targetGraphicUid = img ? img->getID() : 0;
+	m_defaultTextureAssetId = img ? img->getTextureAssetId() : INVALID_ASSET_ID;
+	applyCurrentStateTexture();
 }
 
 #pragma region Events
+void UIButton::applyTargetTexture(const MD5Hash& assetId)
+{
+	if (!m_targetGraphic)
+	{
+		return;
+	}
+
+	if (assetId == INVALID_ASSET_ID)
+	{
+		return;
+	}
+
+	m_targetGraphic->setTextureAssetId(assetId);
+}
+
+MD5Hash UIButton::getDefaultTextureAssetId() const
+{
+	if (m_defaultTextureAssetId != INVALID_ASSET_ID)
+	{
+		return m_defaultTextureAssetId;
+	}
+
+	if (m_targetGraphic)
+	{
+		return m_targetGraphic->getTextureAssetId();
+	}
+
+	return INVALID_ASSET_ID;
+}
+
+void UIButton::applyCurrentStateTexture()
+{
+	MD5Hash targetAsset = getDefaultTextureAssetId();
+
+	if (m_isPressed)
+	{
+		if (m_pressedTextureAssetId != INVALID_ASSET_ID)
+		{
+			targetAsset = m_pressedTextureAssetId;
+		}
+		else if (m_hoverTextureAssetId != INVALID_ASSET_ID)
+		{
+			targetAsset = m_hoverTextureAssetId;
+		}
+	}
+	else if (m_isHovered)
+	{
+		if (m_hoverTextureAssetId != INVALID_ASSET_ID)
+		{
+			targetAsset = m_hoverTextureAssetId;
+		}
+	}
+
+	applyTargetTexture(targetAsset);
+}
+
 void UIButton::onPointerEnter(PointerEventData&)
 {
 	if (!isActive()) return;
+	m_isHovered = true;
+	applyCurrentStateTexture();
 
 	executeBindings(m_bindingsOnHover);
 }
 
 void UIButton::onPointerExit(PointerEventData&)
 {
-
+	m_isHovered = false;
+	applyCurrentStateTexture();
 }
 
 void UIButton::onPointerDown(PointerEventData&)
@@ -48,6 +118,7 @@ void UIButton::onPointerDown(PointerEventData&)
 	if (!isActive()) return;
 
 	m_isPressed = true;
+	applyCurrentStateTexture();
 
 	executeBindings(m_bindingsOnPress);
 }
@@ -55,6 +126,7 @@ void UIButton::onPointerDown(PointerEventData&)
 void UIButton::onPointerUp(PointerEventData&)
 {
 	m_isPressed = false;
+	applyCurrentStateTexture();
 	executeBindings(m_bindingsOnRelease);
 }
 
@@ -74,14 +146,54 @@ void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
 {
 	for (auto& binding : bindings)
 	{
-		if (!binding.component || !binding.function)
+		if (!binding.component || (!binding.function && !binding.paramFunc))
 			continue;
 
 		Script* script = binding.component->getScript();
 		if (!script)
 			continue;
 
-		binding.function(script);
+		switch (binding.paramType)
+		{
+		case ScriptMethodParamType::None:
+			if (binding.function)
+			{
+				binding.function(script);
+			}
+			break;
+		case ScriptMethodParamType::Float:
+			if (binding.paramFunc)
+			{
+				binding.paramFunc(script, &binding.paramFloat);
+			}
+			break;
+		case ScriptMethodParamType::Int:
+			if (binding.paramFunc)
+			{
+				binding.paramFunc(script, &binding.paramInt);
+			}
+			break;
+		case ScriptMethodParamType::Bool:
+			if (binding.paramFunc)
+			{
+				binding.paramFunc(script, &binding.paramBool);
+			}
+			break;
+		case ScriptMethodParamType::Vec3:
+			if (binding.paramFunc)
+			{
+				binding.paramFunc(script, &binding.paramVec3);
+			}
+			break;
+		case ScriptMethodParamType::String:
+			if (binding.paramFunc)
+			{
+				binding.paramFunc(script, &binding.paramString);
+			}
+			break;
+		case ScriptMethodParamType::Unsupported:
+			break;
+		}
 	}
 }
 #pragma endregion
@@ -110,6 +222,50 @@ void UIButton::drawUi()
 	}
 
 	ImGui::Text("Target Graphic: %s", m_targetGraphic ? "Assigned" : "None");
+	if (m_targetGraphic)
+	{
+		ImGui::SeparatorText("Button Textures");
+
+		ImGui::Button("Hover Texture");
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+			{
+				const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+				m_hoverTextureAssetId = data ? *data : INVALID_ASSET_ID;
+				applyCurrentStateTexture();
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", m_hoverTextureAssetId != INVALID_ASSET_ID ? "Assigned" : "Default");
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##HoverTexture"))
+		{
+			m_hoverTextureAssetId = INVALID_ASSET_ID;
+			applyCurrentStateTexture();
+		}
+
+		ImGui::Button("Pressed Texture");
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+			{
+				const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+				m_pressedTextureAssetId = data ? *data : INVALID_ASSET_ID;
+				applyCurrentStateTexture();
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", m_pressedTextureAssetId != INVALID_ASSET_ID ? "Assigned" : "Default");
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##PressedTexture"))
+		{
+			m_pressedTextureAssetId = INVALID_ASSET_ID;
+			applyCurrentStateTexture();
+		}
+	}
 
 	ImGui::Separator();
 
@@ -120,9 +276,11 @@ void UIButton::drawUi()
 
 void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>& bindings)
 {
-	ImGui::Separator();
-	ImGui::Text("%s Events", label);
-
+	std::string headerLabel = std::format("{} Events", label);
+	if (!ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		return;
+	}
 	std::string addLabel = std::format("Add {}###Add{}", label, label);
 	if (ImGui::Button(addLabel.c_str()))
 	{
@@ -130,91 +288,174 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 	}
 
 	ImGui::PushID(label);
+	
+	ImGui::BeginGroup();
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 6));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4(ImGuiCol_Border));
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+
+	ImGui::BeginGroup();
+	const ImVec2 groupPadding(4.0f, 4.0f);
+	ImGui::Dummy(ImVec2(groupPadding.x, groupPadding.y));
+	ImGui::SameLine(0.0f, 0.0f);
+	ImGui::BeginGroup();
 
 	for (int i = 0; i < bindings.size(); ++i)
 	{
 		auto& binding = bindings[i];
 
 		ImGui::PushID(i);
-		ImGui::Separator();
 
-		//ImGui::Text("Element %d", i);
-
-		std::string removeLabel = std::format("Remove###Remove{}_{}", label, i);
-		if (ImGui::Button(removeLabel.c_str()))
+		if (ImGui::BeginTable("BindingTable", 2, ImGuiTableFlags_SizingStretchProp))
 		{
-			bindings.erase(bindings.begin() + i);
-			ImGui::PopID();
-			break;
-		}
+			ImGui::TableSetupColumn("Binding", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Remove", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
 
-		ImGui::Text("Script:");
-		std::string scriptLabel;
-		if (binding.component)
-		{
-			scriptLabel = std::format("{} ({})###Script{}_{}", binding.component->getOwner()->GetName(), binding.component->getScriptName(), label, i);
-		}
-		else
-		{
-			scriptLabel = std::format("Drop Script###Script{}_{}", label, i);
-		}
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-
-		ImGui::Button(scriptLabel.c_str());
-
-		ImGui::PopStyleColor(3);
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+			ImGui::Text("Script:");
+			std::string scriptLabel;
+			if (binding.component)
 			{
-				Component* comp = *(Component**)payload->Data;
-
-				if (comp && comp->getType() == ComponentType::SCRIPT)
-				{
-					binding.component = static_cast<ScriptComponent*>(comp);
-					binding.componentUid = comp->getID();
-					binding.gameObjectUid = comp->getOwner()->GetID();
-				}
+				scriptLabel = std::format("{} ({})###Script{}_{}", binding.component->getOwner()->GetName(), binding.component->getScriptName(), label, i);
 			}
-			ImGui::EndDragDropTarget();
-		}
-
-
-		if (binding.component)
-		{
-			Script* script = binding.component->getScript();
-
-			if (script)
+			else
 			{
-				ScriptMethodList methods = script->getExposedMethods();
-				const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
-				std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+				scriptLabel = std::format("Drop Script###Script{}_{}", label, i);
+			}
 
-				if (ImGui::BeginCombo(comboLabel.c_str(), preview))
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+
+			ImGui::Button(scriptLabel.c_str());
+
+			ImGui::PopStyleColor(3);
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
 				{
-					for (size_t j = 0; j < methods.count; ++j)
+					Component* comp = *(Component**)payload->Data;
+
+					if (comp && comp->getType() == ComponentType::SCRIPT)
 					{
-						const auto& method = methods.methods[j];
-						bool selected = (binding.methodName == method.name);
-
-						if (ImGui::Selectable(method.name, selected))
-						{
-							binding.methodName = method.name;
-							binding.function = method.func;
-						}
-
-						if (selected)
-						{
-							ImGui::SetItemDefaultFocus();
-						}
+						binding.component = static_cast<ScriptComponent*>(comp);
+						binding.componentUid = comp->getID();
+						binding.gameObjectUid = comp->getOwner()->GetID();
 					}
-					ImGui::EndCombo();
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (binding.component)
+			{
+				Script* script = binding.component->getScript();
+
+				if (script)
+				{
+					ScriptMethodList methods = script->getExposedMethods();
+				const ScriptMethodInfo* selectedMethod = nullptr;
+				for (size_t j = 0; j < methods.count; ++j)
+				{
+					if (binding.methodName == methods.methods[j].name)
+					{
+						selectedMethod = &methods.methods[j];
+						break;
+					}
+				}
+					const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
+					std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+					if (ImGui::BeginCombo(comboLabel.c_str(), preview))
+					{
+						for (size_t j = 0; j < methods.count; ++j)
+						{
+							const auto& method = methods.methods[j];
+						if (method.paramType == ScriptMethodParamType::Unsupported)
+						{
+							continue;
+						}
+							bool selected = (binding.methodName == method.name);
+							if (ImGui::Selectable(method.name, selected))
+							{
+							const ScriptMethodParamType previousType = binding.paramType;
+								binding.methodName = method.name;
+								binding.function = method.func;
+							binding.paramFunc = method.paramFunc;
+							binding.paramType = method.paramType;
+							binding.paramName = method.paramName ? method.paramName : "";
+							if (binding.paramType != previousType)
+							{
+								binding.paramFloat = 0.0f;
+								binding.paramInt = 0;
+								binding.paramBool = false;
+								binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+								binding.paramString.clear();
+							}
+							selectedMethod = &method;
+							}
+
+							if (selected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
+
+				if (selectedMethod)
+				{
+					const char* paramLabel = binding.paramName.empty() ? "Parameter" : binding.paramName.c_str();
+					switch (binding.paramType)
+					{
+					case ScriptMethodParamType::None:
+						break;
+					case ScriptMethodParamType::Float:
+						ImGui::DragFloat(paramLabel, &binding.paramFloat, 0.1f);
+						break;
+					case ScriptMethodParamType::Int:
+						ImGui::DragInt(paramLabel, &binding.paramInt);
+						break;
+					case ScriptMethodParamType::Bool:
+						ImGui::Checkbox(paramLabel, &binding.paramBool);
+						break;
+					case ScriptMethodParamType::Vec3:
+						ImGui::DragFloat3(paramLabel, &binding.paramVec3.x, 0.1f);
+						break;
+					case ScriptMethodParamType::String:
+					{
+						char buffer[256];
+						std::strncpy(buffer, binding.paramString.c_str(), sizeof(buffer));
+						buffer[sizeof(buffer) - 1] = '\0';
+						if (ImGui::InputText(paramLabel, buffer, sizeof(buffer)))
+						{
+							binding.paramString = buffer;
+						}
+						break;
+					}
+					case ScriptMethodParamType::Unsupported:
+						ImGui::TextDisabled("Parameters not supported");
+						break;
+					}
+				}
 				}
 			}
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.75f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+			std::string removeLabel = std::format("X###Remove{}_{}", label, i);
+			if (ImGui::SmallButton(removeLabel.c_str()))
+			{
+				bindings.erase(bindings.begin() + i);
+				ImGui::PopStyleColor(3);
+				ImGui::EndTable();
+				ImGui::PopID();
+				break;
+			}
+			ImGui::PopStyleColor(3);
+			ImGui::EndTable();
 		}
 
 #pragma endregion
@@ -223,6 +464,17 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 	}
 
 	ImGui::PopID();
+	ImGui::EndGroup();
+	ImGui::Dummy(ImVec2(groupPadding.x, groupPadding.y));
+	ImGui::EndGroup();
+
+	ImGui::PopStyleColor(2);
+	ImGui::PopStyleVar();
+
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	ImGui::GetWindowDrawList()->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border));
+	ImGui::EndGroup();
 }
 
 #pragma endregion
@@ -237,6 +489,34 @@ void UIButton::SerializeBindings(const std::vector<UIButton::ButtonEventBinding>
 		obj.AddMember("GameObjectUID", (uint64_t)b.gameObjectUid, doc.GetAllocator());
 		obj.AddMember("ComponentUID", (uint64_t)b.componentUid, doc.GetAllocator());
 		obj.AddMember("Method", rapidjson::Value(b.methodName.c_str(), doc.GetAllocator()), doc.GetAllocator());
+		obj.AddMember("ParamType", static_cast<int>(b.paramType), doc.GetAllocator());
+		switch (b.paramType)
+		{
+		case ScriptMethodParamType::Float:
+			obj.AddMember("ParamValue", b.paramFloat, doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::Int:
+			obj.AddMember("ParamValue", b.paramInt, doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::Bool:
+			obj.AddMember("ParamValue", b.paramBool, doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::Vec3:
+		{
+			rapidjson::Value array(rapidjson::kArrayType);
+			array.PushBack(b.paramVec3.x, doc.GetAllocator());
+			array.PushBack(b.paramVec3.y, doc.GetAllocator());
+			array.PushBack(b.paramVec3.z, doc.GetAllocator());
+			obj.AddMember("ParamValue", array, doc.GetAllocator());
+			break;
+		}
+		case ScriptMethodParamType::String:
+			obj.AddMember("ParamValue", rapidjson::Value(b.paramString.c_str(), doc.GetAllocator()), doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::None:
+		case ScriptMethodParamType::Unsupported:
+			break;
+		}
 
 		array.PushBack(obj, doc.GetAllocator());
 	}
@@ -250,6 +530,9 @@ rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
 	json.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
 	json.AddMember("Active", isActive(), domTree.GetAllocator());
 	json.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
+	json.AddMember("DefaultTextureAssetId", rapidjson::Value(m_defaultTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("HoverTextureAssetId", rapidjson::Value(m_hoverTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("PressedTextureAssetId", rapidjson::Value(m_pressedTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
 	rapidjson::Value hoverArray(rapidjson::kArrayType);
 	rapidjson::Value pressArray(rapidjson::kArrayType);
@@ -277,6 +560,48 @@ void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UI
 		b.gameObjectUid = (UID)v["GameObjectUID"].GetUint64();
 		b.componentUid = (UID)v["ComponentUID"].GetUint64();
 		b.methodName = v["Method"].GetString();
+		b.paramType = ScriptMethodParamType::None;
+		b.paramFloat = 0.0f;
+		b.paramInt = 0;
+		b.paramBool = false;
+		b.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+		b.paramString.clear();
+		if (v.HasMember("ParamType") && v["ParamType"].IsInt())
+		{
+			b.paramType = static_cast<ScriptMethodParamType>(v["ParamType"].GetInt());
+		}
+		if (v.HasMember("ParamValue"))
+		{
+			const auto& paramValue = v["ParamValue"];
+			switch (b.paramType)
+			{
+			case ScriptMethodParamType::Float:
+				if (paramValue.IsNumber())
+					b.paramFloat = paramValue.GetFloat();
+				break;
+			case ScriptMethodParamType::Int:
+				if (paramValue.IsInt())
+					b.paramInt = paramValue.GetInt();
+				break;
+			case ScriptMethodParamType::Bool:
+				if (paramValue.IsBool())
+					b.paramBool = paramValue.GetBool();
+				break;
+			case ScriptMethodParamType::Vec3:
+				if (paramValue.IsArray() && paramValue.Size() == 3)
+				{
+					b.paramVec3 = Vector3(paramValue[0].GetFloat(), paramValue[1].GetFloat(), paramValue[2].GetFloat());
+				}
+				break;
+			case ScriptMethodParamType::String:
+				if (paramValue.IsString())
+					b.paramString = paramValue.GetString();
+				break;
+			case ScriptMethodParamType::None:
+			case ScriptMethodParamType::Unsupported:
+				break;
+			}
+		}
 
 		outBindings.push_back(b);
 	}
@@ -287,6 +612,33 @@ bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
 	if (componentInfo.HasMember("TargetGraphicUID"))
 	{
 		m_targetGraphicUid = (UID)componentInfo["TargetGraphicUID"].GetUint64();
+	}
+
+	if (componentInfo.HasMember("DefaultTextureAssetId"))
+	{
+		m_defaultTextureAssetId = componentInfo["DefaultTextureAssetId"].GetString();
+	}
+	else
+	{
+		m_defaultTextureAssetId = INVALID_ASSET_ID;
+	}
+
+	if (componentInfo.HasMember("HoverTextureAssetId"))
+	{
+		m_hoverTextureAssetId = componentInfo["HoverTextureAssetId"].GetString();
+	}
+	else
+	{
+		m_hoverTextureAssetId = INVALID_ASSET_ID;
+	}
+
+	if (componentInfo.HasMember("PressedTextureAssetId"))
+	{
+		m_pressedTextureAssetId = componentInfo["PressedTextureAssetId"].GetString();
+	}
+	else
+	{
+		m_pressedTextureAssetId = INVALID_ASSET_ID;
 	}
 
 	m_targetGraphic = nullptr;
@@ -313,6 +665,9 @@ void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneRefere
 {
 	b.component = nullptr;
 	b.function = nullptr;
+	b.paramFunc = nullptr;
+	b.paramType = ScriptMethodParamType::None;
+	b.paramName.clear();
 
 	if (b.componentUid == 0)
 		return;
@@ -334,7 +689,11 @@ void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneRefere
 	{
 		if (b.methodName == methods.methods[i].name)
 		{
-			b.function = methods.methods[i].func;
+			const ScriptMethodInfo& method = methods.methods[i];
+			b.function = method.func;
+			b.paramFunc = method.paramFunc;
+			b.paramType = method.paramType;
+			b.paramName = method.paramName ? method.paramName : "";
 			break;
 		}
 	}
@@ -345,6 +704,15 @@ void UIButton::fixReferences(const SceneReferenceResolver& resolver)
 	if (m_targetGraphicUid != 0)
 	{
 		m_targetGraphic = static_cast<UIImage*>(resolver.getClonedComponent(m_targetGraphicUid));
+	}
+
+	if (m_targetGraphic)
+	{
+		if (m_defaultTextureAssetId == INVALID_ASSET_ID)
+		{
+			m_defaultTextureAssetId = m_targetGraphic->getTextureAssetId();
+		}
+		applyCurrentStateTexture();
 	}
 
 	for (auto& b : m_bindingsOnHover)

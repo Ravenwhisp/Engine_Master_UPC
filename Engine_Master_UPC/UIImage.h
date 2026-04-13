@@ -19,6 +19,8 @@ public:
     class Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
+    void setTextureAssetId(const MD5Hash& assetId);
+
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
     MD5Hash getTextureAssetId() const { return m_textureAssetId; }
 

@@ -10,6 +10,23 @@ UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAG
 {
 }
 
+void UIImage::setTextureAssetId(const MD5Hash& assetId)
+{
+    m_textureAssetId = assetId;
+    m_texture = nullptr;
+    m_textureAsset.reset();
+    m_loadRequested = false;
+
+    if (m_textureAssetId != INVALID_ASSET_ID)
+    {
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+        if (m_textureAsset)
+        {
+            m_loadRequested = true;
+        }
+    }
+}
+
 std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
 {
     std::unique_ptr<UIImage> cloned = std::make_unique<UIImage>(m_uuid, newOwner);

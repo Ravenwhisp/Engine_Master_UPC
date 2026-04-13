@@ -61,6 +61,9 @@ public:
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const;
 
     void debugDraw() override;
+
+    IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
+
 private:
     NavMeshSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;

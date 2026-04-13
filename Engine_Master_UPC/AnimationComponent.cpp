@@ -11,8 +11,14 @@
 #include "AnimationStateMachineAsset.h"
 #include "GameObject.h"
 #include "Transform.h"
+#include "StateMachineScript.h"
+#include "ScriptFactory.h"
+#include "Script.h"
 
 #include <imgui.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #include <cstring>
 #include <algorithm>
 
@@ -48,6 +54,8 @@ AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     , m_stateMachineUIDInput(m_stateMachineUID)
 {
 }
+
+AnimationComponent::~AnimationComponent() = default;
 
 std::unique_ptr<Component> AnimationComponent::clone(GameObject* newOwner) const
 {
@@ -104,7 +112,7 @@ void AnimationComponent::update()
     if (m_activeStateName.empty())
         return;
 
-    
+    dispatchStateUpdate();
 
     const float deltaTimeSeconds = moduleTime->deltaTime();
     m_controller.Update(deltaTimeSeconds);
@@ -185,17 +193,26 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
         m_currentTransitionTime = 0.0f;
     }
 
+    const std::string previousStateName = m_activeStateName;
+    const bool stateChanged = (previousStateName != state->name);
+
     m_currentAnimationAsset = animation;
     m_activeStateName = state->name;
 
     m_controller.Stop();
     m_controller.SetAnimation(m_currentAnimationAsset);
-    m_controller.SetLoop(clip->loop);
+    m_controller.SetLoop(resolveLoopForState(*state, *clip));
     applyActiveStatePlaybackSpeed();
 
     if (autoPlay)
     {
-        m_controller.Play(clip->loop);
+        m_controller.Play(resolveLoopForState(*state, *clip));
+    }
+
+    if (stateChanged)
+    {
+        dispatchStateExit(previousStateName);
+        dispatchStateEnter(m_activeStateName);
     }
 
     return true;
@@ -553,10 +570,10 @@ void AnimationComponent::drawStatesUi()
 
         if (ImGui::TreeNode("State", "State %zu", i))
         {
-            if (InputTextString("Name", state.name))
-            {
-                m_stateMachineDirty = true;
-            }
+            ImGui::BeginDisabled();
+            InputTextString("Name", state.name);
+            ImGui::EndDisabled();
+            ImGui::TextDisabled("Rename states from the graph editor to keep transitions/default state in sync.");
 
             std::string oldClipName = state.clipName;
             drawClipCombo("Clip", state.clipName);
@@ -565,9 +582,42 @@ void AnimationComponent::drawStatesUi()
                 m_stateMachineDirty = true;
             }
 
-            if (ImGui::DragFloat("Speed", &state.speed, 0.05f, 0.0f, 10.0f))
+            if (ImGui::DragFloat("Anim. speed", &state.speed, 0.05f, 0.0f, 10.0f))
             {
                 m_stateMachineDirty = true;
+            }
+
+            const std::string oldBehaviourScriptName = state.behaviourScriptName;
+            if (InputTextString("Behaviour Script", state.behaviourScriptName))
+            {
+                if (state.behaviourScriptName != oldBehaviourScriptName)
+                {
+                    invalidateStateBehaviour(state.name);
+                    state.behaviourFieldsJson.clear();
+                }
+
+                m_stateMachineDirty = true;
+            }
+
+            drawStateBehaviourFieldsUi(state);
+
+            if (ImGui::Checkbox("Override Loop", &state.overrideLoop))
+            {
+                m_stateMachineDirty = true;
+            }
+
+            if (state.overrideLoop)
+            {
+                if (ImGui::Checkbox("Loop", &state.loop))
+                {
+                    m_stateMachineDirty = true;
+                }
+            }
+            else
+            {
+                const AnimationStateMachineClip* assignedClip = findClipByName(state.clipName);
+                const bool effectiveLoop = assignedClip ? assignedClip->loop : true;
+                ImGui::Text("Effective Loop From Clip: %s", effectiveLoop ? "Yes" : "No");
             }
 
             const bool isDefault = (defaultState == state.name);
@@ -590,6 +640,7 @@ void AnimationComponent::drawStatesUi()
 
             if (ImGui::Button("Delete State"))
             {
+                invalidateAllStateBehaviours();
                 states.erase(states.begin() + static_cast<std::ptrdiff_t>(i));
                 ImGui::TreePop();
                 ImGui::PopID();
@@ -610,6 +661,10 @@ void AnimationComponent::drawStatesUi()
         state.name = "NewState";
         state.clipName.clear();
         state.speed = 1.0f;
+        state.behaviourScriptName.clear();
+        state.behaviourFieldsJson.clear();
+        state.overrideLoop = false;
+        state.loop = true;
         states.push_back(std::move(state));
         sanitizeStateMachineAfterEdit();
         m_stateMachineDirty = true;
@@ -688,6 +743,129 @@ void AnimationComponent::drawTransitionsUi()
         transitions.push_back(std::move(transition));
         sanitizeStateMachineAfterEdit();
         m_stateMachineDirty = true;
+    }
+}
+void AnimationComponent::drawStateBehaviourFieldsUi(AnimationStateMachineState& state)
+{
+    if (state.behaviourScriptName.empty())
+    {
+        ImGui::TextDisabled("Behaviour Fields: no script assigned");
+        return;
+    }
+
+    StateMachineScript* behaviour = createStateBehaviourIfNeeded(state);
+    if (!behaviour)
+    {
+        ImGui::TextDisabled("Behaviour Fields: could not create script '%s'", state.behaviourScriptName.c_str());
+        return;
+    }
+
+    ImGui::SeparatorText("Behaviour Fields");
+    drawScriptFieldsUi(*behaviour);
+    state.behaviourFieldsJson = serializeScriptFields(*behaviour);
+}
+
+void AnimationComponent::drawScriptFieldsUi(Script& script)
+{
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        void* data = base + field.offset;
+        bool changed = false;
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+        {
+            float* value = reinterpret_cast<float*>(data);
+            changed = ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max);
+            break;
+        }
+
+        case ScriptFieldType::Int:
+        {
+            int* value = reinterpret_cast<int*>(data);
+            changed = ImGui::DragInt(field.name, value);
+            break;
+        }
+
+        case ScriptFieldType::Bool:
+        {
+            bool* value = reinterpret_cast<bool*>(data);
+            changed = ImGui::Checkbox(field.name, value);
+            break;
+        }
+
+        case ScriptFieldType::Vec3:
+        {
+            Vector3* value = reinterpret_cast<Vector3*>(data);
+            changed = ImGui::DragFloat3(field.name, &value->x, 0.1f);
+            break;
+        }
+
+        case ScriptFieldType::EnumInt:
+        {
+            int* value = reinterpret_cast<int*>(data);
+
+            const char* preview = "";
+            if (*value >= 0 && *value < field.enumInfo.count)
+            {
+                preview = field.enumInfo.names[*value];
+            }
+
+            if (ImGui::BeginCombo(field.name, preview))
+            {
+                for (int enumIndex = 0; enumIndex < field.enumInfo.count; ++enumIndex)
+                {
+                    bool selected = (*value == enumIndex);
+                    if (ImGui::Selectable(field.enumInfo.names[enumIndex], selected))
+                    {
+                        *value = enumIndex;
+                        changed = true;
+                    }
+
+                    if (selected)
+                    {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+
+                ImGui::EndCombo();
+            }
+            break;
+        }
+
+        case ScriptFieldType::String:
+        {
+            std::string* value = reinterpret_cast<std::string*>(data);
+
+            char buffer[256];
+            std::strncpy(buffer, value->c_str(), sizeof(buffer));
+            buffer[sizeof(buffer) - 1] = '\0';
+
+            if (ImGui::InputText(field.name, buffer, sizeof(buffer)))
+            {
+                *value = buffer;
+                changed = true;
+            }
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+        {
+            ImGui::TextDisabled("%s: ComponentRef not supported yet in state behaviour inspector", field.name);
+            break;
+        }
+        }
+
+        if (changed)
+        {
+            script.onFieldEdited(field);
+            m_stateMachineDirty = true;
+        }
     }
 }
 void AnimationComponent::debugDrawRecursive(GameObject* go)
@@ -1143,7 +1321,7 @@ void AnimationComponent::resetRuntime()
     m_currentTransitionTime = 0.0f;
     m_runtimeSpeedMultiplier = 1.0f;
     m_previousPlayback.reset();
-
+    m_stateBehaviours.clear();
     m_hasStartedPlayback = false;
 }
 
@@ -1161,6 +1339,294 @@ bool AnimationComponent::saveStateMachineAsset()
 
     m_stateMachineDirty = false;
     return true;
+}
+
+StateMachineScript* AnimationComponent::getStateBehaviour(const std::string& stateName)
+{
+    auto it = m_stateBehaviours.find(stateName);
+    if (it == m_stateBehaviours.end())
+    {
+        return nullptr;
+    }
+
+    return it->second.get();
+}
+
+const StateMachineScript* AnimationComponent::getStateBehaviour(const std::string& stateName) const
+{
+    auto it = m_stateBehaviours.find(stateName);
+    if (it == m_stateBehaviours.end())
+    {
+        return nullptr;
+    }
+
+    return it->second.get();
+}
+
+StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const AnimationStateMachineState& state)
+{
+    if (state.behaviourScriptName.empty())
+    {
+        return nullptr;
+    }
+
+    if (StateMachineScript* existing = getStateBehaviour(state.name))
+    {
+        return existing;
+    }
+
+    std::unique_ptr<Script> newScript = ScriptFactory::createScript(state.behaviourScriptName, getOwner());
+    if (!newScript)
+    {
+        DEBUG_WARN("[AnimationComponent] Could not create StateMachineScript '%s' for state '%s'.",
+            state.behaviourScriptName.c_str(),
+            state.name.c_str());
+        return nullptr;
+    }
+
+    StateMachineScript* behaviour = dynamic_cast<StateMachineScript*>(newScript.get());
+    if (!behaviour)
+    {
+        DEBUG_WARN("[AnimationComponent] Script '%s' for state '%s' is not a StateMachineScript.",
+            state.behaviourScriptName.c_str(),
+            state.name.c_str());
+        return nullptr;
+    }
+
+    m_stateBehaviours[state.name] = std::unique_ptr<StateMachineScript>(behaviour);
+    newScript.release();
+
+    if (!state.behaviourFieldsJson.empty())
+    {
+        deserializeScriptFields(*behaviour, state.behaviourFieldsJson);
+    }
+
+    return behaviour;
+}
+
+void AnimationComponent::dispatchStateEnter(const std::string& stateName)
+{
+    if (stateName.empty())
+    {
+        return;
+    }
+
+    const AnimationStateMachineState* state = findStateByName(stateName);
+    if (!state)
+    {
+        return;
+    }
+
+    StateMachineScript* behaviour = createStateBehaviourIfNeeded(*state);
+    if (!behaviour)
+    {
+        return;
+    }
+
+    behaviour->OnStateEnter();
+}
+
+void AnimationComponent::dispatchStateUpdate()
+{
+    if (m_activeStateName.empty())
+    {
+        return;
+    }
+
+    const AnimationStateMachineState* state = findStateByName(m_activeStateName);
+    if (!state)
+    {
+        return;
+    }
+
+    StateMachineScript* behaviour = createStateBehaviourIfNeeded(*state);
+    if (!behaviour)
+    {
+        return;
+    }
+
+    behaviour->OnStateUpdate();
+}
+
+void AnimationComponent::dispatchStateExit(const std::string& stateName)
+{
+    if (stateName.empty())
+    {
+        return;
+    }
+
+    StateMachineScript* behaviour = getStateBehaviour(stateName);
+    if (!behaviour)
+    {
+        return;
+    }
+
+    behaviour->OnStateExit();
+}
+
+void AnimationComponent::invalidateStateBehaviour(const std::string& stateName)
+{
+    if (stateName.empty())
+    {
+        return;
+    }
+
+    m_stateBehaviours.erase(stateName);
+}
+
+void AnimationComponent::invalidateAllStateBehaviours()
+{
+    m_stateBehaviours.clear();
+}
+
+std::string AnimationComponent::serializeScriptFields(const Script& script) const
+{
+    rapidjson::Document document;
+    document.SetObject();
+    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+
+    ScriptFieldList fieldList = script.getExposedFields();
+    const char* base = reinterpret_cast<const char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        const void* data = base + field.offset;
+
+        rapidjson::Value key(field.name, allocator);
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            document.AddMember(key, *reinterpret_cast<const float*>(data), allocator);
+            break;
+
+        case ScriptFieldType::Int:
+        case ScriptFieldType::EnumInt:
+            document.AddMember(key, *reinterpret_cast<const int*>(data), allocator);
+            break;
+
+        case ScriptFieldType::Bool:
+            document.AddMember(key, *reinterpret_cast<const bool*>(data), allocator);
+            break;
+
+        case ScriptFieldType::Vec3:
+        {
+            const Vector3* value = reinterpret_cast<const Vector3*>(data);
+            rapidjson::Value array(rapidjson::kArrayType);
+            array.PushBack(value->x, allocator);
+            array.PushBack(value->y, allocator);
+            array.PushBack(value->z, allocator);
+            document.AddMember(key, array, allocator);
+            break;
+        }
+
+        case ScriptFieldType::String:
+        {
+            const std::string* value = reinterpret_cast<const std::string*>(data);
+            document.AddMember(key, rapidjson::Value(value->c_str(), allocator), allocator);
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+            break;
+        }
+    }
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    document.Accept(writer);
+
+    return buffer.GetString();
+}
+
+void AnimationComponent::deserializeScriptFields(Script& script, const std::string& fieldsJson)
+{
+    if (fieldsJson.empty())
+    {
+        return;
+    }
+
+    rapidjson::Document document;
+    document.Parse(fieldsJson.c_str());
+
+    if (!document.IsObject())
+    {
+        return;
+    }
+
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+
+        if (!document.HasMember(field.name))
+        {
+            continue;
+        }
+
+        void* data = base + field.offset;
+        const rapidjson::Value& valueJson = document[field.name];
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            if (valueJson.IsNumber())
+            {
+                *reinterpret_cast<float*>(data) = valueJson.GetFloat();
+            }
+            break;
+
+        case ScriptFieldType::Int:
+        case ScriptFieldType::EnumInt:
+            if (valueJson.IsInt())
+            {
+                *reinterpret_cast<int*>(data) = valueJson.GetInt();
+            }
+            break;
+
+        case ScriptFieldType::Bool:
+            if (valueJson.IsBool())
+            {
+                *reinterpret_cast<bool*>(data) = valueJson.GetBool();
+            }
+            break;
+
+        case ScriptFieldType::Vec3:
+            if (valueJson.IsArray() && valueJson.Size() == 3)
+            {
+                Vector3* vector = reinterpret_cast<Vector3*>(data);
+                vector->x = valueJson[0].GetFloat();
+                vector->y = valueJson[1].GetFloat();
+                vector->z = valueJson[2].GetFloat();
+            }
+            break;
+
+        case ScriptFieldType::String:
+            if (valueJson.IsString())
+            {
+                *reinterpret_cast<std::string*>(data) = valueJson.GetString();
+            }
+            break;
+
+        case ScriptFieldType::ComponentRef:
+            break;
+        }
+    }
+
+    script.onAfterDeserialize();
+}
+
+bool AnimationComponent::resolveLoopForState(const AnimationStateMachineState& state, const AnimationStateMachineClip& clip) const
+{
+    if (state.overrideLoop)
+    {
+        return state.loop;
+    }
+
+    return clip.loop;
 }
 
 const AnimationStateMachineClip* AnimationComponent::findClipByName(const std::string& clipName) const
