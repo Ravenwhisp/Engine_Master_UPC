@@ -7,11 +7,16 @@
 #include <string>
 
 #include "Delegates.h"
+#include "ScriptMethodInfo.h"
+#include "SimpleMath.h"
+#include "MD5.h"
+
+using Vector3 = DirectX::SimpleMath::Vector3;
 
 class UIImage;
 class ScriptComponent;
 class Script;
-class PointerEventData;
+struct PointerEventData;
 class SceneReferenceResolver;
 
 class UIButton : public Component, public IPointerEventHandler
@@ -28,6 +33,14 @@ private:
 
 		using MethodPtr = void(*)(Script*);
 		MethodPtr function = nullptr;
+		ScriptMethodParamFunc paramFunc = nullptr;
+		ScriptMethodParamType paramType = ScriptMethodParamType::None;
+		std::string paramName;
+		float paramFloat = 0.0f;
+		int paramInt = 0;
+		bool paramBool = false;
+		Vector3 paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+		std::string paramString;
 	};
 
 public:
@@ -68,12 +81,19 @@ public:
 #pragma endregion
 
 private:
+	void applyTargetTexture(const MD5Hash& assetId);
+	void applyCurrentStateTexture();
+	MD5Hash getDefaultTextureAssetId() const;
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;
 	UID m_targetGraphicUid = 0;
+	MD5Hash m_defaultTextureAssetId = INVALID_ASSET_ID;
+	MD5Hash m_hoverTextureAssetId = INVALID_ASSET_ID;
+	MD5Hash m_pressedTextureAssetId = INVALID_ASSET_ID;
 
 	bool m_isPressed = false;
+	bool m_isHovered = false;
 #pragma endregion
 
 #pragma region EventBindings
