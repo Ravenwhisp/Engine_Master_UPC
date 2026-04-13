@@ -138,25 +138,10 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
         params.mvp = buildImageMVP(command).Transpose();
 		const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
 
-        FillOrigin fillOrigin = command.fillOrigin;
-        if (command.renderMode == CanvasRenderMode::WORLD_SPACE || command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
-        {
-            if (command.fillMethod == FillMethod::Radial360)
-            {
-                fillOrigin = (fillOrigin == FillOrigin::Radial360Clockwise)
-                    ? FillOrigin::Radial360CounterClockwise
-                    : FillOrigin::Radial360Clockwise;
-            }
-            else if (command.fillMethod == FillMethod::Radial90 || command.fillMethod == FillMethod::Radial180)
-            {
-                fillOrigin = static_cast<FillOrigin>(static_cast<int>(fillOrigin) ^ 4);
-            }
-        }
-
         params.fillData = Vector4(
             command.fillAmount,
             static_cast<float>(command.fillMethod),
-            static_cast<float>(fillOrigin),
+            static_cast<float>(command.fillOrigin),
             aspectRatio);
 
         commandList->SetGraphicsRootConstantBufferView(

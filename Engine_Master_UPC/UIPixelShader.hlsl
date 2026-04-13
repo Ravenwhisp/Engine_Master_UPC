@@ -65,7 +65,7 @@ float4 main(PSInput input) : SV_TARGET
         {
             float edge = fillAmount;
             float softness = max(fwidth(input.texCoord.x) * 1.5f, 0.001f);
-            int o = (int)origin;
+            int o = (int)(origin + 0.5f);
             if (o == 0)
                 mask = smoothstep(edge + softness, edge - softness, input.texCoord.x);
             else
@@ -75,7 +75,7 @@ float4 main(PSInput input) : SV_TARGET
         {
             float edge = fillAmount;
             float softness = max(fwidth(input.texCoord.y) * 1.5f, 0.001f);
-            int o = (int)origin;
+            int o = (int)(origin + 0.5f);
             if (o == 0)
                 mask = smoothstep(edge + softness, edge - softness, 1.0f - input.texCoord.y);
             else
@@ -83,7 +83,7 @@ float4 main(PSInput input) : SV_TARGET
         }
         else if (method < (FILL_RADIAL90 + 0.5f))
         {
-            int o = (int)origin;
+            int o = (int)(origin + 0.5f);
             float clockwise = ((o & 4) == 0) ? 1.0f : 0.0f;
             o &= 3;
             float2 center = float2(0.0f, 1.0f);
@@ -100,7 +100,7 @@ float4 main(PSInput input) : SV_TARGET
         }
         else if (method < (FILL_RADIAL180 + 0.5f))
         {
-            int o = (int)origin;
+            int o = (int)(origin + 0.5f);
             float clockwise = ((o & 4) == 0) ? 1.0f : 0.0f;
             o &= 3;
             float2 center = float2(0.5f, 1.0f);
@@ -117,7 +117,7 @@ float4 main(PSInput input) : SV_TARGET
         }
         else
         {
-            int o = (int)origin;
+            int o = (int)(origin + 0.5f);
             float clockwise = (o == 0) ? 1.0f : 0.0f;
             mask = ComputeRadialMask(input.texCoord, fillAmount, clockwise, 1.0f, 0.0f, float2(0.5f, 0.5f), aspectRatio);
         }
