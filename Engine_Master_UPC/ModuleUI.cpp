@@ -48,13 +48,21 @@ void ModuleUI::preRender()
         if (!canvas || !canvas->isActive())
             continue;
 
-        Rect2D rootRect = m_rootScreenRect;
-        if (canvas->renderMode != CanvasRenderMode::SCREEN_SPACE)
-        {
-            rootRect = { 0.0f, 0.0f, 1.0f, 1.0f };
-        }
+		Rect2D rootRect = m_rootScreenRect;
+		if (canvas->renderMode != CanvasRenderMode::SCREEN_SPACE)
+		{
+			rootRect = { -0.5f, -0.5f, 1.0f, 1.0f };
+		}
 
-        buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix());
+		if (Transform2D* canvasTransform = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
+		{
+			if (canvasTransform->isActive())
+			{
+				rootRect = canvasTransform->getRect(rootRect);
+			}
+		}
+
+		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix());
     }
 }
 

@@ -56,7 +56,6 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
     psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
     psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
@@ -79,8 +78,8 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
-    const UIVertex quadVertices[6] =
-    {
+	const UIVertex quadVertices[6] =
+	{
         { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
         { Vector2(1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
         { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
@@ -88,7 +87,7 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
         { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
         { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
         { Vector2(0.0f, 1.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) }
-    };
+	};
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(UIVertex)));
 }
@@ -137,11 +136,27 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
-        const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
+		const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
+
+        FillOrigin fillOrigin = command.fillOrigin;
+        if (command.renderMode == CanvasRenderMode::WORLD_SPACE || command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
+        {
+            if (command.fillMethod == FillMethod::Radial360)
+            {
+                fillOrigin = (fillOrigin == FillOrigin::Radial360Clockwise)
+                    ? FillOrigin::Radial360CounterClockwise
+                    : FillOrigin::Radial360Clockwise;
+            }
+            else if (command.fillMethod == FillMethod::Radial90 || command.fillMethod == FillMethod::Radial180)
+            {
+                fillOrigin = static_cast<FillOrigin>(static_cast<int>(fillOrigin) ^ 4);
+            }
+        }
+
         params.fillData = Vector4(
             command.fillAmount,
             static_cast<float>(command.fillMethod),
-            static_cast<float>(command.fillOrigin),
+            static_cast<float>(fillOrigin),
             aspectRatio);
 
         commandList->SetGraphicsRootConstantBufferView(
@@ -162,27 +177,29 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
     const float w = command.rect.w;
     const float h = command.rect.h;
 
-    Matrix scale = Matrix::CreateScale(w, h, 1.0f);
-    Matrix translate = Matrix::CreateTranslation(x, y, 0.0f);
-    Matrix local = scale * translate;
+    Matrix local;
 
     if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
     {
+		Matrix scale = Matrix::CreateScale(w, h, 1.0f);
+		Matrix translate = Matrix::CreateTranslation(x, y, 0.0f);
+        local = scale * translate;
+
         const float viewportWidth = m_viewport->Width;
         const float viewportHeight = m_viewport->Height;
+		Matrix ortho = Matrix::CreateOrthographicOffCenter(0.0f, viewportWidth, viewportHeight, 0.0f, 0.0f, 1.0f);
 
-        Matrix pixelToNDC = Matrix::Identity;
-        pixelToNDC._11 = 2.0f / viewportWidth;
-        pixelToNDC._22 = -2.0f / viewportHeight;
-        pixelToNDC._41 = -1.0f;
-        pixelToNDC._42 = 1.0f;
-
-        return local * pixelToNDC;
+		return local * ortho;
     }
 
-    Matrix world = command.world;
-    Matrix normalFlip = Matrix::CreateScale(-0.01f, -0.01f, 1.0f);
-    world = normalFlip * world;
+    const float uiToWorld = 0.01f;
+
+	Matrix scale = Matrix::CreateScale(w * uiToWorld, -h * uiToWorld, uiToWorld);
+	Matrix translate = Matrix::CreateTranslation(- (x + w) * uiToWorld, (y + h) * uiToWorld, 0.0f);
+
+    local = scale * translate;
+
+	Matrix world = command.world;
 
     if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
     {
@@ -190,7 +207,12 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
         invView._41 = world._41;
         invView._42 = world._42;
         invView._43 = world._43;
-        world = invView;
+		world = invView;
+    }
+    else
+    {
+		Matrix rotate = Matrix::CreateRotationY(DirectX::XM_PI);
+		world = rotate * world;
     }
 
     return (local * world) * (*m_view) * (*m_projection);
