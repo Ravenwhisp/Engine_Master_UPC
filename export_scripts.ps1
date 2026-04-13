@@ -27,3 +27,4 @@ cp .\Engine_Master_UPC\IDebugDrawable.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\KeyCode.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ScriptMethodInfo.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ScriptMethodList.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\StateMachineScript.h .\export\EngineDependencies\
