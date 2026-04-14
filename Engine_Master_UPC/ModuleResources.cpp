@@ -146,7 +146,7 @@ Texture* ModuleResources::createNullTexture2D()
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace)
+Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
 {
 	TextureDesc desc{};
 	//DXGI_FORMAT baseFormat = textureAsset.getFormat();
@@ -165,7 +165,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	desc.mipLevels = static_cast<uint16_t>(textureAsset.getMipCount());
 	desc.views = TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
-	desc.shaderVisibleSRV = true;
+	desc.shaderVisibleSRV = shaderVisible;
 
 	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
@@ -582,7 +582,7 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	m_queue->flush();
 }
 
-std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace)
+std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
 {
 	const UID uid = hashToUID(textureAsset.getId() + (colorSpace == TextureColorSpace::SRGB ? "_srgb" : "_linear"));
 
@@ -592,7 +592,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	}
 
 
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace, shaderVisible));
 	m_resources.insert(uid, texture);
 	return texture;
 }
@@ -626,14 +626,14 @@ std::shared_ptr<Texture> ModuleResources::createEnvironment(const TextureAsset& 
 	return texture;
 }
 
-std::shared_ptr<Texture> ModuleResources::createTextureSRGB(const TextureAsset& textureAsset)
+std::shared_ptr<Texture> ModuleResources::createTextureSRGB(const TextureAsset& textureAsset, bool shaderVisible)
 {
-	return createTexture(textureAsset, TextureColorSpace::SRGB);
+	return createTexture(textureAsset, TextureColorSpace::SRGB, shaderVisible);
 }
 
-std::shared_ptr<Texture> ModuleResources::createTextureLinear(const TextureAsset& textureAsset)
+std::shared_ptr<Texture> ModuleResources::createTextureLinear(const TextureAsset& textureAsset, bool shaderVisible)
 {
-	return createTexture(textureAsset, TextureColorSpace::Linear);
+	return createTexture(textureAsset, TextureColorSpace::Linear, shaderVisible);
 }
 
 std::shared_ptr<Texture> ModuleResources::createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat)

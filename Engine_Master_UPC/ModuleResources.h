@@ -59,7 +59,7 @@ public:
 	Texture* createRenderTexture(float width, float height);
 	Texture* createNullTexture2D();
 
-	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
+	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
 	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 	Texture* createEnvironmentInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 
@@ -67,11 +67,11 @@ public:
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
-	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace);
+	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
-	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset);
-	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset);
+	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset, bool shaderVisible = false);
+	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);

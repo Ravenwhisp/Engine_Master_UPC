@@ -29,7 +29,7 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 	{
 		auto metallicRoughnessTexture = app->getModuleAssets()->load<TextureAsset>(asset.getMetallicRoughnessMap());
 
-		m_textureMetallicRoughness = app->getModuleResources()->createTextureSRGB(*metallicRoughnessTexture);
+		m_textureMetallicRoughness = app->getModuleResources()->createTextureLinear(*metallicRoughnessTexture);
 		m_materialData.hasMetallicRoughnessTex = true;
 	}
 	else
