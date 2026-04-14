@@ -10,6 +10,7 @@
 #include "Component.h"
 #include "Transform.h"
 #include "CameraComponent.h"
+#include "ScriptComponent.h"
 #include "ComponentFactory.h"
 
 #include <algorithm>
@@ -420,7 +421,23 @@ void GameObject::drawUI()
         const std::unique_ptr<Component>& component = m_components[i];
         ImGui::PushID(static_cast<int>(component->getID()));
 
-        std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
+        std::string header = std::string(ComponentTypeToString(component->getType())); // + " | UUID: " + std::to_string(component->getID());
+
+        if (component->getType() == ComponentType::SCRIPT)
+        {
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component.get());
+
+            if (scriptComponent->getScript())
+            {
+                const std::string& scriptName = scriptComponent->getScriptName();
+                header += " (" + scriptName + ")";
+
+            }
+            else
+            {
+                header += " (Not instantiated)";
+            }
+        }
 
         if (component->getType() == ComponentType::CAMERA)
         {
