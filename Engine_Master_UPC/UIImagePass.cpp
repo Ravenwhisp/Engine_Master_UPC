@@ -6,15 +6,14 @@
 
 #include "Application.h"
 #include "ModuleD3D12.h"
+#include <d3dcompiler.h>
+#include "PlatformHelpers.h"
 #include "ModuleDescriptors.h"
 #include "ModuleRender.h"
 #include "ModuleResources.h"
 
 #include "VertexBuffer.h"
 #include "Texture.h"
-
-#include <d3dcompiler.h>
-#include "PlatformHelpers.h"
 
 UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     : m_device(device)
@@ -79,8 +78,8 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
-    const UIVertex quadVertices[6] =
-    {
+	const UIVertex quadVertices[6] =
+	{
         { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
         { Vector2(1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
         { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
@@ -88,7 +87,7 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
         { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
         { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
         { Vector2(0.0f, 1.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) }
-    };
+	};
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(UIVertex)));
 }
@@ -97,6 +96,8 @@ void UIImagePass::prepare(const RenderContext& ctx)
 {
     m_viewport = &ctx.viewport;
     m_commands = ctx.uiImageCommands;
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
 }
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -135,6 +136,13 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
+		const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
+
+        params.fillData = Vector4(
+            command.fillAmount,
+            static_cast<float>(command.fillMethod),
+            static_cast<float>(command.fillOrigin),
+            aspectRatio);
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
@@ -149,22 +157,48 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
 Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
 {
-    const float viewportWidth = m_viewport->Width;
-    const float viewportHeight = m_viewport->Height;
-
     const float x = command.rect.x;
     const float y = command.rect.y;
     const float w = command.rect.w;
     const float h = command.rect.h;
 
-    Matrix scale = Matrix::CreateScale(w, h, 1.0f);
-    Matrix translate = Matrix::CreateTranslation(x, y, 0.0f);
+    Matrix local;
 
-    Matrix pixelToNDC = Matrix::Identity;
-    pixelToNDC._11 = 2.0f / viewportWidth;
-    pixelToNDC._22 = -2.0f / viewportHeight;
-    pixelToNDC._41 = -1.0f;
-    pixelToNDC._42 = 1.0f;
+    if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
+    {
+		Matrix scale = Matrix::CreateScale(w, h, 1.0f);
+		Matrix translate = Matrix::CreateTranslation(x, y, 0.0f);
+        local = scale * translate;
 
-    return scale * translate * pixelToNDC;
+        const float viewportWidth = m_viewport->Width;
+        const float viewportHeight = m_viewport->Height;
+		Matrix ortho = Matrix::CreateOrthographicOffCenter(0.0f, viewportWidth, viewportHeight, 0.0f, 0.0f, 1.0f);
+
+		return local * ortho;
+    }
+
+    const float uiToWorld = 0.01f;
+
+	Matrix scale = Matrix::CreateScale(w * uiToWorld, -h * uiToWorld, uiToWorld);
+	Matrix translate = Matrix::CreateTranslation(- (x + w) * uiToWorld, (y + h) * uiToWorld, 0.0f);
+
+    local = scale * translate;
+
+	Matrix world = command.world;
+
+    if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
+    {
+        Matrix invView = m_view->Invert();
+        invView._41 = world._41;
+        invView._42 = world._42;
+        invView._43 = world._43;
+		world = invView;
+    }
+    else
+    {
+		Matrix rotate = Matrix::CreateRotationY(DirectX::XM_PI);
+		world = rotate * world;
+    }
+
+    return (local * world) * (*m_view) * (*m_projection);
 }

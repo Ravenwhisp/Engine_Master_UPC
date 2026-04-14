@@ -20,6 +20,7 @@ class Transform;
 class Component;
 class Script;
 class AnimationComponent;
+class UISlider;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
@@ -203,6 +204,12 @@ namespace NavigationAPI
     ENGINE_API bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents);
     ENGINE_API float getPathLength(const Vector3* pathPoints, int pointCount);
     ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts);
+}
+
+namespace SliderAPI
+{
+    ENGINE_API float getFillAmount(const UISlider* slider);
+    ENGINE_API void setFillAmount(UISlider* slider, float amount);
 }
 
 namespace DebugDrawAPI

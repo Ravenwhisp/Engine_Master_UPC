@@ -18,6 +18,7 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 #include "AnimationComponent.h"
+#include "UISlider.h"
 
 #include "CameraComponent.h"
 
@@ -1638,6 +1639,29 @@ namespace NavigationAPI
         }
 
         return false;
+    }
+}
+
+namespace SliderAPI
+{
+    float getFillAmount(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return 0.0f;
+        }
+
+        return slider->getFillAmount();
+    }
+
+    void setFillAmount(UISlider* slider, float amount)
+    {
+        if (!slider)
+        {
+            return;
+        }
+
+        slider->setFillAmount(amount);
     }
 }
 

@@ -48,6 +48,9 @@
     <ClInclude Include="TransformGlobalTest.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="SliderTest.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="StateMachineTest.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -93,6 +96,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="TransformGlobalTest.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderTest.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="StateMachineTest.cpp">
