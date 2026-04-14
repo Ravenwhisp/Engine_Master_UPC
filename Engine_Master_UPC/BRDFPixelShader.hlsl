@@ -49,7 +49,7 @@ float3 ggxSample(float2 randomU, float alphaRoughness)
     return float3(cos(azimuth) * sinElevation, sin(azimuth) * sinElevation, cosElevation);
 }
 
-float4 EnvironmentBRDFPS(float2 uv : TEXCOORD) : SV_Target
+float4 main(float2 uv : TEXCOORD) : SV_Target
 {
     float NdotV = uv.x;
     float alphaRoughness = uv.y * uv.y;

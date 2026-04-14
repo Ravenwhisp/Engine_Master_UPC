@@ -27,6 +27,7 @@
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
+#include "StaticTexturesPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 
@@ -59,6 +60,13 @@ bool ModuleRender::init()
     auto* device = d3d12->getDevice();
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
+
+    // Build the one time render-passes.
+    auto staticTexturesPass = new StaticTexturesPass(device);
+    
+    staticTexturesPass->apply();
+
+    delete staticTexturesPass;
 
     // Build the ordered render-pass list.
     auto debugDrawPass = std::make_unique<DebugDrawPass>(  device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(),/*useMSAA=*/false);

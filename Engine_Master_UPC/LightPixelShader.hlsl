@@ -4,6 +4,7 @@ Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 
 TextureCube irradianceTexture : register(t8);
+Texture2D brdfTexture : register(t9);
 
 SamplerState liearSample : register(s0);
 

@@ -63,6 +63,9 @@ public:
 	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 	Texture* createEnvironmentInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 
+	Texture* getEnvironmentBrdfTexture() { return m_enviromentBrdfTexture.get(); }
+	void  setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture);
+
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
@@ -76,9 +79,12 @@ public:
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);
 
+
 private:
 	ComPtr<ID3D12Device4>				m_device;
 	CommandQueue* m_queue{ nullptr };
 	std::vector<DeferredResource>		m_deferredResources;
 	WeakCache<UID, ICacheable>			m_resources;
+
+	std::shared_ptr<Texture>			m_enviromentBrdfTexture;
 };

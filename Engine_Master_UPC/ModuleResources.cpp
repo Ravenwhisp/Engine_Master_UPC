@@ -39,7 +39,6 @@ ModuleResources::~ModuleResources()
 
 bool ModuleResources::init()
 {
-
 	return true;
 }
 
@@ -556,6 +555,11 @@ IndexBuffer* ModuleResources::createIndexBuffer(const void* data, size_t numIndi
 {
 	ComPtr<ID3D12Resource> defaultBuffer = createDefaultBuffer(data, numIndices * getSizeByFormat(indexFormat), name);
 	return new IndexBuffer(*m_device.Get(), defaultBuffer, numIndices, indexFormat);
+}
+
+void ModuleResources::setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture)
+{
+	m_enviromentBrdfTexture = texture;
 }
 
 void ModuleResources::deferResourceRelease(ComPtr<ID3D12Resource> resource)
