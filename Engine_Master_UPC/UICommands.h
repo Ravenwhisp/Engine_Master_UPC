@@ -1,8 +1,13 @@
 #pragma once
 #include <string>
 #include "UIRect.h"
+#include "UIFill.h"
+#include "CanvasRenderMode.h"
+#include "SimpleMath.h"
 
 class Texture;
+
+using Matrix = DirectX::SimpleMath::Matrix;
 
 struct UITextCommand
 {
@@ -17,4 +22,11 @@ struct UIImageCommand
 {
     Texture* texture = nullptr;
     Rect2D  rect;
+    
+    float fillAmount = 1.0f;
+    FillMethod fillMethod = FillMethod::Horizontal;
+    FillOrigin fillOrigin = FillOrigin::HorizontalLeft;
+
+    CanvasRenderMode renderMode = CanvasRenderMode::SCREEN_SPACE;
+    Matrix world = Matrix::Identity;
 };

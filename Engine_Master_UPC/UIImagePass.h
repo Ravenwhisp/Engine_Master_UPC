@@ -29,6 +29,8 @@ private:
 private:
     const D3D12_VIEWPORT* m_viewport = nullptr;
     const std::vector<UIImageCommand>* m_commands = nullptr;
+    const Matrix* m_view = nullptr;
+    const Matrix* m_projection = nullptr;
 
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
