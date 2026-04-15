@@ -264,6 +264,19 @@ float3 getSpecularAmbientLight(in float3 R, float NdotV, float roughness, in uin
     return radiance * (F0 * fab.x + fab.y);
 }
 
+// Compute the appropriate mip level based on solid angle probability
+float computeLod(float pdf, int numSamples, int width)
+{
+    // Probability of each sample - larger for less likely samples
+    float solidAngle = 1.0 / ((float) numSamples * pdf + 1e-6);
+
+     // Probability of each texel - smaller for larger cubemaps
+    float texelSolidAngle = 1.0 / (6.0 * width * width);
+
+    // Mip level calculation: 0.5*log2 = log4 since each mip level is 4x smaller
+    return max(0.5 * log2(solidAngle / texelSolidAngle), 0.0);
+}
+
 void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm) {
 
     // Sample prefiltered environment map at appropriate mip level
