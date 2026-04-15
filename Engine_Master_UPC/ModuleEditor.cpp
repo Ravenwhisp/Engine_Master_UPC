@@ -20,13 +20,13 @@
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
-#include "PrefabManager.h"
 #include "ModuleRender.h"
 #include "WindowAnimationStateMachine.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleGameView.h"
+#include "ModuleAssets.h"
 #include "Mouse.h"
 
 #include <fstream>
@@ -593,20 +593,10 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 {
     app->getModuleD3D12()->getCommandQueue()->flush();
 
-    if (m_prefabSession.m_active)
-    {
-        // Clean up any previous session's temporary root from the main scene.
-        if (m_prefabSession.m_rootObject && m_prefabSession.m_isolatedScene)
-        {
-            m_prefabSession.m_isolatedScene->removeGameObject(m_prefabSession.m_rootObject->GetID());
-        }
-        m_prefabSession.clear();
-    }
-
     Scene* mainScene = app->getModuleScene()->getScene();
     m_prefabSession.m_isolatedScene = mainScene;
 
-    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, mainScene);
+    GameObject* loaded = app->getModuleAssets()->spawnPrefab(sourcePath, mainScene);
 
     if (!loaded)
     {
@@ -617,7 +607,6 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     m_prefabSession.m_sourcePath = sourcePath;
     m_prefabSession.m_rootObject = loaded;
     m_prefabSession.m_active = true;
-    m_prefabSession.m_editingInMainScene = false;
     m_selectedGameObject = loaded;
 }
 
