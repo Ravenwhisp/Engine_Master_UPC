@@ -426,35 +426,6 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 								ImGui::EndMenu();
 							}
 						}
-						else if (comp->getType() == ComponentType::TRANSFORM2D)
-						{
-							if (ImGui::BeginMenu("Transform2D"))
-							{
-								bool selectedPos = (binding.targetComponent == comp && binding.methodName == "Transform2D.SetPosition");
-								if (ImGui::Selectable("SetPosition (Vec3)", selectedPos))
-								{
-									binding.targetComponent = comp;
-									binding.componentUid = comp->getID();
-									binding.methodName = "Transform2D.SetPosition";
-									binding.paramType = ScriptMethodParamType::Vec3;
-									binding.paramName = "Position";
-								}
-								if (selectedPos) ImGui::SetItemDefaultFocus();
-
-								bool selectedRot = (binding.targetComponent == comp && binding.methodName == "Transform2D.SetScale");
-								if (ImGui::Selectable("SetScale (Vec3)", selectedRot))
-								{
-									binding.targetComponent = comp;
-									binding.componentUid = comp->getID();
-									binding.methodName = "Transform2D.SetScale";
-									binding.paramType = ScriptMethodParamType::Vec3;
-									binding.paramName = "Scale";
-								}
-								if (selectedRot) ImGui::SetItemDefaultFocus();
-
-								ImGui::EndMenu();
-							}
-						}
 					}
 					ImGui::EndCombo();
 				}
