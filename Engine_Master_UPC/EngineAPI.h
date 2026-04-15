@@ -114,6 +114,11 @@ namespace AnimationAPI
     ENGINE_API void setSpeedMultiplier(AnimationComponent* animation, float speedMultiplier);
 }
 
+namespace ApplicationAPI
+{
+    ENGINE_API void quit();
+}
+
 namespace SceneAPI
 {
     ENGINE_API std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
@@ -128,6 +133,8 @@ namespace SceneAPI
 namespace Time
 {
     ENGINE_API float getDeltaTime();
+	ENGINE_API void setTimeScale(float timeScale);
+	ENGINE_API float getTimeScale();
 }
 
 namespace Input
