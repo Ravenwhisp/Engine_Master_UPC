@@ -39,7 +39,7 @@ void ModuleUI::preRender()
 
     m_rootScreenRect = { 0.0f, 0.0f, screenSize.x, screenSize.y };
 
-    for (GameObject* go : app->getModuleScene()->getScene()->getRootObjects())
+    for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!go || !go->GetActive())
             continue;
