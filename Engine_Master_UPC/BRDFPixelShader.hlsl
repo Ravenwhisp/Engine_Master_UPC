@@ -54,7 +54,7 @@ float4 main(float2 uv : TEXCOORD) : SV_Target
     float NdotV = uv.x;
     float alphaRoughness = uv.y * uv.y;
 
-    float3 V = (sqrt(1.0 - NdotV * NdotV), 0.0, NdotV); // Construct view vector from NdotV
+    float3 V = float3(sqrt(1.0 - NdotV * NdotV), 0.0, NdotV); // Construct view vector from NdotV
     float3 N = float3(0.0, 0.0, 1.0); // Local normal vector points along Z-axis
     precise float A = 0.0;
     precise float B = 0.0;

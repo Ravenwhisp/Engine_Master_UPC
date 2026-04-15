@@ -6,7 +6,7 @@ Texture2D metallicRoughnessTex : register(t1);
 TextureCube irradianceTexture : register(t8);
 Texture2D brdfTexture : register(t9);
 
-SamplerState liearSample : register(s0);
+SamplerState linearSample : register(s0);
 
 static const float PI = 3.14159265f;
 static const float EPS = 1e-5f;
@@ -245,7 +245,7 @@ float3 LinearToSRGB(float3 color)
 
 float3 getDiffuseAmbientLight(in float3 normal, in float3 baseColour)
 {
-    float3 irradiance = irradianceTexture.SampleLevel(liearSample, normal, 0).rgb;
+    float3 irradiance = irradianceTexture.SampleLevel(linearSample, normal, 0).rgb;
 
     return baseColour * irradiance;
 }
@@ -254,8 +254,8 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
 {
     float minRoughness = 0.04;
     
-    float4 texSample = baseColorTex.Sample(liearSample, coord);
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(liearSample, coord).gb;
+    float4 texSample = baseColorTex.Sample(linearSample, coord);
+    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearSample, coord).gb;
 
     if (hasBaseColorTex != 0 && texSample.a < 0.5f) //The 0.5 is temporary while transparency is not added
     {
