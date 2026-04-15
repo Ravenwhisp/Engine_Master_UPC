@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <imgui.h>
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
@@ -333,7 +334,67 @@ void GameObject::drawUI()
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted("Layer");
         ImGui::TableSetColumnIndex(1);
-        DrawEnumCombo("##Layer", m_layer, static_cast<int>(Layer::COUNT), LayerToString);
+        {
+            static Layer s_pendingLayer = Layer::DEFAULT;
+            static GameObject* s_pendingLayerTarget = nullptr;
+
+            Layer previousLayer = m_layer;
+            if (DrawEnumCombo("##Layer", m_layer, static_cast<int>(Layer::COUNT), LayerToString))
+            {
+                if (m_layer != previousLayer && !m_transform->getAllChildren().empty())
+                {
+                    s_pendingLayer = m_layer;
+                    s_pendingLayerTarget = this;
+                    m_layer = previousLayer; // revert until user decides
+                    ImGui::OpenPopup("##LayerChildrenPopup");
+                }
+            }
+
+            if (ImGui::BeginPopupModal("##LayerChildrenPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
+            {
+                ImGui::Text("Change layer to '%s'.", LayerToString(s_pendingLayer));
+                ImGui::Text("Do you want to apply it to all children as well?");
+                ImGui::Spacing();
+
+                if (ImGui::Button("Yes, apply to children"))
+                {
+                    if (s_pendingLayerTarget)
+                    {
+                        std::function<void(GameObject*)> applyRecursive = [&](GameObject* go)
+                            {
+                                go->SetLayer(s_pendingLayer);
+                                for (GameObject* child : go->GetTransform()->getAllChildren())
+                                    applyRecursive(child);
+                            };
+                        applyRecursive(s_pendingLayerTarget);
+                        s_pendingLayerTarget = nullptr;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("No, only this object"))
+                {
+                    if (s_pendingLayerTarget)
+                    {
+                        s_pendingLayerTarget->SetLayer(s_pendingLayer);
+                        s_pendingLayerTarget = nullptr;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Cancel"))
+                {
+                    s_pendingLayerTarget = nullptr;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+        }
 
         ImGui::EndTable();
     }

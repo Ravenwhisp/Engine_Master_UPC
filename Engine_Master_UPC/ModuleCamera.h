@@ -16,7 +16,7 @@ private:
     Settings* m_settings;
 
     // Camera state
-    Vector3 m_position{ 0.0f, 10.0f, 10.0f };
+    Vector3 m_position{ -10.0f, 10.0f, -10.0f };
     Vector3 m_target{ 0.0f, 0.0f, 0.0f };
     Vector3 m_up = Vector3::Up;
 

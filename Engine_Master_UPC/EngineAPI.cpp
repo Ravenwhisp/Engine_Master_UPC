@@ -18,6 +18,7 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 #include "AnimationComponent.h"
+#include "UISlider.h"
 
 #include "CameraComponent.h"
 
@@ -198,6 +199,29 @@ namespace TransformAPI
         transform->setPosition(newPosition);
     }
 
+    Vector3 getGlobalPosition(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        return transform->getGlobalMatrix().Translation();
+    }
+
+    void setGlobalPosition(Transform* transform, const Vector3& worldPosition)
+    {
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        Matrix globalMatrix = transform->getGlobalMatrix();
+        globalMatrix.Translation(worldPosition);
+
+        transform->setFromGlobalMatrix(globalMatrix);
+    }
+
     Vector3 getScale(const Transform* transform) 
     {
         return transform->getScale();
@@ -218,6 +242,48 @@ namespace TransformAPI
         transform->setRotationEuler(eulerDegrees);
     }
 
+    Vector3 getGlobalEulerDegrees(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        const Matrix& globalMatrix = transform->getGlobalMatrix();
+        Quaternion globalRotation = Quaternion::CreateFromRotationMatrix(globalMatrix);
+
+        Vector3 eulerRadians = globalRotation.ToEuler();
+        const float radToDeg = 57.2957795f;
+
+        return Vector3(eulerRadians.x * radToDeg, eulerRadians.y * radToDeg, eulerRadians.z * radToDeg);
+    }
+
+    void setGlobalRotationEuler(Transform* transform, const Vector3& eulerDegrees)
+    {
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        Matrix currentGlobalMatrix = transform->getGlobalMatrix();
+
+        Vector3 globalScale;
+        Quaternion currentGlobalRotation;
+        Vector3 globalPosition;
+
+        if (!currentGlobalMatrix.Decompose(globalScale, currentGlobalRotation, globalPosition))
+        {
+            return;
+        }
+
+        Quaternion desiredGlobalRotation = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(eulerDegrees.y), XMConvertToRadians(eulerDegrees.x), XMConvertToRadians(eulerDegrees.z));
+        desiredGlobalRotation.Normalize();
+
+        Matrix newGlobalMatrix = Matrix::CreateScale(globalScale) * Matrix::CreateFromQuaternion(desiredGlobalRotation) * Matrix::CreateTranslation(globalPosition);
+
+        transform->setFromGlobalMatrix(newGlobalMatrix);
+    }
+
     Vector3 getForward(const Transform* transform)
     {
         return transform->getForward();
@@ -236,6 +302,76 @@ namespace TransformAPI
     void translate(Transform* transform, const Vector3& delta)
     {
         transform->setPosition(transform->getPosition() + delta);
+    }
+
+    void translateGlobal(Transform* transform, const Vector3& delta)
+    {
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        const Vector3 currentGlobalPosition = getGlobalPosition(transform);
+        setGlobalPosition(transform, currentGlobalPosition + delta);
+    }
+
+    void lookAt(Transform* transform, const Vector3& targetWorldPosition)
+    {
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        Matrix currentGlobalMatrix = transform->getGlobalMatrix();
+
+        Vector3 globalScale;
+        Quaternion currentGlobalRotation;
+        Vector3 globalPosition;
+
+        if (!currentGlobalMatrix.Decompose(globalScale, currentGlobalRotation, globalPosition))
+        {
+            return;
+        }
+
+        Vector3 forward = targetWorldPosition - globalPosition;
+        if (forward.LengthSquared() <= 0.0001f)
+        {
+            return;
+        }
+        forward.Normalize();
+
+        Vector3 up = Vector3::Up;
+
+        if (fabsf(forward.Dot(up)) > 0.999f)
+        {
+            up = Vector3::Right;
+        }
+
+        Vector3 right = up.Cross(forward);
+        right.Normalize();
+
+        Vector3 correctedUp = forward.Cross(right);
+        correctedUp.Normalize();
+
+        Matrix rotationMatrix = Matrix::Identity;
+        rotationMatrix._11 = right.x;
+        rotationMatrix._12 = right.y;
+        rotationMatrix._13 = right.z;
+
+        rotationMatrix._21 = correctedUp.x;
+        rotationMatrix._22 = correctedUp.y;
+        rotationMatrix._23 = correctedUp.z;
+
+        rotationMatrix._31 = forward.x;
+        rotationMatrix._32 = forward.y;
+        rotationMatrix._33 = forward.z;
+
+        Quaternion desiredGlobalRotation = Quaternion::CreateFromRotationMatrix(rotationMatrix);
+        desiredGlobalRotation.Normalize();
+
+        Matrix newGlobalMatrix = Matrix::CreateScale(globalScale) * Matrix::CreateFromQuaternion(desiredGlobalRotation) * Matrix::CreateTranslation(globalPosition);
+
+        transform->setFromGlobalMatrix(newGlobalMatrix);
     }
 
     Transform* TransformAPI::getParent(Transform* transform)
@@ -676,6 +812,30 @@ namespace Input
         }
     }
 
+    static bool queryRightMouseButton(ButtonPhase phase)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        switch (phase)
+        {
+        case ButtonPhase::Pressed:
+            return input->isRightMouseHeld();
+
+        case ButtonPhase::JustPressed:
+            return input->isRightMousePressed();
+
+        case ButtonPhase::Released:
+            return input->isRightMouseReleased();
+
+        default:
+            return false;
+        }
+    }
+
     static bool queryGamepadButton(ModuleInput* input, int deviceIndex, SDL_GamepadButton button, ButtonPhase phase)
     {
         switch (button)
@@ -787,13 +947,13 @@ namespace Input
                 return queryKeyboardKey(KeyCode::Space, phase);
 
             case FaceButton::Right:
-                return queryKeyboardKey(KeyCode::E, phase);
+                return queryKeyboardKey(KeyCode::R, phase);
 
             case FaceButton::Left:
-                return queryKeyboardKey(KeyCode::Q, phase);
+                return queryKeyboardKey(KeyCode::T, phase);
 
             case FaceButton::Top:
-                return queryKeyboardKey(KeyCode::R, phase);
+                return queryKeyboardKey(KeyCode::Q, phase);
             }
 
             return false;
@@ -859,7 +1019,7 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return shoulderButton == ShoulderButton::Left ? queryKeyboardKey(KeyCode::Num1, phase) : queryKeyboardKey(KeyCode::Num2, phase);
+            return shoulderButton == ShoulderButton::Left ? queryKeyboardKey(KeyCode::LeftShift, phase) : queryRightMouseButton(phase);
 
         case DeviceType::Gamepad:
             return shoulderButton == ShoulderButton::Left ? queryGamepadButton(input, binding.deviceIndex, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, phase) : queryGamepadButton(input, binding.deviceIndex, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, phase);
@@ -883,7 +1043,7 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return triggerButton == TriggerButton::Left ? queryKeyboardKey(KeyCode::Num3, phase) : queryKeyboardKey(KeyCode::Num4, phase);
+            return triggerButton == TriggerButton::Left ? queryKeyboardKey(KeyCode::E, phase) : queryRightMouseButton(phase);
 
         case DeviceType::Gamepad:
             return queryGamepadTrigger(input, triggerButton, binding.deviceIndex, phase);
@@ -1479,6 +1639,29 @@ namespace NavigationAPI
         }
 
         return false;
+    }
+}
+
+namespace SliderAPI
+{
+    float getFillAmount(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return 0.0f;
+        }
+
+        return slider->getFillAmount();
+    }
+
+    void setFillAmount(UISlider* slider, float amount)
+    {
+        if (!slider)
+        {
+            return;
+        }
+
+        slider->setFillAmount(amount);
     }
 }
 

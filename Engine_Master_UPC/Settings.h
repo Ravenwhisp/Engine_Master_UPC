@@ -58,6 +58,7 @@ struct DebugGame
     bool showFPS = false;
     bool showFrametime = false;
     bool showTrianglesNumber = false;
+    bool showScriptDebug = false;
 };
 
 class Settings
@@ -81,6 +82,6 @@ public:
     }
 
     bool hasDebugInformationEnabled() {
-        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber;
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber || debugGame.showScriptDebug;
     }
 };

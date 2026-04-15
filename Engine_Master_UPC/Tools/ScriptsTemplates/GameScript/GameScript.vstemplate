@@ -1,0 +1,15 @@
+<VSTemplate Version="3.0.0" Type="Item"
+    xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+	<TemplateData>
+		<Name>UPC Engine Script</Name>
+		<Description>Creates a .h and .cpp pair for the UPC Engine Script system.</Description>
+		<ProjectType>VC</ProjectType>
+		<DefaultName>NewScript</DefaultName>
+		<SortOrder>1000</SortOrder>
+	</TemplateData>
+
+	<TemplateContent>
+		<ProjectItem ReplaceParameters="true" TargetFileName="$safeitemname$.h">GameScript.h</ProjectItem>
+		<ProjectItem ReplaceParameters="true" TargetFileName="$safeitemname$.cpp">GameScript.cpp</ProjectItem>
+	</TemplateContent>
+</VSTemplate>
