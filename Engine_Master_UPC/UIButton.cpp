@@ -6,6 +6,7 @@
 #include "GameObject.h"
 #include "UIImage.h"
 #include "ScriptComponent.h"
+#include "Transform2D.h"
 
 #include <imgui.h>
 #include <format>
@@ -146,53 +147,69 @@ void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
 {
 	for (auto& binding : bindings)
 	{
-		if (!binding.component || (!binding.function && !binding.paramFunc))
+		if (!binding.targetGameObject)
 			continue;
 
-		Script* script = binding.component->getScript();
-		if (!script)
-			continue;
-
-		switch (binding.paramType)
+		if (binding.methodName == "GameObject.SetActive")
 		{
-		case ScriptMethodParamType::None:
-			if (binding.function)
+			binding.targetGameObject->SetActive(binding.paramBool);
+			continue;
+		}
+
+		if (!binding.targetComponent)
+			continue;
+
+		if (binding.targetComponent->getType() == ComponentType::SCRIPT)
+		{
+			if (!binding.function && !binding.paramFunc)
+				continue;
+
+			ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(binding.targetComponent);
+			Script* script = scriptComponent->getScript();
+			if (!script)
+				continue;
+
+			switch (binding.paramType)
 			{
-				binding.function(script);
+			case ScriptMethodParamType::None:
+				if (binding.function)
+				{
+					binding.function(script);
+				}
+				break;
+			case ScriptMethodParamType::Float:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramFloat);
+				}
+				break;
+			case ScriptMethodParamType::Int:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramInt);
+				}
+				break;
+			case ScriptMethodParamType::Bool:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramBool);
+				}
+				break;
+			case ScriptMethodParamType::Vec3:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramVec3);
+				}
+				break;
+			case ScriptMethodParamType::String:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramString);
+				}
+				break;
+			case ScriptMethodParamType::Unsupported:
+				break;
 			}
-			break;
-		case ScriptMethodParamType::Float:
-			if (binding.paramFunc)
-			{
-				binding.paramFunc(script, &binding.paramFloat);
-			}
-			break;
-		case ScriptMethodParamType::Int:
-			if (binding.paramFunc)
-			{
-				binding.paramFunc(script, &binding.paramInt);
-			}
-			break;
-		case ScriptMethodParamType::Bool:
-			if (binding.paramFunc)
-			{
-				binding.paramFunc(script, &binding.paramBool);
-			}
-			break;
-		case ScriptMethodParamType::Vec3:
-			if (binding.paramFunc)
-			{
-				binding.paramFunc(script, &binding.paramVec3);
-			}
-			break;
-		case ScriptMethodParamType::String:
-			if (binding.paramFunc)
-			{
-				binding.paramFunc(script, &binding.paramString);
-			}
-			break;
-		case ScriptMethodParamType::Unsupported:
-			break;
 		}
 	}
 }
@@ -315,95 +332,134 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 
 			ImGui::Text("Script:");
 			std::string scriptLabel;
-			if (binding.component)
+			if (binding.targetGameObject)
 			{
-				scriptLabel = std::format("{} ({})###Script{}_{}", binding.component->getOwner()->GetName(), binding.component->getScriptName(), label, i);
+				scriptLabel = binding.targetGameObject->GetName();
 			}
 			else
 			{
-				scriptLabel = std::format("Drop Script###Script{}_{}", label, i);
+				scriptLabel = "Drop GameObject";
 			}
-
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
 
 			ImGui::Button(scriptLabel.c_str());
 
-			ImGui::PopStyleColor(3);
-
 			if (ImGui::BeginDragDropTarget())
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
 				{
-					Component* comp = *(Component**)payload->Data;
-
-					if (comp && comp->getType() == ComponentType::SCRIPT)
+					GameObject* go = *(GameObject**)payload->Data;
+					if (go)
 					{
-						binding.component = static_cast<ScriptComponent*>(comp);
-						binding.componentUid = comp->getID();
-						binding.gameObjectUid = comp->getOwner()->GetID();
+						binding.targetGameObject = go;
+						binding.gameObjectUid = go->GetID();
+						
+						binding.targetComponent = nullptr;
+						binding.componentUid = 0;
+						binding.methodName.clear();
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
 
-			if (binding.component)
+			if (binding.targetGameObject)
 			{
-				Script* script = binding.component->getScript();
-
-				if (script)
+				const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
+				std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+				if (ImGui::BeginCombo(comboLabel.c_str(), preview))
 				{
-					ScriptMethodList methods = script->getExposedMethods();
-				const ScriptMethodInfo* selectedMethod = nullptr;
-				for (size_t j = 0; j < methods.count; ++j)
-				{
-					if (binding.methodName == methods.methods[j].name)
+					if (ImGui::BeginMenu("GameObject"))
 					{
-						selectedMethod = &methods.methods[j];
-						break;
+						bool selected = (binding.methodName == "GameObject.SetActive");
+						if (ImGui::Selectable("SetActive", selected))
+						{
+							binding.targetComponent = nullptr;
+							binding.componentUid = 0;
+							binding.methodName = "GameObject.SetActive";
+							binding.paramType = ScriptMethodParamType::Bool;
+							binding.paramName = "Active";
+							binding.paramBool = false;
+						}
+						ImGui::EndMenu();
 					}
+
+					std::vector<Component*> components = binding.targetGameObject->GetAllComponents();
+					for (Component* comp : components)
+					{
+						if (comp->getType() == ComponentType::SCRIPT)
+						{
+							ScriptComponent* scriptComp = static_cast<ScriptComponent*>(comp);
+							if (ImGui::BeginMenu(scriptComp->getScriptName().c_str()))
+							{
+								Script* script = scriptComp->getScript();
+								if (script)
+								{
+									ScriptMethodList methods = script->getExposedMethods();
+									for (size_t j = 0; j < methods.count; ++j)
+									{
+										const auto& method = methods.methods[j];
+										if (method.paramType == ScriptMethodParamType::Unsupported)
+											continue;
+										bool selected = (binding.targetComponent == comp && binding.methodName == method.name);
+										if (ImGui::Selectable(method.name, selected))
+										{
+											binding.targetComponent = comp;
+											binding.componentUid = comp->getID();
+											binding.methodName = method.name;
+											const ScriptMethodParamType previousType = binding.paramType;
+											binding.function = method.func;
+											binding.paramFunc = method.paramFunc;
+											binding.paramType = method.paramType;
+											binding.paramName = method.paramName ? method.paramName : "";
+											if (binding.paramType != previousType)
+											{
+												binding.paramFloat = 0.0f;
+												binding.paramInt = 0;
+												binding.paramBool = false;
+												binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+												binding.paramString.clear();
+											}
+										}
+										if (selected)
+											ImGui::SetItemDefaultFocus();
+									}
+								}
+								ImGui::EndMenu();
+							}
+						}
+						else if (comp->getType() == ComponentType::TRANSFORM2D)
+						{
+							if (ImGui::BeginMenu("Transform2D"))
+							{
+								bool selectedPos = (binding.targetComponent == comp && binding.methodName == "Transform2D.SetPosition");
+								if (ImGui::Selectable("SetPosition (Vec3)", selectedPos))
+								{
+									binding.targetComponent = comp;
+									binding.componentUid = comp->getID();
+									binding.methodName = "Transform2D.SetPosition";
+									binding.paramType = ScriptMethodParamType::Vec3;
+									binding.paramName = "Position";
+								}
+								if (selectedPos) ImGui::SetItemDefaultFocus();
+
+								bool selectedRot = (binding.targetComponent == comp && binding.methodName == "Transform2D.SetScale");
+								if (ImGui::Selectable("SetScale (Vec3)", selectedRot))
+								{
+									binding.targetComponent = comp;
+									binding.componentUid = comp->getID();
+									binding.methodName = "Transform2D.SetScale";
+									binding.paramType = ScriptMethodParamType::Vec3;
+									binding.paramName = "Scale";
+								}
+								if (selectedRot) ImGui::SetItemDefaultFocus();
+
+								ImGui::EndMenu();
+							}
+						}
+					}
+					ImGui::EndCombo();
 				}
-					const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
-					std::string comboLabel = std::format("Method###Method{}_{}", label, i);
-					if (ImGui::BeginCombo(comboLabel.c_str(), preview))
-					{
-						for (size_t j = 0; j < methods.count; ++j)
-						{
-							const auto& method = methods.methods[j];
-						if (method.paramType == ScriptMethodParamType::Unsupported)
-						{
-							continue;
-						}
-							bool selected = (binding.methodName == method.name);
-							if (ImGui::Selectable(method.name, selected))
-							{
-							const ScriptMethodParamType previousType = binding.paramType;
-								binding.methodName = method.name;
-								binding.function = method.func;
-							binding.paramFunc = method.paramFunc;
-							binding.paramType = method.paramType;
-							binding.paramName = method.paramName ? method.paramName : "";
-							if (binding.paramType != previousType)
-							{
-								binding.paramFloat = 0.0f;
-								binding.paramInt = 0;
-								binding.paramBool = false;
-								binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
-								binding.paramString.clear();
-							}
-							selectedMethod = &method;
-							}
 
-							if (selected)
-							{
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-
-				if (selectedMethod)
+				if (!binding.methodName.empty())
 				{
 					const char* paramLabel = binding.paramName.empty() ? "Parameter" : binding.paramName.c_str();
 					switch (binding.paramType)
@@ -437,7 +493,6 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 						ImGui::TextDisabled("Parameters not supported");
 						break;
 					}
-				}
 				}
 			}
 
@@ -663,23 +718,36 @@ bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
 
 void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver)
 {
-	b.component = nullptr;
+	b.targetComponent = nullptr;
+	b.targetGameObject = nullptr;
 	b.function = nullptr;
 	b.paramFunc = nullptr;
 	b.paramType = ScriptMethodParamType::None;
 	b.paramName.clear();
 
+	if (b.gameObjectUid != 0)
+	{
+		// Since resolver does not expose getClonedGameObject, we rely on componentUid or skip for GameObject.SetActive
+		// In a real system, you'd want to lookup the gameobject UID
+		// For now, if there's a component we get the GO from it.
+	}
+
 	if (b.componentUid == 0)
 		return;
 
 	Component* resolved = resolver.getClonedComponent(b.componentUid);
-
-	if (!resolved || resolved->getType() != ComponentType::SCRIPT)
+	if (!resolved)
 		return;
 
-	b.component = static_cast<ScriptComponent*>(resolved);
+	b.targetComponent = resolved;
+	b.targetGameObject = resolved->getOwner();
 
-	Script* script = b.component->getScript();
+	if (resolved->getType() != ComponentType::SCRIPT)
+		return;
+
+	ScriptComponent* sc = static_cast<ScriptComponent*>(resolved);
+
+	Script* script = sc->getScript();
 	if (!script)
 		return;
 
