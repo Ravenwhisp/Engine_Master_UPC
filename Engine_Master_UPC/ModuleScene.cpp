@@ -276,5 +276,6 @@ void ModuleScene::syncPrefabInstances(const std::filesystem::path& prefabPath)
             app->getModuleAssets()->revertPrefab(go, m_scene.get());
         }
     }
+    m_scene->markDirty();
 }
 #pragma endregion
