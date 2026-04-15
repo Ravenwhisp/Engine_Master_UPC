@@ -414,6 +414,13 @@
     <ClCompile Include="WindowAnimationStateMachine.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
+    <ClCompile Include="UISlider.cpp" />
+    <ClCompile Include="LightingPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1021,6 +1028,15 @@
     </ClInclude>
     <ClInclude Include="StateMachineScript.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="CanvasRenderMode.h" />
+    <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UISlider.h" />
+    <ClInclude Include="GeometryPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="LightingPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

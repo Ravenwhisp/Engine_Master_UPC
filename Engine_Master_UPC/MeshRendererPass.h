@@ -27,7 +27,6 @@ class MeshRendererPass : public IRenderPass {
 public:
     MeshRendererPass(ComPtr<ID3D12Device4> device);
 
-
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 

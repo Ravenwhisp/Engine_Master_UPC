@@ -1,4 +1,4 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "WindowGame.h"
 
 #include <imgui.h>
@@ -8,11 +8,13 @@
 #include "ModuleRender.h"
 #include "ModuleResources.h"
 #include "PlayToolbar.h"
+#include "EditorToolbar.h"
 #include "RenderSurface.h"
 #include "Texture.h"
 
 WindowGame::WindowGame()
 {
+    m_editorToolbar = new EditorToolbar();
     m_playToolbar = new PlayToolbar();
     m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
 }
@@ -29,31 +31,49 @@ void WindowGame::drawInternal()
     ImGui::NewLine();
     ImGui::Separator();
 
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.0f);
+    m_editorToolbar->DrawCentered(toolbarWidth);
+    ImGui::PopStyleVar();
+
+    ImGui::Separator();
+
+    // Push zero padding – exactly like SceneEditor
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+    // Begin child window to isolate the viewport area
+    ImGui::BeginChild("GameViewport", ImGui::GetContentRegionAvail(), false,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+    ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+    if (viewportSize.x > 0 && viewportSize.y > 0)
+    {
+        // Resize the render surface and register the viewport
+        if (abs(viewportSize.x - m_size.x) > 1.0f || abs(viewportSize.y - m_size.y) > 1.0f)
+        {
+            setSize(viewportSize);
+            app->getModuleRender()->registerViewport(m_surface.get(),
+                ModuleRender::ViewportType::PLAY,
+                viewportSize.x, viewportSize.y);
+        }
+
+        // Get the texture ID and draw the image
+        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
+        ImGui::Image(textureID, viewportSize);
+
+        // Update hover/focus states
+        m_isViewportHovered = ImGui::IsItemHovered();
+        m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+    }
+
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+
+    // Store window coordinates if needed elsewhere
     ImVec2 windowPos = ImGui::GetWindowPos();
     m_windowX = windowPos.x;
     m_windowY = windowPos.y;
-
-    ImVec2 contentRegion = ImGui::GetContentRegionAvail();
-
-    if (contentRegion.x > 0 && contentRegion.y > 0)
-    {
-        resize(contentRegion);
-
-        ImVec2 imageTopLeft = ImGui::GetCursorScreenPos();
-        m_viewportX = imageTopLeft.x;
-        m_viewportY = imageTopLeft.y;
-
-        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
-        ImGui::Image(textureID, m_size);
-    }
-
-    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
-    ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
-    ImVec2 contentPos = ImVec2(windowPos.x + contentMin.x, windowPos.y + contentMin.y);
-    ImVec2 contentSize = ImVec2(contentMax.x - contentMin.x, contentMax.y - contentMin.y);
-
-    m_isViewportHovered = ImGui::IsWindowHovered();
-    m_isViewportFocused = ImGui::IsWindowFocused();
+    m_viewportX = ImGui::GetCursorScreenPos().x;
+    m_viewportY = ImGui::GetCursorScreenPos().y;
 }
 
 bool WindowGame::resize(ImVec2 contentRegion)

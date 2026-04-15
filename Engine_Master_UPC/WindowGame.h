@@ -3,6 +3,7 @@
 #include <memory>
 
 class PlayToolbar;
+class EditorToolbar;
 class ModuleInput;
 class RenderSurface;
 
@@ -13,6 +14,7 @@ private:
 
     std::unique_ptr<RenderSurface> m_surface;
     PlayToolbar* m_playToolbar;
+    EditorToolbar* m_editorToolbar;
     float m_viewportX = 0.0f;
     float m_viewportY = 0.0f;
 

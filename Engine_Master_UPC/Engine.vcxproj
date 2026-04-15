@@ -310,6 +310,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="FileDialogClipboard.h" />
     <ClInclude Include="FontAsset.h" />
+    <ClInclude Include="GeometryPass.h" />
     <ClInclude Include="HierarchyTreeRenderer.h" />
     <ClInclude Include="HierarchyUtils.h" />
     <ClInclude Include="ICommand.h" />
@@ -326,6 +327,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
+    <ClInclude Include="LightingPass.h" />
     <ClInclude Include="MaterialAsset.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MD5Fwd.h" />
@@ -625,6 +627,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
+    <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
@@ -639,6 +642,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />
+    <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
