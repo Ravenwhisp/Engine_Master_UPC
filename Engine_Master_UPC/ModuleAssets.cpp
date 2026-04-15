@@ -486,8 +486,6 @@ bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
     PrefabSerializer::buildDocumentHeader(doc, go, savePath);
 
     Value goNode;
-    // serialiseNodeInto is private on PrefabSerializer — expose via buildPrefabJSON
-    // or make it a friend. Cleanest: re-parse the JSON string.
     const std::string json = PrefabSerializer::buildPrefabJSON(go, savePath);
     doc.Parse(json.c_str());    // doc now IS the full document
 
@@ -495,7 +493,12 @@ bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
 
     go->GetPrefabInfo().m_sourcePath = savePath;
     updatePrefabAssetCache(savePath, doc);
-    app->getModuleScene()->syncPrefabInstances(savePath); 
+
+    MD5Hash uid = findUID(savePath);
+    if (isValidAsset(uid))
+    {
+        unload(uid);   // remove old cached version
+    }
 
     // Notify ModuleScene to refresh linked instances — avoid calling it directly.
     // Instead, return true and let the caller call refresh() + scene sync.
@@ -507,9 +510,16 @@ bool ModuleAssets::applyPrefab(const GameObject* go)
     const PrefabInfo& info = go->GetPrefabInfo();
     if (!info.isInstance()) return false;
 
+    if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
+    {
+        return false;
+    }
+
     app->getModuleScene()->syncPrefabInstances(info.m_sourcePath);
-    return savePrefab(const_cast<GameObject*>(go), info.m_sourcePath);
+
+    return true;
 }
+
 
 bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 {
