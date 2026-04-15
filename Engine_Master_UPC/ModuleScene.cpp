@@ -10,6 +10,7 @@
 #include "Quadtree.h"
 #include "SceneSerializer.h"
 #include "SceneSnapshot.h"
+#include "ModuleAssets.h"
 
 #include "GameObject.h"
 #include "MeshRenderer.h"
@@ -258,6 +259,22 @@ void ModuleScene::syncQuadtreeWithSettings()
     else if (!shouldShowQuadtree && m_quadtree->getIsBuilded())
     {
         m_quadtree->clear();
+    }
+}
+#pragma endregion
+
+#pragma region Prefab
+void ModuleScene::syncPrefabInstances(const std::filesystem::path& prefabPath)
+{
+    if (prefabPath.empty() || !m_scene) return;
+
+    for (GameObject* go : m_scene->getAllGameObjects())
+    {
+        if (go && go->GetPrefabInfo().isInstance()
+            && go->GetPrefabInfo().m_sourcePath == prefabPath)
+        {
+            app->getModuleAssets()->revertPrefab(go, m_scene.get());
+        }
     }
 }
 #pragma endregion

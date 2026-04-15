@@ -8,6 +8,16 @@ class Scene;
 
 class PrefabUI
 {
+    struct PrefabFileInfo
+    {
+        std::filesystem::path m_sourcePath;
+        std::string m_name;
+        std::string m_componentSummary;
+        std::string m_variantOf;
+        int m_version = 0;
+        int m_childCount = 0;
+        bool m_isVariant = false;
+    };
 public:
     static void drawModeHeader(const char* prefabName);
     static void drawApplyRevertBar(float availableWidth);
@@ -15,13 +25,16 @@ public:
     // go is the selected object; the user types a full relative save path.
     static void drawSavePrefabSection(GameObject* go);
 
-    static void drawNodeContextMenu(GameObject* go, bool prefabMode, bool isEditRoot);
+    static void drawNodeContextMenu(bool prefabMode);
 
     // scene is passed so the sub-menu can call instantiatePrefab directly.
     static void drawPrefabSubMenu(GameObject* go, Scene* scene);
 
     static void drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize);
     static void markTransformOverride(GameObject* go);
+
+    static std::vector<PrefabFileInfo> listPrefabsInfo(const std::filesystem::path& searchRoot);
+    static std::vector<std::filesystem::path> listPrefabs(const std::filesystem::path& searchRoot);
 
     // Draws the green instance bar in the inspector.
     static void drawFileDialogInstanceBar(GameObject* go);

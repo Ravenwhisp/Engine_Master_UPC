@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-
+#include <filesystem> 
 
 class Scene;
 class Quadtree;
@@ -65,6 +65,11 @@ public:
 #pragma region Quadree
     void syncQuadtreeWithSettings();
     Quadtree* getQuadtree() { return m_quadtree.get(); }
+#pragma endregion
+
+#pragma region Prefab
+    // After a prefab file is saved, call this to revert all live scene instances.
+    void syncPrefabInstances(const std::filesystem::path& prefabPath);
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }

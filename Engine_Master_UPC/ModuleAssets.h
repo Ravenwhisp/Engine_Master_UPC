@@ -8,6 +8,8 @@
 #include "ImporterRegistry.h"
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
+#include "PrefabSerializer.h"  
+#include "PrefabAsset.h"
 
 #include <filesystem>
 #include <memory>
@@ -84,6 +86,13 @@ public:
 
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 
+    bool savePrefab(GameObject* go, const std::filesystem::path& savePath);
+    bool applyPrefab(const GameObject* go);
+    bool revertPrefab(GameObject* go, Scene* scene);
+    bool createVariant(const std::filesystem::path& src, const std::filesystem::path& dst);
+
+    GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
+    GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
@@ -106,4 +115,6 @@ private:
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
+
+    void updatePrefabAssetCache(const std::filesystem::path& savePath, const rapidjson::Document& doc);
 };
