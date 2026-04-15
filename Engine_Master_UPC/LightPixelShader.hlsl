@@ -4,7 +4,8 @@ Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 
 TextureCube irradianceTexture : register(t8);
-Texture2D brdfTexture : register(t9);
+TextureCube environmentTexture : register(t9);
+Texture2D brdfTexture : register(t10);
 
 SamplerState linearSample : register(s0);
 
@@ -250,6 +251,52 @@ float3 getDiffuseAmbientLight(in float3 normal, in float3 baseColour)
     return baseColour * irradiance;
 }
 
+float3 getSpecularAmbientLight(in float3 R, float NdotV, float roughness, in uint numLevels, float3 F0)
+{
+
+    // Sample prefiltered environment map at appropriate mip level
+    float3 radiance = environmentTexture.SampleLevel(linearSample, R, roughness * (numLevels - 1)).rgb;
+
+    // Look up BRDF scale and bias terms from LUT
+    float2 fab = brdfTexture.Sample(linearSample, float2(NdotV, roughness)).rg;
+
+    // Combine F0 with BRDF terms and modulate by environment radiance
+    return radiance * (F0 * fab.x + fab.y);
+}
+
+void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm) {
+
+    // Sample prefiltered environment map at appropriate mip level
+    float3 radiance = environmentTexture.SampleLevel(linearSample, R, roughness * (numLevels - 1)).rgb;
+    
+    // Look up BRDF scale and bias terms from LUT
+    float2 fab = brdfTexture.Sample(linearSample, float2(NdotV, roughness)).rg;
+    
+     // F0 fresnel term removed
+     firstTerm = radiance * fab.x;
+     secondTerm = radiance * fab.y;
+}
+
+float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float roughness, in float roughnessLevels, in float metallic )
+{
+    float3 R = reflect(-V, N);
+    float NdotV = saturate(dot(N, V));
+    // Diffuse lighting for non-metallic surfaces
+    // Metals have no diffuse component (all specular)
+    float3 diffuse = getDiffuseAmbientLight(N, baseColour);
+    // Get two terms of cached radiance
+    float3 firstTerm, secondTerm;
+    getSpecularAmbientLightNoFresnel(R, NdotV, roughness, roughnessLevels, firstTerm, secondTerm);
+
+    // Metallic specular: uses base color as Fresnel Value (and colour)
+    float3 metalSpecular = baseColour * firstTerm + secondTerm;
+
+    // Dielectric specular: uses constant Fresnel value (0.04 for non-metals)
+    float3 dielectricSpecular = 0.04 * firstTerm + secondTerm;
+    // Blend between dielectric (diffuse + specular) and metallic (specular only)
+    return lerp(diffuse + dielectricSpecular, metalSpecular, metallic);
+}
+
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
     float minRoughness = 0.04;
@@ -320,10 +367,11 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     // Ambient
     float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
     
-    //Will be IBL
+    //IBL
     //float3 indirectLighting = ambientColor * ambientIntensity;
-    float3 indirectLighting = getDiffuseAmbientLight(normalVector, baseColor);
-
+    //float3 indirectLighting = getDiffuseAmbientLight(normalVector, baseColor);
+    float3 indirectLighting = computeLighting(viewDirection, normalVector, F0Metallic, alphaRoughness, 5, metallic);
+    
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
     //float3 finalColor = LinearToSRGB(colorMapped);
     float3 finalColor = LinearToSRGB(colorMapped);
