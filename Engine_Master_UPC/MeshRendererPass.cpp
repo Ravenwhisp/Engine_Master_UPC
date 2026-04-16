@@ -167,6 +167,9 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
+    m_trianglesCount = 0;
+    m_meshCount = 0;
+
     PERF_RENDER("MeshRendererPass::renderMesh");
 
     for (const auto& renderer : m_meshRenderers)
@@ -228,6 +231,9 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 
                 for (int i = 0; i < submeshes.size(); i++)
                 {
+                    m_trianglesCount += submeshes[i].indexCount / 3;
+                    m_meshCount++;
+
                     const auto& material = materials.at(i).get();
 
                     {

@@ -54,9 +54,11 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleNavigation());
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
+    m_meshRenderPass = new MeshRendererPass (device);
+
     m_renderPasses.push_back(std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));   //  <-------------- CRASH HERE
-    m_renderPasses.push_back(std::make_unique<MeshRendererPass>(device));
+    m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
@@ -350,3 +352,6 @@ void ModuleRender::markDebugDrawCacheDirty()
         m_debugDrawPass->markCacheDirty();
     }
 }
+
+int ModuleRender::getTrianglesCount() const { return m_meshRenderPass->getTriangleCount(); }
+int ModuleRender::getMeshCount() const { return m_meshRenderPass->getMeshCount(); }
