@@ -17,7 +17,7 @@ public:
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	const Matrix& getGlobalMatrix() const;
-	Matrix getNormalMatrix() const;
+	const Matrix& getNormalMatrix() const;
 	void setFromGlobalMatrix(const Matrix &worldMatrix);
 
 	const Vector3& getPosition() const { return m_position; }
@@ -58,6 +58,7 @@ public:
 
 private:
 	mutable Matrix m_globalMatrix;
+	mutable Matrix m_normalMatrix;
 	mutable bool m_dirty;
 
 	Vector3 m_position;
