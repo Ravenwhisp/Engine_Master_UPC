@@ -25,11 +25,12 @@ private:
 	struct ButtonEventBinding
 	{
 		UID gameObjectUid = 0;
+		GameObject* targetGameObject = nullptr;
+
 		UID componentUid = 0;
+		Component* targetComponent = nullptr;
 
 		std::string methodName;
-
-		ScriptComponent* component = nullptr;
 
 		using MethodPtr = void(*)(Script*);
 		MethodPtr function = nullptr;
