@@ -29,4 +29,5 @@ struct UIImageCommand
 
     CanvasRenderMode renderMode = CanvasRenderMode::SCREEN_SPACE;
     Matrix world = Matrix::Identity;
+    bool zTest = false;
 };
