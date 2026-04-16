@@ -326,7 +326,8 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.y * metallicFactor) : metallicFactor;
     metallic = 1 - metallic;
     float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp(metallicRoughnessSample.x * roughnessFactor, minRoughness, 1.0) : roughnessFactor;
-
+    perceptualRoughness = 1 - perceptualRoughness;
+    
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
     
     float3 F0Metallic = albedo;
