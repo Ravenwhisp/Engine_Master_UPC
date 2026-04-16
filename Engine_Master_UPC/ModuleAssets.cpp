@@ -483,25 +483,31 @@ bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
     if (!go || savePath.empty()) return false;
 
     Document doc;
-    PrefabSerializer::buildDocumentHeader(doc, go, savePath);
-
-    Value goNode;
     const std::string json = PrefabSerializer::buildPrefabJSON(go, savePath);
-    doc.Parse(json.c_str());    // doc now IS the full document
+    doc.Parse(json.c_str());
 
     if (!PrefabSerializer::writeDocument(doc, savePath)) return false;
 
     go->GetPrefabInfo().m_sourcePath = savePath;
-    updatePrefabAssetCache(savePath, doc);
 
+    // Evict the stale cached asset first.
     MD5Hash uid = findUID(savePath);
     if (isValidAsset(uid))
     {
-        unload(uid);   // remove old cached version
+        unload(uid);
     }
 
-    // Notify ModuleScene to refresh linked instances — avoid calling it directly.
-    // Instead, return true and let the caller call refresh() + scene sync.
+    // Re-import so the Library/ binary is regenerated from the new JSON file.
+    // This also re-registers metadata and updates the registry.
+    importAsset(savePath, uid);
+
+    // Now update the in-memory asset cache with the new JSON so that any
+    // already-held shared_ptrs see the current data without a second disk read.
+    if (auto asset = load<PrefabAsset>(uid))
+    {
+        asset->getData().m_json = json;
+    }
+
     return true;
 }
 
