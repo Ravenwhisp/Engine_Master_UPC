@@ -467,17 +467,6 @@ void ModuleAssets::flushDependencies(const MD5Hash& parentUID,
     m_registry->registerAsset(parentMeta);
 }
 
-void ModuleAssets::updatePrefabAssetCache(const fs::path& savePath, const Document& doc)
-{
-    auto asset = loadAtPath<PrefabAsset>(savePath);
-    if (!asset) return;
-
-    StringBuffer sb;
-    Writer<StringBuffer> writer(sb);
-    doc.Accept(writer);
-    asset->getData().m_json = sb.GetString();
-}
-
 bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
 {
     if (!go || savePath.empty()) return false;
