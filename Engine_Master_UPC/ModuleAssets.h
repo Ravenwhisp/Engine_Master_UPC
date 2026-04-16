@@ -115,6 +115,4 @@ private:
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
-
-    void updatePrefabAssetCache(const std::filesystem::path& savePath, const rapidjson::Document& doc);
 };
