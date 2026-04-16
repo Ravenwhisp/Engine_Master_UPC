@@ -127,7 +127,7 @@ void Application::update()
 
     m_elapsedMilis = static_cast<uint64_t>(std::chrono::duration<float, std::milli>(frameEnd - frameStart).count());
 
-    m_moduleTime->waitForNextFrame();
+    //m_moduleTime->waitForNextFrame();
 }
 
 bool Application::cleanUp()

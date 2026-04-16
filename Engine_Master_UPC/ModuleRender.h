@@ -17,6 +17,7 @@ class Settings;
 class RingBuffer;
 class IRenderPass;
 class RenderSurface;
+class MeshRendererPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -63,9 +64,9 @@ private:
     std::vector<ViewportEntry> m_viewports;
 
     bool m_pendingStopSimulation = false;
-    int m_triangles = 0;
 
     DebugDrawPass* m_debugDrawPass = nullptr;
+    MeshRendererPass* m_meshRenderPass = nullptr;
 
 public:
     bool init()     override;
@@ -77,7 +78,8 @@ public:
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
 
-    int getTriangles() const { return m_triangles; }
+    int getTrianglesCount() const;
+    int getMeshCount() const;
     void requestStopSimulation() { m_pendingStopSimulation = true; }
 
     // DebugDraw helper
