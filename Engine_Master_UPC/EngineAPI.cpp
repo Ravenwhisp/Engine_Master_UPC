@@ -601,6 +601,14 @@ namespace AnimationAPI
     }
 }
 
+namespace ApplicationAPI
+{
+    void quit()
+    {
+        app->requestApplicationExit();
+    }
+}
+
 namespace SceneAPI
 {
     std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive)
@@ -1372,6 +1380,36 @@ namespace Time
         }
 
         return app->getModuleTime()->deltaTime();
+    }
+
+    void setTimeScale(float timeScale)
+    {
+        if (!app)
+        {
+            return;
+        }
+
+        if (!app->getModuleTime())
+        {
+            return;
+        }
+
+        app->getModuleTime()->setTimeScale(timeScale);
+    }
+
+    float getTimeScale()
+    {
+        if (!app)
+        {
+            return 0.0f;
+        }
+
+        if (!app->getModuleTime())
+        {
+            return 0.0f;
+        }
+
+        return app->getModuleTime()->timeScale();
     }
 }
 
