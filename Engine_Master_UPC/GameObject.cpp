@@ -463,8 +463,8 @@ void GameObject::drawUI()
 
         if (canReorder && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
-            int draggedIndex = static_cast<int>(i);
-            ImGui::SetDragDropPayload("REORDER_COMPONENT", &draggedIndex, sizeof(int));
+            Component* raw = component.get();
+            ImGui::SetDragDropPayload("COMPONENT", &raw, sizeof(Component*));
             ImGui::Text("Move %s", header.c_str());
             ImGui::EndDragDropSource();
         }
@@ -480,13 +480,17 @@ void GameObject::drawUI()
 
             if (ImGui::BeginDragDropTarget())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("REORDER_COMPONENT"))
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
                 {
-                    int sourceIndex = *reinterpret_cast<const int*>(payload->Data);
+                    Component* sourceComponent = *reinterpret_cast<Component* const*>(payload->Data);
+                    int sourceIndex = findComponentIndex(sourceComponent);
                     int targetIndex = static_cast<int>(i);
 
-                    pendingMoveFrom = sourceIndex;
-                    pendingMoveTo = targetIndex;
+                    if (sourceIndex != -1)
+                    {
+                        pendingMoveFrom = sourceIndex;
+                        pendingMoveTo = targetIndex;
+                    }
                 }
                 ImGui::EndDragDropTarget();
             }
@@ -497,12 +501,13 @@ void GameObject::drawUI()
 
             if (ImGui::BeginDragDropTarget())
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("REORDER_COMPONENT"))
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
                 {
-                    int sourceIndex = *reinterpret_cast<const int*>(payload->Data);
+                    Component* sourceComponent = *reinterpret_cast<Component* const*>(payload->Data);
+                    int sourceIndex = findComponentIndex(sourceComponent);
                     int targetIndex = static_cast<int>(i + 1);
 
-                    if (sourceIndex != targetIndex)
+                    if (sourceIndex != -1)
                     {
                         pendingMoveFrom = sourceIndex;
                         pendingMoveTo = targetIndex;
@@ -626,6 +631,19 @@ void GameObject::moveComponent(size_t fromIndex, size_t toIndex)
     }
 
     m_components.insert(m_components.begin() + static_cast<std::ptrdiff_t>(toIndex), std::move(movedComponent));
+}
+
+int GameObject::findComponentIndex(const Component* component) const
+{
+    for (size_t i = 0; i < m_components.size(); ++i)
+    {
+        if (m_components[i].get() == component)
+        {
+            return static_cast<int>(i);
+        }
+    }
+
+    return -1;
 }
 
 void GameObject::onTransformChange()
