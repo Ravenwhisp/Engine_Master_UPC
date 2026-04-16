@@ -62,7 +62,7 @@ void ModuleUI::preRender()
 			}
 		}
 
-		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix());
+		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest);
     }
 }
 
@@ -122,7 +122,7 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld)
+void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -137,7 +137,7 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
     {
         myRect = t2d->getRect(parentRect);
 
-        buildUIImage(gameObject, myRect, renderMode, canvasWorld);
+        buildUIImage(gameObject, myRect, renderMode, canvasWorld, zTest);
         buildUIText(gameObject, myRect);
     }
 
@@ -145,11 +145,11 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 
     for (GameObject* child : transform->getAllChildren())
     {
-        buildUIDrawCommands(child, myRect, renderMode, canvasWorld);
+        buildUIDrawCommands(child, myRect, renderMode, canvasWorld, zTest);
     }
 }
 
-void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld)
+void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
@@ -203,6 +203,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity
             : gameObject->GetTransform()->getGlobalMatrix();
+        command.zTest = zTest;
         m_imageCommands.push_back(command);
     }
 }
