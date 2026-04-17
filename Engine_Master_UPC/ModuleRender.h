@@ -85,16 +85,17 @@ public:
 
 private:
     // Surface helpers
-    std::unique_ptr<RenderSurface> createSurface(float width, float height);
+    void renderScene(ID3D12GraphicsCommandList4* commandList,const RenderCamera& camera,RenderSurface& outputSurface,bool renderDebug,RenderViewType viewType);
 
-    void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)> renderFunc);
+    void renderBackground(ID3D12GraphicsCommandList4* commandList,const RenderSurface& surface);
 
-    // Scene rendering
-    void renderScene( ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug, RenderViewType viewType);
-    void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
-    void renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
-    void renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,float width, float height);
-    void renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,  D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
+    // Wrappers called from preRender per registered viewport
+    void renderEditorScene(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
+
+    void renderPlayScene(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
+
+    // GAME_RELEASE path — render directly to the swap-chain back-buffer
+    void renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
 
     // Camera helpers
     RenderCamera getEditorCamera();

@@ -8,11 +8,14 @@ class Texture;
 class RenderSurface 
 {
 public:
-	enum AttachmentPoint {
-		COLOR_0,
-		COLOR_1,
-		DEPTH_STENCIL,
-		NUM_ATTACHMENT_POINTS
+	enum AttachmentPoint: UINT {
+		COLOR_0 = 0,
+		COLOR_1 = 1,
+		COLOR_2 = 2,
+		COLOR_3 = 3,
+		DEPTH_STENCIL = 4,
+
+		NUM_ATTACHMENT_POINTS = 5
 	};
 
 

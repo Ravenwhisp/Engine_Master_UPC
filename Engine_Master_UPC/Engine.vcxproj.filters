@@ -358,46 +358,46 @@
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandAddGameObject.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandCreateFolder.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandCutItem.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandDeleteAsset.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandDeleteFolder.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandImportAsset.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandInstantiatePrefab.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandMoveFile.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandPasteFile.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandRemoveGameObject.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandRenameGameObject.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandReparent.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClCompile>
     <ClCompile Include="HierarchyTreeRenderer.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
@@ -419,7 +419,7 @@
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
     <ClCompile Include="GeometryPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
+      <Filter>D3D12\Rendering\GeometryPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -949,46 +949,46 @@
       <Filter>Persistence\Importers</Filter>
     </ClInclude>
     <ClInclude Include="CommandAddChildToPrefabRoot.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandAddGameObject.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandCreateFolder.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandCutItem.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandDeleteAsset.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandDeleteFolder.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandImportAsset.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandInstantiatePrefab.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandMoveFile.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandPasteFile.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandRemoveGameObject.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandRenameGameObject.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandReparent.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="CommandSaveGameObjectAsPrefab.h">
-      <Filter>Core\Commands</Filter>
+      <Filter>Editor\Views\Commands</Filter>
     </ClInclude>
     <ClInclude Include="FileDialogClipboard.h">
       <Filter>Editor\Views</Filter>
@@ -1032,11 +1032,11 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
-    <ClInclude Include="GeometryPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
     <ClInclude Include="LightingPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryPass.h">
+      <Filter>D3D12\Rendering\GeometryPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1213,8 +1213,11 @@
     <Filter Include="Editor\imgui\NodeEditor">
       <UniqueIdentifier>{57c3d734-6f4a-45d6-9477-4460d087040b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Commands">
+    <Filter Include="Editor\Views\Commands">
       <UniqueIdentifier>{67e7f84d-9329-42d5-822d-44df3c1bebbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Rendering\GeometryPass">
+      <UniqueIdentifier>{81b56432-b82c-4b5f-8ccd-c3b6c8e8c537}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1238,6 +1241,9 @@
     </None>
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
+    </None>
+    <None Include="GBufferCommon.hlsli">
+      <Filter>D3D12\Rendering\GeometryPass</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -1264,6 +1270,12 @@
     </FxCompile>
     <FxCompile Include="UIVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GBufferPS.hlsl">
+      <Filter>D3D12\Rendering\GeometryPass</Filter>
+    </FxCompile>
+    <FxCompile Include="GBufferVS.hlsl">
+      <Filter>D3D12\Rendering\GeometryPass</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

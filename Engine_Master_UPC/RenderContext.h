@@ -7,6 +7,7 @@ class RingBuffer;
 struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
+class RenderSurface;
 
 struct RenderContext
 {
@@ -24,4 +25,5 @@ struct RenderContext
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
 
+    RenderSurface& renderSurface;
 };
