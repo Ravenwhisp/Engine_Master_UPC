@@ -123,5 +123,6 @@ void StaticTexturesPass::renderBrdf(ModuleResources* moduleResources)
     commandQueue->flush();
 
     auto environmentBrdfTexture = std::make_shared<Texture>(hashToUID("EnviromentBrdfTexture"), *m_device.Get(), enviromentBrdfTextureRtv->getD3D12Resource().Get(), TextureView::SRV, DXGI_FORMAT_R16G16_FLOAT);
+    enviromentBrdfTextureRtv->setName(L"EnviromentBrdfTextureRtv");
     moduleResources->setEnvironmentBrdfTexture(environmentBrdfTexture);
 }

@@ -67,7 +67,6 @@ bool ModuleRender::init()
     m_skyBoxPass = skyBoxPass.get();
     m_renderPasses.push_back(std::move(skyBoxPass));
 
-    m_renderPasses.push_back(std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));   //  <-------------- CRASH HERE
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
@@ -171,19 +170,7 @@ bool ModuleRender::cleanUp()
 }
 #pragma endregion
 
-std::unique_ptr<RenderSurface> ModuleRender::createSurface(float width, float height)
-{
-    auto surface = std::make_unique<RenderSurface>();
 
-    auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
-
-    auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
-
-    surface->attachTexture(RenderSurface::COLOR_0, colorTex);
-    surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
-
-    return surface;
-}
 
 void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, float width, float height)
 {
@@ -201,17 +188,17 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
         {
             if (entry.width != w || entry.height != h)
             {
-                app->getModuleD3D12()->getCommandQueue()->flush();
                 entry.width = w;
                 entry.height = h;
                 surface->resize(w, h);
+                app->getModuleD3D12()->getCommandQueue()->flush();
             }
             return;
         }
     }
 
-    app->getModuleD3D12()->getCommandQueue()->flush();
     surface->resize(w, h);
+    app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
 }
 

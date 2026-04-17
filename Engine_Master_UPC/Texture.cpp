@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleResources.h"
-
+#include "ModuleD3D12.h"
 
 namespace
 {
@@ -128,6 +128,7 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
     releaseViews();
 
     // 2. Defer the old underlying resource — GPU may still be reading it
+    app->getModuleD3D12()->getCommandQueue()->flush();
     app->getModuleResources()->deferResourceRelease(m_Resource);
     m_Resource.Reset();
 
@@ -153,6 +154,8 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
         assert(false && "Texture::resize — CreateCommittedResource failed");
         return false;
     }
+
+    m_Resource->SetName(m_Name.c_str());
 
     // 4. Refresh mip count (mip levels may differ after resize if auto-computed)
     m_mipCount = static_cast<uint32_t>(getD3D12ResourceDesc().MipLevels);

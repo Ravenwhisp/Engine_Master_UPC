@@ -163,9 +163,9 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 	auto surface = new RenderSurface();
 
 	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
-
+	colorTex->setName(L"RenderSurface_Color");
 	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
-
+	depthTex->setName(L"RenderSurface_Depth");
 	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
 
