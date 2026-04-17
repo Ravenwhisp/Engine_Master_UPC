@@ -20,6 +20,7 @@
 #include "Transform2D.h"
 #include "UIText.h"
 #include <unordered_map>
+#include "WindowSceneEditor.h"
 
 void ModuleUI::preRender()
 {
@@ -30,7 +31,7 @@ void ModuleUI::preRender()
     auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
     const ImVec2 screenSize(viewport.Width, viewport.Height);
 #else
-    const ImVec2 screenSize = app->getModuleEditor()->getWindowSceneEditorSize();
+    const ImVec2 screenSize = app->getModuleEditor()->getWindowSceneEditor()->getSize();
 #endif
 
     if (screenSize.x <= 0.0f || screenSize.y <= 0.0f)
@@ -38,7 +39,7 @@ void ModuleUI::preRender()
 
     m_rootScreenRect = { 0.0f, 0.0f, screenSize.x, screenSize.y };
 
-    for (GameObject* go : app->getModuleScene()->getScene()->getRootObjects())
+    for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!go || !go->GetActive())
             continue;
@@ -47,7 +48,21 @@ void ModuleUI::preRender()
         if (!canvas || !canvas->isActive())
             continue;
 
-        buildUIDrawCommands(go, m_rootScreenRect);
+		Rect2D rootRect = m_rootScreenRect;
+		if (canvas->renderMode != CanvasRenderMode::SCREEN_SPACE)
+		{
+			rootRect = { -0.5f, -0.5f, 1.0f, 1.0f };
+		}
+
+		if (Transform2D* canvasTransform = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
+		{
+			if (canvasTransform->isActive())
+			{
+				rootRect = canvasTransform->getRect(rootRect);
+			}
+		}
+
+		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest);
     }
 }
 
@@ -107,7 +122,7 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect) 
+void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -115,14 +130,14 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
     }
 
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
-    
+
     Rect2D myRect = parentRect;
 
     if (t2d && t2d->isActive())
     {
         myRect = t2d->getRect(parentRect);
 
-        buildUIImage(gameObject, myRect);
+        buildUIImage(gameObject, myRect, renderMode, canvasWorld, zTest);
         buildUIText(gameObject, myRect);
     }
 
@@ -130,11 +145,11 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 
     for (GameObject* child : transform->getAllChildren())
     {
-        buildUIDrawCommands(child, myRect);
+        buildUIDrawCommands(child, myRect, renderMode, canvasWorld, zTest);
     }
 }
 
-void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
+void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
@@ -181,6 +196,14 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect)
         UIImageCommand command;
         command.texture = uiImg->getTexture();
         command.rect = myRect;
+        command.fillAmount = uiImg->getFillAmount();
+        command.fillMethod = uiImg->getFillMethod();
+        command.fillOrigin = uiImg->getFillOrigin();
+        command.renderMode = renderMode;
+        command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
+            ? Matrix::Identity
+            : gameObject->GetTransform()->getGlobalMatrix();
+        command.zTest = zTest;
         m_imageCommands.push_back(command);
     }
 }

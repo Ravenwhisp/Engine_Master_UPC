@@ -20,11 +20,15 @@ private:
     bool getViewportMousePos(Vector2& outPos) const;
     void clearHoverState();
     GameObject* raycast(const Vector2& screenPos);
+    GameObject* m_hoveredLast = nullptr;
 
     void raycastAll(GameObject* root, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth);
 
-    void sendPointerClick(GameObject* go, PointerEventData& data);
+    void sendPointerEnter(GameObject* go, PointerEventData& data);
+    void sendPointerExit(GameObject* go, PointerEventData& data);
+    void sendPointerDown(GameObject* go, PointerEventData& data);
     void sendPointerUp(GameObject* go, PointerEventData& data);
+    void sendPointerClick(GameObject* go, PointerEventData& data);
 
     struct ButtonState
     {

@@ -41,9 +41,9 @@ struct WindowSceneEditorSettings
     bool showGuizmo = DEFAULT_DEBUG;
     bool showQuadTree = false;
     bool showModelBoundingBoxes = false;
-    bool showNavPath = true;
-    bool showLightComponent = DEFAULT_DEBUG;
-    bool showCameraFrustum = DEFAULT_DEBUG;
+    bool showNavPath = false;
+    bool showLightComponent = false;
+    bool showCameraFrustum = false;
 };
 
 struct FrustumCullingSettings
@@ -58,6 +58,8 @@ struct DebugGame
     bool showFPS = false;
     bool showFrametime = false;
     bool showTrianglesNumber = false;
+    bool showMeshNumber = false;
+    bool showScriptDebug = false;
 };
 
 class Settings
@@ -81,6 +83,6 @@ public:
     }
 
     bool hasDebugInformationEnabled() {
-        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber;
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber || debugGame.showMeshNumber  || debugGame.showScriptDebug;
     }
 };

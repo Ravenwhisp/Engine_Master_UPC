@@ -36,6 +36,9 @@ public:
 
     void renderMesh(ID3D12GraphicsCommandList* commandList);
 
+	int getTriangleCount() const { return m_trianglesCount; }
+	int getMeshCount() const { return m_meshCount; }
+
 private:
     std::vector<MeshRenderer*> m_meshRenderers;
 
@@ -51,4 +54,7 @@ private:
 
     const Matrix* m_projection = nullptr;
     const Matrix* m_view = nullptr;
+    
+    int m_trianglesCount = 0;
+	int m_meshCount = 0;
 };

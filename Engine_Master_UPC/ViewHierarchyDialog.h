@@ -11,32 +11,27 @@ class WindowHierarchy;
 class GameObject;
 class Scene;
 
-class ViewHierarchyDialog : public EditorWindow
+class ViewHierarchyDialog
 {
 private:
-	ModuleEditor* m_editorModule;
-	ModuleScene* m_sceneModule;
+    ModuleEditor* m_editorModule;
+    ModuleScene* m_sceneModule;
+    WindowHierarchy* m_hierarchy;
 
-	WindowHierarchy* m_hierarchy;
-
-	rapidjson::Document domTree; // for saving JSON data
+    rapidjson::Document domTree;
 
 public:
-	ViewHierarchyDialog(WindowHierarchy* hierarchy);
+    explicit ViewHierarchyDialog(WindowHierarchy* hierarchy);
 
-	void render();
-	void renderHierarchyMenu (GameObject* gameObject);
-	void renderContextMenu(GameObject* gameObject, bool prefabMode, bool isEditRoot);
-	const char* getWindowName() const override { return "HierarchyDialog"; }
+    void renderHierarchyMenu(GameObject* gameObject);
+    void renderContextMenu(GameObject* gameObject, bool prefabMode, bool isEditRoot);
 
 private:
-
-	void copy(GameObject* selected);
-	void pasteOn(GameObject* selected);
-
-	GameObject* rebuildGameObject(const rapidjson::Value& objectList);
-	void removeFromList(GameObject* obj, std::vector<GameObject*>& objects);
-	GameObject* createGameObjectWithUID(UID id, UID transformUID, std::vector<GameObject*>& rootObjects);
-
-	bool canvasExists(Scene* scene);
+    void drawCreateItems(Scene* scene, GameObject* parent);
+    void copy(GameObject* selected);
+    void pasteOn(GameObject* selected);
+    GameObject* rebuildGameObject(const rapidjson::Value& objectList);
+    void removeFromList(GameObject* obj, std::vector<GameObject*>& objects);
+    GameObject* createGameObjectWithUID(UID id, UID transformUID, std::vector<GameObject*>& rootObjects);
+    bool canvasExists(Scene* scene);
 };

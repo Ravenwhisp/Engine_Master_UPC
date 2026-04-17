@@ -69,6 +69,8 @@ public:
 #pragma endregion
 
 	void drawUI();
+	void moveComponent(size_t fromIndex, size_t toIndex);
+	int findComponentIndex(const Component* component) const;
 
 	void onTransformChange();
 

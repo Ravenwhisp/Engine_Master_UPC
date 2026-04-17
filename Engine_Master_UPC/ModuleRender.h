@@ -8,6 +8,7 @@
 
 #include "ModuleDescriptors.h"
 #include "ImGuiPass.h"
+#include "RenderViewType.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -17,8 +18,11 @@ class RingBuffer;
 class IRenderPass;
 class RenderSurface;
 class SkyBoxPass;
+class MeshRendererPass;
 
+struct ViewportEntry;
 struct SkyBoxSettings;
+class DebugDrawPass;
 
 namespace DirectX { namespace SimpleMath { struct Matrix; struct Vector3; } }
 
@@ -35,16 +39,21 @@ private:
         Vector3  position;
         bool     valid = false;
     };
+public:
+    enum class ViewportType { EDITOR, PLAY };
 
+    struct ViewportEntry
+    {
+        RenderSurface* surface = nullptr;
+        ViewportType   type = ViewportType::EDITOR;
+        float          width = 0.0f;
+        float          height = 0.0f;
+    };
 private:
     Settings* m_settings = nullptr;
     ModuleGameView* m_moduleGameView = nullptr;
 
     RingBuffer* m_ringBuffer = nullptr;
-
-    // One surface per viewport; each owns a colour RT + depth buffer.
-    std::unique_ptr<RenderSurface> m_editorSurface;
-    std::unique_ptr<RenderSurface> m_playSurface;
 
     // Ordered list of passes that are called every frame.
     std::vector<std::unique_ptr<IRenderPass>> m_renderPasses;
@@ -52,10 +61,13 @@ private:
     // ImGui straddles the frame (startFrame / apply), so it lives separately.
     std::unique_ptr<ImGuiPass> m_imGuiPass;
 
-    // Cached viewport size to detect resizes.
-    ImVec2 m_size{ 800, 600 };
+    // Cached viewports
+    std::vector<ViewportEntry> m_viewports;
 
-    int m_triangles = 0;
+    bool m_pendingStopSimulation = false;
+
+    DebugDrawPass* m_debugDrawPass = nullptr;
+    MeshRendererPass* m_meshRenderPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
 
@@ -65,31 +77,30 @@ public:
     void render()   override;
     bool cleanUp()  override;
 
-    D3D12_GPU_DESCRIPTOR_HANDLE getGPUEditorScreenRT();
-    D3D12_GPU_DESCRIPTOR_HANDLE getGPUPlayScreenRT();
+    void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
 
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
 
-    int getTriangles() const { return m_triangles; }
+    int getTrianglesCount() const;
+    int getMeshCount() const;
+    void requestStopSimulation() { m_pendingStopSimulation = true; }
+
+    // DebugDraw helper
+    void markDebugDrawCacheDirty();
 
 private:
     // Surface helpers
     std::unique_ptr<RenderSurface> createSurface(float width, float height);
-    void                           resizeSurface(RenderSurface& surface, float width, float height);
 
     void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)> renderFunc);
 
     // Scene rendering
-    void renderScene( ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug);
-
-    void renderBackground(  ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
-
-    void renderEditorScene( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
-
-    void renderPlayScene( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,float width, float height);
-
+    void renderScene( ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug, RenderViewType viewType);
+    void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
+    void renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
+    void renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,float width, float height);
     void renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,  D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
 
     // Camera helpers

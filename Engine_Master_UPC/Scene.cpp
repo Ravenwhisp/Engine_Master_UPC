@@ -31,12 +31,12 @@ bool Scene::init()
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = gameCamera.get();
 
-    gameCamera->GetTransform()->setPosition(Vector3(-5.0f, 10.0f, -5.0f));
-    gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(IM_PI / 4, IM_PI / 4, 0.0f));
+    gameCamera->GetTransform()->setPosition(Vector3(5.0f, 10.0f, 5.0f));
+    gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(-IM_PI / 4, -IM_PI / 4, 0.0f));
 
     gameCamera->AddComponent(ComponentType::CAMERA);
     gameCamera->SetName("Camera");
-    m_defaultCamera = gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
     m_allObjects.push_back(std::move(gameCamera));
     m_rootObjects.push_back(rawPtr);
@@ -55,6 +55,10 @@ void Scene::update()
 {
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
+        removePendingGameObjects();
+
+        m_isUpdating = true;
+
         for (const auto& go : m_allObjects)
         {
             if (go->GetActive())
@@ -62,6 +66,10 @@ void Scene::update()
                 go->update();
             }
         }
+
+        m_isUpdating = false;
+
+        flushPendingGameObjects();
     }
 }
 
@@ -80,13 +88,21 @@ GameObject* Scene::createGameObject()
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();
     rawPtr->init();
-    rawPtr->GetTransform()->setPosition(Vector3(1.0f, 0.0f, 1.0f));
-
-    m_allObjects.push_back(std::move(newGameObject));
-    m_rootObjects.push_back(rawPtr);
+    rawPtr->GetTransform()->setPosition(Vector3(0.0f, 0.0f, 0.0f));
 
     rawPtr->onTransformChange();
-    markDirty();
+
+    if (m_isUpdating)
+    {
+        m_pendingObjectsToAdd.push_back(std::move(newGameObject));
+        m_pendingRootObjectsToAdd.push_back(rawPtr);
+    }
+    else
+    {
+        m_allObjects.push_back(std::move(newGameObject));
+        m_rootObjects.push_back(rawPtr);
+        markDirty();
+    }
 
     return rawPtr;
 }
@@ -98,11 +114,20 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
 
     raw->init();
 
-    m_allObjects.push_back(std::move(newGameObject));
-    m_rootObjects.push_back(raw);
-
     raw->onTransformChange();
-    markDirty();
+
+    if (m_isUpdating)
+    {
+        m_pendingObjectsToAdd.push_back(std::move(newGameObject));
+        m_pendingRootObjectsToAdd.push_back(raw);
+    }
+    else
+    {
+        m_allObjects.push_back(std::move(newGameObject));
+        m_rootObjects.push_back(raw);
+        markDirty();
+    }
+
     return raw;
 }
 
@@ -148,6 +173,54 @@ void Scene::removeGameObject(UID uuid)
     }
 
     destroyWindowHierarchy(target);
+}
+
+void Scene::markGameObjectForRemoval(UID uuid)
+{
+    if (!findGameObjectByUID(uuid)) return;
+
+    for (const UID& objectUid : m_objectsToRemove)
+    {
+        if (objectUid == uuid) return;
+    }
+
+    m_objectsToRemove.push_back(uuid);
+}
+
+void Scene::removePendingGameObjects()
+{
+    for (const UID& objectUid : m_objectsToRemove)
+    {
+        removeGameObject(objectUid);
+    }
+
+    m_objectsToRemove.clear();
+}
+
+void Scene::flushPendingGameObjects()
+{
+    if (m_pendingObjectsToAdd.empty())
+    {
+        return;
+    }
+
+    for (GameObject* rootObject : m_pendingRootObjectsToAdd)
+    {
+        if (rootObject)
+        {
+            m_rootObjects.push_back(rootObject);
+        }
+    }
+
+    for (auto& pendingObject : m_pendingObjectsToAdd)
+    {
+        m_allObjects.push_back(std::move(pendingObject));
+    }
+
+    m_pendingObjectsToAdd.clear();
+    m_pendingRootObjectsToAdd.clear();
+
+    markDirty();
 }
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
@@ -237,6 +310,7 @@ GameObject* Scene::createDirectionalLightOnInit()
 
     m_allObjects.push_back(std::move(go));
     m_rootObjects.push_back(raw);
+    markDirty();
 
     return raw;
 }
@@ -264,6 +338,13 @@ void Scene::removeFromRootList(GameObject* obj)
         obj);
 
     m_rootObjects.erase(it, m_rootObjects.end());
+
+    auto pendingIt = std::remove(
+        m_pendingRootObjectsToAdd.begin(),
+        m_pendingRootObjectsToAdd.end(),
+        obj);
+
+    m_pendingRootObjectsToAdd.erase(pendingIt, m_pendingRootObjectsToAdd.end());
 }
 
 void Scene::addToRootList(GameObject* gameObject)
@@ -295,4 +376,14 @@ void Scene::clearScene()
 
     m_defaultCamera = nullptr;
     markDirty();
+}
+
+void Scene::markDirty()
+{
+    m_componentCacheDirty = true;
+
+    if (app && app->getModuleRender())
+    {
+        app->getModuleRender()->markDebugDrawCacheDirty();
+    }
 }

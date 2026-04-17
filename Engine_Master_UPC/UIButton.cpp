@@ -1,108 +1,773 @@
 #include "Globals.h"
 #include "UIButton.h"
 
-#include <imgui.h>
-
-#include "UIImage.h"
 #include "SceneReferenceResolver.h"
+#include "Script.h"
+#include "GameObject.h"
+#include "UIImage.h"
+#include "ScriptComponent.h"
+#include "Transform2D.h"
 
-UIButton::UIButton(UID id, GameObject* owner)
-    : Component(id, ComponentType::UIBUTTON, owner)
-{
-}
+#include <imgui.h>
+#include <format>
+#include <cstring>
+
+
+UIButton::UIButton(UID id, GameObject* owner) : Component(id, ComponentType::UIBUTTON, owner) { }
 
 std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
 {
-    std::unique_ptr<UIButton> clonedButton = std::make_unique<UIButton>(m_uuid, newOwner);
+	auto cloned = std::make_unique<UIButton>(m_uuid, newOwner);
 
-    clonedButton->setActive(this->isActive());
-    clonedButton->m_targetGraphic = this->m_targetGraphic;
-    clonedButton->m_targetGraphicUid = this->m_targetGraphicUid;
-    // Note: onClick listeners are not cloned, as they are typically set up in code after instantiation
+	cloned->setActive(isActive());
+	cloned->m_targetGraphic = m_targetGraphic;
+	cloned->m_targetGraphicUid = m_targetGraphicUid;
+	cloned->m_defaultTextureAssetId = m_defaultTextureAssetId;
+	cloned->m_hoverTextureAssetId = m_hoverTextureAssetId;
+	cloned->m_pressedTextureAssetId = m_pressedTextureAssetId;
+	cloned->m_isHovered = m_isHovered;
+	cloned->m_isPressed = m_isPressed;
+	cloned->m_bindingsOnHover = m_bindingsOnHover;
+	cloned->m_bindingsOnPress = m_bindingsOnPress;
+	cloned->m_bindingsOnRelease = m_bindingsOnRelease;
 
-	return clonedButton;
+	return cloned;
 }
 
-
-void UIButton::onPointerUp(PointerEventData& /*data*/)
+void UIButton::setTargetGraphic(UIImage* img)
 {
-    m_isPressed = false;
+	m_targetGraphic = img;
+	m_targetGraphicUid = img ? img->getID() : 0;
+	m_defaultTextureAssetId = img ? img->getTextureAssetId() : INVALID_ASSET_ID;
+	applyCurrentStateTexture();
 }
 
-
-void UIButton::onPointerClick(PointerEventData& /*data*/)
+#pragma region Events
+void UIButton::applyTargetTexture(const MD5Hash& assetId)
 {
-    press();
+	if (!m_targetGraphic)
+	{
+		return;
+	}
+
+	if (assetId == INVALID_ASSET_ID)
+	{
+		return;
+	}
+
+	m_targetGraphic->setTextureAssetId(assetId);
 }
 
+MD5Hash UIButton::getDefaultTextureAssetId() const
+{
+	if (m_defaultTextureAssetId != INVALID_ASSET_ID)
+	{
+		return m_defaultTextureAssetId;
+	}
+
+	if (m_targetGraphic)
+	{
+		return m_targetGraphic->getTextureAssetId();
+	}
+
+	return INVALID_ASSET_ID;
+}
+
+void UIButton::applyCurrentStateTexture()
+{
+	MD5Hash targetAsset = getDefaultTextureAssetId();
+
+	if (m_isPressed)
+	{
+		if (m_pressedTextureAssetId != INVALID_ASSET_ID)
+		{
+			targetAsset = m_pressedTextureAssetId;
+		}
+		else if (m_hoverTextureAssetId != INVALID_ASSET_ID)
+		{
+			targetAsset = m_hoverTextureAssetId;
+		}
+	}
+	else if (m_isHovered)
+	{
+		if (m_hoverTextureAssetId != INVALID_ASSET_ID)
+		{
+			targetAsset = m_hoverTextureAssetId;
+		}
+	}
+
+	applyTargetTexture(targetAsset);
+}
+
+void UIButton::onPointerEnter(PointerEventData&)
+{
+	if (!isActive()) return;
+	m_isHovered = true;
+	applyCurrentStateTexture();
+
+	executeBindings(m_bindingsOnHover);
+}
+
+void UIButton::onPointerExit(PointerEventData&)
+{
+	m_isHovered = false;
+	applyCurrentStateTexture();
+}
+
+void UIButton::onPointerDown(PointerEventData&)
+{
+	if (!isActive()) return;
+
+	m_isPressed = true;
+	applyCurrentStateTexture();
+
+	executeBindings(m_bindingsOnPress);
+}
+
+void UIButton::onPointerUp(PointerEventData&)
+{
+	m_isPressed = false;
+	applyCurrentStateTexture();
+	executeBindings(m_bindingsOnRelease);
+}
+
+void UIButton::onPointerClick(PointerEventData&)
+{
+	press();
+}
 
 void UIButton::press()
 {
-    if (!isActive()) return;
-    onClick.Broadcast();
-    DEBUG_LOG("UIButton pressed");
+	if (!isActive()) return;
+
+	onClick.Broadcast();
 }
 
+void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
+{
+	for (auto& binding : bindings)
+	{
+		if (!binding.targetGameObject)
+			continue;
+
+		if (binding.methodName == "GameObject.SetActive")
+		{
+			binding.targetGameObject->SetActive(binding.paramBool);
+			continue;
+		}
+
+		if (!binding.targetComponent)
+			continue;
+
+		if (binding.targetComponent->getType() == ComponentType::SCRIPT)
+		{
+			if (!binding.function && !binding.paramFunc)
+				continue;
+
+			ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(binding.targetComponent);
+			Script* script = scriptComponent->getScript();
+			if (!script)
+				continue;
+
+			switch (binding.paramType)
+			{
+			case ScriptMethodParamType::None:
+				if (binding.function)
+				{
+					binding.function(script);
+				}
+				break;
+			case ScriptMethodParamType::Float:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramFloat);
+				}
+				break;
+			case ScriptMethodParamType::Int:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramInt);
+				}
+				break;
+			case ScriptMethodParamType::Bool:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramBool);
+				}
+				break;
+			case ScriptMethodParamType::Vec3:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramVec3);
+				}
+				break;
+			case ScriptMethodParamType::String:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramString);
+				}
+				break;
+			case ScriptMethodParamType::Unsupported:
+				break;
+			}
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Editor
 
 void UIButton::drawUi()
 {
-    ImGui::Text("UIButton");
-    ImGui::Separator();
+	ImGui::Text("UIButton");
+	ImGui::Separator();
 
-    ImGui::Button("TargetGraphic reference");
 
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
-        {
-            Component* data = static_cast<Component*>(payload->Data);
-            UIImage* image = static_cast<UIImage*>(data);
-            if (image) 
-            {
-                setTargetGraphic(image);
-            }
-        }
-        ImGui::EndDragDropTarget();
-    }
+	ImGui::Button("TargetGraphic reference");
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+		{
+			Component* comp = *(Component**)payload->Data;
 
-    // Target graphic slot
-    ImGui::Text("Target Graphic: %s", m_targetGraphic ? "Assigned" : "None (drag a UIImage GO here)");
+			if (comp && comp->getType() == ComponentType::UIIMAGE)
+			{
+				setTargetGraphic(static_cast<UIImage*>(comp));
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
 
-    // onClick listener count (read-only info)
-    ImGui::Text("onClick listeners: %zu", onClick.GetSize());
+	ImGui::Text("Target Graphic: %s", m_targetGraphic ? "Assigned" : "None");
+	if (m_targetGraphic)
+	{
+		ImGui::SeparatorText("Button Textures");
+
+		ImGui::Button("Hover Texture");
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+			{
+				const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+				m_hoverTextureAssetId = data ? *data : INVALID_ASSET_ID;
+				applyCurrentStateTexture();
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", m_hoverTextureAssetId != INVALID_ASSET_ID ? "Assigned" : "Default");
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##HoverTexture"))
+		{
+			m_hoverTextureAssetId = INVALID_ASSET_ID;
+			applyCurrentStateTexture();
+		}
+
+		ImGui::Button("Pressed Texture");
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+			{
+				const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+				m_pressedTextureAssetId = data ? *data : INVALID_ASSET_ID;
+				applyCurrentStateTexture();
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", m_pressedTextureAssetId != INVALID_ASSET_ID ? "Assigned" : "Default");
+		ImGui::SameLine();
+		if (ImGui::Button("Clear##PressedTexture"))
+		{
+			m_pressedTextureAssetId = INVALID_ASSET_ID;
+			applyCurrentStateTexture();
+		}
+	}
+
+	ImGui::Separator();
+
+	drawBindingsUI("On Hover", m_bindingsOnHover);
+	drawBindingsUI("On Press", m_bindingsOnPress);
+	drawBindingsUI("On Release", m_bindingsOnRelease);
+}
+
+void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>& bindings)
+{
+	std::string headerLabel = std::format("{} Events", label);
+	if (!ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		return;
+	}
+	std::string addLabel = std::format("Add {}###Add{}", label, label);
+	if (ImGui::Button(addLabel.c_str()))
+	{
+		bindings.emplace_back();
+	}
+
+	ImGui::PushID(label);
+	
+	ImGui::BeginGroup();
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 6));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImGui::GetStyleColorVec4(ImGuiCol_Border));
+	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+
+	ImGui::BeginGroup();
+	const ImVec2 groupPadding(4.0f, 4.0f);
+	ImGui::Dummy(ImVec2(groupPadding.x, groupPadding.y));
+	ImGui::SameLine(0.0f, 0.0f);
+	ImGui::BeginGroup();
+
+	for (int i = 0; i < bindings.size(); ++i)
+	{
+		auto& binding = bindings[i];
+
+		ImGui::PushID(i);
+
+		if (ImGui::BeginTable("BindingTable", 2, ImGuiTableFlags_SizingStretchProp))
+		{
+			ImGui::TableSetupColumn("Binding", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableSetupColumn("Remove", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+
+			ImGui::Text("Script:");
+			std::string scriptLabel;
+			if (binding.targetGameObject)
+			{
+				scriptLabel = binding.targetGameObject->GetName();
+			}
+			else
+			{
+				scriptLabel = "Drop GameObject";
+			}
+
+			ImGui::Button(scriptLabel.c_str());
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+				{
+					GameObject* go = *(GameObject**)payload->Data;
+					if (go)
+					{
+						binding.targetGameObject = go;
+						binding.gameObjectUid = go->GetID();
+						
+						binding.targetComponent = nullptr;
+						binding.componentUid = 0;
+						binding.methodName.clear();
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (binding.targetGameObject)
+			{
+				const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
+				std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+				if (ImGui::BeginCombo(comboLabel.c_str(), preview))
+				{
+					if (ImGui::BeginMenu("GameObject"))
+					{
+						bool selected = (binding.methodName == "GameObject.SetActive");
+						if (ImGui::Selectable("SetActive", selected))
+						{
+							binding.targetComponent = nullptr;
+							binding.componentUid = 0;
+							binding.methodName = "GameObject.SetActive";
+							binding.paramType = ScriptMethodParamType::Bool;
+							binding.paramName = "Active";
+							binding.paramBool = false;
+						}
+						ImGui::EndMenu();
+					}
+
+					std::vector<Component*> components = binding.targetGameObject->GetAllComponents();
+					for (Component* comp : components)
+					{
+						if (comp->getType() == ComponentType::SCRIPT)
+						{
+							ScriptComponent* scriptComp = static_cast<ScriptComponent*>(comp);
+							if (ImGui::BeginMenu(scriptComp->getScriptName().c_str()))
+							{
+								Script* script = scriptComp->getScript();
+								if (script)
+								{
+									ScriptMethodList methods = script->getExposedMethods();
+									for (size_t j = 0; j < methods.count; ++j)
+									{
+										const auto& method = methods.methods[j];
+										if (method.paramType == ScriptMethodParamType::Unsupported)
+											continue;
+										bool selected = (binding.targetComponent == comp && binding.methodName == method.name);
+										if (ImGui::Selectable(method.name, selected))
+										{
+											binding.targetComponent = comp;
+											binding.componentUid = comp->getID();
+											binding.methodName = method.name;
+											const ScriptMethodParamType previousType = binding.paramType;
+											binding.function = method.func;
+											binding.paramFunc = method.paramFunc;
+											binding.paramType = method.paramType;
+											binding.paramName = method.paramName ? method.paramName : "";
+											if (binding.paramType != previousType)
+											{
+												binding.paramFloat = 0.0f;
+												binding.paramInt = 0;
+												binding.paramBool = false;
+												binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+												binding.paramString.clear();
+											}
+										}
+										if (selected)
+											ImGui::SetItemDefaultFocus();
+									}
+								}
+								ImGui::EndMenu();
+							}
+						}
+					}
+					ImGui::EndCombo();
+				}
+
+				if (!binding.methodName.empty())
+				{
+					const char* paramLabel = binding.paramName.empty() ? "Parameter" : binding.paramName.c_str();
+					switch (binding.paramType)
+					{
+					case ScriptMethodParamType::None:
+						break;
+					case ScriptMethodParamType::Float:
+						ImGui::DragFloat(paramLabel, &binding.paramFloat, 0.1f);
+						break;
+					case ScriptMethodParamType::Int:
+						ImGui::DragInt(paramLabel, &binding.paramInt);
+						break;
+					case ScriptMethodParamType::Bool:
+						ImGui::Checkbox(paramLabel, &binding.paramBool);
+						break;
+					case ScriptMethodParamType::Vec3:
+						ImGui::DragFloat3(paramLabel, &binding.paramVec3.x, 0.1f);
+						break;
+					case ScriptMethodParamType::String:
+					{
+						char buffer[256];
+						std::strncpy(buffer, binding.paramString.c_str(), sizeof(buffer));
+						buffer[sizeof(buffer) - 1] = '\0';
+						if (ImGui::InputText(paramLabel, buffer, sizeof(buffer)))
+						{
+							binding.paramString = buffer;
+						}
+						break;
+					}
+					case ScriptMethodParamType::Unsupported:
+						ImGui::TextDisabled("Parameters not supported");
+						break;
+					}
+				}
+			}
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.75f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
+			std::string removeLabel = std::format("X###Remove{}_{}", label, i);
+			if (ImGui::SmallButton(removeLabel.c_str()))
+			{
+				bindings.erase(bindings.begin() + i);
+				ImGui::PopStyleColor(3);
+				ImGui::EndTable();
+				ImGui::PopID();
+				break;
+			}
+			ImGui::PopStyleColor(3);
+			ImGui::EndTable();
+		}
+
+#pragma endregion
+
+		ImGui::PopID();
+	}
+
+	ImGui::PopID();
+	ImGui::EndGroup();
+	ImGui::Dummy(ImVec2(groupPadding.x, groupPadding.y));
+	ImGui::EndGroup();
+
+	ImGui::PopStyleColor(2);
+	ImGui::PopStyleVar();
+
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	ImGui::GetWindowDrawList()->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border));
+	ImGui::EndGroup();
+}
+
+#pragma endregion
+
+#pragma region Serialization
+void UIButton::SerializeBindings(const std::vector<UIButton::ButtonEventBinding>& bindings, rapidjson::Value& array, rapidjson::Document& doc)
+{
+	for (const auto& b : bindings)
+	{
+		rapidjson::Value obj(rapidjson::kObjectType);
+
+		obj.AddMember("GameObjectUID", (uint64_t)b.gameObjectUid, doc.GetAllocator());
+		obj.AddMember("ComponentUID", (uint64_t)b.componentUid, doc.GetAllocator());
+		obj.AddMember("Method", rapidjson::Value(b.methodName.c_str(), doc.GetAllocator()), doc.GetAllocator());
+		obj.AddMember("ParamType", static_cast<int>(b.paramType), doc.GetAllocator());
+		switch (b.paramType)
+		{
+		case ScriptMethodParamType::Float:
+			obj.AddMember("ParamValue", b.paramFloat, doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::Int:
+			obj.AddMember("ParamValue", b.paramInt, doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::Bool:
+			obj.AddMember("ParamValue", b.paramBool, doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::Vec3:
+		{
+			rapidjson::Value array(rapidjson::kArrayType);
+			array.PushBack(b.paramVec3.x, doc.GetAllocator());
+			array.PushBack(b.paramVec3.y, doc.GetAllocator());
+			array.PushBack(b.paramVec3.z, doc.GetAllocator());
+			obj.AddMember("ParamValue", array, doc.GetAllocator());
+			break;
+		}
+		case ScriptMethodParamType::String:
+			obj.AddMember("ParamValue", rapidjson::Value(b.paramString.c_str(), doc.GetAllocator()), doc.GetAllocator());
+			break;
+		case ScriptMethodParamType::None:
+		case ScriptMethodParamType::Unsupported:
+			break;
+		}
+
+		array.PushBack(obj, doc.GetAllocator());
+	}
 }
 
 rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+	rapidjson::Value json(rapidjson::kObjectType);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+	json.AddMember("UID", m_uuid, domTree.GetAllocator());
+	json.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
+	json.AddMember("Active", isActive(), domTree.GetAllocator());
+	json.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
+	json.AddMember("DefaultTextureAssetId", rapidjson::Value(m_defaultTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("HoverTextureAssetId", rapidjson::Value(m_hoverTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("PressedTextureAssetId", rapidjson::Value(m_pressedTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
-    componentInfo.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
+	rapidjson::Value hoverArray(rapidjson::kArrayType);
+	rapidjson::Value pressArray(rapidjson::kArrayType);
+	rapidjson::Value releaseArray(rapidjson::kArrayType);
 
-    return componentInfo;
+	SerializeBindings(m_bindingsOnHover, hoverArray, domTree);
+	SerializeBindings(m_bindingsOnPress, pressArray, domTree);
+	SerializeBindings(m_bindingsOnRelease, releaseArray, domTree);
+
+	json.AddMember("OnHover", hoverArray, domTree.GetAllocator());
+	json.AddMember("OnPress", pressArray, domTree.GetAllocator());
+	json.AddMember("OnRelease", releaseArray, domTree.GetAllocator());
+
+	return json;
+}
+
+void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings)
+{
+	outBindings.clear();
+
+	for (auto& v : array.GetArray())
+	{
+		UIButton::ButtonEventBinding b;
+
+		b.gameObjectUid = (UID)v["GameObjectUID"].GetUint64();
+		b.componentUid = (UID)v["ComponentUID"].GetUint64();
+		b.methodName = v["Method"].GetString();
+		b.paramType = ScriptMethodParamType::None;
+		b.paramFloat = 0.0f;
+		b.paramInt = 0;
+		b.paramBool = false;
+		b.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+		b.paramString.clear();
+		if (v.HasMember("ParamType") && v["ParamType"].IsInt())
+		{
+			b.paramType = static_cast<ScriptMethodParamType>(v["ParamType"].GetInt());
+		}
+		if (v.HasMember("ParamValue"))
+		{
+			const auto& paramValue = v["ParamValue"];
+			switch (b.paramType)
+			{
+			case ScriptMethodParamType::Float:
+				if (paramValue.IsNumber())
+					b.paramFloat = paramValue.GetFloat();
+				break;
+			case ScriptMethodParamType::Int:
+				if (paramValue.IsInt())
+					b.paramInt = paramValue.GetInt();
+				break;
+			case ScriptMethodParamType::Bool:
+				if (paramValue.IsBool())
+					b.paramBool = paramValue.GetBool();
+				break;
+			case ScriptMethodParamType::Vec3:
+				if (paramValue.IsArray() && paramValue.Size() == 3)
+				{
+					b.paramVec3 = Vector3(paramValue[0].GetFloat(), paramValue[1].GetFloat(), paramValue[2].GetFloat());
+				}
+				break;
+			case ScriptMethodParamType::String:
+				if (paramValue.IsString())
+					b.paramString = paramValue.GetString();
+				break;
+			case ScriptMethodParamType::None:
+			case ScriptMethodParamType::Unsupported:
+				break;
+			}
+		}
+
+		outBindings.push_back(b);
+	}
 }
 
 bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("TargetGraphicUID"))
-    {
-        m_targetGraphicUid = (UID)componentInfo["TargetGraphicUID"].GetUint64();
-    }
+	if (componentInfo.HasMember("TargetGraphicUID"))
+	{
+		m_targetGraphicUid = (UID)componentInfo["TargetGraphicUID"].GetUint64();
+	}
 
-    m_targetGraphic = nullptr;
-    return true;
+	if (componentInfo.HasMember("DefaultTextureAssetId"))
+	{
+		m_defaultTextureAssetId = componentInfo["DefaultTextureAssetId"].GetString();
+	}
+	else
+	{
+		m_defaultTextureAssetId = INVALID_ASSET_ID;
+	}
+
+	if (componentInfo.HasMember("HoverTextureAssetId"))
+	{
+		m_hoverTextureAssetId = componentInfo["HoverTextureAssetId"].GetString();
+	}
+	else
+	{
+		m_hoverTextureAssetId = INVALID_ASSET_ID;
+	}
+
+	if (componentInfo.HasMember("PressedTextureAssetId"))
+	{
+		m_pressedTextureAssetId = componentInfo["PressedTextureAssetId"].GetString();
+	}
+	else
+	{
+		m_pressedTextureAssetId = INVALID_ASSET_ID;
+	}
+
+	m_targetGraphic = nullptr;
+
+	if (componentInfo.HasMember("OnHover"))
+	{
+		DeserializeBindings(componentInfo["OnHover"], m_bindingsOnHover);
+	}
+
+	if (componentInfo.HasMember("OnPress"))
+	{
+		DeserializeBindings(componentInfo["OnPress"], m_bindingsOnPress);
+	}
+
+	if (componentInfo.HasMember("OnRelease"))
+	{
+		DeserializeBindings(componentInfo["OnRelease"], m_bindingsOnRelease);
+	}
+
+	return true;
+}
+
+void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver)
+{
+	b.targetComponent = nullptr;
+	b.targetGameObject = nullptr;
+	b.function = nullptr;
+	b.paramFunc = nullptr;
+	b.paramType = ScriptMethodParamType::None;
+	b.paramName.clear();
+
+	if (b.gameObjectUid != 0)
+	{
+		// Since resolver does not expose getClonedGameObject, we rely on componentUid or skip for GameObject.SetActive
+		// In a real system, you'd want to lookup the gameobject UID
+		// For now, if there's a component we get the GO from it.
+	}
+
+	if (b.componentUid == 0)
+		return;
+
+	Component* resolved = resolver.getClonedComponent(b.componentUid);
+	if (!resolved)
+		return;
+
+	b.targetComponent = resolved;
+	b.targetGameObject = resolved->getOwner();
+
+	if (resolved->getType() != ComponentType::SCRIPT)
+		return;
+
+	ScriptComponent* sc = static_cast<ScriptComponent*>(resolved);
+
+	Script* script = sc->getScript();
+	if (!script)
+		return;
+
+	ScriptMethodList methods = script->getExposedMethods();
+
+	for (size_t i = 0; i < methods.count; ++i)
+	{
+		if (b.methodName == methods.methods[i].name)
+		{
+			const ScriptMethodInfo& method = methods.methods[i];
+			b.function = method.func;
+			b.paramFunc = method.paramFunc;
+			b.paramType = method.paramType;
+			b.paramName = method.paramName ? method.paramName : "";
+			break;
+		}
+	}
 }
 
 void UIButton::fixReferences(const SceneReferenceResolver& resolver)
 {
-    if (m_targetGraphicUid == 0)
-    {
-        m_targetGraphic = nullptr;
-        return;
-    }
+	if (m_targetGraphicUid != 0)
+	{
+		m_targetGraphic = static_cast<UIImage*>(resolver.getClonedComponent(m_targetGraphicUid));
+	}
 
-    m_targetGraphic = static_cast<UIImage*>(resolver.getClonedComponent(m_targetGraphicUid));
+	if (m_targetGraphic)
+	{
+		if (m_defaultTextureAssetId == INVALID_ASSET_ID)
+		{
+			m_defaultTextureAssetId = m_targetGraphic->getTextureAssetId();
+		}
+		applyCurrentStateTexture();
+	}
+
+	for (auto& b : m_bindingsOnHover)
+	{
+		ResolveBinding(b, resolver);
+	}
+
+	for (auto& b : m_bindingsOnPress)
+	{
+		ResolveBinding(b, resolver);
+	}
+
+	for (auto& b : m_bindingsOnRelease)
+	{
+		ResolveBinding(b, resolver);
+	}
 }
+
+#pragma endregion

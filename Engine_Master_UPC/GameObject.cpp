@@ -10,10 +10,12 @@
 #include "Component.h"
 #include "Transform.h"
 #include "CameraComponent.h"
+#include "ScriptComponent.h"
 #include "ComponentFactory.h"
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <imgui.h>
 
 #include "PrefabManager.h"
@@ -90,6 +92,7 @@ bool GameObject::AddComponent(ComponentType componentType)
     }
     newComponent->init();
     m_components.push_back(std::move(newComponent));
+    app->getModuleScene()->getScene()->markDirty();
 
     GameObject* target = this;
     while (target && !PrefabManager::isPrefabInstance(target))
@@ -101,7 +104,7 @@ bool GameObject::AddComponent(ComponentType componentType)
     {
         PrefabManager::markComponentAdded(target, static_cast<int>(componentType));
     }
-     
+
     return true;
 }
 
@@ -120,6 +123,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
 
     Component* rawPtr = newComponent.get();
     m_components.push_back(std::move(newComponent));
+    app->getModuleScene()->getScene()->markDirty();
     return rawPtr;
 }
 
@@ -151,6 +155,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     (*it)->cleanUp();
     m_components.erase(it);
+    app->getModuleScene()->getScene()->markDirty();
 
     if (target)
     {
@@ -341,7 +346,67 @@ void GameObject::drawUI()
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted("Layer");
         ImGui::TableSetColumnIndex(1);
-        DrawEnumCombo("##Layer", m_layer, static_cast<int>(Layer::COUNT), LayerToString);
+        {
+            static Layer s_pendingLayer = Layer::DEFAULT;
+            static GameObject* s_pendingLayerTarget = nullptr;
+
+            Layer previousLayer = m_layer;
+            if (DrawEnumCombo("##Layer", m_layer, static_cast<int>(Layer::COUNT), LayerToString))
+            {
+                if (m_layer != previousLayer && !m_transform->getAllChildren().empty())
+                {
+                    s_pendingLayer = m_layer;
+                    s_pendingLayerTarget = this;
+                    m_layer = previousLayer; // revert until user decides
+                    ImGui::OpenPopup("##LayerChildrenPopup");
+                }
+            }
+
+            if (ImGui::BeginPopupModal("##LayerChildrenPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
+            {
+                ImGui::Text("Change layer to '%s'.", LayerToString(s_pendingLayer));
+                ImGui::Text("Do you want to apply it to all children as well?");
+                ImGui::Spacing();
+
+                if (ImGui::Button("Yes, apply to children"))
+                {
+                    if (s_pendingLayerTarget)
+                    {
+                        std::function<void(GameObject*)> applyRecursive = [&](GameObject* go)
+                            {
+                                go->SetLayer(s_pendingLayer);
+                                for (GameObject* child : go->GetTransform()->getAllChildren())
+                                    applyRecursive(child);
+                            };
+                        applyRecursive(s_pendingLayerTarget);
+                        s_pendingLayerTarget = nullptr;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("No, only this object"))
+                {
+                    if (s_pendingLayerTarget)
+                    {
+                        s_pendingLayerTarget->SetLayer(s_pendingLayer);
+                        s_pendingLayerTarget = nullptr;
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Cancel"))
+                {
+                    s_pendingLayerTarget = nullptr;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+        }
 
         ImGui::EndTable();
     }
@@ -351,12 +416,31 @@ void GameObject::drawUI()
 #pragma endregion
 
 #pragma region Components
+    int pendingMoveFrom = -1;
+    int pendingMoveTo = -1;
+
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         const std::unique_ptr<Component>& component = m_components[i];
         ImGui::PushID(static_cast<int>(component->getID()));
 
-        std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
+        std::string header = std::string(ComponentTypeToString(component->getType())); // + " | UUID: " + std::to_string(component->getID());
+
+        if (component->getType() == ComponentType::SCRIPT)
+        {
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component.get());
+
+            if (scriptComponent->getScript())
+            {
+                const std::string& scriptName = scriptComponent->getScriptName();
+                header += " (" + scriptName + ")";
+
+            }
+            else
+            {
+                header += " (Not instantiated)";
+            }
+        }
 
         if (component->getType() == ComponentType::CAMERA)
         {
@@ -371,22 +455,81 @@ void GameObject::drawUI()
 
         bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
 
-        if (i != 0)
-        {
-            ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
-        }
+        ImVec2 headerMin = ImGui::GetItemRectMin();
+        ImVec2 headerMax = ImGui::GetItemRectMax();
+        ImVec2 cursorAfterHeader = ImGui::GetCursorScreenPos();
 
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+        const bool canReorder = (component->getType() != ComponentType::TRANSFORM);
+
+        if (canReorder && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
-            ImGui::SetDragDropPayload("COMPONENT", &component, sizeof(Component));
-            ImGui::Text("Component UID %s");
+            Component* raw = component.get();
+            ImGui::SetDragDropPayload("COMPONENT", &raw, sizeof(Component*));
+            ImGui::Text("Move %s", header.c_str());
             ImGui::EndDragDropSource();
         }
 
-        bool enabled = component->isActive();
-        if (component->getType() != ComponentType::TRANSFORM && ImGui::Checkbox("##Active", &enabled))
+        if (canReorder)
         {
-            component->setActive(enabled);
+            const float dropZoneHeight = 5.0f;
+            const float fullWidth = headerMax.x - headerMin.x;
+
+            // TOP DROP ZONE
+            ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y));
+            ImGui::InvisibleButton("##drop_above", ImVec2(fullWidth, dropZoneHeight));
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+                {
+                    Component* sourceComponent = *reinterpret_cast<Component* const*>(payload->Data);
+                    int sourceIndex = findComponentIndex(sourceComponent);
+                    int targetIndex = static_cast<int>(i);
+
+                    if (sourceIndex != -1)
+                    {
+                        pendingMoveFrom = sourceIndex;
+                        pendingMoveTo = targetIndex;
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            // BOTTOM DROP ZONE
+            ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMax.y - dropZoneHeight));
+            ImGui::InvisibleButton("##drop_below", ImVec2(fullWidth, dropZoneHeight));
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+                {
+                    Component* sourceComponent = *reinterpret_cast<Component* const*>(payload->Data);
+                    int sourceIndex = findComponentIndex(sourceComponent);
+                    int targetIndex = static_cast<int>(i + 1);
+
+                    if (sourceIndex != -1)
+                    {
+                        pendingMoveFrom = sourceIndex;
+                        pendingMoveTo = targetIndex;
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SetCursorScreenPos(cursorAfterHeader);
+        }
+
+        if (component->getType() != ComponentType::TRANSFORM)
+        {
+            ImGui::SetCursorScreenPos(ImVec2(headerMax.x - 24.0f, headerMin.y));
+
+            bool enabled = component->isActive();
+            if (ImGui::Checkbox("##Active", &enabled))
+            {
+                component->setActive(enabled);
+            }
+
+            ImGui::SetCursorScreenPos(cursorAfterHeader);
         }
 
         if (isOpen)
@@ -394,13 +537,12 @@ void GameObject::drawUI()
             PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
             const bool inPrefabMode = session && session->m_active && session->m_rootObject;
 
-            const ImGuiID activeIdBefore = ImGui::GetActiveID();
             component->drawUi();
             const ImGuiID activeIdAfter = ImGui::GetActiveID();
 
             if (inPrefabMode && activeIdAfter != 0)
             {
-                const int componentType = static_cast<int>(component->getType()); 
+                const int componentType = static_cast<int>(component->getType());
                 GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
                 if (targetForOverride)
                 {
@@ -431,6 +573,11 @@ void GameObject::drawUI()
         ImGui::PopID();
     }
 
+    if (pendingMoveFrom != -1 && pendingMoveTo != -1)
+    {
+        moveComponent(static_cast<size_t>(pendingMoveFrom), static_cast<size_t>(pendingMoveTo));
+    }
+
     ImGui::Separator();
 
     if (ImGui::BeginCombo("Add Component", "Select"))
@@ -451,6 +598,52 @@ void GameObject::drawUI()
         ImGui::EndCombo();
     }
 #pragma endregion
+}
+
+void GameObject::moveComponent(size_t fromIndex, size_t toIndex)
+{
+    if (fromIndex >= m_components.size())
+    {
+        return;
+    }
+
+    if (toIndex > m_components.size())
+    {
+        return;
+    }
+
+    if (fromIndex == toIndex)
+    {
+        return;
+    }
+
+    if (fromIndex == 0 || toIndex == 0)
+    {
+        return;
+    }
+
+    std::unique_ptr<Component> movedComponent = std::move(m_components[fromIndex]);
+    m_components.erase(m_components.begin() + static_cast<std::ptrdiff_t>(fromIndex));
+
+    if (fromIndex < toIndex)
+    {
+        --toIndex;
+    }
+
+    m_components.insert(m_components.begin() + static_cast<std::ptrdiff_t>(toIndex), std::move(movedComponent));
+}
+
+int GameObject::findComponentIndex(const Component* component) const
+{
+    for (size_t i = 0; i < m_components.size(); ++i)
+    {
+        if (m_components[i].get() == component)
+        {
+            return static_cast<int>(i);
+        }
+    }
+
+    return -1;
 }
 
 void GameObject::onTransformChange()

@@ -18,7 +18,7 @@
 #include "ScriptFactory.h"
 
 #include "Settings.h"
-#include "PerformanceProfiler.h"
+#include "OptickProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
@@ -61,6 +61,9 @@ bool Application::init()
 {
 	bool ret = true;
 
+    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
+    assert(m_gameScriptsModule != nullptr);
+
     for (auto it = modules.begin(); it != modules.end() && ret; ++it)
     {
         ret = (*it)->init();
@@ -68,18 +71,15 @@ bool Application::init()
 
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-    // DLL TEST
-    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
-    assert(m_gameScriptsModule != nullptr);
-
-    //DELL TEST
-
 	return ret;
 }
 
 
 void Application::update()
 {
+    PERF_FRAME("MainThread");
+    PERF_LOGIC("Application::update");
+
     auto frameStart = std::chrono::high_resolution_clock::now();
 
     float dt = 0.f;
@@ -90,33 +90,44 @@ void Application::update()
 
     if (!app->m_paused)
     {
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->update();
+            PERF_LOGIC("Application::ModulesUpdate");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->update();
+            }
         }
 
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->preRender();
+            PERF_RENDER("Application::ModulesPreRender");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->preRender();
+            }
         }
 
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->render();
+            PERF_RENDER("Application::ModulesRender");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->render();
+            }
         }
 
-        for (auto it = modules.begin(); it != modules.end(); ++it)
         {
-            (*it)->postRender();
+            PERF_RENDER("Application::ModulesPostRender");
+            for (auto it = modules.begin(); it != modules.end(); ++it)
+            {
+                (*it)->postRender();
+            }
         }
     }
-
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
 
     m_elapsedMilis = static_cast<uint64_t>(std::chrono::duration<float, std::milli>(frameEnd - frameStart).count());
 
-    m_moduleTime->waitForNextFrame();
+    //m_moduleTime->waitForNextFrame();
 }
 
 bool Application::cleanUp()

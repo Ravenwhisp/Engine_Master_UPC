@@ -10,6 +10,7 @@ enum class KeyCode : int
     D,
     Q,
     E,
+    R,
     I,
     J,
     K,
@@ -17,6 +18,7 @@ enum class KeyCode : int
     U,
     O,
     T,
+    F,
 
     LeftShift,
     RightShift,
@@ -24,9 +26,15 @@ enum class KeyCode : int
     Space,
     Escape,
     Enter,
+    Tab,
 
     Up,
     Down,
     Left,
-    Right
+    Right,
+
+    Num1,
+    Num2,
+    Num3,
+    Num4
 };

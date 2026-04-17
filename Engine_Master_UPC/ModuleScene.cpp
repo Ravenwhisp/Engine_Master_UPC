@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "Settings.h"
 #include "ModuleNavigation.h"
-#include "ModuleRender.h"
 #include "ModuleEditor.h"
 
 #include "Scene.h"
@@ -13,16 +12,10 @@
 #include "SceneSnapshot.h"
 
 #include "GameObject.h"
-#include "Component.h"
-#include "Transform.h"
-#include "CameraComponent.h"
 #include "MeshRenderer.h"
+#include "SpriteRenderer.h"
 #include "LightComponent.h"
 #include "ScriptComponent.h"
-
-#include <unordered_map>
-
-using namespace DirectX::SimpleMath;
 
 ModuleScene::ModuleScene()
 {
@@ -55,6 +48,8 @@ void ModuleScene::update()
         loadScene(m_pendingSceneLoad);
         m_pendingSceneLoad.clear();
     }  
+
+    syncQuadtreeWithSettings();
   
     m_scene->update();
     m_quadtree->update();
@@ -74,6 +69,7 @@ bool ModuleScene::cleanUp()
 void ModuleScene::rebuildComponentCaches()
 {
     m_meshRenderers.clear();
+    m_spriteRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
 
@@ -87,6 +83,11 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
         {
             m_meshRenderers.push_back(mesh);
+        }
+
+        if (auto* sprite = go->GetComponentAs<SpriteRenderer>(ComponentType::SPRITE_RENDERER))
+        {
+            m_spriteRenderers.push_back(sprite);
         }
 
         if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
@@ -120,6 +121,8 @@ void ModuleScene::rebuildMeshRenderersCache()
             {
                 m_meshRenderers.push_back(mesh);
             }
+
+            // WE might need to add the Sprite_Renderer also here to apply the frustum culling to them also
         }
     }
     else {
@@ -147,6 +150,16 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
         rebuildComponentCaches();
     }
     return m_meshRenderers;
+}
+
+const std::vector<SpriteRenderer*>& ModuleScene::getSpriteRenderers()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_spriteRenderers;
 }
 
 const std::vector<LightComponent*>& ModuleScene::getLightComponents()
@@ -228,3 +241,23 @@ void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 }
 #pragma endregion
 
+#pragma region Quadtree
+void ModuleScene::syncQuadtreeWithSettings()
+{
+    if (!m_quadtree)
+    {
+        return;
+    }
+
+    const bool shouldShowQuadtree = app->getSettings()->sceneEditor.showQuadTree;
+
+    if (shouldShowQuadtree && !m_quadtree->getIsBuilded())
+    {
+        m_quadtree->build();
+    }
+    else if (!shouldShowQuadtree && m_quadtree->getIsBuilded())
+    {
+        m_quadtree->clear();
+    }
+}
+#pragma endregion
