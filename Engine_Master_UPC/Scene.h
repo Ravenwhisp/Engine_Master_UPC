@@ -92,6 +92,7 @@ public:
     GameObject* createDirectionalLightOnInit();
 
     const std::vector<GameObject*> getAllGameObjects() const;
+    bool containsGameObject(const GameObject* go) const;
 
     void clearScene();
 
