@@ -118,6 +118,15 @@ void ModuleRender::preRender()
         }
     }
 
+    app->getModuleD3D12()->executeCurrentCommandList();
+    m_imGuiPass->startFrame();
+
+}
+
+void ModuleRender::render()
+{
+    auto* commandList = app->getModuleD3D12()->getCommandList();
+    auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
     transitionResource(commandList,
         swapChain->getCurrentRenderTarget()->getD3D12Resource(),
@@ -135,7 +144,7 @@ void ModuleRender::preRender()
         swapChain->getCurrentRenderTarget()->getD3D12Resource(),
         D3D12_RESOURCE_STATE_PRESENT,
         D3D12_RESOURCE_STATE_RENDER_TARGET);
-    
+
     renderGameToBackbuffer(commandList,
         swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
@@ -143,15 +152,6 @@ void ModuleRender::preRender()
         swapChain->getScissorRect());
 
 #endif
-
-    m_imGuiPass->startFrame();
-
-}
-
-void ModuleRender::render()
-{
-    auto* commandList = app->getModuleD3D12()->getCommandList();
-    auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
     m_imGuiPass->apply(commandList);
 

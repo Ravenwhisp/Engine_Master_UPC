@@ -42,10 +42,16 @@ void ModuleD3D12::preRender()
     m_commandList = m_commandQueue->getCommandList();
 }
 
+void ModuleD3D12::executeCurrentCommandList()
+{
+    m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
+    m_commandList = m_commandQueue->getCommandList();
+}
+
 void ModuleD3D12::postRender()
 {
-    // Execute the command list.
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
+
     // Present the frame and allow tearing
     m_swapChain->present();
 
