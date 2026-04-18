@@ -67,7 +67,7 @@ bool ModuleRender::init()
     m_skyBoxPass = skyBoxPass.get();
     m_renderPasses.push_back(std::move(skyBoxPass));
 
-    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));   //  <-------------- CRASH HERE
+    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
@@ -117,17 +117,18 @@ void ModuleRender::preRender()
                 });
         }
     }
-
+#endif
     app->getModuleD3D12()->executeCurrentCommandList();
     m_imGuiPass->startFrame();
-
 }
+
 
 void ModuleRender::render()
 {
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
+#ifndef GAME_RELEASE
     transitionResource(commandList,
         swapChain->getCurrentRenderTarget()->getD3D12Resource(),
         D3D12_RESOURCE_STATE_PRESENT,
@@ -138,7 +139,7 @@ void ModuleRender::render()
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
         swapChain->getScissorRect());
-#else
+#endif
 
     transitionResource(commandList,
         swapChain->getCurrentRenderTarget()->getD3D12Resource(),
@@ -150,8 +151,6 @@ void ModuleRender::render()
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
         swapChain->getScissorRect());
-
-#endif
 
     m_imGuiPass->apply(commandList);
 
