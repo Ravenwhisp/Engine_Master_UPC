@@ -35,6 +35,7 @@ private:
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
 
+    void clearComponentCaches();
     void rebuildComponentCaches();
 
 public:

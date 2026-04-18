@@ -57,6 +57,8 @@ void ModuleScene::update()
 
 bool ModuleScene::cleanUp()
 {
+    clearComponentCaches();
+
     m_scene.reset();
     m_quadtree.reset();
     m_sceneSerializer.reset();
@@ -66,6 +68,14 @@ bool ModuleScene::cleanUp()
 #pragma endregion
 
 #pragma region Caches
+void ModuleScene::clearComponentCaches()
+{
+    m_meshRenderers.clear();
+    m_spriteRenderers.clear();
+    m_lightComponents.clear();
+    m_scriptComponents.clear();
+}
+
 void ModuleScene::rebuildComponentCaches()
 {
     m_meshRenderers.clear();
@@ -190,6 +200,8 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    clearComponentCaches();
+
     auto newScene = m_sceneSerializer->LoadScene(sceneName);
 
     if (!newScene)
@@ -200,6 +212,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     m_scene = std::move(newScene);
     m_scene->setName(sceneName.c_str());
+    m_scene->markDirty();
 
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());
@@ -218,6 +231,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 #ifdef GAME_RELEASE
     m_quadtree->build();
 #endif
+
+    rebuildComponentCaches();
     return true;
 }
 
@@ -234,10 +249,15 @@ SceneSnapshot* ModuleScene::takeSnapshot() const
 
 void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 {
+    clearComponentCaches();
+
     snapshot.applyTo(*m_scene.get());
+    m_scene->markDirty();
 
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());
+
+    rebuildComponentCaches();
 }
 #pragma endregion
 

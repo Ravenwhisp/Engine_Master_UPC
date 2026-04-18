@@ -15,10 +15,11 @@ public:
     bool cleanUp() override;
 
     void process();
+    void clearHoverState();
 
 private:
     bool getViewportMousePos(Vector2& outPos) const;
-    void clearHoverState();
+    bool isValidEventTarget(GameObject* go) const;
     GameObject* raycast(const Vector2& screenPos);
     GameObject* m_hoveredLast = nullptr;
 
@@ -32,7 +33,6 @@ private:
 
     struct ButtonState
     {
-        GameObject*     pointerEnterLast = nullptr;
         GameObject*     pointerPress = nullptr;
         Vector2         pressPosition = { 0,0 };
     };
