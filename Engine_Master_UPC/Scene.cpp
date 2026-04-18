@@ -362,6 +362,24 @@ const std::vector<GameObject*>& Scene::getRootObjects() const
     return m_rootObjects;
 }
 
+bool Scene::containsGameObject(const GameObject* go) const
+{
+    if (!go)
+    {
+        return false;
+    }
+
+    for (const auto& obj : m_allObjects)
+    {
+        if (obj.get() == go)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);

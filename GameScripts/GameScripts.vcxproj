@@ -256,6 +256,7 @@
     <ClInclude Include="ProjectileController.h" />
     <ClInclude Include="SliderTest.h" />
     <ClInclude Include="StateMachineTest.h" />
+    <ClInclude Include="TestSceneChangeButton.h" />
     <ClInclude Include="TransformGlobalTest.h" />
     <ClInclude Include="TriggerArea.h" />
   </ItemGroup>
@@ -281,6 +282,7 @@
     <ClCompile Include="ProjectileController.cpp" />
     <ClCompile Include="SliderTest.cpp" />
     <ClCompile Include="StateMachineTest.cpp" />
+    <ClCompile Include="TestSceneChangeButton.cpp" />
     <ClCompile Include="TransformGlobalTest.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
   </ItemGroup>
