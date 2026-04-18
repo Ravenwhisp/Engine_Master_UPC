@@ -63,6 +63,9 @@
     <ClInclude Include="EnemyATTACK.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="TestSceneChangeButton.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -111,6 +114,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="EnemyATTACK.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSceneChangeButton.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

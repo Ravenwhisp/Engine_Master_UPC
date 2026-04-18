@@ -122,23 +122,42 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
     return true;
 }
 
+bool ModuleEventSystem::isValidEventTarget(GameObject* go) const
+{
+    if (!go)
+    {
+        return false;
+    }
+
+    ModuleScene* moduleScene = app->getModuleScene();
+    if (!moduleScene)
+    {
+        return false;
+    }
+
+    if (moduleScene->isPendingSceneLoad())
+    {
+        return false;
+    }
+
+    Scene* scene = moduleScene->getScene();
+    if (!scene)
+    {
+        return false;
+    }
+
+    return scene->containsGameObject(go);
+}
+
 void ModuleEventSystem::clearHoverState()
 {
-    for (int idx = 0; idx < 3; ++idx)
-    {
-        ButtonState& state = m_buttonStates[idx];
-
-        if (state.pointerEnterLast)
-        {
-            PointerEventData data;
-            data.button = static_cast<PointerButton>(idx);
-            data.pointerEnter = nullptr;
-            state.pointerEnterLast = nullptr;
-        }
-
-        state.pointerPress = nullptr;
-    }
     m_hoveredLast = nullptr;
+
+    for (ButtonState& state : m_buttonStates)
+    {
+        state.pointerPress = nullptr;
+        state.pressPosition = { 0.0f, 0.0f };
+    }
 }
 
 GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
@@ -215,6 +234,16 @@ void ModuleEventSystem::process()
 
     GameObject* hovered = raycast(mousePos);
 
+    if (!isValidEventTarget(hovered))
+    {
+        hovered = nullptr;
+    }
+
+    if (!isValidEventTarget(m_hoveredLast))
+    {
+        m_hoveredLast = nullptr;
+    }
+
     if (hovered != m_hoveredLast)
     {
         PointerEventData data;
@@ -247,6 +276,12 @@ void ModuleEventSystem::process()
         int idx = (int)btn;
         ButtonState& state = m_buttonStates[idx];
 
+        if (!isValidEventTarget(state.pointerPress))
+        {
+            state.pointerPress = nullptr;
+            state.pressPosition = { 0.0f, 0.0f };
+        }
+
         PointerEventData data;
         data.button = btn;
         data.position = mousePos;
@@ -272,15 +307,22 @@ void ModuleEventSystem::process()
             if (state.pointerPress == hovered)
             {
                 sendPointerClick(hovered, data);
+
+                if (app->getModuleScene()->isPendingSceneLoad())
+                {
+                    clearHoverState();
+                    return;
+                }
             }
 
             state.pointerPress = nullptr;
+            state.pressPosition = { 0.0f, 0.0f };
         }
     }
 }
 void ModuleEventSystem::sendPointerEnter(GameObject* go, PointerEventData& data)
 {
-    if (!go)
+    if (!isValidEventTarget(go))
     {
         return;
     }
@@ -296,7 +338,7 @@ void ModuleEventSystem::sendPointerEnter(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerExit(GameObject* go, PointerEventData& data)
 {
-    if (!go)
+    if (!isValidEventTarget(go))
     {
         return;
     }
@@ -312,7 +354,7 @@ void ModuleEventSystem::sendPointerExit(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerDown(GameObject* go, PointerEventData& data)
 {
-    if (!go)
+    if (!isValidEventTarget(go))
     {
         return;
     }
@@ -328,7 +370,7 @@ void ModuleEventSystem::sendPointerDown(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 {
-    if (!go)
+    if (!isValidEventTarget(go))
     {
         return;
     }
@@ -344,7 +386,7 @@ void ModuleEventSystem::sendPointerUp(GameObject* go, PointerEventData& data)
 
 void ModuleEventSystem::sendPointerClick(GameObject* go, PointerEventData& data)
 {
-    if (!go)
+    if (!isValidEventTarget(go))
     {
         return;
     }
