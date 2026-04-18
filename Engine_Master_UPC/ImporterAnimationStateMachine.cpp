@@ -113,6 +113,26 @@ bool ImporterAnimationStateMachine::importNative(const std::filesystem::path& pa
             else
                 state.speed = 1.0f;
 
+            if (stateJson.HasMember("behaviourScriptName") && stateJson["behaviourScriptName"].IsString())
+                state.behaviourScriptName = stateJson["behaviourScriptName"].GetString();
+            else
+                state.behaviourScriptName.clear();
+
+            if (stateJson.HasMember("behaviourFieldsJson") && stateJson["behaviourFieldsJson"].IsString())
+                state.behaviourFieldsJson = stateJson["behaviourFieldsJson"].GetString();
+            else
+                state.behaviourFieldsJson.clear();
+
+            if (stateJson.HasMember("overrideLoop") && stateJson["overrideLoop"].IsBool())
+                state.overrideLoop = stateJson["overrideLoop"].GetBool();
+            else
+                state.overrideLoop = false;
+
+            if (stateJson.HasMember("loop") && stateJson["loop"].IsBool())
+                state.loop = stateJson["loop"].GetBool();
+            else
+                state.loop = true;
+
             dst->m_states.push_back(std::move(state));
         }
     }

@@ -499,6 +499,10 @@ bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<Animati
             stateJson.AddMember("name", rapidjson::Value(state.name.c_str(), alloc), alloc);
             stateJson.AddMember("clipName", rapidjson::Value(state.clipName.c_str(), alloc), alloc);
             stateJson.AddMember("speed", state.speed, alloc);
+            stateJson.AddMember("behaviourScriptName", rapidjson::Value(state.behaviourScriptName.c_str(), alloc), alloc);
+            stateJson.AddMember("behaviourFieldsJson", rapidjson::Value(state.behaviourFieldsJson.c_str(), alloc), alloc);
+            stateJson.AddMember("overrideLoop", state.overrideLoop, alloc);
+            stateJson.AddMember("loop", state.loop, alloc);
             states.PushBack(stateJson, alloc);
         }
         doc.AddMember("states", states, alloc);
