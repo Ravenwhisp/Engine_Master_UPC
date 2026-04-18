@@ -83,6 +83,18 @@ public:
     // DebugDraw helper
     void markDebugDrawCacheDirty();
 
+    // API needs this for game window size, please do not try to break this by instatiating multiple Game windows in the Engine
+    const Vector2& getGameViewportSize() const
+    {
+        for (int i = 0; i < m_viewports.size(); i++)
+        {
+            if (m_viewports[i].type == ViewportType::PLAY)
+            {
+                return Vector2(m_viewports[i].width, m_viewports[i].height);
+            }
+        }
+    }
+
 private:
     // Surface helpers
     std::unique_ptr<RenderSurface> createSurface(float width, float height);
