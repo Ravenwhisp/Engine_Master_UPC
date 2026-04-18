@@ -423,6 +423,7 @@
     <ClCompile Include="WindowAnimationStateMachine.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
+    <ClCompile Include="UISlider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1044,6 +1045,9 @@
     <ClInclude Include="StateMachineScript.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="CanvasRenderMode.h" />
+    <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UISlider.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
