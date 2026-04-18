@@ -35,7 +35,7 @@ ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* que
 
 ModuleResources::~ModuleResources()
 {
-	m_deferredResources.clear();
+
 }
 
 bool ModuleResources::init()
@@ -66,6 +66,7 @@ void ModuleResources::preRender()
 bool ModuleResources::cleanUp()
 {
 	m_resources.clear();
+	m_enviromentBrdfTexture.reset();
 	m_deferredResources.clear();
 	return true;
 }
