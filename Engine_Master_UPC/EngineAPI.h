@@ -186,6 +186,8 @@ namespace Input
 
     ENGINE_API void setPlayerKeyboard(int player);
     ENGINE_API void setPlayerGamepad(int player, int gamepadIndex);
+
+    ENGINE_API const Vector3& mouseScreenToWorldPositionAtHeight(float height);
 }
 
 namespace Debug

@@ -7,6 +7,8 @@
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
+#include "ModuleCamera.h"
+#include "ModuleRender.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -1354,6 +1356,48 @@ namespace Input
         }
 
         input->setPlayerBinding(player, DeviceType::Gamepad, gamepadIndex);
+    }
+
+    const Vector3& mouseScreenToWorldPositionAtHeight(float height) 
+    {
+        if (!app || !app->getModuleScene() || !app->getModuleInput() || !app->getModuleRender())
+        {
+            return Vector3(0.0f, 0.0f, 0.0f);
+        }
+
+        const Vector2 viewportSize = app->getModuleRender()->getGameViewportSize();
+
+        const ModuleInput* input = app->getModuleInput();
+
+        const Vector2 mousePosScreenSpace = input->getMousePosition();
+
+        const CameraComponent* defaultCamera = app->getModuleScene()->getScene()->getDefaultCamera();
+
+        Vector3 mouseNear(mousePosScreenSpace.x, mousePosScreenSpace.y, 0.0f);
+        Vector3 mouseFar(mousePosScreenSpace.x, mousePosScreenSpace.y, 1.0f);
+
+        Viewport viewport;
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float)viewportSize.x;
+        viewport.height = (float)viewportSize.y;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+
+        const Matrix projectionMatrix = defaultCamera->getProjectionMatrix();
+        const Matrix viewMatrix = defaultCamera->getViewMatrix();
+
+        Vector3 nearPoint = viewport.Unproject(mouseNear, projectionMatrix, viewMatrix, Matrix::Identity);
+
+        Vector3 farPoint = viewport.Unproject(mouseFar, projectionMatrix, viewMatrix, Matrix::Identity);
+
+        Vector3 rayDir = farPoint - nearPoint;
+        rayDir.Normalize();
+
+        // P(t) = nearPoint + t * rayDir
+        float t = (height - nearPoint.y) / rayDir.y;
+
+        return nearPoint + rayDir * t; 
     }
 }
 
