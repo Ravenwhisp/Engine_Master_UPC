@@ -42,10 +42,16 @@ void ModuleD3D12::preRender()
     m_commandList = m_commandQueue->getCommandList();
 }
 
+void ModuleD3D12::executeCurrentCommandList()
+{
+    m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
+    m_commandList = m_commandQueue->getCommandList();
+}
+
 void ModuleD3D12::postRender()
 {
-    // Execute the command list.
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
+
     // Present the frame and allow tearing
     m_swapChain->present();
 
@@ -146,7 +152,7 @@ ComPtr<ID3D12RootSignature> ModuleD3D12::createRootSignature() {
     CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
-    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 8, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);

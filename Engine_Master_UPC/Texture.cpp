@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleResources.h"
-
+#include "ModuleD3D12.h"
 
 namespace
 {
@@ -65,6 +65,7 @@ Texture::Texture(UID uid, ID3D12Device4& device, ComPtr<ID3D12Resource> existing
     m_desc.arraySize = static_cast<uint16_t>(d.DepthOrArraySize);
     m_desc.mipLevels = static_cast<uint16_t>(d.MipLevels);
     m_desc.views = views;
+    m_desc.shaderVisibleSRV = true;
 
     // Caller can specify an explicit RTV format (e.g. UNORM_SRGB over a UNORM resource).
     m_desc.rtvFormat = (rtvFormat != DXGI_FORMAT_UNKNOWN) ? rtvFormat : d.Format;
@@ -107,6 +108,12 @@ DescriptorHandle Texture::getUAV(uint32_t mip) const
     return m_uav[mip];
 }
 
+DescriptorHandle Texture::getContiguousRTV(uint32_t index) const
+{
+    //Put Assert Here.
+    return m_contiguousRTV->getHandle(index);
+}
+
 
 bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
 {
@@ -121,6 +128,7 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
     releaseViews();
 
     // 2. Defer the old underlying resource — GPU may still be reading it
+    app->getModuleD3D12()->getCommandQueue()->flush();
     app->getModuleResources()->deferResourceRelease(m_Resource);
     m_Resource.Reset();
 
@@ -146,6 +154,8 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
         assert(false && "Texture::resize — CreateCommittedResource failed");
         return false;
     }
+
+    m_Resource->SetName(m_Name.c_str());
 
     // 4. Refresh mip count (mip levels may differ after resize if auto-computed)
     m_mipCount = static_cast<uint32_t>(getD3D12ResourceDesc().MipLevels);
@@ -214,8 +224,22 @@ void Texture::createSRV()
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
     }
 
-    m_srv = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
+    if (m_desc.shaderVisibleSRV)
+    {
+        // Render targets and other textures bound directly by GPU handle.
+        // Allocate in the shader-visible heap — .gpu is populated and valid.
+        DescriptorHeapBlock* block = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocateBlock(1);
 
+        m_srv = block->getHandle(0);
+    }
+    else
+    {
+        // Asset textures that will be copied into a material block.
+        // Allocate in the CPU-only staging heap — .gpu is zeroed, .cpu is valid.
+        m_srv.cpu = app->getModuleDescriptors()->getStagingHeap().allocate();
+        m_srv.gpu = {};
+        m_srv.block = nullptr;
+    }
     m_device.CreateShaderResourceView(m_Resource.Get(), &srvDesc, m_srv.cpu);
 }
 
@@ -223,17 +247,45 @@ void Texture::createSRV()
 void Texture::createRTV()
 {
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+
     rtvDesc.Format = resolvedRTVFormat();
-    rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-    rtvDesc.Texture2D.PlaneSlice = 0;
 
-    for (uint32_t mip = 0; mip < m_mipCount; ++mip)
+    if (m_desc.arraySize == 6)
     {
-        rtvDesc.Texture2D.MipSlice = mip;
+        
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+        rtvDesc.Texture2DArray.ArraySize = 1;
+        rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-        m_rtv[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
+        m_contiguousRTV = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize * m_mipCount);
 
-        m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_rtv[mip].cpu);
+        for (size_t mip = 0; mip < m_mipCount; mip++)
+        {
+            rtvDesc.Texture2DArray.MipSlice = mip;
+
+            for (size_t i = 0; i < m_desc.arraySize; i++)
+            {
+                rtvDesc.Texture2DArray.FirstArraySlice = i;
+
+                m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_contiguousRTV->getCPUHandle(mip * m_desc.arraySize + i));
+            }
+        }
+
+       
+    }
+    else
+    {
+        rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.PlaneSlice = 0;
+
+        for (uint32_t mip = 0; mip < m_mipCount; ++mip)
+        {
+            rtvDesc.Texture2D.MipSlice = mip;
+
+            m_rtv[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate();
+
+            m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_rtv[mip].cpu);
+        }
     }
 }
 
@@ -251,8 +303,6 @@ void Texture::createDSV()
     m_device.CreateDepthStencilView(m_Resource.Get(), &dsvDesc, m_dsv.cpu);
 }
 
-// ----------------------------------------------------------------------------
-
 void Texture::createUAV()
 {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
@@ -267,7 +317,7 @@ void Texture::createUAV()
         m_uav[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
 
         m_device.CreateUnorderedAccessView(
-            m_Resource.Get(), /*pCounterResource=*/nullptr, &uavDesc, m_uav[mip].cpu);
+        m_Resource.Get(), /*pCounterResource=*/nullptr, &uavDesc, m_uav[mip].cpu);
     }
 }
 
@@ -276,9 +326,18 @@ void Texture::releaseViews()
 {
     auto* descriptors = app->getModuleDescriptors();
 
-    if (hasSRV() && m_srv.IsValid())
+    if (hasSRV() && m_srv.IsValid() != 0)
     {
-        descriptors->defferDescriptorRelease((Handle)m_srv.handle);
+        if (m_desc.shaderVisibleSRV)
+        {
+            // Shader-visible block — defer release (GPU may still be reading it)
+            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
+        }
+        else
+        {
+            // Staging slot — CPU-only, safe to free immediately
+            app->getModuleDescriptors()->getStagingHeap().free(m_srv.cpu);
+        }       
         m_srv = {};
     }
 
@@ -288,8 +347,7 @@ void Texture::releaseViews()
         {
             if (m_rtv[mip].IsValid())
             {
-                descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
-                    .free(m_rtv[mip].handle);
+                descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
                 m_rtv[mip] = {};
             }
         }
