@@ -23,6 +23,7 @@
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include "rapidjson/filereadstream.h"
+#include <fstream>
 
 #include <filesystem>
 #include <FileIO.h>
@@ -400,6 +401,11 @@ bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStat
         return false;
     }
 
+    if (!saveAnimationStateMachineSource(asset))
+    {
+        return false;
+    }
+
     const Metadata* meta = m_registry->getMetadata(asset->getId());
     if (!meta)
     {
@@ -407,29 +413,124 @@ bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStat
         return false;
     }
 
-    if (meta->type != AssetType::ANIMATION_STATE_MACHINE)
+    MD5Hash uid = asset->getId();
+    importAsset(meta->sourcePath, uid);
+    m_assets.remove(asset->getId());
+
+    return uid != INVALID_ASSET_ID;
+}
+
+bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset)
+{
+    if (!asset)
     {
-        DEBUG_ERROR("[ModuleAssets] Asset '%s' is not an AnimationStateMachine.", asset->getId().c_str());
         return false;
     }
 
-    uint8_t* rawBuffer = nullptr;
-    const uint64_t size = m_importerAnimationStateMachine->save(asset.get(), &rawBuffer);
-    std::unique_ptr<uint8_t[]> buffer(rawBuffer);
-
-    if (!rawBuffer || size == 0)
+    const Metadata* meta = m_registry->getMetadata(asset->getId());
+    if (!meta)
     {
-        DEBUG_ERROR("[ModuleAssets] Failed to serialize AnimationStateMachine '%s'.", asset->getId().c_str());
+        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
         return false;
     }
 
-    if (!FileIO::write(meta->getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+    Metadata updatedMeta = *meta;
+
+    // HOTFIX: old state machines have no sourcePath. Create one automatically.
+    if (updatedMeta.sourcePath.empty())
     {
-        DEBUG_ERROR("[ModuleAssets] Failed to write AnimationStateMachine binary '%s'.", asset->getId().c_str());
+        std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
+        std::filesystem::create_directories(dir);
+
+        std::string fileName = asset->getName();
+        if (fileName.empty())
+        {
+            fileName = asset->getId();
+        }
+
+        // very simple sanitization
+        for (char& c : fileName)
+        {
+            if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|')
+            {
+                c = '_';
+            }
+        }
+
+        updatedMeta.sourcePath = dir / (fileName + ".statemachine");
+
+        std::filesystem::path metaPath = updatedMeta.sourcePath;
+        metaPath += METADATA_EXTENSION;
+
+        if (!saveMetaFile(updatedMeta, metaPath))
+        {
+            DEBUG_ERROR("[ModuleAssets] Failed to create metadata for '%s'.", updatedMeta.sourcePath.string().c_str());
+            return false;
+        }
+
+        m_registry->registerAsset(updatedMeta);
+    }
+
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
+
+    doc.AddMember("name", rapidjson::Value(asset->getName().c_str(), alloc), alloc);
+    doc.AddMember("defaultState", rapidjson::Value(asset->getDefaultStateName().c_str(), alloc), alloc);
+
+    {
+        rapidjson::Value clips(rapidjson::kArrayType);
+        for (const AnimationStateMachineClip& clip : asset->getClips())
+        {
+            rapidjson::Value clipJson(rapidjson::kObjectType);
+            clipJson.AddMember("name", rapidjson::Value(clip.name.c_str(), alloc), alloc);
+            clipJson.AddMember("animationUID", rapidjson::Value(clip.animationUID.c_str(), alloc), alloc);
+            clipJson.AddMember("loop", clip.loop, alloc);
+            clips.PushBack(clipJson, alloc);
+        }
+        doc.AddMember("clips", clips, alloc);
+    }
+
+    {
+        rapidjson::Value states(rapidjson::kArrayType);
+        for (const AnimationStateMachineState& state : asset->getStates())
+        {
+            rapidjson::Value stateJson(rapidjson::kObjectType);
+            stateJson.AddMember("name", rapidjson::Value(state.name.c_str(), alloc), alloc);
+            stateJson.AddMember("clipName", rapidjson::Value(state.clipName.c_str(), alloc), alloc);
+            stateJson.AddMember("speed", state.speed, alloc);
+            states.PushBack(stateJson, alloc);
+        }
+        doc.AddMember("states", states, alloc);
+    }
+
+    {
+        rapidjson::Value transitions(rapidjson::kArrayType);
+        for (const AnimationStateMachineTransition& transition : asset->getTransitions())
+        {
+            rapidjson::Value transitionJson(rapidjson::kObjectType);
+            transitionJson.AddMember("sourceStateName", rapidjson::Value(transition.sourceStateName.c_str(), alloc), alloc);
+            transitionJson.AddMember("targetStateName", rapidjson::Value(transition.targetStateName.c_str(), alloc), alloc);
+            transitionJson.AddMember("triggerName", rapidjson::Value(transition.triggerName.c_str(), alloc), alloc);
+            transitionJson.AddMember("blendTimeSeconds", transition.blendTimeSeconds, alloc);
+            transitions.PushBack(transitionJson, alloc);
+        }
+        doc.AddMember("transitions", transitions, alloc);
+    }
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    doc.Accept(writer);
+
+    std::ofstream file(updatedMeta.sourcePath);
+    if (!file.is_open())
+    {
+        DEBUG_ERROR("[ModuleAssets] Could not open '%s' for writing.", updatedMeta.sourcePath.string().c_str());
         return false;
     }
 
-    return true;
+    file << buffer.GetString();
+    return file.good();
 }
 
 void ModuleAssets::flushDependencies(const MD5Hash& parentUID,

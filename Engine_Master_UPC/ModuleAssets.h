@@ -83,6 +83,7 @@ public:
         uint8_t* binaryData, size_t binarySize);
 
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
+    bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 
 private:
     // Loads from disk using the registered importer and inserts into cache.

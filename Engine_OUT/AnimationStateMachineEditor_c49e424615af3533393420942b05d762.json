@@ -1,1 +1,1 @@
-{"nodes":{"node:1000":{"location":{"x":210,"y":-103}},"node:1001":{"location":{"x":152,"y":201}},"node:1002":{"location":{"x":584,"y":121}}},"selection":["link:300001"],"view":{"scroll":{"x":-135,"y":-174},"visible_rect":{"max":{"x":916,"y":468},"min":{"x":-135,"y":-174}},"zoom":1}}
+{"nodes":{"node:1000":{"location":{"x":40,"y":40}},"node:1001":{"location":{"x":242,"y":233}}},"selection":null,"view":{"scroll":{"x":3.814697265625e-06,"y":-7.62939453125e-06},"visible_rect":{"max":{"x":999,"y":615},"min":{"x":3.814697265625e-06,"y":-7.62939453125e-06}},"zoom":1}}
