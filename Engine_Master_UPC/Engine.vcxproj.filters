@@ -408,6 +408,15 @@
     <ClCompile Include="ViewHierarchyDialog.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
+    <ClCompile Include="DescriptorHeapBlock.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="StagingDescriptorHeap.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticTexturesPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
     <ClCompile Include="WindowFileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
@@ -840,8 +849,17 @@
     <ClInclude Include="Channel.h">
       <Filter>Animations</Filter>
     </ClInclude>
-    <ClInclude Include="MD5Fwd.h">
-      <Filter>Persistence\UID</Filter>
+    <ClInclude Include="DescriptorHandle.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Handle.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapBlock.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="StagingDescriptorheap.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClInclude>
     <ClInclude Include="RenderContext.h">
       <Filter>D3D12\Rendering</Filter>
@@ -994,6 +1012,10 @@
     </ClInclude>
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5Fwd.h" />
+    <ClInclude Include="StaticTexturesPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="WindowFileDialog.h">
       <Filter>Editor\Views</Filter>
@@ -1247,6 +1269,24 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="UIVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxIrradiancePixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxIrradianceVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxEnvironmentPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxEnvironmentVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BRDFPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BRDFVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
