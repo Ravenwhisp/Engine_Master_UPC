@@ -701,6 +701,8 @@ void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneRefere
 		// Since resolver does not expose getClonedGameObject, we rely on componentUid or skip for GameObject.SetActive
 		// In a real system, you'd want to lookup the gameobject UID
 		// For now, if there's a component we get the GO from it.
+
+		//b.targetGameObject = resolver.getClonedGameObject(b.gameObjectUid); // <-- ?
 	}
 
 	if (b.componentUid == 0)
