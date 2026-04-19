@@ -128,17 +128,19 @@ void ModuleRender::render()
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
-#ifndef GAME_RELEASE
     transitionResource(commandList,
-        swapChain->getCurrentRenderTarget()->getD3D12Resource(),
+        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(),
         D3D12_RESOURCE_STATE_PRESENT,
         D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+#ifndef GAME_RELEASE
 
     renderBackground(commandList,
         swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
         swapChain->getScissorRect());
+
 #else
 
     renderGameToBackbuffer(commandList,
@@ -148,9 +150,10 @@ void ModuleRender::render()
         swapChain->getScissorRect());
 
 #endif
+
     m_imGuiPass->apply(commandList);
 
-    transitionResource(commandList, swapChain->getCurrentRenderTarget()->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    transitionResource(commandList, swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 }
 
 bool ModuleRender::cleanUp()
