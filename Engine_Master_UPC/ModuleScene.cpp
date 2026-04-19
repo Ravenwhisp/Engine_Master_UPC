@@ -85,7 +85,7 @@ void ModuleScene::rebuildComponentCaches()
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
-        if (!go->GetActive())
+        if (!go->IsActiveInWindowHierarchy())
         {
             continue;
         }
@@ -122,7 +122,7 @@ void ModuleScene::rebuildMeshRenderersCache()
     {
         for (GameObject* gO : m_quadtree->query())
         {
-            if (!gO->GetActive())
+            if (!gO->IsActiveInWindowHierarchy())
             {
                 continue;
             }

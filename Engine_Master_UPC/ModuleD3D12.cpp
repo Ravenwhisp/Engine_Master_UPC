@@ -219,4 +219,12 @@ ComPtr<ID3D12PipelineState> ModuleD3D12::createPipelineStateObject(ID3D12RootSig
     return pso;
 }
 
+void ModuleD3D12::waitForGPU()
+{
+    if (m_commandQueue)
+    {
+        m_commandQueue->flush();
+    }
+}
+
 
