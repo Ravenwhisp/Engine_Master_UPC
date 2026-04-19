@@ -88,23 +88,6 @@ void Quadtree::build()
 
 void Quadtree::update()
 {
-    const std::vector<GameObject*>& objects = m_scene->getAllGameObjects();
-    if (!m_root)
-    {
-        return;
-    }
-
-    for (const auto& go : objects)
-    {
-        if (!go->GetActive())
-            continue;
-
-        if (go->GetTransform()->isDirty())
-        {
-            move(*go);
-        }
-    }
-
     resolveDirtyNodes();
 }
 
@@ -228,6 +211,4 @@ void Quadtree::resolveDirtyNodes()
     }
 
     m_dirtyNodes.clear();
-
-    app->getModuleScene()->rebuildMeshRenderersCache();
 }

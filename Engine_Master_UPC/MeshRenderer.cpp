@@ -198,6 +198,7 @@ void MeshRenderer::drawUi()
 
 void MeshRenderer::debugDraw()
 {
+    m_boundingBox.setIsCulled(m_isCulled);
     m_boundingBox.render();
 }
 
