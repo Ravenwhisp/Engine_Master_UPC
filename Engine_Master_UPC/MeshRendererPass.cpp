@@ -123,8 +123,8 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
     }
 
     {
-        PERF_RENDER("MeshRendererPass::prepare::GetMeshRenderers");
-        m_meshRenderers = app->getModuleScene()->getMeshRenderers();
+        PERF_RENDER("MeshRendererPass::prepare::GetVisibleMeshRenderers");
+        m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
     }
 
     {
@@ -226,7 +226,8 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
             if (!activeVB)
                 continue;
 
-            Matrix mvp = useWorldSpaceSkinnedVB ? (*m_view * *m_projection).Transpose() : (transform->getGlobalMatrix() * *m_view * *m_projection).Transpose();
+            Matrix global = transform->getGlobalMatrix();
+            Matrix mvp = useWorldSpaceSkinnedVB ? (*m_view * *m_projection).Transpose() : (global * *m_view * *m_projection).Transpose();
 
             commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 

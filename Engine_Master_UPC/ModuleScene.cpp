@@ -114,45 +114,6 @@ void ModuleScene::rebuildComponentCaches()
     m_scene->clearDirty();
 }
 
-void ModuleScene::rebuildMeshRenderersCache()
-{
-    m_meshRenderers.clear();
-
-    if (app->getSettings()->frustumCulling.debugFrustumCulling)
-    {
-        for (GameObject* gO : m_quadtree->query())
-        {
-            if (!gO->IsActiveInWindowHierarchy())
-            {
-                continue;
-            }
-
-            if (auto* mesh = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
-            {
-                m_meshRenderers.push_back(mesh);
-            }
-
-            // WE might need to add the Sprite_Renderer also here to apply the frustum culling to them also
-        }
-    }
-    else {
-        for (GameObject* go : m_scene->getAllGameObjects())
-        {
-            if (!go->GetActive())
-            {
-                continue;
-            }
-
-            if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
-            {
-                m_meshRenderers.push_back(mesh);
-            }
-        }
-    }
-
-    m_scene->clearDirty();
-}
-
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
 {
     if (m_scene->isComponentCacheDirty())
@@ -160,6 +121,24 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
         rebuildComponentCaches();
     }
     return m_meshRenderers;
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
+{
+    if (app->getSettings()->frustumCulling.debugFrustumCulling)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : app->getModuleScene()->getQuadtree()->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getMeshRenderers();
 }
 
 const std::vector<SpriteRenderer*>& ModuleScene::getSpriteRenderers()
