@@ -1,126 +1,100 @@
 #include "pch.h"
 #include "EnemyCHASE.h"
+#include "EnemyController.h"
 
 static const ScriptFieldInfo CHASEFields[] =
 {
-    { "Speed", ScriptFieldType::Float, offsetof(EnemyCHASE, m_speed), { 0.0f, 20.0f, 0.1f } },
-    { "Attack Radius", ScriptFieldType::Float, offsetof(EnemyCHASE, m_attackRadius), { 0.0f, 100.0f, 0.1f } },
-    { "Lose Radius", ScriptFieldType::Float, offsetof(EnemyCHASE, m_loseRadius), { 0.0f, 200.0f, 0.1f } },
-    { "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyCHASE, m_debugEnabled) }
+	{ "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyCHASE, m_debugEnabled) }
 };
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyCHASE, CHASEFields)
 
-EnemyCHASE::EnemyCHASE(GameObject* owner)
-    : StateMachineScript(owner)
+
+EnemyCHASE::EnemyCHASE(GameObject* owner) : StateMachineScript(owner)
 {
 }
 
 void EnemyCHASE::OnStateEnter()
 {
-    if (!m_debugEnabled)
-    {
-        return;
-    }
+	Script* script = GameObjectAPI::getScript(getOwner(), "EnemyController");
+	m_enemyController = dynamic_cast<EnemyController*>(script);
 
-    Debug::log("[EnemyCHASE] ENTER");
+	if (!m_enemyController)
+	{
+		return;
+	}
+
+	m_enemyController->clearPath();
+	m_enemyController->resetRepathTimer();
+
+	if (m_debugEnabled)
+	{
+		Debug::log("[EnemyCHASE] ENTER");
+	}
+
+	m_enemyController->updateCurrentTarget();
+
+	if (m_enemyController->hasValidTarget())
+	{
+		m_enemyController->buildPathToTarget();
+	}
 }
 
 void EnemyCHASE::OnStateUpdate()
 {
-    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-    if (!ownerTransform)
-    {
-        return;
-    }
+	if (!m_enemyController)
+	{
+		return;
+	}
 
-    AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
-    if (!animation)
-    {
-        return;
-    }
+	AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
+	if (!animation)
+	{
+		return;
+	}
 
-    GameObject* player = findPlayer();
-    if (!player)
-    {
-        AnimationAPI::sendTrigger(animation, "Idle");
+	m_enemyController->updateCurrentTarget();
 
-        if (m_debugEnabled)
-        {
-            Debug::log("[EnemyCHASE] Idle trigger sent (no player found)");
-        }
+	if (!m_enemyController->hasValidTarget())
+	{
+		AnimationAPI::playState(animation, "Idle"); // sendTrigger
+		return;
+	}
 
-        return;
-    }
+	if (m_enemyController->isTargetInCombatRange())
+	{
+		m_enemyController->faceCurrentTarget();
+		AnimationAPI::playState(animation, "Idle"); // need to trigger combat state
+		return;
+	}
 
-    Transform* playerTransform = GameObjectAPI::getTransform(player);
-    if (!playerTransform)
-    {
-        return;
-    }
+	m_enemyController->addToRepathTimer(Time::getDeltaTime());
 
-    Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
-    Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+	if (m_enemyController->shouldRepath())
+	{
+		m_enemyController->buildPathToTarget();
+		m_enemyController->resetRepathTimer();
+	}
 
-    Vector3 toPlayer = playerPosition - ownerPosition;
-    toPlayer.y = 0.0f;
-
-    const float distanceSq = toPlayer.LengthSquared();
-    const float attackRadiusSq = m_attackRadius * m_attackRadius;
-    const float loseRadiusSq = m_loseRadius * m_loseRadius;
-
-    if (distanceSq <= attackRadiusSq)
-    {
-        AnimationAPI::sendTrigger(animation, "Attack");
-
-        if (m_debugEnabled)
-        {
-            Debug::log("[EnemyCHASE] Attack trigger sent");
-        }
-
-        return;
-    }
-
-    if (distanceSq >= loseRadiusSq)
-    {
-        AnimationAPI::sendTrigger(animation, "Idle");
-
-        if (m_debugEnabled)
-        {
-            Debug::log("[EnemyCHASE] Idle trigger sent (player lost)");
-        }
-
-        return;
-    }
-
-    if (distanceSq > 0.0001f)
-    {
-        toPlayer.Normalize();
-        const Vector3 delta = toPlayer * m_speed * Time::getDeltaTime();
-        TransformAPI::translate(ownerTransform, delta);
-    }
+	m_enemyController->followPath();
 }
 
 void EnemyCHASE::OnStateExit()
 {
-    if (!m_debugEnabled)
-    {
-        return;
-    }
+	if (!m_debugEnabled)
+	{
+		return;
+	}
 
-    Debug::log("[EnemyCHASE] EXIT");
-}
+	Debug::log("[EnemyCHASE] EXIT");
 
-GameObject* EnemyCHASE::findPlayer() const
-{
-    const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
+	if (!m_enemyController)
+	{
+		return;
+	}
 
-    if (players.empty())
-    {
-        return nullptr;
-    }
-
-    return players.front();
+	m_enemyController->clearPath();
+	m_enemyController->resetRepathTimer();
 }
 
 IMPLEMENT_SCRIPT(EnemyCHASE)

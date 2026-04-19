@@ -37,7 +37,7 @@ void DebugDrawTest::Start()
 
 void DebugDrawTest::Update()
 {
-   
+
 }
 
 void DebugDrawTest::drawGizmo()
