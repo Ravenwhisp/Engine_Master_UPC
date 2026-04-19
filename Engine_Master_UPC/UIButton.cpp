@@ -77,7 +77,7 @@ void UIButton::applyCurrentStateTexture()
 {
 	MD5Hash targetAsset = getDefaultTextureAssetId();
 
-	if (m_isPressed)
+	if (m_isPressed && m_isHovered)
 	{
 		if (m_pressedTextureAssetId != INVALID_ASSET_ID)
 		{
@@ -128,12 +128,18 @@ void UIButton::onPointerUp(PointerEventData&)
 {
 	m_isPressed = false;
 	applyCurrentStateTexture();
-	executeBindings(m_bindingsOnRelease);
+	if (m_isHovered)
+	{
+		executeBindings(m_bindingsOnRelease);
+	}
 }
 
 void UIButton::onPointerClick(PointerEventData&)
 {
-	press();
+	if (m_isHovered)
+	{
+		press();
+	}
 }
 
 void UIButton::press()
@@ -698,9 +704,14 @@ void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneRefere
 
 	if (b.gameObjectUid != 0)
 	{
-		// Since resolver does not expose getClonedGameObject, we rely on componentUid or skip for GameObject.SetActive
-		// In a real system, you'd want to lookup the gameobject UID
-		// For now, if there's a component we get the GO from it.
+		b.targetGameObject = resolver.getClonedGameObject(b.gameObjectUid);
+	}
+
+	if (b.methodName == "GameObject.SetActive")
+	{
+		b.paramName = "Active";
+		b.paramType = ScriptMethodParamType::Bool;
+		return;
 	}
 
 	if (b.componentUid == 0)
