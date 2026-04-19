@@ -47,8 +47,9 @@ public:
     void resolveDirtyNodes();
 
     bool getIsBuilded() { return isBuilded; }
+
+    void move(GameObject& object);
 private:
     void insert(GameObject& object);
     void remove(GameObject& object);
-    void move(GameObject& object);
 };

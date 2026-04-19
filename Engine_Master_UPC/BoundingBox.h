@@ -27,6 +27,9 @@ namespace Engine
 
         void update(const Matrix& world);
         void render() override;
+
+        const bool isCulled() { return m_isCulled; }
+        void setIsCulled(bool culled) { m_isCulled = culled; }
     private:
 
         bool isPointInsidePlane(const Vector3& point, const Plane& plane) const;
@@ -35,5 +38,6 @@ namespace Engine
         Vector3 m_min;
         Vector3 m_max;
         Vector3 m_points[8];
+        bool m_isCulled = false;
     };
 }

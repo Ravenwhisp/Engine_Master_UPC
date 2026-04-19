@@ -65,6 +65,7 @@ public:
 #pragma region GameLoop
 	bool init();
 	void update();
+	void lateUpdate();
 	bool cleanUp();
 #pragma endregion
 

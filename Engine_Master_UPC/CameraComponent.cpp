@@ -63,7 +63,7 @@ void CameraComponent::recalculateFrustum()
 
 }
 
-void CameraComponent::update()
+void CameraComponent::lateUpdate()
 {
 	// No se si es optimo, pero es para comprobar que aqui esta el error
 	onTransformChange();
@@ -78,8 +78,6 @@ void CameraComponent::onTransformChange()
 	recalculateFrustum();
 	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
 	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
-
-	app->getModuleScene()->rebuildMeshRenderersCache();
 }
 
 void CameraComponent::drawUi() 

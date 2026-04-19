@@ -218,7 +218,14 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
             continue;
 
         if (model->getBoundingBox().test(frustum))
+        {
             out.push_back(obj);
+            model->setIsCulled(false);
+        }
+        else
+        {
+            model->setIsCulled(true);
+        }
     }
 
     if (isLeaf())

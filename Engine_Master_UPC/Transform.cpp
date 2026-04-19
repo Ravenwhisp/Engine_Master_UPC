@@ -32,6 +32,11 @@ std::unique_ptr<Component> Transform::clone(GameObject* newOwner) const
 	return newTransform;
 }
 
+void Transform::update()
+{
+    getGlobalMatrix();
+}
+
 const Matrix& Transform::getGlobalMatrix() const
 {
     if (m_dirty)
