@@ -85,7 +85,7 @@ void ModuleScene::rebuildComponentCaches()
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
-        if (!go->GetActive())
+        if (!go->IsActiveInWindowHierarchy())
         {
             continue;
         }
