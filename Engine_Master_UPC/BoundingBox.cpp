@@ -63,7 +63,19 @@ namespace Engine
 
     void BoundingBox::render()
     {
-        float color[3] = { 0.3f, 0.3f, 0.3f };
+        float color[3];
+        if (m_isCulled)
+        {
+            color[0] = 1.0f;
+            color[1] = 0.8f;
+            color[2] = 0.0f;
+        }
+        else 
+        {
+            color[0] = 0.1f;
+            color[1] = 1.0f;
+            color[2] = 0.0f;
+        }
 
         const Vector3* c = getPoints();
         ddVec3 pts[8];

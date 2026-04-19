@@ -67,6 +67,14 @@ void Scene::update()
             }
         }
 
+        for (const auto& go : m_allObjects)
+        {
+            if (go->GetActive())
+            {
+                go->lateUpdate();
+            }
+        }
+
         m_isUpdating = false;
 
         flushPendingGameObjects();

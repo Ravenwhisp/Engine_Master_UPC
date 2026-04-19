@@ -22,6 +22,8 @@
 #include "PrefabAsset.h"
 #include "PrefabEditSession.h"
 
+#include "Quadtree.h"
+
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -240,6 +242,22 @@ void GameObject::update()
         if (component && component->isActive())
         {
             component->update();
+        }
+    }
+}
+
+void GameObject::lateUpdate()
+{
+    if (!IsActiveInWindowHierarchy())
+    {
+        return;
+    }
+
+    for (const std::unique_ptr<Component>& component : m_components)
+    {
+        if (component && component->isActive())
+        {
+            component->lateUpdate();
         }
     }
 }
@@ -652,6 +670,7 @@ void GameObject::onTransformChange()
     {
         component->onTransformChange();
     }
+    app->getModuleScene()->getQuadtree()->move(*this);
 }
 
 #pragma endregion
