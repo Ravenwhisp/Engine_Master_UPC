@@ -139,11 +139,6 @@ static void CollectFromObject(
             }
         }
     }
-
-    for (GameObject* child : obj->GetTransform()->getAllChildren())
-    {
-        CollectFromObject(child, outVerts, outTris, inOutBaseVertex, requiredLayer, onlyActive);
-    }
 }
 
 bool NavMeshGeometryExtractor::Extract(Scene& scene, TriangleSoup& out, Layer requiredLayer, bool onlyActive)
