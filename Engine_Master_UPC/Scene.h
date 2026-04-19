@@ -43,6 +43,16 @@ private:
     std::vector<GameObject*> m_pendingRootObjectsToAdd;
 
     void flushPendingGameObjects();
+
+
+    struct PendingDestroyedGameObject
+    {
+        std::unique_ptr<GameObject> gameObject;
+        uint64_t fenceValue = 0;
+    };
+
+    std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
+    void releasePendingDestroyedGameObjects();
     //
 
 public:
@@ -81,6 +91,7 @@ public:
 
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);
+    bool isInHierarchy(GameObject* root, GameObject* candidate) const;
     GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
     void destroyWindowHierarchy(GameObject* obj);
 
