@@ -249,6 +249,29 @@ void Scene::destroyGameObject(GameObject* gameObject)
     markDirty();
 }
 
+bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
+{
+    if (!root || !candidate)
+    {
+        return false;
+    }
+
+    if (root == candidate)
+    {
+        return true;
+    }
+
+    for (GameObject* child : root->GetTransform()->getAllChildren())
+    {
+        if (isInHierarchy(child, candidate))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
@@ -270,6 +293,18 @@ GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
 
 void Scene::destroyWindowHierarchy(GameObject* obj)
 {
+    if (!obj)
+    {
+        return;
+    }
+
+    ModuleEditor* editor = app->getModuleEditor();
+
+    if (isInHierarchy(obj, editor->getSelectedGameObject()))
+    {
+        editor->setSelectedGameObject(nullptr);
+    }
+
     auto children = obj->GetTransform()->getAllChildren();
 
     for (GameObject* child : children)

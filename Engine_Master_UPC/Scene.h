@@ -81,6 +81,7 @@ public:
 
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);
+    bool isInHierarchy(GameObject* root, GameObject* candidate) const;
     GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
     void destroyWindowHierarchy(GameObject* obj);
 
