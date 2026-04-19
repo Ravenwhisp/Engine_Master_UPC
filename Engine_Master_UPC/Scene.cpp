@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
+#include "ModuleD3D12.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -53,6 +54,8 @@ bool Scene::init()
 
 void Scene::update()
 {
+    releasePendingDestroyedGameObjects();
+
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
         removePendingGameObjects();
@@ -223,6 +226,26 @@ void Scene::flushPendingGameObjects()
     markDirty();
 }
 
+void Scene::releasePendingDestroyedGameObjects()
+{
+    CommandQueue* commandQueue = app->getModuleD3D12()->getCommandQueue();
+
+    auto it = m_pendingDestroyedObjects.begin();
+
+    while (it != m_pendingDestroyedObjects.end())
+    {
+        if (commandQueue->isFenceComplete(it->fenceValue))
+        {
+            it->gameObject->cleanUp();
+            it = m_pendingDestroyedObjects.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
     m_allObjects.push_back(std::move(gameObject));
@@ -243,7 +266,13 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     if (it != m_allObjects.end())
     {
-        (*it)->cleanUp();
+        const uint64_t fenceValue = app->getModuleD3D12()->getCommandQueue()->signal();
+
+        m_pendingDestroyedObjects.push_back(
+            PendingDestroyedGameObject{
+                std::move(*it),
+                fenceValue
+            });
         m_allObjects.erase(it);
     }
     markDirty();
@@ -418,6 +447,16 @@ bool Scene::containsGameObject(const GameObject* go) const
 void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
+
+    for (auto& pending : m_pendingDestroyedObjects)
+    {
+        if (pending.gameObject)
+        {
+            pending.gameObject->cleanUp();
+        }
+    }
+
+    m_pendingDestroyedObjects.clear();
 
     for (auto& go : m_allObjects)
     {

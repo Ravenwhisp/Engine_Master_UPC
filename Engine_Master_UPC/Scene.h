@@ -43,6 +43,16 @@ private:
     std::vector<GameObject*> m_pendingRootObjectsToAdd;
 
     void flushPendingGameObjects();
+
+
+    struct PendingDestroyedGameObject
+    {
+        std::unique_ptr<GameObject> gameObject;
+        uint64_t fenceValue = 0;
+    };
+
+    std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
+    void releasePendingDestroyedGameObjects();
     //
 
 public:
