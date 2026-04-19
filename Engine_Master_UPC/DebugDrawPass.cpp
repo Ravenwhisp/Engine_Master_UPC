@@ -318,7 +318,13 @@ public:
 
             if (FAILED(hr) || uploadData == nullptr)
             {
-                DEBUG_ERROR("DebugDraw vertexBuffer Map failed. HRESULT: 0x%08X", hr);
+                HRESULT removedReason = device->GetDeviceRemovedReason();
+
+                DEBUG_ERROR(
+                    "DebugDraw vertexBuffer Map failed. HRESULT: 0x%08X. DeviceRemovedReason: 0x%08X",
+                    hr,
+                    removedReason
+                );
                 return;
             }
 
