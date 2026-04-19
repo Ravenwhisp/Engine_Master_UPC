@@ -844,6 +844,30 @@ namespace Input
         }
     }
 
+    static bool queryLeftMouseButton(ButtonPhase phase)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return false;
+        }
+
+        switch (phase)
+        {
+        case ButtonPhase::Pressed:
+            return input->isLeftMouseHeld();
+
+        case ButtonPhase::JustPressed:
+            return input->isLeftMousePressed();
+
+        case ButtonPhase::Released:
+            return input->isLeftMouseReleased();
+
+        default:
+            return false;
+        }
+    }
+
     static bool queryGamepadButton(ModuleInput* input, int deviceIndex, SDL_GamepadButton button, ButtonPhase phase)
     {
         switch (button)
@@ -1003,7 +1027,7 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return stickButton == StickButton::Left ? queryKeyboardKey(KeyCode::Tab, phase) : queryKeyboardKey(KeyCode::F, phase);
+            return stickButton == StickButton::Left ? queryKeyboardKey(KeyCode::F, phase) : queryKeyboardKey(KeyCode::Tab, phase);
 
         case DeviceType::Gamepad:
             return stickButton == StickButton::Left ? queryGamepadButton(input, binding.deviceIndex, SDL_GAMEPAD_BUTTON_LEFT_STICK, phase) : queryGamepadButton(input, binding.deviceIndex, SDL_GAMEPAD_BUTTON_RIGHT_STICK, phase);
@@ -1051,7 +1075,7 @@ namespace Input
         switch (binding.deviceType)
         {
         case DeviceType::Keyboard:
-            return triggerButton == TriggerButton::Left ? queryKeyboardKey(KeyCode::E, phase) : queryRightMouseButton(phase);
+            return triggerButton == TriggerButton::Left ? queryKeyboardKey(KeyCode::E, phase) : queryLeftMouseButton(phase);
 
         case DeviceType::Gamepad:
             return queryGamepadTrigger(input, triggerButton, binding.deviceIndex, phase);
