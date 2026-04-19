@@ -38,6 +38,8 @@ public:
 	ComPtr<ID3D12PipelineState>		createPipelineStateObject(ID3D12RootSignature* rootSignature);
 
 	void executeCurrentCommandList();
+
+	void waitForGPU();
 private:
 
 	void loadPipeline();
