@@ -3,25 +3,24 @@
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
 
+class EnemyController;
+
 class EnemyCHASE : public StateMachineScript
 {
-    DECLARE_SCRIPT(EnemyCHASE)
+	DECLARE_SCRIPT(EnemyCHASE)
 
 public:
-    explicit EnemyCHASE(GameObject* owner);
+	explicit EnemyCHASE(GameObject* owner);
 
-    void OnStateEnter() override;
-    void OnStateUpdate() override;
-    void OnStateExit() override;
+	void OnStateEnter() override;
+	void OnStateUpdate() override;
+	void OnStateExit() override;
 
-    ScriptFieldList getExposedFields() const override;
+	ScriptFieldList getExposedFields() const override;
 
 private:
-    GameObject* findPlayer() const;
+	EnemyController* m_enemyController = nullptr;
 
 public:
-    float m_speed = 3.5f;
-    float m_attackRadius = 2.25f;
-    float m_loseRadius = 12.0f;
-    bool m_debugEnabled = true;
+	bool m_debugEnabled = true;
 };
