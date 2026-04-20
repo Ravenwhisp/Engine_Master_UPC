@@ -72,10 +72,10 @@ private:
     SkyBoxPass* m_skyBoxPass;
 
 public:
-    bool init()     override;
+    bool init()      override;
     void preRender() override;
-    void render()   override;
-    bool cleanUp()  override;
+    void render()    override;
+    bool cleanUp()   override;
 
     void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
 

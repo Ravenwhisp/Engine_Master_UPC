@@ -33,8 +33,6 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 
-
-
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -63,8 +61,8 @@ bool ModuleRender::init()
     auto debugDrawPass = std::make_unique<DebugDrawPass>(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(),/*useMSAA=*/false);
 
     m_debugDrawPass = debugDrawPass.get();
-    debugDrawPass->registerStatic(app->getModuleNavigation());
-    debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
+    //debugDrawPass->registerStatic(app->getModuleNavigation());
+    //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
     m_meshRenderPass = new MeshRendererPass (device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
@@ -136,25 +134,12 @@ void ModuleRender::render()
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
-    transitionResource(commandList,
-        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(),
-        D3D12_RESOURCE_STATE_PRESENT,
-        D3D12_RESOURCE_STATE_RENDER_TARGET);
+    transitionResource(commandList,swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(),D3D12_RESOURCE_STATE_PRESENT,D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 #ifndef GAME_RELEASE
-
-    renderBackground(commandList,
-        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
-        swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
-        swapChain->getViewport(),
-        swapChain->getScissorRect());
-
+    renderBackground(commandList, swapChain->getRenderSurface());
 #else
-
-    transitionResource(commandList,  swapChain->getCurrentRenderTarget()->getD3D12Resource(), D3D12_RESOURCE_STATE_PRESENT,  D3D12_RESOURCE_STATE_RENDER_TARGET);
-
     renderGameToBackbuffer(commandList, swapChain->getRenderSurface());
-
 #endif
 
     m_imGuiPass->apply(commandList);
@@ -173,18 +158,6 @@ bool ModuleRender::cleanUp()
     return true;
 }
 #pragma endregion
-
-    auto surface = std::make_unique<RenderSurface>();
-
-    auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
-
-    auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
-
-    surface->attachTexture(RenderSurface::COLOR_0, colorTex);
-    surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
-
-    return surface;
-}
 
 void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, float width, float height)
 {
