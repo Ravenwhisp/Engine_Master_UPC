@@ -12,6 +12,8 @@
 #include "ModuleScene.h"
 #include "ModuleD3D12.h"
 #include "ModuleRender.h"
+#include "ModuleResources.h"
+
 #include "RingBuffer.h"
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
@@ -70,6 +72,16 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
     psoDesc.SampleDesc = { 1, 0 };
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+
+
+    m_gbufferSurface = new RenderSurface();
+
+    for (UINT i = 0; i < GBUFFER_COUNT; ++i)
+	{
+		 m_gbufferSurface->attachTexture(kSlots[i], std::make_shared<Texture>(app->getModuleResources()->createGBuffer(1, 1, GBUFFER_FORMATS[0])));
+	}
+
+    m_gbufferSurface->attachTexture(RenderSurface::DEPTH_STENCIL, std::make_shared<Texture>(app->getModuleResources()->createDepthBuffer(1, 1)));
 }
 
 void GeometryPass::prepare(const RenderContext& ctx)
@@ -89,7 +101,10 @@ void GeometryPass::prepare(const RenderContext& ctx)
 
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(&sceneData, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
 
-    m_renderSurface = &ctx.renderSurface;
+    if(ctx.renderSurface.getSize() != m_gbufferSurface->getSize())
+    {
+		m_gbufferSurface->resize(ctx.renderSurface.getSize());
+	}
 }
 
 void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -98,22 +113,16 @@ void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     transitionGBuffer(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    static constexpr RenderSurface::AttachmentPoint kSlots[GBUFFER_COUNT] =
-    {
-        RenderSurface::COLOR_0, RenderSurface::COLOR_1,
-        RenderSurface::COLOR_2, RenderSurface::COLOR_3,
-    };
-
     const float clearColour[GBUFFER_COUNT] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[GBUFFER_COUNT];
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
     {
-        rtvHandles[i] = m_renderSurface->getTexture(kSlots[i])->getRTV(0).cpu;
+        rtvHandles[i] = m_gbufferSurface->getTexture(kSlots[i])->getRTV(0).cpu;
         commandList->ClearRenderTargetView(rtvHandles[i], clearColour, 0, nullptr);
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_gbufferSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
     commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     commandList->OMSetRenderTargets(GBUFFER_COUNT, rtvHandles, FALSE, &dsvHandle);
@@ -196,16 +205,10 @@ void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void GeometryPass::transitionGBuffer(ID3D12GraphicsCommandList4* cmdList, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const
 {
-    static constexpr RenderSurface::AttachmentPoint kSlots[GBUFFER_COUNT] =
-    {
-        RenderSurface::COLOR_0, RenderSurface::COLOR_1,
-        RenderSurface::COLOR_2, RenderSurface::COLOR_3,
-    };
-
     CD3DX12_RESOURCE_BARRIER barriers[GBUFFER_COUNT];
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
     {
-        barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(m_renderSurface->getTexture(kSlots[i])->getD3D12Resource().Get(), before, after);
+        barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(m_gbufferSurface->getTexture(kSlots[i])->getD3D12Resource().Get(), before, after);
     }
     cmdList->ResourceBarrier(GBUFFER_COUNT, barriers);
 }

@@ -18,6 +18,13 @@ public:
         DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT3 position
     };
 
+    static constexpr RenderSurface::AttachmentPoint kSlots[GBUFFER_COUNT] =
+    {
+        RenderSurface::COLOR_0, RenderSurface::COLOR_1,
+        RenderSurface::COLOR_2, RenderSurface::COLOR_3,
+    };
+
+
     GeometryPass(ComPtr<ID3D12Device4> device);
 
     virtual void prepare(const RenderContext& ctx) override;
@@ -35,7 +42,7 @@ private:
     D3D12_RECT                  m_scissorRect = {};
 
     D3D12_GPU_VIRTUAL_ADDRESS   m_sceneDataCBAddress = 0;
-    RenderSurface* m_renderSurface = nullptr;
+    RenderSurface* m_gbufferSurface = nullptr;
 
     const Matrix* m_view = nullptr;
     const Matrix* m_projection = nullptr;

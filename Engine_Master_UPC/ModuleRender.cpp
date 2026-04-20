@@ -70,7 +70,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
-    m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
+    m_renderPasses.push_back(std::make_unique<GeometryPass>(device));
+    //m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
@@ -104,7 +105,6 @@ void ModuleRender::preRender()
         PERF_RENDER("ModuleRender::RenderViewports");
         for (const ViewportEntry& entry : m_viewports)
         {
-            // Transition the viewport surface COLOR_0: SRV → RTV
             auto colorTex = entry.surface->getTexture(RenderSurface::COLOR_0);
             transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -121,7 +121,6 @@ void ModuleRender::preRender()
                 renderPlayScene(commandList, *entry.surface);
             }
 
-            // Transition back: RTV → SRV so ImGui can sample it
             transitionResource(commandList,  colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         }
     }
@@ -137,13 +136,11 @@ void ModuleRender::render()
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
     transitionResource(commandList,swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(),D3D12_RESOURCE_STATE_PRESENT,D3D12_RESOURCE_STATE_RENDER_TARGET);
-
 #ifndef GAME_RELEASE
     renderBackground(commandList, swapChain->getRenderSurface());
 #else
     renderGameToBackbuffer(commandList, swapChain->getRenderSurface());
 #endif
-
     m_imGuiPass->apply(commandList);
 
     transitionResource(commandList, swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -233,17 +230,13 @@ ModuleRender::RenderCamera ModuleRender::getGameCamera()
     return camera;
 }
 
-void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES  beforeState,D3D12_RESOURCE_STATES  afterState)
+void ModuleRender::transitionResource(ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES  beforeState,D3D12_RESOURCE_STATES afterState)
 {
     CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(), beforeState, afterState);
     commandList->ResourceBarrier(1, &barrier);
 }
 
-void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList,
-    const RenderCamera& camera,
-    RenderSurface& outputSurface,
-    bool                        renderDebug,
-    RenderViewType              viewType) 
+void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, RenderSurface& outputSurface, bool renderDebug, RenderViewType viewType) 
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
 

@@ -159,6 +159,25 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
+Texture* ModuleResources::createGBuffer(float width, float height, DXGI_FORMAT format) 
+{
+	const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	TextureDesc desc{};
+	desc.format = format;
+	desc.srvFormat = format;
+	desc.rtvFormat = format;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::SRV | TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(format, clearColor);
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
 RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
@@ -172,6 +191,7 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 
 	return surface;
 }
+
 
 Texture* ModuleResources::createNullTexture2D()
 {
