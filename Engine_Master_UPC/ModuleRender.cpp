@@ -61,10 +61,10 @@ bool ModuleRender::init()
     auto debugDrawPass = std::make_unique<DebugDrawPass>(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(),/*useMSAA=*/false);
 
     m_debugDrawPass = debugDrawPass.get();
-    //debugDrawPass->registerStatic(app->getModuleNavigation());
-    //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
+    debugDrawPass->registerStatic(app->getModuleNavigation());
+    debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
-    m_meshRenderPass = new MeshRendererPass (device);
+    m_meshRenderPass = new MeshRendererPass(device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_skyBoxPass = skyBoxPass.get();
     m_renderPasses.push_back(std::move(skyBoxPass));
@@ -107,6 +107,8 @@ void ModuleRender::preRender()
             // Transition the viewport surface COLOR_0: SRV → RTV
             auto colorTex = entry.surface->getTexture(RenderSurface::COLOR_0);
             transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+            renderBackground(commandList, *entry.surface);
 
             if (entry.type == ViewportType::EDITOR)
             {
