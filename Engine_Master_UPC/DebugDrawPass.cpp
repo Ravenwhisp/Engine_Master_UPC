@@ -297,19 +297,36 @@ public:
         ID3D12PipelineState* pso, ID3D12RootSignature* signature, void* rootConstants, uint32_t rootConstantsSize,
         D3D_PRIMITIVE_TOPOLOGY topology, UINT& memoryOffset, bool isText)
     {
+        if (!vertices || count <= 0 || !vertexBuffer)
+        {
+            return;
+        }
+
         size_t freeSpace = DEBUG_DRAW_VERTEX_BUFFER_SIZE - memoryOffset;
-        if (freeSpace < count)
+        if (freeSpace < static_cast<size_t>(count))
         {
             memoryOffset = 0;
             freeSpace = DEBUG_DRAW_VERTEX_BUFFER_SIZE;
         }
 
-        if (freeSpace > count)
+        if (freeSpace >= static_cast<size_t>(count))
         {
             BYTE* uploadData = nullptr;
 
             D3D12_RANGE readRange = { 0, 0 };
-            vertexBuffer->Map(0, &readRange, (void**)&uploadData);
+            HRESULT hr = vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&uploadData));
+
+            if (FAILED(hr) || uploadData == nullptr)
+            {
+                HRESULT removedReason = device->GetDeviceRemovedReason();
+
+                DEBUG_ERROR(
+                    "DebugDraw vertexBuffer Map failed. HRESULT: 0x%08X. DeviceRemovedReason: 0x%08X",
+                    hr,
+                    removedReason
+                );
+                return;
+            }
 
             memcpy(uploadData + memoryOffset * sizeof(dd::DrawVertex), vertices, sizeof(dd::DrawVertex) * count);
 

@@ -2,6 +2,7 @@
 #include "Module.h"
 #include "DescriptorHeap.h"
 #include "Resources.h"
+#include "StagingDescriptorHeap.h"
 
 
 struct DefferedDescriptor {
@@ -41,6 +42,7 @@ public:
 	bool cleanUp() override;
 
 	DescriptorHeap& getHeap(D3D12_DESCRIPTOR_HEAP_TYPE type) { return *m_DescriptorHeapMap[type]; }
+	StagingDescriptorHeap& getStagingHeap() { return *m_stagingSRVHeap; }
 
 	void defferDescriptorRelease(Handle handle);
 
@@ -48,6 +50,7 @@ private:
 	void createDefaultSamplers();
 
 	std::unordered_map< D3D12_DESCRIPTOR_HEAP_TYPE, DescriptorHeap*>	m_DescriptorHeapMap;
+	StagingDescriptorHeap* m_stagingSRVHeap{ nullptr };
 
 	ComPtr<ID3D12Device4>												m_device{};
 	std::vector<DefferedDescriptor>										m_defferedDescriptors{};

@@ -27,6 +27,7 @@ public:
     #pragma region Loop functions
     virtual bool init() { return true; }
     virtual void update() {}
+    virtual void lateUpdate() {}
     virtual bool cleanUp() { return true; }
     #pragma endregion
 

@@ -196,7 +196,7 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
             Component* component = componentReference->component;
 
             ImGui::Text("%s", field.name);
-            ImGui::SameLine(100.0f);
+            ImGui::SameLine();
 
             if (component)
             {

@@ -30,6 +30,7 @@
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
+#include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 
 
@@ -51,6 +52,13 @@ bool ModuleRender::init()
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(10);
 
+    // Build the one time render-passes.
+    auto staticTexturesPass = new StaticTexturesPass(device);
+    
+    staticTexturesPass->apply();
+
+    delete staticTexturesPass;
+
     // Build the ordered render-pass list.
     auto debugDrawPass = std::make_unique<DebugDrawPass>(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(),/*useMSAA=*/false);
 
@@ -58,10 +66,13 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleNavigation());
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
-    m_renderPasses.push_back(std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings()));
-    m_renderPasses.push_back(std::make_unique<GeometryPass>(device));
+    m_meshRenderPass = new MeshRendererPass (device);
+    auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
+    m_skyBoxPass = skyBoxPass.get();
+    m_renderPasses.push_back(std::move(skyBoxPass));
+
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
-    m_renderPasses.push_back(std::make_unique<MeshRendererPass>(device));
+    m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
@@ -114,10 +125,29 @@ void ModuleRender::preRender()
             transitionResource(commandList,  colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET,  D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         }
     }
+#endif
+    app->getModuleD3D12()->executeCurrentCommandList();
+    m_imGuiPass->startFrame();
+}
 
-    transitionResource(commandList, swapChain->getCurrentRenderTarget()->getD3D12Resource(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    renderBackground(commandList, swapChain->getRenderSurface());
+void ModuleRender::render()
+{
+    auto* commandList = app->getModuleD3D12()->getCommandList();
+    auto* swapChain = app->getModuleD3D12()->getSwapChain();
+
+    transitionResource(commandList,
+        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(),
+        D3D12_RESOURCE_STATE_PRESENT,
+        D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+#ifndef GAME_RELEASE
+
+    renderBackground(commandList,
+        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
+        swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
+        swapChain->getViewport(),
+        swapChain->getScissorRect());
 
 #else
 
@@ -127,18 +157,9 @@ void ModuleRender::preRender()
 
 #endif
 
-    m_imGuiPass->startFrame();
-
-}
-
-void ModuleRender::render()
-{
-    auto* commandList = app->getModuleD3D12()->getCommandList();
-    auto* swapChain = app->getModuleD3D12()->getSwapChain();
-
     m_imGuiPass->apply(commandList);
 
-    transitionResource(commandList, swapChain->getCurrentRenderTarget()->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    transitionResource(commandList, swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 }
 
 bool ModuleRender::cleanUp()
@@ -152,6 +173,18 @@ bool ModuleRender::cleanUp()
     return true;
 }
 #pragma endregion
+
+    auto surface = std::make_unique<RenderSurface>();
+
+    auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
+
+    auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
+
+    surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+    surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
+
+    return surface;
+}
 
 void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, float width, float height)
 {
@@ -169,17 +202,17 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
         {
             if (entry.width != w || entry.height != h)
             {
-                app->getModuleD3D12()->getCommandQueue()->flush();
                 entry.width = w;
                 entry.height = h;
                 surface->resize(w, h);
+                app->getModuleD3D12()->getCommandQueue()->flush();
             }
             return;
         }
     }
 
-    app->getModuleD3D12()->getCommandQueue()->flush();
     surface->resize(w, h);
+    app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
 }
 
@@ -334,3 +367,6 @@ void ModuleRender::markDebugDrawCacheDirty()
         m_debugDrawPass->markCacheDirty();
     }
 }
+
+int ModuleRender::getTrianglesCount() const { return m_meshRenderPass->getTriangleCount(); }
+int ModuleRender::getMeshCount() const { return m_meshRenderPass->getMeshCount(); }

@@ -9,11 +9,14 @@ cbuffer ModelData : register(b2)
     float4x4 model;
     float4x4 normalMat;
 
-    float3 diffuseColour;
-    uint hasDiffuseTex;
+    float3 baseColor;
+    uint hasBaseColorTex;
 
-    float3 specularColour;
-    float shininess;
+    float metallicFactor;
+    float roughnessFactor;
+    uint hasMetallicRoughnessTex;
+    
+    float padding;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4

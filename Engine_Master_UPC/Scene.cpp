@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
+#include "ModuleD3D12.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -53,6 +54,8 @@ bool Scene::init()
 
 void Scene::update()
 {
+    releasePendingDestroyedGameObjects();
+
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
         removePendingGameObjects();
@@ -64,6 +67,14 @@ void Scene::update()
             if (go->GetActive())
             {
                 go->update();
+            }
+        }
+
+        for (const auto& go : m_allObjects)
+        {
+            if (go->GetActive())
+            {
+                go->lateUpdate();
             }
         }
 
@@ -223,6 +234,26 @@ void Scene::flushPendingGameObjects()
     markDirty();
 }
 
+void Scene::releasePendingDestroyedGameObjects()
+{
+    CommandQueue* commandQueue = app->getModuleD3D12()->getCommandQueue();
+
+    auto it = m_pendingDestroyedObjects.begin();
+
+    while (it != m_pendingDestroyedObjects.end())
+    {
+        if (commandQueue->isFenceComplete(it->fenceValue))
+        {
+            it->gameObject->cleanUp();
+            it = m_pendingDestroyedObjects.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
     m_allObjects.push_back(std::move(gameObject));
@@ -243,10 +274,39 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     if (it != m_allObjects.end())
     {
-        (*it)->cleanUp();
+        const uint64_t fenceValue = app->getModuleD3D12()->getCommandQueue()->signal();
+
+        m_pendingDestroyedObjects.push_back(
+            PendingDestroyedGameObject{
+                std::move(*it),
+                fenceValue
+            });
         m_allObjects.erase(it);
     }
     markDirty();
+}
+
+bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
+{
+    if (!root || !candidate)
+    {
+        return false;
+    }
+
+    if (root == candidate)
+    {
+        return true;
+    }
+
+    for (GameObject* child : root->GetTransform()->getAllChildren())
+    {
+        if (isInHierarchy(child, candidate))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
@@ -270,6 +330,18 @@ GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
 
 void Scene::destroyWindowHierarchy(GameObject* obj)
 {
+    if (!obj)
+    {
+        return;
+    }
+
+    ModuleEditor* editor = app->getModuleEditor();
+
+    if (isInHierarchy(obj, editor->getSelectedGameObject()))
+    {
+        editor->setSelectedGameObject(nullptr);
+    }
+
     auto children = obj->GetTransform()->getAllChildren();
 
     for (GameObject* child : children)
@@ -362,9 +434,37 @@ const std::vector<GameObject*>& Scene::getRootObjects() const
     return m_rootObjects;
 }
 
+bool Scene::containsGameObject(const GameObject* go) const
+{
+    if (!go)
+    {
+        return false;
+    }
+
+    for (const auto& obj : m_allObjects)
+    {
+        if (obj.get() == go)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
+
+    for (auto& pending : m_pendingDestroyedObjects)
+    {
+        if (pending.gameObject)
+        {
+            pending.gameObject->cleanUp();
+        }
+    }
+
+    m_pendingDestroyedObjects.clear();
 
     for (auto& go : m_allObjects)
     {

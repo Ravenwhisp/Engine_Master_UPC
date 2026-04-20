@@ -28,6 +28,12 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
         ? (ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen)
         : ImGuiTreeNodeFlags_OpenOnArrow;
 
+    GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
+
+    if (gameObject == selected) {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
     if (isEditRoot) {
         flags |= ImGuiTreeNodeFlags_DefaultOpen;
     }
