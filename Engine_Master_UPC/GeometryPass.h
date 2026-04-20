@@ -29,8 +29,17 @@ public:
 
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
+
 private:
+    void createRootSignature();
+    void createPipelineState();
+    void createGBufferSurface();
+
     void transitionGBuffer(ID3D12GraphicsCommandList4* cmdList, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const;
+
+    void transitionAndClearTargets(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles, D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle) const;
+    void setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList) const;
+    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer) const;
 
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
