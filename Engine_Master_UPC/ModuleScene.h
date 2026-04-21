@@ -67,11 +67,6 @@ public:
     Quadtree* getQuadtree() { return m_quadtree.get(); }
 #pragma endregion
 
-#pragma region Prefab
-    // After a prefab file is saved, call this to revert all live scene instances.
-    void syncPrefabInstances(const std::filesystem::path& prefabPath);
-#pragma endregion
-
     Scene* getScene() { return m_scene.get(); }
 
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
