@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "ComponentType.h"
 
 enum class ScriptFieldType
