@@ -2,13 +2,10 @@
 #include "EnemyDeathHandler.h"
 #include "Damageable.h"
 
-static const ScriptFieldInfo EnemyDeathHandlerFields[] =
-{
-    { "Destroy Delay", ScriptFieldType::Float, offsetof(EnemyDeathHandler, m_destroyDelay), { 0.0f, 30.0f, 0.1f } },
-    { "Death State Name", ScriptFieldType::String, offsetof(EnemyDeathHandler, m_deathStateName) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyDeathHandler, EnemyDeathHandlerFields)
+IMPLEMENT_SCRIPT_FIELDS(EnemyDeathHandler,
+    SERIALIZED_FLOAT(m_destroyDelay, "Destroy Delay", 0.0f, 30.0f, 0.1f),
+    SERIALIZED_STRING(m_deathStateName, "Death State Name")
+)
 
 EnemyDeathHandler::EnemyDeathHandler(GameObject* owner)
     : Script(owner)

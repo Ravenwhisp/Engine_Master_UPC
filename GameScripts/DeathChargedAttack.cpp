@@ -6,16 +6,13 @@
 
 #include <cmath>
 
-static const ScriptFieldInfo DeathChargedAttackFields[] =
-{
-    { "Min Charge Time",         ScriptFieldType::Float, offsetof(DeathChargedAttack, m_minChargeTime),        { 0.0f,  3.0f, 0.05f } },
-    { "Attack Lock Duration",    ScriptFieldType::Float, offsetof(DeathChargedAttack, m_attackLockDuration),   { 0.05f, 2.0f, 0.05f } },
-    { "Final Hit Lock Duration", ScriptFieldType::Float, offsetof(DeathChargedAttack, m_finalHitLockDuration), { 0.05f, 3.0f, 0.05f } },
-    { "Charged Arc Range",       ScriptFieldType::Float, offsetof(DeathChargedAttack, m_chargedArcRange),      { 0.5f, 10.0f, 0.1f  } },
-    { "Charged Arc Angle",       ScriptFieldType::Float, offsetof(DeathChargedAttack, m_chargedArcAngle),      { 10.0f, 360.0f, 5.0f } },
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DeathChargedAttack, DeathChargedAttackFields)
+IMPLEMENT_SCRIPT_FIELDS(DeathChargedAttack,
+    SERIALIZED_FLOAT(m_minChargeTime, "Min Charge Time", 0.0f, 3.0f, 0.05f),
+    SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.05f, 2.0f, 0.05f),
+    SERIALIZED_FLOAT(m_finalHitLockDuration, "Final Hit Lock Duration", 0.05f, 3.0f, 0.05f),
+    SERIALIZED_FLOAT(m_chargedArcRange, "Charged Arc Range", 0.5f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_chargedArcAngle, "Charged Arc Angle", 10.0f, 360.0f, 5.0f)
+)
 
 DeathChargedAttack::DeathChargedAttack(GameObject* owner)
     : DeathAbilityBase(owner)

@@ -2,15 +2,12 @@
 #include "TargetIndicatorUI.h"
 #include "PlayerTargetController.h"
 
-static const ScriptFieldInfo targetIndicatorUIFields[] =
-{
-    { "Player Transform", ScriptFieldType::ComponentRef, offsetof(TargetIndicatorUI, m_playerTransform), {}, {}, { ComponentType::TRANSFORM } },
-    { "Indicator Visual Transform", ScriptFieldType::ComponentRef, offsetof(TargetIndicatorUI, m_indicatorVisualTransform), {}, {}, { ComponentType::TRANSFORM } },
-    { "Position Offset", ScriptFieldType::Vec3, offsetof(TargetIndicatorUI, m_positionOffset) },
-    { "Follow Sharpness", ScriptFieldType::Float, offsetof(TargetIndicatorUI, m_followSharpness), { 0.0f, 50.0f, 0.1f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(TargetIndicatorUI, targetIndicatorUIFields)
+IMPLEMENT_SCRIPT_FIELDS(TargetIndicatorUI,
+    SERIALIZED_COMPONENT_REF(m_playerTransform, "Player Transform", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_indicatorVisualTransform, "Indicator Visual Transform", ComponentType::TRANSFORM),
+    SERIALIZED_VEC3(m_positionOffset, "Position Offset"),
+    SERIALIZED_FLOAT(m_followSharpness, "Follow Sharpness", 0.0f, 50.0f, 0.1f)
+)
 
 TargetIndicatorUI::TargetIndicatorUI(GameObject* owner)
     : Script(owner)

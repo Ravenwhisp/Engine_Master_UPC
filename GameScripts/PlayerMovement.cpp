@@ -2,14 +2,11 @@
 #include "PlayerMovement.h"
 #include "PlayerAnimationController.h"
 
-static const ScriptFieldInfo playerMovementFields[]
-{
-    { "Move Speed", ScriptFieldType::Float, offsetof(PlayerMovement, m_moveSpeed), { 0.0f, 50.0f, 0.05f } },
-    { "Constrain To NavMesh", ScriptFieldType::Bool, offsetof(PlayerMovement, m_constrainToNavMesh) },
-    { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerMovement, m_navExtents) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerMovement, playerMovementFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerMovement,
+    SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.05f),
+    SERIALIZED_BOOL(m_constrainToNavMesh, "Constrain To NavMesh"),
+    SERIALIZED_VEC3(m_navExtents, "Nav Extents")
+)
 
 PlayerMovement::PlayerMovement(GameObject* owner)
     : Script(owner)

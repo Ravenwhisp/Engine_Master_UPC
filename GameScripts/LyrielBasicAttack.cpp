@@ -9,15 +9,12 @@
 #include "ArrowPool.h"
 #include "LyrielArrowProjectile.h"
 
-static const ScriptFieldInfo LyrielBasicAttackFields[] =
-{
-    { "Attack Damage", ScriptFieldType::Float, offsetof(LyrielBasicAttack, m_attackDamage), { 0.0f, 100.0f, 0.5f } },
-    { "Attack Cooldown", ScriptFieldType::Float, offsetof(LyrielBasicAttack, m_attackCooldown), { 0.0f, 5.0f, 0.05f } },
-    { "Arrow Speed", ScriptFieldType::Float, offsetof(LyrielBasicAttack, m_arrowSpeed), { 0.0f, 100.0f, 0.5f } },
-    { "Attack Lock Duration", ScriptFieldType::Float, offsetof(LyrielBasicAttack, m_attackLockDuration), { 0.0f, 2.0f, 0.01f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(LyrielBasicAttack, LyrielBasicAttackFields)
+IMPLEMENT_SCRIPT_FIELDS(LyrielBasicAttack,
+    SERIALIZED_FLOAT(m_attackDamage, "Attack Damage", 0.0f, 100.0f, 0.5f),
+    SERIALIZED_FLOAT(m_attackCooldown, "Attack Cooldown", 0.0f, 5.0f, 0.05f),
+    SERIALIZED_FLOAT(m_arrowSpeed, "Arrow Speed", 0.0f, 100.0f, 0.5f),
+    SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.0f, 2.0f, 0.01f)
+)
 
 LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
     : LyrielAbilityBase(owner)

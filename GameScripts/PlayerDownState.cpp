@@ -3,16 +3,13 @@
 #include "Damageable.h"
 #include "PlayerState.h"
 
-static const ScriptFieldInfo playerDownStateFields[] =
-{
-    { "Self Revive Time", ScriptFieldType::Float, offsetof(PlayerDownState, m_selfReviveTime), { 0.1f, 999999.0f, 0.1f } },
-    { "Assist Radius", ScriptFieldType::Float, offsetof(PlayerDownState, m_assistRadius), { 0.0f, 999999.0f, 0.1f } },
-    { "Assist Speed Multiplier", ScriptFieldType::Float, offsetof(PlayerDownState, m_assistSpeedMultiplier), { 1.0f, 999999.0f, 0.1f } },
-    { "Revive HP", ScriptFieldType::Float, offsetof(PlayerDownState, m_reviveHp), { 1.0f, 999999.0f, 1.0f } },
-    { "Teammate Transform", ScriptFieldType::ComponentRef, offsetof(PlayerDownState, m_teammateTransform), {}, {}, { ComponentType::TRANSFORM } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerDownState, playerDownStateFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerDownState,
+    SERIALIZED_FLOAT(m_selfReviveTime, "Self Revive Time", 0.1f, 999999.0f, 0.1f),
+    SERIALIZED_FLOAT(m_assistRadius, "Assist Radius", 0.0f, 999999.0f, 0.1f),
+    SERIALIZED_FLOAT(m_assistSpeedMultiplier, "Assist Speed Multiplier", 1.0f, 999999.0f, 0.1f),
+    SERIALIZED_FLOAT(m_reviveHp, "Revive HP", 1.0f, 999999.0f, 1.0f),
+    SERIALIZED_COMPONENT_REF(m_teammateTransform, "Teammate Transform", ComponentType::TRANSFORM)
+)
 
 PlayerDownState::PlayerDownState(GameObject* owner)
     : Script(owner)
