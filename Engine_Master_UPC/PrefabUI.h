@@ -12,11 +12,6 @@ class PrefabUI
     {
         std::filesystem::path m_sourcePath;
         std::string m_name;
-        std::string m_componentSummary;
-        std::string m_variantOf;
-        int m_version = 0;
-        int m_childCount = 0;
-        bool m_isVariant = false;
     };
 public:
     static void drawModeHeader(const char* prefabName);
@@ -34,7 +29,6 @@ public:
     static void markTransformOverride(GameObject* go);
 
     static std::vector<PrefabFileInfo> listPrefabsInfo(const std::filesystem::path& searchRoot);
-    static std::vector<std::filesystem::path> listPrefabs(const std::filesystem::path& searchRoot);
 
     // Draws the green instance bar in the inspector.
     static void drawFileDialogInstanceBar(GameObject* go);

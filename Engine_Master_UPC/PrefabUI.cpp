@@ -579,21 +579,6 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     }
 }
 
-std::vector<std::filesystem::path> PrefabUI::listPrefabs(const std::filesystem::path& searchRoot)
-{
-    std::vector<std::filesystem::path> paths;
-    if (!std::filesystem::exists(searchRoot)) return paths;
-
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(searchRoot))
-    {
-        if (entry.is_regular_file() && entry.path().extension() == ".prefab")
-        {
-            paths.push_back(entry.path());
-        }
-    }
-    return paths;
-}
-
 std::vector<PrefabUI::PrefabFileInfo> PrefabUI::listPrefabsInfo(const std::filesystem::path& searchRoot)
 {
     std::vector<PrefabFileInfo> results;
@@ -603,41 +588,9 @@ std::vector<PrefabUI::PrefabFileInfo> PrefabUI::listPrefabsInfo(const std::files
     {
         if (!entry.is_regular_file() || entry.path().extension() != ".prefab") continue;
 
-        rapidjson::Document doc;
-        if (!PrefabSerializer::readDocument(entry.path(), doc)) continue;
-
         PrefabFileInfo info;
         info.m_sourcePath = entry.path();
         info.m_name = entry.path().stem().string();
-        info.m_version = doc.HasMember("Version") ? doc["Version"].GetInt() : 0;
-
-        if (doc.HasMember("VariantOf") && doc["VariantOf"].IsString())
-        {
-            info.m_variantOf = doc["VariantOf"].GetString();
-            info.m_isVariant = true;
-        }
-
-        if (doc.HasMember("GameObject") && doc["GameObject"].IsObject())
-        {
-            const rapidjson::Value& goNode = doc["GameObject"];
-
-            std::vector<std::string> compNames = { "Transform" };
-            if (goNode.HasMember("Components") && goNode["Components"].IsArray())
-            {
-                for (rapidjson::SizeType i = 0; i < goNode["Components"].Size(); ++i)
-                {
-                    compNames.push_back(ComponentTypeToString(
-                        static_cast<ComponentType>(goNode["Components"][i]["Type"].GetInt())));
-                }
-            }
-
-            for (size_t i = 0; i < compNames.size(); ++i)
-            {
-                if (i) info.m_componentSummary += ", ";
-                info.m_componentSummary += compNames[i];
-            }
-        }
-
         results.push_back(std::move(info));
     }
 

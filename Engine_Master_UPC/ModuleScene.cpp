@@ -262,20 +262,3 @@ void ModuleScene::syncQuadtreeWithSettings()
     }
 }
 #pragma endregion
-
-#pragma region Prefab
-void ModuleScene::syncPrefabInstances(const std::filesystem::path& prefabPath)
-{
-    if (prefabPath.empty() || !m_scene) return;
-
-    for (GameObject* go : m_scene->getAllGameObjects())
-    {
-        if (go && go->GetPrefabInfo().isInstance()
-            && go->GetPrefabInfo().m_sourcePath == prefabPath)
-        {
-            app->getModuleAssets()->revertPrefab(go, m_scene.get());
-        }
-    }
-    m_scene->markDirty();
-}
-#pragma endregion

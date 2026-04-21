@@ -506,12 +506,24 @@ bool ModuleAssets::applyPrefab(const GameObject* go)
     if (!info.isInstance()) return false;
 
     if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
-    {
         return false;
+
+    // Propagate the saved prefab to all live instances in the scene
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene) return true;
+
+    const std::filesystem::path& prefabPath = info.m_sourcePath;
+    for (GameObject* instance : scene->getAllGameObjects())
+    {
+        if (!instance) continue;
+        if (!instance->GetPrefabInfo().isInstance()) continue;
+        if (instance->GetPrefabInfo().m_sourcePath != prefabPath) continue;
+        if (instance == go) continue; 
+
+        revertPrefab(instance, scene);
     }
 
-    app->getModuleScene()->syncPrefabInstances(info.m_sourcePath);
-
+    scene->markDirty();
     return true;
 }
 
