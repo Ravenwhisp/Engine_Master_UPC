@@ -1,20 +1,17 @@
 #include "pch.h"
 #include "TransformGlobalTest.h"
 
-static const ScriptFieldInfo transformGlobalTestFields[] =
-{
-    { "Run SetGlobalPosition Test", ScriptFieldType::Bool, offsetof(TransformGlobalTest, m_runSetGlobalPositionTest) },
-    { "Run TranslateGlobal Test", ScriptFieldType::Bool, offsetof(TransformGlobalTest, m_runTranslateGlobalTest) },
-    { "Run SetGlobalRotation Test", ScriptFieldType::Bool, offsetof(TransformGlobalTest, m_runSetGlobalRotationTest) },
-    { "Run LookAt Test", ScriptFieldType::Bool, offsetof(TransformGlobalTest, m_runLookAtTest) },
+IMPLEMENT_SCRIPT_FIELDS(TransformGlobalTest,
+    SERIALIZED_BOOL(m_runSetGlobalPositionTest, "Run SetGlobalPosition Test"),
+    SERIALIZED_BOOL(m_runTranslateGlobalTest, "Run TranslateGlobal Test"),
+    SERIALIZED_BOOL(m_runSetGlobalRotationTest, "Run SetGlobalRotation Test"),
+    SERIALIZED_BOOL(m_runLookAtTest, "Run LookAt Test"),
 
-    { "Target Global Position", ScriptFieldType::Vec3, offsetof(TransformGlobalTest, m_targetGlobalPosition) },
-    { "Translate Delta", ScriptFieldType::Vec3, offsetof(TransformGlobalTest, m_translateDelta) },
-    { "Target Global Euler", ScriptFieldType::Vec3, offsetof(TransformGlobalTest, m_targetGlobalEuler) },
-    { "LookAt Target World Position", ScriptFieldType::Vec3, offsetof(TransformGlobalTest, m_lookAtTargetWorldPosition) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(TransformGlobalTest, transformGlobalTestFields)
+    SERIALIZED_VEC3(m_targetGlobalPosition, "Target Global Position"),
+    SERIALIZED_VEC3(m_translateDelta, "Translate Delta"),
+    SERIALIZED_VEC3(m_targetGlobalEuler, "Target Global Euler"),
+    SERIALIZED_VEC3(m_lookAtTargetWorldPosition, "LookAt Target World Position")
+)
 
 TransformGlobalTest::TransformGlobalTest(GameObject* owner)
     : Script(owner)
