@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include "UID.h"
 #include "ComponentType.h"
 
 enum class ScriptFieldType
@@ -46,6 +44,22 @@ struct ScriptFieldInfo
 
 struct ScriptFieldList
 {
-    const ScriptFieldInfo* fields = nullptr;
-    size_t count = 0;
+    std::vector<ScriptFieldInfo> fields;
+
+    ScriptFieldList() = default;
+
+    ScriptFieldList(const ScriptFieldInfo* fieldArray, size_t fieldCount)
+    {
+        append(fieldArray, fieldCount);
+    }
+
+    void append(const ScriptFieldInfo* fieldArray, size_t fieldCount)
+    {
+        fields.insert(fields.end(), fieldArray, fieldArray + fieldCount);
+    }
+
+    size_t count() const
+    {
+        return fields.size();
+    }
 };
