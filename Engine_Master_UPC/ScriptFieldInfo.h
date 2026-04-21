@@ -57,9 +57,4 @@ struct ScriptFieldList
     {
         fields.insert(fields.end(), fieldArray, fieldArray + fieldCount);
     }
-
-    size_t count() const
-    {
-        return fields.size();
-    }
 };
