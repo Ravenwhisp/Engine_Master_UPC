@@ -14,6 +14,7 @@ class RingBuffer;
 class MeshRenderer;
 class GameObject;
 class LightComponent;
+class RenderSurface;
 
 struct SceneLightingSettings;
 struct SceneDataCB;
@@ -54,6 +55,10 @@ private:
 
     const Matrix* m_projection = nullptr;
     const Matrix* m_view = nullptr;
+
+    RenderSurface* m_renderSurface = nullptr;
+    D3D12_VIEWPORT m_viewport = {};
+    D3D12_RECT     m_scissorRect = {};
     
     int m_trianglesCount = 0;
 	int m_meshCount = 0;

@@ -23,6 +23,7 @@
 #include "Texture.h"
 #include "BasicMesh.h"
 #include "SkyBox.h"
+#include "RenderSurface.h"
 
 #include "SimpleMath.h"
 #include <d3dcompiler.h>
@@ -151,10 +152,22 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
             sizeof(GPULightsConstantBuffer),
             app->getModuleD3D12()->getCurrentFrame());
     }
+
+    m_renderSurface = &ctx.renderSurface;
+    m_viewport = ctx.viewport;
+    m_scissorRect = ctx.scissorRect;
 }
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+
+    auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
+    auto depthTex = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
+    D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthTex->getDSV().cpu;
+    commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+    commandList->RSSetViewports(1, &m_viewport);
+    commandList->RSSetScissorRects(1, &m_scissorRect);
 
     // Bind root signature (must be set before any draw calls)
     commandList->SetPipelineState(m_pipelineState.Get());
