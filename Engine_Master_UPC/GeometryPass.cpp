@@ -31,7 +31,7 @@ void GeometryPass::createRootSignature()
     CD3DX12_ROOT_PARAMETER   rootParams[5] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
-    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParams[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -142,9 +142,6 @@ void GeometryPass::transitionAndClearTargets(ID3D12GraphicsCommandList4* command
     *dsvHandle = m_gbufferSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
     commandList->ClearDepthStencilView(*dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-    commandList->OMSetRenderTargets(GBUFFER_COUNT, rtvHandles, FALSE, dsvHandle);
-    commandList->RSSetViewports(1, &m_viewport);
-    commandList->RSSetScissorRects(1, &m_scissorRect);
 }
 
 void GeometryPass::setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList) const
@@ -203,14 +200,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
         commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
 
-        commandList->SetGraphicsRootDescriptorTable(3, material->getTexture()->getSRV().gpu);
-
-        if (mesh->hasIndexBuffer())
-        {
-            D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-            commandList->IASetIndexBuffer(&ibv);
-            commandList->DrawIndexedInstanced(submeshes[s].indexCount, 1, submeshes[s].indexStart, 0, 0);
-        }
+        commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
     }
 }
 
