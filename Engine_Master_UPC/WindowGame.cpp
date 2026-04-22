@@ -64,7 +64,7 @@ void WindowGame::drawInternal()
         }
 
         // Get the texture ID and draw the image
-        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
+        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COMPOSITE)->getSRV().gpu.ptr;
         ImGui::Image(textureID, viewportSize);
 
         // Update hover/focus states

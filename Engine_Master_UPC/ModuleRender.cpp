@@ -105,7 +105,7 @@ void ModuleRender::preRender()
         PERF_RENDER("ModuleRender::RenderViewports");
         for (const ViewportEntry& entry : m_viewports)
         {
-            auto colorTex = entry.surface->getTexture(RenderSurface::COLOR_0);
+            auto colorTex = entry.surface->getTexture(RenderSurface::COMPOSITE);
             transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
             renderBackground(commandList, *entry.surface);
@@ -135,7 +135,7 @@ void ModuleRender::render()
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
-    transitionResource(commandList,swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(),D3D12_RESOURCE_STATE_PRESENT,D3D12_RESOURCE_STATE_RENDER_TARGET);
+    transitionResource(commandList,swapChain->getRenderSurface().getTexture(RenderSurface::COMPOSITE)->getD3D12Resource(),D3D12_RESOURCE_STATE_PRESENT,D3D12_RESOURCE_STATE_RENDER_TARGET);
 #ifndef GAME_RELEASE
     renderBackground(commandList, swapChain->getRenderSurface());
 #else
@@ -143,7 +143,7 @@ void ModuleRender::render()
 #endif
     m_imGuiPass->apply(commandList);
 
-    transitionResource(commandList, swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    transitionResource(commandList, swapChain->getRenderSurface().getTexture(RenderSurface::COMPOSITE)->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 }
 
 bool ModuleRender::cleanUp()
@@ -184,6 +184,7 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
     }
 
     surface->resize(w, h);
+    initViewportGBuffers(*surface, w, h);
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
 }
@@ -197,6 +198,16 @@ void ModuleRender::unregisterViewport(RenderSurface* surface)
     if (it != m_viewports.end())
     {
         m_viewports.erase(it);
+    }
+}
+
+void ModuleRender::initViewportGBuffers(RenderSurface& surface, float width, float height)
+{
+    for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
+    {
+        auto tex = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
+        tex->setName(L"GBuffer_" + std::to_wstring(i));
+        surface.attachTexture(GeometryPass::kSlots[i], tex);
     }
 }
 
@@ -292,7 +303,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
 void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, const RenderSurface& surface)
 {
-    auto colorTex = surface.getTexture(RenderSurface::COLOR_0);
+    auto colorTex = surface.getTexture(RenderSurface::COMPOSITE);
     auto depthTex = surface.getTexture(RenderSurface::DEPTH_STENCIL);
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = colorTex->getRTV(0).cpu;

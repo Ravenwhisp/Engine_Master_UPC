@@ -24,7 +24,6 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
     createRootSignature();
     createPipelineState();
-    createGBufferSurface();
 }
 
 void GeometryPass::createRootSignature()
@@ -86,20 +85,6 @@ void GeometryPass::createPipelineState()
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-void GeometryPass::createGBufferSurface()
-{
-    m_gbufferSurface = new RenderSurface();
-
-    for (UINT i = 0; i < GBUFFER_COUNT; ++i)
-    {
-        Texture* gbuffer = app->getModuleResources()->createGBuffer(1, 1, GBUFFER_FORMATS[i]);
-        gbuffer->setName(L"GBuffer " + std::to_wstring(i));
-        m_gbufferSurface->attachTexture(kSlots[i], std::shared_ptr<Texture>(gbuffer));
-    }
-
-    m_gbufferSurface->attachTexture(RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(1, 1)));
-}
-
 void GeometryPass::prepare(const RenderContext& ctx)
 {
     m_view = &ctx.view;
@@ -117,11 +102,7 @@ void GeometryPass::prepare(const RenderContext& ctx)
 
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(&sceneData, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
 
-    if(ctx.renderSurface.getSize() != m_gbufferSurface->getSize())
-    {
-		m_gbufferSurface->resize(ctx.renderSurface.getSize());
-        //app->getModuleD3D12()->getCommandQueue()->flush();
-	}
+    m_gbufferSurface = &ctx.renderSurface;
 }
 
 void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)

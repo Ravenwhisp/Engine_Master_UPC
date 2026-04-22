@@ -9,13 +9,14 @@ class RenderSurface
 {
 public:
 	enum AttachmentPoint: UINT {
-		COLOR_0 = 0,
-		COLOR_1 = 1,
-		COLOR_2 = 2,
-		COLOR_3 = 3,
+		GBUFFER_DIFFUSE = 0,
+		GBUFFER_SPECULAR = 1,
+		GBUFFER_NORMAL = 2,
+		GBUFFER_POSITION = 3,
 		DEPTH_STENCIL = 4,
+		COMPOSITE = 5,
 
-		NUM_ATTACHMENT_POINTS = 5
+		NUM_ATTACHMENT_POINTS = 6
 	};
 
 

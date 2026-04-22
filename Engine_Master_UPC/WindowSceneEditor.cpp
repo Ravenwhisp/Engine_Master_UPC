@@ -80,7 +80,7 @@ void WindowSceneEditor::drawInternal()
     m_viewportY = imagePos.y;
     m_size = viewportSize;
 
-    ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
+    ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COMPOSITE)->getSRV().gpu.ptr;
     ImGui::Image(textureID, viewportSize);
 
     m_isViewportHovered = ImGui::IsItemHovered();

@@ -19,8 +19,8 @@ public:
 
     static constexpr RenderSurface::AttachmentPoint kSlots[GBUFFER_COUNT] =
     {
-        RenderSurface::COLOR_0, RenderSurface::COLOR_1,
-        RenderSurface::COLOR_2, RenderSurface::COLOR_3,
+        RenderSurface::GBUFFER_DIFFUSE, RenderSurface::GBUFFER_SPECULAR,
+        RenderSurface::GBUFFER_NORMAL, RenderSurface::GBUFFER_POSITION,
     };
 
     GeometryPass(ComPtr<ID3D12Device4> device);
@@ -31,7 +31,6 @@ public:
 private:
     void createRootSignature();
     void createPipelineState();
-    void createGBufferSurface();
 
     void transitionGBuffer(ID3D12GraphicsCommandList4* cmdList, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const;
 
