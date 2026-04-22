@@ -75,7 +75,7 @@ public:
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
-	Texture* createGBuffer(float width, float height, DXGI_FORMAT format);
+	Texture* createGBuffer(float width, float height, const DXGI_FORMAT format);
 	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset, bool shaderVisible = false);

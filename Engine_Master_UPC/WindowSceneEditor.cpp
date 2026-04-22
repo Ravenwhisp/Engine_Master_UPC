@@ -38,8 +38,15 @@ WindowSceneEditor::WindowSceneEditor()
 
 WindowSceneEditor::~WindowSceneEditor()
 {
+    app->getModuleRender()->unregisterViewport(m_surface.get());
+
     delete m_editorToolbar;
     delete m_playToolbar;
+}
+
+void WindowSceneEditor::onBecameHidden()
+{
+    app->getModuleRender()->unregisterViewport(m_surface.get());
 }
 
 void WindowSceneEditor::drawInternal()

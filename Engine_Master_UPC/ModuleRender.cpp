@@ -61,8 +61,8 @@ bool ModuleRender::init()
     auto debugDrawPass = std::make_unique<DebugDrawPass>(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(),/*useMSAA=*/false);
 
     m_debugDrawPass = debugDrawPass.get();
-    debugDrawPass->registerStatic(app->getModuleNavigation());
-    debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
+    //debugDrawPass->registerStatic(app->getModuleNavigation());
+    //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
     m_meshRenderPass = new MeshRendererPass(device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
@@ -71,7 +71,7 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
     m_renderPasses.push_back(std::make_unique<GeometryPass>(device));
-    //m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
+    m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
@@ -186,6 +186,18 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
     surface->resize(w, h);
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
+}
+
+void ModuleRender::unregisterViewport(RenderSurface* surface)
+{
+    if (!surface) return;
+
+    auto it = std::find_if(m_viewports.begin(), m_viewports.end(),[surface](const ViewportEntry& entry) { return entry.surface == surface; });
+
+    if (it != m_viewports.end())
+    {
+        m_viewports.erase(it);
+    }
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)

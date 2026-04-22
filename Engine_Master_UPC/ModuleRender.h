@@ -78,6 +78,7 @@ public:
     bool cleanUp()   override;
 
     void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
+    void unregisterViewport(RenderSurface* surface);
 
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 

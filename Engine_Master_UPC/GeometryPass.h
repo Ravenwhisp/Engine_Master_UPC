@@ -1,10 +1,9 @@
 #pragma once
 #include "IRenderPass.h"
+#include "RenderSurface.h"
 
 class MeshRenderer;
 struct RenderContext;
-class RenderSurface;
-
 
 class GeometryPass : public IRenderPass {
 public:
@@ -23,7 +22,6 @@ public:
         RenderSurface::COLOR_0, RenderSurface::COLOR_1,
         RenderSurface::COLOR_2, RenderSurface::COLOR_3,
     };
-
 
     GeometryPass(ComPtr<ID3D12Device4> device);
 

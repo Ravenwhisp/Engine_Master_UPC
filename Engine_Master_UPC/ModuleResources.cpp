@@ -159,7 +159,7 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createGBuffer(float width, float height, DXGI_FORMAT format) 
+Texture* ModuleResources::createGBuffer(float width, float height, const DXGI_FORMAT format)
 {
 	const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 

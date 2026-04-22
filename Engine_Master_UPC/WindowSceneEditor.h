@@ -58,4 +58,6 @@ public:
     {
         return m_viewportY;
     }
+protected:
+    void onBecameHidden()  override;
 };

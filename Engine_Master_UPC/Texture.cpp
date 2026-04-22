@@ -128,8 +128,8 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
     releaseViews();
 
     // 2. Defer the old underlying resource — GPU may still be reading it
-    app->getModuleD3D12()->getCommandQueue()->flush();
     app->getModuleResources()->deferResourceRelease(m_Resource);
+    app->getModuleD3D12()->getCommandQueue()->flush();
     m_Resource.Reset();
 
     // 3. Patch the desc and rebuild

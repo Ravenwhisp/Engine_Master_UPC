@@ -15,8 +15,10 @@
 #include "ModuleResources.h"
 
 #include "RingBuffer.h"
+#include "Texture.h"
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
+
 
 GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
@@ -90,10 +92,12 @@ void GeometryPass::createGBufferSurface()
 
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
     {
-        m_gbufferSurface->attachTexture(kSlots[i], std::make_shared<Texture>(app->getModuleResources()->createGBuffer(1, 1, GBUFFER_FORMATS[0])));
+        Texture* gbuffer = app->getModuleResources()->createGBuffer(1, 1, GBUFFER_FORMATS[i]);
+        gbuffer->setName(L"GBuffer " + std::to_wstring(i));
+        m_gbufferSurface->attachTexture(kSlots[i], std::shared_ptr<Texture>(gbuffer));
     }
 
-    m_gbufferSurface->attachTexture(RenderSurface::DEPTH_STENCIL, std::make_shared<Texture>(app->getModuleResources()->createDepthBuffer(1, 1)));
+    m_gbufferSurface->attachTexture(RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(1, 1)));
 }
 
 void GeometryPass::prepare(const RenderContext& ctx)
@@ -116,6 +120,7 @@ void GeometryPass::prepare(const RenderContext& ctx)
     if(ctx.renderSurface.getSize() != m_gbufferSurface->getSize())
     {
 		m_gbufferSurface->resize(ctx.renderSurface.getSize());
+        //app->getModuleD3D12()->getCommandQueue()->flush();
 	}
 }
 

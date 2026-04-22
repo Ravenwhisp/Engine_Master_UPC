@@ -21,7 +21,14 @@ WindowGame::WindowGame()
 
 WindowGame::~WindowGame()
 {
+    app->getModuleRender()->unregisterViewport(m_surface.get());
+
     delete m_playToolbar;
+}
+
+void WindowGame::onBecameHidden()
+{
+    app->getModuleRender()->unregisterViewport(m_surface.get());
 }
 
 void WindowGame::drawInternal()
