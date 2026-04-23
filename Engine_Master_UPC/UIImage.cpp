@@ -39,7 +39,6 @@ std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
     cloned->m_fillAmount = m_fillAmount;
     cloned->m_fillMethod = m_fillMethod;
     cloned->m_fillOrigin = m_fillOrigin;
-
     return cloned;
 }
 
@@ -52,11 +51,9 @@ bool UIImage::containsPoint(const Rect2D& rect, const Vector2& screenPos) const
 
     if (texW <= 0 || texH <= 0) return true;
 
-    // Normalised position inside the rect  [0 .. 1]
     const float u = (screenPos.x - rect.x) / rect.w;
     const float v = (screenPos.y - rect.y) / rect.h;
 
-    // Map to texture pixel coords
     const int px = static_cast<int>(u * static_cast<float>(texW));
     const int py = static_cast<int>(v * static_cast<float>(texH));
 

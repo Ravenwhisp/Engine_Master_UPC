@@ -52,3 +52,13 @@ GameObject* SceneReferenceResolver::getClonedGameObject(const GameObject* origin
     }
     return nullptr;
 }
+
+GameObject* SceneReferenceResolver::getClonedGameObject(UID id) const
+{
+    for (size_t i = 0; i < m_originalGOs.size(); ++i)
+    {
+        if (m_originalGOs[i]->GetID() == id)
+            return m_clonedGOs[i];
+    }
+    return nullptr;
+}

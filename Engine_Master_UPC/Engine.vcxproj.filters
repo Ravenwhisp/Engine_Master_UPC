@@ -304,6 +304,7 @@
     <ClCompile Include="SceneReferenceResolver.cpp">
       <Filter>GameEntity\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
@@ -407,6 +408,15 @@
     <ClCompile Include="ViewHierarchyDialog.cpp">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClCompile>
+    <ClCompile Include="DescriptorHeapBlock.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="StagingDescriptorHeap.cpp">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticTexturesPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
     <ClCompile Include="WindowFileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
@@ -414,7 +424,6 @@
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="UISlider.cpp" />
-    <ClCompile Include="PrefabSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -827,6 +836,7 @@
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
     <ClInclude Include="PrefabEditSession.h" />
+    <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="Extensions.h">
       <Filter>Persistence\Importers\Core</Filter>
@@ -840,8 +850,17 @@
     <ClInclude Include="Channel.h">
       <Filter>Animations</Filter>
     </ClInclude>
-    <ClInclude Include="MD5Fwd.h">
-      <Filter>Persistence\UID</Filter>
+    <ClInclude Include="DescriptorHandle.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Handle.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeapBlock.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="StagingDescriptorheap.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
     </ClInclude>
     <ClInclude Include="RenderContext.h">
       <Filter>D3D12\Rendering</Filter>
@@ -995,6 +1014,10 @@
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Editor\Views\Hierarchy</Filter>
     </ClInclude>
+    <ClInclude Include="MD5Fwd.h" />
+    <ClInclude Include="StaticTexturesPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
     <ClInclude Include="WindowFileDialog.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
@@ -1025,7 +1048,9 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
-    <ClInclude Include="PrefabSerializer.h" />
+    <ClInclude Include="ScriptFieldMacros.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1251,6 +1276,24 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="UIVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxIrradiancePixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxIrradianceVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxEnvironmentPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxEnvironmentVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BRDFPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BRDFVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

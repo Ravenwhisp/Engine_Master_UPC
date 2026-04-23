@@ -20,7 +20,7 @@ struct ModelData
 {
 	Matrix model;
 	Matrix normalMat;
-	BasicMaterial::BDRFPhongMaterialData material;
+	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
 
@@ -74,6 +74,9 @@ public:
 
 	const VertexBuffer* getCpuSkinnedVertexBuffer() const { return m_skinnedVertexBuffer.get(); }
 	bool isCpuSkinningFallbackEnabled() const { return m_enableCpuSkinningFallback; }
+	
+	const bool isCulled() { return m_isCulled; }
+	void setIsCulled(bool culled) { m_isCulled = culled; }
 
 private:
 	bool ensureSkinLoaded();
@@ -117,4 +120,6 @@ private:
 
 	size_t                         m_gpuSkinningVertexCapacity = 0;
 	size_t                         m_gpuPaletteJointCapacity = 0;
+
+	bool m_isCulled = false;
 };

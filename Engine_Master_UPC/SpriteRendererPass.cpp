@@ -160,7 +160,7 @@ void SpriteRendererPass::renderSprites(ID3D12GraphicsCommandList4* commandList)
             }
             else
             {
-                auto texture = app->getModuleResources()->createTextureSRGB(*asset);
+                auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
                 sprite->setGpuTexture(texture);
             }
         }

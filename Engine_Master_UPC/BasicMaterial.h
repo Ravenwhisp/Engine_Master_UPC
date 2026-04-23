@@ -1,10 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "ICacheable.h"
 
 #include <memory>
 #include <wrl/client.h>
 #include <d3d12.h>
+#include "DescriptorHeapBlock.h"
 
 #include "SimpleMath.h"
 
@@ -18,6 +19,16 @@ using DirectX::SimpleMath::Vector4;
 class BasicMaterial : public ICacheable
 {
 public:
+
+	enum TextureSlot : uint32_t
+	{
+		SLOT_DIFFUSE = 0,
+		SLOT_METAL  = 1,
+		// SLOT_ROUGHNESS = 2,
+		SLOT_COUNT = 8
+	};
+
+
 	struct MaterialData {
 		Vector4		baseColor;
 		BOOL		hasColourTexture;  // use BOOL (4 bytes) instead of c++ bool (1 byte) as HLSL bool is 4 bytes long
@@ -39,16 +50,39 @@ public:
 		float		shininess;
 	};
 
+	struct PbrMetallicRoughnessData
+	{
+		Vector3     diffuseColour;
+		BOOL        hasDiffuseTex;
+
+		float       metallicFactor;
+		float       roughnessFactor;
+		BOOL        hasMetallicRoughnessTex;
+
+		float       padding;
+	};
+
 	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
-	ComPtr<ID3D12Resource>		getMaterialBuffer() const noexcept { return m_materialBuffer; }
-	Texture*					getTexture() const noexcept;
-	BDRFPhongMaterialData&		getMaterial() { return m_materialData; }
+	Texture* getTexture() const noexcept;
 
-	void setMaterial(BDRFPhongMaterialData& material) { m_materialData = material; }
+	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
+	PbrMetallicRoughnessData&	getMaterial() { return m_materialData; }
+	D3D12_GPU_DESCRIPTOR_HANDLE getTableGPUHandle() const;
+
+	void setMaterial(PbrMetallicRoughnessData& material) { m_materialData = material; }
+
 private:
-	std::shared_ptr<Texture>	m_textureColor;
-	ComPtr<ID3D12Resource>		m_materialBuffer;
-	BDRFPhongMaterialData		m_materialData;
+	void buildDescriptorTable();
+	void copyTextureIntoSlot(Texture* texture, uint32_t slot);
+	void writeNullDescriptor(uint32_t slot);
+
+
+	std::shared_ptr<Texture>	  m_textureColor;
+	std::shared_ptr<Texture>	  m_textureMetallicRoughness;
+	ComPtr<ID3D12Resource>		  m_materialBuffer;
+	PbrMetallicRoughnessData	  m_materialData;
+
+	DescriptorHeapBlock* m_block{};
 };

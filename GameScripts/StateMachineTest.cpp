@@ -1,13 +1,10 @@
 #include "pch.h"
 #include "StateMachineTest.h"
 
-static const ScriptFieldInfo StateMachineTestFields[] =
-{
-    { "Speed", ScriptFieldType::Float, offsetof(StateMachineTest, m_speed), { 0.0f, 20.0f, 0.1f } },
-    { "Debug Enabled", ScriptFieldType::Bool, offsetof(StateMachineTest, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(StateMachineTest, StateMachineTestFields)
+IMPLEMENT_SCRIPT_FIELDS(StateMachineTest,
+    SERIALIZED_FLOAT(m_speed, "Speed", 0.0f, 20.0f, 0.1f),
+    SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 StateMachineTest::StateMachineTest(GameObject* owner)
     : StateMachineScript(owner)

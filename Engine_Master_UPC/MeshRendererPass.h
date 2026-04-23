@@ -25,8 +25,9 @@ using Matrix = DirectX::SimpleMath::Matrix;
 
 class MeshRendererPass : public IRenderPass {
 public:
-    MeshRendererPass(ComPtr<ID3D12Device4> device);
+    constexpr static uint32_t BLOCK_SIZE{ 8 };
 
+    MeshRendererPass(ComPtr<ID3D12Device4> device);
 
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -34,6 +35,9 @@ public:
     GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
 
     void renderMesh(ID3D12GraphicsCommandList* commandList);
+
+	int getTriangleCount() const { return m_trianglesCount; }
+	int getMeshCount() const { return m_meshCount; }
 
 private:
     std::vector<MeshRenderer*> m_meshRenderers;
@@ -50,4 +54,7 @@ private:
 
     const Matrix* m_projection = nullptr;
     const Matrix* m_view = nullptr;
+    
+    int m_trianglesCount = 0;
+	int m_meshCount = 0;
 };

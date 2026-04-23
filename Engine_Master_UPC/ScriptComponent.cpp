@@ -122,9 +122,8 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     ScriptFieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
         void* data = base + field.offset;
         bool changed = false;
 
@@ -196,7 +195,7 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
             Component* component = componentReference->component;
 
             ImGui::Text("%s", field.name);
-            ImGui::SameLine(100.0f);
+            ImGui::SameLine();
 
             if (component)
             {
@@ -302,9 +301,8 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
     ScriptFieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
         void* data = base + field.offset;
 
         rapidjson::Value key(field.name, domTree.GetAllocator());
@@ -386,10 +384,8 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
     ScriptFieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
-
         if (!fieldsJson.HasMember(field.name))
         {
             continue;
@@ -467,10 +463,8 @@ void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
     ScriptFieldList fieldList = m_script->getExposedFields();
     char* base = reinterpret_cast<char*>(m_script.get());
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
-
         if (field.type != ScriptFieldType::ComponentRef)
         {
             continue;
@@ -525,7 +519,7 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
     ScriptFieldList sourceFields = source.getExposedFields();
     ScriptFieldList targetFields = target.getExposedFields();
 
-    const size_t count = sourceFields.count;
+    const size_t count = std::min(sourceFields.fields.size(), targetFields.fields.size());
 
     char* sourceBase = (char*)&source;
     char* targetBase = (char*)&target;
@@ -534,6 +528,11 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
     {
         const ScriptFieldInfo& sourceField = sourceFields.fields[i];
         const ScriptFieldInfo& targetField = targetFields.fields[i];
+
+        if (sourceField.type != targetField.type)
+        {
+            continue;
+        }
 
         void* sourceData = sourceBase + sourceField.offset;
         void* targetData = targetBase + targetField.offset;

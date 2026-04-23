@@ -78,6 +78,10 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
+    psoDesc.DepthStencilState.DepthEnable = TRUE;
+    psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineStateDepth)));
+
 	const UIVertex quadVertices[6] =
 	{
         { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
@@ -102,7 +106,6 @@ void UIImagePass::prepare(const RenderContext& ctx)
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
@@ -121,6 +124,8 @@ void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
+    bool currentZTestState = false;
+
     for (const auto& command : *m_commands)
     {
         if (!command.texture)
@@ -132,6 +137,12 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
         if (!srv.IsShaderVisible() || srv.gpu.ptr == 0)
         {
             continue;
+        }
+
+        if (command.zTest != currentZTestState)
+        {
+            commandList->SetPipelineState(command.zTest ? m_pipelineStateDepth.Get() : m_pipelineState.Get());
+            currentZTestState = command.zTest;
         }
 
         UIParams params{};

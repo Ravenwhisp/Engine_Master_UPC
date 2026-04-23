@@ -6,4 +6,6 @@
 
 #include "ScriptAutoRegister.h"
 #include "ScriptFieldInfo.h"
+#include "ScriptFieldMacros.h"
+
 #include "ScriptComponentRef.h"

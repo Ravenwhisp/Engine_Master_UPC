@@ -10,7 +10,7 @@ public:
 	CameraComponent(UID id, GameObject* gameObject);
 	virtual std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	void update() override;
+	void lateUpdate() override;
 
 	const float getFov() const { return m_horizontalFov; }
 	void setFov(float fov) { m_horizontalFov = fov; }

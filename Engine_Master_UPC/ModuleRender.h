@@ -17,6 +17,8 @@ class Settings;
 class RingBuffer;
 class IRenderPass;
 class RenderSurface;
+class SkyBoxPass;
+class MeshRendererPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -63,9 +65,11 @@ private:
     std::vector<ViewportEntry> m_viewports;
 
     bool m_pendingStopSimulation = false;
-    int m_triangles = 0;
 
     DebugDrawPass* m_debugDrawPass = nullptr;
+    MeshRendererPass* m_meshRenderPass = nullptr;
+
+    SkyBoxPass* m_skyBoxPass;
 
 public:
     bool init()     override;
@@ -75,18 +79,18 @@ public:
 
     void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
 
+    SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
+
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
 
-    int getTriangles() const { return m_triangles; }
+    int getTrianglesCount() const;
+    int getMeshCount() const;
     void requestStopSimulation() { m_pendingStopSimulation = true; }
 
     // DebugDraw helper
     void markDebugDrawCacheDirty();
 
 private:
-    // Surface helpers
-    std::unique_ptr<RenderSurface> createSurface(float width, float height);
-
     void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)> renderFunc);
 
     // Scene rendering

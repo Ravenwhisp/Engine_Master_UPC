@@ -123,11 +123,20 @@ void FontPass::showDebugInformation() {
 	}
 	if (m_settings->debugGame.showTrianglesNumber)
 	{
-		int triangles = app->getModuleRender()->getTriangles();
+		int triangles = app->getModuleRender()->getTrianglesCount();
 
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Triangles: %d", triangles);
 
 		drawText(buffer, 10.0f, 50.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+	}
+	if (m_settings->debugGame.showMeshNumber)
+	{
+		int meshes = app->getModuleRender()->getMeshCount();
+
+		wchar_t buffer[64];
+		swprintf_s(buffer, L"Meshes: %d", meshes);
+
+		drawText(buffer, 10.0f, 70.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
 	}
 }

@@ -69,6 +69,11 @@ bool Application::init()
         ret = (*it)->init();
     }
 
+#ifdef GAME_RELEASE
+    app->setEngineState(ENGINE_STATE::PLAYING);
+    m_moduleScene->loadScene("main");
+#endif
+
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
 	return ret;
@@ -127,7 +132,7 @@ void Application::update()
 
     m_elapsedMilis = static_cast<uint64_t>(std::chrono::duration<float, std::milli>(frameEnd - frameStart).count());
 
-    m_moduleTime->waitForNextFrame();
+    //m_moduleTime->waitForNextFrame();
 }
 
 bool Application::cleanUp()

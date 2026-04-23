@@ -123,7 +123,6 @@ uint64_t CommandQueue::signal()
     const uint64_t fenceToSignal = ++m_FenceValue;
     m_d3d12CommandQueue->Signal(m_d3d12Fence.Get(), fenceToSignal);
     return fenceToSignal;
-
 }
 
 bool CommandQueue::isFenceComplete(uint64_t fenceValue)
