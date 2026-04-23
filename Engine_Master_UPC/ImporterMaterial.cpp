@@ -31,6 +31,7 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
     size += sizeof(Color);
     size += stringSerialSize(source->metallicRoughnessMap);
     size += sizeof(uint32_t);                               // metallicFactor
+    size += sizeof(uint32_t);                               // roughnessFactor
     size += stringSerialSize(source->normalMap);
     size += stringSerialSize(source->occlusionMap);
     size += sizeof(uint8_t);                                // isEmissive
@@ -45,6 +46,7 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
 
     writer.string(source->metallicRoughnessMap);
     writer.u32(source->metallicFactor);
+    writer.u32(source->roughnessFactor);
     writer.string(source->normalMap);
     writer.string(source->occlusionMap);
 
@@ -65,6 +67,7 @@ void ImporterMaterial::loadTyped(const uint8_t* buffer, MaterialAsset* material)
 
     material->metallicRoughnessMap = reader.string();
     material->metallicFactor = reader.u32();
+    material->roughnessFactor = reader.u32();
     material->normalMap = reader.string();
     material->occlusionMap = reader.string();
 

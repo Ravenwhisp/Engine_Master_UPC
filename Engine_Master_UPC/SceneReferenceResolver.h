@@ -23,4 +23,5 @@ public:
     void registerGameObject(const GameObject* original, GameObject* clone);
     Component* getClonedComponent(UID id) const;
     GameObject* getClonedGameObject(const GameObject* original) const;
+    GameObject* getClonedGameObject(UID id) const;
 };

@@ -21,11 +21,6 @@ bool ModuleGameView::init()
 
 	m_showDebugWindow = false;
 
-#ifdef GAME_RELEASE
-	app->setEngineState(ENGINE_STATE::PLAYING);
-	m_moduleScene->loadScene("main");
-#endif
-
 	return true;
 }
 

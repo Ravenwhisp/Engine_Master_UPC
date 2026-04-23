@@ -25,10 +25,3 @@ public: \
         #ScriptType,                                                      \
         &ScriptType::Create                                               \
     );
-
-
-#define IMPLEMENT_SCRIPT_FIELDS(ScriptType, FieldArrayName) \
-    ScriptFieldList ScriptType::getExposedFields() const    \
-    {                                                       \
-        return { FieldArrayName, sizeof(FieldArrayName) / sizeof(ScriptFieldInfo) }; \
-    }

@@ -10,6 +10,7 @@ Transform::Transform(UID id, GameObject* gameObject) :
     m_dirty(true),
     m_root(nullptr),
     m_globalMatrix(Matrix::Identity),
+	m_normalMatrix(Matrix::Identity),
     m_position(Vector3::Zero),
     m_rotation(Quaternion::Identity),
     m_eulerDegrees(Vector3::Zero),
@@ -31,29 +32,30 @@ std::unique_ptr<Component> Transform::clone(GameObject* newOwner) const
 	return newTransform;
 }
 
+void Transform::update()
+{
+    getGlobalMatrix();
+}
+
 const Matrix& Transform::getGlobalMatrix() const
 {
     if (m_dirty)
     {
         calculateMatrix();
-        m_dirty = false;
         m_owner->onTransformChange();
     }
 
     return m_globalMatrix;
 }
 
-Matrix Transform::getNormalMatrix() const
+const Matrix& Transform::getNormalMatrix() const
 {
-    Matrix model = getGlobalMatrix();
+    if (m_dirty)
+    {
+        calculateMatrix();
+    }
 
-    Matrix normal = model;
-    normal.Translation(Vector3::Zero);
-
-    normal = normal.Invert();
-    normal = normal.Transpose();
-
-    return normal;
+    return m_normalMatrix;
 }
 
 void Transform::setFromGlobalMatrix(const Matrix& globalMatrix)
@@ -173,6 +175,14 @@ void Transform::calculateMatrix() const
     {
         m_globalMatrix = local;
     }
+
+    m_normalMatrix = m_globalMatrix;
+    m_normalMatrix.Translation(Vector3::Zero);
+
+    m_normalMatrix = m_normalMatrix.Invert();
+    m_normalMatrix = m_normalMatrix.Transpose();
+
+    m_dirty = false;
 }
 
 void Transform::removeChild(UID id)

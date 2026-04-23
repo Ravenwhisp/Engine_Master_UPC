@@ -9,6 +9,7 @@ public:
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
     CanvasRenderMode renderMode = CanvasRenderMode::SCREEN_SPACE;
+    bool zTest = false;
 
     void drawUi() override;
 

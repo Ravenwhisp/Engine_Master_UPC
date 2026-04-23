@@ -13,6 +13,7 @@ std::unique_ptr<Component> Canvas::clone(GameObject* newOwner) const
     std::unique_ptr<Canvas> clonedCanvas = std::make_unique<Canvas>(m_uuid, newOwner);
 
     clonedCanvas->renderMode = renderMode;
+    clonedCanvas->zTest = zTest;
     clonedCanvas->setActive(this->isActive());
 
 	return clonedCanvas;
@@ -27,6 +28,11 @@ void Canvas::drawUi()
     {
         renderMode = static_cast<CanvasRenderMode>(current);
     }
+    
+    if (renderMode != CanvasRenderMode::SCREEN_SPACE)
+    {
+        ImGui::Checkbox("Depth Test (Z-Test)", &zTest);
+    }
 }
 
 rapidjson::Value Canvas::getJSON(rapidjson::Document& domTree)
@@ -38,6 +44,7 @@ rapidjson::Value Canvas::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("RenderMode", static_cast<int>(renderMode), domTree.GetAllocator());
+    componentInfo.AddMember("ZTest", zTest, domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -53,6 +60,11 @@ bool Canvas::deserializeJSON(const rapidjson::Value& componentInfo)
         renderMode = componentInfo["ScreenSpace"].GetBool()
             ? CanvasRenderMode::SCREEN_SPACE
             : CanvasRenderMode::WORLD_SPACE;
+    }
+
+    if (componentInfo.HasMember("ZTest"))
+    {
+        zTest = componentInfo["ZTest"].GetBool();
     }
 
     return true;

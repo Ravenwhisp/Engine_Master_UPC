@@ -35,6 +35,7 @@ private:
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
+    ComPtr<ID3D12PipelineState> m_pipelineStateDepth;
 
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
 };

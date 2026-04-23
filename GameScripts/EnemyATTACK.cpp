@@ -1,13 +1,10 @@
 #include "pch.h"
 #include "EnemyATTACK.h"
 
-static const ScriptFieldInfo ATTACKFields[] =
-{
-    { "Attack Radius", ScriptFieldType::Float, offsetof(EnemyATTACK, m_attackRadius), { 0.0f, 100.0f, 0.1f } },
-    { "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyATTACK, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyATTACK, ATTACKFields)
+IMPLEMENT_SCRIPT_FIELDS(EnemyATTACK,
+    SERIALIZED_FLOAT(m_attackRadius, "Attack Radius", 0.0f, 100.0f, 0.1f),
+    SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 EnemyATTACK::EnemyATTACK(GameObject* owner)
     : StateMachineScript(owner)

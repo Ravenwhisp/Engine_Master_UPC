@@ -10,12 +10,20 @@
 #include "Component.h"
 #include "Transform.h"
 #include "CameraComponent.h"
+#include "ScriptComponent.h"
 #include "ComponentFactory.h"
 
 #include <algorithm>
 #include <cstring>
 #include <functional>
 #include <imgui.h>
+
+#include "PrefabManager.h"
+#include "PrefabAsset.h"
+#include "PrefabEditSession.h"
+
+#include "Quadtree.h"
+
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -33,6 +41,7 @@ GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name(
 
 GameObject::~GameObject()
 {
+
 }
 
 std::unique_ptr<GameObject> GameObject::clone() const
@@ -45,8 +54,6 @@ std::unique_ptr<GameObject> GameObject::clone() const
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
 
-    // Clone does NOT copy prefab linkage — the caller (PrefabManager::instantiatePrefab)
-    // is responsible for calling go->GetPrefabInfo() = ... on the root after cloning.
     newGameObject->GetTransform()->setRoot(nullptr);
     newGameObject->cleanUp();
 
@@ -89,24 +96,15 @@ bool GameObject::AddComponent(ComponentType componentType)
     m_components.push_back(std::move(newComponent));
     app->getModuleScene()->getScene()->markDirty();
 
-    // Walk up the hierarchy to find the prefab root and record the override there.
-    // We do this directly on the struct — no PrefabManager call needed.
     GameObject* target = this;
-    while (target && !target->IsPrefabInstance())
+    while (target && !PrefabManager::isPrefabInstance(target))
     {
         Transform* parentTransform = target->GetTransform()->getRoot();
         target = parentTransform ? parentTransform->getOwner() : nullptr;
     }
     if (target)
     {
-        auto& added = target->GetPrefabInfo().m_overrides.m_addedComponentTypes;
-        const int ct = static_cast<int>(componentType);
-        if (std::find(added.begin(), added.end(), ct) == added.end())
-        {
-            added.push_back(ct);
-        }
-        auto& removed = target->GetPrefabInfo().m_overrides.m_removedComponentTypes;
-        removed.erase(std::remove(removed.begin(), removed.end(), ct), removed.end());
+        PrefabManager::markComponentAdded(target, static_cast<int>(componentType));
     }
 
     return true;
@@ -139,8 +137,7 @@ bool GameObject::AddClonedComponent(std::unique_ptr<Component> component)
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
-    auto it = std::find_if(m_components.begin(), m_components.end(),
-        [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; });
+    auto it = std::find_if(m_components.begin(), m_components.end(), [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; });
 
     if (it == m_components.end())
     {
@@ -149,9 +146,10 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     ComponentType removedType = (*it)->getType();
 
+    // Resolve the prefab root BEFORE cleanup — cleanUp() may invalidate
     // parent pointers if it releases references or triggers notifications.
     GameObject* target = this;
-    while (target && !target->IsPrefabInstance())
+    while (target && !PrefabManager::isPrefabInstance(target))
     {
         Transform* parentTransform = target->GetTransform()->getRoot();
         target = parentTransform ? parentTransform->getOwner() : nullptr;
@@ -163,15 +161,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
     if (target)
     {
-        const int ct = static_cast<int>(removedType);
-        auto& removed = target->GetPrefabInfo().m_overrides.m_removedComponentTypes;
-        if (std::find(removed.begin(), removed.end(), ct) == removed.end())
-        {
-            removed.push_back(ct);
-        }
-        auto& added = target->GetPrefabInfo().m_overrides.m_addedComponentTypes;
-        added.erase(std::remove(added.begin(), added.end(), ct), added.end());
-        target->GetPrefabInfo().m_overrides.m_modifiedProperties.erase(ct);
+        PrefabManager::markComponentRemoved(target, static_cast<int>(removedType));
     }
 
     return true;
@@ -179,7 +169,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
 std::vector<Component*> GameObject::GetAllComponents() const
 {
-    std::vector<Component*> result;
+    std::vector<Component*> result = std::vector<Component*>();
     for (const std::unique_ptr<Component>& component : m_components)
     {
         result.push_back(component.get());
@@ -189,6 +179,7 @@ std::vector<Component*> GameObject::GetAllComponents() const
 
 Component* GameObject::GetComponent(ComponentType type) const
 {
+    std::vector<Component*> result = std::vector<Component*>();
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->getType() == type)
@@ -255,6 +246,22 @@ void GameObject::update()
     }
 }
 
+void GameObject::lateUpdate()
+{
+    if (!IsActiveInWindowHierarchy())
+    {
+        return;
+    }
+
+    for (const std::unique_ptr<Component>& component : m_components)
+    {
+        if (component && component->isActive())
+        {
+            component->lateUpdate();
+        }
+    }
+}
+
 bool GameObject::cleanUp()
 {
     for (const std::unique_ptr<Component>& component : m_components)
@@ -275,35 +282,58 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
 
     if (ImGui::BeginCombo(label, toStringFunc(currentValue)))
     {
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < count; ++i)
         {
-            EnumType enumValue = static_cast<EnumType>(i);
-            bool isSelected = (currentIndex == i);
-            if (ImGui::Selectable(toStringFunc(enumValue), isSelected))
+            EnumType value = static_cast<EnumType>(i);
+            bool isSelected = (i == currentIndex);
+
+            if (ImGui::Selectable(toStringFunc(value), isSelected))
             {
-                currentValue = enumValue;
-                currentIndex = i;
+                currentValue = value;
             }
+
             if (isSelected)
             {
                 ImGui::SetItemDefaultFocus();
             }
         }
+
         ImGui::EndCombo();
+        return true;
     }
 
-    return currentIndex != static_cast<int>(currentValue);
+    return false;
 }
 
 void GameObject::drawUI()
 {
+#pragma region
 
-#pragma region GameObject Properties Table
+    ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
+    ImGui::Separator();
 
-    if (ImGui::BeginTable("##goProps", 2, ImGuiTableFlags_SizingStretchProp))
+    if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
-        ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-        ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextUnformatted("UUID");
+
+        ImGui::TableSetColumnIndex(1);
+
+        std::string uuidStr = std::to_string(m_uuid);
+
+        ImGui::Text("%s", uuidStr.c_str());
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            ImGui::SetClipboardText(uuidStr.c_str());
+            DEBUG_LOG("UUID %s copied.", uuidStr.c_str());
+        }
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("(Double-click to copy)");
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
@@ -404,12 +434,31 @@ void GameObject::drawUI()
 #pragma endregion
 
 #pragma region Components
+    int pendingMoveFrom = -1;
+    int pendingMoveTo = -1;
+
     for (size_t i = 0; i < m_components.size(); ++i)
     {
         const std::unique_ptr<Component>& component = m_components[i];
         ImGui::PushID(static_cast<int>(component->getID()));
 
-        std::string header = std::string(ComponentTypeToString(component->getType())) + " | UUID: " + std::to_string(component->getID());
+        std::string header = std::string(ComponentTypeToString(component->getType())); // + " | UUID: " + std::to_string(component->getID());
+
+        if (component->getType() == ComponentType::SCRIPT)
+        {
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component.get());
+
+            if (scriptComponent->getScript())
+            {
+                const std::string& scriptName = scriptComponent->getScriptName();
+                header += " (" + scriptName + ")";
+
+            }
+            else
+            {
+                header += " (Not instantiated)";
+            }
+        }
 
         if (component->getType() == ComponentType::CAMERA)
         {
@@ -424,45 +473,99 @@ void GameObject::drawUI()
 
         bool isOpen = ImGui::TreeNodeEx("##component", flags, "%s", header.c_str());
 
-        if (i != 0)
-        {
-            ImGui::SameLine(ImGui::GetContentRegionMax().x - 25);
-        }
+        ImVec2 headerMin = ImGui::GetItemRectMin();
+        ImVec2 headerMax = ImGui::GetItemRectMax();
+        ImVec2 cursorAfterHeader = ImGui::GetCursorScreenPos();
 
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+        const bool canReorder = (component->getType() != ComponentType::TRANSFORM);
+
+        if (canReorder && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
             Component* raw = component.get();
             ImGui::SetDragDropPayload("COMPONENT", &raw, sizeof(Component*));
-
-            ImGui::Text("%s", std::format("Component UID {}", component->getID()).c_str());
+            ImGui::Text("Move %s", header.c_str());
             ImGui::EndDragDropSource();
         }
 
-        bool enabled = component->isActive();
-        if (component->getType() != ComponentType::TRANSFORM && ImGui::Checkbox("##Active", &enabled))
+        if (canReorder)
         {
-            component->setActive(enabled);
+            const float dropZoneHeight = 5.0f;
+            const float fullWidth = headerMax.x - headerMin.x;
+
+            // TOP DROP ZONE
+            ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y));
+            ImGui::InvisibleButton("##drop_above", ImVec2(fullWidth, dropZoneHeight));
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+                {
+                    Component* sourceComponent = *reinterpret_cast<Component* const*>(payload->Data);
+                    int sourceIndex = findComponentIndex(sourceComponent);
+                    int targetIndex = static_cast<int>(i);
+
+                    if (sourceIndex != -1)
+                    {
+                        pendingMoveFrom = sourceIndex;
+                        pendingMoveTo = targetIndex;
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            // BOTTOM DROP ZONE
+            ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMax.y - dropZoneHeight));
+            ImGui::InvisibleButton("##drop_below", ImVec2(fullWidth, dropZoneHeight));
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+                {
+                    Component* sourceComponent = *reinterpret_cast<Component* const*>(payload->Data);
+                    int sourceIndex = findComponentIndex(sourceComponent);
+                    int targetIndex = static_cast<int>(i + 1);
+
+                    if (sourceIndex != -1)
+                    {
+                        pendingMoveFrom = sourceIndex;
+                        pendingMoveTo = targetIndex;
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SetCursorScreenPos(cursorAfterHeader);
+        }
+
+        if (component->getType() != ComponentType::TRANSFORM)
+        {
+            ImGui::SetCursorScreenPos(ImVec2(headerMax.x - 24.0f, headerMin.y));
+
+            bool enabled = component->isActive();
+            if (ImGui::Checkbox("##Active", &enabled))
+            {
+                component->setActive(enabled);
+            }
+
+            ImGui::SetCursorScreenPos(cursorAfterHeader);
         }
 
         if (isOpen)
         {
-            // We ask ModuleEditor directly instead of reaching into PrefabEditSession..
-            const bool inPrefabMode = app->getModuleEditor()->isInPrefabEditMode();
+            PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
+            const bool inPrefabMode = session && session->m_active && session->m_rootObject;
 
-            const ImGuiID activeIdBefore = ImGui::GetActiveID();
             component->drawUi();
             const ImGuiID activeIdAfter = ImGui::GetActiveID();
 
-            // If a widget inside this component was interacted with while in prefab
-            // edit mode, record the override directly on this object's PrefabInfo.
-            if (inPrefabMode && activeIdAfter != 0 && activeIdAfter != activeIdBefore)
+            if (inPrefabMode && activeIdAfter != 0)
             {
                 const int componentType = static_cast<int>(component->getType());
                 GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
-                if (targetForOverride && targetForOverride->IsPrefabInstance())
+                if (targetForOverride)
                 {
-                    targetForOverride->GetPrefabInfo()
-                        .m_overrides.m_modifiedProperties[componentType].insert("properties");
+                    PrefabManager::markPropertyOverride(
+                        targetForOverride, componentType, "properties");
                 }
             }
 
@@ -488,6 +591,11 @@ void GameObject::drawUI()
         ImGui::PopID();
     }
 
+    if (pendingMoveFrom != -1 && pendingMoveTo != -1)
+    {
+        moveComponent(static_cast<size_t>(pendingMoveFrom), static_cast<size_t>(pendingMoveTo));
+    }
+
     ImGui::Separator();
 
     if (ImGui::BeginCombo("Add Component", "Select"))
@@ -510,12 +618,59 @@ void GameObject::drawUI()
 #pragma endregion
 }
 
+void GameObject::moveComponent(size_t fromIndex, size_t toIndex)
+{
+    if (fromIndex >= m_components.size())
+    {
+        return;
+    }
+
+    if (toIndex > m_components.size())
+    {
+        return;
+    }
+
+    if (fromIndex == toIndex)
+    {
+        return;
+    }
+
+    if (fromIndex == 0 || toIndex == 0)
+    {
+        return;
+    }
+
+    std::unique_ptr<Component> movedComponent = std::move(m_components[fromIndex]);
+    m_components.erase(m_components.begin() + static_cast<std::ptrdiff_t>(fromIndex));
+
+    if (fromIndex < toIndex)
+    {
+        --toIndex;
+    }
+
+    m_components.insert(m_components.begin() + static_cast<std::ptrdiff_t>(toIndex), std::move(movedComponent));
+}
+
+int GameObject::findComponentIndex(const Component* component) const
+{
+    for (size_t i = 0; i < m_components.size(); ++i)
+    {
+        if (m_components[i].get() == component)
+        {
+            return static_cast<int>(i);
+        }
+    }
+
+    return -1;
+}
+
 void GameObject::onTransformChange()
 {
     for (const auto& component : m_components)
     {
         component->onTransformChange();
     }
+    app->getModuleScene()->getQuadtree()->move(*this);
 }
 
 #pragma endregion
@@ -533,11 +688,11 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
         {
             gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
         }
-        else
-        {
+        else {
             gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator());
         }
     }
+
 
     rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
     gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
@@ -553,23 +708,17 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
 
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
 
-    if (m_prefabInfo.isInstance())
+    const PrefabData* instanceData = PrefabManager::getInstanceData(this);
+    if (instanceData && !instanceData->m_sourcePath.empty())
     {
         rapidjson::Value prefabLink(rapidjson::kObjectType);
-
-        rapidjson::Value sourcePath(m_prefabInfo.m_sourcePath.string().c_str(), domTree.GetAllocator());
-        prefabLink.AddMember("SourcePath", sourcePath, domTree.GetAllocator());
-
-        if (!m_prefabInfo.m_assetUID.empty())
-        {
-            rapidjson::Value assetUID(m_prefabInfo.m_assetUID.c_str(), domTree.GetAllocator());
-            prefabLink.AddMember("AssetUID", assetUID, domTree.GetAllocator());
-        }
-
+        rapidjson::Value prefabName(instanceData->m_name.c_str(), domTree.GetAllocator());
+        prefabLink.AddMember("PrefabName", prefabName, domTree.GetAllocator());
+        prefabLink.AddMember("PrefabUID", instanceData->m_prefabUID, domTree.GetAllocator());
         gameObjectInfo.AddMember("PrefabLink", prefabLink, domTree.GetAllocator());
     }
 
-    // Components serialization
+    // Components serialization //
     {
         rapidjson::Value componentsData(rapidjson::kArrayType);
 
@@ -607,17 +756,6 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 
     const auto& scale = transform["Scale"].GetArray();
     m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
-
-    // Restore prefab linkage directly into our own struct.
-    if (gameObjectJson.HasMember("PrefabLink") && gameObjectJson["PrefabLink"].IsObject())
-    {
-        const auto& pl = gameObjectJson["PrefabLink"];
-        // Old files may have PrefabName/PrefabUID keys — we simply ignore them now.
-        if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
-            m_prefabInfo.m_sourcePath = pl["SourcePath"].GetString();
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
-            m_prefabInfo.m_assetUID = pl["AssetUID"].GetString();
-    }
 
     const auto& components = gameObjectJson["Components"].GetArray();
     for (auto& componentJson : components)

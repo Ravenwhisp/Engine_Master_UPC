@@ -7,12 +7,9 @@ static const char* setupModeNames[] =
     "Two Gamepads"
 };
 
-static const ScriptFieldInfo localMultiplayerSetupFields[] =
-{
-    { "Setup Mode", ScriptFieldType::EnumInt, offsetof(LocalMultiplayerSetup, m_setupMode), {}, { setupModeNames, 2 } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(LocalMultiplayerSetup, localMultiplayerSetupFields)
+IMPLEMENT_SCRIPT_FIELDS(LocalMultiplayerSetup,
+    SERIALIZED_ENUM_INT(m_setupMode, "Setup Mode", setupModeNames, 2)
+)
 
 LocalMultiplayerSetup::LocalMultiplayerSetup(GameObject* owner)
     : Script(owner)

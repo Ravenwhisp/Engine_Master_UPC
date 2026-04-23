@@ -3,20 +3,17 @@
 
 static const float PI = 3.1415926535897931f;
 
-static const ScriptFieldInfo cameraFollowFields[] =
-{
-    { "First Target", ScriptFieldType::ComponentRef, offsetof(CameraFollow, m_firstTarget), {}, {},{ ComponentType::TRANSFORM } },
-    { "Second Target", ScriptFieldType::ComponentRef, offsetof(CameraFollow, m_secondTarget), {}, {}, { ComponentType::TRANSFORM } },
-    { "World Offset", ScriptFieldType::Vec3, offsetof(CameraFollow, m_transformOffset) },
-    { "Fixed Rotation", ScriptFieldType::Vec3, offsetof(CameraFollow, m_rotationOffset) },
-    { "Follow Sharpness", ScriptFieldType::Float, offsetof(CameraFollow, m_followSharpness), { 0.0f, 50.0f, 0.1f } },
-    { "Zoom Sharpness", ScriptFieldType::Float, offsetof(CameraFollow, m_zoomSharpness), { 0.0f, 50.0f, 0.1f } },
-    { "Zoom Start Distance", ScriptFieldType::Float, offsetof(CameraFollow, m_zoomStartDistance), { 0.0f, 1000.0f, 0.05f } },
-    { "Zoom End Distance", ScriptFieldType::Float, offsetof(CameraFollow, m_zoomEndDistance), { 0.0f, 1000.0f, 0.05f } },
-    { "Max Extra Height", ScriptFieldType::Float, offsetof(CameraFollow, m_maxExtraHeight), { 0.0f, 1000.0f, 0.05f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(CameraFollow, cameraFollowFields)
+IMPLEMENT_SCRIPT_FIELDS(CameraFollow,
+    SERIALIZED_COMPONENT_REF(m_firstTarget, "First Target", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_secondTarget, "Second Target", ComponentType::TRANSFORM),
+    SERIALIZED_VEC3(m_transformOffset, "World Offset"),
+    SERIALIZED_VEC3(m_rotationOffset, "Fixed Rotation"),
+    SERIALIZED_FLOAT(m_followSharpness, "Follow Sharpness", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(m_zoomSharpness, "Zoom Sharpness", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(m_zoomStartDistance, "Zoom Start Distance", 0.0f, 1000.0f, 0.05f),
+    SERIALIZED_FLOAT(m_zoomEndDistance, "Zoom End Distance", 0.0f, 1000.0f, 0.05f),
+    SERIALIZED_FLOAT(m_maxExtraHeight, "Max Extra Height", 0.0f, 1000.0f, 0.05f)
+)
 
 CameraFollow::CameraFollow(GameObject* owner)
     : Script(owner)

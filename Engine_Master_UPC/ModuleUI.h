@@ -34,8 +34,8 @@ private:
     std::unordered_map<MD5Hash, std::shared_ptr<Texture>> m_uiTextures;
 
 private:
-    void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld);
+void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest);
 
-    void buildUIImage(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld);
-    void buildUIText(GameObject* go, const Rect2D& parentRect);
+void buildUIImage(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest);
+void buildUIText(GameObject* go, const Rect2D& parentRect);
 };

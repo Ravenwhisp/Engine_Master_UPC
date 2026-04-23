@@ -58,6 +58,8 @@ void ModuleScene::update()
 
 bool ModuleScene::cleanUp()
 {
+    clearComponentCaches();
+
     m_scene.reset();
     m_quadtree.reset();
     m_sceneSerializer.reset();
@@ -67,6 +69,14 @@ bool ModuleScene::cleanUp()
 #pragma endregion
 
 #pragma region Caches
+void ModuleScene::clearComponentCaches()
+{
+    m_meshRenderers.clear();
+    m_spriteRenderers.clear();
+    m_lightComponents.clear();
+    m_scriptComponents.clear();
+}
+
 void ModuleScene::rebuildComponentCaches()
 {
     m_meshRenderers.clear();
@@ -76,7 +86,7 @@ void ModuleScene::rebuildComponentCaches()
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
-        if (!go->GetActive())
+        if (!go->IsActiveInWindowHierarchy())
         {
             continue;
         }
@@ -105,45 +115,6 @@ void ModuleScene::rebuildComponentCaches()
     m_scene->clearDirty();
 }
 
-void ModuleScene::rebuildMeshRenderersCache()
-{
-    m_meshRenderers.clear();
-
-    if (app->getSettings()->frustumCulling.debugFrustumCulling)
-    {
-        for (GameObject* gO : m_quadtree->query())
-        {
-            if (!gO->GetActive())
-            {
-                continue;
-            }
-
-            if (auto* mesh = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
-            {
-                m_meshRenderers.push_back(mesh);
-            }
-
-            // WE might need to add the Sprite_Renderer also here to apply the frustum culling to them also
-        }
-    }
-    else {
-        for (GameObject* go : m_scene->getAllGameObjects())
-        {
-            if (!go->GetActive())
-            {
-                continue;
-            }
-
-            if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
-            {
-                m_meshRenderers.push_back(mesh);
-            }
-        }
-    }
-
-    m_scene->clearDirty();
-}
-
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
 {
     if (m_scene->isComponentCacheDirty())
@@ -151,6 +122,24 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
         rebuildComponentCaches();
     }
     return m_meshRenderers;
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
+{
+    if (app->getSettings()->frustumCulling.debugFrustumCulling)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : app->getModuleScene()->getQuadtree()->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getMeshRenderers();
 }
 
 const std::vector<SpriteRenderer*>& ModuleScene::getSpriteRenderers()
@@ -191,6 +180,8 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    clearComponentCaches();
+
     auto newScene = m_sceneSerializer->LoadScene(sceneName);
 
     if (!newScene)
@@ -201,6 +192,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     m_scene = std::move(newScene);
     m_scene->setName(sceneName.c_str());
+    m_scene->markDirty();
 
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());
@@ -219,6 +211,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 #ifdef GAME_RELEASE
     m_quadtree->build();
 #endif
+
+    rebuildComponentCaches();
     return true;
 }
 
@@ -235,10 +229,15 @@ SceneSnapshot* ModuleScene::takeSnapshot() const
 
 void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 {
+    clearComponentCaches();
+
     snapshot.applyTo(*m_scene.get());
+    m_scene->markDirty();
 
     m_quadtree = std::make_unique<Quadtree>();
     m_quadtree->init(m_scene.get());
+
+    rebuildComponentCaches();
 }
 #pragma endregion
 
