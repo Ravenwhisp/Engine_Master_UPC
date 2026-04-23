@@ -2,7 +2,7 @@
 #include "MD5Fwd.h"
 #include <filesystem>
 
-struct Metadata;
+class Metadata;
 
 // In-memory registry of all known assets.
 class AssetRegistry

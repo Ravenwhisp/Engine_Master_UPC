@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "AnimationStateMachineAsset.h"
 
-bool AnimationStateMachineAsset::serialize(rapidjson::Document& doc)
+bool AnimationStateMachineAsset::toJson(rapidjson::Document& doc) const
 {
     auto& alloc = doc.GetAllocator();
 
@@ -55,7 +55,7 @@ bool AnimationStateMachineAsset::serialize(rapidjson::Document& doc)
     return true;
 }
 
-bool AnimationStateMachineAsset::desearialize(const rapidjson::Value& json)
+bool AnimationStateMachineAsset::fromJson(const rapidjson::Value& json)
 {
     return false;
 }

@@ -90,6 +90,16 @@ bool Scene::cleanUp()
     return true;
 }
 
+bool Scene::toJson(rapidjson::Document& domTree) const
+{
+    return false;
+}
+
+bool Scene::fromJson(const rapidjson::Value& json)
+{
+    return false;
+}
+
 #pragma endregion
 
 

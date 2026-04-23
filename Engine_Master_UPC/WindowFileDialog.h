@@ -42,6 +42,7 @@ private:
     std::filesystem::path m_currentDirectory;
     std::shared_ptr<FileEntry> m_selectedItem;
     FileDialogClipboard m_clipboard;
+
     bool m_showVariantModal = false;
     bool m_showSavePrefabModal = false;
     bool m_renamingPrefab = false;

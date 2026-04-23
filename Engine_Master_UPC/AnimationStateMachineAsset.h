@@ -1,5 +1,6 @@
 #pragma once
 #include "Asset.h"
+#include "ISerializable.h"
 #include "MD5Fwd.h"
 
 #include <string>
@@ -42,14 +43,13 @@ public:
     friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;
-    explicit AnimationStateMachineAsset(MD5Hash id)
-        : Asset(id, AssetType::ANIMATION_STATE_MACHINE)
+    explicit AnimationStateMachineAsset(MD5Hash id): Asset(id, AssetType::ANIMATION_STATE_MACHINE)
     {
     }
 
 #pragma region Persistence
-    bool serialize(rapidjson::Document& domTree);
-    bool desearialize(const rapidjson::Value& json);
+    bool toJson(rapidjson::Document& domTree) const override;
+    bool fromJson(const rapidjson::Value& json) override;
 #pragma endregion
 
     const std::string& getName() const { return m_name; }

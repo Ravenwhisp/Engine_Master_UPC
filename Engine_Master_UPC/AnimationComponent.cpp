@@ -1356,7 +1356,7 @@ bool AnimationComponent::saveStateMachineAsset()
     if (!moduleAssets)
         return false;
 
-    if (!moduleAssets->saveAnimationStateMachine(m_stateMachineAsset))
+    if (!moduleAssets->save(*m_stateMachineAsset.get()))
         return false;
 
     m_stateMachineDirty = false;

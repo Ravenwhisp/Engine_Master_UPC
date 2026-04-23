@@ -1,7 +1,10 @@
 #pragma once
+#include "ISerializable.h"
+
 #include "MD5Fwd.h"
 #include "AssetType.h"
 #include "AssetsDictionary.h"
+#include <filesystem>
 
 struct DependencyRecord
 {
@@ -9,15 +12,21 @@ struct DependencyRecord
 	AssetType type = AssetType::UNKNOWN;
 };
 
-struct Metadata
+class Metadata: public ISerializable
 {
+public:
 	MD5Hash uid = INVALID_ASSET_ID;
 	std::filesystem::path sourcePath;
-	AssetType type = AssetType::UNKNOWN;
+	AssetType type = AssetType::METADATA;
 
 	std::vector<DependencyRecord> m_dependencies;
 	bool m_isSubAsset = false;
 
+#pragma region Persistence
+	bool toJson(rapidjson::Document& doc) const override;
+	bool fromJson(const rapidjson::Value& json) override;
+	AssetType getAssetType() const override { return type; }
+#pragma endregion
 
 	std::filesystem::path getSourcePath(std::filesystem::path& metadataPath) const
 	{
@@ -33,4 +42,6 @@ struct Metadata
 	{
 		assetPath += METADATA_EXTENSION;
 	}
+
+
 };

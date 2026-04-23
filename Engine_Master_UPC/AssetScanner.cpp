@@ -64,7 +64,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     }
 
     Metadata meta;
-    if (!app->getModuleAssets()->loadMetaFile(metadataPath, meta))
+    if (!app->getModuleAssets()->load(metadataPath, meta))
     {
         DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.",  metadataPath.string().c_str());
         return;
@@ -127,7 +127,7 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
 {
     Metadata meta;
-    if (app->getModuleAssets()->loadMetaFile(metadataPath, meta))
+    if (app->getModuleAssets()->load(metadataPath, meta))
     {
         // Also delete binaries for any sub-assets that were owned by this asset.
         for (const DependencyRecord& dep : meta.m_dependencies)

@@ -26,6 +26,7 @@ class ImporterFont;
 class AnimationStateMachineAsset;
 class ImporterFont;
 struct FileEntry;
+class ISerializable;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
 // Also owns the editor content-browser tree.
@@ -41,6 +42,10 @@ public:
     void importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid);
 
     void refresh();
+
+    bool save(const ISerializable& obj, const std::filesystem::path& path = {});
+    bool load(const std::filesystem::path& path, ISerializable& obj);
+
 
     template<typename T>
     std::shared_ptr<T> load(MD5Hash id)
@@ -78,17 +83,10 @@ public:
     bool isLoaded(const MD5Hash& id);
     void unload(const MD5Hash& id);
 
-
     std::shared_ptr<FileEntry> getRoot()                              const;
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
 
-    bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
-    bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
-
     void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID, uint8_t* binaryData, size_t binarySize);
-
-    bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
-    bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 
 #pragma region Importer
     Importer* findImporter(const std::filesystem::path& filePath) const;

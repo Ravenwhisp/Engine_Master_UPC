@@ -422,6 +422,7 @@
     </ClCompile>
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="AnimationStateMachineAsset.cpp" />
+    <ClCompile Include="Metadata.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1043,6 +1044,15 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
+    <ClInclude Include="ISerializable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetDialogFilter.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

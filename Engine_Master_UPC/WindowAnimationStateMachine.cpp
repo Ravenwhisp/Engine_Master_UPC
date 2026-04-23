@@ -1216,7 +1216,7 @@ bool WindowAnimationStateMachine::saveAsset()
         return false;
     }
 
-    if (!moduleAssets->saveAnimationStateMachine(m_asset))
+    if (!moduleAssets->save(*m_asset.get()))
     {
         return false;
     }

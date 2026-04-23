@@ -1,5 +1,5 @@
 #pragma once
-
+#include "ISerializable.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -15,7 +15,7 @@ class GameObject;
 class CameraComponent;
 class MeshRenderer;
 
-class Scene
+class Scene: public ISerializable
 {
     friend class SceneSnapshot;
 private:
@@ -67,6 +67,12 @@ public:
     void update();
     bool cleanUp();
 
+#pragma endregion
+
+#pragma region Persistence
+    bool toJson(rapidjson::Document& domTree) const override;
+    bool fromJson(const rapidjson::Value& json) override;
+    AssetType getAssetType() const override { return AssetType::SCENE; }
 #pragma endregion
 
     const char* getName() const { return m_name.c_str(); }

@@ -27,6 +27,8 @@
 
 #include <filesystem>
 #include <FileIO.h>
+#include <AssetDialogFilter.h>
+#include <FileDialog.h>
 
 ModuleAssets::~ModuleAssets() = default;
 
@@ -96,7 +98,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     // Write the .metadata sidecar alongside the source file.
     Metadata meta;
     meta.uid = uid;
-    meta.type = asset->getType();
+    meta.type = asset->getAssetType();
     meta.sourcePath = sourcePath;
     
     auto it = m_pendingDependencies.find(uid);
@@ -108,7 +110,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     std::filesystem::path metaPath = sourcePath;
     metaPath += METADATA_EXTENSION;
 
-    if (!saveMetaFile(meta, metaPath))
+    if (!save(meta, metaPath))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
         uid = INVALID_ASSET_ID;
@@ -125,8 +127,6 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
-        // Metadata was already written — roll back the in-memory store entry
-        // so it doesn't reference a binary that doesn't exist.
         m_registry->remove(uid);
         uid = INVALID_ASSET_ID;
         return;
@@ -170,7 +170,6 @@ void ModuleAssets::unload(const MD5Hash& id)
     m_assets.remove(id);
 }
 
-
 std::shared_ptr<FileEntry> ModuleAssets::getRoot() const
 {
     return m_contentRegistry->getRoot();
@@ -206,61 +205,62 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
     return asset;
 }
 
-bool ModuleAssets::saveMetaFile(const Metadata& meta,
-    const std::filesystem::path& metaPath)
+bool ModuleAssets::save(const ISerializable& obj,
+    const std::filesystem::path& path)
 {
+    std::filesystem::path targetPath = path;
+
+    if (targetPath.empty())
+    {
+        const AssetDialogFilter filter = getDialogFilter(obj.getAssetType());
+
+        auto chosen = saveAs(filter.filterSpec, filter.defaultExtension, "Save Asset", ASSETS_FOLDER);
+
+        if (!chosen)
+        {
+            return false;
+        }
+
+        targetPath = std::move(*chosen);
+    }
+
     rapidjson::Document doc;
     doc.SetObject();
-    auto& alloc = doc.GetAllocator();
 
-    doc.AddMember("uid", rapidjson::Value(meta.uid.c_str(), alloc), alloc);
-    doc.AddMember("type", rapidjson::Value(static_cast<uint32_t>(meta.type)), alloc);
-    doc.AddMember("sourcePath", rapidjson::Value(meta.sourcePath.string().c_str(), alloc), alloc);
-
-    // Write the dependency list so the scanner can re-register sub-assets on
-    // the next startup without re-importing the parent source file.
-    if (!meta.m_dependencies.empty())
+    if (!obj.toJson(doc))
     {
-        rapidjson::Value deps(rapidjson::kArrayType);
-        for (const DependencyRecord& dep : meta.m_dependencies)
-        {
-            rapidjson::Value entry(rapidjson::kObjectType);
-            entry.AddMember("uid", rapidjson::Value(dep.uid.c_str(), alloc), alloc);
-            entry.AddMember("type", rapidjson::Value(static_cast<uint32_t>(dep.type)), alloc);
-            deps.PushBack(entry, alloc);
-        }
-        doc.AddMember("dependencies", deps, alloc);
+        DEBUG_ERROR("[ModuleAssets] toJson() failed for '%s'.", targetPath.string().c_str());
+        return false;
     }
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     doc.Accept(writer);
 
-    std::ofstream file(metaPath);
+    std::ofstream file(targetPath);
     if (!file.is_open())
     {
-        DEBUG_ERROR("[AssetMetadata] Could not open '%s' for writing.",
-            metaPath.string().c_str());
+        DEBUG_ERROR("[ModuleAssets] Could not open '%s' for writing.", targetPath.string().c_str());
         return false;
     }
 
     file << buffer.GetString();
     if (!file)
     {
-        DEBUG_ERROR("[AssetMetadata] Failed to write '%s'.", metaPath.string().c_str());
+        DEBUG_ERROR("[ModuleAssets] Write failed for '%s'.", targetPath.string().c_str());
         return false;
     }
 
     return true;
 }
 
-bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta)
+bool ModuleAssets::load(const std::filesystem::path& path, ISerializable& obj)
 {
-    const std::string pathStr = metaPath.string();
+    const std::string pathStr = path.string();
     FILE* fp = std::fopen(pathStr.c_str(), "rb");
     if (!fp)
     {
-        DEBUG_ERROR("[AssetMetadata] Could not open '%s'.", pathStr.c_str());
+        DEBUG_ERROR("[JsonFile] Could not open '%s'.", pathStr.c_str());
         return false;
     }
 
@@ -273,57 +273,19 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
 
     if (doc.HasParseError())
     {
-        DEBUG_ERROR("[AssetMetadata] JSON parse error in '%s'.", pathStr.c_str());
+        DEBUG_ERROR("[JsonFile] JSON parse error in '%s'.", pathStr.c_str());
         return false;
     }
 
-    if (doc.HasMember("uid") && doc["uid"].IsString())
+    if (!obj.fromJson(doc))
     {
-        outMeta.uid = doc["uid"].GetString();
-    }
-    else
-    {
-        DEBUG_ERROR("[AssetMetadata] Missing 'uid' in '%s'.", pathStr.c_str());
+        DEBUG_ERROR("[JsonFile] fromJson() failed for '%s'.", pathStr.c_str());
         return false;
-    }
-
-    if (doc.HasMember("type") && doc["type"].IsNumber())
-    {
-        outMeta.type = static_cast<AssetType>(doc["type"].GetUint());
-    }
-    else
-    {
-        DEBUG_ERROR("[AssetMetadata] Missing 'type' in '%s'.", pathStr.c_str());
-        return false;
-    }
-
-    if (doc.HasMember("sourcePath") && doc["sourcePath"].IsString())
-    {
-        outMeta.sourcePath = doc["sourcePath"].GetString();
-    }
-
-
-    // Restore the dependency list.
-    outMeta.m_dependencies.clear();
-    if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())
-    {
-        const auto& deps = doc["dependencies"];
-        outMeta.m_dependencies.reserve(deps.Size());
-        for (rapidjson::SizeType i = 0; i < deps.Size(); ++i)
-        {
-            const auto& entry = deps[i];
-            if (!entry.HasMember("uid") || !entry["uid"].IsString())  continue;
-            if (!entry.HasMember("type") || !entry["type"].IsNumber()) continue;
-
-            DependencyRecord rec;
-            rec.uid = entry["uid"].GetString();
-            rec.type = static_cast<AssetType>(entry["type"].GetUint());
-            outMeta.m_dependencies.push_back(std::move(rec));
-        }
     }
 
     return true;
 }
+
 
 void ModuleAssets::registerSubAsset(const Metadata& meta,
     const MD5Hash& parentUID,
@@ -351,110 +313,6 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
         dep.type = subMeta.type;
         m_pendingDependencies[parentUID].push_back(dep);
     }
-}
-
-bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
-{
-    if (!asset)
-    {
-        DEBUG_ERROR("[ModuleAssets] saveAnimationStateMachine called with null asset.");
-        return false;
-    }
-
-    if (!m_importerAnimationStateMachine)
-    {
-        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine importer is not initialized.");
-        return false;
-    }
-
-    if (!saveAnimationStateMachineSource(asset))
-    {
-        return false;
-    }
-
-    const Metadata* meta = m_registry->getMetadata(asset->getId());
-    if (!meta)
-    {
-        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
-        return false;
-    }
-
-    MD5Hash uid = asset->getId();
-    importAsset(meta->sourcePath, uid);
-    m_assets.remove(asset->getId());
-
-    return uid != INVALID_ASSET_ID;
-}
-
-bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset)
-{
-    if (!asset)
-    {
-        return false;
-    }
-
-    const Metadata* meta = m_registry->getMetadata(asset->getId());
-    if (!meta)
-    {
-        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
-        return false;
-    }
-
-    Metadata updatedMeta = *meta;
-
-    // HOTFIX: old state machines have no sourcePath. Create one automatically.
-    if (updatedMeta.sourcePath.empty())
-    {
-        std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
-        std::filesystem::create_directories(dir);
-
-        std::string fileName = asset->getName();
-        if (fileName.empty())
-        {
-            fileName = asset->getId();
-        }
-
-        // very simple sanitization
-        for (char& c : fileName)
-        {
-            if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|')
-            {
-                c = '_';
-            }
-        }
-
-        updatedMeta.sourcePath = dir / (fileName + ".statemachine");
-
-        std::filesystem::path metaPath = updatedMeta.sourcePath;
-        metaPath += METADATA_EXTENSION;
-
-        if (!saveMetaFile(updatedMeta, metaPath))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to create metadata for '%s'.", updatedMeta.sourcePath.string().c_str());
-            return false;
-        }
-
-        m_registry->registerAsset(updatedMeta);
-    }
-
-    rapidjson::Document doc;
-    doc.SetObject();
-    
-    asset->serialize(doc);
-
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    std::ofstream file(updatedMeta.sourcePath);
-    if (!file.is_open())
-    {
-        DEBUG_ERROR("[ModuleAssets] Could not open '%s' for writing.", updatedMeta.sourcePath.string().c_str());
-        return false;
-    }
-
-    file << buffer.GetString();
-    return file.good();
 }
 
 #pragma region Importer
@@ -497,7 +355,9 @@ void ModuleAssets::flushDependencies(const MD5Hash& parentUID,
     Metadata parentMeta;
     const Metadata* existing = m_registry->getMetadata(parentUID);
     if (existing)
+    {
         parentMeta = *existing;
+    }
     else
     {
         parentMeta.uid = parentUID;
