@@ -776,6 +776,16 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
     const auto& scale = transform["Scale"].GetArray();
     m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
 
+    if (gameObjectJson.HasMember("PrefabLink") && gameObjectJson["PrefabLink"].IsObject())
+    {
+        const auto& pl = gameObjectJson["PrefabLink"];
+        // Old files may have PrefabName/PrefabUID keys — we simply ignore them now.
+        if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+            m_prefabInfo.m_sourcePath = pl["SourcePath"].GetString();
+        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
+            m_prefabInfo.m_assetUID = pl["AssetUID"].GetString();
+    }
+    
     const auto& components = gameObjectJson["Components"].GetArray();
     for (auto& componentJson : components)
     {
