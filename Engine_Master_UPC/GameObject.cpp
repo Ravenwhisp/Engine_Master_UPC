@@ -180,7 +180,7 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
 
 std::vector<Component*> GameObject::GetAllComponents() const
 {
-    std::vector<Component*> result;
+    std::vector<Component*> result = std::vector<Component*>();;
     for (const std::unique_ptr<Component>& component : m_components)
     {
         result.push_back(component.get());
