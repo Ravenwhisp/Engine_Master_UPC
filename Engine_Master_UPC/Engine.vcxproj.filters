@@ -253,9 +253,6 @@
     <ClCompile Include="AssetRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterRegistry.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence\UID</Filter>
     </ClCompile>
@@ -738,9 +735,6 @@
     </ClInclude>
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterRegistry.h">
-      <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="AssetRegistry.h">
       <Filter>Persistence</Filter>

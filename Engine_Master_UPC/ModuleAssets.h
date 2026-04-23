@@ -5,7 +5,6 @@
 #include "WeakCache.h"
 #include "AssetRegistry.h"
 
-#include "ImporterRegistry.h"
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
 
@@ -14,6 +13,7 @@
 #include <Metadata.h>
 
 class Asset;
+class Importer;
 class ImporterTexture;
 class ImporterGltf;
 class ImporterMaterial;
@@ -91,6 +91,11 @@ public:
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
     bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 
+#pragma region Importer
+    Importer* findImporter(const std::filesystem::path& filePath) const;
+    Importer* findImporter(AssetType type)                        const;
+#pragma endregion
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
@@ -100,20 +105,21 @@ private:
         AssetType parentType);
 
     std::unique_ptr<AssetRegistry>      m_registry;
-    std::unique_ptr<ImporterRegistry>   m_importerRegistry;
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
     WeakCache<MD5Hash, Asset>           m_assets;
 
-	std::unique_ptr<ImporterTexture>    m_importerTexture = nullptr;
-    std::unique_ptr<ImporterMesh>       m_importerMesh = nullptr;
-    std::unique_ptr<ImporterMaterial>   m_importerMaterial = nullptr;
-    std::unique_ptr<ImporterPrefab>     m_importerPrefab = nullptr;
-    std::unique_ptr<ImporterAnimation>  m_importerAnimation = nullptr;
-    std::unique_ptr<ImporterSkin>       m_importerSkin = nullptr;
-    std::unique_ptr<ImporterGltf>       m_importerGltf = nullptr;
-	std::unique_ptr<ImporterFont>       m_importerFont = nullptr;
-    std::unique_ptr<ImporterAnimationStateMachine> m_importerAnimationStateMachine = nullptr;
+    ImporterTexture*    m_importerTexture = nullptr;
+    ImporterMesh*       m_importerMesh = nullptr;
+    ImporterMaterial*   m_importerMaterial = nullptr;
+    ImporterPrefab*     m_importerPrefab = nullptr;
+    ImporterAnimation*  m_importerAnimation = nullptr;
+    ImporterSkin*       m_importerSkin = nullptr;
+    ImporterGltf*       m_importerGltf = nullptr;
+	ImporterFont*       m_importerFont = nullptr;
+    ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
+
+    std::vector<Importer*>              m_importers;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
 };
