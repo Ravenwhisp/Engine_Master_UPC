@@ -5,24 +5,21 @@
 #include <cmath>
 #include <vector>
 
-static const ScriptFieldInfo DeathCharacterFields[] =
-{
-    { "Basic Attack Damage",    ScriptFieldType::Float, offsetof(DeathCharacter, m_basicAttackDamage),   { 0.0f,  200.0f, 1.0f  } },
-    { "Basic Attack Range",     ScriptFieldType::Float, offsetof(DeathCharacter, m_basicAttackRange),    { 0.5f,  10.0f,  0.1f  } },
-    { "Basic Attack Hit Angle", ScriptFieldType::Float, offsetof(DeathCharacter, m_basicAttackHitAngle), { 5.0f,  180.0f, 5.0f  } },
-    { "Charged Attack Damage",  ScriptFieldType::Float, offsetof(DeathCharacter, m_chargedAttackDamage), { 0.0f,  200.0f, 1.0f  } },
-    { "Dash Distance",          ScriptFieldType::Float, offsetof(DeathCharacter, m_dashDistance),        { 0.0f,  20.0f,  0.1f  } },
-    { "Taunt Duration",         ScriptFieldType::Float, offsetof(DeathCharacter, m_tauntDuration),       { 0.0f,  10.0f,  0.1f  } },
-    { "Arc Range",              ScriptFieldType::Float, offsetof(DeathCharacter, m_arcRange),            { 0.5f,  10.0f,  0.1f  } },
-    { "Arc Angle",              ScriptFieldType::Float, offsetof(DeathCharacter, m_arcAngle),            { 10.0f, 360.0f, 5.0f  } },
-    { "Max Charge Time",           ScriptFieldType::Float, offsetof(DeathCharacter, m_maxChargeTime),         { 0.5f, 5.0f, 0.1f  } },
-    { "Combo Window R1",           ScriptFieldType::Float, offsetof(DeathCharacter, m_comboWindow),           { 0.1f, 5.0f, 0.05f } },
-    { "Combo Window R2",           ScriptFieldType::Float, offsetof(DeathCharacter, m_comboWindowR2),         { 0.1f, 5.0f, 0.05f } },
-    { "Combo Window Max Charge",   ScriptFieldType::Float, offsetof(DeathCharacter, m_comboWindowMaxCharge),  { 0.1f, 5.0f, 0.05f } },
-    { "Combo Cooldown",            ScriptFieldType::Float, offsetof(DeathCharacter, m_comboCooldown),         { 0.0f, 5.0f, 0.1f  } },
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DeathCharacter, DeathCharacterFields)
+IMPLEMENT_SCRIPT_FIELDS(DeathCharacter,
+    SERIALIZED_FLOAT(m_basicAttackDamage, "Basic Attack Damage", 0.0f, 200.0f, 1.0f),
+    SERIALIZED_FLOAT(m_basicAttackRange, "Basic Attack Range", 0.5f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_basicAttackHitAngle, "Basic Attack Hit Angle", 5.0f, 180.0f, 5.0f),
+    SERIALIZED_FLOAT(m_chargedAttackDamage, "Charged Attack Damage", 0.0f, 200.0f, 1.0f),
+    SERIALIZED_FLOAT(m_dashDistance, "Dash Distance", 0.0f, 20.0f, 0.1f),
+    SERIALIZED_FLOAT(m_tauntDuration, "Taunt Duration", 0.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_arcRange, "Arc Range", 0.5f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_arcAngle, "Arc Angle", 10.0f, 360.0f, 5.0f),
+    SERIALIZED_FLOAT(m_maxChargeTime, "Max Charge Time", 0.5f, 5.0f, 0.1f),
+    SERIALIZED_FLOAT(m_comboWindow, "Combo Window R1", 0.1f, 5.0f, 0.05f),
+    SERIALIZED_FLOAT(m_comboWindowR2, "Combo Window R2", 0.1f, 5.0f, 0.05f),
+    SERIALIZED_FLOAT(m_comboWindowMaxCharge, "Combo Window Max Charge", 0.1f, 5.0f, 0.05f),
+    SERIALIZED_FLOAT(m_comboCooldown, "Combo Cooldown", 0.0f, 5.0f, 0.1f)
+)
 
 DeathCharacter::DeathCharacter(GameObject* owner)
     : CharacterBase(owner)

@@ -1,16 +1,13 @@
 #include "pch.h"
 #include "TriggerArea.h"
 
-static const ScriptFieldInfo triggerAreaFields[] =
-{
-    { "X Width", ScriptFieldType::Float, offsetof(TriggerArea, m_xWidth), { 0.0f, 1000.0f, 0.1f } },
-    { "Z Width", ScriptFieldType::Float, offsetof(TriggerArea, m_zWidth), { 0.0f, 1000.0f, 0.1f } },
-    { "Scene To Load", ScriptFieldType::String, offsetof(TriggerArea, m_sceneToLoad) },
-    { "First Target", ScriptFieldType::ComponentRef, offsetof(TriggerArea, m_firstTarget), {}, {}, { ComponentType::TRANSFORM } },
-    { "Second Target", ScriptFieldType::ComponentRef, offsetof(TriggerArea, m_secondTarget), {}, {}, { ComponentType::TRANSFORM } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(TriggerArea, triggerAreaFields)
+IMPLEMENT_SCRIPT_FIELDS(TriggerArea,
+    SERIALIZED_FLOAT(m_xWidth, "X Width", 0.0f, 1000.0f, 0.1f),
+    SERIALIZED_FLOAT(m_zWidth, "Z Width", 0.0f, 1000.0f, 0.1f),
+    SERIALIZED_STRING(m_sceneToLoad, "Scene To Load"),
+    SERIALIZED_COMPONENT_REF(m_firstTarget, "First Target", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_secondTarget, "Second Target", ComponentType::TRANSFORM)
+)
 
 TriggerArea::TriggerArea(GameObject* owner)
     : Script(owner)

@@ -1048,6 +1048,9 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
+    <ClInclude Include="ScriptFieldMacros.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

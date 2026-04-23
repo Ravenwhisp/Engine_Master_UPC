@@ -770,9 +770,8 @@ void AnimationComponent::drawScriptFieldsUi(Script& script)
     ScriptFieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
         void* data = base + field.offset;
         bool changed = false;
 
@@ -1488,9 +1487,8 @@ std::string AnimationComponent::serializeScriptFields(const Script& script) cons
     ScriptFieldList fieldList = script.getExposedFields();
     const char* base = reinterpret_cast<const char*>(&script);
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
         const void* data = base + field.offset;
 
         rapidjson::Value key(field.name, allocator);
@@ -1558,10 +1556,8 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
     ScriptFieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
-
         if (!document.HasMember(field.name))
         {
             continue;

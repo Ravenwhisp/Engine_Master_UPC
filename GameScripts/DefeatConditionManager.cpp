@@ -2,13 +2,10 @@
 #include "DefeatConditionManager.h"
 #include "PlayerState.h"
 
-static const ScriptFieldInfo defeatConditionManagerFields[] =
-{
-    { "Player 1 Transform", ScriptFieldType::ComponentRef, offsetof(DefeatConditionManager, m_player1Transform), {}, {}, { ComponentType::TRANSFORM } },
-    { "Player 2 Transform", ScriptFieldType::ComponentRef, offsetof(DefeatConditionManager, m_player2Transform), {}, {}, { ComponentType::TRANSFORM } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DefeatConditionManager, defeatConditionManagerFields)
+IMPLEMENT_SCRIPT_FIELDS(DefeatConditionManager,
+    SERIALIZED_COMPONENT_REF(m_player1Transform, "Player 1 Transform", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_player2Transform, "Player 2 Transform", ComponentType::TRANSFORM)
+) 
 
 DefeatConditionManager::DefeatConditionManager(GameObject* owner)
     : Script(owner)

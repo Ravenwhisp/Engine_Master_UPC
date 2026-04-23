@@ -2,22 +2,16 @@
 #include "Bound.h"
 #include "Damageable.h"
 
-static const ScriptFieldInfo boundFields[] =
-{
-     { "Player 1 Transform", ScriptFieldType::ComponentRef, offsetof(Bound, m_firstTarget), {}, {}, { ComponentType::TRANSFORM } },
-    { "Player 2 Transform", ScriptFieldType::ComponentRef, offsetof(Bound, m_secondTarget), {}, {}, { ComponentType::TRANSFORM } },
-    { "Min Distance",       ScriptFieldType::Float,        offsetof(Bound, m_minDistance),       {}, {}, {} },
-    { "Damage Distance",    ScriptFieldType::Float,        offsetof(Bound, m_distanceDamage),    {}, {}, {} },
-    { "InstaKill Distance", ScriptFieldType::Float,        offsetof(Bound, m_distanceInstaKill), {}, {}, {} },
-    { "Radius Threshold",   ScriptFieldType::Float,        offsetof(Bound, m_radiusThreshold),   {}, {}, {} },
-    { "Base Damage",   ScriptFieldType::Float,        offsetof(Bound, baseDamage),   {}, {}, {} },
-    { "Max Damage",   ScriptFieldType::Float,        offsetof(Bound, maxDamage),   {}, {}, {} },
-};
-
-
-IMPLEMENT_SCRIPT_FIELDS(Bound, boundFields)
-
-
+IMPLEMENT_SCRIPT_FIELDS(Bound,
+    SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
+    SERIALIZED_FLOAT(m_minDistance, "Min Distance", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(m_distanceDamage, "Damage Distance", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(m_radiusThreshold, "Radius Threshold", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(baseDamage, "Base Damage", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f)
+)
 
 Damageable* findDamageable(GameObject* gameObject)
 {
