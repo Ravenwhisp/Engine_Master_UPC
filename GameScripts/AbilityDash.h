@@ -14,6 +14,8 @@ public:
     void Update() override;
     void drawGizmo() override;
 
+    ScriptFieldList getExposedFields() const override;
+
 protected:
     virtual bool canDash() const;
     virtual void onDashStarted();

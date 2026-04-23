@@ -2,6 +2,10 @@
 #include "AbilityBase.h"
 #include "CharacterBase.h"
 
+IMPLEMENT_SCRIPT_FIELDS(AbilityBase,
+    SERIALIZED_FLOAT(m_cooldown, "Cooldown", 0.0f, 10.0f, 0.01f),
+)
+
 AbilityBase::AbilityBase(GameObject* owner)
     : Script(owner)
 {

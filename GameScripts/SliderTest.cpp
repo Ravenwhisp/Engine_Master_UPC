@@ -1,15 +1,12 @@
 #include "pch.h"
 #include "SliderTest.h"
 
-static const ScriptFieldInfo SliderTestFields[] =
-{
-    { "Slider", ScriptFieldType::ComponentRef, offsetof(SliderTest, m_slider), {}, {}, { ComponentType::UISLIDER } },
-    { "Fill Speed", ScriptFieldType::Float, offsetof(SliderTest, m_fillSpeed), { 0.0f, 5.0f, 0.01f } },
-    { "Step Amount", ScriptFieldType::Float, offsetof(SliderTest, m_stepAmount), { 0.01f, 1.0f, 0.01f } },
-    { "Auto Test", ScriptFieldType::Bool, offsetof(SliderTest, m_autoTest) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(SliderTest, SliderTestFields)
+IMPLEMENT_SCRIPT_FIELDS(SliderTest,
+    SERIALIZED_COMPONENT_REF(m_slider, "Slider", ComponentType::UISLIDER),
+    SERIALIZED_FLOAT(m_fillSpeed, "Fill Speed", 0.0f, 5.0f, 0.01f),
+    SERIALIZED_FLOAT(m_stepAmount, "Step Amount", 0.01f, 1.0f, 0.01f),
+    SERIALIZED_BOOL(m_autoTest, "Auto Test")
+)
 
 SliderTest::SliderTest(GameObject* owner)
     : Script(owner)

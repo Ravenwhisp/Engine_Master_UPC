@@ -1,30 +1,27 @@
 #include "pch.h"
 #include "DebugDrawTest.h"
 
-static const ScriptFieldInfo debugDrawTestFields[] =
-{
-    { "Origin", ScriptFieldType::Vec3, offsetof(DebugDrawTest, m_origin) },
-    { "Axis Size", ScriptFieldType::Float, offsetof(DebugDrawTest, m_axisSize), { 0.01f, 10.0f, 0.01f } },
-    { "Axis Length", ScriptFieldType::Float, offsetof(DebugDrawTest, m_axisLength), { 0.01f, 10.0f, 0.01f } },
-    { "Circle Radius", ScriptFieldType::Float, offsetof(DebugDrawTest, m_circleRadius), { 0.01f, 50.0f, 0.05f } },
-    { "Circle Steps", ScriptFieldType::Float, offsetof(DebugDrawTest, m_circleSteps), { 3.0f, 64.0f, 1.0f } },
-    { "Arrow End", ScriptFieldType::Vec3, offsetof(DebugDrawTest, m_arrowEnd) },
-    { "Arrow Size", ScriptFieldType::Float, offsetof(DebugDrawTest, m_arrowSize), { 0.01f, 5.0f, 0.01f } },
-    { "Sphere Radius", ScriptFieldType::Float, offsetof(DebugDrawTest, m_sphereRadius), { 0.01f, 50.0f, 0.05f } },
-    { "Box Size", ScriptFieldType::Float, offsetof(DebugDrawTest, m_boxSize), { 0.01f, 50.0f, 0.05f } },
-    { "Cone Apex", ScriptFieldType::Vec3, offsetof(DebugDrawTest, m_coneApex) },
-    { "Cone Direction", ScriptFieldType::Vec3, offsetof(DebugDrawTest, m_coneDir) },
-    { "Cone Base Radius", ScriptFieldType::Float, offsetof(DebugDrawTest, m_coneBaseRadius), { 0.0f, 10.0f, 0.05f } },
-    { "Vertex Normal Length", ScriptFieldType::Float, offsetof(DebugDrawTest, m_vertexNormalLength), { 0.01f, 10.0f, 0.01f } },
-    { "Grid Extent", ScriptFieldType::Float, offsetof(DebugDrawTest, m_gridExtent), { 1.0f, 100.0f, 1.0f } },
-    { "Grid Step", ScriptFieldType::Float, offsetof(DebugDrawTest, m_gridStep), { 0.1f, 10.0f, 0.1f } },
-    { "Grid Y", ScriptFieldType::Float, offsetof(DebugDrawTest, m_gridY), { -10.0f, 10.0f, 0.1f } },
-    { "Duration (ms)", ScriptFieldType::Int, offsetof(DebugDrawTest, m_duration), { 0.0f, 60000.0f, 100.0f } },
-    { "Depth Enabled", ScriptFieldType::Bool, offsetof(DebugDrawTest, m_depthEnabled) },
-    { "Text Scaling", ScriptFieldType::Float, offsetof(DebugDrawTest, m_textScaling), { 0.1f, 10.0f, 0.1f } },
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DebugDrawTest, debugDrawTestFields)
+IMPLEMENT_SCRIPT_FIELDS(DebugDrawTest,
+    SERIALIZED_VEC3(m_origin, "Origin"),
+    SERIALIZED_FLOAT(m_axisSize, "Axis Size", 0.01f, 10.0f, 0.01f),
+    SERIALIZED_FLOAT(m_axisLength, "Axis Length", 0.01f, 10.0f, 0.01f),
+    SERIALIZED_FLOAT(m_circleRadius, "Circle Radius", 0.01f, 50.0f, 0.05f),
+    SERIALIZED_FLOAT(m_circleSteps, "Circle Steps", 3.0f, 64.0f, 1.0f),
+    SERIALIZED_VEC3(m_arrowEnd, "Arrow End"),
+    SERIALIZED_FLOAT(m_arrowSize, "Arrow Size", 0.01f, 5.0f, 0.01f),
+    SERIALIZED_FLOAT(m_sphereRadius, "Sphere Radius", 0.01f, 50.0f, 0.05f),
+    SERIALIZED_FLOAT(m_boxSize, "Box Size", 0.01f, 50.0f, 0.05f),
+    SERIALIZED_VEC3(m_coneApex, "Cone Apex"),
+    SERIALIZED_VEC3(m_coneDir, "Cone Direction"),
+    SERIALIZED_FLOAT(m_coneBaseRadius, "Cone Base Radius", 0.0f, 10.0f, 0.05f),
+    SERIALIZED_FLOAT(m_vertexNormalLength, "Vertex Normal Length", 0.01f, 10.0f, 0.01f),
+    SERIALIZED_FLOAT(m_gridExtent, "Grid Extent", 1.0f, 100.0f, 1.0f),
+    SERIALIZED_FLOAT(m_gridStep, "Grid Step", 0.1f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_gridY, "Grid Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_INT(m_duration, "Duration (ms)"),
+    SERIALIZED_BOOL(m_depthEnabled, "Depth Enabled"),
+    SERIALIZED_FLOAT(m_textScaling, "Text Scaling", 0.1f, 10.0f, 0.1f)
+)
 
 DebugDrawTest::DebugDrawTest(GameObject* owner)
     : Script(owner)

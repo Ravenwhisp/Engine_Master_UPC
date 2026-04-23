@@ -9,13 +9,10 @@
 
 static const float PI = 3.1415926535897931f;
 
-static const ScriptFieldInfo playerControllerFields[] =
-{
-    { "Player Index", ScriptFieldType::Int, offsetof(PlayerController, m_playerIndex) },
-    { "God Mode", ScriptFieldType::Bool, offsetof(PlayerController, m_godMode) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerController, playerControllerFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerController,
+    SERIALIZED_INT(m_playerIndex, "Player Index"),
+    SERIALIZED_BOOL(m_godMode, "God Mode")
+)
 
 PlayerController::PlayerController(GameObject* owner)
     : Script(owner)

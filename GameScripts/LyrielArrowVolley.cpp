@@ -10,18 +10,15 @@
 
 #include <cmath>
 
-static const ScriptFieldInfo LyrielArrowVolleyFields[] =
-{
-    { "Volley Damage", ScriptFieldType::Float, offsetof(LyrielArrowVolley, m_volleyDamage), { 0.0f, 100.0f, 0.5f } },
-    { "Volley Cooldown", ScriptFieldType::Float, offsetof(LyrielArrowVolley, m_volleyCooldown), { 0.0f, 20.0f, 0.1f } },
-    { "Volley Range", ScriptFieldType::Float, offsetof(LyrielArrowVolley, m_volleyRange), { 0.0f, 50.0f, 0.1f } },
-    { "Cone Angle Degrees", ScriptFieldType::Float, offsetof(LyrielArrowVolley, m_coneAngleDegrees), { 1.0f, 180.0f, 1.0f } },
-    { "Num Visual Arrows", ScriptFieldType::Int, offsetof(LyrielArrowVolley, m_numVisualArrows), { 1.0f, 20.0f, 1.0f } },
-    { "Arrow Speed", ScriptFieldType::Float, offsetof(LyrielArrowVolley, m_arrowSpeed), { 0.0f, 100.0f, 0.5f } },
-    { "Attack Lock Duration", ScriptFieldType::Float, offsetof(LyrielArrowVolley, m_attackLockDuration), { 0.0f, 2.0f, 0.01f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(LyrielArrowVolley, LyrielArrowVolleyFields)
+IMPLEMENT_SCRIPT_FIELDS(LyrielArrowVolley,
+    SERIALIZED_FLOAT(m_volleyDamage, "Volley Damage", 0.0f, 100.0f, 0.5f),
+    SERIALIZED_FLOAT(m_volleyCooldown, "Volley Cooldown", 0.0f, 20.0f, 0.1f),
+    SERIALIZED_FLOAT(m_volleyRange, "Volley Range", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(m_coneAngleDegrees, "Cone Angle Degrees", 1.0f, 180.0f, 1.0f),
+    SERIALIZED_INT(m_numVisualArrows, "Num Visual Arrows"),
+    SERIALIZED_FLOAT(m_arrowSpeed, "Arrow Speed", 0.0f, 100.0f, 0.5f),
+    SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.0f, 2.0f, 0.01f)
+)
 
 LyrielArrowVolley::LyrielArrowVolley(GameObject* owner)
     : LyrielAbilityBase(owner)

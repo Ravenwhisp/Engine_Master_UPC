@@ -3,16 +3,13 @@
 #include "EnemyDetectionAggro.h"
 #include <cmath>
 
-static const ScriptFieldInfo EnemyControllerFields[] =
-{
-	{ "Combat Range", ScriptFieldType::Float, offsetof(EnemyController, m_combatRange), { 0.0f, 50.0f, 0.1f } },
-	{ "Move Speed", ScriptFieldType::Float, offsetof(EnemyController, m_moveSpeed), { 0.0f, 50.0f, 0.1f } },
-	{ "Turn Speed", ScriptFieldType::Float, offsetof(EnemyController, m_turnSpeed), { 0.0f, 5.0f, 0.1f } },
-	{ "Interval", ScriptFieldType::Float, offsetof(EnemyController, m_intervalRepath), { 0.0f, 50.0f, 0.1f } },
-	{ "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyController, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyController, EnemyControllerFields)
+IMPLEMENT_SCRIPT_FIELDS(EnemyController,
+	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_FLOAT(m_turnSpeed, "Turn Speed", 0.0f, 5.0f, 0.1f),
+	SERIALIZED_FLOAT(m_intervalRepath, "Interval", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 EnemyController::EnemyController(GameObject* owner)
     : Script(owner)

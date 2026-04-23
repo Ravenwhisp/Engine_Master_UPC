@@ -2,12 +2,9 @@
 #include "EnemyCHASE.h"
 #include "EnemyController.h"
 
-static const ScriptFieldInfo CHASEFields[] =
-{
-	{ "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyCHASE, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyCHASE, CHASEFields)
+IMPLEMENT_SCRIPT_FIELDS(EnemyCHASE,
+	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 
 EnemyCHASE::EnemyCHASE(GameObject* owner) : StateMachineScript(owner)

@@ -2,12 +2,9 @@
 #include "EnemyIDLE.h"
 #include "EnemyController.h"
 
-static const ScriptFieldInfo IDLEFields[] =
-{
-	{ "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyIDLE, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyIDLE, IDLEFields)
+IMPLEMENT_SCRIPT_FIELDS(EnemyIDLE,
+	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 
 EnemyIDLE::EnemyIDLE(GameObject* owner) : StateMachineScript(owner)

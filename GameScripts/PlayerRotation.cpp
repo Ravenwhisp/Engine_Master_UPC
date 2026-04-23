@@ -5,12 +5,9 @@
 
 static const float PI = 3.1415926535897931f;
 
-static const ScriptFieldInfo playerRotationFields[] =
-{
-	{ "Turn Speed (deg/s)", ScriptFieldType::Float, offsetof(PlayerRotation, m_turnSpeedDegPerSec), { 0.0f, 2000.0f, 1.0f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerRotation, playerRotationFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerRotation,
+	SERIALIZED_FLOAT(m_turnSpeedDegPerSec, "Turn Speed (deg/s)", 0.0f, 2000.0f, 1.0f)
+)
 
 PlayerRotation::PlayerRotation(GameObject* owner)
 	: Script(owner)

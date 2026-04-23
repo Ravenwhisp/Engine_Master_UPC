@@ -8,13 +8,10 @@
 
 #include <cmath>
 
-static const ScriptFieldInfo DeathBasicAttackFields[] =
-{
-    { "Attack Lock Duration",       ScriptFieldType::Float, offsetof(DeathBasicAttack, m_attackLockDuration),   { 0.05f, 2.0f, 0.05f } },
-    { "Final Hit Lock Duration",    ScriptFieldType::Float, offsetof(DeathBasicAttack, m_finalHitLockDuration), { 0.05f, 3.0f, 0.05f } },
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DeathBasicAttack, DeathBasicAttackFields)
+IMPLEMENT_SCRIPT_FIELDS(DeathBasicAttack,
+    SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.05f, 2.0f, 0.05f),
+    SERIALIZED_FLOAT(m_finalHitLockDuration, "Final Hit Lock Duration", 0.05f, 3.0f, 0.05f)
+)
 
 DeathBasicAttack::DeathBasicAttack(GameObject* owner)
     : DeathAbilityBase(owner)
