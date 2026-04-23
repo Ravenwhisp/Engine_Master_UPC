@@ -55,7 +55,11 @@ bool ModuleAssets::init()
 bool ModuleAssets::cleanUp()
 {
     m_assets.clear();
-    m_importers.clear();
+    for (auto it = m_importers.rbegin(); it != m_importers.rend(); ++it)
+    {
+        delete* it;
+    }
+
     return true;
 }
 
@@ -435,54 +439,8 @@ bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<Animati
 
     rapidjson::Document doc;
     doc.SetObject();
-    auto& alloc = doc.GetAllocator();
-
-    doc.AddMember("name", rapidjson::Value(asset->getName().c_str(), alloc), alloc);
-    doc.AddMember("defaultState", rapidjson::Value(asset->getDefaultStateName().c_str(), alloc), alloc);
-
-    {
-        rapidjson::Value clips(rapidjson::kArrayType);
-        for (const AnimationStateMachineClip& clip : asset->getClips())
-        {
-            rapidjson::Value clipJson(rapidjson::kObjectType);
-            clipJson.AddMember("name", rapidjson::Value(clip.name.c_str(), alloc), alloc);
-            clipJson.AddMember("animationUID", rapidjson::Value(clip.animationUID.c_str(), alloc), alloc);
-            clipJson.AddMember("loop", clip.loop, alloc);
-            clips.PushBack(clipJson, alloc);
-        }
-        doc.AddMember("clips", clips, alloc);
-    }
-
-    {
-        rapidjson::Value states(rapidjson::kArrayType);
-        for (const AnimationStateMachineState& state : asset->getStates())
-        {
-            rapidjson::Value stateJson(rapidjson::kObjectType);
-            stateJson.AddMember("name", rapidjson::Value(state.name.c_str(), alloc), alloc);
-            stateJson.AddMember("clipName", rapidjson::Value(state.clipName.c_str(), alloc), alloc);
-            stateJson.AddMember("speed", state.speed, alloc);
-            stateJson.AddMember("behaviourScriptName", rapidjson::Value(state.behaviourScriptName.c_str(), alloc), alloc);
-            stateJson.AddMember("behaviourFieldsJson", rapidjson::Value(state.behaviourFieldsJson.c_str(), alloc), alloc);
-            stateJson.AddMember("overrideLoop", state.overrideLoop, alloc);
-            stateJson.AddMember("loop", state.loop, alloc);
-            states.PushBack(stateJson, alloc);
-        }
-        doc.AddMember("states", states, alloc);
-    }
-
-    {
-        rapidjson::Value transitions(rapidjson::kArrayType);
-        for (const AnimationStateMachineTransition& transition : asset->getTransitions())
-        {
-            rapidjson::Value transitionJson(rapidjson::kObjectType);
-            transitionJson.AddMember("sourceStateName", rapidjson::Value(transition.sourceStateName.c_str(), alloc), alloc);
-            transitionJson.AddMember("targetStateName", rapidjson::Value(transition.targetStateName.c_str(), alloc), alloc);
-            transitionJson.AddMember("triggerName", rapidjson::Value(transition.triggerName.c_str(), alloc), alloc);
-            transitionJson.AddMember("blendTimeSeconds", transition.blendTimeSeconds, alloc);
-            transitions.PushBack(transitionJson, alloc);
-        }
-        doc.AddMember("transitions", transitions, alloc);
-    }
+    
+    asset->serialize(doc);
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);

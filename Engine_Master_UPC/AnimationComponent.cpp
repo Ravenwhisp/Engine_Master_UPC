@@ -1082,9 +1082,13 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
 bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
 {
     if (componentValue.HasMember("StateMachineUID") && componentValue["StateMachineUID"].IsString())
+    {
         m_stateMachineUID = componentValue["StateMachineUID"].GetString();
+    }
     else
+    {
         m_stateMachineUID = INVALID_ASSET_ID;
+    }
 
     if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
         m_playOnStart = componentValue["PlayOnStart"].GetBool();
@@ -1092,14 +1096,22 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
         m_playOnStart = true;
 
     if (componentValue.HasMember("ApplyScale") && componentValue["ApplyScale"].IsBool())
+    {
         m_applyScale = componentValue["ApplyScale"].GetBool();
+    }
     else
+    {
         m_applyScale = false;
+    }
 
     if (componentValue.HasMember("ForceWorldAfterApply") && componentValue["ForceWorldAfterApply"].IsBool())
+    {
         m_forceWorldAfterApply = componentValue["ForceWorldAfterApply"].GetBool();
+    }
     else
+    {
         m_forceWorldAfterApply = true;
+    }
 
     m_stateMachineAsset.reset();
     resetRuntime();
@@ -1128,22 +1140,30 @@ void AnimationComponent::setStateMachineUID(const MD5Hash& uid)
 bool AnimationComponent::SendTrigger(const std::string& triggerName)
 {
     if (triggerName.empty())
+    {
         return false;
+    }
 
     if (!ensureStateMachineLoaded())
+    {
         return false;
+    }
 
     if (m_activeStateName.empty())
     {
         if (!activateDefaultState(true, 0.0f))
+        {
             return false;
+        }
 
         m_hasStartedPlayback = true;
     }
 
     const AnimationStateMachineTransition* transition = findTransitionByTrigger(triggerName);
     if (!transition)
+    {
         return false;
+    }
 
     const bool ok = activateState(transition->targetStateName, true, transition->blendTimeSeconds);
     if (ok)
@@ -1172,7 +1192,9 @@ const std::string& AnimationComponent::getActiveStateName() const
 bool AnimationComponent::playState(const std::string& stateName, float transitionTimeSeconds)
 {
     if (stateName.empty())
+    {
         return false;
+    }
 
     const bool ok = activateState(stateName, true, transitionTimeSeconds);
     if (ok)

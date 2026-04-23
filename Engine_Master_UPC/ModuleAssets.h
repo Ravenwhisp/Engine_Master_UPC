@@ -85,8 +85,7 @@ public:
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
-    void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID,
-        uint8_t* binaryData, size_t binarySize);
+    void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID, uint8_t* binaryData, size_t binarySize);
 
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
     bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);

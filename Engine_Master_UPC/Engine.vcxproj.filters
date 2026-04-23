@@ -421,6 +421,7 @@
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="UISlider.cpp" />
+    <ClCompile Include="AnimationStateMachineAsset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />

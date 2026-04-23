@@ -47,6 +47,11 @@ public:
     {
     }
 
+#pragma region Persistence
+    bool serialize(rapidjson::Document& domTree);
+    bool desearialize(const rapidjson::Value& json);
+#pragma endregion
+
     const std::string& getName() const { return m_name; }
     const std::string& getDefaultStateName() const { return m_defaultStateName; }
 
