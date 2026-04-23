@@ -66,10 +66,10 @@ private:
 
     const std::filesystem::path*    m_currentFilePath = nullptr;
 
-    ImporterMesh&                   m_importerMesh;
-    ImporterMaterial&               m_importerMaterial;
-    ImporterPrefab&                 m_importerPrefab;
-    ImporterAnimation&              m_importerAnimation;
-    ImporterSkin&                   m_importerSkin;
-    ImporterAnimationStateMachine&  m_importerAnimationStateMachine;
+    ImporterMesh*                   m_importerMesh;
+    ImporterMaterial*               m_importerMaterial;
+    ImporterPrefab*                 m_importerPrefab;
+    ImporterAnimation*              m_importerAnimation;
+    ImporterSkin*                   m_importerSkin;
+    ImporterAnimationStateMachine*  m_importerAnimationStateMachine;
 };

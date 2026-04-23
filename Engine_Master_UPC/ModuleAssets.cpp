@@ -28,60 +28,45 @@
 #include <filesystem>
 #include <FileIO.h>
 
+ModuleAssets::~ModuleAssets() = default;
 
 bool ModuleAssets::init()
 {
     m_registry = std::make_unique<AssetRegistry>();
     m_importerRegistry = std::make_unique<ImporterRegistry>();
     
-    m_importerRegistry->registerImporter(std::make_unique<ImporterTexture>());
+	m_importerTexture = std::make_unique<ImporterTexture>();
+    m_importerRegistry->registerImporter(m_importerTexture.get());
 
-    {
-        auto mesh = std::make_unique<ImporterMesh>();
-        m_importerMesh = mesh.get();
-        m_importerRegistry->registerImporter(std::move(mesh));
-    }
-    {
-        auto mat = std::make_unique<ImporterMaterial>();
-        m_importerMaterial = mat.get();
-        m_importerRegistry->registerImporter(std::move(mat));
-    }
-    {
-        auto prefab = std::make_unique<ImporterPrefab>();
-        m_importerPrefab = prefab.get();
-        m_importerRegistry->registerImporter(std::move(prefab));
-    }
+    m_importerMesh = std::make_unique<ImporterMesh>();
+    m_importerRegistry->registerImporter(m_importerMesh.get());
+    
+    m_importerMaterial = std::make_unique<ImporterMaterial>();
+    m_importerRegistry->registerImporter(m_importerMaterial.get());
 
-    {
-        auto anim = std::make_unique<ImporterAnimation>();
-        m_importerAnimation = anim.get();
-        m_importerRegistry->registerImporter(std::move(anim));
-    }
+    m_importerPrefab = std::make_unique<ImporterPrefab>();
+    m_importerRegistry->registerImporter(m_importerPrefab.get());
+    
+    m_importerAnimation = std::make_unique<ImporterAnimation>();
+    m_importerRegistry->registerImporter(m_importerAnimation.get());
 
-    {
-        auto skin = std::make_unique<ImporterSkin>();
-        m_importerSkin = skin.get();
-        m_importerRegistry->registerImporter(std::move(skin));
-    }
+    m_importerSkin = std::make_unique<ImporterSkin>();
+    m_importerRegistry->registerImporter(m_importerSkin.get());
+    
+    m_importerAnimationStateMachine = std::make_unique<ImporterAnimationStateMachine>();
+    m_importerRegistry->registerImporter(m_importerAnimationStateMachine.get());
 
-    {
-        auto animStateMachine = std::make_unique<ImporterAnimationStateMachine>();
-        m_importerAnimationStateMachine = animStateMachine.get();
-        m_importerRegistry->registerImporter(std::move(animStateMachine));
-    }
+    m_importerGltf = std::make_unique<ImporterGltf>(
+        m_importerMesh.get(),
+        m_importerMaterial.get(),
+        m_importerPrefab.get(),
+        m_importerAnimation.get(),
+        m_importerSkin.get(),
+        m_importerAnimationStateMachine.get());
+	m_importerRegistry->registerImporter(m_importerGltf.get());
 
-    // GLTF importer holds references to the three importers above so it can
-    // delegate sub-asset serialisation without duplicating binary format logic.
-    m_importerRegistry->registerImporter(
-        std::make_unique<ImporterGltf>(
-            *m_importerMesh,
-            *m_importerMaterial,
-            *m_importerPrefab,
-            *m_importerAnimation,
-            *m_importerSkin,
-            *m_importerAnimationStateMachine));
-
-    m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
+	m_importerFont = std::make_unique<ImporterFont>();
+    m_importerRegistry->registerImporter(m_importerFont.get());
 
     m_scanner = std::make_unique<AssetScanner>(m_registry.get(), m_importerRegistry.get());
     m_contentRegistry = std::make_unique<ContentRegistry>(m_registry.get());

@@ -14,13 +14,17 @@
 #include <Metadata.h>
 
 class Asset;
-class AnimationStateMachineAsset;
+class ImporterTexture;
+class ImporterGltf;
 class ImporterMaterial;
 class ImporterMesh;
 class ImporterPrefab;
 class ImporterAnimation;
 class ImporterSkin;
 class ImporterAnimationStateMachine;
+class ImporterFont;
+class AnimationStateMachineAsset;
+class ImporterFont;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -28,6 +32,8 @@ struct FileEntry;
 class ModuleAssets : public Module
 {
 public:
+    ~ModuleAssets();
+
     bool init()    override;
     bool cleanUp() override;
     bool canImport(const std::filesystem::path& sourcePath) const;
@@ -99,12 +105,15 @@ private:
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
     WeakCache<MD5Hash, Asset>           m_assets;
 
-    ImporterMesh*       m_importerMesh = nullptr;
-    ImporterMaterial*   m_importerMaterial = nullptr;
-    ImporterPrefab*     m_importerPrefab = nullptr;
-    ImporterAnimation*  m_importerAnimation = nullptr;
-    ImporterSkin*       m_importerSkin = nullptr;
-    ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
+	std::unique_ptr<ImporterTexture>    m_importerTexture = nullptr;
+    std::unique_ptr<ImporterMesh>       m_importerMesh = nullptr;
+    std::unique_ptr<ImporterMaterial>   m_importerMaterial = nullptr;
+    std::unique_ptr<ImporterPrefab>     m_importerPrefab = nullptr;
+    std::unique_ptr<ImporterAnimation>  m_importerAnimation = nullptr;
+    std::unique_ptr<ImporterSkin>       m_importerSkin = nullptr;
+    std::unique_ptr<ImporterGltf>       m_importerGltf = nullptr;
+	std::unique_ptr<ImporterFont>       m_importerFont = nullptr;
+    std::unique_ptr<ImporterAnimationStateMachine> m_importerAnimationStateMachine = nullptr;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
 };
