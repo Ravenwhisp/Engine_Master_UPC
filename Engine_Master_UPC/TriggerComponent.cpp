@@ -270,6 +270,7 @@ std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
     clonedComponent->m_center = m_center;
     clonedComponent->m_size = m_size;
     clonedComponent->m_debugDrawMode = m_debugDrawMode;
+    clonedComponent->setActive(isActive());
     clonedComponent->m_boundsDirty = true;
 
     return clonedComponent;
