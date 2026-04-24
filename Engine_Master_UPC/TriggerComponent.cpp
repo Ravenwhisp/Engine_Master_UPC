@@ -4,11 +4,26 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+#include "Application.h"
+#include "ModuleTrigger.h"
+
 #include <array>
 
 TriggerComponent::TriggerComponent(UID id, GameObject* gameObject)
     : Component(id, ComponentType::TRIGGER, gameObject)
 {
+}
+
+bool TriggerComponent::init()
+{
+    app->getModuleTrigger()->registerTrigger(this);
+    return true;
+}
+
+bool TriggerComponent::cleanUp()
+{
+    app->getModuleTrigger()->unregisterTrigger(this);
+    return true;
 }
 
 void TriggerComponent::drawUi()
