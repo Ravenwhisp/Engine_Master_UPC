@@ -427,6 +427,9 @@
     <ClCompile Include="TriggerComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleTrigger.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1062,6 +1065,9 @@
     </ClInclude>
     <ClInclude Include="TriggerDebugDrawMode.h">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleTrigger.h">
+      <Filter>GameEntity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
