@@ -14,11 +14,15 @@ void ModuleTrigger::update()
     }
 
     detectOverlaps();
+    processOverlapChanges();
 }
 
 bool ModuleTrigger::cleanUp()
 {
     m_triggers.clear();
+    m_previousOverlaps.clear();
+    m_currentOverlaps.clear();
+
     return true;
 }
 
@@ -53,13 +57,19 @@ void ModuleTrigger::unregisterTrigger(TriggerComponent* trigger)
         return;
     }
 
+    const UID triggerId = trigger->getID();
+
     m_triggers.erase(it);
+    removeOverlaps(triggerId);
 
     DEBUG_LOG( "[ModuleTrigger] Unregistered trigger %llu", static_cast<unsigned long long>(trigger->getID()));
 }
 
 void ModuleTrigger::detectOverlaps()
 {
+    m_previousOverlaps = m_currentOverlaps;
+    m_currentOverlaps.clear();
+
     for (size_t i = 0; i < m_triggers.size(); ++i)
     {
         TriggerComponent* triggerA = m_triggers[i];
@@ -85,10 +95,41 @@ void ModuleTrigger::detectOverlaps()
 
             if (intersectsAABB(triggerA, triggerB))
             {
-                DEBUG_LOG("[ModuleTrigger] Overlap");
+                m_currentOverlaps.push_back(TriggerOverlap(triggerA->getID(), triggerB->getID()));
             }
         }
     }
+}
+
+void ModuleTrigger::processOverlapChanges()
+{
+    for (const TriggerOverlap& overlap : m_currentOverlaps)
+    {
+        if (!containsOverlap(m_previousOverlaps, overlap))
+        {
+            DEBUG_LOG("[ModuleTrigger] Trigger Enter");
+        }
+    }
+
+    for (const TriggerOverlap& overlap : m_previousOverlaps)
+    {
+        if (!containsOverlap(m_currentOverlaps, overlap))
+        {
+            DEBUG_LOG("[ModuleTrigger] Trigger Exit");
+        }
+    }
+}
+
+void ModuleTrigger::removeOverlaps(UID triggerId)
+{
+    auto removeOverlap = [triggerId](const TriggerOverlap& overlap)
+        {
+            return overlap.a == triggerId || overlap.b == triggerId;
+        };
+
+    m_previousOverlaps.erase(std::remove_if(m_previousOverlaps.begin(), m_previousOverlaps.end(), removeOverlap), m_previousOverlaps.end());
+
+    m_currentOverlaps.erase(std::remove_if(m_currentOverlaps.begin(), m_currentOverlaps.end(), removeOverlap), m_currentOverlaps.end());
 }
 
 bool ModuleTrigger::isTriggerRegistered(TriggerComponent* trigger) const
@@ -129,4 +170,9 @@ bool ModuleTrigger::intersectsAABB(TriggerComponent* a, TriggerComponent* b)
     const bool overlapsZ = aMin.z <= bMax.z && aMax.z >= bMin.z;
 
     return overlapsX && overlapsY && overlapsZ;
+}
+
+bool ModuleTrigger::containsOverlap(const std::vector<TriggerOverlap>& overlaps, const TriggerOverlap& overlap) const
+{
+    return std::find(overlaps.begin(), overlaps.end(), overlap) != overlaps.end();
 }
