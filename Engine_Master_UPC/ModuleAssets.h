@@ -7,10 +7,12 @@
 
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
+#include "FileDialogRequest.h"
 
 #include <filesystem>
 #include <memory>
 #include <Metadata.h>
+#include <mutex>
 
 class Asset;
 class Importer;
@@ -93,6 +95,15 @@ public:
     Importer* findImporter(AssetType type)                        const;
 #pragma endregion
 
+#pragma region FileDialog
+    void requestSave(const ISerializable& obj);
+    void requestOpen(AssetType type, std::function<void(const std::filesystem::path&)> onConfirm);
+
+    void flushDialogRequests();
+    bool isDialogOpen() const { return m_dialogRunning.load(); }
+
+#pragma endregion
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
@@ -119,4 +130,12 @@ private:
     std::vector<Importer*>              m_importers;
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
+
+    std::atomic<bool>                    m_dialogRunning{ false };
+    std::mutex                           m_dialogResultMutex;
+    std::optional<std::filesystem::path> m_dialogResult;
+    std::function<void(const std::filesystem::path&)> m_dialogCallback;
+    const ISerializable* m_pendingSerializable = nullptr;
+    AssetType                            m_pendingAssetType = AssetType::UNKNOWN;
+    bool                                 m_pendingIsSave = false;
 };

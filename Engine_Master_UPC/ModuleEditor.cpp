@@ -25,6 +25,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleGameView.h"
+#include "ModuleAssets.h"
 #include "Mouse.h"
 
 #include <fstream>
@@ -206,6 +207,11 @@ void ModuleEditor::render()
     }
 
     ImGui::EndFrame();
+}
+
+void ModuleEditor::postRender()
+{
+    app->getModuleAssets()->flushDialogRequests();
 }
 
 bool ModuleEditor::cleanUp()

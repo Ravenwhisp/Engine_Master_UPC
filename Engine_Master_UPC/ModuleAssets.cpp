@@ -29,6 +29,7 @@
 #include <FileIO.h>
 #include <AssetDialogFilter.h>
 #include <FileDialog.h>
+#include "FileDialogRequest.h"
 
 ModuleAssets::~ModuleAssets() = default;
 
@@ -205,8 +206,7 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
     return asset;
 }
 
-bool ModuleAssets::save(const ISerializable& obj,
-    const std::filesystem::path& path)
+bool ModuleAssets::save(const ISerializable& obj, const std::filesystem::path& path)
 {
     std::filesystem::path targetPath = path;
 
@@ -340,7 +340,116 @@ Importer* ModuleAssets::findImporter(AssetType type) const
     }
     return nullptr;
 }
+
 #pragma endregion
+
+void ModuleAssets::requestSave(const ISerializable& obj)
+{
+    if (m_dialogRunning.load())
+        return;   // one dialog at a time
+
+    m_pendingSerializable = &obj;
+    m_pendingAssetType = obj.getAssetType();
+    m_pendingIsSave = true;
+    m_dialogCallback = nullptr;
+
+    // Clear any previous result
+    {
+        std::lock_guard lock(m_dialogResultMutex);
+        m_dialogResult.reset();
+    }
+
+    m_dialogRunning.store(true);
+
+    // Spin up a worker — main thread is free to keep rendering
+    std::thread([this]()
+        {
+            const AssetDialogFilter filter = getDialogFilter(m_pendingAssetType);
+
+            std::optional<std::filesystem::path> result =
+                saveAs(filter.filterSpec,
+                    filter.defaultExtension,
+                    "Save Asset", ASSETS_FOLDER);
+
+            // Hand result back to the main thread safely
+            {
+                std::lock_guard lock(m_dialogResultMutex);
+                m_dialogResult = std::move(result);
+            }
+
+            m_dialogRunning.store(false);
+
+        }).detach();
+}
+
+void ModuleAssets::requestOpen(AssetType type,
+    std::function<void(const std::filesystem::path&)> onConfirm)
+{
+    if (m_dialogRunning.load())
+        return;
+
+    m_pendingSerializable = nullptr;
+    m_pendingAssetType = type;
+    m_pendingIsSave = false;
+    m_dialogCallback = std::move(onConfirm);
+
+    {
+        std::lock_guard lock(m_dialogResultMutex);
+        m_dialogResult.reset();
+    }
+
+    m_dialogRunning.store(true);
+
+    std::thread([this]()
+        {
+            const AssetDialogFilter filter = getDialogFilter(m_pendingAssetType);
+
+            std::optional<std::filesystem::path> result = open(filter.filterSpec, "Open Asset", ASSETS_FOLDER);
+
+            {
+                std::lock_guard lock(m_dialogResultMutex);
+                m_dialogResult = std::move(result);
+            }
+
+            m_dialogRunning.store(false);
+
+        }).detach();
+}
+
+void ModuleAssets::flushDialogRequests()
+{
+    // Still running — nothing to flush yet
+    if (m_dialogRunning.load())
+        return;
+
+    std::optional<std::filesystem::path> result;
+    {
+        std::lock_guard lock(m_dialogResultMutex);
+        if (!m_dialogResult.has_value())
+            return;   // no pending result at all (dialog not yet requested)
+
+        result = std::move(m_dialogResult);
+        m_dialogResult.reset();
+    }
+
+    if (!result.has_value())
+    {
+        m_pendingSerializable = nullptr;
+        return;
+    }
+
+    if (m_pendingIsSave && m_pendingSerializable)
+    {
+        save(*m_pendingSerializable , *result);
+        m_pendingSerializable = nullptr;
+    }
+    else if (!m_pendingIsSave && m_dialogCallback)
+    {
+        m_dialogCallback(*result);
+        m_dialogCallback = nullptr;
+    }
+}
+
 
 
 void ModuleAssets::flushDependencies(const MD5Hash& parentUID,

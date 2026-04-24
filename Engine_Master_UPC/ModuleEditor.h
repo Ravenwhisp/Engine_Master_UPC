@@ -58,6 +58,7 @@ public:
     bool init()    override;
     void update()  override;
     void render()  override;
+    void postRender() override;
     bool cleanUp() override;
 
 #pragma endregion

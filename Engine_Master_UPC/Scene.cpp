@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "Scene.h"
+#include "SceneSerializer.h"
 #include "Application.h"
 #include "Settings.h"
 #include "ModuleRender.h"
@@ -92,7 +93,11 @@ bool Scene::cleanUp()
 
 bool Scene::toJson(rapidjson::Document& domTree) const
 {
-    return false;
+    rapidjson::Value sceneValue = SceneSerializer::getJSON(domTree, this);
+
+    domTree.Swap(sceneValue);
+
+    return true;
 }
 
 bool Scene::fromJson(const rapidjson::Value& json)

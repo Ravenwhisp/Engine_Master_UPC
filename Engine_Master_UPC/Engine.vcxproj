@@ -313,6 +313,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FileDialogClipboard.h" />
+    <ClInclude Include="FileDialogRequest.h" />
     <ClInclude Include="FontAsset.h" />
     <ClInclude Include="Handle.h" />
     <ClInclude Include="HierarchyTreeRenderer.h" />
@@ -618,6 +619,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AnimationController.cpp" />
     <ClCompile Include="AnimationStateMachineAsset.cpp" />
+    <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
     <ClCompile Include="CommandAddGameObject.cpp" />
     <ClCompile Include="Application.cpp" />
@@ -634,6 +636,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />

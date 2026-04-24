@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
+#include "ModuleAssets.h"
 
 #include "Scene.h"
 #include "Quadtree.h"
@@ -174,7 +175,8 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
 #pragma region Persistence
 void ModuleScene::saveScene()
 {
-    m_sceneSerializer->SaveScene(m_scene.get());
+    app->getModuleAssets()->requestSave(*m_scene.get());
+    //m_sceneSerializer->SaveScene(m_scene.get());
 }
 
 bool ModuleScene::loadScene(const std::string& sceneName)

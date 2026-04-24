@@ -49,13 +49,14 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
     std::filesystem::path metadataPath = path;
     metadataPath += METADATA_EXTENSION;
     if (!FileIO::exists(metadataPath))
+    {
         handleMissingMetadata(path);
+    }
 }
 
 void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
 {
-    const std::filesystem::path sourcePath =
-        metadataPath.parent_path() / metadataPath.stem();
+    const std::filesystem::path sourcePath = metadataPath.parent_path() / metadataPath.stem();
 
     if (!FileIO::exists(sourcePath))
     {
@@ -97,10 +98,18 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
             // sub-assets are missing.
             bool alreadyQueued = false;
             for (const auto& req : m_pendingImports)
-                if (req.existingUID == meta.uid) { alreadyQueued = true; break; }
+            {
+                if (req.existingUID == meta.uid) 
+                { 
+                    alreadyQueued = true; 
+                    break; 
+                }
+            }
 
             if (!alreadyQueued)
+            {
                 m_pendingImports.push_back({ sourcePath, meta.uid });
+            }
         }
     }
 
@@ -109,10 +118,18 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     {
         bool alreadyQueued = false;
         for (const auto& req : m_pendingImports)
-            if (req.existingUID == meta.uid) { alreadyQueued = true; break; }
+        {
+            if (req.existingUID == meta.uid) 
+            { 
+                alreadyQueued = true; 
+                break; 
+            }
+        }
 
         if (!alreadyQueued)
+        {
             m_pendingImports.push_back({ sourcePath, meta.uid });
+        }
     }
 }
 
@@ -153,8 +170,7 @@ void AssetScanner::cleanOrphanedBinaries()
         if (m_registry->contains(uid))
             continue;   // known — either a top-level asset or a registered sub-asset
 
-        DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata).",
-            entry.path().string().c_str());
+        DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata).",entry.path().string().c_str());
         FileIO::remove(entry.path());
     }
 }
