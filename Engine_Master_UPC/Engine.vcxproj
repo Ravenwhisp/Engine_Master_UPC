@@ -372,6 +372,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SpriteVertex.h" />
     <ClInclude Include="StateMachineScript.h" />
     <ClInclude Include="TextureImage.h" />
+    <ClInclude Include="TriggerComponent.h" />
+    <ClInclude Include="TriggerShape.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
@@ -660,6 +662,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneReferenceResolver.cpp" />
     <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="StaticTexturesPass.cpp" />
+    <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="SpriteRendererPass.cpp" />
