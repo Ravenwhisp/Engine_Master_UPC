@@ -179,7 +179,9 @@ bool ModuleAssets::save(const Asset& asset, const std::filesystem::path& path)
     {
         const Metadata* meta = m_registry->getMetadata(asset.getId());
         if (meta && !meta->sourcePath.empty())
+        {
             targetPath = meta->sourcePath;
+        }
     }
 
     if (targetPath.empty())

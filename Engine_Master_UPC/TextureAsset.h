@@ -30,4 +30,24 @@ private:
 	mutable std::vector<TextureImage> images = {};
 
 	DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(
+			cereal::base_class<Asset>(this),
+			width,
+			height,
+			mipCount,
+			arraySize,
+			imageCount,
+			images,
+			format_as_uint()
+		);
+	}
+
+	uint32_t& format_as_uint()
+	{
+		return reinterpret_cast<uint32_t&>(format);
+	}
 };

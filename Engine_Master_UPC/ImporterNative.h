@@ -1,19 +1,6 @@
 ﻿#pragma once
 #include "Importer.h"
 
-// Companion to SourceImporter<> for importers where the source file maps
-// directly to the engine asset — no intermediate parsing step required.
-//
-// The template handles all Asset* ↔ AssetFmt* casts so subclasses work
-// with concrete types throughout:
-//
-//   importDirect(path, AssetFmt*)   — read the source file into the asset
-//   saveTyped   (const AssetFmt*)   — serialize to binary cache
-//   loadTyped   (buffer, AssetFmt*) — deserialize from binary cache
-//
-// Example use cases: .material, .scene, any engine-native format that can
-// be read in a single pass without an intermediate representation.
-//
 template<typename AssetFormat, AssetType TType>
 class ImporterNative : public Importer
 {
