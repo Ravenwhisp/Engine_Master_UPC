@@ -16,7 +16,11 @@ public:
     void unregisterTrigger(TriggerComponent* trigger);
 
 private:
+    void detectOverlaps();
+
     bool isTriggerRegistered(TriggerComponent* trigger) const;
+    bool isValidTrigger(TriggerComponent* trigger) const;
+    bool intersectsAABB(TriggerComponent* a, TriggerComponent* b);
 
 private:
     std::vector<TriggerComponent*> m_triggers;

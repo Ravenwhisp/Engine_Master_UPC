@@ -11,6 +11,9 @@ public:
     TriggerComponent(UID id, GameObject* gameObject);
     ~TriggerComponent() override = default;
 
+    bool init() override;
+    bool cleanUp() override;
+
     void drawUi() override;
     void debugDraw() override;
 
