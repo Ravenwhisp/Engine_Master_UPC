@@ -175,7 +175,7 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
 #pragma region Persistence
 void ModuleScene::saveScene()
 {
-    app->getModuleAssets()->requestSave(*m_scene.get());
+    app->getModuleAssets()->save(*m_scene.get());
     //m_sceneSerializer->SaveScene(m_scene.get());
 }
 

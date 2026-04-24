@@ -14,6 +14,11 @@ bool ImporterMesh::importNative(const std::filesystem::path& path, MeshAsset* ds
 	return false;
 }
 
+bool ImporterMesh::saveNative(const std::filesystem::path& path, const MeshAsset* src)
+{
+    return false;
+}
+
 static uint64_t submeshSerialSize(const Submesh& sm)
 {
     return sizeof(uint32_t)                           // indexStart

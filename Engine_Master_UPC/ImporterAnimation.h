@@ -16,10 +16,8 @@ public:
     }
 
 protected:
-    bool importNative(const std::filesystem::path&, AnimationAsset*) override
-    {
-        return false;
-    }
+    bool importNative(const std::filesystem::path&, AnimationAsset*) override;
+    bool saveNative(const std::filesystem::path&, const AnimationAsset*) override;
 
     uint64_t saveTyped(const AnimationAsset* source, uint8_t** outBuffer) override;
     void loadTyped(const uint8_t* buffer, AnimationAsset* dst) override;

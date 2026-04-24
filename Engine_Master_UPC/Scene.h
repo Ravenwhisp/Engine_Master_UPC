@@ -1,5 +1,5 @@
 #pragma once
-#include "ISerializable.h"
+#include "Asset.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -15,7 +15,7 @@ class GameObject;
 class CameraComponent;
 class MeshRenderer;
 
-class Scene: public ISerializable
+class Scene: public Asset
 {
     friend class SceneSnapshot;
 private:
@@ -59,6 +59,7 @@ public:
     friend class ModuleScene;
 
     Scene();
+    Scene(MD5Hash id);
     ~Scene();
 
 #pragma region GameLoop
@@ -67,12 +68,6 @@ public:
     void update();
     bool cleanUp();
 
-#pragma endregion
-
-#pragma region Persistence
-    bool toJson(rapidjson::Document& domTree) const override;
-    bool fromJson(const rapidjson::Value& json) override;
-    AssetType getAssetType() const override { return AssetType::SCENE; }
 #pragma endregion
 
     const char* getName() const { return m_name.c_str(); }

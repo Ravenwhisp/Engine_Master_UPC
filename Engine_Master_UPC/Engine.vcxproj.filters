@@ -421,10 +421,14 @@
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="UISlider.cpp" />
-    <ClCompile Include="AnimationStateMachineAsset.cpp" />
-    <ClCompile Include="Metadata.cpp" />
     <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="FileDialog.cpp" />
+    <ClCompile Include="Metadata.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterScene.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1046,9 +1050,6 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
-    <ClInclude Include="ISerializable.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="FileDialog.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
@@ -1057,6 +1058,9 @@
     </ClInclude>
     <ClInclude Include="FileDialogRequest.h">
       <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterScene.h">
+      <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

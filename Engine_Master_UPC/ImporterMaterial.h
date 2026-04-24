@@ -14,7 +14,8 @@ public:
 
     Asset* createAssetInstance(const MD5Hash& uid) const override;
 protected:
-    bool     importNative(const std::filesystem::path& path, MaterialAsset* dst) override;
-    uint64_t saveTyped(const MaterialAsset* source, uint8_t** outBuffer)      override;
-    void     loadTyped(const uint8_t* buffer, MaterialAsset* dst)       override;
+    bool     importNative(const std::filesystem::path& path, MaterialAsset* dst)      override;
+    bool     saveNative(const std::filesystem::path& path, const MaterialAsset* src)  override;
+    uint64_t saveTyped(const MaterialAsset* source, uint8_t** outBuffer)              override;
+    void     loadTyped(const uint8_t* buffer, MaterialAsset* dst)                     override;
 };

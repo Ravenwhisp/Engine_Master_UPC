@@ -1,5 +1,4 @@
 #pragma once
-#include "ISerializable.h"
 
 #include "MD5Fwd.h"
 #include "AssetType.h"
@@ -12,7 +11,7 @@ struct DependencyRecord
 	AssetType type = AssetType::UNKNOWN;
 };
 
-class Metadata: public ISerializable
+class Metadata
 {
 public:
 	MD5Hash uid = INVALID_ASSET_ID;
@@ -23,12 +22,11 @@ public:
 	bool m_isSubAsset = false;
 
 #pragma region Persistence
-	bool toJson(rapidjson::Document& doc) const override;
-	bool fromJson(const rapidjson::Value& json) override;
-	AssetType getAssetType() const override { return type; }
+	bool toJson(rapidjson::Document& doc) const ;
+	bool fromJson(const rapidjson::Value& json);
 #pragma endregion
 
-	std::filesystem::path getSourcePath(std::filesystem::path& metadataPath) const
+	static std::filesystem::path getSourcePath(std::filesystem::path& metadataPath)
 	{
 		return metadataPath.parent_path() / metadataPath.stem();
 	}
@@ -38,9 +36,9 @@ public:
 		return std::filesystem::path(LIBRARY_FOLDER) / uid += ASSET_EXTENSION;
 	}
 
-	static void getMetadataPath(std::filesystem::path& assetPath)
+	static std::filesystem::path toMetadataPath(std::filesystem::path assetPath)
 	{
-		assetPath += METADATA_EXTENSION;
+		return assetPath += METADATA_EXTENSION;
 	}
 
 

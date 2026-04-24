@@ -1,6 +1,5 @@
 #pragma once
 #include "AssetType.h"
-#include "ISerializable.h"
 #include <filesystem>
 #include <functional>
 

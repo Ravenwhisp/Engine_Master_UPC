@@ -15,5 +15,5 @@ enum class AssetType : uint32_t
 	METADATA = 9,
 	SCENE = 10,
 
-	UNKNOWN = 9
+	UNKNOWN = 0xFFFFFFFF
 };

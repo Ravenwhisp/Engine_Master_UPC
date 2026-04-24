@@ -49,6 +49,11 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset
     return true;
 }
 
+bool ImporterPrefab::saveNative(const std::filesystem::path& path, const PrefabAsset* src)
+{
+    return false;
+}
+
 uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
 {
     const PrefabData& data = src->getData();

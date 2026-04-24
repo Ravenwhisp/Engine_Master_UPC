@@ -639,7 +639,6 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 		return cached;
 	}
 
-
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace, shaderVisible));
 	m_resources.insert(uid, texture);
 	return texture;

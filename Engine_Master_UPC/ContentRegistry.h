@@ -45,11 +45,11 @@ public:
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&)   const;
 
 private:
-    std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path)             const;
-    std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path)   const;
-    std::shared_ptr<FileEntry> buildAssetEntry(const std::filesystem::path& metaPath)   const;
+    std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path) const;
+    std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path) const;
+    std::shared_ptr<FileEntry> buildAssetEntry(const std::filesystem::path& metaPath) const;
 
-    std::shared_ptr<FileEntry> getEntryRecursive( const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
+    std::shared_ptr<FileEntry> getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
 
     AssetRegistry* m_registry{ nullptr };
 

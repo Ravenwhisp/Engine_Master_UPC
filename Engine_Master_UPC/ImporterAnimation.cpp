@@ -9,6 +9,16 @@ static uint64_t strSerialSize(const std::string& s)
     return sizeof(uint32_t) + s.size();
 }
 
+bool ImporterAnimation::importNative(const std::filesystem::path&, AnimationAsset*)
+{
+    return false;
+}
+
+bool ImporterAnimation::saveNative(const std::filesystem::path&, const AnimationAsset*)
+{
+    return false;
+}
+
 uint64_t ImporterAnimation::saveTyped(const AnimationAsset* a, uint8_t** outBuffer)
 {
     uint64_t size = 0;

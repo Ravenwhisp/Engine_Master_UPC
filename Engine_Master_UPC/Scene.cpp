@@ -21,6 +21,10 @@
 #include <algorithm>
 
 Scene::Scene() = default;
+Scene::Scene(MD5Hash id) : Asset(id, AssetType::SCENE)
+{
+
+}
 Scene::~Scene() = default;
 
 #pragma region GameLoop
@@ -89,20 +93,6 @@ bool Scene::cleanUp()
 {
     clearScene();
     return true;
-}
-
-bool Scene::toJson(rapidjson::Document& domTree) const
-{
-    rapidjson::Value sceneValue = SceneSerializer::getJSON(domTree, this);
-
-    domTree.Swap(sceneValue);
-
-    return true;
-}
-
-bool Scene::fromJson(const rapidjson::Value& json)
-{
-    return false;
 }
 
 #pragma endregion

@@ -1,4 +1,4 @@
-#include "Globals.h"
+ï»¿#include "Globals.h"
 #include "ModuleAssets.h"
 
 #include "Application.h"
@@ -86,7 +86,6 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
         uid = computeMD5(sourcePath);
     }
 
-    // Scoped to this function — not cached, not shared.
     std::unique_ptr<Asset> asset(importer->createAssetInstance(uid));
 
     if (!importer->import(sourcePath, asset.get()))
@@ -96,44 +95,10 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
         return;
     }
 
-    // Write the .metadata sidecar alongside the source file.
-    Metadata meta;
-    meta.uid = uid;
-    meta.type = asset->getAssetType();
-    meta.sourcePath = sourcePath;
-    
-    auto it = m_pendingDependencies.find(uid);
-    if (it != m_pendingDependencies.end()) {
-        meta.m_dependencies = std::move(it->second);
-        m_pendingDependencies.erase(it);
-    }
-
-    std::filesystem::path metaPath = sourcePath;
-    metaPath += METADATA_EXTENSION;
-
-    if (!save(meta, metaPath))
+    if (!persistAsset(asset.get(), importer, uid, sourcePath))
     {
-        DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
         uid = INVALID_ASSET_ID;
-        return;
     }
-
-    m_registry->registerAsset(meta);
-
-    // Serialise the processed binary into the library folder.
-    uint8_t* rawBuffer = nullptr;
-    const uint64_t size = importer->save(asset.get(), &rawBuffer);
-    std::unique_ptr<uint8_t[]> buffer(rawBuffer);
-
-    if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
-    {
-        DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
-        m_registry->remove(uid);
-        uid = INVALID_ASSET_ID;
-        return;
-    }
-
-    return;
 }
 
 void ModuleAssets::refresh()
@@ -206,95 +171,99 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
     return asset;
 }
 
-bool ModuleAssets::save(const ISerializable& obj, const std::filesystem::path& path)
+bool ModuleAssets::save(const Asset& asset, const std::filesystem::path& path)
 {
     std::filesystem::path targetPath = path;
 
     if (targetPath.empty())
     {
-        const AssetDialogFilter filter = getDialogFilter(obj.getAssetType());
+        const Metadata* meta = m_registry->getMetadata(asset.getId());
+        if (meta && !meta->sourcePath.empty())
+            targetPath = meta->sourcePath;
+    }
 
-        auto chosen = saveAs(filter.filterSpec, filter.defaultExtension, "Save Asset", ASSETS_FOLDER);
+    if (targetPath.empty())
+    {
+        requestSave(asset);
+        return false;
+    }
 
-        if (!chosen)
+    Importer* importer = findImporter(asset.getType());
+    if (!importer)
+    {
+        DEBUG_ERROR("[ModuleAssets] No importer for type %u.", static_cast<unsigned>(asset.getType()));
+        return false;
+    }
+
+    // Write source file â€” only native importers support this.
+    if (importer->canSaveToSource())
+    {
+        if (!importer->saveToSource(targetPath, &asset))
         {
+            DEBUG_ERROR("[ModuleAssets] saveToSource failed for '%s'.", targetPath.string().c_str());
             return false;
         }
-
-        targetPath = std::move(*chosen);
     }
 
-    rapidjson::Document doc;
-    doc.SetObject();
-
-    if (!obj.toJson(doc))
-    {
-        DEBUG_ERROR("[ModuleAssets] toJson() failed for '%s'.", targetPath.string().c_str());
-        return false;
-    }
-
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    std::ofstream file(targetPath);
-    if (!file.is_open())
-    {
-        DEBUG_ERROR("[ModuleAssets] Could not open '%s' for writing.", targetPath.string().c_str());
-        return false;
-    }
-
-    file << buffer.GetString();
-    if (!file)
-    {
-        DEBUG_ERROR("[ModuleAssets] Write failed for '%s'.", targetPath.string().c_str());
-        return false;
-    }
-
-    return true;
+    const MD5Hash uid = isValidAsset(asset.getId()) ? asset.getId() : computeMD5(targetPath);
+    return persistAsset(&asset, importer, uid, targetPath);
 }
 
-bool ModuleAssets::load(const std::filesystem::path& path, ISerializable& obj)
+bool ModuleAssets::writeMetadata(const Metadata& meta, const std::filesystem::path& metaPath)
+{
+    rapidjson::Document doc;
+    doc.SetObject();
+    if (!meta.toJson(doc))
+    {
+        DEBUG_ERROR("[ModuleAssets] Metadata::toJson failed for '%s'.", metaPath.string().c_str());
+        return false;
+    }
+
+    rapidjson::StringBuffer buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+    doc.Accept(writer);
+
+    std::ofstream file(metaPath);
+    if (!file.is_open())
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot open '%s' for writing.", metaPath.string().c_str());
+        return false;
+    }
+    file << buf.GetString();
+    return file.good();
+}
+
+bool ModuleAssets::loadMetadata(const std::filesystem::path& path, Metadata& out)
 {
     const std::string pathStr = path.string();
     FILE* fp = std::fopen(pathStr.c_str(), "rb");
     if (!fp)
     {
-        DEBUG_ERROR("[JsonFile] Could not open '%s'.", pathStr.c_str());
+        DEBUG_ERROR("[ModuleAssets] Could not open '%s'.", pathStr.c_str());
         return false;
     }
 
     char readBuffer[65536];
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
     rapidjson::Document doc;
     doc.ParseStream(is);
     std::fclose(fp);
 
     if (doc.HasParseError())
     {
-        DEBUG_ERROR("[JsonFile] JSON parse error in '%s'.", pathStr.c_str());
+        DEBUG_ERROR("[ModuleAssets] JSON parse error in '%s'.", pathStr.c_str());
         return false;
     }
 
-    if (!obj.fromJson(doc))
-    {
-        DEBUG_ERROR("[JsonFile] fromJson() failed for '%s'.", pathStr.c_str());
-        return false;
-    }
-
-    return true;
+    return out.fromJson(doc);
 }
 
-
-void ModuleAssets::registerSubAsset(const Metadata& meta,
-    const MD5Hash& parentUID,
-    uint8_t* binaryData, size_t binarySize)
+void ModuleAssets::registerSubAsset(const Metadata& meta, const MD5Hash& parentUID, uint8_t* binaryData, size_t binarySize)
 {
     Metadata subMeta = meta;
     subMeta.m_isSubAsset = true;
 
-    // Write the binary to Library/ — caller still owns the buffer.
+    // Write the binary to Library/ â€” caller still owns the buffer.
     if (binaryData && binarySize > 0)
     {
         if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
@@ -343,139 +312,100 @@ Importer* ModuleAssets::findImporter(AssetType type) const
 
 #pragma endregion
 
-void ModuleAssets::requestSave(const ISerializable& obj)
+bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
+    const MD5Hash& uid, const std::filesystem::path& sourcePath)
 {
-    if (m_dialogRunning.load())
-        return;   // one dialog at a time
+    Metadata meta;
+    const Metadata* existing = m_registry->getMetadata(uid);
+    if (existing)
+    {
+        meta = *existing;
+    }
+    else
+    {
+        meta.uid = uid;
+        meta.type = asset->getType();
+        meta.sourcePath = sourcePath;
+    }
 
-    m_pendingSerializable = &obj;
-    m_pendingAssetType = obj.getAssetType();
+    auto it = m_pendingDependencies.find(uid);
+    if (it != m_pendingDependencies.end())
+    {
+        meta.m_dependencies = std::move(it->second);
+        m_pendingDependencies.erase(it);
+    }
+
+    const std::filesystem::path metaPath = Metadata::toMetadataPath(sourcePath);
+    if (!writeMetadata(meta, metaPath))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
+        return false;
+    }
+
+    m_registry->registerAsset(meta);
+
+    uint8_t* rawBuffer = nullptr;
+    const uint64_t size = importer->save(asset, &rawBuffer);
+    std::unique_ptr<uint8_t[]> buffer(rawBuffer);
+
+    if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
+        m_registry->remove(uid);
+        return false;
+    }
+
+    return true;
+}
+
+void ModuleAssets::requestSave(const Asset& asset)
+{
+    if (m_dialogRunning.load()) return;
+
+    m_pendingAsset = &asset;
+    m_pendingAssetType = asset.getType();
     m_pendingIsSave = true;
     m_dialogCallback = nullptr;
 
-    // Clear any previous result
-    {
-        std::lock_guard lock(m_dialogResultMutex);
-        m_dialogResult.reset();
-    }
-
-    m_dialogRunning.store(true);
-
-    // Spin up a worker — main thread is free to keep rendering
-    std::thread([this]()
-        {
-            const AssetDialogFilter filter = getDialogFilter(m_pendingAssetType);
-
-            std::optional<std::filesystem::path> result =
-                saveAs(filter.filterSpec,
-                    filter.defaultExtension,
-                    "Save Asset", ASSETS_FOLDER);
-
-            // Hand result back to the main thread safely
-            {
-                std::lock_guard lock(m_dialogResultMutex);
-                m_dialogResult = std::move(result);
-            }
-
-            m_dialogRunning.store(false);
-
-        }).detach();
-}
-
-void ModuleAssets::requestOpen(AssetType type,
-    std::function<void(const std::filesystem::path&)> onConfirm)
-{
-    if (m_dialogRunning.load())
-        return;
-
-    m_pendingSerializable = nullptr;
-    m_pendingAssetType = type;
-    m_pendingIsSave = false;
-    m_dialogCallback = std::move(onConfirm);
-
-    {
-        std::lock_guard lock(m_dialogResultMutex);
-        m_dialogResult.reset();
-    }
-
+    { std::lock_guard lock(m_dialogResultMutex); m_dialogResult.reset(); }
     m_dialogRunning.store(true);
 
     std::thread([this]()
         {
             const AssetDialogFilter filter = getDialogFilter(m_pendingAssetType);
-
-            std::optional<std::filesystem::path> result = open(filter.filterSpec, "Open Asset", ASSETS_FOLDER);
-
-            {
-                std::lock_guard lock(m_dialogResultMutex);
-                m_dialogResult = std::move(result);
-            }
-
+            auto result = saveAs(filter.filterSpec, filter.defaultExtension, "Save Asset", ASSETS_FOLDER);
+            { std::lock_guard lock(m_dialogResultMutex); m_dialogResult = std::move(result); }
             m_dialogRunning.store(false);
-
         }).detach();
 }
+
 
 void ModuleAssets::flushDialogRequests()
 {
-    // Still running — nothing to flush yet
-    if (m_dialogRunning.load())
-        return;
+    if (m_dialogRunning.load()) return;
 
     std::optional<std::filesystem::path> result;
     {
         std::lock_guard lock(m_dialogResultMutex);
-        if (!m_dialogResult.has_value())
-            return;   // no pending result at all (dialog not yet requested)
-
+        if (!m_dialogResult.has_value()) return;
         result = std::move(m_dialogResult);
         m_dialogResult.reset();
     }
 
     if (!result.has_value())
     {
-        m_pendingSerializable = nullptr;
+        m_pendingAsset = nullptr;
         return;
     }
 
-    if (m_pendingIsSave && m_pendingSerializable)
+    if (m_pendingIsSave && m_pendingAsset)
     {
-        save(*m_pendingSerializable , *result);
-        m_pendingSerializable = nullptr;
+        save(*m_pendingAsset, *result);
+        m_pendingAsset = nullptr;
     }
     else if (!m_pendingIsSave && m_dialogCallback)
     {
         m_dialogCallback(*result);
         m_dialogCallback = nullptr;
     }
-}
-
-
-
-void ModuleAssets::flushDependencies(const MD5Hash& parentUID,
-    const std::filesystem::path& parentSourcePath,
-    AssetType parentType)
-{
-    auto it = m_pendingDependencies.find(parentUID);
-    if (it == m_pendingDependencies.end())
-        return;
-
-    // Upsert the parent's registry entry with the collected dependency list.
-    Metadata parentMeta;
-    const Metadata* existing = m_registry->getMetadata(parentUID);
-    if (existing)
-    {
-        parentMeta = *existing;
-    }
-    else
-    {
-        parentMeta.uid = parentUID;
-        parentMeta.type = parentType;
-        parentMeta.sourcePath = parentSourcePath;
-    }
-
-    parentMeta.m_dependencies = std::move(it->second);
-    m_pendingDependencies.erase(it);
-
-    m_registry->registerAsset(parentMeta);
 }

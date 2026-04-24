@@ -329,8 +329,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="ImporterScene.h" />
     <ClInclude Include="ImporterSkin.h" />
-    <ClInclude Include="ISerializable.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="MaterialAsset.h" />
@@ -618,7 +618,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AnimationController.cpp" />
-    <ClCompile Include="AnimationStateMachineAsset.cpp" />
     <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
     <ClCompile Include="CommandAddGameObject.cpp" />
@@ -649,6 +648,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
+    <ClCompile Include="ImporterScene.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="Metadata.cpp" />

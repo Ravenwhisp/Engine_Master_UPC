@@ -29,6 +29,7 @@ private:
     void handleMissingMetadata(const std::filesystem::path& sourcePath);
     void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
     void cleanOrphanedBinaries();
+    bool isQueued(const MD5Hash& uid) const;
 
     std::filesystem::path getBinaryPath(const MD5Hash& uid) const;
 

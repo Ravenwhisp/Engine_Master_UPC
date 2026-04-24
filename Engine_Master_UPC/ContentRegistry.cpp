@@ -31,7 +31,6 @@ std::shared_ptr<FileEntry> ContentRegistry::buildTree(const std::filesystem::pat
         return buildDirectoryEntry(path);
     }
 
-
     if (path.extension() == METADATA_EXTENSION)
     {
         return buildAssetEntry(path);
@@ -76,24 +75,27 @@ std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesyste
         DEBUG_WARN("[ContentRegistry] No metadata in store for '%s'. Was rebuild() called before scan()?", sourcePath.string().c_str());
     }
 
-
     return entry;
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::getEntryRecursive(
-    const std::shared_ptr<FileEntry>& node,
-    const std::filesystem::path& path) const
+std::shared_ptr<FileEntry> ContentRegistry::getEntryRecursive(const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const
 {
     if (!node)
+    {
         return nullptr;
+    }
 
     if (node->path == path)
+    {
         return node;
+    }
 
     for (const auto& child : node->children)
     {
         if (auto found = getEntryRecursive(child, path))
+        {
             return found;
+        }
     }
 
     return nullptr;

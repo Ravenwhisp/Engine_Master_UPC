@@ -16,10 +16,8 @@ public:
     }
 
 protected:
-    bool importNative(const std::filesystem::path&, SkinAsset*) override
-    {
-        return false;
-    }
+    bool importNative(const std::filesystem::path&, SkinAsset*) override;
+    bool saveNative(const std::filesystem::path&, const SkinAsset*) override;
 
     uint64_t saveTyped(const SkinAsset* source, uint8_t** outBuffer) override;
     void loadTyped(const uint8_t* buffer, SkinAsset* dst) override;

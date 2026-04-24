@@ -1,6 +1,5 @@
 #pragma once
 #include "Asset.h"
-#include "ISerializable.h"
 #include "MD5Fwd.h"
 
 #include <string>
@@ -46,11 +45,6 @@ public:
     explicit AnimationStateMachineAsset(MD5Hash id): Asset(id, AssetType::ANIMATION_STATE_MACHINE)
     {
     }
-
-#pragma region Persistence
-    bool toJson(rapidjson::Document& domTree) const override;
-    bool fromJson(const rapidjson::Value& json) override;
-#pragma endregion
 
     const std::string& getName() const { return m_name; }
     const std::string& getDefaultStateName() const { return m_defaultStateName; }

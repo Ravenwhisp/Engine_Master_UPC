@@ -17,6 +17,11 @@ bool ImporterMaterial::importNative(const std::filesystem::path& path, MaterialA
 	return false;
 }
 
+bool ImporterMaterial::saveNative(const std::filesystem::path& path, const MaterialAsset* src)
+{
+    return false;
+}
+
 static uint64_t stringSerialSize(const std::string& s)
 {
     return sizeof(uint32_t) + s.size();
