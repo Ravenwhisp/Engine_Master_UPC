@@ -1060,6 +1060,9 @@
     <ClInclude Include="TriggerShape.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="TriggerDebugDrawMode.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

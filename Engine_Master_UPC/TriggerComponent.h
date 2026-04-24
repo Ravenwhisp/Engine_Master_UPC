@@ -2,6 +2,7 @@
 
 #include "Component.h"
 #include "TriggerShape.h"
+#include "TriggerDebugDrawMode.h"
 #include "BoundingBox.h"
 
 class TriggerComponent : public Component
@@ -9,8 +10,6 @@ class TriggerComponent : public Component
 public:
     TriggerComponent(UID id, GameObject* gameObject);
     ~TriggerComponent() override = default;
-
-    std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
     void drawUi() override;
     void debugDraw() override;
@@ -20,6 +19,8 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
+    std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
     TriggerShape getShape() const { return m_shape; };
 
     const Vector3& getCenter() const { return m_center; };
@@ -28,10 +29,11 @@ public:
     void setCenter(const Vector3& center) ;
     void setSize(const Vector3& size);
 
-    const Engine::BoundingBox& getWorldAABB() const;
+    Engine::BoundingBox& getWorldBox();
+    Engine::BoundingBox& getWorldAABB();
 
 private:
-    void recalculateWorldAABB();
+    void recalculateWorldBounds();
     bool isValidSize() const;
 
 private:
@@ -40,6 +42,10 @@ private:
     Vector3 m_center = Vector3::Zero;
     Vector3 m_size = Vector3::One;
 
-    mutable Engine::BoundingBox m_worldAABB;
-    mutable bool m_boundsDirty = true;
+    Engine::BoundingBox m_worldBox;
+    Engine::BoundingBox m_worldAABB;
+
+    TriggerDebugDrawMode m_debugDrawMode = TriggerDebugDrawMode::RotatedBox;
+
+    bool m_boundsDirty = true;
 };
