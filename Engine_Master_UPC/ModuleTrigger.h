@@ -15,14 +15,17 @@ public:
     void update() override;
     bool cleanUp() override;
 
+#pragma region Registration
     void registerTrigger(TriggerComponent* trigger);
     void unregisterTrigger(TriggerComponent* trigger);
+#pragma endregion
 
 private:
+    // Struct representing an active overlap between two trigger.
     struct TriggerOverlap
     {
-        UID a = 0;
-        UID b = 0;
+        UID firstTriggerId = 0;
+        UID secondTriggerId = 0;
 
         TriggerOverlap() = default;
 
@@ -30,42 +33,50 @@ private:
         {
             if (first < second)
             {
-                a = first;
-                b = second;
+                firstTriggerId = first;
+                secondTriggerId = second;
             }
             else
             {
-                a = second;
-                b = first;
+                firstTriggerId = second;
+                secondTriggerId = first;
             }
         }
 
         bool operator==(const TriggerOverlap& other) const
         {
-            return a == other.a && b == other.b;
+            return firstTriggerId == other.firstTriggerId && secondTriggerId == other.secondTriggerId;
         }
     };
 
 private:
+#pragma region Overlap detection
     void detectOverlaps();
     void processOverlapChanges();
-
     void removeOverlaps(UID triggerId);
+#pragma endregion
 
-    void dispatchTriggerEnter(TriggerComponent* triggerA, TriggerComponent* triggerB);
-    void dispatchTriggerExit(TriggerComponent* triggerA, TriggerComponent* triggerB);
+#pragma region Script event notification
+    void sendTriggerEnterToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB);
+    void sendTriggerExitToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB);
 
     std::vector<Script*> getActiveScripts(GameObject* gameObject) const;
 
-    void notifyTriggerEnter(GameObject* receiver, GameObject* other);
-    void notifyTriggerExit(GameObject* receiver, GameObject* other);
+    void notifyScriptsTriggerEnter(GameObject* receiver, GameObject* other);
+    void notifyScriptsTriggerExit(GameObject* receiver, GameObject* other);
+#pragma endregion
 
+#pragma region Lookup and validation
     TriggerComponent* findTriggerById(UID triggerId) const;
 
     bool isTriggerRegistered(TriggerComponent* trigger) const;
     bool isValidTrigger(TriggerComponent* trigger) const;
-    bool intersectsAABB(TriggerComponent* a, TriggerComponent* b);
     bool containsOverlap(const std::vector<TriggerOverlap>& overlaps, const TriggerOverlap& overlap) const;
+#pragma endregion
+
+#pragma region Intersection tests
+    bool intersectsAABB(TriggerComponent* a, TriggerComponent* b);
+#pragma endregion
 
 private:
     std::vector<TriggerComponent*> m_triggers;
