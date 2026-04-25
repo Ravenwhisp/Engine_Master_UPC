@@ -38,6 +38,9 @@ public:
 private:
     void recalculateWorldBounds();
     bool isValidSize() const;
+    bool fitToModelBounds();
+    void includeHierarchyModelBounds(GameObject* object, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax,  bool& hasBounds);
+    void includeMeshRendererBounds(MeshRenderer* meshRenderer, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax, bool& hasBounds);
 
 private:
     TriggerShape m_shape = TriggerShape::Box;
@@ -51,4 +54,7 @@ private:
     TriggerDebugDrawMode m_debugDrawMode = TriggerDebugDrawMode::RotatedBox;
 
     bool m_boundsDirty = true;
+
+    bool m_autoFitOnInit = true;
+
 };
