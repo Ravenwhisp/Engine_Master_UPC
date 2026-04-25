@@ -126,16 +126,6 @@ MD5Hash ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
     return m_registry->findByPath(sourcePath);
 }
 
-bool ModuleAssets::isLoaded(const MD5Hash& id)
-{
-    return m_assets.contains(id);
-}
-
-void ModuleAssets::unload(const MD5Hash& id)
-{
-    m_assets.remove(id);
-}
-
 std::shared_ptr<FileEntry> ModuleAssets::getRoot() const
 {
     return m_contentRegistry->getRoot();

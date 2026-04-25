@@ -59,6 +59,7 @@ static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex, const 
         return INVALID_ASSET_ID;
     }
     std::filesystem::path resolved = modelPath->parent_path() / img.uri;
+
     MD5Hash uid = app->getModuleAssets()->findUID(resolved);
     if (!isValidAsset(uid)) 
     {

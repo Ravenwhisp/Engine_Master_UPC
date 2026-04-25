@@ -101,7 +101,7 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 {
     if (app->getModuleAssets()->findImporter(sourcePath))
     {
-        m_pendingImports.push_back({ sourcePath, INVALID_ASSET_ID });
+        m_pendingImports.push_back({sourcePath, INVALID_ASSET_ID });
     }
 }
 
