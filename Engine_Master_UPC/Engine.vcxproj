@@ -288,6 +288,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AnimationStateMachineAsset.h" />
     <ClInclude Include="AssetDialogFilter.h" />
     <ClInclude Include="CanvasRenderMode.h" />
+    <ClInclude Include="CerealUtils.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />

@@ -1062,6 +1062,9 @@
     <ClInclude Include="ImporterScene.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
+    <ClInclude Include="CerealUtils.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

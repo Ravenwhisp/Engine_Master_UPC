@@ -2,7 +2,10 @@
 #include "AssetsDictionary.h"
 #include <AssetType.h>
 #include "MD5Fwd.h"
+
 #include <cereal/types/base_class.hpp>
+#include <cereal/types/polymorphic.hpp> 
+#include <cereal/access.hpp>
 
 class Asset
 {
@@ -17,7 +20,7 @@ public:
 protected:
 	MD5Hash 			m_uid = INVALID_ASSET_ID;
 	AssetType			m_type = AssetType::UNKNOWN;
-private:
+public:
 	template <class Archive>
 	void serialize(Archive& ar)
 	{
