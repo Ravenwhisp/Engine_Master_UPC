@@ -17,10 +17,10 @@ TriggerComponent::TriggerComponent(UID id, GameObject* gameObject)
 
 bool TriggerComponent::init()
 {
-    if (m_autoFitOnInit)
+    if (m_setDefaultBoundsOnInit)
     {
-        fitToModelBounds();
-        m_autoFitOnInit = false;
+        setDefaultBoundsFromModel();
+        m_setDefaultBoundsOnInit = false;
     }
 
     app->getModuleTrigger()->registerTrigger(this);
@@ -67,9 +67,9 @@ void TriggerComponent::drawUi()
 
     ImGui::Separator();
 
-    if (ImGui::Button("Fit To Model Bounds"))
+    if (ImGui::Button("Reset Default Model Bounds"))
     {
-        fitToModelBounds();
+        setDefaultBoundsFromModel();
     }
 }
 
@@ -212,7 +212,7 @@ bool TriggerComponent::isValidSize() const
     return m_size.x > 0.0f && m_size.y > 0.0f && m_size.z > 0.0f;
 }
 
-bool TriggerComponent::fitToModelBounds()
+bool TriggerComponent::setDefaultBoundsFromModel()
 {
     if (!m_owner || !m_owner->GetTransform())
     {
@@ -391,7 +391,7 @@ bool TriggerComponent::deserializeJSON(const rapidjson::Value& componentValue)
         }
     }
 
-    m_autoFitOnInit = false;
+    m_setDefaultBoundsOnInit = false;
     m_boundsDirty = true;
     return true;
 }
@@ -404,7 +404,7 @@ std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
     clonedComponent->m_center = m_center;
     clonedComponent->m_size = m_size;
     clonedComponent->m_debugDrawMode = m_debugDrawMode;
-    clonedComponent->m_autoFitOnInit = false;
+    clonedComponent->m_setDefaultBoundsOnInit = false;
     clonedComponent->setActive(isActive());
     clonedComponent->m_boundsDirty = true;
 
