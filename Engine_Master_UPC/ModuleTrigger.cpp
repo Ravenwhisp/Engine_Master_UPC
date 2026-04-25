@@ -110,12 +110,12 @@ void ModuleTrigger::processOverlapChanges()
     {
         if (!containsOverlap(m_previousOverlaps, overlap))
         {
-            TriggerComponent* triggerA = findTriggerById(overlap.a);
-            TriggerComponent* triggerB = findTriggerById(overlap.b);
+            TriggerComponent* triggerA = findTriggerById(overlap.firstTriggerId);
+            TriggerComponent* triggerB = findTriggerById(overlap.secondTriggerId);
 
             if (isValidTrigger(triggerA) && isValidTrigger(triggerB))
             {
-                dispatchTriggerEnter(triggerA, triggerB);
+                sendTriggerEnterToBothObjects(triggerA, triggerB);
             }
         }
     }
@@ -124,12 +124,12 @@ void ModuleTrigger::processOverlapChanges()
     {
         if (!containsOverlap(m_currentOverlaps, overlap))
         {
-            TriggerComponent* triggerA = findTriggerById(overlap.a);
-            TriggerComponent* triggerB = findTriggerById(overlap.b);
+            TriggerComponent* triggerA = findTriggerById(overlap.firstTriggerId);
+            TriggerComponent* triggerB = findTriggerById(overlap.secondTriggerId);
 
             if (isValidTrigger(triggerA) && isValidTrigger(triggerB))
             {
-                dispatchTriggerExit(triggerA, triggerB);
+                sendTriggerExitToBothObjects(triggerA, triggerB);
             }
         }
     }
@@ -139,7 +139,7 @@ void ModuleTrigger::removeOverlaps(UID triggerId)
 {
     auto removeOverlap = [triggerId](const TriggerOverlap& overlap)
         {
-            return overlap.a == triggerId || overlap.b == triggerId;
+            return overlap.firstTriggerId == triggerId || overlap.secondTriggerId == triggerId;
         };
 
     m_previousOverlaps.erase(std::remove_if(m_previousOverlaps.begin(), m_previousOverlaps.end(), removeOverlap), m_previousOverlaps.end());
@@ -147,22 +147,22 @@ void ModuleTrigger::removeOverlaps(UID triggerId)
     m_currentOverlaps.erase(std::remove_if(m_currentOverlaps.begin(), m_currentOverlaps.end(), removeOverlap), m_currentOverlaps.end());
 }
 
-void ModuleTrigger::dispatchTriggerEnter(TriggerComponent* triggerA, TriggerComponent* triggerB)
+void ModuleTrigger::sendTriggerEnterToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB)
 {
     GameObject* objectA = triggerA->getOwner();
     GameObject* objectB = triggerB->getOwner();
 
-    notifyTriggerEnter(objectA, objectB);
-    notifyTriggerEnter(objectB, objectA);
+    notifyScriptsTriggerEnter(objectA, objectB);
+    notifyScriptsTriggerEnter(objectB, objectA);
 }
 
-void ModuleTrigger::dispatchTriggerExit(TriggerComponent* triggerA, TriggerComponent* triggerB)
+void ModuleTrigger::sendTriggerExitToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB)
 {
     GameObject* objectA = triggerA->getOwner();
     GameObject* objectB = triggerB->getOwner();
 
-    notifyTriggerExit(objectA, objectB);
-    notifyTriggerExit(objectB, objectA);
+    notifyScriptsTriggerExit(objectA, objectB);
+    notifyScriptsTriggerExit(objectB, objectA);
 }
 
 std::vector<Script*> ModuleTrigger::getActiveScripts(GameObject* gameObject) const
@@ -200,7 +200,7 @@ std::vector<Script*> ModuleTrigger::getActiveScripts(GameObject* gameObject) con
     return scripts;
 }
 
-void ModuleTrigger::notifyTriggerEnter(GameObject* receiver, GameObject* other)
+void ModuleTrigger::notifyScriptsTriggerEnter(GameObject* receiver, GameObject* other)
 {
     if (!receiver || !other)
     {
@@ -213,7 +213,7 @@ void ModuleTrigger::notifyTriggerEnter(GameObject* receiver, GameObject* other)
     }
 }
 
-void ModuleTrigger::notifyTriggerExit(GameObject* receiver, GameObject* other)
+void ModuleTrigger::notifyScriptsTriggerExit(GameObject* receiver, GameObject* other)
 {
     if (!receiver || !other)
     {
@@ -261,6 +261,11 @@ bool ModuleTrigger::isValidTrigger(TriggerComponent* trigger) const
     return true;
 }
 
+bool ModuleTrigger::containsOverlap(const std::vector<TriggerOverlap>& overlaps, const TriggerOverlap& overlap) const
+{
+    return std::find(overlaps.begin(), overlaps.end(), overlap) != overlaps.end();
+}
+
 bool ModuleTrigger::intersectsAABB(TriggerComponent* a, TriggerComponent* b)
 {
     Engine::BoundingBox& boxA = a->getWorldAABB();
@@ -277,9 +282,4 @@ bool ModuleTrigger::intersectsAABB(TriggerComponent* a, TriggerComponent* b)
     const bool overlapsZ = aMin.z <= bMax.z && aMax.z >= bMin.z;
 
     return overlapsX && overlapsY && overlapsZ;
-}
-
-bool ModuleTrigger::containsOverlap(const std::vector<TriggerOverlap>& overlaps, const TriggerOverlap& overlap) const
-{
-    return std::find(overlaps.begin(), overlaps.end(), overlap) != overlaps.end();
 }
