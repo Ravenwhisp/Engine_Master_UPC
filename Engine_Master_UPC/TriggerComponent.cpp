@@ -6,6 +6,7 @@
 
 #include "Application.h"
 #include "ModuleTrigger.h"
+#include "MeshRenderer.h"
 
 #include <array>
 
@@ -16,6 +17,12 @@ TriggerComponent::TriggerComponent(UID id, GameObject* gameObject)
 
 bool TriggerComponent::init()
 {
+    if (m_autoFitOnInit)
+    {
+        fitToModelBounds();
+        m_autoFitOnInit = false;
+    }
+
     app->getModuleTrigger()->registerTrigger(this);
     return true;
 }
@@ -56,6 +63,13 @@ void TriggerComponent::drawUi()
         m_size.z = std::max(0.0f, m_size.z);
 
         m_boundsDirty = true;
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Fit To Model Bounds"))
+    {
+        fitToModelBounds();
     }
 }
 
@@ -115,11 +129,6 @@ Engine::BoundingBox& TriggerComponent::getWorldAABB()
     }
 
     return m_worldAABB;
-}
-
-bool TriggerComponent::isValidSize() const
-{
-    return m_size.x > 0.0f && m_size.y > 0.0f && m_size.z > 0.0f;
 }
 
 void TriggerComponent::recalculateWorldBounds()
@@ -198,6 +207,115 @@ void TriggerComponent::recalculateWorldBounds()
     m_boundsDirty = false;
 }
 
+bool TriggerComponent::isValidSize() const
+{
+    return m_size.x > 0.0f && m_size.y > 0.0f && m_size.z > 0.0f;
+}
+
+bool TriggerComponent::fitToModelBounds()
+{
+    if (!m_owner || !m_owner->GetTransform())
+    {
+        return false;
+    }
+
+    Vector3 boundsMin(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vector3 boundsMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    bool hasBounds = false;
+
+    const Matrix triggerWorldInverse = m_owner->GetTransform()->getGlobalMatrix().Invert();
+
+    includeHierarchyModelBounds(m_owner, triggerWorldInverse, boundsMin, boundsMax, hasBounds);
+
+    if (!hasBounds)
+    {
+        return false;
+    }
+
+    const Vector3 size = boundsMax - boundsMin;
+
+    if (size.x <= 0.0f || size.y <= 0.0f || size.z <= 0.0f)
+    {
+        return false;
+    }
+
+    setCenter((boundsMin + boundsMax) * 0.5f);
+    setSize(size);
+
+    return true;
+}
+
+void TriggerComponent::includeHierarchyModelBounds(GameObject* object, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax, bool& hasBounds)
+{
+    if (!object || !object->GetTransform())
+    {
+        return;
+    }
+
+    MeshRenderer* meshRenderer = object->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+    if (meshRenderer && meshRenderer->hasMesh())
+    {
+        includeMeshRendererBounds(meshRenderer, triggerWorldInverse, boundsMin, boundsMax, hasBounds);
+    }
+
+    for (GameObject* child : object->GetTransform()->getAllChildren())
+    {
+        includeHierarchyModelBounds(child, triggerWorldInverse, boundsMin, boundsMax, hasBounds);
+    }
+}
+
+void TriggerComponent::includeMeshRendererBounds(MeshRenderer* meshRenderer, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax, bool& hasBounds)
+{
+    if (!meshRenderer || !meshRenderer->hasMesh())
+    {
+        return;
+    }
+
+    GameObject* meshOwner = meshRenderer->getOwner();
+
+    if (!meshOwner || !meshOwner->GetTransform())
+    {
+        return;
+    }
+
+    Engine::BoundingBox& meshBounds = meshRenderer->getBoundingBox();
+
+    const Vector3& meshMin = meshBounds.getMin();
+    const Vector3& meshMax = meshBounds.getMax();
+
+    const Vector3 meshLocalCorners[8] =
+    {
+        Vector3(meshMin.x, meshMin.y, meshMin.z),
+        Vector3(meshMax.x, meshMin.y, meshMin.z),
+        Vector3(meshMax.x, meshMax.y, meshMin.z),
+        Vector3(meshMin.x, meshMax.y, meshMin.z),
+
+        Vector3(meshMin.x, meshMin.y, meshMax.z),
+        Vector3(meshMax.x, meshMin.y, meshMax.z),
+        Vector3(meshMax.x, meshMax.y, meshMax.z),
+        Vector3(meshMin.x, meshMax.y, meshMax.z)
+    };
+
+    const Matrix& meshWorldMatrix = meshOwner->GetTransform()->getGlobalMatrix();
+
+    for (int i = 0; i < 8; ++i)
+    {
+        const Vector3 worldCorner = Vector3::Transform(meshLocalCorners[i], meshWorldMatrix);
+        const Vector3 triggerLocalCorner = Vector3::Transform(worldCorner, triggerWorldInverse);
+
+        boundsMin.x = std::min(boundsMin.x, triggerLocalCorner.x);
+        boundsMin.y = std::min(boundsMin.y, triggerLocalCorner.y);
+        boundsMin.z = std::min(boundsMin.z, triggerLocalCorner.z);
+
+        boundsMax.x = std::max(boundsMax.x, triggerLocalCorner.x);
+        boundsMax.y = std::max(boundsMax.y, triggerLocalCorner.y);
+        boundsMax.z = std::max(boundsMax.z, triggerLocalCorner.z);
+
+        hasBounds = true;
+    }
+}
+
 rapidjson::Value TriggerComponent::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value componentInfo(rapidjson::kObjectType);
@@ -273,6 +391,7 @@ bool TriggerComponent::deserializeJSON(const rapidjson::Value& componentValue)
         }
     }
 
+    m_autoFitOnInit = false;
     m_boundsDirty = true;
     return true;
 }
@@ -285,6 +404,7 @@ std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
     clonedComponent->m_center = m_center;
     clonedComponent->m_size = m_size;
     clonedComponent->m_debugDrawMode = m_debugDrawMode;
+    clonedComponent->m_autoFitOnInit = false;
     clonedComponent->setActive(isActive());
     clonedComponent->m_boundsDirty = true;
 
