@@ -6,6 +6,8 @@
 #include <vector>
 
 class TriggerComponent;
+class GameObject;
+class Script;
 
 class ModuleTrigger : public Module
 {
@@ -49,6 +51,17 @@ private:
     void processOverlapChanges();
 
     void removeOverlaps(UID triggerId);
+
+    void dispatchTriggerEnter(TriggerComponent* triggerA, TriggerComponent* triggerB);
+    void dispatchTriggerExit(TriggerComponent* triggerA, TriggerComponent* triggerB);
+
+    std::vector<Script*> getActiveScripts(GameObject* gameObject) const;
+
+    void notifyTriggerEnter(GameObject* receiver, GameObject* other);
+    void notifyTriggerExit(GameObject* receiver, GameObject* other);
+
+    TriggerComponent* findTriggerById(UID triggerId) const;
+
     bool isTriggerRegistered(TriggerComponent* trigger) const;
     bool isValidTrigger(TriggerComponent* trigger) const;
     bool intersectsAABB(TriggerComponent* a, TriggerComponent* b);

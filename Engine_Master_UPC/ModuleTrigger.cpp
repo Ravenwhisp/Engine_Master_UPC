@@ -6,6 +6,9 @@
 #include "TriggerComponent.h"
 #include "BoundingBox.h"
 
+#include "ScriptComponent.h"
+#include "Script.h"
+
 void ModuleTrigger::update()
 {
     if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
@@ -107,7 +110,13 @@ void ModuleTrigger::processOverlapChanges()
     {
         if (!containsOverlap(m_previousOverlaps, overlap))
         {
-            DEBUG_LOG("[ModuleTrigger] Trigger Enter");
+            TriggerComponent* triggerA = findTriggerById(overlap.a);
+            TriggerComponent* triggerB = findTriggerById(overlap.b);
+
+            if (isValidTrigger(triggerA) && isValidTrigger(triggerB))
+            {
+                dispatchTriggerEnter(triggerA, triggerB);
+            }
         }
     }
 
@@ -115,7 +124,13 @@ void ModuleTrigger::processOverlapChanges()
     {
         if (!containsOverlap(m_currentOverlaps, overlap))
         {
-            DEBUG_LOG("[ModuleTrigger] Trigger Exit");
+            TriggerComponent* triggerA = findTriggerById(overlap.a);
+            TriggerComponent* triggerB = findTriggerById(overlap.b);
+
+            if (isValidTrigger(triggerA) && isValidTrigger(triggerB))
+            {
+                dispatchTriggerExit(triggerA, triggerB);
+            }
         }
     }
 }
@@ -130,6 +145,98 @@ void ModuleTrigger::removeOverlaps(UID triggerId)
     m_previousOverlaps.erase(std::remove_if(m_previousOverlaps.begin(), m_previousOverlaps.end(), removeOverlap), m_previousOverlaps.end());
 
     m_currentOverlaps.erase(std::remove_if(m_currentOverlaps.begin(), m_currentOverlaps.end(), removeOverlap), m_currentOverlaps.end());
+}
+
+void ModuleTrigger::dispatchTriggerEnter(TriggerComponent* triggerA, TriggerComponent* triggerB)
+{
+    GameObject* objectA = triggerA->getOwner();
+    GameObject* objectB = triggerB->getOwner();
+
+    notifyTriggerEnter(objectA, objectB);
+    notifyTriggerEnter(objectB, objectA);
+}
+
+void ModuleTrigger::dispatchTriggerExit(TriggerComponent* triggerA, TriggerComponent* triggerB)
+{
+    GameObject* objectA = triggerA->getOwner();
+    GameObject* objectB = triggerB->getOwner();
+
+    notifyTriggerExit(objectA, objectB);
+    notifyTriggerExit(objectB, objectA);
+}
+
+std::vector<Script*> ModuleTrigger::getActiveScripts(GameObject* gameObject) const
+{
+    std::vector<Script*> scripts;
+
+    if (!gameObject)
+    {
+        return scripts;
+    }
+
+    const std::vector<Component*> components = gameObject->GetAllComponents();
+
+    for (Component* component : components)
+    {
+        if (!component || !component->isActive())
+        {
+            continue;
+        }
+
+        if (component->getType() != ComponentType::SCRIPT)
+        {
+            continue;
+        }
+
+        ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component);
+        Script* script = scriptComponent->getScript();
+
+        if (script)
+        {
+            scripts.push_back(script);
+        }
+    }
+
+    return scripts;
+}
+
+void ModuleTrigger::notifyTriggerEnter(GameObject* receiver, GameObject* other)
+{
+    if (!receiver || !other)
+    {
+        return;
+    }
+
+    for (Script* script : getActiveScripts(receiver))
+    {
+        script->OnTriggerEnter(other);
+    }
+}
+
+void ModuleTrigger::notifyTriggerExit(GameObject* receiver, GameObject* other)
+{
+    if (!receiver || !other)
+    {
+        return;
+    }
+
+    for (Script* script : getActiveScripts(receiver))
+    {
+        script->OnTriggerExit(other);
+    }
+}
+
+TriggerComponent* ModuleTrigger::findTriggerById(UID triggerId) const
+{
+    for (TriggerComponent* trigger : m_triggers)
+    {
+        if (trigger && trigger->getID() == triggerId)
+        {
+            return trigger;
+        }
+    }
+
+    return nullptr;
 }
 
 bool ModuleTrigger::isTriggerRegistered(TriggerComponent* trigger) const
