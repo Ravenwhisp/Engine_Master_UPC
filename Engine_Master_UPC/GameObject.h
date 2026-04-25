@@ -10,6 +10,9 @@
 #include <string>
 
 #include <rapidjson/document.h>
+#include <cereal/types/base_class.hpp>
+#include <cereal/types/polymorphic.hpp> 
+#include <cereal/access.hpp>
 
 class Component;
 class ModelComponent;
@@ -19,6 +22,8 @@ class SceneSnapshot;
 class GameObject 
 {
 public:
+	friend class cereal::access;
+
 	GameObject(UID newUuid);
 	GameObject(UID newUuid, UID transformUuid);
 	~GameObject();
@@ -60,6 +65,13 @@ public:
 #pragma region Persistence
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
+
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(m_uuid, m_name, m_active, m_isStatic, m_layer, m_tag, m_transform, m_components);
+	}
+
 #pragma endregion
 
 #pragma region GameLoop

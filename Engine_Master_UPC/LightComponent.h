@@ -27,4 +27,15 @@ public:
     void debugDraw() override;
 private:
     LightData m_data{};
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_data);
+	}
 };
+
+
+CEREAL_REGISTER_TYPE(LightComponent)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, LightComponent)

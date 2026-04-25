@@ -13,6 +13,14 @@ struct AnimationStateMachineClip
     std::string name;
     MD5Hash animationUID = INVALID_ASSET_ID;
     bool loop = true;
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+	{
+        ar(name, animationUID, loop);
+	}
+#pragma endregion
 };
 
 struct AnimationStateMachineState
@@ -25,6 +33,14 @@ struct AnimationStateMachineState
 
     bool overrideLoop = false;
     bool loop = true;
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+		ar(name, clipName, speed, behaviourScriptName, behaviourFieldsJson, overrideLoop, loop);
+	}
+    #pragma endregion
 };
 
 struct AnimationStateMachineTransition
@@ -33,6 +49,14 @@ struct AnimationStateMachineTransition
     std::string targetStateName;
     std::string triggerName;
     float blendTimeSeconds = 0.0f;
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(sourceStateName, targetStateName, triggerName, blendTimeSeconds);
+	}
+#pragma endregion
 };
 
 class AnimationStateMachineAsset : public Asset
@@ -67,4 +91,15 @@ private:
     std::vector<AnimationStateMachineClip> m_clips;
     std::vector<AnimationStateMachineState> m_states;
     std::vector<AnimationStateMachineTransition> m_transitions;
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Asset>(this), m_name, m_defaultStateName, m_clips, m_states, m_transitions);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(AnimationStateMachineAsset)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, AnimationStateMachineAsset)

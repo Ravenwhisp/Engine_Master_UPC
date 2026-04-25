@@ -3,8 +3,7 @@
 #include "Component.h"
 #include <memory>
 #include <string>
-
-class Script;
+#include "Script.h"
 
 class ScriptComponent : public Component
 {
@@ -36,8 +35,47 @@ private:
     void deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson);
     void cloneScriptFields(const Script& source, Script& target);
 
+    template<class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(cereal::base_class<Component>(this), m_scriptName);
+
+        if constexpr (Archive::is_saving::value)
+        {
+            bool hasScript = m_script != nullptr;
+            ar(hasScript);
+            if (hasScript)
+            {
+                saveBinaryScriptFields(*m_script, ar);
+            }
+        }
+        else
+        {
+            bool hasScript = false;
+            ar(hasScript);
+
+            destroyScriptInstance();
+            if (!m_scriptName.empty())
+            {
+                createScriptInstance();
+            }
+
+            if (hasScript && m_script)
+            {
+                loadBinaryScriptFields(*m_script, ar);
+                m_script->onAfterDeserialize();
+            }
+        }
+    }
+
+
+    void saveBinaryScriptFields(const Script& script, cereal::BinaryOutputArchive& ar) const;
+    void loadBinaryScriptFields(Script& script, cereal::BinaryInputArchive& ar);
+
     std::unique_ptr<Script> m_script;
     std::string m_scriptName;
     bool m_hasStarted = false;
 };
+
+CEREAL_REGISTER_TYPE(ScriptComponent)
 

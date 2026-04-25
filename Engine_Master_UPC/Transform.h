@@ -10,7 +10,7 @@ using DirectX::SimpleMath::Quaternion;
 
 class GameObject;
 
-class Transform final : public Component 
+class Transform final : public Component
 {
 public:
 	Transform(UID id, GameObject* gameObject);
@@ -18,7 +18,7 @@ public:
 
 	const Matrix& getGlobalMatrix() const;
 	const Matrix& getNormalMatrix() const;
-	void setFromGlobalMatrix(const Matrix &worldMatrix);
+	void setFromGlobalMatrix(const Matrix& worldMatrix);
 
 	const Vector3& getPosition() const { return m_position; }
 	const Quaternion& getRotation() const { return m_rotation; }
@@ -27,7 +27,7 @@ public:
 	void setPosition(const Vector3& newPosition);
 	void setRotation(const Quaternion& newRotation);
 	void setRotationEuler(const Vector3& eulerDegrees);
-	void setScale(const Vector3 &newScale) { m_scale = newScale;  markDirty(); }
+	void setScale(const Vector3& newScale) { m_scale = newScale;  markDirty(); }
 	void markDirty();
 	bool isDirty() { return m_dirty; }
 
@@ -72,4 +72,15 @@ private:
 	std::vector<GameObject*> m_children;
 
 	void calculateMatrix() const;
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_position, m_rotation, m_scale);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(Transform)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform)

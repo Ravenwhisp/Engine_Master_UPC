@@ -11,8 +11,10 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-ScriptComponent::ScriptComponent(UID id, GameObject* owner)
-    : Component(id, ComponentType::SCRIPT, owner)
+#include <cereal/archives/binary.hpp>
+
+
+ScriptComponent::ScriptComponent(UID id, GameObject* owner): Component(id, ComponentType::SCRIPT, owner)
 {
 }
 
@@ -573,6 +575,148 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
         case ScriptFieldType::String:
             *reinterpret_cast<std::string*>(targetData) = *reinterpret_cast<std::string*>(sourceData);
             break;
+        }
+    }
+}
+
+void ScriptComponent::saveBinaryScriptFields(const Script& script, cereal::BinaryOutputArchive& ar) const
+{
+    ScriptFieldList fieldList = script.getExposedFields();
+    const char* base = reinterpret_cast<const char*>(&script);
+
+    // Write the field count so the loader can validate / handle version skew.
+    ar(static_cast<uint32_t>(fieldList.count));
+
+    for (size_t i = 0; i < fieldList.count; ++i)
+    {
+        const ScriptFieldInfo& field = fieldList.fields[i];
+        const void* data = base + field.offset;
+
+        ar(std::string(field.name));
+        ar(static_cast<uint8_t>(field.type));
+
+        switch (field.type)
+        {
+        case ScriptFieldType::Float:
+            ar(*reinterpret_cast<const float*>(data));
+            break;
+
+        case ScriptFieldType::Int:
+        case ScriptFieldType::EnumInt:
+            ar(*reinterpret_cast<const int*>(data));
+            break;
+
+        case ScriptFieldType::Bool:
+            ar(*reinterpret_cast<const bool*>(data));
+            break;
+
+        case ScriptFieldType::Vec3:
+        {
+            const Vector3* v = reinterpret_cast<const Vector3*>(data);
+            ar(v->x, v->y, v->z);
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+        {
+            const ScriptComponentRef<Component>* ref =
+                reinterpret_cast<const ScriptComponentRef<Component>*>(data);
+            ar(static_cast<uint64_t>(ref->uid));
+            break;
+        }
+
+        case ScriptFieldType::String:
+            ar(*reinterpret_cast<const std::string*>(data));
+            break;
+        }
+    }
+}
+
+void ScriptComponent::loadBinaryScriptFields(Script& script, cereal::BinaryInputArchive& ar)
+{
+    uint32_t savedCount = 0;
+    ar(savedCount);
+
+    ScriptFieldList fieldList = script.getExposedFields();
+    char* base = reinterpret_cast<char*>(&script);
+
+    for (uint32_t i = 0; i < savedCount; ++i)
+    {
+        std::string savedName;
+        uint8_t     savedType = 0;
+        ar(savedName, savedType);
+
+        // Find the matching live field by name (order-independent, same as JSON).
+        const ScriptFieldInfo* match = nullptr;
+        for (size_t j = 0; j < fieldList.count; ++j)
+        {
+            if (fieldList.fields[j].name == savedName)
+            {
+                match = &fieldList.fields[j];
+                break;
+            }
+        }
+
+        // We must consume the bytes even if the field no longer exists.
+        switch (static_cast<ScriptFieldType>(savedType))
+        {
+        case ScriptFieldType::Float:
+        {
+            float v; ar(v);
+            if (match && match->type == ScriptFieldType::Float)
+                *reinterpret_cast<float*>(base + match->offset) = v;
+            break;
+        }
+
+        case ScriptFieldType::Int:
+        case ScriptFieldType::EnumInt:
+        {
+            int v; ar(v);
+            if (match && (match->type == ScriptFieldType::Int ||
+                match->type == ScriptFieldType::EnumInt))
+                *reinterpret_cast<int*>(base + match->offset) = v;
+            break;
+        }
+
+        case ScriptFieldType::Bool:
+        {
+            bool v; ar(v);
+            if (match && match->type == ScriptFieldType::Bool)
+                *reinterpret_cast<bool*>(base + match->offset) = v;
+            break;
+        }
+
+        case ScriptFieldType::Vec3:
+        {
+            float x, y, z; ar(x, y, z);
+            if (match && match->type == ScriptFieldType::Vec3)
+            {
+                Vector3* vec = reinterpret_cast<Vector3*>(base + match->offset);
+                vec->x = x; vec->y = y; vec->z = z;
+            }
+            break;
+        }
+
+        case ScriptFieldType::ComponentRef:
+        {
+            uint64_t uid; ar(uid);
+            if (match && match->type == ScriptFieldType::ComponentRef)
+            {
+                ScriptComponentRef<Component>* ref =
+                    reinterpret_cast<ScriptComponentRef<Component>*>(base + match->offset);
+                ref->uid = static_cast<UID>(uid);
+                ref->component = nullptr; // resolved later by fixReferences()
+            }
+            break;
+        }
+
+        case ScriptFieldType::String:
+        {
+            std::string v; ar(v);
+            if (match && match->type == ScriptFieldType::String)
+                *reinterpret_cast<std::string*>(base + match->offset) = std::move(v);
+            break;
+        }
         }
     }
 }

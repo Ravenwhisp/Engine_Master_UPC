@@ -56,7 +56,7 @@ public:
 	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
 
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
- 
+
 	MD5Hash& getSkinReference() { return m_skinAsset; }
 	const MD5Hash& getSkinReference() const { return m_skinAsset; }
 
@@ -74,7 +74,7 @@ public:
 
 	const VertexBuffer* getCpuSkinnedVertexBuffer() const { return m_skinnedVertexBuffer.get(); }
 	bool isCpuSkinningFallbackEnabled() const { return m_enableCpuSkinningFallback; }
-	
+
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
@@ -122,4 +122,15 @@ private:
 	size_t                         m_gpuPaletteJointCapacity = 0;
 
 	bool m_isCulled = false;
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_meshAsset, m_skinAsset, m_materialAssets);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(MeshRenderer)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, MeshRenderer)

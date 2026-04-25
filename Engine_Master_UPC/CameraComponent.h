@@ -52,4 +52,15 @@ private:
 	Matrix m_projection = {};
 
 	Engine::Frustum m_frustum = {};
+
+#pragma region Serialization
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_horizontalFov, m_nearPlane, m_farPlane, m_aspectRatio);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(CameraComponent);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, CameraComponent)

@@ -35,15 +35,38 @@ struct LightCommon
 {
     Vector3 color = Vector3::One;
     float intensity = LightDefaults::DEFAULT_INTENSITY;
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(color, intensity);
+	}
+#pragma endregion
 };
 
 struct DirectionalLightParameters
 {
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+	{
+		// No additional parameters for directional lights
+	}
+#pragma endregion
 };
 
 struct PointLightParameters
 {
     float radius = LightDefaults::DEFAULT_POINT_RADIUS;
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(radius);
+    }
+#pragma endregion
 };
 
 struct SpotLightParameters
@@ -51,6 +74,14 @@ struct SpotLightParameters
     float radius = LightDefaults::DEFAULT_SPOT_RADIUS;
     float innerAngleDegrees = LightDefaults::DEFAULT_SPOT_INNER_ANGLE_DEGREES;
     float outerAngleDegrees = LightDefaults::DEFAULT_SPOT_OUTER_ANGLE_DEGREES;
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+	{
+		ar(radius, innerAngleDegrees, outerAngleDegrees);
+	}
+#pragma endregion
 };
 
 struct LightParameters
@@ -79,6 +110,14 @@ struct LightParameters
         parameters.spot = { radius, innerAngleDegrees, outerAngleDegrees };
         return parameters;
     }
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+	{
+		ar(directional, point, spot);
+	}
+#pragma endregion
 };
 
 struct LightData
@@ -86,6 +125,14 @@ struct LightData
     LightCommon common{};
     LightType type = LightType::DIRECTIONAL;
     LightParameters parameters = LightParameters::makeDirectional();
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(common, type, parameters.directional, parameters.point, parameters.spot);
+	}
+#pragma endregion
 };
 
 struct GPUDirectionalLight

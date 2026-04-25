@@ -32,5 +32,16 @@ protected:
 
 	bool				isEmissive = false;
 	MD5Hash 			emissiveMap = INVALID_ASSET_ID;
+
+#pragma region Serialization
+	template <class Archive>
+
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Asset>(this), baseMap, baseColour, metallicRoughnessMap, roughnessFactor, metallicFactor, normalMap, occlusionMap, isEmissive, emissiveMap);
+	}
+#pragma endregion
 };
 
+CEREAL_REGISTER_TYPE(MaterialAsset)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, MaterialAsset)

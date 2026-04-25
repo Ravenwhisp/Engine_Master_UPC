@@ -3,6 +3,10 @@
 #include "UID.h" 
 #include "IDebugDrawable.h"
 
+#include <cereal/types/base_class.hpp>
+#include <cereal/types/polymorphic.hpp> 
+#include <cereal/access.hpp>
+
 class Transform;
 class GameObject;
 
@@ -13,6 +17,7 @@ class IDebugDrawable;
 class Component: public IDebugDrawable {
 public:
     friend class GameObject;
+    friend class cereal::access;
 
     Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
@@ -37,10 +42,17 @@ public:
     virtual void onTransformChange() {};
     Transform* getTransform();
 
+#pragma region Serialization
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
+    template <class Archive>
+    void serialize(Archive& ar)
+	{
+		ar(m_uuid, m_type, m_active);
+	}
+#pragma endregion
     IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 
 protected:
@@ -52,3 +64,5 @@ private:
     const ComponentType m_type;
 	bool m_active = true;
 };
+
+CEREAL_REGISTER_TYPE(Component)

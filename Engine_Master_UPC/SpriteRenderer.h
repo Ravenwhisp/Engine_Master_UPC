@@ -37,4 +37,15 @@ private:
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
     bool m_lookAtCamera = false;
+
+#pragma region Serialization
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_textureAssetId, m_lookAtCamera);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(SpriteRenderer);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, SpriteRenderer)

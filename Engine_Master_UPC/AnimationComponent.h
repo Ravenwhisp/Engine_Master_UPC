@@ -156,4 +156,15 @@ private:
     std::string m_triggerInput;
 
     bool m_debugDrawHierarchy = false;
+
+#pragma region Serialization
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_stateMachineUID, m_playOnStart, m_applyScale, m_forceWorldAfterApply);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(AnimationComponent);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, AnimationComponent)

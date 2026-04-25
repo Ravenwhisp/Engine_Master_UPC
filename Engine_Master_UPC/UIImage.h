@@ -51,4 +51,15 @@ private:
     float m_fillAmount = 1.0f;
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
+
+#pragma region Serialization
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_textureAssetId, m_fillAmount, m_fillMethod, m_fillOrigin);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(UIImage);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, UIImage)

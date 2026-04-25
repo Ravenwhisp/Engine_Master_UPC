@@ -17,4 +17,12 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), renderMode, zTest);
+	}
 };
+
+CEREAL_REGISTER_TYPE(Canvas);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Canvas)

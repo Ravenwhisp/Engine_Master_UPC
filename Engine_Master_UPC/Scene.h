@@ -53,7 +53,14 @@ private:
 
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();
-    //
+
+#pragma once Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Asset>(this), m_name, m_lighting, m_sceneDataCB, m_skybox, m_rootObjects);
+	}
+#pragma endregion
 
 public:
     friend class ModuleScene;
@@ -112,3 +119,5 @@ public:
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
 };
+
+CEREAL_REGISTER_TYPE(Scene)

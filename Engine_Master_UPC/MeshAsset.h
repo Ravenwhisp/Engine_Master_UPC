@@ -9,6 +9,12 @@ struct Submesh
 {
 	uint32_t indexStart;
 	uint32_t indexCount;
+
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(indexStart, indexCount);
+	}
 };
 
 
@@ -54,4 +60,28 @@ protected:
 
 	Vector3 boundsCenter;
 	Vector3 boundsExtents;
+
+#pragma region Serialization
+	template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(
+			cereal::base_class<Asset>(this),
+			vertices,
+			indices,
+			indexFormat_as_uint(),
+			submeshes,
+			boundsCenter,
+			boundsExtents
+		);
+	}
+
+	uint32_t& indexFormat_as_uint()
+	{
+		return reinterpret_cast<uint32_t&>(indexFormat);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(MeshAsset)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, MeshAsset)

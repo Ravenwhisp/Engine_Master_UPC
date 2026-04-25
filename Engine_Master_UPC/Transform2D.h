@@ -60,4 +60,15 @@ private:
     void drawStretchPresetsUI();
     void setPointPreset(float ax, float ay, float px, float py);
     void setStretchPreset(StretchMode mode, float axMin, float ayMin, float axMax, float ayMax, float px, float py);
+
+#pragma region Serialization
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), position, scale, pivot, anchorMin, anchorMax, aspectRatio, sizingMode, baseSize, stretchMode);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(Transform2D)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform2D)

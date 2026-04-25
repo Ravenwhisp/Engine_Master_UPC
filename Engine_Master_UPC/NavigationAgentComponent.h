@@ -45,4 +45,15 @@ private:
 
 public:
 	const std::vector<Vector3>& getPath() const { return m_path; }
+
+#pragma region Serialization
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(cereal::base_class<Component>(this), m_autoStart, m_speed, m_turnSpeed, m_faceMovement, m_waypointReachDistance);
+	}
+#pragma endregion
 };
+
+CEREAL_REGISTER_TYPE(NavigationAgentComponent);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, NavigationAgentComponent)

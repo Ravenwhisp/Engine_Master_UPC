@@ -9,6 +9,14 @@ struct SkinJoint
 {
     std::string nodeName;
     Matrix inverseBindMatrix = Matrix::Identity;
+
+#pragma region Serialization
+    template <class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(nodeName, inverseBindMatrix);
+	}
+#pragma endregion
 };
 
 class SkinAsset : public Asset
@@ -26,4 +34,14 @@ public:
 private:
     std::string m_name;
     std::vector<SkinJoint> m_joints;
+
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+		ar(cereal::base_class<Asset>(this), m_name, m_joints);
+	}
 };
+
+CEREAL_REGISTER_TYPE(SkinAsset)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, SkinAsset)
