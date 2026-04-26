@@ -124,6 +124,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     }
 
     Component* rawPtr = newComponent.get();
+
     m_components.push_back(std::move(newComponent));
     app->getModuleScene()->getScene()->markDirty();
     return rawPtr;
@@ -776,6 +777,7 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
             }
 
             newComponent->deserializeJSON(componentJson);
+            newComponent->init();
         }
     }
 
