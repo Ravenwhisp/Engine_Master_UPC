@@ -13,6 +13,7 @@
 #include "ScriptComponent.h"
 #include "SpriteRenderer.h"
 #include "AnimationComponent.h"
+#include "TriggerComponent.h"
 
 // UI components
 #include "Canvas.h"
@@ -82,6 +83,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::UISLIDER:
 		return std::make_unique<UISlider>(id, owner);
+
+    case ComponentType::TRIGGER:
+        return std::make_unique<TriggerComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:
