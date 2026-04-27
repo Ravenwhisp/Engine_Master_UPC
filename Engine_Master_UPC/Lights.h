@@ -122,6 +122,7 @@ struct GPUSpotLight
     float padding1[2] = { 0.0f, 0.0f };
 };
 
+/*
 struct GPULightsConstantBuffer
 {
     Vector3 ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
@@ -135,4 +136,30 @@ struct GPULightsConstantBuffer
     GPUDirectionalLight directionalLights[LightDefaults::MAX_DIRECTIONAL_LIGHTS];
     GPUPointLight pointLights[LightDefaults::MAX_POINT_LIGHTS];
     GPUSpotLight spotLights[LightDefaults::MAX_SPOT_LIGHTS];
+};
+*/
+
+struct PackedLights
+{
+    std::vector<GPUDirectionalLight> directional;
+    std::vector<GPUPointLight> point;
+    std::vector<GPUSpotLight> spot;
+
+    uint32_t directionalCount = 0;
+    uint32_t pointCount = 0;
+    uint32_t spotCount = 0;
+
+    Vector3 ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
+    float ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+};
+
+struct LightsInfo
+{
+    Vector3 ambientColor;
+    float ambientIntensity;
+
+    uint32_t directionalCount;
+    uint32_t pointCount;
+    uint32_t spotCount;
+    uint32_t pad;
 };

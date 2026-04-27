@@ -32,7 +32,7 @@ public:
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
-    GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
+    PackedLights packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
 
     void renderMesh(ID3D12GraphicsCommandList* commandList);
 
@@ -49,6 +49,11 @@ private:
     D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_lightsAddress = 0;
 
+    PackedLights m_packedLights;
+    ComPtr<ID3D12Resource> m_directionalBuffer;
+    ComPtr<ID3D12Resource> m_pointBuffer;
+    ComPtr<ID3D12Resource> m_spotBuffer;
+
     std::unique_ptr<SceneLightingSettings> m_lighting;
     std::unique_ptr<SceneDataCB> m_sceneDataCB;
 
@@ -57,4 +62,6 @@ private:
     
     int m_trianglesCount = 0;
 	int m_meshCount = 0;
+
+    void CreateUploadBuffer(ComPtr<ID3D12Resource>& buffer, size_t size);
 };

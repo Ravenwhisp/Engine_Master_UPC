@@ -38,7 +38,7 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[12] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -56,15 +56,20 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     rootParameters[6].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[7].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[8].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    
+    rootParameters[9].InitAsShaderResourceView(11); // t11
+    rootParameters[10].InitAsShaderResourceView(12); // t12
+    rootParameters[11].InitAsShaderResourceView(13); // t13
 
-    rootSignatureDesc.Init(9, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(12, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
     DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
+    CreateUploadBuffer(m_directionalBuffer, sizeof(GPUDirectionalLight) * LightDefaults::MAX_DIRECTIONAL_LIGHTS);
+    CreateUploadBuffer(m_pointBuffer, sizeof(GPUPointLight) * LightDefaults::MAX_POINT_LIGHTS);
+    CreateUploadBuffer(m_spotBuffer, sizeof(GPUSpotLight) * LightDefaults::MAX_SPOT_LIGHTS);
 
 #if defined(_DEBUG)
     // Enable better shader debugging with the graphics debugging tools.
@@ -135,26 +140,48 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
             app->getModuleD3D12()->getCurrentFrame());
     }
 
-    GPULightsConstantBuffer lightsCB{};
     {
         PERF_RENDER("MeshRendererPass::prepare::PackLights");
-        lightsCB = packLightsForGPU(
+        m_packedLights = packLightsForGPU(
             app->getModuleScene()->getLightComponents(),
             m_lighting->ambientColor,
             m_lighting->ambientIntensity);
     }
 
     {
-        PERF_RENDER("MeshRendererPass::prepare::UploadLightsCB");
-        m_lightsAddress = ctx.ringBuffer->allocate(
-            &lightsCB,
-            sizeof(GPULightsConstantBuffer),
-            app->getModuleD3D12()->getCurrentFrame());
+        LightsInfo info{};
+        info.ambientColor = m_packedLights.ambientColor;
+        info.ambientIntensity = m_packedLights.ambientIntensity;
+        info.directionalCount = m_packedLights.directionalCount;
+        info.pointCount = m_packedLights.pointCount;
+        info.spotCount = m_packedLights.spotCount;
+
+        m_lightsAddress = ctx.ringBuffer->allocate(&info, sizeof(LightsInfo), app->getModuleD3D12()->getCurrentFrame());
     }
 }
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    void* mapped;
+
+    // directional
+    m_directionalBuffer->Map(0, nullptr, &mapped);
+    memcpy(mapped, m_packedLights.directional.data(),
+        m_packedLights.directional.size() * sizeof(GPUDirectionalLight));
+    m_directionalBuffer->Unmap(0, nullptr);
+
+    // point
+    m_pointBuffer->Map(0, nullptr, &mapped);
+    memcpy(mapped, m_packedLights.point.data(),
+        m_packedLights.point.size() * sizeof(GPUPointLight));
+    m_pointBuffer->Unmap(0, nullptr);
+
+    // spot
+    m_spotBuffer->Map(0, nullptr, &mapped);
+    memcpy(mapped, m_packedLights.spot.data(),
+        m_packedLights.spot.size() * sizeof(GPUSpotLight));
+    m_spotBuffer->Unmap(0, nullptr);
+
 
     // Bind root signature (must be set before any draw calls)
     commandList->SetPipelineState(m_pipelineState.Get());
@@ -169,6 +196,10 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
     commandList->SetGraphicsRootDescriptorTable(8, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    commandList->SetGraphicsRootShaderResourceView(9, m_directionalBuffer->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootShaderResourceView(10, m_pointBuffer->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootShaderResourceView(11, m_spotBuffer->GetGPUVirtualAddress());
 
     renderMesh(commandList);
 }
@@ -278,14 +309,11 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
     }
 }
 
-GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
-    const std::vector<LightComponent*>& lights,
-    const Vector3& ambientColor,
-    float ambientIntensity) const
+PackedLights MeshRendererPass::packLightsForGPU(const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const
 {
-    GPULightsConstantBuffer cb{};
-    cb.ambientColor = ambientColor;
-    cb.ambientIntensity = ambientIntensity;
+    PackedLights result{};
+    result.ambientColor = ambientColor;
+    result.ambientIntensity = ambientIntensity;
 
     for (const LightComponent* light : lights)
     {
@@ -309,44 +337,66 @@ GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
         switch (data.type)
         {
         case LightType::DIRECTIONAL:
-            if (cb.directionalCount < LightDefaults::MAX_DIRECTIONAL_LIGHTS)
+            if (result.directional.size() < LightDefaults::MAX_DIRECTIONAL_LIGHTS)
             {
-                auto& l = cb.directionalLights[cb.directionalCount++];
+                GPUDirectionalLight l{};
                 l.direction = fwd;
                 l.color = common.color;
                 l.intensity = common.intensity;
+                result.directional.push_back(l);
             }
             break;
 
         case LightType::POINT:
-            if (cb.pointCount < LightDefaults::MAX_POINT_LIGHTS)
+            if (result.point.size() < LightDefaults::MAX_POINT_LIGHTS)
             {
-                auto& l = cb.pointLights[cb.pointCount++];
+                GPUPointLight l{};
                 l.position = pos;
                 l.radius = data.parameters.point.radius;
                 l.color = common.color;
                 l.intensity = common.intensity;
+                result.point.push_back(l);
             }
             break;
 
         case LightType::SPOT:
-            if (cb.spotCount < LightDefaults::MAX_SPOT_LIGHTS)
+            if (result.spot.size() < LightDefaults::MAX_SPOT_LIGHTS)
             {
-                const auto& sp = data.parameters.spot;
-                auto& l = cb.spotLights[cb.spotCount++];
+                GPUSpotLight l{};
                 l.position = pos;
                 l.direction = fwd;
-                l.radius = sp.radius;
+                l.radius = data.parameters.spot.radius;
                 l.color = common.color;
                 l.intensity = common.intensity;
-                l.cosineInnerAngle = std::cos(XMConvertToRadians(sp.innerAngleDegrees));
-                l.cosineOuterAngle = std::cos(XMConvertToRadians(sp.outerAngleDegrees));
+                l.cosineInnerAngle = std::cos(XMConvertToRadians(data.parameters.spot.innerAngleDegrees));
+                l.cosineOuterAngle = std::cos(XMConvertToRadians(data.parameters.spot.outerAngleDegrees));
+                result.spot.push_back(l);
             }
             break;
-
-        default: break;
         }
     }
 
-    return cb;
+    result.directionalCount = (uint32_t)result.directional.size();
+    result.pointCount = (uint32_t)result.point.size();
+    result.spotCount = (uint32_t)result.spot.size();
+
+    return result;
 }
+
+#pragma region UTILS
+void MeshRendererPass::CreateUploadBuffer(ComPtr<ID3D12Resource>& buffer, size_t size)
+{
+    CD3DX12_HEAP_PROPERTIES heap(D3D12_HEAP_TYPE_UPLOAD);
+    CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size);
+
+    m_device->CreateCommittedResource(
+        &heap,
+        D3D12_HEAP_FLAG_NONE,
+        &desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&buffer)
+    );
+}
+
+#pragma endregion

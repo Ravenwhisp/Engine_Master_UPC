@@ -55,7 +55,11 @@ struct SpotLight
     float2 pad1;
 };
 
-cbuffer LightsCB : register(b3)
+StructuredBuffer<DirectionalLight> directionalLights : register(t11);
+StructuredBuffer<PointLight> pointLights : register(t12);
+StructuredBuffer<SpotLight> spotLights : register(t13);
+
+cbuffer LightsInfo : register(b3)
 {
     float3 ambientColor;
     float ambientIntensity;
@@ -63,9 +67,5 @@ cbuffer LightsCB : register(b3)
     uint directionalCount;
     uint pointCount;
     uint spotCount;
-    uint paddingCounts;
-
-    DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
-    PointLight pointLights[MAX_POINT_LIGHTS];
-    SpotLight spotLights[MAX_SPOT_LIGHTS];
+    uint pad;
 };
