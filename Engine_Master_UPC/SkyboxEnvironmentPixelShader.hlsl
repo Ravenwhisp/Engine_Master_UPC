@@ -81,7 +81,7 @@ float4 main(float3 texcoords : TEXCOORD) : SV_TARGET
         float NdotL = dot(N, L); // Sample environment if facing positive direction
         if (NdotL > 0)
         {
-            color += skyTexture.Sample(skySampler, L).rgb * NdotL;
+            color += skyTexture.SampleLevel(skySampler, L, 0).rgb * NdotL;
             weight += NdotL;
         }
     }

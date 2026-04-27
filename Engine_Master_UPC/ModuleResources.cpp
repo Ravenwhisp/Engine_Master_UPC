@@ -408,7 +408,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
 	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
 	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
-	desc.mipLevels = 5; //roughness levels
+	desc.mipLevels = 11; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
@@ -478,23 +478,6 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 
 
-	//Viewport and scissor
-	D3D12_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = (float)desc.width;
-	viewport.Height = (float)desc.height;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-
-	D3D12_RECT scissor = {};
-	scissor.left = 0;
-	scissor.top = 0;
-	scissor.right = (LONG)desc.width;
-	scissor.bottom = (LONG)desc.height;
-
-	commandList->RSSetViewports(1, &viewport);
-	commandList->RSSetScissorRects(1, &scissor);
 
 
 
@@ -511,16 +494,34 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 	Vector3 up[] = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
 
 
-	//if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+	if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 
 	for (size_t mip = 0; mip < desc.mipLevels; mip++)
 	{
+		//Viewport and scissor
+		D3D12_VIEWPORT viewport = {};
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = desc.width >> mip;
+		viewport.Height = desc.height >> mip;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+
+		D3D12_RECT scissor = {};
+		scissor.left = 0;
+		scissor.top = 0;
+		scissor.right = desc.width >> mip;
+		scissor.bottom = desc.height >> mip;
+
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &scissor);
+
 		SkyBox::EnvironmentData environmentData{};
 		environmentData.roughness = (float)mip / (desc.mipLevels - 1); //clamp 
 
 		for (size_t i = 0; i < desc.arraySize; i++)
 		{
-			//BEGIN_EVENT(commandList.Get(), "Environment Generation");
+			BEGIN_EVENT(commandList.Get(), "Environment Generation");
 
 			Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
 			Matrix viewProjection = view * proj;
@@ -561,12 +562,12 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 			commandList->ResourceBarrier(1, &barrierOut);
 
-			//END_EVENT(commandList.Get());
+			END_EVENT(commandList.Get());
 		}
 	}
 
 	m_queue->executeCommandList(commandList);
-	//if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
+	if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 
 	m_queue->flush();
 
