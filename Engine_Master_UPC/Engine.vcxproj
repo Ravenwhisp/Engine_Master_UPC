@@ -335,6 +335,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="OptickProfiler.h" />
     <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="CommandMoveFile.h" />
@@ -372,6 +373,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SpriteVertex.h" />
     <ClInclude Include="StateMachineScript.h" />
     <ClInclude Include="TextureImage.h" />
+    <ClInclude Include="TriggerComponent.h" />
+    <ClInclude Include="TriggerDebugDrawMode.h" />
+    <ClInclude Include="TriggerShape.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
@@ -648,6 +652,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
     <ClCompile Include="CommandPasteFile.cpp" />
@@ -660,6 +665,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneReferenceResolver.cpp" />
     <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="StaticTexturesPass.cpp" />
+    <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SpriteRenderer.cpp" />
     <ClCompile Include="SpriteRendererPass.cpp" />

@@ -17,6 +17,7 @@ StructuredBuffer<RowMajorMatrix> gPaletteNormal : register(t2);
 cbuffer SkinningParams : register(b0)
 {
     uint gVertexCount;
+    uint gPaletteCount;
 };
 
 uint GetJointIndex(uint2 packedJoints, uint jointSlot)
@@ -42,6 +43,10 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     for (uint j = 0; j < 4; ++j)
     {
         uint jointIndex = GetJointIndex(inputVertex.packedJoints, j);
+        
+        if (jointIndex >= gPaletteCount)
+            continue;
+        
         float weight = inputVertex.weights[j];
 
         if (weight <= 0.0f)
@@ -59,7 +64,8 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     if (totalWeight > 0.0f)
     {
-        outputVertex.position = skinnedPosition;
+        float invWeight = 1.0f / totalWeight;
+        outputVertex.position = skinnedPosition * invWeight;
 
         if (dot(skinnedNormal, skinnedNormal) > 0.0f)
         {
