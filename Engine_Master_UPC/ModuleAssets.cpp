@@ -655,8 +655,30 @@ bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 
     const Value& goNode = doc["GameObject"];
     const PrefabOverrideRecord savedOverrides = info.m_overrides;
-    const int transformType = static_cast<int>(ComponentType::TRANSFORM);
 
+    // Sentinel key -1 holds GameObject-level property overrides (name, active, tag, layer)
+    const int goLevelKey = -1;
+    auto goOit = savedOverrides.m_modifiedProperties.find(goLevelKey);
+    const auto* goOverrideSet = (goOit != savedOverrides.m_modifiedProperties.end())
+        ? &goOit->second : nullptr;
+    auto isGoOverridden = [&](const char* prop)
+        { return goOverrideSet && goOverrideSet->count(prop) > 0; };
+
+    if (!isGoOverridden("name") && goNode.HasMember("Name") && goNode["Name"].IsString())
+        go->SetName(goNode["Name"].GetString());
+
+    if (!isGoOverridden("active") && goNode.HasMember("Active") && goNode["Active"].IsBool())
+        go->SetActive(goNode["Active"].GetBool());
+
+    // Tag and Layer are not currently written by PrefabSerializer::serialiseNodeInto,
+    // so we only restore them if the JSON actually has them.
+    if (!isGoOverridden("tag") && goNode.HasMember("Tag") && goNode["Tag"].IsString())
+        go->SetTag(StringToTag(goNode["Tag"].GetString()));
+
+    if (!isGoOverridden("layer") && goNode.HasMember("Layer") && goNode["Layer"].IsString())
+        go->SetLayer(StringToLayer(goNode["Layer"].GetString()));
+
+    const int transformType = static_cast<int>(ComponentType::TRANSFORM);
     if (goNode.HasMember("Transform") && goNode["Transform"].IsObject())
     {
         Transform* tf = go->GetTransform();
