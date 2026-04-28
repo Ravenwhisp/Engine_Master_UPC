@@ -208,6 +208,12 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
     go->SetName(node.HasMember("Name") ? node["Name"].GetString() : "Unnamed");
     go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
 
+    if (node.HasMember("Tag") && node["Tag"].IsString())
+        go->SetTag(StringToTag(node["Tag"].GetString()));
+
+    if (node.HasMember("Layer") && node["Layer"].IsString())
+        go->SetLayer(StringToLayer(node["Layer"].GetString()));
+
     if (parent)
     {
         go->GetTransform()->setRoot(parent->GetTransform());
