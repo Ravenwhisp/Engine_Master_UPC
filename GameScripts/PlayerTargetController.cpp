@@ -3,12 +3,9 @@
 
 #include "CharacterBase.h"
 
-static const ScriptFieldInfo playerTargetControllerFields[] =
-{
-    { "Target Range", ScriptFieldType::Float, offsetof(PlayerTargetController, m_targetRange), { 0.0f, 20.0f, 0.05f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController, playerTargetControllerFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController,
+    SERIALIZED_FLOAT(m_targetRange, "Target Range", 0.0f, 20.0f, 0.05f)
+)
 
 PlayerTargetController::PlayerTargetController(GameObject* owner)
     : Script(owner)

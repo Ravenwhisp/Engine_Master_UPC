@@ -430,6 +430,12 @@
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
     <ClCompile Include="CompoundBinary.cpp" />
+    <ClCompile Include="TriggerComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleTrigger.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1051,7 +1057,23 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="UIFill.h" />
     <ClInclude Include="UISlider.h" />
-    <ClInclude Include="FileDialog.h">
+    <ClInclude Include="ScriptFieldMacros.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerShape.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerDebugDrawMode.h">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleTrigger.h">
+      <Filter>GameEntity</Filter>
+    </ClInclude>
+
+       <ClInclude Include="FileDialog.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="AssetDialogFilter.h">
@@ -1075,6 +1097,7 @@
     <ClInclude Include="CompoundBinary.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
+
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

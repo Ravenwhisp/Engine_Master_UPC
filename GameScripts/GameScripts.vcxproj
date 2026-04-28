@@ -298,6 +298,7 @@
     <ClInclude Include="TestSceneChangeButton.h" />
     <ClInclude Include="TransformGlobalTest.h" />
     <ClInclude Include="TriggerArea.h" />
+    <ClInclude Include="TriggerDebugScript.h" />
     <ClInclude Include="UIController.h" />
   </ItemGroup>
   <ItemGroup>
@@ -366,6 +367,7 @@
     <ClCompile Include="TestSceneChangeButton.cpp" />
     <ClCompile Include="TransformGlobalTest.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
+    <ClCompile Include="TriggerDebugScript.cpp" />
     <ClCompile Include="UIController.cpp" />
   </ItemGroup>
   <ItemGroup>

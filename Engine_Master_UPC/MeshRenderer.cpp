@@ -583,6 +583,7 @@ void MeshRenderer::rebuildCpuSkinnedVertexBuffer()
 
         if (totalWeight > 0.0f)
         {
+            skinnedPos /= totalWeight;
             dst.position = skinnedPos;
 
             if (skinnedNormal.LengthSquared() > 0.0f)

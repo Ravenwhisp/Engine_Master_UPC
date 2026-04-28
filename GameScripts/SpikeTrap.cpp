@@ -2,18 +2,15 @@
 #include "SpikeTrap.h"
 #include "PlayerDamageable.h"
 
-static const ScriptFieldInfo myScriptFields[] =
-{
-	{ "Alternative Mode", ScriptFieldType::Bool, offsetof(SpikeTrap, alternativeMode) },
-    { "Active Duration" , ScriptFieldType::Float, offsetof(SpikeTrap, a_duration), {0.0f, 50.0f, 0.1f } },
-	{ "Preparing Duration" , ScriptFieldType::Float, offsetof(SpikeTrap, p_duration), {0.0f, 50.0f, 0.1f } },
-    { "Start Position Y", ScriptFieldType::Float, offsetof(SpikeTrap, startPositionY), { -10.0f, 10.0f, 0.1f } },
-    { "Wait Position Y", ScriptFieldType::Float, offsetof(SpikeTrap, waitPositionY), { -10.0f, 10.0f, 0.1f } },
-	{ "Active Position Y", ScriptFieldType::Float, offsetof(SpikeTrap, activePositionY), { -10.0f, 10.0f, 0.1f } },
-	{ "Trap Damage", ScriptFieldType::Float, offsetof(SpikeTrap, trapDamage), { 0.0f, 1000.0f, 1.0f } },
-};
-
-IMPLEMENT_SCRIPT_FIELDS(SpikeTrap, myScriptFields)
+IMPLEMENT_SCRIPT_FIELDS(SpikeTrap,
+    SERIALIZED_BOOL(alternativeMode, "Alternative Mode"),
+    SERIALIZED_FLOAT(a_duration, "Active Duration", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(p_duration, "Preparing Duration", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(startPositionY, "Start Position Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(waitPositionY, "Wait Position Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(activePositionY, "Active Position Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(trapDamage, "Trap Damage", 0.0f, 1000.0f, 1.0f)
+)
 
 SpikeTrap::SpikeTrap(GameObject* owner)
     : Script(owner)

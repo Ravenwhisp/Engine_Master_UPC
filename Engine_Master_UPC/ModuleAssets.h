@@ -9,6 +9,8 @@
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
 #include "FileDialogRequest.h"
+#include "PrefabSerializer.h"  
+#include "PrefabAsset.h"
 
 #include <filesystem>
 #include <memory>
@@ -117,6 +119,13 @@ public:
         return asset;
     }
 
+    bool savePrefab(GameObject* go, const std::filesystem::path& savePath);
+    bool applyPrefab(const GameObject* go);
+    bool revertPrefab(GameObject* go, Scene* scene);
+    bool createVariant(const std::filesystem::path& src, const std::filesystem::path& dst);
+
+    GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
+    GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
 private:
     bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
     bool isDialogOpen() const { return m_dialogRunning.load(); }

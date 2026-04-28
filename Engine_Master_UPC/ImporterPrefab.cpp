@@ -33,11 +33,6 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset
     doc.Parse(data.m_json.c_str());
     if (!doc.HasParseError())
     {
-        if (doc.HasMember("PrefabUID") && doc["PrefabUID"].IsUint64())
-        {
-            data.m_prefabUID = static_cast<UID>(doc["PrefabUID"].GetUint64());
-        }
-
         // Allow the JSON to override the display name.
         if (doc.HasMember("Name") && doc["Name"].IsString())
         {
@@ -71,7 +66,6 @@ uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
     writer.string(pathStr);
     writer.string(data.m_name);
     writer.string(data.m_assetUID);
-    writer.u64(static_cast<uint64_t>(data.m_prefabUID));
     writer.string(data.m_json);
 
     *outBuffer = buffer;
@@ -86,6 +80,5 @@ void ImporterPrefab::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
     data.m_sourcePath = reader.string();
     data.m_name = reader.string();
     data.m_assetUID = reader.string();
-    data.m_prefabUID = static_cast<UID>(reader.u64());
     data.m_json = reader.string();
 }

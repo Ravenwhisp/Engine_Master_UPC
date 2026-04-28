@@ -22,16 +22,12 @@ static Vector3 getHorizontalForward(const Transform* transform)
     return forward;
 }
 
-static const ScriptFieldInfo DeathTauntFields[] =
-{
-    { "Ability Cooldown", ScriptFieldType::Float, offsetof(DeathTaunt, m_TauntCooldownSeconds), { 1.0f, 10.0f, 0.05f } },
-    { "Ability Duration", ScriptFieldType::Float, offsetof(DeathTaunt, m_TauntDurationSeconds), { 1.0f, 10.0f, 0.05f } },
-    { "Cone Range", ScriptFieldType::Float, offsetof(DeathTaunt, m_TauntRange), { 1.0f, 10.0f, 0.1f } },
-    { "Cone Angle", ScriptFieldType::Float, offsetof(DeathTaunt, m_TauntHalfAngleDegrees), { 1.0f, 180.0f, 1.0f } }
-    
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DeathTaunt, DeathTauntFields)
+IMPLEMENT_SCRIPT_FIELDS(DeathTaunt,
+    SERIALIZED_FLOAT(m_TauntCooldownSeconds, "Ability Cooldown", 1.0f, 10.0f, 0.05f),
+    SERIALIZED_FLOAT(m_TauntDurationSeconds, "Ability Duration", 1.0f, 10.0f, 0.05f),
+    SERIALIZED_FLOAT(m_TauntRange, "Cone Range", 1.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_TauntHalfAngleDegrees, "Cone Angle", 1.0f, 180.0f, 1.0f)
+)
 
 DeathTaunt::DeathTaunt(GameObject* owner)
     : DeathAbilityBase(owner)

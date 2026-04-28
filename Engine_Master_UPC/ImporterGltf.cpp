@@ -21,7 +21,6 @@
 #include "MeshRenderer.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "PrefabManager.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -39,13 +38,98 @@
 #include <functional>
 #include <algorithm>
 #include <cctype>
+#include <array>
 #include <CompoundBinary.h>
 
 static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
 
-static UID resolveTexture(const tinygltf::Model& model, int texIndex,
-    const std::filesystem::path* modelPath)
+static float getVec4Component(const Vector4& v, int index)
 {
+    switch (index)
+    {
+    case 0: return v.x;
+    case 1: return v.y;
+    case 2: return v.z;
+    default: return v.w;
+    }
+}
+
+static void setVec4Component(Vector4& v, int index, float value)
+{
+    switch (index)
+    {
+    case 0: v.x = value; break;
+    case 1: v.y = value; break;
+    case 2: v.z = value; break;
+    default: v.w = value; break;
+    }
+}
+
+struct JointInfluence
+{
+    uint16_t joint = 0;
+    float weight = 0.0f;
+};
+
+static void collapseToTop4Influences(
+    const uint16_t joints0[4],
+    const Vector4& weights0,
+    const uint16_t joints1[4],
+    const Vector4& weights1,
+    uint16_t outJoints[4],
+    Vector4& outWeights)
+{
+    std::array<JointInfluence, 8> influences{};
+    int count = 0;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        const float w = getVec4Component(weights0, i);
+        if (w > 0.0f)
+        {
+            influences[count++] = { joints0[i], w };
+        }
+    }
+
+    for (int i = 0; i < 4; ++i)
+    {
+        const float w = getVec4Component(weights1, i);
+        if (w > 0.0f)
+        {
+            influences[count++] = { joints1[i], w };
+        }
+    }
+
+    std::sort(influences.begin(), influences.begin() + count,
+        [](const JointInfluence& a, const JointInfluence& b)
+        {
+            return a.weight > b.weight;
+        });
+
+    for (int i = 0; i < 4; ++i)
+    {
+        outJoints[i] = 0;
+    }
+    outWeights = Vector4::Zero;
+
+    const int keptCount = std::min(count, 4);
+    float totalWeight = 0.0f;
+
+    for (int i = 0; i < keptCount; ++i)
+    {
+        outJoints[i] = influences[i].joint;
+        setVec4Component(outWeights, i, influences[i].weight);
+        totalWeight += influences[i].weight;
+    }
+
+    if (totalWeight > 0.0f)
+    {
+        outWeights /= totalWeight;
+    }
+}
+
+static UID resolveTexture(const tinygltf::Model& model, int texIndex,
+    const std::filesystem::path* modelPath) {
     if (texIndex < 0 || texIndex >= static_cast<int>(model.textures.size()))
     {
         return INVALID_UID;
@@ -344,7 +428,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     }
 
     PrefabData& data = dst->getData();
-    data.m_json = PrefabManager::buildPrefabJSON(root, *m_currentFilePath);
+    data.m_json = PrefabSerializer::buildPrefabJSON(root, *m_currentFilePath);
     data.m_sourcePath = *m_currentFilePath;
     data.m_name = prefabName;
     data.m_assetUID = parentFileId;
@@ -433,6 +517,66 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primit
     if (itWeights != primitive.attributes.end())
     {
         loadAccessorData(vBase + offsetof(Vertex, weights),sizeof(Vector4), sizeof(Vertex), vertexCount, model, itWeights->second);
+    }
+
+    auto itJoints1 = primitive.attributes.find("JOINTS_1");
+    auto itWeights1 = primitive.attributes.find("WEIGHTS_1");
+
+    const bool hasJoints1 = (itJoints1 != primitive.attributes.end());
+    const bool hasWeights1 = (itWeights1 != primitive.attributes.end());
+
+    if (hasJoints1 != hasWeights1)
+    {
+        DEBUG_WARN("[ImporterGltf] Primitive has only one of JOINTS_1 / WEIGHTS_1. Extra influences will be ignored.");
+    }
+    else if (hasJoints1 && hasWeights1)
+    {
+        std::vector<std::array<uint16_t, 4>> extraJoints(vertexCount);
+        std::vector<Vector4> extraWeights(vertexCount, Vector4::Zero);
+
+        const bool jointsLoaded = loadJointIndices4(
+            model,
+            itJoints1->second,
+            reinterpret_cast<uint16_t*>(extraJoints.data()),
+            vertexCount,
+            sizeof(std::array<uint16_t, 4>));
+
+        const bool weightsLoaded = loadAccessorData(
+            reinterpret_cast<uint8_t*>(extraWeights.data()),
+            sizeof(Vector4),
+            sizeof(Vector4),
+            vertexCount,
+            model,
+            itWeights1->second);
+
+        if (!jointsLoaded || !weightsLoaded)
+        {
+            DEBUG_WARN("[ImporterGltf] Failed to load JOINTS_1 / WEIGHTS_1. Extra influences will be ignored.");
+        }
+        else
+        {
+            Vertex* vertices = mesh->vertices.data() + baseVertex;
+
+            for (uint32_t i = 0; i < vertexCount; ++i)
+            {
+                uint16_t collapsedJoints[4] = { 0, 0, 0, 0 };
+                Vector4 collapsedWeights = Vector4::Zero;
+
+                collapseToTop4Influences(
+                    vertices[i].joints,
+                    vertices[i].weights,
+                    extraJoints[i].data(),
+                    extraWeights[i],
+                    collapsedJoints,
+                    collapsedWeights);
+
+                for (int j = 0; j < 4; ++j)
+                {
+                    vertices[i].joints[j] = collapsedJoints[j];
+                }
+                vertices[i].weights = collapsedWeights;
+            }
+        }
     }
 
     uint32_t indexCount = 0, componentSize = 0;

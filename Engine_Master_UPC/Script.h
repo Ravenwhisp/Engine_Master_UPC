@@ -16,6 +16,9 @@ public:
     virtual void Start() {}
     virtual void Update() {}
 
+    virtual void OnTriggerEnter(GameObject* gameObject) {}
+    virtual void OnTriggerExit(GameObject* gameObject) {}
+
     virtual ScriptFieldList getExposedFields() const
     {
         return {};

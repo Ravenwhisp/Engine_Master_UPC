@@ -76,8 +76,6 @@ struct PrefabData
     // ── Persistence payload ───────────────────────────────────────────────────
     std::string m_json;
 
-    // ── Runtime instance state (never written to the binary cache) ────────────
-    PrefabOverrideRecord m_overrides;
 };
 
 // ============================================================================

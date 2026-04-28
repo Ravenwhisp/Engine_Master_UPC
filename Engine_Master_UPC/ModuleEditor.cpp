@@ -5,6 +5,8 @@
 #include "ModuleCamera.h"
 #include <backends/imgui_impl_dx12.h>
 
+#include "Scene.h"
+#include "GameObject.h"
 #include "WindowSceneEditor.h"
 #include "WindowHardware.h"
 #include "EditorWindow.h"
@@ -18,7 +20,6 @@
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
-#include "PrefabManager.h"
 #include "ModuleRender.h"
 #include "WindowAnimationStateMachine.h"
 
@@ -597,14 +598,10 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 {
     app->getModuleD3D12()->getCommandQueue()->flush();
 
-    if (m_prefabSession.m_active)
-    {
-        m_prefabSession.clear();
-    }
+    Scene* mainScene = app->getModuleScene()->getScene();
+    m_prefabSession.m_isolatedScene = mainScene;
 
-    m_prefabSession.m_isolatedScene = app->getModuleScene()->getScene();
-
-    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, m_prefabSession.m_isolatedScene);
+    GameObject* loaded = app->getModuleAssets()->spawnPrefab(sourcePath, mainScene);
 
     if (!loaded)
     {
@@ -615,7 +612,6 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     m_prefabSession.m_sourcePath = sourcePath;
     m_prefabSession.m_rootObject = loaded;
     m_prefabSession.m_active = true;
-    m_prefabSession.m_editingInMainScene = false;
     m_selectedGameObject = loaded;
 }
 
@@ -625,6 +621,7 @@ void ModuleEditor::exitPrefabEdit()
     {
         return;
     }
+
     m_pendingExitPrefab = true;
 }
 
@@ -638,5 +635,11 @@ void ModuleEditor::flushExitPrefabEdit()
     m_pendingExitPrefab = false;
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_selectedGameObject = nullptr;
+
+    if (m_prefabSession.m_rootObject && m_prefabSession.m_isolatedScene)
+    {
+        m_prefabSession.m_isolatedScene->removeGameObject(m_prefabSession.m_rootObject->GetID());
+    }
+
     m_prefabSession.clear();
 }
