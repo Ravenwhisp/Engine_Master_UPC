@@ -6,7 +6,7 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
 
-Asset* ImporterScene::createAssetInstance(const MD5Hash& uid) const
+Asset* ImporterScene::createAssetInstance(const UID& uid) const
 {
 	return new Scene(uid);
 }

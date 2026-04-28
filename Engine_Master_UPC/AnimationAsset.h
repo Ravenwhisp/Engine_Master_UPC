@@ -2,12 +2,13 @@
 #include "Globals.h"
 #include "Asset.h"
 
-#include <string>
-#include <vector>
 #include <unordered_map>
+#include <cereal/types/unordered_map.hpp>
+#include <cereal/types/string.hpp>
 
 class ImporterGltf;
 class ImporterAnimation;
+
 
 struct AnimKeyVec3
 {
@@ -56,9 +57,10 @@ class AnimationAsset : public Asset
 public:
     friend class ImporterAnimation;
     friend class ImporterGltf;
+	friend class cereal::access;
 
     AnimationAsset() = default;
-    explicit AnimationAsset(MD5Hash id) : Asset(id, AssetType::ANIMATION) {}
+    explicit AnimationAsset(UID id) : Asset(id, AssetType::ANIMATION) {}
 
     const std::string& getName() const { return m_name; }
     float getDurationSeconds() const { return m_durationSeconds; }

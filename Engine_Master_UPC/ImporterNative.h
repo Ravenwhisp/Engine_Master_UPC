@@ -26,7 +26,7 @@ public:
         return saveTyped(static_cast<const AssetFormat*>(asset), outBuffer);
     }
 
-    void load(const uint8_t* buffer, Asset* outAsset) override
+    void load(const uint8_t* buffer, uint64_t size, const UID& localId, Asset* outAsset)
     {
         loadTyped(buffer, static_cast<AssetFormat*>(outAsset));
     }

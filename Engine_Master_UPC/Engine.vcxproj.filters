@@ -429,6 +429,7 @@
     <ClCompile Include="ImporterScene.cpp">
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
+    <ClCompile Include="CompoundBinary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1064,6 +1065,15 @@
     </ClInclude>
     <ClInclude Include="CerealUtils.h">
       <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetReference.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetChunkHeader.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="CompoundBinary.h">
+      <Filter>Persistence\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

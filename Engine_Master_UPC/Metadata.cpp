@@ -5,7 +5,8 @@ bool Metadata::toJson(rapidjson::Document& doc) const
 {
     auto& alloc = doc.GetAllocator();
 
-    doc.AddMember("uid", rapidjson::Value(uid.c_str(), alloc), alloc);
+    doc.AddMember("uid", fileId, alloc);
+    doc.AddMember("hash", rapidjson::Value(contentHash.c_str(), alloc), alloc);
     doc.AddMember("type", rapidjson::Value(static_cast<uint32_t>(type)), alloc);
     doc.AddMember("sourcePath", rapidjson::Value(sourcePath.string().c_str(), alloc), alloc);
 
@@ -15,7 +16,7 @@ bool Metadata::toJson(rapidjson::Document& doc) const
         for (const DependencyRecord& dep : m_dependencies)
         {
             rapidjson::Value entry(rapidjson::kObjectType);
-            entry.AddMember("uid", rapidjson::Value(dep.uid.c_str(), alloc), alloc);
+            entry.AddMember("uid", dep.localId, alloc);
             entry.AddMember("type", rapidjson::Value(static_cast<uint32_t>(dep.type)), alloc);
             deps.PushBack(entry, alloc);
         }
@@ -26,12 +27,21 @@ bool Metadata::toJson(rapidjson::Document& doc) const
 
 bool Metadata::fromJson(const rapidjson::Value& root)
 {
-    if (!root.HasMember("uid") || !root["uid"].IsString())
+    if (!root.HasMember("uid") || !root["uid"].IsUint64())
     {
         DEBUG_ERROR("[Metadata] Missing or invalid 'uid'.");
         return false;
     }
-    uid = root["uid"].GetString();
+
+    fileId = root["uid"].GetUint64();
+
+    if (!root.HasMember("hash") || !root["hash"].IsString())
+    {
+        DEBUG_ERROR("[Metadata] Missing or invalid 'hash'.");
+        return false;
+    }
+
+    contentHash = root["hash"].GetString();
 
     if (!root.HasMember("type") || !root["type"].IsNumber())
     {
@@ -53,11 +63,11 @@ bool Metadata::fromJson(const rapidjson::Value& root)
         for (rapidjson::SizeType i = 0; i < deps.Size(); ++i)
         {
             const auto& entry = deps[i];
-            if (!entry.HasMember("uid") || !entry["uid"].IsString())  continue;
+            if (!entry.HasMember("uid") || !entry["uid"].IsUint64())  continue;
             if (!entry.HasMember("type") || !entry["type"].IsNumber())  continue;
 
             DependencyRecord rec;
-            rec.uid = entry["uid"].GetString();
+            rec.localId = entry["uid"].GetInt64();
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
             m_dependencies.push_back(std::move(rec));
         }

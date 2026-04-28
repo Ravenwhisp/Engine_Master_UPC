@@ -70,7 +70,7 @@ struct PrefabData
     // ── Identity ──────────────────────────────────────────────────────────────
     std::filesystem::path m_sourcePath;      // full canonical path; used for all I/O
     std::string           m_name;            // display name = stem of m_sourcePath
-    MD5Hash               m_assetUID;        // asset system key
+    UID               m_assetUID;        // asset system key
     UID                   m_prefabUID = 0;   // root GameObject UID (uint64_t)
 
     // ── Persistence payload ───────────────────────────────────────────────────
@@ -92,7 +92,7 @@ public:
     friend class ImporterGltf;
 
     PrefabAsset() = default;
-    explicit PrefabAsset(MD5Hash id) : Asset(id, AssetType::PREFAB)
+    explicit PrefabAsset(UID id) : Asset(id, AssetType::PREFAB)
     {
         m_data.m_assetUID = id;
     }
@@ -104,7 +104,7 @@ public:
     const std::string& getJSON()       const { return m_data.m_json; }
     const std::string& getName()       const { return m_data.m_name; }
     const std::filesystem::path& getSourcePath() const { return m_data.m_sourcePath; }
-    MD5Hash                      getAssetUID()   const { return m_data.m_assetUID; }
+    UID                      getAssetUID()   const { return m_data.m_assetUID; }
     UID                          getPrefabUID()  const { return m_data.m_prefabUID; }
 
 private:

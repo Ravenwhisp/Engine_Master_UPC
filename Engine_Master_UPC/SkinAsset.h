@@ -4,9 +4,13 @@
 
 #include <string>
 #include <vector>
+#include <cereal/types/string.hpp>
+
 
 struct SkinJoint
 {
+    friend class cereal::access;
+
     std::string nodeName;
     Matrix inverseBindMatrix = Matrix::Identity;
 
@@ -26,21 +30,24 @@ public:
     friend class ImporterGltf;
 
     SkinAsset() = default;
-    explicit SkinAsset(MD5Hash id) : Asset(id, AssetType::SKIN) {}
+    explicit SkinAsset(UID id) : Asset(id, AssetType::SKIN) {}
 
     const std::string& getName() const { return m_name; }
     const std::vector<SkinJoint>& getJoints() const { return m_joints; }
-
-private:
-    std::string m_name;
-    std::vector<SkinJoint> m_joints;
 
 #pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
     {
-		ar(cereal::base_class<Asset>(this), m_name, m_joints);
-	}
+        ar(cereal::base_class<Asset>(this), m_name, m_joints);
+    }
+#pragma endregion
+
+private:
+    std::string m_name;
+    std::vector<SkinJoint> m_joints;
+
+
 };
 
 CEREAL_REGISTER_TYPE(SkinAsset)

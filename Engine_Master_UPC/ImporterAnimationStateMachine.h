@@ -10,7 +10,7 @@ public:
         return path.extension() == ".statemachine";
     }
 
-    Asset* createAssetInstance(const MD5Hash& uid) const override
+    Asset* createAssetInstance(const UID& uid) const override
     {
         return new AnimationStateMachineAsset(uid);
     }

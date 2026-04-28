@@ -132,7 +132,7 @@ static void serialiseNodeInto(const GameObject* go, Value& out,
     {
         Value prefabLink(kObjectType);
         prefabLink.AddMember("SourcePath", Value(data->m_sourcePath.string().c_str(), alloc), alloc);
-        prefabLink.AddMember("AssetUID", Value(data->m_assetUID.c_str(), alloc), alloc);
+        prefabLink.AddMember("AssetUID", data->m_assetUID, alloc);
         prefabLink.AddMember("PrefabUID", static_cast<uint64_t>(data->m_prefabUID), alloc);
         out.AddMember("PrefabLink", prefabLink, alloc);
     }
@@ -220,9 +220,9 @@ GameObject* PrefabManager::deserialiseNode(const Value& node, Scene* scene, Game
             linkData.m_sourcePath = pl["SourcePath"].GetString();
         }
 
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
+        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
         {
-            linkData.m_assetUID = pl["AssetUID"].GetString();
+            linkData.m_assetUID = pl["AssetUID"].GetUint64();
         }
 
         if (pl.HasMember("PrefabUID") && pl["PrefabUID"].IsUint64())
@@ -327,7 +327,7 @@ GameObject* PrefabManager::instantiatePrefab(const PrefabAsset& asset, Scene* sc
     doc.Parse(asset.getJSON().c_str());
     if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
     {
-        DEBUG_ERROR("[PrefabManager] Malformed JSON in asset '%s'.", asset.getId().c_str());
+        DEBUG_ERROR("[PrefabManager] Malformed JSON in asset '%s'.", asset.getId());
         return nullptr;
     }
 
@@ -459,9 +459,9 @@ bool PrefabManager::revertToPrefab(GameObject* go, Scene* scene)
     Document doc;
     bool loaded = false;
 
-    if (isValidAsset(data->m_assetUID))
+    if (isValidUID(data->m_assetUID))
     {
-        auto asset = app->getModuleAssets()->load<PrefabAsset>(data->m_assetUID);
+        auto asset = app->getModuleAssets()->load<PrefabAsset>(AssetReference(data->m_assetUID));
         if (asset && !asset->getJSON().empty())
         {
             doc.Parse(asset->getJSON().c_str());

@@ -71,7 +71,6 @@ public:
 	{
 		ar(m_uuid, m_name, m_active, m_isStatic, m_layer, m_tag, m_transform, m_components);
 	}
-
 #pragma endregion
 
 #pragma region GameLoop

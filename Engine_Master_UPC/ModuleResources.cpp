@@ -205,7 +205,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 	desc.shaderVisibleSRV = shaderVisible;
 
-	auto texture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
+	auto texture = new Texture(textureAsset.getId(), *m_device.Get(), desc);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -240,7 +240,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto irradianceTexture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
+	auto irradianceTexture = new Texture(textureAsset.getId(), *m_device.Get(), desc);
 
 
 
@@ -412,7 +412,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto environmentTexture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
+	auto environmentTexture = new Texture(textureAsset.getId(), *m_device.Get(), desc);
 
 
 	//ROOT SIGNATURE
@@ -694,8 +694,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture(ComPtr<ID3D12Resource> e
 
 std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsset)
 {
-	const UID uid = hashToUID(meshAsset.getId());
-
+	const UID uid = meshAsset.getId();
 	if (auto cached = m_resources.getAs<BasicMesh>(uid))
 	{
 		return cached;
@@ -707,9 +706,9 @@ std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsse
 	return mesh;
 }
 
-std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAsset& materialAsset)
+std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(MaterialAsset& materialAsset)
 {
-	const UID uid = hashToUID(materialAsset.getId());
+	const UID uid = materialAsset.getId();
 
 	if (auto cached = m_resources.getAs<BasicMaterial>(uid))
 	{

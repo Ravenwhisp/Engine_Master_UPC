@@ -8,29 +8,28 @@
 #include <cstring>
 #include <cstdint>
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CerealUtils — drop-in helpers for Importer saveTyped / loadTyped.
-//
-// Binary layout on disk:
-//   [ uint64_t payloadSize | <payloadSize> bytes of cereal::BinaryOutputArchive ]
-//
-// The size prefix lets loadFrom() reconstruct a bounded input stream from a
-// raw pointer without changing the Importer::load(const uint8_t*, Asset*)
-// interface.
-// ─────────────────────────────────────────────────────────────────────────────
+
+namespace cereal
+{
+    template<class Archive> void serialize(Archive& ar, Vector2& v) { ar(v.x, v.y); }
+    template<class Archive> void serialize(Archive& ar, Vector3& v) { ar(v.x, v.y, v.z); }
+    template<class Archive> void serialize(Archive& ar, Vector4& v) { ar(v.x, v.y, v.z, v.w); }
+    template<class Archive> void serialize(Archive& ar, Color& c) { ar(c.x, c.y, c.z, c.w); }
+    template<class Archive> void serialize(Archive& ar, Quaternion& q) { ar(q.x, q.y, q.z, q.w); }
+    template<class Archive>
+    void serialize(Archive& ar, DirectX::SimpleMath::Matrix& m)
+    {
+        ar(cereal::binary_data(m.m, sizeof(m.m)));
+    }
+}
 
 namespace CerealUtils
 {
-    // saveTo
-    // Serializes `obj` via cereal and allocates *outBuffer (caller takes
-    // ownership). Returns total byte count including the 8-byte prefix.
-    //
-    // Usage inside saveTyped:
-    //   return CerealUtils::saveTo(*source, outBuffer);
+
     template<typename T>
     uint64_t saveTo(const T& obj, uint8_t** outBuffer)
     {
-        std::ostringstream oss(std::ios::binary);
+        std::ostringstream oss;
         {
             cereal::BinaryOutputArchive archive(oss);
             archive(obj);
@@ -48,12 +47,6 @@ namespace CerealUtils
         return totalSize;
     }
 
-    // loadFrom
-    // Reads the size prefix from `buffer`, then deserializes into `obj`.
-    // Zero-copy: no heap allocation, no data duplication.
-    //
-    // Usage inside loadTyped:
-    //   CerealUtils::loadFrom(buffer, *texture);
     template<typename T>
     void loadFrom(const uint8_t* buffer, T& obj)
     {

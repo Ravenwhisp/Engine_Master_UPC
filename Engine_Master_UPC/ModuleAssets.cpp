@@ -71,19 +71,20 @@ bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
     return findImporter(sourcePath) != nullptr;
 }
 
-void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid)
+void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID& uid)
 {
     Importer* importer = findImporter(sourcePath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_ASSET_ID;
+        uid = INVALID_UID;
         return;
     }
 
-    if (!isValidAsset(uid))
+    const bool isReimport = isValidUID(uid);
+    if (!isReimport)
     {
-        uid = computeMD5(sourcePath);
+        uid = GenerateUID();
     }
 
     std::unique_ptr<Asset> asset(importer->createAssetInstance(uid));
@@ -91,13 +92,19 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_ASSET_ID;
+        if (!isReimport)
+        {
+            uid = INVALID_UID;
+        }
         return;
     }
 
     if (!persistAsset(asset.get(), importer, uid, sourcePath))
     {
-        uid = INVALID_ASSET_ID;
+        if (!isReimport)
+        {
+            uid = INVALID_UID;
+        }
     }
 }
 
@@ -121,7 +128,7 @@ void ModuleAssets::refresh()
 }
 
 
-MD5Hash ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
+UID ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
 {
     return m_registry->findByPath(sourcePath);
 }
@@ -136,30 +143,6 @@ std::shared_ptr<FileEntry> ModuleAssets::getEntry(const std::filesystem::path& p
     return m_contentRegistry->getEntry(path);
 }
 
-
-std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
-{
-    Importer* importer = findImporter(metadata->type);
-    if (!importer)
-    {
-        DEBUG_ERROR("[ModuleAssets] No importer for asset type %u (UID %llu).", static_cast<unsigned>(metadata->type), metadata->uid);
-        return nullptr;
-    }
-
-    std::shared_ptr<Asset> asset(importer->createAssetInstance(metadata->uid));
-
-    const std::vector<uint8_t> buffer = FileIO::read(metadata->getBinaryPath());
-    if (buffer.empty())
-    {
-        DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID %llu.", metadata->uid);
-        return nullptr;
-    }
-
-    importer->load(buffer.data(), asset.get());
-    m_assets.insert(metadata->uid, asset);
-
-    return asset;
-}
 
 bool ModuleAssets::save(const Asset& asset, const std::filesystem::path& path)
 {
@@ -197,7 +180,7 @@ bool ModuleAssets::save(const Asset& asset, const std::filesystem::path& path)
         }
     }
 
-    const MD5Hash uid = isValidAsset(asset.getId()) ? asset.getId() : computeMD5(targetPath);
+    const UID uid = isValidUID(asset.getId()) ? asset.getId() : GenerateUID();
     return persistAsset(&asset, importer, uid, targetPath);
 }
 
@@ -250,30 +233,21 @@ bool ModuleAssets::loadMetadata(const std::filesystem::path& path, Metadata& out
     return out.fromJson(doc);
 }
 
-void ModuleAssets::registerSubAsset(const Metadata& meta, const MD5Hash& parentUID, uint8_t* binaryData, size_t binarySize)
+void ModuleAssets::registerSubAsset(const DependencyRecord& dep, UID parentFileId)
 {
-    Metadata subMeta = meta;
-    subMeta.m_isSubAsset = true;
-
-    // Write the binary to Library/ — caller still owns the buffer.
-    if (binaryData && binarySize > 0)
+    if (!isValidUID(parentFileId))
     {
-        if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary '%s'.", subMeta.uid.c_str());
-            return;
-        }
+        DEBUG_WARN("[ModuleAssets] registerSubAsset called with invalid parentFileId.");
+        return;
     }
 
-    m_registry->registerAsset(subMeta);
-
-    if (isValidAsset(parentUID))
+    if (!isValidUID(dep.localId))
     {
-        DependencyRecord dep;
-        dep.uid = subMeta.uid;
-        dep.type = subMeta.type;
-        m_pendingDependencies[parentUID].push_back(dep);
+        DEBUG_WARN("[ModuleAssets] registerSubAsset called with invalid dep.localId.");
+        return;
     }
+
+    m_pendingDependencies[parentFileId].push_back(dep);
 }
 
 #pragma region Importer
@@ -305,7 +279,7 @@ Importer* ModuleAssets::findImporter(AssetType type) const
 #pragma endregion
 
 bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
-    const MD5Hash& uid, const std::filesystem::path& sourcePath)
+    const UID& uid, const std::filesystem::path& sourcePath)
 {
     Metadata meta;
     const Metadata* existing = m_registry->getMetadata(uid);
@@ -315,7 +289,7 @@ bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
     }
     else
     {
-        meta.uid = uid;
+        meta.fileId = uid;
         meta.type = asset->getType();
         meta.sourcePath = sourcePath;
     }
@@ -326,6 +300,8 @@ bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
         meta.m_dependencies = std::move(it->second);
         m_pendingDependencies.erase(it);
     }
+
+    meta.contentHash = computeMD5(sourcePath);
 
     const std::filesystem::path metaPath = Metadata::toMetadataPath(sourcePath);
     if (!writeMetadata(meta, metaPath))

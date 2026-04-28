@@ -9,6 +9,14 @@
 #include "SkyBoxSettings.h"
 #include "UID.h"
 
+#include <cereal/types/base_class.hpp>
+#include <cereal/types/polymorphic.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/access.hpp>
+
+
 struct ID3D12GraphicsCommandList;
 
 class GameObject;
@@ -54,19 +62,14 @@ private:
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();
 
-#pragma once Serialization
-	template <class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Asset>(this), m_name, m_lighting, m_sceneDataCB, m_skybox, m_rootObjects);
-	}
-#pragma endregion
+    void rebuildRootList();
 
 public:
     friend class ModuleScene;
+    friend class cereal::access;
 
     Scene();
-    Scene(MD5Hash id);
+    Scene(UID id);
     ~Scene();
 
 #pragma region GameLoop
@@ -118,6 +121,32 @@ public:
     void  markDirty();
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
+
+#pragma once Serialization
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        ar(cereal::base_class<Asset>(this),
+            m_name,
+            m_lighting,
+            m_sceneDataCB,
+            m_skybox,
+            m_allObjects);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        ar(cereal::base_class<Asset>(this),
+            m_name,
+            m_lighting,
+            m_sceneDataCB,
+            m_skybox,
+            m_allObjects);   // restore the OWNING container
+
+        rebuildRootList();
+    }
+#pragma endregion
 };
 
 CEREAL_REGISTER_TYPE(Scene)

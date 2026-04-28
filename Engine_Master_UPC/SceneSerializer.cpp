@@ -26,6 +26,8 @@
 #include "SceneReferenceResolver.h"
 #include "MD5Fwd.h"
 
+#include "AssetReference.h"
+
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
 constexpr std::string_view SCENE_FILE_EXTENSION = ".scene";
@@ -173,7 +175,8 @@ rapidjson::Value SceneSerializer::getSkyBoxJSON(rapidjson::Document& domTree, co
     const SkyBoxSettings& skybox = scene->getSkyBoxSettings();
 
     skyboxInfo.AddMember("Enabled", skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", rapidjson::Value(skybox.cubemapAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    skyboxInfo.AddMember("CubemapAssetId", skybox.cubemapAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -315,9 +318,9 @@ bool SceneSerializer::LoadSkybox(Scene& scene, const rapidjson::Value& json)
         DEBUG_WARN("[SceneSerializer] Skybox Enabled missing");
     }
 
-    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsString())
+    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsUint64())
     {
-        skyboxSettings.cubemapAssetId = (MD5Hash)data["CubemapAssetId"].GetString();
+        skyboxSettings.cubemapAssetId = data["CubemapAssetId"].GetUint64();
     }
     else
     {

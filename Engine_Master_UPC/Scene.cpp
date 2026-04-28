@@ -21,7 +21,7 @@
 #include <algorithm>
 
 Scene::Scene() = default;
-Scene::Scene(MD5Hash id) : Asset(id, AssetType::SCENE)
+Scene::Scene(UID id) : Asset(id, AssetType::SCENE)
 {
 
 }
@@ -255,6 +255,18 @@ void Scene::releasePendingDestroyedGameObjects()
         else
         {
             ++it;
+        }
+    }
+}
+
+void Scene::rebuildRootList()
+{
+    m_rootObjects.clear();
+    for (const auto& go : m_allObjects)
+    {
+        if (go && go->GetTransform() && go->GetTransform()->getRoot() == nullptr)
+        {
+            m_rootObjects.push_back(go.get());
         }
     }
 }

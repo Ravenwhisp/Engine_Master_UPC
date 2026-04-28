@@ -1,6 +1,7 @@
 #pragma once
 #include "ImporterSource.h"
 #include "UtilityGLFT.h"
+#include "AssetReference.h"
 
 class AnimationAsset;
 class SkinAsset;
@@ -16,6 +17,13 @@ class ImporterAnimation;
 class ImporterSkin;
 class ImporterAnimationStateMachine;
 
+struct PendingSubAsset
+{
+    UID           localId;
+    AssetType     type;
+    std::vector<uint8_t> blob;
+};
+
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.
 class ImporterGltf : public ImporterSource<tinygltf::Model, PrefabAsset, AssetType::PREFAB>
@@ -29,8 +37,9 @@ public:
         ImporterAnimationStateMachine* importerAnimationStateMachine);
 
     bool   canImport(const std::filesystem::path& path) const override;
-    Asset* createAssetInstance(const MD5Hash& uid) const override;
+    Asset* createAssetInstance(const UID& uid) const override;
 
+    void load(const uint8_t* buffer, uint64_t size, const UID& localId, Asset* outAsset) override;
 protected:
     bool     loadExternal(const std::filesystem::path& path, tinygltf::Model& out) override;
     void     importTyped(const tinygltf::Model& source, PrefabAsset* model)        override;
@@ -40,13 +49,9 @@ protected:
 private:
     // Kept for the duration of a single import call; reset to nullptr afterwards.
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
-    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const MD5Hash& materialUID);
-    void loadAnimation(const tinygltf::Model& model,
-        const tinygltf::Animation& anim,
-        AnimationAsset* outAnim);
-    void buildDefaultStateMachine(const tinygltf::Model& model,
-        const std::vector<MD5Hash>& animationUIDs,
-        PrefabAsset* dst) const;
+    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, UID materialUID);
+    void loadAnimation(const tinygltf::Model& model, const tinygltf::Animation& anim, AnimationAsset* outAnim);
+    void buildDefaultStateMachine(const tinygltf::Model& model,UID parentId, const std::vector<UID>& animationUIDs, PrefabAsset* dst) const;
 
     void loadSkin(const tinygltf::Model& model,
         const tinygltf::Skin& skin,
@@ -58,12 +63,13 @@ private:
     GameObject* buildNode(int nodeIdx,
         GameObject* parent,
         const tinygltf::Model& model,
-        const std::vector<MD5Hash>& meshUIDs,
-        const std::vector<MD5Hash>& materialUIDs,
-        const std::vector<MD5Hash>& skinUIDs,
+        const std::vector<AssetReference>& meshUIDs,
+        const std::vector<AssetReference>& materialUIDs,
+        const std::vector<AssetReference>& skinUIDs,
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
 
     const std::filesystem::path*    m_currentFilePath = nullptr;
+    std::vector<PendingSubAsset>    m_pendingSubAssets;
 
     ImporterMesh*                   m_importerMesh;
     ImporterMaterial*               m_importerMaterial;

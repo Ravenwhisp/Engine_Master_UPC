@@ -1,9 +1,8 @@
 ﻿#pragma once
 #include <filesystem>
 #include <memory>
-#include <string>
-#include <vector>
 #include "Asset.h"
+#include "MD5Fwd.h"
 
 // A node in the asset browser tree.
 // Directories hold children; file nodes carry the UID of their asset.

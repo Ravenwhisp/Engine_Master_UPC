@@ -161,9 +161,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
     if (uiImg->consumeLoadRequest())
     {
         TextureAsset* asset = uiImg->getTextureAsset();
-        MD5Hash assetId = uiImg->getTextureAssetId();
+        AssetReference* assetId = &uiImg->getTextureAssetId();
 
-        if (!asset || assetId == INVALID_ASSET_ID)
+        if (!asset || !assetId->isValid())
         {
             uiImg->setTexture(nullptr);
         }

@@ -23,6 +23,8 @@
 #include "SpriteVertex.h"
 #include "SpriteParams.h"
 
+#include "AssetReference.h"
+
 SpriteRendererPass::SpriteRendererPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
@@ -154,7 +156,7 @@ void SpriteRendererPass::renderSprites(ID3D12GraphicsCommandList4* commandList)
         {
             TextureAsset* asset = sprite->getTextureAsset();
 
-            if (!asset || sprite->getTextureAssetId() == INVALID_ASSET_ID)
+            if (!asset || !sprite->getTextureAssetId().isValid())
             {
                 sprite->setGpuTexture(nullptr);
             }

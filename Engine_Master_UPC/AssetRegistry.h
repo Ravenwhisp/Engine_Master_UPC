@@ -1,6 +1,6 @@
 #pragma once
-#include "MD5Fwd.h"
 #include <filesystem>
+#include "UID.h"
 
 class Metadata;
 
@@ -8,20 +8,20 @@ class Metadata;
 class AssetRegistry
 {
 public:
-    Metadata* getMetadata(const MD5Hash& uid);
-    const Metadata* getMetadata(const MD5Hash& uid) const;
+    Metadata* getMetadata(const UID& uid);
+    const Metadata* getMetadata(const UID& uid) const;
 
-    MD5Hash findByPath(const std::filesystem::path& sourcePath) const;
+    UID findByPath(const std::filesystem::path& sourcePath) const;
 
     void registerAsset(const Metadata& meta);
 
-    void remove(const MD5Hash& uid);
+    void remove(const UID& uid);
 
-    bool contains(const MD5Hash& uid) const;
+    bool contains(const UID& uid) const;
 
     void clear();
 
 private:
-    std::unordered_map<MD5Hash, Metadata> m_metadataMap;
-    std::unordered_map<std::string, MD5Hash>   m_pathIndex;
+    std::unordered_map<UID, Metadata> m_metadataMap;
+    std::unordered_map<std::string, UID>   m_pathIndex;
 };

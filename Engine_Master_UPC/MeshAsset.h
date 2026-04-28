@@ -4,9 +4,10 @@
 #include "Vertex.h"
 #include <IndexBuffer.h>
 
-
 struct Submesh
 {
+	friend class cereal::access;
+
 	uint32_t indexStart;
 	uint32_t indexCount;
 
@@ -25,7 +26,7 @@ public:
 	friend class ImporterGltf;
 
 	MeshAsset() {}
-	MeshAsset(MD5Hash id) : Asset(id, AssetType::MESH) {}
+	MeshAsset(UID id) : Asset(id, AssetType::MESH) {}
 
 	const void* getVertexData() const { return vertices.data(); }
 	std::vector<Vector3> getVerticesPositions() const {
@@ -51,15 +52,6 @@ public:
 
 	Vector3 getBoundsCenter() const { return boundsCenter; }
 	Vector3 getBoundsExtents() const { return boundsExtents; }
-protected:
-	std::vector<Vertex>		vertices;
-	std::vector<uint8_t>	indices;
-	DXGI_FORMAT				indexFormat = DXGI_FORMAT_R8_UINT;
-	// The submeshes are tinygltf primitives, which are the smallest renderable units.
-	std::vector<Submesh>	submeshes;
-
-	Vector3 boundsCenter;
-	Vector3 boundsExtents;
 
 #pragma region Serialization
 	template <class Archive>
@@ -81,6 +73,17 @@ protected:
 		return reinterpret_cast<uint32_t&>(indexFormat);
 	}
 #pragma endregion
+protected:
+	std::vector<Vertex>		vertices;
+	std::vector<uint8_t>	indices;
+	DXGI_FORMAT				indexFormat = DXGI_FORMAT_R8_UINT;
+	// The submeshes are tinygltf primitives, which are the smallest renderable units.
+	std::vector<Submesh>	submeshes;
+
+	Vector3 boundsCenter;
+	Vector3 boundsExtents;
+
+
 };
 
 CEREAL_REGISTER_TYPE(MeshAsset)

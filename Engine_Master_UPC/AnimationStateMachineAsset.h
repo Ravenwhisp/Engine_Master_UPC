@@ -1,30 +1,31 @@
 #pragma once
 #include "Asset.h"
-#include "MD5Fwd.h"
 
 #include <string>
 #include <vector>
-
-class ImporterAnimationStateMachine;
-class ImporterGltf;
+#include <AssetReference.h>
 
 struct AnimationStateMachineClip
 {
+    friend class cereal::access;
+
     std::string name;
-    MD5Hash animationUID = INVALID_ASSET_ID;
+    AssetReference animationRef;
     bool loop = true;
 
 #pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
 	{
-        ar(name, animationUID, loop);
+        ar(name, animationRef, loop);
 	}
 #pragma endregion
 };
 
 struct AnimationStateMachineState
 {
+    friend class cereal::access;
+
     std::string name;
     std::string clipName;
     float speed = 1.0f;
@@ -45,6 +46,8 @@ struct AnimationStateMachineState
 
 struct AnimationStateMachineTransition
 {
+    friend class cereal::access;
+
     std::string sourceStateName;
     std::string targetStateName;
     std::string triggerName;
@@ -62,11 +65,12 @@ struct AnimationStateMachineTransition
 class AnimationStateMachineAsset : public Asset
 {
 public:
+
     friend class ImporterAnimationStateMachine;
     friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;
-    explicit AnimationStateMachineAsset(MD5Hash id): Asset(id, AssetType::ANIMATION_STATE_MACHINE)
+    explicit AnimationStateMachineAsset(UID id): Asset(id, AssetType::ANIMATION_STATE_MACHINE)
     {
     }
 
@@ -84,6 +88,14 @@ public:
     std::vector<AnimationStateMachineState>& getStatesMutable() { return m_states; }
     std::vector<AnimationStateMachineTransition>& getTransitionsMutable() { return m_transitions; }
 
+#pragma region Serialization
+    template <class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(cereal::base_class<Asset>(this), m_name, m_defaultStateName, m_clips, m_states, m_transitions);
+    }
+#pragma endregion
+
 private:
     std::string m_name;
     std::string m_defaultStateName;
@@ -91,14 +103,6 @@ private:
     std::vector<AnimationStateMachineClip> m_clips;
     std::vector<AnimationStateMachineState> m_states;
     std::vector<AnimationStateMachineTransition> m_transitions;
-
-#pragma region Serialization
-    template <class Archive>
-    void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Asset>(this), m_name, m_defaultStateName, m_clips, m_states, m_transitions);
-	}
-#pragma endregion
 };
 
 CEREAL_REGISTER_TYPE(AnimationStateMachineAsset)

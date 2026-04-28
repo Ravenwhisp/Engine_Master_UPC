@@ -3,6 +3,8 @@
 
 #include "Asset.h"
 
+
+
 class MaterialAsset : public Asset
 {
 public:
@@ -11,27 +13,14 @@ public:
 	friend class ImporterGltf;
 
 	MaterialAsset() {}
-	MaterialAsset(MD5Hash id) : Asset(id, AssetType::MATERIAL) {}
+	MaterialAsset(UID id) : Asset(id, AssetType::MATERIAL) {}
 
-	MD5Hash getBaseMap() const { return baseMap; }
+	AssetReference& getBaseMap() { return baseMap; }
 	Color& getBaseColour() const { return baseColour; }
 
-	MD5Hash getMetallicRoughnessMap() const { return metallicRoughnessMap; }
+	AssetReference& getMetallicRoughnessMap() { return metallicRoughnessMap; }
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
-protected:
-
-	MD5Hash				baseMap = INVALID_ASSET_ID;
-	mutable Color		baseColour = Color(255, 255, 255, 0);
-
-	MD5Hash				metallicRoughnessMap = INVALID_ASSET_ID;
-	uint32_t			roughnessFactor = 0;
-	uint32_t			metallicFactor = 0;
-	MD5Hash				normalMap = INVALID_ASSET_ID;
-	MD5Hash				occlusionMap = INVALID_ASSET_ID;
-
-	bool				isEmissive = false;
-	MD5Hash 			emissiveMap = INVALID_ASSET_ID;
 
 #pragma region Serialization
 	template <class Archive>
@@ -41,6 +30,19 @@ protected:
 		ar(cereal::base_class<Asset>(this), baseMap, baseColour, metallicRoughnessMap, roughnessFactor, metallicFactor, normalMap, occlusionMap, isEmissive, emissiveMap);
 	}
 #pragma endregion
+protected:
+
+	AssetReference		baseMap;
+	mutable Color		baseColour = Color(255, 255, 255, 0);
+
+	AssetReference		metallicRoughnessMap;
+	uint32_t			roughnessFactor = 0;
+	uint32_t			metallicFactor = 0;
+	AssetReference		normalMap;
+	AssetReference		occlusionMap;
+
+	bool				isEmissive = false;
+	AssetReference 		emissiveMap;
 };
 
 CEREAL_REGISTER_TYPE(MaterialAsset)

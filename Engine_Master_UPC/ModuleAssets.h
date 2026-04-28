@@ -4,6 +4,7 @@
 #include "AssetsDictionary.h"
 #include "WeakCache.h"
 #include "AssetRegistry.h"
+#include "AssetReference.h"
 
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
@@ -12,10 +13,11 @@
 #include <filesystem>
 #include <memory>
 #include <Metadata.h>
+#include "Importer.h"
+#include "FileIO.h"
 #include <mutex>
 
 class Asset;
-class Importer;
 class ImporterTexture;
 class ImporterGltf;
 class ImporterMaterial;
@@ -37,8 +39,8 @@ private:
     std::unique_ptr<AssetRegistry>                              m_registry;
     std::unique_ptr<AssetScanner>                               m_scanner;
     std::unique_ptr<ContentRegistry>                            m_contentRegistry;
-    WeakCache<MD5Hash, Asset>                                   m_assets;
-    std::unordered_map<MD5Hash, std::vector<DependencyRecord>>  m_pendingDependencies;
+    WeakCache<AssetReference, Asset>                            m_assets;
+    std::unordered_map<UID, std::vector<DependencyRecord>>      m_pendingDependencies;
 
 #pragma region Importers
     ImporterTexture* m_importerTexture = nullptr;
@@ -73,16 +75,17 @@ public:
 #pragma endregion
 
     bool canImport(const std::filesystem::path& sourcePath) const;
-    void importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid);
+    void importAsset(const std::filesystem::path& sourcePath, UID& uid);
     void refresh();
 
     bool save(const Asset& asset, const std::filesystem::path& path = {});
     bool loadMetadata(const std::filesystem::path& path, Metadata& out);
 
-    MD5Hash                     findUID(const std::filesystem::path& sourcePath) const;
+    UID                         findUID(const std::filesystem::path& sourcePath) const;
+    AssetRegistry* getRegistry() { return m_registry.get(); }
     std::shared_ptr<FileEntry>  getRoot() const;
     std::shared_ptr<FileEntry>  getEntry(const std::filesystem::path&) const;
-    void                        registerSubAsset(const Metadata& meta, const MD5Hash& parentUID, uint8_t* binaryData, size_t binarySize);
+    void                        registerSubAsset(const DependencyRecord& dep, UID parentUID);
 
 #pragma region Importer
     Importer*                   findImporter(const std::filesystem::path& filePath) const;
@@ -92,40 +95,32 @@ public:
     void flushDialogRequests();
 
     template<typename T>
-    std::shared_ptr<T> load(MD5Hash id)
+    std::shared_ptr<T> load(const AssetReference& ref)
     {
-        if (auto cached = m_assets.getAs<T>(id))
-        {
-            return cached;
-        }
+        if (!ref.isValid()) return nullptr;
 
-        const Metadata* meta = m_registry->getMetadata(id);
-        if (!meta)
-        {
-            DEBUG_ERROR("[ModuleAssets] No metadata found for UID %llu.", id);
-            return nullptr;
-        }
+        // Cache key is the full reference — a mesh and its parent gltf 
+        // are different entries even though they share a binary.
+        if (auto cached = m_assets.getAs<T>(ref)) return cached;
 
-        return std::static_pointer_cast<T>(loadAsset(meta));
-    }
+        const Metadata* meta = m_registry->getMetadata(ref.fileId);
+        if (!meta) { return nullptr; }
 
-    template<typename T>
-    std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath)
-    {
-        const MD5Hash id = m_registry->findByPath(sourcePath);
-        if (id == INVALID_ASSET_ID)
-        {
-            DEBUG_ERROR("[ModuleAssets] No asset registered at path '%s'.", sourcePath.string().c_str());
-            return nullptr;
-        }
-        return load<T>(id);
+        const std::vector<uint8_t> buffer = FileIO::read(meta->getBinaryPath());
+        Importer* importer = findImporter(meta->type);
+
+        // Importer extracts the right sub-object when localId is valid.
+        auto asset = std::shared_ptr<T>(static_cast<T*>(importer->createAssetInstance(ref.isSubAsset() ? ref.localId : ref.fileId)));
+        importer->load(buffer.data(), buffer.size(), ref.localId, asset.get());
+
+        m_assets.insert(ref, asset);
+        return asset;
     }
 
 private:
-    bool persistAsset(const Asset* asset, Importer* importer, const MD5Hash& uid, const std::filesystem::path& sourcePath);
+    bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
     bool isDialogOpen() const { return m_dialogRunning.load(); }
 
-    std::shared_ptr<Asset>  loadAsset(const Metadata* metadata);
     bool                    writeMetadata(const Metadata& meta, const std::filesystem::path& metaPath);
     void                    requestSave(const Asset& asset);
 };

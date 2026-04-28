@@ -2,6 +2,7 @@
 
 #include "Component.h"
 #include "TextureAsset.h"
+#include "AssetReference.h"
 
 class Texture;
 
@@ -17,7 +18,7 @@ public:
     Texture* getTexture() const { return m_texture; }
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
-    MD5Hash getTextureAssetId() const { return m_textureAssetId; }
+    AssetReference getTextureAssetId() const { return m_textureAssetId; }
 
     bool hasTexture() const { return m_texture != nullptr; }
 
@@ -31,7 +32,7 @@ public:
     bool getLookAtCamera() { return m_lookAtCamera; }
 
 private:
-    MD5Hash m_textureAssetId = INVALID_ASSET_ID;
+    AssetReference m_textureAssetId;
     Texture* m_texture = nullptr;
     std::shared_ptr<Texture> m_gpuTexture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;

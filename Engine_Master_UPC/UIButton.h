@@ -10,6 +10,7 @@
 #include "ScriptMethodInfo.h"
 #include "SimpleMath.h"
 #include "MD5.h"
+#include "AssetReference.h"
 
 using Vector3 = DirectX::SimpleMath::Vector3;
 
@@ -82,16 +83,16 @@ public:
 #pragma endregion
 
 private:
-	void applyTargetTexture(const MD5Hash& assetId);
+	void applyTargetTexture(const AssetReference& assetId);
 	void applyCurrentStateTexture();
-	MD5Hash getDefaultTextureAssetId() const;
+	AssetReference& getDefaultTextureAssetId();
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;
-	UID m_targetGraphicUid = 0;
-	MD5Hash m_defaultTextureAssetId = INVALID_ASSET_ID;
-	MD5Hash m_hoverTextureAssetId = INVALID_ASSET_ID;
-	MD5Hash m_pressedTextureAssetId = INVALID_ASSET_ID;
+	UID m_targetGraphicUid;
+	AssetReference m_defaultTextureAssetId;
+	AssetReference m_hoverTextureAssetId;
+	AssetReference m_pressedTextureAssetId;
 
 	bool m_isPressed = false;
 	bool m_isHovered = false;

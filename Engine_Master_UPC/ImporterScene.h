@@ -11,7 +11,7 @@ public:
         return path.extension().string() == SCENE_EXTENSION;
     }
 
-    Asset* createAssetInstance(const MD5Hash& uid) const override;
+    Asset* createAssetInstance(const UID& uid) const override;
 
 protected:
     bool     importNative(const std::filesystem::path& path, Scene* dst) override;

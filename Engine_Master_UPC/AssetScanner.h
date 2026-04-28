@@ -2,6 +2,7 @@
 #include "Asset.h"
 #include <filesystem>
 #include <vector>
+#include "MD5Fwd.h"
 
 class AssetRegistry;
 class ImporterRegistry;
@@ -10,7 +11,7 @@ class ImporterRegistry;
 struct ImportRequest
 {
     std::filesystem::path sourcePath;
-    MD5Hash               existingUID = INVALID_ASSET_ID;
+    UID               existingUID = INVALID_UID;
 };
 
 // Scans the assets folder and resolves metadata / binary lifecycle.
@@ -29,11 +30,12 @@ private:
     void handleMissingMetadata(const std::filesystem::path& sourcePath);
     void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
     void cleanOrphanedBinaries();
-    bool isQueued(const MD5Hash& uid) const;
+    bool isQueued(const UID uid) const;
 
-    std::filesystem::path getBinaryPath(const MD5Hash& uid) const;
+    std::filesystem::path getBinaryPath(const MD5Hash& contentHash) const;
 
     AssetRegistry* m_registry{ nullptr };
 
     std::vector<ImportRequest> m_pendingImports;
+    std::unordered_set<std::string> m_knownContentHashes;
 };

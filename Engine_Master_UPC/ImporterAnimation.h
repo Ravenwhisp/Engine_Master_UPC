@@ -10,7 +10,7 @@ public:
         return false;
     }
 
-    Asset* createAssetInstance(const MD5Hash& uid) const override
+    Asset* createAssetInstance(const UID& uid) const override
     {
         return new AnimationAsset(uid);
     }

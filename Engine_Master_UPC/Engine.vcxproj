@@ -286,7 +286,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AnimationComponent.h" />
     <ClInclude Include="AnimationController.h" />
     <ClInclude Include="AnimationStateMachineAsset.h" />
+    <ClInclude Include="AssetChunkHeader.h" />
     <ClInclude Include="AssetDialogFilter.h" />
+    <ClInclude Include="AssetReference.h" />
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="CerealUtils.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
@@ -300,6 +302,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Channel.h" />
     <ClInclude Include="ComponentFactory.h" />
+    <ClInclude Include="CompoundBinary.h" />
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="CommandCreateFolder.h" />
     <ClInclude Include="CommandCutItem.h" />
@@ -627,6 +630,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="CompoundBinary.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />
