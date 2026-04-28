@@ -71,13 +71,10 @@ struct PrefabData
     std::filesystem::path m_sourcePath;      // full canonical path; used for all I/O
     std::string           m_name;            // display name = stem of m_sourcePath
     MD5Hash               m_assetUID;        // asset system key
-    UID                   m_prefabUID = 0;   // root GameObject UID (uint64_t)
 
     // ── Persistence payload ───────────────────────────────────────────────────
     std::string m_json;
 
-    // ── Runtime instance state (never written to the binary cache) ────────────
-    PrefabOverrideRecord m_overrides;
 };
 
 // ============================================================================
@@ -105,8 +102,6 @@ public:
     const std::string& getName()       const { return m_data.m_name; }
     const std::filesystem::path& getSourcePath() const { return m_data.m_sourcePath; }
     MD5Hash                      getAssetUID()   const { return m_data.m_assetUID; }
-    UID                          getPrefabUID()  const { return m_data.m_prefabUID; }
-
 private:
     PrefabData m_data;
 };
