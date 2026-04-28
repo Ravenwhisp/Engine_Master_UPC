@@ -584,11 +584,10 @@ void ScriptComponent::saveBinaryScriptFields(const Script& script, cereal::Binar
     const char* base = reinterpret_cast<const char*>(&script);
 
     // Write the field count so the loader can validate / handle version skew.
-    ar(static_cast<uint32_t>(fieldList.count));
+    ar(static_cast<uint32_t>(fieldList.fields.size()));
 
-    for (size_t i = 0; i < fieldList.count; ++i)
+    for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        const ScriptFieldInfo& field = fieldList.fields[i];
         const void* data = base + field.offset;
 
         ar(std::string(field.name));
@@ -647,11 +646,11 @@ void ScriptComponent::loadBinaryScriptFields(Script& script, cereal::BinaryInput
 
         // Find the matching live field by name (order-independent, same as JSON).
         const ScriptFieldInfo* match = nullptr;
-        for (size_t j = 0; j < fieldList.count; ++j)
+        for (const ScriptFieldInfo& field : fieldList.fields)
         {
-            if (fieldList.fields[j].name == savedName)
+            if (field.name == savedName)
             {
-                match = &fieldList.fields[j];
+                match = &field;
                 break;
             }
         }
