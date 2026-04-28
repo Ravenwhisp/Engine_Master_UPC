@@ -239,3 +239,12 @@ namespace DebugDrawAPI
     ENGINE_API void drawTangentBasis(const Vector3& origin, const Vector3& normal, const Vector3& tangent, const Vector3& bitangent, float lengths = 1.0f, int durationMillis = 0, bool depthEnabled = true);
     ENGINE_API void drawXZSquareGrid(float mins, float maxs, float y, float step, const Vector3& color, int durationMillis = 0, bool depthEnabled = true);
 }
+
+namespace HapticAPI
+{
+    ENGINE_API uint32_t submitImpact(float intensity, float duration, int player = 0);
+    ENGINE_API uint32_t submitRumble(float left, float right, float duration, int player = 0);
+    ENGINE_API uint32_t submitExplosion(float intensity, float duration, int player = 0);
+    ENGINE_API void     cancelEffect(uint32_t handle, int player = 0);
+    ENGINE_API void     cancelAll(int player = 0);
+}

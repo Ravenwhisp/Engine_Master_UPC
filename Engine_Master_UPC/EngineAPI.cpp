@@ -7,6 +7,7 @@
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
+#include "ModuleHaptics.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -1812,5 +1813,36 @@ namespace DebugDrawAPI
     void drawXZSquareGrid(float mins, float maxs, float y, float step, const Vector3& color, int durationMillis, bool depthEnabled)
     {
         dd::xzSquareGrid(mins, maxs, y, step, ddConvert(color), durationMillis, depthEnabled);
+    }
+}
+
+namespace HapticAPI
+{
+    uint32_t submitImpact(float intensity, float duration, int player)
+    {
+        return app->getModuleHaptics()->submitEffect(
+            HapticEffect::makeImpact(intensity, duration), player);
+    }
+
+    uint32_t submitRumble(float left, float right, float duration, int player)
+    {
+        return app->getModuleHaptics()->submitEffect(
+            HapticEffect::makeContinuous(left, right, duration), player);
+    }
+
+    uint32_t submitExplosion(float intensity, float duration, int player)
+    {
+        return app->getModuleHaptics()->submitEffect(
+            HapticEffect::makeExplosion(intensity, duration), player);
+    }
+
+    void cancelEffect(uint32_t handle, int player)
+    {
+        app->getModuleHaptics()->cancelEffect(handle, player);
+    }
+
+    void cancelAll(int player)
+    {
+        app->getModuleHaptics()->cancelAll(player);
     }
 }
