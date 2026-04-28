@@ -430,6 +430,7 @@
     <ClCompile Include="ModuleTrigger.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleHaptics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1069,6 +1070,7 @@
     <ClInclude Include="ModuleTrigger.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleHaptics.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
