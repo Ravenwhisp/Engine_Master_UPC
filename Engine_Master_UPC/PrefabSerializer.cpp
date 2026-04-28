@@ -67,6 +67,8 @@ void PrefabSerializer::serialiseNodeInto(const GameObject* go, Value& out, Docum
     out.SetObject();
     out.AddMember("Name", Value(go->GetName().c_str(), alloc), alloc);
     out.AddMember("Active", go->GetActive(), alloc);
+    out.AddMember("Tag", Value(TagToString(go->GetTag()), alloc), alloc);
+    out.AddMember("Layer", Value(LayerToString(go->GetLayer()), alloc), alloc);
 
     const PrefabInfo& info = go->GetPrefabInfo();
     if (info.isInstance())
