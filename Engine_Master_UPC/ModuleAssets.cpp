@@ -710,19 +710,35 @@ bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 
     if (goNode.HasMember("Components") && goNode["Components"].IsArray())
     {
+        // Build an ordered list of all components per type, matching serialization order
+        std::unordered_map<int, std::vector<Component*>> componentsByType;
+        for (Component* comp : go->GetAllComponents())
+        {
+            componentsByType[static_cast<int>(comp->getType())].push_back(comp);
+        }
+        // Track how many of each type 
+        std::unordered_map<int, size_t> typeIndex;
+
         for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
         {
             const Value& cn = goNode["Components"][i];
             if (!cn.HasMember("Type") || !cn.HasMember("Data")) continue;
 
             const int ct = cn["Type"].GetInt();
+
+            // Skip if this component type is overridden on this instance
             auto oit = savedOverrides.m_modifiedProperties.find(ct);
             if (oit != savedOverrides.m_modifiedProperties.end()
                 && oit->second.count("properties") > 0)
                 continue;
 
-            Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
-            if (comp) comp->deserializeJSON(cn["Data"]);
+            auto& comps = componentsByType[ct];
+            size_t& idx = typeIndex[ct];
+            if (idx < comps.size())
+            {
+                comps[idx]->deserializeJSON(cn["Data"]);
+                ++idx;
+            }
         }
     }
 
