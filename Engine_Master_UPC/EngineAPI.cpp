@@ -7,6 +7,7 @@
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
+#include "ModuleAssets.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -26,7 +27,6 @@
 #include "PlayerBinding.h"
 
 #include "HierarchyUtils.h"
-#include "PrefabManager.h"
 
 #include <DetourNavMeshQuery.h>
 
@@ -170,7 +170,7 @@ namespace GameObjectAPI
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = PrefabManager::instantiatePrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->spawnPrefab(path, currentScene);
 
         if (!prefabInstance) return nullptr;
 

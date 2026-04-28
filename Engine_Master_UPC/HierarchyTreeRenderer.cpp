@@ -12,7 +12,6 @@
 #include "Transform.h"
 
 #include "PrefabUI.h"
-#include "PrefabManager.h"
 #include "PrefabEditSession.h"
 
 void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, SelectionState& state) const
@@ -22,7 +21,7 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
 
     PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
     const bool isEditRoot = prefabMode && session && gameObject == session->m_rootObject;
-    const bool isPrefabInst = !isEditRoot && PrefabManager::isPrefabInstance(gameObject);
+    const bool isPrefabInst = !isEditRoot && gameObject->IsPrefabInstance();
 
     ImGuiTreeNodeFlags flags = children.empty()
         ? (ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen)
@@ -88,7 +87,7 @@ void HierarchyTreeRenderer::drawContextMenu(GameObject* go, bool prefabMode, boo
     if (!ImGui::BeginPopupContextItem()) return;
 
     if (prefabMode) {
-        PrefabUI::drawNodeContextMenu(go, prefabMode, isEditRoot);
+        PrefabUI::drawNodeContextMenu(prefabMode);
     } else {
         PrefabUI::drawPrefabSubMenu(go, app->getModuleScene()->getScene());
         ImGui::Separator();
