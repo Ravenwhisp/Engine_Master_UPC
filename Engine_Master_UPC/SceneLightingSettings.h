@@ -8,7 +8,7 @@ struct SceneLightingSettings
 	DirectX::SimpleMath::Vector3 ambientColor;
 	float ambientIntensity;
 
-#pragma once Serialization
+#pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
     {

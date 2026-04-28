@@ -8,7 +8,7 @@ struct SceneDataCB
 	DirectX::SimpleMath::Vector3 viewPos;
 	float pad0 = 0.0f;
 
-#pragma once Serialization
+#pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
     {

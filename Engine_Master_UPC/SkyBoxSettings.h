@@ -14,7 +14,7 @@ struct SkyBoxSettings
         return enabled == o.enabled && cubemapAssetId == o.cubemapAssetId;
     }
 
-#pragma once Serialization
+#pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
     {

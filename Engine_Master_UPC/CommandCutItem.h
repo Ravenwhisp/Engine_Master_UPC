@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-class FileDialogClipboard;
+struct FileDialogClipboard;
 
 class CommandCutItem : public ICommand
 {

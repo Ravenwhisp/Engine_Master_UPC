@@ -122,7 +122,7 @@ public:
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
 
-#pragma once Serialization
+#pragma region Serialization
     template <class Archive>
     void save(Archive& ar) const
     {
