@@ -729,10 +729,9 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
         rapidjson::Value sourcePath(m_prefabInfo.m_sourcePath.string().c_str(), domTree.GetAllocator());
         prefabLink.AddMember("SourcePath", sourcePath, domTree.GetAllocator());
 
-        if (!m_prefabInfo.m_assetUID.empty())
+        if (!isValidUID(m_prefabInfo.m_assetUID))
         {
-            rapidjson::Value assetUID(m_prefabInfo.m_assetUID.c_str(), domTree.GetAllocator());
-            prefabLink.AddMember("AssetUID", assetUID, domTree.GetAllocator());
+            prefabLink.AddMember("AssetUID", m_prefabInfo.m_assetUID, domTree.GetAllocator());
         }
 
         gameObjectInfo.AddMember("PrefabLink", prefabLink, domTree.GetAllocator());
@@ -782,9 +781,13 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
         const auto& pl = gameObjectJson["PrefabLink"];
         // Old files may have PrefabName/PrefabUID keys — we simply ignore them now.
         if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+        {
             m_prefabInfo.m_sourcePath = pl["SourcePath"].GetString();
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
-            m_prefabInfo.m_assetUID = pl["AssetUID"].GetString();
+        }
+        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+        {
+            m_prefabInfo.m_assetUID = pl["AssetUID"].GetUint64();
+        }
     }
     
     const auto& components = gameObjectJson["Components"].GetArray();

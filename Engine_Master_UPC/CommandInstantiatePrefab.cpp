@@ -7,6 +7,7 @@
 
 #include "GameObject.h"
 #include <HierarchyUtils.h>
+#include "PrefabAsset.h"
 
 CommandInstantiatePrefab::CommandInstantiatePrefab(Scene* scene,
     const std::filesystem::path& sourcePath,
@@ -20,8 +21,10 @@ CommandInstantiatePrefab::CommandInstantiatePrefab(Scene* scene,
 void CommandInstantiatePrefab::run()
 {
     if (!m_scene) return;
+    UID prefabId = app->getModuleAssets()->findUID(m_source);
+    auto prefab = app->getModuleAssets()->load<PrefabAsset>(makeRef(prefabId));
+    m_result = prefab->getGameObjectInstance();
 
-    m_result = app->getModuleAssets()->spawnPrefab(m_source, m_scene);
     if (!m_result) return;
 
     if (m_parentID != 0)

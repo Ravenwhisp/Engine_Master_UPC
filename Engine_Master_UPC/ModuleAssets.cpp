@@ -385,50 +385,13 @@ void ModuleAssets::flushDialogRequests()
         m_dialogCallback(*result);
         m_dialogCallback = nullptr;
     }
-
-    parentMeta.m_dependencies = std::move(it->second);
-    m_pendingDependencies.erase(it);
-
-    m_registry->registerAsset(parentMeta);
 }
 
-bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
+
+bool ModuleAssets::applyPrefab(GameObject* go)
 {
-    if (!go || savePath.empty()) return false;
-
-    Document doc;
-    const std::string json = PrefabSerializer::buildPrefabJSON(go, savePath);
-    doc.Parse(json.c_str());
-
-    if (!PrefabSerializer::writeDocument(doc, savePath)) return false;
-
-    go->GetPrefabInfo().m_sourcePath = savePath;
-
-    // Evict the stale cached asset first.
-    MD5Hash uid = findUID(savePath);
-    if (isValidAsset(uid))
-    {
-        unload(uid);
-    }
-
-    // Re-import so the Library/ binary is regenerated from the new JSON file.
-    // This also re-registers metadata and updates the registry.
-    importAsset(savePath, uid);
-
-    // Now update the in-memory asset cache with the new JSON so that any
-    // already-held shared_ptrs see the current data without a second disk read.
-    if (auto asset = load<PrefabAsset>(uid))
-    {
-        asset->getData().m_json = json;
-    }
-
-    return true;
-}
-
-bool ModuleAssets::applyPrefab(const GameObject* go)
-{
-    const PrefabInfo& info = go->GetPrefabInfo();
-    if (!info.isInstance()) return false;
+    PrefabAsset prefab = PrefabAsset(GenerateUID(), go);
+    save(prefab);
 
     if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
         return false;
@@ -451,7 +414,6 @@ bool ModuleAssets::applyPrefab(const GameObject* go)
     scene->markDirty();
     return true;
 }
-
 
 bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 {
@@ -559,7 +521,7 @@ GameObject* ModuleAssets::spawnPrefab(const PrefabAsset& asset, Scene* scene)
     doc.Parse(asset.getJSON().c_str());
     if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
     {
-        DEBUG_ERROR("[ModuleAssets] Malformed JSON in prefab asset '%s'.", asset.getId().c_str());
+        DEBUG_ERROR("[ModuleAssets] Malformed JSON in prefab asset '%s'.", asset.getId());
         return nullptr;
     }
 

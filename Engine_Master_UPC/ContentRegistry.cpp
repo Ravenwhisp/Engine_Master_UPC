@@ -70,7 +70,7 @@ std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesyste
     const std::filesystem::path sourcePath = metaPath.parent_path() / metaPath.stem();
     entry->uid = m_registry->findByPath(sourcePath);
 
-    if (entry->uid == INVALID_ASSET_ID)
+    if (entry->uid == INVALID_UID)
     {
         DEBUG_WARN("[ContentRegistry] No metadata in store for '%s'. Was rebuild() called before scan()?", sourcePath.string().c_str());
     }
