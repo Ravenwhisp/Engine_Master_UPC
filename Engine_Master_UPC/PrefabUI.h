@@ -33,26 +33,13 @@ public:
     // Draws the green instance bar in the inspector.
     static void drawFileDialogInstanceBar(GameObject* go);
 
-    // ── File-dialog context menus ───────────────────────────────────────────
-    // Buffers hold full relative paths (e.g. "Assets/Chars/Hero.prefab").
-    // All char* sizes should be at least 512 to accommodate path strings.
-    struct FileDialogBuffers
-    {
-        char* variantSource;    int variantSourceSize;
-        char* variantDest;      int variantDestSize;
-        char* renameSource;     int renameSourceSize;
-        char* renameDest;       int renameDestSize;
-        char* savePrefab;       int savePrefabSize;
-    };
 
     // sourcePath is the full path of the prefab file being right-clicked.
     static void drawFileDialogItemContextMenu(const std::filesystem::path& sourcePath,
         bool& outShowVariantModal,
-        bool& outRenamingPrefab,
-        FileDialogBuffers& buffers);
+        bool& outRenamingPrefab);
 
     static void drawFileDialogModals(bool& showVariantModal,
         bool& showSavePrefabModal,
-        bool& renamingPrefab,
-        FileDialogBuffers& buffers);
+        bool& renamingPrefab);
 };

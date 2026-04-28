@@ -22,17 +22,14 @@ class SceneSnapshot;
 
 struct PrefabInfo
 {
-	std::filesystem::path m_sourcePath;
 	UID m_assetUID;
 
 	PrefabOverrideRecord m_overrides;
 
-	bool isInstance() const { return !m_sourcePath.empty(); }
-	std::string getName() const { return m_sourcePath.stem().string(); }
+	bool isInstance() const { return isValidUID(m_assetUID); }
 
 	void clear()
 	{
-		m_sourcePath.clear();
 		m_assetUID = {};
 		m_overrides.clear();
 	}
@@ -57,6 +54,7 @@ public:
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
 
+	void SetID(UID newUid) {m_uuid = newUid;}
 	void SetName(std::string newName) { m_name = newName; }
 	void SetActive(bool newActive) { m_active = newActive; }
 	void SetStatic(bool newIsStatic) { m_isStatic = newIsStatic; }
@@ -65,6 +63,7 @@ public:
 #pragma endregion
 
 #pragma region Prefab
+	void setPrefabInfo(UID prefabId) { m_prefabInfo.m_assetUID = prefabId; }
 	PrefabInfo& GetPrefabInfo() { return m_prefabInfo; }
 	const PrefabInfo& GetPrefabInfo() const { return m_prefabInfo; }
 

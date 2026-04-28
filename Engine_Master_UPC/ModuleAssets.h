@@ -120,11 +120,7 @@ public:
     }
 
     bool applyPrefab(GameObject* go);
-    bool revertPrefab(GameObject* go, Scene* scene);
-    bool createVariant(const std::filesystem::path& src, const std::filesystem::path& dst);
 
-    GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
-    GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
 private:
     bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
     bool isDialogOpen() const { return m_dialogRunning.load(); }

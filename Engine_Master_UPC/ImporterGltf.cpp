@@ -427,13 +427,6 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         }
     }
 
-    PrefabData& data = dst->getData();
-    data.m_json = PrefabSerializer::buildPrefabJSON(root, *m_currentFilePath);
-    data.m_sourcePath = *m_currentFilePath;
-    data.m_name = prefabName;
-    data.m_assetUID = parentFileId;
-    data.m_prefabUID = root->GetID();
-
     m_currentFilePath = nullptr;
 }
 

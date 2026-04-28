@@ -437,6 +437,7 @@
     <ClCompile Include="CompoundBinary.cpp" />
     <ClCompile Include="PrefabSerializer.cpp" />
     <ClCompile Include="AssetReference.cpp" />
+    <ClCompile Include="PrefabAsset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />

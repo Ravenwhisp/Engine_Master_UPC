@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Asset.h"
+#include "GameObject.h"
 #include "UID.h"
 
 #include <filesystem>
@@ -29,6 +30,7 @@ struct PrefabOverrideRecord
     }
 };
 
+
 class PrefabAsset : public Asset
 {
 public:
@@ -40,27 +42,27 @@ public:
     {
     }
 
-    explicit PrefabAsset(UID id, GameObject* gameObject) : Asset(id, AssetType::PREFAB)
-    {
-        applyGameObject(gameObject);
-    }
+    explicit PrefabAsset(UID id, GameObject* gameObject);
 
-    void applyGameObject(GameObject* gameobject)
-    {
-        m_gameObjectInstance.reset(gameobject);
-    }
-    GameObject* getGameObjectInstance() { return m_gameObjectInstance.get(); }
+    std::unique_ptr<GameObject> spawnPrefab();
+
+    void revert(GameObject* gameObject);
+
+    bool isVariant() { return isValidUID(m_variant); }
+
+    //A function that given two GameObjects or PrefabAssets it returns the OverridedRecord
 
 #pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
     {
-        ar(cereal::base_class<Asset>(this), m_gameObjectInstance);
+        ar(cereal::base_class<Asset>(this), m_gameObjectInstance, m_variant);
     }
 #pragma endregion
 
 private:
     std::unique_ptr<GameObject> m_gameObjectInstance;
+    UID m_variant;
 };
 
 CEREAL_REGISTER_TYPE(PrefabAsset)

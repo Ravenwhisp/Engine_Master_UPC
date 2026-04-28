@@ -113,10 +113,9 @@ public:
 
     bool isInPrefabEditMode() const { return m_prefabSession.m_active && m_prefabSession.m_rootObject != nullptr; }
     GameObject* getPrefabEditRoot() const { return isInPrefabEditMode() ? m_prefabSession.m_rootObject : nullptr; }
-    const std::filesystem::path& getPrefabEditSourcePath() const { return m_prefabSession.m_sourcePath; }
     Scene* getPrefabEditScene() const { return isInPrefabEditMode() ? m_prefabSession.m_isolatedScene : nullptr; }
 
-    void              enterPrefabEdit(const std::filesystem::path& sourcePath);
+    void              enterPrefabEdit(const UID& uid);
     void              exitPrefabEdit();
     PrefabEditSession* getPrefabSession() { return &m_prefabSession; }
 

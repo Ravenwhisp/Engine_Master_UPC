@@ -211,8 +211,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 
             if (isPrefab)
             {
-                PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
-                PrefabUI::drawFileDialogItemContextMenu(asset->path, m_showVariantModal, m_renamingPrefab, buffers);
+                PrefabUI::drawFileDialogItemContextMenu(asset->path, m_showVariantModal, m_renamingPrefab);
             }
 
             if (ImGui::BeginPopupContextItem("ItemContext"))
@@ -307,8 +306,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 
     ImGui::Columns(1);
 
-    PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
-    PrefabUI::drawFileDialogModals(m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab, buffers);
+    PrefabUI::drawFileDialogModals(m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab);
 }
 
 void WindowFileDialog::drawInternal()
@@ -327,20 +325,4 @@ void WindowFileDialog::drawInternal()
     }
 
     ImGui::EndChild();
-}
-
-PrefabUI::FileDialogBuffers WindowFileDialog::buildFileDialogBuffers()
-{
-    PrefabUI::FileDialogBuffers buffers;
-    buffers.variantSource = m_variantSrcBuf;
-    buffers.variantSourceSize = sizeof(m_variantSrcBuf);
-    buffers.variantDest = m_variantDstBuf;
-    buffers.variantDestSize = sizeof(m_variantDstBuf);
-    buffers.renameSource = m_renameSrcBuf;
-    buffers.renameSourceSize = sizeof(m_renameSrcBuf);
-    buffers.renameDest = m_renameDstBuf;
-    buffers.renameDestSize = sizeof(m_renameDstBuf);
-    buffers.savePrefab = m_savePrefabNameBuf;
-    buffers.savePrefabSize = sizeof(m_savePrefabNameBuf);
-    return buffers;
 }

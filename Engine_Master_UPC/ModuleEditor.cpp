@@ -594,14 +594,15 @@ void ModuleEditor::handleQWERTYCases(Keyboard::State keyboardState)
 }
 
 
-void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
+void ModuleEditor::enterPrefabEdit(const UID& uid)
 {
     app->getModuleD3D12()->getCommandQueue()->flush();
 
     Scene* mainScene = app->getModuleScene()->getScene();
     m_prefabSession.m_isolatedScene = mainScene;
 
-    GameObject* loaded = app->getModuleAssets()->spawnPrefab(sourcePath, mainScene);
+    auto prefab = app->getModuleAssets()->load<PrefabAsset>(makeRef(uid));
+    auto loaded = prefab->spawnPrefab();
 
     if (!loaded)
     {
@@ -609,10 +610,9 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
         return;
     }
 
-    m_prefabSession.m_sourcePath = sourcePath;
-    m_prefabSession.m_rootObject = loaded;
+    m_prefabSession.m_rootObject = loaded.get();
     m_prefabSession.m_active = true;
-    m_selectedGameObject = loaded;
+    m_selectedGameObject = loaded.get();
 }
 
 void ModuleEditor::exitPrefabEdit()
