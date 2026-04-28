@@ -301,7 +301,6 @@
     <ClCompile Include="SceneReferenceResolver.cpp">
       <Filter>GameEntity\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
@@ -421,6 +420,12 @@
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="UISlider.cpp" />
+    <ClCompile Include="TriggerComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleTrigger.cpp">
+      <Filter>GameEntity</Filter>
+    </ClCompile>
     <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="Metadata.cpp">
@@ -430,12 +435,8 @@
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
     <ClCompile Include="CompoundBinary.cpp" />
-    <ClCompile Include="TriggerComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleTrigger.cpp">
-      <Filter>GameEntity</Filter>
-    </ClCompile>
+    <ClCompile Include="PrefabSerializer.cpp" />
+    <ClCompile Include="AssetReference.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -845,7 +846,6 @@
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
     <ClInclude Include="PrefabEditSession.h" />
-    <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="Extensions.h">
       <Filter>Persistence\Importers\Core</Filter>
@@ -1072,8 +1072,7 @@
     <ClInclude Include="ModuleTrigger.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-
-       <ClInclude Include="FileDialog.h">
+    <ClInclude Include="FileDialog.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
     <ClInclude Include="AssetDialogFilter.h">
@@ -1097,7 +1096,7 @@
     <ClInclude Include="CompoundBinary.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-
+    <ClInclude Include="PrefabSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

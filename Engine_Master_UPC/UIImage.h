@@ -2,6 +2,7 @@
 #include "Component.h"
 #include <string>
 #include <TextureAsset.h>
+#include "AssetReference.h"
 #include "UIFill.h"
 
 struct Rect2D;

@@ -6,6 +6,7 @@
 #include <memory>
 #include <unordered_map>
 #include "AnimationStateMachineAsset.h"
+#include "AssetReference.h"
 
 class AnimationAsset;
 class GameObject;

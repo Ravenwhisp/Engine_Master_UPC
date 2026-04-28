@@ -21,33 +21,8 @@ struct AssetReference {
 
 	bool operator!=(const AssetReference& o) const { return !(*this == o); }
 
-    rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const
-    {
-        rapidjson::Value obj(rapidjson::kObjectType);
-        obj.AddMember("fileId", fileId, allocator);
-        obj.AddMember("localId", localId, allocator);
-        return obj;
-    }
-
-    bool deserializeJson(const rapidjson::Value& obj)
-    {
-        if (!obj.IsObject())
-        {
-            DEBUG_ERROR("[AssetReference] Expected a JSON object.");
-            return false;
-        }
-
-        if (!obj.HasMember("fileId") || !obj["fileId"].IsUint64())
-        {
-            DEBUG_ERROR("[AssetReference] Missing or invalid 'fileId'.");
-            return false;
-        }
-
-        fileId = obj["fileId"].GetUint64();
-        localId = obj.HasMember("localId") && obj["localId"].IsUint64() ? obj["localId"].GetUint64(): INVALID_UID;
-
-        return true;
-    }
+    rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const;
+    bool deserializeJson(const rapidjson::Value& obj);
 
 	template <class Archive>
 	void serialize(Archive& ar)
