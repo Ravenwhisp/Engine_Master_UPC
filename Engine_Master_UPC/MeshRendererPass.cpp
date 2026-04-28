@@ -29,13 +29,21 @@
 #include "PlatformHelpers.h"
 #include "OptickProfiler.h"
 
-MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
+MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
-	m_lighting = std::make_unique<SceneLightingSettings>();
-	m_sceneDataCB = std::make_unique<SceneDataCB>();
+    m_lighting = std::make_unique<SceneLightingSettings>();
+    m_sceneDataCB = std::make_unique<SceneDataCB>();
 
     m_lighting->ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
+
+    CD3DX12_DESCRIPTOR_RANGE directionalRange;
+    CD3DX12_DESCRIPTOR_RANGE pointRange;
+    CD3DX12_DESCRIPTOR_RANGE spotRange;
+
+    directionalRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11);
+    pointRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12);
+    spotRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 13);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     CD3DX12_ROOT_PARAMETER rootParameters[12] = {};
@@ -56,9 +64,9 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     rootParameters[6].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[7].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[8].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[9].InitAsShaderResourceView(11); // t11
-    rootParameters[10].InitAsShaderResourceView(12); // t12
-    rootParameters[11].InitAsShaderResourceView(13); // t13
+    rootParameters[9].InitAsDescriptorTable(1, &directionalRange);
+    rootParameters[10].InitAsDescriptorTable(1, &pointRange);
+    rootParameters[11].InitAsDescriptorTable(1, &spotRange);
 
     rootSignatureDesc.Init(12, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -67,26 +75,61 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
-    CreateUploadBuffer(m_directionalBuffer, sizeof(GPUDirectionalLight) * LightDefaults::MAX_DIRECTIONAL_LIGHTS);
-    CreateUploadBuffer(m_pointBuffer, sizeof(GPUPointLight) * LightDefaults::MAX_POINT_LIGHTS);
-    CreateUploadBuffer(m_spotBuffer, sizeof(GPUSpotLight) * LightDefaults::MAX_SPOT_LIGHTS);
+    CreateBuffer(m_directionalBuffer, m_directionalUpload, sizeof(GPUDirectionalLight) * LightDefaults::MAX_DIRECTIONAL_LIGHTS);
+    CreateBuffer(m_pointBuffer, m_pointUpload, sizeof(GPUPointLight) * LightDefaults::MAX_POINT_LIGHTS);
+    CreateBuffer(m_spotBuffer, m_spotUpload, sizeof(GPUSpotLight) * LightDefaults::MAX_SPOT_LIGHTS);
+
+    DescriptorHeap& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    {
+        DescriptorHandle handle = heap.allocate();
+        m_directionalHandle = handle.gpu;
+
+        srvDesc.Buffer.NumElements = LightDefaults::MAX_DIRECTIONAL_LIGHTS;
+        srvDesc.Buffer.StructureByteStride = sizeof(GPUDirectionalLight);
+
+        m_device->CreateShaderResourceView(m_directionalBuffer.Get(), &srvDesc, handle.cpu);
+    }
+
+    {
+        DescriptorHandle handle = heap.allocate();
+        m_pointHandle = handle.gpu;
+
+        srvDesc.Buffer.NumElements = LightDefaults::MAX_POINT_LIGHTS;
+        srvDesc.Buffer.StructureByteStride = sizeof(GPUPointLight);
+
+        m_device->CreateShaderResourceView(m_pointBuffer.Get(), &srvDesc, handle.cpu);
+    }
+
+    {
+        DescriptorHandle handle = heap.allocate();
+        m_spotHandle = handle.gpu;
+
+        srvDesc.Buffer.NumElements = LightDefaults::MAX_SPOT_LIGHTS;
+        srvDesc.Buffer.StructureByteStride = sizeof(GPUSpotLight);
+
+        m_device->CreateShaderResourceView(m_spotBuffer.Get(), &srvDesc, handle.cpu);
+    }
 
 #if defined(_DEBUG)
-    // Enable better shader debugging with the graphics debugging tools.
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #else
     UINT compileFlags = 0;
 #endif
 
-    // Load the vertex shader.
     ComPtr<ID3DBlob> vertexShaderBlob;
     ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vertexShaderBlob));
 
-    // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
     ThrowIfFailed(D3DReadFileToBlob(L"LightPixelShader.cso", &pixelShaderBlob));
 
-    // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -94,7 +137,6 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
     };
 
-    // Describe and create the graphics pipeline state object (PSO).
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
     psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
     psoDesc.pRootSignature = m_rootSignature.Get();
@@ -112,9 +154,7 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     psoDesc.SampleDesc = { 1,0 };
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
-
 }
-
 
 void MeshRendererPass::prepare(const RenderContext& ctx)
 {
@@ -162,48 +202,59 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    void* mapped;
+    UpdateBuffer(
+        commandList,
+        m_directionalBuffer.Get(),
+        m_directionalUpload.Get(),
+        m_packedLights.directional.data(),
+        m_packedLights.directional.size() * sizeof(GPUDirectionalLight),
+        sizeof(GPUDirectionalLight) * LightDefaults::MAX_DIRECTIONAL_LIGHTS
+    );
 
-    // directional
-    m_directionalBuffer->Map(0, nullptr, &mapped);
-    memcpy(mapped, m_packedLights.directional.data(),
-        m_packedLights.directional.size() * sizeof(GPUDirectionalLight));
-    m_directionalBuffer->Unmap(0, nullptr);
+    UpdateBuffer(
+        commandList,
+        m_pointBuffer.Get(),
+        m_pointUpload.Get(),
+        m_packedLights.point.data(),
+        m_packedLights.point.size() * sizeof(GPUPointLight),
+        sizeof(GPUPointLight) * LightDefaults::MAX_POINT_LIGHTS
+    );
 
-    // point
-    m_pointBuffer->Map(0, nullptr, &mapped);
-    memcpy(mapped, m_packedLights.point.data(),
-        m_packedLights.point.size() * sizeof(GPUPointLight));
-    m_pointBuffer->Unmap(0, nullptr);
+    UpdateBuffer(
+        commandList,
+        m_spotBuffer.Get(),
+        m_spotUpload.Get(),
+        m_packedLights.spot.data(),
+        m_packedLights.spot.size() * sizeof(GPUSpotLight),
+        sizeof(GPUSpotLight) * LightDefaults::MAX_SPOT_LIGHTS
+    );
 
-    // spot
-    m_spotBuffer->Map(0, nullptr, &mapped);
-    memcpy(mapped, m_packedLights.spot.data(),
-        m_packedLights.spot.size() * sizeof(GPUSpotLight));
-    m_spotBuffer->Unmap(0, nullptr);
-
-
-    // Bind root signature (must be set before any draw calls)
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-    //Set input assembler
-    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+    ID3D12DescriptorHeap* descriptorHeaps[] = {
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(),
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap()
+    };
+
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
-
     commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+    commandList->SetGraphicsRootDescriptorTable(
+        8,
+        app->getModuleDescriptors()
+        ->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
+        .getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP)
+    );
 
-    commandList->SetGraphicsRootShaderResourceView(9, m_directionalBuffer->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootShaderResourceView(10, m_pointBuffer->GetGPUVirtualAddress());
-    commandList->SetGraphicsRootShaderResourceView(11, m_spotBuffer->GetGPUVirtualAddress());
+    commandList->SetGraphicsRootDescriptorTable(9, m_directionalHandle);
+    commandList->SetGraphicsRootDescriptorTable(10, m_pointHandle);
+    commandList->SetGraphicsRootDescriptorTable(11, m_spotHandle);
 
     renderMesh(commandList);
 }
-
 
 void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
 {
@@ -315,6 +366,10 @@ PackedLights MeshRendererPass::packLightsForGPU(const std::vector<LightComponent
     result.ambientColor = ambientColor;
     result.ambientIntensity = ambientIntensity;
 
+    result.directional.reserve(LightDefaults::MAX_DIRECTIONAL_LIGHTS);
+    result.point.reserve(LightDefaults::MAX_POINT_LIGHTS);
+    result.spot.reserve(LightDefaults::MAX_SPOT_LIGHTS);
+
     for (const LightComponent* light : lights)
     {
         if (!light->isActive())
@@ -384,19 +439,61 @@ PackedLights MeshRendererPass::packLightsForGPU(const std::vector<LightComponent
 }
 
 #pragma region UTILS
-void MeshRendererPass::CreateUploadBuffer(ComPtr<ID3D12Resource>& buffer, size_t size)
+void MeshRendererPass::CreateBuffer(ComPtr<ID3D12Resource>& defaultBuffer, ComPtr<ID3D12Resource>& uploadBuffer, size_t size)
 {
-    CD3DX12_HEAP_PROPERTIES heap(D3D12_HEAP_TYPE_UPLOAD);
     CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size);
 
+    CD3DX12_HEAP_PROPERTIES defaultHeap(D3D12_HEAP_TYPE_DEFAULT);
+
     m_device->CreateCommittedResource(
-        &heap,
+        &defaultHeap,
         D3D12_HEAP_FLAG_NONE,
         &desc,
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
-        IID_PPV_ARGS(&buffer)
+        IID_PPV_ARGS(&defaultBuffer)
+    );
+
+    CD3DX12_HEAP_PROPERTIES uploadHeap(D3D12_HEAP_TYPE_UPLOAD);
+
+    m_device->CreateCommittedResource(
+        &uploadHeap,
+        D3D12_HEAP_FLAG_NONE,
+        &desc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&uploadBuffer)
     );
 }
 
+void MeshRendererPass::UpdateBuffer( ID3D12GraphicsCommandList* cmd, ID3D12Resource* dst, ID3D12Resource* upload, const void* data, size_t dataSize, size_t maxSize)
+{
+    void* mapped;
+    upload->Map(0, nullptr, &mapped);
+
+    memset(mapped, 0, maxSize);
+
+    if (data && dataSize > 0)
+        memcpy(mapped, data, std::min(dataSize, maxSize));
+
+    upload->Unmap(0, nullptr);
+
+    CD3DX12_RESOURCE_BARRIER toCopy =
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            dst,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            D3D12_RESOURCE_STATE_COPY_DEST);
+
+    cmd->ResourceBarrier(1, &toCopy);
+
+    cmd->CopyBufferRegion(dst, 0, upload, 0, maxSize);
+
+    CD3DX12_RESOURCE_BARRIER toRead =
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            dst,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_GENERIC_READ);
+
+    cmd->ResourceBarrier(1, &toRead);
+}
 #pragma endregion
