@@ -26,7 +26,7 @@ void HapticEffectLibrary::registerBuiltins()
     registerEffect(HapticEffectDefinition::makeImpact());
     registerEffect(HapticEffectDefinition::makeContinuous());
     registerEffect(HapticEffectDefinition::makeExplosion());
-    registerEffect(HapticEffectDefinition::makeGunshot());
+    registerEffect(HapticEffectDefinition::makeArrowshot());
     registerEffect(HapticEffectDefinition::makeUIClick());
     registerEffect(HapticEffectDefinition::makeEngineLoop());
 }
@@ -259,7 +259,7 @@ void HapticEffectLibrary::logRegisteredEffects() const
     for (std::unordered_map<std::string, HapticEffectDefinition>::const_iterator it = m_effects.begin(); it != m_effects.end(); ++it)
     {
         const HapticEffectDefinition& def = it->second;
-        const HapticEffectDefinition& def = it->second;
-        const HapticEffectDefinition& def = it->second;
+       // const HapticEffectDefinition& def = it->second;
+       // const HapticEffectDefinition& def = it->second;
     }
 }

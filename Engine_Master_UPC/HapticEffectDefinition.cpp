@@ -42,10 +42,10 @@ HapticEffectDefinition HapticEffectDefinition::makeExplosion(float peakIntensity
     return def;
 }
 
-HapticEffectDefinition HapticEffectDefinition::makeGunshot(float intensity, HapticPriority priority)
+HapticEffectDefinition HapticEffectDefinition::makeArrowshot(float intensity, HapticPriority priority)
 {
     HapticEffectDefinition def;
-    def.id = "GunShot";
+    def.id = "ArrowShot";
     def.durationSeconds = 0.08f;
     def.attackSeconds = 0.005f;
     def.curve = HapticCurve::Punch;
