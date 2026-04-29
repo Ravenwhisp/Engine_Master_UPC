@@ -1,136 +1,80 @@
 #pragma once
 
 #include "Module.h"
-#include <SDL3/SDL.h>
+#include "HapticEffectDefinition.h"
+#include "HapticEffectLibrary.h"
+
 #include <array>
 #include <cstdint>
+#include <string>
 #include <vector>
-
-enum class HapticCurve : uint8_t
-{
-    Linear,    
-    Exponential,  
-    Sustain,    
-    Punch,        
-};
-
-enum class HapticPriority : uint8_t
-{
-    Low = 0,
-    Normal = 1,
-    High = 2,
-    Critical = 3, 
-};
-
-struct HapticEffect
-{
-    float leftMotor = 0.0f;  
-    float rightMotor = 0.0f;  
-    float leftTrigger = 0.0f; 
-    float rightTrigger = 0.0f;
-
-    float durationSeconds = 0.2f;  
-    float delaySeconds = 0.0f;  
-
-    HapticCurve    curve = HapticCurve::Linear;
-    HapticPriority priority = HapticPriority::Normal;
-
-    static HapticEffect makeImpact(float intensity = 1.0f,
-        float durationSeconds = 0.12f,
-        HapticPriority priority = HapticPriority::Normal)
-    {
-        HapticEffect e;
-        e.leftMotor = intensity;
-        e.rightMotor = intensity * 0.6f;
-        e.leftTrigger = intensity * 0.4f;
-        e.rightTrigger = intensity * 0.4f;
-        e.durationSeconds = durationSeconds;
-        e.curve = HapticCurve::Punch;
-        e.priority = priority;
-        return e;
-    }
-
-    static HapticEffect makeContinuous(float leftIntensity = 0.3f,
-        float rightIntensity = 0.15f,
-        float durationSeconds = 1.0f,
-        HapticPriority priority = HapticPriority::Low)
-    {
-        HapticEffect e;
-        e.leftMotor = leftIntensity;
-        e.rightMotor = rightIntensity;
-        e.durationSeconds = durationSeconds;
-        e.curve = HapticCurve::Sustain;
-        e.priority = priority;
-        return e;
-    }
-
-    static HapticEffect makeExplosion(float peakIntensity = 1.0f,
-        float durationSeconds = 0.6f,
-        HapticPriority priority = HapticPriority::High)
-    {
-        HapticEffect e;
-        e.leftMotor = peakIntensity;
-        e.rightMotor = peakIntensity * 0.5f;
-        e.leftTrigger = peakIntensity * 0.3f;
-        e.rightTrigger = peakIntensity * 0.3f;
-        e.durationSeconds = durationSeconds;
-        e.curve = HapticCurve::Exponential;
-        e.priority = priority;
-        return e;
-    }
-};
-
-#include "GamePad.h"
 
 class ModuleHaptics : public Module
 {
 public:
     static constexpr int MAX_PLAYERS = 4;
+    static constexpr int MAX_INSTANCES = 16;  
 
     ModuleHaptics();
     ~ModuleHaptics() override;
-
+     
     bool init()    override;
     void update()  override;
     bool cleanUp() override;
+ 
+    uint32_t playEffect(const std::string& effectId, int player = 0);
+    uint32_t playAtScale(const std::string& effectId, float scale, int player = 0);
 
-    uint32_t submitEffect(const HapticEffect& effect, int player = 0);
+    uint32_t submitAnonymous(const HapticEffectDefinition& def, float scale = 1.0f, int player = 0);
 
     void cancelEffect(uint32_t handle, int player = 0);
-
     void cancelAll(int player = 0);
 
     void silenceAll();
 
     bool isPlaying(int player = 0) const;
-    void logConnectedControllers();
+
+    void getMixedOutput(int player, float& outLeft, float& outRight, float& outLeftTrigger, float& outRightTrigger) const;
+
+    uint32_t submitEffect(const HapticEffectDefinition& def, int player = 0);
+
+    void logActiveEffects(int player = 0) const;
+    void logConnectedControllers() const;
 
 private:
-    struct ActiveEffect
+    struct HapticInstance
     {
-        HapticEffect effect;
-        float        elapsed = 0.0f;   
-        float        delay = 0.0f;   
-        uint32_t     handle = 0;
-        bool         alive = true;
+        const HapticEffectDefinition* def = nullptr;
+        float elapsed = 0.0f;
+        float delay = 0.0f;
+        float scale = 1.0f;  
+        uint32_t handle = 0;
+        bool alive = true;
+
+        HapticEffectDefinition anonDef;
     };
 
     struct PlayerState
     {
-        std::vector<ActiveEffect> activeEffects;
-         
+        std::vector<HapticInstance> instances; 
+
         float leftMotor = 0.0f;
         float rightMotor = 0.0f;
         float leftTrigger = 0.0f;
         float rightTrigger = 0.0f;
     };
 
+    uint32_t submitInternal(const HapticEffectDefinition* def, float scale, int player, const HapticEffectDefinition* anonDefOwner = nullptr);
+
+    void tickPlayer(int playerIndex, float dt);
+
+    void applyToHardware(int playerIndex) const;
+
+    float evaluateEnvelope(const HapticInstance& inst) const;
+
+    static float clamp01(float v);
+
     std::array<PlayerState, MAX_PLAYERS> m_players;
 
-    uint32_t m_nextHandle = 1;  
-     
-    float evaluateCurve(const ActiveEffect& ae) const;
-    void tickPlayer(int playerIndex, float dt);
-    void applyToHardware(int playerIndex);
-    static float clamp01(float v);
+    uint32_t m_nextHandle = 1; 
 };

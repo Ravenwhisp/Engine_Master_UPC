@@ -1818,31 +1818,141 @@ namespace DebugDrawAPI
 
 namespace HapticAPI
 {
+    uint32_t playEffect(const char* effectId, int player)
+    {
+        if (!effectId || !app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->playEffect(effectId, player);
+    }
+
+    uint32_t playAtScale(const char* effectId, float scale, int player)
+    {
+        if (!effectId || !app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->playAtScale(effectId, scale, player);
+    }
+
+    void stopEffect(uint32_t handle, int player)
+    {
+        if (!app || handle == 0)
+        {
+            return;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return;
+        }
+
+        haptics->cancelEffect(handle, player);
+    }
+
+    void stopAll(int player)
+    {
+        if (!app)
+        {
+            return;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return;
+        }
+
+        haptics->cancelAll(player);
+    }
+
+    bool isPlaying(int player)
+    {
+        if (!app)
+        {
+            return false;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return false;
+        }
+
+        return haptics->isPlaying(player);
+    }
+
     uint32_t submitImpact(float intensity, float duration, int player)
     {
-        return app->getModuleHaptics()->submitEffect(
-            HapticEffect::makeImpact(intensity, duration), player);
+        if (!app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->submitAnonymous(HapticEffectDefinition::makeImpact(intensity, duration), 1.0f, player);
     }
 
     uint32_t submitRumble(float left, float right, float duration, int player)
     {
-        return app->getModuleHaptics()->submitEffect(
-            HapticEffect::makeContinuous(left, right, duration), player);
+        if (!app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->submitAnonymous(HapticEffectDefinition::makeContinuous(left, right, duration), 1.0f, player);
     }
 
     uint32_t submitExplosion(float intensity, float duration, int player)
     {
-        return app->getModuleHaptics()->submitEffect(
-            HapticEffect::makeExplosion(intensity, duration), player);
+        if (!app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->submitAnonymous(HapticEffectDefinition::makeExplosion(intensity, duration), 1.0f, player);
     }
 
     void cancelEffect(uint32_t handle, int player)
     {
-        app->getModuleHaptics()->cancelEffect(handle, player);
+        stopEffect(handle, player);
     }
 
     void cancelAll(int player)
     {
-        app->getModuleHaptics()->cancelAll(player);
+        stopAll(player);
     }
 }
