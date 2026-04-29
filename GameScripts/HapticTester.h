@@ -1,6 +1,6 @@
 #pragma once
-
 #include "ScriptAPI.h"
+#include <vector>
 
 class HapticTester : public Script
 {
@@ -14,10 +14,12 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
-public:
-    int m_playerIndex = 1;
-    int m_hapticDeviceIndex = 0; 
+protected:
+    /*virtual std::vector<HapticEffectDefinition> defineEffects();*/
 
+public:
+    int m_playerIndex = 0;
+    int m_hapticDeviceIndex = 0;
     std::string m_namedEffectId = "Impact";
 
 private:

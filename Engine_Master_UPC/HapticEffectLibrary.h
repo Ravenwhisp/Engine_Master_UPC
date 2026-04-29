@@ -21,6 +21,7 @@ public:
     const std::unordered_map<std::string, HapticEffectDefinition>& getAll() const;
 
     void logRegisteredEffects() const;
+    bool saveToJSON(const char* path);
 
 private:
     HapticEffectLibrary() = default;
