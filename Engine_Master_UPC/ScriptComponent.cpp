@@ -250,6 +250,95 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
             break;
         }
 
+        case ScriptFieldType::ComponentRefList:
+        {
+            ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+
+            ImGui::Text("%s", field.name);
+
+            int removeIndex = -1;
+
+            for (size_t index = 0; index < componentList->size(); ++index)
+            {
+                ScriptComponentRef<Component>& entry = (*componentList)[index];
+                Component* component = entry.component;
+
+                std::string entryLabel = "  [" + std::to_string(index) + "]";
+                ImGui::Text("%s", entryLabel.c_str());
+                ImGui::SameLine();
+
+                if (component != nullptr)
+                {
+                    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str());
+                }
+                else
+                {
+                    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+                }
+
+                ImGui::SameLine();
+
+                std::string removeLabel = "Remove###" + std::string(field.name) + "_" + std::to_string(index);
+                if (ImGui::Button(removeLabel.c_str()))
+                {
+                    removeIndex = static_cast<int>(index);
+                }
+            }
+
+            if (removeIndex >= 0)
+            {
+                componentList->erase(componentList->begin() + removeIndex);
+                changed = true;
+            }
+
+            std::string clearLabel = std::string("Clear All###") + field.name;
+            if (ImGui::Button(clearLabel.c_str()))
+            {
+                if (!componentList->empty())
+                {
+                    componentList->clear();
+                    changed = true;
+                }
+            }
+
+            ImGui::Text("Drop GameObject here to add");
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+                {
+                    GameObject* droppedObject = *(GameObject**)payload->Data;
+                    GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
+
+                    if (sceneObject != nullptr)
+                    {
+                        Component* candidate = nullptr;
+
+                        if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
+                        {
+                            candidate = sceneObject->GetTransform();
+                        }
+                        else
+                        {
+                            candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
+                        }
+
+                        if (candidate != nullptr)
+                        {
+                            ScriptComponentRef<Component> newEntry;
+                            newEntry.uid = candidate->getID();
+                            newEntry.component = candidate;
+
+                            componentList->push_back(newEntry);
+                            changed = true;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            break;
+        }
+
         case ScriptFieldType::String:
         {
             std::string* value = reinterpret_cast<std::string*>(data);
