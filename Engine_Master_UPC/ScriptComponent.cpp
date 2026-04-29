@@ -254,42 +254,79 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
         {
             ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
 
+            const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+            const ImVec2 avail = ImGui::GetContentRegionAvail();
+
             ImGui::Text("%s", field.name);
+
+            const float visibleRows = 3.0f;
+            const float listHeight = lineHeight * (visibleRows + 1.2f);
+
+            std::string listFrameId = std::string("##ComponentRefListFrame_") + field.name;
 
             int removeIndex = -1;
 
-            for (size_t index = 0; index < componentList->size(); ++index)
+            if (ImGui::BeginChild(listFrameId.c_str(), ImVec2(avail.x, listHeight), true))
             {
-                ScriptComponentRef<Component>& entry = (*componentList)[index];
-                Component* component = entry.component;
+                const float removeButtonWidth = 70.0f;
 
-                std::string entryLabel = "  [" + std::to_string(index) + "]";
-                ImGui::Text("%s", entryLabel.c_str());
-                ImGui::SameLine();
-
-                if (component != nullptr)
+                for (size_t index = 0; index < componentList->size(); ++index)
                 {
-                    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str());
+                    ScriptComponentRef<Component>& entry = (*componentList)[index];
+                    Component* component = entry.component;
+
+                    ImGui::PushID(static_cast<int>(index));
+
+                    const float rowStartX = ImGui::GetCursorPosX();
+                    const float contentWidth = ImGui::GetContentRegionAvail().x;
+
+                    std::string entryLabel = "[" + std::to_string(index) + "]";
+                    ImGui::Text("%s", entryLabel.c_str());
+                    ImGui::SameLine();
+
+                    const float removePosX = rowStartX + contentWidth - removeButtonWidth;
+
+                    float nameStartX = ImGui::GetCursorPosX();
+                    float maxNameWidth = removePosX - nameStartX - 8.0f;
+                    if (maxNameWidth < 20.0f)
+                    {
+                        maxNameWidth = 20.0f;
+                    }
+
+                    ImGui::BeginGroup();
+                    ImGui::PushTextWrapPos(nameStartX + maxNameWidth);
+
+                    if (component != nullptr)
+                    {
+                        ImGui::TextColored(
+                            ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
+                            "%s",
+                            component->getOwner()->GetName().c_str());
+                    }
+                    else
+                    {
+                        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+                    }
+
+                    ImGui::PopTextWrapPos();
+                    ImGui::EndGroup();
+
+                    ImGui::SameLine(removePosX);
+                    if (ImGui::Button("Remove", ImVec2(removeButtonWidth, 0.0f)))
+                    {
+                        removeIndex = static_cast<int>(index);
+                    }
+
+                    ImGui::PopID();
                 }
-                else
-                {
-                    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
-                }
 
-                ImGui::SameLine();
-
-                std::string removeLabel = "Remove###" + std::string(field.name) + "_" + std::to_string(index);
-                if (ImGui::Button(removeLabel.c_str()))
+                if (removeIndex >= 0)
                 {
-                    removeIndex = static_cast<int>(index);
+                    componentList->erase(componentList->begin() + removeIndex);
+                    changed = true;
                 }
             }
-
-            if (removeIndex >= 0)
-            {
-                componentList->erase(componentList->begin() + removeIndex);
-                changed = true;
-            }
+            ImGui::EndChild();
 
             std::string clearLabel = std::string("Clear All###") + field.name;
             if (ImGui::Button(clearLabel.c_str()))
@@ -301,40 +338,54 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
                 }
             }
 
-            ImGui::Text("Drop GameObject here to add");
-            if (ImGui::BeginDragDropTarget())
+            const float dropHeight = lineHeight * 1.7f;
+            std::string dropFrameId = std::string("##DropFrame_") + field.name;
+
+            if (ImGui::BeginChild(dropFrameId.c_str(), ImVec2(avail.x, dropHeight), true))
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+                ImGui::Text("Drop GameObject here");
+
+                // Whole framed area acts as drop target
+                ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
+                std::string dropTargetId = std::string("##DropTarget_") + field.name;
+                ImGui::InvisibleButton(dropTargetId.c_str(), ImGui::GetContentRegionAvail());
+
+                if (ImGui::BeginDragDropTarget())
                 {
-                    GameObject* droppedObject = *(GameObject**)payload->Data;
-                    GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
-
-                    if (sceneObject != nullptr)
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
                     {
-                        Component* candidate = nullptr;
+                        GameObject* droppedObject = *(GameObject**)payload->Data;
+                        GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
-                        if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
+                        if (sceneObject != nullptr)
                         {
-                            candidate = sceneObject->GetTransform();
-                        }
-                        else
-                        {
-                            candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
-                        }
+                            Component* candidate = nullptr;
 
-                        if (candidate != nullptr)
-                        {
-                            ScriptComponentRef<Component> newEntry;
-                            newEntry.uid = candidate->getID();
-                            newEntry.component = candidate;
+                            if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
+                            {
+                                candidate = sceneObject->GetTransform();
+                            }
+                            else
+                            {
+                                candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
+                            }
 
-                            componentList->push_back(newEntry);
-                            changed = true;
+                            if (candidate != nullptr)
+                            {
+                                ScriptComponentRef<Component> newEntry;
+                                newEntry.uid = candidate->getID();
+                                newEntry.component = candidate;
+
+                                componentList->push_back(newEntry);
+                                changed = true;
+                            }
                         }
                     }
+
+                    ImGui::EndDragDropTarget();
                 }
-                ImGui::EndDragDropTarget();
             }
+            ImGui::EndChild();
 
             break;
         }

@@ -16,4 +16,6 @@ public:
 
 private:
     ScriptComponentRefList m_transforms;
+    int m_test1 = 0;
+    float m_test2 = 0.0;
 };
