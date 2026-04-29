@@ -263,3 +263,8 @@ void HapticEffectLibrary::logRegisteredEffects() const
        // const HapticEffectDefinition& def = it->second;
     }
 }
+
+bool HapticEffectLibrary::saveToJSON(const char* path)
+{
+    return writeDefaultJSON(path);
+}
