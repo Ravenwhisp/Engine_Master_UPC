@@ -43,7 +43,7 @@ private:
 
 #pragma region Serialization
     template<class Archive>
-    void serialize(Archive& ar)
+    void save(Archive& ar)
     {
         ar(cereal::base_class<Component>(this), m_targetGraphicUid, m_fillAmount, m_fillMethod, m_fillOrigin);
     }

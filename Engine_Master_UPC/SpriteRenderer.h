@@ -31,6 +31,31 @@ public:
 
     bool getLookAtCamera() { return m_lookAtCamera; }
 
+#pragma region Serialization
+    template<class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(cereal::base_class<Component>(this), m_textureAssetId, m_lookAtCamera);
+    }
+
+
+    template<class Archive>
+    static void load_and_construct(
+        Archive& ar,
+        cereal::construct<SpriteRenderer>& construct)
+    {
+        UID           id;
+        ComponentType type;
+        bool          active;
+        ar(id, type, active);
+
+        construct(id, nullptr);
+        construct->setActive(active);
+
+        ar(construct->m_textureAssetId, construct->m_lookAtCamera);
+    }
+
+#pragma endregion
 private:
     AssetReference m_textureAssetId;
     Texture* m_texture = nullptr;
@@ -39,13 +64,7 @@ private:
     bool m_loadRequested = false;
     bool m_lookAtCamera = false;
 
-#pragma region Serialization
-	template<class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Component>(this), m_textureAssetId, m_lookAtCamera);
-	}
-#pragma endregion
+
 };
 
 CEREAL_REGISTER_TYPE(SpriteRenderer);

@@ -1,7 +1,5 @@
 #pragma once
 #include "UID.h"
-#include <cereal/access.hpp>
-#include <rapidjson/document.h>
 
 struct AssetReference {
     friend class cereal::access;

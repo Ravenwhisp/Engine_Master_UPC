@@ -58,6 +58,29 @@ public:
     float getSpeedMultiplier() const;
     void setSpeedMultiplier(float speedMultiplier);
 
+#pragma region Serialization
+    template<class Archive>
+    void serialize(Archive& ar)
+    {
+        ar(cereal::base_class<Component>(this), m_stateMachineUID, m_playOnStart, m_applyScale, m_forceWorldAfterApply);
+    }
+
+    template<class Archive>
+    static void load_and_construct(
+        Archive& ar,
+        cereal::construct<AnimationComponent>& construct)
+    {
+        UID           id;
+        ComponentType type;
+        bool          active;
+        ar(id, type, active);
+
+        construct(id, nullptr);
+        construct->setActive(active);
+
+        ar(construct->m_stateMachineUID, construct->m_playOnStart, construct->m_applyScale, construct->m_forceWorldAfterApply);
+    }
+#pragma endregion
 private:
 
     struct FadingPlayback
@@ -158,13 +181,7 @@ private:
 
     bool m_debugDrawHierarchy = false;
 
-#pragma region Serialization
-	template<class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Component>(this), m_stateMachineUID, m_playOnStart, m_applyScale, m_forceWorldAfterApply);
-	}
-#pragma endregion
+
 };
 
 

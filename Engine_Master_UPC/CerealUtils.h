@@ -1,29 +1,9 @@
 ﻿#pragma once
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/types/string.hpp>
-#include <cereal/types/memory.hpp>
-#include <cereal/types/polymorphic.hpp>
 
 #include <sstream>
 #include <streambuf>
 #include <cstring>
 #include <cstdint>
-
-
-namespace cereal
-{
-    template<class Archive> void serialize(Archive& ar, Vector2& v) { ar(v.x, v.y); }
-    template<class Archive> void serialize(Archive& ar, Vector3& v) { ar(v.x, v.y, v.z); }
-    template<class Archive> void serialize(Archive& ar, Vector4& v) { ar(v.x, v.y, v.z, v.w); }
-    template<class Archive> void serialize(Archive& ar, Color& c) { ar(c.x, c.y, c.z, c.w); }
-    template<class Archive> void serialize(Archive& ar, Quaternion& q) { ar(q.x, q.y, q.z, q.w); }
-    template<class Archive>
-    void serialize(Archive& ar, DirectX::SimpleMath::Matrix& m)
-    {
-        ar(cereal::binary_data(m.m, sizeof(m.m)));
-    }
-}
 
 namespace CerealUtils
 {

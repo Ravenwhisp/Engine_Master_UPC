@@ -1,7 +1,6 @@
 #include "Globals.h"
 #include "AssetReference.h"
 
-
 rapidjson::Value AssetReference::getJson(rapidjson::Document::AllocatorType& allocator) const
 {
     rapidjson::Value obj(rapidjson::kObjectType);

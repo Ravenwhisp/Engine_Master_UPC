@@ -314,7 +314,8 @@ namespace cereal
       template <class T> inline
       static T * construct()
       {
-        return new T();
+        return new T
+        ();
       }
 
       template <class T> inline

@@ -34,10 +34,7 @@ GameObject::GameObject(UID newUuid, UID transformUid) : m_uuid(newUuid), m_name(
     m_components.push_back(std::move(transform));
 }
 
-GameObject::~GameObject()
-{
-
-}
+GameObject::~GameObject() = default;
 
 std::unique_ptr<GameObject> GameObject::clone() const
 {

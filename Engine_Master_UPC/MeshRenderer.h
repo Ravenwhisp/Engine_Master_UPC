@@ -79,6 +79,30 @@ public:
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
+#pragma region Serialization
+
+	template <class Archive>
+	void save(Archive& ar) const
+	{
+		ar(cereal::base_class<Component>(this), m_meshAsset, m_skinAsset, m_materialAssets);
+	}
+
+
+	template<class Archive>
+	static void load_and_construct(Archive& ar, cereal::construct<MeshRenderer>& construct)
+	{
+		UID           id;
+		ComponentType type;
+		bool          active;
+		ar(id, type, active);
+
+		construct(id, nullptr);
+		construct->setActive(active);
+
+		ar(construct->m_meshAsset, construct->m_skinAsset, construct->m_materialAssets);
+	}
+#pragma endregion
+
 private:
 	bool ensureSkinLoaded();
 	bool resolveSkinBindings();
@@ -124,13 +148,7 @@ private:
 
 	bool m_isCulled = false;
 
-#pragma region Serialization
-	template <class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Component>(this), m_meshAsset, m_skinAsset, m_materialAssets);
-	}
-#pragma endregion
+
 };
 
 CEREAL_REGISTER_TYPE(MeshRenderer)

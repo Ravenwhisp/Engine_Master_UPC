@@ -25,15 +25,32 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
     void debugDraw() override;
-private:
-    LightData m_data{};
 
 #pragma region Serialization
-	template <class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Component>(this), m_data);
-	}
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        ar(cereal::base_class<Component>(this),m_data);
+    }
+
+    template<class Archive>
+    static void load_and_construct(
+        Archive& ar,
+        cereal::construct<LightComponent>& construct)
+    {
+        UID           id;
+        ComponentType type;
+        bool          active;
+        ar(id, type, active);
+
+        construct(id, nullptr);
+        construct->setActive(active);
+
+        ar(construct->m_data);
+    }
+
+private:
+    LightData m_data{};
 };
 
 

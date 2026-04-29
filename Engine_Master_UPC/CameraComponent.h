@@ -40,7 +40,30 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+#pragma region Serialization
+	template <class Archive>
+	void save(Archive& ar) const
+	{
+		ar(cereal::base_class<Component>(this), m_horizontalFov, m_nearPlane, m_farPlane, m_aspectRatio);
+	}
 
+	template<class Archive>
+	static void load_and_construct(
+		Archive& ar,
+		cereal::construct<CameraComponent>& construct)
+	{
+		UID id;
+		ComponentType type;
+		bool active;
+
+		ar(id, type, active);
+
+		construct(id, nullptr);
+		construct->setActive(active);
+
+		ar(construct->m_horizontalFov, construct->m_nearPlane, construct->m_farPlane, construct->m_aspectRatio);
+	}
+#pragma endregion
 private:
 	float m_horizontalFov = 90.0f;
 	float m_nearPlane = 0.5f;
@@ -53,12 +76,6 @@ private:
 
 	Engine::Frustum m_frustum = {};
 
-#pragma region Serialization
-	template<class Archive>
-	void serialize(Archive& ar)
-	{
-		ar(cereal::base_class<Component>(this), m_horizontalFov, m_nearPlane, m_farPlane, m_aspectRatio);
-	}
-#pragma endregion
+
 };
 

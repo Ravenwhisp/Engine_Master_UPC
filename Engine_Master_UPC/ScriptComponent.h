@@ -29,45 +29,36 @@ public:
     void fixReferences(const SceneReferenceResolver& resolver) override;
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+    template <class Archive>
+    void save(Archive& ar) const
+    {
+        ar(cereal::base_class<Component>(this), m_scriptName);
+    }
+
+    template<class Archive>
+    static void load_and_construct(
+        Archive& ar,
+        cereal::construct<ScriptComponent>& construct)
+    {
+        UID           id;
+        ComponentType type;
+        bool          active;
+        ar(id, type, active);
+
+        construct(id, nullptr);
+        construct->setActive(active);
+
+        ar(construct->m_scriptName);
+    }
+
+
 private:
     void drawScriptFieldsUi(Script& script);
     void serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree);
     void deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson);
     void cloneScriptFields(const Script& source, Script& target);
 
-    template<class Archive>
-    void serialize(Archive& ar)
-    {
-        ar(cereal::base_class<Component>(this), m_scriptName);
-
-        if constexpr (Archive::is_saving::value)
-        {
-            bool hasScript = m_script != nullptr;
-            ar(hasScript);
-            if (hasScript)
-            {
-                saveBinaryScriptFields(*m_script, ar);
-            }
-        }
-        else
-        {
-            bool hasScript = false;
-            ar(hasScript);
-
-            destroyScriptInstance();
-            if (!m_scriptName.empty())
-            {
-                createScriptInstance();
-            }
-
-            if (hasScript && m_script)
-            {
-                loadBinaryScriptFields(*m_script, ar);
-                m_script->onAfterDeserialize();
-            }
-        }
-    }
-
+   
 
     void saveBinaryScriptFields(const Script& script, cereal::BinaryOutputArchive& ar) const;
     void loadBinaryScriptFields(Script& script, cereal::BinaryInputArchive& ar);

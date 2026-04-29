@@ -3,12 +3,6 @@
 #include "UID.h" 
 #include "IDebugDrawable.h"
 
-#include <cereal/types/base_class.hpp>
-#include <cereal/types/polymorphic.hpp> 
-#include <cereal/access.hpp>
-
-#include <rapidjson/document.h>
-
 class Transform;
 class GameObject;
 
@@ -53,10 +47,16 @@ public:
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
     template <class Archive>
-    void serialize(Archive& ar)
-	{
-		ar(m_uuid, m_type, m_active);
-	}
+    void save(Archive& ar) const
+    {
+        ar(m_uuid, m_type, m_active);
+    }
+
+    template <class Archive>
+    void load(Archive& ar)
+    {
+        ar(m_uuid, m_type, m_active);
+    }
 #pragma endregion
     IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 

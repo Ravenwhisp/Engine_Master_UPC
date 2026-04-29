@@ -4,12 +4,6 @@
 #include "AssetReference.h"
 #include "UID.h"
 
-#include <cereal/types/base_class.hpp>
-#include <cereal/types/polymorphic.hpp> 
-#include <cereal/types/string.hpp>
-#include <cereal/types/vector.hpp>
-#include <cereal/access.hpp>
-
 class Asset
 {
 public:

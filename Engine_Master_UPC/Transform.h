@@ -58,26 +58,12 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basics! (no children nor parent)
 #pragma endregion
 
-private:
-	mutable Matrix m_globalMatrix;
-	mutable Matrix m_normalMatrix;
-	mutable bool m_dirty;
-
-	Vector3 m_position;
-	Quaternion m_rotation;
-	Vector3 m_eulerDegrees;
-	Vector3 m_scale;
-
-	Transform* m_root;
-	std::vector<GameObject*> m_children;
-
-	void calculateMatrix() const;
-
 #pragma region Serialization
-	template <class Archive>
-	void serialize(Archive& ar)
+
+	template<class Archive>
+	void save(Archive& ar) const
 	{
-		ar(cereal::base_class<Component>(this), m_position, m_rotation, m_scale);
+		ar(cereal::base_class<Component>(this),m_position,m_rotation,m_scale);
 	}
 
 	template<class Archive>
@@ -93,9 +79,24 @@ private:
 		construct(id, nullptr);
 		construct->setActive(active);
 
-		ar(construct->m_position,construct->m_rotation,construct->m_scale);
+		ar(construct->m_position, construct->m_rotation, construct->m_scale);
 	}
 #pragma endregion
+
+private:
+	mutable Matrix m_globalMatrix;
+	mutable Matrix m_normalMatrix;
+	mutable bool m_dirty;
+
+	Vector3 m_position;
+	Quaternion m_rotation;
+	Vector3 m_eulerDegrees;
+	Vector3 m_scale;
+
+	Transform* m_root;
+	std::vector<GameObject*> m_children;
+
+	void calculateMatrix() const;
 };
 
 CEREAL_REGISTER_TYPE(Transform)
