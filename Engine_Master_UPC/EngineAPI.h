@@ -21,6 +21,7 @@ class Component;
 class Script;
 class AnimationComponent;
 class UISlider;
+struct HapticEffectDefinition;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
@@ -242,9 +243,14 @@ namespace DebugDrawAPI
 
 namespace HapticAPI
 {
+    ENGINE_API uint32_t playEffect(const char* effectId, int player = 0);
+    ENGINE_API uint32_t playAtScale(const char* effectId, float scale, int player = 0);
+    ENGINE_API void stopEffect(uint32_t handle, int player = 0);
+    ENGINE_API void stopAll(int player = 0);
+    ENGINE_API bool isPlaying(int player = 0);
     ENGINE_API uint32_t submitImpact(float intensity, float duration, int player = 0);
     ENGINE_API uint32_t submitRumble(float left, float right, float duration, int player = 0);
     ENGINE_API uint32_t submitExplosion(float intensity, float duration, int player = 0);
-    ENGINE_API void     cancelEffect(uint32_t handle, int player = 0);
-    ENGINE_API void     cancelAll(int player = 0);
+    ENGINE_API void cancelEffect(uint32_t handle, int player = 0);
+    ENGINE_API void cancelAll(int player = 0);
 }
