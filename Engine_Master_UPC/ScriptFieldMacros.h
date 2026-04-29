@@ -50,3 +50,6 @@
 
 #define SERIALIZED_COMPONENT_REF(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), {}, {}, { ComponentTypeValue } }
+
+#define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
+    { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), {}, {}, { ComponentTypeValue } }

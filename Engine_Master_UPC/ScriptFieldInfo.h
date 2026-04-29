@@ -11,6 +11,7 @@ enum class ScriptFieldType
     Vec3,
     EnumInt,
     ComponentRef,
+    ComponentRefList,
     String
 };
 
