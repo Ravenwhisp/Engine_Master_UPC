@@ -48,7 +48,7 @@ struct HapticEffectDefinition
     static HapticEffectDefinition makeImpact(float intensity = 1.0f, float duration = 0.12f, HapticPriority priority = HapticPriority::Normal);
     static HapticEffectDefinition makeContinuous(float leftIntensity = 0.3f, float rightIntensity = 0.15f, float duration = 1.0f, HapticPriority priority = HapticPriority::Low);
     static HapticEffectDefinition makeExplosion(float peakIntensity = 1.0f, float duration = 0.6f, HapticPriority priority = HapticPriority::High);
-    static HapticEffectDefinition makeGunshot(float intensity = 0.9f, HapticPriority priority = HapticPriority::High);
+    static HapticEffectDefinition makeArrowshot(float intensity = 0.9f, HapticPriority priority = HapticPriority::High);
     static HapticEffectDefinition makeUIClick(HapticPriority priority = HapticPriority::Low);
     static HapticEffectDefinition makeEngineLoop(float intensity = 0.25f);
 };
