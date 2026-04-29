@@ -435,6 +435,21 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
             break;
         }
 
+        case ScriptFieldType::ComponentRefList:
+        {
+            ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+
+            rapidjson::Value array(rapidjson::kArrayType);
+
+            for (const ScriptComponentRef<Component>& entry : *componentList)
+            {
+                array.PushBack(static_cast<uint64_t>(entry.uid), domTree.GetAllocator());
+            }
+
+            outFieldsJson.AddMember(key, array, domTree.GetAllocator());
+            break;
+        }
+
         case ScriptFieldType::String:
         {
             std::string* value = reinterpret_cast<std::string*>(data);
@@ -532,6 +547,28 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
             }
             break;
 
+        case ScriptFieldType::ComponentRefList:
+            if (valueJson.IsArray())
+            {
+                ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+                componentList->clear();
+
+                for (rapidjson::SizeType i = 0; i < valueJson.Size(); ++i)
+                {
+                    if (!valueJson[i].IsUint64())
+                    {
+                        continue;
+                    }
+
+                    ScriptComponentRef<Component> entry;
+                    entry.uid = static_cast<UID>(valueJson[i].GetUint64());
+                    entry.component = nullptr;
+
+                    componentList->push_back(entry);
+                }
+            }
+            break;
+
         case ScriptFieldType::String:
             if (valueJson.IsString())
             {
@@ -541,6 +578,28 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
         }
     }
 }
+
+void resolveComponentReference(ScriptComponentRef<Component>& componentReference, const SceneReferenceResolver& resolver, ComponentType expectedType)
+{
+    componentReference.component = nullptr;
+
+    if (componentReference.uid == 0)
+    {
+        return;
+    }
+
+    Component* resolved = resolver.getClonedComponent(componentReference.uid);
+    if (resolved == nullptr)
+    {
+        return;
+    }
+
+    if (resolved->getType() == expectedType)
+    {
+        componentReference.component = resolved;
+    }
+}
+
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
 {
@@ -554,30 +613,22 @@ void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
 
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        if (field.type != ScriptFieldType::ComponentRef)
-        {
-            continue;
-        }
-
         void* data = base + field.offset;
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
-        componentReference->component = nullptr;
-
-        if (componentReference->uid == 0)
+        if (field.type == ScriptFieldType::ComponentRef)
         {
-            continue;
+            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+
+            resolveComponentReference(*componentReference, resolver, field.componentRefInfo.componentType);
         }
-
-        Component* resolved = resolver.getClonedComponent(componentReference->uid);
-        if (!resolved)
+        else if (field.type == ScriptFieldType::ComponentRefList)
         {
-            continue;
-        }
+            ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
 
-        if (resolved->getType() == field.componentRefInfo.componentType)
-        {
-            componentReference->component = resolved;
+            for (ScriptComponentRef<Component>& entry : *componentList)
+            {
+                resolveComponentReference(entry, resolver, field.componentRefInfo.componentType);
+            }
         }
     }
 
@@ -610,8 +661,8 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
 
     const size_t count = std::min(sourceFields.fields.size(), targetFields.fields.size());
 
-    char* sourceBase = (char*)&source;
-    char* targetBase = (char*)&target;
+    const char* sourceBase = reinterpret_cast<const char*>(&source);
+    char* targetBase = reinterpret_cast<char*>(&target);
 
     for (size_t i = 0; i < count; ++i)
     {
@@ -623,34 +674,34 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
             continue;
         }
 
-        void* sourceData = sourceBase + sourceField.offset;
+        const void* sourceData = sourceBase + sourceField.offset;
         void* targetData = targetBase + targetField.offset;
 
         switch (sourceField.type)
         {
         case ScriptFieldType::Float:
-            *reinterpret_cast<float*>(targetData) = *reinterpret_cast<float*>(sourceData);
+            *reinterpret_cast<float*>(targetData) = *reinterpret_cast<const float*>(sourceData);
             break;
 
         case ScriptFieldType::Int:
-            *reinterpret_cast<int*>(targetData) = *reinterpret_cast<int*>(sourceData);
+            *reinterpret_cast<int*>(targetData) = *reinterpret_cast<const int*>(sourceData);
             break;
 
         case ScriptFieldType::Bool:
-            *reinterpret_cast<bool*>(targetData) = *reinterpret_cast<bool*>(sourceData);
+            *reinterpret_cast<bool*>(targetData) = *reinterpret_cast<const bool*>(sourceData);
             break;
 
         case ScriptFieldType::EnumInt:
-            *reinterpret_cast<int*>(targetData) = *reinterpret_cast<int*>(sourceData);
+            *reinterpret_cast<int*>(targetData) = *reinterpret_cast<const int*>(sourceData);
             break;
 
         case ScriptFieldType::Vec3:
-            *reinterpret_cast<Vector3*>(targetData) = *reinterpret_cast<Vector3*>(sourceData);
+            *reinterpret_cast<Vector3*>(targetData) = *reinterpret_cast<const Vector3*>(sourceData);
             break;
 
         case ScriptFieldType::ComponentRef:
         {
-            ScriptComponentRef<Component>* sourceRef = reinterpret_cast<ScriptComponentRef<Component>*>(sourceData);
+            const ScriptComponentRef<Component>* sourceRef = reinterpret_cast<const ScriptComponentRef<Component>*>(sourceData);
             ScriptComponentRef<Component>* targetRef = reinterpret_cast<ScriptComponentRef<Component>*>(targetData);
 
             targetRef->uid = sourceRef->uid;
@@ -658,8 +709,26 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
             break;
         }
 
+        case ScriptFieldType::ComponentRefList:
+        {
+            const ScriptComponentRefList* sourceList = reinterpret_cast<const ScriptComponentRefList*>(sourceData);
+            ScriptComponentRefList* targetList = reinterpret_cast<ScriptComponentRefList*>(targetData);
+
+            targetList->clear();
+            targetList->reserve(sourceList->size());
+
+            for (const ScriptComponentRef<Component>& sourceEntry : *sourceList)
+            {
+                ScriptComponentRef<Component> targetEntry;
+                targetEntry.uid = sourceEntry.uid;
+                targetEntry.component = nullptr;
+                targetList->push_back(targetEntry);
+            }
+            break;
+        }
+
         case ScriptFieldType::String:
-            *reinterpret_cast<std::string*>(targetData) = *reinterpret_cast<std::string*>(sourceData);
+            *reinterpret_cast<std::string*>(targetData) = *reinterpret_cast<const std::string*>(sourceData);
             break;
         }
     }
