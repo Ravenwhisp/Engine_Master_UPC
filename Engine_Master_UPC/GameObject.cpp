@@ -49,6 +49,7 @@ std::unique_ptr<GameObject> GameObject::clone() const
     newGameObject->SetStatic(GetStatic());
     newGameObject->SetLayer(GetLayer());
     newGameObject->SetTag(GetTag());
+    newGameObject->m_prefabInfo = m_prefabInfo;
 
     newGameObject->GetTransform()->setRoot(nullptr);
     newGameObject->cleanUp();
@@ -102,12 +103,12 @@ bool GameObject::AddComponent(ComponentType componentType)
     {
         auto& added = target->GetPrefabInfo().m_overrides.m_addedComponentTypes;
         const int ct = static_cast<int>(componentType);
-        if (std::find(added.begin(), added.end(), ct) == added.end())
+        if (std::find(added.begin(), added.end(), componentType) == added.end())
         {
-            added.push_back(ct);
+            added.push_back(componentType);
         }
         auto& removed = target->GetPrefabInfo().m_overrides.m_removedComponentTypes;
-        removed.erase(std::remove(removed.begin(), removed.end(), ct), removed.end());
+        removed.erase(std::remove(removed.begin(), removed.end(), componentType), removed.end());
     }
 
     return true;
@@ -167,13 +168,13 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
     {
         const int ct = static_cast<int>(removedType);
         auto& removed = target->GetPrefabInfo().m_overrides.m_removedComponentTypes;
-        if (std::find(removed.begin(), removed.end(), ct) == removed.end())
+        if (std::find(removed.begin(), removed.end(), removedType) == removed.end())
         {
-            removed.push_back(ct);
+            removed.push_back(removedType);
         }
         auto& added = target->GetPrefabInfo().m_overrides.m_addedComponentTypes;
-        added.erase(std::remove(added.begin(), added.end(), ct), added.end());
-        target->GetPrefabInfo().m_overrides.m_modifiedProperties.erase(ct);
+        added.erase(std::remove(added.begin(), added.end(), removedType), added.end());
+        target->GetPrefabInfo().m_overrides.m_modifiedProperties.erase(static_cast<int>(removedType));
     }
 
     return true;
@@ -577,11 +578,10 @@ void GameObject::drawUI()
                 GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
                 if (targetForOverride && targetForOverride->IsPrefabInstance())
                 {
-                    targetForOverride->GetPrefabInfo()
-                        .m_overrides.m_modifiedProperties[componentType].insert("properties");
+
+                    targetForOverride->GetPrefabInfo().m_overrides.m_modifiedProperties[componentType].insert(PrefabOverrideRecord::k_wholeComponentModified);
                 }
             }
-
 
             if (component->getType() != ComponentType::TRANSFORM)
             {

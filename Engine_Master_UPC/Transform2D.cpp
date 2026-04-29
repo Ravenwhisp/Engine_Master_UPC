@@ -3,6 +3,9 @@
 
 #include <imgui.h> 
 
+CEREAL_REGISTER_TYPE(Transform2D)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform2D)
+
 Transform2D::Transform2D(UID id, GameObject* owner)
     : Component(id, ComponentType::TRANSFORM2D, owner)
 {

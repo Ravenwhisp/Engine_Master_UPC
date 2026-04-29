@@ -37,8 +37,6 @@ private:
 
     void handleGameObjectDrop(const std::filesystem::path& targetDirectory);
 
-    PrefabUI::FileDialogBuffers buildFileDialogBuffers();
-
     std::filesystem::path m_currentDirectory;
     std::shared_ptr<FileEntry> m_selectedItem;
     FileDialogClipboard m_clipboard;

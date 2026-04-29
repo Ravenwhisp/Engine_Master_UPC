@@ -37,5 +37,3 @@ private:
 };
 
 
-CEREAL_REGISTER_TYPE(LightComponent)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, LightComponent)

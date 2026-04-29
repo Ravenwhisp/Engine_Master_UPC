@@ -55,5 +55,3 @@ public:
 #pragma endregion
 };
 
-CEREAL_REGISTER_TYPE(NavigationAgentComponent);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, NavigationAgentComponent)

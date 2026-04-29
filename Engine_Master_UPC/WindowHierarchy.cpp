@@ -84,7 +84,7 @@ void WindowHierarchy::drawSceneHeader()
 
 void WindowHierarchy::drawPrefabHeader(PrefabEditSession* session)
 {
-    PrefabUI::drawModeHeader(session->m_sourcePath.filename().string().c_str());
+    PrefabUI::drawModeHeader(session->m_rootObject->GetName().c_str());
 
     Scene* isolatedScene = session->m_isolatedScene;
 

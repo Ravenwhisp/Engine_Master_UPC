@@ -29,7 +29,9 @@ void CommandSaveGameObjectAsPrefab::run()
         savePath = m_targetDir / (m_go->GetName() + "_" + std::to_string(suffix++) + PREFAB_EXTENSION);
     }
 
-    if (!app->getModuleAssets()->savePrefab(m_go, savePath))
+    PrefabAsset prefab = PrefabAsset(GenerateUID(), std::unique_ptr<GameObject>(m_go));
+
+    if (!app->getModuleAssets()->save(prefab, savePath))
     {
         DEBUG_ERROR("[FileDialog] Failed to create prefab at '%s'.", savePath.string().c_str());
         return;

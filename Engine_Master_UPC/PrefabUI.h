@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include <filesystem>
 #include <string>
+#include "UID.h"
 
 class GameObject;
 class Scene;
@@ -12,6 +13,7 @@ class PrefabUI
     {
         std::filesystem::path m_sourcePath;
         std::string m_name;
+        UID                   m_uid = INVALID_UID;
     };
 public:
     static void drawModeHeader(const char* prefabName);
@@ -38,8 +40,4 @@ public:
     static void drawFileDialogItemContextMenu(const std::filesystem::path& sourcePath,
         bool& outShowVariantModal,
         bool& outRenamingPrefab);
-
-    static void drawFileDialogModals(bool& showVariantModal,
-        bool& showSavePrefabModal,
-        bool& renamingPrefab);
 };

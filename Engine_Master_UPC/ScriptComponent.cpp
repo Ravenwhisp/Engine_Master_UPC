@@ -13,6 +13,8 @@
 
 #include <cereal/archives/binary.hpp>
 
+CEREAL_REGISTER_TYPE(ScriptComponent)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, ScriptComponent)
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner): Component(id, ComponentType::SCRIPT, owner)
 {

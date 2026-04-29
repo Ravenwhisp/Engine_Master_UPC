@@ -77,5 +77,3 @@ private:
     bool m_hasStarted = false;
 };
 
-CEREAL_REGISTER_TYPE(ScriptComponent)
-

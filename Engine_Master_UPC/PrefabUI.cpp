@@ -15,8 +15,6 @@
 #include "PrefabEditSession.h"
 #include <FileIO.h>
 
-
-
 void PrefabUI::drawModeHeader(const char* prefabName)
 {
     ImVec2 topLeft = ImGui::GetCursorScreenPos();
@@ -361,11 +359,7 @@ void PrefabUI::markTransformOverride(GameObject* go)
     }
 }
 
-// ---------------------------------------------------------------------------
-// File-dialog context menu
-// sourcePath — the full path of the .prefab file being right-clicked.
-// buffers    — must be allocated by the caller with at least 512 bytes each.
-// ---------------------------------------------------------------------------
+
 void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& sourcePath,
     bool& outShowVariantModal,
     bool& outRenamingPrefab)
@@ -374,35 +368,49 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
 
     const std::string displayName = sourcePath.stem().string();
     const std::string pathStr = sourcePath.string();
-    const std::filesystem::path realPath = sourcePath.parent_path() / sourcePath.stem();
+
+    // Resolve the asset UID once — all asset operations go through this.
+    // File operations (delete, rename, variant) still use sourcePath directly.
+    const UID itemUID = app->getModuleAssets()->findUID(sourcePath);
+    const bool assetRegistered = isValidUID(itemUID);
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.35f, 1.f, 0.35f, 1.f));
     ImGui::Text("[P]  %s", displayName.c_str());
     ImGui::PopStyleColor();
     ImGui::Separator();
 
+    ImGui::BeginDisabled(!assetRegistered);
     if (ImGui::MenuItem("Add to Scene"))
     {
         Scene* scene = app->getModuleScene()->getScene();
         if (scene)
         {
-            GameObject* go = app->getModuleAssets()->spawnPrefab(realPath, scene);
-            if (go)
+            // UID-based spawn: no path arithmetic, no extension stripping.
+            auto prefab = app->getModuleAssets()->load<PrefabAsset>(makeRef(itemUID));
+            std::unique_ptr<GameObject> gameObject = prefab->spawnPrefab();
+            scene->addGameObject(std::move(gameObject));
+            if (gameObject)
             {
-                app->getModuleEditor()->setSelectedGameObject(go);
+                app->getModuleEditor()->setSelectedGameObject(gameObject.get());
             }
         }
     }
 
     if (ImGui::MenuItem("Edit Prefab..."))
     {
-        app->getModuleEditor()->enterPrefabEdit(realPath);
+        // UID-based enter: no path overload needed.
+        app->getModuleEditor()->enterPrefabEdit(itemUID);
     }
+    ImGui::EndDisabled();
 
     ImGui::Separator();
 
     GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
-    const bool  isLinked = selected && selected->IsPrefabInstance() && selected->GetPrefabInfo().m_sourcePath == sourcePath;
+    // isLinked: the selected instance points at the same registered asset.
+    // Replaces the removed PrefabInfo::m_sourcePath comparison.
+    const bool  isLinked = selected
+        && selected->IsPrefabInstance()
+        && selected->GetPrefabInfo().m_assetUID == itemUID;
     const bool  hasOverrides = isLinked && !selected->GetPrefabInfo().m_overrides.isEmpty();
 
     ImGui::BeginDisabled(!hasOverrides);
@@ -416,7 +424,6 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         prefab->revert(selected);
         app->getModuleEditor()->setSelectedGameObject(selected);
     }
-
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && !hasOverrides)
     {
@@ -428,18 +435,12 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     if (ImGui::MenuItem("Create Variant..."))
     {
         outShowVariantModal = true;
-        strncpy_s(buffers.variantSource, buffers.variantSourceSize, pathStr.c_str(), buffers.variantSourceSize - 1);
 
-        // Suggest a sibling file: same directory, stem + "_variant".
-        const std::string variantPath = (sourcePath.parent_path() / (displayName + "_variant.prefab")).string();
-        strncpy_s(buffers.variantDest, buffers.variantDestSize, variantPath.c_str(), buffers.variantDestSize - 1);
     }
 
     if (ImGui::MenuItem("Rename..."))
     {
         outRenamingPrefab = true;
-        strncpy_s(buffers.renameSource, buffers.renameSourceSize, pathStr.c_str(), buffers.renameSourceSize - 1);
-        strncpy_s(buffers.renameDest, buffers.renameDestSize, pathStr.c_str(), buffers.renameDestSize - 1);
     }
 
     ImGui::Separator();
@@ -447,7 +448,6 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
     if (ImGui::MenuItem("Delete Prefab File"))
     {
-        // Use the source path directly — no "Assets/Prefabs/" assumption.
         if (FileIO::exists(sourcePath))
         {
             FileIO::remove(sourcePath);
@@ -459,111 +459,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     ImGui::EndPopup();
 }
 
-void PrefabUI::drawFileDialogModals(bool& showVariantModal,
-    bool& showSavePrefabModal,
-    bool& renamingPrefab)
-{
-    const ImVec2 screenCenter = ImGui::GetMainViewport()->GetCenter();
 
-    if (showVariantModal) { ImGui::OpenPopup("##pfVariantModal"); showVariantModal = false; }
-    ImGui::SetNextWindowPos(screenCenter, ImGuiCond_Appearing, { 0.5f, 0.5f });
-    ImGui::SetNextWindowSize({ 420, 0 });
-    if (ImGui::BeginPopupModal("##pfVariantModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::Text("Create variant of:");
-        ImGui::TextDisabled("%s", buffers.variantSource);
-        ImGui::Separator();
-        ImGui::SetNextItemWidth(-1);
-        ImGui::InputText("Destination path##vname", buffers.variantDest, buffers.variantDestSize);
-        ImGui::Spacing();
-        if (ImGui::Button("Create", { 100, 0 }))
-        {
-            if (strlen(buffers.variantDest) > 0)
-            {
-                // Both buffers hold full paths.
-                app->getModuleAssets()->createVariant(
-                    std::filesystem::path(buffers.variantSource),
-                    std::filesystem::path(buffers.variantDest));
-                app->getModuleAssets()->refresh();
-            }
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", { 80, 0 }))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-
-    // ── Rename modal ─────────────────────────────────────────────────────────
-    if (renamingPrefab) { ImGui::OpenPopup("##pfRenameModal"); renamingPrefab = false; }
-    ImGui::SetNextWindowPos(screenCenter, ImGuiCond_Appearing, { 0.5f, 0.5f });
-    ImGui::SetNextWindowSize({ 420, 0 });
-    if (ImGui::BeginPopupModal("##pfRenameModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        ImGui::Text("Rename prefab:");
-        ImGui::TextDisabled("%s", buffers.renameSource);
-        ImGui::Separator();
-        ImGui::SetNextItemWidth(-1);
-        const bool enterPressed = ImGui::InputText("New path##rname", buffers.renameDest, buffers.renameDestSize, ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::Spacing();
-        if ((ImGui::Button("Rename", { 100, 0 }) || enterPressed)
-            && strlen(buffers.renameDest) > 0
-            && strcmp(buffers.renameSource, buffers.renameDest) != 0)
-        {
-            // Both buffers hold full paths — no folder is assumed.
-            if (FileIO::move(
-                std::filesystem::path(buffers.renameSource),
-                std::filesystem::path(buffers.renameDest)))
-            {
-                app->getModuleAssets()->refresh();
-            }
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", { 80, 0 }))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-
-    if (showSavePrefabModal)
-    {
-        ImGui::OpenPopup("##pfSaveModal"); showSavePrefabModal = false;
-    }
-
-    ImGui::SetNextWindowPos(screenCenter, ImGuiCond_Appearing, { 0.5f, 0.5f });
-    ImGui::SetNextWindowSize({ 420, 0 });
-
-    if (ImGui::BeginPopupModal("##pfSaveModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-    {
-        GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
-        ImGui::Text("Save \"%s\" as prefab:", selected ? selected->GetName().c_str() : "?");
-        ImGui::Separator();
-        ImGui::SetNextItemWidth(-1);
-        ImGui::TextDisabled("Full relative path, e.g. Assets/Prefabs/Hero.prefab");
-        const bool enterPressed = ImGui::InputText("##pfn", buffers.savePrefab, buffers.savePrefabSize, ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::Spacing();
-        if ((ImGui::Button("Save", { 100, 0 }) || enterPressed)
-            && strlen(buffers.savePrefab) > 0)
-        {
-            if (selected)
-            {
-                linkAndSavePrefab(selected, std::filesystem::path(buffers.savePrefab));
-                app->getModuleAssets()->refresh();
-            }
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", { 80, 0 }))
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
-}
 
 std::vector<PrefabUI::PrefabFileInfo> PrefabUI::listPrefabsInfo(const std::filesystem::path& searchRoot)
 {

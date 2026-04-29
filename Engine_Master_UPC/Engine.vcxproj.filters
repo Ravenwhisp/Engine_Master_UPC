@@ -1098,6 +1098,10 @@
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />
+    <ClInclude Include="PrefabInfo.h" />
+    <ClInclude Include="ComponentsCommon.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

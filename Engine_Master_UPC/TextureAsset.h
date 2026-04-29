@@ -54,6 +54,5 @@ public:
 #pragma endregion
 };
 
-
 CEREAL_REGISTER_TYPE(TextureAsset)
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, TextureAsset)

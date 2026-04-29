@@ -72,7 +72,6 @@ void PrefabSerializer::serialiseNodeInto(const GameObject* go, Value& out, Docum
     if (info.isInstance())
     {
         Value prefabLink(kObjectType);
-        prefabLink.AddMember("SourcePath", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
         prefabLink.AddMember("AssetUID", info.m_assetUID, alloc);
         out.AddMember("PrefabLink", prefabLink, alloc);
     }
@@ -175,8 +174,8 @@ void PrefabSerializer::buildDocumentHeader(Document& doc, const GameObject* go, 
     doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
 
     const PrefabInfo& info = go->GetPrefabInfo();
-    if (info.isInstance() && info.m_sourcePath != savePath)
-        doc.AddMember("VariantOf", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
+    if (info.isInstance())
+        doc.AddMember("VariantOf", info.m_assetUID, alloc);
 }
 
 std::string PrefabSerializer::buildPrefabJSON(const GameObject* go, const fs::path& savePath)
@@ -217,10 +216,10 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
     {
         const Value& pl = node["PrefabLink"];
         PrefabInfo& info = go->GetPrefabInfo();
-        if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
-            info.m_sourcePath = pl["SourcePath"].GetString();
         if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+        {
             info.m_assetUID = pl["AssetUID"].GetUint64();
+        }
     }
 
     deserialiseTransform(node, go);

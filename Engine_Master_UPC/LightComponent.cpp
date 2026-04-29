@@ -28,6 +28,9 @@ namespace
     }
 }
 
+CEREAL_REGISTER_TYPE(LightComponent)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, LightComponent)
+
 LightComponent::LightComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::LIGHT, owner)
 {

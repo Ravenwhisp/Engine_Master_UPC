@@ -70,5 +70,3 @@ private:
 #pragma endregion
 };
 
-CEREAL_REGISTER_TYPE(Transform2D)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform2D)

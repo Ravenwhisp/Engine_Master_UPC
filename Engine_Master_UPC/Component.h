@@ -19,12 +19,15 @@ public:
     friend class GameObject;
     friend class cereal::access;
 
+    Component(UID id, ComponentType type): m_uuid(id), m_type(type) {}
     Component(UID id, ComponentType type, GameObject* gameObject) : m_uuid(id), m_type(type), m_owner(gameObject) {}
     virtual ~Component() = default;
+
     virtual std::unique_ptr<Component> clone(GameObject* newOwner) const = 0;
 
     UID getID() const { return m_uuid; }
     ComponentType getType() const { return m_type; }
+    void setOwner(GameObject* owner) { m_owner = owner; }
     GameObject* getOwner() const { return m_owner; }
 	void setActive(bool active) { m_active = active; }
 	bool isActive() const { return m_active; }
@@ -58,11 +61,9 @@ public:
 protected:
     GameObject* m_owner;
 
-    const UID m_uuid;
+    UID m_uuid;
 
 private:
-    const ComponentType m_type;
+    ComponentType m_type;
 	bool m_active = true;
 };
-
-CEREAL_REGISTER_TYPE(Component)

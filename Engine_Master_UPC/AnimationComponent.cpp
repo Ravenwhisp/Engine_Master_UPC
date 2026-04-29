@@ -49,6 +49,9 @@ namespace
     }
 }
 
+CEREAL_REGISTER_TYPE(AnimationComponent);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, AnimationComponent)
+
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::ANIMATION, owner)
 {

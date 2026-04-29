@@ -23,7 +23,7 @@ void CommandInstantiatePrefab::run()
     if (!m_scene) return;
     UID prefabId = app->getModuleAssets()->findUID(m_source);
     auto prefab = app->getModuleAssets()->load<PrefabAsset>(makeRef(prefabId));
-    m_result = prefab->getGameObjectInstance();
+    m_result = prefab->spawnPrefab().get();
 
     if (!m_result) return;
 

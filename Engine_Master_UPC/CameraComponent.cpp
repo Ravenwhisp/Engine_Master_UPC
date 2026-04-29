@@ -8,6 +8,9 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+CEREAL_REGISTER_TYPE(CameraComponent);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, CameraComponent)
+
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
 	Transform* t = m_owner->GetTransform();

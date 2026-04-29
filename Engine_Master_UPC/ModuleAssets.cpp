@@ -389,13 +389,22 @@ void ModuleAssets::flushDialogRequests()
 
 bool ModuleAssets::applyPrefab(GameObject* go)
 {
-    PrefabAsset prefab = PrefabAsset(GenerateUID(), go);
-    if (!save(prefab)) 
+    const UID prefabUID = go->IsPrefabInstance() ? go->GetPrefabInfo().m_assetUID : GenerateUID();
+
+    // Clone the live object — the scene keeps its original pointer untouched.
+    auto snapshot = go->clone();
+    snapshot->GetPrefabInfo().m_overrides.clear(); // template stores no overrides
+
+    PrefabAsset prefab(prefabUID, std::move(snapshot));
+    if (!save(prefab))
     {
         return false;
     }
 
-    // Propagate the saved prefab to all live instances in the scene
+    // Clear overrides on the source object itself — it is now in sync.
+    go->GetPrefabInfo().m_overrides.clear();
+
+    // Propagate to all other live instances in the scene.
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene) return true;
 
@@ -403,8 +412,8 @@ bool ModuleAssets::applyPrefab(GameObject* go)
     {
         if (!instance) continue;
         if (!instance->GetPrefabInfo().isInstance()) continue;
-        if (instance->GetPrefabInfo().m_assetUID != prefab.getId()) continue;
-        if (instance == go) continue; 
+        if (instance->GetPrefabInfo().m_assetUID != prefabUID) continue;
+        if (instance == go) continue;
 
         prefab.revert(instance);
     }

@@ -306,7 +306,6 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 
     ImGui::Columns(1);
 
-    PrefabUI::drawFileDialogModals(m_showVariantModal, m_showSavePrefabModal, m_renamingPrefab);
 }
 
 void WindowFileDialog::drawInternal()

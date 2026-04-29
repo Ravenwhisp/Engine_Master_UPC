@@ -25,6 +25,7 @@ struct ModelData
 };
 
 
+
 class MeshRenderer : public Component
 {
 public:
@@ -133,5 +134,3 @@ private:
 #pragma endregion
 };
 
-CEREAL_REGISTER_TYPE(MeshRenderer)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, MeshRenderer)

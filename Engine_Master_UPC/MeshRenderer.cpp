@@ -75,6 +75,9 @@ namespace
     }
 }
 
+CEREAL_REGISTER_TYPE(MeshRenderer)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, MeshRenderer)
+
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
     std::unique_ptr<MeshRenderer> newMeshRenderer = std::make_unique<MeshRenderer>(m_uuid, newOwner);

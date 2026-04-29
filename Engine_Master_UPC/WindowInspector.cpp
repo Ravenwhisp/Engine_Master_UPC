@@ -35,7 +35,6 @@ void WindowInspector::drawInternal()
     const bool prefabMode = app->getModuleEditor()->isInPrefabEditMode();;
     if (prefabMode)
     {
-        PrefabUI::drawModeHeader(app->getModuleEditor()->getPrefabEditSourcePath().stem().string().c_str());
         PrefabUI::drawApplyRevertBar(ImGui::GetContentRegionAvail().x);
     }
 

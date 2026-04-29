@@ -43,9 +43,7 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.75f, 1.0f, 1.f));
     }
 
-    const char* rawLabel = (isEditRoot && session)
-        ? session->m_sourcePath.filename().string().c_str()
-        : gameObject->GetName().c_str();
+    const char* rawLabel = gameObject->GetName().c_str();
 
     const std::string nodeId = std::string(rawLabel) + "###" + std::to_string(gameObject->GetID());
     const bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);

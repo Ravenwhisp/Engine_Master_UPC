@@ -10,6 +10,9 @@
 
 using namespace DirectX::SimpleMath;
 
+CEREAL_REGISTER_TYPE(NavigationAgentComponent);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, NavigationAgentComponent)
+
 bool NavigationAgentComponent::init()
 {
 	m_running = m_autoStart;

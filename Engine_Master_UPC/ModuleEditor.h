@@ -9,6 +9,8 @@
 #include <vector>
 #include <filesystem>
 
+#include "UID.h"
+
 class ModuleGameView;
 class WindowSceneEditor;
 class WindowGame;

@@ -169,21 +169,23 @@ namespace GameObjectAPI
     ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
-        
-        GameObject* prefabInstance = app->getModuleAssets()->spawnPrefab(path, currentScene);
+        UID id = app->getModuleAssets()->findUID(std::filesystem::path(path));
+        auto prefab = app->getModuleAssets()->load<PrefabAsset>(id);
+        auto gameObject = prefab->spawnPrefab();
+        currentScene->addGameObject(std::move(gameObject));
 
-        if (!prefabInstance) return nullptr;
+        if (!gameObject) return nullptr;
 
-        Transform* instanceTransform = prefabInstance->GetTransform();
+        Transform* instanceTransform = gameObject->GetTransform();
         instanceTransform->setPosition(position);
         instanceTransform->setRotationEuler(rotationEuler);
 
         if (parentObject) 
         {
-            HierarchyUtils::reparent(currentScene, prefabInstance, parentObject);
+            HierarchyUtils::reparent(currentScene, gameObject.get(), parentObject);
         }
 
-        return prefabInstance;
+        return gameObject.get();
     }
 }
 

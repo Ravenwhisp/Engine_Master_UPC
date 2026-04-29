@@ -79,8 +79,21 @@ private:
 	{
 		ar(cereal::base_class<Component>(this), m_position, m_rotation, m_scale);
 	}
+
+	template<class Archive>
+	static void load_and_construct(
+		Archive& ar,
+		cereal::construct<Transform>& construct)
+	{
+		UID id;
+		ar(id);
+
+		construct(id, nullptr);
+
+		ar(construct->m_position,
+			construct->m_rotation,
+			construct->m_scale);
+	}
 #pragma endregion
 };
 
-CEREAL_REGISTER_TYPE(Transform)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform)

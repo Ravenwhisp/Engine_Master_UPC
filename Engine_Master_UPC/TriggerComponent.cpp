@@ -10,6 +10,9 @@
 
 #include <array>
 
+CEREAL_REGISTER_TYPE(TriggerComponent)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, TriggerComponent)
+
 TriggerComponent::TriggerComponent(UID id, GameObject* gameObject)
     : Component(id, ComponentType::TRIGGER, gameObject)
 {

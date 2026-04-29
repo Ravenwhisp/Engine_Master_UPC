@@ -4,7 +4,7 @@
 #include "Tag.h"
 #include "Layer.h"
 #include "ComponentType.h"
-#include "PrefabAsset.h"
+#include "PrefabInfo.h"
 
 #include <vector>
 #include <memory>
@@ -19,21 +19,6 @@ class Component;
 class ModelComponent;
 class Transform;
 class SceneSnapshot;
-
-struct PrefabInfo
-{
-	UID m_assetUID;
-
-	PrefabOverrideRecord m_overrides;
-
-	bool isInstance() const { return isValidUID(m_assetUID); }
-
-	void clear()
-	{
-		m_assetUID = {};
-		m_overrides.clear();
-	}
-};
 
 class GameObject 
 {
@@ -91,10 +76,32 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 
-	template <class Archive>
-	void serialize(Archive& ar)
+	template<class Archive>
+	static void load_and_construct(Archive& ar, cereal::construct<GameObject>& construct)
 	{
-		ar(m_uuid, m_name, m_active, m_isStatic, m_layer, m_tag, m_transform, m_components);
+		UID uuid;
+		ar(uuid);
+
+		construct(uuid);
+
+		ar(construct->m_name,
+			construct->m_active,
+			construct->m_isStatic,
+			construct->m_layer,
+			construct->m_tag,
+			construct->m_components);
+	}
+
+	template<class Archive>
+	void save(Archive& ar) const
+	{
+		ar(m_uuid,
+			m_name,
+			m_active,
+			m_isStatic,
+			m_layer,
+			m_tag,
+			m_components);
 	}
 #pragma endregion
 

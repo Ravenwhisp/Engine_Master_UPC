@@ -62,5 +62,3 @@ private:
 #pragma endregion
 };
 
-CEREAL_REGISTER_TYPE(CameraComponent);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, CameraComponent)
