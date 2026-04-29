@@ -427,6 +427,18 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         }
     }
 
+    std::unique_ptr<GameObject> rootOwned;
+    for (auto& up : tempObjects)
+    {
+        if (up.get() == root)
+        {
+            rootOwned = std::move(up);
+            break;
+        }
+    }
+
+    dst->setGameObject(std::move(rootOwned));
+
     m_currentFilePath = nullptr;
 }
 

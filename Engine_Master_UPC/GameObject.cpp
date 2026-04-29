@@ -20,7 +20,6 @@
 
 #include "Quadtree.h"
 
-
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
     auto transform = std::make_unique<Transform>(GenerateUID(), this);

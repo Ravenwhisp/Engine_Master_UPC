@@ -1,6 +1,7 @@
 #pragma once
 
 // Normal components
+#include "Transform.h"
 #include "MeshRenderer.h"
 #include "LightComponent.h"
 #include "CameraComponent.h"

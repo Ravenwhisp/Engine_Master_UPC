@@ -4,6 +4,7 @@
 #include "Tag.h"
 #include "Layer.h"
 #include "ComponentType.h"
+#include "Component.h"
 #include "PrefabInfo.h"
 
 #include <vector>
@@ -15,8 +16,6 @@
 #include <cereal/types/polymorphic.hpp> 
 #include <cereal/access.hpp>
 
-class Component;
-class ModelComponent;
 class Transform;
 class SceneSnapshot;
 
@@ -83,6 +82,8 @@ public:
 		ar(uuid);
 
 		construct(uuid);
+		construct->m_components.clear();
+		construct->m_transform = nullptr;
 
 		ar(construct->m_name,
 			construct->m_active,

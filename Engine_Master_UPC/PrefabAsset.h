@@ -31,7 +31,7 @@ public:
     bool isVariant() const { return isValidUID(m_variant); }
 
     //A function that given two GameObjects or PrefabAssets it returns the OverridedRecord
-
+    void setGameObject(std::unique_ptr<GameObject> gameObject);
 #pragma region Serialization
     template <class Archive>
     void serialize(Archive& ar)
@@ -44,3 +44,6 @@ private:
     std::unique_ptr<GameObject> m_gameObjectInstance;
     UID m_variant;
 };
+
+CEREAL_REGISTER_TYPE(PrefabAsset)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, PrefabAsset)

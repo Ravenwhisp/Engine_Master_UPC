@@ -3,14 +3,9 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-CEREAL_REGISTER_TYPE(PrefabAsset)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, PrefabAsset)
-
 PrefabAsset::PrefabAsset(UID id, std::unique_ptr<GameObject> gameObject) : Asset(id, AssetType::PREFAB)
 {
-    m_variant = gameObject->GetPrefabInfo().m_assetUID;
-    m_gameObjectInstance = std::move(gameObject);
-    m_gameObjectInstance->setPrefabInfo(m_uid);
+    setGameObject(std::move(gameObject));
 }
 
 void PrefabAsset::revert(GameObject* gameObject)
@@ -61,6 +56,13 @@ void PrefabAsset::revert(GameObject* gameObject)
     gameObject->GetPrefabInfo().m_assetUID = assetUID;
     gameObject->GetPrefabInfo().m_overrides.clear();
     gameObject->GetTransform()->setRoot(liveParent);
+}
+
+void PrefabAsset::setGameObject(std::unique_ptr<GameObject> gameObject)
+{
+    m_variant = gameObject->GetPrefabInfo().m_assetUID;
+    m_gameObjectInstance = std::move(gameObject);
+    m_gameObjectInstance->setPrefabInfo(m_uid);
 }
 
 std::unique_ptr<GameObject> PrefabAsset::spawnPrefab()

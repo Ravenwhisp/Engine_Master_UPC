@@ -85,15 +85,18 @@ private:
 		Archive& ar,
 		cereal::construct<Transform>& construct)
 	{
-		UID id;
-		ar(id);
+		UID           id;
+		ComponentType type;
+		bool          active;
+		ar(id, type, active);
 
 		construct(id, nullptr);
+		construct->setActive(active);
 
-		ar(construct->m_position,
-			construct->m_rotation,
-			construct->m_scale);
+		ar(construct->m_position,construct->m_rotation,construct->m_scale);
 	}
 #pragma endregion
 };
 
+CEREAL_REGISTER_TYPE(Transform)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform)

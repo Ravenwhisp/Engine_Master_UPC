@@ -7,6 +7,8 @@
 #include <cereal/types/polymorphic.hpp> 
 #include <cereal/access.hpp>
 
+#include <rapidjson/document.h>
+
 class Transform;
 class GameObject;
 

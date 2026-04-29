@@ -7,8 +7,7 @@
 
 #include <cereal/types/polymorphic.hpp>
 
-CEREAL_REGISTER_TYPE(Transform)
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, Transform)
+
 
 Transform::Transform(UID id, GameObject* gameObject) :
     Component(id, ComponentType::TRANSFORM, gameObject),

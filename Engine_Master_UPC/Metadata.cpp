@@ -67,7 +67,7 @@ bool Metadata::fromJson(const rapidjson::Value& root)
             if (!entry.HasMember("type") || !entry["type"].IsNumber())  continue;
 
             DependencyRecord rec;
-            rec.localId = entry["uid"].GetInt64();
+            rec.localId = entry["uid"].GetUint64();
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
             m_dependencies.push_back(std::move(rec));
         }
