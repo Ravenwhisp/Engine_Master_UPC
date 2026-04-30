@@ -439,6 +439,21 @@
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Int.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Bool.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Vec3.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_String.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />

@@ -35,19 +35,19 @@
     { DisplayName, ScriptFieldType::Float, offsetof(ThisScript, MemberName), getFloatFieldHandler(), { Min, Max, Speed } }
 
 #define SERIALIZED_INT(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::Int, offsetof(ThisScript, MemberName), nullptr }
+    { DisplayName, ScriptFieldType::Int, offsetof(ThisScript, MemberName), getIntFieldHandler() }
 
 #define SERIALIZED_BOOL(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::Bool, offsetof(ThisScript, MemberName), nullptr }
+    { DisplayName, ScriptFieldType::Bool, offsetof(ThisScript, MemberName), getBoolFieldHandler() }
 
 #define SERIALIZED_VEC3(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::Vec3, offsetof(ThisScript, MemberName), nullptr }
+    { DisplayName, ScriptFieldType::Vec3, offsetof(ThisScript, MemberName), getVec3FieldHandler() }
 
 #define SERIALIZED_STRING(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::String, offsetof(ThisScript, MemberName), nullptr }
+    { DisplayName, ScriptFieldType::String, offsetof(ThisScript, MemberName), getStringFieldHandler() }
 
 #define SERIALIZED_ENUM_INT(MemberName, DisplayName, NamesArray, Count) \
-    { DisplayName, ScriptFieldType::EnumInt, offsetof(ThisScript, MemberName), nullptr, {}, { NamesArray, Count } }
+    { DisplayName, ScriptFieldType::EnumInt, offsetof(ThisScript, MemberName), getEnumIntFieldHandler(), {}, { NamesArray, Count } }
 
 #define SERIALIZED_COMPONENT_REF(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), getComponentRefFieldHandler(), {}, {}, { ComponentTypeValue } }
