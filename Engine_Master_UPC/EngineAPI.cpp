@@ -20,6 +20,7 @@
 #include "Script.h"
 #include "AnimationComponent.h"
 #include "UISlider.h"
+#include "Transform2D.h"
 
 #include "CameraComponent.h"
 
@@ -33,6 +34,86 @@
 void registerScript(const char* scriptName, ScriptCreator creator)
 {
     ScriptFactory::registerScript(scriptName, creator);
+}
+
+namespace MathAPI
+{
+    float lerp(float a, float b, float t)
+    {
+        return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
+    }
+    Vector3 lerp(const Vector3& a, const Vector3& b, float t)
+    {
+        return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
+    }
+    Vector2 lerp(const Vector2& a, const Vector2& b, float t)
+    {
+        return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
+    }
+    float smoothStep(float edge0, float edge1, float x)
+    {
+        x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        return x * x * (3 - 2 * x);
+    }
+
+    float evaluateEasing(EasingType type, float t)
+    {
+        switch (type)
+        {
+        case EasingType::EaseInQuad:
+            return t * t;
+        case EasingType::EaseOutQuad:
+            return t * (2 - t);
+        case EasingType::EaseInOutQuad:
+            return t < 0.5 ? 2 * t * t : 1 - pow(-2 * t + 2, 2) / 2;
+        case EasingType::EaseInCubic:
+            return t * t * t;
+        case EasingType::EaseOutCubic:
+            return 1 - pow(1 - t, 3);
+        case EasingType::EaseInOutCubic:
+            return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
+        case EasingType::EaseInQuart:
+            return t * t * t * t;
+        case EasingType::EaseOutQuart:
+            return 1 - pow(1 - t, 4);
+        case EasingType::EaseInOutQuart:
+            return t < 0.5 ? 8 * t * t * t * t : 1 - pow(-2 * t + 2, 4) / 2;
+        case EasingType::EaseInQuint:
+            return t * t * t * t * t;
+        case EasingType::EaseOutQuint:
+            return 1 - pow(1 - t, 5);
+        case EasingType::EaseInOutQuint:
+            return t < 0.5 ? 16 * t * t * t * t * t : 1 - pow(-2 * t + 2, 5) / 2;
+        case EasingType::EaseInSine:
+            return 1 - cos((t * PI) / 2);
+        case EasingType::EaseOutSine:
+            return sin((t * PI) / 2);
+        case EasingType::EaseInOutSine:
+            return -(cos(PI * t) - 1) / 2;
+        case EasingType::EaseInExpo:
+            return t == 0 ? 0 : pow(2, 10 * t - 10);
+        case EasingType::EaseOutExpo:
+            return t == 1 ? 1 : 1 - pow(2, -10 * t);
+        case EasingType::EaseInOutExpo:
+            return t == 0
+                ? 0
+                : t == 1
+                ? 1
+                : t < 0.5
+                ? pow(2, 20 * t - 10) / 2
+                : (2 - pow(2, -20 * t + 10)) / 2;
+		case EasingType::EaseInCirc:
+            return 1 - sqrt(1 - pow(t, 2));
+        case EasingType::EaseOutCirc:
+            return sqrt(1 - pow(t - 1, 2));
+        case EasingType::EaseInOutCirc:
+            return t < 0.5
+                ? (1 - sqrt(1 - pow(2 * t, 2))) / 2
+                : (sqrt(1 - pow(-2 * t + 2, 2)) + 1) / 2;
+        default:
+            return t;
+        }
+	}
 }
 
 namespace GameObjectAPI
@@ -1701,6 +1782,42 @@ namespace NavigationAPI
         }
 
         return false;
+    }
+}
+
+namespace Transform2DAPI
+{
+    Vector2 getPosition(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+		return transform->getPosition();
+    }
+    void setPosition(Transform2D* transform, const Vector2& newPosition)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setPosition(newPosition);
+    }
+    Vector2 getScale(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(1.0f, 1.0f);
+        }
+        return transform->getScale();
+	}
+    void setScale(Transform2D* transform, const Vector2& newScale)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setScale(newScale);
     }
 }
 
