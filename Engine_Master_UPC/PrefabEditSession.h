@@ -17,7 +17,6 @@ struct PrefabEditSession
     void clear()
     {
         m_active = false;
-        m_editingInMainScene = false;
         m_sourcePath.clear();
         m_rootObject = nullptr;
         m_isolatedScene = nullptr;

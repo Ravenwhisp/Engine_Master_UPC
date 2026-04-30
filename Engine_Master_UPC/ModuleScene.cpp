@@ -10,6 +10,7 @@
 #include "Quadtree.h"
 #include "SceneSerializer.h"
 #include "SceneSnapshot.h"
+#include "ModuleAssets.h"
 
 #include "GameObject.h"
 #include "MeshRenderer.h"
