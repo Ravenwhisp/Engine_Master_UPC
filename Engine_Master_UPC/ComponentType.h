@@ -19,7 +19,8 @@
     X(NAVMESH_WALK)         \
     X(ANIMATION)            \
     X(UISLIDER)             \
-    X(TRIGGER)
+    X(TRIGGER)              \
+    X(PARTICLE_SYSTEM)
 
 enum class ComponentType
 {
