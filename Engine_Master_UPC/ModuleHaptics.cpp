@@ -97,8 +97,7 @@ bool ModuleHaptics::init()
 
 void ModuleHaptics::update()
 {
-    const bool shouldRumble = (app->getCurrentEngineState() == ENGINE_STATE::PLAYING
-        && !app->isPaused());
+    const bool shouldRumble = (app->getCurrentEngineState() == ENGINE_STATE::PLAYING && !app->isPaused());
 
     const float dt = app->getModuleTime()->unscaledDeltaTime();
 
@@ -164,17 +163,12 @@ uint32_t ModuleHaptics::submitAnonymous(const HapticEffectDefinition& def, float
 
     if (static_cast<int>(ps.instances.size()) >= MAX_INSTANCES)
     {
-        auto lowest = std::min_element(
-            ps.instances.begin(), ps.instances.end(),
-            [](const HapticInstance& a, const HapticInstance& b)
-            {
-                return static_cast<uint8_t>(a.def->priority)
-                    < static_cast<uint8_t>(b.def->priority);
-            });
+        auto lowest = std::min_element(ps.instances.begin(), ps.instances.end(), [](const HapticInstance& a, const HapticInstance& b)
+        {
+                return static_cast<uint8_t>(a.def->priority) < static_cast<uint8_t>(b.def->priority);
+        });
 
-        if (lowest != ps.instances.end()
-            && static_cast<uint8_t>(lowest->def->priority)
-            < static_cast<uint8_t>(def.priority))
+        if (lowest != ps.instances.end() && static_cast<uint8_t>(lowest->def->priority) < static_cast<uint8_t>(def.priority))
         {
             lowest->alive = false;
         }
@@ -223,13 +217,10 @@ uint32_t ModuleHaptics::submitInternal(const HapticEffectDefinition* def,
             ps.instances.begin(), ps.instances.end(),
             [](const HapticInstance& a, const HapticInstance& b)
             {
-                return static_cast<uint8_t>(a.def->priority)
-                    < static_cast<uint8_t>(b.def->priority);
+                return static_cast<uint8_t>(a.def->priority) < static_cast<uint8_t>(b.def->priority);
             });
 
-        if (lowest != ps.instances.end()
-            && static_cast<uint8_t>(lowest->def->priority)
-            < static_cast<uint8_t>(def->priority))
+        if (lowest != ps.instances.end() && static_cast<uint8_t>(lowest->def->priority) < static_cast<uint8_t>(def->priority))
         {
             lowest->alive = false;
         }
@@ -411,19 +402,12 @@ void ModuleHaptics::logActiveEffects(int player) const
 
     const PlayerState& ps = m_players[player];
 
-    DEBUG_LOG("[ModuleHaptics] Player %d — %zu active instance(s):",
-        player, ps.instances.size());
+    DEBUG_LOG("[ModuleHaptics] Player %d — %zu active instance(s):", player, ps.instances.size());
 
     for (const HapticInstance& inst : ps.instances)
     {
         if (!inst.alive) continue;
-        DEBUG_LOG("  handle=%u  id='%s'  elapsed=%.3fs / %.3fs  scale=%.2f  priority=%d",
-            inst.handle,
-            inst.def->id.c_str(),
-            inst.elapsed,
-            inst.def->durationSeconds,
-            inst.scale,
-            static_cast<int>(inst.def->priority));
+        DEBUG_LOG("  handle=%u  id='%s'  elapsed=%.3fs / %.3fs  scale=%.2f  priority=%d", inst.handle, inst.def->id.c_str(), inst.elapsed, inst.def->durationSeconds, inst.scale, static_cast<int>(inst.def->priority));
     }
 
     DEBUG_LOG("  mixed: L=%.2f  R=%.2f  LT=%.2f  RT=%.2f",
@@ -440,8 +424,7 @@ void ModuleHaptics::logConnectedControllers() const
     for (int i = 0; i < MAX_PLAYERS; ++i)
     {
         const bool connected = input->isGamePadConnected(i);
-        DEBUG_LOG("[ModuleHaptics] Player %d controller: %s",
-            i, connected ? "CONNECTED" : "not connected");
+        DEBUG_LOG("[ModuleHaptics] Player %d controller: %s", i, connected ? "CONNECTED" : "not connected");
     }
 #endif
 }
