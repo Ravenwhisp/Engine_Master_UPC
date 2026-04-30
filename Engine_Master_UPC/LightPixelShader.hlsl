@@ -7,7 +7,10 @@ TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
 
-SamplerState linearSample : register(s0);
+SamplerState linearWrapSample : register(s0);
+SamplerState pointWrapSample : register(s1);
+SamplerState linearClampSample : register(s2);
+SamplerState pointClampSample : register(s3);
 
 static const float PI = 3.14159265f;
 static const float EPS = 1e-5f;
@@ -246,7 +249,7 @@ float3 LinearToSRGB(float3 color)
 
 float3 getDiffuseAmbientLight(in float3 normal, in float3 baseColour)
 {
-    float3 irradiance = irradianceTexture.SampleLevel(linearSample, normal, 0).rgb;
+    float3 irradiance = irradianceTexture.SampleLevel(linearWrapSample, normal, 0).rgb;
 
     return baseColour * irradiance;
 }
@@ -255,10 +258,10 @@ float3 getSpecularAmbientLight(in float3 R, float NdotV, float roughness, in uin
 {
 
     // Sample prefiltered environment map at appropriate mip level
-    float3 radiance = environmentTexture.SampleLevel(linearSample, R, roughness * (numLevels - 1)).rgb;
+    float3 radiance = environmentTexture.SampleLevel(linearWrapSample, R, roughness * (numLevels - 1)).rgb;
 
     // Look up BRDF scale and bias terms from LUT
-    float2 fab = brdfTexture.Sample(linearSample, float2(NdotV, roughness)).rg;
+    float2 fab = brdfTexture.Sample(linearWrapSample, float2(NdotV, roughness)).rg;
 
     // Combine F0 with BRDF terms and modulate by environment radiance
     return radiance * (F0 * fab.x + fab.y);
@@ -280,10 +283,10 @@ float computeLod(float pdf, int numSamples, int width)
 void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm) {
 
     // Sample prefiltered environment map at appropriate mip level
-    float3 radiance = environmentTexture.SampleLevel(linearSample, R, roughness * (numLevels - 1)).rgb;
+    float3 radiance = environmentTexture.SampleLevel(linearWrapSample, R, roughness * (numLevels - 1)).rgb;
     
     // Look up BRDF scale and bias terms from LUT
-    float2 fab = brdfTexture.Sample(linearSample, float2(NdotV, roughness)).rg;
+    float2 fab = brdfTexture.Sample(linearClampSample, float2(NdotV, roughness)).rg;
     
      // F0 fresnel term removed
      firstTerm = radiance * fab.x;
@@ -314,9 +317,9 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
 {
     float minRoughness = 0.04;
     
-    float4 texSample = baseColorTex.Sample(linearSample, coord);
-    //float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearSample, coord).gb;
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearSample, coord).ra;
+    float4 texSample = baseColorTex.Sample(linearWrapSample, coord);
+    //float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).gb;
+    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).ra;
 
     if (hasBaseColorTex != 0 && texSample.a < 0.5f) //The 0.5 is temporary while transparency is not added
     {
