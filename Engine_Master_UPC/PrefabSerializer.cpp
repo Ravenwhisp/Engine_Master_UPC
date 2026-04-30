@@ -232,5 +232,10 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
             deserialiseNode(node["Children"][i], scene, go);
     }
 
+    if (!parent)
+    {
+        go->init();
+    }
+
     return go;
 }
