@@ -12,6 +12,7 @@ public:
 
     void Start()  override;
     void Update() override;
+	void registerTestEffects();
 
     ScriptFieldList getExposedFields() const override;
 

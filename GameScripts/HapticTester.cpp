@@ -28,6 +28,8 @@ void HapticTester::Start()
     Debug::log("  R Shoulder - cancelEffect(activeHandle)");
     Debug::log("  L Trigger  - cancelAll");
     Debug::log("  R Trigger  - isPlaying");
+
+    registerTestEffects();
 }
 
 void HapticTester::Update()
@@ -64,5 +66,22 @@ void HapticTester::Update()
             HapticAPI::isPlaying(p) ? "true" : "false");
     }
 }
+
+void HapticTester::registerTestEffects()
+{
+    HapticEffectDefinition footsteps;
+    footsteps.id = "Footsteps";
+    footsteps.durationSeconds = 0.06f;
+    footsteps.attackSeconds = 0.005f;
+    footsteps.curve = HapticCurve::Punch;
+    footsteps.priority = HapticPriority::Low;
+    footsteps.peak.leftMotor = 0.25f;
+    footsteps.peak.rightMotor = 0.1f;
+
+    HapticAPI::registerEffect(footsteps);
+    HapticAPI::saveToJSON("Assets/Haptics/game_effects.json");
+
+}
+
 
 IMPLEMENT_SCRIPT(HapticTester)
