@@ -7,7 +7,7 @@
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
-#include "ModuleHaptics.h"
+#include "ModuleAssets.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -27,7 +27,6 @@
 #include "PlayerBinding.h"
 
 #include "HierarchyUtils.h"
-#include "PrefabManager.h"
 
 #include <DetourNavMeshQuery.h>
 
@@ -171,7 +170,7 @@ namespace GameObjectAPI
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = PrefabManager::instantiatePrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->spawnPrefab(path, currentScene);
 
         if (!prefabInstance) return nullptr;
 
@@ -1813,161 +1812,5 @@ namespace DebugDrawAPI
     void drawXZSquareGrid(float mins, float maxs, float y, float step, const Vector3& color, int durationMillis, bool depthEnabled)
     {
         dd::xzSquareGrid(mins, maxs, y, step, ddConvert(color), durationMillis, depthEnabled);
-    }
-}
-
-namespace HapticAPI
-{
-    uint32_t playEffect(const char* effectId, int player)
-    {
-        if (!effectId || !app)
-        {
-            return 0;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return 0;
-        }
-
-        return haptics->playEffect(effectId, player);
-    }
-
-    uint32_t playAtScale(const char* effectId, float scale, int player)
-    {
-        if (!effectId || !app)
-        {
-            return 0;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return 0;
-        }
-
-        return haptics->playAtScale(effectId, scale, player);
-    }
-
-    void stopEffect(uint32_t handle, int player)
-    {
-        if (!app || handle == 0)
-        {
-            return;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return;
-        }
-
-        haptics->cancelEffect(handle, player);
-    }
-
-    void stopAll(int player)
-    {
-        if (!app)
-        {
-            return;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return;
-        }
-
-        haptics->cancelAll(player);
-    }
-
-    bool isPlaying(int player)
-    {
-        if (!app)
-        {
-            return false;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return false;
-        }
-
-        return haptics->isPlaying(player);
-    }
-
-    uint32_t submitImpact(float intensity, float duration, int player)
-    {
-        if (!app)
-        {
-            return 0;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return 0;
-        }
-
-        return haptics->submitAnonymous(HapticEffectDefinition::makeImpact(intensity, duration), 1.0f, player);
-    }
-
-    uint32_t submitRumble(float left, float right, float duration, int player)
-    {
-        if (!app)
-        {
-            return 0;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return 0;
-        }
-
-        return haptics->submitAnonymous(HapticEffectDefinition::makeContinuous(left, right, duration), 1.0f, player);
-    }
-
-    uint32_t submitExplosion(float intensity, float duration, int player)
-    {
-        if (!app)
-        {
-            return 0;
-        }
-
-        ModuleHaptics* haptics = app->getModuleHaptics();
-        if (!haptics)
-        {
-            return 0;
-        }
-
-        return haptics->submitAnonymous(HapticEffectDefinition::makeExplosion(intensity, duration), 1.0f, player);
-    }
-
-    void cancelEffect(uint32_t handle, int player)
-    {
-        stopEffect(handle, player);
-    }
-
-    void cancelAll(int player)
-    {
-        stopAll(player);
-    }
-
-    void registerEffect(const HapticEffectDefinition& def)
-    {
-        HapticEffectLibrary::get().registerEffect(def);
-    }
-
-    bool saveToJSON(const char* path)
-    {
-        return HapticEffectLibrary::get().saveToJSON(path);
-    }
-
-    const HapticEffectDefinition* findEffect(const char* id)
-    {
-        return HapticEffectLibrary::get().findEffect(id);
     }
 }
