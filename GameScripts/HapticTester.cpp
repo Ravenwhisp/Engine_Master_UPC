@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "HapticTester.h"
-//#include "HapticEffectLibrary.h"
 
 IMPLEMENT_SCRIPT_FIELDS(HapticTester,
     SERIALIZED_INT(m_playerIndex, "Player Index"),
@@ -9,20 +8,20 @@ IMPLEMENT_SCRIPT_FIELDS(HapticTester,
 
     HapticTester::HapticTester(GameObject* owner) : Script(owner) {}
 
-//std::vector<HapticEffectDefinition> HapticTester::defineEffects()
-//{
-//    return {};
-//}
+std::vector<HapticEffectDefinition> HapticTester::defineEffects()
+{
+    return {};
+}
 
 void HapticTester::Start()
 {
     m_activeHandle = 0;
 
-    /*for (const HapticEffectDefinition& def : defineEffects())
+    for (const HapticEffectDefinition& def : defineEffects())
     {
-        HapticEffectLibrary::get().registerEffect(def);
+        HapticAPI::registerEffect(def);    
         Debug::log("[HapticTester] Registered effect '%s'.", def.id.c_str());
-    }*/
+    }
 
     Debug::log("[HapticTester] Ready on player %d.", m_playerIndex);
     Debug::log("  A - playEffect('%s')", m_namedEffectId.c_str());

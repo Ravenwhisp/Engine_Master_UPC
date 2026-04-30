@@ -253,4 +253,7 @@ namespace HapticAPI
     ENGINE_API uint32_t submitExplosion(float intensity, float duration, int player = 0);
     ENGINE_API void cancelEffect(uint32_t handle, int player = 0);
     ENGINE_API void cancelAll(int player = 0);
+    ENGINE_API void registerEffect(const HapticEffectDefinition& def);
+    ENGINE_API bool saveToJSON(const char* path);
+    ENGINE_API const HapticEffectDefinition* findEffect(const char* id);
 }
