@@ -1955,4 +1955,19 @@ namespace HapticAPI
     {
         stopAll(player);
     }
+
+    void registerEffect(const HapticEffectDefinition& def)
+    {
+        HapticEffectLibrary::get().registerEffect(def);
+    }
+
+    bool saveToJSON(const char* path)
+    {
+        return HapticEffectLibrary::get().saveToJSON(path);
+    }
+
+    const HapticEffectDefinition* findEffect(const char* id)
+    {
+        return HapticEffectLibrary::get().findEffect(id);
+    }
 }
