@@ -125,6 +125,13 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
         void* data = base + field.offset;
+
+        if (field.handler != nullptr)
+        {
+            field.handler->drawUi(field, data, script, *this);
+            continue;
+        }
+
         bool changed = false;
 
         switch (field.type)
@@ -443,31 +450,37 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
-        void* data = base + field.offset;
+        const void* data = base + field.offset;
+
+        if (field.handler != nullptr)
+        {
+            field.handler->serialize(field, data, outFieldsJson, domTree);
+            continue;
+        }
 
         rapidjson::Value key(field.name, domTree.GetAllocator());
 
         switch (field.type)
         {
         case ScriptFieldType::Float:
-            outFieldsJson.AddMember(key, *reinterpret_cast<float*>(data), domTree.GetAllocator());
+            outFieldsJson.AddMember(key, *reinterpret_cast<const float*>(data), domTree.GetAllocator());
             break;
 
         case ScriptFieldType::Int:
-            outFieldsJson.AddMember(key, *reinterpret_cast<int*>(data), domTree.GetAllocator());
+            outFieldsJson.AddMember(key, *reinterpret_cast<const int*>(data), domTree.GetAllocator());
             break;
 
         case ScriptFieldType::Bool:
-            outFieldsJson.AddMember(key, *reinterpret_cast<bool*>(data), domTree.GetAllocator());
+            outFieldsJson.AddMember(key, *reinterpret_cast<const bool*>(data), domTree.GetAllocator());
             break;
 
         case ScriptFieldType::EnumInt:
-            outFieldsJson.AddMember(key, *reinterpret_cast<int*>(data), domTree.GetAllocator());
+            outFieldsJson.AddMember(key, *reinterpret_cast<const int*>(data), domTree.GetAllocator());
             break;
 
         case ScriptFieldType::Vec3:
         {
-            Vector3* value = reinterpret_cast<Vector3*>(data);
+            const Vector3* value = reinterpret_cast<const Vector3*>(data);
 
             rapidjson::Value array(rapidjson::kArrayType);
             array.PushBack(value->x, domTree.GetAllocator());
@@ -480,7 +493,7 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
         case ScriptFieldType::ComponentRef:
         {
-            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+            const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
 
             outFieldsJson.AddMember(key, static_cast<uint64_t>(componentReference->uid), domTree.GetAllocator());
             break;
@@ -488,7 +501,7 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
         case ScriptFieldType::ComponentRefList:
         {
-            ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+            const ScriptComponentRefList* componentList = reinterpret_cast<const ScriptComponentRefList*>(data);
 
             rapidjson::Value array(rapidjson::kArrayType);
 
@@ -503,7 +516,7 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
         case ScriptFieldType::String:
         {
-            std::string* value = reinterpret_cast<std::string*>(data);
+            const std::string* value = reinterpret_cast<const std::string*>(data);
             outFieldsJson.AddMember(key, rapidjson::Value(value->c_str(), domTree.GetAllocator()), domTree.GetAllocator());
             break;
         }
@@ -548,6 +561,12 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
 
         void* data = base + field.offset;
         const rapidjson::Value& valueJson = fieldsJson[field.name];
+
+        if (field.handler != nullptr)
+        {
+            field.handler->deserialize(field, data, valueJson);
+            continue;
+        }
 
         switch (field.type)
         {
@@ -666,6 +685,12 @@ void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
     {
         void* data = base + field.offset;
 
+        if (field.handler != nullptr)
+        {
+            field.handler->fixReferences(field, data, resolver);
+            continue;
+        }
+
         if (field.type == ScriptFieldType::ComponentRef)
         {
             ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
@@ -727,6 +752,12 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
 
         const void* sourceData = sourceBase + sourceField.offset;
         void* targetData = targetBase + targetField.offset;
+
+        if (sourceField.handler != nullptr)
+        {
+            sourceField.handler->clone(sourceField, sourceData, targetData);
+            continue;
+        }
 
         switch (sourceField.type)
         {

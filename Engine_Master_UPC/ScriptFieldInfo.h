@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "ComponentType.h"
+#include "ScriptFieldHandler.h"
 
 enum class ScriptFieldType
 {
@@ -38,6 +39,8 @@ struct ScriptFieldInfo
     const char* name;
     ScriptFieldType type;
     size_t offset;
+
+    const ScriptFieldHandler* handler = nullptr;
 
     ScriptFieldFloatInfo floatInfo{};
     ScriptFieldEnumInfo enumInfo{};

@@ -3,6 +3,7 @@
 #include <cstddef>
 
 #include "ScriptFieldInfo.h"
+#include "ScriptFieldHandlerRegistry.h"
 
 #define SCRIPT_FIELD_COUNT(FieldArrayName) \
     (sizeof(FieldArrayName) / sizeof(ScriptFieldInfo))
@@ -31,25 +32,25 @@
 // Field helper macros
 
 #define SERIALIZED_FLOAT(MemberName, DisplayName, Min, Max, Speed) \
-    { DisplayName, ScriptFieldType::Float, offsetof(ThisScript, MemberName), { Min, Max, Speed } }
+    { DisplayName, ScriptFieldType::Float, offsetof(ThisScript, MemberName), getFloatFieldHandler(), { Min, Max, Speed } }
 
 #define SERIALIZED_INT(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::Int, offsetof(ThisScript, MemberName) }
+    { DisplayName, ScriptFieldType::Int, offsetof(ThisScript, MemberName), nullptr }
 
 #define SERIALIZED_BOOL(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::Bool, offsetof(ThisScript, MemberName) }
+    { DisplayName, ScriptFieldType::Bool, offsetof(ThisScript, MemberName), nullptr }
 
 #define SERIALIZED_VEC3(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::Vec3, offsetof(ThisScript, MemberName) }
+    { DisplayName, ScriptFieldType::Vec3, offsetof(ThisScript, MemberName), nullptr }
 
 #define SERIALIZED_STRING(MemberName, DisplayName) \
-    { DisplayName, ScriptFieldType::String, offsetof(ThisScript, MemberName) }
+    { DisplayName, ScriptFieldType::String, offsetof(ThisScript, MemberName), nullptr }
 
 #define SERIALIZED_ENUM_INT(MemberName, DisplayName, NamesArray, Count) \
-    { DisplayName, ScriptFieldType::EnumInt, offsetof(ThisScript, MemberName), {}, { NamesArray, Count } }
+    { DisplayName, ScriptFieldType::EnumInt, offsetof(ThisScript, MemberName), nullptr, {}, { NamesArray, Count } }
 
 #define SERIALIZED_COMPONENT_REF(MemberName, DisplayName, ComponentTypeValue) \
-    { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), {}, {}, { ComponentTypeValue } }
+    { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), nullptr, {}, {}, { ComponentTypeValue } }
 
 #define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
-    { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), {}, {}, { ComponentTypeValue } }
+    { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), nullptr, {}, {}, { ComponentTypeValue } }
