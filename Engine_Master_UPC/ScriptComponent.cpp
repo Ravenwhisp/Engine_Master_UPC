@@ -258,10 +258,7 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
         const ScriptFieldInfo& sourceField = sourceFields.fields[i];
         const ScriptFieldInfo& targetField = targetFields.fields[i];
 
-        if (sourceField.type != targetField.type)
-        {
-            continue;
-        }
+        assert(sourceField.handler == targetField.handler);
 
         const void* sourceData = sourceBase + sourceField.offset;
         void* targetData = targetBase + targetField.offset;

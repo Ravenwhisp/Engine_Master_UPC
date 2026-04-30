@@ -4,7 +4,6 @@
 #include "ScriptFieldHandler.h"
 #include "ScriptFieldHandlerRegistry.h"
 #include "Script.h"
-#include "ScriptComponent.h"
 #include "ScriptComponentRef.h"
 #include "SceneReferenceResolver.h"
 
