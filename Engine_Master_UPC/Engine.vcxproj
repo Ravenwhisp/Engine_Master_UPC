@@ -655,6 +655,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_Float.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />

@@ -50,7 +50,7 @@
     { DisplayName, ScriptFieldType::EnumInt, offsetof(ThisScript, MemberName), nullptr, {}, { NamesArray, Count } }
 
 #define SERIALIZED_COMPONENT_REF(MemberName, DisplayName, ComponentTypeValue) \
-    { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), nullptr, {}, {}, { ComponentTypeValue } }
+    { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), getComponentRefFieldHandler(), {}, {}, { ComponentTypeValue } }
 
 #define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), nullptr, {}, {}, { ComponentTypeValue } }
