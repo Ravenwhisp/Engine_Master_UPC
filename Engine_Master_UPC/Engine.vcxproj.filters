@@ -436,6 +436,9 @@
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />

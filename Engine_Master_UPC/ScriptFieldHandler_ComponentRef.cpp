@@ -16,45 +16,6 @@
 
 namespace
 {
-    Component* findDroppedComponent(const ImGuiPayload* payload, ComponentType componentType)
-    {
-        GameObject* droppedObject = *(GameObject**)payload->Data;
-        GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
-
-        if (sceneObject == nullptr)
-        {
-            return nullptr;
-        }
-
-        if (componentType == ComponentType::TRANSFORM)
-        {
-            return sceneObject->GetTransform();
-        }
-
-        return sceneObject->GetComponent(componentType);
-    }
-
-    void resolveComponentReference(ScriptComponentRef<Component>& componentReference, const SceneReferenceResolver& resolver, ComponentType expectedType)
-    {
-        componentReference.component = nullptr;
-
-        if (componentReference.uid == 0)
-        {
-            return;
-        }
-
-        Component* resolved = resolver.getClonedComponent(componentReference.uid);
-        if (resolved == nullptr)
-        {
-            return;
-        }
-
-        if (resolved->getType() == expectedType)
-        {
-            componentReference.component = resolved;
-        }
-    }
-
     void drawComponentRefFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
         ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
@@ -77,13 +38,28 @@ namespace
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
             {
-                Component* candidate = findDroppedComponent(payload, field.componentRefInfo.componentType);
+                GameObject* droppedObject = *(GameObject**)payload->Data;
+                GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
 
-                if (candidate != nullptr)
+                if (sceneObject != nullptr)
                 {
-                    componentReference->uid = candidate->getID();
-                    componentReference->component = candidate;
-                    script.onFieldEdited(field);
+                    Component* candidate = nullptr;
+
+                    if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
+                    {
+                        candidate = sceneObject->GetTransform();
+                    }
+                    else
+                    {
+                        candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
+                    }
+
+                    if (candidate != nullptr)
+                    {
+                        componentReference->uid = candidate->getID();
+                        componentReference->component = candidate;
+                        script.onFieldEdited(field);
+                    }
                 }
             }
 
@@ -136,7 +112,23 @@ namespace
     {
         ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
-        resolveComponentReference(*componentReference, resolver, field.componentRefInfo.componentType);
+        componentReference->component = nullptr;
+
+        if (componentReference->uid == 0)
+        {
+            return;
+        }
+
+        Component* resolved = resolver.getClonedComponent(componentReference->uid);
+        if (resolved == nullptr)
+        {
+            return;
+        }
+
+        if (resolved->getType() == field.componentRefInfo.componentType)
+        {
+            componentReference->component = resolved;
+        }
     }
 
     const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &deserializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
