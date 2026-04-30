@@ -2,14 +2,7 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 #include "ScriptFactory.h"
-#include "ScriptComponentRef.h"
 #include "SceneReferenceResolver.h"
-
-#include "Application.h"
-#include "ModuleScene.h"
-#include "Scene.h"
-#include "GameObject.h"
-#include "Transform.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -209,28 +202,6 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
         field.handler->deserialize(field, data, valueJson);
     }
 }
-
-void resolveComponentReference(ScriptComponentRef<Component>& componentReference, const SceneReferenceResolver& resolver, ComponentType expectedType)
-{
-    componentReference.component = nullptr;
-
-    if (componentReference.uid == 0)
-    {
-        return;
-    }
-
-    Component* resolved = resolver.getClonedComponent(componentReference.uid);
-    if (resolved == nullptr)
-    {
-        return;
-    }
-
-    if (resolved->getType() == expectedType)
-    {
-        componentReference.component = resolved;
-    }
-}
-
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
 {
