@@ -11,7 +11,6 @@
 #include "GameObject.h"
 
 #include "PrefabUI.h"
-#include "PrefabEditSession.h"
 #include "ViewHierarchyDialog.h"
 
 #include <CommandAddGameObject.h>

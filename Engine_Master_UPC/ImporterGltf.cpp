@@ -21,7 +21,6 @@
 #include "MeshRenderer.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "PrefabManager.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -409,11 +408,10 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     }
 
     PrefabData& data = dst->getData();
-    data.m_json = PrefabManager::buildPrefabJSON(root, *m_currentFilePath);
+    data.m_json = PrefabSerializer::buildPrefabJSON(root, *m_currentFilePath);
     data.m_sourcePath = *m_currentFilePath;
     data.m_name = prefabName;
     data.m_assetUID = dst->m_uid;
-    data.m_prefabUID = root->GetID();
 
     m_currentFilePath = nullptr;
     // tempObjects destroyed here — all temporary GameObjects are freed.
