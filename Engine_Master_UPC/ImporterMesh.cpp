@@ -4,7 +4,7 @@
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 
-Asset* ImporterMesh::createAssetInstance(const MD5Hash& uid) const
+Asset* ImporterMesh::createAssetInstance(const UID& uid) const
 {
     return new MeshAsset(uid);
 }

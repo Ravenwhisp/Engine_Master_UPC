@@ -19,7 +19,7 @@ public:
 	friend class ImporterGltf;
 
 	MeshAsset() {}
-	MeshAsset(MD5Hash id) : Asset(id, AssetType::MESH) {}
+	MeshAsset(UID id) : Asset(id, AssetType::MESH) {}
 
 	const void* getVertexData() const { return vertices.data(); }
 	std::vector<Vector3> getVerticesPositions() const {

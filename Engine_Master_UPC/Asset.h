@@ -8,12 +8,12 @@ class Asset
 {
 public:
 	Asset() = default;
-	Asset(MD5Hash id, AssetType type = AssetType::UNKNOWN): m_uid(id), m_type(type) {}
+	Asset(UID id, AssetType type = AssetType::UNKNOWN): m_uid(id), m_type(type) {}
 	virtual ~Asset() = default;
-	MD5Hash getId() const { return m_uid; }
+	UID getId() const { return m_uid; }
 
 	AssetType	getType() const { return m_type; }
 protected:
-	MD5Hash 			m_uid = INVALID_ASSET_ID;
+	UID 				m_uid = INVALID_UID;
 	AssetType			m_type = AssetType::UNKNOWN;
 };

@@ -264,7 +264,7 @@ bool ImporterGltf::canImport(const std::filesystem::path& path) const
     return path.extension().string() == GLTF_EXTENSION;
 }
 
-Asset* ImporterGltf::createAssetInstance(const MD5Hash& uid) const
+Asset* ImporterGltf::createAssetInstance(const UID& uid) const
 {
     return new PrefabAsset(uid);
 }

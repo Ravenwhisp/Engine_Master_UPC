@@ -195,7 +195,7 @@ fs::path ImporterFont::runMakeSpriteFont(const fs::path& ttfPath)
     return outPath;
 }
 
-Asset* ImporterFont::createAssetInstance(const MD5Hash& uid) const
+Asset* ImporterFont::createAssetInstance(const UID& uid) const
 {
     return new FontAsset(uid);
 }

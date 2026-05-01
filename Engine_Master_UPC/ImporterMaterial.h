@@ -12,7 +12,7 @@ public:
         return path.extension().string() == MATERIAL_EXTENSION;
     }
 
-    Asset* createAssetInstance(const MD5Hash& uid) const override;
+    Asset* createAssetInstance(const UID& uid) const override;
 protected:
     bool     importNative(const std::filesystem::path& path, MaterialAsset* dst) override;
     uint64_t saveTyped(const MaterialAsset* source, uint8_t** outBuffer)      override;

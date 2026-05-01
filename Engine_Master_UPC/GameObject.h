@@ -20,7 +20,7 @@ class SceneSnapshot;
 struct PrefabInfo
 {
 	std::filesystem::path m_sourcePath;
-	MD5Hash m_assetUID;
+	UID m_assetUID;
 
 	PrefabOverrideRecord m_overrides;
 

@@ -30,7 +30,7 @@ public:
         ImporterAnimationStateMachine* importerAnimationStateMachine);
 
     bool   canImport(const std::filesystem::path& path) const override;
-    Asset* createAssetInstance(const MD5Hash& uid) const override;
+    Asset* createAssetInstance(const UID& uid) const override;
 
 protected:
     bool     loadExternal(const std::filesystem::path& path, tinygltf::Model& out) override;

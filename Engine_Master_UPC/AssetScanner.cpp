@@ -13,8 +13,7 @@
 #include <filesystem>
 #include <FileIO.h>
 
-AssetScanner::AssetScanner(
-    AssetRegistry* registry)
+AssetScanner::AssetScanner(AssetRegistry* registry)
     : m_registry(registry)
 {
 }
@@ -35,7 +34,9 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
     if (FileIO::isDirectory(path))
     {
         for (const auto& entry : std::filesystem::directory_iterator(path))
+        {
             checkFile(entry.path());
+        }
         return;
     }
 
@@ -49,7 +50,9 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
     std::filesystem::path metadataPath = path;
     metadataPath += METADATA_EXTENSION;
     if (!FileIO::exists(metadataPath))
+    {
         handleMissingMetadata(path);
+    }
 }
 
 void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
@@ -66,60 +69,48 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     Metadata meta;
     if (!app->getModuleAssets()->loadMetaFile(metadataPath, meta))
     {
-        DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.",  metadataPath.string().c_str());
+        DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.", metadataPath.string().c_str());
         return;
     }
 
     meta.sourcePath = sourcePath.lexically_normal();
     m_registry->registerAsset(meta);
 
-    // ── Register sub-assets listed in the dependency array ───────────────────
-    // Sub-assets have no source file and no .metadata sidecar of their own.
-    // Their only on-disk record is this parent's dependency list.
-    // Registering them here means the scanner is aware of them for the rest of
-    // the session and cleanOrphanedBinaries will not delete their Library/ binaries.
+    const MD5Hash currentHash = computeMD5(sourcePath);
+    const bool contentChanged = !isValidAsset(meta.contentHash) || (meta.contentHash != currentHash);
+    const bool binaryMissing = !FileIO::exists(meta.getBinaryPath());
+
+    if (contentChanged || binaryMissing)
+    {
+        queueImport(sourcePath, meta.uid);
+    }
+
     for (const DependencyRecord& dep : meta.m_dependencies)
     {
-        if (!isValidAsset(dep.uid)) continue;
+        if (!isValidUID(dep.uid)) continue;
 
         Metadata subMeta;
         subMeta.uid = dep.uid;
+        subMeta.contentHash = dep.contentHash;
         subMeta.type = dep.type;
         subMeta.m_isSubAsset = true;
-        // sourcePath is intentionally empty — sub-assets have no source file.
+
         m_registry->registerAsset(subMeta);
 
-        // If the sub-asset binary is missing, queue the parent for re-import
-        // so the binary is regenerated.
-        if (!FileIO::exists(getBinaryPath(dep.uid)))
+        if (!FileIO::exists(dep.getBinaryPath()))
         {
-            // Only add one re-import request per parent, even if several
-            // sub-assets are missing.
-            bool alreadyQueued = false;
-            for (const auto& req : m_pendingImports)
-                if (req.existingUID == meta.uid) { alreadyQueued = true; break; }
-
-            if (!alreadyQueued)
-                m_pendingImports.push_back({ sourcePath, meta.uid });
+            queueImport(sourcePath, meta.uid);
         }
-    }
-
-    // Binary missing for the parent itself — queue for re-import.
-    if (!FileIO::exists(getBinaryPath(meta.uid)))
-    {
-        bool alreadyQueued = false;
-        for (const auto& req : m_pendingImports)
-            if (req.existingUID == meta.uid) { alreadyQueued = true; break; }
-
-        if (!alreadyQueued)
-            m_pendingImports.push_back({ sourcePath, meta.uid });
     }
 }
 
 void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath)
 {
+    // Brand-new file: no UID has been assigned yet.
     if (app->getModuleAssets()->findImporter(sourcePath))
-        m_pendingImports.push_back({ sourcePath, INVALID_ASSET_ID });
+    {
+        m_pendingImports.push_back({ sourcePath, INVALID_UID });
+    }
 }
 
 void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
@@ -127,13 +118,13 @@ void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataP
     Metadata meta;
     if (app->getModuleAssets()->loadMetaFile(metadataPath, meta))
     {
-        // Also delete binaries for any sub-assets that were owned by this asset.
+        // Delete binaries for any sub-assets owned by this asset.
         for (const DependencyRecord& dep : meta.m_dependencies)
         {
-            FileIO::remove(getBinaryPath(dep.uid));
+            FileIO::remove(dep.getBinaryPath());
         }
 
-        FileIO::remove(getBinaryPath(meta.uid));
+        FileIO::remove(meta.getBinaryPath());
     }
     FileIO::remove(metadataPath);
 }
@@ -147,17 +138,23 @@ void AssetScanner::cleanOrphanedBinaries()
     {
         if (!entry.is_regular_file()) continue;
 
-        const MD5Hash uid = entry.path().stem().string();
-        if (m_registry->contains(uid))
-            continue;   // known — either a top-level asset or a registered sub-asset
+        // Library/ filenames are content hashes, not UIDs.
+        const MD5Hash contentHash = entry.path().stem().string();
+        if (m_registry->containsContentHash(contentHash))
+            continue;   // referenced by a known asset or sub-asset
 
-        DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata).",
+        DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata references it).",
             entry.path().string().c_str());
         FileIO::remove(entry.path());
     }
 }
 
-std::filesystem::path AssetScanner::getBinaryPath(const MD5Hash& uid) const
+void AssetScanner::queueImport(const std::filesystem::path& sourcePath, const UID& existingUID)
 {
-    return std::filesystem::path(LIBRARY_FOLDER) / uid += ASSET_EXTENSION;
+    for (const auto& req : m_pendingImports)
+    {
+        if (req.sourcePath == sourcePath)
+            return;     // already queued
+    }
+    m_pendingImports.push_back({ sourcePath, existingUID });
 }

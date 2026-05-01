@@ -1,6 +1,6 @@
 #pragma once
 #include <filesystem>
-#include "MD5Fwd.h"
+#include "UID.h"
 #include "AssetType.h"
 #include "Extensions.h"
 
@@ -12,7 +12,7 @@ public:
     virtual ~Importer() = default;
 
     virtual bool canImport(const std::filesystem::path& path) const = 0;
-    virtual Asset* createAssetInstance(const MD5Hash& uid) const = 0;
+    virtual Asset* createAssetInstance(const UID& uid) const = 0;
     virtual AssetType getAssetType() const = 0;
 
     virtual bool import(const std::filesystem::path& sourcePath, Asset* outAsset) = 0;

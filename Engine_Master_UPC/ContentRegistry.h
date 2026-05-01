@@ -11,7 +11,7 @@ struct FileEntry
 {
     std::filesystem::path                   path;
     std::string                             displayName;
-    MD5Hash                                 uid = INVALID_ASSET_ID;
+    UID                                     uid = INVALID_UID;
     bool                                    isDirectory = false;
     std::vector<std::shared_ptr<FileEntry>> children;
 

@@ -9,7 +9,7 @@ class AssetRegistry;
 struct ImportRequest
 {
     std::filesystem::path sourcePath;
-    MD5Hash               existingUID = INVALID_ASSET_ID;
+    UID               existingUID = INVALID_UID;
 };
 
 // Scans the assets folder and resolves metadata / binary lifecycle.
@@ -29,7 +29,7 @@ private:
     void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
     void cleanOrphanedBinaries();
 
-    std::filesystem::path getBinaryPath(const MD5Hash& uid) const;
+    void queueImport(const std::filesystem::path& sourcePath, const UID& existingUID);
 
     AssetRegistry* m_registry{ nullptr };
 

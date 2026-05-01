@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 #include <FileIO.h>
 
-Asset* ImporterPrefab::createAssetInstance(const MD5Hash& uid) const
+Asset* ImporterPrefab::createAssetInstance(const UID& uid) const
 {
     return new PrefabAsset(uid);
 }

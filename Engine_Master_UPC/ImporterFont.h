@@ -17,7 +17,7 @@ public:
         return ext == TTL_EXTENSION;
     }
 
-    Asset* createAssetInstance(const MD5Hash& uid) const override;
+    Asset* createAssetInstance(const UID& uid) const override;
 
 protected:
     bool loadExternal(const std::filesystem::path& path, std::vector<uint8_t>& out) override;

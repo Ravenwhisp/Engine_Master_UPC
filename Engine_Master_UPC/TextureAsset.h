@@ -10,7 +10,7 @@ public:
 	friend class ImporterTexture;
 
 	TextureAsset() {}
-	TextureAsset(MD5Hash id) : Asset(id, AssetType::TEXTURE) {}
+	TextureAsset(UID id) : Asset(id, AssetType::TEXTURE) {}
 
 	uint32_t	getWidth() const { return width; }
 	uint32_t	getHeight() const { return height; }

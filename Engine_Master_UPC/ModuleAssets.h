@@ -7,7 +7,7 @@
 
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
-#include "PrefabSerializer.h"  
+#include "PrefabSerializer.h"
 #include "PrefabAsset.h"
 
 #include <filesystem>
@@ -42,15 +42,15 @@ public:
     Importer* findImporter(const std::filesystem::path& filePath) const;
     Importer* findImporter(AssetType type) const;
     bool canImport(const std::filesystem::path& sourcePath) const;
-
 #pragma endregion
 
-    void importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid);
+    void importAsset(const std::filesystem::path& sourcePath, UID& uid);
 
     void refresh();
 
+    // Loads an asset by its stable UID.
     template<typename T>
-    std::shared_ptr<T> load(MD5Hash id)
+    std::shared_ptr<T> load(const UID& id)
     {
         if (auto cached = m_assets.getAs<T>(id))
         {
@@ -60,19 +60,19 @@ public:
         const Metadata* meta = m_registry->getMetadata(id);
         if (!meta)
         {
-            DEBUG_ERROR("[ModuleAssets] No metadata found for UID %llu.", id);
+            DEBUG_ERROR("[ModuleAssets] No metadata found for UID '%s'.", id.c_str());
             return nullptr;
         }
 
         return std::static_pointer_cast<T>(loadAsset(meta));
     }
 
-    // Resolves the UID from the source path, then delegates to load<T>.
+    // Resolves the stable UID from the source path, then delegates to load<T>.
     template<typename T>
     std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath)
     {
-        const MD5Hash id = m_registry->findByPath(sourcePath);
-        if (id == INVALID_ASSET_ID)
+        const UID id = m_registry->findByPath(sourcePath);
+        if (id == INVALID_UID)
         {
             DEBUG_ERROR("[ModuleAssets] No asset registered at path '%s'.", sourcePath.string().c_str());
             return nullptr;
@@ -80,11 +80,10 @@ public:
         return load<T>(id);
     }
 
+    UID  findUID(const std::filesystem::path& sourcePath) const;
 
-    MD5Hash  findUID(const std::filesystem::path& sourcePath) const;
-    bool isLoaded(const MD5Hash& id);
-    void unload(const MD5Hash& id);
-
+    bool isLoaded(const UID& id);
+    void unload(const UID& id);
 
     std::shared_ptr<FileEntry> getRoot()                              const;
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
@@ -92,8 +91,8 @@ public:
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
-    void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID,
-        uint8_t* binaryData, size_t binarySize);
+
+    void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
 
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
     bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
@@ -105,18 +104,19 @@ public:
 
     GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
     GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
 
-    void flushDependencies(const MD5Hash& parentUID,
-        const std::filesystem::path& parentSourcePath,
-        AssetType parentType);
+    void flushDependencies(const UID& parentUID, const std::filesystem::path& parentSourcePath, AssetType parentType);
 
     std::unique_ptr<AssetRegistry>      m_registry;
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
-    WeakCache<MD5Hash, Asset>           m_assets;
+
+    // Runtime cache keyed by stable UID.
+    WeakCache<UID, Asset>               m_assets;
 
 #pragma region Importers
     ImporterTexture* m_importerTexture = nullptr;
@@ -129,8 +129,9 @@ private:
     ImporterFont* m_importerFont = nullptr;
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
 
-    std::vector<Importer*>                                      m_importers;
+    std::vector<Importer*> m_importers;
 #pragma endregion
 
-    std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
+
+    std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;
 };

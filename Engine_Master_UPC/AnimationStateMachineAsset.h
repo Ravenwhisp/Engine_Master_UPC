@@ -42,7 +42,7 @@ public:
     friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;
-    explicit AnimationStateMachineAsset(MD5Hash id)
+    explicit AnimationStateMachineAsset(UID id)
         : Asset(id, AssetType::ANIMATION_STATE_MACHINE)
     {
     }

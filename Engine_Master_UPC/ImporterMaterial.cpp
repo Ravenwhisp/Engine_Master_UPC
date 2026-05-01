@@ -5,7 +5,7 @@
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 
-Asset* ImporterMaterial::createAssetInstance(const MD5Hash& uid) const
+Asset* ImporterMaterial::createAssetInstance(const UID& uid) const
 
 {
     return new MaterialAsset(uid);

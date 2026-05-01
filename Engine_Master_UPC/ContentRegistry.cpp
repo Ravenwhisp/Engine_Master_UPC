@@ -66,16 +66,8 @@ std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesyste
     entry->isDirectory = false;
     entry->displayName = metaPath.stem().string();  // strips .metadata → shows asset name
 
-    // Resolve UID from the in-memory store — no disk read needed here
-    // because rebuild() is always called after AssetScanner::scan().
     const std::filesystem::path sourcePath = metaPath.parent_path() / metaPath.stem();
     entry->uid = m_registry->findByPath(sourcePath);
-
-    if (entry->uid == INVALID_ASSET_ID)
-    {
-        DEBUG_WARN("[ContentRegistry] No metadata in store for '%s'. Was rebuild() called before scan()?", sourcePath.string().c_str());
-    }
-
 
     return entry;
 }
@@ -85,15 +77,21 @@ std::shared_ptr<FileEntry> ContentRegistry::getEntryRecursive(
     const std::filesystem::path& path) const
 {
     if (!node)
+    {
         return nullptr;
+    }
 
     if (node->path == path)
+    {
         return node;
+    }
 
     for (const auto& child : node->children)
     {
         if (auto found = getEntryRecursive(child, path))
+        {
             return found;
+        }
     }
 
     return nullptr;

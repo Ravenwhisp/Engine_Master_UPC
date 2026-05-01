@@ -11,26 +11,26 @@ public:
 	friend class ImporterGltf;
 
 	MaterialAsset() {}
-	MaterialAsset(MD5Hash id) : Asset(id, AssetType::MATERIAL) {}
+	MaterialAsset(UID id) : Asset(id, AssetType::MATERIAL) {}
 
-	MD5Hash getBaseMap() const { return baseMap; }
+	UID getBaseMap() const { return baseMap; }
 	Color& getBaseColour() const { return baseColour; }
 
-	MD5Hash getMetallicRoughnessMap() const { return metallicRoughnessMap; }
+	UID getMetallicRoughnessMap() const { return metallicRoughnessMap; }
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
 protected:
 
-	MD5Hash				baseMap = INVALID_ASSET_ID;
+	UID				baseMap = INVALID_UID;
 	mutable Color		baseColour = Color(255, 255, 255, 0);
 
-	MD5Hash				metallicRoughnessMap = INVALID_ASSET_ID;
+	UID				metallicRoughnessMap = INVALID_UID;
 	uint32_t			roughnessFactor = 0;
 	uint32_t			metallicFactor = 0;
-	MD5Hash				normalMap = INVALID_ASSET_ID;
-	MD5Hash				occlusionMap = INVALID_ASSET_ID;
+	UID				normalMap = INVALID_UID;
+	UID				occlusionMap = INVALID_UID;
 
 	bool				isEmissive = false;
-	MD5Hash 			emissiveMap = INVALID_ASSET_ID;
+	UID 			emissiveMap = INVALID_UID;
 };
 
