@@ -55,6 +55,10 @@ namespace MathAPI
         x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
         return x * x * (3 - 2 * x);
     }
+    float pingPong(float t)
+    {
+        return 1.0f - fabsf(2.0f * t - 1.0f);
+	}
 
     float evaluateEasing(EasingType type, float t)
     {

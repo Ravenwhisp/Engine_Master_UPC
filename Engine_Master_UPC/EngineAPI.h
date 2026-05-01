@@ -32,6 +32,7 @@ namespace MathAPI
     ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
 	ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
 	ENGINE_API float smoothStep(float edge0, float edge1, float x);
+	ENGINE_API float pingPong(float t);
 
     enum class EasingType
     {
