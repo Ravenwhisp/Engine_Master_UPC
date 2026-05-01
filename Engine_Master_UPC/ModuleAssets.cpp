@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "Importer.h"
+#include "ImporterNative.h"
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
 #include "ImporterTexture.h"
@@ -34,6 +35,8 @@
 
 #include <filesystem>
 #include <FileIO.h>
+#include <AssetDialogFilter.h>
+#include <FileDialog.h>
 
 using namespace rapidjson;
 namespace fs = std::filesystem;
@@ -57,6 +60,11 @@ bool ModuleAssets::init()
 
     refresh();
     return true;
+}
+
+void ModuleAssets::postRender()
+{
+    flushDialogRequests();
 }
 
 bool ModuleAssets::cleanUp()
@@ -100,28 +108,84 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID& uid
         return;
     }
 
-
-    if (!isValidUID(uid))
+    const bool isReimport = isValidUID(uid);
+    if (!isReimport)
     {
         uid = GenerateUID();
     }
-
-    const MD5Hash contentHash = computeMD5(sourcePath);
 
     std::unique_ptr<Asset> asset(importer->createAssetInstance(uid));
 
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_UID;
+        if (!isReimport)
+        {
+            uid = INVALID_UID;
+        }
         return;
     }
 
+    if (!persistAsset(asset.get(), importer, uid, sourcePath))
+    {
+        if (!isReimport)
+        {
+            uid = INVALID_UID;
+        }
+    }
+}
+
+bool ModuleAssets::save(const Asset& asset, const std::filesystem::path& path)
+{
+    std::filesystem::path targetPath = path;
+
+    if (targetPath.empty())
+    {
+        const Metadata* meta = m_registry->getMetadata(asset.getId());
+        if (meta && !meta->sourcePath.empty())
+        {
+            targetPath = meta->sourcePath;
+        }
+    }
+
+    if (targetPath.empty())
+    {
+        requestSave(asset);
+        return false;
+    }
+
+    Importer* importer = findImporter(asset.getType());
+    if (!importer)
+    {
+        DEBUG_ERROR("[ModuleAssets] No importer for type %u.", static_cast<unsigned>(asset.getType()));
+        return false;
+    }
+
+    if (!importer->saveNative(&asset, targetPath))
+    {
+        DEBUG_ERROR("[ModuleAssets] saveToSource failed for '%s'.", targetPath.string().c_str());
+        return false;
+    }
+
+    const UID uid = isValidUID(asset.getId()) ? asset.getId() : GenerateUID();
+    return persistAsset(&asset, importer, uid, targetPath);
+}
+
+bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
+    const UID& uid, const std::filesystem::path& sourcePath)
+{
     Metadata meta;
-    meta.uid         = uid;
-    meta.contentHash = contentHash;
-    meta.type        = asset->getType();
-    meta.sourcePath  = sourcePath;
+    const Metadata* existing = m_registry->getMetadata(uid);
+    if (existing)
+    {
+        meta = *existing;
+    }
+    else
+    {
+        meta.uid = uid;
+        meta.type = asset->getType();
+        meta.sourcePath = sourcePath;
+    }
 
     auto it = m_pendingDependencies.find(uid);
     if (it != m_pendingDependencies.end())
@@ -130,43 +194,50 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, UID& uid
         m_pendingDependencies.erase(it);
     }
 
-    std::filesystem::path metaPath = sourcePath;
-    metaPath += METADATA_EXTENSION;
+    meta.contentHash = computeMD5(sourcePath);
+    std::filesystem::path metaPath;
+    meta.getMetadataPath(metaPath);
 
     if (!saveMetaFile(meta, metaPath))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_UID;
-        return;
+        return false;
     }
 
     m_registry->registerAsset(meta);
 
     uint8_t* rawBuffer = nullptr;
-    const uint64_t size = importer->save(asset.get(), &rawBuffer);
+    const uint64_t size = importer->save(asset, &rawBuffer);
     std::unique_ptr<uint8_t[]> buffer(rawBuffer);
 
     if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
         m_registry->remove(uid);
-        uid = INVALID_UID;
-        return;
+        return false;
     }
+
+    return true;
 }
+
+
 
 void ModuleAssets::refresh()
 {
     std::string rootStr = ASSETS_FOLDER;
     if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
+    {
         rootStr.pop_back();
+    }
 
     const std::filesystem::path root = rootStr;
 
     std::vector<ImportRequest> pending = m_scanner->scan(root);
     for (ImportRequest& req : pending)
+    {
         importAsset(req.sourcePath, req.existingUID);
 
+    }
     m_contentRegistry->rebuild(root);
 }
 
@@ -744,4 +815,57 @@ GameObject* ModuleAssets::spawnPrefab(const fs::path& sourcePath, Scene* scene)
 
     go->GetPrefabInfo().m_sourcePath = sourcePath;
     return go;
+}
+
+void ModuleAssets::requestSave(const Asset& asset)
+{
+    if (m_dialogRunning.load()) return;
+
+    m_pendingAsset = &asset;
+    m_pendingAssetType = asset.getType();
+    m_pendingIsSave = true;
+    m_dialogCallback = nullptr;
+
+    { std::lock_guard lock(m_dialogResultMutex); m_dialogResult.reset(); }
+    m_dialogRunning.store(true);
+
+    std::thread([this]()
+        {
+            const AssetDialogFilter filter = getDialogFilter(m_pendingAssetType);
+            auto result = saveAs(filter.filterSpec, filter.defaultExtension, "Save Asset", ASSETS_FOLDER);
+            { std::lock_guard lock(m_dialogResultMutex); m_dialogResult = std::move(result); }
+            m_dialogRunning.store(false);
+        }).detach();
+}
+
+
+
+void ModuleAssets::flushDialogRequests()
+{
+    if (m_dialogRunning.load()) return;
+
+    std::optional<std::filesystem::path> result;
+    {
+        std::lock_guard lock(m_dialogResultMutex);
+        if (!m_dialogResult.has_value()) return;
+        result = std::move(m_dialogResult);
+        m_dialogResult.reset();
+    }
+
+    if (!result.has_value())
+    {
+        m_pendingAsset = nullptr;
+        return;
+    }
+
+    if (m_pendingIsSave && m_pendingAsset)
+    {
+        save(*m_pendingAsset, *result);
+        m_pendingAsset = nullptr;
+    }
+    else if (!m_pendingIsSave && m_dialogCallback)
+    {
+        m_dialogCallback(*result);
+        m_dialogCallback = nullptr;
+    }
 }

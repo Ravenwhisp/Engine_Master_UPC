@@ -13,6 +13,8 @@ public:
     }
 
     Asset* createAssetInstance(const UID& uid) const override;
+
+    bool saveNative(const MaterialAsset* asset, const std::filesystem::path& path);
 protected:
     bool     importNative(const std::filesystem::path& path, MaterialAsset* dst) override;
     uint64_t saveTyped(const MaterialAsset* source, uint8_t** outBuffer)      override;

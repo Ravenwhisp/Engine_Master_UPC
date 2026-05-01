@@ -13,6 +13,11 @@ Asset* ImporterPrefab::createAssetInstance(const UID& uid) const
     return new PrefabAsset(uid);
 }
 
+bool ImporterPrefab::saveNative(const PrefabAsset* asset, const std::filesystem::path& path)
+{
+    return false;
+}
+
 bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset* dst)
 {
     const std::vector<uint8_t> raw = FileIO::read(path);

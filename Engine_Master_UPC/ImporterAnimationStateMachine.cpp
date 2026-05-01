@@ -16,6 +16,11 @@ namespace
     }
 }
 
+bool ImporterAnimationStateMachine::saveNative(const AnimationStateMachineAsset* asset, const std::filesystem::path& path)
+{
+    return false;
+}
+
 bool ImporterAnimationStateMachine::importNative(const std::filesystem::path& path, AnimationStateMachineAsset* dst)
 {
     if (!dst)

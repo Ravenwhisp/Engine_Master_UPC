@@ -1,0 +1,18 @@
+{
+    "uid": 11584651539410483208,
+    "contentHash": "72394c902059b8a3d23f83bfb498ea17",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Trap\\trap.gltf",
+    "dependencies": [
+        {
+            "uid": 6489412179979071390,
+            "contentHash": "35666954f5c481c1c28fa6e87f8faec4",
+            "type": 2
+        },
+        {
+            "uid": 4023425561258939541,
+            "contentHash": "bb4438e1bd2a9ccfc19cd00ca061ae59",
+            "type": 3
+        }
+    ]
+}

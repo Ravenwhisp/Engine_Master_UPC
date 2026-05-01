@@ -22,9 +22,7 @@ class ImporterGltf : public ImporterSource<tinygltf::Model, PrefabAsset, AssetTy
 {
 public:
 
-    ImporterGltf(ImporterMesh* importerMesh,
-        ImporterMaterial* importerMaterial,
-        ImporterPrefab* importerPrefab,
+    ImporterGltf(ImporterMesh* importerMesh, ImporterMaterial* importerMaterial, ImporterPrefab* importerPrefab,
         ImporterAnimation* importerAnimation,
         ImporterSkin* importerSkin,
         ImporterAnimationStateMachine* importerAnimationStateMachine);

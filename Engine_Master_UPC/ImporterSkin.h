@@ -14,6 +14,7 @@ public:
     {
         return new SkinAsset(uid);
     }
+    bool saveNative(const SkinAsset* asset, const std::filesystem::path& path);
 
 protected:
     bool importNative(const std::filesystem::path&, SkinAsset*) override

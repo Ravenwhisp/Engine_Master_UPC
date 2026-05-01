@@ -12,7 +12,7 @@ public:
     }
 
     Asset* createAssetInstance(const UID& uid) const override;
-
+    bool saveNative(const PrefabAsset* asset, const std::filesystem::path& path);
 protected:
     bool     importNative(const std::filesystem::path& path, PrefabAsset* dst) override;
     uint64_t saveTyped(const PrefabAsset* source, uint8_t** outBuffer)      override;

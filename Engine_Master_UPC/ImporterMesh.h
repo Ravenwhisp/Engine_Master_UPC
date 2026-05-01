@@ -12,6 +12,8 @@ public:
 
     Asset* createAssetInstance(const UID& uid) const override;
 
+    bool saveNative(const MeshAsset* asset, const std::filesystem::path& path);
+
 protected:
     bool     importNative(const std::filesystem::path& path, MeshAsset* dst)      override;
     uint64_t saveTyped(const MeshAsset* source, uint8_t** outBuffer)           override;

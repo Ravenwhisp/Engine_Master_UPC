@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <memory>
 #include <Metadata.h>
+#include <mutex>
 
 class Asset;
 class AnimationStateMachineAsset;
@@ -35,6 +36,7 @@ class ModuleAssets : public Module
 public:
 #pragma region GameLoop
     bool init() override;
+    void postRender() override;
     bool cleanUp() override;
 #pragma endregion
 
@@ -45,7 +47,7 @@ public:
 #pragma endregion
 
     void importAsset(const std::filesystem::path& sourcePath, UID& uid);
-
+    bool save(const Asset& asset, const std::filesystem::path& path = {});
     void refresh();
 
     // Loads an asset by its stable UID.
@@ -105,11 +107,16 @@ public:
     GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
     GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
 
+    void flushDialogRequests();
+
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
 
     void flushDependencies(const UID& parentUID, const std::filesystem::path& parentSourcePath, AssetType parentType);
+    void                    requestSave(const Asset& asset);
+    bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
+
 
     std::unique_ptr<AssetRegistry>      m_registry;
     std::unique_ptr<AssetScanner>       m_scanner;
@@ -132,6 +139,16 @@ private:
     std::vector<Importer*> m_importers;
 #pragma endregion
 
-
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;
+
+#pragma region FileDialog
+    std::atomic<bool>                                           m_dialogRunning{ false };
+    std::mutex                                                  m_dialogResultMutex;
+    std::optional<std::filesystem::path>                        m_dialogResult;
+    std::function<void(const std::filesystem::path&)>           m_dialogCallback;
+    const Asset* m_pendingAsset = nullptr;
+    AssetType                                                   m_pendingAssetType = AssetType::UNKNOWN;
+    bool                                                        m_pendingIsSave = false;
+#pragma endregion
+
 };

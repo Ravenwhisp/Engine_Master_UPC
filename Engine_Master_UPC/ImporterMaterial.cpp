@@ -11,6 +11,11 @@ Asset* ImporterMaterial::createAssetInstance(const UID& uid) const
     return new MaterialAsset(uid);
 }
 
+bool ImporterMaterial::saveNative(const MaterialAsset* asset, const std::filesystem::path& path)
+{
+    return false;
+}
+
 
 bool ImporterMaterial::importNative(const std::filesystem::path& path, MaterialAsset* dst)
 {

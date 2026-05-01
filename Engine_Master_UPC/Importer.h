@@ -15,7 +15,8 @@ public:
     virtual Asset* createAssetInstance(const UID& uid) const = 0;
     virtual AssetType getAssetType() const = 0;
 
+    virtual bool saveNative(const Asset* asset, const std::filesystem::path& path) = 0;
     virtual bool import(const std::filesystem::path& sourcePath, Asset* outAsset) = 0;
-    virtual uint64_t save( const Asset* asset, uint8_t** outBuffer) = 0;
+    virtual uint64_t save(const Asset* asset, uint8_t** outBuffer) = 0;
     virtual void load(const uint8_t* buffer, Asset* outAsset) = 0;
 };
