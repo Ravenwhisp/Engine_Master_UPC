@@ -125,27 +125,27 @@ static void collapseToTop4Influences(
     }
 }
 
-static MD5Hash resolveTexture(const tinygltf::Model& model, int texIndex, const std::filesystem::path* modelPath)
+static UID resolveTexture(const tinygltf::Model& model, int texIndex, const std::filesystem::path* modelPath)
 {
     if (texIndex < 0 || texIndex >= static_cast<int>(model.textures.size()))
     {
-        return INVALID_ASSET_ID;
+        return INVALID_UID;
     }
 
     const tinygltf::Texture& tex = model.textures[texIndex];
     if (tex.source < 0 || tex.source >= static_cast<int>(model.images.size()))
     {
-        return INVALID_ASSET_ID;
+        return INVALID_UID;
     }
 
     const tinygltf::Image& img = model.images[tex.source];
     if (img.uri.empty()) 
     {
-        return INVALID_ASSET_ID;
+        return INVALID_UID;
     }
     std::filesystem::path resolved = modelPath->parent_path() / img.uri;
-    MD5Hash uid = app->getModuleAssets()->findUID(resolved);
-    if (!isValidAsset(uid)) 
+    UID uid = app->getModuleAssets()->findUID(resolved);
+    if (!isValidUID(uid)) 
     {
         app->getModuleAssets()->importAsset(resolved, uid);
     }
@@ -290,10 +290,10 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     ModuleAssets* assets = app->getModuleAssets();
 
     //Materials
-    std::vector<MD5Hash> materialUIDs(model.materials.size(), INVALID_ASSET_ID);
+    std::vector<UID> materialUIDs(model.materials.size(), INVALID_UID);
     for (int i = 0; i < static_cast<int>(model.materials.size()); ++i)
     {
-        const MD5Hash matUID = computeMD5(m_currentFilePath->string() + "?mat=" + std::to_string(i));
+        const UID matUID = GenerateUID();
         MaterialAsset matAsset(matUID);
         loadMaterial(model, model.materials[i], &matAsset);
 
@@ -307,14 +307,14 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     }
 
     //Meshes
-    std::vector<MD5Hash> meshUIDs(model.meshes.size(), INVALID_ASSET_ID);
+    std::vector<UID> meshUIDs(model.meshes.size(), INVALID_UID);
     for (int i = 0; i < static_cast<int>(model.meshes.size()); ++i)
     {
-        const MD5Hash meshUID = computeMD5(m_currentFilePath->string() + "?mesh=" + std::to_string(i));
+        const UID meshUID = GenerateUID();
         MeshAsset meshAsset(meshUID);
         for (const tinygltf::Primitive& prim : model.meshes[i].primitives)
         {
-            const MD5Hash matUID = (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size())) ? materialUIDs[prim.material] : INVALID_ASSET_ID;
+            const UID matUID = (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size())) ? materialUIDs[prim.material] : INVALID_UID;
             loadMesh(model, prim, &meshAsset, matUID);
         }
 
@@ -327,12 +327,12 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         meshUIDs[i] = meshUID;
     }
 
-    std::vector<MD5Hash> animationUIDs(model.animations.size(), INVALID_ASSET_ID);
+    std::vector<UID> animationUIDs(model.animations.size(), INVALID_UID);
 
     // Animations (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
     {
-        const MD5Hash animUID = computeMD5(m_currentFilePath->string() + "?anim=" + std::to_string(i));
+        const UID animUID = GenerateUID();
 
         AnimationAsset animAsset(animUID);
         loadAnimation(model, model.animations[i], &animAsset);
@@ -354,12 +354,12 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         buildDefaultStateMachine(model, animationUIDs, dst);
     }
 
-    std::vector<MD5Hash> skinUIDs(model.skins.size(), INVALID_ASSET_ID);
+    std::vector<UID> skinUIDs(model.skins.size(), INVALID_UID);
 
     // Skins (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.skins.size()); ++i)
     {
-        const MD5Hash skinUID = computeMD5(m_currentFilePath->string() + "?skin=" + std::to_string(i));
+        const UID skinUID = GenerateUID();
         skinUIDs[i] = skinUID;
 
         SkinAsset skinAsset(skinUID);
@@ -429,7 +429,7 @@ void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
 }
 
 
-void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive, MeshAsset* mesh, const MD5Hash& materialUID)
+void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive, MeshAsset* mesh, const UID& materialUID)
 {
     const uint32_t baseVertex = static_cast<uint32_t>(mesh->vertices.size());
     const uint32_t baseIndex = static_cast<uint32_t>(mesh->indices.size());
@@ -628,7 +628,7 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::A
     }
 }
 
-void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<MD5Hash>& animationUIDs, PrefabAsset* dst) const
+void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<UID>& animationUIDs, PrefabAsset* dst) const
 {
     if (!m_currentFilePath || !dst || animationUIDs.empty())
         return;
@@ -637,7 +637,7 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     if (!assets)
         return;
 
-    const MD5Hash stateMachineUID = computeMD5(m_currentFilePath->string() + "?animsm=0");
+    const UID stateMachineUID = GenerateUID();
 
     AnimationStateMachineAsset stateMachineAsset(stateMachineUID);
     stateMachineAsset.m_name = m_currentFilePath->stem().string() + "_StateMachine";
@@ -649,9 +649,9 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     for (size_t i = 0; i < model.animations.size() && i < animationUIDs.size(); ++i)
     {
         const tinygltf::Animation& anim = model.animations[i];
-        const MD5Hash animUID = animationUIDs[i];
+        const UID animUID = animationUIDs[i];
 
-        if (animUID == INVALID_ASSET_ID)
+        if (animUID == INVALID_UID)
             continue;
 
         std::string baseName = anim.name.empty()
@@ -744,7 +744,7 @@ void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Ma
     mat->normalMap = resolveTexture(model, material.normalTexture.index, m_currentFilePath);
     mat->occlusionMap = resolveTexture(model, material.occlusionTexture.index, m_currentFilePath);
     mat->emissiveMap = resolveTexture(model, material.emissiveTexture.index, m_currentFilePath);
-    mat->isEmissive = isValidAsset(mat->emissiveMap);
+    mat->isEmissive = isValidUID(mat->emissiveMap);
 }
 
 GameObject* ImporterGltf::makeNode(const std::string& name, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
@@ -756,7 +756,7 @@ GameObject* ImporterGltf::makeNode(const std::string& name, std::vector<std::uni
     return raw;
 }
 
-GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinygltf::Model& model, const std::vector<MD5Hash>& meshUIDs, const std::vector<MD5Hash>& materialUIDs, const std::vector<MD5Hash>& skinUIDs, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
+GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinygltf::Model& model, const std::vector<UID>& meshUIDs, const std::vector<UID>& materialUIDs, const std::vector<UID>& skinUIDs, std::vector<std::unique_ptr<GameObject>>& tempObjects) const
 {
     const tinygltf::Node& gNode = model.nodes[nodeIdx];
     const std::string name = gNode.name.empty()
@@ -806,7 +806,7 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
 
             for (const tinygltf::Primitive& prim : prims)
             {
-                MD5Hash matRef = INVALID_ASSET_ID;
+                UID matRef = INVALID_UID;
 
                 if (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size()))
                 {

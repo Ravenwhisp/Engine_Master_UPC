@@ -11,7 +11,7 @@ class ImporterGltf;
 struct AnimationStateMachineClip
 {
     std::string name;
-    MD5Hash animationUID = INVALID_ASSET_ID;
+    UID animationUID = INVALID_UID;
     bool loop = true;
 };
 

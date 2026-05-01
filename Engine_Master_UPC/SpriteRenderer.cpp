@@ -47,12 +47,12 @@ void SpriteRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+            const UID* data = static_cast<const UID*>(payload->Data);
             m_textureAssetId = *data;
             m_texture = nullptr;
             m_gpuTexture = nullptr;
             m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
-            DEBUG_LOG("SpriteRenderer drop: assetId=%s", data->c_str());
+            DEBUG_LOG("SpriteRenderer drop: assetId=%s", data);
             DEBUG_LOG("SpriteRenderer load result: %s", m_textureAsset ? "OK" : "NULL");
             if (m_textureAsset)
             {
@@ -77,7 +77,7 @@ rapidjson::Value SpriteRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::SPRITE_RENDERER), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("TextureAssetId", m_textureAssetId, domTree.GetAllocator());
     componentInfo.AddMember("LookAtCamera", bool(this->m_lookAtCamera), domTree.GetAllocator());
 
     return componentInfo;
@@ -87,7 +87,7 @@ bool SpriteRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("TextureAssetId"))
     {
-        m_textureAssetId = componentInfo["TextureAssetId"].GetString();
+        m_textureAssetId = componentInfo["TextureAssetId"].GetUint64();
 
         m_texture = nullptr;
         m_gpuTexture = nullptr;

@@ -10,14 +10,14 @@ UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAG
 {
 }
 
-void UIImage::setTextureAssetId(const MD5Hash& assetId)
+void UIImage::setTextureAssetId(const UID& assetId)
 {
     m_textureAssetId = assetId;
     m_texture = nullptr;
     m_textureAsset.reset();
     m_loadRequested = false;
 
-    if (m_textureAssetId != INVALID_ASSET_ID)
+    if (m_textureAssetId != INVALID_UID)
     {
         m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
         if (m_textureAsset)
@@ -71,7 +71,7 @@ void UIImage::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+            const UID* data = static_cast<const UID*>(payload->Data);
             m_textureAssetId = *data;
             m_texture = nullptr;
             m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
@@ -102,7 +102,7 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::UIIMAGE), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("TextureAssetId", m_textureAssetId, domTree.GetAllocator());
     componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
     componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
@@ -114,7 +114,7 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("TextureAssetId"))
     {
-        m_textureAssetId = componentInfo["TextureAssetId"].GetString();
+        m_textureAssetId = componentInfo["TextureAssetId"].GetUint64();
 
         m_texture = nullptr;
         m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);

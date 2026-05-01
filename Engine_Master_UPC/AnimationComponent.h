@@ -29,8 +29,8 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
-    void setStateMachineUID(const MD5Hash& uid);
-    const MD5Hash& getStateMachineUID() const { return m_stateMachineUID; }
+    void setStateMachineUID(const UID& uid);
+    const UID& getStateMachineUID() const { return m_stateMachineUID; }
 
     bool SendTrigger(const std::string& triggerName);
 
@@ -130,7 +130,7 @@ private:
 
 private:
 
-    MD5Hash m_stateMachineUID = INVALID_ASSET_ID;
+    UID m_stateMachineUID = INVALID_UID;
 
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
     std::shared_ptr<AnimationAsset> m_currentAnimationAsset;

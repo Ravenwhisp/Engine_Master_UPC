@@ -13,7 +13,7 @@ uint64_t ImporterAnimation::saveTyped(const AnimationAsset* a, uint8_t** outBuff
 {
     uint64_t size = 0;
 
-    size += strSerialSize(a->m_uid);
+    size += sizeof(a->m_uid);
     size += strSerialSize(a->m_name);
     size += sizeof(float);
     size += sizeof(uint32_t);
@@ -35,7 +35,7 @@ uint64_t ImporterAnimation::saveTyped(const AnimationAsset* a, uint8_t** outBuff
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter w(buffer);
 
-    w.string(a->m_uid);
+    w.u64(a->m_uid);
     w.string(a->m_name);
     w.bytes(&a->m_durationSeconds, sizeof(float));
 
@@ -74,7 +74,7 @@ void ImporterAnimation::loadTyped(const uint8_t* buffer, AnimationAsset* a)
 {
     BinaryReader r(buffer);
 
-    a->m_uid = r.string();
+    a->m_uid = r.u64();
     a->m_name = r.string();
     r.bytes(&a->m_durationSeconds, sizeof(float));
 

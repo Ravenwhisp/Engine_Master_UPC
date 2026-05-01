@@ -43,7 +43,7 @@ uint64_t ImporterFont::saveTyped(const FontAsset* source, uint8_t** buffer)
     *buffer = new uint8_t[totalSize];
     BinaryWriter writer(*buffer);
 
-    writer.string(source->m_uid);
+    writer.u64(source->m_uid);
     writer.string(source->fontFamilyName);
     writer.u64(static_cast<uint64_t>(source->spriteFontData.size()));
     writer.bytes(source->spriteFontData.data(), source->spriteFontData.size());
@@ -56,7 +56,7 @@ void ImporterFont::loadTyped(const uint8_t* buffer, FontAsset* dst)
 {
     BinaryReader reader(buffer);
 
-    dst->m_uid = reader.string();
+    dst->m_uid = reader.u64();
     dst->fontFamilyName = reader.string();
 
     const uint64_t dataSize = reader.u64();

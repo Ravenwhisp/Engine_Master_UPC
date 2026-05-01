@@ -458,7 +458,7 @@ bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<Animati
         {
             rapidjson::Value clipJson(rapidjson::kObjectType);
             clipJson.AddMember("name",         rapidjson::Value(clip.name.c_str(), alloc), alloc);
-            clipJson.AddMember("animationUID", rapidjson::Value(clip.animationUID.c_str(), alloc), alloc);
+            clipJson.AddMember("animationUID", clip.animationUID, alloc);
             clipJson.AddMember("loop",         clip.loop, alloc);
             clips.PushBack(clipJson, alloc);
         }

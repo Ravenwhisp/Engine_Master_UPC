@@ -26,32 +26,32 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
 {
     uint64_t size = 0;
 
-    size += stringSerialSize(source->m_uid);
-    size += stringSerialSize(source->baseMap);
+    size += sizeof(source->m_uid);
+    size += sizeof(source->baseMap);
     size += sizeof(Color);
-    size += stringSerialSize(source->metallicRoughnessMap);
+    size += sizeof(source->metallicRoughnessMap);
     size += sizeof(uint32_t);                               // metallicFactor
     size += sizeof(uint32_t);                               // roughnessFactor
-    size += stringSerialSize(source->normalMap);
-    size += stringSerialSize(source->occlusionMap);
+    size += sizeof(source->normalMap);
+    size += sizeof(source->occlusionMap);
     size += sizeof(uint8_t);                                // isEmissive
-    size += stringSerialSize(source->emissiveMap);
+    size += sizeof(source->emissiveMap);
 
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.string(source->m_uid);
-    writer.string(source->baseMap);
+    writer.u64(source->m_uid);
+    writer.u64(source->baseMap);
     writer.bytes(&source->baseColour, sizeof(Color));
 
-    writer.string(source->metallicRoughnessMap);
+    writer.u64(source->metallicRoughnessMap);
     writer.u32(source->metallicFactor);
     writer.u32(source->roughnessFactor);
-    writer.string(source->normalMap);
-    writer.string(source->occlusionMap);
+    writer.u64(source->normalMap);
+    writer.u64(source->occlusionMap);
 
     writer.u8(source->isEmissive ? 1 : 0);
-    writer.string(source->emissiveMap);
+    writer.u64(source->emissiveMap);
 
     *outBuffer = buffer;
     return size;
@@ -61,16 +61,16 @@ void ImporterMaterial::loadTyped(const uint8_t* buffer, MaterialAsset* material)
 {
     BinaryReader reader(buffer);
 
-    material->m_uid = reader.string();
-    material->baseMap = reader.string();
+    material->m_uid = reader.u64();
+    material->baseMap = reader.u64();
     reader.bytes(&material->baseColour, sizeof(Color));
 
-    material->metallicRoughnessMap = reader.string();
+    material->metallicRoughnessMap = reader.u64();
     material->metallicFactor = reader.u32();
     material->roughnessFactor = reader.u32();
-    material->normalMap = reader.string();
-    material->occlusionMap = reader.string();
+    material->normalMap = reader.u64();
+    material->occlusionMap = reader.u64();
 
     material->isEmissive = reader.u8() != 0;
-    material->emissiveMap = reader.string();
+    material->emissiveMap = reader.u64();
 }

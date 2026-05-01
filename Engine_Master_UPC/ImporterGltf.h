@@ -41,12 +41,12 @@ protected:
 private:
     // Kept for the duration of a single import call; reset to nullptr afterwards.
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
-    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const MD5Hash& materialUID);
+    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const UID& materialUID);
     void loadAnimation(const tinygltf::Model& model,
         const tinygltf::Animation& anim,
         AnimationAsset* outAnim);
     void buildDefaultStateMachine(const tinygltf::Model& model,
-        const std::vector<MD5Hash>& animationUIDs,
+        const std::vector<UID>& animationUIDs,
         PrefabAsset* dst) const;
 
     void loadSkin(const tinygltf::Model& model,
@@ -59,9 +59,9 @@ private:
     GameObject* buildNode(int nodeIdx,
         GameObject* parent,
         const tinygltf::Model& model,
-        const std::vector<MD5Hash>& meshUIDs,
-        const std::vector<MD5Hash>& materialUIDs,
-        const std::vector<MD5Hash>& skinUIDs,
+        const std::vector<UID>& meshUIDs,
+        const std::vector<UID>& materialUIDs,
+        const std::vector<UID>& skinUIDs,
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
 
     const std::filesystem::path*    m_currentFilePath = nullptr;

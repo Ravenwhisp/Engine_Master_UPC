@@ -52,7 +52,7 @@ uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
     uint64_t size = 0;
     size += sizeof(uint32_t) + pathStr.size();
     size += sizeof(uint32_t) + data.m_name.size();
-    size += sizeof(uint32_t) + data.m_assetUID.size();
+    size += sizeof(uint64_t);
     size += sizeof(uint64_t);
     size += sizeof(uint32_t) + data.m_json.size();
 
@@ -60,7 +60,7 @@ uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
     BinaryWriter writer(buffer);
     writer.string(pathStr);
     writer.string(data.m_name);
-    writer.string(data.m_assetUID);
+    writer.u64(data.m_assetUID);
     writer.string(data.m_json);
 
     *outBuffer = buffer;
@@ -74,6 +74,6 @@ void ImporterPrefab::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
 
     data.m_sourcePath = reader.string();
     data.m_name = reader.string();
-    data.m_assetUID = reader.string();
+    data.m_assetUID = reader.u64();
     data.m_json = reader.string();
 }

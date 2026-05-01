@@ -5,7 +5,7 @@
 #include "ModuleAssets.h"
 
 CommandImportAsset::CommandImportAsset(const std::filesystem::path& sourcePath,
-    MD5Hash uid)
+    UID uid)
     : m_sourcePath(sourcePath)
     , m_uid(uid)
 {

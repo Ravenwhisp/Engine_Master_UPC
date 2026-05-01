@@ -73,7 +73,7 @@ void PrefabSerializer::serialiseNodeInto(const GameObject* go, Value& out, Docum
     {
         Value prefabLink(kObjectType);
         prefabLink.AddMember("SourcePath", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
-        prefabLink.AddMember("AssetUID", Value(info.m_assetUID.c_str(), alloc), alloc);
+        prefabLink.AddMember("AssetUID", info.m_assetUID, alloc);
         out.AddMember("PrefabLink", prefabLink, alloc);
     }
 
@@ -219,8 +219,8 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
         PrefabInfo& info = go->GetPrefabInfo();
         if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
             info.m_sourcePath = pl["SourcePath"].GetString();
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
-            info.m_assetUID = pl["AssetUID"].GetString();
+        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+            info.m_assetUID = pl["AssetUID"].GetUint64();
     }
 
     deserialiseTransform(node, go);

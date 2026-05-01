@@ -154,7 +154,7 @@ void SpriteRendererPass::renderSprites(ID3D12GraphicsCommandList4* commandList)
         {
             TextureAsset* asset = sprite->getTextureAsset();
 
-            if (!asset || sprite->getTextureAssetId() == INVALID_ASSET_ID)
+            if (!asset || sprite->getTextureAssetId() == INVALID_UID)
             {
                 sprite->setGpuTexture(nullptr);
             }

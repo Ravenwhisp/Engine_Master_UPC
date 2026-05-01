@@ -127,8 +127,8 @@ static void CollectFromObject(
         MeshRenderer* renderer = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (renderer)
         {
-            const MD5Hash meshId = renderer->getMeshReference();
-            if (meshId != INVALID_ASSET_ID)
+            const UID meshId = renderer->getMeshReference();
+            if (meshId != INVALID_UID)
             {
                 auto mesh = app->getModuleAssets()->load<MeshAsset>(meshId);
                 if (mesh)

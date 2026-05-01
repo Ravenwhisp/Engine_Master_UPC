@@ -82,16 +82,16 @@ public:
 #pragma endregion
 
 private:
-	void applyTargetTexture(const MD5Hash& assetId);
+	void applyTargetTexture(const UID& assetId);
 	void applyCurrentStateTexture();
-	MD5Hash getDefaultTextureAssetId() const;
+	UID getDefaultTextureAssetId() const;
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;
 	UID m_targetGraphicUid = 0;
-	MD5Hash m_defaultTextureAssetId = INVALID_ASSET_ID;
-	MD5Hash m_hoverTextureAssetId = INVALID_ASSET_ID;
-	MD5Hash m_pressedTextureAssetId = INVALID_ASSET_ID;
+	UID m_defaultTextureAssetId = INVALID_UID;
+	UID m_hoverTextureAssetId = INVALID_UID;
+	UID m_pressedTextureAssetId = INVALID_UID;
 
 	bool m_isPressed = false;
 	bool m_isHovered = false;

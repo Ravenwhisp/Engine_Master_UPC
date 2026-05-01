@@ -95,7 +95,7 @@ void WindowAnimationStateMachine::cleanUp()
     m_lastSaveSucceeded = false;
 }
 
-void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
+void WindowAnimationStateMachine::setTargetStateMachineUID(const UID& uid)
 {
     if (m_targetStateMachineUID == uid)
     {
@@ -116,13 +116,13 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
     m_hasSaveFeedback = false;
     m_lastSaveSucceeded = false;
 
-    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    if (m_targetStateMachineUID == INVALID_UID)
     {
         m_editorSettingsFile.clear();
     }
     else
     {
-        m_editorSettingsFile = "AnimationStateMachineEditor_" + m_targetStateMachineUID + ".json";
+        m_editorSettingsFile = "AnimationStateMachineEditor_" + std::to_string(m_targetStateMachineUID); + ".json";
     }
 
     m_needsInitialNodeLayout = true;
@@ -131,7 +131,7 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
 
 bool WindowAnimationStateMachine::ensureAssetLoaded()
 {
-    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    if (m_targetStateMachineUID == INVALID_UID)
     {
         m_asset.reset();
         return false;
@@ -164,7 +164,7 @@ bool WindowAnimationStateMachine::ensureEditorContext()
     {
         return true;
     }
-    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    if (m_targetStateMachineUID == INVALID_UID)
     {
         return false;
     }
@@ -196,11 +196,11 @@ void WindowAnimationStateMachine::destroyEditorContext()
 void WindowAnimationStateMachine::drawHeaderUi()
 {
     ImGui::Text("Target UID: %s",
-        m_targetStateMachineUID == INVALID_ASSET_ID ? "<none>" : m_targetStateMachineUID.c_str());
+        m_targetStateMachineUID == INVALID_UID ? 0 : m_targetStateMachineUID);
 
     ImGui::SameLine();
 
-    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    if (m_targetStateMachineUID == INVALID_UID)
     {
         ImGui::Spacing();
         ImGui::TextDisabled("No state machine selected.");
@@ -1233,7 +1233,7 @@ void WindowAnimationStateMachine::drawInternal()
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (m_targetStateMachineUID == INVALID_ASSET_ID)
+    if (m_targetStateMachineUID == INVALID_UID)
     {
         ImGui::TextDisabled("Graph unavailable without a selected state machine.");
         return;
