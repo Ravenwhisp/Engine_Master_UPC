@@ -244,12 +244,12 @@ static bool loadJointIndices4(const tinygltf::Model& model, int accessorIdx, uin
     return true;
 }
 
-ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
-    ImporterMaterial& importerMaterial,
-    ImporterPrefab& importerPrefab,
-    ImporterAnimation& importerAnimation,
-    ImporterSkin& importerSkin,
-    ImporterAnimationStateMachine& importerAnimationStateMachine)
+ImporterGltf::ImporterGltf(ImporterMesh* importerMesh,
+    ImporterMaterial* importerMaterial,
+    ImporterPrefab* importerPrefab,
+    ImporterAnimation* importerAnimation,
+    ImporterSkin* importerSkin,
+    ImporterAnimationStateMachine* importerAnimationStateMachine)
     : m_importerMesh(importerMesh)
     , m_importerMaterial(importerMaterial)
     , m_importerPrefab(importerPrefab)
@@ -298,7 +298,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         loadMaterial(model, model.materials[i], &matAsset);
 
         uint8_t* rawBuf = nullptr;
-        const uint64_t size = m_importerMaterial.save(&matAsset, &rawBuf);
+        const uint64_t size = m_importerMaterial->save(&matAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
         Metadata meta; meta.uid = matUID; meta.type = AssetType::MATERIAL;
@@ -319,7 +319,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         }
 
         uint8_t* rawBuf = nullptr;
-        const uint64_t size = m_importerMesh.save(&meshAsset, &rawBuf);
+        const uint64_t size = m_importerMesh->save(&meshAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
         Metadata meta; meta.uid = meshUID; meta.type = AssetType::MESH;
@@ -338,7 +338,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         loadAnimation(model, model.animations[i], &animAsset);
 
         uint8_t* rawBuf = nullptr;
-        const uint64_t size = m_importerAnimation.save(&animAsset, &rawBuf);
+        const uint64_t size = m_importerAnimation->save(&animAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
         Metadata meta;
@@ -366,7 +366,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         loadSkin(model, model.skins[i], &skinAsset);
 
         uint8_t* rawBuf = nullptr;
-        const uint64_t size = m_importerSkin.save(&skinAsset, &rawBuf);
+        const uint64_t size = m_importerSkin->save(&skinAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
         Metadata meta;
@@ -420,12 +420,12 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
 uint64_t ImporterGltf::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
 {
-    return m_importerPrefab.save(src, outBuffer);
+    return m_importerPrefab->save(src, outBuffer);
 }
 
 void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
 {
-    m_importerPrefab.load(buffer, dst);
+    m_importerPrefab->load(buffer, dst);
 }
 
 
@@ -694,7 +694,7 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     }
 
     uint8_t* rawBuf = nullptr;
-    const uint64_t size = m_importerAnimationStateMachine.save(&stateMachineAsset, &rawBuf);
+    const uint64_t size = m_importerAnimationStateMachine->save(&stateMachineAsset, &rawBuf);
     std::unique_ptr<uint8_t[]> guard(rawBuf);
 
     Metadata meta;

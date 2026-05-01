@@ -384,7 +384,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
-    <ClInclude Include="ImporterRegistry.h" />
     <ClInclude Include="AssetRegistry.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="WindowFileDialog.h" />
@@ -646,7 +645,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterMaterial.cpp" />
     <ClCompile Include="ImporterMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
-    <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />

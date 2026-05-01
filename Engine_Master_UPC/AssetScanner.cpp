@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "AssetRegistry.h"
-#include "ImporterRegistry.h"
 #include "Importer.h"
 #include "Asset.h"
 #include "Metadata.h"
@@ -15,10 +14,8 @@
 #include <FileIO.h>
 
 AssetScanner::AssetScanner(
-    AssetRegistry* registry,
-    ImporterRegistry* importerRegistry)
+    AssetRegistry* registry)
     : m_registry(registry)
-    , m_importerRegistry(importerRegistry)
 {
 }
 
@@ -121,7 +118,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
 
 void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath)
 {
-    if (m_importerRegistry->findImporter(sourcePath))
+    if (app->getModuleAssets()->findImporter(sourcePath))
         m_pendingImports.push_back({ sourcePath, INVALID_ASSET_ID });
 }
 

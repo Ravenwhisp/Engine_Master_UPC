@@ -22,12 +22,12 @@ class ImporterGltf : public ImporterSource<tinygltf::Model, PrefabAsset, AssetTy
 {
 public:
 
-    ImporterGltf(ImporterMesh& importerMesh,
-        ImporterMaterial& importerMaterial,
-        ImporterPrefab& importerPrefab,
-        ImporterAnimation& importerAnimation,
-        ImporterSkin& importerSkin,
-        ImporterAnimationStateMachine& importerAnimationStateMachine);
+    ImporterGltf(ImporterMesh* importerMesh,
+        ImporterMaterial* importerMaterial,
+        ImporterPrefab* importerPrefab,
+        ImporterAnimation* importerAnimation,
+        ImporterSkin* importerSkin,
+        ImporterAnimationStateMachine* importerAnimationStateMachine);
 
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(const MD5Hash& uid) const override;
@@ -66,10 +66,10 @@ private:
 
     const std::filesystem::path*    m_currentFilePath = nullptr;
 
-    ImporterMesh&                   m_importerMesh;
-    ImporterMaterial&               m_importerMaterial;
-    ImporterPrefab&                 m_importerPrefab;
-    ImporterAnimation&              m_importerAnimation;
-    ImporterSkin&                   m_importerSkin;
-    ImporterAnimationStateMachine&  m_importerAnimationStateMachine;
+    ImporterMesh*                   m_importerMesh;
+    ImporterMaterial*               m_importerMaterial;
+    ImporterPrefab*                m_importerPrefab;
+    ImporterAnimation*              m_importerAnimation;
+    ImporterSkin*                  m_importerSkin;
+    ImporterAnimationStateMachine*  m_importerAnimationStateMachine;
 };

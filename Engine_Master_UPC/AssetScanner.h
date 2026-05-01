@@ -4,7 +4,6 @@
 #include <vector>
 
 class AssetRegistry;
-class ImporterRegistry;
 
 // Describes a single asset that needs to be imported or re-imported.
 struct ImportRequest
@@ -19,7 +18,7 @@ struct ImportRequest
 class AssetScanner
 {
 public:
-    AssetScanner(AssetRegistry* metadataStore, ImporterRegistry* importerRegistry);
+    AssetScanner(AssetRegistry* metadataStore);
 
     std::vector<ImportRequest> scan(const std::filesystem::path& rootPath);
 
@@ -33,7 +32,6 @@ private:
     std::filesystem::path getBinaryPath(const MD5Hash& uid) const;
 
     AssetRegistry* m_registry{ nullptr };
-    ImporterRegistry* m_importerRegistry{ nullptr };
 
     std::vector<ImportRequest> m_pendingImports;
 };

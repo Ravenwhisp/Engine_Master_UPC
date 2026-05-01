@@ -5,7 +5,6 @@
 #include "WeakCache.h"
 #include "AssetRegistry.h"
 
-#include "ImporterRegistry.h"
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
 #include "PrefabSerializer.h"  
@@ -17,12 +16,16 @@
 
 class Asset;
 class AnimationStateMachineAsset;
+class Importer;
+class ImporterTexture;
 class ImporterMaterial;
 class ImporterMesh;
 class ImporterPrefab;
 class ImporterAnimation;
 class ImporterSkin;
 class ImporterAnimationStateMachine;
+class ImporterGltf;
+class ImporterFont;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -30,9 +33,17 @@ struct FileEntry;
 class ModuleAssets : public Module
 {
 public:
-    bool init()    override;
+#pragma region GameLoop
+    bool init() override;
     bool cleanUp() override;
+#pragma endregion
+
+#pragma region Importer
+    Importer* findImporter(const std::filesystem::path& filePath) const;
+    Importer* findImporter(AssetType type) const;
     bool canImport(const std::filesystem::path& sourcePath) const;
+
+#pragma endregion
 
     void importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid);
 
@@ -103,17 +114,23 @@ private:
         AssetType parentType);
 
     std::unique_ptr<AssetRegistry>      m_registry;
-    std::unique_ptr<ImporterRegistry>   m_importerRegistry;
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
     WeakCache<MD5Hash, Asset>           m_assets;
 
-    ImporterMesh*       m_importerMesh = nullptr;
-    ImporterMaterial*   m_importerMaterial = nullptr;
-    ImporterPrefab*     m_importerPrefab = nullptr;
-    ImporterAnimation*  m_importerAnimation = nullptr;
-    ImporterSkin*       m_importerSkin = nullptr;
+#pragma region Importers
+    ImporterTexture* m_importerTexture = nullptr;
+    ImporterMesh* m_importerMesh = nullptr;
+    ImporterMaterial* m_importerMaterial = nullptr;
+    ImporterPrefab* m_importerPrefab = nullptr;
+    ImporterAnimation* m_importerAnimation = nullptr;
+    ImporterSkin* m_importerSkin = nullptr;
+    ImporterGltf* m_importerGltf = nullptr;
+    ImporterFont* m_importerFont = nullptr;
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
+
+    std::vector<Importer*>                                      m_importers;
+#pragma endregion
 
     std::unordered_map<MD5Hash, std::vector<DependencyRecord>> m_pendingDependencies;
 };

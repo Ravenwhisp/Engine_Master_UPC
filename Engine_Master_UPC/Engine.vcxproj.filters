@@ -253,9 +253,6 @@
     <ClCompile Include="AssetRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterRegistry.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence\UID</Filter>
     </ClCompile>
@@ -304,7 +301,6 @@
     <ClCompile Include="SceneReferenceResolver.cpp">
       <Filter>GameEntity\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
@@ -430,6 +426,7 @@
     <ClCompile Include="ModuleTrigger.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
+    <ClCompile Include="PrefabSerializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -745,9 +742,6 @@
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="ImporterRegistry.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="AssetRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
@@ -842,7 +836,6 @@
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
     <ClInclude Include="PrefabEditSession.h" />
-    <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="Extensions.h">
       <Filter>Persistence\Importers\Core</Filter>
@@ -1069,6 +1062,7 @@
     <ClInclude Include="ModuleTrigger.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="PrefabSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

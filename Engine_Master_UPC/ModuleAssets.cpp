@@ -41,58 +41,18 @@ namespace fs = std::filesystem;
 bool ModuleAssets::init()
 {
     m_registry = std::make_unique<AssetRegistry>();
-    m_importerRegistry = std::make_unique<ImporterRegistry>();
-    
-    m_importerRegistry->registerImporter(std::make_unique<ImporterTexture>());
 
-    {
-        auto mesh = std::make_unique<ImporterMesh>();
-        m_importerMesh = mesh.get();
-        m_importerRegistry->registerImporter(std::move(mesh));
-    }
-    {
-        auto mat = std::make_unique<ImporterMaterial>();
-        m_importerMaterial = mat.get();
-        m_importerRegistry->registerImporter(std::move(mat));
-    }
-    {
-        auto prefab = std::make_unique<ImporterPrefab>();
-        m_importerPrefab = prefab.get();
-        m_importerRegistry->registerImporter(std::move(prefab));
-    }
+    m_importers.push_back(m_importerTexture = new ImporterTexture());
+    m_importers.push_back(m_importerMesh = new ImporterMesh());
+    m_importers.push_back(m_importerMaterial = new ImporterMaterial());
+    m_importers.push_back(m_importerPrefab = new ImporterPrefab());
+    m_importers.push_back(m_importerAnimation = new ImporterAnimation());
+    m_importers.push_back(m_importerSkin = new ImporterSkin());
+    m_importers.push_back(m_importerAnimationStateMachine = new ImporterAnimationStateMachine());
+    m_importers.push_back(m_importerGltf = new ImporterGltf(m_importerMesh, m_importerMaterial, m_importerPrefab, m_importerAnimation, m_importerSkin, m_importerAnimationStateMachine));
+    m_importers.push_back(m_importerFont = new ImporterFont());
 
-    {
-        auto anim = std::make_unique<ImporterAnimation>();
-        m_importerAnimation = anim.get();
-        m_importerRegistry->registerImporter(std::move(anim));
-    }
-
-    {
-        auto skin = std::make_unique<ImporterSkin>();
-        m_importerSkin = skin.get();
-        m_importerRegistry->registerImporter(std::move(skin));
-    }
-
-    {
-        auto animStateMachine = std::make_unique<ImporterAnimationStateMachine>();
-        m_importerAnimationStateMachine = animStateMachine.get();
-        m_importerRegistry->registerImporter(std::move(animStateMachine));
-    }
-
-    // GLTF importer holds references to the three importers above so it can
-    // delegate sub-asset serialisation without duplicating binary format logic.
-    m_importerRegistry->registerImporter(
-        std::make_unique<ImporterGltf>(
-            *m_importerMesh,
-            *m_importerMaterial,
-            *m_importerPrefab,
-            *m_importerAnimation,
-            *m_importerSkin,
-            *m_importerAnimationStateMachine));
-
-    m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
-
-    m_scanner = std::make_unique<AssetScanner>(m_registry.get(), m_importerRegistry.get());
+    m_scanner = std::make_unique<AssetScanner>(m_registry.get());
     m_contentRegistry = std::make_unique<ContentRegistry>(m_registry.get());
 
     refresh();
@@ -103,17 +63,46 @@ bool ModuleAssets::init()
 bool ModuleAssets::cleanUp()
 {
     m_assets.clear();
+    for (auto it = m_importers.rbegin(); it != m_importers.rend(); ++it)
+    {
+        delete* it;
+    }
+
     return true;
+}
+
+Importer* ModuleAssets::findImporter(const std::filesystem::path& filePath) const
+{
+    for (auto& importer : m_importers)
+    {
+        if (importer->canImport(filePath))
+        {
+            return importer;
+        }
+    }
+    return nullptr;
+}
+
+Importer* ModuleAssets::findImporter(AssetType type) const
+{
+    for (auto& importer : m_importers)
+    {
+        if (importer->getAssetType() == type)
+        {
+            return importer;
+        }
+    }
+    return nullptr;
 }
 
 bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
 {
-    return m_importerRegistry->findImporter(sourcePath) != nullptr;
+    return findImporter(sourcePath) != nullptr;
 }
 
 void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid)
 {
-    Importer* importer = m_importerRegistry->findImporter(sourcePath);
+    Importer* importer = findImporter(sourcePath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
@@ -227,7 +216,7 @@ std::shared_ptr<FileEntry> ModuleAssets::getEntry(const std::filesystem::path& p
 
 std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
 {
-    Importer* importer = m_importerRegistry->findImporter(metadata->type);
+    Importer* importer = findImporter(metadata->type);
     if (!importer)
     {
         DEBUG_ERROR("[ModuleAssets] No importer for asset type %u (UID %llu).", static_cast<unsigned>(metadata->type), metadata->uid);
