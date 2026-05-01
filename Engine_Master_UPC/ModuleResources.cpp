@@ -391,10 +391,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	
 	m_queue->flush();
 
-
-
-
-	auto finalTexture = new Texture(hashToUID(textureAsset.getId() + "_irradiance"), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	auto finalTexture = new Texture(textureAsset.getId(), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	return finalTexture;
 }
 
@@ -573,7 +570,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 
 
-	auto finalTexture = new Texture(hashToUID(textureAsset.getId() + "_environment"), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	auto finalTexture = new Texture(textureAsset.getId(), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	return finalTexture;
 }
 
@@ -632,13 +629,12 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 
 std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
 {
-	const UID uid = hashToUID(textureAsset.getId() + (colorSpace == TextureColorSpace::SRGB ? "_srgb" : "_linear"));
+	const UID uid = textureAsset.getId();
 
 	if (auto cached = m_resources.getAs<Texture>(uid))
 	{
 		return cached;
 	}
-
 
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace, shaderVisible));
 	m_resources.insert(uid, texture);
@@ -647,30 +643,19 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 
 std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
-	const UID uid = hashToUID(textureAsset.getId() + "_irradiance");
+	const UID uid = textureAsset.getId();
 
-	//Temporaly disable this to be able to test the createIrradianceInternal function.
-	/*if (auto cached = m_resources.getAs<Texture>(uid))
-	{
-		return cached;
-	}*/
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer, skybox));
-	m_resources.insert(uid, texture);
+
 	return texture;
 }
 
 std::shared_ptr<Texture> ModuleResources::createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
-	const UID uid = hashToUID(textureAsset.getId() + "_environment");
-
-	//Temporaly disable this to be able to test the createEnvironmentInternal function.
-	/*if (auto cached = m_resources.getAs<Texture>(uid))
-	{
-		return cached;
-	}*/
+	const UID uid = textureAsset.getId();
 
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createEnvironmentInternal(textureAsset, indexBuffer, skybox));
-	m_resources.insert(uid, texture);
+
 	return texture;
 }
 

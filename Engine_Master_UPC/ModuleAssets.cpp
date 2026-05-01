@@ -322,7 +322,7 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
         for (rapidjson::SizeType i = 0; i < deps.Size(); ++i)
         {
             const auto& entry = deps[i];
-            if (!entry.HasMember("uid")  || !entry["uid"].IsString())  continue;
+            if (!entry.HasMember("uid")  || !entry["uid"].IsUint64())  continue;
             if (!entry.HasMember("type") || !entry["type"].IsNumber()) continue;
 
             DependencyRecord rec;
@@ -347,6 +347,20 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
 {
     Metadata subMeta       = meta;
     subMeta.m_isSubAsset   = true;
+
+    if (binaryData && binarySize > 0)
+    {
+        const std::vector<int8_t> hashInput( reinterpret_cast<const int8_t*>(binaryData), reinterpret_cast<const int8_t*>(binaryData) + binarySize);
+
+        subMeta.contentHash = to_hex_string(computeMD5(hashInput));
+    }
+
+    if (!isValidAsset(subMeta.contentHash))
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot register sub-asset (UID '%s'): binary data is null or empty.",
+            subMeta.uid);
+        return;
+    }
 
     // Write the binary to Library/ — caller still owns the buffer.
     if (binaryData && binarySize > 0)
