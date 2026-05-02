@@ -96,8 +96,6 @@ public:
     const Metadata* getMetadata(const UID& uid) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
 
-    bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
-    bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 
     bool savePrefab(GameObject* go, const std::filesystem::path& savePath);
     bool applyPrefab(const GameObject* go);

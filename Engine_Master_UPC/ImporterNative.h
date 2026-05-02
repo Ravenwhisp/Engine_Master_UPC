@@ -1,6 +1,11 @@
 ﻿#pragma once
 #include "Importer.h"
 
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include "rapidjson/filereadstream.h"
+#include <fstream>
 
 template<typename AssetFormat, AssetType TType>
 class ImporterNative : public Importer

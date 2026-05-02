@@ -22,16 +22,16 @@
 #include "Transform.h"
 #include "ModuleScene.h"
 
-#include "Asset.h"
-#include "AnimationStateMachineAsset.h"
-#include "Metadata.h"
-#include "UID.h"
-
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include "rapidjson/filereadstream.h"
 #include <fstream>
+
+#include "Asset.h"
+#include "AnimationStateMachineAsset.h"
+#include "Metadata.h"
+#include "UID.h"
 
 #include <filesystem>
 #include <FileIO.h>
@@ -458,147 +458,6 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
         dep.type        = subMeta.type;
         m_pendingDependencies[parentUID].push_back(dep);
     }
-}
-
-bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
-{
-    if (!asset)
-    {
-        DEBUG_ERROR("[ModuleAssets] saveAnimationStateMachine called with null asset.");
-        return false;
-    }
-    if (!m_importerAnimationStateMachine)
-    {
-        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine importer is not initialized.");
-        return false;
-    }
-
-    if (!saveAnimationStateMachineSource(asset))
-        return false;
-
-    const Metadata* meta = m_registry->getMetadata(asset->getId());
-    if (!meta)
-    {
-        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId());
-        return false;
-    }
-
-    UID uid = asset->getId();
-    importAsset(meta->sourcePath, uid);
-    m_assets.remove(asset->getId());
-
-    return isValidUID(uid);
-}
-
-bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset)
-{
-    if (!asset) return false;
-
-    const Metadata* meta = m_registry->getMetadata(asset->getId());
-    if (!meta)
-    {
-        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId());
-        return false;
-    }
-
-    Metadata updatedMeta = *meta;
-
-    // HOTFIX: old state machines have no sourcePath — create one automatically.
-    if (updatedMeta.sourcePath.empty())
-    {
-        std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
-        std::filesystem::create_directories(dir);
-
-        std::string fileName = asset->getName();
-        if (fileName.empty()) fileName = asset->getId();
-
-        // Very simple sanitisation.
-        for (char& c : fileName)
-        {
-            if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*'
-             || c == '?' || c == '"' || c == '<'  || c == '>' || c == '|')
-                c = '_';
-        }
-
-        updatedMeta.sourcePath = dir / (fileName + ".statemachine");
-
-        std::filesystem::path metaPath = updatedMeta.sourcePath;
-        metaPath += METADATA_EXTENSION;
-
-        if (!saveMetaFile(updatedMeta, metaPath))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to create metadata for '%s'.",
-                updatedMeta.sourcePath.string().c_str());
-            return false;
-        }
-
-        m_registry->registerAsset(updatedMeta);
-    }
-
-    rapidjson::Document doc;
-    doc.SetObject();
-    auto& alloc = doc.GetAllocator();
-
-    doc.AddMember("name",         rapidjson::Value(asset->getName().c_str(), alloc), alloc);
-    doc.AddMember("defaultState", rapidjson::Value(asset->getDefaultStateName().c_str(), alloc), alloc);
-
-    {
-        rapidjson::Value clips(rapidjson::kArrayType);
-        for (const AnimationStateMachineClip& clip : asset->getClips())
-        {
-            rapidjson::Value clipJson(rapidjson::kObjectType);
-            clipJson.AddMember("name",         rapidjson::Value(clip.name.c_str(), alloc), alloc);
-            clipJson.AddMember("animationUID", clip.animationUID, alloc);
-            clipJson.AddMember("loop",         clip.loop, alloc);
-            clips.PushBack(clipJson, alloc);
-        }
-        doc.AddMember("clips", clips, alloc);
-    }
-
-    {
-        rapidjson::Value states(rapidjson::kArrayType);
-        for (const AnimationStateMachineState& state : asset->getStates())
-        {
-            rapidjson::Value stateJson(rapidjson::kObjectType);
-            stateJson.AddMember("name",                 rapidjson::Value(state.name.c_str(), alloc), alloc);
-            stateJson.AddMember("clipName",             rapidjson::Value(state.clipName.c_str(), alloc), alloc);
-            stateJson.AddMember("speed",                state.speed, alloc);
-            stateJson.AddMember("behaviourScriptName",  rapidjson::Value(state.behaviourScriptName.c_str(), alloc), alloc);
-            stateJson.AddMember("behaviourFieldsJson",  rapidjson::Value(state.behaviourFieldsJson.c_str(), alloc), alloc);
-            stateJson.AddMember("overrideLoop",         state.overrideLoop, alloc);
-            stateJson.AddMember("loop",                 state.loop, alloc);
-            states.PushBack(stateJson, alloc);
-        }
-        doc.AddMember("states", states, alloc);
-    }
-
-    {
-        rapidjson::Value transitions(rapidjson::kArrayType);
-        for (const AnimationStateMachineTransition& transition : asset->getTransitions())
-        {
-            rapidjson::Value transitionJson(rapidjson::kObjectType);
-            transitionJson.AddMember("sourceStateName",  rapidjson::Value(transition.sourceStateName.c_str(), alloc), alloc);
-            transitionJson.AddMember("targetStateName",  rapidjson::Value(transition.targetStateName.c_str(), alloc), alloc);
-            transitionJson.AddMember("triggerName",      rapidjson::Value(transition.triggerName.c_str(), alloc), alloc);
-            transitionJson.AddMember("blendTimeSeconds", transition.blendTimeSeconds, alloc);
-            transitions.PushBack(transitionJson, alloc);
-        }
-        doc.AddMember("transitions", transitions, alloc);
-    }
-
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    std::ofstream file(updatedMeta.sourcePath);
-    if (!file.is_open())
-    {
-        DEBUG_ERROR("[ModuleAssets] Could not open '%s' for writing.", updatedMeta.sourcePath.string().c_str());
-        return false;
-    }
-
-    file << buffer.GetString();
-    return file.good();
 }
 
 void ModuleAssets::flushDependencies(const UID& parentUID,
