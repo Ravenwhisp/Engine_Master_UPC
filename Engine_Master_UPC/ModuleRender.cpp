@@ -64,13 +64,14 @@ bool ModuleRender::init()
     //debugDrawPass->registerStatic(app->getModuleNavigation());
     //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
+    m_geometryPass = new GeometryPass(device);
     m_meshRenderPass = new MeshRendererPass(device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_skyBoxPass = skyBoxPass.get();
     m_renderPasses.push_back(std::move(skyBoxPass));
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
-    m_renderPasses.push_back(std::make_unique<GeometryPass>(device));
+    m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));

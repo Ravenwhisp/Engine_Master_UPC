@@ -19,6 +19,7 @@ class IRenderPass;
 class RenderSurface;
 class SkyBoxPass;
 class MeshRendererPass;
+class GeometryPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -67,6 +68,7 @@ private:
     bool m_pendingStopSimulation = false;
 
     DebugDrawPass* m_debugDrawPass = nullptr;
+    GeometryPass* m_geometryPass = nullptr;
     MeshRendererPass* m_meshRenderPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
@@ -80,6 +82,7 @@ public:
     void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
     void unregisterViewport(RenderSurface* surface);
 
+    GeometryPass* getGeometryPass() { return m_geometryPass; }
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);

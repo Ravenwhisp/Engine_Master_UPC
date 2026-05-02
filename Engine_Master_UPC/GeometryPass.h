@@ -28,6 +28,8 @@ public:
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
+    RenderSurface* getRenderSurface() { return m_gbufferSurface; }
+
 private:
     void createRootSignature();
     void createPipelineState();

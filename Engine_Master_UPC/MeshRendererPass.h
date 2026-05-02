@@ -35,14 +35,10 @@ public:
 
     GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
 
-    void renderMesh(ID3D12GraphicsCommandList* commandList);
-
 	int getTriangleCount() const { return m_trianglesCount; }
 	int getMeshCount() const { return m_meshCount; }
 
 private:
-    std::vector<MeshRenderer*> m_meshRenderers;
-
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
     ComPtr<ID3D12PipelineState>		m_pipelineState;

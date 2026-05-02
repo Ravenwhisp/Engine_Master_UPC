@@ -30,6 +30,10 @@
 #include "PlatformHelpers.h"
 #include "OptickProfiler.h"
 
+#include "GeometryPass.h"
+
+#include <iostream>
+
 MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
 	m_lighting = std::make_unique<SceneLightingSettings>();
@@ -39,27 +43,24 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
-    CD3DX12_DESCRIPTOR_RANGE srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
+    CD3DX12_ROOT_PARAMETER rootParameters[8] = {};
+    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
 
-    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
+    gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GeometryPass::GBUFFER_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
     prefilteredRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
     brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
-    rootParameters[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-    rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[5].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[6].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[7].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[8].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    
+    rootParameters[0].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // camera pos
+    rootParameters[1].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL); // lights
+    rootParameters[2].InitAsDescriptorTable(1, &gBufferRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[3].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[4].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[5].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[6].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    rootSignatureDesc.Init(9, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(7, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -82,33 +83,71 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     ComPtr<ID3DBlob> pixelShaderBlob;
     ThrowIfFailed(D3DReadFileToBlob(L"LightPixelShader.cso", &pixelShaderBlob));
 
-    // Define the vertex input layout.
-    D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}
-    };
+    std::ostringstream vsoss;
+    std::ostringstream psoss;
+
+    vsoss << "VS blob: "
+        << (vertexShaderBlob ? vertexShaderBlob->GetBufferSize() : 0)
+        << " bytes\n";
+    psoss << "PS blob: "
+        << (pixelShaderBlob ? pixelShaderBlob->GetBufferSize() : 0)
+        << " bytes\n";
+
+    OutputDebugStringA(vsoss.str().c_str());
+    OutputDebugStringA(psoss.str().c_str());
 
     // Describe and create the graphics pipeline state object (PSO).
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-    psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
+    psoDesc.InputLayout = { nullptr, 0 };
     psoDesc.pRootSignature = m_rootSignature.Get();
     psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
     psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
+    psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-    psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    psoDesc.DepthStencilState.DepthEnable = FALSE;
+    psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+    psoDesc.DepthStencilState.StencilEnable = FALSE;
+    psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    psoDesc.SampleDesc = { 1,0 };
+    psoDesc.SampleDesc.Count = 1;
+    psoDesc.SampleDesc.Quality = 0;
 
-    DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+    //DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+    HRESULT hr = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+    if (FAILED(hr))
+    {
+        std::ostringstream oss;
 
+        oss << "CreateGraphicsPipelineState failed: 0x" << std::hex << hr << std::endl;
+        OutputDebugStringA(oss.str().c_str());
+    }
+
+    ComPtr<ID3D12InfoQueue> infoQueue;
+    if (SUCCEEDED(m_device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+    {
+        UINT64 messageCount = infoQueue->GetNumStoredMessages();
+
+        for (UINT64 i = 0; i < messageCount; ++i)
+        {
+            SIZE_T messageLength = 0;
+            infoQueue->GetMessage(i, nullptr, &messageLength);
+
+            std::vector<char> bytes(messageLength);
+            auto* message = reinterpret_cast<D3D12_MESSAGE*>(bytes.data());
+
+            infoQueue->GetMessage(i, message, &messageLength);
+
+            OutputDebugStringA(message->pDescription);
+            OutputDebugStringA("\n");
+        }
+
+        infoQueue->ClearStoredMessages();
+    }
 }
 
 
@@ -121,11 +160,6 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
         m_view = &ctx.view;
         m_projection = &ctx.projection;
         m_sceneDataCB->viewPos = ctx.cameraPosition;
-    }
-
-    {
-        PERF_RENDER("MeshRendererPass::prepare::GetVisibleMeshRenderers");
-        m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
     }
 
     {
@@ -160,14 +194,15 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-
     auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
-    auto depthTex = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
-    D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthTex->getDSV().cpu;
-    commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+    commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
+
+    CD3DX12_RESOURCE_BARRIER barrier;
+    barrier = CD3DX12_RESOURCE_BARRIER::Transition(colorTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE); // RTV Barrier
+    commandList->ResourceBarrier(1, &barrier);
 
     // Bind root signature (must be set before any draw calls)
     commandList->SetPipelineState(m_pipelineState.Get());
@@ -177,118 +212,22 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
+    commandList->SetGraphicsRootConstantBufferView(0, m_sceneDataCBAddress);
 
-    commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
+    commandList->SetGraphicsRootConstantBufferView(1, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+    commandList->SetGraphicsRootDescriptorTable(2, app->getModuleRender()->getGeometryPass()->getRenderSurface()->getTextures()[0]->getSRV().gpu);
 
-    renderMesh(commandList);
-}
+    commandList->SetGraphicsRootDescriptorTable(3, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(4, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
 
+    commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
-void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
-{
-    m_trianglesCount = 0;
-    m_meshCount = 0;
+    commandList->DrawInstanced(3, 1, 0, 0);
 
-    PERF_RENDER("MeshRendererPass::renderMesh");
-
-    for (const auto& renderer : m_meshRenderers)
-    {
-        {
-            PERF_RENDER("MeshRendererPass::renderMesh::RendererValidation");
-
-            GameObject* owner = renderer->getOwner();
-            if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-            {
-                continue;
-            }
-
-            if (!renderer->isActive())
-            {
-                continue;
-            }
-        }
-
-        Transform* transform = renderer->getTransform();
-
-        const auto& mesh = renderer->getMesh();
-        if (mesh.get() == nullptr)
-            continue;
-
-        const auto& submeshes = mesh->getSubmeshes();
-        const auto& materials = renderer->getMaterials();
-
-        if (materials.size() != submeshes.size())
-            continue;
-
-        {
-            PERF_RENDER("MeshRendererPass::renderMesh::VertexBufferSelection");
-
-            const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
-            const VertexBuffer* cpuSkinnedVB = renderer->isCpuSkinningFallbackEnabled() ? renderer->getCpuSkinnedVertexBuffer() : nullptr;
-            const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
-
-            const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
-            const bool useCpuSkinnedVB = (!useGpuSkinnedVB && cpuSkinnedVB != nullptr);
-            const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
-
-            const VertexBuffer* activeVB = useGpuSkinnedVB ? gpuSkinnedVB : (useCpuSkinnedVB ? cpuSkinnedVB : staticVB);
-
-            if (!activeVB)
-                continue;
-
-            Matrix global = transform->getGlobalMatrix();
-            Matrix mvp = useWorldSpaceSkinnedVB ? (*m_view * *m_projection).Transpose() : (global * *m_view * *m_projection).Transpose();
-
-            commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
-
-            {
-                PERF_RENDER("MeshRendererPass::renderMesh::SubmeshLoop");
-
-                for (int i = 0; i < submeshes.size(); i++)
-                {
-                    m_trianglesCount += submeshes[i].indexCount / 3;
-                    m_meshCount++;
-
-                    const auto& material = materials.at(i).get();
-
-                    {
-                        PERF_RENDER("MeshRendererPass::renderMesh::ModelDataUpload");
-                        ModelData modelData{};
-                        modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
-                        modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
-                        modelData.material = material->getMaterial();
-
-                        commandList->SetGraphicsRootConstantBufferView( 2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData))
-                        );
-                    }
-
-                    {
-                        PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
-                        commandList->SetGraphicsRootDescriptorTable(4, material->getTableGPUHandle());
-                        commandList->SetGraphicsRootDescriptorTable(5, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
-                        commandList->SetGraphicsRootDescriptorTable(6, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
-                        commandList->SetGraphicsRootDescriptorTable(7, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
-
-                        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-                        D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
-                        commandList->IASetVertexBuffers(0, 1, &vbv);
-                    }
-
-                    if (mesh->hasIndexBuffer())
-                    {
-                        PERF_RENDER("MeshRendererPass::renderMesh::DrawIndexed");
-                        D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-                        commandList->IASetIndexBuffer(&ibv);
-                        commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
-                    }
-                }
-            }
-        }
-    }
+    barrier = CD3DX12_RESOURCE_BARRIER::Transition(colorTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET); // RTV Barrier
+    commandList->ResourceBarrier(1, &barrier);
 }
 
 GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(

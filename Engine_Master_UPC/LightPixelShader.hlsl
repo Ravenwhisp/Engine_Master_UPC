@@ -1,7 +1,10 @@
 #include "NewCBuffers.hlsli"
 
-Texture2D baseColorTex : register(t0);
-Texture2D metallicRoughnessTex : register(t1);
+// These correspond to the output of GBufferPS.hlsl
+Texture2D gBufferDiffuseTex : register(t0);                 // albedo
+Texture2D gBufferSpecularSmoothnessTex : register(t1);      // specular.rgb + smoothness.a
+Texture2D gBufferNormalTex : register(t2);                  // world normal
+Texture2D gBufferPositionTex : register(t3);                // world position
 
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
@@ -310,12 +313,14 @@ float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float 
     return lerp(diffuse + dielectricSpecular, metalSpecular, metallic);
 }
 
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
+float4 main(float4 position : SV_Position, float2 uv : TEXCOORD0) : SV_TARGET
 {
     float minRoughness = 0.04;
     
-    float4 texSample = baseColorTex.Sample(linearSample, coord);
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearSample, coord).gb;
+    float4 texSample = gBufferDiffuseTex.Sample(linearSample, uv);
+    float2 metallicRoughnessSample = gBufferSpecularSmoothnessTex.Sample(linearSample, uv).gb;
+    float3 worldPos = gBufferPositionTex.Sample(linearSample, uv);
+    float3 normal = gBufferNormalTex.Sample(linearSample, uv);
 
     if (hasBaseColorTex != 0 && texSample.a < 0.5f) //The 0.5 is temporary while transparency is not added
     {

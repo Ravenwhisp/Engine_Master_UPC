@@ -1,25 +1,27 @@
 #include "NewCBuffers.hlsli"
 
-struct VertexOutput
+struct VSOut
 {
-    float3 worldPos : POSITION;
-    float3 normal : NORMAL;
-    float2 texCoord : TEXCOORD;
-    float4 position : SV_POSITION;
-};
-
-cbuffer Transforms : register(b0)
-{
-    float4x4 mvp;
+    float4 position : SV_Position;
+    float2 uv : TEXCOORD0;
 };
  
-VertexOutput main(float3 position : POSITION, float2 texCoord : TEXCOORD, float3 normal: NORMAL)
+VSOut main(uint vertexID : SV_VertexID)
 {
-    VertexOutput output;
-    output.worldPos = mul(float4(position, 1.0), model).xyz;
-    output.normal = normalize(mul(normal, (float3x3)normalMat));
-    output.texCoord = texCoord;
-    output.position = mul(float4(position, 1.0f), mvp);
- 
+    VSOut output;
+    float2 positions[3] =
+    {
+        float2(-1, -1),
+        float2(3, -1),
+        float2(-1, 3)
+    };
+    float2 uvs[3] =
+    {
+        float2(0, 0),
+        float2(2, 0),
+        float2(0, 2)
+    };
+    output.position = float4(positions[vertexID], 0.0, 1.0);
+    output.uv = uvs[vertexID];
     return output;
 }

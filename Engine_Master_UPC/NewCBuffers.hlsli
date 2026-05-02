@@ -4,21 +4,6 @@ cbuffer SceneData : register(b1)
     float pad0;
 };
 
-cbuffer ModelData : register(b2)
-{
-    float4x4 model;
-    float4x4 normalMat;
-
-    float3 baseColor;
-    uint hasBaseColorTex;
-
-    float metallicFactor;
-    float roughnessFactor;
-    uint hasMetallicRoughnessTex;
-    
-    float padding;
-};
-
 #define MAX_DIRECTIONAL_LIGHTS 4
 #define MAX_POINT_LIGHTS 112
 #define MAX_SPOT_LIGHTS 16
@@ -55,7 +40,7 @@ struct SpotLight
     float2 pad1;
 };
 
-cbuffer LightsCB : register(b3)
+cbuffer LightsCB : register(b2)
 {
     float3 ambientColor;
     float ambientIntensity;
