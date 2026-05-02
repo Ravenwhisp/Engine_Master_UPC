@@ -21,7 +21,7 @@
 ModuleScene::ModuleScene()
 {
     m_sceneSerializer = std::make_unique<SceneSerializer>();
-    m_scene = std::make_unique<Scene>();
+    m_scene = std::make_unique<Scene>(GenerateUID());
     m_quadtree = std::make_unique<Quadtree>();
 }
 
@@ -175,7 +175,7 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
 #pragma region Persistence
 void ModuleScene::saveScene()
 {
-    m_sceneSerializer->SaveScene(m_scene.get());
+    app->getModuleAssets()->save(*m_scene.get());
 }
 
 bool ModuleScene::loadScene(const std::string& sceneName)

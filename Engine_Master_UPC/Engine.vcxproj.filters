@@ -431,6 +431,9 @@
     <ClCompile Include="FileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterScene.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1075,6 +1078,9 @@
     </ClInclude>
     <ClInclude Include="FileDialog.h">
       <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterScene.h">
+      <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -27,6 +27,7 @@ class ImporterSkin;
 class ImporterAnimationStateMachine;
 class ImporterGltf;
 class ImporterFont;
+class ImporterScene;
 struct FileEntry;
 
 // Owns the full asset lifecycle: import, cache, load, unload.
@@ -131,6 +132,7 @@ private:
     ImporterSkin* m_importerSkin = nullptr;
     ImporterGltf* m_importerGltf = nullptr;
     ImporterFont* m_importerFont = nullptr;
+    ImporterScene* m_importerScene = nullptr;
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
 
     std::vector<Importer*> m_importers;

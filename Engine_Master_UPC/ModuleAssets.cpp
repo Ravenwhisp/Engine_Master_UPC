@@ -13,6 +13,7 @@
 #include "ImporterAnimationStateMachine.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
+#include "ImporterScene.h"
 #include "MD5.h"
 
 #include "PrefabSerializer.h"
@@ -54,6 +55,7 @@ bool ModuleAssets::init()
     m_importers.push_back(m_importerAnimationStateMachine = new ImporterAnimationStateMachine());
     m_importers.push_back(m_importerGltf                  = new ImporterGltf(m_importerMesh, m_importerMaterial, m_importerPrefab, m_importerAnimation, m_importerSkin, m_importerAnimationStateMachine));
     m_importers.push_back(m_importerFont = new ImporterFont());
+    m_importers.push_back(m_importerScene = new ImporterScene());
 
     m_scanner         = std::make_unique<AssetScanner>(m_registry.get());
     m_contentRegistry = std::make_unique<ContentRegistry>(m_registry.get());
@@ -281,6 +283,15 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
     if (buffer.empty())
     {
         DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID '%s'.", metadata->uid);
+
+        //Try to import because maybe binary is not supported yet but source file is still there
+        importer->import(metadata->sourcePath, asset.get());
+        if(asset->getId() != INVALID_UID)
+        {
+			m_assets.insert(metadata->uid, asset);
+			return asset;
+		}
+
         return nullptr;
     }
 
@@ -533,7 +544,9 @@ bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
         }
     }
     if (!loaded)
+    {
         loaded = PrefabSerializer::loadDocument(info.m_sourcePath, doc);
+    }
     if (!loaded) return false;
 
     const Value& goNode = doc["GameObject"];
@@ -549,7 +562,9 @@ bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
         const auto* overrideSet = (oit != savedOverrides.m_modifiedProperties.end())
             ? &oit->second : nullptr;
         auto isOverridden = [&](const char* prop)
-            { return overrideSet && overrideSet->count(prop) > 0; };
+            { 
+                return overrideSet && overrideSet->count(prop) > 0; 
+            };
 
         if (!isOverridden("position") && tfNode.HasMember("position") && tfNode["position"].IsArray())
         {

@@ -30,27 +30,9 @@ void SceneConfig::drawSaveSceneSettings()
 {
     if (ImGui::CollapsingHeader("Save Scene"))
     {
-        static char saveSceneBuffer[256];
-        strcpy_s(saveSceneBuffer, m_saveSceneName.c_str());
-
-        if (ImGui::InputText("Scene Name##Save", saveSceneBuffer, IM_ARRAYSIZE(saveSceneBuffer)))
-        {
-            m_saveSceneName = saveSceneBuffer;
-        }
-
         if (ImGui::Button("Save"))
         {
-            const bool blank = (m_saveSceneName.find_first_not_of(" \t\n\r") == std::string::npos);
-
-            if (blank)
-            {
-                DEBUG_WARN("Cannot save scene: name is empty.");
-            }
-            else
-            {
-                m_moduleScene->getScene()->setName(m_saveSceneName.c_str());
-                m_moduleScene->saveScene();
-            }
+            m_moduleScene->saveScene();
         }
     }
 }
