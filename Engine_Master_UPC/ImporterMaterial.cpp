@@ -31,7 +31,6 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
 {
     uint64_t size = 0;
 
-    size += sizeof(source->m_uid);
     size += sizeof(source->baseMap);
     size += sizeof(Color);
     size += sizeof(source->metallicRoughnessMap);
@@ -45,7 +44,6 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u64(source->m_uid);
     writer.u64(source->baseMap);
     writer.bytes(&source->baseColour, sizeof(Color));
 
@@ -66,7 +64,6 @@ void ImporterMaterial::loadTyped(const uint8_t* buffer, MaterialAsset* material)
 {
     BinaryReader reader(buffer);
 
-    material->m_uid = reader.u64();
     material->baseMap = reader.u64();
     reader.bytes(&material->baseColour, sizeof(Color));
 

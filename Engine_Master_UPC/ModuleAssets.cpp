@@ -195,7 +195,7 @@ bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
     }
 
     meta.contentHash = computeMD5(sourcePath);
-    std::filesystem::path metaPath;
+    std::filesystem::path metaPath = sourcePath;
     meta.getMetadataPath(metaPath);
 
     if (!saveMetaFile(meta, metaPath))
@@ -410,6 +410,11 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     return true;
+}
+
+const Metadata* ModuleAssets::getMetadata(const UID& uid) const
+{
+    return m_registry->getMetadata(uid);
 }
 
 void ModuleAssets::registerSubAsset(const Metadata& meta,

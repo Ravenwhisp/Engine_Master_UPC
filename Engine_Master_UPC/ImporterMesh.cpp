@@ -29,8 +29,6 @@ uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
 {
     uint64_t size = 0;
 
-    size += sizeof(uint64_t);         // uid string
-
     size += sizeof(uint32_t);                                 // vertexCount
     size += source->vertices.size() * sizeof(Vertex);
 
@@ -47,8 +45,6 @@ uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
 
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
-
-    writer.u64(source->m_uid);
 
     writer.u32(static_cast<uint32_t>(source->vertices.size()));
     writer.bytes(source->vertices.data(), source->vertices.size() * sizeof(Vertex));
@@ -75,7 +71,6 @@ void ImporterMesh::loadTyped(const uint8_t* buffer, MeshAsset* mesh)
 {
     BinaryReader reader(buffer);
 
-    mesh->m_uid = reader.u64();
 
     const uint32_t vertexCount = reader.u32();
     mesh->vertices.resize(vertexCount);

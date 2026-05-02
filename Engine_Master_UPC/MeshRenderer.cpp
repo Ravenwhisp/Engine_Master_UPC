@@ -185,7 +185,8 @@ void MeshRenderer::drawUi()
     ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
 
     ImGui::Separator();
-    ImGui::Text("Skin Asset: %s", m_skinAsset != INVALID_UID ? m_skinAsset : 0);
+
+    ImGui::Text("Skin Asset: %s", std::to_string(m_skinAsset).c_str());
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", (int)m_jointTransforms.size());
     ImGui::Text("Palette Size: %d", (int)m_matrixPalette.size());

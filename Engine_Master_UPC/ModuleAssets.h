@@ -93,7 +93,7 @@ public:
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
-
+    const Metadata* getMetadata(const UID& uid) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
 
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);

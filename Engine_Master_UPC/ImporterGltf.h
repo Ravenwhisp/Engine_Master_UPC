@@ -1,6 +1,7 @@
 #pragma once
 #include "ImporterSource.h"
 #include "UtilityGLFT.h"
+#include "Metadata.h"
 
 class AnimationAsset;
 class SkinAsset;
@@ -45,7 +46,7 @@ private:
         AnimationAsset* outAnim);
     void buildDefaultStateMachine(const tinygltf::Model& model,
         const std::vector<UID>& animationUIDs,
-        PrefabAsset* dst) const;
+        PrefabAsset* dst);
 
     void loadSkin(const tinygltf::Model& model,
         const tinygltf::Skin& skin,
@@ -61,6 +62,11 @@ private:
         const std::vector<UID>& materialUIDs,
         const std::vector<UID>& skinUIDs,
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
+
+    std::vector<DependencyRecord> m_existingDeps;
+    std::vector<bool>             m_existingDepsUsed;
+
+    UID resolveOrGenerateUID(AssetType type, const uint8_t* data, size_t size);
 
     const std::filesystem::path*    m_currentFilePath = nullptr;
 

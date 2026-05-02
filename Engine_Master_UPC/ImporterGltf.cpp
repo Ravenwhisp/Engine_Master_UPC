@@ -32,6 +32,7 @@
 #include "ImporterAnimation.h"
 #include "ImporterSkin.h"
 #include "ImporterAnimationStateMachine.h"
+#include "Metadata.h"
 
 #include <functional>
 #include <algorithm>
@@ -139,13 +140,13 @@ static UID resolveTexture(const tinygltf::Model& model, int texIndex, const std:
     }
 
     const tinygltf::Image& img = model.images[tex.source];
-    if (img.uri.empty()) 
+    if (img.uri.empty())
     {
         return INVALID_UID;
     }
     std::filesystem::path resolved = modelPath->parent_path() / img.uri;
     UID uid = app->getModuleAssets()->findUID(resolved);
-    if (!isValidUID(uid)) 
+    if (!isValidUID(uid))
     {
         app->getModuleAssets()->importAsset(resolved, uid);
     }
@@ -259,6 +260,30 @@ ImporterGltf::ImporterGltf(ImporterMesh* importerMesh,
 {
 }
 
+UID ImporterGltf::resolveOrGenerateUID(AssetType type, const uint8_t* data, size_t size)
+{
+    if (data && size > 0)
+    {
+        const std::vector<int8_t> hashInput(
+            reinterpret_cast<const int8_t*>(data),
+            reinterpret_cast<const int8_t*>(data) + size);
+        const MD5Hash contentHash = to_hex_string(computeMD5(hashInput));
+
+        for (size_t i = 0; i < m_existingDeps.size(); ++i)
+        {
+            if (!m_existingDepsUsed[i]
+                && m_existingDeps[i].type == type
+                && m_existingDeps[i].contentHash == contentHash)
+            {
+                m_existingDepsUsed[i] = true;
+                DEBUG_LOG("[ImporterGltf] Reusing existing UID '%s' for unchanged sub-asset (type %u).", std::to_string(m_existingDeps[i].uid).c_str(), static_cast<unsigned>(type));
+                return m_existingDeps[i].uid;
+            }
+        }
+    }
+    return GenerateUID();
+}
+
 bool ImporterGltf::canImport(const std::filesystem::path& path) const
 {
     return path.extension().string() == GLTF_EXTENSION;
@@ -289,32 +314,38 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 {
     ModuleAssets* assets = app->getModuleAssets();
 
-    //Materials
+    m_existingDeps.clear();
+    m_existingDepsUsed.clear();
+    if (const Metadata* existingParentMeta = assets->getMetadata(dst->m_uid))
+    {
+        m_existingDeps = existingParentMeta->m_dependencies;
+        m_existingDepsUsed.assign(m_existingDeps.size(), false);
+    }
+
     std::vector<UID> materialUIDs(model.materials.size(), INVALID_UID);
     for (int i = 0; i < static_cast<int>(model.materials.size()); ++i)
     {
-        const UID matUID = GenerateUID();
-        MaterialAsset matAsset(matUID);
+        MaterialAsset matAsset(INVALID_UID); // own UID is not part of the binary
         loadMaterial(model, model.materials[i], &matAsset);
 
         uint8_t* rawBuf = nullptr;
         const uint64_t size = m_importerMaterial->save(&matAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
+        const UID matUID = resolveOrGenerateUID(AssetType::MATERIAL, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = matUID; meta.type = AssetType::MATERIAL;
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
         materialUIDs[i] = matUID;
     }
 
-    //Meshes
     std::vector<UID> meshUIDs(model.meshes.size(), INVALID_UID);
     for (int i = 0; i < static_cast<int>(model.meshes.size()); ++i)
     {
-        const UID meshUID = GenerateUID();
-        MeshAsset meshAsset(meshUID);
+        MeshAsset meshAsset(INVALID_UID);
         for (const tinygltf::Primitive& prim : model.meshes[i].primitives)
         {
-            const UID matUID = (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size())) ? materialUIDs[prim.material] : INVALID_UID;
+            const UID matUID = (prim.material >= 0 && prim.material < static_cast<int>(materialUIDs.size()))
+                ? materialUIDs[prim.material] : INVALID_UID;
             loadMesh(model, prim, &meshAsset, matUID);
         }
 
@@ -322,29 +353,24 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         const uint64_t size = m_importerMesh->save(&meshAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
+        const UID meshUID = resolveOrGenerateUID(AssetType::MESH, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = meshUID; meta.type = AssetType::MESH;
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
         meshUIDs[i] = meshUID;
     }
 
     std::vector<UID> animationUIDs(model.animations.size(), INVALID_UID);
-
-    // Animations (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
     {
-        const UID animUID = GenerateUID();
-
-        AnimationAsset animAsset(animUID);
+        AnimationAsset animAsset(INVALID_UID);
         loadAnimation(model, model.animations[i], &animAsset);
 
         uint8_t* rawBuf = nullptr;
         const uint64_t size = m_importerAnimation->save(&animAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
-        Metadata meta;
-        meta.uid = animUID;
-        meta.type = AssetType::ANIMATION;
-
+        const UID animUID = resolveOrGenerateUID(AssetType::ANIMATION, rawBuf, static_cast<size_t>(size));
+        Metadata meta; meta.uid = animUID; meta.type = AssetType::ANIMATION;
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
         animationUIDs[i] = animUID;
     }
@@ -355,26 +381,20 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     }
 
     std::vector<UID> skinUIDs(model.skins.size(), INVALID_UID);
-
-    // Skins (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.skins.size()); ++i)
     {
-        const UID skinUID = GenerateUID();
-        skinUIDs[i] = skinUID;
-
-        SkinAsset skinAsset(skinUID);
+        SkinAsset skinAsset(INVALID_UID);
         loadSkin(model, model.skins[i], &skinAsset);
 
         uint8_t* rawBuf = nullptr;
         const uint64_t size = m_importerSkin->save(&skinAsset, &rawBuf);
         std::unique_ptr<uint8_t[]> guard(rawBuf);
 
-        Metadata meta;
-        meta.uid = skinUID;
-        meta.type = AssetType::SKIN;
+        const UID skinUID = resolveOrGenerateUID(AssetType::SKIN, rawBuf, static_cast<size_t>(size));
+        skinUIDs[i] = skinUID;
 
+        Metadata meta; meta.uid = skinUID; meta.type = AssetType::SKIN;
         assets->registerSubAsset(meta, dst->m_uid, rawBuf, static_cast<size_t>(size));
-
     }
 
     std::vector<std::unique_ptr<GameObject>> tempObjects;
@@ -414,6 +434,8 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     data.m_assetUID = dst->m_uid;
 
     m_currentFilePath = nullptr;
+    m_existingDeps.clear();
+    m_existingDepsUsed.clear();
     // tempObjects destroyed here — all temporary GameObjects are freed.
 }
 
@@ -628,7 +650,7 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model, const tinygltf::A
     }
 }
 
-void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<UID>& animationUIDs, PrefabAsset* dst) const
+void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<UID>& animationUIDs, PrefabAsset* dst)
 {
     if (!m_currentFilePath || !dst || animationUIDs.empty())
         return;
@@ -637,9 +659,7 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     if (!assets)
         return;
 
-    const UID stateMachineUID = GenerateUID();
-
-    AnimationStateMachineAsset stateMachineAsset(stateMachineUID);
+    AnimationStateMachineAsset stateMachineAsset(INVALID_UID);
     stateMachineAsset.m_name = m_currentFilePath->stem().string() + "_StateMachine";
     stateMachineAsset.m_defaultStateName.clear();
     stateMachineAsset.m_clips.clear();
@@ -697,6 +717,8 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     const uint64_t size = m_importerAnimationStateMachine->save(&stateMachineAsset, &rawBuf);
     std::unique_ptr<uint8_t[]> guard(rawBuf);
 
+    const UID stateMachineUID = resolveOrGenerateUID(AssetType::ANIMATION_STATE_MACHINE, rawBuf, static_cast<size_t>(size));
+
     Metadata meta;
     meta.uid = stateMachineUID;
     meta.type = AssetType::ANIMATION_STATE_MACHINE;
@@ -725,9 +747,13 @@ void ImporterGltf::loadSkin(const tinygltf::Model& model, const tinygltf::Skin& 
         joint.nodeName = resolveNodeName(model, nodeIdx);
 
         if (i < inverseBindMatrices.size())
+        {
             joint.inverseBindMatrix = inverseBindMatrices[i];
+        }
         else
+        {
             joint.inverseBindMatrix = Matrix::Identity;
+        }
 
         outSkin->m_joints.push_back(std::move(joint));
     }
@@ -736,7 +762,7 @@ void ImporterGltf::loadSkin(const tinygltf::Model& model, const tinygltf::Skin& 
 void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* mat)
 {
     const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
-    mat->baseColour = Color( float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
+    mat->baseColour = Color(float(pbr.baseColorFactor[0]), float(pbr.baseColorFactor[1]), float(pbr.baseColorFactor[2]), float(pbr.baseColorFactor[3]));
     mat->metallicFactor = static_cast<uint32_t>(pbr.metallicFactor);
     mat->roughnessFactor = static_cast<uint32_t>(pbr.roughnessFactor);
     mat->baseMap = resolveTexture(model, pbr.baseColorTexture.index, m_currentFilePath);
@@ -767,17 +793,17 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
 
     if (gNode.translation.size() == 3)
     {
-        tf->setPosition(Vector3( (float)gNode.translation[0], (float)gNode.translation[1], (float)gNode.translation[2]));
+        tf->setPosition(Vector3((float)gNode.translation[0], (float)gNode.translation[1], (float)gNode.translation[2]));
     }
 
     if (gNode.rotation.size() == 4)
     {
-        tf->setRotation(Quaternion( (float)gNode.rotation[0], (float)gNode.rotation[1], (float)gNode.rotation[2], (float)gNode.rotation[3]));
+        tf->setRotation(Quaternion((float)gNode.rotation[0], (float)gNode.rotation[1], (float)gNode.rotation[2], (float)gNode.rotation[3]));
     }
 
     if (gNode.scale.size() == 3)
     {
-        tf->setScale(Vector3( (float)gNode.scale[0], (float)gNode.scale[1], (float)gNode.scale[2]));
+        tf->setScale(Vector3((float)gNode.scale[0], (float)gNode.scale[1], (float)gNode.scale[2]));
     }
 
     if (parent)
@@ -820,7 +846,7 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
 
     for (int childIdx : gNode.children)
     {
-        buildNode(childIdx, go, model, meshUIDs, materialUIDs, skinUIDs,tempObjects);
+        buildNode(childIdx, go, model, meshUIDs, materialUIDs, skinUIDs, tempObjects);
     }
 
     return go;
