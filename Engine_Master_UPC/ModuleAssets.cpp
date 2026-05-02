@@ -460,33 +460,6 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
     }
 }
 
-void ModuleAssets::flushDependencies(const UID& parentUID,
-    const std::filesystem::path& parentSourcePath,
-    AssetType parentType)
-{
-    auto it = m_pendingDependencies.find(parentUID);
-    if (it == m_pendingDependencies.end()) return;
-
-    // Upsert the parent's registry entry with the collected dependency list.
-    Metadata parentMeta;
-    const Metadata* existing = m_registry->getMetadata(parentUID);
-    if (existing)
-    {
-        parentMeta = *existing;
-    }
-    else
-    {
-        parentMeta.uid        = parentUID;
-        parentMeta.type       = parentType;
-        parentMeta.sourcePath = parentSourcePath;
-    }
-
-    parentMeta.m_dependencies = std::move(it->second);
-    m_pendingDependencies.erase(it);
-
-    m_registry->registerAsset(parentMeta);
-}
-
 bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
 {
     if (!go || savePath.empty()) return false;

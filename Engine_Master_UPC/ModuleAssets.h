@@ -111,7 +111,6 @@ private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
 
-    void flushDependencies(const UID& parentUID, const std::filesystem::path& parentSourcePath, AssetType parentType);
     void                    requestSave(const Asset& asset);
     bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
 
