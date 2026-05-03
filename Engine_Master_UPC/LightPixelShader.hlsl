@@ -19,15 +19,7 @@ static const float3 DIELECTRIC_FRESNEL = 0.04;
 static const float GAMMA = 2.2;
 static const float INV_GAMMA = 1.0 / GAMMA;
 
-//float3 SchlickFresnel(float3 F0, float cosTheta)
-//{
-    
-    
-//    float x = 1.0f - cosTheta;
-//    float x2 = x * x;
-//    float x5 = x2 * x2 * x;
-//    return F0 + (1.0f - F0) * x5;
-//}
+
 
 float3 SchlickFresnel(float3 F0, float NdotH)
 {
@@ -49,27 +41,13 @@ float SmithVisibilityFunction(float NdotL, float NdotV, float roughness)
     return 0.5 / (smithL + smithV);
 }
 
-
-
-
 float NormalDistributionFunction(float NdotH, float roughness)
 {
     float roughnessSqr = roughness * roughness;
     float NdotHSqr = NdotH * NdotH;
     float f = NdotHSqr * (roughnessSqr - 1) + 1;
-    //float ndotHSqr = NdotH * NdotH;
-    //float tanNdotHSqr = (1 - ndotHSqr) / ndotHSqr;
     
     return roughnessSqr / (PI * f * f);
-    //return (1.0 / PI) * pow(roughness / (ndotHSqr * (roughnessSqr + tanNdotHSqr)), 2);
-    
-    
-    //float z = x * y + 1;
-    //float z2 = z * z;
-
-    //float w = PI * z2;
-
-    //return y / w;
 }
 
 float EpicAttenuation(float distanceValue, float radiusValue)
@@ -94,26 +72,6 @@ float SpotConeAttenuation(float cosineAngle, float cosineInner, float cosineOute
     return saturate((cosineAngle - cosineOuter) / denominator);
 }
 
-//float3 PhongSpecularBRDF(float3 F0, float NdotL, float VdotR, float shininess)
-//{
-//    float3 fresnel = SchlickFresnel(F0, NdotL);
-//    float normalization = (shininess + 2.0f) / (2.0f * PI);
-//    return normalization * fresnel * pow(VdotR, shininess);
-//}
-
-//float3 MetalicPBR(float3 F0, float LdotH, float NdotL, float NdotV, float NdotH, float roughness)
-//{
-    
-    
-    
-    
-    
-
-//    float normalization = 0.25;
-
-//    return (specularDistribution * fresnel * geometricShadow) / (4 * (NdotL * NdotV));
-//}
-
 float3 PBRNeutralToneMapping(float3 color)
 {
     float x = min(color.r, min(color.g, color.b));
@@ -135,29 +93,6 @@ float3 PBRNeutralToneMapping(float3 color)
     return lerp(color, newPeak.xxx, g);
 }
 
-//float3 EvaluateLight(float3 lightDirection, float3 lightColor, float3 normalVector, float3 viewDirection, float3 F0, float3 diffuseBRDF, float roughness) //DiffuseBRDF will be base color ("Varies")
-//{
-//    float3 halfVector = normalize(viewDirection + lightDirection);
-//    float lightDotHalf = dot(lightDirection, halfVector);
-
-//    float normalDotView = dot(normalVector, viewDirection);
-
-//    float noramlDotHalf = dot(normalVector, halfVector);
-    
-//    float normalDotLight = saturate(-dot(lightDirection, normalVector));
-//    if (normalDotLight <= 0.0f)
-//        return 0.0f;
-
-//    float3 reflectedLight = reflect(lightDirection, normalVector);
-//    float viewDotReflected = saturate(dot(viewDirection, reflectedLight));
-    
-//    float3 metalicPBR = MetalicPBR(F0, lightDotHalf, normalDotLight, normalDotView, noramlDotHalf, roughness);
-    
-//    float3 lightModel = (diffuseBRDF + metalicPBR);
-//    lightModel *= normalDotLight;
-//    return lightModel * lightColor;
-//}
-
 float3 ComputeDirectionalLight(uint lightIndex, float3 viewDirection, float3 normalVector, float NdotV, float alphaRoughness, float3 F0, float3 diffuseColor)
 {
     float3 lightDirection = normalize(directionalLights[lightIndex].direction);
@@ -177,8 +112,6 @@ float3 ComputeDirectionalLight(uint lightIndex, float3 viewDirection, float3 nor
     
     return (diffuseColor + (0.25 * fresnel * smithVisibility * normalDistribution)) * lightColor * NdotL;
     //-----------------------------------------//
-    
-    //return EvaluateLight(lightDirection, lightColor, normalVector, viewDirection, F0, diffuseBRDF, alphaRoughness);
 }
 
 float3 ComputePointLight(uint lightIndex, float3 worldPos, float3 viewDirection, float3 normalVector, float NdotV, float alphaRoughness, float3 F0, float3 diffuseColor)
@@ -257,38 +190,28 @@ float3 getDiffuseAmbientLight(in float3 normal, in float3 baseColour)
 float3 getSpecularAmbientLight(in float3 R, float NdotV, float roughness, in uint numLevels, float3 F0)
 {
 
-    // Sample prefiltered environment map at appropriate mip level
     float3 radiance = environmentTexture.SampleLevel(linearWrapSample, R, roughness * (numLevels - 1)).rgb;
 
-    // Look up BRDF scale and bias terms from LUT
     float2 fab = brdfTexture.Sample(linearWrapSample, float2(NdotV, roughness)).rg;
 
-    // Combine F0 with BRDF terms and modulate by environment radiance
     return radiance * (F0 * fab.x + fab.y);
 }
 
-// Compute the appropriate mip level based on solid angle probability
 float computeLod(float pdf, int numSamples, int width)
 {
-    // Probability of each sample - larger for less likely samples
     float solidAngle = 1.0 / ((float) numSamples * pdf + 1e-6);
 
-     // Probability of each texel - smaller for larger cubemaps
     float texelSolidAngle = 1.0 / (6.0 * width * width);
 
-    // Mip level calculation: 0.5*log2 = log4 since each mip level is 4x smaller
     return max(0.5 * log2(solidAngle / texelSolidAngle), 0.0);
 }
 
 void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm) {
 
-    // Sample prefiltered environment map at appropriate mip level
     float3 radiance = environmentTexture.SampleLevel(linearWrapSample, R, roughness * (numLevels - 1)).rgb;
     
-    // Look up BRDF scale and bias terms from LUT
     float2 fab = brdfTexture.Sample(linearClampSample, float2(NdotV, roughness)).rg;
     
-     // F0 fresnel term removed
      firstTerm = radiance * fab.x;
      secondTerm = radiance * fab.y;
 }
@@ -297,57 +220,41 @@ float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float 
 {
     float3 R = reflect(-V, N);
     float NdotV = saturate(dot(N, V));
-    // Diffuse lighting for non-metallic surfaces
-    // Metals have no diffuse component (all specular)
     float3 diffuse = getDiffuseAmbientLight(N, baseColour);
-    // Get two terms of cached radiance
     float3 firstTerm, secondTerm;
     getSpecularAmbientLightNoFresnel(R, NdotV, roughness, roughnessLevels, firstTerm, secondTerm);
 
-    // Metallic specular: uses base color as Fresnel Value (and colour)
     float3 metalSpecular = baseColour * firstTerm + secondTerm;
 
-    // Dielectric specular: uses constant Fresnel value (0.04 for non-metals)
     float3 dielectricSpecular = 0.04 * firstTerm + secondTerm;
-    // Blend between dielectric (diffuse + specular) and metallic (specular only)
     return lerp(diffuse + dielectricSpecular, metalSpecular, metallic);
 }
 
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
 {
-    float minRoughness = 0.04;
-    
+    //Load texture & material data
     float4 texSample = baseColorTex.Sample(linearWrapSample, coord);
-    //float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).gb;
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).ra;
-
-    if (hasBaseColorTex != 0 && texSample.a < 0.5f) //The 0.5 is temporary while transparency is not added
+    if (hasBaseColorTex != 0 && texSample.a < 0.5f)
     {
         discard;
     }
-    
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
-    float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.y * metallicFactor) : metallicFactor;
-    //metallic = 1 - metallic;
-    float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp((1 - metallicRoughnessSample.x) * roughnessFactor, minRoughness, 1.0) : roughnessFactor;
-    perceptualRoughness = 1 - perceptualRoughness;
     
-    float alphaRoughness = perceptualRoughness * perceptualRoughness;
+    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).bg;
+    float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.x * metallicFactor) : metallicFactor;
+    metallic = 0;
+    
+    float minRoughness = 0.04;
+    //float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp((1 - metallicRoughnessSample.y) * roughnessFactor, minRoughness, 1.0) : roughnessFactor;
+    float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp(metallicRoughnessSample.y * 1, minRoughness, 1.0) : roughnessFactor;
+    //float alphaRoughness = perceptualRoughness * perceptualRoughness;
+    float alphaRoughness = perceptualRoughness;
     
     float3 F0Metallic = albedo;
     float3 F0NonMetallic = 0.04;
     
     float3 diffuseColorMetallic = 0;
     float3 diffuseColorNonMetallic = albedo / PI;
-    
-    //float3 diffuseColor = (albedo * (float3(1.0, 1.0, 1.0) - f0)) * (1.0 - metallic);
-    //diffuseColor = diffuseColor / PI;
-    //float3 specularColor = lerp(f0, albedo, metallic);
-    
-    //float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
-    //float reflectance90 = saturate(reflectance * 25.0);
-    //float3 specularEnviromentR0 = specularColor.rgb;
-    //float3 specularEnviromentR90 = float3(1.0, 1.0, 1.0) * reflectance90;
     
     float3 normalVector = normalize(normal);
     
@@ -359,8 +266,6 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 colorMetallic = 0.0;
     float3 colorNonMetallic = 0.0;
 
-    //viewDirection, normalVector, NdotV, alphaRoughness, specularEnviromentR0, specularEnviromentR90, diffuseColor
-    
     // Directional lights
     for (uint i = 0; i < directionalCount; ++i)
     {
@@ -386,12 +291,9 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
     
     //IBL
-    //float3 indirectLighting = ambientColor * ambientIntensity;
-    //float3 indirectLighting = getDiffuseAmbientLight(normalVector, baseColor);
     float3 indirectLighting = computeLighting(viewDirection, normalVector, F0Metallic, alphaRoughness, 11, metallic);
     
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
-    //float3 finalColor = LinearToSRGB(colorMapped);
     float3 finalColor = LinearToSRGB(colorMapped);
 
     return float4(finalColor, 1.0f);
