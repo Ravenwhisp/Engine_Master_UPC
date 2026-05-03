@@ -427,6 +427,9 @@
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="PrefabSerializer.cpp" />
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="FileDialog.cpp">
       <Filter>Editor\Views</Filter>
@@ -1070,6 +1073,9 @@
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClInclude Include="AssetDialogFilter.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
