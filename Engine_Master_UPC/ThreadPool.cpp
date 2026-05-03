@@ -1,11 +1,12 @@
+#include "Globals.h"
 #include "ThreadPool.h"
 
 ThreadPool::ThreadPool()
 {
-    size_t numThreads = std::thread::hardware_concurrency();
-    m_workers.reserve(numThreads);
+    m_numThreads = 1;// std::thread::hardware_concurrency();
+    m_workers.reserve(m_numThreads);
 
-    for (unsigned int i = 0; i < numThreads; ++i)
+    for (unsigned int i = 0; i < m_numThreads; ++i)
     {
         m_workers.emplace_back(std::bind(&ThreadPool::WorkerFunc, this, i));
     }

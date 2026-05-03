@@ -3,6 +3,7 @@
 #include "MD5Fwd.h"
 #include <filesystem>
 #include <unordered_set>
+#include <unordered_map>
 
 struct Metadata;
 

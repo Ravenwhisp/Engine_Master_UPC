@@ -1075,7 +1075,7 @@
     <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="ThreadPool.h">
       <Filter>Core</Filter>
-    </ClCompile>
+    </ClInclude>
     <ClInclude Include="AssetDialogFilter.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>

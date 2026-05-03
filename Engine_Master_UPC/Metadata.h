@@ -4,6 +4,9 @@
 #include "AssetType.h"
 #include "AssetsDictionary.h"
 
+#include <filesystem>
+#include <vector>
+
 struct DependencyRecord
 {
 	UID			uid = INVALID_UID;

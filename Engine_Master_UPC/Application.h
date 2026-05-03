@@ -24,6 +24,7 @@ class ModuleTrigger;
 
 class CameraComponent;
 class Settings;
+class ThreadPool;
 
 enum class ENGINE_STATE
 {
@@ -59,6 +60,7 @@ public:
     ModuleTrigger*              getModuleTrigger() { return m_moduleTrigger; }
 
     Settings*                   getSettings() { return m_settings; }
+    ThreadPool*                 getThreadPool() { return m_threadPool; }
 
     // FIXME: Cannot return const CameraComponent* (which it should) because render is not const
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
@@ -98,6 +100,7 @@ private:
     ModuleTrigger* m_moduleTrigger = nullptr;
 
     Settings*               m_settings = nullptr;
+    ThreadPool*             m_threadPool = nullptr;
 
     HMODULE m_gameScriptsModule = nullptr;
 
