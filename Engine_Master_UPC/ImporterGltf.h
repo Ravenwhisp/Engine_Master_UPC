@@ -64,10 +64,9 @@ private:
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
 
 
-    UID resolveOrGenerateUID(AssetType type, const uint8_t* data, size_t size);
+    AssetReference resolveOrGenerateReference(AssetType type, const uint8_t* data, size_t size);
 
-
-    AssetReference* resolveTexture(const tinygltf::Model& model, int texIndex) const;
+    AssetReference resolveTexture(const tinygltf::Model& model, int texIndex) const;
 
     std::vector<DependencyRecord> m_existingDeps;
     std::vector<bool>             m_existingDepsUsed;

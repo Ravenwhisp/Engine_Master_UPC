@@ -128,10 +128,10 @@ static void CollectFromObject(
         MeshRenderer* renderer = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (renderer)
         {
-            AssetReference* meshRef = renderer->getMeshReference();
-            if (meshRef->isValid())
+            AssetReference& meshRef = renderer->getMeshReference();
+            if (meshRef.isValid())
             {
-                auto mesh = app->getModuleAssets()->load<MeshAsset>(*meshRef);
+                auto mesh = app->getModuleAssets()->load<MeshAsset>(meshRef);
                 if (mesh)
                 {
                     const Matrix world = obj->GetTransform()->getGlobalMatrix();

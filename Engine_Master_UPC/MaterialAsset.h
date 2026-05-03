@@ -13,24 +13,24 @@ public:
 	MaterialAsset() = default;
 	MaterialAsset(AssetReference& id) : Asset(id, AssetType::MATERIAL) {}
 
-	AssetReference* getBaseMap() const { return baseMap; }
+	AssetReference& getBaseMap() { return baseMap; }
 	Color& getBaseColour() const { return baseColour; }
 
-	AssetReference* getMetallicRoughnessMap() const { return metallicRoughnessMap; }
+	AssetReference& getMetallicRoughnessMap() { return metallicRoughnessMap; }
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
 protected:
 
-	AssetReference*		baseMap;
+	AssetReference		baseMap{};
 	mutable Color		baseColour = Color(255, 255, 255, 0);
 
-	AssetReference*		metallicRoughnessMap;
+	AssetReference		metallicRoughnessMap{};
 	uint32_t			roughnessFactor = 0;
 	uint32_t			metallicFactor = 0;
-	AssetReference*		normalMap;
-	AssetReference*		occlusionMap;
+	AssetReference		normalMap{};
+	AssetReference		occlusionMap{};
 
 	bool				isEmissive = false;
-	AssetReference*		emissiveMap;
+	AssetReference		emissiveMap{};
 };
 

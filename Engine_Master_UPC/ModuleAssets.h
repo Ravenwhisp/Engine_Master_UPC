@@ -19,7 +19,7 @@
 
 
 class Asset;
-class ScanFileResult;
+struct ScanFileResult;
 class AnimationStateMachineAsset;
 class ImporterTexture;
 class ImporterMaterial;
@@ -201,10 +201,8 @@ private:
     
     std::unordered_map<UID, AssetIndexEntry>  m_uidIndex;
 
-    // normalised-sourcePath-string → UID   — used by findUID() / loadAtPath().
     std::unordered_map<std::string, UID>      m_pathIndex;
 
-    // Inserts / updates both maps atomically.
     void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath);
 
     std::unique_ptr<AssetScanner>       m_scanner;

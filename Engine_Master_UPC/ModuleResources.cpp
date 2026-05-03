@@ -693,7 +693,7 @@ std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsse
 	return mesh;
 }
 
-std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAsset& materialAsset)
+std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(MaterialAsset& materialAsset)
 {
 	const UID uid = materialAsset.getUID();
 

@@ -80,14 +80,18 @@ bool ModuleAssets::cleanUp()
 Importer* ModuleAssets::findImporter(const std::filesystem::path& filePath) const
 {
     for (auto& importer : m_importers)
+    {
         if (importer->canImport(filePath)) return importer;
+    }
     return nullptr;
 }
 
 Importer* ModuleAssets::findImporter(AssetType type) const
 {
     for (auto& importer : m_importers)
+    {
         if (importer->getAssetType() == type) return importer;
+    }
     return nullptr;
 }
 

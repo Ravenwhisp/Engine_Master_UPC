@@ -186,7 +186,7 @@ void MeshRenderer::drawUi()
 
     ImGui::Separator();
 
-    ImGui::Text("Skin Asset: %s", std::to_string(m_skinAsset->m_uid).c_str());
+    ImGui::Text("Skin Asset: %s", std::to_string(m_skinAsset.m_uid).c_str());
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", (int)m_jointTransforms.size());
     ImGui::Text("Palette Size: %d", (int)m_matrixPalette.size());
@@ -214,7 +214,7 @@ void MeshRenderer::onTransformChange()
 
 void MeshRenderer::update()
 {
-    if (!m_skinAsset->isValid())
+    if (!m_skinAsset.isValid())
         return;
 
     if (!ensureSkinLoaded())
@@ -249,15 +249,15 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("MeshAssetId",m_meshAsset->getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("SkinAssetId",m_skinAsset->getJson(domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("MeshAssetId",m_meshAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("SkinAssetId",m_skinAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
     {
         rapidjson::Value materialsData(rapidjson::kArrayType);
 
         for (const auto& materials : m_materialAssets)
         {
-            materialsData.PushBack(materials->getJson(domTree.GetAllocator()), domTree.GetAllocator());
+            materialsData.PushBack(materials.getJson(domTree.GetAllocator()), domTree.GetAllocator());
         }
 
         componentInfo.AddMember("MaterialAssetId", materialsData, domTree.GetAllocator());
@@ -296,7 +296,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 				continue;
 			}
 
-            m_materialAssets.push_back(&materialId);
+            m_materialAssets.push_back(materialId);
 
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
             if (materialAsset)
@@ -308,7 +308,7 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 
     if (componentInfo.HasMember("SkinAssetId"))
     {
-        m_skinAsset->deserializeJson(componentInfo["SkinAssetId"]);
+        m_skinAsset.deserializeJson(componentInfo["SkinAssetId"]);
     }
 
     invalidateSkinningRuntime();
@@ -318,18 +318,18 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 
 void MeshRenderer::setMeshReference(AssetReference& meshRef)
 {
-    m_meshAsset = &meshRef;
+    m_meshAsset = meshRef;
 	invalidateSkinningRuntime();
 }
 
 void MeshRenderer::addMaterialReference(AssetReference& materialRef)
 {
-    	m_materialAssets.push_back(&materialRef);
+    	m_materialAssets.push_back(materialRef);
 }
 
 void MeshRenderer::setSkinReference(AssetReference& skinRef)
 {
-    m_skinAsset = &skinRef;
+    m_skinAsset = skinRef;
 	invalidateSkinningRuntime();
 }
 
@@ -367,13 +367,13 @@ bool MeshRenderer::hasGpuSkinningResources() const
 
 bool MeshRenderer::ensureSkinLoaded()
 {
-    if (!m_skinAsset->isValid())
+    if (!m_skinAsset.isValid())
         return false;
 
     if (m_skin)
         return true;
 
-    auto skinAsset = app->getModuleAssets()->load<SkinAsset>(*m_skinAsset);
+    auto skinAsset = app->getModuleAssets()->load<SkinAsset>(m_skinAsset);
     if (!skinAsset)
     {
         DEBUG_WARN("[MeshRenderer] Could not load SkinAsset '%s'.", m_skinAsset);
