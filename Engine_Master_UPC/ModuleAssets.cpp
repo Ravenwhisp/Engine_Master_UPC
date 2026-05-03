@@ -205,7 +205,7 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
         return false;
     }
 
-    registerIndex(meta.uid, meta.type, sourcePath);
+    registerIndex(meta.uid, meta.type, sourcePath, meta.contentHash);
 
     uint8_t* rawBuffer = nullptr;
     const uint64_t size = importer->save(asset, &rawBuffer);
@@ -234,7 +234,7 @@ void ModuleAssets::refresh()
     {
         if (!isValidUID(meta.uid))
             continue;
-        registerIndex(meta.uid, meta.type, meta.sourcePath);
+        registerIndex(meta.uid, meta.type, meta.sourcePath, meta.contentHash);
     }
 
     // Process assets that need (re)importing.
@@ -249,10 +249,11 @@ void ModuleAssets::refresh()
 }
 
 void ModuleAssets::registerIndex(const UID& uid, AssetType type,
-    const std::filesystem::path& sourcePath)
+    const std::filesystem::path& sourcePath,
+    const MD5Hash& contentHash)
 {
     const fs::path norm = sourcePath.lexically_normal();
-    m_uidIndex[uid] = { type, norm };
+    m_uidIndex[uid] = { type, norm, contentHash };
     if (!norm.empty())
     {
         m_pathIndex[norm.string()] = uid;
@@ -265,6 +266,41 @@ UID ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
     return it != m_pathIndex.end() ? it->second : INVALID_UID;
 }
 
+std::optional<AssetReference> ModuleAssets::findReference(const UID& uid)
+{
+    if (!isValidUID(uid))
+    {
+        return std::nullopt;
+    }
+
+    const auto it = m_uidIndex.find(uid);
+    if (it == m_uidIndex.end())
+    {
+        return std::nullopt;
+    }
+
+    const AssetIndexEntry& entry = it->second;
+
+    if (isValidAsset(entry.contentHash))
+    {
+        return AssetReference(uid, entry.contentHash, entry.type);
+    }
+
+    if (!entry.sourcePath.empty())
+    {
+        std::filesystem::path metaPath = entry.sourcePath;
+        Metadata::getMetadataPath(metaPath);
+        Metadata meta;
+        if (loadMetaFile(metaPath, meta))
+        {
+            const_cast<AssetIndexEntry&>(entry).contentHash = meta.contentHash;
+            return AssetReference(uid, meta.contentHash, meta.type);
+        }
+    }
+
+    DEBUG_WARN("[ModuleAssets] findReference: UID '%s' found in index but contentHash could not be resolved.", std::to_string(uid).c_str());
+    return std::nullopt;
+}
 
 bool ModuleAssets::isLoaded(const AssetReference& ref)
 {

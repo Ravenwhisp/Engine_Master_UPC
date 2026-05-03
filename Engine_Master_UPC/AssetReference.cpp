@@ -28,3 +28,4 @@ bool AssetReference::deserializeJson(const rapidjson::Value& obj)
 
     return true;
 }
+

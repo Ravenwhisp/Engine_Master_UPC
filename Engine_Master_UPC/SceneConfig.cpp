@@ -129,8 +129,11 @@ void SceneConfig::drawSkyBoxSettings()
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
                 AssetReference* data = static_cast<AssetReference*>(payload->Data);
-                skyboxSettings.cubemapAssetId = data;
-                m_skyboxDirty = true;
+                if (auto cubemapRef = app->getModuleAssets()->findReference(data->m_uid))
+                {
+                    skyboxSettings.cubemapAssetId = *cubemapRef;
+                    m_skyboxDirty = true;
+                }
             }
 
             ImGui::EndDragDropTarget();

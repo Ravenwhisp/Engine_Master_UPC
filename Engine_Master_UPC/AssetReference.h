@@ -30,5 +30,4 @@ struct AssetReference {
     rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const;
     bool deserializeJson(const rapidjson::Value& obj);
 
-
 };

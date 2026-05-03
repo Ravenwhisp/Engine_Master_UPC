@@ -122,7 +122,9 @@ void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
         auto type = static_cast<ComponentType>(cn["Type"].GetInt());
         Component* comp = go->AddComponentWithUID(type, GenerateUID());
         if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
+        {
             comp->deserializeJSON(cn["Data"]);
+        }
     }
 }
 

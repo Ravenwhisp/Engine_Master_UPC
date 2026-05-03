@@ -235,18 +235,6 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
     meta.sourcePath = sourcePath.lexically_normal();
     result.metadata.push_back(meta);
 
-    auto tMD50 = std::chrono::high_resolution_clock::now();
-    const MD5Hash currentHash = computeMD5(sourcePath);
-    auto tMD51 = std::chrono::high_resolution_clock::now();
-
-    ++g_threadStats.numMD5;
-
-    const double md5Ms = elapsedMs(tMD50, tMD51);
-    if (md5Ms > 5.0)
-    {
-        DEBUG_ASSETS("[AssetScanner][Slow MD5] %.3f ms | %s", md5Ms, sourcePath.string().c_str());
-    }
-
     auto tBinaryExists0 = std::chrono::high_resolution_clock::now();
     const bool binaryMissing = !FileIO::exists(meta.getBinaryPath());
     auto tBinaryExists1 = std::chrono::high_resolution_clock::now();
@@ -257,7 +245,22 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
         DEBUG_ASSETS("[AssetScanner][Slow binary exists] %.3f ms | %s", binaryExistsMs, meta.getBinaryPath().string().c_str());
     }
 
-    const bool contentChanged = !isValidAsset(meta.contentHash) || meta.contentHash != currentHash;
+    bool contentChanged = !isValidAsset(meta.contentHash);
+    if (!contentChanged && hasSourceChanged(sourcePath, meta))
+    {
+        auto tMD50 = std::chrono::high_resolution_clock::now();
+        const MD5Hash currentHash = computeMD5(sourcePath);
+        auto tMD51 = std::chrono::high_resolution_clock::now();
+        ++g_threadStats.numMD5;
+
+        const double md5Ms = elapsedMs(tMD50, tMD51);
+        if (md5Ms > 5.0)
+        {
+            DEBUG_ASSETS("[AssetScanner][Slow MD5] %.3f ms | %s", md5Ms, sourcePath.string().c_str());
+        }
+
+        contentChanged = (meta.contentHash != currentHash);
+    }
 
     if (contentChanged || binaryMissing)
     {

@@ -147,8 +147,7 @@ static bool loadQuat(const tinygltf::Model& model, int accessorIdx, std::vector<
     if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
     const auto& acc = model.accessors[accessorIdx];
     out.resize(acc.count);
-    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()),
-        sizeof(Quaternion), sizeof(Quaternion), (uint32_t)acc.count, model, accessorIdx);
+    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()), sizeof(Quaternion), sizeof(Quaternion), (uint32_t)acc.count, model, accessorIdx);
 }
 
 static bool loadMatrices(const tinygltf::Model& model, int accessorIdx, std::vector<Matrix>& out)
@@ -156,8 +155,7 @@ static bool loadMatrices(const tinygltf::Model& model, int accessorIdx, std::vec
     if (accessorIdx < 0 || accessorIdx >= (int)model.accessors.size()) return false;
     const auto& acc = model.accessors[accessorIdx];
     out.resize(acc.count);
-    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()),
-        sizeof(Matrix), sizeof(Matrix), (uint32_t)acc.count, model, accessorIdx);
+    return loadAccessorData(reinterpret_cast<uint8_t*>(out.data()), sizeof(Matrix), sizeof(Matrix), (uint32_t)acc.count, model, accessorIdx);
 }
 
 static bool loadJointIndices4(const tinygltf::Model& model, int accessorIdx,

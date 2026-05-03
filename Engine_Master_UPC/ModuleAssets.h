@@ -38,6 +38,7 @@ struct AssetIndexEntry
 {
     AssetType             type = AssetType::UNKNOWN;
     std::filesystem::path sourcePath;
+    MD5Hash               contentHash = INVALID_ASSET_ID;
 };
 
 
@@ -145,6 +146,7 @@ public:
     void unload(const AssetReference& id);
 
     UID findUID(const std::filesystem::path& sourcePath) const;
+    std::optional<AssetReference> findReference(const UID& uid);
 
     std::shared_ptr<FileEntry> getRoot()                              const;
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
@@ -203,7 +205,9 @@ private:
 
     std::unordered_map<std::string, UID>      m_pathIndex;
 
-    void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath);
+    void registerIndex(const UID& uid, AssetType type,
+        const std::filesystem::path& sourcePath,
+        const MD5Hash& contentHash = INVALID_ASSET_ID);
 
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;

@@ -4,7 +4,7 @@
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	AssetReference* cubemapAssetId = {};
+	AssetReference cubemapAssetId{};
 
 	bool operator==(const SkyBoxSettings& o) const
     {
