@@ -74,14 +74,11 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
         return {};
     }
 
-    const size_t numThreads = std::max<size_t>(1, m_threadPool->getNumThreads());
-    const size_t maxIOThreads = std::max<size_t>(1, numThreads / 2);
+    const size_t maxIOThreads = std::min<size_t>(m_threadPool->getNumThreads()/2, 6);
     const size_t taskCount = std::min(files.size(), maxIOThreads);
     const size_t filesPerTask = (files.size() + taskCount - 1) / taskCount;
 
-    DEBUG_ASSETS(
-        "[AssetScanner] Threads: %zu | IO tasks: %zu | Files per task: %zu",
-        numThreads,
+    DEBUG_ASSETS("[AssetScanner] Threads: %zu | IO tasks: %zu | Files per task: %zu",
         taskCount,
         filesPerTask
     );
