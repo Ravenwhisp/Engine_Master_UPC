@@ -418,12 +418,17 @@
     <ClCompile Include="ThreadPool.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="FileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
     <ClCompile Include="ImporterScene.cpp">
       <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetReference.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetDialogFilter.cpp">
+      <Filter>Persistence\Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1063,6 +1068,9 @@
     </ClInclude>
     <ClInclude Include="ImporterScene.h">
       <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetReference.h">
+      <Filter>Persistence\Assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
