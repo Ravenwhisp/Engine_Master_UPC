@@ -1,38 +1,8 @@
 ﻿#pragma once
 #include "Asset.h"
-#include "UID.h"
 
 #include <filesystem>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-// ============================================================================
-// PrefabOverrideRecord
-// Per-instance divergence from the base prefab.
-// Empty on the asset itself; populated at runtime by PrefabManager.
-// ============================================================================
-struct PrefabOverrideRecord
-{
-    std::unordered_map<int, std::unordered_set<std::string>> m_modifiedProperties;
-    std::vector<int> m_addedComponentTypes;
-    std::vector<int> m_removedComponentTypes;
-
-    bool isEmpty() const
-    {
-        return m_modifiedProperties.empty()
-            && m_addedComponentTypes.empty()
-            && m_removedComponentTypes.empty();
-    }
-
-    void clear()
-    {
-        m_modifiedProperties.clear();
-        m_addedComponentTypes.clear();
-        m_removedComponentTypes.clear();
-    }
-};
 
 // ============================================================================
 // PrefabData

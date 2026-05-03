@@ -342,6 +342,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
+    <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
