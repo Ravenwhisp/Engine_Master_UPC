@@ -3,7 +3,7 @@
 
 ThreadPool::ThreadPool()
 {
-    m_numThreads = 1;// std::thread::hardware_concurrency();
+    m_numThreads = std::thread::hardware_concurrency();
     m_workers.reserve(m_numThreads);
 
     for (unsigned int i = 0; i < m_numThreads; ++i)

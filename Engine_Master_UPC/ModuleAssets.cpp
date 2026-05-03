@@ -245,7 +245,11 @@ void ModuleAssets::refresh()
         importAsset(req.sourcePath, req.existingUID);
 
     }
+
+    //auto t0 = std::chrono::high_resolution_clock::now();
     m_contentRegistry->rebuild(root);
+    //auto t1 = std::chrono::high_resolution_clock::now();
+    //DEBUG_LOG("Rebuild took %.3f ms", std::chrono::duration<double, std::milli>(t1 - t0).count());
 }
 
 UID ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
