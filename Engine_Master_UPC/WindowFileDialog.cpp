@@ -202,7 +202,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
                 }
                 else
                 {
-                    ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(MD5Hash));
+                    ImGui::SetDragDropPayload("ASSET", &asset->uid, sizeof(UID));
                     ImGui::Text("Dragging %s", asset->displayName.c_str());
                 }
 

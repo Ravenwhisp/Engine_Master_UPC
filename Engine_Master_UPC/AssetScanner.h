@@ -36,6 +36,8 @@ private:
     void loadMetadata(const std::filesystem::path& metadataPath, ScanFileResult& result) const;
     void handleMissingMetadata(const std::filesystem::path& sourcePath, ScanFileResult& result) const;
 
+    bool hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const;
+
     static void queueImport(
         std::vector<ImportRequest>& imports,
         const std::filesystem::path& sourcePath,

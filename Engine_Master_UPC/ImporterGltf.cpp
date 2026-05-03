@@ -300,8 +300,7 @@ bool ImporterGltf::loadExternal(const std::filesystem::path& path, tinygltf::Mod
     std::string err, warn;
     if (!ctx.LoadASCIIFromFile(&out, &err, &warn, path.string().c_str()))
     {
-        DEBUG_ERROR("[ImporterGltf] Failed to load '%s': %s",
-            path.string().c_str(), err.c_str());
+        DEBUG_ERROR("[ImporterGltf] Failed to load '%s': %s", path.string().c_str(), err.c_str());
         return false;
     }
 

@@ -26,6 +26,9 @@ struct Metadata
 	std::filesystem::path sourcePath;
 	AssetType type = AssetType::UNKNOWN;
 
+	uint64_t sourceFileSize = 0;
+	int64_t  sourceLastModified = 0;
+
 	std::vector<DependencyRecord> m_dependencies;
 	bool m_isSubAsset = false;
 

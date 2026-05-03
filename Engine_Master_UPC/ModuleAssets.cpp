@@ -197,6 +197,14 @@ bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
     }
 
     meta.contentHash = computeMD5(sourcePath);
+
+    std::error_code ec;
+    meta.sourceFileSize = static_cast<uint64_t>(std::filesystem::file_size(sourcePath, ec));
+    if (ec) meta.sourceFileSize = 0;
+
+    const auto ftime = std::filesystem::last_write_time(sourcePath, ec);
+    meta.sourceLastModified = ec ? 0 : static_cast<int64_t>(ftime.time_since_epoch().count());
+
     std::filesystem::path metaPath = sourcePath;
     meta.getMetadataPath(metaPath);
 
@@ -215,13 +223,11 @@ bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
     if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
-        m_registry->remove(uid);
         return false;
     }
 
     return true;
 }
-
 
 
 void ModuleAssets::refresh()
@@ -291,7 +297,7 @@ std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
     const std::vector<uint8_t> buffer = FileIO::read(metadata->getBinaryPath());
     if (buffer.empty())
     {
-        DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID '%s'.", metadata->uid);
+        DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID '%s'.", std::to_string(metadata->uid));
 
         //Try to import because maybe binary is not supported yet but source file is still there
         importer->import(metadata->sourcePath, asset.get());
@@ -320,9 +326,10 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
     doc.AddMember("contentHash", rapidjson::Value(meta.contentHash.c_str(), alloc), alloc);
     doc.AddMember("type",        rapidjson::Value(static_cast<uint32_t>(meta.type)), alloc);
     doc.AddMember("sourcePath",  rapidjson::Value(meta.sourcePath.string().c_str(), alloc), alloc);
+    doc.AddMember("sourceFileSize", rapidjson::Value(meta.sourceFileSize), alloc);
+    doc.AddMember("sourceLastModified", rapidjson::Value(meta.sourceLastModified), alloc);
 
-    // Write the dependency list so the scanner can re-register sub-assets on
-    // the next startup without re-importing the parent source file.
+
     if (!meta.m_dependencies.empty())
     {
         rapidjson::Value deps(rapidjson::kArrayType);
@@ -390,12 +397,18 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("contentHash") && doc["contentHash"].IsString())
+    {
         outMeta.contentHash = doc["contentHash"].GetString();
+    }
     else
+    {
         outMeta.contentHash = INVALID_ASSET_ID;     // will trigger re-import
+    }
 
     if (doc.HasMember("type") && doc["type"].IsNumber())
+    {
         outMeta.type = static_cast<AssetType>(doc["type"].GetUint());
+    }
     else
     {
         DEBUG_ERROR("[AssetMetadata] Missing 'type' in '%s'.", pathStr.c_str());
@@ -403,7 +416,19 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("sourcePath") && doc["sourcePath"].IsString())
+    {
         outMeta.sourcePath = doc["sourcePath"].GetString();
+    }
+
+    if (doc.HasMember("sourceFileSize") && doc["sourceFileSize"].IsUint64())
+    {
+        outMeta.sourceFileSize = doc["sourceFileSize"].GetUint64();
+    }
+
+    if (doc.HasMember("sourceLastModified") && doc["sourceLastModified"].IsInt64())
+    {
+        outMeta.sourceLastModified = doc["sourceLastModified"].GetInt64();
+    }
 
     outMeta.m_dependencies.clear();
     if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())

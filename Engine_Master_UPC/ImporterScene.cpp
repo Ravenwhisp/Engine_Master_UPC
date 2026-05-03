@@ -67,9 +67,7 @@ bool ImporterScene::importNative(const std::filesystem::path& path, Scene* dst)
         return false;
     }
 
-    auto scene = std::make_unique<Scene>();
-
-    if (!SceneSerializer::LoadFromJSON(*scene, doc))
+    if (!SceneSerializer::LoadFromJSON(*dst, doc))
     {
         DEBUG_ERROR("[SceneSerializer] Failed to load scene from JSON");
         return false;

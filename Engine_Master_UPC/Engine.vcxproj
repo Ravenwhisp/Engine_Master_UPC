@@ -296,7 +296,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="AssetType.h" />
     <ClInclude Include="Canvas.h" />
-    <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Channel.h" />
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="ContentRegistry.h" />
@@ -309,7 +308,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandDeleteAsset.h" />
     <ClInclude Include="CommandDeleteFolder.h" />
     <ClInclude Include="EngineAPI.h" />
-    <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FileDialogClipboard.h" />
@@ -374,8 +372,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="StaticTexturesPass.h" />
     <ClInclude Include="SpriteParams.h" />
-    <ClInclude Include="SpriteRenderer.h" />
-    <ClInclude Include="SpriteRendererPass.h" />
     <ClInclude Include="SpriteVertex.h" />
     <ClInclude Include="StateMachineScript.h" />
     <ClInclude Include="TextureImage.h" />
@@ -630,7 +626,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="Canvas.cpp" />
-    <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
@@ -640,7 +635,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
-    <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
@@ -675,8 +669,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="StaticTexturesPass.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="UISlider.cpp" />
-    <ClCompile Include="SpriteRenderer.cpp" />
-    <ClCompile Include="SpriteRendererPass.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
     <ClCompile Include="WindowAnimationStateMachine.cpp" />

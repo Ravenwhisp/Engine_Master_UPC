@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
+#include "ModuleAssets.h"
 #include "ModuleNavigation.h"
 
 #include "Scene.h"
@@ -41,17 +42,19 @@ void SceneConfig::drawLoadSceneSettings()
 {
     if (ImGui::CollapsingHeader("Load Scene"))
     {
-        static char loadSceneBuffer[256];
-        strcpy_s(loadSceneBuffer, m_loadSceneName.c_str());
-
-        if (ImGui::InputText("Scene Name##Load", loadSceneBuffer, IM_ARRAYSIZE(loadSceneBuffer)))
+        ImGui::Button("Load");
+        if (ImGui::BeginDragDropTarget())
         {
-            m_loadSceneName = loadSceneBuffer;
-        }
-
-        if (ImGui::Button("Load"))
-        {
-            m_moduleScene->requestSceneChange(m_loadSceneName);
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+            {
+                const UID* id = static_cast<const UID*>(payload->Data);
+                auto scene = app->getModuleAssets()->load<Scene>(*id);
+                if (scene)
+                {
+                    m_moduleScene->requestSceneChange(scene);
+                }
+            }
+            ImGui::EndDragDropTarget();
         }
     }
 }

@@ -205,9 +205,6 @@
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="ChangeScene.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="WindowGame.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
@@ -305,9 +302,6 @@
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="ExitApplication.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -346,12 +340,6 @@
     </ClCompile>
     <ClCompile Include="ImporterSkin.cpp">
       <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteRenderer.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteRendererPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
       <Filter>Core\Commands</Filter>
@@ -704,9 +692,6 @@
     <ClInclude Include="TextureAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="ChangeScene.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="WindowGame.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
@@ -715,9 +700,6 @@
     </ClInclude>
     <ClInclude Include="WaypointPathComponent.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ExitApplication.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
@@ -947,12 +929,6 @@
     </ClInclude>
     <ClInclude Include="AnimationAsset.h">
       <Filter>Animations</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteRenderer.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteRendererPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="SpriteParams.h">
       <Filter>D3D12\Rendering\RenderData</Filter>

@@ -248,31 +248,32 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
     meta.sourcePath = sourcePath.lexically_normal();
     result.metadata.push_back(meta);
 
-    auto tMD50 = std::chrono::high_resolution_clock::now();
-    const MD5Hash currentHash = computeMD5(sourcePath);
-    auto tMD51 = std::chrono::high_resolution_clock::now();
-
-    ++g_threadStats.numMD5;
-
-    const double md5Ms = elapsedMs(tMD50, tMD51);
-
-    if (md5Ms > 5.0)
-    {
-        DEBUG_ASSETS("[AssetScanner][Slow MD5] %.3f ms | %s", md5Ms, sourcePath.string().c_str());
-    }
-
     auto tBinaryExists0 = std::chrono::high_resolution_clock::now();
     const bool binaryMissing = !FileIO::exists(meta.getBinaryPath());
     auto tBinaryExists1 = std::chrono::high_resolution_clock::now();
 
     const double binaryExistsMs = elapsedMs(tBinaryExists0, tBinaryExists1);
-
     if (binaryExistsMs > 2.0)
     {
         DEBUG_ASSETS("[AssetScanner][Slow binary exists] %.3f ms | %s", binaryExistsMs, meta.getBinaryPath().string().c_str());
     }
 
-    const bool contentChanged = !isValidAsset(meta.contentHash) || meta.contentHash != currentHash;
+    bool contentChanged = !isValidAsset(meta.contentHash);
+    if (!contentChanged && hasSourceChanged(sourcePath, meta))
+    {
+        auto tMD50 = std::chrono::high_resolution_clock::now();
+        const MD5Hash currentHash = computeMD5(sourcePath);
+        auto tMD51 = std::chrono::high_resolution_clock::now();
+        ++g_threadStats.numMD5;
+
+        const double md5Ms = elapsedMs(tMD50, tMD51);
+        if (md5Ms > 5.0)
+        {
+            DEBUG_ASSETS("[AssetScanner][Slow MD5] %.3f ms | %s", md5Ms, sourcePath.string().c_str());
+        }
+
+        contentChanged = (meta.contentHash != currentHash);
+    }
 
     if (contentChanged || binaryMissing)
     {
@@ -331,6 +332,38 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
     {
         queueImport(result.imports, sourcePath, INVALID_UID);
     }
+}
+
+bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const
+{
+
+    if (meta.sourceFileSize == 0 && meta.sourceLastModified == 0)
+        return true;
+
+    std::error_code ec;
+
+    const auto fileSize = std::filesystem::file_size(sourcePath, ec);
+    if (ec)
+    {
+        DEBUG_WARN("[AssetScanner] Could not stat '%s': %s", sourcePath.string().c_str(), ec.message().c_str());
+        return true;
+    }
+
+    if (static_cast<uint64_t>(fileSize) != meta.sourceFileSize)
+    {
+        return true;
+    }
+
+    const auto ftime = std::filesystem::last_write_time(sourcePath, ec);
+    if (ec)
+    {
+        DEBUG_WARN("[AssetScanner] Could not read mtime of '%s': %s", sourcePath.string().c_str(), ec.message().c_str());
+        return true;
+    }
+
+    const int64_t lastModified = static_cast<int64_t>(ftime.time_since_epoch().count());
+
+    return lastModified != meta.sourceLastModified;
 }
 
 void AssetScanner::queueImport(
