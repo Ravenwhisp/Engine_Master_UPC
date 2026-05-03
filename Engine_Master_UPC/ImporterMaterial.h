@@ -12,7 +12,7 @@ public:
         return path.extension().string() == MATERIAL_EXTENSION;
     }
 
-    Asset* createAssetInstance(const UID& uid) const override;
+    Asset* createAssetInstance(AssetReference& uid) const override;
 
     bool saveNative(const MaterialAsset* asset, const std::filesystem::path& path);
 protected:

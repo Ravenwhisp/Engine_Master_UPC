@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 #include <FileIO.h>
 
-Asset* ImporterPrefab::createAssetInstance(const UID& uid) const
+Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
 {
     return new PrefabAsset(uid);
 }
@@ -29,7 +29,7 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset
 
     PrefabData& data = dst->getData();
     data.m_json.assign(reinterpret_cast<const char*>(raw.data()), raw.size());
-    data.m_assetUID = dst->m_uid;
+    data.m_assetUID = dst->m_reference.m_uid;
     data.m_sourcePath = path;
     data.m_name = path.stem().string();
 

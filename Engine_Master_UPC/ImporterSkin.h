@@ -10,7 +10,7 @@ public:
         return false;
     }
 
-    Asset* createAssetInstance(const UID& uid) const override
+    Asset* createAssetInstance(AssetReference& uid) const override
     {
         return new SkinAsset(uid);
     }

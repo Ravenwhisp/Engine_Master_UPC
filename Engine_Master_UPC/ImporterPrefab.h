@@ -11,7 +11,7 @@ public:
         return path.extension().string() == PREFAB_EXTENSION;
     }
 
-    Asset* createAssetInstance(const UID& uid) const override;
+    Asset* createAssetInstance(AssetReference& uid) const override;
     bool saveNative(const PrefabAsset* asset, const std::filesystem::path& path);
 protected:
     bool     importNative(const std::filesystem::path& path, PrefabAsset* dst) override;

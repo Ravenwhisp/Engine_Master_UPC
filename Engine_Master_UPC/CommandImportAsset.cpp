@@ -13,5 +13,6 @@ CommandImportAsset::CommandImportAsset(const std::filesystem::path& sourcePath,
 
 void CommandImportAsset::run()
 {
-    app->getModuleAssets()->importAsset(m_sourcePath, m_uid);
+    AssetReference ref(m_uid);
+    app->getModuleAssets()->importAsset(m_sourcePath, ref);
 }

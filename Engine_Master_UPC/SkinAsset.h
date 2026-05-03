@@ -18,7 +18,7 @@ public:
     friend class ImporterGltf;
 
     SkinAsset() = default;
-    explicit SkinAsset(UID id) : Asset(id, AssetType::SKIN) {}
+    explicit SkinAsset(AssetReference& id) : Asset(id, AssetType::SKIN) {}
 
     const std::string& getName() const { return m_name; }
     const std::vector<SkinJoint>& getJoints() const { return m_joints; }

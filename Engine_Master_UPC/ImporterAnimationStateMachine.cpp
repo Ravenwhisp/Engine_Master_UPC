@@ -31,7 +31,7 @@ bool ImporterAnimationStateMachine::saveNative(const AnimationStateMachineAsset*
         {
             rapidjson::Value clipJson(rapidjson::kObjectType);
             clipJson.AddMember("name", rapidjson::Value(clip.name.c_str(), alloc), alloc);
-            clipJson.AddMember("animationUID", clip.animationUID, alloc);
+            clipJson.AddMember("animationUID", clip.animationUID.getJson(alloc), alloc);
             clipJson.AddMember("loop", clip.loop, alloc);
             clips.PushBack(clipJson, alloc);
         }
@@ -144,9 +144,7 @@ bool ImporterAnimationStateMachine::importNative(const std::filesystem::path& pa
                 clip.name = clipJson["name"].GetString();
 
             if (clipJson.HasMember("animationUID") && clipJson["animationUID"].IsUint64())
-                clip.animationUID = clipJson["animationUID"].GetUint64();
-            else
-                clip.animationUID = INVALID_UID;
+                clip.animationUID.deserializeJson(clipJson["animationUID"]);
 
             if (clipJson.HasMember("loop") && clipJson["loop"].IsBool())
                 clip.loop = clipJson["loop"].GetBool();
@@ -244,7 +242,6 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     uint64_t size = 0;
 
     size += sizeof(uint32_t); // version
-    size += sizeof(source->m_uid);
     size += SerializedStringSize(source->m_name);
     size += SerializedStringSize(source->m_defaultStateName);
 
@@ -283,7 +280,6 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     const uint32_t version = 3;
     writer.u32(version);
 
-    writer.u64(source->m_uid);
     writer.string(source->m_name);
     writer.string(source->m_defaultStateName);
 
@@ -291,7 +287,7 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     for (const AnimationStateMachineClip& clip : source->m_clips)
     {
         writer.string(clip.name);
-        writer.u64(clip.animationUID);
+        writer.bytes(&clip.animationUID, sizeof(AssetReference));
         writer.u8(clip.loop ? 1u : 0u);
     }
 
@@ -326,7 +322,6 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
 
     const uint32_t version = reader.u32();
 
-    dst->m_uid = reader.u64();
     dst->m_name = reader.string();
     dst->m_defaultStateName = reader.string();
 
@@ -338,7 +333,7 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
     {
         AnimationStateMachineClip& clip = dst->m_clips[i];
         clip.name = reader.string();
-        clip.animationUID = reader.u64();
+        reader.bytes(&clip.animationUID, sizeof(AssetReference));
         clip.loop = reader.u8() != 0;
     }
 

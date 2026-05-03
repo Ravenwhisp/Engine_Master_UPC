@@ -15,19 +15,20 @@ struct ImportRequest
     UID existingUID = INVALID_UID;
 };
 
+struct ScanFileResult
+{
+    std::vector<Metadata> metadata;
+    std::vector<ImportRequest> imports;
+};
+
 class AssetScanner
 {
 public:
-    AssetScanner(AssetRegistry* metadataStore);
+    AssetScanner();
 
-    std::vector<ImportRequest> scan(const std::filesystem::path& rootPath);
+    ScanFileResult scan(const std::filesystem::path& rootPath);
 
 private:
-    struct ScanFileResult
-    {
-        std::vector<Metadata> metadata;
-        std::vector<ImportRequest> imports;
-    };
 
 private:
     void collectFiles(const std::filesystem::path& path, std::vector<std::filesystem::path>& files) const;
@@ -38,12 +39,8 @@ private:
 
     bool hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const;
 
-    static void queueImport(
-        std::vector<ImportRequest>& imports,
-        const std::filesystem::path& sourcePath,
-        const UID& existingUID);
+    static void queueImport( std::vector<ImportRequest>& imports, const std::filesystem::path& sourcePath, const UID& existingUID);
 
 private:
-    AssetRegistry* m_registry{ nullptr };
     ThreadPool* m_threadPool{ nullptr };
 };

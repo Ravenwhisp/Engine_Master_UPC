@@ -1,9 +1,8 @@
-#pragma once
+﻿#pragma once
 #include "Module.h"
 #include "UID.h"
 #include "AssetsDictionary.h"
 #include "WeakCache.h"
-#include "AssetRegistry.h"
 
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
@@ -14,10 +13,14 @@
 #include <memory>
 #include <Metadata.h>
 #include <mutex>
+#include <AssetReference.h>
+#include "FileIO.h"
+#include "Importer.h"
+
 
 class Asset;
+class ScanFileResult;
 class AnimationStateMachineAsset;
-class Importer;
 class ImporterTexture;
 class ImporterMaterial;
 class ImporterMesh;
@@ -30,8 +33,14 @@ class ImporterFont;
 class ImporterScene;
 struct FileEntry;
 
-// Owns the full asset lifecycle: import, cache, load, unload.
-// Also owns the editor content-browser tree.
+
+struct AssetIndexEntry
+{
+    AssetType             type = AssetType::UNKNOWN;
+    std::filesystem::path sourcePath;
+};
+
+
 class ModuleAssets : public Module
 {
 public:
@@ -47,46 +56,95 @@ public:
     bool canImport(const std::filesystem::path& sourcePath) const;
 #pragma endregion
 
-    void importAsset(const std::filesystem::path& sourcePath, UID& uid);
-    bool save(const Asset& asset, const std::filesystem::path& path = {});
+    void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
+    bool save(Asset& asset, const std::filesystem::path& path = {});
     void refresh();
 
     // Loads an asset by its stable UID.
     template<typename T>
-    std::shared_ptr<T> load(const UID& id)
+    std::shared_ptr<T> load(AssetReference& ref)
     {
-        if (auto cached = m_assets.getAs<T>(id))
+        if (!isValidUID(ref.m_uid))
+        {
+            return nullptr;
+        }
+
+        if (auto cached = m_assets.getAs<T>(ref.m_uid))
         {
             return cached;
         }
 
-        const Metadata* meta = m_registry->getMetadata(id);
-        if (!meta)
+        if (isValidAsset(ref.m_libId))
         {
-            DEBUG_ERROR("[ModuleAssets] No metadata found for UID '%s'.", id);
+            if (ref.m_type == AssetType::UNKNOWN)
+            {
+                auto it = m_uidIndex.find(ref.m_uid);
+                if (it != m_uidIndex.end())
+                {
+                    ref.m_type = it->second.type;
+                }
+            }
+
+            if (auto loaded = loadFromLibrary<T>(ref))
+            {
+                return loaded;
+            }
+        }
+
+        auto it = m_uidIndex.find(ref.m_uid);
+        if (it == m_uidIndex.end() || it->second.sourcePath.empty())
+        {
+            DEBUG_ERROR("[ModuleAssets] Cannot load UID '%s': no source path available for re-import.", std::to_string(ref.m_uid).c_str());
             return nullptr;
         }
 
-        return std::static_pointer_cast<T>(loadAsset(meta));
+        importAsset(it->second.sourcePath, ref);
+        if (!isValidAsset(ref.m_libId))
+        {
+            return nullptr;
+        }
+
+        return loadFromLibrary<T>(ref);
     }
 
-    // Resolves the stable UID from the source path, then delegates to load<T>.
+
     template<typename T>
     std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath)
     {
-        const UID id = m_registry->findByPath(sourcePath);
-        if (id == INVALID_UID)
+        const UID uid = findUID(sourcePath);
+        if (isValidUID(uid))
         {
-            DEBUG_ERROR("[ModuleAssets] No asset registered at path '%s'.", sourcePath.string().c_str());
+            if (auto cached = m_assets.getAs<T>(uid))
+            {
+                return cached;
+            }
+        }
+
+        std::filesystem::path metaPath = sourcePath;
+        Metadata::getMetadataPath(metaPath);
+
+        Metadata meta;
+        if (loadMetaFile(metaPath, meta))
+        {
+            registerIndex(meta.uid, meta.type, sourcePath);
+            AssetReference ref(meta.uid, meta.contentHash, meta.type);
+            return load<T>(ref);
+        }
+
+        AssetReference ref(isValidUID(uid) ? uid : INVALID_UID);
+        importAsset(sourcePath, ref);
+        if (!ref.isValid())
+        {
             return nullptr;
         }
-        return load<T>(id);
+
+        return loadFromLibrary<T>(ref);
     }
 
-    UID  findUID(const std::filesystem::path& sourcePath) const;
+    bool isLoaded(const AssetReference& id);
+    void unload(const AssetReference& id);
 
-    bool isLoaded(const UID& id);
-    void unload(const UID& id);
+    UID findUID(const std::filesystem::path& sourcePath) const;
 
     std::shared_ptr<FileEntry> getRoot()                              const;
     std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
@@ -94,9 +152,7 @@ public:
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
-    const Metadata* getMetadata(const UID& uid) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
-
 
     bool savePrefab(GameObject* go, const std::filesystem::path& savePath);
     bool applyPrefab(const GameObject* go);
@@ -109,14 +165,48 @@ public:
     void flushDialogRequests();
 
 private:
-    // Loads from disk using the registered importer and inserts into cache.
-    std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
 
-    void                    requestSave(const Asset& asset);
-    bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
+    template<typename T>
+    std::shared_ptr<T> loadFromLibrary(AssetReference& ref)
+    {
+        if (ref.m_type == AssetType::UNKNOWN)
+        {
+            return nullptr;
+        }
 
+        Importer* importer = findImporter(ref.m_type);
+        if (!importer)
+        {
+            DEBUG_ERROR("[ModuleAssets] No importer for type %u (UID '%s').", static_cast<unsigned>(ref.m_type), std::to_string(ref.m_uid).c_str());
+            return nullptr;
+        }
 
-    std::unique_ptr<AssetRegistry>      m_registry;
+        const std::filesystem::path binaryPath = std::filesystem::path(LIBRARY_FOLDER) / ref.m_libId += ASSET_EXTENSION;
+
+        const std::vector<uint8_t> buffer = FileIO::read(binaryPath);
+        if (buffer.empty())
+        {
+            return nullptr;
+        }
+
+        std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
+        importer->load(buffer.data(), asset.get());
+        m_assets.insert(ref.m_uid, asset);
+
+        return std::static_pointer_cast<T>(asset);
+    }
+
+    void                    requestSave(Asset& asset);
+    bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
+    
+    std::unordered_map<UID, AssetIndexEntry>  m_uidIndex;
+
+    // normalised-sourcePath-string → UID   — used by findUID() / loadAtPath().
+    std::unordered_map<std::string, UID>      m_pathIndex;
+
+    // Inserts / updates both maps atomically.
+    void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath);
+
     std::unique_ptr<AssetScanner>       m_scanner;
     std::unique_ptr<ContentRegistry>    m_contentRegistry;
 
@@ -139,13 +229,14 @@ private:
 #pragma endregion
 
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;
+    ScanFileResult* m_scanResult = nullptr;
 
 #pragma region FileDialog
     std::atomic<bool>                                           m_dialogRunning{ false };
     std::mutex                                                  m_dialogResultMutex;
     std::optional<std::filesystem::path>                        m_dialogResult;
     std::function<void(const std::filesystem::path&)>           m_dialogCallback;
-    const Asset* m_pendingAsset = nullptr;
+    Asset* m_pendingAsset = nullptr;
     AssetType                                                   m_pendingAssetType = AssetType::UNKNOWN;
     bool                                                        m_pendingIsSave = false;
 #pragma endregion

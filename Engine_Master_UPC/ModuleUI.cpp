@@ -21,6 +21,7 @@
 #include "UIText.h"
 #include <unordered_map>
 #include "WindowSceneEditor.h"
+#include "AssetReference.h"
 
 void ModuleUI::preRender()
 {
@@ -161,9 +162,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
     if (uiImg->consumeLoadRequest())
     {
         TextureAsset* asset = uiImg->getTextureAsset();
-        UID assetId = uiImg->getTextureAssetId();
+        AssetReference* assetId = uiImg->getTextureAssetId();
 
-        if (!asset || assetId == INVALID_UID)
+        if (!asset || !assetId->isValid())
         {
             uiImg->setTexture(nullptr);
         }

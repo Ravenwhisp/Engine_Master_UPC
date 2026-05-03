@@ -5,7 +5,7 @@
 #include "BinaryReader.h"
 #include "BinaryWriter.h"
 
-Asset* ImporterMaterial::createAssetInstance(const UID& uid) const
+Asset* ImporterMaterial::createAssetInstance(AssetReference& uid) const
 
 {
     return new MaterialAsset(uid);
@@ -44,17 +44,17 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u64(source->baseMap);
+    writer.bytes(&source->baseMap, sizeof(AssetReference));
     writer.bytes(&source->baseColour, sizeof(Color));
 
-    writer.u64(source->metallicRoughnessMap);
+    writer.bytes(&source->metallicRoughnessMap, sizeof(AssetReference));
     writer.u32(source->metallicFactor);
     writer.u32(source->roughnessFactor);
-    writer.u64(source->normalMap);
-    writer.u64(source->occlusionMap);
+    writer.bytes(&source->normalMap, sizeof(AssetReference));
+    writer.bytes(&source->occlusionMap, sizeof(AssetReference));
 
     writer.u8(source->isEmissive ? 1 : 0);
-    writer.u64(source->emissiveMap);
+    writer.bytes(&source->emissiveMap, sizeof(AssetReference));
 
     *outBuffer = buffer;
     return size;
@@ -64,15 +64,15 @@ void ImporterMaterial::loadTyped(const uint8_t* buffer, MaterialAsset* material)
 {
     BinaryReader reader(buffer);
 
-    material->baseMap = reader.u64();
+    reader.bytes(&material->baseMap, sizeof(AssetReference));
     reader.bytes(&material->baseColour, sizeof(Color));
 
-    material->metallicRoughnessMap = reader.u64();
+    reader.bytes(&material->metallicRoughnessMap, sizeof(AssetReference));
     material->metallicFactor = reader.u32();
     material->roughnessFactor = reader.u32();
-    material->normalMap = reader.u64();
-    material->occlusionMap = reader.u64();
+    reader.bytes(&material->normalMap, sizeof(AssetReference));
+    reader.bytes(&material->occlusionMap, sizeof(AssetReference));
 
     material->isEmissive = reader.u8() != 0;
-    material->emissiveMap = reader.u64();
+    reader.bytes(&material->emissiveMap, sizeof(AssetReference));
 }

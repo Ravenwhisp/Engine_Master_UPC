@@ -247,9 +247,6 @@
     <ClCompile Include="ContentRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="AssetRegistry.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence\UID</Filter>
     </ClCompile>
@@ -739,9 +736,6 @@
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="AssetRegistry.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="WeakCache.h">
       <Filter>Persistence</Filter>
     </ClInclude>
@@ -1072,6 +1066,7 @@
     <ClInclude Include="AssetReference.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="PrefabInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

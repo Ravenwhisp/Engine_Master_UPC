@@ -20,7 +20,8 @@
 ModuleScene::ModuleScene()
 {
     m_sceneSerializer = std::make_unique<SceneSerializer>();
-    m_scene = std::make_unique<Scene>(GenerateUID());
+    AssetReference defaultSceneRef;
+    m_scene = std::make_unique<Scene>(defaultSceneRef);
     m_quadtree = std::make_unique<Quadtree>();
 }
 

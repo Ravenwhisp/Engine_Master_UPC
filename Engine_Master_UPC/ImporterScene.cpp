@@ -6,7 +6,7 @@
 #include <rapidjson/writer.h>
 
 
-Asset* ImporterScene::createAssetInstance(const UID& uid) const
+Asset* ImporterScene::createAssetInstance(AssetReference& uid) const
 {
 	return new Scene(uid);
 }

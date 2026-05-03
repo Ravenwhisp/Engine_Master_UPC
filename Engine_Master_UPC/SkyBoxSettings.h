@@ -1,10 +1,10 @@
 #pragma once
-#include "UID.h"
+#include "AssetReference.h"
 
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	UID cubemapAssetId = INVALID_UID;
+	AssetReference* cubemapAssetId = {};
 
 	bool operator==(const SkyBoxSettings& o) const
     {

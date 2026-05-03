@@ -19,7 +19,7 @@
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
-#include "MD5Fwd.h"
+#include "AssetReference.h"
 
 SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) : m_device(device)
 {
@@ -147,7 +147,13 @@ void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
         return;
     }
 
-    if (settings.cubemapAssetId == INVALID_UID)
+    if(!settings.cubemapAssetId)	
+    {
+		m_skyBox.reset();
+		return;
+	}
+
+    if (!settings.cubemapAssetId->isValid())
     {
         m_skyBox.reset();
         return;
@@ -155,7 +161,7 @@ void SkyBoxPass::setSettings(const SkyBoxSettings& settings)
 
     auto assetModule = app->getModuleAssets();
 
-    auto asset = assetModule->load<TextureAsset>(settings.cubemapAssetId);
+    auto asset = assetModule->load<TextureAsset>(*settings.cubemapAssetId);
 
     if (!asset)
     {

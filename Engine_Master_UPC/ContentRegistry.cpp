@@ -1,11 +1,12 @@
 ﻿#include "Globals.h"
 #include "ContentRegistry.h"
-#include "AssetRegistry.h"
 #include "Asset.h"
 #include <FileIO.h>
 
-ContentRegistry::ContentRegistry(AssetRegistry* registry):
-    m_registry(registry)
+#include "Application.h"
+#include "ModuleAssets.h"
+
+ContentRegistry::ContentRegistry()
 {
 }
 
@@ -67,7 +68,7 @@ std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesyste
     entry->displayName = metaPath.stem().string();  // strips .metadata → shows asset name
 
     const std::filesystem::path sourcePath = metaPath.parent_path() / metaPath.stem();
-    entry->uid = m_registry->findByPath(sourcePath);
+    entry->uid = app->getModuleAssets()->findUID(sourcePath);
 
     return entry;
 }

@@ -59,7 +59,7 @@ public:
     friend class ModuleScene;
 
     Scene();
-    Scene(UID uid);
+    Scene(AssetReference& uid);
     ~Scene();
 
 #pragma region GameLoop

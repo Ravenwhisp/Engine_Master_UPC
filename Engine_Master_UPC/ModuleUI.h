@@ -9,6 +9,7 @@ class GameObject;
 class UIImagePass;
 class Texture;
 class Transform2D;
+struct AssetReference;
 
 class ModuleUI : public Module
 {
@@ -31,7 +32,7 @@ private:
     std::vector<UITextCommand> m_textCommands;
     std::vector<UIImageCommand> m_imageCommands;
 
-    std::unordered_map<UID, std::shared_ptr<Texture>> m_uiTextures;
+    std::unordered_map<AssetReference*, std::shared_ptr<Texture>> m_uiTextures;
 
 private:
 void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest);

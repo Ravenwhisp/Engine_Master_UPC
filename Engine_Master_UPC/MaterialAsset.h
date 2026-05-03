@@ -10,27 +10,27 @@ public:
 	friend class ImporterMaterial;
 	friend class ImporterGltf;
 
-	MaterialAsset() {}
-	MaterialAsset(UID id) : Asset(id, AssetType::MATERIAL) {}
+	MaterialAsset() = default;
+	MaterialAsset(AssetReference& id) : Asset(id, AssetType::MATERIAL) {}
 
-	UID getBaseMap() const { return baseMap; }
+	AssetReference* getBaseMap() const { return baseMap; }
 	Color& getBaseColour() const { return baseColour; }
 
-	UID getMetallicRoughnessMap() const { return metallicRoughnessMap; }
+	AssetReference* getMetallicRoughnessMap() const { return metallicRoughnessMap; }
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
 protected:
 
-	UID				baseMap = INVALID_UID;
+	AssetReference*		baseMap;
 	mutable Color		baseColour = Color(255, 255, 255, 0);
 
-	UID				metallicRoughnessMap = INVALID_UID;
+	AssetReference*		metallicRoughnessMap;
 	uint32_t			roughnessFactor = 0;
 	uint32_t			metallicFactor = 0;
-	UID				normalMap = INVALID_UID;
-	UID				occlusionMap = INVALID_UID;
+	AssetReference*		normalMap;
+	AssetReference*		occlusionMap;
 
 	bool				isEmissive = false;
-	UID 			emissiveMap = INVALID_UID;
+	AssetReference*		emissiveMap;
 };
 

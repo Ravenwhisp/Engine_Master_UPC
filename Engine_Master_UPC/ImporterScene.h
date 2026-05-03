@@ -11,7 +11,7 @@ public:
         return path.extension().string() == SCENE_EXTENSION;
     }
 
-    Asset* createAssetInstance(const UID& uid) const override;
+    Asset* createAssetInstance(AssetReference& uid) const override;
     bool saveNative(const Scene* asset, const std::filesystem::path& path);
 protected:
     bool     importNative(const std::filesystem::path& path, Scene* dst) override;

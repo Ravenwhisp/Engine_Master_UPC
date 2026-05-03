@@ -20,7 +20,7 @@
 #include <algorithm>
 
 Scene::Scene() = default;
-Scene::Scene(UID id): Asset(id, AssetType::SCENE) {}
+Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) {}
 Scene::~Scene() = default;
 
 #pragma region GameLoop

@@ -52,13 +52,16 @@ public:
 
 	int getTriangles() const { return m_triangles; }
 
-	UID& getMeshReference() { return m_meshAsset; }
-	std::vector<UID>& getMaterialsReference() { return m_materialAssets; }
+	void setMeshReference(AssetReference& meshRef);
+	AssetReference* getMeshReference() { return m_meshAsset; }
+	void addMaterialReference(AssetReference& materialRef);
+	std::vector<AssetReference*> getMaterialsReference() { return m_materialAssets; }
 
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
-	UID& getSkinReference() { return m_skinAsset; }
-	const UID& getSkinReference() const { return m_skinAsset; }
+	void setSkinReference(AssetReference& skinRef);
+	AssetReference* getSkinReference() { return m_skinAsset; }
+	const AssetReference* getSkinReference() const { return m_skinAsset; }
 
 	const std::vector<Matrix>& getMatrixPalette() const { return m_matrixPalette; }
 	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
@@ -106,9 +109,9 @@ private:
 	std::vector<Vertex>                m_skinnedVertices;
 	std::unique_ptr<VertexBuffer>      m_skinnedVertexBuffer;
 
-	UID							m_meshAsset = INVALID_UID;
-	UID							m_skinAsset = INVALID_UID;
-	std::vector<UID>			m_materialAssets;
+	AssetReference* m_meshAsset;
+	AssetReference* m_skinAsset;
+	std::vector<AssetReference*>			m_materialAssets;
 
 	mutable Engine::BoundingBox				m_boundingBox;
 

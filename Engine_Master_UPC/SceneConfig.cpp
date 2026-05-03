@@ -47,8 +47,8 @@ void SceneConfig::drawLoadSceneSettings()
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
-                const UID* id = static_cast<const UID*>(payload->Data);
-                auto scene = app->getModuleAssets()->load<Scene>(*id);
+                AssetReference* ref = static_cast<AssetReference*>(payload->Data);
+                auto scene = app->getModuleAssets()->load<Scene>(*ref);
                 if (scene)
                 {
                     m_moduleScene->requestSceneChange(scene);
@@ -128,8 +128,8 @@ void SceneConfig::drawSkyBoxSettings()
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
-                const UID* data = static_cast<const UID*>(payload->Data);
-                skyboxSettings.cubemapAssetId = *data;
+                AssetReference* data = static_cast<AssetReference*>(payload->Data);
+                skyboxSettings.cubemapAssetId = data;
                 m_skyboxDirty = true;
             }
 

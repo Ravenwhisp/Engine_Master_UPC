@@ -173,7 +173,7 @@ rapidjson::Value SceneSerializer::getSkyBoxJSON(rapidjson::Document& domTree, co
     const SkyBoxSettings& skybox = scene->getSkyBoxSettings();
 
     skyboxInfo.AddMember("Enabled", skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", skybox.cubemapAssetId, domTree.GetAllocator());
+    skyboxInfo.AddMember("CubemapAssetId", skybox.cubemapAssetId->getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -317,7 +317,7 @@ bool SceneSerializer::LoadSkybox(Scene& scene, const rapidjson::Value& json)
 
     if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsUint64())
     {
-        skyboxSettings.cubemapAssetId = data["CubemapAssetId"].GetUint64();
+        skyboxSettings.cubemapAssetId->deserializeJson(data["CubemapAssetId"]);
     }
     else
     {

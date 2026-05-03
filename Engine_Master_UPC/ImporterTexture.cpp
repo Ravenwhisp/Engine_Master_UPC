@@ -171,8 +171,6 @@ uint64_t ImporterTexture::saveTyped(const TextureAsset* source, uint8_t** outBuf
     uint8_t* buffer = new uint8_t[size];
     BinaryWriter writer(buffer);
 
-    writer.u64(source->m_uid);
-
     writer.u32(source->width);
     writer.u32(source->height);
     writer.u32(source->mipCount);
@@ -195,8 +193,6 @@ uint64_t ImporterTexture::saveTyped(const TextureAsset* source, uint8_t** outBuf
 void ImporterTexture::loadTyped(const uint8_t* buffer, TextureAsset* texture)
 {
     BinaryReader reader(buffer);
-
-    texture->m_uid = reader.u64();
 
     texture->width = reader.u32();
     texture->height = reader.u32();

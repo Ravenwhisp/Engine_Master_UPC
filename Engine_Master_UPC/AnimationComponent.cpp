@@ -164,7 +164,7 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
         return false;
     }
 
-    if (clip->animationUID == INVALID_UID)
+    if (!clip->animationUID.isValid())
     {
         DEBUG_WARN("[AnimationComponent] Clip '%s' has invalid animation UID.", clip->name.c_str());
         return false;
@@ -174,7 +174,8 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
     if (!moduleAssets)
         return false;
 
-    std::shared_ptr<AnimationAsset> animation = moduleAssets->load<AnimationAsset>(clip->animationUID);
+    auto ref = clip->animationUID;
+    std::shared_ptr<AnimationAsset> animation = moduleAssets->load<AnimationAsset>(ref);
     if (!animation)
     {
         DEBUG_WARN("[AnimationComponent] Could not load clip animation '%s'.", clip->animationUID);
@@ -537,7 +538,7 @@ void AnimationComponent::drawClipsUi()
     {
         AnimationStateMachineClip clip;
         clip.name = "NewClip";
-        clip.animationUID = INVALID_UID;
+        clip.animationUID;
         clip.loop = true;
         clips.push_back(std::move(clip));
         m_stateMachineDirty = true;
@@ -972,7 +973,7 @@ void AnimationComponent::drawUi()
 
     ImGui::SameLine();
 
-    ImGui::BeginDisabled(m_stateMachineUID == INVALID_UID);
+    ImGui::BeginDisabled(!m_stateMachineUID->isValid());
     if (ImGui::Button("Open State Machine Editor"))
     {
         ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
@@ -981,7 +982,7 @@ void AnimationComponent::drawUi()
 
         if (stateMachineWindow)
         {
-            stateMachineWindow->setTargetStateMachineUID(m_stateMachineUID);
+            stateMachineWindow->setTargetStateMachineUID(*m_stateMachineUID);
             stateMachineWindow->setOpen(true);
         }
     }
@@ -1053,7 +1054,7 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", static_cast<int>(getType()), domTree.GetAllocator());
     componentInfo.AddMember("Active", isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("StateMachineUID", m_stateMachineUID, domTree.GetAllocator());
+    componentInfo.AddMember("StateMachineUID", m_stateMachineUID->getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
     componentInfo.AddMember("PlayOnStart", m_playOnStart, domTree.GetAllocator());
     componentInfo.AddMember("ApplyScale", m_applyScale, domTree.GetAllocator());
@@ -1065,9 +1066,7 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
 bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
 {
     if (componentValue.HasMember("StateMachineUID") && componentValue["StateMachineUID"].IsUint64())
-        m_stateMachineUID = componentValue["StateMachineUID"].GetUint64();
-    else
-        m_stateMachineUID = INVALID_UID;
+        m_stateMachineUID->deserializeJson(componentValue["StateMachineUID"]);
 
     if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
         m_playOnStart = componentValue["PlayOnStart"].GetBool();
@@ -1094,12 +1093,12 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
     return true;
 }
 
-void AnimationComponent::setStateMachineUID(const UID& uid)
+void AnimationComponent::setStateMachineUID(AssetReference& uid)
 {
-    if (m_stateMachineUID == uid)
+    if (m_stateMachineUID == &uid)
         return;
 
-    m_stateMachineUID = uid;
+    m_stateMachineUID = &uid;
     m_stateMachineUIDInput = m_stateMachineUID;
 
     resetRuntime();
@@ -1139,7 +1138,7 @@ bool AnimationComponent::SendTrigger(const std::string& triggerName)
 
 bool AnimationComponent::hasStateMachine() const
 {
-    return m_stateMachineUID != INVALID_UID;
+    return m_stateMachineUID->isValid();
 }
 
 bool AnimationComponent::hasActiveState() const
@@ -1255,7 +1254,7 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
 
 bool AnimationComponent::ensureStateMachineLoaded()
 {
-    if (m_stateMachineUID == INVALID_UID)
+    if (!m_stateMachineUID->isValid())
         return false;
 
     if (m_stateMachineAsset)
@@ -1265,7 +1264,7 @@ bool AnimationComponent::ensureStateMachineLoaded()
     if (!moduleAssets)
         return false;
 
-    m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(m_stateMachineUID);
+    m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(*m_stateMachineUID);
     if (!m_stateMachineAsset)
     {
         DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", m_stateMachineUID);

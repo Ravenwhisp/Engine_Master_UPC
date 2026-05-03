@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "Asset.h"
+#include <AssetReference.h>
 
 // A node in the asset browser tree.
 // Directories hold children; file nodes carry the UID of their asset.
@@ -28,8 +29,6 @@ struct FileEntry
 };
 
 class ModuleFileSystem;
-class AssetRegistry;
-
 // Owns and rebuilds the in-memory FileEntry tree that the editor's
 // content browser reads. UIDs are resolved from MetadataStore (in memory)
 // rather than re-reading .metadata files from disk.
@@ -37,7 +36,7 @@ class ContentRegistry
 {
 public:
     // Both pointers must outlive this object.
-    ContentRegistry(AssetRegistry* registry);
+    ContentRegistry();
 
     void rebuild(const std::filesystem::path& rootPath);
 
@@ -50,8 +49,6 @@ private:
     std::shared_ptr<FileEntry> buildAssetEntry(const std::filesystem::path& metaPath)   const;
 
     std::shared_ptr<FileEntry> getEntryRecursive( const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
-
-    AssetRegistry* m_registry{ nullptr };
 
     std::shared_ptr<FileEntry> m_root;
 };

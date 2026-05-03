@@ -2,6 +2,7 @@
 #include "ImporterSource.h"
 #include "UtilityGLFT.h"
 #include "Metadata.h"
+#include "AssetReference.h"
 
 class AnimationAsset;
 class SkinAsset;
@@ -29,23 +30,22 @@ public:
         ImporterAnimationStateMachine* importerAnimationStateMachine);
 
     bool   canImport(const std::filesystem::path& path) const override;
-    Asset* createAssetInstance(const UID& uid) const override;
+    Asset* createAssetInstance(AssetReference& ref) const override;
 
 protected:
     bool     loadExternal(const std::filesystem::path& path, tinygltf::Model& out) override;
     void     importTyped(const tinygltf::Model& source, PrefabAsset* model)        override;
-    uint64_t saveTyped(const PrefabAsset* model, uint8_t** outBuffer)            override;
-    void     loadTyped(const uint8_t* buffer, PrefabAsset* model)              override;
+    uint64_t saveTyped(const PrefabAsset* model, uint8_t** outBuffer)              override;
+    void     loadTyped(const uint8_t* buffer, PrefabAsset* model)                  override;
 
 private:
-    // Kept for the duration of a single import call; reset to nullptr afterwards.
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
-    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const UID& materialUID);
+    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const AssetReference& materialRef);
     void loadAnimation(const tinygltf::Model& model,
         const tinygltf::Animation& anim,
         AnimationAsset* outAnim);
     void buildDefaultStateMachine(const tinygltf::Model& model,
-        const std::vector<UID>& animationUIDs,
+        const std::vector<AssetReference>& animationRefs,
         PrefabAsset* dst);
 
     void loadSkin(const tinygltf::Model& model,
@@ -58,22 +58,26 @@ private:
     GameObject* buildNode(int nodeIdx,
         GameObject* parent,
         const tinygltf::Model& model,
-        const std::vector<UID>& meshUIDs,
-        const std::vector<UID>& materialUIDs,
-        const std::vector<UID>& skinUIDs,
+        const std::vector<AssetReference>& meshRefs,
+        const std::vector<AssetReference>& materialRefs,
+        const std::vector<AssetReference>& skinRefs,
         std::vector<std::unique_ptr<GameObject>>& tempObjects) const;
+
+
+    UID resolveOrGenerateUID(AssetType type, const uint8_t* data, size_t size);
+
+
+    AssetReference* resolveTexture(const tinygltf::Model& model, int texIndex) const;
 
     std::vector<DependencyRecord> m_existingDeps;
     std::vector<bool>             m_existingDepsUsed;
 
-    UID resolveOrGenerateUID(AssetType type, const uint8_t* data, size_t size);
+    const std::filesystem::path* m_currentFilePath = nullptr;
 
-    const std::filesystem::path*    m_currentFilePath = nullptr;
-
-    ImporterMesh*                   m_importerMesh;
-    ImporterMaterial*               m_importerMaterial;
-    ImporterPrefab*                m_importerPrefab;
-    ImporterAnimation*              m_importerAnimation;
-    ImporterSkin*                  m_importerSkin;
-    ImporterAnimationStateMachine*  m_importerAnimationStateMachine;
+    ImporterMesh* m_importerMesh;
+    ImporterMaterial* m_importerMaterial;
+    ImporterPrefab* m_importerPrefab;
+    ImporterAnimation* m_importerAnimation;
+    ImporterSkin* m_importerSkin;
+    ImporterAnimationStateMachine* m_importerAnimationStateMachine;
 };

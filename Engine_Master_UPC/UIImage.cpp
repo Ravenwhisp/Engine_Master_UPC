@@ -10,16 +10,16 @@ UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAG
 {
 }
 
-void UIImage::setTextureAssetId(const UID& assetId)
+void UIImage::setTextureAssetId(AssetReference& assetId)
 {
-    m_textureAssetId = assetId;
+    m_textureAssetId = &assetId;
     m_texture = nullptr;
     m_textureAsset.reset();
     m_loadRequested = false;
 
-    if (m_textureAssetId != INVALID_UID)
+    if (m_textureAssetId->isValid())
     {
-        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*m_textureAssetId);
         if (m_textureAsset)
         {
             m_loadRequested = true;
@@ -71,8 +71,8 @@ void UIImage::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const UID* data = static_cast<const UID*>(payload->Data);
-            m_textureAssetId = *data;
+            AssetReference* data = static_cast<AssetReference*>(payload->Data);
+            m_textureAssetId = data;
             m_texture = nullptr;
             m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
             if (m_textureAsset)
@@ -102,7 +102,7 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::UIIMAGE), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("TextureAssetId", m_textureAssetId, domTree.GetAllocator());
+    componentInfo.AddMember("TextureAssetId", m_textureAssetId->getJson(domTree.GetAllocator()), domTree.GetAllocator());
     componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
     componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
@@ -114,10 +114,10 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("TextureAssetId"))
     {
-        m_textureAssetId = componentInfo["TextureAssetId"].GetUint64();
+        m_textureAssetId->deserializeJson(componentInfo["TextureAssetId"]);
 
         m_texture = nullptr;
-        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*m_textureAssetId);
 
         if (m_textureAsset)
         {

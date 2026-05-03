@@ -9,7 +9,6 @@
 #include "Delegates.h"
 #include "ScriptMethodInfo.h"
 #include "SimpleMath.h"
-#include "MD5.h"
 
 using Vector3 = DirectX::SimpleMath::Vector3;
 
@@ -18,6 +17,7 @@ class ScriptComponent;
 class Script;
 struct PointerEventData;
 class SceneReferenceResolver;
+class AssetReference;
 
 class UIButton : public Component, public IPointerEventHandler
 {
@@ -82,16 +82,16 @@ public:
 #pragma endregion
 
 private:
-	void applyTargetTexture(const UID& assetId);
+	void applyTargetTexture(AssetReference& assetId);
 	void applyCurrentStateTexture();
-	UID getDefaultTextureAssetId() const;
+	AssetReference* getDefaultTextureAssetId() const;
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;
 	UID m_targetGraphicUid = 0;
-	UID m_defaultTextureAssetId = INVALID_UID;
-	UID m_hoverTextureAssetId = INVALID_UID;
-	UID m_pressedTextureAssetId = INVALID_UID;
+	AssetReference* m_defaultTextureAssetId = nullptr;
+	AssetReference* m_hoverTextureAssetId = nullptr;
+	AssetReference* m_pressedTextureAssetId = nullptr;
 
 	bool m_isPressed = false;
 	bool m_isHovered = false;

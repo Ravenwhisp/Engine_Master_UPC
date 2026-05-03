@@ -3,7 +3,6 @@
 
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "AssetRegistry.h"
 #include "Importer.h"
 #include "Asset.h"
 #include "Metadata.h"
@@ -45,19 +44,17 @@ namespace
     }
 }
 
-AssetScanner::AssetScanner(AssetRegistry* registry) : m_registry(registry)
+AssetScanner::AssetScanner()
 {
     m_threadPool = app->getThreadPool();
 }
 
-std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootPath)
+ScanFileResult AssetScanner::scan(const std::filesystem::path& rootPath)
 {
     auto tTotal0 = std::chrono::high_resolution_clock::now();
 
     ScanStats totalStats{};
     std::mutex statsMutex;
-
-    m_registry->clear();
 
     std::vector<std::filesystem::path> files;
 
@@ -81,10 +78,7 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
 
     DEBUG_ASSETS(
         "[AssetScanner] Threads: %zu | Max IO threads: %zu | IO tasks: %zu | Files per task: %zu",
-        numThreads,
-        maxIOThreads,
-        taskCount,
-        filesPerTask
+        numThreads, maxIOThreads, taskCount, filesPerTask
     );
 
     std::vector<ScanFileResult> results(taskCount);
@@ -116,7 +110,6 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
 
                 {
                     std::lock_guard<std::mutex> lock(statsMutex);
-
                     totalStats.numFiles += g_threadStats.numFiles;
                     totalStats.numMetadata += g_threadStats.numMetadata;
                     totalStats.numMD5 += g_threadStats.numMD5;
@@ -126,13 +119,9 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
 
                 DEBUG_ASSETS(
                     "[AssetScanner] Task %zu scanned %zu files in %.3f ms | metadata=%zu | md5=%zu | missingMeta=%zu | imports=%zu",
-                    taskIndex,
-                    g_threadStats.numFiles,
-                    elapsedMs(tTask0, tTask1),
-                    g_threadStats.numMetadata,
-                    g_threadStats.numMD5,
-                    g_threadStats.numMissingMetadata,
-                    g_threadStats.numImportsQueued
+                    taskIndex, g_threadStats.numFiles, elapsedMs(tTask0, tTask1),
+                    g_threadStats.numMetadata, g_threadStats.numMD5,
+                    g_threadStats.numMissingMetadata, g_threadStats.numImportsQueued
                 );
             }));
     }
@@ -146,26 +135,25 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
 
     DEBUG_ASSETS("[AssetScanner] Parallel scan took %.3f ms", elapsedMs(tParallel0, tParallel1));
 
-    std::vector<ImportRequest> pendingImports;
-
+    ScanFileResult out;
     auto tMerge0 = std::chrono::high_resolution_clock::now();
 
-    for (const ScanFileResult& result : results)
+    for (ScanFileResult& result : results)
     {
-        for (const Metadata& meta : result.metadata)
+        for (Metadata& meta : result.metadata)
         {
-            m_registry->registerAsset(meta);
+            out.metadata.push_back(std::move(meta));
         }
 
         for (const ImportRequest& req : result.imports)
         {
-            queueImport(pendingImports, req.sourcePath, req.existingUID);
+            queueImport(out.imports, req.sourcePath, req.existingUID);
         }
     }
 
     auto tMerge1 = std::chrono::high_resolution_clock::now();
 
-    DEBUG_ASSETS("[AssetScanner] Merge/register took %.3f ms", elapsedMs(tMerge0, tMerge1));
+    DEBUG_ASSETS("[AssetScanner] Merge took %.3f ms", elapsedMs(tMerge0, tMerge1));
 
     auto tTotal1 = std::chrono::high_resolution_clock::now();
 
@@ -176,10 +164,10 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
     DEBUG_ASSETS("[AssetScanner] MD5 computed: %zu", totalStats.numMD5);
     DEBUG_ASSETS("[AssetScanner] Missing metadata: %zu", totalStats.numMissingMetadata);
     DEBUG_ASSETS("[AssetScanner] Imports queued before merge: %zu", totalStats.numImportsQueued);
-    DEBUG_ASSETS("[AssetScanner] Final pending imports: %zu", pendingImports.size());
+    DEBUG_ASSETS("[AssetScanner] Final pending imports: %zu", out.imports.size());
     DEBUG_ASSETS("[AssetScanner] =======================");
 
-    return pendingImports;
+    return out;
 }
 
 void AssetScanner::collectFiles(const std::filesystem::path& path, std::vector<std::filesystem::path>& files) const
@@ -190,7 +178,6 @@ void AssetScanner::collectFiles(const std::filesystem::path& path, std::vector<s
         {
             collectFiles(entry.path(), files);
         }
-
         return;
     }
 
@@ -248,6 +235,18 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
     meta.sourcePath = sourcePath.lexically_normal();
     result.metadata.push_back(meta);
 
+    auto tMD50 = std::chrono::high_resolution_clock::now();
+    const MD5Hash currentHash = computeMD5(sourcePath);
+    auto tMD51 = std::chrono::high_resolution_clock::now();
+
+    ++g_threadStats.numMD5;
+
+    const double md5Ms = elapsedMs(tMD50, tMD51);
+    if (md5Ms > 5.0)
+    {
+        DEBUG_ASSETS("[AssetScanner][Slow MD5] %.3f ms | %s", md5Ms, sourcePath.string().c_str());
+    }
+
     auto tBinaryExists0 = std::chrono::high_resolution_clock::now();
     const bool binaryMissing = !FileIO::exists(meta.getBinaryPath());
     auto tBinaryExists1 = std::chrono::high_resolution_clock::now();
@@ -258,22 +257,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
         DEBUG_ASSETS("[AssetScanner][Slow binary exists] %.3f ms | %s", binaryExistsMs, meta.getBinaryPath().string().c_str());
     }
 
-    bool contentChanged = !isValidAsset(meta.contentHash);
-    if (!contentChanged && hasSourceChanged(sourcePath, meta))
-    {
-        auto tMD50 = std::chrono::high_resolution_clock::now();
-        const MD5Hash currentHash = computeMD5(sourcePath);
-        auto tMD51 = std::chrono::high_resolution_clock::now();
-        ++g_threadStats.numMD5;
-
-        const double md5Ms = elapsedMs(tMD50, tMD51);
-        if (md5Ms > 5.0)
-        {
-            DEBUG_ASSETS("[AssetScanner][Slow MD5] %.3f ms | %s", md5Ms, sourcePath.string().c_str());
-        }
-
-        contentChanged = (meta.contentHash != currentHash);
-    }
+    const bool contentChanged = !isValidAsset(meta.contentHash) || meta.contentHash != currentHash;
 
     if (contentChanged || binaryMissing)
     {
@@ -300,7 +284,6 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
         auto tDepExists1 = std::chrono::high_resolution_clock::now();
 
         const double depExistsMs = elapsedMs(tDepExists0, tDepExists1);
-
         if (depExistsMs > 2.0)
         {
             DEBUG_ASSETS("[AssetScanner][Slow dep binary exists] %.3f ms | %s", depExistsMs, dep.getBinaryPath().string().c_str());
@@ -322,7 +305,6 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
     auto tFindImporter1 = std::chrono::high_resolution_clock::now();
 
     const double findImporterMs = elapsedMs(tFindImporter0, tFindImporter1);
-
     if (findImporterMs > 2.0)
     {
         DEBUG_ASSETS("[AssetScanner][Slow findImporter] %.3f ms | %s", findImporterMs, sourcePath.string().c_str());
@@ -336,7 +318,6 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 
 bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const
 {
-
     if (meta.sourceFileSize == 0 && meta.sourceLastModified == 0)
         return true;
 
@@ -362,7 +343,6 @@ bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, con
     }
 
     const int64_t lastModified = static_cast<int64_t>(ftime.time_since_epoch().count());
-
     return lastModified != meta.sourceLastModified;
 }
 
