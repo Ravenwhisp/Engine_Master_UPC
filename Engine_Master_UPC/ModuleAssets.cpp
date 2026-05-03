@@ -234,7 +234,10 @@ void ModuleAssets::refresh()
 
     const std::filesystem::path root = rootStr;
 
+    //auto t0 = std::chrono::high_resolution_clock::now();
     std::vector<ImportRequest> pending = m_scanner->scan(root);
+    //auto t1 = std::chrono::high_resolution_clock::now();
+    //DEBUG_LOG("Scan took %.3f ms", std::chrono::duration<double, std::milli>(t1 - t0).count());
 
 
     for (ImportRequest& req : pending)

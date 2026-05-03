@@ -1,20 +1,20 @@
 ﻿#pragma once
+
 #include "Asset.h"
+#include "Metadata.h"
+
 #include <filesystem>
 #include <vector>
 
 class AssetRegistry;
+class ThreadPool;
 
-// Describes a single asset that needs to be imported or re-imported.
 struct ImportRequest
 {
     std::filesystem::path sourcePath;
-    UID               existingUID = INVALID_UID;
+    UID existingUID = INVALID_UID;
 };
 
-// Scans the assets folder and resolves metadata / binary lifecycle.
-// Returns the list of files that need (re-)importing; the caller decides
-// what to do with them — no event bus required.
 class AssetScanner
 {
 public:
@@ -23,13 +23,25 @@ public:
     std::vector<ImportRequest> scan(const std::filesystem::path& rootPath);
 
 private:
-    void checkFile(const std::filesystem::path& path);
-    void loadMetadata(const std::filesystem::path& metadataPath);
-    void handleMissingMetadata(const std::filesystem::path& sourcePath);
+    struct ScanFileResult
+    {
+        std::vector<Metadata> metadata;
+        std::vector<ImportRequest> imports;
+    };
 
-    void queueImport(const std::filesystem::path& sourcePath, const UID& existingUID);
+private:
+    void collectFiles(const std::filesystem::path& path, std::vector<std::filesystem::path>& files) const;
 
+    void checkFile(const std::filesystem::path& path, ScanFileResult& result) const;
+    void loadMetadata(const std::filesystem::path& metadataPath, ScanFileResult& result) const;
+    void handleMissingMetadata(const std::filesystem::path& sourcePath, ScanFileResult& result) const;
+
+    static void queueImport(
+        std::vector<ImportRequest>& imports,
+        const std::filesystem::path& sourcePath,
+        const UID& existingUID);
+
+private:
     AssetRegistry* m_registry{ nullptr };
-
-    std::vector<ImportRequest> m_pendingImports;
+    ThreadPool* m_threadPool{ nullptr };
 };
