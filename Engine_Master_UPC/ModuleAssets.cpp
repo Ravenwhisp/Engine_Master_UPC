@@ -173,8 +173,7 @@ bool ModuleAssets::save(const Asset& asset, const std::filesystem::path& path)
     return persistAsset(&asset, importer, uid, targetPath);
 }
 
-bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer,
-    const UID& uid, const std::filesystem::path& sourcePath)
+bool ModuleAssets::persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath)
 {
     Metadata meta;
     const Metadata* existing = m_registry->getMetadata(uid);
@@ -729,4 +728,14 @@ void ModuleAssets::flushDialogRequests()
         m_dialogCallback(*result);
         m_dialogCallback = nullptr;
     }
+}
+
+std::shared_ptr<Asset> ModuleAssets::getAsset(const UID& uid)
+{
+    if (!isValidUID(uid))
+    {
+        return nullptr;
+    }
+
+    return load<Asset>(uid);
 }

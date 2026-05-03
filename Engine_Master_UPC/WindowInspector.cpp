@@ -9,6 +9,8 @@
 #include "Scene.h"
 #include "PrefabUI.h"
 
+#include "Asset.h"
+
 WindowInspector::WindowInspector()
 {
 }
@@ -75,5 +77,18 @@ void WindowInspector::drawInternal()
     if (displayObject)
     {
         displayObject->drawUI();
+        return;
     }
+
+    if (!m_isLocked)
+    {
+        std::shared_ptr<Asset> selectedAsset = app->getModuleEditor()->getSelectedAsset();
+        if (selectedAsset)
+        {
+            selectedAsset->drawUI();
+            return;
+        }
+    }
+
+    ImGui::TextDisabled("Nothing selected.");
 }

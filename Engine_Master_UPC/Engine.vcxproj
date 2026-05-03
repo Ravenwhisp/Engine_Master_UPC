@@ -624,6 +624,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AnimationController.cpp" />
+    <ClCompile Include="Asset.cpp" />
     <ClCompile Include="AssetDialogFilter.cpp" />
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
     <ClCompile Include="CommandAddGameObject.cpp" />
@@ -657,7 +658,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterScene.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
+    <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />

@@ -7,13 +7,16 @@
 class Asset
 {
 public:
-	Asset() = default;
-	Asset(UID id, AssetType type = AssetType::UNKNOWN): m_uid(id), m_type(type) {}
-	virtual ~Asset() = default;
-	UID getId() const { return m_uid; }
+    Asset() = default;
+    Asset(UID id, AssetType type = AssetType::UNKNOWN) : m_uid(id), m_type(type) {}
+    virtual ~Asset() = default;
 
-	AssetType	getType() const { return m_type; }
+    UID getId() const { return m_uid; }
+    AssetType getType() const { return m_type; }
+
+    virtual void drawUI();
+
 protected:
-	UID 				m_uid = INVALID_UID;
-	AssetType			m_type = AssetType::UNKNOWN;
+    UID m_uid = INVALID_UID;
+    AssetType m_type = AssetType::UNKNOWN;
 };

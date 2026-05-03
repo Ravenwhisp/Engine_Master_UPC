@@ -437,6 +437,15 @@
     <ClCompile Include="ImporterScene.cpp">
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
+    <ClCompile Include="MeshAsset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Asset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAsset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />

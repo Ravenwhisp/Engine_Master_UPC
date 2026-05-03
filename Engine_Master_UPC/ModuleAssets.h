@@ -108,11 +108,12 @@ public:
 
     void flushDialogRequests();
 
+    std::shared_ptr<Asset> getAsset(const UID& uid);
 private:
     // Loads from disk using the registered importer and inserts into cache.
     std::shared_ptr<Asset> loadAsset(const Metadata* metadata);
 
-    void                    requestSave(const Asset& asset);
+    void requestSave(const Asset& asset);
     bool persistAsset(const Asset* asset, Importer* importer, const UID& uid, const std::filesystem::path& sourcePath);
 
 
