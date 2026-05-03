@@ -368,6 +368,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="ScriptRegistry.h" />
     <ClInclude Include="SkinAsset.h" />
+    <ClInclude Include="SkinComponent.h" />
     <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
@@ -670,6 +671,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ScriptFieldHandler_Int.cpp" />
     <ClCompile Include="ScriptFieldHandler_String.cpp" />
     <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
+    <ClCompile Include="SkinComponent.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
     <ClCompile Include="CommandPasteFile.cpp" />
