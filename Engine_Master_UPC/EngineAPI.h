@@ -25,43 +25,6 @@ class Transform2D;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
-namespace MathAPI
-{
-    constexpr float PI = 3.14159265358979323846f;
-    ENGINE_API float lerp(float a, float b, float t);
-    ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
-	ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
-	ENGINE_API float smoothStep(float edge0, float edge1, float x);
-	ENGINE_API float pingPong(float t);
-
-    enum class EasingType
-    {
-        EaseInQuad,
-        EaseOutQuad,
-        EaseInOutQuad,
-        EaseInCubic,
-        EaseOutCubic,
-        EaseInOutCubic,
-        EaseInQuart,
-        EaseOutQuart,
-        EaseInOutQuart,
-        EaseInQuint,
-        EaseOutQuint,
-        EaseInOutQuint,
-		EaseInSine,
-		EaseOutSine,
-		EaseInOutSine,
-        EaseInExpo,
-        EaseOutExpo,
-        EaseInOutExpo,
-        EaseInCirc,
-        EaseOutCirc,
-        EaseInOutCirc
-    };
-
-	ENGINE_API float evaluateEasing(EasingType type, float t);
-}
-
 namespace GameObjectAPI 
 {
     ENGINE_API Transform* getTransform(GameObject* gameObject);
@@ -249,6 +212,43 @@ namespace NavigationAPI
     ENGINE_API bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents);
     ENGINE_API float getPathLength(const Vector3* pathPoints, int pointCount);
     ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts);
+}
+
+namespace MathAPI
+{
+    constexpr float PI = 3.14159265358979323846f;
+    ENGINE_API float lerp(float a, float b, float t);
+    ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
+    ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
+    ENGINE_API float smoothStep(float edge0, float edge1, float x);
+    ENGINE_API float pingPong(float t);
+
+    enum class EasingType
+    {
+        EaseInQuad,
+        EaseOutQuad,
+        EaseInOutQuad,
+        EaseInCubic,
+        EaseOutCubic,
+        EaseInOutCubic,
+        EaseInQuart,
+        EaseOutQuart,
+        EaseInOutQuart,
+        EaseInQuint,
+        EaseOutQuint,
+        EaseInOutQuint,
+        EaseInSine,
+        EaseOutSine,
+        EaseInOutSine,
+        EaseInExpo,
+        EaseOutExpo,
+        EaseInOutExpo,
+        EaseInCirc,
+        EaseOutCirc,
+        EaseInOutCirc
+    };
+
+    ENGINE_API float evaluateEasing(EasingType type, float t);
 }
 
 namespace Transform2DAPI
