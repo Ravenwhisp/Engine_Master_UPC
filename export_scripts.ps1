@@ -31,3 +31,5 @@ cp .\Engine_Master_UPC\StateMachineScript.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UISlider.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UIFill.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ScriptFieldMacros.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\ScriptFieldHandler.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\ScriptFieldHandlerRegistry.h .\export\EngineDependencies\
