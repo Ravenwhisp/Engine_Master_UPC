@@ -607,7 +607,7 @@ bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
 
 bool ModuleAssets::applyPrefab(const GameObject* go)
 {
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (!info.isInstance()) return false;
 
     if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
@@ -635,7 +635,7 @@ bool ModuleAssets::applyPrefab(const GameObject* go)
 
 bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 {
-    PrefabInfo& info = go->GetPrefabInfo();
+    PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (!info.isInstance()) return false;
 
     Document doc;
@@ -747,7 +747,7 @@ GameObject* ModuleAssets::spawnPrefab(const PrefabAsset& asset, Scene* scene)
     if (!go) return nullptr;
 
     const auto& data = asset.getData();
-    PrefabInfo& info = go->GetPrefabInfo();
+    PrefabInstanceInfo& info = go->GetPrefabInfo();
     info.m_sourcePath = data.m_sourcePath;
     info.m_assetUID = data.m_assetUID;
 

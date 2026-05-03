@@ -1099,6 +1099,7 @@
     <ClInclude Include="ScriptFieldHandlerRegistry.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
+    <ClInclude Include="PrefabInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
