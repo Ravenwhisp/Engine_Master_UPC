@@ -235,6 +235,8 @@ void ModuleAssets::refresh()
     const std::filesystem::path root = rootStr;
 
     std::vector<ImportRequest> pending = m_scanner->scan(root);
+
+
     for (ImportRequest& req : pending)
     {
         importAsset(req.sourcePath, req.existingUID);

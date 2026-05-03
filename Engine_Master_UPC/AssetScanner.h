@@ -26,8 +26,6 @@ private:
     void checkFile(const std::filesystem::path& path);
     void loadMetadata(const std::filesystem::path& metadataPath);
     void handleMissingMetadata(const std::filesystem::path& sourcePath);
-    void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
-    void cleanOrphanedBinaries();
 
     void queueImport(const std::filesystem::path& sourcePath, const UID& existingUID);
 

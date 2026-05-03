@@ -24,7 +24,6 @@ std::vector<ImportRequest> AssetScanner::scan(const std::filesystem::path& rootP
     m_pendingImports.clear();
 
     checkFile(rootPath);
-    cleanOrphanedBinaries();
 
     return std::move(m_pendingImports);
 }
@@ -57,12 +56,10 @@ void AssetScanner::checkFile(const std::filesystem::path& path)
 
 void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
 {
-    const std::filesystem::path sourcePath =
-        metadataPath.parent_path() / metadataPath.stem();
+    const std::filesystem::path sourcePath = metadataPath.parent_path() / metadataPath.stem();
 
     if (!FileIO::exists(sourcePath))
     {
-        handleOrphanedMetadata(metadataPath);
         return;
     }
 
@@ -110,42 +107,6 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
     if (app->getModuleAssets()->findImporter(sourcePath))
     {
         m_pendingImports.push_back({ sourcePath, INVALID_UID });
-    }
-}
-
-void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataPath)
-{
-    Metadata meta;
-    if (app->getModuleAssets()->loadMetaFile(metadataPath, meta))
-    {
-        // Delete binaries for any sub-assets owned by this asset.
-        for (const DependencyRecord& dep : meta.m_dependencies)
-        {
-            FileIO::remove(dep.getBinaryPath());
-        }
-
-        FileIO::remove(meta.getBinaryPath());
-    }
-    FileIO::remove(metadataPath);
-}
-
-void AssetScanner::cleanOrphanedBinaries()
-{
-    if (!FileIO::exists(LIBRARY_FOLDER))
-        return;
-
-    for (const auto& entry : std::filesystem::directory_iterator(LIBRARY_FOLDER))
-    {
-        if (!entry.is_regular_file()) continue;
-
-        // Library/ filenames are content hashes, not UIDs.
-        const MD5Hash contentHash = entry.path().stem().string();
-        if (m_registry->containsContentHash(contentHash))
-            continue;   // referenced by a known asset or sub-asset
-
-        DEBUG_WARN("[AssetScanner] Deleting orphaned binary '%s' (no metadata references it).",
-            entry.path().string().c_str());
-        FileIO::remove(entry.path());
     }
 }
 
