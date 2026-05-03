@@ -454,23 +454,8 @@
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleHaptics.cpp">
-      <Filter>Haptics</Filter>
-    </ClCompile>
-    <ClCompile Include="HapticEffectLibrary.cpp">
-      <Filter>Haptics</Filter>
-    </ClCompile>
-    <ClCompile Include="HapticEffectDefinition.cpp">
-      <Filter>Haptics</Filter>
-    </ClCompile>
-    <ClCompile Include="ScenePicking.cpp">
-      <Filter>GameEntity\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="UINavigation.cpp">
-      <Filter>UI\Events</Filter>
-    </ClCompile>
-    <ClCompile Include="NavModifierVolumeComponent.cpp">
-      <Filter>NavMesh</Filter>
+    <ClCompile Include="SkinComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1118,26 +1103,8 @@
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
     <ClInclude Include="PrefabInstance.h" />
-    <ClInclude Include="ModuleHaptics.h">
-      <Filter>Haptics</Filter>
-    </ClInclude>
-    <ClInclude Include="HapticEffectDefinition.h">
-      <Filter>Haptics</Filter>
-    </ClInclude>
-    <ClInclude Include="HapticEffectLibrary.h">
-      <Filter>Haptics</Filter>
-    </ClInclude>
-    <ClInclude Include="ScenePicking.h">
-      <Filter>GameEntity\Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="UINavigation.h">
-      <Filter>UI\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="NavModifierVolumeComponent.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
-    <ClInclude Include="NavMeshTypes.h">
-      <Filter>NavMesh</Filter>
+    <ClInclude Include="SkinComponent.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1320,9 +1287,6 @@
     <Filter Include="Core\Scripting\FieldTypeHandler">
       <UniqueIdentifier>{0051a964-06ca-4f64-a2c0-f048ea7f03a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Haptics">
-      <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1345,9 +1309,6 @@
     </None>
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
-    </None>
-    <None Include="EngineAPI.inl">
-      <Filter>Core</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -1391,9 +1352,6 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="BRDFVertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="SpritePixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
