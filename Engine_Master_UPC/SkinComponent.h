@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Component.h"
+#include "MD5Fwd.h"
 
 class SkinComponent final : public Component
 {
@@ -14,8 +15,14 @@ public:
     void lateUpdate() override;
     bool cleanUp() override;
 
+    void setSkinReference(const MD5Hash& skinUID);
+    const MD5Hash& getSkinReference() const { return m_skinAsset; }
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
+private:
+    MD5Hash m_skinAsset = INVALID_ASSET_ID;
 };

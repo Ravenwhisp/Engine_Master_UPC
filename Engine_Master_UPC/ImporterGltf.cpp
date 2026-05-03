@@ -19,6 +19,7 @@
 #include "MaterialAsset.h"
 #include "ComponentType.h"
 #include "MeshRenderer.h"
+#include "SkinComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
 
@@ -796,7 +797,19 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
 
             if (gNode.skin >= 0 && gNode.skin < static_cast<int>(skinUIDs.size()))
             {
-                mr->getSkinReference() = skinUIDs[gNode.skin];
+                const MD5Hash& skinUID = skinUIDs[gNode.skin];
+
+                // Temporary compatibility: MeshRenderer still owns the skinning runtime
+                // until the next commits move it to SkinComponent.
+                mr->getSkinReference() = skinUID;
+
+                auto* skin = static_cast<SkinComponent*>(
+                    go->AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
+
+                if (skin)
+                {
+                    skin->setSkinReference(skinUID);
+                }
             }
 
             const auto& prims = model.meshes[gNode.mesh].primitives;
