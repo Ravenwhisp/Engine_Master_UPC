@@ -159,7 +159,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
 {
     if (!go || !go->IsPrefabInstance()) return;
 
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     const bool        hasOverrides = !info.m_overrides.isEmpty();
 
     ImVec2 topLeft = ImGui::GetCursorScreenPos();
@@ -328,7 +328,7 @@ void PrefabUI::drawPrefabSubMenu(GameObject* go, Scene* scene)
     if (go->IsPrefabInstance())
     {
         ImGui::Separator();
-        const PrefabInfo& info = go->GetPrefabInfo();
+        const PrefabInstanceInfo& info = go->GetPrefabInfo();
 
         if (ImGui::MenuItem("Edit Prefab"))
         {
