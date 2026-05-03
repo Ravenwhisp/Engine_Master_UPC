@@ -5,6 +5,7 @@
 #include <string>
 
 class Script;
+class SceneReferenceResolver;
 
 class ScriptComponent : public Component
 {
