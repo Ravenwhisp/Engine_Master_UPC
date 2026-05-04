@@ -5,7 +5,6 @@
 #include "WeakCache.h"
 
 #include "AssetScanner.h"
-#include "ContentRegistry.h"
 #include "PrefabSerializer.h"
 #include "PrefabAsset.h"
 
@@ -18,8 +17,10 @@
 #include "Importer.h"
 
 
+class ContentRegistry;
+
 class Asset;
-struct ScanFileResult;
+
 class AnimationStateMachineAsset;
 class ImporterTexture;
 class ImporterMaterial;
@@ -31,20 +32,37 @@ class ImporterAnimationStateMachine;
 class ImporterGltf;
 class ImporterFont;
 class ImporterScene;
-struct FileEntry;
+
+struct ScanFileResult;
 
 
 struct AssetIndexEntry
 {
-    AssetType             type = AssetType::UNKNOWN;
+    AssetType type = AssetType::UNKNOWN;
     std::filesystem::path sourcePath;
-    MD5Hash               contentHash = INVALID_ASSET_ID;
+    MD5Hash contentHash = INVALID_ASSET_ID;
 };
 
 
 class ModuleAssets : public Module
 {
+friend ContentRegistry;
+friend ImporterGltf;
+
+private:
+    std::unordered_map<UID, AssetIndexEntry>  m_uidIndex;
+    std::unordered_map<std::string, UID>      m_pathIndex;
+
+    std::unique_ptr<ContentRegistry>    m_contentRegistry;
+    std::unique_ptr<AssetScanner>       m_scanner;
+
+    // Runtime cache keyed by stable UID.
+    WeakCache<UID, Asset>               m_assets;
+
 public:
+    ModuleAssets();
+    ~ModuleAssets();
+
 #pragma region GameLoop
     bool init() override;
     void postRender() override;
@@ -60,6 +78,8 @@ public:
     void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
     bool save(Asset& asset, const std::filesystem::path& path = {});
     void refresh();
+
+    ContentRegistry* getContentRegistry() const;
 
     // Loads an asset by its stable UID.
     template<typename T>
@@ -108,7 +128,6 @@ public:
         return loadFromLibrary<T>(ref);
     }
 
-
     template<typename T>
     std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath)
     {
@@ -145,11 +164,7 @@ public:
     bool isLoaded(const AssetReference& id);
     void unload(const AssetReference& id);
 
-    UID findUID(const std::filesystem::path& sourcePath) const;
     std::optional<AssetReference> findReference(const UID& uid);
-
-    std::shared_ptr<FileEntry> getRoot()                              const;
-    std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&) const;
 
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
@@ -166,7 +181,8 @@ public:
 
     void flushDialogRequests();
 private:
-
+    UID findUID(const std::filesystem::path& sourcePath) const;
+    
     template<typename T>
     std::shared_ptr<T> loadFromLibrary(AssetReference& ref)
     {
@@ -197,22 +213,12 @@ private:
         return std::static_pointer_cast<T>(asset);
     }
 
-    void                    requestSave(Asset& asset);
+    void requestSave(Asset& asset);
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
-    
-    std::unordered_map<UID, AssetIndexEntry>  m_uidIndex;
+   
+    void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath, const MD5Hash& contentHash = INVALID_ASSET_ID);
 
-    std::unordered_map<std::string, UID>      m_pathIndex;
 
-    void registerIndex(const UID& uid, AssetType type,
-        const std::filesystem::path& sourcePath,
-        const MD5Hash& contentHash = INVALID_ASSET_ID);
-
-    std::unique_ptr<AssetScanner>       m_scanner;
-    std::unique_ptr<ContentRegistry>    m_contentRegistry;
-
-    // Runtime cache keyed by stable UID.
-    WeakCache<UID, Asset>               m_assets;
 
 #pragma region Importers
     ImporterTexture* m_importerTexture = nullptr;

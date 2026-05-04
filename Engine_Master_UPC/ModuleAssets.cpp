@@ -16,6 +16,8 @@
 #include "ImporterScene.h"
 #include "MD5.h"
 
+#include "ContentRegistry.h"
+
 #include "PrefabSerializer.h"
 #include "PrefabAsset.h"
 #include "Scene.h"
@@ -42,6 +44,9 @@
 using namespace rapidjson;
 namespace fs = std::filesystem;
 
+ModuleAssets::ModuleAssets() = default;
+ModuleAssets::~ModuleAssets() = default;
+
 bool ModuleAssets::init()
 {
     m_importers.push_back(m_importerTexture = new ImporterTexture());
@@ -52,13 +57,13 @@ bool ModuleAssets::init()
     m_importers.push_back(m_importerSkin = new ImporterSkin());
     m_importers.push_back(m_importerAnimationStateMachine = new ImporterAnimationStateMachine());
     m_importers.push_back(m_importerGltf = new ImporterGltf(
-        m_importerMesh, m_importerMaterial, m_importerPrefab,
-        m_importerAnimation, m_importerSkin, m_importerAnimationStateMachine));
+    m_importerMesh, m_importerMaterial, m_importerPrefab,
+    m_importerAnimation, m_importerSkin, m_importerAnimationStateMachine));
     m_importers.push_back(m_importerFont = new ImporterFont());
     m_importers.push_back(m_importerScene = new ImporterScene());
 
     m_scanner = std::make_unique<AssetScanner>();
-    m_contentRegistry = std::make_unique<ContentRegistry>();
+    m_contentRegistry = std::make_unique<ContentRegistry>(this);
 
     refresh();
     return true;
@@ -310,16 +315,6 @@ bool ModuleAssets::isLoaded(const AssetReference& ref)
 void ModuleAssets::unload(const AssetReference& ref)
 {
     m_assets.remove(ref.m_uid);
-}
-
-std::shared_ptr<FileEntry> ModuleAssets::getRoot() const
-{
-    return m_contentRegistry->getRoot();
-}
-
-std::shared_ptr<FileEntry> ModuleAssets::getEntry(const std::filesystem::path& path) const
-{
-    return m_contentRegistry->getEntry(path);
 }
 
 void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize)
@@ -727,4 +722,9 @@ void ModuleAssets::flushDialogRequests()
         m_dialogCallback(*result);
         m_dialogCallback = nullptr;
     }
+}
+
+ContentRegistry* ModuleAssets::getContentRegistry() const
+{
+    return m_contentRegistry.get();
 }

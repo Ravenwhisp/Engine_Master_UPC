@@ -1,54 +1,50 @@
 ﻿#pragma once
+
+#include "UID.h"
+
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
-#include "Asset.h"
-#include <AssetReference.h>
 
-// A node in the asset browser tree.
-// Directories hold children; file nodes carry the UID of their asset.
-struct FileEntry
+class ModuleAssets;
+
+struct AssetEntry
 {
-    std::filesystem::path                   path;
-    std::string                             displayName;
-    UID                                     uid = INVALID_UID;
-    bool                                    isDirectory = false;
-    std::vector<std::shared_ptr<FileEntry>> children;
-
-    std::filesystem::path getPath() const
-    {
-        if (isDirectory)
-        {
-            std::filesystem::path p = path;
-            p += "/";
-            return p;
-        }
-        return path;
-    }
+    UID uid = INVALID_UID;
+    std::string displayName;
 };
 
-class ModuleFileSystem;
-// Owns and rebuilds the in-memory FileEntry tree that the editor's
-// content browser reads. UIDs are resolved from MetadataStore (in memory)
-// rather than re-reading .metadata files from disk.
+struct DirectoryEntry
+{
+    std::filesystem::path path;
+    DirectoryEntry* parent = nullptr;
+    std::string displayName;
+
+    std::vector<std::unique_ptr<DirectoryEntry>> directories;
+    std::vector<AssetEntry> assets;
+};
+
 class ContentRegistry
 {
+
+private:
+    ModuleAssets* m_moduleAssets = nullptr;
+    std::unique_ptr<DirectoryEntry> m_root;
+
 public:
-    // Both pointers must outlive this object.
-    ContentRegistry();
+    ContentRegistry(ModuleAssets* m_moduleAssets);
 
     void rebuild(const std::filesystem::path& rootPath);
 
-    std::shared_ptr<FileEntry> getRoot()                                const { return m_root; }
-    std::shared_ptr<FileEntry> getEntry(const std::filesystem::path&)   const;
+    DirectoryEntry* getRoot() const;
+    DirectoryEntry* getDirectory(const std::filesystem::path& path) const;
 
 private:
-    std::shared_ptr<FileEntry> buildTree(const std::filesystem::path& path)             const;
-    std::shared_ptr<FileEntry> buildDirectoryEntry(const std::filesystem::path& path)   const;
-    std::shared_ptr<FileEntry> buildAssetEntry(const std::filesystem::path& metaPath)   const;
+    std::unique_ptr<DirectoryEntry> buildDirectory(const std::filesystem::path& path, DirectoryEntry* parent) const;
 
-    std::shared_ptr<FileEntry> getEntryRecursive( const std::shared_ptr<FileEntry>& node, const std::filesystem::path& path) const;
+    void addAsset(DirectoryEntry& directory, const std::filesystem::path& metaPath) const;
 
-    std::shared_ptr<FileEntry> m_root;
+    DirectoryEntry* findDirectoryRecursive(DirectoryEntry* directory, const std::filesystem::path& path) const;
 };
