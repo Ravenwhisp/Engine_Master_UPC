@@ -1304,6 +1304,9 @@
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
+    <None Include="EngineAPI.inl">
+      <Filter>Core</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
