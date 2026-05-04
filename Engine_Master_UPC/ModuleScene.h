@@ -17,6 +17,7 @@ class MeshRenderer;
 class SpriteRenderer;
 class ScriptComponent;
 class LightComponent;
+class SkinComponent;
 class IDebugDrawable;
 
 struct ID3D12GraphicsCommandList;
@@ -34,6 +35,7 @@ private:
     std::vector<SpriteRenderer*>     m_spriteRenderers;
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
+    std::vector<SkinComponent*>      m_skinComponents;
 
     void clearComponentCaches();
     void rebuildComponentCaches();
@@ -74,4 +76,5 @@ public:
     const std::vector<SpriteRenderer*>& getSpriteRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
+    const std::vector<SkinComponent*>& getSkinComponents() const { return m_skinComponents; }
 };
