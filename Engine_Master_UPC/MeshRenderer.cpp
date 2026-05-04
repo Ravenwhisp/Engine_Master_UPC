@@ -5,10 +5,8 @@
 #include "GameObject.h"
 
 #include "Application.h"
-#include "ModuleD3D12.h"
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
-#include "Settings.h"
 
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
