@@ -9,6 +9,8 @@
 #include "ComponentType.h"
 #include "Component.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+#include "SkinComponent.h"
 #include "CameraComponent.h"
 #include "ScriptComponent.h"
 #include "ComponentFactory.h"
@@ -863,6 +865,30 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
             newComponent->deserializeJSON(componentJson);
             newComponent->init();
         }
+    }
+
+    MeshRenderer* meshRenderer = GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+    SkinComponent* skinComponent = GetComponentAs<SkinComponent>(ComponentType::SKIN);
+
+    if (meshRenderer &&
+        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
+        !skinComponent)
+    {
+        skinComponent = static_cast<SkinComponent*>(
+            AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
+
+        if (skinComponent)
+        {
+            skinComponent->setSkinReference(meshRenderer->getSkinReference());
+            skinComponent->init();
+        }
+    }
+    else if (meshRenderer &&
+        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
+        skinComponent &&
+        skinComponent->getSkinReference() == INVALID_ASSET_ID)
+    {
+        skinComponent->setSkinReference(meshRenderer->getSkinReference());
     }
 
     return true;

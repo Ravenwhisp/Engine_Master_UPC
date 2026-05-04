@@ -4,6 +4,8 @@
 #include "GameObject.h"
 #include "Scene.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+#include "SkinComponent.h"
 #include "Component.h"
 #include "ComponentType.h"
 #include "PrefabAsset.h"
@@ -126,6 +128,31 @@ void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
         if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
             comp->deserializeJSON(cn["Data"]);
     }
+
+    MeshRenderer* meshRenderer = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+    SkinComponent* skinComponent = go->GetComponentAs<SkinComponent>(ComponentType::SKIN);
+
+    if (meshRenderer &&
+        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
+        !skinComponent)
+    {
+        skinComponent = static_cast<SkinComponent*>(
+            go->AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
+
+        if (skinComponent)
+        {
+            skinComponent->setSkinReference(meshRenderer->getSkinReference());
+            skinComponent->init();
+        }
+    }
+    else if (meshRenderer &&
+        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
+        skinComponent &&
+        skinComponent->getSkinReference() == INVALID_ASSET_ID)
+    {
+        skinComponent->setSkinReference(meshRenderer->getSkinReference());
+    }
+
 }
 
 bool PrefabSerializer::writeDocument(Document& doc, const fs::path& path)
