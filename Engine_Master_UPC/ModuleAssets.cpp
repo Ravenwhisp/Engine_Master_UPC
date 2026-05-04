@@ -31,12 +31,43 @@
 #include <rapidjson/stringbuffer.h>
 #include "rapidjson/filereadstream.h"
 #include <fstream>
+#include <algorithm>
+#include <cctype>
 
 #include <filesystem>
 #include <FileIO.h>
 
 using namespace rapidjson;
 namespace fs = std::filesystem;
+
+namespace
+{
+    std::string ToLowerString(std::string value)
+    {
+        std::transform(value.begin(), value.end(), value.begin(),
+            [](unsigned char c)
+            {
+                return static_cast<char>(std::tolower(c));
+            });
+
+        return value;
+    }
+
+    std::string SanitizeAssetFileName(std::string fileName)
+    {
+        for (char& c : fileName)
+        {
+            if (c == ' ' || c == '/' || c == '\\' || c == ':' ||
+                c == '*' || c == '?' || c == '"' || c == '<' ||
+                c == '>' || c == '|')
+            {
+                c = '_';
+            }
+        }
+
+        return fileName;
+    }
+}
 
 bool ModuleAssets::init()
 {
@@ -201,6 +232,41 @@ void ModuleAssets::refresh()
 MD5Hash ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
 {
     return m_registry->findByPath(sourcePath);
+}
+
+MD5Hash ModuleAssets::computeStableUIDFromAssetPath(const std::filesystem::path& sourcePath) const
+{
+    fs::path normalizedSource = sourcePath.lexically_normal();
+    fs::path assetsRoot = fs::path(ASSETS_FOLDER).lexically_normal();
+
+    fs::path relativePath;
+
+    std::error_code ec;
+    relativePath = fs::relative(normalizedSource, assetsRoot, ec);
+
+    const std::string relativePathString = relativePath.generic_string();
+
+    if (ec || relativePath.empty() || relativePathString.rfind("../", 0) == 0 || relativePathString == "..")
+    {
+        relativePath = normalizedSource;
+    }
+    else
+    {
+        relativePath = assetsRoot.filename() / relativePath;
+    }
+
+    std::string stablePath = relativePath.generic_string();
+    stablePath = ToLowerString(stablePath);
+
+    return computeMD5(stablePath);
+}
+
+std::filesystem::path ModuleAssets::getDefaultStateMachineSourcePath(const std::filesystem::path& modelSourcePath) const
+{
+    std::string fileName = modelSourcePath.stem().string() + "_StateMachine";
+    fileName = SanitizeAssetFileName(fileName);
+
+    return fs::path(ASSETS_FOLDER) / "StateMachines" / (fileName + ".statemachine");
 }
 
 bool ModuleAssets::isLoaded(const MD5Hash& id)
