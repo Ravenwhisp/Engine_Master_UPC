@@ -638,7 +638,24 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     if (!assets)
         return;
 
-    const MD5Hash stateMachineUID = computeMD5(m_currentFilePath->string() + "?animsm=0");
+    const std::filesystem::path stateMachineSourcePath =
+        assets->getDefaultStateMachineSourcePath(*m_currentFilePath);
+
+    const MD5Hash existingStateMachineUID = assets->findUID(stateMachineSourcePath);
+
+    if (isValidAsset(existingStateMachineUID))
+    {
+        // Existing editable state machine wins.
+        // The glTF metadata should reference it, not regenerate/overwrite it.
+        assets->registerDependency(
+            dst->m_uid,
+            existingStateMachineUID,
+            AssetType::ANIMATION_STATE_MACHINE);
+
+        return;
+    }
+
+    const MD5Hash stateMachineUID = assets->computeStableUIDFromAssetPath(stateMachineSourcePath);
 
     AnimationStateMachineAsset stateMachineAsset(stateMachineUID);
     stateMachineAsset.m_name = m_currentFilePath->stem().string() + "_StateMachine";
