@@ -55,6 +55,15 @@ namespace
 
         return nullptr;
     }
+
+    Matrix BuildNormalMatrixFromSkinMatrix(const Matrix& skinMatrix)
+    {
+        Matrix normal = skinMatrix;
+        normal.Translation(Vector3::Zero);
+        normal = normal.Invert();
+        normal = normal.Transpose();
+        return normal;
+    }
 }
 
 SkinComponent::SkinComponent(UID id, GameObject* owner)
@@ -71,8 +80,10 @@ std::unique_ptr<Component> SkinComponent::clone(GameObject* newOwner) const
     cloned->m_skin.reset();
     cloned->m_jointTransforms.clear();
     cloned->m_skinBindingsResolved = false;
-
+    cloned->m_matrixPalette.clear();
+    cloned->m_normalPalette.clear();
     cloned->setActive(isActive());
+
     return cloned;
 }
 
@@ -91,8 +102,11 @@ void SkinComponent::lateUpdate()
 
     if (!m_skinBindingsResolved)
     {
-        resolveSkinBindings();
+        if (!resolveSkinBindings())
+            return;
     }
+
+    rebuildMatrixPalette();
 }
 
 bool SkinComponent::cleanUp()
@@ -116,6 +130,8 @@ void SkinComponent::drawUi()
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", static_cast<int>(m_jointTransforms.size()));
     ImGui::Text("Skin Bindings Resolved: %s", m_skinBindingsResolved ? "Yes" : "No");
+    ImGui::Text("Matrix Palette Size: %d", static_cast<int>(m_matrixPalette.size()));
+    ImGui::Text("Normal Palette Size: %d", static_cast<int>(m_normalPalette.size()));
 }
 
 rapidjson::Value SkinComponent::getJSON(rapidjson::Document& domTree)
@@ -216,5 +232,40 @@ void SkinComponent::invalidateSkinningRuntime()
 {
     m_skin.reset();
     m_jointTransforms.clear();
+    m_matrixPalette.clear();
+    m_normalPalette.clear();
     m_skinBindingsResolved = false;
+}
+
+void SkinComponent::rebuildMatrixPalette()
+{
+    if (!m_skin || !m_skinBindingsResolved)
+        return;
+
+    const auto& joints = m_skin->getJoints();
+    const size_t count = std::min(joints.size(), m_jointTransforms.size());
+
+    if (m_matrixPalette.size() != count)
+        m_matrixPalette.resize(count, Matrix::Identity);
+
+    if (m_normalPalette.size() != count)
+        m_normalPalette.resize(count, Matrix::Identity);
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        Transform* jointTransform = m_jointTransforms[i];
+
+        if (!jointTransform)
+        {
+            m_matrixPalette[i] = Matrix::Identity;
+            m_normalPalette[i] = Matrix::Identity;
+            continue;
+        }
+
+        const Matrix jointWorld = jointTransform->getGlobalMatrix();
+        const Matrix skinMatrix = joints[i].inverseBindMatrix * jointWorld;
+
+        m_matrixPalette[i] = skinMatrix;
+        m_normalPalette[i] = BuildNormalMatrixFromSkinMatrix(skinMatrix);
+    }
 }
