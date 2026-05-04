@@ -14,6 +14,7 @@
 
 #include <imgui.h>
 #include <algorithm>
+#include <cstring>
 
 
 namespace
@@ -136,7 +137,8 @@ void SkinComponent::lateUpdate()
 
     rebuildMatrixPalette();
 
-    ensureSourceVerticesCached();
+    if (!ensureSourceVerticesCached())
+        return;
 
     updateGpuPaletteBuffers();
 
@@ -177,6 +179,7 @@ void SkinComponent::drawUi()
     ImGui::Text("Source Vertices: %d", static_cast<int>(m_sourceVertices.size()));
     ImGui::Text("CPU Skinned VB: %s", m_skinnedVertexBuffer ? "Yes" : "No");
     ImGui::Checkbox("Enable CPU Skinning Fallback", &m_enableCpuSkinningFallback);
+    ImGui::Separator();
     ImGui::Text("GPU Skinning Vertex Capacity: %d", static_cast<int>(m_gpuSkinningVertexCapacity));
     ImGui::Text("GPU Palette Joint Capacity: %d", static_cast<int>(m_gpuPaletteJointCapacity));
     ImGui::Text("GPU Skinning Resources: %s", hasGpuSkinningResources() ? "Yes" : "No");
@@ -545,9 +548,6 @@ bool SkinComponent::ensureGpuSkinningResources()
 void SkinComponent::updateGpuPaletteBuffers()
 {
     if (m_matrixPalette.empty() || m_normalPalette.empty())
-        return;
-
-    if (!ensureSourceVerticesCached())
         return;
 
     if (!ensureGpuSkinningResources())
