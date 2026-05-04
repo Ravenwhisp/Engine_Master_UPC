@@ -32,6 +32,10 @@ public:
     bool hasResolvedSkinBindings() const { return m_skinBindingsResolved; }
     uint32_t getResolvedJointCount() const { return static_cast<uint32_t>(m_jointTransforms.size()); }
 
+    const std::vector<Matrix>& getMatrixPalette() const { return m_matrixPalette; }
+    const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
+    bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -41,6 +45,7 @@ private:
     bool ensureSkinLoaded();
     bool resolveSkinBindings();
     void invalidateSkinningRuntime();
+    void rebuildMatrixPalette();
 
 private:
     MD5Hash m_skinAsset = INVALID_ASSET_ID;
@@ -48,4 +53,7 @@ private:
     std::shared_ptr<SkinAsset> m_skin;
     std::vector<Transform*> m_jointTransforms;
     bool m_skinBindingsResolved = false;
+
+    std::vector<Matrix> m_matrixPalette;
+    std::vector<Matrix> m_normalPalette;
 };
