@@ -2,12 +2,12 @@
 #include "IRenderPass.h"
 
 #include <vector>
-#include <d3d12.h>
-#include <wrl/client.h>
+//#include <d3d12.h>
+//#include <wrl/client.h>
 
-using Microsoft::WRL::ComPtr;
+//using Microsoft::WRL::ComPtr;
 
-class MeshRenderer;
+class SkinComponent;
 
 class SkinningComputePass : public IRenderPass
 {
@@ -18,7 +18,7 @@ public:
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
 private:
-    std::vector<MeshRenderer*> m_meshRenderers;
+    std::vector<SkinComponent*> m_skinComponents;
 
     ComPtr<ID3D12Device4>       m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
