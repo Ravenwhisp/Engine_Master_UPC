@@ -82,3 +82,81 @@ HapticEffectDefinition HapticEffectDefinition::makeEngineLoop(float intensity)
     def.peak.rightMotor = intensity * 0.12f;
     return def;
 }
+
+HapticEffectDefinition HapticEffectDefinition::makeHeartbeatLub(float intensity, HeartbeatVariant variant)
+{
+    const float i = intensity < 0.0f ? 0.0f : (intensity > 1.0f ? 1.0f : intensity);
+
+    HapticEffectDefinition def;
+    def.durationSeconds = 0.08f;   
+    def.attackSeconds = 0.005f; 
+    def.curve = HapticCurve::Punch;
+    def.priority = HapticPriority::High;
+
+    if (variant == HeartbeatVariant::Health)
+    {
+        def.id = "HeartbeatLub_Health";
+
+        def.peak.leftMotor = i;    
+        def.peak.rightMotor = i * 0.75f;
+
+        if (i > 0.55f)
+        {
+            const float triggerAmount = (i - 0.55f) / 0.45f; 
+            def.peak.leftTrigger = triggerAmount * 0.50f;
+            def.peak.rightTrigger = triggerAmount * 0.50f;
+        }
+    }
+    else 
+    {
+        def.id = "HeartbeatLub_Separation";
+
+        def.peak.rightMotor = i;      
+        def.peak.leftMotor = i * 0.60f;
+
+        def.peak.leftTrigger = 0.0f;
+        def.peak.rightTrigger = 0.0f;
+    }
+
+    return def;
+}
+
+HapticEffectDefinition HapticEffectDefinition::makeHeartbeatDub(float intensity, HeartbeatVariant variant)
+{
+    const float i = intensity < 0.0f ? 0.0f : (intensity > 1.0f ? 1.0f : intensity);
+
+    const float dubScale = (variant == HeartbeatVariant::Health) ? 0.65f : 0.55f;
+    const float di = i * dubScale;
+
+    HapticEffectDefinition def;
+    def.durationSeconds = 0.08f;
+    def.attackSeconds = 0.005f;
+    def.curve = HapticCurve::Punch;
+    def.priority = HapticPriority::High;
+
+    if (variant == HeartbeatVariant::Health)
+    {
+        def.id = "HeartbeatDub_Health";
+
+        def.peak.leftMotor = di;
+        def.peak.rightMotor = di * 0.75f;
+
+        if (i > 0.70f)
+        {
+            const float triggerAmount = (i - 0.70f) / 0.30f;
+            def.peak.leftTrigger = triggerAmount * 0.30f; 
+            def.peak.rightTrigger = triggerAmount * 0.30f;
+        }
+    }
+    else
+    {
+        def.id = "HeartbeatDub_Separation";
+
+        def.peak.rightMotor = di;
+        def.peak.leftMotor = di * 0.60f;
+        def.peak.leftTrigger = 0.0f;
+        def.peak.rightTrigger = 0.0f;
+    }
+
+    return def;
+}
