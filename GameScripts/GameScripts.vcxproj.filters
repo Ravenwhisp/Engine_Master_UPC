@@ -177,6 +177,12 @@
     <ClInclude Include="UIController.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="TriggerDebugScript.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportListTest.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -342,6 +348,12 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="SimpleMath.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerDebugScript.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportListTest.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

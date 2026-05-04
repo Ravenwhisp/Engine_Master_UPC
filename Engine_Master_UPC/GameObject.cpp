@@ -127,6 +127,7 @@ Component* GameObject::AddComponentWithUID(const ComponentType componentType, UI
     }
 
     Component* rawPtr = newComponent.get();
+
     m_components.push_back(std::move(newComponent));
     app->getModuleScene()->getScene()->markDirty();
     return rawPtr;
@@ -315,30 +316,12 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
     return false;
 }
 
-void GameObject::markGameObjectPropertyOverride(const char* propertyName)
-{
-    // Walk up to the nearest prefab instance root (same pattern used elsewhere)
-    GameObject* target = this;
-    while (target && !target->IsPrefabInstance())
-    {
-        Transform* parentTransform = target->GetTransform()->getRoot();
-        target = parentTransform ? parentTransform->getOwner() : nullptr;
-    }
-    if (target)
-    {
-        // -1 is a safe sentinel key for GameObject-level (non-component) properties
-        target->GetPrefabInfo().m_overrides.m_modifiedProperties[-1].insert(propertyName);
-    }
-}
-
 void GameObject::drawUI()
 {
 #pragma region
 
     ImGui::Text("GameObject UUID: %llu", (unsigned long long)m_uuid);
     ImGui::Separator();
-
-    const bool inPrefabMode = app->getModuleEditor()->isInPrefabEditMode();
 
     if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
@@ -367,12 +350,7 @@ void GameObject::drawUI()
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted("Active");
         ImGui::TableSetColumnIndex(1);
-        {
-            bool prevActive = m_active;
-            ImGui::Checkbox("##Active", &m_active);
-            if (inPrefabMode && m_active != prevActive)
-                markGameObjectPropertyOverride("active");
-        }
+        ImGui::Checkbox("##Active", &m_active);
 
         char buffer[256];
         std::strncpy(buffer, m_name.c_str(), sizeof(buffer));
@@ -385,20 +363,13 @@ void GameObject::drawUI()
         if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
         {
             m_name = buffer;
-            if (inPrefabMode)
-                markGameObjectPropertyOverride("name");
         }
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted("Tag");
         ImGui::TableSetColumnIndex(1);
-        {
-            Tag prevTag = m_tag;
-            DrawEnumCombo("##Tag", m_tag, static_cast<int>(Tag::COUNT), TagToString);
-            if (inPrefabMode && m_tag != prevTag)
-                markGameObjectPropertyOverride("tag");
-        }
+        DrawEnumCombo("##Tag", m_tag, static_cast<int>(Tag::COUNT), TagToString);
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
@@ -415,12 +386,8 @@ void GameObject::drawUI()
                 {
                     s_pendingLayer = m_layer;
                     s_pendingLayerTarget = this;
-                    m_layer = previousLayer; 
+                    m_layer = previousLayer; // revert until user decides
                     ImGui::OpenPopup("##LayerChildrenPopup");
-                }
-                else if (inPrefabMode && m_layer != previousLayer)
-                {
-                    markGameObjectPropertyOverride("layer");
                 }
             }
 
@@ -443,8 +410,6 @@ void GameObject::drawUI()
                         applyRecursive(s_pendingLayerTarget);
                         s_pendingLayerTarget = nullptr;
                     }
-                    if (inPrefabMode)
-                        markGameObjectPropertyOverride("layer");
                     ImGui::CloseCurrentPopup();
                 }
 
@@ -457,8 +422,6 @@ void GameObject::drawUI()
                         s_pendingLayerTarget->SetLayer(s_pendingLayer);
                         s_pendingLayerTarget = nullptr;
                     }
-                    if (inPrefabMode)
-                        markGameObjectPropertyOverride("layer");
                     ImGui::CloseCurrentPopup();
                 }
 
@@ -490,7 +453,7 @@ void GameObject::drawUI()
         const std::unique_ptr<Component>& component = m_components[i];
         ImGui::PushID(static_cast<int>(component->getID()));
 
-        std::string header = std::string(ComponentTypeToString(component->getType()));
+        std::string header = std::string(ComponentTypeToString(component->getType())); // + " | UUID: " + std::to_string(component->getID());
 
         if (component->getType() == ComponentType::SCRIPT)
         {
@@ -500,6 +463,7 @@ void GameObject::drawUI()
             {
                 const std::string& scriptName = scriptComponent->getScriptName();
                 header += " (" + scriptName + ")";
+
             }
             else
             {
@@ -592,17 +556,6 @@ void GameObject::drawUI()
             if (ImGui::Checkbox("##Active", &enabled))
             {
                 component->setActive(enabled);
-                // Toggling a component's active state is a component-level override
-                if (inPrefabMode)
-                {
-                    const int componentType = static_cast<int>(component->getType());
-                    GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
-                    if (targetForOverride && targetForOverride->IsPrefabInstance())
-                    {
-                        targetForOverride->GetPrefabInfo()
-                            .m_overrides.m_modifiedProperties[componentType].insert("active");
-                    }
-                }
             }
 
             ImGui::SetCursorScreenPos(cursorAfterHeader);
@@ -610,11 +563,14 @@ void GameObject::drawUI()
 
         if (isOpen)
         {
+            // We ask ModuleEditor directly instead of reaching into PrefabEditSession..
+            const bool inPrefabMode = app->getModuleEditor()->isInPrefabEditMode();
+
             const ImGuiID activeIdBefore = ImGui::GetActiveID();
             component->drawUi();
             const ImGuiID activeIdAfter = ImGui::GetActiveID();
 
-            // If a widget inside this component was interacted with while in prefab mode
+            // If a widget inside this component was interacted with while in prefab
             if (inPrefabMode && activeIdAfter != 0 && activeIdAfter != activeIdBefore)
             {
                 const int componentType = static_cast<int>(component->getType());
@@ -625,6 +581,7 @@ void GameObject::drawUI()
                         .m_overrides.m_modifiedProperties[componentType].insert("properties");
                 }
             }
+
 
             if (component->getType() != ComponentType::TRANSFORM)
             {
@@ -674,6 +631,7 @@ void GameObject::drawUI()
     }
 #pragma endregion
 }
+
 void GameObject::moveComponent(size_t fromIndex, size_t toIndex)
 {
     if (fromIndex >= m_components.size())
@@ -848,6 +806,7 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
             }
 
             newComponent->deserializeJSON(componentJson);
+            newComponent->init();
         }
     }
 

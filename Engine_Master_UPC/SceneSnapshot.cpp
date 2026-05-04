@@ -75,4 +75,11 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.m_allObjects = std::move(m_allObjects);
     scene.m_rootObjects = std::move(m_rootObjects);
     scene.setDefaultCamera(m_defaultCamera);
+
+    for (const auto& go : scene.m_allObjects)
+    {
+        go->init();
+    }
+
+    scene.markDirty();
 }

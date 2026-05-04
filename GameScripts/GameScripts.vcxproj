@@ -269,6 +269,7 @@
     <ClInclude Include="EnemyDeathHandler.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
     <ClInclude Include="EnemyIDLE.h" />
+    <ClInclude Include="ExportListTest.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LevelCheats.h" />
@@ -298,6 +299,7 @@
     <ClInclude Include="TestSceneChangeButton.h" />
     <ClInclude Include="TransformGlobalTest.h" />
     <ClInclude Include="TriggerArea.h" />
+    <ClInclude Include="TriggerDebugScript.h" />
     <ClInclude Include="UIController.h" />
   </ItemGroup>
   <ItemGroup>
@@ -326,6 +328,7 @@
     <ClCompile Include="EnemyDeathHandler.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
+    <ClCompile Include="ExportListTest.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LevelCheats.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
@@ -366,6 +369,7 @@
     <ClCompile Include="TestSceneChangeButton.cpp" />
     <ClCompile Include="TransformGlobalTest.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
+    <ClCompile Include="TriggerDebugScript.cpp" />
     <ClCompile Include="UIController.cpp" />
   </ItemGroup>
   <ItemGroup>

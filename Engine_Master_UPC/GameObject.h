@@ -4,7 +4,7 @@
 #include "Tag.h"
 #include "Layer.h"
 #include "ComponentType.h"
-#include "PrefabAsset.h"
+#include "PrefabInstance.h"
 
 #include <vector>
 #include <memory>
@@ -16,24 +16,6 @@ class Component;
 class ModelComponent;
 class Transform;
 class SceneSnapshot;
-
-struct PrefabInfo
-{
-	std::filesystem::path m_sourcePath;
-	MD5Hash m_assetUID;
-
-	PrefabOverrideRecord m_overrides;
-
-	bool isInstance() const { return !m_sourcePath.empty(); }
-	std::string getName() const { return m_sourcePath.stem().string(); }
-
-	void clear()
-	{
-		m_sourcePath.clear();
-		m_assetUID = {};
-		m_overrides.clear();
-	}
-};
 
 class GameObject 
 {
@@ -60,11 +42,10 @@ public:
 #pragma endregion
 
 #pragma region Prefab
-	PrefabInfo& GetPrefabInfo() { return m_prefabInfo; }
-	const PrefabInfo& GetPrefabInfo() const { return m_prefabInfo; }
+	PrefabInstanceInfo& GetPrefabInfo() { return m_prefabInfo; }
+	const PrefabInstanceInfo& GetPrefabInfo() const { return m_prefabInfo; }
 
 	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
-	void markGameObjectPropertyOverride(const char* propertyName);
 #pragma endregion
 
 #pragma region Components
@@ -111,7 +92,7 @@ private:
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
 
-	PrefabInfo m_prefabInfo;
+	PrefabInstanceInfo m_prefabInfo;
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;
