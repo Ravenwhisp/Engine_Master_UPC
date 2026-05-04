@@ -728,3 +728,13 @@ void ModuleAssets::flushDialogRequests()
         m_dialogCallback = nullptr;
     }
 }
+
+std::shared_ptr<Asset> ModuleAssets::getAsset(const UID& uid)
+{
+    if (!isValidUID(uid))
+    {
+        return nullptr;
+    }
+
+    return load<Asset>(uid);
+}

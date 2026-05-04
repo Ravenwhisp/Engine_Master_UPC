@@ -33,6 +33,8 @@ private:
 
     void navigateTo(const std::filesystem::path& path);
 
+    void handleAssetClick(const std::shared_ptr<FileEntry>& asset);
+
     void handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset);
 
     void handleGameObjectDrop(const std::filesystem::path& targetDirectory);

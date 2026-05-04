@@ -166,6 +166,7 @@ public:
 
     void flushDialogRequests();
 
+    std::shared_ptr<Asset> getAsset(const UID& uid);
 private:
 
     template<typename T>

@@ -25,6 +25,19 @@ void WindowFileDialog::navigateTo(const std::filesystem::path& path)
     m_selectedItem = nullptr;
 }
 
+void WindowFileDialog::handleAssetClick(const std::shared_ptr<FileEntry>& asset)
+{
+    if (!asset || asset->isDirectory || !isValidUID(asset->uid))
+    {
+        return;
+    }
+
+    std::shared_ptr<Asset> assetResource = app->getModuleAssets()->getAsset(asset->uid);
+
+    app->getModuleEditor()->setSelectedAsset(assetResource);
+    m_selectedItem = asset;
+}
+
 void WindowFileDialog::handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset)
 {
     if (asset->isDirectory)
@@ -180,7 +193,7 @@ void WindowFileDialog::drawAssetGrid(const std::shared_ptr<FileEntry>& directory
 
         if (ImGui::IsItemClicked())
         {
-            m_selectedItem = asset;
+            handleAssetClick(asset);
         }
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))

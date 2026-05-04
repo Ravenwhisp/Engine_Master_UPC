@@ -1,0 +1,77 @@
+#include "Globals.h"
+#include "MeshAsset.h"
+
+#include "IndexBuffer.h"
+
+#include <imgui.h>
+
+std::vector<Vector3> MeshAsset::getVerticesPositions() const
+{
+    std::vector<Vector3> positions;
+    positions.reserve(vertices.size());
+
+    for (const Vertex& vertex : vertices)
+    {
+        positions.push_back(vertex.position);
+    }
+
+    return positions;
+}
+
+uint32_t MeshAsset::getIndexCount() const
+{
+    return static_cast<uint32_t>(indices.size()) / getSizeByFormat(indexFormat);
+}
+
+void MeshAsset::drawUI()
+{
+    ImGui::Text("Mesh Asset");
+
+    ImGui::Separator();
+
+    ImGui::Text("UID: %llu", static_cast<unsigned long long>(getId()));
+
+    ImGui::SeparatorText("Geometry");
+
+    ImGui::Text("Vertices: %u", getVertexCount());
+    ImGui::Text("Vertex stride: %u bytes", getVertexStride());
+
+    ImGui::Text("Indices: %u", getIndexCount());
+    ImGui::Text("Index buffer size: %u bytes", getIndexBufferSize());
+    ImGui::Text("Index format: %d", static_cast<int>(indexFormat));
+
+    ImGui::Text("Submeshes: %zu", submeshes.size());
+
+    if (ImGui::TreeNode("Submesh list"))
+    {
+        for (size_t i = 0; i < submeshes.size(); ++i)
+        {
+            const Submesh& submesh = submeshes[i];
+
+            ImGui::PushID(static_cast<int>(i));
+            ImGui::Text("Submesh %zu", i);
+            ImGui::Text("Index start: %u", submesh.indexStart);
+            ImGui::Text("Index count: %u", submesh.indexCount);
+            ImGui::Separator();
+            ImGui::PopID();
+        }
+
+        ImGui::TreePop();
+    }
+
+    ImGui::SeparatorText("Bounds");
+
+    ImGui::Text(
+        "Center: %.3f, %.3f, %.3f",
+        boundsCenter.x,
+        boundsCenter.y,
+        boundsCenter.z
+    );
+
+    ImGui::Text(
+        "Extents: %.3f, %.3f, %.3f",
+        boundsExtents.x,
+        boundsExtents.y,
+        boundsExtents.z
+    );
+}

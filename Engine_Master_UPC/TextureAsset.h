@@ -20,6 +20,8 @@ public:
 	uint32_t	getImageCount() const { return imageCount; }
 	std::vector<TextureImage>& getImages() const { return images; }
 
+	void drawUI() override;
+
 private:
 	uint32_t width = 0;
 	uint32_t height = 0;
