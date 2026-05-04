@@ -20,6 +20,7 @@ class ModuleScene;
 class ModuleGameView;
 class ModuleAssets;
 class ModuleEventSystem;
+class ModuleTrigger;
 
 class CameraComponent;
 class Settings;
@@ -55,6 +56,7 @@ public:
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
+    ModuleTrigger*              getModuleTrigger() { return m_moduleTrigger; }
 
     Settings*                   getSettings() { return m_settings; }
 
@@ -93,6 +95,7 @@ private:
     ModuleAssets*           m_moduleAssets = nullptr;
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
+    ModuleTrigger* m_moduleTrigger = nullptr;
 
     Settings*               m_settings = nullptr;
 

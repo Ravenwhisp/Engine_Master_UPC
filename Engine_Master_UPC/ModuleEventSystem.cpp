@@ -204,7 +204,7 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
     Transform2D* t2d = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
     if (t2d && t2d->isActive())
     {
-        myRect = t2d->getRect(parentRect);
+        myRect = t2d->getRect(parentRect, { 1.0f, 1.0f });
 
         if (myRect.contains(screenPos))
         {

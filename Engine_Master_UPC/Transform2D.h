@@ -30,7 +30,12 @@ public:
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
     Rect2D getRect() const;
-    Rect2D getRect(const Rect2D& parent) const;
+    Rect2D getRect(const Rect2D& parent, const Vector2& inheritedScale = { 1.0f, 1.0f }) const;
+
+	Vector2 getPosition() const { return Vector2(position.x, position.y); }
+	void setPosition(const Vector2& pos) { position.x = pos.x; position.y = pos.y; }
+	Vector2 getScale() const { return Vector2(scale.x, scale.y); }
+	void setScale(const Vector2& s) { scale.x = s.x; scale.y = s.y; }
     
     void setStretchMode(StretchMode mode);
     StretchMode getStretchMode() const { return stretchMode; }

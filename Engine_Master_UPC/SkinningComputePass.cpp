@@ -22,7 +22,7 @@ SkinningComputePass::SkinningComputePass(ComPtr<ID3D12Device4> device)
     rootParameters[1].InitAsUnorderedAccessView(0);     // u0: output vertices
     rootParameters[2].InitAsShaderResourceView(1);      // t1: palette model
     rootParameters[3].InitAsShaderResourceView(2);      // t2: palette normal
-    rootParameters[4].InitAsConstants(1, 0);            // b0: vertex count
+    rootParameters[4].InitAsConstants(2, 0);            // b0: vertex count + palette count
 
     rootSignatureDesc.Init(
         _countof(rootParameters),
@@ -89,6 +89,7 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         const uint32_t vertexCount = renderer->getSkinningVertexCount();
         if (vertexCount == 0)
             continue;
+        const uint32_t paletteCount = static_cast<uint32_t>(renderer->getMatrixPalette().size());
 
         auto& mesh = renderer->getMesh();
         if (!mesh || !mesh->getVertexBuffer())
@@ -120,6 +121,7 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         commandList->SetComputeRootShaderResourceView(2, paletteModelResource->GetGPUVirtualAddress());
         commandList->SetComputeRootShaderResourceView(3, paletteNormalResource->GetGPUVirtualAddress());
         commandList->SetComputeRoot32BitConstant(4, vertexCount, 0);
+        commandList->SetComputeRoot32BitConstant(4, paletteCount, 1);
 
         const uint32_t threadGroupCount = (vertexCount + 63u) / 64u;
         commandList->Dispatch(threadGroupCount, 1, 1);
