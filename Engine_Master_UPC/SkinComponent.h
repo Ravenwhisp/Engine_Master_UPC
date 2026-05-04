@@ -46,6 +46,13 @@ public:
     bool isCpuSkinningFallbackEnabled() const { return m_enableCpuSkinningFallback; }
     void setCpuSkinningFallbackEnabled(bool enabled) { m_enableCpuSkinningFallback = enabled; }
 
+    const VertexBuffer* getCurrentGpuSkinnedVertexBuffer() const;
+    ID3D12Resource* getCurrentGpuSkinnedOutputResource() const;
+    ID3D12Resource* getCurrentGpuPaletteModelResource() const;
+    ID3D12Resource* getCurrentGpuPaletteNormalResource() const;
+
+    bool hasGpuSkinningResources() const;
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -59,6 +66,9 @@ private:
     bool ensureSourceVerticesCached();
     void cacheSourceVertices(const MeshAsset& meshAsset);
     void rebuildCpuSkinnedVertexBuffer();
+    bool ensureGpuSkinningResources();
+    void updateGpuPaletteBuffers();
+    void invalidateGpuSkinningResources();
 
 private:
     MD5Hash m_skinAsset = INVALID_ASSET_ID;
@@ -76,4 +86,12 @@ private:
 
     bool m_enableCpuSkinningFallback = false;
     MD5Hash m_cachedMeshAsset = INVALID_ASSET_ID;
+
+    std::unique_ptr<VertexBuffer> m_gpuSkinnedVertexBuffers[FRAMES_IN_FLIGHT];
+
+    ComPtr<ID3D12Resource> m_gpuPaletteModelBuffers[FRAMES_IN_FLIGHT];
+    ComPtr<ID3D12Resource> m_gpuPaletteNormalBuffers[FRAMES_IN_FLIGHT];
+
+    size_t m_gpuSkinningVertexCapacity = 0;
+    size_t m_gpuPaletteJointCapacity = 0;
 };
