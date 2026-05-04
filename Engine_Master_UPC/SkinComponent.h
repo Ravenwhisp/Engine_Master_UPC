@@ -2,6 +2,7 @@
 
 #include "Component.h"
 #include "MD5Fwd.h"
+#include "Vertex.h"
 
 #include "SimpleMath.h"
 
@@ -10,6 +11,8 @@
 
 class SkinAsset;
 class Transform;
+class VertexBuffer;
+class MeshAsset;
 
 class SkinComponent final : public Component
 {
@@ -36,6 +39,13 @@ public:
     const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
     bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
 
+    uint32_t getSkinningVertexCount() const { return static_cast<uint32_t>(m_sourceVertices.size()); }
+
+    const VertexBuffer* getCpuSkinnedVertexBuffer() const { return m_skinnedVertexBuffer.get(); }
+
+    bool isCpuSkinningFallbackEnabled() const { return m_enableCpuSkinningFallback; }
+    void setCpuSkinningFallbackEnabled(bool enabled) { m_enableCpuSkinningFallback = enabled; }
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -46,6 +56,9 @@ private:
     bool resolveSkinBindings();
     void invalidateSkinningRuntime();
     void rebuildMatrixPalette();
+    bool ensureSourceVerticesCached();
+    void cacheSourceVertices(const MeshAsset& meshAsset);
+    void rebuildCpuSkinnedVertexBuffer();
 
 private:
     MD5Hash m_skinAsset = INVALID_ASSET_ID;
@@ -56,4 +69,11 @@ private:
 
     std::vector<Matrix> m_matrixPalette;
     std::vector<Matrix> m_normalPalette;
+
+    std::vector<Vertex> m_sourceVertices;
+    std::vector<Vertex> m_skinnedVertices;
+    std::unique_ptr<VertexBuffer> m_skinnedVertexBuffer;
+
+    bool m_enableCpuSkinningFallback = false;
+    MD5Hash m_cachedMeshAsset = INVALID_ASSET_ID;
 };
