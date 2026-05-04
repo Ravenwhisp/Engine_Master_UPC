@@ -37,7 +37,7 @@ void TextureAsset::drawUI()
     ImGui::Text("Texture Asset");
     ImGui::Separator();
 
-    ImGui::Text("UID: %llu", static_cast<unsigned long long>(getId()));
+    ImGui::Text("UID: %llu", static_cast<unsigned long long>(getUID()));
     ImGui::Text("Size: %u x %u", width, height);
     ImGui::Text("Format: %s", FormatToString(format));
     ImGui::Text("Mip Count: %u", mipCount);

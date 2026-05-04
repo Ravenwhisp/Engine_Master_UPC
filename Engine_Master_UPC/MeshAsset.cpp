@@ -29,7 +29,7 @@ void MeshAsset::drawUI()
 
     ImGui::Separator();
 
-    ImGui::Text("UID: %llu", static_cast<unsigned long long>(getId()));
+    ImGui::Text("UID: %llu", static_cast<unsigned long long>(getUID()));
 
     ImGui::SeparatorText("Geometry");
 

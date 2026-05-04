@@ -165,8 +165,6 @@ public:
     GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
 
     void flushDialogRequests();
-
-    std::shared_ptr<Asset> getAsset(const UID& uid);
 private:
 
     template<typename T>

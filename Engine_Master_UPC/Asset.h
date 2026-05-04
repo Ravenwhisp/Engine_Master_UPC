@@ -17,6 +17,8 @@ public:
 	MD5Hash getLibId() const { return m_reference.m_libId; }
 	void setLibId(const MD5Hash& libId) { m_reference.m_libId = libId; }
 
+	AssetType getType() const { return m_type; }
+
 	virtual void drawUI();
 protected:
 	AssetReference 				m_reference;
