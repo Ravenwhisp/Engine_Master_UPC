@@ -343,6 +343,7 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta,
             rapidjson::Value entry(rapidjson::kObjectType);
             entry.AddMember("uid", rapidjson::Value(dep.uid.c_str(), alloc), alloc);
             entry.AddMember("type", rapidjson::Value(static_cast<uint32_t>(dep.type)), alloc);
+            entry.AddMember("isSubAsset", dep.isSubAsset, alloc);
             deps.PushBack(entry, alloc);
         }
         doc.AddMember("dependencies", deps, alloc);
@@ -434,6 +435,16 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
             DependencyRecord rec;
             rec.uid = entry["uid"].GetString();
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
+
+            if (entry.HasMember("isSubAsset") && entry["isSubAsset"].IsBool())
+            {
+                rec.isSubAsset = entry["isSubAsset"].GetBool();
+            }
+            else
+            {
+                rec.isSubAsset = true;
+            }
+
             outMeta.m_dependencies.push_back(std::move(rec));
         }
     }
@@ -465,6 +476,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
         DependencyRecord dep;
         dep.uid = subMeta.uid;
         dep.type = subMeta.type;
+        dep.isSubAsset = true;
         m_pendingDependencies[parentUID].push_back(dep);
     }
 }
@@ -477,6 +489,8 @@ void ModuleAssets::registerDependency(const MD5Hash& parentUID, const MD5Hash& d
     DependencyRecord dep;
     dep.uid = dependencyUID;
     dep.type = dependencyType;
+    dep.isSubAsset = false;
+
 
     m_pendingDependencies[parentUID].push_back(dep);
 }
