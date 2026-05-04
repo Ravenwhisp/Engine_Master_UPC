@@ -12,7 +12,6 @@
 
 class SkinAsset;
 class Transform;
-class VertexBuffer;
 class MeshAsset;
 
 class SkinComponent final : public Component
