@@ -7,6 +7,7 @@ struct DependencyRecord
 {
 	MD5Hash   uid = INVALID_ASSET_ID;
 	AssetType type = AssetType::UNKNOWN;
+	bool isSubAsset = true;
 };
 
 struct Metadata

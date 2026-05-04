@@ -85,6 +85,8 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     {
         if (!isValidAsset(dep.uid)) continue;
 
+        if (!dep.isSubAsset) continue;
+
         Metadata subMeta;
         subMeta.uid = dep.uid;
         subMeta.type = dep.type;
