@@ -154,7 +154,14 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash&
 
     if (!isValidAsset(uid))
     {
-        uid = computeMD5(sourcePath);
+        if (sourcePath.extension() == ".statemachine")
+        {
+            uid = computeStableUIDFromAssetPath(sourcePath);
+        }
+        else
+        {
+            uid = computeMD5(sourcePath);
+        }
     }
 
     // Scoped to this function — not cached, not shared.
@@ -460,6 +467,18 @@ void ModuleAssets::registerSubAsset(const Metadata& meta,
         dep.type = subMeta.type;
         m_pendingDependencies[parentUID].push_back(dep);
     }
+}
+
+void ModuleAssets::registerDependency(const MD5Hash& parentUID, const MD5Hash& dependencyUID, AssetType dependencyType)
+{
+    if (!isValidAsset(parentUID) || !isValidAsset(dependencyUID))
+        return;
+
+    DependencyRecord dep;
+    dep.uid = dependencyUID;
+    dep.type = dependencyType;
+
+    m_pendingDependencies[parentUID].push_back(dep);
 }
 
 bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)

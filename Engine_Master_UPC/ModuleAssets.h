@@ -86,6 +86,7 @@ public:
 
     void registerSubAsset(const Metadata& meta, const MD5Hash& parentUID,
         uint8_t* binaryData, size_t binarySize);
+    void registerDependency(const MD5Hash& parentUID, const MD5Hash& dependencyUID, AssetType dependencyType);
 
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
     bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
