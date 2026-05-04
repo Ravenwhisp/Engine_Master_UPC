@@ -433,6 +433,12 @@
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="ParticlesPass.cpp">
+      <Filter>Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="StructuredBuffer.cpp">
+      <Filter>D3D12\Resources\Buffers\StructuredBuffer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1075,6 +1081,15 @@
     <ClInclude Include="ParticleSystemComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ParticleCommands.h">
+      <Filter>Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticlesPass.h">
+      <Filter>Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="StructuredBuffer.h">
+      <Filter>D3D12\Resources\Buffers\StructuredBuffer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1253,6 +1268,12 @@
     <Filter Include="Core\Commands">
       <UniqueIdentifier>{67e7f84d-9329-42d5-822d-44df3c1bebbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Particles">
+      <UniqueIdentifier>{08bc7c2f-3555-4753-a56d-90f0a4acc4a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="D3D12\Resources\Buffers\StructuredBuffer">
+      <UniqueIdentifier>{f48971bd-a12a-4071-93df-b8085fd87b88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1319,6 +1340,12 @@
     </FxCompile>
     <FxCompile Include="BRDFVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticlePixelShader.hlsl">
+      <Filter>Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleVertexShader.hlsl">
+      <Filter>Particles</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

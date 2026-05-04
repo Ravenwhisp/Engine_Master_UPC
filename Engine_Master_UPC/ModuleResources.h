@@ -24,6 +24,7 @@ static const float PI = 3.14159265f;
 class VertexBuffer;
 class IndexBuffer;
 class RingBuffer;
+class StructuredBuffer;
 class Texture;
 class TextureAsset;
 enum class TextureView : uint8_t;
@@ -82,6 +83,7 @@ public:
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);
+	std::shared_ptr<StructuredBuffer> createStructuredBuffer(uint32_t elementSize, uint32_t count, const void* data = nullptr);
 
 
 private:

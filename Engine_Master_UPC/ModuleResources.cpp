@@ -7,9 +7,10 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "RingBuffer.h"
+#include "StructuredBuffer.h"
 #include "Texture.h"
 #include "RenderSurface.h"
-
+ 
 #include "ModuleAssets.h"
 #include "BasicMesh.h"
 #include "BasicMaterial.h"
@@ -720,4 +721,9 @@ std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(const MaterialAss
 	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
 	m_resources.insert(uid, material);
 	return material;
+}
+
+std::shared_ptr<StructuredBuffer> ModuleResources::createStructuredBuffer(uint32_t elementSize, uint32_t count, const void* data)
+{
+	return std::make_shared<StructuredBuffer>(*m_device.Get(), elementSize, count, data);
 }
