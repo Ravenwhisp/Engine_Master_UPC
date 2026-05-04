@@ -3,6 +3,7 @@
 #include "Component.h"
 #include "MD5Fwd.h"
 #include "Vertex.h"
+#include "VertexBuffer.h"
 
 #include "SimpleMath.h"
 
