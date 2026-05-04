@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "MeshRenderer.h"
+#include "SkinComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "BasicMesh.h"
@@ -57,7 +58,7 @@ SkinningComputePass::SkinningComputePass(ComPtr<ID3D12Device4> device)
 
 void SkinningComputePass::prepare(const RenderContext& ctx)
 {
-    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
+    m_skinComponents = app->getModuleScene()->getSkinComponents();
 }
 
 void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -65,13 +66,17 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetComputeRootSignature(m_rootSignature.Get());
 
-    for (MeshRenderer* renderer : m_meshRenderers)
+    for (SkinComponent* skin : m_skinComponents)
     {
-        if (!renderer)
+        if (!skin)
             continue;
 
-        GameObject* owner = renderer->getOwner();
+        GameObject* owner = skin->getOwner();
         if (!owner || !owner->IsActiveInWindowHierarchy())
+            continue;
+
+        MeshRenderer* renderer = owner->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+        if (!renderer)
             continue;
 
         if (!renderer->isActive())
@@ -80,25 +85,28 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         if (!renderer->hasMesh())
             continue;
 
-        if (!renderer->hasSkinPalette())
+        if (!skin->hasSkinPalette())
             continue;
 
-        if (!renderer->hasGpuSkinningResources())
+        if (!skin->hasGpuSkinningResources())
             continue;
 
-        const uint32_t vertexCount = renderer->getSkinningVertexCount();
+        const uint32_t vertexCount = skin->getSkinningVertexCount();
+
+
         if (vertexCount == 0)
             continue;
-        const uint32_t paletteCount = static_cast<uint32_t>(renderer->getMatrixPalette().size());
+        
+        const uint32_t paletteCount = static_cast<uint32_t>(skin->getMatrixPalette().size());
 
         auto& mesh = renderer->getMesh();
         if (!mesh || !mesh->getVertexBuffer())
             continue;
 
         ID3D12Resource* inputResource = mesh->getVertexBuffer()->getD3D12Resource().Get();
-        ID3D12Resource* outputResource = renderer->getCurrentGpuSkinnedOutputResource();
-        ID3D12Resource* paletteModelResource = renderer->getCurrentGpuPaletteModelResource();
-        ID3D12Resource* paletteNormalResource = renderer->getCurrentGpuPaletteNormalResource();
+        ID3D12Resource* outputResource = skin->getCurrentGpuSkinnedOutputResource();
+        ID3D12Resource* paletteModelResource = skin->getCurrentGpuPaletteModelResource();
+        ID3D12Resource* paletteNormalResource = skin->getCurrentGpuPaletteNormalResource();
 
         if (!inputResource || !outputResource || !paletteModelResource || !paletteNormalResource)
             continue;
