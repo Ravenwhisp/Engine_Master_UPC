@@ -339,6 +339,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="PrefabInstance.h" />
+    <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="OptickProfiler.h" />
@@ -655,6 +656,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />

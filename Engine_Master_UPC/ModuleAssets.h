@@ -4,7 +4,6 @@
 #include "AssetsDictionary.h"
 #include "WeakCache.h"
 
-#include "AssetScanner.h"
 #include "PrefabSerializer.h"
 #include "PrefabAsset.h"
 
@@ -17,7 +16,9 @@
 #include "Importer.h"
 
 
+class AssetScanner;
 class ContentRegistry;
+class PrefabManager;
 
 class Asset;
 
@@ -48,13 +49,15 @@ class ModuleAssets : public Module
 {
 friend ContentRegistry;
 friend ImporterGltf;
+friend PrefabManager;
 
 private:
     std::unordered_map<UID, AssetIndexEntry>  m_uidIndex;
     std::unordered_map<std::string, UID>      m_pathIndex;
 
-    std::unique_ptr<ContentRegistry>    m_contentRegistry;
     std::unique_ptr<AssetScanner>       m_scanner;
+    std::unique_ptr<ContentRegistry>    m_contentRegistry;
+    std::unique_ptr<PrefabManager>      m_prefabManager;
 
     // Runtime cache keyed by stable UID.
     WeakCache<UID, Asset>               m_assets;
@@ -80,6 +83,7 @@ public:
     void refresh();
 
     ContentRegistry* getContentRegistry() const;
+    PrefabManager* getPrefabManager() const;
 
     // Loads an asset by its stable UID.
     template<typename T>
@@ -170,14 +174,6 @@ public:
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
 
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
-
-    bool savePrefab(GameObject* go, const std::filesystem::path& savePath);
-    bool applyPrefab(const GameObject* go);
-    bool revertPrefab(GameObject* go, Scene* scene);
-    bool createVariant(const std::filesystem::path& src, const std::filesystem::path& dst);
-
-    GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
-    GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
 
     void flushDialogRequests();
 private:

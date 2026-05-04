@@ -8,6 +8,7 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
+#include "PrefabManager.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -170,7 +171,7 @@ namespace GameObjectAPI
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = app->getModuleAssets()->spawnPrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(path, currentScene);
 
         if (!prefabInstance) return nullptr;
 
