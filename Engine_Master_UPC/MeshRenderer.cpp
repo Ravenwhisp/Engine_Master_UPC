@@ -3,6 +3,7 @@
 
 #include "Transform.h"
 #include "GameObject.h"
+#include "SkinComponent.h"
 
 #include "Application.h"
 #include "ModuleD3D12.h"
@@ -293,6 +294,20 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("SkinAssetId") && componentInfo["SkinAssetId"].IsString())
     {
         m_skinAsset = componentInfo["SkinAssetId"].GetString();
+
+        SkinComponent* skinComponent =
+            m_owner ? m_owner->GetComponentAs<SkinComponent>(ComponentType::SKIN) : nullptr;
+
+        if (!skinComponent && m_owner)
+        {
+            skinComponent = static_cast<SkinComponent*>(
+                m_owner->AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
+        }
+
+        if (skinComponent)
+        {
+            skinComponent->setSkinReference(m_skinAsset);
+        }
     }
     else
     {
