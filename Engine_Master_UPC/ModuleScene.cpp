@@ -15,6 +15,7 @@
 
 #include "GameObject.h"
 #include "MeshRenderer.h"
+#include "SkinComponent.h"
 #include "SpriteRenderer.h"
 #include "LightComponent.h"
 #include "ScriptComponent.h"
@@ -78,6 +79,7 @@ void ModuleScene::clearComponentCaches()
     m_spriteRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
+    m_skinComponents.clear();
 }
 
 void ModuleScene::rebuildComponentCaches()
@@ -97,6 +99,11 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
         {
             m_meshRenderers.push_back(mesh);
+        }
+
+        if (auto* skinComponent = go->GetComponentAs<SkinComponent>(ComponentType::SKIN))
+        {
+            m_skinComponents.push_back(skinComponent);
         }
 
         if (auto* sprite = go->GetComponentAs<SpriteRenderer>(ComponentType::SPRITE_RENDERER))
