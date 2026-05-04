@@ -71,6 +71,9 @@ public:
 
 
     MD5Hash  findUID(const std::filesystem::path& sourcePath) const;
+    MD5Hash computeStableUIDFromAssetPath(const std::filesystem::path& sourcePath) const;
+    std::filesystem::path getDefaultStateMachineSourcePath(const std::filesystem::path& modelSourcePath) const;
+
     bool isLoaded(const MD5Hash& id);
     void unload(const MD5Hash& id);
 
