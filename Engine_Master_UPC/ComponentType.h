@@ -3,7 +3,6 @@
 #define COMPONENT_TYPE_LIST \
     X(TRANSFORM)            \
     X(MODEL)                \
-    X(SKIN)                 \
     X(LIGHT)                \
     X(SCRIPT)               \
     X(CAMERA)               \
@@ -20,7 +19,8 @@
     X(NAVMESH_WALK)         \
     X(ANIMATION)            \
     X(UISLIDER)             \
-    X(TRIGGER)
+    X(TRIGGER)              \
+    X(SKIN)                 
 
 enum class ComponentType
 {
