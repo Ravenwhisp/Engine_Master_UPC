@@ -225,6 +225,12 @@ bool GameObject::IsActiveInWindowHierarchy() const
     return true;
 }
 
+void GameObject::SetActive(bool newActive)
+{
+    m_active = newActive;
+    app->getModuleScene()->getScene()->markDirty();
+}
+
 #pragma endregion
 
 #pragma region GameLoop
@@ -350,7 +356,12 @@ void GameObject::drawUI()
         ImGui::TableSetColumnIndex(0);
         ImGui::TextUnformatted("Active");
         ImGui::TableSetColumnIndex(1);
-        ImGui::Checkbox("##Active", &m_active);
+        bool active = m_active;
+
+        if (ImGui::Checkbox("##Active", &active))
+        {
+            SetActive(active);
+        }
 
         char buffer[256];
         std::strncpy(buffer, m_name.c_str(), sizeof(buffer));
