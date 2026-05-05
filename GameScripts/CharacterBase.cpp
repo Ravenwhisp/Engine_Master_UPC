@@ -15,23 +15,12 @@ CharacterBase::CharacterBase(GameObject* owner)
 
 void CharacterBase::Start()
 {
-    Script* stateScript = GameObjectAPI::getScript(getOwner(), "PlayerState");
-    m_playerState = static_cast<PlayerState*>(stateScript);
-
-    Script* controllerScript = GameObjectAPI::getScript(getOwner(), "PlayerController");
-    m_playerController = static_cast<PlayerController*>(controllerScript);
-
-    Script* rotationScript = GameObjectAPI::getScript(getOwner(), "PlayerRotation");
-    m_playerRotation = static_cast<PlayerRotation*>(rotationScript);
-
-    Script* animationScript = GameObjectAPI::getScript(getOwner(), "PlayerAnimationController");
-    m_playerAnimationController = static_cast<PlayerAnimationController*>(animationScript);
-
-    Script* targetControllerScript = GameObjectAPI::getScript(getOwner(), "PlayerTargetController");
-    m_targetController = static_cast<PlayerTargetController*>(targetControllerScript);
-
-    Script* damageableScript = GameObjectAPI::getScript(getOwner(), "PlayerDamageable");
-    m_damageable = static_cast<Damageable*>(damageableScript);
+    m_playerState = GameObjectAPI::findScript<PlayerState>(getOwner());
+    m_playerController = GameObjectAPI::findScript<PlayerController>(getOwner());
+    m_playerRotation = GameObjectAPI::findScript<PlayerRotation>(getOwner());
+    m_playerAnimationController = GameObjectAPI::findScript<PlayerAnimationController>(getOwner());
+    m_targetController = GameObjectAPI::findScript<PlayerTargetController>(getOwner());
+    m_damageable = GameObjectAPI::findScript<Damageable>(getOwner());
 
     if (m_playerState == nullptr)
     {
