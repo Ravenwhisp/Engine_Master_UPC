@@ -20,6 +20,8 @@
 #include <NavMeshBuilder.h>
 
 #include "NavMeshGeometryExtractor.h"
+#include "NavModifierVolumeComponent.h"
+#include "Transform.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
@@ -230,6 +232,8 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
 
     rebuildNavMeshDebugLines();
 
+    //m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
+
     return saved;
 }
 
@@ -422,3 +426,22 @@ bool ModuleNavigation::computeDebugPath()
 
     return (m_debugPathPoints.size() >= 2);
 }
+
+//std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(Scene& scene) const
+//{
+//    std::vector<NavModifierVolumeData> data;
+//
+//    for (GameObject* obj : scene.getAllGameObjects())
+//    {
+//        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAVMODIFIER_VOLUME);
+//        if (navComp)
+//        {
+//            Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);
+//            if (transformComp)
+//            {
+//                LOG_INFO(__FILE__, __LINE__, "component found");
+//            }
+//        }
+//    }
+//    return data;
+//}
