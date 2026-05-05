@@ -39,13 +39,12 @@ bool ArrowPool::createArrow()
         return false;
     }
 
-    Script* script = GameObjectAPI::getScript(arrowObject, "LyrielArrowProjectile");
-    if (script == nullptr)
+    LyrielArrowProjectile* arrow = GameObjectAPI::findScript<LyrielArrowProjectile>(arrowObject);
+    if (arrow == nullptr)
     {
         GameObjectAPI::setActive(arrowObject, false);
         return false;
     }
-    LyrielArrowProjectile* arrow = static_cast<LyrielArrowProjectile*>(script);
 
     arrow->setPool(this);
     arrow->resetProjectile();

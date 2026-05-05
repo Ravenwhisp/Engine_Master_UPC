@@ -7,24 +7,19 @@
 #include <vector>
 
 template<typename T>
-T* GameObjectAPI::getScriptOfType(GameObject* gameObject)
+T* GameObjectAPI::findScript(GameObject* gameObject)
 {
     if (gameObject == nullptr)
     {
         return nullptr;
     }
 
-    const std::vector<Component*> components = gameObject->GetAllComponents();
+    const int scriptCount = GameObjectAPI::getScriptCount(gameObject);
 
-    for (Component* component : components)
+    for (int i = 0; i < scriptCount; ++i)
     {
-        if (component == nullptr || component->getType() != ComponentType::SCRIPT)
-        {
-            continue;
-        }
+        Script* script = GameObjectAPI::getScriptByIndex(gameObject, i);
 
-        ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component);
-        Script* script = scriptComponent->getScript();
         if (script == nullptr)
         {
             continue;
@@ -41,24 +36,19 @@ T* GameObjectAPI::getScriptOfType(GameObject* gameObject)
 }
 
 template<typename T>
-const T* GameObjectAPI::getScriptOfType(const GameObject* gameObject)
+const T* GameObjectAPI::findScript(const GameObject* gameObject)
 {
     if (gameObject == nullptr)
     {
         return nullptr;
     }
 
-    const std::vector<Component*> components = gameObject->GetAllComponents();
+    const int scriptCount = GameObjectAPI::getScriptCount(gameObject);
 
-    for (Component* component : components)
+    for (int i = 0; i < scriptCount; ++i)
     {
-        if (component == nullptr || component->getType() != ComponentType::SCRIPT)
-        {
-            continue;
-        }
+        const Script* script = GameObjectAPI::getScriptByIndex(gameObject, i);
 
-        const ScriptComponent* scriptComponent = static_cast<const ScriptComponent*>(component);
-        const Script* script = scriptComponent->getScript();
         if (script == nullptr)
         {
             continue;
