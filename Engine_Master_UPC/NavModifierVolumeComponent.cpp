@@ -2,7 +2,7 @@
 #include "NavModifierVolumeComponent.h"
 
 NavModifierVolumeComponent::NavModifierVolumeComponent(UID id, GameObject* owner)
-	: Component(id, ComponentType::NAVMODIFIERVOLUME, owner)
+	: Component(id, ComponentType::NAVMODIFIER_VOLUME, owner)
 {
 }
 
@@ -38,7 +38,7 @@ void NavModifierVolumeComponent::drawUi()
 
 void NavModifierVolumeComponent::onTransformChange()
 {
-	//TODO
+	// useful for dynamic navmesh if we do it
 }
 
 rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTree)
@@ -46,7 +46,7 @@ rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTre
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
 
 	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVMODIFIERVOLUME), domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVMODIFIER_VOLUME), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
 	rapidjson::Value halfExtentsObj(rapidjson::kObjectType);

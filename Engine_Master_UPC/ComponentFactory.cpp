@@ -9,6 +9,7 @@
 #include "LightComponent.h"
 #include "CameraComponent.h"
 #include "NavigationAgentComponent.h"
+#include "NavModifierVolumeComponent.h"
 #include "WaypointPathComponent.h"
 #include "ScriptComponent.h"
 #include "SpriteRenderer.h"
@@ -65,6 +66,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::NAVIGATION_AGENT:
         return std::make_unique<NavigationAgentComponent>(id, owner);
+    
+    case ComponentType::NAVMODIFIER_VOLUME:
+        return std::make_unique<NavModifierVolumeComponent>(id, owner);
 
     case ComponentType::WAYPOINT_PATH:
         return std::make_unique<WaypointPathComponent>(id, owner);
