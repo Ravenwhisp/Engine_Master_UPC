@@ -427,21 +427,33 @@ bool ModuleNavigation::computeDebugPath()
     return (m_debugPathPoints.size() >= 2);
 }
 
-//std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(Scene& scene) const
-//{
-//    std::vector<NavModifierVolumeData> data;
-//
-//    for (GameObject* obj : scene.getAllGameObjects())
-//    {
-//        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAVMODIFIER_VOLUME);
-//        if (navComp)
-//        {
-//            Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);
-//            if (transformComp)
-//            {
-//                LOG_INFO(__FILE__, __LINE__, "component found");
-//            }
-//        }
-//    }
-//    return data;
-//}
+std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(Scene& scene) const
+{
+    std::vector<NavModifierVolumeData> data;
+    int volumesFound = 0; // for debugging
+
+    for (GameObject* obj : scene.getAllGameObjects())
+    {
+        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAVMODIFIER_VOLUME);
+        if (navComp)
+        {
+            Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);
+            if (transformComp)
+            {
+                //LOG_INFO(__FILE__, __LINE__, "component found");
+                NavModifierVolumeData volume;
+                volume.position = transformComp->getPosition();
+                volume.halfExtents = navComp->getHalfExtents();
+                // areatype
+                // enabled
+                // priority
+                data.push_back(volume);
+                volumesFound++;
+            }
+        }
+    }
+
+    LOG_INFO(__FILE__, __LINE__, "Collected %d volumes", volumesFound);
+
+    return data;
+}
