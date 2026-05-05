@@ -20,6 +20,11 @@ public:
 
 	void debugDraw() override;
 
+	const Vector3& getHalfExtents() const { return m_halfExtents; }
+	NavAreaType getAreaType() const { return m_areaType; }
+	bool getEnabled() const { return m_enabled; }
+	int getPriority() const { return m_priority; }
+
 private:
 	Vector3 m_halfExtents = Vector3::One;
 	NavAreaType m_areaType = NavAreaType::Default;

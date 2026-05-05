@@ -84,11 +84,11 @@ private:
     Vector3 m_pathEnd{};
     std::vector<Vector3> m_debugPathPoints;
 
-   // std::vector<NavModifierVolumeData> m_modifierVolumes;
+    std::vector<NavModifierVolumeData> m_modifierVolumes;
 
 private:
     bool computeDebugPath();
-    //std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
+    std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
 
 };
 
