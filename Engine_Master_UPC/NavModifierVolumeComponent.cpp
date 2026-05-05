@@ -18,9 +18,29 @@ std::unique_ptr<Component> NavModifierVolumeComponent::clone(GameObject* newOwne
 	return newComponent;
 }
 
-//void drawUi() override;
-//void onTransformChange() override {}
-//
+void NavModifierVolumeComponent::drawUi()
+{
+	ImGui::SeparatorText("NavModifier Volume");
+
+	ImGui::Checkbox("Enabled", &m_enabled);
+
+	ImGui::DragFloat3("Half Extents", &m_halfExtents.x, 0.1f, 0.01f);
+
+	const char* areaTypes[] = { "Default", "Spectral", "Blocked" };
+	int currentArea = static_cast<int>(m_areaType);
+	if (ImGui::Combo("Area Type", &currentArea, areaTypes, IM_ARRAYSIZE(areaTypes)))
+	{
+		m_areaType = static_cast<NavAreaType>(currentArea);
+	}
+
+	ImGui::DragInt("Priority", &m_priority, 1.0f, 0, 100);
+}
+
+void NavModifierVolumeComponent::onTransformChange()
+{
+	//TODO
+}
+
 rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTree)
 {
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
@@ -41,6 +61,48 @@ rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTre
 
 	return componentInfo;
 }
-//bool deserializeJSON(const rapidjson::Value& componentInfo) override;
-//
-//void debugDraw() override;
+
+bool NavModifierVolumeComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+	if (componentInfo.HasMember("HalfExtents") && componentInfo["HalfExtents"].IsObject())
+	{
+		const auto& halfExtents = componentInfo["HalfExtents"];
+
+		if (halfExtents.HasMember("x"))
+		{
+			m_halfExtents.x = halfExtents["x"].GetFloat();
+		}
+
+		if (halfExtents.HasMember("y"))
+		{
+			m_halfExtents.y = halfExtents["y"].GetFloat();
+		}
+
+		if (halfExtents.HasMember("z"))
+		{
+			m_halfExtents.z = halfExtents["z"].GetFloat();
+		}
+	}
+
+	if (componentInfo.HasMember("AreaType"))
+	{
+		m_areaType = static_cast<NavAreaType>(componentInfo["AreaType"].GetUint());
+	}
+
+	if (componentInfo.HasMember("Enabled"))
+	{
+		m_enabled = componentInfo["Enabled"].GetBool();
+	}
+
+	if (componentInfo.HasMember("Priority"))
+	{
+		m_priority = componentInfo["Priority"].GetInt();
+	}
+
+	return true;
+}
+
+void NavModifierVolumeComponent::debugDraw()
+{
+	//TODO
+}
