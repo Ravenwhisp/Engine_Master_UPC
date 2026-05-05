@@ -48,8 +48,14 @@ public:
 	UIButton(UID id, GameObject* owner);
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	DECLARE_MULTICAST_DELEGATE(OnClick);
-	OnClick onClick;
+	// Explicit navigation (optional)
+	UIButton* getNavUp() const { return m_navUp; }
+	UIButton* getNavDown() const { return m_navDown; }
+	UIButton* getNavLeft() const { return m_navLeft; }
+	UIButton* getNavRight() const { return m_navRight; }
+
+	void onSelect();
+	void onDeselect();
 
 #pragma region UI API
 	UIImage* getTargetGraphic() const { return m_targetGraphic; }
@@ -61,9 +67,7 @@ public:
 	void onPointerExit(PointerEventData& data) override;
 	void onPointerDown(PointerEventData& data) override;
 	void onPointerUp(PointerEventData& data) override;
-	void onPointerClick(PointerEventData& data) override;
 
-	void press();
 	void executeBindings(std::vector<ButtonEventBinding>& bindings);
 #pragma endregion
 
@@ -95,6 +99,17 @@ private:
 
 	bool m_isPressed = false;
 	bool m_isHovered = false;
+	bool m_isSelected = false;
+
+	UIButton* m_navUp = nullptr;
+	UIButton* m_navDown = nullptr;
+	UIButton* m_navLeft = nullptr;
+	UIButton* m_navRight = nullptr;
+
+	UID m_navUpUid = 0;
+	UID m_navDownUid = 0;
+	UID m_navLeftUid = 0;
+	UID m_navRightUid = 0;
 #pragma endregion
 
 #pragma region EventBindings
