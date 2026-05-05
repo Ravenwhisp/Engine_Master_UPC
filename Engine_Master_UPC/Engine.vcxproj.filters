@@ -430,8 +430,29 @@
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="PrefabSerializer.cpp" />
-    <ClCompile Include="NavModifierVolumeComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
+    <ClCompile Include="ScriptFieldHandler_Float.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Int.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Bool.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Vec3.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_String.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1072,12 +1093,13 @@
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />
-    <ClInclude Include="NavMeshTypes.h">
-      <Filter>NavMesh</Filter>
+    <ClInclude Include="ScriptFieldHandler.h">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
-    <ClInclude Include="NavModifierVolumeComponent.h">
-      <Filter>GameEntity\Components</Filter>
+    <ClInclude Include="ScriptFieldHandlerRegistry.h">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
+    <ClInclude Include="PrefabInstance.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1255,6 +1277,9 @@
     </Filter>
     <Filter Include="Core\Commands">
       <UniqueIdentifier>{67e7f84d-9329-42d5-822d-44df3c1bebbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\FieldTypeHandler">
+      <UniqueIdentifier>{0051a964-06ca-4f64-a2c0-f048ea7f03a9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

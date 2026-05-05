@@ -3,6 +3,8 @@
 #include "UID.h"
 #include "Component.h"
 
+#include <vector>
+
 template<typename T>
 struct ScriptComponentRef
 {
@@ -14,3 +16,5 @@ struct ScriptComponentRef
         return static_cast<T*>(component);
     }
 };
+
+using ScriptComponentRefList = std::vector<ScriptComponentRef<Component>>;

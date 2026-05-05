@@ -58,11 +58,11 @@ void ModuleUI::preRender()
 		{
 			if (canvasTransform->isActive())
 			{
-				rootRect = canvasTransform->getRect(rootRect);
+				rootRect = canvasTransform->getRect(rootRect, { 1.0f, 1.0f });
 			}
 		}
 
-		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest);
+		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, { 1.0f, 1.0f });
     }
 }
 
@@ -122,7 +122,8 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
+void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest,
+    const Vector2& inheritedScale = { 1.0f, 1.0f })
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -132,10 +133,12 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
 
     Rect2D myRect = parentRect;
+    Vector2 scale = inheritedScale;
 
     if (t2d && t2d->isActive())
     {
-        myRect = t2d->getRect(parentRect);
+        myRect = t2d->getRect(parentRect, scale);
+        scale = { t2d->scale.x * inheritedScale.x, t2d->scale.y * inheritedScale.y };
 
         buildUIImage(gameObject, myRect, renderMode, canvasWorld, zTest);
         buildUIText(gameObject, myRect);
@@ -145,7 +148,7 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 
     for (GameObject* child : transform->getAllChildren())
     {
-        buildUIDrawCommands(child, myRect, renderMode, canvasWorld, zTest);
+        buildUIDrawCommands(child, myRect, renderMode, canvasWorld, zTest, scale);
     }
 }
 
