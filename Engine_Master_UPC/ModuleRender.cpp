@@ -31,6 +31,7 @@
 #include "FontPass.h"
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
+#include "ParticlesPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -70,6 +71,7 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
+    m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));

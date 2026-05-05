@@ -9,8 +9,6 @@ struct ShaderParticleData
     float4 colorAndAlpha;
 };
 
-StructuredBuffer<ShaderParticleData> instanceDataBuffer : register(t1);
-
 static const float GAMMA = 2.2f;
 static const float INV_GAMMA = 1.0f / GAMMA;
 static const float TWO_PI = 6.28318530f;
@@ -19,6 +17,7 @@ struct PSInput
 {
     float2 texCoord : TEXCOORD;
     float4 position : SV_POSITION;
+    float4 colorAndAlpha : COLOR;
 };
 
 float3 LinearToSRGB(float3 color)
@@ -37,8 +36,7 @@ float4 main(PSInput input, uint instanceID : SV_InstanceID) : SV_TARGET
     float4 texColor = particleTexture.Sample(particleSampler, input.texCoord);
     clip(texColor.a - 0.001f);
     
-    float4 particleColorInfo = instanceDataBuffer[instanceID].colorAndAlpha;
-    float3 resultingColor = LinearToSRGB(Tint(texColor.rgb, particleColorInfo.rgb) );
+    float3 resultingColor = LinearToSRGB(Tint(texColor.rgb, input.colorAndAlpha.rgb) );
     
-    return float4(resultingColor, particleColorInfo.a);
+    return float4(resultingColor, input.colorAndAlpha.a);
 }

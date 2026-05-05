@@ -39,15 +39,15 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
-    D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+    HRESULT signatureSerialization = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 
     m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature));
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    D3DReadFileToBlob(L"UIVertexShader.cso", &vertexShaderBlob);
+    D3DReadFileToBlob(L"ParticleVertexShader.cso", &vertexShaderBlob);
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    D3DReadFileToBlob(L"UIPixelShader.cso", &pixelShaderBlob);
+    D3DReadFileToBlob(L"ParticlePixelShader.cso", &pixelShaderBlob);
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
@@ -77,7 +77,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc.SampleDesc = { 1, 0 };
 
-    m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+    HRESULT pipelineCreated = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
 
     const Vertex quadVertices[6] =
     {
