@@ -21,6 +21,7 @@ std::unique_ptr<Component> Transform2D::clone(GameObject* newOwner) const
     clonedComponent->stretchMode = stretchMode;
     clonedComponent->sizingMode = sizingMode;
     clonedComponent->aspectRatio = aspectRatio;
+    clonedComponent->alpha = alpha;
 
 	return clonedComponent;
 }
@@ -150,6 +151,7 @@ void Transform2D::drawUi()
     ImGui::Text("Transform2D");
 
     ImGui::DragFloat2("Position", &position.x, 1.0f);
+    ImGui::DragFloat("Alpha", &alpha, 0.01f, 0.0f, 1.0f);
     ImGui::DragFloat2("Pivot", &pivot.x, 0.01f, 0.0f, 1.0f);
     ImGui::DragFloat2("Base Size", &baseSize.x, 1.0f, 0.0f, 10000.0f);
     
@@ -362,6 +364,7 @@ rapidjson::Value Transform2D::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("StretchMode", static_cast<int>(stretchMode), domTree.GetAllocator());
     componentInfo.AddMember("SizingMode", static_cast<int>(sizingMode), domTree.GetAllocator());
     componentInfo.AddMember("AspectRatio", aspectRatio, domTree.GetAllocator());
+    componentInfo.AddMember("Alpha", alpha, domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -427,6 +430,15 @@ bool Transform2D::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("AspectRatio"))
     {
         aspectRatio = componentInfo["AspectRatio"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("Alpha"))
+    {
+        alpha = componentInfo["Alpha"].GetFloat();
+    }
+    else
+    {
+        alpha = 1.0f;
     }
 
     return true;
