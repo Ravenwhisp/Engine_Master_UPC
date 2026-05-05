@@ -30,12 +30,6 @@ bool ParticleSystemComponent::consumeLoadRequest()
     return wasRequested;
 }
 
-void ParticleSystemComponent::setGpuTexture(std::shared_ptr<Texture> texture)
-{
-    m_gpuTexture = texture;
-    m_texture = m_gpuTexture.get();
-}
-
 void ParticleSystemComponent::drawUi()
 {
     ImGui::Text("Particle system");

@@ -13,16 +13,18 @@ public:
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+    void requestLoad() { m_loadRequested = true; }
     bool consumeLoadRequest();
 
     Texture* getTexture() const { return m_texture; }
+    void setTexture(Texture* texture) { m_texture = texture; }
+
+    void setTextureAssetId(const MD5Hash& assetId);
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
     MD5Hash getTextureAssetId() const { return m_textureAssetId; }
 
     bool hasTexture() const { return m_texture != nullptr; }
-
-    void setGpuTexture(std::shared_ptr<Texture> texture);
 
     void drawUi() override;
 
@@ -36,5 +38,7 @@ private:
     std::shared_ptr<Texture> m_gpuTexture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
+
+    UINT emitterID;
 };
 

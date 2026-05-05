@@ -83,6 +83,7 @@ void ModuleScene::rebuildComponentCaches()
     m_spriteRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
+    m_particleSystemComponents.clear();
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -109,6 +110,11 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* script = go->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT))
         {
             m_scriptComponents.push_back(script);
+        }
+
+        if (auto* particleSystem = go->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM))
+        {
+            m_particleSystemComponents.push_back(particleSystem);
         }
     }
 
@@ -170,6 +176,18 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
 
     return m_scriptComponents;
 }
+const std::vector<ParticleSystemComponent*>& ModuleScene::getParticleEmitters()
+{
+    // TODO: Insertar una instrucción "return" aquí
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_particleSystemComponents;
+}
+
+
 #pragma endregion
 
 #pragma region Persistence
