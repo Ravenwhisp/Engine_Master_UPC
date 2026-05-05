@@ -17,6 +17,7 @@ public:
 private:
     void renderImages(ID3D12GraphicsCommandList4* commandList);
     Matrix buildImageMVP(const UIImageCommand& command) const;
+    static bool compareUI(const UIImageCommand& a, const UIImageCommand& b);
 
 private:
     struct UIVertex
@@ -29,6 +30,7 @@ private:
 private:
     const D3D12_VIEWPORT* m_viewport = nullptr;
     const std::vector<UIImageCommand>* m_commands = nullptr;
+	std::vector<UIImageCommand> m_sortedCommands;
     const Matrix* m_view = nullptr;
     const Matrix* m_projection = nullptr;
 
