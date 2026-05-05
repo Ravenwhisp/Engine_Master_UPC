@@ -12,9 +12,17 @@ public:
 	NavModifierVolumeComponent(UID id, GameObject* owner);
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+	void drawUi() override;
+	void onTransformChange() override {}
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
+	void debugDraw() override;
+
 private:
-	Vector3 halfExtents = Vector3::One;
-	NavAreaType areaType = NavAreaType::Default;
-	bool enabled = true;
-	int priority = 0;
+	Vector3 m_halfExtents = Vector3::One;
+	NavAreaType m_areaType = NavAreaType::Default;
+	bool m_enabled = true;
+	int m_priority = 0;
 };
