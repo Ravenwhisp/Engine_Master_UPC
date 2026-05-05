@@ -155,6 +155,8 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
             static_cast<float>(command.fillOrigin),
             aspectRatio);
 
+        params.alpha = command.alpha;
+
         commandList->SetGraphicsRootConstantBufferView(
             0,
             app->getModuleRender()->allocateInRingBuffer(&params, sizeof(UIParams))

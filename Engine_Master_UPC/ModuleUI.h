@@ -35,8 +35,8 @@ private:
 
 private:
 void buildUIDrawCommands(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest,
-        const Vector2& inheritedScale);
+        const Vector2& inheritedScale, float parentAlpha = 1.0f);
 
-void buildUIImage(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest);
+void buildUIImage(GameObject* go, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest, float alpha);
 void buildUIText(GameObject* go, const Rect2D& parentRect);
 };
