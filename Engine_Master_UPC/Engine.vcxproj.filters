@@ -457,6 +457,7 @@
     <ClCompile Include="SkinComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Skin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1106,6 +1107,7 @@
     <ClInclude Include="SkinComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Skin.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
