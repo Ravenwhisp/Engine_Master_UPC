@@ -53,5 +53,10 @@ private:
         const Vector3& point,
         const std::vector<NavModifierVolumeData>& modifierVolumes
     );
+
+private:
+    // Helpers
+    static unsigned char toRecastAreaId(NavAreaType areaType);
+    static unsigned short toPolyFlags(NavAreaId areaId);
 };
 

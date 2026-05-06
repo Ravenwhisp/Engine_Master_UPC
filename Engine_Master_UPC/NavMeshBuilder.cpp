@@ -94,9 +94,6 @@ bool NavMeshBuilder::BuildSoloMesh(
     rcMarkWalkableTriangles(&ctx, cfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triAreas);
 
     // 3) Resolve Area For Point
-    int defaultCount = 0;
-    int spectralCount = 0;
-    int blockedCount = 0;
 
     for (int i = 0; i < ntris; ++i)
     {
@@ -126,17 +123,8 @@ bool NavMeshBuilder::BuildSoloMesh(
 
         NavAreaType area = resolveAreaForPoint(center, modifierVolumes);
 
-        if (area == NavAreaType::Default)
-            defaultCount++;
-
-        if (area == NavAreaType::Spectral)
-            spectralCount++;
-
-        if (area == NavAreaType::Blocked)
-            blockedCount++;
+        triAreas[i] = toRecastAreaId(area);
     }
-
-    DEBUG_LOG("Nav area resolve: Default: %d, Spectral: %d, Blocked: %d", defaultCount, spectralCount, blockedCount);
 
     // 4) Rasterize triangles
     if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triAreas, ntris, *solid, cfg.walkableClimb))
@@ -249,7 +237,12 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     // 12) Set Detour flags (simple: everything walkable => flag 1)
     for (int i = 0; i < pmesh->npolys; ++i)
-        pmesh->flags[i] = 1;
+    {
+        // pmesh->flags[i] = 1;   --- old way
+        pmesh->flags[i] = toPolyFlags(
+            static_cast<NavAreaId>(pmesh->areas[i])
+        );
+    }
 
     // 13) Create Detour navmesh data
     dtNavMeshCreateParams params{};
@@ -365,4 +358,24 @@ NavAreaType NavMeshBuilder::resolveAreaForPoint(
     }
 
     return result;
+}
+
+unsigned char NavMeshBuilder::toRecastAreaId(NavAreaType areaType)
+{
+    if (areaType == NavAreaType::Default)
+        return static_cast<unsigned char>(NavAreaId::NAV_AREA_DEFAULT);
+    else if (areaType == NavAreaType::Spectral)
+        return static_cast<unsigned char>(NavAreaId::NAV_AREA_SPECTRAL);
+
+    return RC_NULL_AREA;
+}
+
+unsigned short NavMeshBuilder::toPolyFlags(NavAreaId areaId)
+{
+    if (areaId == NavAreaId::NAV_AREA_DEFAULT)
+        return static_cast<unsigned short>(NavPolyFlags::Default);
+    else if (areaId == NavAreaId::NAV_AREA_SPECTRAL)
+        return static_cast<unsigned short>(NavPolyFlags::Spectral);
+
+    return 0;
 }

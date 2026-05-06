@@ -9,8 +9,8 @@ enum class NavAreaType
 
 enum class NavPolyFlags
 {
-	Default,
-	Spectral
+	Default = 1 << 0,
+	Spectral = 1 << 1
 };
 
 enum class NavAgentProfile
@@ -19,6 +19,13 @@ enum class NavAgentProfile
 	PlayerSpectral,
 	EnemyGround
 };
+
+enum class NavAreaId
+{
+	NAV_AREA_DEFAULT,
+	NAV_AREA_SPECTRAL
+};
+
 
 struct NavModifierVolumeData
 {
