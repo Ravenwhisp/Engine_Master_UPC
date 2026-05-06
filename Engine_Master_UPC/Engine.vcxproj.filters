@@ -304,7 +304,6 @@
     <ClCompile Include="SceneReferenceResolver.cpp">
       <Filter>GameEntity\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
@@ -429,6 +428,31 @@
     </ClCompile>
     <ClCompile Include="ModuleTrigger.cpp">
       <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabSerializer.cpp" />
+    <ClCompile Include="ScriptFieldHandler_Float.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Int.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Bool.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_Vec3.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_String.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
     <ClCompile Include="ModuleHaptics.cpp">
       <Filter>Haptics</Filter>
@@ -851,7 +875,6 @@
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
     <ClInclude Include="PrefabEditSession.h" />
-    <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="Extensions.h">
       <Filter>Persistence\Importers\Core</Filter>
@@ -1078,6 +1101,14 @@
     <ClInclude Include="ModuleTrigger.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
+    <ClInclude Include="PrefabSerializer.h" />
+    <ClInclude Include="ScriptFieldHandler.h">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFieldHandlerRegistry.h">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="ModuleHaptics.h">
       <Filter>Haptics</Filter>
     </ClInclude>
@@ -1087,6 +1118,7 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
+
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1264,6 +1296,9 @@
     </Filter>
     <Filter Include="Core\Commands">
       <UniqueIdentifier>{67e7f84d-9329-42d5-822d-44df3c1bebbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\FieldTypeHandler">
+      <UniqueIdentifier>{0051a964-06ca-4f64-a2c0-f048ea7f03a9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Haptics">
       <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>

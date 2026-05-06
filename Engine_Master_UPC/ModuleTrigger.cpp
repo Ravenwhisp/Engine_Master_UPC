@@ -43,7 +43,9 @@ void ModuleTrigger::registerTrigger(TriggerComponent* trigger)
 
     m_triggers.push_back(trigger);
 
-    DEBUG_LOG( "[ModuleTrigger] Registered trigger %llu", static_cast<unsigned long long>(trigger->getID()));
+    DEBUG_LOG("[ModuleTrigger] Registered trigger %llu. Total: %zu",
+        static_cast<unsigned long long>(trigger->getID()),
+        m_triggers.size());
 }
 
 void ModuleTrigger::unregisterTrigger(TriggerComponent* trigger)
@@ -65,7 +67,9 @@ void ModuleTrigger::unregisterTrigger(TriggerComponent* trigger)
     m_triggers.erase(it);
     removeOverlaps(triggerId);
 
-    DEBUG_LOG( "[ModuleTrigger] Unregistered trigger %llu", static_cast<unsigned long long>(trigger->getID()));
+    DEBUG_LOG("[ModuleTrigger] Unregistered trigger %llu. Total: %zu",
+        static_cast<unsigned long long>(triggerId),
+        m_triggers.size());
 }
 
 void ModuleTrigger::detectOverlaps()

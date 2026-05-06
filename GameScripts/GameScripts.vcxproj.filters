@@ -180,6 +180,9 @@
     <ClInclude Include="TriggerDebugScript.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="ExportListTest.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
     <ClInclude Include="HapticTester.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -351,6 +354,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="TriggerDebugScript.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportListTest.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="HapticTester.cpp">
