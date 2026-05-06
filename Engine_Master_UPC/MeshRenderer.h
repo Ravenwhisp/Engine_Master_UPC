@@ -10,7 +10,6 @@
 
 #include <memory>
 
-//class BasicMesh;
 class MaterialAsset;
 
 namespace tinygltf { class Model; }
