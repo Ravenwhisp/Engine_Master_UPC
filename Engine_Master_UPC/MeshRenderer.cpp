@@ -148,8 +148,14 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
     componentInfo.AddMember("MeshAssetId", rapidjson::Value(m_meshAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    const MD5Hash& skinAsset = m_skin ? m_skin->getSkinReference() : m_skinAsset;
+
+    if (skinAsset != INVALID_ASSET_ID)
+    {
+        componentInfo.AddMember("SkinAssetId", rapidjson::Value(skinAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    }
 
     {
         rapidjson::Value materialsData(rapidjson::kArrayType);
@@ -194,14 +200,19 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         }
     }
 
-
     if (componentInfo.HasMember("SkinAssetId") && componentInfo["SkinAssetId"].IsString())
     {
         m_skinAsset = componentInfo["SkinAssetId"].GetString();
+
+        if (m_skinAsset != INVALID_ASSET_ID)
+        {
+            ensureSkin().setSkinReference(m_skinAsset);
+        }
     }
     else
     {
         m_skinAsset = INVALID_ASSET_ID;
+        clearSkin();
     }
 
     return true;

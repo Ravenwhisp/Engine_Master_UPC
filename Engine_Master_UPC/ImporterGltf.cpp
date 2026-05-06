@@ -816,20 +816,22 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
             {
                 const MD5Hash& skinUID = skinUIDs[gNode.skin];
 
-                // Legacy compatibility while old scene/prefab migration still reads MeshRenderer skin references.
-                mr->setLegacySkinReference(skinUID);
+                // New ownership path: MeshRenderer owns the optional Skin runtime.
+                mr->ensureSkin().setSkinReference(skinUID);
 
-                SkinComponent* skin = go->GetComponentAs<SkinComponent>(ComponentType::SKIN);
+                // Temporary compatibility: SkinComponent is still used by the current
+                // compute/render passes until the next commits migrate them to MeshRenderer::Skin.
+                SkinComponent* skinComponent = go->GetComponentAs<SkinComponent>(ComponentType::SKIN);
 
-                if (!skin)
+                if (!skinComponent)
                 {
-                    skin = static_cast<SkinComponent*>(
+                    skinComponent = static_cast<SkinComponent*>(
                         go->AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
                 }
 
-                if (skin)
+                if (skinComponent)
                 {
-                    skin->setSkinReference(skinUID);
+                    skinComponent->setSkinReference(skinUID);
                 }
             }
 
