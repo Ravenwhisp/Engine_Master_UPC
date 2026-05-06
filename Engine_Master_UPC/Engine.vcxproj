@@ -313,6 +313,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="FileDialogClipboard.h" />
     <ClInclude Include="FontAsset.h" />
     <ClInclude Include="Handle.h" />
+    <ClInclude Include="HapticEffectDefinition.h" />
+    <ClInclude Include="HapticEffectLibrary.h" />
     <ClInclude Include="HierarchyTreeRenderer.h" />
     <ClInclude Include="HierarchyUtils.h" />
     <ClInclude Include="ICommand.h" />
@@ -335,6 +337,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="ModuleHaptics.h" />
     <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="OptickProfiler.h" />
     <ClInclude Include="PlayerBinding.h" />
@@ -639,6 +642,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
+    <ClCompile Include="HapticEffectDefinition.cpp" />
+    <ClCompile Include="HapticEffectLibrary.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
@@ -655,6 +660,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
