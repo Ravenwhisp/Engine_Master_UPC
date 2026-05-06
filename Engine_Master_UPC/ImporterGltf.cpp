@@ -19,7 +19,6 @@
 #include "MaterialAsset.h"
 #include "ComponentType.h"
 #include "MeshRenderer.h"
-#include "SkinComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
 
@@ -815,24 +814,7 @@ GameObject* ImporterGltf::buildNode(int nodeIdx, GameObject* parent, const tinyg
             if (gNode.skin >= 0 && gNode.skin < static_cast<int>(skinUIDs.size()))
             {
                 const MD5Hash& skinUID = skinUIDs[gNode.skin];
-
-                // New ownership path: MeshRenderer owns the optional Skin runtime.
                 mr->ensureSkin().setSkinReference(skinUID);
-
-                // Temporary compatibility: SkinComponent is still used by the current
-                // compute/render passes until the next commits migrate them to MeshRenderer::Skin.
-                SkinComponent* skinComponent = go->GetComponentAs<SkinComponent>(ComponentType::SKIN);
-
-                if (!skinComponent)
-                {
-                    skinComponent = static_cast<SkinComponent*>(
-                        go->AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
-                }
-
-                if (skinComponent)
-                {
-                    skinComponent->setSkinReference(skinUID);
-                }
             }
 
             const auto& prims = model.meshes[gNode.mesh].primitives;
