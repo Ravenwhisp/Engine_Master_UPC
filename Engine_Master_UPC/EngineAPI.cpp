@@ -1823,6 +1823,22 @@ namespace Transform2DAPI
         }
         transform->setScale(newScale);
     }
+    float getAlpha(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return 1.0f;
+        }
+        return transform->getAlpha();
+	}
+    void setAlpha(Transform2D* transform, float newAlpha)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setAlpha(newAlpha);
+	}
 }
 
 namespace SliderAPI
