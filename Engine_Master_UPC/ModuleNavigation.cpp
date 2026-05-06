@@ -271,9 +271,19 @@ void ModuleNavigation::rebuildNavMeshDebugLines()
                 const float* a = &tv[v0 * 3];
                 const float* b = &tv[v1 * 3];
 
+                const float* color = dd::colors::White;
+                
+                if (p->flags & static_cast<unsigned short>(NavPolyFlags::Default))
+                    color = dd::colors::Green;
+                else if (p->flags & static_cast<unsigned short>(NavPolyFlags::Spectral))
+                    color = dd::colors::Blue;
+                else
+                    color = dd::colors::Red; // for unknown flag
+
                 m_navDebugLines.push_back({
                     Vector3(a[0], a[1], a[2]),
-                    Vector3(b[0], b[1], b[2])
+                    Vector3(b[0], b[1], b[2]),
+                    color
                     });
             }
         }
@@ -362,7 +372,7 @@ void ModuleNavigation::debugDraw()
     {
         for (const auto& l : getNavMeshDebugLines())
         {
-            dd::line(ddConvert(l.a), ddConvert(l.b), dd::colors::Green);
+            dd::line(ddConvert(l.a), ddConvert(l.b), l.color);
 
         }
     }

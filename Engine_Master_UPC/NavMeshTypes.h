@@ -22,7 +22,7 @@ enum class NavAgentProfile
 
 enum class NavAreaId
 {
-	NAV_AREA_DEFAULT,
+	NAV_AREA_DEFAULT = 1,
 	NAV_AREA_SPECTRAL
 };
 
