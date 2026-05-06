@@ -640,7 +640,21 @@ void ImporterGltf::buildDefaultStateMachine(const tinygltf::Model& model, const 
     const std::filesystem::path stateMachineSourcePath =
         assets->getDefaultStateMachineSourcePath(*m_currentFilePath);
 
-    const MD5Hash existingStateMachineUID = assets->findUID(stateMachineSourcePath);
+    MD5Hash existingStateMachineUID = assets->findUID(stateMachineSourcePath);
+
+    if (!isValidAsset(existingStateMachineUID))
+    {
+        std::filesystem::path stateMachineMetadataPath = stateMachineSourcePath;
+        Metadata::getMetadataPath(stateMachineMetadataPath);
+
+        Metadata stateMachineMeta;
+        if (assets->loadMetaFile(stateMachineMetadataPath, stateMachineMeta) &&
+            stateMachineMeta.type == AssetType::ANIMATION_STATE_MACHINE &&
+            isValidAsset(stateMachineMeta.uid))
+        {
+            existingStateMachineUID = stateMachineMeta.uid;
+        }
+    }
 
     if (isValidAsset(existingStateMachineUID))
     {

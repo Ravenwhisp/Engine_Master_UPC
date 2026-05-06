@@ -135,7 +135,10 @@ void AssetScanner::handleOrphanedMetadata(const std::filesystem::path& metadataP
         // Also delete binaries for any sub-assets that were owned by this asset.
         for (const DependencyRecord& dep : meta.m_dependencies)
         {
-            FileIO::remove(getBinaryPath(dep.uid));
+            if (dep.isSubAsset)
+            {
+                FileIO::remove(getBinaryPath(dep.uid));
+            }
         }
 
         FileIO::remove(getBinaryPath(meta.uid));
