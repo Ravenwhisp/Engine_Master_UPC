@@ -45,6 +45,7 @@ public:
     {
         Vector3 a;
         Vector3 b;
+        const float* color;
     };
 
     const std::vector<NavDebugLine>& getNavMeshDebugLines() const { return m_navDebugLines; }
