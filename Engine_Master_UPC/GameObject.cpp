@@ -843,24 +843,12 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
         if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
             m_prefabInfo.m_assetUID = pl["AssetUID"].GetString();
     }
-    
-    MD5Hash legacySkinAssetId = INVALID_ASSET_ID;
 
     const auto& components = gameObjectJson["Components"].GetArray();
     for (auto& componentJson : components)
     {
         const uint64_t componentUid = componentJson["UID"].GetUint64();
         const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
-
-        if (componentType == ComponentType::SKIN)
-        {
-            if (componentJson.HasMember("SkinAssetId") && componentJson["SkinAssetId"].IsString())
-            {
-                legacySkinAssetId = componentJson["SkinAssetId"].GetString();
-            }
-
-            continue;
-        }
 
         Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
         if (newComponent)
@@ -881,18 +869,12 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
 
     MeshRenderer* meshRenderer = GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-    if (meshRenderer)
+    if (meshRenderer &&
+        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
+        !meshRenderer->hasSkin())
     {
-        if (legacySkinAssetId != INVALID_ASSET_ID && !meshRenderer->hasSkin())
-        {
-            meshRenderer->ensureSkin().setSkinReference(legacySkinAssetId);
-        }
-        else if (meshRenderer->getSkinReference() != INVALID_ASSET_ID && !meshRenderer->hasSkin())
-        {
-            meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
-        }
+        meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
     }
-  
 
     return true;
 }
