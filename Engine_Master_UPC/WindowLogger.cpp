@@ -5,6 +5,7 @@
 #include "ModuleTime.h"
 
 WindowLogger* WindowLogger::s_Instance = nullptr;
+std::vector<WindowLogger::LogEntry> WindowLogger::s_items;
 
 WindowLogger::WindowLogger()
 {
@@ -31,12 +32,12 @@ WindowLogger* WindowLogger::Instance()
 
 void WindowLogger::clear()
 {
-    m_items.clear();
+    s_items.clear();
 }
 
 void WindowLogger::clearSelection()
 {
-    for (auto& item : m_items)
+    for (auto& item : s_items)
     {
         item.selected = false;
     }
@@ -47,7 +48,7 @@ void WindowLogger::copyToClipboard()
     std::string clipboard;
     size_t selectedCount = 0;
 
-    for (auto& item : m_items)
+    for (auto& item : s_items)
     {
         if (item.selected)
         {
@@ -55,7 +56,7 @@ void WindowLogger::copyToClipboard()
         }
     }
 
-    for (auto& item : m_items)
+    for (auto& item : s_items)
     {
         if (selectedCount > 0)
         {
@@ -92,9 +93,9 @@ void WindowLogger::addLogEntry(LogType type, const std::string& text)
         timestamp = app->getModuleTime()->time();
     }
 
-    if (!m_items.empty())
+    if (!s_items.empty())
     {
-        LogEntry& last = m_items.back();
+        LogEntry& last = s_items.back();
 
         if (last.message == text && last.type == type)
         {
@@ -103,11 +104,13 @@ void WindowLogger::addLogEntry(LogType type, const std::string& text)
         }
     }
 
-    m_items.emplace_back(type, text, timestamp);
+    s_items.emplace_back(type, text, timestamp);
 
-    if ((int)m_items.size() > m_maxEntries)
+    constexpr int maxEntries = 2048;
+
+    if ((int)s_items.size() > maxEntries)
     {
-        m_items.erase(m_items.begin());
+        s_items.erase(s_items.begin());
     }
 }
 
@@ -178,9 +181,9 @@ void WindowLogger::drawMessages()
 {
     ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-    for (size_t i = 0; i < m_items.size(); ++i)
+    for (size_t i = 0; i < s_items.size(); ++i)
     {
-        auto& item = m_items[i];
+        auto& item = s_items[i];
 
         if (!m_filter.PassFilter(item.message.c_str()))
         {
