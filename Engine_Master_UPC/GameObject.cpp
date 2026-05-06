@@ -10,7 +10,6 @@
 #include "Component.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
-#include "SkinComponent.h"
 #include "Skin.h"
 #include "CameraComponent.h"
 #include "ScriptComponent.h"
@@ -845,11 +844,23 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
             m_prefabInfo.m_assetUID = pl["AssetUID"].GetString();
     }
     
+    MD5Hash legacySkinAssetId = INVALID_ASSET_ID;
+
     const auto& components = gameObjectJson["Components"].GetArray();
     for (auto& componentJson : components)
     {
         const uint64_t componentUid = componentJson["UID"].GetUint64();
         const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
+
+        if (componentType == ComponentType::SKIN)
+        {
+            if (componentJson.HasMember("SkinAssetId") && componentJson["SkinAssetId"].IsString())
+            {
+                legacySkinAssetId = componentJson["SkinAssetId"].GetString();
+            }
+
+            continue;
+        }
 
         Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
         if (newComponent)
@@ -869,33 +880,19 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
     }
 
     MeshRenderer* meshRenderer = GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-    SkinComponent* skinComponent = GetComponentAs<SkinComponent>(ComponentType::SKIN);
 
-    if (meshRenderer && skinComponent && skinComponent->getSkinReference() != INVALID_ASSET_ID && !meshRenderer->hasSkin())
+    if (meshRenderer)
     {
-        meshRenderer->ensureSkin().setSkinReference(skinComponent->getSkinReference());
-    }
-
-    if (meshRenderer &&
-        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
-        !skinComponent)
-    {
-        skinComponent = static_cast<SkinComponent*>(
-            AddComponentWithUID(ComponentType::SKIN, GenerateUID()));
-
-        if (skinComponent)
+        if (legacySkinAssetId != INVALID_ASSET_ID && !meshRenderer->hasSkin())
         {
-            skinComponent->setSkinReference(meshRenderer->getSkinReference());
-            skinComponent->init();
+            meshRenderer->ensureSkin().setSkinReference(legacySkinAssetId);
+        }
+        else if (meshRenderer->getSkinReference() != INVALID_ASSET_ID && !meshRenderer->hasSkin())
+        {
+            meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
         }
     }
-    else if (meshRenderer &&
-        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
-        skinComponent &&
-        skinComponent->getSkinReference() == INVALID_ASSET_ID)
-    {
-        skinComponent->setSkinReference(meshRenderer->getSkinReference());
-    }
+  
 
     return true;
 }

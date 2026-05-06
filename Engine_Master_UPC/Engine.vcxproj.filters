@@ -454,9 +454,6 @@
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="SkinComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Skin.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1104,9 +1101,6 @@
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
     <ClInclude Include="PrefabInstance.h" />
-    <ClInclude Include="SkinComponent.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Skin.h" />
   </ItemGroup>
   <ItemGroup>

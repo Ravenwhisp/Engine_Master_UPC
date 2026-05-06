@@ -6,7 +6,6 @@
 
 // Normal components
 #include "MeshRenderer.h"
-#include "SkinComponent.h"
 #include "LightComponent.h"
 #include "CameraComponent.h"
 #include "NavigationAgentComponent.h"
@@ -40,9 +39,6 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
     {
     case ComponentType::MODEL:
         return std::make_unique<MeshRenderer>(id, owner);
-
-    case ComponentType::SKIN:
-        return std::make_unique<SkinComponent>(id, owner);
 
     case ComponentType::LIGHT:
         return std::make_unique<LightComponent>(id, owner);
