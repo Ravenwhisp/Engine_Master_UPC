@@ -304,7 +304,7 @@ void ModuleNavigation::setPathEnd(const Vector3& p)
     if (m_hasPathStart) computeDebugPath();
 }
 
-bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const
+bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const
 {
     if (!m_navQuery)
         return false;
@@ -315,8 +315,9 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     float exts[3] = { extents.x, extents.y, extents.z };
 
     dtQueryFilter filter;
-
-    filter.setIncludeFlags(0xFFFF);
+    
+    //filter.setIncludeFlags(0xFFFF); ---- old
+    filter.setIncludeFlags(getIncludeFlagsForProfile(profile));
     filter.setExcludeFlags(0);
 
     dtPolyRef startRef = 0, endRef = 0;
@@ -398,7 +399,8 @@ bool ModuleNavigation::computeDebugPath()
     if (!m_hasPathStart || !m_hasPathEnd) return false;
 
     dtQueryFilter filter;
-    filter.setIncludeFlags(0xFFFF);
+    //filter.setIncludeFlags(0xFFFF);
+    filter.setIncludeFlags(getIncludeFlagsForProfile(NavAgentProfile::PlayerNormal)); // for testing only --- NEEDS UPDATE
     filter.setExcludeFlags(0);
 
     float ext[3] = { 2.0f, 4.0f, 2.0f }; 
@@ -468,4 +470,21 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
     LOG_INFO(__FILE__, __LINE__, "Collected %d volumes", data.size());
 
     return data;
+}
+
+unsigned short ModuleNavigation::getIncludeFlagsForProfile(NavAgentProfile profile) const
+{
+    unsigned short defaultFlag = static_cast<unsigned short>(NavPolyFlags::Default);
+    unsigned short spectralFlag = static_cast<unsigned short>(NavPolyFlags::Spectral);
+
+    if (profile == NavAgentProfile::PlayerNormal)
+        return defaultFlag;
+
+    if (profile == NavAgentProfile::PlayerSpectral)
+        return defaultFlag | spectralFlag;
+
+    if (profile == NavAgentProfile::EnemyGround)
+        return defaultFlag;
+
+    return defaultFlag;
 }
