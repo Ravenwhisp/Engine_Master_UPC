@@ -61,7 +61,7 @@ public:
     void setPathEnd(const Vector3& p);
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
-    bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const;
+    bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
 
     void debugDraw() override;
 
@@ -91,5 +91,7 @@ private:
     bool computeDebugPath();
     std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
 
+public:
+    unsigned short getIncludeFlagsForProfile(NavAgentProfile profile) const; // Helper
 };
 
