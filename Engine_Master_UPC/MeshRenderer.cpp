@@ -11,6 +11,7 @@
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
 
+MeshRenderer::~MeshRenderer() = default;
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
@@ -25,6 +26,11 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_materialAssets = m_materialAssets;
 
     newMeshRenderer->m_skinAsset = m_skinAsset;
+
+    if (m_skin)
+    {
+        newMeshRenderer->m_skin = m_skin->clone();
+    }
     
     newMeshRenderer->m_triangles = m_triangles;
 
@@ -106,6 +112,14 @@ void MeshRenderer::drawUi()
     auto max = m_boundingBox.getMax();
     ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
     ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
+
+    if (m_skin)
+    {
+        ImGui::Separator();
+        ImGui::Text("Skin");
+        m_skin->drawUi();
+    }
+
 }
 
 void MeshRenderer::debugDraw()
@@ -121,6 +135,10 @@ void MeshRenderer::onTransformChange()
 
 void MeshRenderer::update()
 {
+    if (m_skin)
+    {
+        m_skin->lateUpdate(m_owner, *this);
+    }
 }
 
 rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
@@ -189,3 +207,22 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
     return true;
 }
 
+Skin& MeshRenderer::ensureSkin()
+{
+    if (!m_skin)
+    {
+        m_skin = std::make_unique<Skin>();
+    }
+
+    return *m_skin;
+}
+
+void MeshRenderer::clearSkin()
+{
+    if (m_skin)
+    {
+        m_skin->cleanUp();
+    }
+
+    m_skin.reset();
+}

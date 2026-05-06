@@ -6,8 +6,11 @@
 #include "IDebugDrawable.h"
 
 #include "BasicMesh.h"
+#include "Skin.h"
 
-class BasicMesh;
+#include <memory>
+
+//class BasicMesh;
 class MaterialAsset;
 
 namespace tinygltf { class Model; }
@@ -24,7 +27,7 @@ class MeshRenderer : public Component
 {
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
-	~MeshRenderer() = default;
+	~MeshRenderer() override;
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
@@ -57,11 +60,20 @@ public:
 	const MD5Hash& getSkinReference() const { return m_skinAsset; }
 	void setLegacySkinReference(const MD5Hash& skinUID) { m_skinAsset = skinUID; }
 
+	bool hasSkin() const { return m_skin != nullptr; }
+
+	Skin* getSkin() { return m_skin.get(); }
+	const Skin* getSkin() const { return m_skin.get(); }
+
+	Skin& ensureSkin();
+	void clearSkin();
+
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
 private:
 	std::shared_ptr<BasicMesh>		m_mesh;
+	std::unique_ptr<Skin>			m_skin;
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
