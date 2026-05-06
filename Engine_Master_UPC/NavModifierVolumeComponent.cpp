@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include "NavModifierVolumeComponent.h"
+#include "GameObject.h"
+#include "Transform.h"
 
 NavModifierVolumeComponent::NavModifierVolumeComponent(UID id, GameObject* owner)
 	: Component(id, ComponentType::NAVMODIFIER_VOLUME, owner)
@@ -104,5 +106,25 @@ bool NavModifierVolumeComponent::deserializeJSON(const rapidjson::Value& compone
 
 void NavModifierVolumeComponent::debugDraw()
 {
-	//TODO
+	if (!m_enabled)
+		return;
+
+	Transform* transform = getOwner()->GetTransform();
+
+	if (!transform)
+		return;
+
+	Vector3 position = transform->getPosition();
+
+	Vector3 min = position - m_halfExtents;
+	Vector3 max = position + m_halfExtents;
+
+	if (m_areaType == NavAreaType::Default)
+		dd::aabb(&min.x, &max.x, dd::colors::Green);
+
+	if (m_areaType == NavAreaType::Spectral)
+		dd::aabb(&min.x, &max.x, dd::colors::Blue);
+
+	if (m_areaType == NavAreaType::Blocked)
+		dd::aabb(&min.x, &max.x, dd::colors::Red);
 }

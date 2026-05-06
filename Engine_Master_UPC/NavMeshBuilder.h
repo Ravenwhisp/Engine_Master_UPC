@@ -47,5 +47,11 @@ public:
         const NavMeshBuildSettings& settings,
         NavMeshBuildResult& outResult,
         const std::vector<NavModifierVolumeData>& modifierVolumes);
+
+private:
+    static NavAreaType resolveAreaForPoint(
+        const Vector3& point,
+        const std::vector<NavModifierVolumeData>& modifierVolumes
+    );
 };
 
