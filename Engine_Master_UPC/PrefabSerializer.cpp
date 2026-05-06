@@ -120,52 +120,24 @@ void PrefabSerializer::deserialiseTransform(const Value& node, GameObject* go)
 void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
 {
     if (!node.HasMember("Components") || !node["Components"].IsArray()) return;
-    MD5Hash legacySkinAssetId = INVALID_ASSET_ID;
 
     for (SizeType i = 0; i < node["Components"].Size(); ++i)
     {
         const Value& cn = node["Components"][i];
         auto type = static_cast<ComponentType>(cn["Type"].GetInt());
 
-        if (type == ComponentType::SKIN)
-        {
-            const Value* data = nullptr;
-
-            if (cn.HasMember("Data") && cn["Data"].IsObject())
-            {
-                data = &cn["Data"];
-            }
-            else
-            {
-                data = &cn;
-            }
-
-            if (data && data->HasMember("SkinAssetId") && (*data)["SkinAssetId"].IsString())
-            {
-                legacySkinAssetId = (*data)["SkinAssetId"].GetString();
-            }
-
-            continue;
-        }
-
         Component* comp = go->AddComponentWithUID(type, GenerateUID());
         if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
             comp->deserializeJSON(cn["Data"]);
     }
 
-
     MeshRenderer* meshRenderer = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-    if (meshRenderer)
+    if (meshRenderer &&
+        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
+        !meshRenderer->hasSkin())
     {
-        if (legacySkinAssetId != INVALID_ASSET_ID && !meshRenderer->hasSkin())
-        {
-            meshRenderer->ensureSkin().setSkinReference(legacySkinAssetId);
-        }
-        else if (meshRenderer->getSkinReference() != INVALID_ASSET_ID && !meshRenderer->hasSkin())
-        {
-            meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
-        }
+        meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
     }
 
 }

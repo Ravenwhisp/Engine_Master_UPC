@@ -19,8 +19,7 @@
     X(NAVMESH_WALK)         \
     X(ANIMATION)            \
     X(UISLIDER)             \
-    X(TRIGGER)              \
-    X(SKIN)                 
+    X(TRIGGER)                    
 
 enum class ComponentType
 {
