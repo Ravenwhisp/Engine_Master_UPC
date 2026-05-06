@@ -345,6 +345,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
+    <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
@@ -355,6 +356,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
+    <ClInclude Include="ScriptFieldHandler.h" />
+    <ClInclude Include="ScriptFieldHandlerRegistry.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
     <ClInclude Include="ScriptCreator.h" />
     <ClInclude Include="SceneDataCB.h" />
@@ -659,6 +662,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
+    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
+    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
+    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
+    <ClCompile Include="ScriptFieldHandler_Float.cpp" />
+    <ClCompile Include="ScriptFieldHandler_Int.cpp" />
+    <ClCompile Include="ScriptFieldHandler_String.cpp" />
+    <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
     <ClCompile Include="CommandPasteFile.cpp" />
