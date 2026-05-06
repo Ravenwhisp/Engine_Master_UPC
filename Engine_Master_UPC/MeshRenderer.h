@@ -78,7 +78,7 @@ private:
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
 	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
-	MD5Hash							m_skinAsset = INVALID_ASSET_ID; // Legacy only. New skinning data lives in SkinComponent
+	MD5Hash							m_skinAsset = INVALID_ASSET_ID; // Legacy only while migrating old prefabs/scenes that stored SkinAssetId inside MeshRenderer.
 	std::vector<MD5Hash>			m_materialAssets;
 
 	mutable Engine::BoundingBox				m_boundingBox;
