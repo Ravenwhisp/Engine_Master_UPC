@@ -1348,5 +1348,8 @@
     <FxCompile Include="BRDFVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="SpritePixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

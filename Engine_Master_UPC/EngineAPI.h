@@ -257,6 +257,8 @@ namespace Transform2DAPI
     ENGINE_API void setPosition(Transform2D* transform, const Vector2& newPosition);
     ENGINE_API Vector2 getScale(const Transform2D* transform);
     ENGINE_API void setScale(Transform2D* transform, const Vector2& newScale);
+    ENGINE_API float getAlpha(const Transform2D* transform);
+	ENGINE_API void setAlpha(Transform2D* transform, float alpha);
 }
 
 namespace SliderAPI
