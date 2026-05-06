@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "MeshRenderer.h"
-#include "SkinComponent.h"
+#include "Skin.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "BasicMesh.h"
@@ -58,7 +58,7 @@ SkinningComputePass::SkinningComputePass(ComPtr<ID3D12Device4> device)
 
 void SkinningComputePass::prepare(const RenderContext& ctx)
 {
-    m_skinComponents = app->getModuleScene()->getSkinComponents();
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
 }
 
 void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -66,17 +66,17 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetComputeRootSignature(m_rootSignature.Get());
 
-    for (SkinComponent* skin : m_skinComponents)
+    for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (!skin)
+        if (!renderer)
             continue;
 
-        GameObject* owner = skin->getOwner();
+        GameObject* owner = renderer->getOwner();
         if (!owner || !owner->IsActiveInWindowHierarchy())
             continue;
 
-        MeshRenderer* renderer = owner->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-        if (!renderer)
+        Skin* skin = renderer->getSkin();
+        if (!skin)
             continue;
 
         if (!renderer->isActive())

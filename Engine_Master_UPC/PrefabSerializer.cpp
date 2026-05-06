@@ -6,6 +6,7 @@
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "SkinComponent.h"
+#include "Skin.h"
 #include "Component.h"
 #include "ComponentType.h"
 #include "PrefabAsset.h"
@@ -131,6 +132,11 @@ void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
 
     MeshRenderer* meshRenderer = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
     SkinComponent* skinComponent = go->GetComponentAs<SkinComponent>(ComponentType::SKIN);
+
+    if (meshRenderer && skinComponent && skinComponent->getSkinReference() != INVALID_ASSET_ID && !meshRenderer->hasSkin())
+    {
+        meshRenderer->ensureSkin().setSkinReference(skinComponent->getSkinReference());
+    }
 
     if (meshRenderer &&
         meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
