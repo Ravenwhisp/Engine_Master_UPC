@@ -19,8 +19,12 @@ bool NavMeshBuilder::BuildSoloMesh(
     const std::vector<float>& verts,
     const std::vector<int>& tris,
     const NavMeshBuildSettings& s,
-    NavMeshBuildResult& outResult)
+    NavMeshBuildResult& outResult,
+    const std::vector<NavModifierVolumeData>& modifierVolumes)
 {
+    // debug
+    DEBUG_LOG("Received %d volumes", modifierVolumes.size());
+
     outResult = {};
 
     if (verts.empty() || tris.empty()) return false;

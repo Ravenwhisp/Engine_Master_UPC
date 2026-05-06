@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdint>
 #include <DetourNavMesh.h>
+#include "NavMeshTypes.h"
 
 class dtNavMesh;
 class dtNavMeshQuery;
@@ -44,6 +45,7 @@ public:
         const std::vector<float>& verts,
         const std::vector<int>& tris,
         const NavMeshBuildSettings& settings,
-        NavMeshBuildResult& outResult);
+        NavMeshBuildResult& outResult,
+        const std::vector<NavModifierVolumeData>& modifierVolumes);
 };
 

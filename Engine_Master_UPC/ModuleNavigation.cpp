@@ -212,7 +212,10 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
 
     NavMeshBuildResult result;
 
-    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result))
+    // get modifier volumes from the scene
+    m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
+
+    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;
@@ -231,8 +234,6 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");
 
     rebuildNavMeshDebugLines();
-
-    //m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
     return saved;
 }
@@ -430,7 +431,6 @@ bool ModuleNavigation::computeDebugPath()
 std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(Scene& scene) const
 {
     std::vector<NavModifierVolumeData> data;
-    int volumesFound = 0; // for debugging
 
     for (GameObject* obj : scene.getAllGameObjects())
     {
@@ -440,20 +440,22 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
             Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);
             if (transformComp)
             {
-                //LOG_INFO(__FILE__, __LINE__, "component found");
-                NavModifierVolumeData volume;
-                volume.position = transformComp->getPosition();
-                volume.halfExtents = navComp->getHalfExtents();
-                // areatype
-                // enabled
-                // priority
-                data.push_back(volume);
-                volumesFound++;
+                // if component is enabled -> add it to the data
+                if (navComp->getEnabled())
+                {
+                    NavModifierVolumeData volume;
+                    volume.position = transformComp->getPosition();
+                    volume.halfExtents = navComp->getHalfExtents();
+                    volume.areaType = navComp->getAreaType();
+                    volume.enabled = navComp->getEnabled();
+                    volume.priority = navComp->getPriority();
+                    data.push_back(volume);
+                }
             }
         }
     }
 
-    LOG_INFO(__FILE__, __LINE__, "Collected %d volumes", volumesFound);
+    LOG_INFO(__FILE__, __LINE__, "Collected %d volumes", data.size());
 
     return data;
 }
