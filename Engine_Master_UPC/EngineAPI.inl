@@ -2,7 +2,6 @@
 
 #include "GameObject.h"
 #include "Component.h"
-#include "ScriptComponent.h"
 #include "Script.h"
 #include <vector>
 
