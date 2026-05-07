@@ -454,6 +454,15 @@
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleHaptics.cpp">
+      <Filter>Haptics</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticEffectLibrary.cpp">
+      <Filter>Haptics</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticEffectDefinition.cpp">
+      <Filter>Haptics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1100,6 +1109,16 @@
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
     <ClInclude Include="PrefabInstance.h" />
+    <ClInclude Include="ModuleHaptics.h">
+      <Filter>Haptics</Filter>
+    </ClInclude>
+    <ClInclude Include="HapticEffectDefinition.h">
+      <Filter>Haptics</Filter>
+    </ClInclude>
+    <ClInclude Include="HapticEffectLibrary.h">
+      <Filter>Haptics</Filter>
+    </ClInclude>
+
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1280,6 +1299,9 @@
     </Filter>
     <Filter Include="Core\Scripting\FieldTypeHandler">
       <UniqueIdentifier>{0051a964-06ca-4f64-a2c0-f048ea7f03a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Haptics">
+      <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
