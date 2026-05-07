@@ -35,7 +35,7 @@ public:
 	Tag GetTag() const { return m_tag; }
 
 	void SetName(std::string newName) { m_name = newName; }
-	void SetActive(bool newActive) { m_active = newActive; }
+	void SetActive(bool newActive);
 	void SetStatic(bool newIsStatic) { m_isStatic = newIsStatic; }
 	void SetLayer(Layer newLayer) { m_layer = newLayer; }
 	void SetTag(Tag newTag) { m_tag = newTag; }
@@ -46,6 +46,7 @@ public:
 	const PrefabInstanceInfo& GetPrefabInfo() const { return m_prefabInfo; }
 
 	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
+	void markGameObjectPropertyOverride(const char* propertyName);
 #pragma endregion
 
 #pragma region Components
