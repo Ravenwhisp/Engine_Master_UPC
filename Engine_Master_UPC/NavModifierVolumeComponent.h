@@ -26,8 +26,8 @@ public:
 	int getPriority() const { return m_priority; }
 
 private:
-	Vector3 m_halfExtents = Vector3::One;
-	NavAreaType m_areaType = NavAreaType::Default;
-	bool m_enabled = true;
-	int m_priority = 0;
+	Vector3 m_halfExtents = Vector3::One; // Box half-size used during navmesh bake
+	NavAreaType m_areaType = NavAreaType::Default; // Type of walkable area
+	bool m_enabled = true; // True if it should affect navigation
+	int m_priority = 0; // Higher priority overrides lower priority volumes
 };

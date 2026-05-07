@@ -22,9 +22,6 @@ bool NavMeshBuilder::BuildSoloMesh(
     NavMeshBuildResult& outResult,
     const std::vector<NavModifierVolumeData>& modifierVolumes)
 {
-    // debug
-    DEBUG_LOG("Received %d volumes", modifierVolumes.size());
-
     outResult = {};
 
     if (verts.empty() || tris.empty()) return false;
@@ -94,6 +91,9 @@ bool NavMeshBuilder::BuildSoloMesh(
     rcMarkWalkableTriangles(&ctx, cfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triAreas);
 
     // 3) Resolve Area For Point
+    unsigned int defaultTriangles = 0;
+    unsigned int spectralTriangles = 0;
+    unsigned int blockedTriangles = 0;
 
     for (int i = 0; i < ntris; ++i)
     {
@@ -122,6 +122,13 @@ bool NavMeshBuilder::BuildSoloMesh(
         Vector3 center = (v0 + v1 + v2) / 3.0f;
 
         NavAreaType area = resolveAreaForPoint(center, modifierVolumes);
+
+        if (area == NavAreaType::Default)
+            defaultTriangles++;
+        if (area == NavAreaType::Spectral)
+            spectralTriangles++;
+        if (area == NavAreaType::Blocked)
+            blockedTriangles++;
 
         triAreas[i] = toRecastAreaId(area);
     }
@@ -329,6 +336,9 @@ bool NavMeshBuilder::BuildSoloMesh(
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
     outResult.tileRef = outRef;
+
+    DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
+
     return true;
 }
 

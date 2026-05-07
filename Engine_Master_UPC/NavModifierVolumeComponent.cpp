@@ -24,7 +24,7 @@ void NavModifierVolumeComponent::drawUi()
 {
 	ImGui::SeparatorText("NavModifier Volume");
 
-	ImGui::Checkbox("Enabled", &m_enabled);
+	ImGui::Checkbox("Affects Navigation", &m_enabled);
 
 	ImGui::DragFloat3("Half Extents", &m_halfExtents.x, 0.1f, 0.01f);
 
