@@ -202,6 +202,8 @@ void ModuleEditor::render()
         window->draw();
     }
 
+    removeClosedWindows();
+
     if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
     {
         m_viewGameDebug->render();
@@ -433,9 +435,14 @@ void ModuleEditor::saveWindowStates()
 
     for (EditorWindow* window : m_editorWindows)
     {
+        if (!window->isOpen())
+        {
+            continue;
+        }
+
         file << window->getWindowName() << "|"
             << window->getInstanceId() << "|"
-            << (window->isOpen() ? 1 : 0) << "\n";
+            << 1 << "\n";
     }
 }
 
@@ -495,6 +502,11 @@ void ModuleEditor::loadWindowStates()
 
             if (!target)
             {
+                if (!isOpen)
+                {
+                    continue;
+                }
+
                 auto it = m_windowFactories.find(typeKey);
                 if (it != m_windowFactories.end())
                 {
@@ -508,6 +520,25 @@ void ModuleEditor::loadWindowStates()
             {
                 target->setOpen(isOpen);
             }
+        }
+    }
+}
+
+void ModuleEditor::removeClosedWindows()
+{
+    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); )
+    {
+        EditorWindow* window = *it;
+
+        if (!window->isOpen())
+        {
+            window->cleanUp();
+            delete window;
+            it = m_editorWindows.erase(it);
+        }
+        else
+        {
+            ++it;
         }
     }
 }
