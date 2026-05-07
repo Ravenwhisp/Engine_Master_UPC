@@ -22,6 +22,8 @@ struct UIImageCommand
 {
     Texture* texture = nullptr;
     Rect2D  rect;
+
+    float alpha = 1.0f;
     
     float fillAmount = 1.0f;
     FillMethod fillMethod = FillMethod::Horizontal;
