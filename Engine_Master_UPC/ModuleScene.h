@@ -76,5 +76,5 @@ public:
     const std::vector<SpriteRenderer*>& getSpriteRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
-    const std::vector<ParticleSystemComponent*>& getParticleEmitters();
+    const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
 };

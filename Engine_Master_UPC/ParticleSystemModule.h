@@ -1,7 +1,9 @@
 #pragma once
 #include "Module.h"
 
-#include "ParticleEmitter.h"
+#include "ParticleSystem.h"
+
+// THIS MODULE WON'T BE USED FOR NOW, BUT THE IDEA IS THAT IT HOLDS ALL PARTICLE SYSTEMS FOR EASY ACCESS
 
 class ParticleSystemModule : public Module
 {
@@ -12,11 +14,12 @@ public:
     //void render()   override;
     //bool cleanUp()  override;
 
-    ParticleEmitter* addEmitter(Transform* parent);
-    bool removeEmitter(ParticleEmitter* emitter);
+    ParticleSystem* addSystem(Transform* parent);
+    bool removeSystem(ParticleSystem* system);
 
 private:
 
-    std::vector<std::unique_ptr<ParticleEmitter>> m_emitters;
+    std::vector<std::unique_ptr<ParticleSystem>> m_particleSystems;
+    std::vector<Transform*> m_parents;
 };
 

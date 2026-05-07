@@ -2,6 +2,8 @@
 
 #include "Component.h"
 #include "TextureAsset.h"
+#include "ParticleSystem.h"
+#include "EmitterInstance.h"
 
 class Texture;
 
@@ -39,6 +41,7 @@ private:
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
 
-    UINT emitterID;
+    std::shared_ptr<ParticleSystem> m_particleSystem;
+    std::vector<EmitterInstance> m_particlesState;
 };
 

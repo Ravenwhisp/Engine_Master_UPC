@@ -176,9 +176,8 @@ const std::vector<ScriptComponent*>& ModuleScene::getScriptComponents()
 
     return m_scriptComponents;
 }
-const std::vector<ParticleSystemComponent*>& ModuleScene::getParticleEmitters()
+const std::vector<ParticleSystemComponent*>& ModuleScene::getParticleSystemComponents()
 {
-    // TODO: Insertar una instrucción "return" aquí
     if (m_scene->isComponentCacheDirty())
     {
         rebuildComponentCaches();

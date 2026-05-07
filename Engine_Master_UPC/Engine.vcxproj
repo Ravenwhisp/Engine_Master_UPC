@@ -307,6 +307,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DeviceType.h" />
     <ClInclude Include="CommandDeleteAsset.h" />
     <ClInclude Include="CommandDeleteFolder.h" />
+    <ClInclude Include="EmitterInstance.h" />
     <ClInclude Include="EngineAPI.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
@@ -341,6 +342,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ParticleEmitter.h" />
     <ClInclude Include="ParticleModule.h" />
     <ClInclude Include="ParticlesPass.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="ParticleSystemComponent.h" />
     <ClInclude Include="ParticleSystemModule.h" />
     <ClInclude Include="PlayerBinding.h" />
@@ -640,6 +642,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
+    <ClCompile Include="EmitterInstance.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
@@ -662,6 +665,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="ParticleModule.cpp" />
     <ClCompile Include="ParticlesPass.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="ParticleSystemComponent.cpp" />
     <ClCompile Include="ParticleSystemModule.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
@@ -837,6 +841,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-Qembed_debug %(AdditionalOptions)</AdditionalOptions>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="ParticleVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -845,6 +853,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-Qembed_debug %(AdditionalOptions)</AdditionalOptions>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="SkyboxEnvironmentPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

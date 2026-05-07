@@ -445,6 +445,12 @@
     <ClCompile Include="ParticleSystemModule.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterInstance.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1100,6 +1106,12 @@
       <Filter>ParticleSystem</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystemModule.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterInstance.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
   </ItemGroup>
