@@ -13,27 +13,6 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f)
 )
 
-Damageable* findDamageable(GameObject* gameObject)
-{
-    if (!gameObject)
-    {
-        return nullptr;
-    }
-
-    Script* script = GameObjectAPI::getScript(gameObject, "PlayerDamageable");
-    Damageable* damageable = dynamic_cast<Damageable*>(script);
-
-    if (damageable)
-    {
-        return damageable;
-    }
-
-    script = GameObjectAPI::getScript(gameObject, "Damageable");
-    damageable = dynamic_cast<Damageable*>(script);
-
-    return damageable;
-}
-
 Bound::Bound(GameObject* owner) : Script(owner)
 {
 
@@ -41,18 +20,19 @@ Bound::Bound(GameObject* owner) : Script(owner)
 
 void Bound::Start()
 {
+    Transform* firstTargetTransform = m_firstTarget.getReferencedComponent();
+    Transform* secondTargetTransform = m_secondTarget.getReferencedComponent();
 
-    if (!m_firstTarget.getReferencedComponent() || !m_secondTarget.getReferencedComponent())
+    if (firstTargetTransform == nullptr || secondTargetTransform == nullptr)
     {
         return;
     }
 
-    GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.component);
-    GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.component);
+    GameObject* player1 = ComponentAPI::getOwner(firstTargetTransform);
+    GameObject* player2 = ComponentAPI::getOwner(secondTargetTransform);
 
-
-    m_firstDamageable = findDamageable(player1);
-    m_secondDamageable = findDamageable(player2);
+    m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
+    m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
 
 }
 

@@ -25,8 +25,6 @@ protected:
     void setAbilityLocked(bool locked);
     int getPlayerIndex() const;
 
-    CharacterBase* findCharacterScript(GameObject* owner) const;
-
 protected:
     CharacterBase* m_character = nullptr;
 
