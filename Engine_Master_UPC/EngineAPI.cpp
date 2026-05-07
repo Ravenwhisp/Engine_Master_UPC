@@ -106,6 +106,92 @@ namespace GameObjectAPI
         return nullptr;
     }
 
+    int GameObjectAPI::getScriptCount(const GameObject* gameObject)
+    {
+        if (gameObject == nullptr)
+        {
+            return 0;
+        }
+
+        int count = 0;
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            ++count;
+        }
+
+        return count;
+    }
+
+    Script* GameObjectAPI::getScriptByIndex(GameObject* gameObject, int index)
+    {
+        if (gameObject == nullptr || index < 0)
+        {
+            return nullptr;
+        }
+
+        int currentIndex = 0;
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component);
+
+            if (currentIndex == index)
+            {
+                return scriptComponent->getScript();
+            }
+
+            ++currentIndex;
+        }
+
+        return nullptr;
+    }
+
+    const Script* GameObjectAPI::getScriptByIndex(const GameObject* gameObject, int index)
+    {
+        if (gameObject == nullptr || index < 0)
+        {
+            return nullptr;
+        }
+
+        int currentIndex = 0;
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            const ScriptComponent* scriptComponent = static_cast<const ScriptComponent*>(component);
+
+            if (currentIndex == index)
+            {
+                return scriptComponent->getScript();
+            }
+
+            ++currentIndex;
+        }
+
+        return nullptr;
+    }
+
     bool isActiveSelf(const GameObject* gameObject)
     {
         return gameObject->GetActive();

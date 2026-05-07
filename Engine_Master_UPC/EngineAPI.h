@@ -32,9 +32,6 @@ namespace GameObjectAPI
     ENGINE_API Transform* getTransform(GameObject* gameObject);
     ENGINE_API const Transform* getTransform(const GameObject* gameObject);
 
-    ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
-    ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
-
     ENGINE_API bool isActiveSelf(const GameObject* gameObject);
     ENGINE_API bool isActiveInHierarchy(const GameObject* gameObject);
     ENGINE_API void setActive(GameObject* gameObject, bool active);
@@ -47,8 +44,20 @@ namespace GameObjectAPI
     ENGINE_API GameObject* createGameObject(const char* name, GameObject* parentObject = nullptr);
     ENGINE_API void removeGameObject(GameObject* gameObject);
 
-    //ENGINE_API GameObject* instantiate(GameObject* gameObject, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
     ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
+
+    ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
+    ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
+
+    ENGINE_API int getScriptCount(const GameObject* gameObject);
+    ENGINE_API Script* getScriptByIndex(GameObject* gameObject, int index);
+    ENGINE_API const Script* getScriptByIndex(const GameObject* gameObject, int index);
+
+    template<typename T>
+    T* findScript(GameObject* gameObject);
+
+    template<typename T>
+    const T* findScript(const GameObject* gameObject);
 }
 
 namespace TransformAPI
@@ -306,3 +315,5 @@ namespace HapticAPI
     ENGINE_API bool saveToJSON(const char* path);
     ENGINE_API const HapticEffectDefinition* findEffect(const char* id);
 }
+
+#include "EngineAPI.inl"

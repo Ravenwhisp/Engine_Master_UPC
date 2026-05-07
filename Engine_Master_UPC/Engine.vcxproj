@@ -807,6 +807,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
+    <None Include="EngineAPI.inl" />
     <None Include="MakeSpriteFont.exe" />
     <None Include="NewCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
