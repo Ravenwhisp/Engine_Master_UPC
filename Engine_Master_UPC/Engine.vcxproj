@@ -313,6 +313,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="FileDialogClipboard.h" />
     <ClInclude Include="FontAsset.h" />
     <ClInclude Include="Handle.h" />
+    <ClInclude Include="HapticEffectDefinition.h" />
+    <ClInclude Include="HapticEffectLibrary.h" />
     <ClInclude Include="HierarchyTreeRenderer.h" />
     <ClInclude Include="HierarchyUtils.h" />
     <ClInclude Include="ICommand.h" />
@@ -335,6 +337,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="MeshAsset.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
+    <ClInclude Include="ModuleHaptics.h" />
     <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
@@ -641,6 +644,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
+    <ClCompile Include="HapticEffectDefinition.cpp" />
+    <ClCompile Include="HapticEffectLibrary.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
@@ -657,6 +662,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
+    <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
@@ -804,6 +810,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
+    <None Include="EngineAPI.inl" />
     <None Include="MakeSpriteFont.exe" />
     <None Include="NewCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
@@ -889,6 +896,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="SpritePixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="SpriteVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

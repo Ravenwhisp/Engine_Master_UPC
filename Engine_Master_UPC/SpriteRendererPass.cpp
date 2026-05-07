@@ -49,7 +49,7 @@ SpriteRendererPass::SpriteRendererPass(ComPtr<ID3D12Device4> device)
     ThrowIfFailed(D3DReadFileToBlob(L"SpriteVertexShader.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"SpritePixelShader.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {

@@ -46,6 +46,7 @@ public:
 	const PrefabInstanceInfo& GetPrefabInfo() const { return m_prefabInfo; }
 
 	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
+	void markGameObjectPropertyOverride(const char* propertyName);
 #pragma endregion
 
 #pragma region Components
