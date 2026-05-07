@@ -11,6 +11,7 @@ mkdir .\export\EngineDependencies
 cp .\Engine_Master_UPC\Component.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ComponentType.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\EngineAPI.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\EngineAPI.inl .\export\EngineDependencies\
 cp .\Engine_Master_UPC\GameObject.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Keyboard.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Layer.h .\export\EngineDependencies\

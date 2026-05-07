@@ -13,7 +13,7 @@ AbilityBase::AbilityBase(GameObject* owner)
 
 void AbilityBase::Start()
 {
-    m_character = findCharacterScript(getOwner());
+    m_character = GameObjectAPI::findScript<CharacterBase>(getOwner());
 }
 
 void AbilityBase::Update()
@@ -81,26 +81,4 @@ int AbilityBase::getPlayerIndex() const
     }
 
     return m_character->getPlayerIndex();
-}
-
-CharacterBase* AbilityBase::findCharacterScript(GameObject* owner) const
-{
-    if (owner == nullptr)
-    {
-        return nullptr;
-    }
-
-    Script* script = GameObjectAPI::getScript(owner, "LyrielCharacter");
-    if (script != nullptr)
-    {
-        return static_cast<CharacterBase*>(script);
-    }
-
-    script = GameObjectAPI::getScript(owner, "DeathCharacter");
-    if (script != nullptr)
-    {
-        return static_cast<CharacterBase*>(script);
-    }
-
-    return nullptr;
 }

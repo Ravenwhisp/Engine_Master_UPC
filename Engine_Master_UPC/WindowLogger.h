@@ -42,19 +42,19 @@ public:
     template<typename... Args>
     static void log(const char* file, int line, const char* fmt, Args... args)
     {
-        Instance()->addLog(LogType::LOG_INFO, file, line, fmt, args...);
+        addLog(LogType::LOG_INFO, file, line, fmt, args...);
     }
 
     template<typename... Args>
     static void warning(const char* file, int line, const char* fmt, Args... args)
     {
-        Instance()->addLog(LogType::LOG_WARNING, file, line, fmt, args...);
+        addLog(LogType::LOG_WARNING, file, line, fmt, args...);
     }
 
     template<typename... Args>
     static void error(const char* file, int line, const char* fmt, Args... args)
     {
-        Instance()->addLog(LogType::LOG_ERROR, file, line, fmt, args...);
+        addLog(LogType::LOG_ERROR, file, line, fmt, args...);
     }
 
     static WindowLogger* Instance();
@@ -62,7 +62,7 @@ public:
 private:
 
     template<typename... Args>
-    void addLog(LogType type, const char* file, int line, const char* fmt, Args&&... args)
+    static void addLog(LogType type, const char* file, int line, const char* fmt, Args&&... args)
     {
         char messageBuffer[2048];
         std::snprintf(messageBuffer, sizeof(messageBuffer), fmt, std::forward<Args>(args)...);
@@ -73,7 +73,7 @@ private:
         addLogEntry(type, finalBuffer);
     }
 
-    void addLogEntry(LogType type, const std::string& text);
+    static void addLogEntry(LogType type, const std::string& text);
 
     void drawHeader();
 
@@ -91,14 +91,13 @@ private:
 
     ImVec4 getColor(LogType type);
 
-    std::vector<LogEntry> m_items;
+    static std::vector<LogEntry> s_items;
     ImGuiTextFilter m_filter;
     bool m_autoScroll = true;
     bool m_showLogs = true;
     bool m_showWarnings = true;
     bool m_showErrors = true;
     bool m_showTimestamps = true;
-    int m_maxEntries = 2048;
     static WindowLogger* s_Instance;
 };
 

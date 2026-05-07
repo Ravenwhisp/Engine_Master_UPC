@@ -21,8 +21,8 @@ void AbilityDash::Start()
 {
     AbilityBase::Start();
 
-    m_playerController = findControllerScript(getOwner());
-    m_playerMovement = findMovementScript(getOwner());
+    m_playerController = GameObjectAPI::findScript<PlayerController>(getOwner());
+    m_playerMovement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
 
     if (m_character == nullptr)
     {
@@ -159,29 +159,5 @@ void AbilityDash::calculateDashMovement(float dt)
     {
         m_playerMovement->playerDashMovement(getOwner(), velocity * dt);
     }
-}
-
-PlayerController* AbilityDash::findControllerScript(GameObject* owner) const
-{
-    Script* script = GameObjectAPI::getScript(owner, "PlayerController");
-    if (script == nullptr)
-    {
-        Debug::warn("AbilityDash: PlayerController not found on this GameObject.");
-        return nullptr;
-    }
-
-    return static_cast<PlayerController*>(script);
-}
-
-PlayerMovement* AbilityDash::findMovementScript(GameObject* owner) const
-{
-    Script* script = GameObjectAPI::getScript(owner, "PlayerMovement");
-    if (script == nullptr)
-    {
-        Debug::warn("AbilityDash: PlayerMovement not found on this GameObject.");
-        return nullptr;
-    }
-
-    return static_cast<PlayerMovement*>(script);
 }
 

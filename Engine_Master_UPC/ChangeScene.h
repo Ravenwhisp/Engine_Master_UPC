@@ -21,12 +21,8 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	virtual bool deserializeJSON(const rapidjson::Value& componentValue) override;
-	void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
 
 	std::string m_sceneToLoad;
-	UIButton* m_uiButton = nullptr;
-	UID m_uiButtonUid = 0;
-	DelegateHandle m_onClickHandle;
 };
