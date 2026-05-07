@@ -17,6 +17,7 @@
 #include "SpriteRenderer.h"
 #include "LightComponent.h"
 #include "ScriptComponent.h"
+#include "ParticleSystemComponent.h"
 
 ModuleScene::ModuleScene()
 {

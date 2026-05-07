@@ -17,11 +17,11 @@ struct VSOut
     float4 position : SV_POSITION;
 };
 
-VSOut main(float3 position : POSITION, float2 texCoord : TEXCOORD, uint instanceID : SV_InstanceID)
+VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, uint instanceID : SV_InstanceID)
 {
     VSOut output;
     output.texCoord = texCoord;
-    output.position = mul( mul(float4(position, 1.0f), instanceDataBuffer[instanceID].worldPosition), vp);
+    output.position = mul( mul(float4(position, 0.0f, 1.0f), instanceDataBuffer[instanceID].worldPosition), vp);
     
     return output;
 }

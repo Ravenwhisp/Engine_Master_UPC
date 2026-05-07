@@ -41,10 +41,10 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"ParticleVertexShader.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"ParticlePixelShader.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
@@ -80,6 +80,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     psoDesc.SampleDesc = { 1, 0 };
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+    //HRESULT pipeline = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
 
     const Vertex quadVertices[6] =
     {

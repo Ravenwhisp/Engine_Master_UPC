@@ -21,8 +21,8 @@ struct ParticleEmitterCommand
 
 struct shaderParticleData {
     
-    XMFLOAT4X4 worldPosition;
-    XMFLOAT4 colorAndAlpha;
+    Matrix worldPosition;
+    Vector4 colorAndAlpha;
     // UINT frame = 0; <- to align as well
 };
 
