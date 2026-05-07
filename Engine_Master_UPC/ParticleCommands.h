@@ -4,11 +4,6 @@
 
 class Texture;
 
-struct ParticleEmitterCommand
-{
-    Texture* texture = nullptr;
-    std::vector <ParticleCommand> particles;
-};
 
 struct ParticleCommand
 {
@@ -18,10 +13,16 @@ struct ParticleCommand
     Vector4 colorAndAlpha;
 };
 
+struct ParticleEmitterCommand
+{
+    Texture* texture = nullptr;
+    std::vector <ParticleCommand> particles;
+};
+
 struct shaderParticleData {
     
-    Matrix worldPosition;
-    Vector4 colorAndAlpha;
+    XMFLOAT4X4 worldPosition;
+    XMFLOAT4 colorAndAlpha;
     // UINT frame = 0; <- to align as well
 };
 

@@ -16,7 +16,6 @@ public:
 
 private:
     void renderImages(ID3D12GraphicsCommandList4* commandList);
-    Matrix buildImageMVP(const UIImageCommand& command) const;
     Matrix buildImageWorldMatrix(const ParticleCommand& command) const;
     Matrix buildImageVP();
 

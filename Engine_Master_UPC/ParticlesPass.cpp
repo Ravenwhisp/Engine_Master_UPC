@@ -28,7 +28,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
     rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
-    rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // b1 <- particle data (no?) (could we join it with the srvRange?)
+    rootParameters[1].InitAsShaderResourceView(1); // t1 <- particle data (could we join it with the srvRange?)
     rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
     rootParameters[3].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
 
@@ -49,8 +49,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 0 } // 1 -> input slot, per buffer
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -101,7 +100,7 @@ void ParticlesPass::prepare(const RenderContext& ctx)
     m_viewport = &ctx.viewport;
     
     // TEMPORARY, just for testing
-    const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleEmitters();
+    const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
     Texture* passedText = particleSystemComponents.empty() ? nullptr : particleSystemComponents[0]->getTexture();
     static std::vector<ParticleEmitterCommand> test = { {passedText,
             {
@@ -172,12 +171,12 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
         }
 
-        commandList->SetGraphicsRootConstantBufferView(
+        commandList->SetGraphicsRootShaderResourceView(
             1,
             app->getModuleRender()->allocateInRingBuffer(particleData, command.particles.size() * sizeof(shaderParticleData) )
         );
 
-        delete particleData;
+        delete[] particleData;
 
         commandList->SetGraphicsRootDescriptorTable(2, srv.gpu);
 
@@ -185,33 +184,6 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
     }
 }
 
-Matrix ParticlesPass::buildImageMVP(const UIImageCommand& command) const
-{
-    const float x = command.rect.x;
-    const float y = command.rect.y;
-    const float w = command.rect.w;
-    const float h = command.rect.h;
-
-    Matrix local;
-
-    const float uiToWorld = 0.01f;
-
-    Matrix scale = Matrix::CreateScale(w * uiToWorld, -h * uiToWorld, uiToWorld);
-    Matrix translate = Matrix::CreateTranslation(-(x + w) * uiToWorld, (y + h) * uiToWorld, 0.0f);
-
-    local = scale * translate;
-
-    Matrix world = command.world;
-
-    // WORLD_SPACE_CAMERA cod
-    Matrix invView = m_view->Invert();
-    invView._41 = world._41;
-    invView._42 = world._42;
-    invView._43 = world._43;
-    world = invView;
-
-    return (local * world) * (*m_view) * (*m_projection);
-}
 
 Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command) const
 {
