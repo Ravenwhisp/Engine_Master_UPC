@@ -238,7 +238,7 @@
     <ClCompile Include="FontPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="MeshRendererPass.cpp">
+    <ClCompile Include="DeferredShadingPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
     <ClCompile Include="SkyBoxPass.cpp">
@@ -740,7 +740,7 @@
     <ClInclude Include="IRenderPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="MeshRendererPass.h">
+    <ClInclude Include="DeferredShadingPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="SkyBoxPass.h">
@@ -1255,7 +1255,7 @@
     <None Include="SimpleMath.inl">
       <Filter>Maths</Filter>
     </None>
-    <None Include="NewCBuffers.hlsli">
+    <None Include="GeometryCBuffers.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
     <None Include="MakeSpriteFont.exe" />
@@ -1271,6 +1271,7 @@
     <None Include="GBufferCommon.hlsli">
       <Filter>D3D12\Rendering\GeometryPass</Filter>
     </None>
+    <None Include="LightingCBuffers.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">

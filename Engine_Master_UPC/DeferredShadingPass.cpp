@@ -1,5 +1,5 @@
 ﻿#include "Globals.h"
-#include "MeshRendererPass.h"
+#include "DeferredShadingPass.h"
 
 #include "RenderContext.h"
 
@@ -34,7 +34,7 @@
 
 #include <iostream>
 
-MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
+DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
 	m_lighting = std::make_unique<SceneLightingSettings>();
 	m_sceneDataCB = std::make_unique<SceneDataCB>();
@@ -43,7 +43,7 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[8] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[7] = {};
     CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
 
     gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GeometryPass::GBUFFER_COUNT, 0, 0);
@@ -52,8 +52,8 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
-    rootParameters[0].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // camera pos
-    rootParameters[1].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL); // lights
+    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL); // camera pos
+    rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // lights
     rootParameters[2].InitAsDescriptorTable(1, &gBufferRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[3].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[4].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -151,19 +151,19 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
 }
 
 
-void MeshRendererPass::prepare(const RenderContext& ctx)
+void DeferredShadingPass::prepare(const RenderContext& ctx)
 {
-    PERF_RENDER("MeshRendererPass::prepare");
+    PERF_RENDER("DeferredShadingPass::prepare");
 
     {
-        PERF_RENDER("MeshRendererPass::prepare::SetupCamera");
+        PERF_RENDER("DeferredShadingPass::prepare::SetupCamera");
         m_view = &ctx.view;
         m_projection = &ctx.projection;
         m_sceneDataCB->viewPos = ctx.cameraPosition;
     }
 
     {
-        PERF_RENDER("MeshRendererPass::prepare::UploadSceneDataCB");
+        PERF_RENDER("DeferredShadingPass::prepare::UploadSceneDataCB");
         m_sceneDataCBAddress = ctx.ringBuffer->allocate(
             m_sceneDataCB.get(),
             sizeof(SceneDataCB),
@@ -172,7 +172,7 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
 
     GPULightsConstantBuffer lightsCB{};
     {
-        PERF_RENDER("MeshRendererPass::prepare::PackLights");
+        PERF_RENDER("DeferredShadingPass::prepare::PackLights");
         lightsCB = packLightsForGPU(
             app->getModuleScene()->getLightComponents(),
             m_lighting->ambientColor,
@@ -180,7 +180,7 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
     }
 
     {
-        PERF_RENDER("MeshRendererPass::prepare::UploadLightsCB");
+        PERF_RENDER("DeferredShadingPass::prepare::UploadLightsCB");
         m_lightsAddress = ctx.ringBuffer->allocate(
             &lightsCB,
             sizeof(GPULightsConstantBuffer),
@@ -192,7 +192,7 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
     m_scissorRect = ctx.scissorRect;
 }
 
-void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
+void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
@@ -227,10 +227,11 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->DrawInstanced(3, 1, 0, 0);
 
     barrier = CD3DX12_RESOURCE_BARRIER::Transition(colorTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET); // RTV Barrier
+    //barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_READ); // DSV Barrier
     commandList->ResourceBarrier(1, &barrier);
 }
 
-GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
+GPULightsConstantBuffer DeferredShadingPass::packLightsForGPU(
     const std::vector<LightComponent*>& lights,
     const Vector3& ambientColor,
     float ambientIntensity) const

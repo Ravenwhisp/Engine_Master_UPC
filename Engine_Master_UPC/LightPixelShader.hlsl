@@ -1,8 +1,8 @@
-#include "NewCBuffers.hlsli"
+#include "LightingCBuffers.hlsli"
 
 // These correspond to the output of GBufferPS.hlsl
 Texture2D gBufferDiffuseTex : register(t0);                 // albedo
-Texture2D gBufferSpecularSmoothnessTex : register(t1);      // specular.rgb + smoothness.a
+Texture2D gBufferMetallicRoughnessTex : register(t1);       // metallic = R + roughness = G
 Texture2D gBufferNormalTex : register(t2);                  // world normal
 Texture2D gBufferPositionTex : register(t3);                // world position
 
@@ -314,24 +314,15 @@ float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float 
 }
 
 float4 main(float4 position : SV_Position, float2 uv : TEXCOORD0) : SV_TARGET
-{
-    float minRoughness = 0.04;
-    
-    float4 texSample = gBufferDiffuseTex.Sample(linearSample, uv);
-    float2 metallicRoughnessSample = gBufferSpecularSmoothnessTex.Sample(linearSample, uv).gb;
+{    
     float3 worldPos = gBufferPositionTex.Sample(linearSample, uv);
     float3 normal = gBufferNormalTex.Sample(linearSample, uv);
-
-    if (hasBaseColorTex != 0 && texSample.a < 0.5f) //The 0.5 is temporary while transparency is not added
-    {
-        discard;
-    }
     
-    float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
-    float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.y * metallicFactor) : metallicFactor;
-    metallic = 1 - metallic;
-    float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp(metallicRoughnessSample.x * roughnessFactor, minRoughness, 1.0) : roughnessFactor;
-    perceptualRoughness = 1 - perceptualRoughness;
+    float3 albedo = gBufferDiffuseTex.Sample(linearSample, uv).xyz;
+    
+    float4 metallicRoughnessTexSample = gBufferMetallicRoughnessTex.Sample(linearSample, uv);
+    float metallic = metallicRoughnessTexSample.r;
+    float perceptualRoughness = metallicRoughnessTexSample.g;
     
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
     
@@ -394,6 +385,7 @@ float4 main(float4 position : SV_Position, float2 uv : TEXCOORD0) : SV_TARGET
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
     //float3 finalColor = LinearToSRGB(colorMapped);
     float3 finalColor = LinearToSRGB(colorMapped);
-
+    
+    //return float4(metallicRoughnessTexSample.rgb, 1.0f);
     return float4(finalColor, 1.0f);
 }

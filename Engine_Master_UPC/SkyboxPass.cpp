@@ -2,6 +2,7 @@
 #include "SkyBoxPass.h"
 
 #include "RenderContext.h"
+#include "RenderSurface.h"
 
 #include "Application.h"
 #include "ModuleDescriptors.h"
@@ -98,6 +99,8 @@ void SkyBoxPass::prepare(const RenderContext& ctx)
 
         m_lastSettings = *ctx.skyBoxSettings;
     }
+
+    m_renderSurface = &ctx.renderSurface;
 }
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -118,6 +121,12 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     params.vp = vp;
     params.flipX = 0;
     params.flipZ = 0;
+
+    auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
+    auto dsTex = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
+    D3D12_CPU_DESCRIPTOR_HANDLE dsv = dsTex->getDSV().cpu;
+    commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());

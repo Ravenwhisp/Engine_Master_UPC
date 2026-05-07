@@ -45,8 +45,8 @@ uint64_t ImporterMaterial::saveTyped(const MaterialAsset* source, uint8_t** outB
     writer.bytes(&source->baseColour, sizeof(Color));
 
     writer.string(source->metallicRoughnessMap);
-    writer.u32(source->metallicFactor);
-    writer.u32(source->roughnessFactor);
+    writer.bytes(&source->metallicFactor, 4);
+    writer.bytes(&source->roughnessFactor, 4);
     writer.string(source->normalMap);
     writer.string(source->occlusionMap);
 
@@ -66,8 +66,8 @@ void ImporterMaterial::loadTyped(const uint8_t* buffer, MaterialAsset* material)
     reader.bytes(&material->baseColour, sizeof(Color));
 
     material->metallicRoughnessMap = reader.string();
-    material->metallicFactor = reader.u32();
-    material->roughnessFactor = reader.u32();
+    reader.bytes(&material->metallicFactor, 4);
+    reader.bytes(&material->roughnessFactor, 4);
     material->normalMap = reader.string();
     material->occlusionMap = reader.string();
 

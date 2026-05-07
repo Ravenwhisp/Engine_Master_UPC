@@ -18,7 +18,7 @@ class RingBuffer;
 class IRenderPass;
 class RenderSurface;
 class SkyBoxPass;
-class MeshRendererPass;
+class DeferredShadingPass;
 class GeometryPass;
 
 struct ViewportEntry;
@@ -69,7 +69,7 @@ private:
 
     DebugDrawPass* m_debugDrawPass = nullptr;
     GeometryPass* m_geometryPass = nullptr;
-    MeshRendererPass* m_meshRenderPass = nullptr;
+    DeferredShadingPass* m_meshRenderPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
 

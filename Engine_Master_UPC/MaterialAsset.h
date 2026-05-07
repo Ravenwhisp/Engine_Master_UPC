@@ -17,16 +17,16 @@ public:
 	Color& getBaseColour() const { return baseColour; }
 
 	MD5Hash getMetallicRoughnessMap() const { return metallicRoughnessMap; }
-	uint32_t getMetallicFactor() const { return metallicFactor; }
-	uint32_t getRoughnessFactor() const { return roughnessFactor; }
+	float getMetallicFactor() const { return metallicFactor; }
+	float getRoughnessFactor() const { return roughnessFactor; }
 protected:
 
 	MD5Hash				baseMap = INVALID_ASSET_ID;
 	mutable Color		baseColour = Color(255, 255, 255, 0);
 
 	MD5Hash				metallicRoughnessMap = INVALID_ASSET_ID;
-	uint32_t			roughnessFactor = 0;
-	uint32_t			metallicFactor = 0;
+	float				roughnessFactor = 0.0f;
+	float				metallicFactor = 0.0f;
 	MD5Hash				normalMap = INVALID_ASSET_ID;
 	MD5Hash				occlusionMap = INVALID_ASSET_ID;
 

@@ -25,7 +25,7 @@
 #include "ImGuiPass.h"
 #include "SkyBoxPass.h"
 #include "GeometryPass.h"
-#include "MeshRendererPass.h"
+#include "DeferredShadingPass.h"
 #include "SpriteRendererPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
@@ -64,15 +64,18 @@ bool ModuleRender::init()
     //debugDrawPass->registerStatic(app->getModuleNavigation());
     //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
+    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
+
     m_geometryPass = new GeometryPass(device);
-    m_meshRenderPass = new MeshRendererPass(device);
+    m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
+
+    m_meshRenderPass = new DeferredShadingPass(device);
+    m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
+
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_skyBoxPass = skyBoxPass.get();
     m_renderPasses.push_back(std::move(skyBoxPass));
 
-    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
-    m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
-    m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<SpriteRendererPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));

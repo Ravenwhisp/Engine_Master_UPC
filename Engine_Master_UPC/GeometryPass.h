@@ -12,7 +12,7 @@ public:
     static constexpr DXGI_FORMAT GBUFFER_FORMATS[GBUFFER_COUNT] =
     {
         DXGI_FORMAT_R8G8B8A8_UNORM,         // RT0 diffuse
-        DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT1 specular + smoothness
+        DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT1 metallic + roughness --> (R = "metallic"), (G = "perceptualRoughness")
         DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT2 normal
         DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT3 position
     };

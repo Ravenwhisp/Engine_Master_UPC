@@ -1,4 +1,4 @@
-cbuffer SceneData : register(b1)
+cbuffer SceneData : register(b0)
 {
     float3 viewPos;
     float pad0;
@@ -40,7 +40,7 @@ struct SpotLight
     float2 pad1;
 };
 
-cbuffer LightsCB : register(b2)
+cbuffer LightsCB : register(b1)
 {
     float3 ambientColor;
     float ambientIntensity;

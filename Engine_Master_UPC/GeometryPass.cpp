@@ -94,7 +94,7 @@ void GeometryPass::prepare(const RenderContext& ctx)
     m_scissorRect = ctx.scissorRect;
 
     // Collect visible mesh renderers
-    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
+    m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
 
     // Upload SceneDataCB (camera position) to the ring buffer
     SceneDataCB sceneData{};

@@ -17,8 +17,14 @@ cbuffer SceneDataCB : register(b1)
 // b2 — per-object data (GeometryPass)
 struct MaterialData
 {
-    float4 albedoColor;     // base colour tint
-    float4 specularColor;   // rgb = specular colour, a = smoothness [0..1]
+    float3 diffuseColour;
+    bool hasDiffuseTex;
+
+    float metallicFactor;
+    float roughnessFactor;
+    bool hasMetallicRoughnessTex;
+
+    float padding;
 };
 
 cbuffer ModelDataCB : register(b2)

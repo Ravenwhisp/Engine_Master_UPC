@@ -1,4 +1,4 @@
-#include "NewCBuffers.hlsli"
+#include "LightingCBuffers.hlsli"
 
 struct VSOut
 {
@@ -12,14 +12,14 @@ VSOut main(uint vertexID : SV_VertexID)
     float2 positions[3] =
     {
         float2(-1, -1),
-        float2(3, -1),
-        float2(-1, 3)
+        float2(-1, 3),
+        float2(3, -1)
     };
     float2 uvs[3] =
     {
-        float2(0, 0),
-        float2(2, 0),
-        float2(0, 2)
+        float2(0, 1),
+        float2(0, -1),
+        float2(2, 1)
     };
     output.position = float4(positions[vertexID], 0.0, 1.0);
     output.uv = uvs[vertexID];

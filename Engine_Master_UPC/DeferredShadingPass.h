@@ -24,11 +24,11 @@ namespace DirectX { namespace SimpleMath { struct Vector3; struct Matrix; } }
 using Vector3 = DirectX::SimpleMath::Vector3;
 using Matrix = DirectX::SimpleMath::Matrix;
 
-class MeshRendererPass : public IRenderPass {
+class DeferredShadingPass : public IRenderPass {
 public:
     constexpr static uint32_t BLOCK_SIZE{ 8 };
 
-    MeshRendererPass(ComPtr<ID3D12Device4> device);
+    DeferredShadingPass(ComPtr<ID3D12Device4> device);
 
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
