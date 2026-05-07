@@ -463,6 +463,9 @@
     <ClCompile Include="HapticEffectDefinition.cpp">
       <Filter>Haptics</Filter>
     </ClCompile>
+    <ClCompile Include="NavModifierVolumeComponent.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1118,7 +1121,12 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
-
+    <ClInclude Include="NavModifierVolumeComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshTypes.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
