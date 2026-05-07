@@ -17,6 +17,9 @@ public:
     void process();
     void clearHoverState();
 
+	void setSelected(GameObject* go);
+	GameObject* getSelected() const { return m_selected; }
+
 private:
     bool getViewportMousePos(Vector2& outPos) const;
     bool isValidEventTarget(GameObject* go) const;
@@ -31,6 +34,12 @@ private:
     void sendPointerUp(GameObject* go, PointerEventData& data);
     void sendPointerClick(GameObject* go, PointerEventData& data);
 
+	void processNavigation();
+	void deselectCurrent();
+	void selectGameObject(GameObject* go);
+	bool isSelectable(GameObject* go) const;
+	GameObject* findFirstSelectableButton() const;
+
     struct ButtonState
     {
         GameObject*     pointerPress = nullptr;
@@ -38,4 +47,5 @@ private:
     };
 
     ButtonState m_buttonStates[3];
+	GameObject* m_selected = nullptr;
 };

@@ -7,20 +7,13 @@
 #include "GameObject.h"
 #include "UIButton.h"
 
-#include "SceneReferenceResolver.h"
-
 ChangeScene::ChangeScene(UID id, GameObject* gameObject):
 	Component(id, ComponentType::CHANGE_SCENE, gameObject)
 {
 	DEBUG_LOG("ChangeScene constructed at: %p", this);
 }
-
 ChangeScene::~ChangeScene()
 {
-	if (m_uiButton)
-	{
-		m_uiButton->onClick.Remove(m_onClickHandle);
-	}
 }
 
 std::unique_ptr<Component> ChangeScene::clone(GameObject* newOwner) const
@@ -29,8 +22,6 @@ std::unique_ptr<Component> ChangeScene::clone(GameObject* newOwner) const
 
 	newComponent->setActive(this->isActive());
 	newComponent->m_sceneToLoad = m_sceneToLoad;
-	newComponent->m_uiButton = m_uiButton;
-	newComponent->m_uiButtonUid = m_uiButtonUid;
 
 	return newComponent;
 }
@@ -43,41 +34,9 @@ bool ChangeScene::init()
 
 void ChangeScene::drawUi()
 {
-	static char saveSceneBuffer[256];
-	strcpy_s(saveSceneBuffer, m_sceneToLoad.c_str());
-
-	if (ImGui::InputText("Scene Name##Save", saveSceneBuffer, IM_ARRAYSIZE(saveSceneBuffer)))
-	{
-		m_sceneToLoad = saveSceneBuffer;
-	}
-
-	ImGui::Separator();
-
-	ImGui::Button("UI Button reference");
-
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
-		{
-			Component* data = *static_cast<Component**>(payload->Data);
-			UIButton* button = static_cast<UIButton*>(data);
-			if (button)
-			{
-				if (m_uiButton)
-				{
-					m_uiButton->onClick.Remove(m_onClickHandle);
-				}
-
-				m_uiButton = button;
-				m_uiButtonUid = button->getID();
-				m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
-			}
-		}
-		ImGui::EndDragDropTarget();
-	}
-
-	// Target graphic slot
-	ImGui::Text("UI BUtton: %s", m_uiButton ? "Assigned" : "None (drag a UI Button here)");
+	ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 180, 0, 255));
+	ImGui::Text("[!!!] Deprecated Component");
+	ImGui::PopStyleColor();
 }
 
 void ChangeScene::onChangeScene()
@@ -97,8 +56,6 @@ rapidjson::Value ChangeScene::getJSON(rapidjson::Document& domTree)
 	rapidjson::Value sceneString(m_sceneToLoad.c_str(), domTree.GetAllocator());
 	componentInfo.AddMember("SceneToLoad", sceneString, domTree.GetAllocator());
 
-	componentInfo.AddMember("UIButtonUID", (uint64_t)m_uiButtonUid, domTree.GetAllocator());
-
 	return componentInfo;
 }
 
@@ -108,42 +65,5 @@ bool ChangeScene::deserializeJSON(const rapidjson::Value& componentInfo)
 	{
 		m_sceneToLoad = componentInfo["SceneToLoad"].GetString();
 	}
-
-	if (componentInfo.HasMember("UIButtonUID"))
-	{
-		m_uiButtonUid = (UID)componentInfo["UIButtonUID"].GetUint64();
-	}
-
-	m_uiButton = nullptr;
 	return true;
-}
-
-void ChangeScene::fixReferences(const SceneReferenceResolver& resolver)
-{
-	if (m_uiButton)
-	{
-		m_uiButton->onClick.Remove(m_onClickHandle);
-		m_uiButton = nullptr;
-	}
-
-	if (m_uiButtonUid == 0)
-	{
-		return;
-	}
-
-	Component* comp = resolver.getClonedComponent(m_uiButtonUid);
-
-	if (comp)
-	{
-		m_uiButton = static_cast<UIButton*>(comp);
-
-		m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ChangeScene::onChangeScene);
-
-		DEBUG_LOG("Bound ChangeScene at: %p, sceneToLoad: %s", this, m_sceneToLoad.c_str());
-	}
-	else
-	{
-		DEBUG_LOG("Failed to fix reference for ChangeScene at: %p, UIButton UID not found", this);
-		m_uiButton = nullptr;
-	}
 }

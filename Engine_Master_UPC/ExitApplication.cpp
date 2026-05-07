@@ -13,10 +13,6 @@ ExitApplication::ExitApplication(UID id, GameObject* gameObject)
 
 ExitApplication::~ExitApplication()
 {
-    if (m_uiButton)
-    {
-        m_uiButton->onClick.Remove(m_onClickHandle);
-    }
 }
 
 std::unique_ptr<Component> ExitApplication::clone(GameObject* newOwner) const
@@ -24,8 +20,6 @@ std::unique_ptr<Component> ExitApplication::clone(GameObject* newOwner) const
     std::unique_ptr<ExitApplication> newComponent = std::make_unique<ExitApplication>(m_uuid, newOwner);
 
     newComponent->setActive(this->isActive());
-    newComponent->m_uiButton = m_uiButton;
-    newComponent->m_uiButtonUid = m_uiButtonUid;
 
     return newComponent;
 }
@@ -37,33 +31,9 @@ bool ExitApplication::init()
 
 void ExitApplication::drawUi()
 {
-    ImGui::Separator();
-
-    ImGui::Button("UI Button reference");
-
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
-        {
-            Component* data = *static_cast<Component**>(payload->Data);
-            UIButton* button = static_cast<UIButton*>(data);
-
-            if (button)
-            {
-                if (m_uiButton)
-                {
-                    m_uiButton->onClick.Remove(m_onClickHandle);
-                }
-
-                m_uiButton = button;
-                m_uiButtonUid = m_uiButton->getID();
-                m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ExitApplication::onExitApplication);
-            }
-        }
-        ImGui::EndDragDropTarget();
-    }
-
-    ImGui::Text("UI Button: %s", m_uiButton ? "Assigned" : "None (drag a UI Button here)");
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 180, 0, 255));
+    ImGui::Text("[!!!] Deprecated Component");
+    ImGui::PopStyleColor();
 }
 
 void ExitApplication::onExitApplication()
@@ -78,46 +48,10 @@ rapidjson::Value ExitApplication::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
     componentInfo.AddMember("ComponentType", int(ComponentType::EXIT_APPLICATION), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("UIButtonUID", (uint64_t)m_uiButtonUid, domTree.GetAllocator());
-
     return componentInfo;
 }
 
 bool ExitApplication::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("UIButtonUID"))
-    {
-        m_uiButtonUid = (UID)componentInfo["UIButtonUID"].GetUint64();
-    }
-
-    m_uiButton = nullptr;
-
     return true;
-}
-
-void ExitApplication::fixReferences(const SceneReferenceResolver& resolver)
-{
-    if (m_uiButton)
-    {
-        m_uiButton->onClick.Remove(m_onClickHandle);
-        m_uiButton = nullptr;
-    }
-
-    if (m_uiButtonUid == 0)
-    {
-        return;
-    }
-
-    Component* comp = resolver.getClonedComponent(m_uiButtonUid);
-
-    if (comp && comp->getType() == ComponentType::UIBUTTON)
-    {
-        m_uiButton = static_cast<UIButton*>(comp);
-        m_onClickHandle = m_uiButton->onClick.AddRaw(this, &ExitApplication::onExitApplication);
-    }
-    else
-    {
-        m_uiButton = nullptr;
-    }
 }

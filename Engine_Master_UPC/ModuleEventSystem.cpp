@@ -17,6 +17,7 @@
 
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
+#include <UIButton.h>
 #include <WindowSceneEditor.h>
 #include "Delegates.h"
 
@@ -158,6 +159,127 @@ void ModuleEventSystem::clearHoverState()
         state.pointerPress = nullptr;
         state.pressPosition = { 0.0f, 0.0f };
     }
+
+	deselectCurrent();
+}
+
+bool ModuleEventSystem::isSelectable(GameObject* go) const
+{
+	if (!isValidEventTarget(go))
+		return false;
+	if (!go->IsActiveInWindowHierarchy())
+		return false;
+	UIButton* btn = go->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
+	return btn && btn->isActive();
+}
+
+void ModuleEventSystem::deselectCurrent()
+{
+	if (!isValidEventTarget(m_selected))
+	{
+		m_selected = nullptr;
+		return;
+	}
+
+	if (UIButton* btn = m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON))
+	{
+		btn->onDeselect();
+	}
+	m_selected = nullptr;
+}
+
+void ModuleEventSystem::selectGameObject(GameObject* go)
+{
+	if (go == m_selected)
+		return;
+
+	deselectCurrent();
+
+	if (!isSelectable(go))
+		return;
+
+	m_selected = go;
+	if (UIButton* btn = m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON))
+	{
+		btn->onSelect();
+	}
+}
+
+void ModuleEventSystem::setSelected(GameObject* go)
+{
+	selectGameObject(go);
+}
+
+void ModuleEventSystem::processNavigation()
+{
+	if (!isValidEventTarget(m_selected))
+	{
+		m_selected = nullptr;
+	}
+
+	ModuleInput* input = app->getModuleInput();
+	if (!input)
+		return;
+
+	auto navPressed = [&](Keyboard::Keys key) { return input->isKeyJustPressed(key); };
+
+	const bool up = navPressed(Keyboard::Keys::Up) || input->isGamePadDPadUpJustPressed();
+	const bool down = navPressed(Keyboard::Keys::Down) || input->isGamePadDPadDownJustPressed();
+	const bool left = navPressed(Keyboard::Keys::Left) || input->isGamePadDPadLeftJustPressed();
+	const bool right = navPressed(Keyboard::Keys::Right) || input->isGamePadDPadRightJustPressed();
+	const bool submit = navPressed(Keyboard::Keys::Enter) || navPressed(Keyboard::Keys::Space) || input->isGamePadAJustPressed();
+	const bool anyNav = up || down || left || right || submit;
+
+    if (!anyNav)
+        return;
+
+	if (!m_selected)
+	{
+		if (GameObject* first = findFirstSelectableButton())
+		{
+			selectGameObject(first);
+		}
+	}
+
+	UIButton* btn = m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
+	if (!btn)
+		return;
+
+	if (up && btn->getNavUp())
+		selectGameObject(btn->getNavUp()->getOwner());
+	else if (down && btn->getNavDown())
+		selectGameObject(btn->getNavDown()->getOwner());
+	else if (left && btn->getNavLeft())
+		selectGameObject(btn->getNavLeft()->getOwner());
+	else if (right && btn->getNavRight())
+		selectGameObject(btn->getNavRight()->getOwner());
+
+	if (submit)
+	{
+        PointerEventData data;
+        data.pointerPress = m_selected;
+        sendPointerUp(m_selected, data);
+		deselectCurrent();
+	}
+
+}
+
+GameObject* ModuleEventSystem::findFirstSelectableButton() const
+{
+    ModuleScene* ms = app->getModuleScene();
+    if (!ms)
+        return nullptr;
+    Scene* scene = ms->getScene();
+    if (!scene)
+        return nullptr;
+
+    for (GameObject* go : scene->getAllGameObjects())
+    {
+        if (isSelectable(go))
+            return go;
+    }
+
+    return nullptr;
 }
 
 GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
@@ -225,6 +347,8 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 #pragma region Events
 void ModuleEventSystem::process()
 {
+    processNavigation();
+
     Vector2 mousePos;
     if (!getViewportMousePos(mousePos))
     {
@@ -259,6 +383,11 @@ void ModuleEventSystem::process()
         {
             data.pointerEnter = hovered;
             sendPointerEnter(hovered, data);
+
+			if (isSelectable(hovered))
+			{
+				selectGameObject(hovered);
+			}
         }
 
         m_hoveredLast = hovered;
@@ -295,6 +424,11 @@ void ModuleEventSystem::process()
             data.pressPosition = mousePos;
 
             sendPointerDown(hovered, data);
+
+			if (isSelectable(hovered))
+			{
+				selectGameObject(hovered);
+			}
         }
 
         if (IsMouseButtonReleased(btn) && state.pointerPress)
@@ -303,6 +437,7 @@ void ModuleEventSystem::process()
             data.pressPosition = state.pressPosition;
 
             sendPointerUp(state.pointerPress, data);
+            deselectCurrent();
 
             if (state.pointerPress == hovered)
             {
