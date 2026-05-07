@@ -57,8 +57,8 @@ public:
     NavMeshSettings& getSettings() { return m_settings; }
     bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
 
-    void setPathStart(const Vector3& p);
-    void setPathEnd(const Vector3& p);
+    void setPathStart(const Vector3& p, NavAgentProfile profile);
+    void setPathEnd(const Vector3& p, NavAgentProfile profile);
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
@@ -86,9 +86,10 @@ private:
     std::vector<Vector3> m_debugPathPoints;
 
     std::vector<NavModifierVolumeData> m_modifierVolumes;
+    NavAgentProfile m_debugPathProfile = NavAgentProfile::PlayerNormal;
 
 private:
-    bool computeDebugPath();
+    bool computeDebugPath(NavAgentProfile profile);
     std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
 
 public:

@@ -1566,12 +1566,6 @@ namespace NavigationAPI
         filter.setIncludeFlags(includeFlags);
         filter.setExcludeFlags(0);
 
-        DEBUG_LOG(
-            "Profile: %d | IncludeFlags: %u",
-            (int)profile,
-            includeFlags
-        );
-
         const float start[3] = { startPosition.x, startPosition.y, startPosition.z };
         const float end[3] = { targetPosition.x, targetPosition.y, targetPosition.z };
         const float extents[3] = { searchExtents.x, searchExtents.y, searchExtents.z };

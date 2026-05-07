@@ -290,18 +290,18 @@ void ModuleNavigation::rebuildNavMeshDebugLines()
     }
 }
 
-void ModuleNavigation::setPathStart(const Vector3& p)
+void ModuleNavigation::setPathStart(const Vector3& p, NavAgentProfile profile)
 {
     m_pathStart = p;
     m_hasPathStart = true;
-    if (m_hasPathEnd) computeDebugPath();
+    if (m_hasPathEnd) computeDebugPath(profile);
 }
 
-void ModuleNavigation::setPathEnd(const Vector3& p)
+void ModuleNavigation::setPathEnd(const Vector3& p, NavAgentProfile profile)
 {
     m_pathEnd = p;
     m_hasPathEnd = true;
-    if (m_hasPathStart) computeDebugPath();
+    if (m_hasPathStart) computeDebugPath(profile);
 }
 
 bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const
@@ -392,7 +392,7 @@ void ModuleNavigation::debugDraw()
     }
 }
 
-bool ModuleNavigation::computeDebugPath()
+bool ModuleNavigation::computeDebugPath(NavAgentProfile profile)
 {
     m_debugPathPoints.clear();
     if (!m_navQuery || !m_navMesh) return false;
@@ -400,7 +400,7 @@ bool ModuleNavigation::computeDebugPath()
 
     dtQueryFilter filter;
     //filter.setIncludeFlags(0xFFFF);
-    filter.setIncludeFlags(getIncludeFlagsForProfile(NavAgentProfile::PlayerNormal)); // for testing only --- NEEDS UPDATE
+    filter.setIncludeFlags(getIncludeFlagsForProfile(profile));
     filter.setExcludeFlags(0);
 
     float ext[3] = { 2.0f, 4.0f, 2.0f }; 
@@ -466,8 +466,6 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
             }
         }
     }
-
-    LOG_INFO(__FILE__, __LINE__, "Collected %d volumes", data.size());
 
     return data;
 }
