@@ -80,7 +80,6 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     psoDesc.SampleDesc = { 1, 0 };
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
-    //HRESULT pipeline = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
 
     const Vertex quadVertices[6] =
     {

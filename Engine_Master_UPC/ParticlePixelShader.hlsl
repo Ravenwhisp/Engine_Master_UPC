@@ -19,6 +19,7 @@ struct PSInput
 {
     float2 texCoord : TEXCOORD;
     float4 position : SV_POSITION;
+    uint instanceID : INSTANCEID;
 };
 
 float3 LinearToSRGB(float3 color)
@@ -32,12 +33,12 @@ float3 Tint(float3 input, float3 color)
     return input * color;
 }
 
-float4 main(PSInput input, uint instanceID : SV_InstanceID) : SV_TARGET
+float4 main(PSInput input) : SV_TARGET
 {
     float4 texColor = particleTexture.Sample(particleSampler, input.texCoord);
     clip(texColor.a - 0.001f);
     
-    float4 particleColorInfo = instanceDataBuffer[instanceID].colorAndAlpha;
+    float4 particleColorInfo = instanceDataBuffer[input.instanceID].colorAndAlpha;
     float3 resultingColor = LinearToSRGB(Tint(texColor.rgb, particleColorInfo.rgb) );
     
     return float4(resultingColor, particleColorInfo.a);
