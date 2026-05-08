@@ -198,12 +198,5 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
     if (app->getModuleScene()->pickGameObject(ray, hit))
     {
         editor->setSelectedGameObject(hit.gameObject);
-
-        DEBUG_LOG("Picking Hit | GameObject: %s | Distance: %.3f | HitPoint: %.2f %.2f %.2f", hit.gameObject->GetName().c_str(), hit.distance, hit.hitPoint.x, hit.hitPoint.y, hit.hitPoint.z);
     }
-    else
-    {
-        DEBUG_LOG("Picking Hit | None");
-    }
-
 }
