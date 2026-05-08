@@ -93,7 +93,10 @@ void WindowSceneEditor::drawInternal()
         {
             const PickCandidate& closest = candidates.front();
 
-            DEBUG_LOG("AABB Picking Candidates: %d | Closest: %s | Distance: %.3f", static_cast<int>(candidates.size()), closest.gameObject->GetName().c_str(), closest.distance);
+            float triangleDistance = FLT_MAX;
+            const bool triangleHit = ScenePicking::intersectMeshRendererTriangles(closest.meshRenderer, ray, triangleDistance);
+
+            DEBUG_LOG("AABB Candidates: %d | Closest AABB: %s | AABB Dist: %.3f | Triangle Hit: %s | Triangle Dist: %.3f", static_cast<int>(candidates.size()), closest.gameObject->GetName().c_str(), closest.distance, triangleHit ? "true" : "false", triangleDistance);
         }
         else
         {
