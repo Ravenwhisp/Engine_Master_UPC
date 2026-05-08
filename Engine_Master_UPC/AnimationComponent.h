@@ -31,6 +31,8 @@ public:
 
     void setStateMachineUID(const MD5Hash& uid);
     const MD5Hash& getStateMachineUID() const { return m_stateMachineUID; }
+    void setAnimationSourceUID(const MD5Hash& uid);
+    const MD5Hash& getAnimationSourceUID() const { return m_animationSourceUID; }
 
     bool SendTrigger(const std::string& triggerName);
 
@@ -132,6 +134,7 @@ private:
 private:
 
     MD5Hash m_stateMachineUID = INVALID_ASSET_ID;
+    MD5Hash m_animationSourceUID = INVALID_ASSET_ID;
 
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
     std::shared_ptr<AnimationAsset> m_currentAnimationAsset;
@@ -154,6 +157,7 @@ private:
     bool m_stateMachineDirty = false;
 
     std::string m_stateMachineUIDInput;
+    std::string m_animationSourceUIDInput;
     std::string m_newStateMachineNameInput = "NewStateMachine";
     std::string m_triggerInput;
 

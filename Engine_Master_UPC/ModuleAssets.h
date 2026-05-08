@@ -15,6 +15,7 @@
 #include <memory>
 #include <Metadata.h>
 #include <string>
+#include <vector>
 
 class Asset;
 class AnimationStateMachineAsset;
@@ -90,6 +91,7 @@ public:
     void registerDependency(const MD5Hash& parentUID, const MD5Hash& dependencyUID, AssetType dependencyType);
 
     MD5Hash createAnimationStateMachineAsset(const std::string& assetName, const AnimationStateMachineAsset* sourceAsset = nullptr);
+    std::vector<MD5Hash> collectAnimationDependencies(const MD5Hash& parentUID) const;
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
     bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 

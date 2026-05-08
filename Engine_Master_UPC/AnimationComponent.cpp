@@ -52,6 +52,7 @@ namespace
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::ANIMATION, owner)
     , m_stateMachineUIDInput(m_stateMachineUID)
+    , m_animationSourceUIDInput(m_animationSourceUID)
 {
 }
 
@@ -62,11 +63,13 @@ std::unique_ptr<Component> AnimationComponent::clone(GameObject* newOwner) const
     auto cloned = std::make_unique<AnimationComponent>(m_uuid, newOwner);
 
     cloned->m_stateMachineUID = m_stateMachineUID;
+    cloned->m_animationSourceUID = m_animationSourceUID;
     cloned->m_playOnStart = m_playOnStart;
     cloned->m_applyScale = m_applyScale;
     cloned->m_forceWorldAfterApply = m_forceWorldAfterApply;
     cloned->m_debugDrawHierarchy = m_debugDrawHierarchy;
     cloned->m_stateMachineUIDInput = m_stateMachineUIDInput;
+    cloned->m_animationSourceUIDInput = m_animationSourceUIDInput;
     cloned->m_newStateMachineNameInput = m_newStateMachineNameInput;
 
     cloned->setActive(isActive());
@@ -979,6 +982,20 @@ void AnimationComponent::drawUi()
         setStateMachineUID(m_stateMachineUIDInput);
     }
 
+    char sourceUIDBuffer[128];
+    std::strncpy(sourceUIDBuffer, m_animationSourceUIDInput.c_str(), sizeof(sourceUIDBuffer));
+    sourceUIDBuffer[sizeof(sourceUIDBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("Animation Source UID", sourceUIDBuffer, sizeof(sourceUIDBuffer)))
+    {
+        m_animationSourceUIDInput = sourceUIDBuffer;
+    }
+
+    if (ImGui::Button("Apply Animation Source UID"))
+    {
+        setAnimationSourceUID(m_animationSourceUIDInput);
+    }
+
     InputTextString("New State Machine Name", m_newStateMachineNameInput);
 
     if (ImGui::Button("Create State Machine Asset"))
@@ -1091,6 +1108,8 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
 
     rapidjson::Value stateMachineUIDValue(m_stateMachineUID.c_str(), domTree.GetAllocator());
     componentInfo.AddMember("StateMachineUID", stateMachineUIDValue, domTree.GetAllocator());
+    rapidjson::Value animationSourceUIDValue(m_animationSourceUID.c_str(), domTree.GetAllocator());
+    componentInfo.AddMember("AnimationSourceUID", animationSourceUIDValue, domTree.GetAllocator());
 
     componentInfo.AddMember("PlayOnStart", m_playOnStart, domTree.GetAllocator());
     componentInfo.AddMember("ApplyScale", m_applyScale, domTree.GetAllocator());
@@ -1105,6 +1124,11 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
         m_stateMachineUID = componentValue["StateMachineUID"].GetString();
     else
         m_stateMachineUID = INVALID_ASSET_ID;
+
+    if (componentValue.HasMember("AnimationSourceUID") && componentValue["AnimationSourceUID"].IsString())
+        m_animationSourceUID = componentValue["AnimationSourceUID"].GetString();
+    else
+        m_animationSourceUID = INVALID_ASSET_ID;
 
     if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
         m_playOnStart = componentValue["PlayOnStart"].GetBool();
@@ -1124,6 +1148,7 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
     m_stateMachineAsset.reset();
     resetRuntime();
     m_stateMachineUIDInput = m_stateMachineUID;
+    m_animationSourceUIDInput = m_animationSourceUID;
     m_triggerInput.clear();
 
     m_stateMachineDirty = false;
@@ -1143,6 +1168,15 @@ void AnimationComponent::setStateMachineUID(const MD5Hash& uid)
     m_stateMachineAsset.reset();
 
     m_stateMachineDirty = false;
+}
+
+void AnimationComponent::setAnimationSourceUID(const MD5Hash& uid)
+{
+    if (m_animationSourceUID == uid)
+        return;
+
+    m_animationSourceUID = uid;
+    m_animationSourceUIDInput = m_animationSourceUID;
 }
 
 bool AnimationComponent::SendTrigger(const std::string& triggerName)
