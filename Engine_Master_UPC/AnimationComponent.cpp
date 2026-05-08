@@ -998,10 +998,19 @@ void AnimationComponent::drawUi()
 
     InputTextString("New State Machine Name", m_newStateMachineNameInput);
 
-    if (ImGui::Button("Create State Machine Asset"))
+    if (ImGui::Button("Create Empty State Machine Asset"))
     {
         createAndAssignStateMachineAsset();
     }
+
+    ImGui::SameLine();
+
+    ImGui::BeginDisabled(m_animationSourceUID == INVALID_ASSET_ID);
+    if (ImGui::Button("Create State Machine From Source Animations"))
+    {
+        createAndAssignStateMachineAssetFromSourceAnimations();
+    }
+    ImGui::EndDisabled();
 
     ImGui::SameLine();
 
@@ -1410,6 +1419,43 @@ bool AnimationComponent::createAndAssignStateMachineAsset()
     const MD5Hash newUID = moduleAssets->createAnimationStateMachineAsset(
         m_newStateMachineNameInput,
         sourceAsset);
+
+    if (newUID == INVALID_ASSET_ID)
+        return false;
+
+    setStateMachineUID(newUID);
+
+    m_stateMachineAsset.reset();
+    ensureStateMachineLoaded();
+
+    m_stateMachineDirty = false;
+    return true;
+}
+
+bool AnimationComponent::createAndAssignStateMachineAssetFromSourceAnimations()
+{
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    if (m_animationSourceUID == INVALID_ASSET_ID)
+    {
+        DEBUG_WARN("[AnimationComponent] Cannot create StateMachine from source animations: invalid AnimationSourceUID.");
+        return false;
+    }
+
+    const std::vector<MD5Hash> animationUIDs =
+        moduleAssets->collectAnimationDependencies(m_animationSourceUID);
+
+    if (animationUIDs.empty())
+    {
+        DEBUG_WARN("[AnimationComponent] AnimationSourceUID '%s' has no animation dependencies.", m_animationSourceUID.c_str());
+        return false;
+    }
+
+    const MD5Hash newUID = moduleAssets->createAnimationStateMachineAssetFromAnimations(
+        m_newStateMachineNameInput,
+        animationUIDs);
 
     if (newUID == INVALID_ASSET_ID)
         return false;

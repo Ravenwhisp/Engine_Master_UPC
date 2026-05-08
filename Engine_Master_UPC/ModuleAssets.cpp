@@ -67,6 +67,22 @@ namespace
 
         return fileName;
     }
+
+    std::string MakeUniqueName(const std::string& baseName, std::vector<std::string>& usedNames)
+    {
+        std::string candidate = baseName.empty() ? "Animation" : baseName;
+
+        int suffix = 1;
+        while (std::find(usedNames.begin(), usedNames.end(), candidate) != usedNames.end())
+        {
+            candidate = baseName + "_" + std::to_string(suffix);
+            ++suffix;
+        }
+
+        usedNames.push_back(candidate);
+        return candidate;
+    }
+
 }
 
 bool ModuleAssets::init()
@@ -563,6 +579,111 @@ MD5Hash ModuleAssets::createAnimationStateMachineAsset(const std::string& assetN
     importAsset(sourcePath, uid);
 
     return uid;
+}
+
+MD5Hash ModuleAssets::createAnimationStateMachineAssetFromAnimations(
+    const std::string& assetName,
+    const std::vector<MD5Hash>& animationUIDs)
+{
+    std::string fileName = SanitizeAssetFileName(assetName);
+    if (fileName.empty())
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot create AnimationStateMachine from animations with empty name.");
+        return INVALID_ASSET_ID;
+    }
+
+    const std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
+    std::filesystem::create_directories(dir);
+
+    const std::filesystem::path sourcePath = dir / (fileName + ".statemachine");
+
+    if (FileIO::exists(sourcePath))
+    {
+        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine asset already exists: '%s'.", sourcePath.string().c_str());
+        return INVALID_ASSET_ID;
+    }
+
+    if (animationUIDs.empty())
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot create AnimationStateMachine '%s': no animation UIDs provided.", sourcePath.string().c_str());
+        return INVALID_ASSET_ID;
+    }
+
+    const MD5Hash uid = computeStableUIDFromAssetPath(sourcePath);
+    auto asset = std::make_shared<AnimationStateMachineAsset>(uid);
+
+    asset->getNameMutable() = fileName;
+
+    std::vector<std::string> usedNames;
+    auto& clips = asset->getClipsMutable();
+    auto& states = asset->getStatesMutable();
+
+    clips.reserve(animationUIDs.size());
+    states.reserve(animationUIDs.size());
+
+    for (size_t i = 0; i < animationUIDs.size(); ++i)
+    {
+        const MD5Hash& animationUID = animationUIDs[i];
+
+        std::string baseName = "Animation_" + std::to_string(i);
+        const Metadata* animationMeta = m_registry->getMetadata(animationUID);
+        if (animationMeta && !animationMeta->sourcePath.empty())
+        {
+            baseName = animationMeta->sourcePath.stem().string();
+        }
+
+        const std::string clipName = MakeUniqueName(baseName, usedNames);
+
+        AnimationStateMachineClip clip;
+        clip.name = clipName;
+        clip.animationUID = animationUID;
+        clip.loop = true;
+        clips.push_back(std::move(clip));
+
+        AnimationStateMachineState state;
+        state.name = clipName;
+        state.clipName = clipName;
+        state.speed = 1.0f;
+        state.behaviourScriptName.clear();
+        state.behaviourFieldsJson.clear();
+        state.overrideLoop = false;
+        state.loop = true;
+        states.push_back(std::move(state));
+    }
+
+    if (!states.empty())
+    {
+        asset->getDefaultStateNameMutable() = states.front().name;
+    }
+
+    Metadata meta;
+    meta.uid = uid;
+    meta.type = AssetType::ANIMATION_STATE_MACHINE;
+    meta.sourcePath = sourcePath;
+
+    std::filesystem::path metaPath = sourcePath;
+    metaPath += METADATA_EXTENSION;
+
+    if (!saveMetaFile(meta, metaPath))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to create metadata for AnimationStateMachine '%s'.", sourcePath.string().c_str());
+        return INVALID_ASSET_ID;
+    }
+
+    m_registry->registerAsset(meta);
+
+    if (!saveAnimationStateMachineSource(asset))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to write AnimationStateMachine source '%s'.", sourcePath.string().c_str());
+        FileIO::remove(metaPath);
+        m_registry->remove(uid);
+        return INVALID_ASSET_ID;
+    }
+
+    MD5Hash importUID = uid;
+    importAsset(sourcePath, importUID);
+
+    return importUID;
 }
 
 std::vector<MD5Hash> ModuleAssets::collectAnimationDependencies(const MD5Hash& parentUID) const
