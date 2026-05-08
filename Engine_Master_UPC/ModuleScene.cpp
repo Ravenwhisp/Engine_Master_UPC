@@ -270,9 +270,9 @@ void ModuleScene::syncQuadtreeWithSettings()
 #pragma endregion
 
 #pragma region ObjectPicking
-std::vector<PickCandidate> ModuleScene::collectAABBCandidates(const Ray& worldRay)
+std::vector<GameObjectPickHit> ModuleScene::collectAABBHits(const Ray& worldRay)
 {
-    std::vector<PickCandidate> candidates;
+    std::vector<GameObjectPickHit> hits;
 
     const std::vector<MeshRenderer*>& meshRenderers = getMeshRenderers();
 
@@ -297,21 +297,65 @@ std::vector<PickCandidate> ModuleScene::collectAABBCandidates(const Ray& worldRa
             continue;
         }
 
-        PickCandidate candidate;
-        candidate.gameObject = owner;
-        candidate.meshRenderer = meshRenderer;
-        candidate.distance = distance;
+        GameObjectPickHit hit;
+        hit.gameObject = owner;
+        hit.meshRenderer = meshRenderer;
+        hit.distance = distance;
 
-        candidates.push_back(candidate);
+        hits.push_back(hit);
     }
 
-    std::sort(candidates.begin(), candidates.end(),
-        [](const PickCandidate& a, const PickCandidate& b)
+    std::sort(hits.begin(), hits.end(),
+        [](const GameObjectPickHit& firstHit, const GameObjectPickHit& secondHit)
         {
-            return a.distance < b.distance;
+            return firstHit.distance < secondHit.distance;
         }
     );
 
-    return candidates;
+    return hits;
+}
+
+bool ModuleScene::pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit)
+{
+    std::vector<GameObjectPickHit> hits = collectAABBHits(worldRay);
+
+    if (hits.empty())
+    {
+        return false;
+    }
+
+    GameObjectPickHit closestTriangleHit;
+
+    for (const GameObjectPickHit& hit : hits)
+    {
+        if (!hit.gameObject || !hit.meshRenderer)
+        {
+            continue;
+        }
+
+        float triangleDistance = FLT_MAX;
+        Vector3 triangleHitPoint = Vector3::Zero;
+
+        if (!ScenePicking::intersectMeshRendererTriangles(hit.meshRenderer, worldRay, triangleDistance, triangleHitPoint))
+        {
+            continue;
+        }
+
+        if (triangleDistance < closestTriangleHit.distance)
+        {
+            closestTriangleHit.gameObject = hit.gameObject;
+            closestTriangleHit.meshRenderer = hit.meshRenderer;
+            closestTriangleHit.hitPoint = triangleHitPoint;
+            closestTriangleHit.distance = triangleDistance;
+        }
+    }
+
+    if (!closestTriangleHit.gameObject)
+    {
+        return false;
+    }
+
+    outHit = closestTriangleHit;
+    return true;
 }
 #pragma endregion

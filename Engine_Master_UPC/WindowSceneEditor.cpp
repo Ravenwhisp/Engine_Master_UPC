@@ -87,20 +87,15 @@ void WindowSceneEditor::drawInternal()
 
         Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
 
-        std::vector<PickCandidate> candidates = app->getModuleScene()->collectAABBCandidates(ray);
+        GameObjectPickHit hit;
 
-        if (!candidates.empty())
+        if (app->getModuleScene()->pickGameObject(ray, hit))
         {
-            const PickCandidate& closest = candidates.front();
-
-            float triangleDistance = FLT_MAX;
-            const bool triangleHit = ScenePicking::intersectMeshRendererTriangles(closest.meshRenderer, ray, triangleDistance);
-
-            DEBUG_LOG("AABB Candidates: %d | Closest AABB: %s | AABB Dist: %.3f | Triangle Hit: %s | Triangle Dist: %.3f", static_cast<int>(candidates.size()), closest.gameObject->GetName().c_str(), closest.distance, triangleHit ? "true" : "false", triangleDistance);
+            DEBUG_LOG("Picking Hit | GameObject: %s | Distance: %.3f | HitPoint: %.2f %.2f %.2f", hit.gameObject->GetName().c_str(), hit.distance, hit.hitPoint.x, hit.hitPoint.y, hit.hitPoint.z);
         }
         else
         {
-            DEBUG_LOG("AABB Picking Candidates: 0");
+            DEBUG_LOG("Picking Hit | None");
         }
     }
     //
