@@ -353,6 +353,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
     <ClInclude Include="RenderViewType.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
@@ -662,6 +663,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
