@@ -80,25 +80,7 @@ void WindowSceneEditor::drawInternal()
     m_isViewportHovered = ImGui::IsItemHovered();
     m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
-    //Raycast Test
-    if (m_isViewportHovered && app->getModuleInput()->isLeftMousePressed())
-    {
-        Vector2 mousePos = app->getModuleInput()->getMousePosition();
-
-        Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
-
-        GameObjectPickHit hit;
-
-        if (app->getModuleScene()->pickGameObject(ray, hit))
-        {
-            DEBUG_LOG("Picking Hit | GameObject: %s | Distance: %.3f | HitPoint: %.2f %.2f %.2f", hit.gameObject->GetName().c_str(), hit.distance, hit.hitPoint.x, hit.hitPoint.y, hit.hitPoint.z);
-        }
-        else
-        {
-            DEBUG_LOG("Picking Hit | None");
-        }
-    }
-    //
+    handleObjectPicking(viewportSize);
 
     ImGuizmo::SetOrthographic(false);
     ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
@@ -186,4 +168,42 @@ void WindowSceneEditor::debugDraw()
     {
         dd::axisTriad(ddConvert(Matrix::Identity), 0.1f, 1.0f);
     }
+}
+
+void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
+{
+    if (!app->getModuleInput()->isLeftMousePressed())
+    {
+        return;
+    }
+
+    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+    {
+        return;
+    }
+
+    ModuleEditor* editor = app->getModuleEditor();
+
+    if (editor->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION)
+    {
+        return;
+    }
+
+    Vector2 mousePos = app->getModuleInput()->getMousePosition();
+
+    Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
+
+    GameObjectPickHit hit;
+
+    if (app->getModuleScene()->pickGameObject(ray, hit))
+    {
+        editor->setSelectedGameObject(hit.gameObject);
+
+        DEBUG_LOG("Picking Hit | GameObject: %s | Distance: %.3f | HitPoint: %.2f %.2f %.2f", hit.gameObject->GetName().c_str(), hit.distance, hit.hitPoint.x, hit.hitPoint.y, hit.hitPoint.z);
+    }
+    else
+    {
+        DEBUG_LOG("Picking Hit | None");
+    }
+
 }
