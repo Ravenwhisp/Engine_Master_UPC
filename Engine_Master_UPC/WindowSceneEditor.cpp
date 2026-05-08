@@ -184,7 +184,9 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
 
     ModuleEditor* editor = app->getModuleEditor();
 
-    if (editor->getCurrentSceneTool() == ModuleEditor::SCENE_TOOL::NAVIGATION)
+    Keyboard::State keyboardState = Keyboard::Get().GetState();
+
+    if (keyboardState.LeftAlt || keyboardState.RightAlt)
     {
         return;
     }
