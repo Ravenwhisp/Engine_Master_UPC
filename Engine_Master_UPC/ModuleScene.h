@@ -69,7 +69,8 @@ public:
 #pragma endregion
 
 #pragma region ObjectPicking
-    std::vector<PickCandidate> collectAABBCandidates(const Ray& worldRay);
+    std::vector<GameObjectPickHit> collectAABBHits(const Ray& worldRay);
+    bool pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit);
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }

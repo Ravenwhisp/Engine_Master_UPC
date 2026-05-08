@@ -77,7 +77,7 @@ namespace ScenePicking
         return true;
     }
 
-    bool intersectMeshRendererTriangles(MeshRenderer* meshRenderer, const Ray& worldRay, float& outDistance)
+    bool intersectMeshRendererTriangles(MeshRenderer* meshRenderer, const Ray& worldRay, float& outDistance, Vector3& outHitPoint)
     {
         if (!meshRenderer || !meshRenderer->isActive() || !meshRenderer->hasMesh())
         {
@@ -166,6 +166,7 @@ namespace ScenePicking
         const Vector3 worldHitPoint = Vector3::Transform(localHitPoint, worldMatrix);
 
         outDistance = (worldHitPoint - worldRay.position).Length();
+        outHitPoint = worldHitPoint;
 
         return true;
     }
