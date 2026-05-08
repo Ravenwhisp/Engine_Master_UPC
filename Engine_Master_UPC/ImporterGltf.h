@@ -4,7 +4,6 @@
 
 class AnimationAsset;
 class SkinAsset;
-class AnimationStateMachineAsset;
 class PrefabAsset;
 class MaterialAsset;
 class MeshAsset;
@@ -45,9 +44,6 @@ private:
     void loadAnimation(const tinygltf::Model& model,
         const tinygltf::Animation& anim,
         AnimationAsset* outAnim);
-    void buildDefaultStateMachine(const tinygltf::Model& model,
-        const std::vector<MD5Hash>& animationUIDs,
-        PrefabAsset* dst) const;
 
     void loadSkin(const tinygltf::Model& model,
         const tinygltf::Skin& skin,
