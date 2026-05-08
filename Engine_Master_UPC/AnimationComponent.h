@@ -75,6 +75,7 @@ private:
     void startStateMachineIfNeeded();
     void resetRuntime();
     bool saveStateMachineAsset();
+    bool createAndAssignStateMachineAsset();
 
     StateMachineScript* getStateBehaviour(const std::string& stateName);
     const StateMachineScript* getStateBehaviour(const std::string& stateName) const;
@@ -153,6 +154,7 @@ private:
     bool m_stateMachineDirty = false;
 
     std::string m_stateMachineUIDInput;
+    std::string m_newStateMachineNameInput = "NewStateMachine";
     std::string m_triggerInput;
 
     bool m_debugDrawHierarchy = false;
