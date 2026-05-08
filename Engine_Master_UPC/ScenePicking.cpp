@@ -4,6 +4,7 @@
 #include "MeshRenderer.h"
 #include "BoundingBox.h"
 
+//Need the conersion because our BB is determined by min, max and 8 points and DirectX one is determined by center and extents, which is what Ray needs.
 DirectX::BoundingBox toDirectXBoundingBox(const Engine::BoundingBox& box)
 {
     const Vector3* points = box.getPoints();
@@ -38,11 +39,11 @@ namespace ScenePicking
             return false;
         }
 
-        DirectX::BoundingBox dxBox = toDirectXBoundingBox(meshRenderer->getBoundingBox());
+        DirectX::BoundingBox boundingBox = toDirectXBoundingBox(meshRenderer->getBoundingBox());
 
         float distance = 0.0f;
 
-        if (!worldRay.Intersects(dxBox, distance))
+        if (!worldRay.Intersects(boundingBox, distance))
         {
             return false;
         }

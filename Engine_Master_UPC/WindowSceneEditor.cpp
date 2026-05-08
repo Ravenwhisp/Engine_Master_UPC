@@ -80,23 +80,24 @@ void WindowSceneEditor::drawInternal()
     m_isViewportHovered = ImGui::IsItemHovered();
     m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
-    //Raycast Visual Test
+    //Raycast Test
     if (m_isViewportHovered && app->getModuleInput()->isLeftMousePressed())
     {
         Vector2 mousePos = app->getModuleInput()->getMousePosition();
 
         Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
 
-        float distance = FLT_MAX;
-        GameObject* picked = app->getModuleScene()->pickClosestAABB(ray, distance);
+        std::vector<PickCandidate> candidates = app->getModuleScene()->collectAABBCandidates(ray);
 
-        if (picked)
+        if (!candidates.empty())
         {
-            DEBUG_LOG("AABB Picking Hit | GameObject: %s | Distance: %.3f", picked->GetName().c_str(), distance);
+            const PickCandidate& closest = candidates.front();
+
+            DEBUG_LOG("AABB Picking Candidates: %d | Closest: %s | Distance: %.3f", static_cast<int>(candidates.size()), closest.gameObject->GetName().c_str(), closest.distance);
         }
         else
         {
-            DEBUG_LOG("AABB Picking Hit | None");
+            DEBUG_LOG("AABB Picking Candidates: 0");
         }
     }
     //
