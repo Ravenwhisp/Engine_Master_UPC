@@ -134,7 +134,6 @@ void UINavigation::processNavigation()
 
     const bool submit =
         navPressed(Keyboard::Keys::Enter) ||
-        navPressed(Keyboard::Keys::Space) ||
         input->isGamePadAJustPressed();
 
     const bool anyNav = up || down || left || right || submit;
