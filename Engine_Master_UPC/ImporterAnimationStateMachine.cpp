@@ -258,7 +258,9 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
 
     const uint32_t version = reader.u32();
 
-    dst->m_uid = reader.string();
+    const MD5Hash serializedUID = reader.string();
+    (void)serializedUID;
+
     dst->m_name = reader.string();
     dst->m_defaultStateName = reader.string();
 
