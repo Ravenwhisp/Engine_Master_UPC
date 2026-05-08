@@ -270,10 +270,9 @@ void ModuleScene::syncQuadtreeWithSettings()
 #pragma endregion
 
 #pragma region ObjectPicking
-GameObject* ModuleScene::pickClosestAABB(const Ray& worldRay, float& outDistance)
+std::vector<PickCandidate> ModuleScene::collectAABBCandidates(const Ray& worldRay)
 {
-    GameObject* closestGameObject = nullptr;
-    outDistance = FLT_MAX;
+    std::vector<PickCandidate> candidates;
 
     const std::vector<MeshRenderer*>& meshRenderers = getMeshRenderers();
 
@@ -298,13 +297,21 @@ GameObject* ModuleScene::pickClosestAABB(const Ray& worldRay, float& outDistance
             continue;
         }
 
-        if (distance < outDistance)
-        {
-            outDistance = distance;
-            closestGameObject = owner;
-        }
+        PickCandidate candidate;
+        candidate.gameObject = owner;
+        candidate.meshRenderer = meshRenderer;
+        candidate.distance = distance;
+
+        candidates.push_back(candidate);
     }
 
-    return closestGameObject;
+    std::sort(candidates.begin(), candidates.end(),
+        [](const PickCandidate& a, const PickCandidate& b)
+        {
+            return a.distance < b.distance;
+        }
+    );
+
+    return candidates;
 }
 #pragma endregion

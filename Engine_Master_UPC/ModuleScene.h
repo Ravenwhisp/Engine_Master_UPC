@@ -1,6 +1,8 @@
 #pragma once
 #include "Module.h"
 
+#include "ScenePicking.h"
+
 #include <memory>
 #include <string>
 #include <filesystem> 
@@ -67,7 +69,7 @@ public:
 #pragma endregion
 
 #pragma region ObjectPicking
-    GameObject* pickClosestAABB(const Ray& worldRay, float& outDistance);
+    std::vector<PickCandidate> collectAABBCandidates(const Ray& worldRay);
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }
