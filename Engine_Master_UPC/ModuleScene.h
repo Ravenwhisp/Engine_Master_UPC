@@ -66,6 +66,10 @@ public:
     Quadtree* getQuadtree() { return m_quadtree.get(); }
 #pragma endregion
 
+#pragma region ObjectPicking
+    GameObject* pickClosestAABB(const Ray& worldRay, float& outDistance);
+#pragma endregion
+
     Scene* getScene() { return m_scene.get(); }
 
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)

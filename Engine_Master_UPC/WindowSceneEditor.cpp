@@ -87,7 +87,17 @@ void WindowSceneEditor::drawInternal()
 
         Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
 
-        DEBUG_LOG("Picking Ray | Origin: %.2f %.2f %.2f | Direction: %.2f %.2f %.2f", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+        float distance = FLT_MAX;
+        GameObject* picked = app->getModuleScene()->pickClosestAABB(ray, distance);
+
+        if (picked)
+        {
+            DEBUG_LOG("AABB Picking Hit | GameObject: %s | Distance: %.3f", picked->GetName().c_str(), distance);
+        }
+        else
+        {
+            DEBUG_LOG("AABB Picking Hit | None");
+        }
     }
     //
 

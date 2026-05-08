@@ -19,6 +19,8 @@
 #include "LightComponent.h"
 #include "ScriptComponent.h"
 
+#include "ScenePicking.h"
+
 ModuleScene::ModuleScene()
 {
     m_sceneSerializer = std::make_unique<SceneSerializer>();
@@ -264,5 +266,45 @@ void ModuleScene::syncQuadtreeWithSettings()
     {
         m_quadtree->clear();
     }
+}
+#pragma endregion
+
+#pragma region ObjectPicking
+GameObject* ModuleScene::pickClosestAABB(const Ray& worldRay, float& outDistance)
+{
+    GameObject* closestGameObject = nullptr;
+    outDistance = FLT_MAX;
+
+    const std::vector<MeshRenderer*>& meshRenderers = getMeshRenderers();
+
+    for (MeshRenderer* meshRenderer : meshRenderers)
+    {
+        if (!meshRenderer)
+        {
+            continue;
+        }
+
+        GameObject* owner = meshRenderer->getOwner();
+
+        if (!owner || !owner->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        float distance = FLT_MAX;
+
+        if (!ScenePicking::intersectMeshRendererAABB(meshRenderer, worldRay, distance))
+        {
+            continue;
+        }
+
+        if (distance < outDistance)
+        {
+            outDistance = distance;
+            closestGameObject = owner;
+        }
+    }
+
+    return closestGameObject;
 }
 #pragma endregion
