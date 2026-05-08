@@ -494,6 +494,77 @@ void ModuleAssets::registerDependency(const MD5Hash& parentUID, const MD5Hash& d
     m_pendingDependencies[parentUID].push_back(dep);
 }
 
+MD5Hash ModuleAssets::createAnimationStateMachineAsset(const std::string& assetName, const AnimationStateMachineAsset* sourceAsset)
+{
+    std::string fileName = SanitizeAssetFileName(assetName);
+    if (fileName.empty())
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot create AnimationStateMachine with empty name.");
+        return INVALID_ASSET_ID;
+    }
+
+    const std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
+    std::filesystem::create_directories(dir);
+
+    const std::filesystem::path sourcePath = dir / (fileName + ".statemachine");
+
+    if (FileIO::exists(sourcePath))
+    {
+        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine asset already exists: '%s'.", sourcePath.string().c_str());
+        return INVALID_ASSET_ID;
+    }
+
+    MD5Hash uid = computeStableUIDFromAssetPath(sourcePath);
+
+    auto asset = std::make_shared<AnimationStateMachineAsset>(uid);
+
+    if (sourceAsset)
+    {
+        asset->getNameMutable() = sourceAsset->getName();
+        asset->getDefaultStateNameMutable() = sourceAsset->getDefaultStateName();
+        asset->getClipsMutable() = sourceAsset->getClips();
+        asset->getStatesMutable() = sourceAsset->getStates();
+        asset->getTransitionsMutable() = sourceAsset->getTransitions();
+    }
+    else
+    {
+        asset->getNameMutable() = fileName;
+    }
+
+    if (asset->getName().empty())
+    {
+        asset->getNameMutable() = fileName;
+    }
+
+    Metadata meta;
+    meta.uid = uid;
+    meta.type = AssetType::ANIMATION_STATE_MACHINE;
+    meta.sourcePath = sourcePath;
+
+    std::filesystem::path metaPath = sourcePath;
+    metaPath += METADATA_EXTENSION;
+
+    if (!saveMetaFile(meta, metaPath))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to create metadata for AnimationStateMachine '%s'.", sourcePath.string().c_str());
+        return INVALID_ASSET_ID;
+    }
+
+    m_registry->registerAsset(meta);
+
+    if (!saveAnimationStateMachineSource(asset))
+    {
+        DEBUG_ERROR("[ModuleAssets] Failed to write AnimationStateMachine source '%s'.", sourcePath.string().c_str());
+        FileIO::remove(metaPath);
+        m_registry->remove(uid);
+        return INVALID_ASSET_ID;
+    }
+
+    importAsset(sourcePath, uid);
+
+    return uid;
+}
+
 bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
 {
     if (!asset)

@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <memory>
 #include <Metadata.h>
+#include <string>
 
 class Asset;
 class AnimationStateMachineAsset;
@@ -88,6 +89,7 @@ public:
         uint8_t* binaryData, size_t binarySize);
     void registerDependency(const MD5Hash& parentUID, const MD5Hash& dependencyUID, AssetType dependencyType);
 
+    MD5Hash createAnimationStateMachineAsset(const std::string& assetName, const AnimationStateMachineAsset* sourceAsset = nullptr);
     bool saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset);
     bool saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset);
 
