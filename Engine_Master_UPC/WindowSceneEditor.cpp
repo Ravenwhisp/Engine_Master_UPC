@@ -8,6 +8,7 @@
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
 #include "ModuleResources.h"
+#include "ModuleInput.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -78,6 +79,17 @@ void WindowSceneEditor::drawInternal()
 
     m_isViewportHovered = ImGui::IsItemHovered();
     m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+
+    //Raycast Visual Test
+    if (m_isViewportHovered && app->getModuleInput()->isLeftMousePressed())
+    {
+        Vector2 mousePos = app->getModuleInput()->getMousePosition();
+
+        Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
+
+        DEBUG_LOG("Picking Ray | Origin: %.2f %.2f %.2f | Direction: %.2f %.2f %.2f", ray.position.x, ray.position.y, ray.position.z, ray.direction.x, ray.direction.y, ray.direction.z);
+    }
+    //
 
     ImGuizmo::SetOrthographic(false);
     ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
