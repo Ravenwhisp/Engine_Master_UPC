@@ -78,6 +78,7 @@ private:
     void resetRuntime();
     bool saveStateMachineAsset();
     bool createAndAssignStateMachineAsset();
+    bool createAndAssignStateMachineAssetFromSourceAnimations();
 
     StateMachineScript* getStateBehaviour(const std::string& stateName);
     const StateMachineScript* getStateBehaviour(const std::string& stateName) const;
