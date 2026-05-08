@@ -29,8 +29,18 @@ void AssetRegistry::registerAsset(const Metadata& meta)
     Metadata normalised = meta;
     normalised.sourcePath    = meta.sourcePath.lexically_normal();
 
-    m_pathIndex[normalised.sourcePath.string()] = normalised.uid;
-    m_metadataMap[normalised.uid]               = std::move(normalised);
+    auto existing = m_metadataMap.find(normalised.uid);
+    if (existing != m_metadataMap.end() && !existing->second.sourcePath.empty())
+    {
+        m_pathIndex.erase(existing->second.sourcePath.string());
+    }
+
+    if (!normalised.sourcePath.empty())
+    {
+        m_pathIndex[normalised.sourcePath.string()] = normalised.uid;
+    }
+
+    m_metadataMap[normalised.uid] = std::move(normalised);
 }
 
 void AssetRegistry::remove(const MD5Hash& uid)
@@ -40,7 +50,11 @@ void AssetRegistry::remove(const MD5Hash& uid)
         return;
 
     // sourcePath is stored on the metadata itself — direct O(1) erase.
-    m_pathIndex.erase(it->second.sourcePath.string());
+    if (!it->second.sourcePath.empty())
+    {
+        m_pathIndex.erase(it->second.sourcePath.string());
+    }
+
     m_metadataMap.erase(it);
 }
 

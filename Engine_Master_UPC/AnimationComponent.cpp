@@ -988,10 +988,12 @@ void AnimationComponent::drawUi()
 
     ImGui::SameLine();
 
+    ImGui::BeginDisabled(!m_stateMachineAsset);
     if (ImGui::Button("Save State Machine"))
     {
         saveStateMachineAsset();
     }
+    ImGui::EndDisabled();
 
     ImGui::SameLine();
 
@@ -1010,7 +1012,15 @@ void AnimationComponent::drawUi()
     }
     ImGui::EndDisabled();
 
-    ImGui::Text("State Machine Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
+    if (m_stateMachineUID == INVALID_ASSET_ID)
+    {
+        ImGui::TextDisabled("No State Machine assigned. Create or assign a .statemachine asset first.");
+    }
+    else
+    {
+        ImGui::Text("State Machine Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
+    }
+
 
     ImGui::Text("Active State: %s", m_activeStateName.empty() ? "<none>" : m_activeStateName.c_str());
     ImGui::Text("Duration: %.3f", m_controller.GetDuration());
@@ -1064,7 +1074,10 @@ void AnimationComponent::drawUi()
     ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
     ImGui::Text("Transition Time: %.3f", m_currentTransitionTime);
 
-    drawStateMachineResourceUi();
+    if (m_stateMachineUID != INVALID_ASSET_ID)
+    {
+        drawStateMachineResourceUi();
+    }
 
 }
 

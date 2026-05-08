@@ -85,7 +85,16 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath)
     {
         if (!isValidAsset(dep.uid)) continue;
 
-        if (!dep.isSubAsset) continue;
+        if (!dep.isSubAsset)
+        {
+            continue;
+        }
+
+        const Metadata* existingMeta = m_registry->getMetadata(dep.uid);
+        if (existingMeta && !existingMeta->sourcePath.empty() && !existingMeta->m_isSubAsset)
+        {
+            continue;
+        }
 
         Metadata subMeta;
         subMeta.uid = dep.uid;
