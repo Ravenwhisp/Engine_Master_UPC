@@ -565,6 +565,40 @@ MD5Hash ModuleAssets::createAnimationStateMachineAsset(const std::string& assetN
     return uid;
 }
 
+std::vector<MD5Hash> ModuleAssets::collectAnimationDependencies(const MD5Hash& parentUID) const
+{
+    std::vector<MD5Hash> animationUIDs;
+
+    if (!isValidAsset(parentUID))
+    {
+        return animationUIDs;
+    }
+
+    const Metadata* meta = m_registry->getMetadata(parentUID);
+    if (!meta)
+    {
+        DEBUG_WARN("[ModuleAssets] Cannot collect animation dependencies. Metadata not found for '%s'.", parentUID.c_str());
+        return animationUIDs;
+    }
+
+    for (const DependencyRecord& dep : meta->m_dependencies)
+    {
+        if (dep.type != AssetType::ANIMATION)
+        {
+            continue;
+        }
+
+        if (!isValidAsset(dep.uid))
+        {
+            continue;
+        }
+
+        animationUIDs.push_back(dep.uid);
+    }
+
+    return animationUIDs;
+}
+
 bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
 {
     if (!asset)
