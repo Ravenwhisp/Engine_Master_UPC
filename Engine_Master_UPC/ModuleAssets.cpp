@@ -543,39 +543,14 @@ bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<Animati
 
     Metadata updatedMeta = *meta;
 
-    // HOTFIX: old state machines have no sourcePath. Create one automatically.
     if (updatedMeta.sourcePath.empty())
     {
-        std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
-        std::filesystem::create_directories(dir);
+        DEBUG_ERROR(
+            "[ModuleAssets] Cannot save AnimationStateMachine '%s' because it has no sourcePath. "
+            "Create a .statemachine asset first.",
+            asset->getId().c_str());
 
-        std::string fileName = asset->getName();
-        if (fileName.empty())
-        {
-            fileName = asset->getId();
-        }
-
-        // very simple sanitization
-        for (char& c : fileName)
-        {
-            if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|')
-            {
-                c = '_';
-            }
-        }
-
-        updatedMeta.sourcePath = dir / (fileName + ".statemachine");
-
-        std::filesystem::path metaPath = updatedMeta.sourcePath;
-        metaPath += METADATA_EXTENSION;
-
-        if (!saveMetaFile(updatedMeta, metaPath))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to create metadata for '%s'.", updatedMeta.sourcePath.string().c_str());
-            return false;
-        }
-
-        m_registry->registerAsset(updatedMeta);
+        return false;
     }
 
     rapidjson::Document doc;
