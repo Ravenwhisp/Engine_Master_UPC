@@ -15,4 +15,5 @@ struct PickCandidate
 namespace ScenePicking
 {
     bool intersectMeshRendererAABB(MeshRenderer* meshRenderer, const Ray& worldRay, float& outDistance);
+    bool intersectMeshRendererTriangles(MeshRenderer* meshRenderer, const Ray& worldRay, float& outDistance);
 }
