@@ -118,8 +118,7 @@ bool ModuleAssets::init()
             *m_importerMaterial,
             *m_importerPrefab,
             *m_importerAnimation,
-            *m_importerSkin,
-            *m_importerAnimationStateMachine));
+            *m_importerSkin));
 
     m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
 

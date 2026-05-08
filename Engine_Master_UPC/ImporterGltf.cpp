@@ -30,7 +30,6 @@
 #include "ImporterPrefab.h"
 #include "ImporterAnimation.h"
 #include "ImporterSkin.h"
-#include "ImporterAnimationStateMachine.h"
 
 #include <functional>
 #include <algorithm>
@@ -247,14 +246,12 @@ ImporterGltf::ImporterGltf(ImporterMesh& importerMesh,
     ImporterMaterial& importerMaterial,
     ImporterPrefab& importerPrefab,
     ImporterAnimation& importerAnimation,
-    ImporterSkin& importerSkin,
-    ImporterAnimationStateMachine& importerAnimationStateMachine)
+    ImporterSkin& importerSkin)
     : m_importerMesh(importerMesh)
     , m_importerMaterial(importerMaterial)
     , m_importerPrefab(importerPrefab)
     , m_importerAnimation(importerAnimation)
     , m_importerSkin(importerSkin)
-    , m_importerAnimationStateMachine(importerAnimationStateMachine)
 {
 }
 

@@ -13,7 +13,6 @@ class ImporterMaterial;
 class ImporterPrefab;
 class ImporterAnimation;
 class ImporterSkin;
-class ImporterAnimationStateMachine;
 
 // Handles the full import pipeline for .gltf source files.
 // Mesh and material details are delegated to MeshImporter and MaterialImporter.
@@ -25,8 +24,7 @@ public:
         ImporterMaterial& importerMaterial,
         ImporterPrefab& importerPrefab,
         ImporterAnimation& importerAnimation,
-        ImporterSkin& importerSkin,
-        ImporterAnimationStateMachine& importerAnimationStateMachine);
+        ImporterSkin& importerSkin);
 
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(const MD5Hash& uid) const override;
@@ -67,5 +65,4 @@ private:
     ImporterPrefab&                 m_importerPrefab;
     ImporterAnimation&              m_importerAnimation;
     ImporterSkin&                   m_importerSkin;
-    ImporterAnimationStateMachine&  m_importerAnimationStateMachine;
 };
