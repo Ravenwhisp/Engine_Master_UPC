@@ -67,6 +67,7 @@ std::unique_ptr<Component> AnimationComponent::clone(GameObject* newOwner) const
     cloned->m_forceWorldAfterApply = m_forceWorldAfterApply;
     cloned->m_debugDrawHierarchy = m_debugDrawHierarchy;
     cloned->m_stateMachineUIDInput = m_stateMachineUIDInput;
+    cloned->m_newStateMachineNameInput = m_newStateMachineNameInput;
 
     cloned->setActive(isActive());
     return cloned;
@@ -978,6 +979,13 @@ void AnimationComponent::drawUi()
         setStateMachineUID(m_stateMachineUIDInput);
     }
 
+    InputTextString("New State Machine Name", m_newStateMachineNameInput);
+
+    if (ImGui::Button("Create State Machine Asset"))
+    {
+        createAndAssignStateMachineAsset();
+    }
+
     ImGui::SameLine();
 
     if (ImGui::Button("Save State Machine"))
@@ -1335,6 +1343,34 @@ bool AnimationComponent::saveStateMachineAsset()
 
     if (!moduleAssets->saveAnimationStateMachine(m_stateMachineAsset))
         return false;
+
+    m_stateMachineDirty = false;
+    return true;
+}
+
+bool AnimationComponent::createAndAssignStateMachineAsset()
+{
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    const AnimationStateMachineAsset* sourceAsset = nullptr;
+    if (ensureStateMachineLoaded())
+    {
+        sourceAsset = m_stateMachineAsset.get();
+    }
+
+    const MD5Hash newUID = moduleAssets->createAnimationStateMachineAsset(
+        m_newStateMachineNameInput,
+        sourceAsset);
+
+    if (newUID == INVALID_ASSET_ID)
+        return false;
+
+    setStateMachineUID(newUID);
+
+    m_stateMachineAsset.reset();
+    ensureStateMachineLoaded();
 
     m_stateMachineDirty = false;
     return true;
