@@ -83,6 +83,8 @@ bool ModuleScripts::reloadGameScriptsDll()
         return false;
     }
 
+    std::vector<ScriptReloadInfo> reloadInfo = saveSceneScriptReloadInfo();
+
     destroySceneScripts();
 
     if (!unloadGameScriptsDll())
@@ -98,6 +100,8 @@ bool ModuleScripts::reloadGameScriptsDll()
     }
 
     instantiateSceneScripts();
+
+    restoreSceneScriptReloadInfo(reloadInfo);
 
     DEBUG_LOG("[ModuleScripts] GameScripts DLL reloaded successfully.");
 
@@ -168,4 +172,53 @@ bool ModuleScripts::copySourceDllToRuntimeDll(const std::string& sourceDllPath, 
     DEBUG_LOG("[ModuleScripts] Copied %s to %s", sourceDllPath.c_str(), runtimeDllPath.c_str());
 
     return true;
+}
+
+std::vector<ModuleScripts::ScriptReloadInfo> ModuleScripts::saveSceneScriptReloadInfo()
+{
+    const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
+
+    std::vector<ScriptReloadInfo> reloadInfo;
+    reloadInfo.reserve(scriptComponents.size());
+
+    for (ScriptComponent* scriptComponent : scriptComponents)
+    {
+        if (!scriptComponent || scriptComponent->getScriptName().empty())
+        {
+            continue;
+        }
+
+        ScriptReloadInfo info;
+        info.component = scriptComponent;
+        info.scriptName = scriptComponent->getScriptName();
+        info.fields.SetObject();
+
+        rapidjson::Value fieldsJson = scriptComponent->serializeScriptFieldsForReload(info.fields);
+        info.fields.Swap(fieldsJson);
+
+        reloadInfo.push_back(std::move(info));
+    }
+
+    return reloadInfo;
+}
+
+void ModuleScripts::restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>& reloadInfos)
+{
+    for (ScriptReloadInfo& info : reloadInfos)
+    {
+        if (!info.component)
+        {
+            continue;
+        }
+
+        info.component->setScriptName(info.scriptName);
+
+        if (!info.component->getScript())
+        {
+            DEBUG_ERROR("[ModuleScripts] Cannot restore fields because script was not recreated: %s", info.scriptName.c_str());
+            continue;
+        }
+
+        info.component->deserializeScriptFieldsForReload(info.fields);
+    }
 }

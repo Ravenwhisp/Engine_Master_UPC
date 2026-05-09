@@ -160,6 +160,18 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
     }
 }
 
+rapidjson::Value ScriptComponent::serializeScriptFieldsForReload(rapidjson::Document& domTree)
+{
+    rapidjson::Value fieldsJson(rapidjson::kObjectType);
+
+    if (m_script)
+    {
+        serializeScriptFields(*m_script, fieldsJson, domTree);
+    }
+
+    return fieldsJson;
+}
+
 bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("ScriptName"))
@@ -201,6 +213,17 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
         assert(field.handler != nullptr);
         field.handler->deserialize(field, data, valueJson);
     }
+}
+
+void ScriptComponent::deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson)
+{
+    if (!m_script)
+    {
+        return;
+    }
+
+    deserializeScriptFields(*m_script, fieldsJson);
+    m_script->onAfterDeserialize();
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
