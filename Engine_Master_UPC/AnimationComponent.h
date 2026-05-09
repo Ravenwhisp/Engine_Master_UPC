@@ -79,6 +79,7 @@ private:
     bool saveStateMachineAsset();
     bool createAndAssignStateMachineAsset();
     bool createAndAssignStateMachineAssetFromSourceAnimations();
+    MD5Hash resolveAnimationSourceUID();
 
     StateMachineScript* getStateBehaviour(const std::string& stateName);
     const StateMachineScript* getStateBehaviour(const std::string& stateName) const;
