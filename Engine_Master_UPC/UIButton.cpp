@@ -12,6 +12,9 @@
 #include <format>
 #include <cstring>
 
+#include "Application.h"
+#include "ModuleAssets.h"
+
 
 UIButton::UIButton(UID id, GameObject* owner) : Component(id, ComponentType::UIBUTTON, owner) { }
 
@@ -267,8 +270,8 @@ void UIButton::drawUi()
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
 			{
-				AssetReference* data = static_cast<AssetReference*>(payload->Data);
-				m_hoverTextureAssetId = data;
+				UID* data = static_cast<UID*>(payload->Data);
+				m_hoverTextureAssetId = app->getModuleAssets()->findReference(*data);
 				applyCurrentStateTexture();
 			}
 			ImGui::EndDragDropTarget();
@@ -287,8 +290,8 @@ void UIButton::drawUi()
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
 			{
-				AssetReference* data = static_cast<AssetReference*>(payload->Data);
-				m_pressedTextureAssetId = data;
+				UID* data = static_cast<UID*>(payload->Data);
+				m_pressedTextureAssetId = app->getModuleAssets()->findReference(*data);
 				applyCurrentStateTexture();
 			}
 			ImGui::EndDragDropTarget();

@@ -71,10 +71,11 @@ void UIImage::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            AssetReference* data = static_cast<AssetReference*>(payload->Data);
-            m_textureAssetId = data;
+            UID* data = static_cast<UID*>(payload->Data);
+            AssetReference* ref = app->getModuleAssets()->findReference(*data);
+            m_textureAssetId = ref;
             m_texture = nullptr;
-            m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
+            m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*ref);
             if (m_textureAsset)
             {
                 m_loadRequested = true;

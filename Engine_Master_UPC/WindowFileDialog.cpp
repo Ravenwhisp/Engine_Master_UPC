@@ -220,8 +220,9 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
     {
         ImGui::PopStyleColor();
     }
-
-    if (ImGui::IsItemClicked())
+    if (ImGui::IsItemHovered() &&
+        ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
+        !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
     {
         handleAssetClick(asset);
         m_selectedPath = metaPath;
