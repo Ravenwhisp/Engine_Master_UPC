@@ -21,6 +21,7 @@
 #include <rapidjson/writer.h>
 #include <cstring>
 #include <algorithm>
+#include <filesystem>
 
 namespace
 {
@@ -47,6 +48,23 @@ namespace
 
         return false;
     }
+
+    std::filesystem::path BuildStateMachineSourcePathFromName(const std::string& assetName)
+    {
+        std::filesystem::path path(assetName);
+
+        if (path.extension() != ".statemachine")
+        {
+            path += ".statemachine";
+        }
+
+        if (!path.has_parent_path())
+        {
+            path = std::filesystem::path(ASSETS_FOLDER) / "StateMachines" / path;
+        }
+
+        return path.lexically_normal();
+    }
 }
 
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
@@ -70,6 +88,7 @@ std::unique_ptr<Component> AnimationComponent::clone(GameObject* newOwner) const
     cloned->m_debugDrawHierarchy = m_debugDrawHierarchy;
     cloned->m_stateMachineUIDInput = m_stateMachineUIDInput;
     cloned->m_animationSourceUIDInput = m_animationSourceUIDInput;
+    cloned->m_existingStateMachineNameInput = m_existingStateMachineNameInput;
     cloned->m_newStateMachineNameInput = m_newStateMachineNameInput;
 
     cloned->setActive(isActive());
@@ -1002,6 +1021,14 @@ void AnimationComponent::drawUi()
         createAndAssignStateMachineAssetFromSourceAnimations();
     }
 
+    InputTextString("Existing State Machine Name", m_existingStateMachineNameInput);
+
+    if (ImGui::Button("Load Existing"))
+    {
+        loadAndAssignStateMachineAssetByName();
+    }
+
+
     ImGui::SameLine();
 
     if (ImGui::Button("Create Empty"))
@@ -1487,6 +1514,37 @@ bool AnimationComponent::createAndAssignStateMachineAssetFromSourceAnimations()
         return false;
 
     setStateMachineUID(newUID);
+
+    m_stateMachineAsset.reset();
+    ensureStateMachineLoaded();
+
+    m_stateMachineDirty = false;
+    return true;
+}
+
+bool AnimationComponent::loadAndAssignStateMachineAssetByName()
+{
+    if (m_existingStateMachineNameInput.empty())
+    {
+        DEBUG_WARN("[AnimationComponent] Cannot load StateMachine: empty asset name.");
+        return false;
+    }
+
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    const std::filesystem::path sourcePath =
+        BuildStateMachineSourcePathFromName(m_existingStateMachineNameInput);
+
+    const MD5Hash uid = moduleAssets->findUID(sourcePath);
+    if (uid == INVALID_ASSET_ID)
+    {
+        DEBUG_WARN("[AnimationComponent] No StateMachine asset registered at path '%s'.", sourcePath.string().c_str());
+        return false;
+    }
+
+    setStateMachineUID(uid);
 
     m_stateMachineAsset.reset();
     ensureStateMachineLoaded();
