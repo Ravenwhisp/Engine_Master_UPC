@@ -316,8 +316,8 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
 
     dtQueryFilter filter;
     
-    //filter.setIncludeFlags(0xFFFF); ---- old
-    filter.setIncludeFlags(getIncludeFlagsForProfile(profile));
+    unsigned short includeFlags = getIncludeFlagsForProfile(profile);
+    filter.setIncludeFlags(includeFlags);
     filter.setExcludeFlags(0);
 
     dtPolyRef startRef = 0, endRef = 0;

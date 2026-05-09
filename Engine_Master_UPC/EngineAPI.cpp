@@ -1609,8 +1609,10 @@ namespace NavigationAPI
             return false;
         }
 
+        unsigned short includeFlags = navigation->getIncludeFlagsForProfile(profile);
+
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xFFFF);
+        filter.setIncludeFlags(includeFlags);
         filter.setExcludeFlags(0);
 
         const float position[3] = { inputPosition.x, inputPosition.y, inputPosition.z };
@@ -1652,7 +1654,6 @@ namespace NavigationAPI
         unsigned short includeFlags = navigation->getIncludeFlagsForProfile(profile);
 
         dtQueryFilter filter;
-        //filter.setIncludeFlags(0xFFFF);
         filter.setIncludeFlags(includeFlags);
         filter.setExcludeFlags(0);
 

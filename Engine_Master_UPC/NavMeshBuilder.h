@@ -10,11 +10,11 @@ class dtNavMeshQuery;
 
 struct NavMeshBuildSettings
 {
-    float cellSize = 0.3f;
+    float cellSize = 0.2f;
     float cellHeight = 0.2f;
 
-    float agentHeight = 2.0f;
-    float agentRadius = 0.6f;
+    float agentHeight = 1.8f;
+    float agentRadius = 0.4f;
     float agentMaxClimb = 0.9f;
     float agentMaxSlope = 45.0f;
 

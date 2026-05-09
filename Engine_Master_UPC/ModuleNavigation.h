@@ -13,7 +13,7 @@ class Scene;
 
 struct NavMeshSettings
 {
-    float cellSize = 0.3f;
+    float cellSize = 0.2f;
     float cellHeight = 0.2f;
 
     float agentHeight = 1.8f;
