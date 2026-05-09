@@ -463,6 +463,9 @@
     <ClCompile Include="HapticEffectDefinition.cpp">
       <Filter>Haptics</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleScripts.cpp">
+      <Filter>Core\Scripting</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1118,7 +1121,9 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
-
+    <ClInclude Include="ModuleScripts.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
