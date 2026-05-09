@@ -37,8 +37,9 @@ void DebugGetObjectsArea::Update()
 void DebugGetObjectsArea::drawGizmo()
 {
     const Vector3 center = GameObjectAPI::getTransform(getOwner())->getPosition();
-	//DebugDrawAPI::drawCircle(center, Vector3::UnitY, Vector3(0.0f, 1.0f, 1.0f), m_radius);
-	DebugDrawAPI::drawSphere(center, Vector3(0.0f, 1.0f, 1.0f), m_radius);
+	DebugDrawAPI::drawCircle(center, Vector3::UnitY, Vector3(0.0f, 1.0f, 1.0f), m_radius);
+	//DebugDrawAPI::drawSphere(center, Vector3(0.0f, 1.0f, 1.0f), m_radius);
+	DebugDrawAPI::drawPlane(center, Vector3::UnitY, Vector3(1.0f, 0.0f, 1.0f), Vector3(1.0f, 0.0f, 0.0f), m_radius, 0.1f);
 }
 
 IMPLEMENT_SCRIPT(DebugGetObjectsArea)
