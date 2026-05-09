@@ -23,7 +23,7 @@ public:
     void setTextureAssetId(AssetReference& assetId);
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
-    AssetReference* getTextureAssetId() const { return m_textureAssetId; }
+    AssetReference& getTextureAssetId() { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 
@@ -44,7 +44,7 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
-    AssetReference* m_textureAssetId;
+    AssetReference m_textureAssetId{};
     Texture* m_texture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;

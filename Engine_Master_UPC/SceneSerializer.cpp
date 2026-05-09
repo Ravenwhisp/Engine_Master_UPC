@@ -215,8 +215,8 @@ std::unique_ptr<Scene> SceneSerializer::LoadScene(const std::string& sceneName)
         DEBUG_ERROR("[SceneSerializer] Scene JSON root is not an object");
         return nullptr;
     }
-
-    auto scene = std::make_unique<Scene>();
+    AssetReference ref(GenerateUID());
+    auto scene = std::make_unique<Scene>(ref);
 
     if (!LoadFromJSON(*scene, doc))
     {

@@ -149,8 +149,9 @@ void MeshRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MESH"))
         {
-            AssetReference* ref = static_cast<AssetReference*>(payload->Data);
-            auto meshAsset = app->getModuleAssets()->load<MeshAsset>(*ref);
+            UID* ref = static_cast<UID*>(payload->Data);
+            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            auto meshAsset = app->getModuleAssets()->load<MeshAsset>(*assetRef);
             if (meshAsset)
             {
                 addMesh(*meshAsset);
@@ -165,8 +166,9 @@ void MeshRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MATERIAL"))
         {
-            AssetReference* ref = static_cast<AssetReference*>(payload->Data);
-            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*ref);
+            UID* ref = static_cast<UID*>(payload->Data);
+            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*assetRef);
             if (materialAsset)
             {
                 addMaterial(*materialAsset);
