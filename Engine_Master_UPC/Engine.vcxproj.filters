@@ -454,6 +454,9 @@
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="EquirectangularPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1099,6 +1102,9 @@
     <ClInclude Include="ScriptFieldHandlerRegistry.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
+    <ClInclude Include="EquirectangularPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1345,6 +1351,12 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="BRDFVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="EquirectangularVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="EquirectangularPixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

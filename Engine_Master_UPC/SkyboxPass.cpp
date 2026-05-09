@@ -103,7 +103,7 @@ void SkyBoxPass::prepare(const RenderContext& ctx)
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     if (!m_skyBox) return;
-    if (!m_skyBox->getTexture()) return;
+    if (!m_skyBox->getHdrTexture()) return;
     if (!m_view || !m_projection) return;
 
     Matrix view = *m_view;
@@ -126,7 +126,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
-    commandList->SetGraphicsRootDescriptorTable(1, m_skyBox->getTexture()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(1, m_skyBox->getHdrTexture()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     D3D12_VERTEX_BUFFER_VIEW vertexBufferView = m_skyBox->getVertexBuffer()->getVertexBufferView();

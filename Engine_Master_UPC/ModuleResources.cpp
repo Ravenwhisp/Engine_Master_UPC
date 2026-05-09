@@ -368,7 +368,7 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 		
 		
 		commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
-		commandList->SetGraphicsRootDescriptorTable(1, skybox->getTexture()->getSRV().gpu);
+		commandList->SetGraphicsRootDescriptorTable(1, skybox->getHdrTexture()->getSRV().gpu);
 		commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
@@ -547,7 +547,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 			commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
 			commandList->SetGraphicsRoot32BitConstants(1, sizeof(SkyBox::EnvironmentData) / sizeof(UINT32), &environmentData, 0);
-			commandList->SetGraphicsRootDescriptorTable(2, skybox->getTexture()->getSRV().gpu);
+			commandList->SetGraphicsRootDescriptorTable(2, skybox->getHdrTexture()->getSRV().gpu);
 			commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
