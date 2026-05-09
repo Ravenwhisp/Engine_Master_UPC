@@ -351,7 +351,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
@@ -645,7 +644,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
-    <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="HapticEffectDefinition.cpp" />
     <ClCompile Include="HapticEffectLibrary.cpp" />
     <ClCompile Include="FileDialog.cpp" />

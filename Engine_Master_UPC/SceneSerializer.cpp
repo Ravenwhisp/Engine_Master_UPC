@@ -315,7 +315,7 @@ bool SceneSerializer::LoadSkybox(Scene& scene, const rapidjson::Value& json)
         DEBUG_WARN("[SceneSerializer] Skybox Enabled missing");
     }
 
-    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsUint64())
+    if (data.HasMember("CubemapAssetId"))
     {
         skyboxSettings.cubemapAssetId.deserializeJson(data["CubemapAssetId"]);
     }

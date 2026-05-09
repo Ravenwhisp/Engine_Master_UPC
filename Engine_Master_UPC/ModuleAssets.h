@@ -168,7 +168,7 @@ public:
     bool isLoaded(const AssetReference& id);
     void unload(const AssetReference& id);
 
-    std::optional<AssetReference> findReference(const UID& uid);
+    AssetReference* findReference(const UID& uid);
 
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);

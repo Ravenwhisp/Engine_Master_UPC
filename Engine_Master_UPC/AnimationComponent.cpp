@@ -973,7 +973,7 @@ void AnimationComponent::drawUi()
 
     ImGui::SameLine();
 
-    ImGui::BeginDisabled(!m_stateMachineUID->isValid());
+    ImGui::BeginDisabled(!m_stateMachineUID);
     if (ImGui::Button("Open State Machine Editor"))
     {
         ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
@@ -1254,7 +1254,7 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
 
 bool AnimationComponent::ensureStateMachineLoaded()
 {
-    if (!m_stateMachineUID->isValid())
+    if (!m_stateMachineUID)
         return false;
 
     if (m_stateMachineAsset)

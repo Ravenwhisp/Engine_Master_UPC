@@ -42,20 +42,35 @@ void SceneConfig::drawLoadSceneSettings()
 {
     if (ImGui::CollapsingHeader("Load Scene"))
     {
-        ImGui::Button("Load");
+        static char loadSceneBuffer[256];
+        strcpy_s(loadSceneBuffer, m_loadSceneName.c_str());
+
+        if (ImGui::InputText("Scene Name##Load", loadSceneBuffer, IM_ARRAYSIZE(loadSceneBuffer)))
+        {
+            m_loadSceneName = loadSceneBuffer;
+        }
+
+        if (ImGui::Button("Load"))
+        {
+            m_moduleScene->requestSceneChange(m_loadSceneName);
+        }
+
+
+        /*ImGui::Button("Load");
         if (ImGui::BeginDragDropTarget())
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
-                AssetReference* ref = static_cast<AssetReference*>(payload->Data);
-                auto scene = app->getModuleAssets()->load<Scene>(*ref);
+                UID* ref = static_cast<UID*>(payload->Data);
+                AssetReference assetRef(*ref, INVALID_ASSET_ID, AssetType::SCENE);
+                auto scene = app->getModuleAssets()->load<Scene>(assetRef);
                 if (scene)
                 {
                     m_moduleScene->requestSceneChange(scene);
                 }
             }
             ImGui::EndDragDropTarget();
-        }
+        }*/
     }
 }
 
