@@ -140,6 +140,9 @@ namespace SceneAPI
 
     template<typename T>
     std::vector<GameObject*> findAllGameObjectsWithScript();
+
+	ENGINE_API std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive = true);
+
     ENGINE_API GameObject* getDefaultCameraGameObject();
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
 

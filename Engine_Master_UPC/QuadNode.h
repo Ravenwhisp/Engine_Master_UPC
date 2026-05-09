@@ -99,6 +99,7 @@ public:
     void remove(GameObject& object);
 
     void gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const;
+	void gatherObjectsInArea(const BoundingRect& area, std::vector<GameObject*>& out) const;
     void gatherRectangles(std::vector<BoundingRect>& out) const;
 
     int getDepth() const { return m_depth; }
@@ -116,6 +117,7 @@ private:
     bool isLeaf() const { return m_children[0] == nullptr; }
 
     bool intersects(const Engine::Frustum& frustum, const BoundingRect& rectangle) const;
+	bool intersectsWithArea(const BoundingRect& area) const;
 
     QuadNode* findBestFitChild(const Engine::BoundingBox& box) const;
     QuadNode* findContainingAncestor(const Engine::BoundingBox& box);
