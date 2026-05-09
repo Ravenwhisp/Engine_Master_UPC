@@ -22,6 +22,8 @@
 #include "AnimationComponent.h"
 #include "UISlider.h"
 #include "Transform2D.h"
+#include "MeshRenderer.h"
+#include "BoundingBox.h"
 
 #include "CameraComponent.h"
 
@@ -803,17 +805,34 @@ namespace SceneAPI
                 continue;
             }
 
-            Transform* transform = candidate->GetTransform();
-            if (!transform)
+            auto* model = candidate->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+            if (!model || !candidate->GetActive())
             {
                 continue;
             }
 
-            Vector2 candidatePosition(transform->getPosition().x, transform->getPosition().z);
-            float distanceSquared = (candidatePosition - center).LengthSquared();
+            const Engine::BoundingBox bbox = model->getBoundingBox();
+
+            Vector3 bMin = bbox.getMinInWorldSpace();
+            Vector3 bMax = bbox.getMaxInWorldSpace();
+
+            // Correct min and max problem
+            float rMinX = std::min(bMin.x, bMax.x);
+            float rMaxX = std::max(bMin.x, bMax.x);
+            float rMinZ = std::min(bMin.z, bMax.z);
+            float rMaxZ = std::max(bMin.z, bMax.z);
+
+            float closestX = std::clamp(center.x, rMinX, rMaxX);
+            float closestZ = std::clamp(center.y, rMinZ, rMaxZ);
+
+            float diffX = center.x - closestX;
+            float diffZ = center.y - closestZ;
+            float distanceSquared = (diffX * diffX) + (diffZ * diffZ);
+
             if (distanceSquared <= radius * radius)
             {
-                result.push_back(candidate);
+                result.push_back(candidate->GetTransform()->getRoot()->getOwner());
             }
         }
 

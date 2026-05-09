@@ -73,6 +73,24 @@ struct BoundingRect
 
         return overlapX && overlapZ;
     }
+
+	bool containsSafe(const Engine::BoundingBox& box) const // getMin/MaxInWorldSpace may not be in correct order, so we need to check both. Meanwhile, this is a safe way to change it
+    {
+        Vector3 bMin = box.getMinInWorldSpace();
+        Vector3 bMax = box.getMaxInWorldSpace();
+
+        float realMinX = std::min(bMin.x, bMax.x);
+        float realMaxX = std::max(bMin.x, bMax.x);
+        float realMinZ = std::min(bMin.z, bMax.z);
+        float realMaxZ = std::max(bMin.z, bMax.z);
+
+        if (realMaxX < minX()) return false;
+        if (realMinX > maxX()) return false;
+        if (realMaxZ < minZ()) return false;
+        if (realMinZ > maxZ()) return false;
+
+        return true;
+    }
 };
 
 enum Quadrant

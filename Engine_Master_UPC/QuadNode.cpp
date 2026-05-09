@@ -272,9 +272,10 @@ void QuadNode::gatherObjectsInArea(const BoundingRect& area, std::vector<GameObj
         }
 
         const Engine::BoundingBox bbox = model->getBoundingBox();
-        if (area.contains(bbox))
+        //if (area.contains(bbox))
+        if (area.containsSafe(bbox))
         {
-			out.push_back(obj->GetTransform()->getRoot()->getOwner());
+			out.push_back(obj);
         }
 	}
 
