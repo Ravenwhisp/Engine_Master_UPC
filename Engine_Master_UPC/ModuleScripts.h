@@ -16,6 +16,10 @@ public:
 
     bool loadGameScriptsDll();
     bool unloadGameScriptsDll();
+    bool reloadGameScriptsDll();
+
+    void instantiateSceneScripts();
+    void destroySceneScripts();
 
     bool isGameScriptsLoaded() const { return m_gameScriptsModule != nullptr; }
 

@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
+#include "ModuleScripts.h"
 
 #include "Settings.h"
 #include "Scene.h"
@@ -23,6 +24,9 @@ void WindowEditorSettings::drawInternal()
     drawSceneSettings();
     ImGui::Separator();
     drawFrustumCullingSettings();
+    ImGui::Separator();
+    drawScriptsSettings();
+
 }
 
 void WindowEditorSettings::drawEngineInformation()
@@ -105,6 +109,17 @@ void WindowEditorSettings::drawFrustumCullingSettings()
         if (!app->getModuleScene()->getQuadtree()->getIsBuilded()) {
             m_settings->frustumCulling.debugFrustumCulling = false;
             DEBUG_WARN("Cannot debug frustum culling because quadtree is not builded.");
+        }
+    }
+}
+
+void WindowEditorSettings::drawScriptsSettings()
+{
+    if (ImGui::CollapsingHeader("Scripts Reloading"))
+    {
+        if (ImGui::Button("Reload Game Scripts"))
+        {
+            app->getModuleScripts()->reloadGameScriptsDll();
         }
     }
 }

@@ -29,5 +29,7 @@ private:
 
     void drawFrustumCullingSettings();
 
+    void drawScriptsSettings();
+
     Settings* m_settings = nullptr;
 };

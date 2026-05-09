@@ -5,6 +5,7 @@
 #include "ModuleScene.h"
 #include "ModuleInput.h"
 #include "ModuleD3D12.h"
+#include "ModuleScripts.h"
 
 #include "Scene.h"
 #include "SceneSnapshot.h"
@@ -48,31 +49,12 @@ void ModuleGameView::update()
 void ModuleGameView::startGameSimulation()
 {	
 	m_sceneCloned = std::unique_ptr<SceneSnapshot>(m_moduleScene->takeSnapshot());
-	instantiateScriptsOnPlay();
+	app->getModuleScripts()->instantiateSceneScripts();
+
 }
 
 void ModuleGameView::stopGameSimulation()
 {
 	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
 	m_sceneCloned.reset();
-}
-
-void ModuleGameView::instantiateScriptsOnPlay() {
-	// scripts instantiation
-	for (GameObject* gameObject : m_moduleScene->getScene()->getAllGameObjects())
-	{
-		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
-		if (!scriptComponent || scriptComponent->getScriptName().empty())
-		{
-			continue;
-		}
-
-		if (!scriptComponent->getScript())
-		{
-			bool created = scriptComponent->createScriptInstance();
-			assert(created);
-		}
-
-		scriptComponent->resetStartState();
-	}
 }

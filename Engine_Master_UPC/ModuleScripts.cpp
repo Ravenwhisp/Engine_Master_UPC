@@ -1,6 +1,9 @@
 #include "Globals.h"
 #include "ModuleScripts.h"
 
+#include "Application.h"
+#include "ModuleScene.h"
+#include "ScriptComponent.h"
 #include "ScriptFactory.h"
 
 #include <filesystem>
@@ -71,6 +74,75 @@ bool ModuleScripts::unloadGameScriptsDll()
     m_loadedDllPath.clear();
 
     return true;
+}
+
+bool ModuleScripts::reloadGameScriptsDll()
+{
+    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
+    {
+        return false;
+    }
+
+    destroySceneScripts();
+
+    if (!unloadGameScriptsDll())
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to unload GameScripts DLL during reload.");
+        return false;
+    }
+
+    if (!loadGameScriptsDll())
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to load GameScripts DLL during reload.");
+        return false;
+    }
+
+    instantiateSceneScripts();
+
+    DEBUG_LOG("[ModuleScripts] GameScripts DLL reloaded successfully.");
+
+    return true;
+}
+
+void ModuleScripts::instantiateSceneScripts()
+{
+    const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
+
+    for (ScriptComponent* scriptComponent : scriptComponents)
+    {
+        if (!scriptComponent || scriptComponent->getScriptName().empty())
+        {
+            continue;
+        }
+
+        if (!scriptComponent->getScript())
+        {
+            bool created = scriptComponent->createScriptInstance();
+
+            if (!created)
+            {
+                DEBUG_ERROR("[ModuleScripts] Failed to create script: %s", scriptComponent->getScriptName().c_str());
+                continue;
+            }
+        }
+
+        scriptComponent->resetStartState();
+    }
+}
+
+void ModuleScripts::destroySceneScripts()
+{
+    const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
+
+    for (ScriptComponent* scriptComponent : scriptComponents)
+    {
+        if (!scriptComponent)
+        {
+            continue;
+        }
+
+        scriptComponent->destroyScriptInstance();
+    }
 }
 
 std::string ModuleScripts::buildRuntimeDllPath()
