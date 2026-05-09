@@ -269,7 +269,9 @@
     <ClInclude Include="EnemyDeathHandler.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
     <ClInclude Include="EnemyIDLE.h" />
+    <ClInclude Include="ExportListTest.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="HapticTester.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LevelCheats.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
@@ -327,6 +329,8 @@
     <ClCompile Include="EnemyDeathHandler.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
+    <ClCompile Include="ExportListTest.cpp" />
+    <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LevelCheats.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />

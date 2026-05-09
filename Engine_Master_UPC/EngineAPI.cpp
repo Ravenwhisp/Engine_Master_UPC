@@ -21,8 +21,13 @@
 #include "Script.h"
 #include "AnimationComponent.h"
 #include "UISlider.h"
+#include "Transform2D.h"
 
 #include "CameraComponent.h"
+
+#include "HapticEffectDefinition.h"
+#include "HapticEffectLibrary.h"
+#include "ModuleHaptics.h"
 
 #include "DeviceType.h"
 #include "PlayerBinding.h"
@@ -97,6 +102,92 @@ namespace GameObjectAPI
             {
                 return scriptComponent->getScript();
             }
+        }
+
+        return nullptr;
+    }
+
+    int GameObjectAPI::getScriptCount(const GameObject* gameObject)
+    {
+        if (gameObject == nullptr)
+        {
+            return 0;
+        }
+
+        int count = 0;
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            ++count;
+        }
+
+        return count;
+    }
+
+    Script* GameObjectAPI::getScriptByIndex(GameObject* gameObject, int index)
+    {
+        if (gameObject == nullptr || index < 0)
+        {
+            return nullptr;
+        }
+
+        int currentIndex = 0;
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component);
+
+            if (currentIndex == index)
+            {
+                return scriptComponent->getScript();
+            }
+
+            ++currentIndex;
+        }
+
+        return nullptr;
+    }
+
+    const Script* GameObjectAPI::getScriptByIndex(const GameObject* gameObject, int index)
+    {
+        if (gameObject == nullptr || index < 0)
+        {
+            return nullptr;
+        }
+
+        int currentIndex = 0;
+
+        const std::vector<Component*> components = gameObject->GetAllComponents();
+
+        for (Component* component : components)
+        {
+            if (component == nullptr || component->getType() != ComponentType::SCRIPT)
+            {
+                continue;
+            }
+
+            const ScriptComponent* scriptComponent = static_cast<const ScriptComponent*>(component);
+
+            if (currentIndex == index)
+            {
+                return scriptComponent->getScript();
+            }
+
+            ++currentIndex;
         }
 
         return nullptr;
@@ -1705,6 +1796,142 @@ namespace NavigationAPI
     }
 }
 
+namespace MathAPI
+{
+    float lerp(float a, float b, float t)
+    {
+        return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
+    }
+    Vector3 lerp(const Vector3& a, const Vector3& b, float t)
+    {
+        return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
+    }
+    Vector2 lerp(const Vector2& a, const Vector2& b, float t)
+    {
+        return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
+    }
+    float smoothStep(float edge0, float edge1, float x)
+    {
+        x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        return x * x * (3 - 2 * x);
+    }
+    float pingPong(float t)
+    {
+        return 1.0f - fabsf(2.0f * t - 1.0f);
+    }
+
+    float evaluateEasing(EasingType type, float t)
+    {
+        switch (type)
+        {
+        case EasingType::EaseInQuad:
+            return t * t;
+        case EasingType::EaseOutQuad:
+            return t * (2 - t);
+        case EasingType::EaseInOutQuad:
+            return t < 0.5 ? 2 * t * t : 1 - pow(-2 * t + 2, 2) / 2;
+        case EasingType::EaseInCubic:
+            return t * t * t;
+        case EasingType::EaseOutCubic:
+            return 1 - pow(1 - t, 3);
+        case EasingType::EaseInOutCubic:
+            return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
+        case EasingType::EaseInQuart:
+            return t * t * t * t;
+        case EasingType::EaseOutQuart:
+            return 1 - pow(1 - t, 4);
+        case EasingType::EaseInOutQuart:
+            return t < 0.5 ? 8 * t * t * t * t : 1 - pow(-2 * t + 2, 4) / 2;
+        case EasingType::EaseInQuint:
+            return t * t * t * t * t;
+        case EasingType::EaseOutQuint:
+            return 1 - pow(1 - t, 5);
+        case EasingType::EaseInOutQuint:
+            return t < 0.5 ? 16 * t * t * t * t * t : 1 - pow(-2 * t + 2, 5) / 2;
+        case EasingType::EaseInSine:
+            return 1 - cos((t * PI) / 2);
+        case EasingType::EaseOutSine:
+            return sin((t * PI) / 2);
+        case EasingType::EaseInOutSine:
+            return -(cos(PI * t) - 1) / 2;
+        case EasingType::EaseInExpo:
+            return t == 0 ? 0 : pow(2, 10 * t - 10);
+        case EasingType::EaseOutExpo:
+            return t == 1 ? 1 : 1 - pow(2, -10 * t);
+        case EasingType::EaseInOutExpo:
+            return t == 0
+                ? 0
+                : t == 1
+                ? 1
+                : t < 0.5
+                ? pow(2, 20 * t - 10) / 2
+                : (2 - pow(2, -20 * t + 10)) / 2;
+        case EasingType::EaseInCirc:
+            return 1 - sqrt(1 - pow(t, 2));
+        case EasingType::EaseOutCirc:
+            return sqrt(1 - pow(t - 1, 2));
+        case EasingType::EaseInOutCirc:
+            return t < 0.5
+                ? (1 - sqrt(1 - pow(2 * t, 2))) / 2
+                : (sqrt(1 - pow(-2 * t + 2, 2)) + 1) / 2;
+        default:
+            return t;
+        }
+    }
+}
+
+namespace Transform2DAPI
+{
+    Vector2 getPosition(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+		return transform->getPosition();
+    }
+    void setPosition(Transform2D* transform, const Vector2& newPosition)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setPosition(newPosition);
+    }
+    Vector2 getScale(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(1.0f, 1.0f);
+        }
+        return transform->getScale();
+	}
+    void setScale(Transform2D* transform, const Vector2& newScale)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setScale(newScale);
+    }
+    float getAlpha(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return 1.0f;
+        }
+        return transform->getAlpha();
+	}
+    void setAlpha(Transform2D* transform, float newAlpha)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setAlpha(newAlpha);
+	}
+}
+
 namespace SliderAPI
 {
     float getFillAmount(const UISlider* slider)
@@ -1813,5 +2040,166 @@ namespace DebugDrawAPI
     void drawXZSquareGrid(float mins, float maxs, float y, float step, const Vector3& color, int durationMillis, bool depthEnabled)
     {
         dd::xzSquareGrid(mins, maxs, y, step, ddConvert(color), durationMillis, depthEnabled);
+    }
+}
+
+namespace HapticAPI
+{
+    uint32_t playEffect(const char* effectId, int player)
+    {
+        if (!effectId || !app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->playEffect(effectId, player);
+    }
+
+    uint32_t playAtScale(const char* effectId, float scale, int player)
+    {
+        if (!effectId || !app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->playAtScale(effectId, scale, player);
+    }
+
+    void stopEffect(uint32_t handle, int player)
+    {
+        if (!app || handle == 0)
+        {
+            return;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return;
+        }
+
+        haptics->cancelEffect(handle, player);
+    }
+
+    void stopAll(int player)
+    {
+        if (!app)
+        {
+            return;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return;
+        }
+
+        haptics->cancelAll(player);
+    }
+
+    bool isPlaying(int player)
+    {
+        if (!app)
+        {
+            return false;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return false;
+        }
+
+        return haptics->isPlaying(player);
+    }
+
+    uint32_t submitImpact(float intensity, float duration, int player)
+    {
+        if (!app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->submitAnonymous(HapticEffectDefinition::makeImpact(intensity, duration), 1.0f, player);
+    }
+
+    uint32_t HapticAPI::submitEffect(const HapticEffectDefinition& def, int player)
+    {
+        return app->getModuleHaptics()->submitEffect(def, player);
+    }
+
+    uint32_t submitRumble(float left, float right, float duration, int player)
+    {
+        if (!app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->submitAnonymous(HapticEffectDefinition::makeContinuous(left, right, duration), 1.0f, player);
+    }
+
+    uint32_t submitExplosion(float intensity, float duration, int player)
+    {
+        if (!app)
+        {
+            return 0;
+        }
+
+        ModuleHaptics* haptics = app->getModuleHaptics();
+        if (!haptics)
+        {
+            return 0;
+        }
+
+        return haptics->submitAnonymous(HapticEffectDefinition::makeExplosion(intensity, duration), 1.0f, player);
+    }
+
+    void cancelEffect(uint32_t handle, int player)
+    {
+        stopEffect(handle, player);
+    }
+
+    void cancelAll(int player)
+    {
+        stopAll(player);
+    }
+
+    void registerEffect(const HapticEffectDefinition& def)
+    {
+        HapticEffectLibrary::get().registerEffect(def);
+    }
+
+    bool saveToJSON(const char* path)
+    {
+        return HapticEffectLibrary::get().saveToJSON(path);
+    }
+
+    const HapticEffectDefinition* findEffect(const char* id)
+    {
+        return HapticEffectLibrary::get().findEffect(id);
     }
 }

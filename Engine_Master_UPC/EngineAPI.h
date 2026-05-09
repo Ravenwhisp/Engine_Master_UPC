@@ -21,6 +21,9 @@ class Component;
 class Script;
 class AnimationComponent;
 class UISlider;
+class Transform2D;
+
+struct HapticEffectDefinition;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
@@ -28,9 +31,6 @@ namespace GameObjectAPI
 {
     ENGINE_API Transform* getTransform(GameObject* gameObject);
     ENGINE_API const Transform* getTransform(const GameObject* gameObject);
-
-    ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
-    ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
 
     ENGINE_API bool isActiveSelf(const GameObject* gameObject);
     ENGINE_API bool isActiveInHierarchy(const GameObject* gameObject);
@@ -44,8 +44,20 @@ namespace GameObjectAPI
     ENGINE_API GameObject* createGameObject(const char* name, GameObject* parentObject = nullptr);
     ENGINE_API void removeGameObject(GameObject* gameObject);
 
-    //ENGINE_API GameObject* instantiate(GameObject* gameObject, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
     ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
+
+    ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
+    ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
+
+    ENGINE_API int getScriptCount(const GameObject* gameObject);
+    ENGINE_API Script* getScriptByIndex(GameObject* gameObject, int index);
+    ENGINE_API const Script* getScriptByIndex(const GameObject* gameObject, int index);
+
+    template<typename T>
+    T* findScript(GameObject* gameObject);
+
+    template<typename T>
+    const T* findScript(const GameObject* gameObject);
 }
 
 namespace TransformAPI
@@ -213,6 +225,53 @@ namespace NavigationAPI
     ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts);
 }
 
+namespace MathAPI
+{
+    constexpr float PI = 3.14159265358979323846f;
+    ENGINE_API float lerp(float a, float b, float t);
+    ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
+    ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
+    ENGINE_API float smoothStep(float edge0, float edge1, float x);
+    ENGINE_API float pingPong(float t);
+
+    enum class EasingType
+    {
+        EaseInQuad,
+        EaseOutQuad,
+        EaseInOutQuad,
+        EaseInCubic,
+        EaseOutCubic,
+        EaseInOutCubic,
+        EaseInQuart,
+        EaseOutQuart,
+        EaseInOutQuart,
+        EaseInQuint,
+        EaseOutQuint,
+        EaseInOutQuint,
+        EaseInSine,
+        EaseOutSine,
+        EaseInOutSine,
+        EaseInExpo,
+        EaseOutExpo,
+        EaseInOutExpo,
+        EaseInCirc,
+        EaseOutCirc,
+        EaseInOutCirc
+    };
+
+    ENGINE_API float evaluateEasing(EasingType type, float t);
+}
+
+namespace Transform2DAPI
+{
+    ENGINE_API Vector2 getPosition(const Transform2D* transform);
+    ENGINE_API void setPosition(Transform2D* transform, const Vector2& newPosition);
+    ENGINE_API Vector2 getScale(const Transform2D* transform);
+    ENGINE_API void setScale(Transform2D* transform, const Vector2& newScale);
+    ENGINE_API float getAlpha(const Transform2D* transform);
+	ENGINE_API void setAlpha(Transform2D* transform, float alpha);
+}
+
 namespace SliderAPI
 {
     ENGINE_API float getFillAmount(const UISlider* slider);
@@ -239,3 +298,23 @@ namespace DebugDrawAPI
     ENGINE_API void drawTangentBasis(const Vector3& origin, const Vector3& normal, const Vector3& tangent, const Vector3& bitangent, float lengths = 1.0f, int durationMillis = 0, bool depthEnabled = true);
     ENGINE_API void drawXZSquareGrid(float mins, float maxs, float y, float step, const Vector3& color, int durationMillis = 0, bool depthEnabled = true);
 }
+
+namespace HapticAPI
+{
+    ENGINE_API uint32_t playEffect(const char* effectId, int player = 0);
+    ENGINE_API uint32_t playAtScale(const char* effectId, float scale, int player = 0);
+    ENGINE_API void stopEffect(uint32_t handle, int player = 0);
+    ENGINE_API void stopAll(int player = 0);
+    ENGINE_API bool isPlaying(int player = 0);
+    ENGINE_API uint32_t submitEffect(const HapticEffectDefinition& def, int player = 0);
+    ENGINE_API uint32_t submitImpact(float intensity, float duration, int player = 0);
+    ENGINE_API uint32_t submitRumble(float left, float right, float duration, int player = 0);
+    ENGINE_API uint32_t submitExplosion(float intensity, float duration, int player = 0);
+    ENGINE_API void cancelEffect(uint32_t handle, int player = 0);
+    ENGINE_API void cancelAll(int player = 0);
+    ENGINE_API void registerEffect(const HapticEffectDefinition& def);
+    ENGINE_API bool saveToJSON(const char* path);
+    ENGINE_API const HapticEffectDefinition* findEffect(const char* id);
+}
+
+#include "EngineAPI.inl"

@@ -28,9 +28,6 @@ private:
     void stopDash();
     void calculateDashMovement(float dt);
 
-    PlayerController* findControllerScript(GameObject* owner) const;
-    PlayerMovement* findMovementScript(GameObject* owner) const;
-
 protected:
     PlayerController* m_playerController = nullptr;
     PlayerMovement* m_playerMovement = nullptr;

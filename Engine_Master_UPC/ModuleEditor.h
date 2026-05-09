@@ -147,6 +147,7 @@ private:
 
     void saveWindowStates();
     void loadWindowStates();
+    void removeClosedWindows();
     void setupDockLayout(ImGuiID dockspace_id);
     void mainDockspace(bool* open);
 

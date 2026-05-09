@@ -14,6 +14,7 @@
 
 #include "VertexBuffer.h"
 #include "Texture.h"
+#include <algorithm>
 
 UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     : m_device(device)
@@ -102,6 +103,9 @@ void UIImagePass::prepare(const RenderContext& ctx)
     m_commands = ctx.uiImageCommands;
     m_view = &ctx.view;
     m_projection = &ctx.projection;
+
+    m_sortedCommands = *m_commands;
+    std::sort(m_sortedCommands.begin(), m_sortedCommands.end(), compareUI);
 }
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -124,36 +128,34 @@ void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
-    bool currentZTestState = false;
-
-    for (const auto& command : *m_commands)
+    for (const auto& command : m_sortedCommands)
     {
         if (!command.texture)
-        {
             continue;
-        }
 
         const auto srv = command.texture->getSRV();
         if (!srv.IsShaderVisible() || srv.gpu.ptr == 0)
-        {
             continue;
-        }
 
-        if (command.zTest != currentZTestState)
-        {
-            commandList->SetPipelineState(command.zTest ? m_pipelineStateDepth.Get() : m_pipelineState.Get());
-            currentZTestState = command.zTest;
-        }
+        if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
+            commandList->SetPipelineState(m_pipelineState.Get());
+        else
+            commandList->SetPipelineState(m_pipelineStateDepth.Get());
 
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
-		const float aspectRatio = (command.rect.h > 0.0f) ? (command.rect.w / command.rect.h) : 1.0f;
+
+        const float aspectRatio = (command.rect.h > 0.0f)
+            ? (command.rect.w / command.rect.h)
+            : 1.0f;
 
         params.fillData = Vector4(
             command.fillAmount,
             static_cast<float>(command.fillMethod),
             static_cast<float>(command.fillOrigin),
             aspectRatio);
+
+        params.alpha = command.alpha;
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
@@ -212,4 +214,15 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
     }
 
     return (local * world) * (*m_view) * (*m_projection);
+}
+
+bool UIImagePass::compareUI(const UIImageCommand& a, const UIImageCommand& b)
+{
+	if (a.renderMode != b.renderMode && b.renderMode == CanvasRenderMode::SCREEN_SPACE)
+        return true;
+
+    if (a.zTest != b.zTest)
+        return a.zTest > b.zTest;
+
+	return false;
 }
