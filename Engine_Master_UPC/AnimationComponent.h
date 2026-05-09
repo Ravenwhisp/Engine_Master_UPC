@@ -79,6 +79,7 @@ private:
     bool saveStateMachineAsset();
     bool createAndAssignStateMachineAsset();
     bool createAndAssignStateMachineAssetFromSourceAnimations();
+    bool loadAndAssignStateMachineAssetByName();
     MD5Hash resolveAnimationSourceUID();
 
     StateMachineScript* getStateBehaviour(const std::string& stateName);
@@ -160,6 +161,7 @@ private:
 
     std::string m_stateMachineUIDInput;
     std::string m_animationSourceUIDInput;
+    std::string m_existingStateMachineNameInput;
     std::string m_newStateMachineNameInput = "NewStateMachine";
     std::string m_triggerInput;
 
