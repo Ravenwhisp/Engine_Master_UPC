@@ -973,7 +973,7 @@ void AnimationComponent::drawUi()
 
     ImGui::SameLine();
 
-    ImGui::BeginDisabled(!m_stateMachineUID);
+    ImGui::BeginDisabled(!m_stateMachineUID.isValid());
     if (ImGui::Button("Open State Machine Editor"))
     {
         ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
@@ -982,7 +982,7 @@ void AnimationComponent::drawUi()
 
         if (stateMachineWindow)
         {
-            stateMachineWindow->setTargetStateMachineUID(*m_stateMachineUID);
+            stateMachineWindow->setTargetStateMachineUID(m_stateMachineUID);
             stateMachineWindow->setOpen(true);
         }
     }
@@ -1054,7 +1054,7 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", static_cast<int>(getType()), domTree.GetAllocator());
     componentInfo.AddMember("Active", isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("StateMachineUID", m_stateMachineUID->getJson(domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("StateMachineUID", m_stateMachineUID.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
     componentInfo.AddMember("PlayOnStart", m_playOnStart, domTree.GetAllocator());
     componentInfo.AddMember("ApplyScale", m_applyScale, domTree.GetAllocator());
@@ -1066,7 +1066,7 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
 bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
 {
     if (componentValue.HasMember("StateMachineUID") && componentValue["StateMachineUID"].IsUint64())
-        m_stateMachineUID->deserializeJson(componentValue["StateMachineUID"]);
+        m_stateMachineUID.deserializeJson(componentValue["StateMachineUID"]);
 
     if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
         m_playOnStart = componentValue["PlayOnStart"].GetBool();
@@ -1095,10 +1095,10 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
 
 void AnimationComponent::setStateMachineUID(AssetReference& uid)
 {
-    if (m_stateMachineUID == &uid)
+    if (m_stateMachineUID == uid)
         return;
 
-    m_stateMachineUID = &uid;
+    m_stateMachineUID = uid;
     m_stateMachineUIDInput = m_stateMachineUID;
 
     resetRuntime();
@@ -1138,7 +1138,7 @@ bool AnimationComponent::SendTrigger(const std::string& triggerName)
 
 bool AnimationComponent::hasStateMachine() const
 {
-    return m_stateMachineUID->isValid();
+    return m_stateMachineUID.isValid();
 }
 
 bool AnimationComponent::hasActiveState() const
@@ -1254,7 +1254,7 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
 
 bool AnimationComponent::ensureStateMachineLoaded()
 {
-    if (!m_stateMachineUID)
+    if (!m_stateMachineUID.isValid())
         return false;
 
     if (m_stateMachineAsset)
@@ -1264,7 +1264,7 @@ bool AnimationComponent::ensureStateMachineLoaded()
     if (!moduleAssets)
         return false;
 
-    m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(*m_stateMachineUID);
+    m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(m_stateMachineUID);
     if (!m_stateMachineAsset)
     {
         DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", m_stateMachineUID);

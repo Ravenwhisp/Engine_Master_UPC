@@ -30,7 +30,7 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
     void setStateMachineUID(AssetReference& uid);
-    AssetReference* getStateMachineUID() const { return m_stateMachineUID; }
+    AssetReference& getStateMachineUID() { return m_stateMachineUID; }
 
     bool SendTrigger(const std::string& triggerName);
 
@@ -130,7 +130,7 @@ private:
 
 private:
 
-    AssetReference* m_stateMachineUID;
+    AssetReference m_stateMachineUID = {};
 
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
     std::shared_ptr<AnimationAsset> m_currentAnimationAsset;
@@ -152,7 +152,7 @@ private:
     bool m_hasStartedPlayback = false;
     bool m_stateMachineDirty = false;
 
-    AssetReference* m_stateMachineUIDInput;
+    AssetReference m_stateMachineUIDInput = {};
     std::string m_triggerInput;
 
     bool m_debugDrawHierarchy = false;
