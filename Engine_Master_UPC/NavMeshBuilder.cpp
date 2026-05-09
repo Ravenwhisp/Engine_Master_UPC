@@ -359,7 +359,7 @@ NavAreaType NavMeshBuilder::resolveAreaForPoint(
             point.y >= min.y && point.y <= max.y &&
             point.z >= min.z && point.z <= max.z)
         {
-            if (volume.priority >= bestPriority)
+            if (volume.priority > bestPriority)
             {
                 result = volume.areaType;
                 bestPriority = volume.priority;
