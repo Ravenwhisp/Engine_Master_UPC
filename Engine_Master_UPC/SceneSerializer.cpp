@@ -23,7 +23,6 @@
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
 
-#include "SceneReferenceResolver.h"
 #include "MD5Fwd.h"
 
 
@@ -269,7 +268,7 @@ bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
     CreateGameObjects(scene, json["GameObjects"], uidSet, goSet, hierarchy);
     LinkHierarchy(scene, uidSet, goSet, hierarchy);
 
-    FixReferences(scene);
+    scene.fixSceneReferences();
     ResolveDefaultCamera(scene, json);
 
     return true;
@@ -424,29 +423,6 @@ void SceneSerializer::LinkHierarchy(
         parent->GetTransform()->addChild(child);
 
         scene.removeFromRootList(child);
-    }
-}
-
-void SceneSerializer::FixReferences(Scene& scene)
-{
-    SceneReferenceResolver resolver;
-
-    for (GameObject* obj : scene.getAllGameObjects())
-    {
-        resolver.registerGameObject(obj, obj);
-
-        for (Component* c : obj->GetAllComponents())
-        {
-            resolver.registerComponent(c->getID(), c);
-        }
-    }
-
-    for (GameObject* obj : scene.getAllGameObjects())
-    {
-        for (Component* c : obj->GetAllComponents())
-        {
-            c->fixReferences(resolver);
-        }
     }
 }
 

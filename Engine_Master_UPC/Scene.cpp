@@ -15,6 +15,7 @@
 #include "Quadtree.h"
 #include "SceneSnapshot.h"
 #include "Transform.h"
+#include "SceneReferenceResolver.h"
 
 #include <limits>
 #include <algorithm>
@@ -450,6 +451,29 @@ bool Scene::containsGameObject(const GameObject* go) const
     }
 
     return false;
+}
+
+void Scene::fixSceneReferences()
+{
+    SceneReferenceResolver resolver;
+
+    for (GameObject* obj : getAllGameObjects())
+    {
+        resolver.registerGameObject(obj, obj);
+
+        for (Component* component : obj->GetAllComponents())
+        {
+            resolver.registerComponent(component->getID(), component);
+        }
+    }
+
+    for (GameObject* obj : getAllGameObjects())
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            component->fixReferences(resolver);
+        }
+    }
 }
 
 void Scene::clearScene()

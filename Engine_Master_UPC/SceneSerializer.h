@@ -35,7 +35,6 @@ private:
     static void CreateGameObjects(Scene& scene, const rapidjson::Value& array, std::vector<uint64_t>& uidSet, std::vector<GameObject*>& goSet, std::vector<std::pair<uint64_t, uint64_t>>& hierarchy);
     static void LinkHierarchy(Scene& scene, std::vector<uint64_t>& uidSet, std::vector<GameObject*>& goSet, const std::vector<std::pair<uint64_t, uint64_t>>& hierarchy);
 
-    static void FixReferences(Scene& scene);
     static void ResolveDefaultCamera(Scene& scene, const rapidjson::Value& json);
 #pragma endregion
 };

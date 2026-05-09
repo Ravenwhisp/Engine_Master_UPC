@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
+#include "Scene.h"
 #include "ScriptComponent.h"
 #include "ScriptFactory.h"
 
@@ -102,6 +103,7 @@ bool ModuleScripts::reloadGameScriptsDll()
     instantiateSceneScripts();
 
     restoreSceneScriptReloadInfo(reloadInfo);
+    app->getModuleScene()->getScene()->fixSceneReferences();
 
     DEBUG_LOG("[ModuleScripts] GameScripts DLL reloaded successfully.");
 

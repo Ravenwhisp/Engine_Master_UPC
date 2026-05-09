@@ -105,6 +105,8 @@ public:
     const std::vector<GameObject*> getAllGameObjects() const;
     bool containsGameObject(const GameObject* go) const;
 
+    void fixSceneReferences();
+
     void clearScene();
 
     void  markDirty();
