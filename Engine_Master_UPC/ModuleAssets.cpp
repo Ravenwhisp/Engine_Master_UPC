@@ -46,6 +46,16 @@
 using namespace rapidjson;
 namespace fs = std::filesystem;
 
+constexpr bool ASSETS_MY_DEBUG = false;
+#define DEBUG_ASSETS(...) do { if constexpr (ASSETS_MY_DEBUG) { DEBUG_LOG(__VA_ARGS__); } } while (0)
+
+double elapsedMs(
+    const std::chrono::high_resolution_clock::time_point& begin,
+    const std::chrono::high_resolution_clock::time_point& end)
+{
+    return std::chrono::duration<double, std::milli>(end - begin).count();
+}
+
 ModuleAssets::ModuleAssets() = default;
 ModuleAssets::~ModuleAssets() = default;
 
@@ -232,28 +242,45 @@ void ModuleAssets::refresh()
 {
     std::string rootStr = ASSETS_FOLDER;
     if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
+    {
         rootStr.pop_back();
+    }
 
     const fs::path root = rootStr;
 
+    auto tCollect0 = std::chrono::high_resolution_clock::now();
     ScanFileResult scanResult = m_scanner->scan(root);
+    auto tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Scaner took %.3f ms", elapsedMs(tCollect0, tCollect1));
 
+
+    tCollect0 = std::chrono::high_resolution_clock::now();
     for (const Metadata& meta : scanResult.metadata)
     {
         if (!isValidUID(meta.uid))
+        {
             continue;
+        }
         registerIndex(meta.uid, meta.type, meta.sourcePath, meta.contentHash);
     }
+    tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Metadata check took %.3f ms", elapsedMs(tCollect0, tCollect1));
 
+    tCollect0 = std::chrono::high_resolution_clock::now();
     // Process assets that need (re)importing.
     for (ImportRequest& req : scanResult.imports)
     {
         AssetReference ref(req.existingUID);
         importAsset(req.sourcePath, ref);
     }
+    tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Metadata reimport loop took %.3f ms", elapsedMs(tCollect0, tCollect1));
 
+    tCollect0 = std::chrono::high_resolution_clock::now();
     // Rebuild the content-browser tree (uses findUID, which is now populated).
     m_contentRegistry->rebuild(root);
+    tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
 }
 
 void ModuleAssets::registerIndex(const UID& uid, AssetType type,

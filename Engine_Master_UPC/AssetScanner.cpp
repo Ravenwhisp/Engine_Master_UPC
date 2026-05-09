@@ -322,7 +322,9 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const
 {
     if (meta.sourceFileSize == 0 && meta.sourceLastModified == 0)
+    {
         return true;
+    }
 
     std::error_code ec;
 
@@ -330,19 +332,25 @@ bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, con
     if (ec)
     {
         DEBUG_WARN("[AssetScanner] Could not stat '%s': %s", sourcePath.string().c_str(), ec.message().c_str());
-        return true;
+        {
+            return true;
+        }
     }
 
     if (static_cast<uint64_t>(fileSize) != meta.sourceFileSize)
     {
-        return true;
+        {
+            return true;
+        }
     }
 
     const auto ftime = std::filesystem::last_write_time(sourcePath, ec);
     if (ec)
     {
         DEBUG_WARN("[AssetScanner] Could not read mtime of '%s': %s", sourcePath.string().c_str(), ec.message().c_str());
-        return true;
+        {
+            return true;
+        }
     }
 
     const int64_t lastModified = static_cast<int64_t>(ftime.time_since_epoch().count());
