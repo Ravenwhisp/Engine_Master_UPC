@@ -3,6 +3,8 @@
 
 #include "ScriptFactory.h"
 
+#include <filesystem>
+
 ModuleScripts::ModuleScripts()
 {
 }
@@ -25,19 +27,25 @@ bool ModuleScripts::loadGameScriptsDll()
         return true;
     }
 
-    const std::string dllPath = "GameScripts.dll";
+    const std::string sourceDllPath = "GameScripts.dll";
+    const std::string runtimeDllPath = buildRuntimeDllPath();
 
-    m_gameScriptsModule = LoadLibraryA(dllPath.c_str());
-
-    if (m_gameScriptsModule == nullptr)
+    if (!copySourceDllToRuntimeDll(sourceDllPath, runtimeDllPath))
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to load %s", dllPath.c_str());
         return false;
     }
 
-    m_loadedDllPath = dllPath;
+    m_gameScriptsModule = LoadLibraryA(runtimeDllPath.c_str());
 
-    DEBUG_LOG("[ModuleScripts] Loaded %s", dllPath.c_str());
+    if (m_gameScriptsModule == nullptr)
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to load %s", runtimeDllPath.c_str());
+        return false;
+    }
+
+    m_loadedDllPath = runtimeDllPath;
+
+    DEBUG_LOG("[ModuleScripts] Loaded %s", runtimeDllPath.c_str());
 
     return true;
 }
@@ -61,6 +69,31 @@ bool ModuleScripts::unloadGameScriptsDll()
 
     m_gameScriptsModule = nullptr;
     m_loadedDllPath.clear();
+
+    return true;
+}
+
+std::string ModuleScripts::buildRuntimeDllPath()
+{
+    ++m_reloadVersion;
+
+    return "GameScripts_runtime_" + std::to_string(m_reloadVersion) + ".dll";
+}
+
+bool ModuleScripts::copySourceDllToRuntimeDll(const std::string& sourceDllPath, const std::string& runtimeDllPath)
+{
+    try
+    {
+        std::filesystem::copy_file(sourceDllPath, runtimeDllPath, std::filesystem::copy_options::overwrite_existing);
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to copy %s to %s. Error: %s", sourceDllPath.c_str(), runtimeDllPath.c_str(), e.what());
+
+        return false;
+    }
+
+    DEBUG_LOG("[ModuleScripts] Copied %s to %s", sourceDllPath.c_str(), runtimeDllPath.c_str());
 
     return true;
 }
