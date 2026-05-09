@@ -8,6 +8,7 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
+#include "Quadtree.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -789,6 +790,36 @@ namespace SceneAPI
         }
 		return result;
     }
+
+    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive)
+    {
+		std::vector<GameObject*> candidates = app->getModuleScene()->getQuadtree()->queryInArea(center, radius);
+
+        std::vector<GameObject*> result;
+        for (GameObject* candidate : candidates)
+        {
+            if (onlyActive && !candidate->IsActiveInWindowHierarchy())
+            {
+                continue;
+            }
+
+            Transform* transform = candidate->GetTransform();
+            if (!transform)
+            {
+                continue;
+            }
+
+            Vector2 candidatePosition(transform->getPosition().x, transform->getPosition().z);
+            float distanceSquared = (candidatePosition - center).LengthSquared();
+            if (distanceSquared <= radius * radius)
+            {
+                result.push_back(candidate);
+            }
+        }
+
+		return result;
+    }
+
     GameObject* getDefaultCameraGameObject()
     {
         if (!app || !app->getModuleScene())
