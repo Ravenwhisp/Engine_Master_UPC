@@ -20,10 +20,5 @@ public:
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
-    void fixReferences(const SceneReferenceResolver& snapshot) override;
-
-private:
-    UIButton* m_uiButton = nullptr;
-    UID m_uiButtonUid = 0;
-    DelegateHandle m_onClickHandle;
+    
 };

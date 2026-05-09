@@ -27,11 +27,39 @@ std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
 	cloned->m_pressedTextureAssetId = m_pressedTextureAssetId;
 	cloned->m_isHovered = m_isHovered;
 	cloned->m_isPressed = m_isPressed;
+	cloned->m_isSelected = m_isSelected;
+
+	cloned->m_navUp = m_navUp;
+	cloned->m_navDown = m_navDown;
+	cloned->m_navLeft = m_navLeft;
+	cloned->m_navRight = m_navRight;
+	cloned->m_navUpUid = m_navUpUid;
+	cloned->m_navDownUid = m_navDownUid;
+	cloned->m_navLeftUid = m_navLeftUid;
+	cloned->m_navRightUid = m_navRightUid;
 	cloned->m_bindingsOnHover = m_bindingsOnHover;
 	cloned->m_bindingsOnPress = m_bindingsOnPress;
 	cloned->m_bindingsOnRelease = m_bindingsOnRelease;
 
 	return cloned;
+}
+
+void UIButton::onSelect()
+{
+	if (!isActive()) return;
+	if (m_isSelected) return;
+	m_isSelected = true;
+	m_isHovered = true;
+	applyCurrentStateTexture();
+}
+
+void UIButton::onDeselect()
+{
+	if (!m_isSelected) return;
+	m_isSelected = false;
+	m_isHovered = false;
+	m_isPressed = false;
+	applyCurrentStateTexture();
 }
 
 void UIButton::setTargetGraphic(UIImage* img)
@@ -128,25 +156,10 @@ void UIButton::onPointerUp(PointerEventData&)
 {
 	m_isPressed = false;
 	applyCurrentStateTexture();
-	if (m_isHovered)
+	if (m_isSelected)
 	{
 		executeBindings(m_bindingsOnRelease);
 	}
-}
-
-void UIButton::onPointerClick(PointerEventData&)
-{
-	if (m_isHovered)
-	{
-		press();
-	}
-}
-
-void UIButton::press()
-{
-	if (!isActive()) return;
-
-	onClick.Broadcast();
 }
 
 void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
@@ -289,6 +302,41 @@ void UIButton::drawUi()
 			applyCurrentStateTexture();
 		}
 	}
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Navigation (Explicit)");
+
+	auto drawNavSlot = [&](const char* label, UIButton*& ref, UID& refUid)
+	{
+		ImGui::Button(label);
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+			{
+				Component* comp = *(Component**)payload->Data;
+				if (comp && comp->getType() == ComponentType::UIBUTTON)
+				{
+					ref = static_cast<UIButton*>(comp);
+					refUid = ref ? ref->getID() : 0;
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+		ImGui::SameLine();
+		ImGui::Text("%s", ref ? ref->getOwner()->GetName().c_str() : "None");
+		ImGui::SameLine();
+		std::string clearLabel = std::string("Clear##") + label;
+		if (ImGui::SmallButton(clearLabel.c_str()))
+		{
+			ref = nullptr;
+			refUid = 0;
+		}
+	};
+
+	drawNavSlot("Up", m_navUp, m_navUpUid);
+	drawNavSlot("Down", m_navDown, m_navDownUid);
+	drawNavSlot("Left", m_navLeft, m_navLeftUid);
+	drawNavSlot("Right", m_navRight, m_navRightUid);
 
 	ImGui::Separator();
 
@@ -566,6 +614,11 @@ rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
 	json.AddMember("HoverTextureAssetId", rapidjson::Value(m_hoverTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 	json.AddMember("PressedTextureAssetId", rapidjson::Value(m_pressedTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
+	json.AddMember("NavUpUID", (uint64_t)m_navUpUid, domTree.GetAllocator());
+	json.AddMember("NavDownUID", (uint64_t)m_navDownUid, domTree.GetAllocator());
+	json.AddMember("NavLeftUID", (uint64_t)m_navLeftUid, domTree.GetAllocator());
+	json.AddMember("NavRightUID", (uint64_t)m_navRightUid, domTree.GetAllocator());
+
 	rapidjson::Value hoverArray(rapidjson::kArrayType);
 	rapidjson::Value pressArray(rapidjson::kArrayType);
 	rapidjson::Value releaseArray(rapidjson::kArrayType);
@@ -673,7 +726,31 @@ bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
 		m_pressedTextureAssetId = INVALID_ASSET_ID;
 	}
 
+	if (componentInfo.HasMember("NavUpUID"))
+		m_navUpUid = (UID)componentInfo["NavUpUID"].GetUint64();
+	else
+		m_navUpUid = 0;
+
+	if (componentInfo.HasMember("NavDownUID"))
+		m_navDownUid = (UID)componentInfo["NavDownUID"].GetUint64();
+	else
+		m_navDownUid = 0;
+
+	if (componentInfo.HasMember("NavLeftUID"))
+		m_navLeftUid = (UID)componentInfo["NavLeftUID"].GetUint64();
+	else
+		m_navLeftUid = 0;
+
+	if (componentInfo.HasMember("NavRightUID"))
+		m_navRightUid = (UID)componentInfo["NavRightUID"].GetUint64();
+	else
+		m_navRightUid = 0;
+
 	m_targetGraphic = nullptr;
+	m_navUp = nullptr;
+	m_navDown = nullptr;
+	m_navLeft = nullptr;
+	m_navRight = nullptr;
 
 	if (componentInfo.HasMember("OnHover"))
 	{
@@ -779,6 +856,15 @@ void UIButton::fixReferences(const SceneReferenceResolver& resolver)
 	{
 		ResolveBinding(b, resolver);
 	}
+
+	if (m_navUpUid != 0)
+		m_navUp = static_cast<UIButton*>(resolver.getClonedComponent(m_navUpUid));
+	if (m_navDownUid != 0)
+		m_navDown = static_cast<UIButton*>(resolver.getClonedComponent(m_navDownUid));
+	if (m_navLeftUid != 0)
+		m_navLeft = static_cast<UIButton*>(resolver.getClonedComponent(m_navLeftUid));
+	if (m_navRightUid != 0)
+		m_navRight = static_cast<UIButton*>(resolver.getClonedComponent(m_navRightUid));
 }
 
 #pragma endregion

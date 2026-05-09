@@ -27,6 +27,13 @@ public:
     void setPlayerBinding(int player, DeviceType deviceType, int deviceIndex = 0);
     PlayerBinding getPlayerBinding(int player) const;
 
+    SDL_Gamepad* getSDLGamepad(int player) const
+    {
+        if (player < 0 || player >= MAX_GAMEPADS)
+            return nullptr;
+        return m_sdlGamepads[player];
+    }
+
 #pragma region Keyboard
     bool isKeyDown(Keyboard::Keys key);
     bool isKeyJustPressed(Keyboard::Keys key) const;

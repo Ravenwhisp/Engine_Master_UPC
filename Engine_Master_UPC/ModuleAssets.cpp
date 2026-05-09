@@ -607,7 +607,7 @@ bool ModuleAssets::savePrefab(GameObject* go, const fs::path& savePath)
 
 bool ModuleAssets::applyPrefab(const GameObject* go)
 {
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (!info.isInstance()) return false;
 
     if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
@@ -635,7 +635,7 @@ bool ModuleAssets::applyPrefab(const GameObject* go)
 
 bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 {
-    PrefabInfo& info = go->GetPrefabInfo();
+    PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (!info.isInstance()) return false;
 
     Document doc;
@@ -655,6 +655,28 @@ bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 
     const Value& goNode = doc["GameObject"];
     const PrefabOverrideRecord savedOverrides = info.m_overrides;
+    // Sentinel key -1 holds GameObject-level property overrides (name, active, tag, layer)
+    const int goLevelKey = -1;
+    auto goOit = savedOverrides.m_modifiedProperties.find(goLevelKey);
+    const auto* goOverrideSet = (goOit != savedOverrides.m_modifiedProperties.end())
+        ? &goOit->second : nullptr;
+    auto isGoOverridden = [&](const char* prop)
+        { return goOverrideSet && goOverrideSet->count(prop) > 0; };
+
+    if (!isGoOverridden("name") && goNode.HasMember("Name") && goNode["Name"].IsString())
+        go->SetName(goNode["Name"].GetString());
+
+    if (!isGoOverridden("active") && goNode.HasMember("Active") && goNode["Active"].IsBool())
+        go->SetActive(goNode["Active"].GetBool());
+
+    // Tag and Layer are not currently written by PrefabSerializer::serialiseNodeInto,
+    // so we only restore them if the JSON actually has them.
+    if (!isGoOverridden("tag") && goNode.HasMember("Tag") && goNode["Tag"].IsString())
+        go->SetTag(StringToTag(goNode["Tag"].GetString()));
+
+    if (!isGoOverridden("layer") && goNode.HasMember("Layer") && goNode["Layer"].IsString())
+        go->SetLayer(StringToLayer(goNode["Layer"].GetString()));
+
     const int transformType = static_cast<int>(ComponentType::TRANSFORM);
 
     if (goNode.HasMember("Transform") && goNode["Transform"].IsObject())
@@ -688,19 +710,35 @@ bool ModuleAssets::revertPrefab(GameObject* go, Scene* scene)
 
     if (goNode.HasMember("Components") && goNode["Components"].IsArray())
     {
+        // Build an ordered list of all components per type, matching serialization order
+        std::unordered_map<int, std::vector<Component*>> componentsByType;
+        for (Component* comp : go->GetAllComponents())
+        {
+            componentsByType[static_cast<int>(comp->getType())].push_back(comp);
+        }
+        // Track how many of each type 
+        std::unordered_map<int, size_t> typeIndex;
+
         for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
         {
             const Value& cn = goNode["Components"][i];
             if (!cn.HasMember("Type") || !cn.HasMember("Data")) continue;
 
             const int ct = cn["Type"].GetInt();
+
+            // Skip if this component type is overridden on this instance
             auto oit = savedOverrides.m_modifiedProperties.find(ct);
             if (oit != savedOverrides.m_modifiedProperties.end()
                 && oit->second.count("properties") > 0)
                 continue;
 
-            Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
-            if (comp) comp->deserializeJSON(cn["Data"]);
+            auto& comps = componentsByType[ct];
+            size_t& idx = typeIndex[ct];
+            if (idx < comps.size())
+            {
+                comps[idx]->deserializeJSON(cn["Data"]);
+                ++idx;
+            }
         }
     }
 
@@ -747,7 +785,7 @@ GameObject* ModuleAssets::spawnPrefab(const PrefabAsset& asset, Scene* scene)
     if (!go) return nullptr;
 
     const auto& data = asset.getData();
-    PrefabInfo& info = go->GetPrefabInfo();
+    PrefabInstanceInfo& info = go->GetPrefabInfo();
     info.m_sourcePath = data.m_sourcePath;
     info.m_assetUID = data.m_assetUID;
 

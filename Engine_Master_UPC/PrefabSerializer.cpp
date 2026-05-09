@@ -67,8 +67,10 @@ void PrefabSerializer::serialiseNodeInto(const GameObject* go, Value& out, Docum
     out.SetObject();
     out.AddMember("Name", Value(go->GetName().c_str(), alloc), alloc);
     out.AddMember("Active", go->GetActive(), alloc);
+    out.AddMember("Tag", Value(TagToString(go->GetTag()), alloc), alloc);
+    out.AddMember("Layer", Value(LayerToString(go->GetLayer()), alloc), alloc);
 
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (info.isInstance())
     {
         Value prefabLink(kObjectType);
@@ -174,7 +176,7 @@ void PrefabSerializer::buildDocumentHeader(Document& doc, const GameObject* go, 
     doc.AddMember("Name", Value(name.c_str(), alloc), alloc);
     doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
 
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (info.isInstance() && info.m_sourcePath != savePath)
         doc.AddMember("VariantOf", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
 }
@@ -205,7 +207,11 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
 
     go->SetName(node.HasMember("Name") ? node["Name"].GetString() : "Unnamed");
     go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
+    if (node.HasMember("Tag") && node["Tag"].IsString())
+        go->SetTag(StringToTag(node["Tag"].GetString()));
 
+    if (node.HasMember("Layer") && node["Layer"].IsString())
+        go->SetLayer(StringToLayer(node["Layer"].GetString()));
     if (parent)
     {
         go->GetTransform()->setRoot(parent->GetTransform());
@@ -216,7 +222,7 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
     if (node.HasMember("PrefabLink") && node["PrefabLink"].IsObject())
     {
         const Value& pl = node["PrefabLink"];
-        PrefabInfo& info = go->GetPrefabInfo();
+        PrefabInstanceInfo& info = go->GetPrefabInfo();
         if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
             info.m_sourcePath = pl["SourcePath"].GetString();
         if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
