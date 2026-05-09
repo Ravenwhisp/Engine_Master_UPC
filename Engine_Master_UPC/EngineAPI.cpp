@@ -772,6 +772,23 @@ namespace SceneAPI
         return result;
     }
 
+    std::vector<GameObject*> getAllGameObjectsInScene(bool onlyActive)
+    {
+        std::vector<GameObject*> result;
+        if (!app || !app->getModuleScene())
+        {
+            return result;
+        }
+        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
+        {
+            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
+            {
+                continue;
+            }
+            result.push_back(gameObject);
+        }
+		return result;
+    }
     GameObject* getDefaultCameraGameObject()
     {
         if (!app || !app->getModuleScene())
