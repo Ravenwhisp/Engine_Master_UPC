@@ -62,12 +62,21 @@ bool ModuleEventSystem::init()
 
 void ModuleEventSystem::update()
 {
-    if (app->getModuleScene()->isPendingSceneLoad()) {
-        clearHoverState();
+    /*
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
         return;
-
     }
-    process();
+    */
+
+    if (app->getModuleScene()->isPendingSceneLoad())
+    {
+        clearHoverState();
+    }
+    else
+    {
+        process();
+    }
 }
 
 bool ModuleEventSystem::cleanUp()
@@ -219,7 +228,9 @@ void ModuleEventSystem::processNavigation()
 
 	ModuleInput* input = app->getModuleInput();
 	if (!input)
-		return;
+    {
+        return;
+    }
 
 	auto navPressed = [&](Keyboard::Keys key) { return input->isKeyJustPressed(key); };
 
@@ -231,7 +242,9 @@ void ModuleEventSystem::processNavigation()
 	const bool anyNav = up || down || left || right || submit;
 
     if (!anyNav)
+    {
         return;
+    }
 
 	if (!m_selected)
 	{
@@ -241,18 +254,33 @@ void ModuleEventSystem::processNavigation()
 		}
 	}
 
+    if (!m_selected)
+    {
+        return;
+    }
+
 	UIButton* btn = m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
 	if (!btn)
-		return;
+    {
+        return;
+    }
 
 	if (up && btn->getNavUp())
-		selectGameObject(btn->getNavUp()->getOwner());
+    {
+        selectGameObject(btn->getNavUp()->getOwner());
+    }
 	else if (down && btn->getNavDown())
-		selectGameObject(btn->getNavDown()->getOwner());
+    {
+        selectGameObject(btn->getNavDown()->getOwner());
+    }
 	else if (left && btn->getNavLeft())
-		selectGameObject(btn->getNavLeft()->getOwner());
+    {
+        selectGameObject(btn->getNavLeft()->getOwner());
+    }
 	else if (right && btn->getNavRight())
-		selectGameObject(btn->getNavRight()->getOwner());
+    {
+        selectGameObject(btn->getNavRight()->getOwner());
+    }
 
 	if (submit)
 	{
