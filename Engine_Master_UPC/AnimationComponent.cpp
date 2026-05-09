@@ -565,6 +565,15 @@ void AnimationComponent::drawStatesUi()
     if (defaultState != oldDefaultState)
     {
         m_stateMachineDirty = true;
+        resetRuntime();
+
+        if (m_playOnStart)
+        {
+            if (activateDefaultState(true, 0.0f))
+            {
+                m_hasStartedPlayback = true;
+            }
+        }
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -631,6 +640,15 @@ void AnimationComponent::drawStatesUi()
             {
                 defaultState = state.name;
                 m_stateMachineDirty = true;
+                resetRuntime();
+
+                if (m_playOnStart)
+                {
+                    if (activateDefaultState(true, 0.0f))
+                    {
+                        m_hasStartedPlayback = true;
+                    }
+                }
             }
 
             ImGui::SameLine();
@@ -928,15 +946,18 @@ const AnimationStateMachineState* AnimationComponent::findDefaultState() const
     if (!m_stateMachineAsset)
         return nullptr;
 
-    const std::string& defaultStateName = m_stateMachineAsset->getDefaultStateName();
-    if (!defaultStateName.empty())
-    {
-        return findStateByName(defaultStateName);
-    }
-
     const auto& states = m_stateMachineAsset->getStates();
     if (states.empty())
         return nullptr;
+
+    const std::string& defaultStateName = m_stateMachineAsset->getDefaultStateName();
+    if (!defaultStateName.empty())
+    {
+        if (const AnimationStateMachineState* state = findStateByName(defaultStateName))
+        {
+            return state;
+        }
+    }
 
     return &states.front();
 }
