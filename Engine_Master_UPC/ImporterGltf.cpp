@@ -35,8 +35,58 @@
 #include <algorithm>
 #include <cctype>
 #include <array>
+#include <system_error>
 
 static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
+
+static std::string toLowerString(std::string value)
+{
+    std::transform(value.begin(), value.end(), value.begin(),
+        [](unsigned char c)
+        {
+            return static_cast<char>(std::tolower(c));
+        });
+
+    return value;
+}
+
+static std::string getStableAssetPathString(const std::filesystem::path& sourcePath)
+{
+    namespace fs = std::filesystem;
+
+    fs::path normalizedSource = sourcePath.lexically_normal();
+    fs::path assetsRoot = fs::path(ASSETS_FOLDER).lexically_normal();
+
+    fs::path relativePath;
+
+    std::error_code ec;
+    relativePath = fs::relative(normalizedSource, assetsRoot, ec);
+
+    const std::string relativePathString = relativePath.generic_string();
+
+    if (ec || relativePath.empty() || relativePathString.rfind("../", 0) == 0 || relativePathString == "..")
+    {
+        relativePath = normalizedSource;
+    }
+    else
+    {
+        relativePath = assetsRoot.filename() / relativePath;
+    }
+
+    std::string stablePath = relativePath.generic_string();
+    stablePath = toLowerString(stablePath);
+
+    return stablePath;
+}
+
+static MD5Hash computeStableGltfSubAssetUID(
+    const std::filesystem::path& sourcePath,
+    const char* kind,
+    int index)
+{
+    const std::string stablePath = getStableAssetPathString(sourcePath);
+    return computeMD5(stablePath + "?" + kind + "=" + std::to_string(index));
+}
 
 static float getVec4Component(const Vector4& v, int index)
 {
@@ -289,7 +339,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     std::vector<MD5Hash> materialUIDs(model.materials.size(), INVALID_ASSET_ID);
     for (int i = 0; i < static_cast<int>(model.materials.size()); ++i)
     {
-        const MD5Hash matUID = computeMD5(m_currentFilePath->string() + "?mat=" + std::to_string(i));
+        const MD5Hash matUID = computeStableGltfSubAssetUID(*m_currentFilePath, "mat", i);
         MaterialAsset matAsset(matUID);
         loadMaterial(model, model.materials[i], &matAsset);
 
@@ -306,7 +356,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     std::vector<MD5Hash> meshUIDs(model.meshes.size(), INVALID_ASSET_ID);
     for (int i = 0; i < static_cast<int>(model.meshes.size()); ++i)
     {
-        const MD5Hash meshUID = computeMD5(m_currentFilePath->string() + "?mesh=" + std::to_string(i));
+        const MD5Hash meshUID = computeStableGltfSubAssetUID(*m_currentFilePath, "mesh", i);
         MeshAsset meshAsset(meshUID);
         for (const tinygltf::Primitive& prim : model.meshes[i].primitives)
         {
@@ -326,7 +376,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     // Animations (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
     {
-        const MD5Hash animUID = computeMD5(m_currentFilePath->string() + "?anim=" + std::to_string(i));
+        const MD5Hash animUID = computeStableGltfSubAssetUID(*m_currentFilePath, "anim", i);
 
         AnimationAsset animAsset(animUID);
         loadAnimation(model, model.animations[i], &animAsset);
@@ -347,7 +397,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     // Skins (as sub-assets)
     for (int i = 0; i < static_cast<int>(model.skins.size()); ++i)
     {
-        const MD5Hash skinUID = computeMD5(m_currentFilePath->string() + "?skin=" + std::to_string(i));
+        const MD5Hash skinUID = computeStableGltfSubAssetUID(*m_currentFilePath, "skin", i);
         skinUIDs[i] = skinUID;
 
         SkinAsset skinAsset(skinUID);
