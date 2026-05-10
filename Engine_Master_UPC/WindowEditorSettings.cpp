@@ -119,7 +119,7 @@ void WindowEditorSettings::drawScriptsSettings()
     {
         if (ImGui::Button("Reload Game Scripts"))
         {
-            app->getModuleScripts()->reloadGameScriptsDll();
+            app->getModuleScripts()->buildAndReloadGameScriptsDll();
         }
     }
 }
