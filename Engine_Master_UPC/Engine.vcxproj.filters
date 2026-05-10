@@ -466,6 +466,9 @@
     <ClCompile Include="ModuleScripts.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="PdbPatcher.cpp">
+      <Filter>Core\Scripting\Pdb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1124,6 +1127,9 @@
     <ClInclude Include="ModuleScripts.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="PdbPatcher.h">
+      <Filter>Core\Scripting\Pdb</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1307,6 +1313,9 @@
     </Filter>
     <Filter Include="Haptics">
       <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\Pdb">
+      <UniqueIdentifier>{057841f3-2051-4b71-8ab3-e4c77b810307}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

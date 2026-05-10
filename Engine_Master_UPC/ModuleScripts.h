@@ -51,7 +51,6 @@ private:
     std::string buildRuntimeDllPath(unsigned int version) const;
     std::string buildRuntimePdbPath(unsigned int version) const;
     bool copyFileToRuntimePath(const std::string& sourcePath, const std::string& runtimePath);
-    bool patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const std::string& runtimePdbPath);
 
     std::vector<ScriptReloadInfo> saveSceneScriptReloadInfo();
     void restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>& reloadInfos);

@@ -341,6 +341,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleScripts.h" />
     <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="OptickProfiler.h" />
+    <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="CommandMoveFile.h" />
     <ClInclude Include="CommandPasteFile.h" />
@@ -664,6 +665,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleScripts.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
