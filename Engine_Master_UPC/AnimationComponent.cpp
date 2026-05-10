@@ -1008,11 +1008,28 @@ void AnimationComponent::applyActiveStatePlaybackSpeed()
 
 void AnimationComponent::drawUi()
 {
-    ImGui::Text("State Machine: %s",
+    ImGui::SeparatorText("State Machine");
+
+    ImGui::Text("Current: %s",
         m_stateMachineUID == INVALID_ASSET_ID ? "<none>" : m_stateMachineUID.c_str());
 
-    ImGui::Text("Animation Source: %s",
-        m_animationSourceUID == INVALID_ASSET_ID ? "<auto / none>" : m_animationSourceUID.c_str());
+    if (m_stateMachineUID == INVALID_ASSET_ID)
+    {
+        ImGui::TextDisabled("No State Machine assigned. Create or load a .statemachine asset.");
+    }
+    else
+    {
+        ImGui::Text("Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
+    }
+
+    InputTextString("Existing State Machine", m_existingStateMachineNameInput);
+
+    if (ImGui::Button("Load Existing"))
+    {
+        loadAndAssignStateMachineAssetByName();
+    }
+
+    ImGui::SeparatorText("Create State Machine");
 
     InputTextString("New State Machine Name", m_newStateMachineNameInput);
 
@@ -1021,14 +1038,6 @@ void AnimationComponent::drawUi()
         createAndAssignStateMachineAssetFromSourceAnimations();
     }
 
-    InputTextString("Existing State Machine Name", m_existingStateMachineNameInput);
-
-    if (ImGui::Button("Load Existing"))
-    {
-        loadAndAssignStateMachineAssetByName();
-    }
-
-
     ImGui::SameLine();
 
     if (ImGui::Button("Create Empty"))
@@ -1036,8 +1045,10 @@ void AnimationComponent::drawUi()
         createAndAssignStateMachineAsset();
     }
 
+    ImGui::SeparatorText("State Machine Actions");
+
     ImGui::BeginDisabled(!m_stateMachineAsset);
-    if (ImGui::Button("Save State Machine"))
+    if (ImGui::Button("Save"))
     {
         saveStateMachineAsset();
     }
@@ -1046,7 +1057,7 @@ void AnimationComponent::drawUi()
     ImGui::SameLine();
 
     ImGui::BeginDisabled(m_stateMachineUID == INVALID_ASSET_ID);
-    if (ImGui::Button("Open State Machine Editor"))
+    if (ImGui::Button("Open Editor"))
     {
         ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
         WindowAnimationStateMachine* stateMachineWindow =
@@ -1060,17 +1071,65 @@ void AnimationComponent::drawUi()
     }
     ImGui::EndDisabled();
 
-    if (m_stateMachineUID == INVALID_ASSET_ID)
+    ImGui::SeparatorText("Playback");
+
+    ImGui::Text("Active State: %s", m_activeStateName.empty() ? "<none>" : m_activeStateName.c_str());
+    ImGui::Text("Playback: %s", m_controller.IsPlaying() ? "Playing" : "Stopped / Paused");
+
+    if (ImGui::Button("Play"))
     {
-        ImGui::TextDisabled("No State Machine assigned. Create or assign a .statemachine asset first.");
+        play();
     }
-    else
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Pause"))
     {
-        ImGui::Text("State Machine Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
+        pause();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Stop"))
+    {
+        stop();
+    }
+
+    ImGui::SeparatorText("Options");
+
+    ImGui::Checkbox("Play On Start", &m_playOnStart);
+    ImGui::Checkbox("Apply Scale", &m_applyScale);
+    ImGui::Checkbox("Force World Update", &m_forceWorldAfterApply);
+    ImGui::Checkbox("Debug Draw Hierarchy", &m_debugDrawHierarchy);
+
+    if (ImGui::CollapsingHeader("Triggers"))
+    {
+        char triggerBuffer[128];
+        std::strncpy(triggerBuffer, m_triggerInput.c_str(), sizeof(triggerBuffer));
+        triggerBuffer[sizeof(triggerBuffer) - 1] = '\0';
+
+        if (ImGui::InputText("Trigger", triggerBuffer, sizeof(triggerBuffer)))
+        {
+            m_triggerInput = triggerBuffer;
+        }
+
+        if (ImGui::Button("Send Trigger"))
+        {
+            sendTrigger(m_triggerInput);
+        }
     }
 
     if (ImGui::CollapsingHeader("Advanced Animation Debug"))
     {
+        ImGui::Text("Animation Source: %s",
+            m_animationSourceUID == INVALID_ASSET_ID ? "<auto / none>" : m_animationSourceUID.c_str());
+
+        ImGui::Text("Duration: %.3f", m_controller.GetDuration());
+        ImGui::Text("Current Time: %.3f", m_controller.GetTime());
+        ImGui::Text("Speed: %.3f", m_controller.GetSpeed());
+        ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
+        ImGui::Text("Transition Time: %.3f", m_currentTransitionTime);
+
         char uidBuffer[128];
         std::strncpy(uidBuffer, m_stateMachineUIDInput.c_str(), sizeof(uidBuffer));
         uidBuffer[sizeof(uidBuffer) - 1] = '\0';
@@ -1100,63 +1159,17 @@ void AnimationComponent::drawUi()
         }
     }
 
-    ImGui::Text("Active State: %s", m_activeStateName.empty() ? "<none>" : m_activeStateName.c_str());
-    ImGui::Text("Duration: %.3f", m_controller.GetDuration());
-    ImGui::Text("Current Time: %.3f", m_controller.GetTime());
-    ImGui::Text("Speed: %.3f", m_controller.GetSpeed());
-
-
-    ImGui::Checkbox("Play On Start", &m_playOnStart);
-    ImGui::Checkbox("Apply Scale", &m_applyScale);
-    ImGui::Checkbox("Force World Update", &m_forceWorldAfterApply);
-    ImGui::Checkbox("Debug Draw Hierarchy", &m_debugDrawHierarchy);
-
-    const char* stateText = m_controller.IsPlaying() ? "Playing" : "Stopped / Paused";
-    ImGui::Text("Playback: %s", stateText);
-
-    if (ImGui::Button("Play"))
+    if (ImGui::CollapsingHeader("Advanced / Inline StateMachine Editor"))
     {
-        play();
+        if (m_stateMachineUID != INVALID_ASSET_ID)
+        {
+            drawStateMachineResourceUi();
+        }
+        else
+        {
+            ImGui::TextDisabled("No State Machine assigned.");
+        }
     }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Pause"))
-    {
-        pause();
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Stop"))
-    {
-        stop();
-    }
-
-
-    // TEST
-    char triggerBuffer[128];
-    std::strncpy(triggerBuffer, m_triggerInput.c_str(), sizeof(triggerBuffer));
-    triggerBuffer[sizeof(triggerBuffer) - 1] = '\0';
-
-    if (ImGui::InputText("Trigger", triggerBuffer, sizeof(triggerBuffer)))
-    {
-        m_triggerInput = triggerBuffer;
-    }
-
-    if (ImGui::Button("Send Trigger"))
-    {
-        sendTrigger(m_triggerInput);
-    }
-
-    ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
-    ImGui::Text("Transition Time: %.3f", m_currentTransitionTime);
-
-    if (m_stateMachineUID != INVALID_ASSET_ID)
-    {
-        drawStateMachineResourceUi();
-    }
-
 }
 
 rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
