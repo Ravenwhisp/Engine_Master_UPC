@@ -9,6 +9,11 @@
 
 class ScriptComponent;
 
+struct ScriptBuildSettings
+{
+    std::string projectPath;
+};
+
 class ModuleScripts : public Module
 {
 public:
@@ -21,6 +26,9 @@ public:
     bool loadGameScriptsDll();
     bool unloadGameScriptsDll();
     bool reloadGameScriptsDll();
+
+    bool buildGameScriptsProject();
+    bool buildAndReloadGameScriptsDll();
 
     void instantiateSceneScripts();
     void destroySceneScripts();
@@ -44,7 +52,12 @@ private:
 
 private:
     HMODULE m_gameScriptsModule = nullptr;
-    std::string m_loadedDllPath;
 
+    static constexpr const char* SCRIPT_DLL_NAME = "GameScripts.dll";
+    static constexpr const char* RUNTIME_DLL_PREFIX = "GameScripts_runtime_";
+    static constexpr const char* SCRIPT_BUILD_CONFIGURATION = "Debug";
+    static constexpr const char* SCRIPT_BUILD_PLATFORM = "x64";
+
+    std::string m_loadedDllPath;
     unsigned int m_reloadVersion = 0;
 };

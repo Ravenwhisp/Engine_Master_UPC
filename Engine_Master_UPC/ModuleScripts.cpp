@@ -31,7 +31,7 @@ bool ModuleScripts::loadGameScriptsDll()
         return true;
     }
 
-    const std::string sourceDllPath = "GameScripts.dll";
+    const std::string sourceDllPath = SCRIPT_DLL_NAME;
     const std::string runtimeDllPath = buildRuntimeDllPath();
 
     if (!copySourceDllToRuntimeDll(sourceDllPath, runtimeDllPath))
@@ -110,6 +110,16 @@ bool ModuleScripts::reloadGameScriptsDll()
     return true;
 }
 
+bool ModuleScripts::buildGameScriptsProject()
+{
+    return false;
+}
+
+bool ModuleScripts::buildAndReloadGameScriptsDll()
+{
+    return false;
+}
+
 void ModuleScripts::instantiateSceneScripts()
 {
     const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
@@ -155,7 +165,7 @@ std::string ModuleScripts::buildRuntimeDllPath()
 {
     ++m_reloadVersion;
 
-    return "GameScripts_runtime_" + std::to_string(m_reloadVersion) + ".dll";
+    return std::string(RUNTIME_DLL_PREFIX) + std::to_string(m_reloadVersion) + ".dll";
 }
 
 bool ModuleScripts::copySourceDllToRuntimeDll(const std::string& sourceDllPath, const std::string& runtimeDllPath)
