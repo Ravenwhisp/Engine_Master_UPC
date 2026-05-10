@@ -6,8 +6,12 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "Texture.h"
+#include "GameObject.h"
 
-ParticleSystemComponent::ParticleSystemComponent(UID id, GameObject* owner) : Component(id, ComponentType::PARTICLE_SYSTEM, owner) {}
+ParticleSystemComponent::ParticleSystemComponent(UID id, GameObject* owner) : Component(id, ComponentType::PARTICLE_SYSTEM, owner) 
+{
+    m_previousPosition = m_owner->GetTransform()->getPosition();
+}
 
 std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) const
 {
@@ -58,6 +62,11 @@ void ParticleSystemComponent::drawUi()
 
     ImGui::SameLine();
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
+}
+
+void ParticleSystemComponent::update()
+{
+    m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position (maybe after threating particles?)
 }
 
 rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)

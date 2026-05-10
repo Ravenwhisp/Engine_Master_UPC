@@ -1,6 +1,6 @@
 #pragma once
 
-class ParticleEmitter;
+class EmitterInstance;
 
 // Update when needed
 enum class ParticleModuleType {
@@ -8,7 +8,8 @@ enum class ParticleModuleType {
 	BASE,
 	SPAWN,
 	COLOR,
-	LIFETIME
+	LIFETIME,
+	VELOCITY
 };
 
 class ParticleModule
@@ -18,13 +19,13 @@ public:
 
 	ParticleModule(ParticleModuleType type) : m_moduleType(type) {}
 
-	virtual void spawn(ParticleEmitter*) { return; }
-	virtual void update(ParticleEmitter*) { return; }
+	virtual void spawn(EmitterInstance* particleData) { return; }
+	virtual void update(EmitterInstance* particleData) { return; }
 
 	ParticleModuleType getType() { return m_moduleType; }
 
 private:
 
-	ParticleModuleType m_moduleType;
+	const ParticleModuleType m_moduleType;
 };
 

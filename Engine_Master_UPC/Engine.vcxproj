@@ -307,7 +307,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DeviceType.h" />
     <ClInclude Include="CommandDeleteAsset.h" />
     <ClInclude Include="CommandDeleteFolder.h" />
+    <ClInclude Include="EmitterColor.h" />
     <ClInclude Include="EmitterInstance.h" />
+    <ClInclude Include="EmitterLifetime.h" />
+    <ClInclude Include="EmitterVelocity.h" />
     <ClInclude Include="EngineAPI.h" />
     <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
@@ -344,7 +347,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ParticlesPass.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="ParticleSystemComponent.h" />
-    <ClInclude Include="ParticleSystemModule.h" />
+    <ClInclude Include="ModuleParticleSystem.h" />
     <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="CommandMoveFile.h" />
     <ClInclude Include="CommandPasteFile.h" />
@@ -642,7 +645,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
+    <ClCompile Include="EmitterColor.cpp" />
     <ClCompile Include="EmitterInstance.cpp" />
+    <ClCompile Include="EmitterLifetime.cpp" />
+    <ClCompile Include="EmitterVelocity.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
@@ -667,7 +673,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ParticlesPass.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="ParticleSystemComponent.cpp" />
-    <ClCompile Include="ParticleSystemModule.cpp" />
+    <ClCompile Include="ModuleParticleSystem.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
     <ClCompile Include="CommandPasteFile.cpp" />

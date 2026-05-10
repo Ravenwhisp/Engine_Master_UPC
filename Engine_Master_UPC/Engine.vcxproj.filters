@@ -433,16 +433,13 @@
     <ClCompile Include="ParticlesPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleModule.cpp">
-      <Filter>ParticleSystem</Filter>
-    </ClCompile>
     <ClCompile Include="ParticleEmitter.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
     <ClCompile Include="ModuleRender.cpp">
       <Filter>D3D12\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleSystemModule.cpp">
+    <ClCompile Include="ModuleParticleSystem.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
@@ -451,6 +448,16 @@
     <ClCompile Include="EmitterInstance.cpp">
       <Filter>ParticleSystem</Filter>
     </ClCompile>
+    <ClCompile Include="EmitterLifetime.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleModule.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterColor.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterVelocity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1099,13 +1106,10 @@
     <ClInclude Include="ParticlesPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleModule.h">
-      <Filter>ParticleSystem</Filter>
-    </ClInclude>
     <ClInclude Include="ParticleEmitter.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleSystemModule.h">
+    <ClInclude Include="ModuleParticleSystem.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystem.h">
@@ -1114,6 +1118,16 @@
     <ClInclude Include="EmitterInstance.h">
       <Filter>ParticleSystem</Filter>
     </ClInclude>
+    <ClInclude Include="EmitterLifetime.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleModule.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterColor.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterVelocity.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1294,6 +1308,9 @@
     </Filter>
     <Filter Include="ParticleSystem">
       <UniqueIdentifier>{bb687942-694d-4f64-b44d-f6636214e378}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ParticleSystem\Properties">
+      <UniqueIdentifier>{8be1fc98-4b7a-45b0-a5a2-8c211b271905}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

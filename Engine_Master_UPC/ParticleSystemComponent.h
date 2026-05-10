@@ -28,7 +28,11 @@ public:
 
     bool hasTexture() const { return m_texture != nullptr; }
 
+    const Vector3& getPreviousPosition() const { return m_previousPosition; }
+
     void drawUi() override;
+
+    void update() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
@@ -43,5 +47,7 @@ private:
 
     std::shared_ptr<ParticleSystem> m_particleSystem;
     std::vector<EmitterInstance> m_particlesState;
+
+    Vector3 m_previousPosition; // maybe move this to the Transform?
 };
 
