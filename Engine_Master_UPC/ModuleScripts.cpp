@@ -14,14 +14,31 @@
 #include <filesystem>
 #include <fstream>
 
+namespace
+{
+    std::string trim(const std::string& value)
+    {
+        const size_t first = value.find_first_not_of(" \t\r\n");
+
+        if (first == std::string::npos)
+        {
+            return "";
+        }
+
+        const size_t last = value.find_last_not_of(" \t\r\n");
+
+        return value.substr(first, last - first + 1);
+    }
+}
+
 ModuleScripts::ModuleScripts()
 {
-    m_buildSettings.projectPath = "C:\\ReposVS\\Engine_Master_UPC\\GameScripts\\GameScripts.vcxproj";
-    m_buildSettings.solutionDir = "C:\\ReposVS\\Engine_Master_UPC\\Engine_Master_UPC\\";
 }
 
 bool ModuleScripts::init()
 {
+    loadScriptBuildSettings();
+
     return loadGameScriptsDll();
 }
 
@@ -116,6 +133,106 @@ void ModuleScripts::destroySceneScripts()
     }
 }
 
+bool ModuleScripts::loadScriptBuildSettings()
+{
+    std::ifstream file(SCRIPT_BUILD_SETTINGS_FILE);
+
+    if (!file.is_open())
+    {
+        DEBUG_WARN("[ModuleScripts] Script build settings file not found: %s", SCRIPT_BUILD_SETTINGS_FILE);
+        return false;
+    }
+
+    bool insideScriptBuildSection = false;
+
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        line = trim(line);
+
+        if (line.empty())
+        {
+            continue;
+        }
+
+        if (line[0] == ';' || line[0] == '#')
+        {
+            continue;
+        }
+
+        if (line.front() == '[' && line.back() == ']')
+        {
+            const std::string sectionName = trim(line.substr(1, line.size() - 2));
+            insideScriptBuildSection = sectionName == "ScriptBuild";
+            continue;
+        }
+
+        if (!insideScriptBuildSection)
+        {
+            continue;
+        }
+
+        const size_t equalsPosition = line.find('=');
+
+        if (equalsPosition == std::string::npos)
+        {
+            continue;
+        }
+
+        const std::string key = trim(line.substr(0, equalsPosition));
+        const std::string value = trim(line.substr(equalsPosition + 1));
+
+        if (key == "ProjectPath")
+        {
+            m_buildSettings.projectPath = value;
+        }
+        else if (key == "SolutionDir")
+        {
+            m_buildSettings.solutionDir = value;
+        }
+    }
+
+    if (m_buildSettings.projectPath.empty())
+    {
+        DEBUG_WARN("[ModuleScripts] Script build ProjectPath is empty.");
+        return false;
+    }
+
+    if (m_buildSettings.solutionDir.empty())
+    {
+        DEBUG_WARN("[ModuleScripts] Script build SolutionDir is empty.");
+        return false;
+    }
+
+    DEBUG_LOG("[ModuleScripts] Script build settings loaded.");
+    DEBUG_LOG("[ModuleScripts] ProjectPath: %s", m_buildSettings.projectPath.c_str());
+    DEBUG_LOG("[ModuleScripts] SolutionDir: %s", m_buildSettings.solutionDir.c_str());
+
+    return true;
+}
+
+bool ModuleScripts::saveScriptBuildSettings() const
+{
+    std::ofstream file(SCRIPT_BUILD_SETTINGS_FILE, std::ios::trunc);
+
+    if (!file.is_open())
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to create script build settings file: %s", SCRIPT_BUILD_SETTINGS_FILE);
+        return false;
+    }
+
+    file << "[ScriptBuild]\n";
+    file << "ProjectPath=" << m_buildSettings.projectPath << "\n";
+    file << "SolutionDir=" << m_buildSettings.solutionDir << "\n";
+
+    file.close();
+
+    DEBUG_LOG("[ModuleScripts] Script build settings saved to %s", SCRIPT_BUILD_SETTINGS_FILE);
+
+    return true;
+}
+
 bool ModuleScripts::loadGameScriptsDll()
 {
     if (m_gameScriptsModule != nullptr)
@@ -208,14 +325,55 @@ bool ModuleScripts::buildGameScriptsProject()
         return false;
     }
 
-    const std::string msbuildExe =
-        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe";
+    const std::filesystem::path projectPath = m_buildSettings.projectPath;
+    const std::filesystem::path solutionDir = m_buildSettings.solutionDir;
+
+    if (!std::filesystem::exists(projectPath) || !std::filesystem::is_regular_file(projectPath))
+    {
+        DEBUG_ERROR("[ModuleScripts] Script project path is invalid: %s", projectPath.string().c_str());
+        return false;
+    }
+
+    if (projectPath.extension() != ".vcxproj")
+    {
+        DEBUG_ERROR("[ModuleScripts] Script project path must point to a .vcxproj file: %s", projectPath.string().c_str());
+        return false;
+    }
+
+    if (!std::filesystem::exists(solutionDir) || !std::filesystem::is_directory(solutionDir))
+    {
+        DEBUG_ERROR("[ModuleScripts] Script solution directory is invalid: %s", solutionDir.string().c_str());
+        return false;
+    }
+
+    // Temporary safety validation while the build-settings system is stabilizing.
+    // This prevents MSBuild from running with a wrong-but-existing SolutionDir.
+    const std::filesystem::path expectedRapidJsonPath = solutionDir / "3rdParty" / "rapidjson" / "include";
+
+    if (!std::filesystem::exists(expectedRapidJsonPath))
+    {
+        DEBUG_ERROR("[ModuleScripts] Script solution directory seems invalid. Could not find: %s",
+            expectedRapidJsonPath.string().c_str());
+        return false;
+    }
+
+    const std::string msbuildExe = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe";
+
+    if (!std::filesystem::exists(msbuildExe))
+    {
+        DEBUG_ERROR("[ModuleScripts] MSBuild.exe not found: %s", msbuildExe.c_str());
+        return false;
+    }
 
     const std::string buildBatPath = "ScriptsBuild.bat";
     const std::string buildLogPath = "ScriptsBuild.log";
 
+    DEBUG_LOG("[ModuleScripts] Building script project.");
+    DEBUG_LOG("[ModuleScripts] ProjectPath: %s", projectPath.string().c_str());
+    DEBUG_LOG("[ModuleScripts] SolutionDir: %s", solutionDir.string().c_str());
+
     {
-        std::ofstream buildBat(buildBatPath);
+        std::ofstream buildBat(buildBatPath, std::ios::trunc);
 
         if (!buildBat.is_open())
         {
@@ -225,10 +383,10 @@ bool ModuleScripts::buildGameScriptsProject()
 
         buildBat << "@echo off\n";
         buildBat << "\"" << msbuildExe << "\" "
-            << "\"" << m_buildSettings.projectPath << "\" "
+            << "\"" << projectPath.string() << "\" "
             << "/p:Configuration=" << SCRIPT_BUILD_CONFIGURATION << " "
             << "/p:Platform=" << SCRIPT_BUILD_PLATFORM << " "
-            << "/p:SolutionDir=" << m_buildSettings.solutionDir << "\n";
+            << "/p:SolutionDir=" << solutionDir.string() << "\n";
 
         buildBat << "exit /b %ERRORLEVEL%\n";
     }
@@ -236,7 +394,6 @@ bool ModuleScripts::buildGameScriptsProject()
     const std::string command =
         "cmd /C " + buildBatPath + " > " + buildLogPath + " 2>&1";
 
-    DEBUG_LOG("[ModuleScripts] Building script project: %s", m_buildSettings.projectPath.c_str());
     DEBUG_LOG("[ModuleScripts] Build command: %s", command.c_str());
 
     const int result = std::system(command.c_str());

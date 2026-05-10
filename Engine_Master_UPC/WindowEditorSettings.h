@@ -1,6 +1,8 @@
 #pragma once
 #include "EditorWindow.h"
 
+#include <array>
+
 class Settings;
 
 class WindowEditorSettings : public EditorWindow
@@ -9,7 +11,6 @@ class WindowEditorSettings : public EditorWindow
 public:
 
     WindowEditorSettings();
-
     ~WindowEditorSettings() override = default;
 
     const char* getWindowName() const override
@@ -20,16 +21,16 @@ public:
     void drawInternal() override;
 
 private:
-
     void drawEngineInformation();
-
     void drawCameraSettings();
-
     void drawSceneSettings();
-
     void drawFrustumCullingSettings();
-
     void drawScriptsSettings();
 
+private:
     Settings* m_settings = nullptr;
+
+    std::array<char, 512> m_scriptProjectPathBuffer = {};
+    std::array<char, 512> m_scriptSolutionDirBuffer = {};
+    bool m_scriptBuildSettingsSynced = false;
 };

@@ -115,11 +115,49 @@ void WindowEditorSettings::drawFrustumCullingSettings()
 
 void WindowEditorSettings::drawScriptsSettings()
 {
-    if (ImGui::CollapsingHeader("Scripts Reloading"))
+    if (!ImGui::CollapsingHeader("Scripts Reloading"))
     {
-        if (ImGui::Button("Reload Game Scripts"))
-        {
-            app->getModuleScripts()->buildAndReloadGameScriptsDll();
-        }
+        return;
+    }
+
+    ModuleScripts* moduleScripts = app->getModuleScripts();
+
+    ScriptBuildSettings& buildSettings = moduleScripts->getScriptBuildSettings();
+
+    if (!m_scriptBuildSettingsSynced)
+    {
+        std::strncpy(m_scriptProjectPathBuffer.data(), buildSettings.projectPath.c_str(), m_scriptProjectPathBuffer.size());
+
+        m_scriptProjectPathBuffer[m_scriptProjectPathBuffer.size() - 1] = '\0';
+
+        std::strncpy(m_scriptSolutionDirBuffer.data(), buildSettings.solutionDir.c_str(), m_scriptSolutionDirBuffer.size());
+
+        m_scriptSolutionDirBuffer[m_scriptSolutionDirBuffer.size() - 1] = '\0';
+
+        m_scriptBuildSettingsSynced = true;
+    }
+
+    ImGui::TextUnformatted("Script Build Settings");
+
+    ImGui::InputText("Project Path", m_scriptProjectPathBuffer.data(), m_scriptProjectPathBuffer.size());
+
+    ImGui::InputText("Solution Dir", m_scriptSolutionDirBuffer.data(), m_scriptSolutionDirBuffer.size());
+
+    if (ImGui::Button("Save Script Build Settings"))
+    {
+        buildSettings.projectPath = m_scriptProjectPathBuffer.data();
+        buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
+
+        moduleScripts->saveScriptBuildSettings();
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Build & Reload Game Scripts"))
+    {
+        buildSettings.projectPath = m_scriptProjectPathBuffer.data();
+        buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
+
+        moduleScripts->buildAndReloadGameScriptsDll();
     }
 }

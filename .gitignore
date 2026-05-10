@@ -13,6 +13,7 @@ Engine_OUT/Engine.lib
 Engine_OUT/GameScripts.dll
 Engine_OUT/imgui.ini
 Engine_OUT/editor_windows.ini
+Engine_OUT/script_build_settings.ini
 
 export
 

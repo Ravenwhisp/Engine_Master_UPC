@@ -30,6 +30,9 @@ public:
     void instantiateSceneScripts();
     void destroySceneScripts();
 
+    bool loadScriptBuildSettings();
+    bool saveScriptBuildSettings() const;
+
     ScriptBuildSettings& getScriptBuildSettings() { return m_buildSettings; }
     const ScriptBuildSettings& getScriptBuildSettings() const { return m_buildSettings; }
 
@@ -67,6 +70,7 @@ private:
     static constexpr const char* SCRIPT_PDB_NAME = "GameScripts.pdb";
     static constexpr const char* SCRIPT_BUILD_CONFIGURATION = "Debug";
     static constexpr const char* SCRIPT_BUILD_PLATFORM = "x64";
+    static constexpr const char* SCRIPT_BUILD_SETTINGS_FILE = "script_build_settings.ini";
 
     ScriptBuildSettings m_buildSettings;
 
