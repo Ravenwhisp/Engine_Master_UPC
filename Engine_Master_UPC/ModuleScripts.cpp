@@ -27,7 +27,11 @@ bool ModuleScripts::init()
 
 bool ModuleScripts::cleanUp()
 {
-    return unloadGameScriptsDll();
+    const bool unloaded = unloadGameScriptsDll();
+
+    cleanRuntimeScriptFiles();
+
+    return unloaded;
 }
 
 bool ModuleScripts::buildAndReloadGameScriptsDll()
@@ -248,6 +252,46 @@ bool ModuleScripts::buildGameScriptsProject()
     DEBUG_LOG("[ModuleScripts] Build output written to %s", buildLogPath.c_str());
 
     return true;
+}
+
+bool ModuleScripts::isRuntimeScriptFile(const std::filesystem::directory_entry& entry) const
+{
+    if (!entry.is_regular_file())
+    {
+        return false;
+    }
+
+    const std::string fileName = entry.path().filename().string();
+
+    const bool isRuntimeDll = fileName.rfind(RUNTIME_DLL_PREFIX, 0) == 0 && entry.path().extension() == ".dll";
+
+    const bool isRuntimePdb = fileName.rfind("GS_", 0) == 0 && entry.path().extension() == ".pdb";
+
+    return isRuntimeDll || isRuntimePdb;
+}
+
+void ModuleScripts::cleanRuntimeScriptFiles()
+{
+    const std::filesystem::path outputDirectory = ".";
+
+    try
+    {
+        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(outputDirectory))
+        {
+            if (!isRuntimeScriptFile(entry))
+            {
+                continue;
+            }
+
+            std::filesystem::remove(entry.path());
+
+            DEBUG_LOG("[ModuleScripts] Deleted runtime script file: %s", entry.path().filename().string().c_str());
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        DEBUG_WARN("[ModuleScripts] Failed to clean runtime script files. Error: %s", e.what());
+    }
 }
 
 unsigned int ModuleScripts::getNextReloadVersion()

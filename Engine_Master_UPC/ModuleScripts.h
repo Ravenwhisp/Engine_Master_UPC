@@ -6,6 +6,7 @@
 #include <string>
 #include <rapidjson/document.h>
 #include <vector>
+#include <filesystem>
 
 class ScriptComponent;
 
@@ -46,6 +47,9 @@ private:
     bool loadGameScriptsDll();
     bool unloadGameScriptsDll();
     bool buildGameScriptsProject();
+
+    bool isRuntimeScriptFile(const std::filesystem::directory_entry& entry) const;
+    void cleanRuntimeScriptFiles();
 
     unsigned int getNextReloadVersion();
     std::string buildRuntimeDllPath(unsigned int version) const;
