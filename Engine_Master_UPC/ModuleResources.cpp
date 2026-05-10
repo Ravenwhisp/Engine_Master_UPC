@@ -249,7 +249,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-	
+
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -259,6 +259,14 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto irradianceTexture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
@@ -431,6 +439,14 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 	desc.mipLevels = 5; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto environmentTexture = new Texture(hashToUID(textureAsset.getId()), *m_device.Get(), desc);
 
