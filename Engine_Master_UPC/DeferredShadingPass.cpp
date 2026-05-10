@@ -194,15 +194,14 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
 
 void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    // No need to transition from/to any states since all resources are already and will end up in the states we want them to
+
+
     auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
     commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
-
-    CD3DX12_RESOURCE_BARRIER barrier;
-    barrier = CD3DX12_RESOURCE_BARRIER::Transition(colorTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE); // RTV Barrier
-    commandList->ResourceBarrier(1, &barrier);
 
     // Bind root signature (must be set before any draw calls)
     commandList->SetPipelineState(m_pipelineState.Get());
@@ -225,10 +224,6 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     commandList->DrawInstanced(3, 1, 0, 0);
-
-    barrier = CD3DX12_RESOURCE_BARRIER::Transition(colorTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET); // RTV Barrier
-    //barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_READ); // DSV Barrier
-    commandList->ResourceBarrier(1, &barrier);
 }
 
 GPULightsConstantBuffer DeferredShadingPass::packLightsForGPU(
