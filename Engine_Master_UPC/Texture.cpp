@@ -331,7 +331,7 @@ void Texture::releaseViews()
         if (m_desc.shaderVisibleSRV)
         {
             // Shader-visible block — defer release (GPU may still be reading it)
-            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
+            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
         else
         {
@@ -347,7 +347,8 @@ void Texture::releaseViews()
         {
             if (m_rtv[mip].IsValid())
             {
-                descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
+                app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_rtv[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+                //descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
                 m_rtv[mip] = {};
             }
         }
@@ -355,8 +356,8 @@ void Texture::releaseViews()
 
     if (hasDSV() && m_dsv.IsValid())
     {
-        descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)
-            .free(m_dsv.handle);
+        //descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).free(m_dsv.handle);
+        app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_dsv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
         m_dsv = {};
     }
 
@@ -366,7 +367,7 @@ void Texture::releaseViews()
         {
             if (m_uav[mip].IsValid())
             {
-                descriptors->defferDescriptorRelease((Handle)m_uav[mip].handle);
+                descriptors->defferDescriptorRelease((Handle)m_uav[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
                 m_uav[mip] = {};
             }
         }
