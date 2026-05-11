@@ -1060,13 +1060,22 @@ void AnimationComponent::drawUi()
     if (ImGui::Button("Open Editor"))
     {
         ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
-        WindowAnimationStateMachine* stateMachineWindow =
-            moduleEditor ? moduleEditor->getWindowAnimationStateMachine() : nullptr;
-
-        if (stateMachineWindow)
+        if (moduleEditor)
         {
-            stateMachineWindow->setTargetStateMachineUID(m_stateMachineUID);
-            stateMachineWindow->setOpen(true);
+            WindowAnimationStateMachine* stateMachineWindow =
+                moduleEditor->getWindowAnimationStateMachine();
+
+            if (!stateMachineWindow)
+            {
+                EditorWindow* newWindow = moduleEditor->openWindow("Animation State Machine");
+                stateMachineWindow = dynamic_cast<WindowAnimationStateMachine*>(newWindow);
+            }
+
+            if (stateMachineWindow)
+            {
+                stateMachineWindow->setTargetStateMachineUID(m_stateMachineUID);
+                stateMachineWindow->setOpen(true);
+            }
         }
     }
     ImGui::EndDisabled();
