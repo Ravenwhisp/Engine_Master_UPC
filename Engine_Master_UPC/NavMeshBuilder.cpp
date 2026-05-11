@@ -19,7 +19,8 @@ bool NavMeshBuilder::BuildSoloMesh(
     const std::vector<float>& verts,
     const std::vector<int>& tris,
     const NavMeshBuildSettings& s,
-    NavMeshBuildResult& outResult)
+    NavMeshBuildResult& outResult,
+    const std::vector<NavModifierVolumeData>& modifierVolumes)
 {
     outResult = {};
 
@@ -78,7 +79,7 @@ bool NavMeshBuilder::BuildSoloMesh(
         return false;
     }
 
-    // 2) Mark walkable triangles by slope and rasterize
+    // 2) Mark walkable triangles by slope
     unsigned char* triAreas = (unsigned char*)dtAlloc(sizeof(unsigned char) * ntris, DT_ALLOC_TEMP);
     if (!triAreas)
     {
@@ -89,6 +90,50 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     rcMarkWalkableTriangles(&ctx, cfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triAreas);
 
+    // 3) Resolve Area For Point
+    unsigned int defaultTriangles = 0;
+    unsigned int spectralTriangles = 0;
+    unsigned int blockedTriangles = 0;
+
+    for (int i = 0; i < ntris; ++i)
+    {
+        const int i0 = tris[i * 3 + 0];
+        const int i1 = tris[i * 3 + 1];
+        const int i2 = tris[i * 3 + 2];
+
+        Vector3 v0(
+            verts[i0 * 3 + 0],
+            verts[i0 * 3 + 1],
+            verts[i0 * 3 + 2]
+        );
+
+        Vector3 v1(
+            verts[i1 * 3 + 0],
+            verts[i1 * 3 + 1],
+            verts[i1 * 3 + 2]
+        );
+
+        Vector3 v2(
+            verts[i2 * 3 + 0],
+            verts[i2 * 3 + 1],
+            verts[i2 * 3 + 2]
+        );
+
+        Vector3 center = (v0 + v1 + v2) / 3.0f;
+
+        NavAreaType area = resolveAreaForPoint(center, modifierVolumes);
+
+        if (area == NavAreaType::Default)
+            defaultTriangles++;
+        if (area == NavAreaType::Spectral)
+            spectralTriangles++;
+        if (area == NavAreaType::Blocked)
+            blockedTriangles++;
+
+        triAreas[i] = toRecastAreaId(area);
+    }
+
+    // 4) Rasterize triangles
     if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triAreas, ntris, *solid, cfg.walkableClimb))
     {
         dtFree(triAreas);
@@ -98,12 +143,12 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     dtFree(triAreas);
 
-    // 3) Filters
+    // 5) Filters
     rcFilterLowHangingWalkableObstacles(&ctx, cfg.walkableClimb, *solid);
     rcFilterLedgeSpans(&ctx, cfg.walkableHeight, cfg.walkableClimb, *solid);
     rcFilterWalkableLowHeightSpans(&ctx, cfg.walkableHeight, *solid);
 
-    // 4) Compact heightfield
+    // 6) Compact heightfield
     rcCompactHeightfield* chf = rcAllocCompactHeightfield();
     if (!chf)
     {
@@ -121,14 +166,14 @@ bool NavMeshBuilder::BuildSoloMesh(
     rcFreeHeightField(solid);
     solid = nullptr;
 
-    // 5) Erode by agent radius
+    // 7) Erode by agent radius
     if (!rcErodeWalkableArea(&ctx, cfg.walkableRadius, *chf))
     {
         rcFreeCompactHeightfield(chf);
         return false;
     }
 
-    // 6) Regions
+    // 8) Regions
     if (!rcBuildDistanceField(&ctx, *chf))
     {
         rcFreeCompactHeightfield(chf);
@@ -141,7 +186,7 @@ bool NavMeshBuilder::BuildSoloMesh(
         return false;
     }
 
-    // 7) Contours
+    // 9) Contours
     rcContourSet* cset = rcAllocContourSet();
     if (!cset)
     {
@@ -156,7 +201,7 @@ bool NavMeshBuilder::BuildSoloMesh(
         return false;
     }
 
-    // 8) Poly mesh
+    // 10) Poly mesh
     rcPolyMesh* pmesh = rcAllocPolyMesh();
     if (!pmesh)
     {
@@ -173,7 +218,7 @@ bool NavMeshBuilder::BuildSoloMesh(
         return false;
     }
 
-    // 9) Detail mesh
+    // 11) Detail mesh
     rcPolyMeshDetail* dmesh = rcAllocPolyMeshDetail();
     if (!dmesh)
     {
@@ -197,11 +242,16 @@ bool NavMeshBuilder::BuildSoloMesh(
     cset = nullptr;
     chf = nullptr;
 
-    // 10) Set Detour flags (simple: everything walkable => flag 1)
+    // 12) Set Detour flags (simple: everything walkable => flag 1)
     for (int i = 0; i < pmesh->npolys; ++i)
-        pmesh->flags[i] = 1;
+    {
+        // pmesh->flags[i] = 1;   --- old way
+        pmesh->flags[i] = toPolyFlags(
+            static_cast<NavAreaId>(pmesh->areas[i])
+        );
+    }
 
-    // 11) Create Detour navmesh data
+    // 13) Create Detour navmesh data
     dtNavMeshCreateParams params{};
     params.verts = pmesh->verts;
     params.vertCount = pmesh->nverts;
@@ -241,7 +291,7 @@ bool NavMeshBuilder::BuildSoloMesh(
     dmesh = nullptr;
     pmesh = nullptr;
 
-    // 12) Create dtNavMesh and add tile (so we get a tileRef for your Save())
+    // 14) Create dtNavMesh and add tile (so we get a tileRef for your Save())
     dtNavMesh* navMesh = dtAllocNavMesh();
     if (!navMesh)
     {
@@ -286,5 +336,56 @@ bool NavMeshBuilder::BuildSoloMesh(
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
     outResult.tileRef = outRef;
+
+    DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
+
     return true;
+}
+
+NavAreaType NavMeshBuilder::resolveAreaForPoint(
+    const Vector3& point,
+    const std::vector<NavModifierVolumeData>& modifierVolumes)
+{
+    NavAreaType result = NavAreaType::Default;
+    int bestPriority = -9999;
+
+    for (const auto& volume : modifierVolumes)
+    {
+        Vector3 min = volume.position - volume.halfExtents;
+        Vector3 max = volume.position + volume.halfExtents;
+
+        // AABB check if point is inside volume
+        if (point.x >= min.x && point.x <= max.x &&
+            point.y >= min.y && point.y <= max.y &&
+            point.z >= min.z && point.z <= max.z)
+        {
+            if (volume.priority > bestPriority)
+            {
+                result = volume.areaType;
+                bestPriority = volume.priority;
+            }
+        }
+    }
+
+    return result;
+}
+
+unsigned char NavMeshBuilder::toRecastAreaId(NavAreaType areaType)
+{
+    if (areaType == NavAreaType::Default)
+        return static_cast<unsigned char>(NavAreaId::NAV_AREA_DEFAULT);
+    else if (areaType == NavAreaType::Spectral)
+        return static_cast<unsigned char>(NavAreaId::NAV_AREA_SPECTRAL);
+
+    return RC_NULL_AREA;
+}
+
+unsigned short NavMeshBuilder::toPolyFlags(NavAreaId areaId)
+{
+    if (areaId == NavAreaId::NAV_AREA_DEFAULT)
+        return static_cast<unsigned short>(NavPolyFlags::Default);
+    else if (areaId == NavAreaId::NAV_AREA_SPECTRAL)
+        return static_cast<unsigned short>(NavPolyFlags::Spectral);
+
+    return 0;
 }
