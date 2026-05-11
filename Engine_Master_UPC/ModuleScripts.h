@@ -64,9 +64,10 @@ private:
 #pragma region ScriptBuild
     bool buildGameScriptsProject();
     std::filesystem::path resolveBuildPath(const std::string& path) const;
-
     bool validateScriptBuildPaths(const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir) const;
+    
     bool writeScriptsBuildBatchFile(const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::filesystem::path& msbuildPath, const std::string& buildBatPath) const;
+    bool runScriptsBuildBatchFile(const std::string& buildBatPath, const std::string& buildLogPath) const;
 #pragma endregion
 
 #pragma region RuntimeCleanup

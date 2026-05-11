@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 namespace
 {
@@ -337,13 +338,10 @@ bool ModuleScripts::buildGameScriptsProject()
         return false;
     }
 
-    const std::string command = "cmd /C " + buildBatPath + " > " + buildLogPath + " 2>&1";
-
-    const int result = std::system(command.c_str());
-
-    if (result != 0)
+    // This function is created in order to remove the black cmd window (CREATE_NO_WINDOW)
+    if (!runScriptsBuildBatchFile(buildBatPath, buildLogPath))
     {
-        DEBUG_ERROR("[ModuleScripts] GameScripts build failed. Result code: %d", result);
+        DEBUG_ERROR("[ModuleScripts] GameScripts build failed.");
         DEBUG_ERROR("[ModuleScripts] Build output written to %s", buildLogPath.c_str());
         return false;
     }
@@ -432,6 +430,56 @@ bool ModuleScripts::writeScriptsBuildBatchFile(const std::filesystem::path& proj
         << "\"/p:SolutionDir=" << solutionDirString << "\"\n";
 
     buildBat << "exit /b %ERRORLEVEL%\n";
+
+    return true;
+}
+
+bool ModuleScripts::runScriptsBuildBatchFile(const std::string& buildBatPath, const std::string& buildLogPath) const
+{
+    const std::filesystem::path absoluteBatPath = std::filesystem::absolute(buildBatPath).lexically_normal();
+    const std::filesystem::path absoluteLogPath = std::filesystem::absolute(buildLogPath).lexically_normal();
+
+    const std::string cmdExe = "C:\\Windows\\System32\\cmd.exe";
+
+    std::string commandLine = "cmd.exe /S /C \"\"" + absoluteBatPath.string() + "\" > \"" + absoluteLogPath.string() + "\" 2>&1\"";
+
+    STARTUPINFOA startupInfo = {};
+    startupInfo.cb = sizeof(startupInfo);
+    startupInfo.dwFlags = STARTF_USESHOWWINDOW;
+    startupInfo.wShowWindow = SW_HIDE;
+
+    PROCESS_INFORMATION processInfo = {};
+
+    std::vector<char> mutableCommandLine(commandLine.begin(), commandLine.end());
+    mutableCommandLine.push_back('\0');
+
+    const BOOL created = CreateProcessA(nullptr, commandLine.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &startupInfo, &processInfo);
+
+    if (!created)
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to start script build process. Win32 error: %lu", GetLastError());
+        return false;
+    }
+
+    WaitForSingleObject(processInfo.hProcess, INFINITE);
+
+    DWORD exitCode = 0;
+    const BOOL gotExitCode = GetExitCodeProcess(processInfo.hProcess, &exitCode);
+
+    CloseHandle(processInfo.hProcess);
+    CloseHandle(processInfo.hThread);
+
+    if (!gotExitCode)
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to get script build process exit code. Win32 error: %lu", GetLastError());
+        return false;
+    }
+
+    if (exitCode != 0)
+    {
+        DEBUG_ERROR("[ModuleScripts] Script build process failed. Exit code: %lu", exitCode);
+        return false;
+    }
 
     return true;
 }
