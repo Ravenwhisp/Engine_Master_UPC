@@ -1595,7 +1595,7 @@ namespace NavigationAPI
         return navigation->hasNavMesh();
     }
 
-    bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents)
+    bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents, NavAgentProfile profile)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1609,8 +1609,10 @@ namespace NavigationAPI
             return false;
         }
 
+        unsigned short includeFlags = navigation->getIncludeFlagsForProfile(profile);
+
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xFFFF);
+        filter.setIncludeFlags(includeFlags);
         filter.setExcludeFlags(0);
 
         const float position[3] = { inputPosition.x, inputPosition.y, inputPosition.z };
@@ -1635,7 +1637,7 @@ namespace NavigationAPI
         return true;
     }
 
-    bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents)
+    bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents, NavAgentProfile profile)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1649,8 +1651,10 @@ namespace NavigationAPI
             return false;
         }
 
+        unsigned short includeFlags = navigation->getIncludeFlagsForProfile(profile);
+
         dtQueryFilter filter;
-        filter.setIncludeFlags(0xFFFF);
+        filter.setIncludeFlags(includeFlags);
         filter.setExcludeFlags(0);
 
         const float start[3] = { startPosition.x, startPosition.y, startPosition.z };
@@ -1689,7 +1693,7 @@ namespace NavigationAPI
         return true;
     }
 
-    int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents)
+    int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents, NavAgentProfile profile)
     {
         if (!outputPoints || maxPoints <= 0)
         {
@@ -1703,7 +1707,7 @@ namespace NavigationAPI
         }
 
         std::vector<Vector3> path;
-        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents))
+        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents, profile))
         {
             return 0;
         }
@@ -1718,7 +1722,7 @@ namespace NavigationAPI
         return count;
     }
 
-    bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents)
+    bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents, NavAgentProfile profile)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1727,7 +1731,7 @@ namespace NavigationAPI
         }
 
         std::vector<Vector3> path;
-        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents))
+        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents, profile))
         {
             return false;
         }
@@ -1752,7 +1756,7 @@ namespace NavigationAPI
         return totalLength;
     }
 
-    bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts)
+    bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts, NavAgentProfile profile)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1777,12 +1781,12 @@ namespace NavigationAPI
             const Vector3 candidatePosition(centerPosition.x + std::cos(angle) * distance, centerPosition.y, centerPosition.z + std::sin(angle) * distance);
 
             Vector3 sampledPosition;
-            if (!samplePosition(candidatePosition, sampledPosition, searchExtents))
+            if (!samplePosition(candidatePosition, sampledPosition, searchExtents, profile))
             {
                 continue;
             }
 
-            if (!canReachTarget(centerPosition, sampledPosition, searchExtents))
+            if (!canReachTarget(centerPosition, sampledPosition, searchExtents, profile))
             {
                 continue;
             }
