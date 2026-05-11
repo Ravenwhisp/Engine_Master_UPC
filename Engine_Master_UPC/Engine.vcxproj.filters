@@ -472,6 +472,15 @@
     <ClCompile Include="PrefabManager.cpp">
       <Filter>Persistence\ToChange</Filter>
     </ClCompile>
+    <ClCompile Include="ScenePicking.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UINavigation.cpp">
+      <Filter>UI\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="NavModifierVolumeComponent.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1131,6 +1140,18 @@
     </ClInclude>
     <ClInclude Include="PrefabManager.h">
       <Filter>Persistence\ToChange</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenePicking.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="UINavigation.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="NavModifierVolumeComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshTypes.h">
+      <Filter>NavMesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

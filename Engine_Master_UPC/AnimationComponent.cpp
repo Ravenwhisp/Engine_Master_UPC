@@ -21,6 +21,7 @@
 #include <rapidjson/writer.h>
 #include <cstring>
 #include <algorithm>
+#include <filesystem>
 
 namespace
 {
@@ -47,10 +48,29 @@ namespace
 
         return false;
     }
+
+    std::filesystem::path BuildStateMachineSourcePathFromName(const std::string& assetName)
+    {
+        std::filesystem::path path(assetName);
+
+        if (path.extension() != ".statemachine")
+        {
+            path += ".statemachine";
+        }
+
+        if (!path.has_parent_path())
+        {
+            path = std::filesystem::path(ASSETS_FOLDER) / "StateMachines" / path;
+        }
+
+        return path.lexically_normal();
+    }
 }
 
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::ANIMATION, owner)
+    , m_stateMachineUIDInput(m_stateMachineUID)
+    , m_animationSourceUIDInput(m_animationSourceUID)
 {
 }
 
@@ -61,11 +81,15 @@ std::unique_ptr<Component> AnimationComponent::clone(GameObject* newOwner) const
     auto cloned = std::make_unique<AnimationComponent>(m_uuid, newOwner);
 
     cloned->m_stateMachineUID = m_stateMachineUID;
+    cloned->m_animationSourceUID = m_animationSourceUID;
     cloned->m_playOnStart = m_playOnStart;
     cloned->m_applyScale = m_applyScale;
     cloned->m_forceWorldAfterApply = m_forceWorldAfterApply;
     cloned->m_debugDrawHierarchy = m_debugDrawHierarchy;
     cloned->m_stateMachineUIDInput = m_stateMachineUIDInput;
+    cloned->m_animationSourceUIDInput = m_animationSourceUIDInput;
+    cloned->m_existingStateMachineNameInput = m_existingStateMachineNameInput;
+    cloned->m_newStateMachineNameInput = m_newStateMachineNameInput;
 
     cloned->setActive(isActive());
     return cloned;
@@ -164,7 +188,7 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
         return false;
     }
 
-    if (!clip->animationUID.isValid())
+    if (clip->animationUID == INVALID_ASSET_ID)
     {
         DEBUG_WARN("[AnimationComponent] Clip '%s' has invalid animation UID.", clip->name.c_str());
         return false;
@@ -174,11 +198,10 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
     if (!moduleAssets)
         return false;
 
-    auto ref = clip->animationUID;
-    std::shared_ptr<AnimationAsset> animation = moduleAssets->load<AnimationAsset>(ref);
+    std::shared_ptr<AnimationAsset> animation = moduleAssets->load<AnimationAsset>(clip->animationUID);
     if (!animation)
     {
-        DEBUG_WARN("[AnimationComponent] Could not load clip animation '%s'.", clip->animationUID);
+        DEBUG_WARN("[AnimationComponent] Could not load clip animation '%s'.", clip->animationUID.c_str());
         return false;
     }
 
@@ -508,10 +531,10 @@ void AnimationComponent::drawClipsUi()
                 m_stateMachineDirty = true;
             }
 
-            /*if (ImGui::InputInt("Animation UID", clip.animationUID))
+            if (InputTextString("Animation UID", clip.animationUID))
             {
                 m_stateMachineDirty = true;
-            }*/
+            }
 
             if (ImGui::Checkbox("Loop", &clip.loop))
             {
@@ -538,7 +561,7 @@ void AnimationComponent::drawClipsUi()
     {
         AnimationStateMachineClip clip;
         clip.name = "NewClip";
-        clip.animationUID;
+        clip.animationUID = INVALID_ASSET_ID;
         clip.loop = true;
         clips.push_back(std::move(clip));
         m_stateMachineDirty = true;
@@ -561,6 +584,15 @@ void AnimationComponent::drawStatesUi()
     if (defaultState != oldDefaultState)
     {
         m_stateMachineDirty = true;
+        resetRuntime();
+
+        if (m_playOnStart)
+        {
+            if (activateDefaultState(true, 0.0f))
+            {
+                m_hasStartedPlayback = true;
+            }
+        }
     }
 
     for (size_t i = 0; i < states.size(); ++i)
@@ -924,15 +956,15 @@ const AnimationStateMachineState* AnimationComponent::findDefaultState() const
     if (!m_stateMachineAsset)
         return nullptr;
 
+    const auto& states = m_stateMachineAsset->getStates();
+    if (states.empty())
+        return nullptr;
+
     const std::string& defaultStateName = m_stateMachineAsset->getDefaultStateName();
     if (!defaultStateName.empty())
     {
         return findStateByName(defaultStateName);
     }
-
-    const auto& states = m_stateMachineAsset->getStates();
-    if (states.empty())
-        return nullptr;
 
     return &states.front();
 }
@@ -964,17 +996,41 @@ void AnimationComponent::applyActiveStatePlaybackSpeed()
 
 void AnimationComponent::drawUi()
 {
+    char uidBuffer[128];
+    std::strncpy(uidBuffer, m_stateMachineUIDInput.c_str(), sizeof(uidBuffer));
+    uidBuffer[sizeof(uidBuffer) - 1] = '\0';
+
+    if (ImGui::InputText("State Machine UID", uidBuffer, sizeof(uidBuffer)))
+    {
+        m_stateMachineUIDInput = uidBuffer;
+    }
+
+    if (ImGui::Button("Apply State Machine UID"))
+    {
+        setStateMachineUID(m_stateMachineUIDInput);
+    }
+
+
     ImGui::SameLine();
 
     if (ImGui::Button("Save State Machine"))
     {
+        createAndAssignStateMachineAsset();
+    }
+
+    ImGui::SeparatorText("State Machine Actions");
+
+    ImGui::BeginDisabled(!m_stateMachineAsset);
+    if (ImGui::Button("Save"))
+    {
         saveStateMachineAsset();
     }
+    ImGui::EndDisabled();
 
     ImGui::SameLine();
 
-    ImGui::BeginDisabled(!m_stateMachineUID.isValid());
-    if (ImGui::Button("Open State Machine Editor"))
+    ImGui::BeginDisabled(m_stateMachineUID == INVALID_ASSET_ID);
+    if (ImGui::Button("Open Editor"))
     {
         ModuleEditor* moduleEditor = app ? app->getModuleEditor() : nullptr;
         WindowAnimationStateMachine* stateMachineWindow =
@@ -990,19 +1046,39 @@ void AnimationComponent::drawUi()
 
     ImGui::Text("State Machine Dirty: %s", m_stateMachineDirty ? "Yes" : "No");
 
+    if (ImGui::CollapsingHeader("Advanced Animation Debug"))
+    {
+        char uidBuffer[128];
+        std::strncpy(uidBuffer, m_stateMachineUIDInput.c_str(), sizeof(uidBuffer));
+        uidBuffer[sizeof(uidBuffer) - 1] = '\0';
+
+        if (ImGui::InputText("State Machine UID", uidBuffer, sizeof(uidBuffer)))
+        {
+            m_stateMachineUIDInput = uidBuffer;
+        }
+
+        if (ImGui::Button("Apply State Machine UID"))
+        {
+            setStateMachineUID(m_stateMachineUIDInput);
+        }
+
+        char sourceUIDBuffer[128];
+        std::strncpy(sourceUIDBuffer, m_animationSourceUIDInput.c_str(), sizeof(sourceUIDBuffer));
+        sourceUIDBuffer[sizeof(sourceUIDBuffer) - 1] = '\0';
+
+        if (ImGui::InputText("Animation Source UID", sourceUIDBuffer, sizeof(sourceUIDBuffer)))
+        {
+            m_animationSourceUIDInput = sourceUIDBuffer;
+        }
+
+        if (ImGui::Button("Apply Animation Source UID"))
+        {
+            setAnimationSourceUID(m_animationSourceUIDInput);
+        }
+    }
+
     ImGui::Text("Active State: %s", m_activeStateName.empty() ? "<none>" : m_activeStateName.c_str());
-    ImGui::Text("Duration: %.3f", m_controller.GetDuration());
-    ImGui::Text("Current Time: %.3f", m_controller.GetTime());
-    ImGui::Text("Speed: %.3f", m_controller.GetSpeed());
-
-
-    ImGui::Checkbox("Play On Start", &m_playOnStart);
-    ImGui::Checkbox("Apply Scale", &m_applyScale);
-    ImGui::Checkbox("Force World Update", &m_forceWorldAfterApply);
-    ImGui::Checkbox("Debug Draw Hierarchy", &m_debugDrawHierarchy);
-
-    const char* stateText = m_controller.IsPlaying() ? "Playing" : "Stopped / Paused";
-    ImGui::Text("Playback: %s", stateText);
+    ImGui::Text("Playback: %s", m_controller.IsPlaying() ? "Playing" : "Stopped / Paused");
 
     if (ImGui::Button("Play"))
     {
@@ -1023,24 +1099,40 @@ void AnimationComponent::drawUi()
         stop();
     }
 
+    ImGui::SeparatorText("Options");
 
-    // TEST
-    char triggerBuffer[128];
-    std::strncpy(triggerBuffer, m_triggerInput.c_str(), sizeof(triggerBuffer));
-    triggerBuffer[sizeof(triggerBuffer) - 1] = '\0';
+    ImGui::Checkbox("Play On Start", &m_playOnStart);
+    ImGui::Checkbox("Apply Scale", &m_applyScale);
+    ImGui::Checkbox("Force World Update", &m_forceWorldAfterApply);
+    ImGui::Checkbox("Debug Draw Hierarchy", &m_debugDrawHierarchy);
 
-    if (ImGui::InputText("Trigger", triggerBuffer, sizeof(triggerBuffer)))
+    if (ImGui::CollapsingHeader("Triggers"))
     {
-        m_triggerInput = triggerBuffer;
+        char triggerBuffer[128];
+        std::strncpy(triggerBuffer, m_triggerInput.c_str(), sizeof(triggerBuffer));
+        triggerBuffer[sizeof(triggerBuffer) - 1] = '\0';
+
+        if (ImGui::InputText("Trigger", triggerBuffer, sizeof(triggerBuffer)))
+        {
+            m_triggerInput = triggerBuffer;
+        }
+
+        if (ImGui::Button("Send Trigger"))
+        {
+            sendTrigger(m_triggerInput);
+        }
     }
 
-    if (ImGui::Button("Send Trigger"))
+    if (ImGui::CollapsingHeader("Advanced Animation Debug"))
     {
-        sendTrigger(m_triggerInput);
-    }
+        ImGui::Text("Animation Source: %s",
+            m_animationSourceUID == INVALID_ASSET_ID ? "<auto / none>" : m_animationSourceUID.c_str());
 
-    ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
-    ImGui::Text("Transition Time: %.3f", m_currentTransitionTime);
+        ImGui::Text("Duration: %.3f", m_controller.GetDuration());
+        ImGui::Text("Current Time: %.3f", m_controller.GetTime());
+        ImGui::Text("Speed: %.3f", m_controller.GetSpeed());
+        ImGui::Text("Fade Time: %.3f", m_currentFadeTime);
+        ImGui::Text("Transition Time: %.3f", m_currentTransitionTime);
 
     drawStateMachineResourceUi();
 
@@ -1054,7 +1146,10 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", static_cast<int>(getType()), domTree.GetAllocator());
     componentInfo.AddMember("Active", isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("StateMachineUID", m_stateMachineUID.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+    rapidjson::Value stateMachineUIDValue(m_stateMachineUID.c_str(), domTree.GetAllocator());
+    componentInfo.AddMember("StateMachineUID", stateMachineUIDValue, domTree.GetAllocator());
+    rapidjson::Value animationSourceUIDValue(m_animationSourceUID.c_str(), domTree.GetAllocator());
+    componentInfo.AddMember("AnimationSourceUID", animationSourceUIDValue, domTree.GetAllocator());
 
     componentInfo.AddMember("PlayOnStart", m_playOnStart, domTree.GetAllocator());
     componentInfo.AddMember("ApplyScale", m_applyScale, domTree.GetAllocator());
@@ -1065,8 +1160,15 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
 
 bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
 {
-    if (componentValue.HasMember("StateMachineUID") && componentValue["StateMachineUID"].IsUint64())
-        m_stateMachineUID.deserializeJson(componentValue["StateMachineUID"]);
+    if (componentValue.HasMember("StateMachineUID") && componentValue["StateMachineUID"].IsString())
+        m_stateMachineUID = componentValue["StateMachineUID"].GetString();
+    else
+        m_stateMachineUID = INVALID_ASSET_ID;
+
+    if (componentValue.HasMember("AnimationSourceUID") && componentValue["AnimationSourceUID"].IsString())
+        m_animationSourceUID = componentValue["AnimationSourceUID"].GetString();
+    else
+        m_animationSourceUID = INVALID_ASSET_ID;
 
     if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
         m_playOnStart = componentValue["PlayOnStart"].GetBool();
@@ -1086,6 +1188,7 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
     m_stateMachineAsset.reset();
     resetRuntime();
     m_stateMachineUIDInput = m_stateMachineUID;
+    m_animationSourceUIDInput = m_animationSourceUID;
     m_triggerInput.clear();
 
     m_stateMachineDirty = false;
@@ -1093,7 +1196,7 @@ bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
     return true;
 }
 
-void AnimationComponent::setStateMachineUID(AssetReference& uid)
+void AnimationComponent::setStateMachineUID(const MD5Hash& uid)
 {
     if (m_stateMachineUID == uid)
         return;
@@ -1105,6 +1208,15 @@ void AnimationComponent::setStateMachineUID(AssetReference& uid)
     m_stateMachineAsset.reset();
 
     m_stateMachineDirty = false;
+}
+
+void AnimationComponent::setAnimationSourceUID(const MD5Hash& uid)
+{
+    if (m_animationSourceUID == uid)
+        return;
+
+    m_animationSourceUID = uid;
+    m_animationSourceUIDInput = m_animationSourceUID;
 }
 
 bool AnimationComponent::SendTrigger(const std::string& triggerName)
@@ -1138,7 +1250,7 @@ bool AnimationComponent::SendTrigger(const std::string& triggerName)
 
 bool AnimationComponent::hasStateMachine() const
 {
-    return m_stateMachineUID.isValid();
+    return m_stateMachineUID != INVALID_ASSET_ID;
 }
 
 bool AnimationComponent::hasActiveState() const
@@ -1254,7 +1366,7 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
 
 bool AnimationComponent::ensureStateMachineLoaded()
 {
-    if (!m_stateMachineUID.isValid())
+    if (m_stateMachineUID == INVALID_ASSET_ID)
         return false;
 
     if (m_stateMachineAsset)
@@ -1267,7 +1379,7 @@ bool AnimationComponent::ensureStateMachineLoaded()
     m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(m_stateMachineUID);
     if (!m_stateMachineAsset)
     {
-        DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", m_stateMachineUID);
+        DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", m_stateMachineUID.c_str());
         return false;
     }
 
@@ -1316,8 +1428,105 @@ bool AnimationComponent::saveStateMachineAsset()
     if (!moduleAssets)
         return false;
 
-    if (!moduleAssets->save(*m_stateMachineAsset.get()))
+    if (!moduleAssets->saveAnimationStateMachine(m_stateMachineAsset))
         return false;
+
+    m_stateMachineDirty = false;
+    return true;
+}
+
+bool AnimationComponent::createAndAssignStateMachineAsset()
+{
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    const AnimationStateMachineAsset* sourceAsset = nullptr;
+    if (ensureStateMachineLoaded())
+    {
+        sourceAsset = m_stateMachineAsset.get();
+    }
+
+    const MD5Hash newUID = moduleAssets->createAnimationStateMachineAsset(
+        m_newStateMachineNameInput,
+        sourceAsset);
+
+    if (newUID == INVALID_ASSET_ID)
+        return false;
+
+    setStateMachineUID(newUID);
+
+    m_stateMachineAsset.reset();
+    ensureStateMachineLoaded();
+
+    m_stateMachineDirty = false;
+    return true;
+}
+
+bool AnimationComponent::createAndAssignStateMachineAssetFromSourceAnimations()
+{
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    const MD5Hash sourceUID = resolveAnimationSourceUID();
+    if (sourceUID == INVALID_ASSET_ID)
+    {
+        DEBUG_WARN("[AnimationComponent] Cannot create StateMachine from model animations: no AnimationSourceUID and no owner prefab source.");
+        return false;
+    }
+
+    const std::vector<MD5Hash> animationUIDs =
+        moduleAssets->collectAnimationDependencies(sourceUID);
+
+    if (animationUIDs.empty())
+    {
+        DEBUG_WARN("[AnimationComponent] Animation source '%s' has no animation dependencies.", sourceUID.c_str());
+        return false;
+    }
+
+    const MD5Hash newUID = moduleAssets->createAnimationStateMachineAssetFromAnimations(
+        m_newStateMachineNameInput,
+        animationUIDs);
+
+    if (newUID == INVALID_ASSET_ID)
+        return false;
+
+    setStateMachineUID(newUID);
+
+    m_stateMachineAsset.reset();
+    ensureStateMachineLoaded();
+
+    m_stateMachineDirty = false;
+    return true;
+}
+
+bool AnimationComponent::loadAndAssignStateMachineAssetByName()
+{
+    if (m_existingStateMachineNameInput.empty())
+    {
+        DEBUG_WARN("[AnimationComponent] Cannot load StateMachine: empty asset name.");
+        return false;
+    }
+
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+        return false;
+
+    const std::filesystem::path sourcePath =
+        BuildStateMachineSourcePathFromName(m_existingStateMachineNameInput);
+
+    const MD5Hash uid = moduleAssets->findUID(sourcePath);
+    if (uid == INVALID_ASSET_ID)
+    {
+        DEBUG_WARN("[AnimationComponent] No StateMachine asset registered at path '%s'.", sourcePath.string().c_str());
+        return false;
+    }
+
+    setStateMachineUID(uid);
+
+    m_stateMachineAsset.reset();
+    ensureStateMachineLoaded();
 
     m_stateMachineDirty = false;
     return true;

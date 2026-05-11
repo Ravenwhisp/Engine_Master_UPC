@@ -345,6 +345,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ModuleTrigger.h" />
+    <ClInclude Include="NavMeshTypes.h" />
+    <ClInclude Include="NavModifierVolumeComponent.h" />
     <ClInclude Include="OptickProfiler.h" />
     <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="CommandMoveFile.h" />
@@ -358,6 +360,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandSaveGameObjectAsPrefab.h" />
     <ClInclude Include="RenderViewType.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
@@ -387,6 +390,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="TriggerDebugDrawMode.h" />
     <ClInclude Include="TriggerShape.h" />
     <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UINavigation.h" />
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
@@ -668,6 +672,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="ScenePicking.cpp" />
+    <ClCompile Include="NavModifierVolumeComponent.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
@@ -690,6 +696,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="StaticTexturesPass.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
+    <ClCompile Include="UINavigation.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />

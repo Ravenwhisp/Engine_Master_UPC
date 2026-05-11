@@ -47,24 +47,6 @@ std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
 	return cloned;
 }
 
-void UIButton::onSelect()
-{
-	if (!isActive()) return;
-	if (m_isSelected) return;
-	m_isSelected = true;
-	m_isHovered = true;
-	applyCurrentStateTexture();
-}
-
-void UIButton::onDeselect()
-{
-	if (!m_isSelected) return;
-	m_isSelected = false;
-	m_isHovered = false;
-	m_isPressed = false;
-	applyCurrentStateTexture();
-}
-
 void UIButton::setTargetGraphic(UIImage* img)
 {
 	m_targetGraphic = img;
@@ -120,7 +102,7 @@ void UIButton::applyCurrentStateTexture()
 			targetAsset = m_hoverTextureAssetId;
 		}
 	}
-	else if (m_isHovered)
+	else if (m_isHovered || m_isSelected)
 	{
 		if (m_hoverTextureAssetId.isValid())
 		{
@@ -160,10 +142,31 @@ void UIButton::onPointerUp(PointerEventData&)
 {
 	m_isPressed = false;
 	applyCurrentStateTexture();
-	if (m_isSelected)
-	{
-		executeBindings(m_bindingsOnRelease);
-	}
+}
+
+void UIButton::onPointerClick(PointerEventData&)
+{
+	if (!isActive()) return;
+
+	executeBindings(m_bindingsOnRelease);
+}
+
+void UIButton::onSelect()
+{
+	if (!isActive()) return;
+	if (m_isSelected) return;
+	m_isSelected = true;
+	m_isHovered = true;
+	applyCurrentStateTexture();
+}
+
+void UIButton::onDeselect()
+{
+	if (!m_isSelected) return;
+	m_isSelected = false;
+	m_isHovered = false;
+	m_isPressed = false;
+	applyCurrentStateTexture();
 }
 
 void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
@@ -541,8 +544,6 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 			ImGui::PopStyleColor(3);
 			ImGui::EndTable();
 		}
-
-#pragma endregion
 
 		ImGui::PopID();
 	}

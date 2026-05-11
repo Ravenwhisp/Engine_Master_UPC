@@ -1,6 +1,8 @@
 #pragma once
 #include "Module.h"
 
+#include "ScenePicking.h"
+
 #include <memory>
 #include <string>
 #include <filesystem> 
@@ -66,6 +68,11 @@ public:
 #pragma region Quadree
     void syncQuadtreeWithSettings();
     Quadtree* getQuadtree() { return m_quadtree.get(); }
+#pragma endregion
+
+#pragma region ObjectPicking
+    std::vector<GameObjectPickHit> collectAABBHits(const Ray& worldRay);
+    bool pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit);
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }

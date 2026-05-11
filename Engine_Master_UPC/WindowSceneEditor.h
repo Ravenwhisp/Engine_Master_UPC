@@ -18,18 +18,6 @@ DECLARE_EVENT(OnResize, WindowSceneEditor);
 
 class WindowSceneEditor : public EditorWindow, public IDebugDrawable
 {
-
-private:
-
-    std::unique_ptr<RenderSurface> m_surface;
-    ModuleCamera* m_moduleCamera;
-    Settings* m_settings;
-    EditorToolbar* m_editorToolbar;
-    PlayToolbar* m_playToolbar;
-    ImVec2 m_viewportPos = ImVec2(0.0f, 0.0f);
-    float m_viewportX = 0.0f;
-    float m_viewportY = 0.0f;
-
 public:
 
     WindowSceneEditor();
@@ -58,4 +46,18 @@ public:
     {
         return m_viewportY;
     }
+
+private:
+    void handleObjectPicking(const ImVec2& viewportSize);
+
+private:
+
+    std::unique_ptr<RenderSurface> m_surface;
+    ModuleCamera* m_moduleCamera;
+    Settings* m_settings;
+    EditorToolbar* m_editorToolbar;
+    PlayToolbar* m_playToolbar;
+    ImVec2 m_viewportPos = ImVec2(0.0f, 0.0f);
+    float m_viewportX = 0.0f;
+    float m_viewportY = 0.0f;
 };
