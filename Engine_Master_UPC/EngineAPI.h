@@ -307,6 +307,7 @@ namespace HapticAPI
     ENGINE_API void stopEffect(uint32_t handle, int player = 0);
     ENGINE_API void stopAll(int player = 0);
     ENGINE_API bool isPlaying(int player = 0);
+    ENGINE_API uint32_t submitEffect(const HapticEffectDefinition& def, int player = 0);
     ENGINE_API uint32_t submitImpact(float intensity, float duration, int player = 0);
     ENGINE_API uint32_t submitRumble(float left, float right, float duration, int player = 0);
     ENGINE_API uint32_t submitExplosion(float intensity, float duration, int player = 0);

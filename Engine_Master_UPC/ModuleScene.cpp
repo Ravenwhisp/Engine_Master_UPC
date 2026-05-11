@@ -19,6 +19,8 @@
 #include "LightComponent.h"
 #include "ScriptComponent.h"
 
+#include "ScenePicking.h"
+
 ModuleScene::ModuleScene()
 {
     m_sceneSerializer = std::make_unique<SceneSerializer>();
@@ -264,5 +266,96 @@ void ModuleScene::syncQuadtreeWithSettings()
     {
         m_quadtree->clear();
     }
+}
+#pragma endregion
+
+#pragma region ObjectPicking
+std::vector<GameObjectPickHit> ModuleScene::collectAABBHits(const Ray& worldRay)
+{
+    std::vector<GameObjectPickHit> hits;
+
+    const std::vector<MeshRenderer*>& meshRenderers = getMeshRenderers();
+
+    for (MeshRenderer* meshRenderer : meshRenderers)
+    {
+        if (!meshRenderer)
+        {
+            continue;
+        }
+
+        GameObject* owner = meshRenderer->getOwner();
+
+        if (!owner || !owner->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        float distance = FLT_MAX;
+
+        if (!ScenePicking::intersectMeshRendererAABB(meshRenderer, worldRay, distance))
+        {
+            continue;
+        }
+
+        GameObjectPickHit hit;
+        hit.gameObject = owner;
+        hit.meshRenderer = meshRenderer;
+        hit.distance = distance;
+
+        hits.push_back(hit);
+    }
+
+    std::sort(hits.begin(), hits.end(),
+        [](const GameObjectPickHit& firstHit, const GameObjectPickHit& secondHit)
+        {
+            return firstHit.distance < secondHit.distance;
+        }
+    );
+
+    return hits;
+}
+
+bool ModuleScene::pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit)
+{
+    std::vector<GameObjectPickHit> hits = collectAABBHits(worldRay);
+
+    if (hits.empty())
+    {
+        return false;
+    }
+
+    GameObjectPickHit closestTriangleHit;
+
+    for (const GameObjectPickHit& hit : hits)
+    {
+        if (!hit.gameObject || !hit.meshRenderer)
+        {
+            continue;
+        }
+
+        float triangleDistance = FLT_MAX;
+        Vector3 triangleHitPoint = Vector3::Zero;
+
+        if (!ScenePicking::intersectMeshRendererTriangles(hit.meshRenderer, worldRay, triangleDistance, triangleHitPoint))
+        {
+            continue;
+        }
+
+        if (triangleDistance < closestTriangleHit.distance)
+        {
+            closestTriangleHit.gameObject = hit.gameObject;
+            closestTriangleHit.meshRenderer = hit.meshRenderer;
+            closestTriangleHit.hitPoint = triangleHitPoint;
+            closestTriangleHit.distance = triangleDistance;
+        }
+    }
+
+    if (!closestTriangleHit.gameObject)
+    {
+        return false;
+    }
+
+    outHit = closestTriangleHit;
+    return true;
 }
 #pragma endregion
