@@ -36,6 +36,7 @@ protected:
 
 private:
     void clampHp();
+    void updateHealthBar();
 
 public:
     float m_maxHp = 100.0f;

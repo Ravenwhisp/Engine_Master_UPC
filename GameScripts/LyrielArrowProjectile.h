@@ -19,12 +19,14 @@ public:
 
     bool isInUse() const;
     void setPool(ArrowPool* pool);
+    void setArrowOwnerTransform(Transform* transform);
 
 private:
     void applyImpactDamage();
 
 private:
     ArrowPool* m_pool = nullptr;
+    Transform* m_arrowOwner = nullptr;
 
     bool m_inUse = false;
     Vector3 m_direction = Vector3::Zero;

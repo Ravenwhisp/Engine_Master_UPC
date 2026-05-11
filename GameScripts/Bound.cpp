@@ -5,6 +5,7 @@
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_BoundUI, "Bound UI", ComponentType::TRANSFORM),
     SERIALIZED_FLOAT(m_minDistance, "Min Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_distanceDamage, "Damage Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
@@ -20,19 +21,18 @@ Bound::Bound(GameObject* owner) : Script(owner)
 
 void Bound::Start()
 {
-    Transform* firstTargetTransform = m_firstTarget.getReferencedComponent();
-    Transform* secondTargetTransform = m_secondTarget.getReferencedComponent();
+    GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.getReferencedComponent());
+    GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.getReferencedComponent());
 
-    if (firstTargetTransform == nullptr || secondTargetTransform == nullptr)
+    if (player1 != nullptr)
     {
-        return;
+        m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
     }
 
-    GameObject* player1 = ComponentAPI::getOwner(firstTargetTransform);
-    GameObject* player2 = ComponentAPI::getOwner(secondTargetTransform);
-
-    m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
-    m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
+    if (player2 != nullptr)
+    {
+        m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
+    }
 
 }
 
@@ -47,6 +47,10 @@ void Bound::Update()
 
     // Midpoint
     m_center = (p1 + p2) * 0.5f;
+	if (m_BoundUI.getReferencedComponent())
+	{
+		TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
+	}
 
     const float distance = Vector3::Distance(p1, p2);
 
@@ -55,8 +59,8 @@ void Bound::Update()
 
     if (m_previousDistance < m_distanceInstaKill && distance >= m_distanceInstaKill)
     {
-        m_firstDamageable->kill();
-        m_secondDamageable->kill();
+        m_firstDamageable->takeDamage(m_firstDamageable->getCurrentHp());
+        m_secondDamageable->takeDamage(m_secondDamageable->getCurrentHp());
         return;
     }
 
