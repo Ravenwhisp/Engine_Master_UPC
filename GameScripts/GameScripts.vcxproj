@@ -329,6 +329,7 @@
     <ClCompile Include="EnemyDeathHandler.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
+    <ClCompile Include="EnemyShadowMark.cpp" />
     <ClCompile Include="ExportListTest.cpp" />
     <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="InputTest.cpp" />
@@ -349,6 +350,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PersistingPowerupState.cpp" />
     <ClCompile Include="PlayerAnimationController.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerDamageable.cpp" />
@@ -358,6 +360,7 @@
     <ClCompile Include="PlayerState.cpp" />
     <ClCompile Include="PlayerTargetController.cpp" />
     <ClCompile Include="ProjectileController.cpp" />
+    <ClCompile Include="ReaperGauge.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>

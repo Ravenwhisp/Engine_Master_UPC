@@ -456,7 +456,9 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("uid") && doc["uid"].IsUint64())
+    {
         outMeta.uid = doc["uid"].GetUint64();
+    }
     else
     {
         DEBUG_ERROR("[AssetMetadata] Missing 'uid' in '%s'.", pathStr.c_str());
@@ -468,7 +470,9 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
         : INVALID_ASSET_ID;
 
     if (doc.HasMember("type") && doc["type"].IsNumber())
+    {
         outMeta.type = static_cast<AssetType>(doc["type"].GetUint());
+    }
     else
     {
         DEBUG_ERROR("[AssetMetadata] Missing 'type' in '%s'.", pathStr.c_str());
