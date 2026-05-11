@@ -55,11 +55,8 @@ bool ModuleScripts::buildAndReloadGameScriptsDll()
 {
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        DEBUG_WARN("[ModuleScripts] Cannot build and reload scripts while playing.");
         return false;
     }
-
-    DEBUG_LOG("[ModuleScripts] Building and reloading GameScripts DLL...");
 
     if (!buildGameScriptsProject())
     {
@@ -139,7 +136,6 @@ bool ModuleScripts::loadScriptBuildSettings()
 
     if (!file.is_open())
     {
-        DEBUG_WARN("[ModuleScripts] Script build settings file not found: %s", SCRIPT_BUILD_SETTINGS_FILE);
         return false;
     }
 
@@ -204,10 +200,6 @@ bool ModuleScripts::loadScriptBuildSettings()
         DEBUG_WARN("[ModuleScripts] Script build SolutionDir is empty.");
         return false;
     }
-
-    DEBUG_LOG("[ModuleScripts] Script build settings loaded.");
-    DEBUG_LOG("[ModuleScripts] ProjectPath: %s", m_buildSettings.projectPath.c_str());
-    DEBUG_LOG("[ModuleScripts] SolutionDir: %s", m_buildSettings.solutionDir.c_str());
 
     return true;
 }
@@ -283,8 +275,6 @@ bool ModuleScripts::loadGameScriptsDll()
 
     m_loadedDllPath = runtimeDllPath;
 
-    DEBUG_LOG("[ModuleScripts] Loaded %s", runtimeDllPath.c_str());
-
     return true;
 }
 
@@ -302,8 +292,6 @@ bool ModuleScripts::unloadGameScriptsDll()
         DEBUG_ERROR("[ModuleScripts] Failed to unload %s", m_loadedDllPath.c_str());
         return false;
     }
-
-    DEBUG_LOG("[ModuleScripts] Unloaded %s", m_loadedDllPath.c_str());
 
     m_gameScriptsModule = nullptr;
     m_loadedDllPath.clear();
@@ -368,10 +356,6 @@ bool ModuleScripts::buildGameScriptsProject()
     const std::string buildBatPath = "ScriptsBuild.bat";
     const std::string buildLogPath = "ScriptsBuild.log";
 
-    DEBUG_LOG("[ModuleScripts] Building script project.");
-    DEBUG_LOG("[ModuleScripts] ProjectPath: %s", projectPath.string().c_str());
-    DEBUG_LOG("[ModuleScripts] SolutionDir: %s", solutionDir.string().c_str());
-
     {
         std::ofstream buildBat(buildBatPath, std::ios::trunc);
 
@@ -394,8 +378,6 @@ bool ModuleScripts::buildGameScriptsProject()
     const std::string command =
         "cmd /C " + buildBatPath + " > " + buildLogPath + " 2>&1";
 
-    DEBUG_LOG("[ModuleScripts] Build command: %s", command.c_str());
-
     const int result = std::system(command.c_str());
 
     if (result != 0)
@@ -404,9 +386,6 @@ bool ModuleScripts::buildGameScriptsProject()
         DEBUG_ERROR("[ModuleScripts] Build output written to %s", buildLogPath.c_str());
         return false;
     }
-
-    DEBUG_LOG("[ModuleScripts] GameScripts build succeeded.");
-    DEBUG_LOG("[ModuleScripts] Build output written to %s", buildLogPath.c_str());
 
     return true;
 }
@@ -454,8 +433,6 @@ bool ModuleScripts::copyFileToRuntimePath(const std::string& sourcePath, const s
         return false;
     }
 
-    DEBUG_LOG("[ModuleScripts] Copied %s to %s", sourcePath.c_str(), runtimePath.c_str());
-
     return true;
 }
 
@@ -489,8 +466,6 @@ void ModuleScripts::cleanRuntimeScriptFiles()
             }
 
             std::filesystem::remove(entry.path());
-
-            DEBUG_LOG("[ModuleScripts] Deleted runtime script file: %s", entry.path().filename().string().c_str());
         }
     }
     catch (const std::filesystem::filesystem_error& e)
