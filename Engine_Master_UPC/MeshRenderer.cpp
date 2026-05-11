@@ -278,6 +278,9 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 			DEBUG_WARN("[MeshRenderer] Failed to deserialize MeshAssetId.");
 			return false;
 		}
+
+        m_meshAsset = meshId;
+
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
