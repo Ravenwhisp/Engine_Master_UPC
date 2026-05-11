@@ -9,6 +9,7 @@
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
 #include "PrefabManager.h"
+#include "Quadtree.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -22,6 +23,8 @@
 #include "AnimationComponent.h"
 #include "UISlider.h"
 #include "Transform2D.h"
+#include "MeshRenderer.h"
+#include "BoundingBox.h"
 
 #include "CameraComponent.h"
 
@@ -771,6 +774,70 @@ namespace SceneAPI
         }
 
         return result;
+    }
+
+    std::vector<GameObject*> getAllGameObjectsInScene(bool onlyActive)
+    {
+        std::vector<GameObject*> result;
+        if (!app || !app->getModuleScene())
+        {
+            return result;
+        }
+        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
+        {
+            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
+            {
+                continue;
+            }
+            result.push_back(gameObject);
+        }
+		return result;
+    }
+
+    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive)
+    {
+		std::vector<GameObject*> candidates = app->getModuleScene()->getQuadtree()->queryInArea(center, radius);
+
+        std::vector<GameObject*> result;
+        for (GameObject* candidate : candidates)
+        {
+            if (onlyActive && !candidate->IsActiveInWindowHierarchy())
+            {
+                continue;
+            }
+
+            auto* model = candidate->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+            if (!model || !candidate->GetActive())
+            {
+                continue;
+            }
+
+            const Engine::BoundingBox bbox = model->getBoundingBox();
+
+            Vector3 bMin = bbox.getMinInWorldSpace();
+            Vector3 bMax = bbox.getMaxInWorldSpace();
+
+            // Correct min and max problem
+            float rMinX = std::min(bMin.x, bMax.x);
+            float rMaxX = std::max(bMin.x, bMax.x);
+            float rMinZ = std::min(bMin.z, bMax.z);
+            float rMaxZ = std::max(bMin.z, bMax.z);
+
+            float closestX = std::clamp(center.x, rMinX, rMaxX);
+            float closestZ = std::clamp(center.y, rMinZ, rMaxZ);
+
+            float diffX = center.x - closestX;
+            float diffZ = center.y - closestZ;
+            float distanceSquared = (diffX * diffX) + (diffZ * diffZ);
+
+            if (distanceSquared <= radius * radius)
+            {
+                result.push_back(candidate->GetTransform()->getRoot()->getOwner());
+            }
+        }
+
+		return result;
     }
 
     GameObject* getDefaultCameraGameObject()

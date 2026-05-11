@@ -261,6 +261,7 @@
     <ClInclude Include="DeathTaunt.h" />
     <ClInclude Include="DebugDamageTrigger.h" />
     <ClInclude Include="DebugDrawTest.h" />
+    <ClInclude Include="DebugGetObjectsArea.h" />
     <ClInclude Include="DefeatConditionManager.h" />
     <ClInclude Include="EnemyATTACK.h" />
     <ClInclude Include="EnemyCHASE.h" />
@@ -320,6 +321,7 @@
     <ClCompile Include="DeathTaunt.cpp" />
     <ClCompile Include="DebugDamageTrigger.cpp" />
     <ClCompile Include="DebugDrawTest.cpp" />
+    <ClCompile Include="DebugGetObjectsArea.cpp" />
     <ClCompile Include="DefeatConditionManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EnemyATTACK.cpp" />
