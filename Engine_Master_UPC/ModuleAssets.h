@@ -51,7 +51,7 @@ public:
         const Metadata* meta = m_registry->getMetadata(id);
         if (!meta)
         {
-            DEBUG_ERROR("[ModuleAssets] No metadata found for UID %llu.", id);
+            DEBUG_ERROR("[ModuleAssets] No metadata found for UID %s.", id.c_str());
             return nullptr;
         }
 
