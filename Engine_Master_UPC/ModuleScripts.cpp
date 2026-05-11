@@ -325,8 +325,8 @@ bool ModuleScripts::buildGameScriptsProject()
         return false;
     }
 
-    const std::filesystem::path projectPath = m_buildSettings.projectPath;
-    const std::filesystem::path solutionDir = m_buildSettings.solutionDir;
+    const std::filesystem::path projectPath = resolveBuildPath(m_buildSettings.projectPath);
+    const std::filesystem::path solutionDir = resolveBuildPath(m_buildSettings.solutionDir);
 
     if (!std::filesystem::exists(projectPath) || !std::filesystem::is_regular_file(projectPath))
     {
@@ -411,6 +411,54 @@ bool ModuleScripts::buildGameScriptsProject()
     return true;
 }
 
+std::filesystem::path ModuleScripts::resolveBuildPath(const std::string& path) const
+{
+    std::filesystem::path resolvedPath(path);
+
+    if (resolvedPath.is_relative())
+    {
+        resolvedPath = std::filesystem::current_path() / resolvedPath;
+    }
+
+    return resolvedPath.lexically_normal();
+}
+
+unsigned int ModuleScripts::getNextReloadVersion()
+{
+    ++m_reloadVersion;
+    return m_reloadVersion;
+}
+
+std::string ModuleScripts::buildRuntimeDllPath(unsigned int version) const
+{
+    return std::string(RUNTIME_DLL_PREFIX) + std::to_string(version) + ".dll";
+}
+
+std::string ModuleScripts::buildRuntimePdbPath(unsigned int version) const
+{
+    char buffer[16];
+    sprintf_s(buffer, "GS_%08X.pdb", version);
+    return buffer;
+}
+
+bool ModuleScripts::copyFileToRuntimePath(const std::string& sourcePath, const std::string& runtimePath)
+{
+    try
+    {
+        std::filesystem::copy_file(sourcePath, runtimePath, std::filesystem::copy_options::overwrite_existing);
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to copy %s to %s. Error: %s", sourcePath.c_str(), runtimePath.c_str(), e.what());
+
+        return false;
+    }
+
+    DEBUG_LOG("[ModuleScripts] Copied %s to %s", sourcePath.c_str(), runtimePath.c_str());
+
+    return true;
+}
+
 bool ModuleScripts::isRuntimeScriptFile(const std::filesystem::directory_entry& entry) const
 {
     if (!entry.is_regular_file())
@@ -449,42 +497,6 @@ void ModuleScripts::cleanRuntimeScriptFiles()
     {
         DEBUG_WARN("[ModuleScripts] Failed to clean runtime script files. Error: %s", e.what());
     }
-}
-
-unsigned int ModuleScripts::getNextReloadVersion()
-{
-    ++m_reloadVersion;
-    return m_reloadVersion;
-}
-
-std::string ModuleScripts::buildRuntimeDllPath(unsigned int version) const
-{
-    return std::string(RUNTIME_DLL_PREFIX) + std::to_string(version) + ".dll";
-}
-
-std::string ModuleScripts::buildRuntimePdbPath(unsigned int version) const
-{
-    char buffer[16];
-    sprintf_s(buffer, "GS_%08X.pdb", version);
-    return buffer;
-}
-
-bool ModuleScripts::copyFileToRuntimePath(const std::string& sourcePath, const std::string& runtimePath)
-{
-    try
-    {
-        std::filesystem::copy_file(sourcePath, runtimePath, std::filesystem::copy_options::overwrite_existing);
-    }
-    catch (const std::filesystem::filesystem_error& e)
-    {
-        DEBUG_ERROR("[ModuleScripts] Failed to copy %s to %s. Error: %s", sourcePath.c_str(), runtimePath.c_str(), e.what());
-
-        return false;
-    }
-
-    DEBUG_LOG("[ModuleScripts] Copied %s to %s", sourcePath.c_str(), runtimePath.c_str());
-
-    return true;
 }
 
 std::vector<ModuleScripts::ScriptReloadInfo> ModuleScripts::saveSceneScriptReloadInfo()

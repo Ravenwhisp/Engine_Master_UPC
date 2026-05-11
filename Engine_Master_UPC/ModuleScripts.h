@@ -51,13 +51,15 @@ private:
     bool unloadGameScriptsDll();
     bool buildGameScriptsProject();
 
-    bool isRuntimeScriptFile(const std::filesystem::directory_entry& entry) const;
-    void cleanRuntimeScriptFiles();
+    std::filesystem::path resolveBuildPath(const std::string& path) const;
 
     unsigned int getNextReloadVersion();
     std::string buildRuntimeDllPath(unsigned int version) const;
     std::string buildRuntimePdbPath(unsigned int version) const;
     bool copyFileToRuntimePath(const std::string& sourcePath, const std::string& runtimePath);
+
+    bool isRuntimeScriptFile(const std::filesystem::directory_entry& entry) const;
+    void cleanRuntimeScriptFiles();
 
     std::vector<ScriptReloadInfo> saveSceneScriptReloadInfo();
     void restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>& reloadInfos);
