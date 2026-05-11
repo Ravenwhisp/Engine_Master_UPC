@@ -457,7 +457,10 @@
     <ClCompile Include="EmitterColor.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
-    <ClCompile Include="EmitterVelocity.cpp" />
+    <ClCompile Include="EmitterVelocity.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterArea.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -598,9 +601,6 @@
     </ClInclude>
     <ClInclude Include="Layer.h">
       <Filter>GameEntity</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
@@ -1127,7 +1127,13 @@
     <ClInclude Include="EmitterColor.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="EmitterVelocity.h" />
+    <ClInclude Include="EmitterVelocity.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterArea.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

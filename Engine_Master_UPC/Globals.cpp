@@ -49,3 +49,8 @@ void debug_error(const char file[], int line, const char* format, ...)
 
 	WindowLogger::error(file, line, "%s", tmp_string);
 }
+
+float uniform_rand() { // returns a random value between 0 and 1
+
+	return rand() / static_cast<float>(RAND_MAX);
+}

@@ -26,6 +26,8 @@
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
+    srand(time(0)); // To generate random numbers
+
     modules.push_back(m_moduleTime = new ModuleTime(120));
     modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
     modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));

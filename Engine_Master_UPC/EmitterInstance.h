@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Globals.h"
+
 class ParticleEmitter;
 class ParticleSystemComponent;
 
@@ -26,9 +28,12 @@ public:
 	void updateModules();
 
 	ParticleEmitter* getParticleEmitter() { return m_emitter; }
+	ParticleSystemComponent* getParticleSystemComponent() { return m_owner; }
 
 	void getPoolAndAlives(Particle*& particlePool, std::vector<std::pair<unsigned int, unsigned int>>*& aliveParticles)
 	{ particlePool = m_pool; aliveParticles = &m_aliveParticles; }
+
+	Particle* getParticlePool() { return m_pool; }
 
 	std::vector<unsigned int>& getNewParticles() { return m_newParticles; }
 

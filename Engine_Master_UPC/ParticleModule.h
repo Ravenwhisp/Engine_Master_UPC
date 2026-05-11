@@ -6,6 +6,7 @@ class EmitterInstance;
 enum class ParticleModuleType {
 
 	BASE,
+	AREA,
 	SPAWN,
 	COLOR,
 	LIFETIME,

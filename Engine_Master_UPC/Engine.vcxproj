@@ -307,6 +307,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DeviceType.h" />
     <ClInclude Include="CommandDeleteAsset.h" />
     <ClInclude Include="CommandDeleteFolder.h" />
+    <ClInclude Include="EmitterArea.h" />
     <ClInclude Include="EmitterColor.h" />
     <ClInclude Include="EmitterInstance.h" />
     <ClInclude Include="EmitterLifetime.h" />
@@ -645,6 +646,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
+    <ClCompile Include="EmitterArea.cpp" />
     <ClCompile Include="EmitterColor.cpp" />
     <ClCompile Include="EmitterInstance.cpp" />
     <ClCompile Include="EmitterLifetime.cpp" />

@@ -13,9 +13,12 @@
 
 #include <windows.h>
 #include <memory>
+#include <cstdlib> // For rand() and srand()
+#include <ctime> // For time()
 #include <wrl.h>
 #include <d3d12.h>
 #include "d3dx12.h"
+
 
 #include "SimpleMath.h"
 
@@ -98,6 +101,8 @@ namespace Engine
 	class BoundingBox;
 	struct Frustum;
 }
+
+float uniform_rand(); // returns a random value between 0 and 1
 
 #include <rapidjson/document.h>
 
