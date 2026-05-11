@@ -109,10 +109,10 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
 void MeshRenderer::addMesh(MeshAsset& meshAsset)
 {
-
     auto mesh = app->getModuleResources()->createMesh(meshAsset);
     if (mesh)
     {
+        
         cacheSourceVertices(meshAsset);
 
         for (const auto& submesh : mesh->getSubmeshes())
@@ -143,6 +143,15 @@ void MeshRenderer::drawUi()
 {
     ImGui::Separator();
 
+    if(m_meshAsset.isValid())
+    {
+        ImGui::Text("Mesh: %s", std::to_string(m_meshAsset.m_uid).c_str());
+    }
+	else
+    {
+        ImGui::Text("Mesh: None");
+    }
+
     // --- Mesh drop target ---
     ImGui::Button("Drop Mesh Here");
     if (ImGui::BeginDragDropTarget())
@@ -158,6 +167,18 @@ void MeshRenderer::drawUi()
             }
         }
         ImGui::EndDragDropTarget();
+    }
+
+    if(m_materialAssets.empty())
+	{
+		ImGui::Text("Materials: None");
+    }
+    else {
+        ImGui::Text("Materials:");
+        for (const auto& materialRef : m_materialAssets)
+        {
+            ImGui::BulletText("%s", std::to_string(materialRef.m_uid).c_str());
+        }
     }
 
     // --- Material drop target ---
@@ -278,6 +299,9 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 			DEBUG_WARN("[MeshRenderer] Failed to deserialize MeshAssetId.");
 			return false;
 		}
+
+        m_meshAsset = meshId;
+
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
@@ -321,12 +345,11 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 void MeshRenderer::setMeshReference(AssetReference& meshRef)
 {
     m_meshAsset = meshRef;
-	invalidateSkinningRuntime();
 }
 
 void MeshRenderer::addMaterialReference(AssetReference& materialRef)
 {
-    	m_materialAssets.push_back(materialRef);
+    m_materialAssets.push_back(materialRef);
 }
 
 void MeshRenderer::setSkinReference(AssetReference& skinRef)
