@@ -316,67 +316,28 @@ bool ModuleScripts::buildGameScriptsProject()
     const std::filesystem::path projectPath = resolveBuildPath(m_buildSettings.projectPath);
     const std::filesystem::path solutionDir = resolveBuildPath(m_buildSettings.solutionDir);
 
-    if (!std::filesystem::exists(projectPath) || !std::filesystem::is_regular_file(projectPath))
+    if (!validateScriptBuildPaths(projectPath, solutionDir))
     {
-        DEBUG_ERROR("[ModuleScripts] Script project path is invalid: %s", projectPath.string().c_str());
         return false;
     }
 
-    if (projectPath.extension() != ".vcxproj")
+    const std::filesystem::path msbuildPath = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe";
+
+    if (!std::filesystem::exists(msbuildPath))
     {
-        DEBUG_ERROR("[ModuleScripts] Script project path must point to a .vcxproj file: %s", projectPath.string().c_str());
-        return false;
-    }
-
-    if (!std::filesystem::exists(solutionDir) || !std::filesystem::is_directory(solutionDir))
-    {
-        DEBUG_ERROR("[ModuleScripts] Script solution directory is invalid: %s", solutionDir.string().c_str());
-        return false;
-    }
-
-    // Temporary safety validation while the build-settings system is stabilizing.
-    // This prevents MSBuild from running with a wrong-but-existing SolutionDir.
-    const std::filesystem::path expectedRapidJsonPath = solutionDir / "3rdParty" / "rapidjson" / "include";
-
-    if (!std::filesystem::exists(expectedRapidJsonPath))
-    {
-        DEBUG_ERROR("[ModuleScripts] Script solution directory seems invalid. Could not find: %s",
-            expectedRapidJsonPath.string().c_str());
-        return false;
-    }
-
-    const std::string msbuildExe = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe";
-
-    if (!std::filesystem::exists(msbuildExe))
-    {
-        DEBUG_ERROR("[ModuleScripts] MSBuild.exe not found: %s", msbuildExe.c_str());
+        DEBUG_ERROR("[ModuleScripts] MSBuild.exe not found: %s", msbuildPath.string().c_str());
         return false;
     }
 
     const std::string buildBatPath = "ScriptsBuild.bat";
     const std::string buildLogPath = "ScriptsBuild.log";
 
+    if (!writeScriptsBuildBatchFile(projectPath, solutionDir, msbuildPath, buildBatPath))
     {
-        std::ofstream buildBat(buildBatPath, std::ios::trunc);
-
-        if (!buildBat.is_open())
-        {
-            DEBUG_ERROR("[ModuleScripts] Failed to create %s", buildBatPath.c_str());
-            return false;
-        }
-
-        buildBat << "@echo off\n";
-        buildBat << "\"" << msbuildExe << "\" "
-            << "\"" << projectPath.string() << "\" "
-            << "/p:Configuration=" << SCRIPT_BUILD_CONFIGURATION << " "
-            << "/p:Platform=" << SCRIPT_BUILD_PLATFORM << " "
-            << "/p:SolutionDir=" << solutionDir.string() << "\n";
-
-        buildBat << "exit /b %ERRORLEVEL%\n";
+        return false;
     }
 
-    const std::string command =
-        "cmd /C " + buildBatPath + " > " + buildLogPath + " 2>&1";
+    const std::string command = "cmd /C " + buildBatPath + " > " + buildLogPath + " 2>&1";
 
     const int result = std::system(command.c_str());
 
@@ -400,6 +361,61 @@ std::filesystem::path ModuleScripts::resolveBuildPath(const std::string& path) c
     }
 
     return resolvedPath.lexically_normal();
+}
+
+bool ModuleScripts::validateScriptBuildPaths(const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir) const
+{
+    if (!std::filesystem::exists(projectPath) || !std::filesystem::is_regular_file(projectPath))
+    {
+        DEBUG_ERROR("[ModuleScripts] Script project path is invalid: %s", projectPath.string().c_str());
+        return false;
+    }
+
+    if (projectPath.extension() != ".vcxproj")
+    {
+        DEBUG_ERROR("[ModuleScripts] Script project path must point to a .vcxproj file: %s", projectPath.string().c_str());
+        return false;
+    }
+
+    if (!std::filesystem::exists(solutionDir) || !std::filesystem::is_directory(solutionDir))
+    {
+        DEBUG_ERROR("[ModuleScripts] Script solution directory is invalid: %s", solutionDir.string().c_str());
+        return false;
+    }
+
+    // Temporary safety validation while the build settings system is stabilizing.
+    // This prevents MSBuild from running with a wrong but existing SolutionDir.
+    const std::filesystem::path expectedRapidJsonPath = solutionDir / "3rdParty" / "rapidjson" / "include";
+
+    if (!std::filesystem::exists(expectedRapidJsonPath))
+    {
+        DEBUG_ERROR("[ModuleScripts] Script solution directory seems invalid. Could not find: %s", expectedRapidJsonPath.string().c_str());
+        return false;
+    }
+
+    return true;
+}
+
+bool ModuleScripts::writeScriptsBuildBatchFile(const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::filesystem::path& msbuildPath, const std::string& buildBatPath) const
+{
+    std::ofstream buildBat(buildBatPath, std::ios::trunc);
+
+    if (!buildBat.is_open())
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to create %s", buildBatPath.c_str());
+        return false;
+    }
+
+    buildBat << "@echo off\n";
+    buildBat << "\"" << msbuildPath.string() << "\" "
+        << "\"" << projectPath.string() << "\" "
+        << "/p:Configuration=" << SCRIPT_BUILD_CONFIGURATION << " "
+        << "/p:Platform=" << SCRIPT_BUILD_PLATFORM << " "
+        << "/p:SolutionDir=" << solutionDir.string() << "\n";
+
+    buildBat << "exit /b %ERRORLEVEL%\n";
+
+    return true;
 }
 
 unsigned int ModuleScripts::getNextReloadVersion()
