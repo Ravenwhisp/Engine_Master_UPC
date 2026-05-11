@@ -17,6 +17,7 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
+#include "Skin.h"
 #include "LightComponent.h"
 #include "RingBuffer.h"
 #include "VertexBuffer.h"
@@ -215,8 +216,11 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
         {
             PERF_RENDER("MeshRendererPass::renderMesh::VertexBufferSelection");
 
-            const VertexBuffer* gpuSkinnedVB = renderer->getCurrentGpuSkinnedVertexBuffer();
-            const VertexBuffer* cpuSkinnedVB = renderer->isCpuSkinningFallbackEnabled() ? renderer->getCpuSkinnedVertexBuffer() : nullptr;
+            const Skin* skin = renderer->getSkin();
+
+            const VertexBuffer* gpuSkinnedVB = skin ? skin->getCurrentGpuSkinnedVertexBuffer() : nullptr;
+            const VertexBuffer* cpuSkinnedVB = skin && skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
+
             const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
 
             const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
