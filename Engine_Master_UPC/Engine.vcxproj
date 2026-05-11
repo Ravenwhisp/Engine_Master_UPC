@@ -339,6 +339,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ModuleHaptics.h" />
     <ClInclude Include="ModuleTrigger.h" />
+    <ClInclude Include="NavMeshTypes.h" />
+    <ClInclude Include="NavModifierVolumeComponent.h" />
     <ClInclude Include="OptickProfiler.h" />
     <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="CommandMoveFile.h" />
@@ -665,6 +667,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
+    <ClCompile Include="NavModifierVolumeComponent.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
