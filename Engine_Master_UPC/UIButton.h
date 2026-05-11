@@ -48,7 +48,6 @@ public:
 	UIButton(UID id, GameObject* owner);
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	// Explicit navigation (optional)
 	UIButton* getNavUp() const { return m_navUp; }
 	UIButton* getNavDown() const { return m_navDown; }
 	UIButton* getNavLeft() const { return m_navLeft; }
@@ -67,6 +66,7 @@ public:
 	void onPointerExit(PointerEventData& data) override;
 	void onPointerDown(PointerEventData& data) override;
 	void onPointerUp(PointerEventData& data) override;
+	void onPointerClick(PointerEventData& data) override;
 
 	void executeBindings(std::vector<ButtonEventBinding>& bindings);
 #pragma endregion
