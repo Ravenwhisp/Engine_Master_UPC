@@ -19,10 +19,10 @@ struct ParticleEmitterCommand
     std::vector <ParticleCommand> particles;
 };
 
-struct shaderParticleData {
+struct alignas(16) shaderParticleData { // align to 16 bytes!
     
-    Matrix worldPosition;
-    Vector4 colorAndAlpha;
+    XMFLOAT4X4 worldPosition;
+    XMFLOAT4 colorAndAlpha;
     // UINT frame = 0; <- to align as well
 };
 

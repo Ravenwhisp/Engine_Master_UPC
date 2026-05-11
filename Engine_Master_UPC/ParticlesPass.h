@@ -31,11 +31,31 @@ private:
     const std::vector<ParticleEmitterCommand>* m_commands;
     const Matrix* m_view = nullptr;
     const Matrix* m_projection = nullptr;
+    const Vector3* m_cameraPosition = nullptr;
 
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
+
+    // TEMPORARY
+    std::vector<ParticleEmitterCommand> test = { {nullptr,
+           {
+               {
+                   Vector3(0.f, 0.f, 0.f),
+                   Vector2(1.f, 1.f),
+                   0.f,
+                   Vector4(1.f, 1.f, 1.f, 1.f)
+               },
+               {
+                   Vector3(0.f, 5.f, 0.f),
+                   Vector2(2.f, 2.f),
+                   0.f,
+                   Vector4(1.f, 1.f, 1.f, 0.5f)
+               }
+           }
+       }
+    };
 };
 

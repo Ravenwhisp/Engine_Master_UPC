@@ -11,8 +11,10 @@
 #include "ModuleRender.h"
 #include "ModuleResources.h"
 #include "ModuleScene.h"
+#include "ModuleCamera.h" // to test createBillboard()
 #include "ParticleSystemComponent.h"
 #include "ParticleCommands.h"
+
 
 #include "VertexBuffer.h"
 #include "Texture.h"
@@ -81,16 +83,30 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
+    
     const Vertex quadVertices[6] =
     {
-        { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f)},
-        { Vector2(1.0f, 0.0f), Vector2(1.0f, 0.0f)},
-        { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f)},
+        { Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f)},
+        { Vector2(1.0f, 0.0f), Vector2(0.0f, 1.0f)},
+        { Vector2(1.0f, 1.0f), Vector2(0.0f, 0.0f)},
 
-        { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f)},
-        { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f)},
-        { Vector2(0.0f, 1.0f), Vector2(0.0f, 1.0f)}
+        { Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f)},
+        { Vector2(1.0f, 1.0f), Vector2(0.0f, 0.0f)},
+        { Vector2(0.0f, 1.0f), Vector2(1.0f, 0.0f)}
     };
+
+   /*
+    const Vertex quadVertices[6] =
+    {
+        { Vector2(-0.5f, -0.5f), Vector2(0.0f, 1.0f) },
+        { Vector2(0.5f, -0.5f), Vector2(1.0f, 1.0f) },
+        { Vector2(0.5f,  0.5f), Vector2(1.0f, 0.0f) },
+
+        { Vector2(-0.5f, -0.5f), Vector2(0.0f, 1.0f) },
+        { Vector2(0.5f,  0.5f), Vector2(1.0f, 0.0f) },
+        { Vector2(-0.5f,  0.5f), Vector2(0.0f, 0.0f) }
+    }; 
+    */
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(Vertex)));
 }
@@ -102,32 +118,20 @@ void ParticlesPass::prepare(const RenderContext& ctx)
     // TEMPORARY, just for testing
     const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
     Texture* passedText = particleSystemComponents.empty() ? nullptr : particleSystemComponents[0]->getTexture();
-    static std::vector<ParticleEmitterCommand> test = { {passedText,
-            {
-                {
-                    Vector3(0.f, 0.f, 0.f),
-                    Vector2(1.f, 1.f),
-                    0.f,
-                    Vector4(1.f, 1.f, 1.f, 1.f)
-                },
-                {
-                    Vector3(0.f, 5.f, 0.f),
-                    Vector2(2.f, 2.f),
-                    0.f,
-                    Vector4(1.f, 1.f, 1.f, 0.5f)
-                }
-            }
-        } 
-    };
+    test[0].texture = passedText;
     m_commands = &test;
     
 
     m_view = &ctx.view;
     m_projection = &ctx.projection;
+    m_cameraPosition = &ctx.cameraPosition;
 }
 
 void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    //if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+    BEGIN_EVENT(commandList, "Particle rendering");
+
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
@@ -142,6 +146,9 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetVertexBuffers(0, 1, &vbv);
 
     renderImages(commandList);
+
+    END_EVENT(commandList);
+    //if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 }
 
 void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
@@ -166,7 +173,11 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         for (unsigned int i = 0; i < command.particles.size(); ++i) 
         {
-            particleData[i].worldPosition = buildImageWorldMatrix(command.particles[i]).Transpose();
+            //XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
+            //XMMATRIX m = (Matrix::Identity * (*m_view) * (*m_projection)).Transpose();
+            //Vector3 cameraForward = Vector3(-m_view->_31, -m_view->_32, -m_view->_33);
+            XMMATRIX m = Matrix::CreateBillboard(command.particles[i].position, *m_cameraPosition, Vector3(m_view->_21, m_view->_22, m_view->_23), nullptr);
+            XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
         }
