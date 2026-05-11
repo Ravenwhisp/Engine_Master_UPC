@@ -84,8 +84,14 @@ static MD5Hash computeStableGltfSubAssetUID(
     const char* kind,
     int index)
 {
-    const std::string stablePath = getStableAssetPathString(sourcePath);
-    return computeMD5(stablePath + "?" + kind + "=" + std::to_string(index));
+    ModuleAssets* assets = app ? app->getModuleAssets() : nullptr;
+    if (!assets)
+    {
+        return INVALID_ASSET_ID;
+    }
+
+    const MD5Hash parentStableUID = assets->computeStableUIDFromAssetPath(sourcePath);
+    return computeMD5(parentStableUID + "?" + kind + "=" + std::to_string(index));
 }
 
 static float getVec4Component(const Vector4& v, int index)
