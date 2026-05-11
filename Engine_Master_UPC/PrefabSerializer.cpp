@@ -132,16 +132,6 @@ void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
             comp->deserializeJSON(cn["Data"]);
         }
     }
-
-    MeshRenderer* meshRenderer = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-
-    if (meshRenderer &&
-        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
-        !meshRenderer->hasSkin())
-    {
-        meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
-    }
-
 }
 
 bool PrefabSerializer::writeDocument(Document& doc, const fs::path& path)

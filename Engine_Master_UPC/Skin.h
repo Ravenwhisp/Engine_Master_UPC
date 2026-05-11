@@ -12,6 +12,8 @@
 #include <memory>
 #include <vector>
 
+#include "AssetReference.h"
+
 using Microsoft::WRL::ComPtr;
 
 class GameObject;
@@ -31,8 +33,8 @@ public:
     void lateUpdate(GameObject* owner, MeshRenderer& renderer);
     void cleanUp();
 
-    void setSkinReference(const MD5Hash& skinUID);
-    const MD5Hash& getSkinReference() const { return m_skinAsset; }
+    void setSkinReference(AssetReference& skinUID);
+    AssetReference& getSkinReference() { return m_skinAsset; }
 
     const std::shared_ptr<SkinAsset>& getSkinAsset() const { return m_skin; }
     const std::vector<Transform*>& getJointTransforms() const { return m_jointTransforms; }
@@ -76,7 +78,7 @@ private:
     void invalidateGpuSkinningResources();
 
 private:
-    MD5Hash m_skinAsset = INVALID_ASSET_ID;
+    AssetReference m_skinAsset{};
 
     std::shared_ptr<SkinAsset> m_skin;
     std::vector<Transform*> m_jointTransforms;
@@ -90,7 +92,7 @@ private:
     std::unique_ptr<VertexBuffer> m_skinnedVertexBuffer;
 
     bool m_enableCpuSkinningFallback = false;
-    MD5Hash m_cachedMeshAsset = INVALID_ASSET_ID;
+    AssetReference m_cachedMeshAsset{};
 
     std::unique_ptr<VertexBuffer> m_gpuSkinnedVertexBuffers[FRAMES_IN_FLIGHT];
 

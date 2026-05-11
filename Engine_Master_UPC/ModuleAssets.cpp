@@ -235,6 +235,8 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
         return false;
     }
 
+    m_contentRegistry->registerAsset(sourcePath);
+
     return true;
 }
 

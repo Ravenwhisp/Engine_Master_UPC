@@ -866,15 +866,6 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
         }
     }
 
-    MeshRenderer* meshRenderer = GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-
-    if (meshRenderer &&
-        meshRenderer->getSkinReference() != INVALID_ASSET_ID &&
-        !meshRenderer->hasSkin())
-    {
-        meshRenderer->ensureSkin().setSkinReference(meshRenderer->getSkinReference());
-    }
-
     return true;
 }
 

@@ -41,12 +41,9 @@ protected:
 private:
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
     void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const AssetReference& materialRef);
-    void loadAnimation(const tinygltf::Model& model,
-        const tinygltf::Animation& anim,
-        AnimationAsset* outAnim);
-    void buildDefaultStateMachine(const tinygltf::Model& model,
-        const std::vector<AssetReference>& animationRefs,
-        PrefabAsset* dst);
+    void loadAnimation(const tinygltf::Model& model, const tinygltf::Animation& anim, AnimationAsset* outAnim);
+
+    AssetReference buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<AssetReference>& animationRefs);
 
     void loadSkin(const tinygltf::Model& model,
         const tinygltf::Skin& skin,

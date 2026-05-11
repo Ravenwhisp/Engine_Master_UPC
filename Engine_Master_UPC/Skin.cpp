@@ -106,7 +106,7 @@ std::unique_ptr<Skin> Skin::clone() const
     cloned->m_skinnedVertexBuffer.reset();
 
     cloned->m_enableCpuSkinningFallback = m_enableCpuSkinningFallback;
-    cloned->m_cachedMeshAsset = INVALID_ASSET_ID;
+    cloned->m_cachedMeshAsset = {};
 
     cloned->invalidateGpuSkinningResources();
 
@@ -115,7 +115,7 @@ std::unique_ptr<Skin> Skin::clone() const
 
 void Skin::lateUpdate(GameObject* owner, MeshRenderer& renderer)
 {
-    if (m_skinAsset == INVALID_ASSET_ID)
+    if (!m_skinAsset.isValid())
         return;
 
     if (!ensureSkinLoaded())
@@ -150,7 +150,7 @@ void Skin::cleanUp()
     invalidateSkinningRuntime();
 }
 
-void Skin::setSkinReference(const MD5Hash& skinUID)
+void Skin::setSkinReference(AssetReference& skinUID)
 {
     if (m_skinAsset == skinUID)
         return;
@@ -161,7 +161,7 @@ void Skin::setSkinReference(const MD5Hash& skinUID)
 
 void Skin::drawUi()
 {
-    ImGui::Text("Skin Asset: %s", m_skinAsset != INVALID_ASSET_ID ? m_skinAsset.c_str() : "None");
+    ImGui::Text("Skin Asset: %s", m_skinAsset.isValid() ? std::to_string(m_skinAsset.m_uid) : "None");
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", static_cast<int>(m_jointTransforms.size()));
     ImGui::Text("Skin Bindings Resolved: %s", m_skinBindingsResolved ? "Yes" : "No");
@@ -181,7 +181,7 @@ void Skin::drawUi()
 
 bool Skin::ensureSkinLoaded()
 {
-    if (m_skinAsset == INVALID_ASSET_ID)
+    if (!m_skinAsset.isValid())
         return false;
 
     if (m_skin)
@@ -194,7 +194,7 @@ bool Skin::ensureSkinLoaded()
     std::shared_ptr<SkinAsset> skinAsset = moduleAssets->load<SkinAsset>(m_skinAsset);
     if (!skinAsset)
     {
-        DEBUG_WARN("[Skin] Could not load SkinAsset '%s'.", m_skinAsset.c_str());
+        DEBUG_WARN("[Skin] Could not load SkinAsset '%s'.", std::to_string(m_skinAsset.m_uid).c_str());
         return false;
     }
 
@@ -249,7 +249,7 @@ void Skin::invalidateSkinningRuntime()
     m_sourceVertices.clear();
     m_skinnedVertices.clear();
     m_skinnedVertexBuffer.reset();
-    m_cachedMeshAsset = INVALID_ASSET_ID;
+    m_cachedMeshAsset = {};
 
     invalidateGpuSkinningResources();
 
@@ -291,14 +291,14 @@ void Skin::rebuildMatrixPalette()
 
 bool Skin::ensureSourceVerticesCached(MeshRenderer& renderer)
 {
-    const MD5Hash& meshUID = renderer.getMeshReference();
+    auto meshUID = renderer.getMeshReference();
 
-    if (meshUID == INVALID_ASSET_ID)
+    if (!meshUID.isValid())
     {
         m_sourceVertices.clear();
         m_skinnedVertices.clear();
         m_skinnedVertexBuffer.reset();
-        m_cachedMeshAsset = INVALID_ASSET_ID;
+        m_cachedMeshAsset = {};
         return false;
     }
 
@@ -312,12 +312,12 @@ bool Skin::ensureSourceVerticesCached(MeshRenderer& renderer)
     std::shared_ptr<MeshAsset> meshAsset = moduleAssets->load<MeshAsset>(meshUID);
     if (!meshAsset)
     {
-        DEBUG_WARN("[Skin] Could not load MeshAsset '%s'.", meshUID.c_str());
+        DEBUG_WARN("[Skin] Could not load MeshAsset '%s'.", std::to_string(meshUID.m_uid).c_str());
 
         m_sourceVertices.clear();
         m_skinnedVertices.clear();
         m_skinnedVertexBuffer.reset();
-        m_cachedMeshAsset = INVALID_ASSET_ID;
+        m_cachedMeshAsset = {};
         return false;
     }
 

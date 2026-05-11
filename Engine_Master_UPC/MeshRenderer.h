@@ -58,8 +58,8 @@ public:
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
 	// Legacy only: used to migrate old prefabs/scenes that stored SkinAssetId inside MeshRenderer.
-	const MD5Hash& getSkinReference() const { return m_skinAsset; }
-	void setLegacySkinReference(const MD5Hash& skinUID) { m_skinAsset = skinUID; }
+	AssetReference& getSkinReference() { return m_skinAsset; }
+	void setSkinReference(AssetReference& skinUID) { m_skinAsset = skinUID; }
 
 	bool hasSkin() const { return m_skin != nullptr; }
 
