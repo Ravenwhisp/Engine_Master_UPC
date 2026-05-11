@@ -2144,6 +2144,11 @@ namespace HapticAPI
         return haptics->submitAnonymous(HapticEffectDefinition::makeImpact(intensity, duration), 1.0f, player);
     }
 
+    uint32_t HapticAPI::submitEffect(const HapticEffectDefinition& def, int player)
+    {
+        return app->getModuleHaptics()->submitEffect(def, player);
+    }
+
     uint32_t submitRumble(float left, float right, float duration, int player)
     {
         if (!app)

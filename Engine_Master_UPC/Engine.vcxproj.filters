@@ -463,6 +463,12 @@
     <ClCompile Include="HapticEffectDefinition.cpp">
       <Filter>Haptics</Filter>
     </ClCompile>
+    <ClCompile Include="ScenePicking.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UINavigation.cpp">
+      <Filter>UI\Events</Filter>
+    </ClCompile>
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
@@ -1120,6 +1126,12 @@
     </ClInclude>
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenePicking.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="UINavigation.h">
+      <Filter>UI\Events</Filter>
     </ClInclude>
     <ClInclude Include="NavModifierVolumeComponent.h">
       <Filter>NavMesh</Filter>
