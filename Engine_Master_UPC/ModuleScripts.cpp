@@ -383,16 +383,6 @@ bool ModuleScripts::validateScriptBuildPaths(const std::filesystem::path& projec
         return false;
     }
 
-    // Temporary safety validation while the build settings system is stabilizing.
-    // This prevents MSBuild from running with a wrong but existing SolutionDir.
-    const std::filesystem::path expectedRapidJsonPath = solutionDir / "3rdParty" / "rapidjson" / "include";
-
-    if (!std::filesystem::exists(expectedRapidJsonPath))
-    {
-        DEBUG_ERROR("[ModuleScripts] Script solution directory seems invalid. Could not find: %s", expectedRapidJsonPath.string().c_str());
-        return false;
-    }
-
     return true;
 }
 
@@ -406,12 +396,40 @@ bool ModuleScripts::writeScriptsBuildBatchFile(const std::filesystem::path& proj
         return false;
     }
 
+    std::string msbuildPathString = msbuildPath.string();
+    std::string projectPathString = projectPath.string();
+    std::string solutionDirString = solutionDir.string();
+
+    for (char& character : msbuildPathString)
+    {
+        if (character == '\\')
+        {
+            character = '/';
+        }
+    }
+
+    for (char& character : projectPathString)
+    {
+        if (character == '\\')
+        {
+            character = '/';
+        }
+    }
+
+    for (char& character : solutionDirString)
+    {
+        if (character == '\\')
+        {
+            character = '/';
+        }
+    }
+
     buildBat << "@echo off\n";
-    buildBat << "\"" << msbuildPath.string() << "\" "
-        << "\"" << projectPath.string() << "\" "
-        << "/p:Configuration=" << SCRIPT_BUILD_CONFIGURATION << " "
-        << "/p:Platform=" << SCRIPT_BUILD_PLATFORM << " "
-        << "/p:SolutionDir=" << solutionDir.string() << "\n";
+    buildBat << "\"" << msbuildPathString << "\" "
+        << "\"" << projectPathString << "\" "
+        << "\"/p:Configuration=" << SCRIPT_BUILD_CONFIGURATION << "\" "
+        << "\"/p:Platform=" << SCRIPT_BUILD_PLATFORM << "\" "
+        << "\"/p:SolutionDir=" << solutionDirString << "\"\n";
 
     buildBat << "exit /b %ERRORLEVEL%\n";
 
