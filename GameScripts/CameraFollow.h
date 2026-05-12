@@ -30,7 +30,7 @@ public:
     float m_zoomEndDistance = 0.0f;
     float m_maxExtraHeight = 0.0f;
 
-    int test = 0;
+    //int test = 0;
 
 private:
     Vector3 computeFollowPoint() const;
