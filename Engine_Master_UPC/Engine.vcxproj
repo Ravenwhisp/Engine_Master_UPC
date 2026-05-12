@@ -378,6 +378,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="SkyBoxSettings.h" />
     <ClInclude Include="PrefabAsset.h" />
+    <ClInclude Include="SoundReference.h" />
     <ClInclude Include="StagingDescriptorheap.h" />
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="StaticTexturesPass.h" />
@@ -481,6 +482,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="Resources.h" />
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
+    <ClInclude Include="WindowMusicDebug.h" />
     <ClInclude Include="WindowSceneEditor.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="SceneSnapshot.h" />
@@ -516,6 +518,8 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="WaypointPathComponent.h" />
     <ClInclude Include="WindowGameDebug.h" />
     <ClInclude Include="WeakCache.h" />
+    <ClInclude Include="WwiseBank.h" />
+    <ClInclude Include="WwiseEvent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -806,6 +810,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
+    <ClCompile Include="WindowMusicDebug.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
@@ -837,6 +842,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="WaypointPathComponent.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
+    <ClCompile Include="WwiseBank.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

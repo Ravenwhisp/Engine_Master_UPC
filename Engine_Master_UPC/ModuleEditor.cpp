@@ -22,6 +22,7 @@
 #include "WindowGameDebug.h"
 #include "ModuleRender.h"
 #include "WindowAnimationStateMachine.h"
+#include "WindowMusicDebug.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -113,7 +114,6 @@ static void applyImGuiStyle()
 ModuleEditor::ModuleEditor() = default;
 ModuleEditor::~ModuleEditor() = default;
 
-
 EditorWindow* ModuleEditor::openWindow(const std::string& typeKey)
 {
     auto it = m_windowFactories.find(typeKey);
@@ -144,6 +144,7 @@ bool ModuleEditor::init()
     registerWindowType<WindowInspector>("WindowInspector");
     registerWindowType<WindowGame>("Game");
     registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
+    registerWindowType<WindowMusicDebug>("Music Library");
 
     // ---- Spawn the default set of windows (one each) ----
     openWindow("Console");
@@ -157,6 +158,7 @@ bool ModuleEditor::init()
     openWindow("WindowInspector");
     openWindow("Game");
     openWindow("Animation State Machine");
+    openWindow("Music Library");
 
     m_viewGameDebug = std::make_unique<WindowGameDebug>();
 

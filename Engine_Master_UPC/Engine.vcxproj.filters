@@ -493,6 +493,12 @@
     <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkGeneratedSoundBanksResolver.cpp">
       <Filter>MusicSystem\3rdParty</Filter>
     </ClCompile>
+    <ClCompile Include="WwiseBank.cpp">
+      <Filter>MusicSystem\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowMusicDebug.cpp">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1163,6 +1169,18 @@
     <ClInclude Include="ModuleMusic.h">
       <Filter>MusicSystem</Filter>
     </ClInclude>
+    <ClInclude Include="WwiseBank.h">
+      <Filter>MusicSystem\Wwise</Filter>
+    </ClInclude>
+    <ClInclude Include="WwiseEvent.h">
+      <Filter>MusicSystem\Wwise</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundReference.h">
+      <Filter>MusicSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowMusicDebug.h">
+      <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1352,6 +1370,9 @@
     </Filter>
     <Filter Include="MusicSystem\3rdParty">
       <UniqueIdentifier>{14c70593-ff68-489d-9e66-316cb0e76bc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MusicSystem\Wwise">
+      <UniqueIdentifier>{91427977-9755-4d26-a19d-851d864687ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
