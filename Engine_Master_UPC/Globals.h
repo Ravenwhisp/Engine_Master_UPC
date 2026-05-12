@@ -41,6 +41,8 @@ void debug_error(const char file[], int line, const char* format, ...);
 
 #define FRAMES_IN_FLIGHT 2
 
+#define MAX_PARTICLES 300
+
 #include "debug_draw.hpp"
 
 inline const ddVec3& ddConvert(const Vector3& v) { return reinterpret_cast<const ddVec3&>(v); }

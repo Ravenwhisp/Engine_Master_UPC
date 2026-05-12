@@ -460,7 +460,9 @@
     <ClCompile Include="EmitterVelocity.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
-    <ClCompile Include="EmitterArea.cpp" />
+    <ClCompile Include="EmitterArea.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1133,7 +1135,9 @@
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
-    <ClInclude Include="EmitterArea.h" />
+    <ClInclude Include="EmitterArea.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

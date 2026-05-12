@@ -83,7 +83,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
-    
+    /*
     const Vertex quadVertices[6] =
     {
         { Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f)},
@@ -94,8 +94,8 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
         { Vector2(1.0f, 1.0f), Vector2(0.0f, 0.0f)},
         { Vector2(0.0f, 1.0f), Vector2(1.0f, 0.0f)}
     };
+    */
 
-   /*
     const Vertex quadVertices[6] =
     {
         { Vector2(-0.5f, -0.5f), Vector2(0.0f, 1.0f) },
@@ -105,8 +105,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
         { Vector2(-0.5f, -0.5f), Vector2(0.0f, 1.0f) },
         { Vector2(0.5f,  0.5f), Vector2(1.0f, 0.0f) },
         { Vector2(-0.5f,  0.5f), Vector2(0.0f, 0.0f) }
-    }; 
-    */
+    };
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(Vertex)));
 }
@@ -171,12 +170,21 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         shaderParticleData* particleData = new shaderParticleData[command.particles.size()];
 
+        const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
         for (unsigned int i = 0; i < command.particles.size(); ++i) 
         {
-            //XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
+            XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
             //XMMATRIX m = (Matrix::Identity * (*m_view) * (*m_projection)).Transpose();
+            
             //Vector3 cameraForward = Vector3(-m_view->_31, -m_view->_32, -m_view->_33);
-            XMMATRIX m = Matrix::CreateBillboard(command.particles[i].position, *m_cameraPosition, Vector3(m_view->_21, m_view->_22, m_view->_23), nullptr);
+            //XMMATRIX m = Matrix::CreateBillboard(command.particles[i].position, *m_cameraPosition, Vector3(m_view->_21, m_view->_22, m_view->_23), nullptr);
+            
+            //Transform positionData (0, nullptr);
+            //positionData.setPosition(command.particles[i].position);
+            //positionData.setRotation(app->getModuleCamera()->getRotation());
+            //positionData.setRoot(particleSystemComponents[0]->getTransform());
+            //XMMATRIX m = positionData.getGlobalMatrix();
+            
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
