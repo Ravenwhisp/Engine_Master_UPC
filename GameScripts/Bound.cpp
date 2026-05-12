@@ -5,6 +5,7 @@
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_BoundUI, "Bound UI", ComponentType::TRANSFORM),
     SERIALIZED_FLOAT(m_minDistance, "Min Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_distanceDamage, "Damage Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
@@ -15,25 +16,32 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
 
 Bound::Bound(GameObject* owner) : Script(owner)
 {
-
 }
 
 void Bound::Start()
 {
-    Transform* firstTargetTransform = m_firstTarget.getReferencedComponent();
-    Transform* secondTargetTransform = m_secondTarget.getReferencedComponent();
+    GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.getReferencedComponent());
+    GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.getReferencedComponent());
 
-    if (firstTargetTransform == nullptr || secondTargetTransform == nullptr)
-    {
-        return;
-    }
+    if (player1 != nullptr)
+        m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
 
-    GameObject* player1 = ComponentAPI::getOwner(firstTargetTransform);
-    GameObject* player2 = ComponentAPI::getOwner(secondTargetTransform);
+    if (player2 != nullptr)
+        m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
 
-    m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
-    m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
+    HapticAPI::registerEffect(HapticEffectDefinition::makeHeartbeatLub(1.0f, HapticEffectDefinition::HeartbeatVariant::Separation));
+    HapticAPI::registerEffect(HapticEffectDefinition::makeHeartbeatDub(1.0f, HapticEffectDefinition::HeartbeatVariant::Separation));
+}
 
+void Bound::fireLub(float t)
+{
+    const HeartbeatCycle cycle = HeartbeatCycle::fromSeparation(t);
+
+    HapticAPI::playAtScale("HeartbeatLub_Separation", t, 0);
+
+    m_dubScale = t;
+    m_dubTimer = cycle.interBeatSeconds;
+    m_lubTimer = -1.0f;
 }
 
 void Bound::Update()
@@ -45,8 +53,9 @@ void Bound::Update()
     const Vector3 p1 = TransformAPI::getPosition(m_firstTarget.getReferencedComponent());
     const Vector3 p2 = TransformAPI::getPosition(m_secondTarget.getReferencedComponent());
 
-    // Midpoint
     m_center = (p1 + p2) * 0.5f;
+    if (m_BoundUI.getReferencedComponent())
+        TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
 
     const float distance = Vector3::Distance(p1, p2);
 
@@ -55,30 +64,62 @@ void Bound::Update()
 
     if (m_previousDistance < m_distanceInstaKill && distance >= m_distanceInstaKill)
     {
-        m_firstDamageable->kill();
-        m_secondDamageable->kill();
+        m_firstDamageable->takeDamage(m_firstDamageable->getCurrentHp());
+        m_secondDamageable->takeDamage(m_secondDamageable->getCurrentHp());
         return;
     }
 
-
     if (distance > m_distanceDamage && distance < m_distanceInstaKill)
     {
-        const float range = m_distanceInstaKill - m_minDistance;
+        const float range = m_distanceInstaKill - m_distanceDamage;
 
-        // Normalized factor [0..1] using raw math
-        float t = (distance - m_minDistance) / range;
+        float t = (distance - m_distanceDamage) / range;
 
-        // Manual clamp
-        if (t < 0.0f) t = 0.0f;
-        if (t > 1.0f) t = 1.0f;
+        if (t < 0.0f)
+            t = 0.0f;
 
-        // Linear damage scale
+        if (t > 1.0f)
+            t = 1.0f;
+
+        t = 0.45f + (t * t * 0.55f);
+
+        // Optional extra aggression near max distance
+        // t = t * t * t;
+
         const float damagePerSecond = baseDamage + (maxDamage - baseDamage) * t;
-
         const float damage = damagePerSecond * Time::getDeltaTime();
 
         m_firstDamageable->takeDamage(damage);
         m_secondDamageable->takeDamage(damage);
+
+        const float dt = Time::getDeltaTime();
+
+        if (m_dubTimer >= 0.0f)
+        {
+            m_dubTimer -= dt;
+            if (m_dubTimer < 0.0f)
+            {
+                HapticAPI::playAtScale("HeartbeatDub_Separation", m_dubScale, 0);
+
+                const HeartbeatCycle cycle = HeartbeatCycle::fromSeparation(t);
+                m_lubTimer = cycle.diastoleSeconds;
+            }
+        }
+
+        if (m_lubTimer >= 0.0f)
+        {
+            m_lubTimer -= dt;
+            if (m_lubTimer < 0.0f)
+                fireLub(t);
+        }
+
+        if (m_dubTimer < 0.0f && m_lubTimer < 0.0f)
+            fireLub(t);
+    }
+    else
+    {
+        m_dubTimer = -1.0f;
+        m_lubTimer = -1.0f;
     }
 
     m_previousDistance = distance;
@@ -96,7 +137,6 @@ void Bound::drawGizmo()
     const float distance = Vector3::Distance(p1, p2);
     const Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
 
-    // Recompute radius locally
     const float maxRadius = m_distanceInstaKill * 0.5f;
     const float currentRadius = min(distance * 0.5f + m_radiusThreshold, maxRadius);
 
@@ -121,6 +161,5 @@ void Bound::drawGizmo()
     DebugDrawAPI::drawCircle(center, up, Vector3(1.0f, 1.0f, 0.0f), damageRadius, 32.0f);
     DebugDrawAPI::drawCircle(center, up, Vector3(1.0f, 0.0f, 0.0f), instaKillRadius, 32.0f);
 }
-
 
 IMPLEMENT_SCRIPT(Bound)

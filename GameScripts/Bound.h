@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ScriptAPI.h"
+#include "HapticEffectDefinition.h"
 
 class Transform;
 class Damageable;
@@ -23,15 +24,17 @@ public:
     ScriptComponentRef<Transform> m_firstTarget;
     ScriptComponentRef<Transform> m_secondTarget;
 
+    ScriptComponentRef<Transform> m_BoundUI;
+
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
 
-    float m_minDistance = 70.0f;
-    float m_distanceDamage = 80.0f;
-    float m_distanceInstaKill = 100.0f;
+    float m_minDistance = 5.0f;
+    float m_distanceDamage = 10.0f;
+    float m_distanceInstaKill = 15.0f;
 
-    float baseDamage = 20.0f;
-    float maxDamage = 40.0f;
+    float baseDamage = 2.0f;
+    float maxDamage = 5.0f;
 
     float m_radiusThreshold = 2.0f;
 
@@ -39,4 +42,11 @@ public:
     float   m_currentRadius = 0.0f;
 
     float m_previousDistance = 0.0f;
+
+private:
+    void fireLub(float t);
+
+    float m_dubTimer = -1.0f;
+    float m_lubTimer = -1.0f;
+    float m_dubScale = 0.0f;
 };

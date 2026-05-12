@@ -117,12 +117,24 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatLub(float intensity,
     {
         def.id = "HeartbeatLub_Separation";
 
-        // Slight right bias for tension feel
-        def.peak.leftMotor = i * 0.85f;
+        // Longer, heavier uneasy pulse
+        def.durationSeconds = 0.11f;
+        def.attackSeconds = 0.0025f;
+
+        // More body than a pure punch
+        def.releaseSeconds = 0.05f;
+
+        // Strong asymmetry
+        def.peak.leftMotor = i * 0.45f;
         def.peak.rightMotor = i;
 
-        def.peak.leftTrigger = 0.0f;
-        def.peak.rightTrigger = 0.0f;
+        // Small trigger texture near high danger
+        if (i > 0.65f)
+        {
+            const float triggerAmount = (i - 0.65f) / 0.35f;
+
+            def.peak.rightTrigger = triggerAmount * 0.25f;
+        }
     }
 
     return def;
@@ -132,8 +144,7 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatDub(float intensity,
 {
     const float i = intensity < 0.0f ? 0.0f : (intensity > 1.0f ? 1.0f : intensity);
 
-    // Much softer secondary beat
-    const float dubScale = 0.45f;
+    const float dubScale = 0.7f;
 
     const float di = i * dubScale;
 
@@ -167,12 +178,22 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatDub(float intensity,
     {
         def.id = "HeartbeatDub_Separation";
 
-        // Tiny anxious follow-up pulse
-        def.peak.leftMotor = 0.0f;
-        def.peak.rightMotor = di * 0.85f;
+        // More present follow-up beat
+        def.durationSeconds = 0.055f;
+        def.attackSeconds = 0.002f;
+        def.releaseSeconds = 0.03f;
 
-        def.peak.leftTrigger = 0.0f;
-        def.peak.rightTrigger = 0.0f;
+        // Uneven nervous rebound
+        def.peak.leftMotor = 0.0f;
+        def.peak.rightMotor = di;
+
+        // Tiny unstable trigger tap
+        if (i > 0.75f)
+        {
+            const float triggerAmount = (i - 0.75f) / 0.25f;
+
+            def.peak.rightTrigger = triggerAmount * 0.12f;
+        }
     }
 
     return def;
