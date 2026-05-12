@@ -10,7 +10,6 @@ IMPLEMENT_SCRIPT_FIELDS(HeartbeatTester,
 
 HeartbeatTester::HeartbeatTester(GameObject* owner) : Script(owner) {}
 
-// ---------------------------------------------------------------------------
 void HeartbeatTester::Start()
 {
     const auto healthVariant = HapticEffectDefinition::HeartbeatVariant::Health;
@@ -28,7 +27,6 @@ void HeartbeatTester::Start()
     fireLub();  // kick off the first beat immediately
 }
 
-// ---------------------------------------------------------------------------
 void HeartbeatTester::fireLub()
 {
     const HeartbeatCycle cycle = m_useHealthMode
@@ -49,13 +47,11 @@ void HeartbeatTester::fireLub()
     m_lubTimer = -1.0f;
 }
 
-// ---------------------------------------------------------------------------
 void HeartbeatTester::Update()
 {
     const int p = m_playerIndex;
     const float dt = Time::getDeltaTime();
 
-    // --- Dub countdown ---
     if (m_dubTimer >= 0.0f)
     {
         m_dubTimer -= dt;
@@ -64,16 +60,14 @@ void HeartbeatTester::Update()
             const char* dubId = m_useHealthMode ? "HeartbeatDub_Health" : "HeartbeatDub_Separation";
             HapticAPI::playAtScale(dubId, m_dubScale, m_hapticDeviceIndex);
 
-            // Use HeartbeatCycle to get the correct diastole length for current danger
             const HeartbeatCycle cycle = m_useHealthMode
                 ? HeartbeatCycle::fromHealth(1.0f - m_dangerValue)
                 : HeartbeatCycle::fromSeparation(m_dangerValue);
 
-            m_lubTimer = cycle.diastoleSeconds;  // wait the diastole, then fire next lub
+            m_lubTimer = cycle.diastoleSeconds; 
         }
     }
 
-    // --- Next lub countdown (diastole wait) ---
     if (m_lubTimer >= 0.0f)
     {
         m_lubTimer -= dt;
@@ -81,12 +75,10 @@ void HeartbeatTester::Update()
             fireLub();
     }
 
-    // --- Controls ---
     if (Input::isLeftShoulderJustPressed(p))
     {
         if (m_dubTimer >= 0.0f || m_lubTimer >= 0.0f)
         {
-            // Stop
             HapticAPI::cancelAll(m_hapticDeviceIndex);
             m_dubTimer = -1.0f;
             m_lubTimer = -1.0f;
@@ -94,13 +86,12 @@ void HeartbeatTester::Update()
         }
         else
         {
-            // Start
             Debug::log("[HeartbeatTester] Started.");
             fireLub();
         }
     }
 
-    if (Input::isFaceButtonTopJustPressed(p))   // Y
+    if (Input::isFaceButtonTopJustPressed(p))   
     {
         m_useHealthMode = !m_useHealthMode;
         Debug::log("[HeartbeatTester] Mode -> %s", m_useHealthMode ? "Health" : "Separation");
