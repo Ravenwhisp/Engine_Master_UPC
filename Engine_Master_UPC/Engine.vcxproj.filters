@@ -472,6 +472,27 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleMusic.cpp">
+      <Filter>MusicSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkDefaultLowLevelIODispatcher.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkFileLocationBase.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkMultipleFileLocation.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Win32\AkDefaultIOHookDeferred.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Win32\AkPlatformProfilerHooks.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkGeneratedSoundBanksResolver.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1139,6 +1160,9 @@
     <ClInclude Include="NavMeshTypes.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleMusic.h">
+      <Filter>MusicSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1322,6 +1346,12 @@
     </Filter>
     <Filter Include="Haptics">
       <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MusicSystem">
+      <UniqueIdentifier>{fe01c3d9-e58c-4702-b3ea-732a5ed99afc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MusicSystem\3rdParty">
+      <UniqueIdentifier>{14c70593-ff68-489d-9e66-316cb0e76bc3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
