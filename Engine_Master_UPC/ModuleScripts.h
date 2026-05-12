@@ -38,7 +38,6 @@ public:
     bool cleanUp() override;
 
 #pragma region ScriptRuntime
-    bool buildAndReloadGameScriptsDll();
     bool requestBuildAndReloadGameScriptsDll();
     void updateScriptReload();
 
@@ -81,7 +80,7 @@ private:
 #pragma endregion
 
 #pragma region ScriptBuild
-    bool buildGameScriptsProject();
+    bool buildGameScriptsProject(const ScriptBuildSettings& buildSettings) const;
     std::filesystem::path resolveBuildPath(const std::string& path) const;
     bool validateScriptBuildPaths(const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir) const;
     

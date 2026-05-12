@@ -64,30 +64,6 @@ bool ModuleScripts::cleanUp()
     return unloaded;
 }
 
-bool ModuleScripts::buildAndReloadGameScriptsDll()
-{
-    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
-    {
-        return false;
-    }
-
-    if (!buildGameScriptsProject())
-    {
-        DEBUG_ERROR("[ModuleScripts] GameScripts build failed. Current scripts remain loaded.");
-        return false;
-    }
-
-    if (!reloadGameScriptsDllAfterSuccessfulBuild())
-    {
-        DEBUG_ERROR("[ModuleScripts] GameScripts reload failed.");
-        return false;
-    }
-
-    DEBUG_LOG("[ModuleScripts] GameScripts build and reload completed successfully.");
-
-    return true;
-}
-
 bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
 {
     if (isScriptReloadBusy())
@@ -113,11 +89,16 @@ bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
         return false;
     }
 
+    const ScriptBuildSettings buildSettings = m_buildSettings;
+
+    // The build runs in a worker thread, but DLL reload and script restoration
+    // must stay on the main thread because they touch scene/editor state.
+
     m_scriptReloadState = ScriptReloadState::Building;
 
-    m_scriptBuildFuture = std::async(std::launch::async, [this]()
+    m_scriptBuildFuture = std::async(std::launch::async, [this, buildSettings]()
         {
-            return buildGameScriptsProject();
+            return buildGameScriptsProject(buildSettings);
         });
 
     return true;
@@ -421,22 +402,22 @@ bool ModuleScripts::reloadGameScriptsDllAfterSuccessfulBuild()
     return true;
 }
 
-bool ModuleScripts::buildGameScriptsProject()
+bool ModuleScripts::buildGameScriptsProject(const ScriptBuildSettings& buildSettings) const
 {
-    if (m_buildSettings.projectPath.empty())
+    if (buildSettings.projectPath.empty())
     {
         DEBUG_ERROR("[ModuleScripts] Script project path is empty.");
         return false;
     }
 
-    if (m_buildSettings.solutionDir.empty())
+    if (buildSettings.solutionDir.empty())
     {
         DEBUG_ERROR("[ModuleScripts] Script solution directory is empty.");
         return false;
     }
 
-    const std::filesystem::path projectPath = resolveBuildPath(m_buildSettings.projectPath);
-    const std::filesystem::path solutionDir = resolveBuildPath(m_buildSettings.solutionDir);
+    const std::filesystem::path projectPath = resolveBuildPath(buildSettings.projectPath);
+    const std::filesystem::path solutionDir = resolveBuildPath(buildSettings.solutionDir);
 
     if (!validateScriptBuildPaths(projectPath, solutionDir))
     {
