@@ -52,6 +52,7 @@ void ModuleScripts::update()
 
 bool ModuleScripts::cleanUp()
 {
+    // If the editor is closed while MSBuild is running, wait for the worker task to finish safely.
     if (m_scriptBuildFuture.valid())
     {
         m_scriptBuildFuture.wait();
@@ -74,6 +75,7 @@ bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
 
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
+        DEBUG_WARN("[ModuleScripts] Cannot build and reload scripts while playing.");
         return false;
     }
 
@@ -90,9 +92,6 @@ bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
     }
 
     const ScriptBuildSettings buildSettings = m_buildSettings;
-
-    // The build runs in a worker thread, but DLL reload and script restoration
-    // must stay on the main thread because they touch scene/editor state.
 
     m_scriptReloadState = ScriptReloadState::Building;
 
@@ -136,6 +135,8 @@ void ModuleScripts::updateScriptReload()
 
     m_scriptReloadState = ScriptReloadState::Reloading;
 
+    // The build runs in a worker thread, but DLL reload and script restoration
+    // must stay on the main thread because they touch scene/editor state.
     if (!reloadGameScriptsDllAfterSuccessfulBuild())
     {
         m_scriptReloadState = ScriptReloadState::ReloadFailed;
