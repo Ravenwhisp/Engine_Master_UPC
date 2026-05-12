@@ -189,6 +189,9 @@
     <ClInclude Include="DebugGetObjectsArea.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="HeartbeatTester.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -366,6 +369,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="DebugGetObjectsArea.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="HeartbeatTester.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
