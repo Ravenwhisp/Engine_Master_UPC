@@ -102,7 +102,11 @@ private:
     static constexpr const char* SCRIPT_DLL_NAME = "GameScripts.dll";
     static constexpr const char* RUNTIME_DLL_PREFIX = "GameScripts_runtime_";
     static constexpr const char* SCRIPT_PDB_NAME = "GameScripts.pdb";
+#if defined(_DEBUG)
     static constexpr const char* SCRIPT_BUILD_CONFIGURATION = "Debug";
+#else
+    static constexpr const char* SCRIPT_BUILD_CONFIGURATION = "Release";
+#endif
     static constexpr const char* SCRIPT_BUILD_PLATFORM = "x64";
     static constexpr const char* SCRIPT_BUILD_SETTINGS_FILE = "script_build_settings.ini";
 #pragma endregion
