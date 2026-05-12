@@ -334,12 +334,9 @@ bool ModuleScripts::buildGameScriptsProject()
 
     if (!runMsBuild(msbuildPath, projectPath, solutionDir, buildLogPath))
     {
-        DEBUG_ERROR("[ModuleScripts] GameScripts build failed.");
         DEBUG_ERROR("[ModuleScripts] Build output written to %s", buildLogPath.c_str());
         return false;
     }
-
-    DEBUG_LOG("[ModuleScripts] GameScripts build succeeded.");
 
     return true;
 }
@@ -444,7 +441,6 @@ bool ModuleScripts::runMsBuild(const std::filesystem::path& msbuildPath, const s
 
     if (exitCode != 0)
     {
-        DEBUG_ERROR("[ModuleScripts] MSBuild failed. Exit code: %lu", exitCode);
         return false;
     }
 

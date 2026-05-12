@@ -88,8 +88,7 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
         return false;
     }
 
-    const IMAGE_DATA_DIRECTORY& debugDirectory =
-        ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+    const IMAGE_DATA_DIRECTORY& debugDirectory = ntHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
 
     if (debugDirectory.VirtualAddress == 0 || debugDirectory.Size == 0)
     {
@@ -119,11 +118,9 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
     for (size_t i = 0; i < debugEntryCount; ++i)
     {
-        const size_t debugEntryOffset =
-            static_cast<size_t>(debugDirectoryOffset) + i * sizeof(IMAGE_DEBUG_DIRECTORY);
+        const size_t debugEntryOffset = static_cast<size_t>(debugDirectoryOffset) + i * sizeof(IMAGE_DEBUG_DIRECTORY);
 
-        auto* debugEntry =
-            reinterpret_cast<IMAGE_DEBUG_DIRECTORY*>(data.data() + debugEntryOffset);
+        auto* debugEntry = reinterpret_cast<IMAGE_DEBUG_DIRECTORY*>(data.data() + debugEntryOffset);
 
         if (debugEntry->Type != IMAGE_DEBUG_TYPE_CODEVIEW)
         {
@@ -185,17 +182,10 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
         if (runtimePdbFileName.size() > oldLength)
         {
-            DEBUG_ERROR(
-                "[ModuleScripts] Runtime PDB name '%s' is longer than embedded PDB path '%s'. Cannot patch safely.",
-                runtimePdbFileName.c_str(),
-                pdbPath);
+            DEBUG_ERROR("[ModuleScripts] Runtime PDB name '%s' is longer than embedded PDB path '%s'. Cannot patch safely.", runtimePdbFileName.c_str(), pdbPath);
 
             return false;
         }
-
-        DEBUG_LOG("[ModuleScripts] Patching DLL PDB path from '%s' to '%s'",
-            pdbPath,
-            runtimePdbFileName.c_str());
 
         std::memset(pdbPath, 0, oldLength);
         std::memcpy(pdbPath, runtimePdbFileName.c_str(), runtimePdbFileName.size());
@@ -203,8 +193,6 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
         file.seekp(0, std::ios::beg);
         file.write(data.data(), data.size());
         file.close();
-
-        DEBUG_LOG("[ModuleScripts] Runtime DLL PDB path patched successfully.");
 
         return true;
     }
