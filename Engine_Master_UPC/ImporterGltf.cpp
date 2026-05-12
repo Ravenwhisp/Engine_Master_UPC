@@ -595,6 +595,20 @@ AssetReference ImporterGltf::buildDefaultStateMachine(
         m_currentFilePath->parent_path() /
         (m_currentFilePath->stem().string() + "_StateMachine.statemachine");
 
+    const UID existingUID = assets->findUID(smPath);
+    if (isValidUID(existingUID))
+    {
+        std::filesystem::path metaPath = smPath;
+        Metadata::getMetadataPath(metaPath);
+        Metadata meta;
+        if (assets->loadMetaFile(metaPath, meta))
+        {
+            DEBUG_LOG("[ImporterGltf] Reusing existing state machine '%s' (UID '%s').",
+                smPath.string().c_str(), std::to_string(meta.uid).c_str());
+            return AssetReference(meta.uid, meta.contentHash, meta.type);
+        }
+    }
+
     if (!m_importerAnimationStateMachine->saveNative(&stateMachineAsset, smPath))
     {
         DEBUG_ERROR("[ImporterGltf] Failed to write state machine file '%s'.",
