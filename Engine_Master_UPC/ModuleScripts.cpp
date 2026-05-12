@@ -14,6 +14,8 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <chrono>
+#include <future>
 
 namespace
 {
@@ -43,8 +45,18 @@ bool ModuleScripts::init()
     return loadGameScriptsDll();
 }
 
+void ModuleScripts::update()
+{
+    updateScriptReload();
+}
+
 bool ModuleScripts::cleanUp()
 {
+    if (m_scriptBuildFuture.valid())
+    {
+        m_scriptBuildFuture.wait();
+    }
+
     const bool unloaded = unloadGameScriptsDll();
 
     cleanRuntimeScriptFiles();
@@ -65,29 +77,93 @@ bool ModuleScripts::buildAndReloadGameScriptsDll()
         return false;
     }
 
-    std::vector<ScriptReloadInfo> reloadInfos = saveSceneScriptReloadInfo();
-
-    destroySceneScripts();
-
-    if (!unloadGameScriptsDll())
+    if (!reloadGameScriptsDllAfterSuccessfulBuild())
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to unload current GameScripts DLL.");
+        DEBUG_ERROR("[ModuleScripts] GameScripts reload failed.");
         return false;
     }
-
-    if (!loadGameScriptsDll())
-    {
-        DEBUG_ERROR("[ModuleScripts] Failed to load new GameScripts DLL after build.");
-        return false;
-    }
-
-    instantiateSceneScripts();
-    restoreSceneScriptReloadInfo(reloadInfos);
-    app->getModuleScene()->getScene()->fixSceneReferences();
 
     DEBUG_LOG("[ModuleScripts] GameScripts build and reload completed successfully.");
 
     return true;
+}
+
+bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
+{
+    if (isScriptReloadBusy())
+    {
+        DEBUG_WARN("[ModuleScripts] GameScripts build/reload is already in progress.");
+        return false;
+    }
+
+    if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
+    {
+        return false;
+    }
+
+    if (m_buildSettings.projectPath.empty())
+    {
+        DEBUG_ERROR("[ModuleScripts] Script project path is empty.");
+        return false;
+    }
+
+    if (m_buildSettings.solutionDir.empty())
+    {
+        DEBUG_ERROR("[ModuleScripts] Script solution directory is empty.");
+        return false;
+    }
+
+    m_scriptReloadState = ScriptReloadState::Building;
+
+    m_scriptBuildFuture = std::async(std::launch::async, [this]()
+        {
+            return buildGameScriptsProject();
+        });
+
+    return true;
+}
+
+void ModuleScripts::updateScriptReload()
+{
+    if (m_scriptReloadState != ScriptReloadState::Building)
+    {
+        return;
+    }
+
+    if (!m_scriptBuildFuture.valid())
+    {
+        m_scriptReloadState = ScriptReloadState::BuildFailed;
+        DEBUG_ERROR("[ModuleScripts] GameScripts build failed. Current scripts remain loaded.");
+        return;
+    }
+
+    const std::future_status status = m_scriptBuildFuture.wait_for(std::chrono::seconds(0));
+
+    if (status != std::future_status::ready)
+    {
+        return;
+    }
+
+    const bool buildSucceeded = m_scriptBuildFuture.get();
+
+    if (!buildSucceeded)
+    {
+        m_scriptReloadState = ScriptReloadState::BuildFailed;
+        DEBUG_ERROR("[ModuleScripts] GameScripts build failed. Current scripts remain loaded.");
+        return;
+    }
+
+    m_scriptReloadState = ScriptReloadState::Reloading;
+
+    if (!reloadGameScriptsDllAfterSuccessfulBuild())
+    {
+        m_scriptReloadState = ScriptReloadState::ReloadFailed;
+        DEBUG_ERROR("[ModuleScripts] GameScripts reload failed.");
+        return;
+    }
+
+    m_scriptReloadState = ScriptReloadState::Completed;
+    DEBUG_LOG("[ModuleScripts] GameScripts build and reload completed successfully.");
 }
 
 void ModuleScripts::instantiateSceneScripts()
@@ -128,6 +204,26 @@ void ModuleScripts::destroySceneScripts()
         }
 
         scriptComponent->destroyScriptInstance();
+    }
+}
+
+bool ModuleScripts::isScriptReloadBusy() const
+{
+    bool busy = false;
+
+    if (m_scriptReloadState == ScriptReloadState::Building || m_scriptReloadState == ScriptReloadState::Reloading)
+    {
+        busy = true;
+    }
+
+    return busy;
+}
+
+void ModuleScripts::clearScriptReloadResult()
+{
+    if (m_scriptReloadState == ScriptReloadState::Completed || m_scriptReloadState == ScriptReloadState::BuildFailed || m_scriptReloadState == ScriptReloadState::ReloadFailed)
+    {
+        m_scriptReloadState = ScriptReloadState::Idle;
     }
 }
 
@@ -296,6 +392,31 @@ bool ModuleScripts::unloadGameScriptsDll()
 
     m_gameScriptsModule = nullptr;
     m_loadedDllPath.clear();
+
+    return true;
+}
+
+bool ModuleScripts::reloadGameScriptsDllAfterSuccessfulBuild()
+{
+    std::vector<ScriptReloadInfo> reloadInfos = saveSceneScriptReloadInfo();
+
+    destroySceneScripts();
+
+    if (!unloadGameScriptsDll())
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to unload current GameScripts DLL.");
+        return false;
+    }
+
+    if (!loadGameScriptsDll())
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to load new GameScripts DLL after build.");
+        return false;
+    }
+
+    instantiateSceneScripts();
+    restoreSceneScriptReloadInfo(reloadInfos);
+    app->getModuleScene()->getScene()->fixSceneReferences();
 
     return true;
 }

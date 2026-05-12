@@ -7,6 +7,7 @@
 #include <rapidjson/document.h>
 #include <vector>
 #include <filesystem>
+#include <future>
 
 class ScriptComponent;
 
@@ -16,6 +17,16 @@ struct ScriptBuildSettings
     std::string solutionDir;
 };
 
+enum class ScriptReloadState
+{
+    Idle,
+    Building,
+    Reloading,
+    BuildFailed,
+    ReloadFailed,
+    Completed
+};
+
 class ModuleScripts : public Module
 {
 public:
@@ -23,13 +34,20 @@ public:
     ~ModuleScripts() override = default;
 
     bool init() override;
+    void update() override;
     bool cleanUp() override;
 
 #pragma region ScriptRuntime
     bool buildAndReloadGameScriptsDll();
+    bool requestBuildAndReloadGameScriptsDll();
+    void updateScriptReload();
 
     void instantiateSceneScripts();
     void destroySceneScripts();
+
+    ScriptReloadState getScriptReloadState() const { return m_scriptReloadState; }
+    bool isScriptReloadBusy() const;
+    void clearScriptReloadResult();
 
     bool isGameScriptsLoaded() const { return m_gameScriptsModule != nullptr; }
 #pragma endregion
@@ -54,6 +72,7 @@ private:
 #pragma region DllLoading
     bool loadGameScriptsDll();
     bool unloadGameScriptsDll();
+    bool reloadGameScriptsDllAfterSuccessfulBuild();
 
     unsigned int getNextReloadVersion();
     std::string buildRuntimeDllPath(unsigned int version) const;
@@ -92,6 +111,9 @@ private:
     HMODULE m_gameScriptsModule = nullptr;
     std::string m_loadedDllPath;
     unsigned int m_reloadVersion = 0;
+
+    std::future<bool> m_scriptBuildFuture;
+    ScriptReloadState m_scriptReloadState = ScriptReloadState::Idle;
 
     ScriptBuildSettings m_buildSettings;
 
