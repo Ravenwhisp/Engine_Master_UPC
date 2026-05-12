@@ -198,7 +198,7 @@ void WindowAnimationStateMachine::drawHeaderUi()
 
     ImGui::SameLine();
 
-    if (!m_targetStateMachineUID->isValid())
+    if (!m_targetStateMachineUID)
     {
         ImGui::Spacing();
         ImGui::TextDisabled("No state machine selected.");
@@ -1231,7 +1231,7 @@ void WindowAnimationStateMachine::drawInternal()
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (!m_targetStateMachineUID->isValid())
+    if (!m_targetStateMachineUID)
     {
         ImGui::TextDisabled("Graph unavailable without a selected state machine.");
         return;
