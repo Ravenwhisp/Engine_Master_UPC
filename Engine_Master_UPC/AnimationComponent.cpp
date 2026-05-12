@@ -1065,7 +1065,7 @@ rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
 
 bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
 {
-    if (componentValue.HasMember("StateMachineUID") && componentValue["StateMachineUID"].IsUint64())
+    if (componentValue.HasMember("StateMachineUID"))
         m_stateMachineUID.deserializeJson(componentValue["StateMachineUID"]);
 
     if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
