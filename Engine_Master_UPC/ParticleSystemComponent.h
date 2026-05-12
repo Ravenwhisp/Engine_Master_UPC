@@ -29,6 +29,7 @@ public:
     bool hasTexture() const { return m_texture != nullptr; }
 
     const Vector3& getPreviousPosition() const { return m_previousPosition; }
+    float getDistance() const { Vector3::Distance(m_owner->GetTransform()->getPosition(), m_previousPosition); }
 
     void drawUi() override;
 

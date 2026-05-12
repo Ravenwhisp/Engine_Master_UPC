@@ -23,6 +23,8 @@ public:
 
     void buildParticleCommands(ParticleSystemComponent* particleSystem);
 
+    float deltaTime(); // required to have more control and show particles on Editor mode
+
 private:
 
     std::vector<std::unique_ptr<ParticleSystem>> m_particleSystems;

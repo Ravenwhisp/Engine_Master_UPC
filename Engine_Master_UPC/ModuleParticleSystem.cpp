@@ -5,7 +5,9 @@
 #include "ModuleScene.h"
 #include "GameObject.h"
 #include "ModuleResources.h"
+#include "ModuleTime.h"
 #include "ParticleSystemComponent.h"
+
 
 void ModuleParticleSystem::preRender()
 {
@@ -99,4 +101,14 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
     }
     */
 
+}
+
+float ModuleParticleSystem::deltaTime()
+{
+    if (app->getCurrentEngineState() == ENGINE_STATE::EDITOR)
+    {
+        return app->getModuleTime()->unscaledDeltaTime();
+    }
+
+    return app->getModuleTime()->deltaTime();
 }

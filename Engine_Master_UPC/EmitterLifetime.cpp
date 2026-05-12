@@ -3,7 +3,7 @@
 
 #include "EmitterInstance.h"
 #include "Application.h"
-#include "ModuleTime.h"
+#include "ModuleParticleSystem.h"
 
 void EmitterLifetime::update(EmitterInstance* particleData)
 {
@@ -29,7 +29,7 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 			}
 			else 
 			{
-				particlePool[poolIndex].lifeTime = std::max(0.f, particlePool[poolIndex].lifeTime - app->getModuleTime()->deltaTime());
+				particlePool[poolIndex].lifeTime = std::max(0.f, particlePool[poolIndex].lifeTime - app->getModuleParticleSystem()->deltaTime());
 				++i;
 			}
 		}
