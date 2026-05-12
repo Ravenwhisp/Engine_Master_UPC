@@ -330,21 +330,16 @@ bool ModuleScripts::buildGameScriptsProject()
         return false;
     }
 
-    const std::string buildBatPath = "ScriptsBuild.bat";
     const std::string buildLogPath = "ScriptsBuild.log";
 
-    if (!writeScriptsBuildBatchFile(projectPath, solutionDir, msbuildPath, buildBatPath))
-    {
-        return false;
-    }
-
-    // This function is created in order to remove the black cmd window (CREATE_NO_WINDOW)
-    if (!runScriptsBuildBatchFile(buildBatPath, buildLogPath))
+    if (!runMsBuild(msbuildPath, projectPath, solutionDir, buildLogPath))
     {
         DEBUG_ERROR("[ModuleScripts] GameScripts build failed.");
         DEBUG_ERROR("[ModuleScripts] Build output written to %s", buildLogPath.c_str());
         return false;
     }
+
+    DEBUG_LOG("[ModuleScripts] GameScripts build succeeded.");
 
     return true;
 }
@@ -384,18 +379,10 @@ bool ModuleScripts::validateScriptBuildPaths(const std::filesystem::path& projec
     return true;
 }
 
-bool ModuleScripts::writeScriptsBuildBatchFile(const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::filesystem::path& msbuildPath, const std::string& buildBatPath) const
+bool ModuleScripts::runMsBuild(const std::filesystem::path& msbuildPath, const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::string& buildLogPath) const
 {
-    std::ofstream buildBat(buildBatPath, std::ios::trunc);
+    const std::filesystem::path absoluteLogPath = std::filesystem::absolute(buildLogPath).lexically_normal();
 
-    if (!buildBat.is_open())
-    {
-        DEBUG_ERROR("[ModuleScripts] Failed to create %s", buildBatPath.c_str());
-        return false;
-    }
-
-    std::string msbuildPathString = msbuildPath.string();
-    std::string projectPathString = projectPath.string();
     std::string solutionDirString = solutionDir.string();
 
     if (!solutionDirString.empty() && solutionDirString.back() == '\\')
@@ -403,30 +390,27 @@ bool ModuleScripts::writeScriptsBuildBatchFile(const std::filesystem::path& proj
         solutionDirString += '\\';
     }
 
-    buildBat << "@echo off\n";
-    buildBat << "\"" << msbuildPathString << "\" "
-        << "\"" << projectPathString << "\" "
-        << "\"/p:Configuration=" << SCRIPT_BUILD_CONFIGURATION << "\" "
-        << "\"/p:Platform=" << SCRIPT_BUILD_PLATFORM << "\" "
-        << "\"/p:SolutionDir=" << solutionDirString << "\"\n";
+    std::string commandLine = "\"" + msbuildPath.string() + "\" " + "\"" + projectPath.string() + "\" " + "\"/p:Configuration=" + SCRIPT_BUILD_CONFIGURATION + "\" " + "\"/p:Platform=" + SCRIPT_BUILD_PLATFORM + "\" " + "\"/p:SolutionDir=" + solutionDirString + "\"";
 
-    buildBat << "exit /b %ERRORLEVEL%\n";
+    SECURITY_ATTRIBUTES securityAttributes = {};
+    securityAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+    securityAttributes.bInheritHandle = TRUE;
+    securityAttributes.lpSecurityDescriptor = nullptr;
 
-    return true;
-}
+    HANDLE logFileHandle = CreateFileA(absoluteLogPath.string().c_str(), GENERIC_WRITE, FILE_SHARE_READ, &securityAttributes, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
-bool ModuleScripts::runScriptsBuildBatchFile(const std::string& buildBatPath, const std::string& buildLogPath) const
-{
-    const std::filesystem::path absoluteBatPath = std::filesystem::absolute(buildBatPath).lexically_normal();
-    const std::filesystem::path absoluteLogPath = std::filesystem::absolute(buildLogPath).lexically_normal();
-
-    const std::string cmdExe = "C:\\Windows\\System32\\cmd.exe";
-
-    std::string commandLine = "cmd.exe /S /C \"\"" + absoluteBatPath.string() + "\" > \"" + absoluteLogPath.string() + "\" 2>&1\"";
+    if (logFileHandle == INVALID_HANDLE_VALUE)
+    {
+        DEBUG_ERROR("[ModuleScripts] Failed to create build log file. Win32 error: %lu", GetLastError());
+        return false;
+    }
 
     STARTUPINFOA startupInfo = {};
     startupInfo.cb = sizeof(startupInfo);
-    startupInfo.dwFlags = STARTF_USESHOWWINDOW;
+    startupInfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+    startupInfo.hStdOutput = logFileHandle;
+    startupInfo.hStdError = logFileHandle;
+    startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
     startupInfo.wShowWindow = SW_HIDE;
 
     PROCESS_INFORMATION processInfo = {};
@@ -434,11 +418,13 @@ bool ModuleScripts::runScriptsBuildBatchFile(const std::string& buildBatPath, co
     std::vector<char> mutableCommandLine(commandLine.begin(), commandLine.end());
     mutableCommandLine.push_back('\0');
 
-    const BOOL created = CreateProcessA(nullptr, commandLine.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, nullptr, &startupInfo, &processInfo);
+    const BOOL created = CreateProcessA(nullptr, mutableCommandLine.data(), nullptr, nullptr, TRUE, CREATE_NO_WINDOW, nullptr, nullptr, &startupInfo, &processInfo);
+
+    CloseHandle(logFileHandle);
 
     if (!created)
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to start script build process. Win32 error: %lu", GetLastError());
+        DEBUG_ERROR("[ModuleScripts] Failed to start MSBuild process. Win32 error: %lu", GetLastError());
         return false;
     }
 
@@ -452,13 +438,13 @@ bool ModuleScripts::runScriptsBuildBatchFile(const std::string& buildBatPath, co
 
     if (!gotExitCode)
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to get script build process exit code. Win32 error: %lu", GetLastError());
+        DEBUG_ERROR("[ModuleScripts] Failed to get MSBuild exit code. Win32 error: %lu", GetLastError());
         return false;
     }
 
     if (exitCode != 0)
     {
-        DEBUG_ERROR("[ModuleScripts] Script build process failed. Exit code: %lu", exitCode);
+        DEBUG_ERROR("[ModuleScripts] MSBuild failed. Exit code: %lu", exitCode);
         return false;
     }
 
