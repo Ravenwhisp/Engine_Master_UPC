@@ -398,28 +398,9 @@ bool ModuleScripts::writeScriptsBuildBatchFile(const std::filesystem::path& proj
     std::string projectPathString = projectPath.string();
     std::string solutionDirString = solutionDir.string();
 
-    for (char& character : msbuildPathString)
+    if (!solutionDirString.empty() && solutionDirString.back() == '\\')
     {
-        if (character == '\\')
-        {
-            character = '/';
-        }
-    }
-
-    for (char& character : projectPathString)
-    {
-        if (character == '\\')
-        {
-            character = '/';
-        }
-    }
-
-    for (char& character : solutionDirString)
-    {
-        if (character == '\\')
-        {
-            character = '/';
-        }
+        solutionDirString += '\\';
     }
 
     buildBat << "@echo off\n";
