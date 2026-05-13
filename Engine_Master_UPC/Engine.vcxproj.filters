@@ -463,6 +463,8 @@
     <ClCompile Include="EmitterArea.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
+    <ClCompile Include="3rdParty\ImguiColorGradient\imgui_color_gradient.cpp" />
+    <ClCompile Include="3rdParty\ImGuiBezier\imgui_bezier.cpp" />
     <ClCompile Include="EmitterSpawn.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
@@ -1141,6 +1143,8 @@
     <ClInclude Include="EmitterArea.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\ImguiColorGradient\imgui_color_gradient.h" />
+    <ClInclude Include="3rdParty\ImGuiBezier\imgui_bezier.h" />
     <ClInclude Include="EmitterSpawn.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
