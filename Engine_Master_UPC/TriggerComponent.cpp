@@ -5,7 +5,8 @@
 #include "Transform.h"
 
 #include "Application.h"
-#include "ModuleTrigger.h"
+#include "ModuleScene.h"
+#include "Scene.h"
 #include "MeshRenderer.h"
 
 #include <array>
@@ -17,19 +18,35 @@ TriggerComponent::TriggerComponent(UID id, GameObject* gameObject)
 
 bool TriggerComponent::init()
 {
+    DEBUG_LOG("[TriggerComponent] Init trigger %llu on '%s'",
+        static_cast<unsigned long long>(getID()),
+        getOwner() ? getOwner()->GetName().c_str() : "null");
+
     if (m_setDefaultBoundsOnInit)
     {
         setDefaultBoundsFromModel();
         m_setDefaultBoundsOnInit = false;
     }
 
-    app->getModuleTrigger()->registerTrigger(this);
+    Scene* scene = app->getModuleScene()->getScene();
+
+    if (scene)
+    {
+        scene->registerTrigger(this);
+    }
+
     return true;
 }
 
 bool TriggerComponent::cleanUp()
 {
-    app->getModuleTrigger()->unregisterTrigger(this);
+    Scene* scene = app->getModuleScene()->getScene();
+
+    if (scene)
+    {
+        scene->unregisterTrigger(this);
+    }
+
     return true;
 }
 
