@@ -1,5 +1,3 @@
-// ModuleMusic.cpp
-
 #include "Globals.h"
 #include "ModuleMusic.h"
 
