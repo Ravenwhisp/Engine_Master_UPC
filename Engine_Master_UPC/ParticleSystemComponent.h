@@ -29,7 +29,7 @@ public:
     bool hasTexture() const { return m_texture != nullptr; }
 
     const Vector3& getPreviousPosition() const { return m_previousPosition; }
-    float getDistance() const { Vector3::Distance(m_owner->GetTransform()->getPosition(), m_previousPosition); }
+    float getDistance() const;
 
     void drawUi() override;
 
@@ -46,8 +46,10 @@ private:
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
 
-    std::shared_ptr<ParticleSystem> m_particleSystem;
+    std::unique_ptr<ParticleSystem> m_particleSystem;
     std::vector<EmitterInstance> m_particlesState;
+
+    unsigned int m_currentEditableEmitter = 0;
 
     Vector3 m_previousPosition; // maybe move this to the Transform?
 };

@@ -10,6 +10,7 @@
 
 ParticleSystemComponent::ParticleSystemComponent(UID id, GameObject* owner) : Component(id, ComponentType::PARTICLE_SYSTEM, owner) 
 {
+
     m_previousPosition = m_owner->GetTransform()->getPosition();
 }
 
@@ -32,6 +33,11 @@ bool ParticleSystemComponent::consumeLoadRequest()
     const bool wasRequested = m_loadRequested;
     m_loadRequested = false;
     return wasRequested;
+}
+
+float ParticleSystemComponent::getDistance() const
+{
+    return Vector3::Distance(m_owner->GetTransform()->getPosition(), m_previousPosition);
 }
 
 void ParticleSystemComponent::drawUi()
