@@ -47,7 +47,7 @@ void WindowMusicDebug::drawInternal()
 
 	ImGui::Separator();
 
-	if (ImGui::CollapsingHeader("Playing Sounds"))
+	if (ImGui::CollapsingHeader("Playing Sounds", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		const std::vector<PlayingSound>& playingSounds = m_moduleMusic->getPlayingSounds();
 
@@ -62,6 +62,16 @@ void WindowMusicDebug::drawInternal()
 			ImGui::Text("Bank: %s", playingSound.bankName.c_str());
 			ImGui::Text("Event: %s", playingSound.eventName.c_str());
 			ImGui::Text("Playing ID: %u", playingSound.playingID);
+
+			ImGui::SameLine();
+
+			const std::string stopButtonID = "Stop##" + std::to_string(playingSound.playingID);
+
+			if (ImGui::Button(stopButtonID.c_str()))
+			{
+				m_moduleMusic->stopEvent(playingSound.playingID);
+			}
+
 			ImGui::Separator();
 		}
 	}

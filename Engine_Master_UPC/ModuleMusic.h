@@ -28,6 +28,7 @@ public:
 	const std::vector<PlayingSound>& getPlayingSounds() const { return m_playbackTracker.getPlayingSounds(); }
 
 	void postEvent(const char* bankName, const char* eventName);
+	void stopEvent(uint32_t playingID);
 
 private:
 	bool loadBanksFromFolder();

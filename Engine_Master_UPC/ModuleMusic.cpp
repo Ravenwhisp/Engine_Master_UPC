@@ -141,3 +141,8 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 
 	DEBUG_ERROR("[Module Music] Event not found in any bank: %s", eventName);
 }
+
+void ModuleMusic::stopEvent(uint32_t playingID)
+{
+	AK::SoundEngine::StopPlayingID(static_cast<AkPlayingID>(playingID));
+}
