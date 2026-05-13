@@ -4,6 +4,9 @@
 #include "Application.h"
 #include "ModuleCamera.h"
 #include "ParticleEmitter.h"
+#include "ModuleParticleSystem.h"
+
+#include <algorithm>
 
 EmitterInstance::EmitterInstance(ParticleEmitter* emitter, ParticleSystemComponent* owner) : m_emitter(emitter), m_owner(owner)
 {
@@ -17,7 +20,8 @@ EmitterInstance::EmitterInstance(ParticleEmitter* emitter, ParticleSystemCompone
 
 void EmitterInstance::updateModules()
 {
-	std::vector<std::unique_ptr<ParticleModule>> modules = m_emitter->getModules();
+	
+	std::vector<std::unique_ptr<ParticleModule>>& modules = m_emitter->getModules();
 
 	for (auto& module : modules) 
 	{
@@ -27,6 +31,12 @@ void EmitterInstance::updateModules()
 	manageNewParticles();
 
 	// sort m_aliveParticles per distance (sqr) to the camera (first ones should be the farthest)
+	std::sort(m_aliveParticles.begin(), m_aliveParticles.end(), [](std::pair<float, unsigned int> a, std::pair<float, unsigned int> b) 
+	{
+		return a.first > b.first;
+	});
+
+	m_currentTime += app->getModuleParticleSystem()->deltaTime();
 }
 
 int EmitterInstance::requestPoolSlot()

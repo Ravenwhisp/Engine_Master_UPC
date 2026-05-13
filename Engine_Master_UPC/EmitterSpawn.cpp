@@ -8,6 +8,9 @@
 
 void EmitterSpawn::update(EmitterInstance* particleData)
 {
+	if (!m_looping && particleData->getCurrentTime() > m_duration) return;
+
+
 	float particlesToSpawn = particleData->getParticlesToSpawn();
 
 	particlesToSpawn += m_rateOverTime * app->getModuleParticleSystem()->deltaTime();

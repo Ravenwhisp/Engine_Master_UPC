@@ -15,7 +15,6 @@ struct Particle {
 	Vector3 movementDirection; // should be normalized
 
 	float lifeTime = 0.f;
-	bool alive = false; // could be replaced by vector<bool> inside Emitter (also: depending if we check lifeTime earlier or later, we might get away without this)
 };
 
 class EmitterInstance
@@ -30,7 +29,7 @@ public:
 	ParticleEmitter* getParticleEmitter() { return m_emitter; }
 	ParticleSystemComponent* getParticleSystemComponent() { return m_owner; }
 
-	void getPoolAndAlives(Particle*& particlePool, std::vector<std::pair<unsigned int, unsigned int>>*& aliveParticles)
+	void getPoolAndAlives(Particle*& particlePool, std::vector<std::pair<float, unsigned int>>*& aliveParticles)
 	{ particlePool = m_pool; aliveParticles = &m_aliveParticles; }
 
 	Particle* getParticlePool() { return m_pool; }
@@ -38,6 +37,8 @@ public:
 	std::vector<unsigned int>& getNewParticles() { return m_newParticles; }
 	float getParticlesToSpawn() { return m_particlesToSpawn; }
 	void setParticlesToSpawn(float particles) { m_particlesToSpawn = particles; }
+
+	float getCurrentTime() { return m_currentTime; }
 
 	// Slot management //
 	int requestPoolSlot(); // returns a free pool slot, -1 if none available
@@ -54,14 +55,16 @@ private:
 	// Slot management data
 	unsigned int m_slots[MAX_PARTICLES]; // contains for each particle the next free (or self if nothing free)
 	unsigned int m_firstFree = 0;
-	//std::vector<bool> activatedParticles(300, false);
 
 	std::vector<std::pair<float, unsigned int>> m_aliveParticles; // saves distance (squared, because it is easier to calculate) to camera + index to pool
 
-	std::vector<unsigned int> m_newParticles; // holds recently created ones, so that we ONLY initialize them on this frame (so contains particles generated on the current frame)
+	std::vector<unsigned int> m_newParticles; // holds recently created ones, so that the ONLY thing we do this frame is initializing them (contains particles generated on the current frame)
 	float m_particlesToSpawn = 0.f;
 
-	//std::vector<unsigned int> m_alivesperLifetimeOrder; <- TO DO, for proper spawning
+	//std::vector<unsigned int> m_alivesPerLifetimeOrder; <- TO DO, for proper spawning
+
+	float m_currentTime = 0.f;
+
 
 	void manageNewParticles();
 };
