@@ -113,6 +113,15 @@ void MeshRenderer::drawUi()
         }
     }
 
+    if (m_skinAsset.isValid())
+    {
+        ImGui::Text("Skin: %s", std::to_string(m_meshAsset.m_uid).c_str());
+    }
+    else
+    {
+        ImGui::Text("Skin: None");
+    }
+
     // --- Material drop target ---
     ImGui::Button("Drop Material Here");
     if (ImGui::BeginDragDropTarget())
@@ -238,6 +247,8 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("SkinAssetId"))
     {
         m_skinAsset.deserializeJson(componentInfo["SkinAssetId"]);
+
+        ensureSkin().setSkinReference(m_skinAsset);
     }
 
     return true;
@@ -259,6 +270,7 @@ Skin& MeshRenderer::ensureSkin()
     if (!m_skin)
     {
         m_skin = std::make_unique<Skin>();
+
     }
 
     return *m_skin;

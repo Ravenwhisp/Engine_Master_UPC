@@ -3,7 +3,6 @@
 #define COMPONENT_TYPE_LIST \
     X(TRANSFORM)            \
     X(MODEL)                \
-    X(SKIN)                 \
     X(LIGHT)                \
     X(SCRIPT)               \
     X(CAMERA)               \
