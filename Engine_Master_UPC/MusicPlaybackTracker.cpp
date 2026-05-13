@@ -40,7 +40,7 @@ void MusicPlaybackTracker::queuePlayingSoundToAdd(const PlayingSound& playingSou
 	m_pendingPlayingSoundsToAdd.push_back(playingSound);
 }
 
-void MusicPlaybackTracker::queuePlayingSoundToRemove(AkPlayingID playingID)
+void MusicPlaybackTracker::queuePlayingSoundToRemove(uint32_t playingID)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 	m_pendingPlayingSoundsToRemove.push_back(playingID);
@@ -68,7 +68,7 @@ void MusicPlaybackTracker::callback(AkCallbackType callbackType, AkEventCallback
 	tracker->queuePlayingSoundToRemove(eventCallbackInfo->playingID);
 }
 
-void MusicPlaybackTracker::removePlayingSound(AkPlayingID playingID)
+void MusicPlaybackTracker::removePlayingSound(uint32_t playingID)
 {
 	for (auto it = m_playingSounds.begin(); it != m_playingSounds.end(); ++it)
 	{

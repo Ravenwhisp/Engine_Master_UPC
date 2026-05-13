@@ -131,7 +131,7 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 			PlayingSound playingSound;
 			playingSound.bankName = bankName;
 			playingSound.eventName = eventName;
-			playingSound.playingID = playingID;
+			playingSound.playingID = static_cast<uint32_t>(playingID);
 
 			m_playbackTracker.queuePlayingSoundToAdd(playingSound);
 
