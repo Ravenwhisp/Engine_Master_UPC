@@ -286,6 +286,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AnimationComponent.h" />
     <ClInclude Include="AnimationController.h" />
     <ClInclude Include="AnimationStateMachineAsset.h" />
+    <ClInclude Include="AssetDialogFilter.h" />
+    <ClInclude Include="AssetReference.h" />
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
     <ClInclude Include="CommandAddGameObject.h" />
@@ -295,7 +297,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="AssetType.h" />
     <ClInclude Include="Canvas.h" />
-    <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Channel.h" />
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="ContentRegistry.h" />
@@ -308,9 +309,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandDeleteAsset.h" />
     <ClInclude Include="CommandDeleteFolder.h" />
     <ClInclude Include="EngineAPI.h" />
-    <ClInclude Include="ExitApplication.h" />
     <ClInclude Include="Extensions.h" />
+    <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FileDialogClipboard.h" />
+    <ClInclude Include="FileDialogRequest.h" />
     <ClInclude Include="FontAsset.h" />
     <ClInclude Include="Handle.h" />
     <ClInclude Include="HapticEffectDefinition.h" />
@@ -328,6 +330,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
+    <ClInclude Include="ImporterScene.h" />
     <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
@@ -338,6 +341,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ModuleHaptics.h" />
+    <ClInclude Include="PrefabInstance.h" />
+    <ClInclude Include="PrefabManager.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
@@ -347,7 +353,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
@@ -378,8 +383,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="StaticTexturesPass.h" />
     <ClInclude Include="SpriteParams.h" />
-    <ClInclude Include="SpriteRenderer.h" />
-    <ClInclude Include="SpriteRendererPass.h" />
     <ClInclude Include="SpriteVertex.h" />
     <ClInclude Include="StateMachineScript.h" />
     <ClInclude Include="TextureImage.h" />
@@ -394,8 +397,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
-    <ClInclude Include="ImporterRegistry.h" />
-    <ClInclude Include="AssetRegistry.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="WindowFileDialog.h" />
     <ClInclude Include="ModuleAssets.h" />
@@ -630,12 +631,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AnimationController.cpp" />
+    <ClCompile Include="Asset.cpp" />
+    <ClCompile Include="AssetDialogFilter.cpp" />
+    <ClCompile Include="AssetReference.cpp" />
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
     <ClCompile Include="CommandAddGameObject.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="Canvas.cpp" />
-    <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
@@ -645,9 +648,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
-    <ClCompile Include="ExitApplication.cpp" />
     <ClCompile Include="HapticEffectDefinition.cpp" />
     <ClCompile Include="HapticEffectLibrary.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
@@ -658,13 +661,16 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterMaterial.cpp" />
     <ClCompile Include="ImporterMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
-    <ClCompile Include="ImporterRegistry.cpp" />
-    <ClCompile Include="AssetRegistry.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
+    <ClCompile Include="ImporterScene.cpp" />
     <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
+    <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleHaptics.cpp" />
+    <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="TextureAsset.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
@@ -692,8 +698,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="UINavigation.cpp" />
     <ClCompile Include="UISlider.cpp" />
-    <ClCompile Include="SpriteRenderer.cpp" />
-    <ClCompile Include="SpriteRendererPass.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
     <ClCompile Include="WindowAnimationStateMachine.cpp" />

@@ -15,19 +15,25 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
-    float m_attackLockDuration      = 0.35f;
-    float m_finalHitLockDuration    = 0.7f;
-
 protected:
     void onAttackWindowUpdate()   override;
     void onAttackWindowFinished() override;
 
+	bool canStartSpecificAbility() const override;
+
 private:
-    void tryAttack();
+    void startAbility() override;
     void snapFaceTarget(GameObject* target);
     void faceTarget(GameObject* target);
-    void releaseComboMoveLock();
+	void dealDamageToTarget(GameObject* target) const;
 
     GameObject* m_attackFacingTarget    = nullptr;
-    bool        m_movementLockedForCombo = false;
+
+public:
+    float m_basicAttackDamage = 20.0f;
+    float m_basicAttackRange = 1.5f;
+    float m_basicAttackHitAngle = 50.0f;
+
+    float m_attackLockDuration = 0.35f;
+    float m_finalHitLockDuration = 0.7f;
 };

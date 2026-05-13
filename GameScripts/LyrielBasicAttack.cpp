@@ -9,9 +9,8 @@
 #include "ArrowPool.h"
 #include "LyrielArrowProjectile.h"
 
-IMPLEMENT_SCRIPT_FIELDS(LyrielBasicAttack,
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielBasicAttack, LyrielAbilityBase,
     SERIALIZED_FLOAT(m_attackDamage, "Attack Damage", 0.0f, 100.0f, 0.5f),
-    SERIALIZED_FLOAT(m_attackCooldown, "Attack Cooldown", 0.0f, 5.0f, 0.05f),
     SERIALIZED_FLOAT(m_arrowSpeed, "Arrow Speed", 0.0f, 100.0f, 0.5f),
     SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.0f, 2.0f, 0.01f)
 )
@@ -24,17 +23,11 @@ LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
 void LyrielBasicAttack::Start()
 {
     LyrielAbilityBase::Start();
-    m_cooldown = m_attackCooldown;
 }
 
 void LyrielBasicAttack::Update()
 {
-    LyrielAbilityBase::Update();
-
-    if (Input::isRightShoulderJustPressed(getPlayerIndex()))
-    {
-        tryAttack();
-    }
+	LyrielAbilityBase::Update();
 }
 
 void LyrielBasicAttack::onAttackWindowUpdate()
@@ -50,18 +43,8 @@ void LyrielBasicAttack::onAttackWindowFinished()
     m_attackFacingTarget = nullptr;
 }
 
-void LyrielBasicAttack::tryAttack()
+void LyrielBasicAttack::startAbility()
 {
-    if (!canStartAbility())
-    {
-        return;
-    }
-
-    if (m_character == nullptr)
-    {
-        return;
-    }
-
     PlayerTargetController* targetController = m_character->getTargetController();
     if (targetController == nullptr)
     {
@@ -90,19 +73,19 @@ void LyrielBasicAttack::tryAttack()
     beginAttackPresentation();
 
     beginAttackWindow(m_attackLockDuration);
-    m_cooldownTimer = m_cooldown;
+    startCooldown();
 
     Debug::log("[LyrielBasicAttack] Shot arrow to target '%s'.", GameObjectAPI::getName(target));
 }
 
 bool LyrielBasicAttack::spawnArrowToTarget(GameObject* target)
 {
-    if (m_lyriel == nullptr || target == nullptr)
+    if (m_lyrielCharacter == nullptr || target == nullptr)
     {
         return false;
     }
 
-    ArrowPool* arrowPool = m_lyriel->getArrowPool();
+    ArrowPool* arrowPool = m_lyrielCharacter->getArrowPool();
     if (arrowPool == nullptr)
     {
         return false;

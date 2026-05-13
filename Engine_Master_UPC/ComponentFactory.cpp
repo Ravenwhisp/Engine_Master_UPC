@@ -12,7 +12,6 @@
 #include "NavModifierVolumeComponent.h"
 #include "WaypointPathComponent.h"
 #include "ScriptComponent.h"
-#include "SpriteRenderer.h"
 #include "AnimationComponent.h"
 #include "TriggerComponent.h"
 
@@ -24,9 +23,6 @@
 #include "UIButton.h"
 #include "UISlider.h"
 
-// Fake / behaviour components
-#include "ChangeScene.h"
-#include "ExitApplication.h"
 
 std::unique_ptr<Component> ComponentFactory::create(ComponentType type, GameObject* owner)
 {
@@ -72,15 +68,6 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::WAYPOINT_PATH:
         return std::make_unique<WaypointPathComponent>(id, owner);
-
-    case ComponentType::SPRITE_RENDERER:
-        return std::make_unique<SpriteRenderer>(id, owner);
-
-    case ComponentType::CHANGE_SCENE:
-        return std::make_unique<ChangeScene>(id, owner);
-
-    case ComponentType::EXIT_APPLICATION:
-        return std::make_unique<ExitApplication>(id, owner);
 
     case ComponentType::ANIMATION:
         return std::make_unique<AnimationComponent>(id, owner);

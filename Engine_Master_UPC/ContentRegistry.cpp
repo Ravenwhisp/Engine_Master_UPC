@@ -1,99 +1,94 @@
 ﻿#include "Globals.h"
 #include "ContentRegistry.h"
-#include "AssetRegistry.h"
-#include "Asset.h"
-#include <FileIO.h>
 
-ContentRegistry::ContentRegistry(AssetRegistry* registry):
-    m_registry(registry)
+#include "FileIO.h"
+#include "AssetsDictionary.h"
+#include "ModuleAssets.h"
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
+ContentRegistry::ContentRegistry(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
 {
 }
 
-void ContentRegistry::rebuild(const std::filesystem::path& rootPath)
+void ContentRegistry::rebuild(const fs::path& rootPath)
 {
-    m_root = buildTree(rootPath);
+    m_root = buildDirectory(rootPath.lexically_normal(), nullptr);
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::getEntry(const std::filesystem::path& path) const
+DirectoryEntry* ContentRegistry::getRoot() const
+{
+    return m_root.get();
+}
+
+DirectoryEntry* ContentRegistry::getDirectory(const fs::path& path) const
 {
     if (!m_root)
     {
-        DEBUG_ERROR("[ContentRegistry] Tree has not been built yet — call rebuild() first.");
         return nullptr;
     }
-    return getEntryRecursive(m_root, path);
+
+    return findDirectoryRecursive(m_root.get(), path.lexically_normal());
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::buildTree(const std::filesystem::path& path) const
+std::unique_ptr<DirectoryEntry> ContentRegistry::buildDirectory(const fs::path& path, DirectoryEntry* parent) const
 {
-    if (FileIO::isDirectory(path))
+    auto directory = std::make_unique<DirectoryEntry>();
+
+    directory->path = path.lexically_normal();
+    directory->parent = parent;
+    directory->displayName = directory->path.filename().string();
+
+    for (const auto& entry : fs::directory_iterator(path))
     {
-        return buildDirectoryEntry(path);
-    }
+        const fs::path entryPath = entry.path().lexically_normal();
 
-
-    if (path.extension() == METADATA_EXTENSION)
-    {
-        return buildAssetEntry(path);
-    }
-
-    // Raw source files (.png, .fbx, …) are not shown in the browser.
-    return nullptr;
-}
-
-std::shared_ptr<FileEntry> ContentRegistry::buildDirectoryEntry(const std::filesystem::path& path) const
-{
-    auto entry = std::make_shared<FileEntry>();
-    entry->path = path.lexically_normal();
-    entry->isDirectory = true;
-    entry->displayName = entry->path.filename().string();
-
-    for (const auto& p : std::filesystem::directory_iterator(path))
-    {
-        if (auto child = buildTree(p.path()))
+        if (FileIO::isDirectory(entryPath))
         {
-            entry->children.push_back(std::move(child));
+            directory->directories.push_back(buildDirectory(entryPath, directory.get()));
+        }
+        else if (entryPath.extension() == METADATA_EXTENSION)
+        {
+            addAsset(*directory, entryPath);
         }
     }
 
-    return entry;
+    return directory;
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesystem::path& metaPath) const
+void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPath) const
 {
-    auto entry = std::make_shared<FileEntry>();
-    entry->path = metaPath.lexically_normal();
-    entry->isDirectory = false;
-    entry->displayName = metaPath.stem().string();  // strips .metadata → shows asset name
+    fs::path sourcePath = metaPath;
+    sourcePath.replace_extension();
 
-    // Resolve UID from the in-memory store — no disk read needed here
-    // because rebuild() is always called after AssetScanner::scan().
-    const std::filesystem::path sourcePath = metaPath.parent_path() / metaPath.stem();
-    entry->uid = m_registry->findByPath(sourcePath);
+    AssetEntry asset;
+    asset.displayName = sourcePath.filename().string();
 
-    if (entry->uid == INVALID_ASSET_ID)
+    asset.uid = m_moduleAssets->findUID(sourcePath.lexically_normal().string());
+
+    directory.assets.push_back(asset);
+}
+
+DirectoryEntry* ContentRegistry::findDirectoryRecursive(DirectoryEntry* directory, const fs::path& path) const
+{
+    if (!directory)
     {
-        DEBUG_WARN("[ContentRegistry] No metadata in store for '%s'. Was rebuild() called before scan()?", sourcePath.string().c_str());
+        return nullptr;
     }
 
-
-    return entry;
-}
-
-std::shared_ptr<FileEntry> ContentRegistry::getEntryRecursive(
-    const std::shared_ptr<FileEntry>& node,
-    const std::filesystem::path& path) const
-{
-    if (!node)
-        return nullptr;
-
-    if (node->path == path)
-        return node;
-
-    for (const auto& child : node->children)
+    if (directory->path.lexically_normal() == path.lexically_normal())
     {
-        if (auto found = getEntryRecursive(child, path))
+        return directory;
+    }
+
+    for (const auto& child : directory->directories)
+    {
+        if (DirectoryEntry* found = findDirectoryRecursive(child.get(), path))
+        {
             return found;
+        }
     }
 
     return nullptr;

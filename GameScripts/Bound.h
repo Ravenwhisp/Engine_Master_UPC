@@ -23,6 +23,8 @@ public:
     ScriptComponentRef<Transform> m_firstTarget;
     ScriptComponentRef<Transform> m_secondTarget;
 
+    ScriptComponentRef<Transform> m_BoundUI;
+
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
 
