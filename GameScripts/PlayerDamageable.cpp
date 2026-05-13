@@ -9,6 +9,11 @@ PlayerDamageable::PlayerDamageable(GameObject* owner)
 {
 }
 
+IMPLEMENT_SCRIPT_FIELDS(PlayerDamageable,
+    SERIALIZED_FLOAT(m_hapticIntensity, "Heartbeat Intensity", 100.0f, 0.0f, 0.01f),
+	SERIALIZED_FLOAT(m_heartbeatThreshold, "Heartbeat Threshold", 0.5f, 0.25f, 0.0f)
+)
+
 void PlayerDamageable::Start()
 {
     Damageable::Start();
@@ -43,7 +48,7 @@ void PlayerDamageable::Update()
         m_dubTimer -= dt;
         if (m_dubTimer < 0.0f)
         {
-            HapticAPI::playAtScale("HeartbeatDub_Health", m_dubScale, 0);
+            HapticAPI::playAtScale("HeartbeatDub_Separation", m_dubScale * m_hapticIntensity, 0);
 
             if (m_dyingBeat)
             {
@@ -71,9 +76,9 @@ void PlayerDamageable::fireLub()
     const float danger = 1.0f - getHpPercent();
     const HeartbeatCycle cycle = HeartbeatCycle::fromHealth(getHpPercent());
 
-    HapticAPI::playAtScale("HeartbeatLub_Health", danger, 0);
+    HapticAPI::playAtScale("HeartbeatLub_Health", danger * m_hapticIntensity, 0);
 
-    m_dubScale = danger;
+    m_dubScale = danger * m_hapticIntensity;
     m_dubTimer = cycle.interBeatSeconds;
     m_lubTimer = -1.0f;
 }

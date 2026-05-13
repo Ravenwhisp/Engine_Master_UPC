@@ -15,6 +15,8 @@ public:
     void Start()  override;
     void Update() override;
 
+    ScriptFieldList getExposedFields() const override;
+
 protected:
     void onDamaged(float amount) override;
     void onHpDepleted()          override;
@@ -22,13 +24,9 @@ protected:
     void onRevive()              override;
 
 public:
-    float m_heartbeatThreshold = 0.5f;  // heartbeat begins below this HP fraction
+    float m_heartbeatThreshold = 0.5f;
 
-    // Test controls (inspector-tweakable)
-    int   m_testPlayerIndex = 0;
-    float m_testDamageAmount = 10.0f;
-    float m_testHealAmount = 10.0f;
-
+    float m_hapticIntensity = 1.0f; 
 private:
     void fireLub();
 

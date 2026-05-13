@@ -43,6 +43,8 @@ public:
 
     float m_previousDistance = 0.0f;
 
+    float m_hapticIntensity = 1.0f; 
+    float m_separationHapticHpGate = 0.5f;
 private:
     void fireLub(float t);
 
