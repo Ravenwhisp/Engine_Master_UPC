@@ -23,7 +23,6 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, uint instance
     VSOut output;
     output.texCoord = texCoord;
     output.position = mul( mul(float4(position, 0.0f, 1.0f), instanceDataBuffer[instanceID].worldPosition), vp);
-    //output.position = mul(float4(position, 0.0f, 1.0f), instanceDataBuffer[instanceID].worldPosition);
     output.instanceID = instanceID;
     
     return output;

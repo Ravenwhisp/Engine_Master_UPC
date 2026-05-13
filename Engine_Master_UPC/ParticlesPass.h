@@ -40,39 +40,42 @@ private:
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
 
     // TEMPORARY
-    /*
+    
     std::vector<ParticleEmitterCommand> test = { {nullptr,
            {
                {
                    Vector3(0.f, 0.f, 0.f),
                    Vector2(1.f, 1.f),
-                   0.f,
+                   3.14159272F,
                    Vector4(1.f, 1.f, 1.f, 1.f)
                },
                {
                    Vector3(0.f, 5.f, 0.f),
                    Vector2(2.f, 2.f),
                    0.f,
-                   Vector4(1.f, 1.f, 1.f, 0.5f)
+                   Vector4(0.f, 1.f, 0.f, 1.f)
                }
            }
        }
     };
-};
-*/
 
+
+
+/*
 std::vector<ParticleEmitterCommand> test = { {nullptr,
           {
               {
                   Vector3(5.f, 1.f, 1.f),
                   Vector2(1.f, 1.f),
-                  3.14159272F,
+                  0.f,
                   Vector4(1.f, 1.f, 1.f, 1.f)
               }
           }
       }
 };
+*/
 
+// pi = 3.14159272F (just for 180 degrees rotation)
 //Commands per particle:
 //Vector3 position;
 //Vector2 scale;
