@@ -5,7 +5,7 @@
 #include "ModuleMusic.h"
 #include "WwiseBank.h"
 #include "WwiseEvent.h"
-
+#include "PlayingSound.h"
 
 WindowMusicDebug::WindowMusicDebug()
 {
@@ -42,6 +42,27 @@ void WindowMusicDebug::drawInternal()
 			{
 				m_moduleMusic->postEvent(bank.getName().c_str(), event.name.c_str());
 			}
+		}
+	}
+
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Playing Sounds"))
+	{
+		const std::vector<PlayingSound>& playingSounds = m_moduleMusic->getPlayingSounds();
+
+		if (playingSounds.empty())
+		{
+			ImGui::Text("No playing sounds");
+			return;
+		}
+
+		for (const PlayingSound& playingSound : playingSounds)
+		{
+			ImGui::Text("Bank: %s", playingSound.bankName.c_str());
+			ImGui::Text("Event: %s", playingSound.eventName.c_str());
+			ImGui::Text("Playing ID: %u", playingSound.playingID);
+			ImGui::Separator();
 		}
 	}
 }

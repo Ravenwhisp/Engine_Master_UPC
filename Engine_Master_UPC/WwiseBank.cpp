@@ -45,23 +45,6 @@ void WwiseBank::unload()
 	WWISE_BANK_LOG("[WwiseBank] Unloaded bank: %s", m_bankName.c_str());
 }
 
-bool WwiseBank::postEvent(const char* eventName, AkGameObjectID gameObjectID) const
-{
-	for (const WwiseEvent& event : m_events)
-	{
-		if (event.name != eventName)
-		{
-			continue;
-		}
-
-		AK::SoundEngine::PostEvent(event.id, gameObjectID);
-
-		return true;
-	}
-
-	return false;
-}
-
 const std::vector<WwiseEvent>& WwiseBank::getEvents() const
 {
 	return m_events;

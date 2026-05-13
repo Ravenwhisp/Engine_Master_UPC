@@ -27,8 +27,6 @@ public:
 	const std::vector<WwiseEvent>& getEvents() const;
 	const std::string& getName() const { return m_bankName; }
 
-	bool postEvent(const char* eventName, AkGameObjectID gameObjectID) const;
-
 private:
 	bool load();
 	void unload();

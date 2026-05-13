@@ -502,6 +502,9 @@
     <ClCompile Include="WwiseManager.cpp">
       <Filter>MusicSystem\Wwise</Filter>
     </ClCompile>
+    <ClCompile Include="MusicPlaybackTracker.cpp">
+      <Filter>MusicSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1186,6 +1189,12 @@
     </ClInclude>
     <ClInclude Include="WwiseManager.h">
       <Filter>MusicSystem\Wwise</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayingSound.h">
+      <Filter>MusicSystem\Wwise</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicPlaybackTracker.h">
+      <Filter>MusicSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

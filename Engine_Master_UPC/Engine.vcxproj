@@ -343,6 +343,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="ModuleHaptics.h" />
     <ClInclude Include="ModuleMusic.h" />
     <ClInclude Include="ModuleTrigger.h" />
+    <ClInclude Include="MusicPlaybackTracker.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
     <ClInclude Include="OptickProfiler.h" />
@@ -351,6 +352,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
+    <ClInclude Include="PlayingSound.h" />
     <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="RenderContext.h" />
@@ -706,6 +708,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />

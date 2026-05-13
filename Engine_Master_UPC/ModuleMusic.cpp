@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "ModuleMusic.h"
 
+#include <AK/SoundEngine/Common/AkSoundEngine.h>
+
 #include <filesystem>
 #include <string>
 
@@ -30,10 +32,13 @@ bool ModuleMusic::init()
 void ModuleMusic::update()
 {
 	m_wwiseManager.update();
+	m_playbackTracker.update();
 }
 
 bool ModuleMusic::cleanUp()
 {
+	m_playbackTracker.cleanUp();
+
 	for (WwiseBank& bank : m_banks)
 	{
 		bank.cleanUp();
@@ -103,12 +108,34 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 {
 	for (const WwiseBank& bank : m_banks)
 	{
-		if (bank.getName() == bankName)
+		if (bank.getName() != bankName)
 		{
-			if (bank.postEvent(eventName, m_wwiseManager.getMusicGameObject()))
+			continue;
+		}
+
+		for (const WwiseEvent& event : bank.getEvents())
+		{
+			if (event.name != eventName)
 			{
+				continue;
+			}
+
+			const AkPlayingID playingID = AK::SoundEngine::PostEvent(event.id, m_wwiseManager.getMusicGameObject(), AK_EndOfEvent, MusicPlaybackTracker::getCallbackFunction(), &m_playbackTracker);
+
+			if (playingID == AK_INVALID_PLAYING_ID)
+			{
+				DEBUG_ERROR("[Module Music] Failed posting event: %s", eventName);
 				return;
 			}
+
+			PlayingSound playingSound;
+			playingSound.bankName = bankName;
+			playingSound.eventName = eventName;
+			playingSound.playingID = playingID;
+
+			m_playbackTracker.queuePlayingSoundToAdd(playingSound);
+
+			return;
 		}
 	}
 
