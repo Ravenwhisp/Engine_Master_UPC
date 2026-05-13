@@ -37,7 +37,6 @@ public:
 private:
     void moveInternal(GameObject* owner, const Vector3& desiredPos) const;
     void applyTranslation(Transform* transform, const Vector3& currentPos, const Vector3& desiredPos) const;
-    PlayerAnimationController* findAnimationController();
 
 private:
     bool m_isMoving = false;

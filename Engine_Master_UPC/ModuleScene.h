@@ -16,7 +16,6 @@ class GameObject;
 class Component;
 class CameraComponent;
 class MeshRenderer;
-class SpriteRenderer;
 class ScriptComponent;
 class LightComponent;
 class IDebugDrawable;
@@ -26,14 +25,14 @@ struct ID3D12GraphicsCommandList;
 class ModuleScene : public Module
 {
 private:
-    std::unique_ptr<Scene> m_scene;
+    std::shared_ptr<Scene> m_scene;
     std::unique_ptr<Quadtree> m_quadtree;
 
     std::unique_ptr<SceneSerializer> m_sceneSerializer;
     std::string m_pendingSceneLoad;
+    std::shared_ptr<Scene> m_pendingScene;
 
     std::vector<MeshRenderer*>       m_meshRenderers;
-    std::vector<SpriteRenderer*>     m_spriteRenderers;
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
 
@@ -53,8 +52,11 @@ public:
 #pragma region Persistence
     void saveScene();
     bool loadScene(const std::string& sceneName);
+    bool loadScene(std::shared_ptr<Scene> scene);
 
     void requestSceneChange(const std::string& sceneName);
+    void requestSceneChange(std::shared_ptr<Scene> scene);
+
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 #pragma endregion
 
@@ -78,7 +80,6 @@ public:
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
     const std::vector<MeshRenderer*>& getMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
-    const std::vector<SpriteRenderer*>& getSpriteRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
 };

@@ -19,20 +19,24 @@ SpikeTrap::SpikeTrap(GameObject* owner)
 
 void SpikeTrap::Start()
 {
+    owner = getOwner();
+    ownerTransform = GameObjectAPI::getTransform(owner);
 
-    if (alternativeMode)
-    {
-		spikeType = 1;
-    }
+    m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
+	m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
 
+    spikeType = alternativeMode ? 1 : 0;
+
+    currentTime = 0.0f;
+    state = WAIT;
+    damagedPlayers.clear();
 }
 
 void SpikeTrap::Update()
 {
+    float dt = Time::getDeltaTime();
     currentTime += dt;
-	m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
-	m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
-
+	
     switch (state)
     {
         case SpikeTrap::WAIT:
@@ -119,8 +123,7 @@ void SpikeTrap::damagePlayer(GameObject* player)
     // Skip if this player was already damaged
     if (damagedPlayers.count(player)) return;
 
-    Script* damageableScript = GameObjectAPI::getScript(player, "PlayerDamageable");
-    PlayerDamageable* damageable = dynamic_cast<PlayerDamageable*>(damageableScript);
+    PlayerDamageable* damageable = GameObjectAPI::findScript<PlayerDamageable>(player);
     if (damageable)
     {
         damageable->takeDamage(trapDamage);

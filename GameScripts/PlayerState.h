@@ -5,7 +5,7 @@
 enum class PlayerStateType
 {
     Normal = 0,
-    Attacking,
+    AttackRecovery,
     Downed
 };
 
@@ -20,7 +20,7 @@ public:
     void setState(PlayerStateType state);
 
     bool isDowned() const { return getState() == PlayerStateType::Downed; }
-    bool isAttacking() const { return getState() == PlayerStateType::Attacking; }
+    bool isRecoveringAttack() const { return getState() == PlayerStateType::AttackRecovery; }
     bool canMove() const { return getState() == PlayerStateType::Normal; }
 
     bool isUsingAbility() const;

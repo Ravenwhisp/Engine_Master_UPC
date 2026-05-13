@@ -22,7 +22,8 @@
 #include <limits>
 #include <algorithm>
 
-Scene::Scene()
+
+Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
 }

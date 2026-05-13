@@ -21,6 +21,7 @@
 #include "UIText.h"
 #include <unordered_map>
 #include "WindowSceneEditor.h"
+#include "AssetReference.h"
 
 void ModuleUI::preRender()
 {
@@ -167,22 +168,22 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
     if (uiImg->consumeLoadRequest())
     {
         TextureAsset* asset = uiImg->getTextureAsset();
-        MD5Hash assetId = uiImg->getTextureAssetId();
+        AssetReference& assetId = uiImg->getTextureAssetId();
 
-        if (!asset || assetId == INVALID_ASSET_ID)
+        if (!asset || !assetId.isValid())
         {
             uiImg->setTexture(nullptr);
         }
         else
         {
-            auto textureIteration = m_uiTextures.find(assetId);
+            auto textureIteration = m_uiTextures.find(&assetId);
             if (textureIteration == m_uiTextures.end())
             {
                 auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
                 if (texture)
                 {
                     Texture* raw = texture.get();
-                    m_uiTextures.emplace(assetId, std::move(texture));
+                    m_uiTextures.emplace(&assetId, std::move(texture));
                     uiImg->setTexture(raw);
                 }
                 else

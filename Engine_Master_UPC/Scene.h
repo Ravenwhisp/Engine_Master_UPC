@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Asset.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -17,7 +17,7 @@ class MeshRenderer;
 class TriggerSystem;
 class TriggerComponent;
 
-class Scene
+class Scene: public Asset
 {
     friend class SceneSnapshot;
 private:
@@ -62,7 +62,7 @@ private:
 public:
     friend class ModuleScene;
 
-    Scene();
+    Scene(AssetReference& uid);
     ~Scene();
 
 #pragma region GameLoop
