@@ -7,7 +7,7 @@
 
 class ParticleSystemComponent;
 
-// THE IDEA IS THAT IT HOLDS ALL PARTICLE SYSTEMS FOR EASY ACCESS
+// IN THE FUTURE, THE IDEA IS THAT IT HOLDS ALL PARTICLE SYSTEMS FOR EASY ACCESS
 
 class ModuleParticleSystem : public Module
 {

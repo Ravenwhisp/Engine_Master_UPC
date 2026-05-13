@@ -9,7 +9,7 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 {
 	Particle* particlePool;
 	{
-		std::vector<std::pair<unsigned int, unsigned int>>* aliveParticles; // saves distance to camera + index to pool
+		std::vector<std::pair<float, unsigned int>>* aliveParticles; // saves distance to camera + index to pool
 		particleData->getPoolAndAlives(particlePool, aliveParticles);
 		
 		// Dealing with already existing particles //
@@ -23,9 +23,8 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 			{
 				// Remove from alives
 
-				particlePool[poolIndex].alive = false;
 				aliveParticles->erase(aliveParticles->begin() + i);
-				// We need an allocation method...
+				particleData->freePoolSlot(poolIndex); // mark poolIndex slot as free
 			}
 			else 
 			{

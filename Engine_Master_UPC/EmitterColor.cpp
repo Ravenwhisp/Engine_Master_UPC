@@ -9,7 +9,7 @@ void EmitterColor::update(EmitterInstance* particleData)
 {
 	Particle* particlePool;
 	{
-		std::vector<std::pair<unsigned int, unsigned int>>* aliveParticles; // saves distance to camera + index to pool
+		std::vector<std::pair<float, unsigned int>>* aliveParticles;
 		particleData->getPoolAndAlives(particlePool, aliveParticles);
 
 		// Dealing with already existing particles //

@@ -10,7 +10,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 {
 	Particle* particlePool;
 	{
-		std::vector<std::pair<unsigned int, unsigned int>>* aliveParticles; // saves distance to camera + index to pool
+		std::vector<std::pair<float, unsigned int>>* aliveParticles; // saves distance to camera + index to pool
 		particleData->getPoolAndAlives(particlePool, aliveParticles);
 
 		// Dealing with already existing particles //
