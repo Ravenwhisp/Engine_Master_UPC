@@ -18,10 +18,6 @@ TriggerComponent::TriggerComponent(UID id, GameObject* gameObject)
 
 bool TriggerComponent::init()
 {
-    DEBUG_LOG("[TriggerComponent] Init trigger %llu on '%s'",
-        static_cast<unsigned long long>(getID()),
-        getOwner() ? getOwner()->GetName().c_str() : "null");
-
     if (m_setDefaultBoundsOnInit)
     {
         setDefaultBoundsFromModel();
