@@ -49,22 +49,6 @@ namespace
         return false;
     }
 
-    std::filesystem::path BuildStateMachineSourcePathFromName(const std::string& assetName)
-    {
-        std::filesystem::path path(assetName);
-
-        if (path.extension() != ".statemachine")
-        {
-            path += ".statemachine";
-        }
-
-        if (!path.has_parent_path())
-        {
-            path = std::filesystem::path(ASSETS_FOLDER) / "StateMachines" / path;
-        }
-
-        return path.lexically_normal();
-    }
 }
 
 AnimationComponent::AnimationComponent(UID id, GameObject* owner)
