@@ -49,6 +49,7 @@ public:
 
 private:
     void handleObjectPicking(const ImVec2& viewportSize);
+    bool isMouseInsideViewport(const Vector2& mousePosition, const ImVec2& viewportSize) const;
 
 private:
 

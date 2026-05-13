@@ -193,6 +193,11 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
 
     Vector2 mousePos = app->getModuleInput()->getMousePosition();
 
+    if (!isMouseInsideViewport(mousePos, viewportSize))
+    {
+        return;
+    }
+
     Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
 
     GameObjectPickHit hit;
@@ -201,4 +206,12 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
     {
         editor->setSelectedGameObject(hit.gameObject);
     }
+}
+
+bool WindowSceneEditor::isMouseInsideViewport(const Vector2& mousePosition, const ImVec2& viewportSize) const
+{
+    return mousePosition.x >= m_viewportX &&
+        mousePosition.x <= m_viewportX + viewportSize.x &&
+        mousePosition.y >= m_viewportY &&
+        mousePosition.y <= m_viewportY + viewportSize.y;
 }
