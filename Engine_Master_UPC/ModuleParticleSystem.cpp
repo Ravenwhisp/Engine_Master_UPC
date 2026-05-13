@@ -107,8 +107,8 @@ float ModuleParticleSystem::deltaTime()
 {
     if (app->getCurrentEngineState() == ENGINE_STATE::EDITOR)
     {
-        return app->getModuleTime()->unscaledDeltaTime();
+        return m_timeScale * app->getModuleTime()->unscaledDeltaTime();
     }
 
-    return app->getModuleTime()->deltaTime();
+    return m_timeScale * app->getModuleTime()->deltaTime();
 }

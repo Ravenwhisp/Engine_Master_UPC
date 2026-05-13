@@ -7,6 +7,7 @@
 #include "ModuleAssets.h"
 #include "Texture.h"
 #include "GameObject.h"
+#include "ModuleParticleSystem.h"
 
 ParticleSystemComponent::ParticleSystemComponent(UID id, GameObject* owner) : Component(id, ComponentType::PARTICLE_SYSTEM, owner) 
 {
@@ -68,6 +69,33 @@ void ParticleSystemComponent::drawUi()
 
     ImGui::SameLine();
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
+
+    if (!m_texture) return;
+
+    // EMITTER INTERFACE
+
+    ImGui::Separator();
+
+    float timeScale = app->getModuleParticleSystem()->getScale();
+    if (timeScale <= 0.f) 
+    {
+        if (ImGui::Button("Play")) app->getModuleParticleSystem()->setScale(1.f);
+    }
+    else if (ImGui::Button("Stop")) app->getModuleParticleSystem()->setScale(0.f);
+
+    if (ImGui::SliderFloat("Speed", &timeScale, 0.0f, 1.0f))
+    {
+        app->getModuleParticleSystem()->setScale(timeScale);
+    }
+
+    ImGui::Separator();
+
+
+
+   // ParticleEmitter& currentEmitter = m_particleSystem->getEmitters()[m_currentEditableEmitter];
+
+
+
 }
 
 void ParticleSystemComponent::update()

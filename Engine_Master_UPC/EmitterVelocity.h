@@ -13,6 +13,5 @@ public:
 private:
 
 	float m_initialVelocity = 5.0f;
-
 };
 

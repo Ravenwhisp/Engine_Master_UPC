@@ -11,13 +11,13 @@ public:
 	void update(EmitterInstance* particleData) override;
 
 	void setCreationColor(const Vector4& creationColor) { m_creationColor = creationColor; }
-	const Vector4& getCreationColor() { return m_creationColor; }
+	const Vector4& getCreationColor() const { return m_creationColor; }
 
 	void setStartColor(const Vector4& startColor) { m_startColor = startColor; }
-	const Vector4& getStartColor() { return m_startColor; }
+	const Vector4& getStartColor() const { return m_startColor; }
 
 	void setEndColor(const Vector4& endColor) { m_endColor = endColor; }
-	const Vector4& getEndColor() { return m_endColor; }
+	const Vector4& getEndColor() const { return m_endColor; }
 
 private:
 

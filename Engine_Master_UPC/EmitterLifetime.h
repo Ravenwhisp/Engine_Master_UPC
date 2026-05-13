@@ -13,7 +13,7 @@ public:
 	void update(EmitterInstance* particleData) override;
 
 	void setStartLifetime(float startLifetime) { m_startLifeTime = startLifetime; }
-	float getStartLifetime() { return m_startLifeTime; }
+	float getStartLifetime() const { return m_startLifeTime; }
 
 private:
 

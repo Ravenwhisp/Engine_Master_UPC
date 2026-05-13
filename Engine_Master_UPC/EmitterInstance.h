@@ -35,10 +35,10 @@ public:
 	Particle* getParticlePool() { return m_pool; }
 
 	std::vector<unsigned int>& getNewParticles() { return m_newParticles; }
-	float getParticlesToSpawn() { return m_particlesToSpawn; }
+	float getParticlesToSpawn() const { return m_particlesToSpawn; }
 	void setParticlesToSpawn(float particles) { m_particlesToSpawn = particles; }
 
-	float getCurrentTime() { return m_currentTime; }
+	float getCurrentTime() const { return m_currentTime; }
 
 	// Slot management //
 	int requestPoolSlot(); // returns a free pool slot, -1 if none available
