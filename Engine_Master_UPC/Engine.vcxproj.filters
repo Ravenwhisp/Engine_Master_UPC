@@ -499,6 +499,9 @@
     <ClCompile Include="WindowMusicDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
     </ClCompile>
+    <ClCompile Include="WwiseManager.cpp">
+      <Filter>MusicSystem\Wwise</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1180,6 +1183,9 @@
     </ClInclude>
     <ClInclude Include="WindowMusicDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="WwiseManager.h">
+      <Filter>MusicSystem\Wwise</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

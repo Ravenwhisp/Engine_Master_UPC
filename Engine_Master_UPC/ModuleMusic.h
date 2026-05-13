@@ -1,15 +1,13 @@
 #pragma once
-#include "Module.h"
 
+#include "Module.h"
+#include "WwiseManager.h"
 #include "WwiseBank.h"
 
 #include <vector>
 
 class ModuleMusic : public Module
 {
-private:
-	std::vector<WwiseBank> m_banks;
-
 public:
 	ModuleMusic();
 	~ModuleMusic();
@@ -23,8 +21,9 @@ public:
 	void postEvent(const char* bankName, const char* eventName);
 
 private:
-	bool initWwise();
-	void cleanUpWwise();
-
 	bool loadBanksFromFolder();
+
+private:
+	WwiseManager m_wwiseManager;
+	std::vector<WwiseBank> m_banks;
 };

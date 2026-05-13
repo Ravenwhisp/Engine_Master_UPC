@@ -520,6 +520,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="WeakCache.h" />
     <ClInclude Include="WwiseBank.h" />
     <ClInclude Include="WwiseEvent.h" />
+    <ClInclude Include="WwiseManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -843,6 +844,7 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClCompile Include="WaypointPathComponent.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
     <ClCompile Include="WwiseBank.cpp" />
+    <ClCompile Include="WwiseManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

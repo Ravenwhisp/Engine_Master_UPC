@@ -1,43 +1,24 @@
 #include "Globals.h"
 #include "ModuleMusic.h"
 
-#include <AK/SoundEngine/Common/AkMemoryMgrModule.h>
-#include <AK/SoundEngine/Common/AkStreamMgrModule.h>
-#include <AK/SoundEngine/Common/AkSoundEngine.h>
-#include <AK/Comm/AkCommunication.h>
-
-#include <AkDefaultIOHookDeferred.h>
-
 #include <filesystem>
+#include <string>
 
 constexpr const char* WWISE_ASSETS_PATH = "Assets\\Audio\\";
-
-static CAkDefaultIOHookDeferred g_lowLevelIO;
-
-static bool g_memoryCreated = false;
-static bool g_streamCreated = false;
-static bool g_lowLevelIOCreated = false;
-static bool g_soundEngineCreated = false;
-static bool g_commCreated = false;
-static bool g_musicGameObjectRegistered = false;
-static bool g_listenerGameObjectRegistered = false;
-
-static constexpr AkGameObjectID MUSIC_GAME_OBJECT = 1;
-static constexpr AkGameObjectID LISTENER_GAME_OBJECT = 2;
 
 ModuleMusic::ModuleMusic() = default;
 ModuleMusic::~ModuleMusic() = default;
 
-#define region Game Loop
 bool ModuleMusic::init()
 {
-	if (!initWwise())
+	if (!m_wwiseManager.init())
 	{
 		return false;
 	}
 
 	if (!loadBanksFromFolder())
 	{
+		m_wwiseManager.cleanUp();
 		return false;
 	}
 
@@ -48,12 +29,7 @@ bool ModuleMusic::init()
 
 void ModuleMusic::update()
 {
-	if (!g_soundEngineCreated)
-	{
-		return;
-	}
-
-	AK::SoundEngine::RenderAudio();
+	m_wwiseManager.update();
 }
 
 bool ModuleMusic::cleanUp()
@@ -65,90 +41,7 @@ bool ModuleMusic::cleanUp()
 
 	m_banks.clear();
 
-	cleanUpWwise();
-
-	return true;
-}
-#define endregion
-
-#pragma region Wwise wrapper
-bool ModuleMusic::initWwise()
-{
-	AkMemSettings memSettings;
-	AK::MemoryMgr::GetDefaultSettings(memSettings);
-
-	if (AK::MemoryMgr::Init(&memSettings) != AK_Success)
-	{
-		DEBUG_ERROR("[Module Music] Failed initializing MemoryMgr");
-		return false;
-	}
-
-	g_memoryCreated = true;
-
-	AkStreamMgrSettings streamSettings;
-	AK::StreamMgr::GetDefaultSettings(streamSettings);
-
-	if (!AK::StreamMgr::Create(streamSettings))
-	{
-		DEBUG_ERROR("[Module Music] Failed creating StreamMgr");
-		return false;
-	}
-
-	g_streamCreated = true;
-
-	AkDeviceSettings deviceSettings;
-	AK::StreamMgr::GetDefaultDeviceSettings(deviceSettings);
-
-	if (g_lowLevelIO.Init(deviceSettings) != AK_Success)
-	{
-		DEBUG_ERROR("[Module Music] Failed initializing LowLevelIO");
-		return false;
-	}
-
-	g_lowLevelIOCreated = true;
-
-	g_lowLevelIO.SetBasePath(L"Assets\\Audio\\");
-
-	AkInitSettings initSettings;
-	AkPlatformInitSettings platformSettings;
-
-	AK::SoundEngine::GetDefaultInitSettings(initSettings);
-	AK::SoundEngine::GetDefaultPlatformInitSettings(platformSettings);
-
-	if (AK::SoundEngine::Init(&initSettings, &platformSettings) != AK_Success)
-	{
-		DEBUG_ERROR("[Module Music] Failed initializing SoundEngine");
-		return false;
-	}
-
-	g_soundEngineCreated = true;
-
-	AkCommSettings commSettings;
-	AK::Comm::GetDefaultInitSettings(commSettings);
-
-	if (AK::Comm::Init(commSettings) == AK_Success)
-	{
-		g_commCreated = true;
-	}
-
-	if (AK::SoundEngine::RegisterGameObj(MUSIC_GAME_OBJECT, "Music") != AK_Success)
-	{
-		DEBUG_ERROR("[Module Music] Failed registering Music GameObject");
-		return false;
-	}
-
-	g_musicGameObjectRegistered = true;
-
-	if (AK::SoundEngine::RegisterGameObj(LISTENER_GAME_OBJECT, "Listener") != AK_Success)
-	{
-		DEBUG_ERROR("[Module Music] Failed registering Listener GameObject");
-		return false;
-	}
-
-	g_listenerGameObjectRegistered = true;
-
-	AK::SoundEngine::SetDefaultListeners(&LISTENER_GAME_OBJECT, 1);
-	AK::SoundEngine::SetListeners(MUSIC_GAME_OBJECT, &LISTENER_GAME_OBJECT, 1);
+	m_wwiseManager.cleanUp();
 
 	return true;
 }
@@ -206,59 +99,13 @@ bool ModuleMusic::loadBanksFromFolder()
 	return true;
 }
 
-void ModuleMusic::cleanUpWwise()
-{
-	if (g_listenerGameObjectRegistered)
-	{
-		AK::SoundEngine::UnregisterGameObj(LISTENER_GAME_OBJECT);
-		g_listenerGameObjectRegistered = false;
-	}
-
-	if (g_musicGameObjectRegistered)
-	{
-		AK::SoundEngine::UnregisterGameObj(MUSIC_GAME_OBJECT);
-		g_musicGameObjectRegistered = false;
-	}
-
-	if (g_commCreated)
-	{
-		AK::Comm::Term();
-		g_commCreated = false;
-	}
-
-	if (g_soundEngineCreated)
-	{
-		AK::SoundEngine::Term();
-		g_soundEngineCreated = false;
-	}
-
-	if (g_lowLevelIOCreated)
-	{
-		g_lowLevelIO.Term();
-		g_lowLevelIOCreated = false;
-	}
-
-	if (g_streamCreated && AK::IAkStreamMgr::Get())
-	{
-		AK::IAkStreamMgr::Get()->Destroy();
-		g_streamCreated = false;
-	}
-
-	if (g_memoryCreated)
-	{
-		AK::MemoryMgr::Term();
-		g_memoryCreated = false;
-	}
-}
-#pragma endregion
-
 void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 {
 	for (const WwiseBank& bank : m_banks)
 	{
 		if (bank.getName() == bankName)
 		{
-			if (bank.postEvent(eventName, MUSIC_GAME_OBJECT))
+			if (bank.postEvent(eventName, m_wwiseManager.getMusicGameObject()))
 			{
 				return;
 			}
@@ -267,4 +114,3 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 
 	DEBUG_ERROR("[Module Music] Event not found in any bank: %s", eventName);
 }
-
