@@ -565,6 +565,11 @@ void ModuleAssets::flushDialogRequests()
     }
 }
 
+bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfPath)
+{
+    return m_importerGltf->createStateMachine(gltfPath);
+}
+
 ContentRegistry* ModuleAssets::getContentRegistry() const
 {
     return m_contentRegistry.get();

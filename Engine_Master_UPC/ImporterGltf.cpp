@@ -159,6 +159,72 @@ Asset* ImporterGltf::createAssetInstance(AssetReference& ref) const
     return new PrefabAsset(ref);
 }
 
+bool ImporterGltf::createStateMachine(const std::filesystem::path& gltfPath)
+{
+    tinygltf::Model model;
+    if (!loadExternal(gltfPath, model))
+        return false;
+
+    ModuleAssets* assets = app->getModuleAssets();
+
+    // Populate m_existingDeps so resolveOrGenerateReference can reuse UIDs that
+    // were already assigned to animation sub-assets during a prior full import.
+    m_existingDeps.clear();
+    m_existingDepsUsed.clear();
+    {
+        std::filesystem::path metaPath = gltfPath;
+        Metadata::getMetadataPath(metaPath);
+        Metadata existingMeta;
+        if (assets->loadMetaFile(metaPath, existingMeta))
+        {
+            m_existingDeps = existingMeta.m_dependencies;
+            m_existingDepsUsed.assign(m_existingDeps.size(), false);
+        }
+    }
+
+    if (model.animations.empty())
+    {
+        DEBUG_WARN("[ImporterGltf] createStateMachine: '%s' contains no animations.",
+            gltfPath.string().c_str());
+        m_currentFilePath = nullptr;
+        m_existingDeps.clear();
+        m_existingDepsUsed.clear();
+        return false;
+    }
+
+    // Resolve each animation to its AssetReference, matching existing sub-asset
+    // UIDs by content hash when available.
+    std::vector<AssetReference> animationRefs(model.animations.size());
+    for (int i = 0; i < static_cast<int>(model.animations.size()); ++i)
+    {
+        AssetReference tempRef;
+        AnimationAsset animAsset(tempRef);
+        loadAnimation(model, model.animations[i], &animAsset);
+
+        uint8_t* rawBuf = nullptr;
+        const uint64_t size = m_importerAnimation->save(&animAsset, &rawBuf);
+        std::unique_ptr<uint8_t[]> guard(rawBuf);
+
+        animationRefs[i] = resolveOrGenerateReference(
+            AssetType::ANIMATION, rawBuf, static_cast<size_t>(size));
+    }
+
+    const AssetReference smRef = buildDefaultStateMachine(model, animationRefs, true);
+
+    m_currentFilePath = nullptr;
+    m_existingDeps.clear();
+    m_existingDepsUsed.clear();
+
+    if (!smRef.isValid())
+    {
+        DEBUG_ERROR("[ImporterGltf] createStateMachine: failed to produce a state machine for '%s'.",
+            gltfPath.string().c_str());
+        return false;
+    }
+
+    return true;
+}
+
 bool ImporterGltf::loadExternal(const std::filesystem::path& path, tinygltf::Model& out)
 {
     tinygltf::TinyGLTF ctx;
@@ -528,7 +594,8 @@ void ImporterGltf::loadAnimation(const tinygltf::Model& model,
 
 AssetReference ImporterGltf::buildDefaultStateMachine(
     const tinygltf::Model& model,
-    const std::vector<AssetReference>& animationRefs)
+    const std::vector<AssetReference>& animationRefs,
+    bool forceNew)
 {
     if (!m_currentFilePath || animationRefs.empty())
         return AssetReference{};
@@ -591,9 +658,39 @@ AssetReference ImporterGltf::buildDefaultStateMachine(
     if (stateMachineAsset.m_defaultStateName.empty())
         stateMachineAsset.m_defaultStateName = stateMachineAsset.m_states.front().name;
 
-    const std::filesystem::path smPath =
-        m_currentFilePath->parent_path() /
-        (m_currentFilePath->stem().string() + "_StateMachine.statemachine");
+    const std::string stem = m_currentFilePath->stem().string();
+    const std::filesystem::path dir = m_currentFilePath->parent_path();
+
+    std::filesystem::path smPath;
+
+    if (forceNew)
+    {
+
+        smPath = dir / (stem + "_StateMachine.statemachine");
+        for (int suffix = 2; std::filesystem::exists(smPath); ++suffix)
+        {
+            smPath = dir / (stem + "_StateMachine_" + std::to_string(suffix) + ".statemachine");
+        }
+        stateMachineAsset.m_name = smPath.stem().string();
+    }
+    else
+    {
+        smPath = dir / (stem + "_StateMachine.statemachine");
+
+        const UID existingUID = assets->findUID(smPath);
+        if (isValidUID(existingUID))
+        {
+            std::filesystem::path metaPath = smPath;
+            Metadata::getMetadataPath(metaPath);
+            Metadata meta;
+            if (assets->loadMetaFile(metaPath, meta))
+            {
+                DEBUG_LOG("[ImporterGltf] Reusing existing state machine '%s' (UID '%s').",
+                    smPath.string().c_str(), std::to_string(meta.uid).c_str());
+                return AssetReference(meta.uid, meta.contentHash, meta.type);
+            }
+        }
+    }
 
     const UID existingUID = assets->findUID(smPath);
     if (isValidUID(existingUID))

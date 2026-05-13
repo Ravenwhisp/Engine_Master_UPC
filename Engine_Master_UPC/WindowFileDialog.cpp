@@ -268,6 +268,12 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
             CommandImportAsset(sourcePath, asset.uid).run();
         }
 
+        const bool isGltf = sourcePath.extension() == GLTF_EXTENSION;
+        if (isGltf && ImGui::MenuItem("Create State Machine"))
+        {
+            app->getModuleAssets()->createStateMachineFromGltf(sourcePath);
+        }
+
         if (ImGui::MenuItem("Cut", "Ctrl+X"))
         {
             CommandCutItem(m_clipboard, metaPath).run();

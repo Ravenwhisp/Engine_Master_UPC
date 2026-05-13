@@ -176,6 +176,9 @@ public:
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
 
     void flushDialogRequests();
+
+    bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
+
 private:
     UID findUID(const std::filesystem::path& sourcePath) const;
     
