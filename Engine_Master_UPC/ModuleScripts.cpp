@@ -5,11 +5,7 @@
 #include "ModuleScene.h"
 #include "Scene.h"
 #include "ScriptComponent.h"
-#include "ScriptFactory.h"
 
-#include "PdbPatcher.h"
-
-#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -42,7 +38,7 @@ bool ModuleScripts::init()
 {
     loadScriptBuildSettings();
 
-    return loadGameScriptsDll();
+    return m_scriptLibraryLoader.load();
 }
 
 void ModuleScripts::update()
@@ -58,9 +54,9 @@ bool ModuleScripts::cleanUp()
         m_scriptBuildFuture.wait();
     }
 
-    const bool unloaded = unloadGameScriptsDll();
+    const bool unloaded = m_scriptLibraryLoader.unload();
 
-    cleanRuntimeScriptFiles();
+    m_scriptLibraryLoader.cleanRuntimeFiles();
 
     return unloaded;
 }
@@ -304,93 +300,19 @@ bool ModuleScripts::saveScriptBuildSettings() const
     return true;
 }
 
-bool ModuleScripts::loadGameScriptsDll()
-{
-    if (m_gameScriptsModule != nullptr)
-    {
-        DEBUG_WARN("[ModuleScripts] GameScripts DLL is already loaded.");
-        return true;
-    }
-
-    const unsigned int reloadVersion = getNextReloadVersion();
-
-    const std::string sourceDllPath = SCRIPT_DLL_NAME;
-    const std::string sourcePdbPath = SCRIPT_PDB_NAME;
-
-    const std::string runtimeDllPath = buildRuntimeDllPath(reloadVersion);
-    const std::string runtimePdbPath = buildRuntimePdbPath(reloadVersion);
-
-    if (!copyFileToRuntimePath(sourceDllPath, runtimeDllPath))
-    {
-        return false;
-    }
-
-    if (std::filesystem::exists(sourcePdbPath))
-    {
-        if (!copyFileToRuntimePath(sourcePdbPath, runtimePdbPath))
-        {
-            DEBUG_ERROR("[ModuleScripts] Failed to copy PDB to runtime path.");
-            return false;
-        }
-
-        if (!PdbPatcher::patchRuntimeDllPdbPath(runtimeDllPath, runtimePdbPath))
-        {
-            DEBUG_ERROR("[ModuleScripts] Failed to patch runtime DLL PDB path.");
-            return false;
-        }
-    }
-    else
-    {
-        DEBUG_WARN("[ModuleScripts] Source PDB not found: %s", sourcePdbPath.c_str());
-    }
-
-    m_gameScriptsModule = LoadLibraryA(runtimeDllPath.c_str());
-
-    if (m_gameScriptsModule == nullptr)
-    {
-        DEBUG_ERROR("[ModuleScripts] Failed to load %s", runtimeDllPath.c_str());
-        return false;
-    }
-
-    m_loadedDllPath = runtimeDllPath;
-
-    return true;
-}
-
-bool ModuleScripts::unloadGameScriptsDll()
-{
-    if (m_gameScriptsModule == nullptr)
-    {
-        return true;
-    }
-
-    ScriptFactory::clear();
-
-    if (!FreeLibrary(m_gameScriptsModule))
-    {
-        DEBUG_ERROR("[ModuleScripts] Failed to unload %s", m_loadedDllPath.c_str());
-        return false;
-    }
-
-    m_gameScriptsModule = nullptr;
-    m_loadedDllPath.clear();
-
-    return true;
-}
-
 bool ModuleScripts::reloadGameScriptsDllAfterSuccessfulBuild()
 {
     std::vector<ScriptReloadInfo> reloadInfos = saveSceneScriptReloadInfo();
 
     destroySceneScripts();
 
-    if (!unloadGameScriptsDll())
+    if (!m_scriptLibraryLoader.unload())
     {
         DEBUG_ERROR("[ModuleScripts] Failed to unload current GameScripts DLL.");
         return false;
     }
 
-    if (!loadGameScriptsDll())
+    if (!m_scriptLibraryLoader.load())
     {
         DEBUG_ERROR("[ModuleScripts] Failed to load new GameScripts DLL after build.");
         return false;
@@ -548,78 +470,6 @@ bool ModuleScripts::runMsBuild(const std::filesystem::path& msbuildPath, const s
     }
 
     return true;
-}
-
-unsigned int ModuleScripts::getNextReloadVersion()
-{
-    ++m_reloadVersion;
-    return m_reloadVersion;
-}
-
-std::string ModuleScripts::buildRuntimeDllPath(unsigned int version) const
-{
-    return std::string(RUNTIME_DLL_PREFIX) + std::to_string(version) + ".dll";
-}
-
-std::string ModuleScripts::buildRuntimePdbPath(unsigned int version) const
-{
-    char buffer[16];
-    sprintf_s(buffer, "GS_%08X.pdb", version);
-    return buffer;
-}
-
-bool ModuleScripts::copyFileToRuntimePath(const std::string& sourcePath, const std::string& runtimePath)
-{
-    try
-    {
-        std::filesystem::copy_file(sourcePath, runtimePath, std::filesystem::copy_options::overwrite_existing);
-    }
-    catch (const std::filesystem::filesystem_error& e)
-    {
-        DEBUG_ERROR("[ModuleScripts] Failed to copy %s to %s. Error: %s", sourcePath.c_str(), runtimePath.c_str(), e.what());
-
-        return false;
-    }
-
-    return true;
-}
-
-bool ModuleScripts::isRuntimeScriptFile(const std::filesystem::directory_entry& entry) const
-{
-    if (!entry.is_regular_file())
-    {
-        return false;
-    }
-
-    const std::string fileName = entry.path().filename().string();
-
-    const bool isRuntimeDll = fileName.rfind(RUNTIME_DLL_PREFIX, 0) == 0 && entry.path().extension() == ".dll";
-
-    const bool isRuntimePdb = fileName.rfind("GS_", 0) == 0 && entry.path().extension() == ".pdb";
-
-    return isRuntimeDll || isRuntimePdb;
-}
-
-void ModuleScripts::cleanRuntimeScriptFiles()
-{
-    const std::filesystem::path outputDirectory = ".";
-
-    try
-    {
-        for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(outputDirectory))
-        {
-            if (!isRuntimeScriptFile(entry))
-            {
-                continue;
-            }
-
-            std::filesystem::remove(entry.path());
-        }
-    }
-    catch (const std::filesystem::filesystem_error& e)
-    {
-        DEBUG_WARN("[ModuleScripts] Failed to clean runtime script files. Error: %s", e.what());
-    }
 }
 
 std::vector<ModuleScripts::ScriptReloadInfo> ModuleScripts::saveSceneScriptReloadInfo()

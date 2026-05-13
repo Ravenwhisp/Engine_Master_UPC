@@ -469,6 +469,9 @@
     <ClCompile Include="PdbPatcher.cpp">
       <Filter>Core\Scripting\Pdb</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptLibraryLoader.cpp">
+      <Filter>Core\Scripting\ScriptLibraryLoader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1130,6 +1133,9 @@
     <ClInclude Include="PdbPatcher.h">
       <Filter>Core\Scripting\Pdb</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptLibraryLoader.h">
+      <Filter>Core\Scripting\ScriptLibraryLoader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1316,6 +1322,9 @@
     </Filter>
     <Filter Include="Core\Scripting\Pdb">
       <UniqueIdentifier>{057841f3-2051-4b71-8ab3-e4c77b810307}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\ScriptLibraryLoader">
+      <UniqueIdentifier>{e92c5be0-2d2f-46d2-96d0-f44b96cef676}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
