@@ -83,19 +83,20 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
-    /*
+    
     const Vertex quadVertices[6] =
     {
-        { Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f)},
-        { Vector2(1.0f, 0.0f), Vector2(0.0f, 1.0f)},
-        { Vector2(1.0f, 1.0f), Vector2(0.0f, 0.0f)},
+        { Vector2(-0.5f, -0.5f), Vector2(1.0f, 1.0f)},
+        { Vector2(0.5f, -0.5f), Vector2(0.0f, 1.0f)},
+        { Vector2(0.5f, 0.5f), Vector2(0.0f, 0.0f)},
 
-        { Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f)},
-        { Vector2(1.0f, 1.0f), Vector2(0.0f, 0.0f)},
-        { Vector2(0.0f, 1.0f), Vector2(1.0f, 0.0f)}
+        { Vector2(-0.5f, -0.5f), Vector2(1.0f, 1.0f)},
+        { Vector2(0.5f, 0.5f), Vector2(0.0f, 0.0f)},
+        { Vector2(-0.5f, 0.5f), Vector2(1.0f, 0.0f)}
     };
-    */
+    
 
+    /*
     const Vertex quadVertices[6] =
     {
         { Vector2(-0.5f, -0.5f), Vector2(0.0f, 1.0f) },
@@ -106,6 +107,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
         { Vector2(0.5f,  0.5f), Vector2(1.0f, 0.0f) },
         { Vector2(-0.5f,  0.5f), Vector2(0.0f, 0.0f) }
     };
+    */
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(Vertex)));
 }
@@ -206,13 +208,17 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
 Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command) const
 {
-    Matrix rot = *m_view;
+    Matrix view = *m_view;
+
+    Matrix rot = view;
     rot._41 = rot._42 = rot._43 = 0.0f;
+
     Matrix rotInv = rot.Transpose();
 
     Vector3 scale = Vector3(command.scale.x, command.scale.y, 1.0f);
 
-    return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * rotInv * Matrix::CreateTranslation(command.position);
+    //return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * rotInv * Matrix::CreateTranslation(command.position);
+    return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * Matrix::CreateTranslation(command.position);
 }
 
 Matrix ParticlesPass::buildImageVP()

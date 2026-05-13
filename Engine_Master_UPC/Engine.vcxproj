@@ -311,6 +311,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="EmitterColor.h" />
     <ClInclude Include="EmitterInstance.h" />
     <ClInclude Include="EmitterLifetime.h" />
+    <ClInclude Include="EmitterSpawn.h" />
     <ClInclude Include="EmitterVelocity.h" />
     <ClInclude Include="EngineAPI.h" />
     <ClInclude Include="ExitApplication.h" />
@@ -650,6 +651,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="EmitterColor.cpp" />
     <ClCompile Include="EmitterInstance.cpp" />
     <ClCompile Include="EmitterLifetime.cpp" />
+    <ClCompile Include="EmitterSpawn.cpp" />
     <ClCompile Include="EmitterVelocity.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="ExitApplication.cpp" />

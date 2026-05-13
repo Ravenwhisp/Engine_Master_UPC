@@ -40,6 +40,7 @@ private:
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
 
     // TEMPORARY
+    /*
     std::vector<ParticleEmitterCommand> test = { {nullptr,
            {
                {
@@ -58,4 +59,25 @@ private:
        }
     };
 };
+*/
 
+std::vector<ParticleEmitterCommand> test = { {nullptr,
+          {
+              {
+                  Vector3(5.f, 1.f, 1.f),
+                  Vector2(1.f, 1.f),
+                  3.14159272F,
+                  Vector4(1.f, 1.f, 1.f, 1.f)
+              }
+          }
+      }
+};
+
+//Commands per particle:
+//Vector3 position;
+//Vector2 scale;
+//float rotationZ;
+//Vector4 colorAndAlpha;
+
+
+};
