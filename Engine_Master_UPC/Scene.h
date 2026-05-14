@@ -14,6 +14,8 @@ struct ID3D12GraphicsCommandList;
 class GameObject;
 class CameraComponent;
 class MeshRenderer;
+class TriggerSystem;
+class TriggerComponent;
 
 class Scene: public Asset
 {
@@ -33,6 +35,8 @@ private:
     std::vector<UID> m_objectsToRemove;
 
     bool m_componentCacheDirty = true;
+
+    std::unique_ptr<TriggerSystem> m_triggerSystem;
 
     void removePendingGameObjects();
 
@@ -58,7 +62,6 @@ private:
 public:
     friend class ModuleScene;
 
-    Scene();
     Scene(AssetReference& uid);
     ~Scene();
 
@@ -86,6 +89,8 @@ public:
 
     GameObject* createGameObject();
     GameObject* createGameObjectWithUID(UID id, UID transformUID);
+    void initLoadedObjects();
+
     GameObject* findGameObjectByUID(UID uuid);
     void removeGameObject(UID uuid);
     void markGameObjectForRemoval(UID uuid);
@@ -111,4 +116,10 @@ public:
     void  markDirty();
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
+
+#pragma region Triggers
+    void registerTrigger(TriggerComponent* trigger);
+    void unregisterTrigger(TriggerComponent* trigger);
+    void clearTriggers();
+#pragma endregion
 };
