@@ -19,9 +19,7 @@ DECLARE_EVENT(OnResize, WindowSceneEditor);
 class WindowSceneEditor : public EditorWindow, public IDebugDrawable
 {
 public:
-
     WindowSceneEditor();
-
     ~WindowSceneEditor();
 
     const char* getWindowName() const override
@@ -51,7 +49,6 @@ private:
     void handleObjectPicking(const ImVec2& viewportSize);
 
 private:
-
     std::unique_ptr<RenderSurface> m_surface;
     ModuleCamera* m_moduleCamera;
     Settings* m_settings;

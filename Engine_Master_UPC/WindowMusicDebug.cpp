@@ -51,11 +51,30 @@ void WindowMusicDebug::drawInternal()
 		{
 			const std::vector<WwiseEvent>& events = bank.getEvents();
 
-			const std::string headerLabel =
+			std::string headerLabel =
 				bank.getName() + " (" + std::to_string(events.size()) + " events)";
+
+			if (!bank.isLoaded())
+			{
+				headerLabel += " [UNLOADED]";
+			}
 
 			if (!ImGui::CollapsingHeader(headerLabel.c_str()))
 			{
+				continue;
+			}
+
+			if (!bank.isLoaded())
+			{
+				ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 180, 80, 255));
+
+				ImGui::TextWrapped(
+					"This bank is currently unloaded.\n"
+					"Load it from Scene Config to play events."
+				);
+
+				ImGui::PopStyleColor();
+
 				continue;
 			}
 

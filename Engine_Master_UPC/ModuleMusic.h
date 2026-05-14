@@ -34,7 +34,7 @@ public:
 #pragma endregion
 
 #pragma region Extra
-	const std::vector<WwiseBank>& getBankList() const { return m_banks; }
+	std::vector<WwiseBank>& getBankList() { return m_banks; }
 	const std::vector<PlayingSound>& getPlayingSounds() const { return m_playbackTracker.getPlayingSounds(); }
 #pragma endregion
 

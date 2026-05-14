@@ -16,9 +16,8 @@ bool WwiseBank::init(const char* bankName, const char* jsonPath)
 	m_bankName = bankName;
 	m_jsonPath = jsonPath;
 
-	loadEventsFromJson();
-
-	return load();
+	m_loaded = false;
+	return loadEventsFromJson();
 }
 
 void WwiseBank::cleanUp()
@@ -30,19 +29,34 @@ void WwiseBank::cleanUp()
 
 bool WwiseBank::load()
 {
+	if (m_loaded)
+	{
+		return true;
+	}
+
 	if (AK::SoundEngine::LoadBank(m_bankName.c_str(), m_bankID) != AK_Success)
 	{
 		DEBUG_ERROR("[WwiseBank] Failed loading bank: %s", m_bankName.c_str());
 		return false;
 	}
 	WWISE_BANK_LOG("[WwiseBank] Loaded bank: %s", m_bankName.c_str());
+
+	m_loaded = true;
+
 	return true;
 }
 
 void WwiseBank::unload()
 {
+	if (!m_loaded)
+	{
+		return;
+	}
+
 	AK::SoundEngine::UnloadBank(m_bankID, nullptr);
 	WWISE_BANK_LOG("[WwiseBank] Unloaded bank: %s", m_bankName.c_str());
+	
+	m_loaded = false;
 }
 
 const std::vector<WwiseEvent>& WwiseBank::getEvents() const
@@ -50,14 +64,14 @@ const std::vector<WwiseEvent>& WwiseBank::getEvents() const
 	return m_events;
 }
 
-void WwiseBank::loadEventsFromJson()
+bool WwiseBank::loadEventsFromJson()
 {
 	std::ifstream file(m_jsonPath);
 
 	if (!file.is_open())
 	{
 		DEBUG_ERROR("[WwiseBank] Failed opening json: %s", m_jsonPath.c_str());
-		return;
+		return false;
 	}
 
 	rapidjson::IStreamWrapper streamWrapper(file);
@@ -68,13 +82,13 @@ void WwiseBank::loadEventsFromJson()
 	if (!document.IsObject())
 	{
 		DEBUG_ERROR("[WwiseBank] Invalid json");
-		return;
+		return false;
 	}
 
 	if (!document.HasMember("SoundBanksInfo"))
 	{
 		DEBUG_ERROR("[WwiseBank] Missing SoundBanksInfo");
-		return;
+		return false;
 	}
 
 	const rapidjson::Value& soundBanksInfo = document["SoundBanksInfo"];
@@ -82,7 +96,7 @@ void WwiseBank::loadEventsFromJson()
 	if (!soundBanksInfo.HasMember("SoundBanks"))
 	{
 		DEBUG_ERROR("[WwiseBank] Missing SoundBanks");
-		return;
+		return false;
 	}
 
 	const rapidjson::Value& soundBanks = soundBanksInfo["SoundBanks"];
@@ -117,6 +131,8 @@ void WwiseBank::loadEventsFromJson()
 			WWISE_BANK_LOG("[WwiseBank] Registered event: %s | %u", event.name.c_str(), event.id);
 		}
 	}
+
+	return true;
 }
 
 #undef WWISE_BANK_LOG

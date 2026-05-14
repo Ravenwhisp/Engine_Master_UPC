@@ -101,7 +101,7 @@ bool ModuleMusic::loadBanksFromFolder()
 		m_banks.push_back(bank);
 	}
 
-	DEBUG_LOG("[Module Music] Loaded banks: %zu", m_banks.size());
+	DEBUG_LOG("[Module Music] Detected banks: %zu", m_banks.size());
 
 	return true;
 }
@@ -137,8 +137,6 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 			playingSound.playingID = static_cast<uint32_t>(playingID);
 
 			m_playbackTracker.queuePlayingSoundToAdd(playingSound);
-
-			m_playbackTracker.setState(playingID, PlayingSoundState::Playing);
 			return;
 		}
 	}

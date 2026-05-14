@@ -4,12 +4,17 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleNavigation.h"
+#include "ModuleMusic.h"
 
 #include "Scene.h"
+#include "WwiseBank.h"
+
+#include <algorithm>
 
 SceneConfig::SceneConfig()
 {
     m_moduleScene = app->getModuleScene();
+    m_moduleMusic = app->getModuleMusic();
 }
 
 void SceneConfig::drawInternal()
@@ -24,6 +29,7 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawLightSettings();
     ImGui::Separator();
+    drawMusicBanksSettings();
 }
 
 void SceneConfig::drawSaveSceneSettings()
@@ -166,5 +172,77 @@ void SceneConfig::drawLightSettings()
     {
         ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
+    }
+}
+
+void SceneConfig::drawMusicBanksSettings()
+{
+    const std::vector<std::string> loadedBanks = m_moduleScene->getScene()->getLoadedBanks();
+    std::vector<WwiseBank>& existingBanks = m_moduleMusic->getBankList();
+
+    if (!ImGui::CollapsingHeader("Music Banks"))
+    {
+        return;
+    }
+
+    ImGui::Text("Scene loaded banks");
+    ImGui::SameLine();
+    ImGui::TextDisabled("(%zu / %zu)", loadedBanks.size(), existingBanks.size());
+
+    ImGui::Separator();
+
+    if (existingBanks.empty())
+    {
+        ImGui::TextDisabled("No music banks found");
+        return;
+    }
+
+    if (ImGui::BeginTable("MusicBanksTable", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_Resizable))
+    {
+        ImGui::TableSetupColumn("Bank", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+        ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+        ImGui::TableHeadersRow();
+
+        for (WwiseBank& bank : existingBanks)
+        {
+            const std::string bankName = bank.getName();
+            const bool isLoaded = std::find(loadedBanks.begin(), loadedBanks.end(), bankName) != loadedBanks.end();
+
+            ImGui::PushID(bankName.c_str());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextUnformatted(bankName.c_str());
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::TextDisabled(isLoaded ? "Loaded" : "Unloaded");
+
+            ImGui::TableSetColumnIndex(2);
+
+            if (isLoaded)
+            {
+                if (ImGui::Button("Unload", ImVec2(-1.0f, 0.0f)))
+                {
+                    bank.unload();
+                    m_moduleScene->getScene()->removeLoadedBank(bankName);
+                }
+            }
+            else
+            {
+                if (ImGui::Button("Load", ImVec2(-1.0f, 0.0f)))
+                {
+                    if (bank.load())
+                    {
+                        m_moduleScene->getScene()->addLoadedBank(bankName);
+                    }
+                }
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::EndTable();
     }
 }

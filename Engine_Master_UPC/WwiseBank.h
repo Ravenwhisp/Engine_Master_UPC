@@ -17,6 +17,8 @@ private:
 
 	std::vector<WwiseEvent> m_events;
 
+	bool m_loaded;
+
 public:
 	WwiseBank() = default;
 	~WwiseBank() = default;
@@ -24,12 +26,13 @@ public:
 	bool init(const char* bankName, const char* jsonPath);
 	void cleanUp();
 
+	const bool isLoaded() const { return m_loaded; }
+	bool load();
+	void unload();
+
 	const std::vector<WwiseEvent>& getEvents() const;
 	const std::string& getName() const { return m_bankName; }
 
 private:
-	bool load();
-	void unload();
-
-	void loadEventsFromJson();
+	bool loadEventsFromJson();
 };
