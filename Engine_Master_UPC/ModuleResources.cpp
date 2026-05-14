@@ -240,7 +240,7 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto irradianceTexture = new Texture(textureAsset.getUID(), *m_device.Get(), desc);
+	auto irradianceTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
 
 
@@ -396,7 +396,7 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	
 	m_queue->flush();
 
-	auto finalTexture = new Texture(textureAsset.getUID(), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	auto finalTexture = new Texture(GenerateUID(), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	return finalTexture;
 }
 
@@ -414,7 +414,7 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto environmentTexture = new Texture(textureAsset.getUID(), *m_device.Get(), desc);
+	auto environmentTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
 
 	//ROOT SIGNATURE
@@ -581,7 +581,7 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 
 
 
-	auto finalTexture = new Texture(textureAsset.getUID(), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	auto finalTexture = new Texture(GenerateUID(), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	return finalTexture;
 }
 
