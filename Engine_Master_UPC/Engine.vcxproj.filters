@@ -463,14 +463,17 @@
     <ClCompile Include="HapticEffectDefinition.cpp">
       <Filter>Haptics</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleScripts.cpp">
-      <Filter>Core\Scripting</Filter>
-    </ClCompile>
     <ClCompile Include="PdbPatcher.cpp">
-      <Filter>Core\Scripting\Pdb</Filter>
+      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
     </ClCompile>
     <ClCompile Include="ScriptLibraryLoader.cpp">
-      <Filter>Core\Scripting\ScriptLibraryLoader</Filter>
+      <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleScripts.cpp">
+      <Filter>Core\Scripting\HotReloading</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptBuildSystem.cpp">
+      <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1127,14 +1130,17 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleScripts.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="PdbPatcher.h">
-      <Filter>Core\Scripting\Pdb</Filter>
+      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
     </ClInclude>
     <ClInclude Include="ScriptLibraryLoader.h">
-      <Filter>Core\Scripting\ScriptLibraryLoader</Filter>
+      <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleScripts.h">
+      <Filter>Core\Scripting\HotReloading</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptBuildSystem.h">
+      <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1320,11 +1326,17 @@
     <Filter Include="Haptics">
       <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Scripting\Pdb">
+    <Filter Include="Core\Scripting\HotReloading">
+      <UniqueIdentifier>{ab6dbf3b-91a1-415b-9a07-3146b44b801c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\Pdb">
       <UniqueIdentifier>{057841f3-2051-4b71-8ab3-e4c77b810307}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Scripting\ScriptLibraryLoader">
+    <Filter Include="Core\Scripting\HotReloading\ScriptLibraryLoader">
       <UniqueIdentifier>{e92c5be0-2d2f-46d2-96d0-f44b96cef676}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\ScriptBuildSystem">
+      <UniqueIdentifier>{688e39d2-81bd-4743-9315-93a1b760678e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

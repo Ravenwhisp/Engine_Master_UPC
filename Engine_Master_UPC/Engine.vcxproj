@@ -357,6 +357,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
+    <ClInclude Include="ScriptBuildSystem.h" />
     <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptFieldHandler.h" />
     <ClInclude Include="ScriptFieldHandlerRegistry.h" />
@@ -667,6 +668,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleScripts.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
+    <ClCompile Include="ScriptBuildSystem.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
