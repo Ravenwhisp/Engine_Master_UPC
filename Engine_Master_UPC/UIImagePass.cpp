@@ -105,7 +105,7 @@ void UIImagePass::prepare(const RenderContext& ctx)
     m_projection = &ctx.projection;
 
     m_sortedCommands = *m_commands;
-    std::sort(m_sortedCommands.begin(), m_sortedCommands.end(), compareUI);
+    std::stable_sort(m_sortedCommands.begin(), m_sortedCommands.end(), compareUI);
 }
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -218,11 +218,15 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
 
 bool UIImagePass::compareUI(const UIImageCommand& a, const UIImageCommand& b)
 {
-	if (a.renderMode != b.renderMode && b.renderMode == CanvasRenderMode::SCREEN_SPACE)
-        return true;
+    auto ak = std::make_tuple(
+        a.renderMode != CanvasRenderMode::SCREEN_SPACE,
+        a.zTest
+    );
 
-    if (a.zTest != b.zTest)
-        return a.zTest > b.zTest;
+    auto bk = std::make_tuple(
+        b.renderMode != CanvasRenderMode::SCREEN_SPACE,
+        b.zTest
+    );
 
-	return false;
+    return ak > bk;
 }
