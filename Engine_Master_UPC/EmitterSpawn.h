@@ -10,6 +10,10 @@ public:
 
 	void update(EmitterInstance* particleData) override;
 
+	bool drawUi() override;
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 private:
 
 	bool m_looping = true; // if true, ignores m_duration and spawns infinitely

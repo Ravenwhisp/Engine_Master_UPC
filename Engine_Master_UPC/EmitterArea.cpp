@@ -33,6 +33,32 @@ void EmitterArea::update(EmitterInstance* particleData)
 	}
 }
 
+bool EmitterArea::drawUi()
+{
+	return false;
+}
+
+rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
+{
+	return rapidjson::Value();
+}
+
+bool EmitterArea::deserializeJSON(const rapidjson::Value& componentValue)
+{
+	bool parameterChanged = false;
+
+	if (ImGui::CollapsingHeader("Spawn"))
+	{
+		int shapeType = static_cast<int>(m_shapeType);
+		ImGui::Combo("Shape", &m_shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES));
+
+		ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.0f);
+		ImGui::DragFloat("Radius thickness", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
+	}
+
+	return parameterChanged;
+}
+
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 {
 	Particle* particlePool = particleData->getParticlePool();

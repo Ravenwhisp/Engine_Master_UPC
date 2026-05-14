@@ -15,6 +15,10 @@ public:
 	void setStartLifetime(float startLifetime) { m_startLifeTime = startLifetime; }
 	float getStartLifetime() const { return m_startLifeTime; }
 
+	bool drawUi() override;
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 private:
 
 	float m_startLifeTime = 5.0f;

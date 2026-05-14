@@ -5,12 +5,21 @@
 
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "Texture.h"
 #include "GameObject.h"
 #include "ModuleParticleSystem.h"
 
+#include "EmitterArea.h"
+#include "EmitterColor.h"
+#include "EmitterLifetime.h"
+#include "EmitterSpawn.h"
+#include "EmitterVelocity.h"
+
 ParticleSystemComponent::ParticleSystemComponent(UID id, GameObject* owner) : Component(id, ComponentType::PARTICLE_SYSTEM, owner) 
 {
+    m_particleSystem = std::make_unique<ParticleSystem>();
+    ParticleEmitter* firstEmitter = m_particleSystem->addEmitter(); // at least there should be one
+
+    m_particlesState.push_back(EmitterInstance(firstEmitter, this));
 
     m_previousPosition = m_owner->GetTransform()->getPosition();
 }
@@ -21,10 +30,11 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
 
     cloned->m_textureAssetId = m_textureAssetId;
     cloned->m_gpuTexture = m_gpuTexture;
-    cloned->m_texture = cloned->m_gpuTexture.get();
     cloned->m_textureAsset = m_textureAsset;
     cloned->m_loadRequested = false;
     cloned->setActive(this->isActive());
+
+    // Emitters, Emitter instance cloning
 
     return cloned;
 }
@@ -47,13 +57,15 @@ void ParticleSystemComponent::drawUi()
 
     ImGui::Button("Drop Here the Texture");
 
+    ParticleEmitter& currentEmitter = m_particleSystem->getEmitters()[m_currentEditableEmitter];
+
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
             m_textureAssetId = *data;
-            m_texture = nullptr;
+            currentEmitter.setTexture(nullptr);
             m_gpuTexture = nullptr;
             m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
             DEBUG_LOG("Texture on particle system drop: assetId=%s", data->c_str());
@@ -68,11 +80,14 @@ void ParticleSystemComponent::drawUi()
     }
 
     ImGui::SameLine();
-    ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
 
-    if (!m_texture) return;
+    ImGui::Text("Loaded: %s", (currentEmitter.getTexture() != nullptr) ? "YES" : "NO");
+
+    if (!currentEmitter.getTexture()) return;
 
     // EMITTER INTERFACE
+
+    // Speed controller //
 
     ImGui::Separator();
 
@@ -90,16 +105,25 @@ void ParticleSystemComponent::drawUi()
 
     ImGui::Separator();
 
+    // Modules parameters //
 
+    bool parameterChanged = false;
+    for (std::unique_ptr<ParticleModule>& module : currentEmitter.getModules()) 
+    {
+        parameterChanged = parameterChanged || module->drawUi();
+        ImGui::Separator();
+    }
 
-   // ParticleEmitter& currentEmitter = m_particleSystem->getEmitters()[m_currentEditableEmitter];
-
-
-
+    if (parameterChanged) 
+    {
+        for (auto& particleState : m_particlesState) particleState.reset();
+    }
 }
 
 void ParticleSystemComponent::update()
 {
+    for (auto& particleState : m_particlesState) particleState.updateModules();
+
     m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position (maybe after threating particles?)
 }
 
@@ -122,7 +146,6 @@ bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentI
     {
         m_textureAssetId = componentInfo["TextureAssetId"].GetString();
 
-        m_texture = nullptr;
         m_gpuTexture = nullptr;
         m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
 

@@ -41,3 +41,25 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		particlePool[particleIndex].lifeTime = m_startLifeTime;
 	}
 }
+
+bool EmitterLifetime::drawUi()
+{
+	bool parameterChanged = false;
+
+	if (ImGui::CollapsingHeader("Lifetime"))
+	{
+		ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+	}
+
+	return parameterChanged;
+}
+
+rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
+{
+	return rapidjson::Value();
+}
+
+bool EmitterLifetime::deserializeJSON(const rapidjson::Value& componentValue)
+{
+	return false;
+}

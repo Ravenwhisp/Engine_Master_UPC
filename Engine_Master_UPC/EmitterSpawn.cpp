@@ -35,3 +35,29 @@ void EmitterSpawn::update(EmitterInstance* particleData)
 	// (For now we will not do anything if we run out of space; but the idea would be REPLACING the oldest particles as new ones)
 	particlesToSpawn = particlesToSpawn - static_cast<long>(particlesToSpawn);
 }
+
+bool EmitterSpawn::drawUi()
+{
+	bool parameterChanged = false;
+
+	if (ImGui::CollapsingHeader("Spawn"))
+	{
+		ImGui::Checkbox("Looping", &m_looping);
+		ImGui::DragFloat("Duration", &m_duration, 0.1f, 0.0f);
+
+		ImGui::DragFloat("Rate over time", &m_rateOverTime, 0.1f, 0.0f);
+		ImGui::DragFloat("Rate over distance", &m_rateOverDistance, 0.1f, 0.0f);
+	}
+
+	return parameterChanged;
+}
+
+rapidjson::Value EmitterSpawn::getJSON(rapidjson::Document& domTree)
+{
+	return rapidjson::Value();
+}
+
+bool EmitterSpawn::deserializeJSON(const rapidjson::Value& componentValue)
+{
+	return false;
+}

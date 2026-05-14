@@ -40,3 +40,25 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		particlePool[particleIndex].velocity = m_initialVelocity;
 	}
 }
+
+bool EmitterVelocity::drawUi()
+{
+	bool parameterChanged = false;
+
+	if (ImGui::CollapsingHeader("Velocity"))
+	{
+		ImGui::DragFloat("Initial velocity", &m_initialVelocity, 0.1f, 0.0f);
+	}
+
+	return parameterChanged;
+}
+
+rapidjson::Value EmitterVelocity::getJSON(rapidjson::Document& domTree)
+{
+	return rapidjson::Value();
+}
+
+bool EmitterVelocity::deserializeJSON(const rapidjson::Value& componentValue)
+{
+	return false;
+}

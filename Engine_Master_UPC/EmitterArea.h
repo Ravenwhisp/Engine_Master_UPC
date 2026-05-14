@@ -9,7 +9,8 @@ enum class AreaType {
 	CIRCLE,
 	CONE,
 	SPHERE,
-	HEMISPHERE
+	HEMISPHERE,
+	TOTAL_TYPES
 };
 
 
@@ -20,6 +21,10 @@ public:
 	EmitterArea() : ParticleModule(ParticleModuleType::AREA) {}
 
 	void update(EmitterInstance* particleData) override;
+
+	bool drawUi() override;
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
 private:
 
