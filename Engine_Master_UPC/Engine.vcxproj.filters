@@ -402,7 +402,7 @@
     <ClCompile Include="TriggerComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleTrigger.cpp">
+    <ClCompile Include="TriggerSystem.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="PrefabSerializer.cpp" />
@@ -1092,7 +1092,7 @@
     <ClInclude Include="TriggerDebugDrawMode.h">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleTrigger.h">
+    <ClInclude Include="TriggerSystem.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />

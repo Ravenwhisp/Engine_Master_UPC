@@ -860,7 +860,6 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
             }
 
             newComponent->deserializeJSON(componentJson);
-            newComponent->init();
         }
     }
 
