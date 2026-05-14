@@ -34,10 +34,12 @@ private:
 	float m_radius = 5.f;
 	float m_radiusThickness = 1.f; // part of the radius where we spawn particles ([0, 1])
 
+	float m_radiusScale = 3.f; // temporary parameter for cone area
 
 	void setNewParticlesPlacementCircle(EmitterInstance* particleData);
 	void setNewParticlesPlacementSphere(EmitterInstance* particleData);
 	void setNewParticlesPlacementHemisphere(EmitterInstance* particleData);
+	void setNewParticlesPlacementCone(EmitterInstance* particleData);
 
 	Vector3 getCircleDirection(Vector3 center, const Transform& objectTransform);
 	Vector3 getSphereDirection(Vector3 center, const Transform& objectTransform);

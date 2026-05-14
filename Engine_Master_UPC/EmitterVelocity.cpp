@@ -47,7 +47,7 @@ bool EmitterVelocity::drawUi()
 
 	if (ImGui::CollapsingHeader("Velocity"))
 	{
-		parameterChanged = ImGui::DragFloat("Initial velocity", &m_initialVelocity, 0.1f, 0.0f);
+		parameterChanged = ImGui::DragFloat("Initial velocity", &m_initialVelocity, 0.1f);
 	}
 
 	return parameterChanged;

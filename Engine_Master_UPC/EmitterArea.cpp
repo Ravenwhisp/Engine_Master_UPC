@@ -19,6 +19,7 @@ void EmitterArea::update(EmitterInstance* particleData)
 
 	case AreaType::CONE:
 
+		setNewParticlesPlacementCone(particleData);
 		break;
 
 	case AreaType::SPHERE:
@@ -51,6 +52,12 @@ bool EmitterArea::drawUi()
 		parameterChanged |= ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.0f);
 
 		parameterChanged |= ImGui::DragFloat("Radius thickness", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
+
+
+		if (m_shapeType == AreaType::CONE) 
+		{
+			parameterChanged |= ImGui::DragFloat("Radius scale", &m_radiusScale, 0.1f, 1.0f, 100.f);
+		}
 	}
 
 	return parameterChanged;
@@ -244,6 +251,41 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 				particlePool[particleIndex].movementDirection = direction;
 			}
 		}
+	}
+}
+
+void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
+{
+	Particle* particlePool = particleData->getParticlePool();
+	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
+
+	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
+
+	float realRadius = m_radiusThickness * m_radius;
+
+	for (auto& particleIndex : newParticles)
+	{
+		// We need to obtain a position to appear within the circle
+		float rightOffset;
+		float forwardOffset;
+		Vector3 spawnPosition;
+		do
+		{
+			rightOffset = uniform_rand() * (realRadius * 2) - realRadius;
+			forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
+
+			spawnPosition = objectTransform->getPosition() + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
+
+		} while (Vector3::DistanceSquared(spawnPosition, objectTransform->getPosition()) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
+
+		// For now, we will use a scale on the offsets, to define the "upper circle" of the cone, and assume it is on an arbitrary height to get a direction
+
+		Vector3 scaledPosition = objectTransform->getPosition() + m_radiusScale * rightOffset * objectTransform->getRight() + m_radiusScale * forwardOffset * objectTransform->getForward() + objectTransform->getUp();
+		Vector3 direction = (scaledPosition - spawnPosition);
+		direction.Normalize();
+
+		particlePool[particleIndex].position = spawnPosition;
+		particlePool[particleIndex].movementDirection = direction;
 	}
 }
 
