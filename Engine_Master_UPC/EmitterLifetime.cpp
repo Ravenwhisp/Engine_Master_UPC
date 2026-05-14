@@ -48,7 +48,7 @@ bool EmitterLifetime::drawUi()
 
 	if (ImGui::CollapsingHeader("Lifetime"))
 	{
-		ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		parameterChanged = ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
 	}
 
 	return parameterChanged;

@@ -35,7 +35,25 @@ void EmitterArea::update(EmitterInstance* particleData)
 
 bool EmitterArea::drawUi()
 {
-	return false;
+	bool parameterChanged = false;
+
+	if (ImGui::CollapsingHeader("Area"))
+	{
+		{
+			int shapeType = static_cast<int>(m_shapeType);
+			if (ImGui::Combo("Shape", &shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES)))
+			{
+				m_shapeType = static_cast<AreaType>(shapeType);
+				parameterChanged |= true;
+			}
+		}
+
+		parameterChanged |= ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.0f);
+
+		parameterChanged |= ImGui::DragFloat("Radius thickness", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
+	}
+
+	return parameterChanged;
 }
 
 rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
@@ -45,18 +63,7 @@ rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
 
 bool EmitterArea::deserializeJSON(const rapidjson::Value& componentValue)
 {
-	bool parameterChanged = false;
-
-	if (ImGui::CollapsingHeader("Spawn"))
-	{
-		int shapeType = static_cast<int>(m_shapeType);
-		ImGui::Combo("Shape", &m_shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES));
-
-		ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.0f);
-		ImGui::DragFloat("Radius thickness", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
-	}
-
-	return parameterChanged;
+	return false;
 }
 
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
