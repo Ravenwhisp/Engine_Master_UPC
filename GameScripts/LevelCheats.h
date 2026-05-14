@@ -21,6 +21,7 @@ public:
 	void RestoreHealth();
 	void DownState();
 	void restartLevel();
+	void killEnemies();
 
     //ScriptFieldList getExposedFields() const override;
 

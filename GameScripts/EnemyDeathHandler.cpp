@@ -14,8 +14,7 @@ EnemyDeathHandler::EnemyDeathHandler(GameObject* owner)
 
 void EnemyDeathHandler::Start()
 {
-    Script* script = GameObjectAPI::getScript(m_owner, "EnemyDamageable");
-    m_damageable = dynamic_cast<Damageable*>(script);
+    m_damageable = GameObjectAPI::findScript<Damageable>(m_owner);
 
     if (m_damageable == nullptr)
     {

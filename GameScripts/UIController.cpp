@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UIController.h"
+#include "PersistingPowerupState.h"
 
 UIController::UIController(GameObject* owner): Script(owner) {}
 
@@ -31,6 +32,12 @@ void UIController::ChangeScene(const std::string& sceneName)
 void UIController::ExitApplication()
 {
 	ApplicationAPI::quit();
+}
+
+void UIController::StartGame(const std::string& sceneName)
+{
+	PersistingPowerupState::reset();
+	ChangeScene(sceneName);
 }
 
 void UIController::PauseGame(bool pause)

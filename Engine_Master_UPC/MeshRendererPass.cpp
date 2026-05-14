@@ -29,6 +29,8 @@
 #include "PlatformHelpers.h"
 #include "OptickProfiler.h"
 
+#include <IndexBuffer.h>
+
 MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(device)
 {
 	m_lighting = std::make_unique<SceneLightingSettings>();
