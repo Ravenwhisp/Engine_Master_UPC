@@ -34,6 +34,22 @@ const std::vector<PlayingSound>& MusicPlaybackTracker::getPlayingSounds() const
 	return m_playingSounds;
 }
 
+void MusicPlaybackTracker::setState(uint32_t playingID, PlayingSoundState state)
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	for (PlayingSound& playingSound : m_playingSounds)
+	{
+		if (playingSound.playingID != playingID)
+		{
+			continue;
+		}
+
+		playingSound.state = state;
+		return;
+	}
+}
+
 void MusicPlaybackTracker::queuePlayingSoundToAdd(const PlayingSound& playingSound)
 {
 	std::lock_guard<std::mutex> lock(m_mutex);

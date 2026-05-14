@@ -135,6 +135,7 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 
 			m_playbackTracker.queuePlayingSoundToAdd(playingSound);
 
+			m_playbackTracker.setState(playingID, PlayingSoundState::Playing);
 			return;
 		}
 	}
@@ -145,4 +146,20 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 void ModuleMusic::stopEvent(uint32_t playingID)
 {
 	AK::SoundEngine::StopPlayingID(static_cast<AkPlayingID>(playingID));
+
+	m_playbackTracker.setState(playingID, PlayingSoundState::Stopped);
+}
+
+void ModuleMusic::pauseEvent(uint32_t playingID)
+{
+	AK::SoundEngine::ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Pause, static_cast<AkPlayingID>(playingID));
+
+	m_playbackTracker.setState(playingID, PlayingSoundState::Paused);
+}
+
+void ModuleMusic::resumeEvent(uint32_t playingID)
+{
+	AK::SoundEngine::ExecuteActionOnPlayingID(AK::SoundEngine::AkActionOnEventType_Resume,static_cast<AkPlayingID>(playingID));
+
+	m_playbackTracker.setState(playingID, PlayingSoundState::Playing);
 }

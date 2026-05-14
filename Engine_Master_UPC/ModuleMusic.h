@@ -29,6 +29,8 @@ public:
 
 	void postEvent(const char* bankName, const char* eventName);
 	void stopEvent(uint32_t playingID);
+	void pauseEvent(uint32_t playingID);
+	void resumeEvent(uint32_t playingID);
 
 private:
 	bool loadBanksFromFolder();

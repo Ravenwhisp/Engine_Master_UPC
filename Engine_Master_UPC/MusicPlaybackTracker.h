@@ -21,12 +21,14 @@ public:
 
 	const std::vector<PlayingSound>& getPlayingSounds() const;
 
-	void queuePlayingSoundToAdd(const PlayingSound& playingSound);
-	void queuePlayingSoundToRemove(uint32_t playingID);
+	void setState(uint32_t playingID, PlayingSoundState state);
 
+	void queuePlayingSoundToAdd(const PlayingSound& playingSound);
 	static AkCallbackFunc getCallbackFunction();
 
 private:
+	void queuePlayingSoundToRemove(uint32_t playingID);
+
 	static void callback(AkCallbackType callbackType, AkEventCallbackInfo* eventCallbackInfo, void* callbackInfo, void* cookie);
 
 	void removePlayingSound(uint32_t playingID);
