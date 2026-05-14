@@ -12,7 +12,6 @@ enum class AssetType : uint32_t
 	ANIMATION = 6,
 	SKIN = 7,
 	ANIMATION_STATE_MACHINE = 8,
-	SCENE = 9,
 
-	UNKNOWN = 10
+	UNKNOWN = 9
 };

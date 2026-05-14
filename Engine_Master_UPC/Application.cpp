@@ -21,16 +21,11 @@
 #include "ScriptFactory.h"
 
 #include "Settings.h"
-#include "ThreadPool.h"
-
 #include "OptickProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
-    m_settings = new Settings();
-    m_threadPool = new ThreadPool();
-
     modules.push_back(m_moduleTime = new ModuleTime(120));
     modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
     modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
@@ -55,7 +50,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     modules.push_back(m_moduleTrigger = new ModuleTrigger());
 
-    //m_settings = new Settings();
+    m_settings = new Settings();
 }
 
 Application::~Application()

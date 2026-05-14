@@ -14,10 +14,8 @@ class WindowSceneEditor;
 class WindowGame;
 class EditorWindow;
 class WindowGameDebug;
-class WindowAnimationStateMachine;
-
 class GameObject;
-class Asset;
+class WindowAnimationStateMachine;
 
 class ModuleEditor : public Module
 {
@@ -109,10 +107,8 @@ public:
     ImVec2 getEventViewport()     const;
     ImVec2 getEventViewportSize() const;
 
-    void setSelectedGameObject(GameObject* go) { m_selectedGameObject = go; m_selectedAsset = nullptr; }
-    GameObject* getSelectedGameObject() const { return m_selectedGameObject; }
-    void setSelectedAsset(std::shared_ptr<Asset> asset) { m_selectedAsset = asset; m_selectedGameObject = nullptr; }
-    std::shared_ptr<Asset> getSelectedAsset() const { return m_selectedAsset; }
+    void        setSelectedGameObject(GameObject* go) { m_selectedGameObject = go; }
+    GameObject* getSelectedGameObject()         const { return m_selectedGameObject; }
 
     bool isInPrefabEditMode() const { return m_prefabSession.m_active && m_prefabSession.m_rootObject != nullptr; }
     GameObject* getPrefabEditRoot() const { return isInPrefabEditMode() ? m_prefabSession.m_rootObject : nullptr; }
@@ -172,14 +168,12 @@ private:
     std::unique_ptr<WindowGameDebug> m_viewGameDebug;
 
     // Editor state
-    SCENE_TOOL currentSceneTool = NONE;
+    SCENE_TOOL      currentSceneTool = NONE;
     NAVIGATION_MODE currentNavigationMode = PAN;
-    SCENE_TOOL previousSceneTool = NONE;
+    SCENE_TOOL      previousSceneTool = NONE;
     SIMULATION_MODE currentSimulationMode = STOP;
-    bool gizmoUseLocal = true;
-
     GameObject* m_selectedGameObject = nullptr;
-    std::shared_ptr<Asset> m_selectedAsset = nullptr;
+    bool            gizmoUseLocal = true;
 
     // Prefab editing
     PrefabEditSession m_prefabSession;

@@ -16,7 +16,7 @@ public:
 		return ext == PNG_EXTENSION || ext == JPG_EXTENSION || ext == JPEG_EXTENSION || ext == BMP_EXTENSION || ext == TGA_EXTENSION || ext == DDS_EXTENSION || ext == HDR_EXTENSION;
 	}
 
-	Asset* createAssetInstance(AssetReference& uid) const override
+	Asset* createAssetInstance(const MD5Hash& uid) const override
 	{
 		return new TextureAsset(uid);
 	}

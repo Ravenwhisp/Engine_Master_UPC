@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "DeathAbilityBase.h"
-
 #include "DeathCharacter.h"
 #include "PlayerState.h"
+#include "PlayerAnimationController.h"
 
 DeathAbilityBase::DeathAbilityBase(GameObject* owner)
     : AbilityBase(owner)
@@ -11,25 +11,77 @@ DeathAbilityBase::DeathAbilityBase(GameObject* owner)
 
 void DeathAbilityBase::Start()
 {
+    m_deathChar = static_cast<DeathCharacter*>(GameObjectAPI::getScript(getOwner(), "DeathCharacter"));
+    m_character = m_deathChar;
+
     AbilityBase::Start();
 
-    m_deathCharacter = dynamic_cast<DeathCharacter*>(m_character);
+    if (m_deathChar == nullptr)
+    {
+        Debug::log("[DeathAbilityBase] DeathCharacter not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
 }
 
-void DeathAbilityBase::releaseComboMoveLock()
+void DeathAbilityBase::Update()
 {
-    m_movementLockedForCombo = false;
+    AbilityBase::Update();
 
-    // Another ability may still be holding the lock, e.g. basic attack window still active.
-    // Leave PlayerState alone. That ability's finishAttackWindow will release it.
-    if (m_character != nullptr && m_character->isUsingAbility())
+    if (m_attackStateTimer > 0.0f)
+    {
+        onAttackWindowUpdate();
+
+        m_attackStateTimer -= Time::getDeltaTime();
+        if (m_attackStateTimer <= 0.0f)
+        {
+            finishAttackWindow();
+        }
+    }
+}
+
+void DeathAbilityBase::beginAttackWindow(float lockDuration)
+{
+    m_attackStateTimer = lockDuration;
+}
+
+void DeathAbilityBase::finishAttackWindow()
+{
+    m_attackStateTimer = 0.0f;
+
+    setAbilityLocked(false);
+
+    if (m_character != nullptr)
+    {
+        PlayerState* playerState = m_character->getPlayerState();
+        if (playerState != nullptr && playerState->isAttacking())
+        {
+            playerState->setState(PlayerStateType::Normal);
+        }
+    }
+
+    onAttackWindowFinished();
+}
+
+void DeathAbilityBase::beginAttackPresentation()
+{
+    if (m_character == nullptr)
     {
         return;
     }
 
-    PlayerState* playerState = m_character != nullptr ? m_character->getPlayerState() : nullptr;
-    if (playerState != nullptr && playerState->isRecoveringAttack())
+    PlayerState* playerState = m_character->getPlayerState();
+    if (playerState != nullptr)
     {
-        playerState->setState(PlayerStateType::Normal);
+        playerState->setState(PlayerStateType::Attacking);
+        Debug::log("[DeathAbility] State -> Attacking (PlayerState found)");
+    }
+    else
+    {
+        Debug::warn("[DeathAbility] PlayerState is NULL — canMove() block will not work!");
+    }
+
+    PlayerAnimationController* animController = m_character->getAnimationController();
+    if (animController != nullptr)
+    {
+        animController->requestAttack();
     }
 }

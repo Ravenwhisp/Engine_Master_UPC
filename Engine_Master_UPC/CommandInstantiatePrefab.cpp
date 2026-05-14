@@ -4,7 +4,6 @@
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
-#include "PrefabManager.h"
 
 #include "GameObject.h"
 #include <HierarchyUtils.h>
@@ -22,7 +21,7 @@ void CommandInstantiatePrefab::run()
 {
     if (!m_scene) return;
 
-    m_result = app->getModuleAssets()->getPrefabManager()->spawnPrefab(m_source, m_scene);
+    m_result = app->getModuleAssets()->spawnPrefab(m_source, m_scene);
     if (!m_result) return;
 
     if (m_parentID != 0)

@@ -15,12 +15,7 @@ PlayerMovement::PlayerMovement(GameObject* owner)
 
 void PlayerMovement::Start()
 {
-    m_playerAnimationController = GameObjectAPI::findScript<PlayerAnimationController>(getOwner());
-
-    if (m_playerAnimationController == nullptr)
-    {
-        Debug::warn("PlayerMovement on '%s' could not find PlayerAnimationController on the same GameObject.", GameObjectAPI::getName(getOwner()));
-    }
+    m_playerAnimationController = findAnimationController();
 }
 
 void PlayerMovement::Update()
@@ -66,6 +61,18 @@ void PlayerMovement::applyTranslation(Transform* transform, const Vector3& curre
     {
         TransformAPI::setPosition(transform, constrainedPos);
     }
+}
+
+PlayerAnimationController* PlayerMovement::findAnimationController()
+{
+    Script* animationScript = m_owner ? GameObjectAPI::getScript(m_owner, "PlayerAnimationController") : nullptr;
+    if (animationScript)
+    {
+        return static_cast<PlayerAnimationController*>(animationScript);
+    }
+
+    Debug::warn("PlayerMovement on '%s' could not find PlayerAnimationController on the same GameObject.", GameObjectAPI::getName(m_owner));
+    return nullptr;
 }
 
 IMPLEMENT_SCRIPT(PlayerMovement)

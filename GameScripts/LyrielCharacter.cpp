@@ -15,7 +15,8 @@ void LyrielCharacter::Start()
 {
     CharacterBase::Start();
 
-    m_arrowPool = GameObjectAPI::findScript<ArrowPool>(getOwner());
+    Script* arrowPoolScript = GameObjectAPI::getScript(getOwner(), "ArrowPool");
+    m_arrowPool = static_cast<ArrowPool*>(arrowPoolScript);
 
     if (m_arrowPool == nullptr)
     {

@@ -8,8 +8,6 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
-#include "PrefabManager.h"
-#include "Quadtree.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -23,8 +21,6 @@
 #include "AnimationComponent.h"
 #include "UISlider.h"
 #include "Transform2D.h"
-#include "MeshRenderer.h"
-#include "BoundingBox.h"
 
 #include "CameraComponent.h"
 
@@ -265,7 +261,7 @@ namespace GameObjectAPI
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->spawnPrefab(path, currentScene);
 
         if (!prefabInstance) return nullptr;
 
@@ -774,70 +770,6 @@ namespace SceneAPI
         }
 
         return result;
-    }
-
-    std::vector<GameObject*> getAllGameObjectsInScene(bool onlyActive)
-    {
-        std::vector<GameObject*> result;
-        if (!app || !app->getModuleScene())
-        {
-            return result;
-        }
-        for (GameObject* gameObject : app->getModuleScene()->getScene()->getAllGameObjects())
-        {
-            if (onlyActive && !gameObject->IsActiveInWindowHierarchy())
-            {
-                continue;
-            }
-            result.push_back(gameObject);
-        }
-		return result;
-    }
-
-    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive)
-    {
-		std::vector<GameObject*> candidates = app->getModuleScene()->getQuadtree()->queryInArea(center, radius);
-
-        std::vector<GameObject*> result;
-        for (GameObject* candidate : candidates)
-        {
-            if (onlyActive && !candidate->IsActiveInWindowHierarchy())
-            {
-                continue;
-            }
-
-            auto* model = candidate->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-
-            if (!model || !candidate->GetActive())
-            {
-                continue;
-            }
-
-            const Engine::BoundingBox bbox = model->getBoundingBox();
-
-            Vector3 bMin = bbox.getMinInWorldSpace();
-            Vector3 bMax = bbox.getMaxInWorldSpace();
-
-            // Correct min and max problem
-            float rMinX = std::min(bMin.x, bMax.x);
-            float rMaxX = std::max(bMin.x, bMax.x);
-            float rMinZ = std::min(bMin.z, bMax.z);
-            float rMaxZ = std::max(bMin.z, bMax.z);
-
-            float closestX = std::clamp(center.x, rMinX, rMaxX);
-            float closestZ = std::clamp(center.y, rMinZ, rMaxZ);
-
-            float diffX = center.x - closestX;
-            float diffZ = center.y - closestZ;
-            float distanceSquared = (diffX * diffX) + (diffZ * diffZ);
-
-            if (distanceSquared <= radius * radius)
-            {
-                result.push_back(candidate->GetTransform()->getRoot()->getOwner());
-            }
-        }
-
-		return result;
     }
 
     GameObject* getDefaultCameraGameObject()
@@ -1663,7 +1595,7 @@ namespace NavigationAPI
         return navigation->hasNavMesh();
     }
 
-    bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents, NavAgentProfile profile)
+    bool samplePosition(const Vector3& inputPosition, Vector3& outSampledPosition, const Vector3& searchExtents)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1677,10 +1609,8 @@ namespace NavigationAPI
             return false;
         }
 
-        unsigned short includeFlags = navigation->getIncludeFlagsForProfile(profile);
-
         dtQueryFilter filter;
-        filter.setIncludeFlags(includeFlags);
+        filter.setIncludeFlags(0xFFFF);
         filter.setExcludeFlags(0);
 
         const float position[3] = { inputPosition.x, inputPosition.y, inputPosition.z };
@@ -1705,7 +1635,7 @@ namespace NavigationAPI
         return true;
     }
 
-    bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents, NavAgentProfile profile)
+    bool moveAlongSurface(const Vector3& startPosition, const Vector3& targetPosition, Vector3& outResultPosition, const Vector3& searchExtents)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1719,10 +1649,8 @@ namespace NavigationAPI
             return false;
         }
 
-        unsigned short includeFlags = navigation->getIncludeFlagsForProfile(profile);
-
         dtQueryFilter filter;
-        filter.setIncludeFlags(includeFlags);
+        filter.setIncludeFlags(0xFFFF);
         filter.setExcludeFlags(0);
 
         const float start[3] = { startPosition.x, startPosition.y, startPosition.z };
@@ -1761,7 +1689,7 @@ namespace NavigationAPI
         return true;
     }
 
-    int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents, NavAgentProfile profile)
+    int findStraightPath(const Vector3& startPosition, const Vector3& endPosition, Vector3* outputPoints, int maxPoints, const Vector3& searchExtents)
     {
         if (!outputPoints || maxPoints <= 0)
         {
@@ -1775,7 +1703,7 @@ namespace NavigationAPI
         }
 
         std::vector<Vector3> path;
-        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents, profile))
+        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents))
         {
             return 0;
         }
@@ -1790,7 +1718,7 @@ namespace NavigationAPI
         return count;
     }
 
-    bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents, NavAgentProfile profile)
+    bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1799,7 +1727,7 @@ namespace NavigationAPI
         }
 
         std::vector<Vector3> path;
-        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents, profile))
+        if (!navigation->findStraightPath(startPosition, endPosition, path, searchExtents))
         {
             return false;
         }
@@ -1824,7 +1752,7 @@ namespace NavigationAPI
         return totalLength;
     }
 
-    bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts, NavAgentProfile profile)
+    bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts)
     {
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
@@ -1849,12 +1777,12 @@ namespace NavigationAPI
             const Vector3 candidatePosition(centerPosition.x + std::cos(angle) * distance, centerPosition.y, centerPosition.z + std::sin(angle) * distance);
 
             Vector3 sampledPosition;
-            if (!samplePosition(candidatePosition, sampledPosition, searchExtents, profile))
+            if (!samplePosition(candidatePosition, sampledPosition, searchExtents))
             {
                 continue;
             }
 
-            if (!canReachTarget(centerPosition, sampledPosition, searchExtents, profile))
+            if (!canReachTarget(centerPosition, sampledPosition, searchExtents))
             {
                 continue;
             }

@@ -45,7 +45,8 @@ public:
     }
 
     bool isShaderVisible() const {
-        return m_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ||  m_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+        return m_type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ||
+            m_type == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
     }
 
     uint32_t getDescriptorSize() const { return m_descriptorSize; }

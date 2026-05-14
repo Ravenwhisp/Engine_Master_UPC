@@ -17,7 +17,7 @@ public:
     ScriptFieldList getExposedFields() const override;
 
 private:
-    void startAbility() override;
+    void tryAttack();
     bool spawnArrowToTarget(GameObject* target);
     void faceTarget(GameObject* target);
 
@@ -30,6 +30,7 @@ private:
 
 public:
     float m_attackDamage = 10.0f;
+    float m_attackCooldown = 0.4f;
     float m_arrowSpeed = 18.0f;
     float m_attackLockDuration = 0.2f;
 };

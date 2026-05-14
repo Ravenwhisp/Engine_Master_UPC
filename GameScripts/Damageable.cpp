@@ -20,8 +20,6 @@ void Damageable::Start()
     m_currentHp = m_maxHp;
     clampHp();
     m_isDead = (m_currentHp <= 0.0f);
-
-    updateHealthBar();
 }
 
 void Damageable::takeDamage(float amount)
@@ -46,7 +44,11 @@ void Damageable::takeDamage(float amount)
 
     onDamaged(amount);
 
-    updateHealthBar();
+	UISlider* healthBar = m_healthBar.getReferencedComponent();
+    if (healthBar)
+    {
+		SliderAPI::setFillAmount(healthBar, getHpPercent());
+	}
 
     if (m_currentHp <= 0.0f)
     {
@@ -70,8 +72,6 @@ void Damageable::heal(float amount)
     clampHp();
 
     onHealed(amount);
-
-    updateHealthBar();
 }
 
 void Damageable::kill()
@@ -83,8 +83,6 @@ void Damageable::kill()
 
     m_currentHp = 0.0f;
     m_isDead = true;
-
-    updateHealthBar();
 
     onDeath();
 }
@@ -100,17 +98,15 @@ void Damageable::revive(float hp)
     else
     {
         m_currentHp = hp;
+        clampHp();
+
+        if (m_currentHp <= 0.0f && m_maxHp > 0.0f)
+        {
+            m_currentHp = m_maxHp;
+        }
     }
 
     clampHp();
-
-    if (m_currentHp <= 0.0f && m_maxHp > 0.0f)
-    {
-        m_currentHp = m_maxHp;
-    }
-
-    updateHealthBar();
-
     onRevive();
 }
 
@@ -139,15 +135,6 @@ void Damageable::clampHp()
     if (m_currentHp > m_maxHp)
     {
         m_currentHp = m_maxHp;
-    }
-}
-
-void Damageable::updateHealthBar()
-{
-    UISlider* healthBar = m_healthBar.getReferencedComponent();
-    if (healthBar)
-    {
-        SliderAPI::setFillAmount(healthBar, getHpPercent());
     }
 }
 

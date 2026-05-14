@@ -95,16 +95,16 @@ void WindowAnimationStateMachine::cleanUp()
     m_lastSaveSucceeded = false;
 }
 
-void WindowAnimationStateMachine::setTargetStateMachineUID(AssetReference& uid)
+void WindowAnimationStateMachine::setTargetStateMachineUID(const MD5Hash& uid)
 {
-    if (m_targetStateMachineUID == &uid)
+    if (m_targetStateMachineUID == uid)
     {
         return;
     }
 
     destroyEditorContext();
 
-    m_targetStateMachineUID = &uid;
+    m_targetStateMachineUID = uid;
     m_asset.reset();
     m_isDirty = false;
     m_pendingGraphEditorReset = false;
@@ -116,13 +116,13 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(AssetReference& uid)
     m_hasSaveFeedback = false;
     m_lastSaveSucceeded = false;
 
-    if (!m_targetStateMachineUID->isValid())
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
         m_editorSettingsFile.clear();
     }
     else
     {
-        m_editorSettingsFile = "AnimationStateMachineEditor_" + std::to_string(m_targetStateMachineUID->m_uid); + ".json";
+        m_editorSettingsFile = "AnimationStateMachineEditor_" + m_targetStateMachineUID + ".json";
     }
 
     m_needsInitialNodeLayout = true;
@@ -131,7 +131,7 @@ void WindowAnimationStateMachine::setTargetStateMachineUID(AssetReference& uid)
 
 bool WindowAnimationStateMachine::ensureAssetLoaded()
 {
-    if (!m_targetStateMachineUID->isValid())
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
         m_asset.reset();
         return false;
@@ -148,7 +148,7 @@ bool WindowAnimationStateMachine::ensureAssetLoaded()
         return false;
     }
 
-    m_asset = moduleAssets->load<AnimationStateMachineAsset>(*m_targetStateMachineUID);
+    m_asset = moduleAssets->load<AnimationStateMachineAsset>(m_targetStateMachineUID);
     if (m_asset)
     {
         m_isDirty = false;
@@ -164,7 +164,7 @@ bool WindowAnimationStateMachine::ensureEditorContext()
     {
         return true;
     }
-    if (!m_targetStateMachineUID->isValid())
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
         return false;
     }
@@ -195,10 +195,12 @@ void WindowAnimationStateMachine::destroyEditorContext()
 
 void WindowAnimationStateMachine::drawHeaderUi()
 {
+    ImGui::Text("Target UID: %s",
+        m_targetStateMachineUID == INVALID_ASSET_ID ? "<none>" : m_targetStateMachineUID.c_str());
 
     ImGui::SameLine();
 
-    if (!m_targetStateMachineUID->isValid())
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
         ImGui::Spacing();
         ImGui::TextDisabled("No state machine selected.");
@@ -1214,7 +1216,7 @@ bool WindowAnimationStateMachine::saveAsset()
         return false;
     }
 
-    if (!moduleAssets->save(*m_asset.get()))
+    if (!moduleAssets->saveAnimationStateMachine(m_asset))
     {
         return false;
     }
@@ -1231,7 +1233,7 @@ void WindowAnimationStateMachine::drawInternal()
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (!m_targetStateMachineUID->isValid())
+    if (m_targetStateMachineUID == INVALID_ASSET_ID)
     {
         ImGui::TextDisabled("Graph unavailable without a selected state machine.");
         return;

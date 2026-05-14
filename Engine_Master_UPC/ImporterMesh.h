@@ -10,9 +10,7 @@ public:
         return path.extension().string() == MESH_EXTENSION;
     }
 
-    Asset* createAssetInstance(AssetReference& uid) const override;
-
-    bool saveNative(const MeshAsset* asset, const std::filesystem::path& path);
+    Asset* createAssetInstance(const MD5Hash& uid) const override;
 
 protected:
     bool     importNative(const std::filesystem::path& path, MeshAsset* dst)      override;

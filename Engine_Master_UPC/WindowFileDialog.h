@@ -1,18 +1,23 @@
 #pragma once
-
 #include "EditorWindow.h"
-#include "FileDialogClipboard.h"
 #include "PrefabUI.h"
-#include "UID.h"
-
+#include "FileDialogClipboard.h"
 #include <filesystem>
 
-struct AssetEntry;
-struct DirectoryEntry;
+struct FileEntry;
+
+enum Command
+{
+    NONE,
+    MOVE,
+    COPY
+};
 
 class WindowFileDialog : public EditorWindow
 {
+
 public:
+
     void drawInternal() override;
 
     const char* getWindowName() const override
@@ -21,42 +26,25 @@ public:
     }
 
 private:
-    void drawDirectoryTree(DirectoryEntry* directory);
-    void drawAssetGrid(DirectoryEntry* directory);
 
-    void drawDirectoryItem(DirectoryEntry* directory);
-    void drawAssetItem(DirectoryEntry* directory, const AssetEntry& asset);
+    void drawDirectoryTree(const std::shared_ptr<FileEntry>& entry);
+
+    void drawAssetGrid(const std::shared_ptr<FileEntry>& directory);
 
     void navigateTo(const std::filesystem::path& path);
 
-    void handleAssetClick(const AssetEntry& asset);
-    void handleDirectoryClick(DirectoryEntry* directory);
-    void handleDirectoryDoubleClick(DirectoryEntry* directory);
+    void handleAssetDoubleClick(const std::shared_ptr<FileEntry>& asset);
+
     void handleGameObjectDrop(const std::filesystem::path& targetDirectory);
-
-    std::filesystem::path getAssetSourcePath(
-        const DirectoryEntry& directory,
-        const AssetEntry& asset
-    ) const;
-
-    std::filesystem::path getAssetMetaPath(
-        const DirectoryEntry& directory,
-        const AssetEntry& asset
-    ) const;
 
     PrefabUI::FileDialogBuffers buildFileDialogBuffers();
 
-private:
     std::filesystem::path m_currentDirectory;
-    std::filesystem::path m_selectedPath;
-    UID m_selectedAsset = INVALID_UID;
-
+    std::shared_ptr<FileEntry> m_selectedItem;
     FileDialogClipboard m_clipboard;
-
     bool m_showVariantModal = false;
     bool m_showSavePrefabModal = false;
     bool m_renamingPrefab = false;
-
     char m_variantSrcBuf[128] = {};
     char m_variantDstBuf[128] = {};
     char m_savePrefabNameBuf[128] = {};

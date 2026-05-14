@@ -1,6 +1,6 @@
 #pragma once
 #include "Asset.h"
-#include "AssetReference.h"
+#include "MD5Fwd.h"
 
 #include <string>
 #include <vector>
@@ -11,7 +11,7 @@ class ImporterGltf;
 struct AnimationStateMachineClip
 {
     std::string name;
-    AssetReference animationUID;
+    MD5Hash animationUID = INVALID_ASSET_ID;
     bool loop = true;
 };
 
@@ -42,7 +42,7 @@ public:
     friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;
-    explicit AnimationStateMachineAsset(AssetReference& id)
+    explicit AnimationStateMachineAsset(MD5Hash id)
         : Asset(id, AssetType::ANIMATION_STATE_MACHINE)
     {
     }

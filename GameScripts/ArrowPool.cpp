@@ -4,7 +4,7 @@
 
 IMPLEMENT_SCRIPT_FIELDS(ArrowPool,
     SERIALIZED_INT(m_maxArrows, "Max Arrows"),
-    SERIALIZED_STRING(m_arrowPrefabPath, "Arrow Prefab path")
+    SERIALIZED_STRING(m_arrowPrefabPath, "Arrow Prefab Path")
 )
 
 ArrowPool::ArrowPool(GameObject* owner)
@@ -47,7 +47,6 @@ bool ArrowPool::createArrow()
     }
 
     arrow->setPool(this);
-    arrow->setArrowOwnerTransform(GameObjectAPI::getTransform(getOwner()));
     arrow->resetProjectile();
 
     m_arrows.push_back(arrow);

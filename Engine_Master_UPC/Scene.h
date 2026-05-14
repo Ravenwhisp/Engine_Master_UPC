@@ -1,5 +1,5 @@
 #pragma once
-#include "Asset.h"
+
 #include <vector>
 #include <memory>
 #include <string>
@@ -15,7 +15,7 @@ class GameObject;
 class CameraComponent;
 class MeshRenderer;
 
-class Scene: public Asset
+class Scene
 {
     friend class SceneSnapshot;
 private:
@@ -59,7 +59,6 @@ public:
     friend class ModuleScene;
 
     Scene();
-    Scene(AssetReference& uid);
     ~Scene();
 
 #pragma region GameLoop

@@ -22,17 +22,12 @@ public:
     float m_turnSpeed = 2.0f;
     float m_intervalRepath = 0.4f;
     bool m_debugEnabled = true;
-    float m_attackEnterRangeBonus = 0.45f;
-    float m_attackExitRangeBonus = 0.80f;
-
-    bool isTargetInAttackEnterRange() const;
-    bool isTargetInAttackExitRange() const;
 
 private:
     EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
     Transform* m_currentTarget = nullptr;
     float m_repathTimer = 0.0f;
-    float m_chargeCooldownTimer = 0.0f;
+
     std::vector<Vector3> m_path;
     bool m_hasPath = false;
     size_t m_currentIndex = 0;
@@ -44,7 +39,6 @@ public:
     bool hasValidTarget() const;
     void updateCurrentTarget();
     bool isTargetInCombatRange() const;
-    Transform* getCurrentTarget() const { return m_currentTarget; }
     void clearPath();
     bool buildPathToTarget();
     void followPath();
@@ -52,9 +46,6 @@ public:
     void resetRepathTimer();
     void addToRepathTimer(float dt);
     bool shouldRepath() const;
-    void tickChargeCooldown(float dt);
-    bool isChargeReady() const;
-    void consumeChargeCooldown(float cooldownDuration);
 
 private:
     Vector3 getChasePosition() const;

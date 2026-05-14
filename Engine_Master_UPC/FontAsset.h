@@ -8,7 +8,7 @@ public:
     friend class ImporterFont;
 
     FontAsset() {}
-    FontAsset(AssetReference& id) : Asset(id, AssetType::FONT) {}
+    FontAsset(MD5Hash id) : Asset(id, AssetType::FONT) {}
 private:
     std::string fontFamilyName;
     std::vector<uint8_t> spriteFontData;

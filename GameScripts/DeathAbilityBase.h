@@ -10,11 +10,17 @@ public:
     explicit DeathAbilityBase(GameObject* owner);
 
     void Start() override;
+    void Update() override;
 
 protected:
-    void releaseComboMoveLock();
+    void beginAttackWindow(float lockDuration);
+    void finishAttackWindow();
+    void beginAttackPresentation();
+
+    virtual void onAttackWindowUpdate()   {}
+    virtual void onAttackWindowFinished() {}
 
 protected:
-    DeathCharacter* m_deathCharacter = nullptr;
-    bool m_movementLockedForCombo = false;
+    DeathCharacter* m_deathChar       = nullptr;
+    float           m_attackStateTimer = 0.0f;
 };

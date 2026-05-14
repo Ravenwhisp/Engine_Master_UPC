@@ -19,14 +19,7 @@ void CommandRemoveGameObject::run()
 {
     if (!m_scene || m_targetID == 0) return;
 
-    GameObject* go = app->getModuleEditor()->getSelectedGameObject();
-    
-    if (!go)
-    {
-        return;
-    }
-
-    if (go == HierarchyUtils::findByUID(m_scene, m_targetID))
+    if (app->getModuleEditor()->getSelectedGameObject() == HierarchyUtils::findByUID(m_scene, m_targetID))
     {
         app->getModuleEditor()->setSelectedGameObject(nullptr);
     }

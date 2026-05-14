@@ -9,6 +9,7 @@ IMPLEMENT_SCRIPT_FIELDS(PlayerAnimationController,
     SERIALIZED_STRING(m_damagedStateName, "Damaged state name"),
     SERIALIZED_STRING(m_downedStateName, "Downed state name"),
     SERIALIZED_STRING(m_deathStateName, "Death state name"),
+
     SERIALIZED_FLOAT(m_defaultBlendTime, "Default blend time", 0.0f, 2.0f, 0.01f),
     SERIALIZED_FLOAT(m_attackBlendTime, "Attack blend time", 0.0f, 2.0f, 0.01f),
     SERIALIZED_FLOAT(m_damagedBlendTime, "Damaged blend time", 0.0f, 2.0f, 0.01f),

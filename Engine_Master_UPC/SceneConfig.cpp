@@ -3,7 +3,6 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
-#include "ModuleAssets.h"
 #include "ModuleNavigation.h"
 
 #include "Scene.h"
@@ -31,9 +30,27 @@ void SceneConfig::drawSaveSceneSettings()
 {
     if (ImGui::CollapsingHeader("Save Scene"))
     {
+        static char saveSceneBuffer[256];
+        strcpy_s(saveSceneBuffer, m_saveSceneName.c_str());
+
+        if (ImGui::InputText("Scene Name##Save", saveSceneBuffer, IM_ARRAYSIZE(saveSceneBuffer)))
+        {
+            m_saveSceneName = saveSceneBuffer;
+        }
+
         if (ImGui::Button("Save"))
         {
-            m_moduleScene->saveScene();
+            const bool blank = (m_saveSceneName.find_first_not_of(" \t\n\r") == std::string::npos);
+
+            if (blank)
+            {
+                DEBUG_WARN("Cannot save scene: name is empty.");
+            }
+            else
+            {
+                m_moduleScene->getScene()->setName(m_saveSceneName.c_str());
+                m_moduleScene->saveScene();
+            }
         }
     }
 }
@@ -54,23 +71,6 @@ void SceneConfig::drawLoadSceneSettings()
         {
             m_moduleScene->requestSceneChange(m_loadSceneName);
         }
-
-
-        /*ImGui::Button("Load");
-        if (ImGui::BeginDragDropTarget())
-        {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
-            {
-                UID* ref = static_cast<UID*>(payload->Data);
-                AssetReference assetRef(*ref, INVALID_ASSET_ID, AssetType::SCENE);
-                auto scene = app->getModuleAssets()->load<Scene>(assetRef);
-                if (scene)
-                {
-                    m_moduleScene->requestSceneChange(scene);
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }*/
     }
 }
 
@@ -143,12 +143,9 @@ void SceneConfig::drawSkyBoxSettings()
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
-                AssetReference* data = static_cast<AssetReference*>(payload->Data);
-                if (auto cubemapRef = app->getModuleAssets()->findReference(data->m_uid))
-                {
-                    skyboxSettings.cubemapAssetId = *cubemapRef;
-                    m_skyboxDirty = true;
-                }
+                const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
+                skyboxSettings.cubemapAssetId = *data;
+                m_skyboxDirty = true;
             }
 
             ImGui::EndDragDropTarget();

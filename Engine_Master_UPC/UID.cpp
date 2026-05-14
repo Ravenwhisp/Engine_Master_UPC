@@ -21,11 +21,6 @@ static void InitUidRng()
     pcg32_srandom_r(&g_uidRng, seed, seq);
 }
 
-bool isValidUID(UID uid)
-{
-    return uid != INVALID_UID;
-}
-
 UID GenerateUID()
 {
     InitUidRng();

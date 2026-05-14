@@ -16,6 +16,5 @@ public:
 
 	void ChangeScene(const std::string& sceneName);
 	void ExitApplication();
-    void StartGame(const std::string& sceneName);
 	void PauseGame(bool pause);
 };

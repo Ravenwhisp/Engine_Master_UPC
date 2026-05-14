@@ -12,21 +12,18 @@ public:
 
     void Start() override;
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
-
     void drawGizmo() override;
 
-protected:
-	void startAbility() override;
-	bool canStartSpecificAbility() const override;
+    ScriptFieldList getExposedFields() const override;
 
+protected:
     virtual bool canDash() const;
     virtual void onDashStarted();
     virtual void onDashUpdate(float dt) {}
     virtual void onDashEnded() {}
 
 private:
-    void startDash();
+    void tryStartDash();
     void updateDash(float dt);
     void stopDash();
     void calculateDashMovement(float dt);

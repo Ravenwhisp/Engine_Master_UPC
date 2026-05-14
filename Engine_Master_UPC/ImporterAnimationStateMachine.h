@@ -11,11 +11,10 @@ public:
         return path.extension() == ".statemachine";
     }
 
-    Asset* createAssetInstance(AssetReference& uid) const override
+    Asset* createAssetInstance(const MD5Hash& uid) const override
     {
         return new AnimationStateMachineAsset(uid);
     }
-    bool saveNative(const AnimationStateMachineAsset* asset, const std::filesystem::path& path);
 
 protected:
     bool importNative(const std::filesystem::path& path, AnimationStateMachineAsset* dst) override;

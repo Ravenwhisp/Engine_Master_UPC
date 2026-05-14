@@ -10,10 +10,10 @@
 #include "TextureAsset.h"
 #include "Texture.h"
 
-BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(uid)
+BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICacheable(uid)
 {
 
-	if (asset.getBaseMap().isValid())
+	if (asset.getBaseMap() != INVALID_ASSET_ID)
 	{
 		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
 		m_textureColor = app->getModuleResources()->createTextureSRGB(*baseMapTexture);
@@ -25,7 +25,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 		m_materialData.hasDiffuseTex = false;
 	}
 
-	if (asset.getMetallicRoughnessMap().isValid())
+	if (asset.getMetallicRoughnessMap() != INVALID_ASSET_ID)
 	{
 		auto metallicRoughnessTexture = app->getModuleAssets()->load<TextureAsset>(asset.getMetallicRoughnessMap());
 

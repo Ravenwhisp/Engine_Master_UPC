@@ -9,8 +9,6 @@
 #include "Scene.h"
 #include "PrefabUI.h"
 
-#include "Asset.h"
-
 WindowInspector::WindowInspector()
 {
 }
@@ -34,7 +32,7 @@ bool WindowInspector::isLocked() const
 
 void WindowInspector::drawInternal()
 {
-    const bool prefabMode = app->getModuleEditor()->isInPrefabEditMode();
+    const bool prefabMode = app->getModuleEditor()->isInPrefabEditMode();;
     if (prefabMode)
     {
         PrefabUI::drawModeHeader(app->getModuleEditor()->getPrefabEditSourcePath().stem().string().c_str());
@@ -77,18 +75,5 @@ void WindowInspector::drawInternal()
     if (displayObject)
     {
         displayObject->drawUI();
-        return;
     }
-
-    if (!m_isLocked)
-    {
-        std::shared_ptr<Asset> selectedAsset = app->getModuleEditor()->getSelectedAsset();
-        if (selectedAsset)
-        {
-            selectedAsset->drawUI();
-            return;
-        }
-    }
-
-    ImGui::TextDisabled("Nothing selected.");
 }

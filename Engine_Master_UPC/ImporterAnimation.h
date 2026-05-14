@@ -10,13 +10,10 @@ public:
         return false;
     }
 
-    Asset* createAssetInstance(AssetReference& uid) const override
+    Asset* createAssetInstance(const MD5Hash& uid) const override
     {
         return new AnimationAsset(uid);
-    }    
-    
-    bool saveNative(const AnimationAsset* asset, const std::filesystem::path& path);
-
+    }
 
 protected:
     bool importNative(const std::filesystem::path&, AnimationAsset*) override

@@ -2,6 +2,7 @@
 
 #include "AbilityDash.h"
 
+
 class LyrielDash : public AbilityDash
 {
     DECLARE_SCRIPT(LyrielDash)

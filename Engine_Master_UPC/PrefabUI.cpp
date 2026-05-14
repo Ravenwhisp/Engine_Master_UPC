@@ -5,7 +5,6 @@
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
 #include "ModuleScene.h"
-#include "PrefabManager.h"
 
 #include "Scene.h"
 #include "GameObject.h"
@@ -18,7 +17,7 @@
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
 {
-    app->getModuleAssets()->getPrefabManager()->savePrefab(go, savePath);
+    app->getModuleAssets()->savePrefab(go, savePath);
 }
 
 void PrefabUI::drawModeHeader(const char* prefabName)
@@ -54,7 +53,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
 
     if (ImGui::Button("Apply", ImVec2(buttonWidth, 0)))
     {
-        app->getModuleAssets()->getPrefabManager()->applyPrefab(root);
+        app->getModuleAssets()->applyPrefab(root);
         app->getModuleAssets()->refresh();
         app->getModuleEditor()->exitPrefabEdit();
 
@@ -72,7 +71,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     ImGui::BeginDisabled(!hasChanges);
     if (ImGui::Button("Revert", ImVec2(buttonWidth, 0)))
     {
-        app->getModuleAssets()->getPrefabManager()->revertPrefab(root, app->getModuleEditor()->getPrefabEditScene());
+        app->getModuleAssets()->revertPrefab(root, app->getModuleEditor()->getPrefabEditScene());
         app->getModuleEditor()->setSelectedGameObject(root);
     }
     ImGui::EndDisabled();
@@ -194,7 +193,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.58f, 0.20f, 1.f));
     if (ImGui::SmallButton("Apply"))
     {
-        app->getModuleAssets()->getPrefabManager()->applyPrefab(go);
+        app->getModuleAssets()->applyPrefab(go);
     }
     ImGui::PopStyleColor(2);
     ImGui::EndDisabled();
@@ -208,7 +207,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     ImGui::BeginDisabled(!hasOverrides);
     if (ImGui::SmallButton("Revert"))
     {
-        app->getModuleAssets()->getPrefabManager()->revertPrefab(go, app->getModuleScene()->getScene());
+        app->getModuleAssets()->revertPrefab(go, app->getModuleScene()->getScene());
         app->getModuleEditor()->setSelectedGameObject(go);
     }
     ImGui::EndDisabled();
@@ -263,7 +262,7 @@ void PrefabUI::drawNodeContextMenu(bool prefabMode)
     ImGui::PushStyleColor(ImGuiCol_Text, hasChanges ? ImVec4(0.3f, 1.f, 0.3f, 1.f) : ImVec4(0.5f, 0.5f, 0.5f, 1.f));
     if (ImGui::MenuItem("Apply  -  Save changes to prefab file"))
     {
-        app->getModuleAssets()->getPrefabManager()->applyPrefab(root);
+        app->getModuleAssets()->applyPrefab(root);
         app->getModuleAssets()->refresh();
         app->getModuleEditor()->exitPrefabEdit();
     }
@@ -277,7 +276,7 @@ void PrefabUI::drawNodeContextMenu(bool prefabMode)
     ImGui::BeginDisabled(!hasChanges);
     if (ImGui::MenuItem("Revert  -  Reload from prefab file"))
     {
-        app->getModuleAssets()->getPrefabManager()->revertPrefab(root, app->getModuleScene()->getScene());
+        app->getModuleAssets()->revertPrefab(root, app->getModuleScene()->getScene());
         app->getModuleEditor()->setSelectedGameObject(root);
     }
     ImGui::EndDisabled();
@@ -337,11 +336,11 @@ void PrefabUI::drawPrefabSubMenu(GameObject* go, Scene* scene)
         }
         if (ImGui::MenuItem("Apply to Prefab"))
         {
-            app->getModuleAssets()->getPrefabManager()->applyPrefab(go);
+            app->getModuleAssets()->applyPrefab(go);
         }
         if (ImGui::MenuItem("Revert to Prefab"))
         {
-            app->getModuleAssets()->getPrefabManager()->revertPrefab(go, scene);
+            app->getModuleAssets()->revertPrefab(go, scene);
         }
         ImGui::Separator();
         if (ImGui::MenuItem("Unlink"))
@@ -402,7 +401,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         if (scene)
         {
 
-            GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(realPath, scene);
+            GameObject* go = app->getModuleAssets()->spawnPrefab(realPath, scene);
             if (go)
             {
                 app->getModuleEditor()->setSelectedGameObject(go);
@@ -424,11 +423,11 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     ImGui::BeginDisabled(!hasOverrides);
     if (ImGui::MenuItem("Apply to Prefab"))
     {
-        app->getModuleAssets()->getPrefabManager()->applyPrefab(selected);
+        app->getModuleAssets()->applyPrefab(selected);
     }
     if (ImGui::MenuItem("Revert to Prefab"))
     {
-        app->getModuleAssets()->getPrefabManager()->revertPrefab(selected, app->getModuleScene()->getScene());
+        app->getModuleAssets()->revertPrefab(selected, app->getModuleScene()->getScene());
         app->getModuleEditor()->setSelectedGameObject(selected);
     }
     ImGui::EndDisabled();
@@ -496,7 +495,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
             if (strlen(buffers.variantDest) > 0)
             {
                 // Both buffers hold full paths.
-                app->getModuleAssets()->getPrefabManager()->createVariant(
+                app->getModuleAssets()->createVariant(
                     std::filesystem::path(buffers.variantSource),
                     std::filesystem::path(buffers.variantDest));
                 app->getModuleAssets()->refresh();

@@ -6,8 +6,6 @@
 #include "GameObject.h"
 #include "MeshRenderer.h"
 
-#include "Transform.h"
-
 #include <algorithm>
 
 QuadNode::QuadNode(
@@ -202,24 +200,6 @@ bool QuadNode::intersects(const Engine::Frustum& frustum, const BoundingRect& re
     return overlapX && overlapZ;
 }
 
-bool QuadNode::intersectsWithArea(const BoundingRect& area) const
-{
-    float nMinX = area.minX();
-    float nMaxX = area.maxX();
-    float nMinZ = area.minZ();
-    float nMaxZ = area.maxZ();
-
-    float rMinX = m_bounds.minX();
-    float rMaxX = m_bounds.maxX();
-    float rMinZ = m_bounds.minZ();
-    float rMaxZ = m_bounds.maxZ();
-
-    bool overlapX = !(rMaxX < nMinX || rMinX > nMaxX);
-    bool overlapZ = !(rMaxZ < nMinZ || rMinZ > nMaxZ);
-
-	return overlapX && overlapZ;
-}
-
 void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObject*>& out) const
 {
     if (!intersects(frustum, m_bounds))
@@ -253,40 +233,6 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
 
     for (const auto& child : m_children)
         child->gatherObjects(frustum, out);
-}
-
-void QuadNode::gatherObjectsInArea(const BoundingRect& area, std::vector<GameObject*>& out) const
-{
-    if (!intersectsWithArea(area))
-    {
-        return;
-    }
-
-    for(GameObject* obj : m_objects)
-    {
-        auto* model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-
-        if (!model || !obj->GetActive())
-        {
-            continue;
-        }
-
-        const Engine::BoundingBox bbox = model->getBoundingBox();
-        //if (area.contains(bbox))
-        if (area.containsSafe(bbox))
-        {
-			out.push_back(obj);
-        }
-	}
-
-    if (isLeaf())
-    {
-        return;
-    }
-    for (const auto& child : m_children)
-    {
-        child->gatherObjectsInArea(area, out);
-    }
 }
 
 void QuadNode::gatherRectangles(std::vector<BoundingRect>& out) const

@@ -15,6 +15,9 @@ public:
     void Update() override;
     ScriptFieldList getExposedFields() const override;
 
+private:
+    Damageable* findDamageable() const;
+
 public:
     float m_damageAmount = 25.0f;
     float m_healAmount = 25.0f;

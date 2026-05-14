@@ -4,7 +4,6 @@
 
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "PrefabManager.h"
 
 #include "GameObject.h"
 #include "PrefabAsset.h"
@@ -30,7 +29,7 @@ void CommandSaveGameObjectAsPrefab::run()
         savePath = m_targetDir / (m_go->GetName() + "_" + std::to_string(suffix++) + PREFAB_EXTENSION);
     }
 
-    if (!app->getModuleAssets()->getPrefabManager()->savePrefab(m_go, savePath))
+    if (!app->getModuleAssets()->savePrefab(m_go, savePath))
     {
         DEBUG_ERROR("[FileDialog] Failed to create prefab at '%s'.", savePath.string().c_str());
         return;

@@ -9,8 +9,7 @@
 #include "Delegates.h"
 #include "ScriptMethodInfo.h"
 #include "SimpleMath.h"
-
-#include "AssetReference.h"
+#include "MD5.h"
 
 using Vector3 = DirectX::SimpleMath::Vector3;
 
@@ -49,6 +48,7 @@ public:
 	UIButton(UID id, GameObject* owner);
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+	// Explicit navigation (optional)
 	UIButton* getNavUp() const { return m_navUp; }
 	UIButton* getNavDown() const { return m_navDown; }
 	UIButton* getNavLeft() const { return m_navLeft; }
@@ -67,7 +67,6 @@ public:
 	void onPointerExit(PointerEventData& data) override;
 	void onPointerDown(PointerEventData& data) override;
 	void onPointerUp(PointerEventData& data) override;
-	void onPointerClick(PointerEventData& data) override;
 
 	void executeBindings(std::vector<ButtonEventBinding>& bindings);
 #pragma endregion
@@ -87,16 +86,16 @@ public:
 #pragma endregion
 
 private:
-	void applyTargetTexture(AssetReference& assetId);
+	void applyTargetTexture(const MD5Hash& assetId);
 	void applyCurrentStateTexture();
-	AssetReference& getDefaultTextureAssetId();
+	MD5Hash getDefaultTextureAssetId() const;
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;
 	UID m_targetGraphicUid = 0;
-	AssetReference m_defaultTextureAssetId = {};
-	AssetReference m_hoverTextureAssetId = {};
-	AssetReference m_pressedTextureAssetId = {};
+	MD5Hash m_defaultTextureAssetId = INVALID_ASSET_ID;
+	MD5Hash m_hoverTextureAssetId = INVALID_ASSET_ID;
+	MD5Hash m_pressedTextureAssetId = INVALID_ASSET_ID;
 
 	bool m_isPressed = false;
 	bool m_isHovered = false;

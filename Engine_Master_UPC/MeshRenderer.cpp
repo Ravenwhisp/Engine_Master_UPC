@@ -149,13 +149,10 @@ void MeshRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MESH"))
         {
-            UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
-            auto meshAsset = app->getModuleAssets()->load<MeshAsset>(*assetRef);
+            const MD5Hash* id = static_cast<const MD5Hash*>(payload->Data);
+            auto meshAsset = app->getModuleAssets()->load<MeshAsset>(*id);
             if (meshAsset)
-            {
                 addMesh(*meshAsset);
-            }
         }
         ImGui::EndDragDropTarget();
     }
@@ -166,13 +163,10 @@ void MeshRenderer::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MATERIAL"))
         {
-            UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
-            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*assetRef);
+            const MD5Hash* id = static_cast<const MD5Hash*>(payload->Data);
+            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*id);
             if (materialAsset)
-            {
                 addMaterial(*materialAsset);
-            }
         }
         ImGui::EndDragDropTarget();
     }
@@ -187,8 +181,7 @@ void MeshRenderer::drawUi()
     ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
 
     ImGui::Separator();
-
-    ImGui::Text("Skin Asset: %s", std::to_string(m_skinAsset.m_uid).c_str());
+    ImGui::Text("Skin Asset: %s", m_skinAsset != INVALID_ASSET_ID ? m_skinAsset.c_str() : "None");
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", (int)m_jointTransforms.size());
     ImGui::Text("Palette Size: %d", (int)m_matrixPalette.size());
@@ -216,7 +209,7 @@ void MeshRenderer::onTransformChange()
 
 void MeshRenderer::update()
 {
-    if (!m_skinAsset.isValid())
+    if (m_skinAsset == INVALID_ASSET_ID)
         return;
 
     if (!ensureSkinLoaded())
@@ -251,15 +244,15 @@ rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("MeshAssetId",m_meshAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("SkinAssetId",m_skinAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("MeshAssetId", rapidjson::Value(m_meshAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("SkinAssetId", rapidjson::Value(m_skinAsset.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
 
     {
         rapidjson::Value materialsData(rapidjson::kArrayType);
 
         for (const auto& materials : m_materialAssets)
         {
-            materialsData.PushBack(materials.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+            materialsData.PushBack(rapidjson::Value(materials.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
         }
 
         componentInfo.AddMember("MaterialAssetId", materialsData, domTree.GetAllocator());
@@ -272,15 +265,8 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("MeshAssetId"))
     {
-        AssetReference meshId;
-        if (!meshId.deserializeJson(componentInfo["MeshAssetId"]))
-		{
-			DEBUG_WARN("[MeshRenderer] Failed to deserialize MeshAssetId.");
-			return false;
-		}
-
+        const MD5Hash meshId = componentInfo["MeshAssetId"].GetString();
         m_meshAsset = meshId;
-
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
@@ -294,15 +280,8 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 
         for (auto& arrayStrings : arr.GetArray())
         {
-            AssetReference materialId;
-            if (!materialId.deserializeJson(arrayStrings))
-			{
-				DEBUG_WARN("[MeshRenderer] Failed to deserialize a MaterialAssetId.");
-				continue;
-			}
-
+            const MD5Hash materialId = arrayStrings.GetString();
             m_materialAssets.push_back(materialId);
-
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
             if (materialAsset)
             {
@@ -311,31 +290,18 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
         }
     }
 
-    if (componentInfo.HasMember("SkinAssetId"))
+    if (componentInfo.HasMember("SkinAssetId") && componentInfo["SkinAssetId"].IsString())
     {
-        m_skinAsset.deserializeJson(componentInfo["SkinAssetId"]);
+        m_skinAsset = componentInfo["SkinAssetId"].GetString();
+    }
+    else
+    {
+        m_skinAsset = INVALID_ASSET_ID;
     }
 
     invalidateSkinningRuntime();
 
     return true;
-}
-
-void MeshRenderer::setMeshReference(AssetReference& meshRef)
-{
-    m_meshAsset = meshRef;
-	invalidateSkinningRuntime();
-}
-
-void MeshRenderer::addMaterialReference(AssetReference& materialRef)
-{
-    	m_materialAssets.push_back(materialRef);
-}
-
-void MeshRenderer::setSkinReference(AssetReference& skinRef)
-{
-    m_skinAsset = skinRef;
-	invalidateSkinningRuntime();
 }
 
 const VertexBuffer* MeshRenderer::getCurrentGpuSkinnedVertexBuffer() const
@@ -372,7 +338,7 @@ bool MeshRenderer::hasGpuSkinningResources() const
 
 bool MeshRenderer::ensureSkinLoaded()
 {
-    if (!m_skinAsset.isValid())
+    if (m_skinAsset == INVALID_ASSET_ID)
         return false;
 
     if (m_skin)
@@ -381,7 +347,7 @@ bool MeshRenderer::ensureSkinLoaded()
     auto skinAsset = app->getModuleAssets()->load<SkinAsset>(m_skinAsset);
     if (!skinAsset)
     {
-        DEBUG_WARN("[MeshRenderer] Could not load SkinAsset '%s'.", m_skinAsset);
+        DEBUG_WARN("[MeshRenderer] Could not load SkinAsset '%s'.", m_skinAsset.c_str());
         return false;
     }
 

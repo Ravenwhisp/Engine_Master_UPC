@@ -55,7 +55,7 @@ void NavigationAgentComponent::setTarget(const Vector3& target)
 
 	std::vector<Vector3> newPath;
 
-	if (!navigationModule->findStraightPath(start, target, newPath, { 5, 5, 5 }, NavAgentProfile::EnemyGround))
+	if (!navigationModule->findStraightPath(start, target, newPath, { 5, 5, 5 }))
 		return;
 
 	m_path = newPath;

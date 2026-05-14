@@ -3,18 +3,17 @@
 #include <vector>
 #include <cstdint>
 #include <DetourNavMesh.h>
-#include "NavMeshTypes.h"
 
 class dtNavMesh;
 class dtNavMeshQuery;
 
 struct NavMeshBuildSettings
 {
-    float cellSize = 0.2f;
+    float cellSize = 0.3f;
     float cellHeight = 0.2f;
 
-    float agentHeight = 1.8f;
-    float agentRadius = 0.4f;
+    float agentHeight = 2.0f;
+    float agentRadius = 0.6f;
     float agentMaxClimb = 0.9f;
     float agentMaxSlope = 45.0f;
 
@@ -45,18 +44,6 @@ public:
         const std::vector<float>& verts,
         const std::vector<int>& tris,
         const NavMeshBuildSettings& settings,
-        NavMeshBuildResult& outResult,
-        const std::vector<NavModifierVolumeData>& modifierVolumes);
-
-private:
-    static NavAreaType resolveAreaForPoint(
-        const Vector3& point,
-        const std::vector<NavModifierVolumeData>& modifierVolumes
-    );
-
-private:
-    // Helpers
-    static unsigned char toRecastAreaId(NavAreaType areaType);
-    static unsigned short toPolyFlags(NavAreaId areaId);
+        NavMeshBuildResult& outResult);
 };
 

@@ -1,12 +1,11 @@
 #pragma once
 #include "EditorWindow.h"
-#include "UID.h"
+#include "MD5Fwd.h"
 
 #include <memory>
 #include <string>
 
 class AnimationStateMachineAsset;
-class AssetReference;
 
 namespace ax
 {
@@ -32,8 +31,8 @@ public:
 
     void cleanUp() override;
 
-    void setTargetStateMachineUID(AssetReference& uid);
-    AssetReference* getTargetStateMachineUID() const
+    void setTargetStateMachineUID(const MD5Hash& uid);
+    const MD5Hash& getTargetStateMachineUID() const
     {
         return m_targetStateMachineUID;
     }
@@ -89,7 +88,7 @@ private:
     bool saveAsset();
 
 private:
-    AssetReference* m_targetStateMachineUID;
+    MD5Hash m_targetStateMachineUID = INVALID_ASSET_ID;
     std::shared_ptr<AnimationStateMachineAsset> m_asset;
     ax::NodeEditor::EditorContext* m_editorContext = nullptr;
     bool m_needsInitialNodeLayout = true;

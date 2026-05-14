@@ -23,6 +23,4 @@ private:
 
 public:
 	bool m_debugEnabled = true;
-	bool m_useCharge = false;
-	float m_chargeTriggerRange = 4.0f;
 };

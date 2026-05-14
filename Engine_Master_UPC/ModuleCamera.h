@@ -62,9 +62,6 @@ public:
     const inline Vector3& getPosition() const { return m_position; }
     const inline Quaternion getRotation() const { return Quaternion::CreateFromYawPitchRoll(-m_yaw, m_pitch, 0.0f); }
 
-    // Raycasting
-    Ray createRayFromViewport(float mouseX, float mouseY, float viewportX, float viewportY, float viewportWidth, float viewportHeight) const;
-
 private:
     // Modes
     void panMode();

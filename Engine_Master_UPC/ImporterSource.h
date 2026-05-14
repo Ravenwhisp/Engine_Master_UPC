@@ -34,11 +34,6 @@ public:
         loadTyped(buffer, static_cast<AssetFormat*>(outAsset));
     }
 
-    bool saveNative(const Asset* asset, const std::filesystem::path& path) final
-	{
-        return false;
-	}
-
 protected:
     virtual bool loadExternal(const std::filesystem::path& path,ExternalFormat& out) = 0;
 

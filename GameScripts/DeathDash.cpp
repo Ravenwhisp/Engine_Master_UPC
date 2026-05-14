@@ -1,12 +1,13 @@
 ﻿#include "pch.h"
 #include "DeathDash.h"
 
-#include "DeathCharacter.h"
+#include "CharacterBase.h"
 #include "EnemyDamageable.h"
-#include "EnemyShadowMark.h"
 
-IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathDash, AbilityDash,
-    SERIALIZED_FLOAT(m_dashDistance, "Dash Distance", 0.0f, 20.0f, 0.1f),
+IMPLEMENT_SCRIPT_FIELDS(DeathDash,
+    SERIALIZED_FLOAT(m_dashDurationLyriel, "Dash Duration", 0.0f, 1.0f, 0.01f),
+    SERIALIZED_FLOAT(m_dashDistanceLyriel, "Dash Distance", 0.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(m_dashCooldown, "Dash Cooldown", 0.0f, 5.0f, 0.01f),
     SERIALIZED_FLOAT(m_dashHitWidth, "Dash Hit Width", 0.1f, 5.0f, 0.05f),
     SERIALIZED_FLOAT(m_dashDamage, "Dash Damage", 0.0f, 100.0f, 1.0f)
 )
@@ -17,13 +18,13 @@ DeathDash::DeathDash(GameObject* owner): AbilityDash(owner)
 
 void DeathDash::Start()
 {
-    AbilityDash::Start();
+    m_dashDuration = m_dashDurationLyriel;
+    m_dashDistance = m_dashDistanceLyriel;
+    m_cooldown = m_dashCooldown;
 
-    if (m_character == nullptr)
-    {
-        Debug::log("[DeathDash] DeathCharacter not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
-    }
+    AbilityDash::Start();
 }
+
 
 void DeathDash::onDashStarted()
 {
@@ -96,17 +97,12 @@ void DeathDash::applyDashDamage()
             continue;
         }
 
-        EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(enemyObj);
+        Script* script = GameObjectAPI::getScript(enemyObj, "EnemyDamageable");
+        EnemyDamageable* damageable = dynamic_cast<EnemyDamageable*>(script);
 
         if (damageable != nullptr)
         {
             damageable->takeDamageEnemy(m_dashDamage, GameObjectAPI::getTransform(getOwner()));
-
-            EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemyObj);
-            if (shadowMark != nullptr)
-            {
-                shadowMark->notifyDeathHit();
-            }
         }
     }
 }

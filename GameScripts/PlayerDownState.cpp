@@ -18,14 +18,15 @@ PlayerDownState::PlayerDownState(GameObject* owner)
 
 void PlayerDownState::Start()
 {
-    m_damageable = GameObjectAPI::findScript<Damageable>(getOwner());
+    m_damageable = findDamageable();
 
     if (!m_damageable)
     {
         Debug::warn("PlayerDownState on '%s' could not find a Damageable on the same GameObject.", GameObjectAPI::getName(m_owner));
     }
 
-    m_playerState = GameObjectAPI::findScript<PlayerState>(getOwner());
+    Script* stateScript = GameObjectAPI::getScript(m_owner, "PlayerState");
+    m_playerState = dynamic_cast<PlayerState*>(stateScript);
 
     if (!m_playerState)
     {
@@ -35,11 +36,6 @@ void PlayerDownState::Start()
 
 void PlayerDownState::Update()
 {
-    if (m_reviveBlocked)
-    {
-        return;
-    }
-
     if (!isDowned())
     {
         return;
@@ -85,8 +81,6 @@ void PlayerDownState::enterDownState()
         return;
     }
 
-    m_reviveBlocked = false;
-
     if (m_playerState)
     {
         m_playerState->setState(PlayerStateType::Downed);
@@ -100,16 +94,6 @@ void PlayerDownState::enterDownState()
     }
 
     Debug::log("%s entered down state.", GameObjectAPI::getName(m_owner));
-}
-
-void PlayerDownState::enterDefeatedState()
-{
-    blockRevive();
-
-    if (m_damageable)
-    {
-        m_damageable->kill();
-    }
 }
 
 bool PlayerDownState::isDowned() const
@@ -139,10 +123,20 @@ float PlayerDownState::getReviveProgress() const
     return progress;
 }
 
-void PlayerDownState::blockRevive()
+Damageable* PlayerDownState::findDamageable() const
 {
-    m_reviveBlocked = true;
-    m_reviveProgress = 0.0f;
+    Script* script = GameObjectAPI::getScript(m_owner, "PlayerDamageable");
+    Damageable* damageable = dynamic_cast<Damageable*>(script);
+
+    if (damageable)
+    {
+        return damageable;
+    }
+
+    script = GameObjectAPI::getScript(m_owner, "Damageable");
+    damageable = dynamic_cast<Damageable*>(script);
+
+    return damageable;
 }
 
 bool PlayerDownState::isTeammateInAssistRange() const
@@ -165,17 +159,11 @@ bool PlayerDownState::isTeammateInAssistRange() const
 
 void PlayerDownState::completeRevive()
 {
-    if (m_reviveBlocked)
-    {
-        return;
-    }
-
     m_reviveProgress = 0.0f;
 
     if (m_playerState)
     {
         m_playerState->setState(PlayerStateType::Normal);
-        m_playerState->setUsingAbility(false);
     }
 
     if (m_damageable)

@@ -9,8 +9,9 @@
 #include "ArrowPool.h"
 #include "LyrielArrowProjectile.h"
 
-IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielBasicAttack, LyrielAbilityBase,
+IMPLEMENT_SCRIPT_FIELDS(LyrielBasicAttack,
     SERIALIZED_FLOAT(m_attackDamage, "Attack Damage", 0.0f, 100.0f, 0.5f),
+    SERIALIZED_FLOAT(m_attackCooldown, "Attack Cooldown", 0.0f, 5.0f, 0.05f),
     SERIALIZED_FLOAT(m_arrowSpeed, "Arrow Speed", 0.0f, 100.0f, 0.5f),
     SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.0f, 2.0f, 0.01f)
 )
@@ -23,11 +24,17 @@ LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
 void LyrielBasicAttack::Start()
 {
     LyrielAbilityBase::Start();
+    m_cooldown = m_attackCooldown;
 }
 
 void LyrielBasicAttack::Update()
 {
-	LyrielAbilityBase::Update();
+    LyrielAbilityBase::Update();
+
+    if (Input::isRightShoulderJustPressed(getPlayerIndex()))
+    {
+        tryAttack();
+    }
 }
 
 void LyrielBasicAttack::onAttackWindowUpdate()
@@ -43,8 +50,18 @@ void LyrielBasicAttack::onAttackWindowFinished()
     m_attackFacingTarget = nullptr;
 }
 
-void LyrielBasicAttack::startAbility()
+void LyrielBasicAttack::tryAttack()
 {
+    if (!canStartAbility())
+    {
+        return;
+    }
+
+    if (m_character == nullptr)
+    {
+        return;
+    }
+
     PlayerTargetController* targetController = m_character->getTargetController();
     if (targetController == nullptr)
     {
@@ -73,19 +90,19 @@ void LyrielBasicAttack::startAbility()
     beginAttackPresentation();
 
     beginAttackWindow(m_attackLockDuration);
-    startCooldown();
+    m_cooldownTimer = m_cooldown;
 
     Debug::log("[LyrielBasicAttack] Shot arrow to target '%s'.", GameObjectAPI::getName(target));
 }
 
 bool LyrielBasicAttack::spawnArrowToTarget(GameObject* target)
 {
-    if (m_lyrielCharacter == nullptr || target == nullptr)
+    if (m_lyriel == nullptr || target == nullptr)
     {
         return false;
     }
 
-    ArrowPool* arrowPool = m_lyrielCharacter->getArrowPool();
+    ArrowPool* arrowPool = m_lyriel->getArrowPool();
     if (arrowPool == nullptr)
     {
         return false;

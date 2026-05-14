@@ -25,7 +25,6 @@ class ModuleHaptics;
 
 class CameraComponent;
 class Settings;
-class ThreadPool;
 
 enum class ENGINE_STATE
 {
@@ -62,7 +61,6 @@ public:
     ModuleHaptics* getModuleHaptics() { return m_moduleHaptics; }
 
     Settings*                   getSettings() { return m_settings; }
-    ThreadPool*                 getThreadPool() { return m_threadPool; }
 
     // FIXME: Cannot return const CameraComponent* (which it should) because render is not const
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
@@ -103,7 +101,6 @@ private:
     ModuleHaptics* m_moduleHaptics = nullptr;
 
     Settings*               m_settings = nullptr;
-    ThreadPool*             m_threadPool = nullptr;
 
     HMODULE m_gameScriptsModule = nullptr;
 

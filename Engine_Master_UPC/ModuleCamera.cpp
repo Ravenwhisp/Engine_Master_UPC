@@ -155,39 +155,6 @@ Vector3 ModuleCamera::getRightFromForward(const Vector3& fwd) const {
     return right;
 }
 
-Ray ModuleCamera::createRayFromViewport(float mouseX, float mouseY, float viewportX, float viewportY, float viewportWidth, float viewportHeight) const
-{
-    if (viewportWidth <= 0.0f || viewportHeight <= 0.0f)
-    {
-        return Ray(m_position, getForwardFromYawPitch());
-    }
-
-    const float localX = mouseX - viewportX;
-    const float localY = mouseY - viewportY;
-
-    const float normalizedX = (2.0f * localX / viewportWidth) - 1.0f;
-    const float normalizedY = 1.0f - (2.0f * localY / viewportHeight);
-
-    const Matrix inverseViewProjection = (m_view * m_projection).Invert();
-
-    const Vector3 nearPoint = Vector3::Transform(Vector3(normalizedX, normalizedY, 0.0f), inverseViewProjection);
-
-    const Vector3 farPoint = Vector3::Transform(Vector3(normalizedX, normalizedY, 1.0f), inverseViewProjection);
-
-    Vector3 direction = farPoint - nearPoint;
-
-    if (direction.LengthSquared() <= 0.000001f)
-    {
-        direction = getForwardFromYawPitch();
-    }
-    else
-    {
-        direction.Normalize();
-    }
-
-    return Ray(nearPoint, direction);
-}
-
 void ModuleCamera::panMode() {
     Mouse::State ms = Mouse::Get().GetState();
     if (!ms.middleButton && !ms.leftButton) {

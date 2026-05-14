@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AssetReference.h"
+#include "MD5Fwd.h"
 #include "AssetsDictionary.h"
 #include "AssetType.h"
 
@@ -8,19 +8,12 @@ class Asset
 {
 public:
 	Asset() = default;
-	Asset(AssetReference& id, AssetType type = AssetType::UNKNOWN): m_reference(id), m_type(type) {}
+	Asset(MD5Hash id, AssetType type = AssetType::UNKNOWN): m_uid(id), m_type(type) {}
 	virtual ~Asset() = default;
-	AssetReference getReference() const { return m_reference; }
+	MD5Hash getId() const { return m_uid; }
 
-	UID getUID() const { return m_reference.m_uid; }
-	void setUID(const UID& uid) { m_reference.m_uid = uid; }
-	MD5Hash getLibId() const { return m_reference.m_libId; }
-	void setLibId(const MD5Hash& libId) { m_reference.m_libId = libId; }
-
-	AssetType getType() const { return m_type; }
-
-	virtual void drawUI();
+	AssetType	getType() const { return m_type; }
 protected:
-	AssetReference 				m_reference;
+	MD5Hash 			m_uid = INVALID_ASSET_ID;
 	AssetType			m_type = AssetType::UNKNOWN;
 };

@@ -2,16 +2,16 @@
 #include "ICommand.h"
 
 #include <filesystem>
-#include <UID.h>
+#include <MD5Fwd.h>
 
 class CommandImportAsset : public ICommand
 {
 public:
-    CommandImportAsset(const std::filesystem::path& sourcePath, UID uid);
+    CommandImportAsset(const std::filesystem::path& sourcePath, MD5Hash uid);
 
     void run() override;
 
 private:
     std::filesystem::path m_sourcePath;
-    UID m_uid;
+    MD5Hash m_uid;
 };

@@ -12,7 +12,8 @@ void EnemyDamageable::Start()
 {
 	Damageable::Start();
 
-	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(m_owner);
+	Script* detectionAggroScript = GameObjectAPI::getScript(m_owner, "EnemyDetectionAggro");
+	m_enemyDetectionAggro = dynamic_cast<EnemyDetectionAggro*>(detectionAggroScript);
 
 	if (!m_enemyDetectionAggro)
 	{

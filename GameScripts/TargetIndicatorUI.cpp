@@ -84,7 +84,13 @@ PlayerTargetController* TargetIndicatorUI::getPlayerTargetController() const
 
     GameObject* player = ComponentAPI::getOwner(playerTransform);
 
-    return GameObjectAPI::findScript<PlayerTargetController>(player);
+    Script* script = GameObjectAPI::getScript(player, "PlayerTargetController");
+    if (script == nullptr)
+    {
+        return nullptr;
+    }
+
+    return static_cast<PlayerTargetController*>(script);
 }
 
 void TargetIndicatorUI::hideIndicator()

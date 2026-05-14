@@ -1,149 +1,95 @@
 #include "pch.h"
 #include "EnemyATTACK.h"
-#include "EnemyController.h"
-#include "Damageable.h"
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyATTACK,
-	SERIALIZED_FLOAT(m_attackDamage, "Attack Damage", 0.0f, 999999.0f, 1.0f),
-	SERIALIZED_FLOAT(m_attackCooldown, "Attack Cooldown", 0.0f, 10.0f, 0.1f),
-  SERIALIZED_FLOAT(m_attackTotalDuration, "Attack Total Duration", 0.1f, 5.0f, 0.05f),
-  SERIALIZED_FLOAT(m_damageTriggerTime, "Damage Trigger Time", 0.0f, 5.0f, 0.05f),
-  SERIALIZED_FLOAT(m_attackCommitDuration, "Attack Commit Duration", 0.0f, 2.0f, 0.05f),
-	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+    SERIALIZED_FLOAT(m_attackRadius, "Attack Radius", 0.0f, 100.0f, 0.1f),
+    SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
 )
 
-EnemyATTACK::EnemyATTACK(GameObject* owner) : StateMachineScript(owner)
+EnemyATTACK::EnemyATTACK(GameObject* owner)
+    : StateMachineScript(owner)
 {
 }
 
 void EnemyATTACK::OnStateEnter()
 {
-	m_enemyController = GameObjectAPI::findScript<EnemyController>(getOwner());
+    if (!m_debugEnabled)
+    {
+        return;
+    }
 
-	m_attackTimer = 0.0f;
-	m_attackCommitTimer = 0.0f;
-	m_stateTimer = 0.0f;
-	m_hasAppliedDamage = false;
-
-	if (m_enemyController)
-	{
-		m_enemyController->clearPath();
-		m_enemyController->resetRepathTimer();
-		m_enemyController->updateCurrentTarget();
-		m_enemyController->faceCurrentTarget();
-	}
-
-	if (m_debugEnabled)
-	{
-		Debug::log("[EnemyATTACK] ENTER");
-	}
+    Debug::log("[EnemyATTACK] ENTER");
 }
 
 void EnemyATTACK::OnStateUpdate()
 {
-	if (!m_enemyController)
-	{
-		return;
-	}
+    AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
+    if (!animation)
+    {
+        return;
+    }
 
-	AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
-	if (!animation)
-	{
-		return;
-	}
+    GameObject* player = findPlayer();
+    if (!player)
+    {
+        AnimationAPI::sendTrigger(animation, "Chase");
 
-	float dt = Time::getDeltaTime();
-	m_stateTimer += dt;
+        if (m_debugEnabled)
+        {
+            Debug::log("[EnemyATTACK] Chase trigger sent (no player found)");
+        }
 
-	m_enemyController->updateCurrentTarget();
+        return;
+    }
 
-	if (m_enemyController->hasValidTarget())
-	{
-		m_enemyController->faceCurrentTarget();
-	}
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    Transform* playerTransform = GameObjectAPI::getTransform(player);
 
-	if (!m_hasAppliedDamage && m_stateTimer >= m_damageTriggerTime)
-	{
-		if (m_enemyController->hasValidTarget() && m_enemyController->isTargetInAttackExitRange())
-		{
-			performAttack();
-		}
+    if (!ownerTransform || !playerTransform)
+    {
+        return;
+    }
 
-		m_hasAppliedDamage = true;
-	}
+    Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+    Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
 
-	if (m_stateTimer < m_attackTotalDuration)
-	{
-		return;
-	}
+    Vector3 toPlayer = playerPosition - ownerPosition;
+    toPlayer.y = 0.0f;
 
-	if (!m_enemyController->hasValidTarget())
-	{
-		AnimationAPI::playState(animation, "Idle");
-		return;
-	}
+    const float distanceSq = toPlayer.LengthSquared();
+    const float attackRadiusSq = m_attackRadius * m_attackRadius;
 
-	AnimationAPI::playState(animation, "Recover");
+    if (distanceSq > attackRadiusSq)
+    {
+        AnimationAPI::sendTrigger(animation, "Chase");
+
+        if (m_debugEnabled)
+        {
+            Debug::log("[EnemyATTACK] Chase trigger sent (player out of attack range)");
+        }
+    }
 }
 
 void EnemyATTACK::OnStateExit()
 {
-	if (m_debugEnabled)
-	{
-		Debug::log("[EnemyATTACK] EXIT");
-	}
+    if (!m_debugEnabled)
+    {
+        return;
+    }
+
+    Debug::log("[EnemyATTACK] EXIT");
 }
 
-void EnemyATTACK::performAttack()
+GameObject* EnemyATTACK::findPlayer() const
 {
-	if (!m_enemyController)
-	{
-		return;
-	}
+    const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
 
-	Transform* targetTransform = m_enemyController->getCurrentTarget();
-	if (!targetTransform)
-	{
-		if (m_debugEnabled)
-		{
-			Debug::warn("[EnemyATTACK] No current target.");
-		}
-		return;
-	}
+    if (players.empty())
+    {
+        return nullptr;
+    }
 
-	GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
-	if (!targetObject)
-	{
-		if (m_debugEnabled)
-		{
-			Debug::warn("[EnemyATTACK] Could not resolve target GameObject.");
-		}
-		return;
-	}
-
-	Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetObject);
-	if (!damageable)
-	{
-		if (m_debugEnabled)
-		{
-			Debug::warn("[EnemyATTACK] No Damageable found on '%s'.", GameObjectAPI::getName(targetObject));
-		}
-		return;
-	}
-	if (damageable->isDead())
-	{
-		if (m_debugEnabled)
-		{
-			Debug::log("[EnemyATTACK] Target '%s' is already dead. Attack skipped.", GameObjectAPI::getName(targetObject));
-		}
-		return;
-	}
-	damageable->takeDamage(m_attackDamage);
-
-	if (m_debugEnabled)
-	{
-		Debug::log("[EnemyATTACK] Attack triggered on '%s'. Damage: %.2f", GameObjectAPI::getName(targetObject), m_attackDamage);
-	}
+    return players.front();
 }
 
 IMPLEMENT_SCRIPT(EnemyATTACK)

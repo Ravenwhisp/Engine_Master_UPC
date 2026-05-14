@@ -62,7 +62,7 @@ public:
 		float       padding;
 	};
 
-	explicit BasicMaterial(const UID uid, MaterialAsset& asset);
+	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
 	~BasicMaterial();
 
 	Texture* getTexture() const noexcept;

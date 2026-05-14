@@ -62,30 +62,3 @@ const T* GameObjectAPI::findScript(const GameObject* gameObject)
 
     return nullptr;
 }
-
-template<typename T>
-std::vector<GameObject*> SceneAPI::findAllGameObjectsWithScript()
-{
-    std::vector<GameObject*> result;
-    if constexpr (std::is_base_of<Script, T>::value)
-    {
-        for (GameObject* gameObject : SceneAPI::getAllGameObjectsInScene())
-        {
-            if (gameObject == nullptr)
-            {
-                continue;
-            }
-            Script* script = GameObjectAPI::findScript<T>(gameObject);
-            if (script != nullptr)
-            {
-                result.push_back(gameObject);
-            }
-        }
-    }
-    else
-    {
-        Debug::warn("T must be a Script type");
-    }
-
-    return result;
-}
