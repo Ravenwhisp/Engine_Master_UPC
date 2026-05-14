@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "ModuleScripts.h"
+#include "ModuleScripting.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -11,6 +11,7 @@
 #include <chrono>
 #include <future>
 
+// Used to clean whitespace when parsing the script build settings .ini.
 namespace
 {
     std::string trim(const std::string& value)
@@ -28,23 +29,23 @@ namespace
     }
 }
 
-ModuleScripts::ModuleScripts()
+ModuleScripting::ModuleScripting()
 {
 }
 
-bool ModuleScripts::init()
+bool ModuleScripting::init()
 {
     loadScriptBuildSettings();
 
     return m_scriptLibraryLoader.load();
 }
 
-void ModuleScripts::update()
+void ModuleScripting::update()
 {
     updateScriptReload();
 }
 
-bool ModuleScripts::cleanUp()
+bool ModuleScripting::cleanUp()
 {
     // If the editor is closed while MSBuild is running, wait for the worker task to finish safely.
     if (m_scriptBuildFuture.valid())
@@ -59,29 +60,29 @@ bool ModuleScripts::cleanUp()
     return unloaded;
 }
 
-bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
+bool ModuleScripting::requestBuildAndReloadGameScriptsDll()
 {
     if (isScriptReloadBusy())
     {
-        DEBUG_WARN("[ModuleScripts] GameScripts build/reload is already in progress.");
+        DEBUG_WARN("[ModuleScripting] GameScripts build/reload is already in progress.");
         return false;
     }
 
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        DEBUG_WARN("[ModuleScripts] Cannot build and reload scripts while playing.");
+        DEBUG_WARN("[ModuleScripting] Cannot build and reload scripts while playing.");
         return false;
     }
 
     if (m_buildSettings.projectPath.empty())
     {
-        DEBUG_ERROR("[ModuleScripts] Script project path is empty.");
+        DEBUG_ERROR("[ModuleScripting] Script project path is empty.");
         return false;
     }
 
     if (m_buildSettings.solutionDir.empty())
     {
-        DEBUG_ERROR("[ModuleScripts] Script solution directory is empty.");
+        DEBUG_ERROR("[ModuleScripting] Script solution directory is empty.");
         return false;
     }
 
@@ -97,7 +98,7 @@ bool ModuleScripts::requestBuildAndReloadGameScriptsDll()
     return true;
 }
 
-void ModuleScripts::updateScriptReload()
+void ModuleScripting::updateScriptReload()
 {
     if (m_scriptReloadState != ScriptReloadState::Building)
     {
@@ -107,7 +108,7 @@ void ModuleScripts::updateScriptReload()
     if (!m_scriptBuildFuture.valid())
     {
         m_scriptReloadState = ScriptReloadState::BuildFailed;
-        DEBUG_ERROR("[ModuleScripts] GameScripts build failed. Current scripts remain loaded.");
+        DEBUG_ERROR("[ModuleScripting] GameScripts build failed. Current scripts remain loaded.");
         return;
     }
 
@@ -123,7 +124,7 @@ void ModuleScripts::updateScriptReload()
     if (!buildSucceeded)
     {
         m_scriptReloadState = ScriptReloadState::BuildFailed;
-        DEBUG_ERROR("[ModuleScripts] GameScripts build failed. Current scripts remain loaded.");
+        DEBUG_ERROR("[ModuleScripting] GameScripts build failed. Current scripts remain loaded.");
         return;
     }
 
@@ -134,15 +135,15 @@ void ModuleScripts::updateScriptReload()
     if (!reloadGameScriptsDllAfterSuccessfulBuild())
     {
         m_scriptReloadState = ScriptReloadState::ReloadFailed;
-        DEBUG_ERROR("[ModuleScripts] GameScripts reload failed.");
+        DEBUG_ERROR("[ModuleScripting] GameScripts reload failed.");
         return;
     }
 
     m_scriptReloadState = ScriptReloadState::Completed;
-    DEBUG_LOG("[ModuleScripts] GameScripts build and reload completed successfully.");
+    DEBUG_LOG("[ModuleScripting] GameScripts build and reload completed successfully.");
 }
 
-void ModuleScripts::instantiateSceneScripts()
+void ModuleScripting::instantiateSceneScripts()
 {
     const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
 
@@ -159,7 +160,7 @@ void ModuleScripts::instantiateSceneScripts()
 
             if (!created)
             {
-                DEBUG_ERROR("[ModuleScripts] Failed to create script: %s", scriptComponent->getScriptName().c_str());
+                DEBUG_ERROR("[ModuleScripting] Failed to create script: %s", scriptComponent->getScriptName().c_str());
                 continue;
             }
         }
@@ -168,7 +169,7 @@ void ModuleScripts::instantiateSceneScripts()
     }
 }
 
-void ModuleScripts::destroySceneScripts()
+void ModuleScripting::destroySceneScripts()
 {
     const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
 
@@ -183,7 +184,7 @@ void ModuleScripts::destroySceneScripts()
     }
 }
 
-bool ModuleScripts::isScriptReloadBusy() const
+bool ModuleScripting::isScriptReloadBusy() const
 {
     bool busy = false;
 
@@ -195,7 +196,7 @@ bool ModuleScripts::isScriptReloadBusy() const
     return busy;
 }
 
-void ModuleScripts::clearScriptReloadResult()
+void ModuleScripting::clearScriptReloadResult()
 {
     if (m_scriptReloadState == ScriptReloadState::Completed || m_scriptReloadState == ScriptReloadState::BuildFailed || m_scriptReloadState == ScriptReloadState::ReloadFailed)
     {
@@ -203,7 +204,7 @@ void ModuleScripts::clearScriptReloadResult()
     }
 }
 
-bool ModuleScripts::loadScriptBuildSettings()
+bool ModuleScripting::loadScriptBuildSettings()
 {
     std::ifstream file(SCRIPT_BUILD_SETTINGS_FILE);
 
@@ -264,26 +265,26 @@ bool ModuleScripts::loadScriptBuildSettings()
 
     if (m_buildSettings.projectPath.empty())
     {
-        DEBUG_WARN("[ModuleScripts] Script build ProjectPath is empty.");
+        DEBUG_WARN("[ModuleScripting] Script build ProjectPath is empty.");
         return false;
     }
 
     if (m_buildSettings.solutionDir.empty())
     {
-        DEBUG_WARN("[ModuleScripts] Script build SolutionDir is empty.");
+        DEBUG_WARN("[ModuleScripting] Script build SolutionDir is empty.");
         return false;
     }
 
     return true;
 }
 
-bool ModuleScripts::saveScriptBuildSettings() const
+bool ModuleScripting::saveScriptBuildSettings() const
 {
     std::ofstream file(SCRIPT_BUILD_SETTINGS_FILE, std::ios::trunc);
 
     if (!file.is_open())
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to create script build settings file: %s", SCRIPT_BUILD_SETTINGS_FILE);
+        DEBUG_ERROR("[ModuleScripting] Failed to create script build settings file: %s", SCRIPT_BUILD_SETTINGS_FILE);
         return false;
     }
 
@@ -293,12 +294,12 @@ bool ModuleScripts::saveScriptBuildSettings() const
 
     file.close();
 
-    DEBUG_LOG("[ModuleScripts] Script build settings saved to %s", SCRIPT_BUILD_SETTINGS_FILE);
+    DEBUG_LOG("[ModuleScripting] Script build settings saved to %s", SCRIPT_BUILD_SETTINGS_FILE);
 
     return true;
 }
 
-bool ModuleScripts::reloadGameScriptsDllAfterSuccessfulBuild()
+bool ModuleScripting::reloadGameScriptsDllAfterSuccessfulBuild()
 {
     std::vector<ScriptReloadInfo> reloadInfos = saveSceneScriptReloadInfo();
 
@@ -306,13 +307,13 @@ bool ModuleScripts::reloadGameScriptsDllAfterSuccessfulBuild()
 
     if (!m_scriptLibraryLoader.unload())
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to unload current GameScripts DLL.");
+        DEBUG_ERROR("[ModuleScripting] Failed to unload current GameScripts DLL.");
         return false;
     }
 
     if (!m_scriptLibraryLoader.load())
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to load new GameScripts DLL after build.");
+        DEBUG_ERROR("[ModuleScripting] Failed to load new GameScripts DLL after build.");
         return false;
     }
 
@@ -323,7 +324,7 @@ bool ModuleScripts::reloadGameScriptsDllAfterSuccessfulBuild()
     return true;
 }
 
-std::vector<ModuleScripts::ScriptReloadInfo> ModuleScripts::saveSceneScriptReloadInfo()
+std::vector<ModuleScripting::ScriptReloadInfo> ModuleScripting::saveSceneScriptReloadInfo()
 {
     const std::vector<ScriptComponent*>& scriptComponents = app->getModuleScene()->getScriptComponents();
 
@@ -351,7 +352,7 @@ std::vector<ModuleScripts::ScriptReloadInfo> ModuleScripts::saveSceneScriptReloa
     return reloadInfo;
 }
 
-void ModuleScripts::restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>& reloadInfos)
+void ModuleScripting::restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>& reloadInfos)
 {
     for (ScriptReloadInfo& info : reloadInfos)
     {
@@ -364,7 +365,7 @@ void ModuleScripts::restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>& 
 
         if (!info.component->getScript())
         {
-            DEBUG_ERROR("[ModuleScripts] Cannot restore fields because script was not recreated: %s", info.scriptName.c_str());
+            DEBUG_ERROR("[ModuleScripting] Cannot restore fields because script was not recreated: %s", info.scriptName.c_str());
             continue;
         }
 

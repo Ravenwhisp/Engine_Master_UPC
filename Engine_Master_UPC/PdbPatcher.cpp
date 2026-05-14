@@ -46,7 +46,7 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
     if (!file.is_open())
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to open runtime DLL for PDB patching: %s", runtimeDllPath.c_str());
+        DEBUG_ERROR("[PdbPatcher] Failed to open runtime DLL for PDB patching: %s", runtimeDllPath.c_str());
         return false;
     }
 
@@ -56,7 +56,7 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
     if (data.size() < sizeof(IMAGE_DOS_HEADER))
     {
-        DEBUG_ERROR("[ModuleScripts] Runtime DLL is too small to contain a DOS header: %s", runtimeDllPath.c_str());
+        DEBUG_ERROR("[PdbPatcher] Runtime DLL is too small to contain a DOS header: %s", runtimeDllPath.c_str());
         return false;
     }
 
@@ -64,13 +64,13 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
     if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
     {
-        DEBUG_ERROR("[ModuleScripts] Invalid DOS signature in runtime DLL: %s", runtimeDllPath.c_str());
+        DEBUG_ERROR("[PdbPatcher] Invalid DOS signature in runtime DLL: %s", runtimeDllPath.c_str());
         return false;
     }
 
     if (dosHeader->e_lfanew <= 0 || static_cast<size_t>(dosHeader->e_lfanew) + sizeof(IMAGE_NT_HEADERS) > data.size())
     {
-        DEBUG_ERROR("[ModuleScripts] Invalid NT header offset in runtime DLL: %s", runtimeDllPath.c_str());
+        DEBUG_ERROR("[PdbPatcher] Invalid NT header offset in runtime DLL: %s", runtimeDllPath.c_str());
         return false;
     }
 
@@ -78,13 +78,13 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
     if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
     {
-        DEBUG_ERROR("[ModuleScripts] Invalid NT signature in runtime DLL: %s", runtimeDllPath.c_str());
+        DEBUG_ERROR("[PdbPatcher] Invalid NT signature in runtime DLL: %s", runtimeDllPath.c_str());
         return false;
     }
 
     if (ntHeaders->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
     {
-        DEBUG_ERROR("[ModuleScripts] Unsupported PE format. Expected PE32+ / x64 DLL: %s", runtimeDllPath.c_str());
+        DEBUG_ERROR("[PdbPatcher] Unsupported PE format. Expected PE32+ / x64 DLL: %s", runtimeDllPath.c_str());
         return false;
     }
 
@@ -92,7 +92,7 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
     if (debugDirectory.VirtualAddress == 0 || debugDirectory.Size == 0)
     {
-        DEBUG_WARN("[ModuleScripts] Runtime DLL has no debug directory: %s", runtimeDllPath.c_str());
+        DEBUG_WARN("[PdbPatcher] Runtime DLL has no debug directory: %s", runtimeDllPath.c_str());
         return false;
     }
 
@@ -101,13 +101,13 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
     DWORD debugDirectoryOffset = 0;
     if (!rvaToFileOffset(debugDirectory.VirtualAddress, ntHeaders, sections, debugDirectoryOffset))
     {
-        DEBUG_ERROR("[ModuleScripts] Failed to convert debug directory RVA to file offset.");
+        DEBUG_ERROR("[PdbPatcher] Failed to convert debug directory RVA to file offset.");
         return false;
     }
 
     if (static_cast<size_t>(debugDirectoryOffset) + debugDirectory.Size > data.size())
     {
-        DEBUG_ERROR("[ModuleScripts] Debug directory is outside runtime DLL file data.");
+        DEBUG_ERROR("[PdbPatcher] Debug directory is outside runtime DLL file data.");
         return false;
     }
 
@@ -133,20 +133,20 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
         {
             if (!rvaToFileOffset(debugEntry->AddressOfRawData, ntHeaders, sections, codeViewOffset))
             {
-                DEBUG_ERROR("[ModuleScripts] Failed to convert CodeView RVA to file offset.");
+                DEBUG_ERROR("[PdbPatcher] Failed to convert CodeView RVA to file offset.");
                 return false;
             }
         }
 
         if (debugEntry->SizeOfData < 24)
         {
-            DEBUG_ERROR("[ModuleScripts] CodeView debug data is too small.");
+            DEBUG_ERROR("[PdbPatcher] CodeView debug data is too small.");
             return false;
         }
 
         if (static_cast<size_t>(codeViewOffset) + debugEntry->SizeOfData > data.size())
         {
-            DEBUG_ERROR("[ModuleScripts] CodeView debug data is outside runtime DLL file data.");
+            DEBUG_ERROR("[PdbPatcher] CodeView debug data is outside runtime DLL file data.");
             return false;
         }
 
@@ -156,7 +156,7 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
         if (signature != RSDS_SIGNATURE)
         {
-            DEBUG_WARN("[ModuleScripts] CodeView debug data is not RSDS. Skipping.");
+            DEBUG_WARN("[PdbPatcher] CodeView debug data is not RSDS. Skipping.");
             continue;
         }
 
@@ -176,13 +176,13 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
 
         if (oldLength == pdbPathCapacity)
         {
-            DEBUG_ERROR("[ModuleScripts] Could not find null terminator in embedded PDB path.");
+            DEBUG_ERROR("[PdbPatcher] Could not find null terminator in embedded PDB path.");
             return false;
         }
 
         if (runtimePdbFileName.size() > oldLength)
         {
-            DEBUG_ERROR("[ModuleScripts] Runtime PDB name '%s' is longer than embedded PDB path '%s'. Cannot patch safely.", runtimePdbFileName.c_str(), pdbPath);
+            DEBUG_ERROR("[PdbPatcher] Runtime PDB name '%s' is longer than embedded PDB path '%s'. Cannot patch safely.", runtimePdbFileName.c_str(), pdbPath);
 
             return false;
         }
@@ -197,6 +197,6 @@ bool PdbPatcher::patchRuntimeDllPdbPath(const std::string& runtimeDllPath, const
         return true;
     }
 
-    DEBUG_ERROR("[ModuleScripts] No RSDS CodeView debug entry found in runtime DLL.");
+    DEBUG_ERROR("[PdbPatcher] No RSDS CodeView debug entry found in runtime DLL.");
     return false;
 }

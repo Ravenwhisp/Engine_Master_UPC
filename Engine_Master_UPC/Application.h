@@ -22,7 +22,7 @@ class ModuleAssets;
 class ModuleEventSystem;
 class ModuleTrigger;
 class ModuleHaptics;
-class ModuleScripts;
+class ModuleScripting;
 
 class CameraComponent;
 class Settings;
@@ -60,7 +60,7 @@ public:
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
     ModuleTrigger*              getModuleTrigger() { return m_moduleTrigger; }
     ModuleHaptics*              getModuleHaptics() { return m_moduleHaptics; }
-    ModuleScripts*              getModuleScripts() { return m_moduleScripts; }
+    ModuleScripting*            getModuleScripting() { return m_moduleScripting; }
 
 
     Settings*                   getSettings() { return m_settings; }
@@ -102,7 +102,7 @@ private:
     ModuleEventSystem*      m_eventSystemModule = nullptr;
     ModuleTrigger*          m_moduleTrigger = nullptr;
     ModuleHaptics*          m_moduleHaptics = nullptr;
-    ModuleScripts*          m_moduleScripts = nullptr;
+    ModuleScripting*        m_moduleScripting = nullptr;
 
     Settings*               m_settings = nullptr;
 

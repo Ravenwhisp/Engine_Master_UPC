@@ -21,11 +21,11 @@ enum class ScriptReloadState
     Completed
 };
 
-class ModuleScripts : public Module
+class ModuleScripting : public Module
 {
 public:
-    ModuleScripts();
-    ~ModuleScripts() override = default;
+    ModuleScripting();
+    ~ModuleScripting() override = default;
 
     bool init() override;
     void update() override;

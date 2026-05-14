@@ -5,7 +5,7 @@
 #include "ModuleScene.h"
 #include "ModuleInput.h"
 #include "ModuleD3D12.h"
-#include "ModuleScripts.h"
+#include "ModuleScripting.h"
 
 #include "Scene.h"
 #include "SceneSnapshot.h"
@@ -49,7 +49,7 @@ void ModuleGameView::update()
 void ModuleGameView::startGameSimulation()
 {	
 	m_sceneCloned = std::unique_ptr<SceneSnapshot>(m_moduleScene->takeSnapshot());
-	app->getModuleScripts()->instantiateSceneScripts();
+	app->getModuleScripting()->instantiateSceneScripts();
 
 }
 

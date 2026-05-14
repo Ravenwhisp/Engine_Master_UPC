@@ -469,7 +469,7 @@
     <ClCompile Include="ScriptLibraryLoader.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleScripts.cpp">
+    <ClCompile Include="ModuleScripting.cpp">
       <Filter>Core\Scripting\HotReloading</Filter>
     </ClCompile>
     <ClCompile Include="ScriptBuildSystem.cpp">
@@ -1136,7 +1136,7 @@
     <ClInclude Include="ScriptLibraryLoader.h">
       <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleScripts.h">
+    <ClInclude Include="ModuleScripting.h">
       <Filter>Core\Scripting\HotReloading</Filter>
     </ClInclude>
     <ClInclude Include="ScriptBuildSystem.h">

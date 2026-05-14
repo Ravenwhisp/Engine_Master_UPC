@@ -338,7 +338,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="ModuleGameView.h" />
     <ClInclude Include="ModuleHaptics.h" />
-    <ClInclude Include="ModuleScripts.h" />
+    <ClInclude Include="ModuleScripting.h" />
     <ClInclude Include="ModuleTrigger.h" />
     <ClInclude Include="OptickProfiler.h" />
     <ClInclude Include="PdbPatcher.h" />
@@ -665,7 +665,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleHaptics.cpp" />
-    <ClCompile Include="ModuleScripts.cpp" />
+    <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="ModuleTrigger.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="ScriptBuildSystem.cpp" />

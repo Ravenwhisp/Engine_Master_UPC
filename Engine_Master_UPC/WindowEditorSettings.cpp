@@ -3,7 +3,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
-#include "ModuleScripts.h"
+#include "ModuleScripting.h"
 
 #include "Settings.h"
 #include "Scene.h"
@@ -121,9 +121,9 @@ void WindowEditorSettings::drawScriptsSettings()
         return;
     }
 
-    ModuleScripts* moduleScripts = app->getModuleScripts();
+    ModuleScripting* moduleScripting = app->getModuleScripting();
 
-    ScriptBuildSettings& buildSettings = moduleScripts->getScriptBuildSettings();
+    ScriptBuildSettings& buildSettings = moduleScripting->getScriptBuildSettings();
 
     if (!m_scriptBuildSettingsSynced)
     {
@@ -149,7 +149,7 @@ void WindowEditorSettings::drawScriptsSettings()
         buildSettings.projectPath = m_scriptProjectPathBuffer.data();
         buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
 
-        moduleScripts->saveScriptBuildSettings();
+        moduleScripting->saveScriptBuildSettings();
     }
 
     ImGui::Separator();
@@ -159,15 +159,15 @@ void WindowEditorSettings::drawScriptsSettings()
         buildSettings.projectPath = m_scriptProjectPathBuffer.data();
         buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
 
-        moduleScripts->requestBuildAndReloadGameScriptsDll();
+        moduleScripting->requestBuildAndReloadGameScriptsDll();
     }
 }
 
 void WindowEditorSettings::drawScriptReloadModal()
 {
-    ModuleScripts* moduleScripts = app->getModuleScripts();
+    ModuleScripting* moduleScripting = app->getModuleScripting();
 
-    const ScriptReloadState reloadState = moduleScripts->getScriptReloadState();
+    const ScriptReloadState reloadState = moduleScripting->getScriptReloadState();
 
     const bool shouldShowModal =
         reloadState == ScriptReloadState::Building ||
@@ -207,7 +207,7 @@ void WindowEditorSettings::drawScriptReloadModal()
 
             if (ImGui::Button("OK"))
             {
-                moduleScripts->clearScriptReloadResult();
+                moduleScripting->clearScriptReloadResult();
                 ImGui::CloseCurrentPopup();
             }
             break;
@@ -220,7 +220,7 @@ void WindowEditorSettings::drawScriptReloadModal()
 
             if (ImGui::Button("OK"))
             {
-                moduleScripts->clearScriptReloadResult();
+                moduleScripting->clearScriptReloadResult();
                 ImGui::CloseCurrentPopup();
             }
             break;
@@ -232,7 +232,7 @@ void WindowEditorSettings::drawScriptReloadModal()
 
             if (ImGui::Button("OK"))
             {
-                moduleScripts->clearScriptReloadResult();
+                moduleScripting->clearScriptReloadResult();
                 ImGui::CloseCurrentPopup();
             }
             break;

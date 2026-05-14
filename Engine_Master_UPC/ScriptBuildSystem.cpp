@@ -80,6 +80,7 @@ bool ScriptBuildSystem::validateScriptBuildPaths(const std::filesystem::path& pr
     return true;
 }
 
+// Launch MSBuild without opening a cmd window
 bool ScriptBuildSystem::runMsBuild(const std::filesystem::path& msbuildPath, const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::string& buildLogPath) const
 {
     const std::filesystem::path absoluteLogPath = std::filesystem::absolute(buildLogPath).lexically_normal();
