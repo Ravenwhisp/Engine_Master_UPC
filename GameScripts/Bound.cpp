@@ -11,7 +11,9 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_radiusThreshold, "Radius Threshold", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(baseDamage, "Base Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f)
+    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(m_hapticIntensity, "Heartbeat Intensity", 100.0f, 0.0f, 0.01f),
+    SERIALIZED_FLOAT(m_separationHapticHpGate, "Separation Haptic HP Gate", 0.5f, 0.25f, 0.01f)
 )
 
 Bound::Bound(GameObject* owner) : Script(owner)
@@ -34,6 +36,19 @@ void Bound::Start()
         m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
     }
 
+    HapticAPI::registerEffect(HapticEffectDefinition::makeHeartbeatLub(1.0f, HapticEffectDefinition::HeartbeatVariant::Separation));
+    HapticAPI::registerEffect(HapticEffectDefinition::makeHeartbeatDub(1.0f, HapticEffectDefinition::HeartbeatVariant::Separation));
+}
+
+void Bound::fireLub(float t)
+{
+    const HeartbeatCycle cycle = HeartbeatCycle::fromSeparation(t);
+
+    HapticAPI::playAtScale("HeartbeatLub_Separation", t * m_hapticIntensity, 0);
+
+    m_dubScale = t;
+    m_dubTimer = cycle.interBeatSeconds;
+    m_lubTimer = -1.0f;
 }
 
 void Bound::Update()
@@ -76,6 +91,8 @@ void Bound::Update()
         if (t < 0.0f) t = 0.0f;
         if (t > 1.0f) t = 1.0f;
 
+        t = 0.45f + (t * t * 0.55f);
+
         // Linear damage scale
         const float damagePerSecond = baseDamage + (maxDamage - baseDamage) * t;
 
@@ -83,6 +100,46 @@ void Bound::Update()
 
         m_firstDamageable->takeDamage(damage);
         m_secondDamageable->takeDamage(damage);
+
+        const bool p1LowHp = m_firstDamageable && m_firstDamageable->getHpPercent() < m_separationHapticHpGate;
+        const bool p2LowHp = m_secondDamageable && m_secondDamageable->getHpPercent() < m_separationHapticHpGate;
+
+        if (!p1LowHp && !p2LowHp)
+        {
+            const float dt = Time::getDeltaTime();
+
+            if (m_dubTimer >= 0.0f)
+            {
+                m_dubTimer -= dt;
+                if (m_dubTimer < 0.0f)
+                {
+                    HapticAPI::playAtScale("HeartbeatDub_Separation", m_dubScale, 0);
+
+                    const HeartbeatCycle cycle = HeartbeatCycle::fromSeparation(t);
+                    m_lubTimer = cycle.diastoleSeconds;
+                }
+            }
+
+            if (m_lubTimer >= 0.0f)
+            {
+                m_lubTimer -= dt;
+                if (m_lubTimer < 0.0f)
+                    fireLub(t);
+            }
+
+            if (m_dubTimer < 0.0f && m_lubTimer < 0.0f)
+                fireLub(t);
+        }
+        else
+        {
+            m_dubTimer = -1.0f;
+            m_lubTimer = -1.0f;
+        }
+    }
+    else
+    {
+        m_dubTimer = -1.0f;
+        m_lubTimer = -1.0f;
     }
 
     m_previousDistance = distance;
