@@ -42,21 +42,21 @@ bool ModuleParticleSystem::removeSystem(ParticleSystem* system)
     return false;
 }
 
-void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystem)
+void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystemComponent)
 {
-	if (!particleSystem || !particleSystem->isActive() || !particleSystem->getOwner()->IsActiveInWindowHierarchy())
+	if (!particleSystemComponent || !particleSystemComponent->isActive() || !particleSystemComponent->getOwner()->IsActiveInWindowHierarchy())
 	{
 		return;
 	}
 
-    if (particleSystem->consumeLoadRequest())
+    if (particleSystemComponent->consumeLoadRequest()) // WILL NEED TO CHANGE TO CONSIDER SPECIFIC (AND MULTIPLE) EMITTERS IN THE COMPONENT
     {
-        TextureAsset* asset = particleSystem->getTextureAsset();
-        MD5Hash assetId = particleSystem->getTextureAssetId();
+        TextureAsset* asset = particleSystemComponent->getTextureAsset();
+        MD5Hash assetId = particleSystemComponent->getTextureAssetId();
 
         if (!asset || assetId == INVALID_ASSET_ID)
         {
-            particleSystem->setTexture(nullptr);
+            particleSystemComponent->setTexture(nullptr);
         }
         else
         {
@@ -68,38 +68,49 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
                 {
                     Texture* raw = texture.get();
                     m_particleTextures.emplace(assetId, std::move(texture));
-                    particleSystem->setTexture(raw);
+                    particleSystemComponent->setTexture(raw);
                 }
                 else
                 {
-                    particleSystem->setTexture(nullptr);
+                    particleSystemComponent->setTexture(nullptr);
                 }
             }
             else
             {
-                particleSystem->setTexture(textureIteration->second.get());
+                particleSystemComponent->setTexture(textureIteration->second.get());
             }
         }
     }
 
-    // Command creation (not done for now)
-    /*
-    if (particleSystem->getTexture() != nullptr)
+    // Command creation
+    
+    if (particleSystemComponent->getTexture() != nullptr)
     {
-        UIImageCommand command;
-        command.texture = uiImg->getTexture();
-        command.rect = myRect;
-        command.fillAmount = uiImg->getFillAmount();
-        command.fillMethod = uiImg->getFillMethod();
-        command.fillOrigin = uiImg->getFillOrigin();
-        command.renderMode = renderMode;
-        command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
-            ? Matrix::Identity
-            : gameObject->GetTransform()->getGlobalMatrix();
-        command.zTest = zTest;
-        m_imageCommands.push_back(command);
+
+        for (auto& emitterInstance : particleSystemComponent->getEmitterInstances())
+        {
+            ParticleEmitterCommand command;
+            command.texture = emitterInstance.getParticleEmitter()->getTexture();
+
+            Particle* pool;
+            std::vector<std::pair<float, unsigned int>>* aliveParticles;
+            emitterInstance.getPoolAndAlives(pool, aliveParticles);
+
+            for (auto& aliveParticle : *aliveParticles) 
+            {
+                ParticleCommand particleData;
+                particleData.position = pool[aliveParticle.second].position;
+                particleData.colorAndAlpha = pool[aliveParticle.second].colorAndAlpha;
+                particleData.rotationZ = pool[aliveParticle.second].rotationZ;
+                particleData.scale = pool[aliveParticle.second].scale;
+
+                command.particles.push_back(particleData);
+            }
+
+            m_particleCommands.push_back(command);
+        }
     }
-    */
+    
 
 }
 

@@ -8,6 +8,7 @@
 #include "ModuleCamera.h"
 #include "ModuleGameView.h"
 #include "ModuleScene.h"
+#include "ModuleParticleSystem.h"
 
 #include "ModuleNavigation.h"
 #include "ModuleUI.h"
@@ -283,6 +284,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .viewType = viewType,
         .uiTextCommands = &app->getModuleUI()->getTextCommands(),
         .uiImageCommands = &app->getModuleUI()->getImageCommands(),
+        .particleCommands = &app->getModuleParticleSystem()->getParticleCommands(),
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
     };
 

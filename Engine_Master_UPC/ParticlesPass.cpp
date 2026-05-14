@@ -129,13 +129,8 @@ void ParticlesPass::prepare(const RenderContext& ctx)
 {
     m_viewport = &ctx.viewport;
     
-    // TEMPORARY, just for testing
-    const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
-    Texture* passedText = particleSystemComponents.empty() ? nullptr : particleSystemComponents[0]->getTexture();
-    test[0].texture = passedText;
-    m_commands = &test;
+    m_commands = ctx.particleCommands;
     
-
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_cameraPosition = &ctx.cameraPosition;
@@ -189,17 +184,6 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         for (unsigned int i = 0; i < command.particles.size(); ++i) 
         {
             XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
-            //XMMATRIX m = (Matrix::Identity * (*m_view) * (*m_projection)).Transpose();
-            
-            //Vector3 cameraForward = Vector3(-m_view->_31, -m_view->_32, -m_view->_33);
-            //XMMATRIX m = Matrix::CreateBillboard(command.particles[i].position, *m_cameraPosition, Vector3(m_view->_21, m_view->_22, m_view->_23), nullptr);
-            
-            //Transform positionData (0, nullptr);
-            //positionData.setPosition(command.particles[i].position);
-            //positionData.setRotation(app->getModuleCamera()->getRotation());
-            //positionData.setRoot(particleSystemComponents[0]->getTransform());
-            //XMMATRIX m = positionData.getGlobalMatrix();
-            
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
@@ -231,7 +215,6 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command) cons
     Vector3 scale = Vector3(command.scale.x, command.scale.y, 1.0f);
 
     return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * rotInv * Matrix::CreateTranslation(command.position);
-    //return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * Matrix::CreateTranslation(command.position);
 }
 
 Matrix ParticlesPass::buildImageVP()

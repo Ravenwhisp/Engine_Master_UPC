@@ -21,7 +21,9 @@ public:
     ParticleSystem* addSystem(Transform* parent);
     bool removeSystem(ParticleSystem* system);
 
-    void buildParticleCommands(ParticleSystemComponent* particleSystem);
+    void buildParticleCommands(ParticleSystemComponent* particleSystemComponent);
+
+    const std::vector<ParticleEmitterCommand>& getParticleCommands() const { return m_particleCommands; }
 
     float deltaTime(); // required to have more control and show particles on Editor mode
 
