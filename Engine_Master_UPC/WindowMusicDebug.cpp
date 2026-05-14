@@ -14,7 +14,7 @@ WindowMusicDebug::WindowMusicDebug()
 
 void WindowMusicDebug::drawInternal()
 {
-	static float playingSoundsHeight = 250.0f;
+	static float playingSoundsHeight = 260.0f;
 
 	if (!m_moduleMusic)
 	{
@@ -24,9 +24,8 @@ void WindowMusicDebug::drawInternal()
 	const std::vector<WwiseBank>& banks = m_moduleMusic->getBankList();
 
 	const float separatorThickness = 6.0f;
-	const float minTopHeight = 100.0f;
-	const float minBottomHeight = 120.0f;
-
+	const float minTopHeight = 120.0f;
+	const float minBottomHeight = 140.0f;
 	const float availableHeight = ImGui::GetContentRegionAvail().y;
 
 	float topHeight = availableHeight - playingSoundsHeight - separatorThickness;
@@ -43,29 +42,37 @@ void WindowMusicDebug::drawInternal()
 		topHeight = availableHeight - minBottomHeight - separatorThickness;
 	}
 
-	if (ImGui::BeginChild("BanksRegion", ImVec2(0, topHeight), false))
+	ImGui::Text("Audio Banks");
+	ImGui::Separator();
+
+	if (ImGui::BeginChild("BanksRegion", ImVec2(0, topHeight), true))
 	{
 		for (const WwiseBank& bank : banks)
 		{
-			if (!ImGui::CollapsingHeader(bank.getName().c_str()))
+			const std::vector<WwiseEvent>& events = bank.getEvents();
+
+			const std::string headerLabel =
+				bank.getName() + " (" + std::to_string(events.size()) + " events)";
+
+			if (!ImGui::CollapsingHeader(headerLabel.c_str()))
 			{
 				continue;
 			}
 
-			const std::vector<WwiseEvent>& events = bank.getEvents();
-
 			for (const WwiseEvent& event : events)
 			{
-				ImGui::Text("%s", event.name.c_str());
+				ImGui::PushID((bank.getName() + event.name).c_str());
 
-				ImGui::SameLine(250);
+				ImGui::TextUnformatted(event.name.c_str());
 
-				const std::string buttonID = "Play##" + bank.getName() + event.name;
+				ImGui::SameLine(ImGui::GetContentRegionAvail().x - 60.0f);
 
-				if (ImGui::Button(buttonID.c_str()))
+				if (ImGui::Button("Play", ImVec2(60.0f, 0.0f)))
 				{
 					m_moduleMusic->postEvent(bank.getName().c_str(), event.name.c_str());
 				}
+
+				ImGui::PopID();
 			}
 		}
 	}
@@ -88,71 +95,99 @@ void WindowMusicDebug::drawInternal()
 
 	if (ImGui::BeginChild("PlayingSoundsRegion", ImVec2(0, 0), true))
 	{
+		const std::vector<PlayingSound>& playingSounds = m_moduleMusic->getPlayingSounds();
+
 		ImGui::Text("Playing Sounds");
+		ImGui::SameLine();
+		ImGui::TextDisabled("(%zu)", playingSounds.size());
 
 		ImGui::Separator();
 
-		const std::vector<PlayingSound>& playingSounds = m_moduleMusic->getPlayingSounds();
-
 		if (playingSounds.empty())
 		{
-			ImGui::Text("No playing sounds");
+			ImGui::Spacing();
+			ImGui::TextDisabled("No playing sounds");
 		}
 		else
 		{
-			for (const PlayingSound& playingSound : playingSounds)
+			if (ImGui::BeginTable("PlayingSoundsTable", 5, ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
 			{
-				const char* stateText = "";
+				ImGui::TableSetupColumn("Bank");
+				ImGui::TableSetupColumn("Event");
+				ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+				ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+				ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 170.0f);
+				ImGui::TableHeadersRow();
 
-				switch (playingSound.state)
+				for (const PlayingSound& playingSound : playingSounds)
 				{
-				case PlayingSoundState::Playing:
-					stateText = "Playing";
-					break;
+					const char* stateText = "Unknown";
 
-				case PlayingSoundState::Paused:
-					stateText = "Paused";
-					break;
-
-				case PlayingSoundState::Stopped:
-					stateText = "Stopped";
-					break;
-				}
-
-				ImGui::Text("Bank: %s", playingSound.bankName.c_str());
-				ImGui::Text("Event: %s", playingSound.eventName.c_str());
-				ImGui::Text("Playing ID: %u", playingSound.playingID);
-				ImGui::Text("State: %s", stateText);
-
-				if (playingSound.state == PlayingSoundState::Playing)
-				{
-					const std::string pauseButtonID = "Pause##" + std::to_string(playingSound.playingID);
-
-					if (ImGui::Button(pauseButtonID.c_str()))
+					switch (playingSound.state)
 					{
-						m_moduleMusic->pauseEvent(playingSound.playingID);
-					}
-				}
-				else if (playingSound.state == PlayingSoundState::Paused)
-				{
-					const std::string resumeButtonID = "Resume##" + std::to_string(playingSound.playingID);
+					case PlayingSoundState::Playing:
+						stateText = "Playing";
+						break;
 
-					if (ImGui::Button(resumeButtonID.c_str()))
+					case PlayingSoundState::Paused:
+						stateText = "Paused";
+						break;
+
+					case PlayingSoundState::Stopped:
+						stateText = "Stopped";
+						break;
+					}
+
+					ImGui::PushID(static_cast<int>(playingSound.playingID));
+
+					ImGui::TableNextRow();
+
+					ImGui::TableSetColumnIndex(0);
+					ImGui::TextUnformatted(playingSound.bankName.c_str());
+
+					ImGui::TableSetColumnIndex(1);
+					ImGui::TextUnformatted(playingSound.eventName.c_str());
+
+					ImGui::TableSetColumnIndex(2);
+					ImGui::Text("%u", playingSound.playingID);
+
+					ImGui::TableSetColumnIndex(3);
+					ImGui::TextUnformatted(stateText);
+
+					ImGui::TableSetColumnIndex(4);
+
+					if (playingSound.state == PlayingSoundState::Playing)
 					{
-						m_moduleMusic->resumeEvent(playingSound.playingID);
+						if (ImGui::SmallButton("Pause"))
+						{
+							m_moduleMusic->pauseEvent(playingSound.playingID);
+						}
 					}
+					else if (playingSound.state == PlayingSoundState::Paused)
+					{
+						if (ImGui::SmallButton("Resume"))
+						{
+							m_moduleMusic->resumeEvent(playingSound.playingID);
+						}
+					}
+					else
+					{
+						ImGui::BeginDisabled();
+						ImGui::SmallButton("Pause");
+						ImGui::EndDisabled();
+					}
+
+					ImGui::SameLine();
+
+					if (ImGui::SmallButton("Stop"))
+					{
+						m_moduleMusic->stopEvent(playingSound.playingID);
+					}
+
+					ImGui::PopID();
 				}
 
-				ImGui::SameLine();
-
-				const std::string stopButtonID = "Stop##" + std::to_string(playingSound.playingID);
-
-				if (ImGui::Button(stopButtonID.c_str()))
-				{
-					m_moduleMusic->stopEvent(playingSound.playingID);
-				}
-
-				ImGui::Separator();
+				ImGui::EndTable();
 			}
 		}
 	}
