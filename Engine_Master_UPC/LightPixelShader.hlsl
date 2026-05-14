@@ -232,7 +232,6 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
     
     float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).bg;
-    //float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).bg;
     float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.x * metallicFactor) : metallicFactor;
     
     float minRoughness = 0.04;
