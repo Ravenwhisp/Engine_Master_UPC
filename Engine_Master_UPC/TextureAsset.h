@@ -10,7 +10,7 @@ public:
 	friend class ImporterTexture;
 
 	TextureAsset() {}
-	TextureAsset(MD5Hash id) : Asset(id, AssetType::TEXTURE) {}
+	TextureAsset(AssetReference& id) : Asset(id, AssetType::TEXTURE) {}
 
 	uint32_t	getWidth() const { return width; }
 	uint32_t	getHeight() const { return height; }
@@ -19,6 +19,8 @@ public:
 	DXGI_FORMAT getFormat() const { return format; }
 	uint32_t	getImageCount() const { return imageCount; }
 	std::vector<TextureImage>& getImages() const { return images; }
+
+	void drawUI() override;
 
 private:
 	uint32_t width = 0;
