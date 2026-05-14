@@ -11,7 +11,6 @@
 #include "SceneSerializer.h"
 #include "SceneSnapshot.h"
 #include "ModuleAssets.h"
-#include "ModuleTrigger.h"
 
 #include "GameObject.h"
 #include "MeshRenderer.h"
@@ -183,8 +182,6 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 {
     clearComponentCaches();
 
-    app->getModuleTrigger()->cleanUp();
-
     auto newScene = m_sceneSerializer->LoadScene(sceneName);
 
     if (!newScene)
@@ -195,6 +192,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     m_scene = std::move(newScene);
     m_scene->setName(sceneName.c_str());
+    m_scene->initLoadedObjects();
+
     m_scene->markDirty();
 
     m_quadtree = std::make_unique<Quadtree>();
@@ -233,8 +232,6 @@ SceneSnapshot* ModuleScene::takeSnapshot() const
 void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 {
     clearComponentCaches();
-
-    app->getModuleTrigger()->cleanUp();
 
     snapshot.applyTo(*m_scene.get());
     m_scene->markDirty();

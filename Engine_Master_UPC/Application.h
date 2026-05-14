@@ -20,7 +20,6 @@ class ModuleScene;
 class ModuleGameView;
 class ModuleAssets;
 class ModuleEventSystem;
-class ModuleTrigger;
 class ModuleHaptics;
 
 class CameraComponent;
@@ -57,7 +56,6 @@ public:
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
-    ModuleTrigger*              getModuleTrigger() { return m_moduleTrigger; }
     ModuleHaptics* getModuleHaptics() { return m_moduleHaptics; }
 
     Settings*                   getSettings() { return m_settings; }
@@ -97,7 +95,6 @@ private:
     ModuleAssets*           m_moduleAssets = nullptr;
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
-    ModuleTrigger* m_moduleTrigger = nullptr;
     ModuleHaptics* m_moduleHaptics = nullptr;
 
     Settings*               m_settings = nullptr;

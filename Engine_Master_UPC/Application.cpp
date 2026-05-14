@@ -15,7 +15,6 @@
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
-#include "ModuleTrigger.h"
 #include "ModuleHaptics.h"
 
 #include "ScriptFactory.h"
