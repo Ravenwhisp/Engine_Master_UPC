@@ -20,17 +20,23 @@ public:
 	ModuleMusic();
 	~ModuleMusic();
 
+#pragma region GameLoop
 	bool init() override;
 	void update() override;
 	bool cleanUp() override;
+#pragma endregion
 
-	const std::vector<WwiseBank>& getBankList() const { return m_banks; }
-	const std::vector<PlayingSound>& getPlayingSounds() const { return m_playbackTracker.getPlayingSounds(); }
-
+#pragma region API
 	void postEvent(const char* bankName, const char* eventName);
 	void stopEvent(uint32_t playingID);
 	void pauseEvent(uint32_t playingID);
 	void resumeEvent(uint32_t playingID);
+#pragma endregion
+
+#pragma region Extra
+	const std::vector<WwiseBank>& getBankList() const { return m_banks; }
+	const std::vector<PlayingSound>& getPlayingSounds() const { return m_playbackTracker.getPlayingSounds(); }
+#pragma endregion
 
 private:
 	bool loadBanksFromFolder();

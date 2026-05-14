@@ -11,6 +11,7 @@ constexpr const char* WWISE_ASSETS_PATH = "Assets\\Audio\\";
 ModuleMusic::ModuleMusic() = default;
 ModuleMusic::~ModuleMusic() = default;
 
+#pragma region GameLoop
 bool ModuleMusic::init()
 {
 	if (!m_wwiseManager.init())
@@ -50,6 +51,7 @@ bool ModuleMusic::cleanUp()
 
 	return true;
 }
+#pragma endregion
 
 bool ModuleMusic::loadBanksFromFolder()
 {
@@ -104,6 +106,7 @@ bool ModuleMusic::loadBanksFromFolder()
 	return true;
 }
 
+#pragma region API
 void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 {
 	for (const WwiseBank& bank : m_banks)
@@ -163,3 +166,4 @@ void ModuleMusic::resumeEvent(uint32_t playingID)
 
 	m_playbackTracker.setState(playingID, PlayingSoundState::Playing);
 }
+#pragma endregion
