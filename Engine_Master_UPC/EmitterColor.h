@@ -19,6 +19,10 @@ public:
 	void setEndColor(const Vector4& endColor) { m_endColor = endColor; }
 	const Vector4& getEndColor() const { return m_endColor; }
 
+	bool drawUi() override;
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+
 private:
 
 	Vector4 m_creationColor = Vector4(1.f, 1.f, 1.f, 1.f);

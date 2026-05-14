@@ -5,6 +5,8 @@
 #include "ParticleEmitter.h"
 #include "EmitterLifetime.h"
 
+
+
 void EmitterColor::update(EmitterInstance* particleData)
 {
 	Particle* particlePool;
@@ -32,4 +34,21 @@ void EmitterColor::update(EmitterInstance* particleData)
 	{
 		particlePool[particleIndex].colorAndAlpha = m_creationColor;
 	}
+}
+
+bool EmitterColor::drawUi()
+{
+	bool parameterChanged = false;
+
+	return parameterChanged;
+}
+
+rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
+{
+	return rapidjson::Value();
+}
+
+bool EmitterColor::deserializeJSON(const rapidjson::Value& componentValue)
+{
+	return false;
 }

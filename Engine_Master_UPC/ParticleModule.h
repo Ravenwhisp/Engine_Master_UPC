@@ -25,6 +25,11 @@ public:
 
 	ParticleModuleType getType() { return m_moduleType; }
 
+	// Interface and saving/loading functions
+	virtual bool drawUi() { return false; }
+	virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
+	virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
+
 private:
 
 	const ParticleModuleType m_moduleType;
