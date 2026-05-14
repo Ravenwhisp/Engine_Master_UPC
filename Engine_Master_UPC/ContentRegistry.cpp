@@ -1,4 +1,4 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ContentRegistry.h"
 
 #include "FileIO.h"
@@ -96,10 +96,25 @@ void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPa
 
     AssetEntry asset;
     asset.displayName = sourcePath.filename().string();
-
     asset.uid = m_moduleAssets->findUID(sourcePath.lexically_normal().string());
 
-    directory.assets.push_back(asset);
+    Metadata meta;
+    if (m_moduleAssets->loadMetaFile(metaPath, meta))
+    {
+        asset.metadata = meta;
+        for (const DependencyRecord& dep : meta.m_dependencies)
+        {
+            if (!isValidUID(dep.uid))
+                continue;
+
+            AssetEntry sub;
+            sub.uid = dep.uid;
+            sub.displayName = dep.displayName.empty() ? "SubAsset" : dep.displayName;
+            asset.subAssets.push_back(std::move(sub));
+        }
+    }
+
+    directory.assets.push_back(std::move(asset));
 }
 
 DirectoryEntry* ContentRegistry::findDirectoryRecursive(DirectoryEntry* directory, const fs::path& path) const

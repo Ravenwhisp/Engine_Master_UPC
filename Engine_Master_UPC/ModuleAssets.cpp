@@ -1,4 +1,4 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ModuleAssets.h"
 
 #include "Application.h"
@@ -385,6 +385,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         dep.uid = subMeta.uid;
         dep.contentHash = subMeta.contentHash;
         dep.type = subMeta.type;
+        dep.displayName = subMeta.displayName;
         m_pendingDependencies[parentUID].push_back(dep);
     }
 }
@@ -411,6 +412,8 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
             entry.AddMember("uid", dep.uid, alloc);
             entry.AddMember("contentHash", Value(dep.contentHash.c_str(), alloc), alloc);
             entry.AddMember("type", Value(static_cast<uint32_t>(dep.type)), alloc);
+            if (!dep.displayName.empty())
+                entry.AddMember("displayName", Value(dep.displayName.c_str(), alloc), alloc);
             deps.PushBack(entry, alloc);
         }
         doc.AddMember("dependencies", deps, alloc);
@@ -506,6 +509,8 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
             if (entry.HasMember("contentHash") && entry["contentHash"].IsString())
                 rec.contentHash = entry["contentHash"].GetString();
+            if (entry.HasMember("displayName") && entry["displayName"].IsString())
+                rec.displayName = entry["displayName"].GetString();
 
             outMeta.m_dependencies.push_back(std::move(rec));
         }

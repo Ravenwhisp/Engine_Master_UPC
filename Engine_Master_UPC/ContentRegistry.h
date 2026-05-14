@@ -1,5 +1,6 @@
-﻿#pragma once
+#pragma once
 
+#include "Metadata.h"
 #include "UID.h"
 
 #include <filesystem>
@@ -14,6 +15,8 @@ struct AssetEntry
 {
     UID uid = INVALID_UID;
     std::string displayName;
+    Metadata metadata;
+    std::vector<AssetEntry> subAssets;
 };
 
 struct DirectoryEntry
@@ -21,6 +24,7 @@ struct DirectoryEntry
     std::filesystem::path path;
     DirectoryEntry* parent = nullptr;
     std::string displayName;
+    Metadata metadata;
 
     std::vector<std::unique_ptr<DirectoryEntry>> directories;
     std::vector<AssetEntry> assets;

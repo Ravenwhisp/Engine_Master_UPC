@@ -1,4 +1,4 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ImporterGltf.h"
 
 #define TINYGLTF_NO_STB_IMAGE_WRITE
@@ -273,6 +273,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
         AssetReference matRef = resolveOrGenerateReference(AssetType::MATERIAL, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = matRef.m_uid; meta.type = matRef.m_type; meta.contentHash = matRef.m_libId;
+        meta.displayName = model.materials[i].name;
         assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
         materialRefs[i] = matRef;
     }
@@ -295,6 +296,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
         AssetReference meshRef = resolveOrGenerateReference(AssetType::MESH, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = meshRef.m_uid; meta.type = meshRef.m_type; meta.contentHash = meshRef.m_libId;
+        meta.displayName = model.meshes[i].name;
         assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
         meshRefs[i] = meshRef;
     }
@@ -313,6 +315,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
         AssetReference animRef = resolveOrGenerateReference(AssetType::ANIMATION, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = animRef.m_uid; meta.type = animRef.m_type; meta.contentHash = animRef.m_libId;
+        meta.displayName = model.animations[i].name;
         assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
         animationRefs[i] = animRef;
     }
@@ -337,6 +340,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
 
         AssetReference skinRef = resolveOrGenerateReference(AssetType::SKIN, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = skinRef.m_uid; meta.type = skinRef.m_type; meta.contentHash = skinRef.m_libId;
+        meta.displayName = model.skins[i].name;
         assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
         skinRefs[i] = skinRef;
     }
