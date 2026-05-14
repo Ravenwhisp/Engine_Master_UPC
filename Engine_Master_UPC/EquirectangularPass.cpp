@@ -94,32 +94,18 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
     desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     desc.width = static_cast<uint32_t>(2048);
     desc.height = static_cast<uint32_t>(2048);
+    desc.arraySize = 6;
+    desc.mipLevels = 8;
     desc.views = TextureView::RTV;
     desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    desc.arraySize = 6;
-    desc.mipLevels = 1;
+    
     Texture* skyboxTextureRtv = new Texture(hashToUID("SkyboxTextureRtv"), *m_device.Get(), desc);
 
-    //Viewport and scissor
-    D3D12_VIEWPORT viewport = {};
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = 2048;
-    viewport.Height = 2048;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-
-    D3D12_RECT scissor = {};
-    scissor.left = 0;
-    scissor.top = 0;
-    scissor.right = 2048;
-    scissor.bottom = 2048;
-
-    commandList->RSSetViewports(1, &viewport);
-    commandList->RSSetScissorRects(1, &scissor);
-
+    
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+
 
     Matrix proj = Matrix::CreatePerspectiveFieldOfView(PI / 2.0f, 1.0f, 0.1f, 100.0f);
 
@@ -128,45 +114,66 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
 
     if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 
-    for (size_t i = 0; i < desc.arraySize; i++)
+    for (size_t mip = 0; mip < desc.mipLevels; mip++)
     {
-        BEGIN_EVENT(commandList.Get(), "Cubemap Generation");
+        //Viewport and scissor
+        D3D12_VIEWPORT viewport = {};
+        viewport.TopLeftX = 0;
+        viewport.TopLeftY = 0;
+        viewport.Width = desc.width >> mip;
+        viewport.Height = desc.height >> mip;
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
 
-        Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
-        Matrix viewProjection = view * proj;
-        viewProjection = viewProjection.Transpose();
+        D3D12_RECT scissor = {};
+        scissor.left = 0;
+        scissor.top = 0;
+        scissor.right = desc.width >> mip;
+        scissor.bottom = desc.height >> mip;
 
-        SkyboxParams params{};
-        params.vp = viewProjection;
-        params.flipX = i <= 1 ? 0 : 1;
-        params.flipZ = i <= 1 ? 1 : 0;
+        commandList->RSSetViewports(1, &viewport);
+        commandList->RSSetScissorRects(1, &scissor);
 
-        D3D12_VERTEX_BUFFER_VIEW vertexBufferView = skybox->getVertexBuffer()->getVertexBufferView();
-        D3D12_INDEX_BUFFER_VIEW  indexBufferView = skybox->getIndexBuffer()->getIndexBufferView();
+        for (size_t i = 0; i < desc.arraySize; i++)
+        {
+            BEGIN_EVENT(commandList.Get(), "Cubemap Generation");
 
-        UINT subResourceIndex = D3D12CalcSubresource(0, i, 0, desc.mipLevels, desc.arraySize);
+            Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
+            Matrix viewProjection = view * proj;
+            viewProjection = viewProjection.Transpose();
 
-        auto currentRtvHandle = skyboxTextureRtv->getContiguousRTV(i).cpu;
+            SkyboxParams params{};
+            params.vp = viewProjection;
+            params.flipX = i <= 1 ? 0 : 1;
+            params.flipZ = i <= 1 ? 1 : 0;
 
-        CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(skyboxTextureRtv->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
-        CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(skyboxTextureRtv->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
+            D3D12_VERTEX_BUFFER_VIEW vertexBufferView = skybox->getVertexBuffer()->getVertexBufferView();
+            D3D12_INDEX_BUFFER_VIEW  indexBufferView = skybox->getIndexBuffer()->getIndexBufferView();
+
+            UINT subResourceIndex = D3D12CalcSubresource(mip, i, 0, desc.mipLevels, desc.arraySize);
+
+            auto currentRtvHandle = skyboxTextureRtv->getContiguousRTV(mip* desc.arraySize + i).cpu;
+
+            CD3DX12_RESOURCE_BARRIER barrierIn = CD3DX12_RESOURCE_BARRIER::Transition(skyboxTextureRtv->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, subResourceIndex);
+            CD3DX12_RESOURCE_BARRIER barrierOut = CD3DX12_RESOURCE_BARRIER::Transition(skyboxTextureRtv->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, subResourceIndex);
     
-        commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
-        commandList->SetGraphicsRootDescriptorTable(1, skybox->getHdrTexture()->getSRV().gpu);
-        commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
-        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-        commandList->IASetIndexBuffer(&indexBufferView);
+            commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
+            commandList->SetGraphicsRootDescriptorTable(1, skybox->getHdrTexture()->getSRV().gpu);
+            commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+            commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+            commandList->IASetIndexBuffer(&indexBufferView);
 
-        commandList->ResourceBarrier(1, &barrierIn);
+            commandList->ResourceBarrier(1, &barrierIn);
 
-        commandList->OMSetRenderTargets(1, &currentRtvHandle, 0, nullptr);
-        float clearColor[4] = { 0, 0, 0, 1 };
-        commandList->ClearRenderTargetView(currentRtvHandle, clearColor, 0, nullptr);
-        commandList->DrawIndexedInstanced(static_cast<UINT>(skybox->getIndexBuffer()->getNumIndices()), 1, 0, 0, 0);
-        commandList->ResourceBarrier(1, &barrierOut);
+            commandList->OMSetRenderTargets(1, &currentRtvHandle, 0, nullptr);
+            float clearColor[4] = { 0, 0, 0, 1 };
+            commandList->ClearRenderTargetView(currentRtvHandle, clearColor, 0, nullptr);
+            commandList->DrawIndexedInstanced(static_cast<UINT>(skybox->getIndexBuffer()->getNumIndices()), 1, 0, 0, 0);
+            commandList->ResourceBarrier(1, &barrierOut);
 
-        END_EVENT(commandList.Get());
+            END_EVENT(commandList.Get());
+        }
     }
 
     commandQueue->executeCommandList(commandList);

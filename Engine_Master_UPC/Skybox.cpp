@@ -42,8 +42,8 @@ SkyBox::SkyBox(TextureAsset& asset)
 
     delete equirectangularPass;
 
-    m_irradiance = app->getModuleResources()->createIrradiance(asset, m_indexBuffer.get(), this);
-    m_environment = app->getModuleResources()->createEnvironment(asset, m_indexBuffer.get(), this);
+    m_irradiance = app->getModuleResources()->createIrradiance(m_indexBuffer.get(), this);
+    m_environment = app->getModuleResources()->createEnvironment(m_indexBuffer.get(), this);
 }
 
 SkyBox::~SkyBox() = default;

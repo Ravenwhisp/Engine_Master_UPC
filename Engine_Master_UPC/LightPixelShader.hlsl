@@ -197,15 +197,6 @@ float3 getSpecularAmbientLight(in float3 R, float NdotV, float roughness, in uin
     return radiance * (F0 * fab.x + fab.y);
 }
 
-float computeLod(float pdf, int numSamples, int width)
-{
-    float solidAngle = 1.0 / ((float) numSamples * pdf + 1e-6);
-
-    float texelSolidAngle = 1.0 / (6.0 * width * width);
-
-    return max(0.5 * log2(solidAngle / texelSolidAngle), 0.0);
-}
-
 void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm) {
 
     float3 radiance = environmentTexture.SampleLevel(linearWrapSample, R, roughness * (numLevels - 1)).rgb;
@@ -241,8 +232,8 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
     
     float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).bg;
+    //float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).bg;
     float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.x * metallicFactor) : metallicFactor;
-    metallic = 0;
     
     float minRoughness = 0.04;
     //float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp((1 - metallicRoughnessSample.y) * roughnessFactor, minRoughness, 1.0) : roughnessFactor;

@@ -14,6 +14,12 @@ cbuffer EnvironmentData : register(b1)
     float3 environmentPadding;
 };
 
+cbuffer TextureSize : register(b2)
+{
+    uint textureWidth;
+    uint texturePadding[3];
+};
+
 static const uint NUM_SAMPLES = 256;
 static const float PI = 3.14159265f;
 
@@ -49,6 +55,15 @@ float3x3 computeTangetSpace(in float3 normal)
     return float3x3(right, up, normal);
 }
 
+float computeLod(float pdf, int numSamples, int width)
+{
+    float solidAngle = 1.0 / ((float) numSamples * pdf + 1e-6);
+
+    float texelSolidAngle = 1.0 / (6.0 * width * width);
+
+    return max(0.5 * log2(solidAngle / texelSolidAngle), 0.0);
+}
+
 // GGX NDF Importance Sampling for Specular IBL
 float3 hemisphereSampleGGX(float2 randomU, float alphaRoughness)
 {
@@ -62,6 +77,15 @@ float3 hemisphereSampleGGX(float2 randomU, float alphaRoughness)
 
  // Convert to Cartesian direction vector
     return float3(cos(azimuth) * sinElevation, sin(azimuth) * sinElevation, cosElevation);
+}
+
+float NormalDistributionFunction(float NdotH, float roughness)
+{
+    float roughnessSqr = roughness * roughness;
+    float NdotHSqr = NdotH * NdotH;
+    float f = NdotHSqr * (roughnessSqr - 1) + 1;
+    
+    return roughnessSqr / (PI * f * f);
 }
 
 float4 main(float3 texcoords : TEXCOORD) : SV_TARGET
@@ -79,9 +103,11 @@ float4 main(float3 texcoords : TEXCOORD) : SV_TARGET
         float3 H = normalize(mul(dir, tangentSpace)); // Transform to world space and calculate lighting direction
         float3 L = reflect(-V, H);
         float NdotL = dot(N, L); // Sample environment if facing positive direction
+        float NdotH = dot(N, H); // Sample environment if facing positive direction
+        float pdf = NormalDistributionFunction(NdotH, alphaRoughness / 4);
         if (NdotL > 0)
         {
-            color += skyTexture.SampleLevel(skySampler, L, 0).rgb * NdotL;
+            color += skyTexture.SampleLevel(skySampler, L, computeLod(pdf, NUM_SAMPLES, textureWidth)).rgb * NdotL;
             weight += NdotL;
         }
     }
