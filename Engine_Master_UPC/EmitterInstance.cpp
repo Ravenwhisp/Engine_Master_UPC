@@ -10,12 +10,7 @@
 
 EmitterInstance::EmitterInstance(ParticleEmitter* emitter, ParticleSystemComponent* owner) : m_emitter(emitter), m_owner(owner)
 {
-	m_slots[MAX_PARTICLES - 1] = 0;
-
-	for (unsigned int i = 0; i < MAX_PARTICLES - 1; ++i)
-	{
-		m_slots[i] = i + 1;
-	}
+	initSlotManagement();
 }
 
 void EmitterInstance::updateModules()
@@ -39,6 +34,17 @@ void EmitterInstance::updateModules()
 	m_currentTime += app->getModuleParticleSystem()->deltaTime();
 }
 
+void EmitterInstance::reset() {
+
+	initSlotManagement();
+
+	m_aliveParticles.clear();
+	m_newParticles.clear();
+
+	m_particlesToSpawn = 0.f;
+	m_currentTime = 0.f;
+}
+
 int EmitterInstance::requestPoolSlot()
 {
 	if (m_firstFree == m_slots[m_firstFree]) return -1; // because the slot points to itself, which indicates used
@@ -57,6 +63,18 @@ void EmitterInstance::freePoolSlot(unsigned int index)
 	m_slots[index] = m_firstFree; // Set next free (because we are adding the index slot as the new first)
 
 	m_firstFree = index; // Update first
+}
+
+void EmitterInstance::initSlotManagement()
+{
+	m_slots[MAX_PARTICLES - 1] = 0;
+
+	for (unsigned int i = 0; i < MAX_PARTICLES - 1; ++i)
+	{
+		m_slots[i] = i + 1;
+	}
+
+	m_firstFree = 0;
 }
 
 void EmitterInstance::manageNewParticles()

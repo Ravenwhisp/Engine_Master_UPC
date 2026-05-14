@@ -10,6 +10,7 @@ struct Particle {
 	Vector3 position; // CHANGE TO A TRANSFORM?
 	Vector4 colorAndAlpha;
 	float rotationZ; // since they are billboards, other rotations don't make sense
+	Vector2 scale = Vector2 (1.0f, 1.0f); // FOR NOW
 
 	float velocity;
 	Vector3 movementDirection; // should be normalized
@@ -25,6 +26,8 @@ public:
 
 	void init();
 	void updateModules();
+
+	void reset(); // restart particle instantiation from the beginning
 
 	ParticleEmitter* getParticleEmitter() { return m_emitter; }
 	ParticleSystemComponent* getParticleSystemComponent() { return m_owner; }
@@ -54,7 +57,7 @@ private:
 
 	// Slot management data
 	unsigned int m_slots[MAX_PARTICLES]; // contains for each particle the next free (or self if nothing free)
-	unsigned int m_firstFree = 0;
+	unsigned int m_firstFree;
 
 	std::vector<std::pair<float, unsigned int>> m_aliveParticles; // saves distance (squared, because it is easier to calculate) to camera + index to pool
 
@@ -65,7 +68,7 @@ private:
 
 	float m_currentTime = 0.f;
 
-
+	void initSlotManagement();
 	void manageNewParticles();
 };
 
