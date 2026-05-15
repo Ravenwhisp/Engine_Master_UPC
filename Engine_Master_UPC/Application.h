@@ -58,7 +58,7 @@ public:
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
-    ModuleTrigger*              getModuleTrigger() { return m_moduleTrigger; }
+    ModuleHaptics*              getModuleHaptics() { return m_moduleHaptics; }
     ModuleScripting*            getModuleScripting() { return m_moduleScripting; }
 
 
