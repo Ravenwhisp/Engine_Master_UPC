@@ -6,34 +6,34 @@
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 
-void EmitterSpawn::update(EmitterInstance* particleData)
+void EmitterSpawn::update(EmitterInstance* instance)
 {
-	if (!m_looping && particleData->getCurrentTime() > m_duration) return;
+	DEBUG_LOG("[EmitterSpawn] BEFORE. particles to spawn: %.2f", instance->getParticlesToSpawn());
+	if (!m_looping && instance->getCurrentTime() > m_duration)
+		return;
 
+	float spawn = instance->getParticlesToSpawn();
+	float dt = app->getModuleParticleSystem()->deltaTime();
 
-	float particlesToSpawn = particleData->getParticlesToSpawn();
+	spawn += m_rateOverTime * dt;
+	spawn += m_rateOverDistance * instance->getParticleSystemComponent()->getDistance();
 
-	particlesToSpawn += m_rateOverTime * app->getModuleParticleSystem()->deltaTime();
-	particlesToSpawn += m_rateOverDistance * particleData->getParticleSystemComponent()->getDistance(); // maybe better on GameObject?
+	std::vector<unsigned int>& newParticles = instance->getNewParticles();
 
-	if (particlesToSpawn < 1.f) return;
-
-	Particle* particlePool = particleData->getParticlePool();
-	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
-
-	// We instantiate all particles that can be instantiated (natural part of particlesToSpawn)
-	while (particlesToSpawn >= 1.f)
+	while (spawn >= 1.0f)
 	{
-		int index = particleData->requestPoolSlot();
-		if (index == -1) break; // => no more slots for particles (we will have to do something else)
+		int index = instance->requestPoolSlot();
+		if (index == -1)
+			break;
 
 		newParticles.push_back(index);
 
-		--particlesToSpawn;
+		spawn -= 1.0f;
 	}
 
-	// (For now we will not do anything if we run out of space; but the idea would be REPLACING the oldest particles as new ones)
-	particlesToSpawn = particlesToSpawn - static_cast<long>(particlesToSpawn);
+	DEBUG_LOG("[EmitterSpawn] BFUASTER. particles to spawn: %.2f", instance->getParticlesToSpawn());
+	instance->setParticlesToSpawn(spawn);
+	DEBUG_LOG("[EmitterSpawn] AFTER. particles to spawn: %.2f", instance->getParticlesToSpawn());
 }
 
 bool EmitterSpawn::drawUi()

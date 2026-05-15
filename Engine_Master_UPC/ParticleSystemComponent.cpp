@@ -122,7 +122,10 @@ void ParticleSystemComponent::drawUi()
 
 void ParticleSystemComponent::update()
 {
-    for (auto& particleState : m_particlesState) particleState.updateModules();
+    for (auto& particleState : m_particlesState)
+    {
+        particleState.updateModules();
+    }
 
     m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position (maybe after threating particles?)
 }

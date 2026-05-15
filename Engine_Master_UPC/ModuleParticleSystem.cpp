@@ -19,6 +19,17 @@ void ModuleParticleSystem::preRender()
 	}
 }
 
+void ModuleParticleSystem::update()
+{
+    for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
+    {
+        for (auto& emitter : currentParticleSystemComponent->getEmitterInstances())
+        {
+            emitter.updateModules();
+        }
+    }
+}
+
 ParticleSystem* ModuleParticleSystem::addSystem(Transform* parent)
 {
 	m_particleSystems.push_back(std::make_unique<ParticleSystem>());

@@ -31,7 +31,8 @@ public:
     const Vector3& getPreviousPosition() const { return m_previousPosition; }
     float getDistance() const;
 
-    std::vector<EmitterInstance> getEmitterInstances() const { return m_particlesState; }
+    std::vector<EmitterInstance>& getEmitterInstances() { return m_particlesState; }
+    const std::vector<EmitterInstance>& getEmitterInstances() const { return m_particlesState; }
 
     void drawUi() override;
 

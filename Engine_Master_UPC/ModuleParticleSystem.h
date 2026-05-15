@@ -14,7 +14,8 @@ class ModuleParticleSystem : public Module
 public:
 
     //bool init()     override;
-    void preRender() override;
+    void preRender()  override;
+    void update()     override;
     //void render()   override;
     //bool cleanUp()  override;
 
