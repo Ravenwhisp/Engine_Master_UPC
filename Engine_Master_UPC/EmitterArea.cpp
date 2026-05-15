@@ -65,7 +65,18 @@ bool EmitterArea::drawUi()
 
 rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
 {
-	return rapidjson::Value();
+	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
+	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::AREA), domTree.GetAllocator());
+
+	moduleInfo.AddMember("ShapeType", unsigned int(m_shapeType), domTree.GetAllocator());
+
+	moduleInfo.AddMember("Radius", m_radius, domTree.GetAllocator());
+	moduleInfo.AddMember("RadiusThickness", m_radiusThickness, domTree.GetAllocator());
+
+	if (m_shapeType == AreaType::CONE) moduleInfo.AddMember("RadiusScale", m_radiusScale, domTree.GetAllocator());
+
+	return moduleInfo;
 }
 
 bool EmitterArea::deserializeJSON(const rapidjson::Value& componentValue)

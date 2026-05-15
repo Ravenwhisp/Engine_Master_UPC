@@ -19,6 +19,7 @@ class ParticleModule
 public:
 
 	ParticleModule(ParticleModuleType type) : m_moduleType(type) {}
+	virtual std::unique_ptr<ParticleModule> clone() const = 0;
 
 	virtual void spawn(EmitterInstance* particleData) { return; }
 	virtual void update(EmitterInstance* particleData) { return; }

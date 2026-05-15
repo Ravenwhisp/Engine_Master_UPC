@@ -7,6 +7,9 @@ class EmitterColor : public ParticleModule
 public:
 
 	EmitterColor() : ParticleModule(ParticleModuleType::COLOR) {}
+	std::unique_ptr<ParticleModule> clone() const override {
+		return std::make_unique<EmitterColor>(*this); // calls copy constructor
+	}
 
 	void update(EmitterInstance* particleData) override;
 

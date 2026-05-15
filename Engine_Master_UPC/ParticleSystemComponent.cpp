@@ -32,9 +32,20 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
     cloned->m_gpuTexture = m_gpuTexture;
     cloned->m_textureAsset = m_textureAsset;
     cloned->m_loadRequested = false;
+    cloned->m_currentEditableEmitter = m_currentEditableEmitter;
     cloned->setActive(this->isActive());
 
     // Emitters, Emitter instance cloning
+
+    cloned->m_particleSystem.reset(new ParticleSystem(*m_particleSystem));
+
+    auto& clonedEmitters = cloned->m_particleSystem->getEmitters();
+    cloned->m_particlesState.clear();
+    cloned->m_particlesState.reserve(clonedEmitters.size());
+    for (auto& clonedEmitter : clonedEmitters) 
+    {
+        cloned->m_particlesState.push_back(EmitterInstance(&clonedEmitter, cloned.get()));
+    }
 
     return cloned;
 }
@@ -132,10 +143,20 @@ rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::SPRITE_RENDERER), domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::PARTICLE_SYSTEM), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
+    // Should go on the Emitter class? (or at least have an array of texture assets, one per emitter, in the future)
     componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+
+    rapidjson::Value emitterData(rapidjson::kArrayType);
+    for (auto& emitter : m_particleSystem->getEmitters())
+    {
+        emitterData.PushBack(emitter.getJSON(domTree), domTree.GetAllocator());
+    }
+
+    componentInfo.AddMember("ParticleEmitters", emitterData, domTree.GetAllocator());
 
     return componentInfo;
 }

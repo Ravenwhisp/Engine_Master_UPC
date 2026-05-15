@@ -19,6 +19,9 @@ class EmitterArea : public ParticleModule
 public:
 
 	EmitterArea() : ParticleModule(ParticleModuleType::AREA) {}
+	std::unique_ptr<ParticleModule> clone() const override {
+		return std::make_unique<EmitterArea>(*this); // calls copy constructor
+	}
 
 	void update(EmitterInstance* particleData) override;
 

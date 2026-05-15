@@ -93,7 +93,44 @@ bool EmitterColor::drawUi()
 
 rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
 {
-	return rapidjson::Value();
+	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
+	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::COLOR), domTree.GetAllocator());
+
+	{
+		rapidjson::Value colorData(rapidjson::kArrayType);
+
+		colorData.PushBack(m_creationColor.x, domTree.GetAllocator());
+		colorData.PushBack(m_creationColor.y, domTree.GetAllocator());
+		colorData.PushBack(m_creationColor.z, domTree.GetAllocator());
+		colorData.PushBack(m_creationColor.w, domTree.GetAllocator());
+
+		moduleInfo.AddMember("CreationColor", colorData, domTree.GetAllocator());
+	}
+
+	{
+		rapidjson::Value colorData(rapidjson::kArrayType);
+
+		colorData.PushBack(m_startColor.x, domTree.GetAllocator());
+		colorData.PushBack(m_startColor.y, domTree.GetAllocator());
+		colorData.PushBack(m_startColor.z, domTree.GetAllocator());
+		colorData.PushBack(m_startColor.w, domTree.GetAllocator());
+
+		moduleInfo.AddMember("StartColor", colorData, domTree.GetAllocator());
+	}
+
+	{
+		rapidjson::Value colorData(rapidjson::kArrayType);
+
+		colorData.PushBack(m_endColor.x, domTree.GetAllocator());
+		colorData.PushBack(m_endColor.y, domTree.GetAllocator());
+		colorData.PushBack(m_endColor.z, domTree.GetAllocator());
+		colorData.PushBack(m_endColor.w, domTree.GetAllocator());
+
+		moduleInfo.AddMember("EndColor", colorData, domTree.GetAllocator());
+	}
+
+	return moduleInfo;
 }
 
 bool EmitterColor::deserializeJSON(const rapidjson::Value& componentValue)

@@ -7,6 +7,7 @@ class ParticleSystem
 public:
 
 	ParticleSystem();
+	ParticleSystem(const ParticleSystem& particleSystem);
 
 	std::vector<ParticleEmitter>& getEmitters() { return m_emitters; }
 	ParticleEmitter* addEmitter() { m_emitters.push_back(ParticleEmitter()); return &m_emitters.back(); }

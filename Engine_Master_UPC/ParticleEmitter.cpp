@@ -29,12 +29,6 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 {
 	m_texture = particleEmitter.m_texture;
 
-	m_loops = particleEmitter.m_loops;
-	m_systemDuration = particleEmitter.m_systemDuration;
-
-	m_startSpeed = particleEmitter.m_startSpeed;
-	m_startColor = particleEmitter.m_startColor;
-
 	// Particle modules copy //
 	m_particleModules.reserve(particleEmitter.m_particleModules.size());
 
@@ -57,4 +51,22 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 	}
 
 	return nullptr;
+}
+
+
+rapidjson::Value ParticleEmitter::getJSON(rapidjson::Document& domTree) {
+
+	rapidjson::Value emitterInfo(rapidjson::kObjectType);
+
+	// --- We will probably want to have the textureAssetID here in the future; for now it will be like this
+
+	rapidjson::Value moduleData(rapidjson::kArrayType);
+	for (auto& module : m_particleModules)
+	{
+		moduleData.PushBack(module->getJSON(domTree), domTree.GetAllocator());
+	}
+
+	emitterInfo.AddMember("Modules", moduleData, domTree.GetAllocator());
+
+	return emitterInfo;
 }
