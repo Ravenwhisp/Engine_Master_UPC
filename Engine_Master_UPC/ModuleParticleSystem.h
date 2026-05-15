@@ -33,6 +33,8 @@ public:
 
 private:
 
+    Texture* resolveTexture(const MD5Hash& textureId);
+
     std::vector<std::unique_ptr<ParticleSystem>> m_particleSystems;
     std::vector<Transform*> m_parents;
 

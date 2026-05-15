@@ -8,7 +8,7 @@
 
 void EmitterSpawn::update(EmitterInstance* instance)
 {
-	DEBUG_LOG("[EmitterSpawn] BEFORE. particles to spawn: %.2f", instance->getParticlesToSpawn());
+
 	if (!m_looping && instance->getCurrentTime() > m_duration)
 		return;
 
@@ -31,9 +31,8 @@ void EmitterSpawn::update(EmitterInstance* instance)
 		spawn -= 1.0f;
 	}
 
-	DEBUG_LOG("[EmitterSpawn] BFUASTER. particles to spawn: %.2f", instance->getParticlesToSpawn());
 	instance->setParticlesToSpawn(spawn);
-	DEBUG_LOG("[EmitterSpawn] AFTER. particles to spawn: %.2f", instance->getParticlesToSpawn());
+
 }
 
 bool EmitterSpawn::drawUi()
