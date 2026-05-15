@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "LyrielDash.h"
 
+#include "LyrielCharacter.h"
+
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielDash, AbilityDash,
     SERIALIZED_FLOAT(m_chargeRechargeTime, "Charge Recharge Time", 0.1f, 10.0f, 0.1f),
     SERIALIZED_INT(m_maxCharges, "Max charges")
@@ -14,6 +16,11 @@ LyrielDash::LyrielDash(GameObject* owner)
 void LyrielDash::Start()
 {
     AbilityDash::Start();
+
+    if (m_character == nullptr)
+    {
+        Debug::log("[LyrielDash] CharacterBase not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
 
     m_currentCharges = m_maxCharges;
 }

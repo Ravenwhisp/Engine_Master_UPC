@@ -12,6 +12,9 @@
 #include <format>
 #include <cstring>
 
+#include "Application.h"
+#include "ModuleAssets.h"
+
 
 UIButton::UIButton(UID id, GameObject* owner) : Component(id, ComponentType::UIBUTTON, owner) { }
 
@@ -44,41 +47,23 @@ std::unique_ptr<Component> UIButton::clone(GameObject* newOwner) const
 	return cloned;
 }
 
-void UIButton::onSelect()
-{
-	if (!isActive()) return;
-	if (m_isSelected) return;
-	m_isSelected = true;
-	m_isHovered = true;
-	applyCurrentStateTexture();
-}
-
-void UIButton::onDeselect()
-{
-	if (!m_isSelected) return;
-	m_isSelected = false;
-	m_isHovered = false;
-	m_isPressed = false;
-	applyCurrentStateTexture();
-}
-
 void UIButton::setTargetGraphic(UIImage* img)
 {
 	m_targetGraphic = img;
 	m_targetGraphicUid = img ? img->getID() : 0;
-	m_defaultTextureAssetId = img ? img->getTextureAssetId() : INVALID_ASSET_ID;
+	m_defaultTextureAssetId = img->getTextureAssetId();
 	applyCurrentStateTexture();
 }
 
 #pragma region Events
-void UIButton::applyTargetTexture(const MD5Hash& assetId)
+void UIButton::applyTargetTexture(AssetReference& assetId)
 {
 	if (!m_targetGraphic)
 	{
 		return;
 	}
 
-	if (assetId == INVALID_ASSET_ID)
+	if (!assetId.isValid())
 	{
 		return;
 	}
@@ -86,9 +71,9 @@ void UIButton::applyTargetTexture(const MD5Hash& assetId)
 	m_targetGraphic->setTextureAssetId(assetId);
 }
 
-MD5Hash UIButton::getDefaultTextureAssetId() const
+AssetReference& UIButton::getDefaultTextureAssetId()
 {
-	if (m_defaultTextureAssetId != INVALID_ASSET_ID)
+	if (m_defaultTextureAssetId.isValid())
 	{
 		return m_defaultTextureAssetId;
 	}
@@ -98,27 +83,28 @@ MD5Hash UIButton::getDefaultTextureAssetId() const
 		return m_targetGraphic->getTextureAssetId();
 	}
 
-	return INVALID_ASSET_ID;
+	AssetReference defaultAsset{};
+	return defaultAsset;
 }
 
 void UIButton::applyCurrentStateTexture()
 {
-	MD5Hash targetAsset = getDefaultTextureAssetId();
+	AssetReference& targetAsset = getDefaultTextureAssetId();
 
 	if (m_isPressed && m_isHovered)
 	{
-		if (m_pressedTextureAssetId != INVALID_ASSET_ID)
+		if (m_pressedTextureAssetId.isValid())
 		{
 			targetAsset = m_pressedTextureAssetId;
 		}
-		else if (m_hoverTextureAssetId != INVALID_ASSET_ID)
+		else if (m_hoverTextureAssetId.isValid())
 		{
 			targetAsset = m_hoverTextureAssetId;
 		}
 	}
-	else if (m_isHovered)
+	else if (m_isHovered || m_isSelected)
 	{
-		if (m_hoverTextureAssetId != INVALID_ASSET_ID)
+		if (m_hoverTextureAssetId.isValid())
 		{
 			targetAsset = m_hoverTextureAssetId;
 		}
@@ -156,10 +142,31 @@ void UIButton::onPointerUp(PointerEventData&)
 {
 	m_isPressed = false;
 	applyCurrentStateTexture();
-	if (m_isSelected)
-	{
-		executeBindings(m_bindingsOnRelease);
-	}
+}
+
+void UIButton::onPointerClick(PointerEventData&)
+{
+	if (!isActive()) return;
+
+	executeBindings(m_bindingsOnRelease);
+}
+
+void UIButton::onSelect()
+{
+	if (!isActive()) return;
+	if (m_isSelected) return;
+	m_isSelected = true;
+	m_isHovered = true;
+	applyCurrentStateTexture();
+}
+
+void UIButton::onDeselect()
+{
+	if (!m_isSelected) return;
+	m_isSelected = false;
+	m_isHovered = false;
+	m_isPressed = false;
+	applyCurrentStateTexture();
 }
 
 void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
@@ -267,18 +274,18 @@ void UIButton::drawUi()
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
 			{
-				const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
-				m_hoverTextureAssetId = data ? *data : INVALID_ASSET_ID;
+				UID* data = static_cast<UID*>(payload->Data);
+				m_hoverTextureAssetId = *app->getModuleAssets()->findReference(*data);
 				applyCurrentStateTexture();
 			}
 			ImGui::EndDragDropTarget();
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_hoverTextureAssetId != INVALID_ASSET_ID ? "Assigned" : "Default");
+		ImGui::Text("%s", m_hoverTextureAssetId.isValid() ? "Assigned" : "Default");
 		ImGui::SameLine();
 		if (ImGui::Button("Clear##HoverTexture"))
 		{
-			m_hoverTextureAssetId = INVALID_ASSET_ID;
+			m_hoverTextureAssetId = AssetReference();
 			applyCurrentStateTexture();
 		}
 
@@ -287,18 +294,18 @@ void UIButton::drawUi()
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
 			{
-				const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
-				m_pressedTextureAssetId = data ? *data : INVALID_ASSET_ID;
+				UID* data = static_cast<UID*>(payload->Data);
+				m_pressedTextureAssetId = *app->getModuleAssets()->findReference(*data);
 				applyCurrentStateTexture();
 			}
 			ImGui::EndDragDropTarget();
 		}
 		ImGui::SameLine();
-		ImGui::Text("%s", m_pressedTextureAssetId != INVALID_ASSET_ID ? "Assigned" : "Default");
+		ImGui::Text("%s", m_pressedTextureAssetId.isValid() ? "Assigned" : "Default");
 		ImGui::SameLine();
 		if (ImGui::Button("Clear##PressedTexture"))
 		{
-			m_pressedTextureAssetId = INVALID_ASSET_ID;
+			m_pressedTextureAssetId = AssetReference();
 			applyCurrentStateTexture();
 		}
 	}
@@ -538,8 +545,6 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 			ImGui::EndTable();
 		}
 
-#pragma endregion
-
 		ImGui::PopID();
 	}
 
@@ -610,9 +615,9 @@ rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
 	json.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
 	json.AddMember("Active", isActive(), domTree.GetAllocator());
 	json.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
-	json.AddMember("DefaultTextureAssetId", rapidjson::Value(m_defaultTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
-	json.AddMember("HoverTextureAssetId", rapidjson::Value(m_hoverTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
-	json.AddMember("PressedTextureAssetId", rapidjson::Value(m_pressedTextureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("DefaultTextureAssetId", m_defaultTextureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("HoverTextureAssetId", m_hoverTextureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+	json.AddMember("PressedTextureAssetId", m_pressedTextureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
 	json.AddMember("NavUpUID", (uint64_t)m_navUpUid, domTree.GetAllocator());
 	json.AddMember("NavDownUID", (uint64_t)m_navDownUid, domTree.GetAllocator());
@@ -701,29 +706,17 @@ bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
 
 	if (componentInfo.HasMember("DefaultTextureAssetId"))
 	{
-		m_defaultTextureAssetId = componentInfo["DefaultTextureAssetId"].GetString();
-	}
-	else
-	{
-		m_defaultTextureAssetId = INVALID_ASSET_ID;
+		m_defaultTextureAssetId.deserializeJson(componentInfo["DefaultTextureAssetId"]);
 	}
 
 	if (componentInfo.HasMember("HoverTextureAssetId"))
 	{
-		m_hoverTextureAssetId = componentInfo["HoverTextureAssetId"].GetString();
-	}
-	else
-	{
-		m_hoverTextureAssetId = INVALID_ASSET_ID;
+		m_hoverTextureAssetId.deserializeJson(componentInfo["HoverTextureAssetId"]);
 	}
 
 	if (componentInfo.HasMember("PressedTextureAssetId"))
 	{
-		m_pressedTextureAssetId = componentInfo["PressedTextureAssetId"].GetString();
-	}
-	else
-	{
-		m_pressedTextureAssetId = INVALID_ASSET_ID;
+		m_pressedTextureAssetId.deserializeJson(componentInfo["PressedTextureAssetId"]);
 	}
 
 	if (componentInfo.HasMember("NavUpUID"))
@@ -835,7 +828,7 @@ void UIButton::fixReferences(const SceneReferenceResolver& resolver)
 
 	if (m_targetGraphic)
 	{
-		if (m_defaultTextureAssetId == INVALID_ASSET_ID)
+		if (!m_defaultTextureAssetId.isValid())
 		{
 			m_defaultTextureAssetId = m_targetGraphic->getTextureAssetId();
 		}

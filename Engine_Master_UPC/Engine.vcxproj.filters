@@ -205,9 +205,6 @@
     <ClCompile Include="UID.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
-    <ClCompile Include="ChangeScene.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="WindowGame.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
@@ -243,18 +240,6 @@
     </ClCompile>
     <ClCompile Include="SkyBoxPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetScanner.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="ContentRegistry.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetRegistry.cpp">
-      <Filter>Persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterRegistry.cpp">
-      <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="UID.cpp">
       <Filter>Persistence\UID</Filter>
@@ -308,9 +293,6 @@
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="ExitApplication.cpp">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClCompile>
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -349,12 +331,6 @@
     </ClCompile>
     <ClCompile Include="ImporterSkin.cpp">
       <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteRenderer.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteRendererPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
       <Filter>Core\Commands</Filter>
@@ -426,7 +402,7 @@
     <ClCompile Include="TriggerComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleTrigger.cpp">
+    <ClCompile Include="TriggerSystem.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="PrefabSerializer.cpp" />
@@ -462,6 +438,48 @@
     </ClCompile>
     <ClCompile Include="HapticEffectDefinition.cpp">
       <Filter>Haptics</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Editor\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterScene.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetReference.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetDialogFilter.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshAsset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Asset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAsset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
+      <Filter>Persistence\ToChange</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabManager.cpp">
+      <Filter>Persistence\ToChange</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenePicking.cpp">
+      <Filter>GameEntity\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UINavigation.cpp">
+      <Filter>UI\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="NavModifierVolumeComponent.cpp">
+      <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="PdbPatcher.cpp">
       <Filter>Core\Scripting\HotReloading\Pdb</Filter>
@@ -742,9 +760,6 @@
     <ClInclude Include="TextureAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="ChangeScene.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
-    </ClInclude>
     <ClInclude Include="WindowGame.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
@@ -753,9 +768,6 @@
     </ClInclude>
     <ClInclude Include="WaypointPathComponent.h">
       <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="ExitApplication.h">
-      <Filter>GameEntity\Components\Scripts</Filter>
     </ClInclude>
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
@@ -790,19 +802,7 @@
     <ClInclude Include="SkyBoxPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
-    <ClInclude Include="ImporterRegistry.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetRegistry.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="WeakCache.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="AssetScanner.h">
-      <Filter>Persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="ContentRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="UID.h">
@@ -989,12 +989,6 @@
     <ClInclude Include="AnimationAsset.h">
       <Filter>Animations</Filter>
     </ClInclude>
-    <ClInclude Include="SpriteRenderer.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteRendererPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
     <ClInclude Include="SpriteParams.h">
       <Filter>D3D12\Rendering\RenderData</Filter>
     </ClInclude>
@@ -1110,7 +1104,7 @@
     <ClInclude Include="TriggerDebugDrawMode.h">
       <Filter>D3D12\Rendering\DebugDraw</Filter>
     </ClInclude>
-    <ClInclude Include="ModuleTrigger.h">
+    <ClInclude Include="TriggerSystem.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />
@@ -1129,6 +1123,46 @@
     </ClInclude>
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetDialogFilter.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialogRequest.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterScene.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetReference.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabInstance.h" />
+    <ClInclude Include="AssetScanner.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentRegistry.h">
+      <Filter>Persistence\ToChange</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabManager.h">
+      <Filter>Persistence\ToChange</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenePicking.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="UINavigation.h">
+      <Filter>UI\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="NavModifierVolumeComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshTypes.h">
+      <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="PdbPatcher.h">
       <Filter>Core\Scripting\HotReloading\Pdb</Filter>
@@ -1325,6 +1359,9 @@
     </Filter>
     <Filter Include="Haptics">
       <UniqueIdentifier>{00f18f5b-35a8-4fb5-8851-d2f40f0ad48e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence\ToChange">
+      <UniqueIdentifier>{afaa9501-4f43-49cd-95c9-399393654ca2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Scripting\HotReloading">
       <UniqueIdentifier>{ab6dbf3b-91a1-415b-9a07-3146b44b801c}</UniqueIdentifier>

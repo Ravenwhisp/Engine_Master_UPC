@@ -1,39 +1,46 @@
 ﻿#pragma once
+
 #include "Asset.h"
+#include "Metadata.h"
+
 #include <filesystem>
 #include <vector>
 
 class AssetRegistry;
-class ImporterRegistry;
+class ThreadPool;
 
-// Describes a single asset that needs to be imported or re-imported.
 struct ImportRequest
 {
     std::filesystem::path sourcePath;
-    MD5Hash               existingUID = INVALID_ASSET_ID;
+    UID existingUID = INVALID_UID;
 };
 
-// Scans the assets folder and resolves metadata / binary lifecycle.
-// Returns the list of files that need (re-)importing; the caller decides
-// what to do with them — no event bus required.
+struct ScanFileResult
+{
+    std::vector<Metadata> metadata;
+    std::vector<ImportRequest> imports;
+};
+
 class AssetScanner
 {
 public:
-    AssetScanner(AssetRegistry* metadataStore, ImporterRegistry* importerRegistry);
+    AssetScanner();
 
-    std::vector<ImportRequest> scan(const std::filesystem::path& rootPath);
+    ScanFileResult scan(const std::filesystem::path& rootPath);
 
 private:
-    void checkFile(const std::filesystem::path& path);
-    void loadMetadata(const std::filesystem::path& metadataPath);
-    void handleMissingMetadata(const std::filesystem::path& sourcePath);
-    void handleOrphanedMetadata(const std::filesystem::path& metadataPath);
-    void cleanOrphanedBinaries();
 
-    std::filesystem::path getBinaryPath(const MD5Hash& uid) const;
+private:
+    void collectFiles(const std::filesystem::path& path, std::vector<std::filesystem::path>& files) const;
 
-    AssetRegistry* m_registry{ nullptr };
-    ImporterRegistry* m_importerRegistry{ nullptr };
+    void checkFile(const std::filesystem::path& path, ScanFileResult& result) const;
+    void loadMetadata(const std::filesystem::path& metadataPath, ScanFileResult& result) const;
+    void handleMissingMetadata(const std::filesystem::path& sourcePath, ScanFileResult& result) const;
 
-    std::vector<ImportRequest> m_pendingImports;
+    bool hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const;
+
+    static void queueImport( std::vector<ImportRequest>& imports, const std::filesystem::path& sourcePath, const UID& existingUID);
+
+private:
+    ThreadPool* m_threadPool{ nullptr };
 };

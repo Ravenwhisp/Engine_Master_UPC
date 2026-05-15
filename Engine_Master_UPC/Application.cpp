@@ -15,18 +15,22 @@
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
-#include "ModuleTrigger.h"
 #include "ModuleHaptics.h"
 #include "ModuleScripting.h"
 
 #include "ScriptFactory.h"
 
 #include "Settings.h"
+#include "ThreadPool.h"
+
 #include "OptickProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
+    m_settings = new Settings();
+    m_threadPool = new ThreadPool();
+
     modules.push_back(m_moduleTime = new ModuleTime(120));
     modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
     modules.push_back(m_moduleD3d12M = new ModuleD3D12((HWND)hWnd));
@@ -51,9 +55,6 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_moduleCamera = new ModuleCamera());
     modules.push_back(m_moduleScene = new ModuleScene());
 
-    modules.push_back(m_moduleTrigger = new ModuleTrigger());
-
-    m_settings = new Settings();
 }
 
 Application::~Application()

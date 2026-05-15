@@ -172,7 +172,7 @@ rapidjson::Value SceneSerializer::getSkyBoxJSON(rapidjson::Document& domTree, co
     const SkyBoxSettings& skybox = scene->getSkyBoxSettings();
 
     skyboxInfo.AddMember("Enabled", skybox.enabled, domTree.GetAllocator());
-    skyboxInfo.AddMember("CubemapAssetId", rapidjson::Value(skybox.cubemapAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    skyboxInfo.AddMember("CubemapAssetId", skybox.cubemapAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
     return skyboxInfo;
 }
@@ -214,8 +214,8 @@ std::unique_ptr<Scene> SceneSerializer::LoadScene(const std::string& sceneName)
         DEBUG_ERROR("[SceneSerializer] Scene JSON root is not an object");
         return nullptr;
     }
-
-    auto scene = std::make_unique<Scene>();
+    AssetReference ref(GenerateUID());
+    auto scene = std::make_unique<Scene>(ref);
 
     if (!LoadFromJSON(*scene, doc))
     {
@@ -314,9 +314,9 @@ bool SceneSerializer::LoadSkybox(Scene& scene, const rapidjson::Value& json)
         DEBUG_WARN("[SceneSerializer] Skybox Enabled missing");
     }
 
-    if (data.HasMember("CubemapAssetId") && data["CubemapAssetId"].IsString())
+    if (data.HasMember("CubemapAssetId"))
     {
-        skyboxSettings.cubemapAssetId = (MD5Hash)data["CubemapAssetId"].GetString();
+        skyboxSettings.cubemapAssetId.deserializeJson(data["CubemapAssetId"]);
     }
     else
     {

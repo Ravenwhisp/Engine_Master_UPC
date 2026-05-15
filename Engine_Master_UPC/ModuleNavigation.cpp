@@ -20,6 +20,8 @@
 #include <NavMeshBuilder.h>
 
 #include "NavMeshGeometryExtractor.h"
+#include "NavModifierVolumeComponent.h"
+#include "Transform.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
@@ -210,7 +212,10 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
 
     NavMeshBuildResult result;
 
-    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result))
+    // get modifier volumes from the scene
+    m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
+
+    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;
@@ -266,30 +271,40 @@ void ModuleNavigation::rebuildNavMeshDebugLines()
                 const float* a = &tv[v0 * 3];
                 const float* b = &tv[v1 * 3];
 
+                const float* color = dd::colors::White;
+                
+                if (p->flags & static_cast<unsigned short>(NavPolyFlags::Default))
+                    color = dd::colors::Green;
+                else if (p->flags & static_cast<unsigned short>(NavPolyFlags::Spectral))
+                    color = dd::colors::Blue;
+                else
+                    color = dd::colors::Red; // for unknown flag
+
                 m_navDebugLines.push_back({
                     Vector3(a[0], a[1], a[2]),
-                    Vector3(b[0], b[1], b[2])
+                    Vector3(b[0], b[1], b[2]),
+                    color
                     });
             }
         }
     }
 }
 
-void ModuleNavigation::setPathStart(const Vector3& p)
+void ModuleNavigation::setPathStart(const Vector3& p, NavAgentProfile profile)
 {
     m_pathStart = p;
     m_hasPathStart = true;
-    if (m_hasPathEnd) computeDebugPath();
+    if (m_hasPathEnd) computeDebugPath(profile);
 }
 
-void ModuleNavigation::setPathEnd(const Vector3& p)
+void ModuleNavigation::setPathEnd(const Vector3& p, NavAgentProfile profile)
 {
     m_pathEnd = p;
     m_hasPathEnd = true;
-    if (m_hasPathStart) computeDebugPath();
+    if (m_hasPathStart) computeDebugPath(profile);
 }
 
-bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const
+bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const
 {
     if (!m_navQuery)
         return false;
@@ -300,8 +315,9 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     float exts[3] = { extents.x, extents.y, extents.z };
 
     dtQueryFilter filter;
-
-    filter.setIncludeFlags(0xFFFF);
+    
+    unsigned short includeFlags = getIncludeFlagsForProfile(profile);
+    filter.setIncludeFlags(includeFlags);
     filter.setExcludeFlags(0);
 
     dtPolyRef startRef = 0, endRef = 0;
@@ -357,7 +373,7 @@ void ModuleNavigation::debugDraw()
     {
         for (const auto& l : getNavMeshDebugLines())
         {
-            dd::line(ddConvert(l.a), ddConvert(l.b), dd::colors::Green);
+            dd::line(ddConvert(l.a), ddConvert(l.b), l.color);
 
         }
     }
@@ -376,14 +392,15 @@ void ModuleNavigation::debugDraw()
     }
 }
 
-bool ModuleNavigation::computeDebugPath()
+bool ModuleNavigation::computeDebugPath(NavAgentProfile profile)
 {
     m_debugPathPoints.clear();
     if (!m_navQuery || !m_navMesh) return false;
     if (!m_hasPathStart || !m_hasPathEnd) return false;
 
     dtQueryFilter filter;
-    filter.setIncludeFlags(0xFFFF);
+    //filter.setIncludeFlags(0xFFFF);
+    filter.setIncludeFlags(getIncludeFlagsForProfile(profile));
     filter.setExcludeFlags(0);
 
     float ext[3] = { 2.0f, 4.0f, 2.0f }; 
@@ -421,4 +438,51 @@ bool ModuleNavigation::computeDebugPath()
         
 
     return (m_debugPathPoints.size() >= 2);
+}
+
+std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(Scene& scene) const
+{
+    std::vector<NavModifierVolumeData> data;
+
+    for (GameObject* obj : scene.getAllGameObjects())
+    {
+        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAVMODIFIER_VOLUME);
+        if (navComp)
+        {
+            Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);
+            if (transformComp)
+            {
+                // if component is enabled -> add it to the data
+                if (navComp->getEnabled())
+                {
+                    NavModifierVolumeData volume;
+                    volume.position = transformComp->getPosition();
+                    volume.halfExtents = navComp->getHalfExtents();
+                    volume.areaType = navComp->getAreaType();
+                    volume.enabled = navComp->getEnabled();
+                    volume.priority = navComp->getPriority();
+                    data.push_back(volume);
+                }
+            }
+        }
+    }
+
+    return data;
+}
+
+unsigned short ModuleNavigation::getIncludeFlagsForProfile(NavAgentProfile profile) const
+{
+    unsigned short defaultFlag = static_cast<unsigned short>(NavPolyFlags::Default);
+    unsigned short spectralFlag = static_cast<unsigned short>(NavPolyFlags::Spectral);
+
+    if (profile == NavAgentProfile::PlayerNormal)
+        return defaultFlag;
+
+    if (profile == NavAgentProfile::PlayerSpectral)
+        return defaultFlag | spectralFlag;
+
+    if (profile == NavAgentProfile::EnemyGround)
+        return defaultFlag;
+
+    return defaultFlag;
 }

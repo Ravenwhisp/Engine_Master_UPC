@@ -37,6 +37,7 @@ public:
     void build();
 
     std::vector<GameObject*> query() const;
+	std::vector<GameObject*> queryInArea(const Vector2& center, const float radius) const;
     std::vector<BoundingRect> getQuadrants() const;
 
     void debugDraw() override;

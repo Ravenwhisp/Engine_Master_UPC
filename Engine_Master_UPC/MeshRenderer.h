@@ -52,13 +52,16 @@ public:
 
 	int getTriangles() const { return m_triangles; }
 
-	MD5Hash& getMeshReference() { return m_meshAsset; }
-	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
+	void setMeshReference(AssetReference& meshRef);
+	AssetReference& getMeshReference() { return m_meshAsset; }
+	void addMaterialReference(AssetReference& materialRef);
+	std::vector<AssetReference>& getMaterialsReference() { return m_materialAssets; }
 
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
-	MD5Hash& getSkinReference() { return m_skinAsset; }
-	const MD5Hash& getSkinReference() const { return m_skinAsset; }
+	void setSkinReference(AssetReference& skinRef);
+	AssetReference& getSkinReference() { return m_skinAsset; }
+	const AssetReference& getSkinReference() const { return m_skinAsset; }
 
 	const std::vector<Matrix>& getMatrixPalette() const { return m_matrixPalette; }
 	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
@@ -106,9 +109,9 @@ private:
 	std::vector<Vertex>                m_skinnedVertices;
 	std::unique_ptr<VertexBuffer>      m_skinnedVertexBuffer;
 
-	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
-	MD5Hash							m_skinAsset = INVALID_ASSET_ID;
-	std::vector<MD5Hash>			m_materialAssets;
+	AssetReference m_meshAsset{};
+	AssetReference m_skinAsset{};
+	std::vector<AssetReference> m_materialAssets{};
 
 	mutable Engine::BoundingBox				m_boundingBox;
 

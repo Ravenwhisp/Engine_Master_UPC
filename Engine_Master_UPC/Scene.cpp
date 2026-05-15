@@ -17,10 +17,18 @@
 #include "Transform.h"
 #include "SceneReferenceResolver.h"
 
+#include "TriggerSystem.h"
+#include "TriggerComponent.h"
+
 #include <limits>
 #include <algorithm>
 
-Scene::Scene() = default;
+
+Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
+{
+    m_triggerSystem = std::make_unique<TriggerSystem>();
+}
+
 Scene::~Scene() = default;
 
 #pragma region GameLoop
@@ -79,6 +87,11 @@ void Scene::update()
             }
         }
 
+        if (m_triggerSystem)
+        {
+            m_triggerSystem->update();
+        }
+
         m_isUpdating = false;
 
         flushPendingGameObjects();
@@ -124,8 +137,6 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     auto newGameObject = std::make_unique<GameObject>(id, transformUID);
     GameObject* raw = newGameObject.get();
 
-    raw->init();
-
     raw->onTransformChange();
 
     if (m_isUpdating)
@@ -141,6 +152,17 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     }
 
     return raw;
+}
+
+void Scene::initLoadedObjects()
+{
+    for (GameObject* root : m_rootObjects)
+    {
+        if (root)
+        {
+            root->init();
+        }
+    }
 }
 
 GameObject* Scene::findGameObjectByUID(UID uuid)
@@ -480,6 +502,8 @@ void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
+    clearTriggers();
+
     for (auto& pending : m_pendingDestroyedObjects)
     {
         if (pending.gameObject)
@@ -509,5 +533,29 @@ void Scene::markDirty()
     if (app && app->getModuleRender())
     {
         app->getModuleRender()->markDebugDrawCacheDirty();
+    }
+}
+
+void Scene::registerTrigger(TriggerComponent* trigger)
+{
+    if (m_triggerSystem)
+    {
+        m_triggerSystem->registerTrigger(trigger);
+    }
+}
+
+void Scene::unregisterTrigger(TriggerComponent* trigger)
+{
+    if (m_triggerSystem)
+    {
+        m_triggerSystem->unregisterTrigger(trigger);
+    }
+}
+
+void Scene::clearTriggers()
+{
+    if (m_triggerSystem)
+    {
+        m_triggerSystem->clear();
     }
 }
