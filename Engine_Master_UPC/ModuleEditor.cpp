@@ -22,6 +22,7 @@
 #include "WindowGameDebug.h"
 #include "ModuleRender.h"
 #include "WindowAnimationStateMachine.h"
+#include "PrefabManager.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -627,7 +628,7 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     Scene* mainScene = app->getModuleScene()->getScene();
     m_prefabSession.m_isolatedScene = mainScene;
 
-    GameObject* loaded = app->getModuleAssets()->spawnPrefab(sourcePath, mainScene);
+    GameObject* loaded = app->getModuleAssets()->getPrefabManager()->spawnPrefab(sourcePath, mainScene);
 
     if (!loaded)
     {

@@ -4,6 +4,7 @@
 #include "PlayerState.h"
 #include "PlayerDamageable.h"
 #include "PlayerController.h"
+#include "EnemyDamageable.h"
 
 //static const ScriptFieldInfo myScriptFields[] =
 //{
@@ -29,8 +30,9 @@ void LevelCheats::Update()
     if (KeyComboPressed(KeyCode::W)) AutoLose();
     if (KeyComboPressed(KeyCode::E)) Teleport();
     if (KeyComboPressed(KeyCode::R)) ActivateGodMode();
-    if (KeyComboPressed(KeyCode::T)) SpawnEnemies();
-    //if (KeyComboPressed(KeyCode::D)) restartLevel();
+    /*if (KeyComboPressed(KeyCode::T)) SpawnEnemies();*/
+    if (KeyComboPressed(KeyCode::D)) restartLevel();
+	if (KeyComboPressed(KeyCode::F)) killEnemies();
     if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::A))
     {
         if (KeyComboPressed(KeyCode::Num1)) 
@@ -102,15 +104,12 @@ void LevelCheats::ActivateGodMode()
 
     for (GameObject* player : players)
     {
-        Script* playerControllerScript = GameObjectAPI::getScript(player, "PlayerController");
-		PlayerController* playerController = dynamic_cast<PlayerController*>(playerControllerScript);
+        PlayerController* playerController = GameObjectAPI::findScript<PlayerController>(player);
         if (playerController)
         {
             playerController->m_godMode = !playerController->m_godMode;
-		}
+        }
     }
-	
-    
 }
 
 void LevelCheats::SpawnEnemies()
@@ -129,34 +128,50 @@ void LevelCheats::SpawnEnemies()
 
 void LevelCheats::RestoreHealth()
 {
-    Debug::log("Restore Health activated! Player %i healed",m_playerIndex+1);
-	GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
-    Script* damageableScript = GameObjectAPI::getScript(player, "PlayerDamageable");
-    PlayerDamageable* damageable = dynamic_cast<PlayerDamageable*>(damageableScript);
+    Debug::log("Restore Health activated! Player %i healed", m_playerIndex + 1);
+
+    GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
+    Damageable* damageable = GameObjectAPI::findScript<Damageable>(player);
+
     if (damageable)
     {
         damageable->heal(100);
-	}
-    
+    }
 }
 
 void LevelCheats::DownState()
 {
-    Debug::log("Down State activated! Player % i downed", m_playerIndex+1);
-	GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
-    Script* damageableScript = GameObjectAPI::getScript(player, "PlayerState");
-    PlayerState* playerState = dynamic_cast<PlayerState*>(damageableScript);
-    if (playerState)
+    Debug::log("Down State activated! Player %i downed", m_playerIndex + 1);
+
+    GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
+    Damageable* damageable = GameObjectAPI::findScript<Damageable>(player);
+
+    if (damageable)
     {
-        playerState->setState(PlayerStateType::Downed);
-	}
-    
+        damageable->takeDamage(damageable->getCurrentHp());
+    }
 }
 
 void LevelCheats::restartLevel()
 {
     Debug::log("Restart Level activated!");
-    SceneAPI::requestSceneChange("LVL1Cheats");
+    SceneAPI::requestSceneChange("Level1");
+}
+
+void LevelCheats::killEnemies()
+{
+    Debug::log("Kill Enemies activated!");
+
+    std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY);
+    for (GameObject* enemy : enemies)
+    {
+        Damageable* damageable = GameObjectAPI::findScript<Damageable>(enemy);
+
+        if (damageable)
+        {
+            damageable->takeDamage(damageable->getCurrentHp());
+        }
+    }
 }
 
 IMPLEMENT_SCRIPT(LevelCheats)

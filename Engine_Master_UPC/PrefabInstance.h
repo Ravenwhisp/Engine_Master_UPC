@@ -32,7 +32,7 @@ struct PrefabOverrideRecord
 struct PrefabInstanceInfo
 {
     std::filesystem::path m_sourcePath;
-    MD5Hash m_assetUID;
+    UID m_assetUID;
 
     PrefabOverrideRecord m_overrides;
 

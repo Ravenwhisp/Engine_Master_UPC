@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Module.h"
 #include "UID.h"
 
 #include <vector>
@@ -9,11 +8,11 @@ class TriggerComponent;
 class GameObject;
 class Script;
 
-class ModuleTrigger : public Module
+class TriggerSystem
 {
 public:
-    void update() override;
-    bool cleanUp() override;
+    void update();
+    void clear();
 
 #pragma region Registration
     void registerTrigger(TriggerComponent* trigger);

@@ -10,10 +10,11 @@ public:
         return false;
     }
 
-    Asset* createAssetInstance(const MD5Hash& uid) const override
+    Asset* createAssetInstance(AssetReference& uid) const override
     {
         return new SkinAsset(uid);
     }
+    bool saveNative(const SkinAsset* asset, const std::filesystem::path& path);
 
 protected:
     bool importNative(const std::filesystem::path&, SkinAsset*) override

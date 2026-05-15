@@ -4,6 +4,7 @@
 #include <TextureAsset.h>
 #include "UIFill.h"
 
+class Texture;
 struct Rect2D;
 
 class UIImage : public Component
@@ -16,13 +17,13 @@ public:
     void requestLoad() { m_loadRequested = true; }
     bool consumeLoadRequest();
 
-    class Texture* getTexture() const { return m_texture; }
+    Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
-    void setTextureAssetId(const MD5Hash& assetId);
+    void setTextureAssetId(AssetReference& assetId);
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
-    MD5Hash getTextureAssetId() const { return m_textureAssetId; }
+    AssetReference& getTextureAssetId() { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 
@@ -43,7 +44,7 @@ public:
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 private:
-    MD5Hash m_textureAssetId = INVALID_ASSET_ID;
+    AssetReference m_textureAssetId{};
     Texture* m_texture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;

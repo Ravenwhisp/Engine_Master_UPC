@@ -8,6 +8,7 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include <WindowLogger.h>
+#include "AssetReference.h"
 
 static bool DecodeIndices(const MeshAsset& mesh, std::vector<uint32_t>& out)
 {
@@ -127,10 +128,10 @@ static void CollectFromObject(
         MeshRenderer* renderer = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (renderer)
         {
-            const MD5Hash meshId = renderer->getMeshReference();
-            if (meshId != INVALID_ASSET_ID)
+            AssetReference& meshRef = renderer->getMeshReference();
+            if (meshRef.isValid())
             {
-                auto mesh = app->getModuleAssets()->load<MeshAsset>(meshId);
+                auto mesh = app->getModuleAssets()->load<MeshAsset>(meshRef);
                 if (mesh)
                 {
                     const Matrix world = obj->GetTransform()->getGlobalMatrix();
