@@ -102,7 +102,7 @@ void ParticleSystemComponent::drawUi()
     bool parameterChanged = false;
     for (std::unique_ptr<ParticleModule>& module : currentEmitter.getModules()) 
     {
-        parameterChanged = parameterChanged || module->drawUi();
+        parameterChanged |= module->drawUi();
         ImGui::Separator();
     }
 
@@ -114,10 +114,15 @@ void ParticleSystemComponent::drawUi()
 
 void ParticleSystemComponent::update()
 {
+    /* RIGHT NOW EXECUTON HAPPENS IN PARTICLESYSTEMODULE
     for (auto& particleState : m_particlesState)
     {
         particleState.updateModules();
     }
+    */
+
+
+    
 
     m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position (maybe after threating particles?)
 }

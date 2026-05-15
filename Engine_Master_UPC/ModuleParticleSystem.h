@@ -41,6 +41,6 @@ private:
     std::vector<ParticleEmitterCommand> m_particleCommands; // we will probably want to directly get the shader parameters in the future
     std::unordered_map<MD5Hash, std::shared_ptr<Texture>> m_particleTextures;
 
-    float m_timeScale = 1.f; // for future particle speed control
+    float m_timeScale = 1.f; // for particle speed control
 };
 

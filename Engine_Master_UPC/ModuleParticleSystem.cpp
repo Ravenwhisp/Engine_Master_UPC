@@ -57,6 +57,8 @@ void ModuleParticleSystem::update()
 {
     for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
     {
+        if (currentParticleSystemComponent->getTextureAssetId() == INVALID_ASSET_ID) continue;
+
         for (auto& emitter : currentParticleSystemComponent->getEmitterInstances())
         {
             emitter.updateModules();

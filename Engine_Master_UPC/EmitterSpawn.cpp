@@ -31,6 +31,8 @@ void EmitterSpawn::update(EmitterInstance* instance)
 		spawn -= 1.0f;
 	}
 
+	spawn = spawn - static_cast<long>(spawn);
+
 	instance->setParticlesToSpawn(spawn);
 
 }
