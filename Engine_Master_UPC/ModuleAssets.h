@@ -110,6 +110,14 @@ public:
                 }
             }
 
+            {
+                auto it = m_uidIndex.find(ref.m_uid);
+                if (it != m_uidIndex.end() && isValidAsset(it->second.contentHash))
+                {
+                    ref.m_libId = it->second.contentHash;
+                }
+            }
+
             if (auto loaded = loadFromLibrary<T>(ref))
             {
                 return loaded;

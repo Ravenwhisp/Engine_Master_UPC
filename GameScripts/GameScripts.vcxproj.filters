@@ -189,6 +189,9 @@
     <ClInclude Include="DebugGetObjectsArea.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="UIPause.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -375,6 +378,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="DebugGetObjectsArea.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPause.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

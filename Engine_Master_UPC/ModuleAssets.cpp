@@ -208,6 +208,18 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
     asset->setLibId(meta.contentHash);
     reference.m_type = meta.type;
 
+    {
+        auto prevIt = m_uidIndex.find(meta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != meta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+
     std::error_code ec;
     meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
     if (ec) meta.sourceFileSize = 0;

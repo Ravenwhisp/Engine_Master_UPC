@@ -10,7 +10,7 @@ UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAG
 {
 }
 
-void UIImage::setTextureAssetId(AssetReference& assetId)
+void UIImage::setTextureAssetId(const AssetReference& assetId)
 {
     m_textureAssetId = assetId;
     m_texture = nullptr;
