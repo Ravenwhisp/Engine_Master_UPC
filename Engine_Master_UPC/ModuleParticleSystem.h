@@ -14,7 +14,8 @@ class ModuleParticleSystem : public Module
 public:
 
     //bool init()     override;
-    void preRender() override;
+    void preRender()  override;
+    void update()     override;
     //void render()   override;
     //bool cleanUp()  override;
 
@@ -31,6 +32,8 @@ public:
     float getScale() const { return m_timeScale; };
 
 private:
+
+    Texture* resolveTexture(const MD5Hash& textureId);
 
     std::vector<std::unique_ptr<ParticleSystem>> m_particleSystems;
     std::vector<Transform*> m_parents;

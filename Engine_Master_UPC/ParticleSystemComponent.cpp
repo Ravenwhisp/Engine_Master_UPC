@@ -29,9 +29,6 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
     std::unique_ptr<ParticleSystemComponent> cloned = std::make_unique<ParticleSystemComponent>(m_uuid, newOwner);
 
     cloned->m_textureAssetId = m_textureAssetId;
-    cloned->m_gpuTexture = m_gpuTexture;
-    cloned->m_textureAsset = m_textureAsset;
-    cloned->m_loadRequested = false;
     cloned->m_currentEditableEmitter = m_currentEditableEmitter;
     cloned->setActive(this->isActive());
 
@@ -48,13 +45,6 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
     }
 
     return cloned;
-}
-
-bool ParticleSystemComponent::consumeLoadRequest()
-{
-    const bool wasRequested = m_loadRequested;
-    m_loadRequested = false;
-    return wasRequested;
 }
 
 float ParticleSystemComponent::getDistance() const
@@ -76,25 +66,16 @@ void ParticleSystemComponent::drawUi()
         {
             const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
             m_textureAssetId = *data;
-            currentEmitter.setTexture(nullptr);
-            m_gpuTexture = nullptr;
-            m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*data);
             DEBUG_LOG("Texture on particle system drop: assetId=%s", data->c_str());
-            DEBUG_LOG("texture on particle system load result: %s", m_textureAsset ? "OK" : "NULL");
-            if (m_textureAsset)
-            {
-                m_loadRequested = true;
-                DEBUG_LOG("Texture on particle system load requested: %s", m_loadRequested ? "YES" : "NO");
-            }
         }
         ImGui::EndDragDropTarget();
     }
 
     ImGui::SameLine();
 
-    ImGui::Text("Loaded: %s", (currentEmitter.getTexture() != nullptr) ? "YES" : "NO");
+    ImGui::Text("Loaded: %s", (m_textureAssetId != INVALID_ASSET_ID) ? "YES" : "NO");
 
-    if (!currentEmitter.getTexture()) return;
+    if (m_textureAssetId == INVALID_ASSET_ID) return;
 
     // EMITTER INTERFACE
 
@@ -133,7 +114,10 @@ void ParticleSystemComponent::drawUi()
 
 void ParticleSystemComponent::update()
 {
-    for (auto& particleState : m_particlesState) particleState.updateModules();
+    for (auto& particleState : m_particlesState)
+    {
+        particleState.updateModules();
+    }
 
     m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position (maybe after threating particles?)
 }
@@ -166,14 +150,6 @@ bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentI
     if (componentInfo.HasMember("TextureAssetId"))
     {
         m_textureAssetId = componentInfo["TextureAssetId"].GetString();
-
-        m_gpuTexture = nullptr;
-        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
-
-        if (m_textureAsset)
-        {
-            m_loadRequested = true;
-        }
     }
 
     // Emitters and instances set up //
