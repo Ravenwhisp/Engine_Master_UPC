@@ -25,6 +25,30 @@ ParticleEmitter::ParticleEmitter()
 	m_particleModules.push_back(std::make_unique<EmitterVelocity>());
 }
 
+ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
+{
+	m_texture = particleEmitter.m_texture;
+
+	m_loops = particleEmitter.m_loops;
+	m_systemDuration = particleEmitter.m_systemDuration;
+
+	m_startSpeed = particleEmitter.m_startSpeed;
+	m_startColor = particleEmitter.m_startColor;
+
+	// Particle modules copy //
+	m_particleModules.reserve(particleEmitter.m_particleModules.size());
+
+	m_particleModules.push_back(particleEmitter.m_particleModules[0]->clone());
+
+	auto emitterLifeTime = particleEmitter.m_particleModules[1]->clone();
+	m_lifeTimeModule = static_cast<EmitterLifetime*>(emitterLifeTime.get());
+	m_particleModules.push_back(std::move(emitterLifeTime));
+
+	m_particleModules.push_back(particleEmitter.m_particleModules[2]->clone());
+	m_particleModules.push_back(particleEmitter.m_particleModules[3]->clone());
+	m_particleModules.push_back(particleEmitter.m_particleModules[4]->clone());
+}
+
 ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 {
 	for (auto& module : m_particleModules) 
