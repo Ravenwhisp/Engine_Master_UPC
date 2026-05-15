@@ -56,7 +56,13 @@ bool EmitterLifetime::drawUi()
 
 rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
 {
-	return rapidjson::Value();
+	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
+	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::LIFETIME), domTree.GetAllocator());
+
+	moduleInfo.AddMember("StartLifeTime", m_startLifeTime, domTree.GetAllocator());
+
+	return moduleInfo;
 }
 
 bool EmitterLifetime::deserializeJSON(const rapidjson::Value& componentValue)

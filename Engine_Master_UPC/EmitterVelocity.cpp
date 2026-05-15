@@ -55,7 +55,13 @@ bool EmitterVelocity::drawUi()
 
 rapidjson::Value EmitterVelocity::getJSON(rapidjson::Document& domTree)
 {
-	return rapidjson::Value();
+	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
+	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::VELOCITY), domTree.GetAllocator());
+
+	moduleInfo.AddMember("InitialVelocity", m_initialVelocity, domTree.GetAllocator());
+
+	return moduleInfo;
 }
 
 bool EmitterVelocity::deserializeJSON(const rapidjson::Value& componentValue)

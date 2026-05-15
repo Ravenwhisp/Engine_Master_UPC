@@ -54,7 +54,18 @@ bool EmitterSpawn::drawUi()
 
 rapidjson::Value EmitterSpawn::getJSON(rapidjson::Document& domTree)
 {
-	return rapidjson::Value();
+	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
+	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::SPAWN), domTree.GetAllocator());
+
+	moduleInfo.AddMember("Looping", m_looping, domTree.GetAllocator());
+	moduleInfo.AddMember("Duration", m_duration, domTree.GetAllocator());
+
+	moduleInfo.AddMember("RateOverTime", m_rateOverTime, domTree.GetAllocator());
+	moduleInfo.AddMember("RateOverDistance", m_rateOverTime, domTree.GetAllocator());
+
+	return moduleInfo;
+
 }
 
 bool EmitterSpawn::deserializeJSON(const rapidjson::Value& componentValue)

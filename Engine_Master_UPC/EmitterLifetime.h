@@ -9,6 +9,9 @@ class EmitterLifetime : public ParticleModule
 public:
 
 	EmitterLifetime() : ParticleModule(ParticleModuleType::LIFETIME) {}
+	std::unique_ptr<ParticleModule> clone() const override {
+		return std::make_unique<EmitterLifetime>(*this); // calls copy constructor
+	}
 
 	void update(EmitterInstance* particleData) override;
 
