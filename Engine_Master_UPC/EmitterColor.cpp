@@ -133,7 +133,25 @@ rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
 	return moduleInfo;
 }
 
-bool EmitterColor::deserializeJSON(const rapidjson::Value& componentValue)
+bool EmitterColor::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	return false;
+	if (moduleInfo.HasMember("CreationColor"))
+	{
+		const auto& color = moduleInfo["CreationColor"].GetArray();
+		m_creationColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
+	}
+
+	if (moduleInfo.HasMember("StartColor"))
+	{
+		const auto& color = moduleInfo["StartColor"].GetArray();
+		m_startColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
+	}
+
+	if (moduleInfo.HasMember("EndColor"))
+	{
+		const auto& color = moduleInfo["EndColor"].GetArray();
+		m_endColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
+	}
+
+	return true;
 }

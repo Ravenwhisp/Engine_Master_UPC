@@ -65,7 +65,11 @@ rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
 	return moduleInfo;
 }
 
-bool EmitterLifetime::deserializeJSON(const rapidjson::Value& componentValue)
+bool EmitterLifetime::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	return false;
+	if (moduleInfo.HasMember("StartLifeTime")) {
+		m_startLifeTime = moduleInfo["StartLifeTime"].GetFloat();
+	}
+
+	return true;
 }

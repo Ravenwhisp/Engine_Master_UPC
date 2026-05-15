@@ -20,7 +20,7 @@ public:
 
 	bool drawUi() override;
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
 private:
 

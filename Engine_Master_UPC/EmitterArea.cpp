@@ -79,9 +79,81 @@ rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
 	return moduleInfo;
 }
 
-bool EmitterArea::deserializeJSON(const rapidjson::Value& componentValue)
+bool EmitterArea::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	return false;
+	if (moduleInfo.HasMember("ShapeType"))
+	{
+		unsigned int shapeUInt = moduleInfo["ShapeType"].GetUint();
+		AreaType shapeType = static_cast<AreaType>(shapeUInt);
+
+		switch (shapeType) {
+		
+		case AreaType::CIRCLE:
+
+			m_shapeType = AreaType::CIRCLE;
+
+			if (moduleInfo.HasMember("Radius")) 
+			{
+				m_radius = moduleInfo["Radius"].GetFloat();
+			}
+			if (moduleInfo.HasMember("RadiusThickness"))
+			{
+				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
+			}
+
+			break;
+
+		case AreaType::CONE:
+
+			m_shapeType = AreaType::CONE;
+
+			if (moduleInfo.HasMember("Radius"))
+			{
+				m_radius = moduleInfo["Radius"].GetFloat();
+			}
+			if (moduleInfo.HasMember("RadiusThickness"))
+			{
+				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
+			}
+			if (moduleInfo.HasMember("RadiusScale")) // only this one has it
+			{
+				m_radiusScale = moduleInfo["RadiusScale"].GetFloat();
+			}
+
+			break;
+		
+		case AreaType::HEMISPHERE:
+
+			m_shapeType = AreaType::HEMISPHERE;
+
+			if (moduleInfo.HasMember("Radius"))
+			{
+				m_radius = moduleInfo["Radius"].GetFloat();
+			}
+			if (moduleInfo.HasMember("RadiusThickness"))
+			{
+				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
+			}
+
+			break;
+
+		case AreaType::SPHERE:
+
+			m_shapeType = AreaType::SPHERE;
+
+			if (moduleInfo.HasMember("Radius"))
+			{
+				m_radius = moduleInfo["Radius"].GetFloat();
+			}
+			if (moduleInfo.HasMember("RadiusThickness"))
+			{
+				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
+			}
+
+		}
+	}
+
+	return true;
 }
 
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)

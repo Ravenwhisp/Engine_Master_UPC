@@ -176,5 +176,23 @@ bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentI
         }
     }
 
+    // Emitters and instances set up //
+    if (!componentInfo.HasMember("ParticleEmitters")) return false;
+
+    const rapidjson::Value& emittersInfo = componentInfo["ParticleEmitters"];
+
+    m_particleSystem.reset(new ParticleSystem(emittersInfo.Size()));
+
+    auto& emitters = m_particleSystem->getEmitters();
+    m_particlesState.clear();
+    m_particlesState.reserve(emitters.size());
+
+    for (unsigned int i = 0; i < emitters.size(); ++i)
+    {
+        emitters[i].deserializeJSON(emittersInfo[i]);
+
+        m_particlesState.push_back(EmitterInstance(&emitters[i], this));
+    }
+
     return true;
 }

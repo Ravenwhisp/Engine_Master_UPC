@@ -1,9 +1,9 @@
 #include "Globals.h"
 #include "ParticleSystem.h"
 
-ParticleSystem::ParticleSystem()
+ParticleSystem::ParticleSystem(unsigned int numEmitters)
 {
-	m_emitters.push_back(ParticleEmitter());
+	m_emitters.resize(numEmitters);	
 }
 
 ParticleSystem::ParticleSystem(const ParticleSystem& particleSystem)

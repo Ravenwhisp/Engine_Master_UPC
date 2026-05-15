@@ -64,7 +64,11 @@ rapidjson::Value EmitterVelocity::getJSON(rapidjson::Document& domTree)
 	return moduleInfo;
 }
 
-bool EmitterVelocity::deserializeJSON(const rapidjson::Value& componentValue)
+bool EmitterVelocity::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	return false;
+	if (moduleInfo.HasMember("InitialVelocity")) {
+		m_initialVelocity = moduleInfo["InitialVelocity"].GetFloat();
+	}
+
+	return true;
 }

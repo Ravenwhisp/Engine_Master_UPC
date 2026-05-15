@@ -62,13 +62,30 @@ rapidjson::Value EmitterSpawn::getJSON(rapidjson::Document& domTree)
 	moduleInfo.AddMember("Duration", m_duration, domTree.GetAllocator());
 
 	moduleInfo.AddMember("RateOverTime", m_rateOverTime, domTree.GetAllocator());
-	moduleInfo.AddMember("RateOverDistance", m_rateOverTime, domTree.GetAllocator());
+	moduleInfo.AddMember("RateOverDistance", m_rateOverDistance, domTree.GetAllocator());
 
 	return moduleInfo;
 
 }
 
-bool EmitterSpawn::deserializeJSON(const rapidjson::Value& componentValue)
+bool EmitterSpawn::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	return false;
+	if (moduleInfo.HasMember("Looping")) {
+		m_looping = moduleInfo["Looping"].GetBool();
+	}
+
+	if (moduleInfo.HasMember("Duration")) {
+		m_duration = moduleInfo["Duration"].GetFloat();
+	}
+
+
+	if (moduleInfo.HasMember("RateOverTime")) {
+		m_rateOverTime = moduleInfo["RateOverTime"].GetFloat();
+	}
+
+	if (moduleInfo.HasMember("RateOverDistance")) {
+		m_rateOverDistance = moduleInfo["RateOverDistance"].GetFloat();
+	}
+
+	return true;
 }

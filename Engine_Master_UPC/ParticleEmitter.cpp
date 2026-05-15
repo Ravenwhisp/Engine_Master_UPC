@@ -70,3 +70,59 @@ rapidjson::Value ParticleEmitter::getJSON(rapidjson::Document& domTree) {
 
 	return emitterInfo;
 }
+
+bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
+
+	if (!emitterInfo.HasMember("Modules")) return false;
+
+	const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
+
+	for (auto& moduleData : modulesInfo.GetArray()) 
+	{
+		if (!moduleData.HasMember("ModuleType")) continue;
+
+		unsigned int typeUInt = moduleData["ModuleType"].GetUint();
+		ParticleModuleType moduleType = static_cast<ParticleModuleType>(typeUInt);
+
+		switch (moduleType) { // WE SHOULD SERIOUSLY CONSIDER HAVING THE MODULES SEPARATED...
+
+		case ParticleModuleType::BASE:
+
+			// Not implemented yet
+			break;
+
+		case ParticleModuleType::AREA:
+
+			m_particleModules[2]->deserializeJSON(moduleData);
+			break;
+
+		case ParticleModuleType::SPAWN:
+
+			m_particleModules[0]->deserializeJSON(moduleData);
+			break;
+
+		case ParticleModuleType::COLOR:
+
+			m_particleModules[3]->deserializeJSON(moduleData);
+			break;
+
+		case ParticleModuleType::LIFETIME:
+
+			m_particleModules[1]->deserializeJSON(moduleData);
+			break;
+		
+		case ParticleModuleType::VELOCITY:
+
+			m_particleModules[4]->deserializeJSON(moduleData);
+		}
+	}
+	return true;
+}
+
+/*
+BASE,
+AREA,
+SPAWN,
+COLOR,
+LIFETIME,
+VELOCITY*/
