@@ -20,10 +20,10 @@ public:
     Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
-    void setTextureAssetId(AssetReference& assetId);
+    void setTextureAssetId(const AssetReference& assetId);
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
-    AssetReference& getTextureAssetId() { return m_textureAssetId; }
+    const AssetReference& getTextureAssetId() const { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 

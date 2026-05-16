@@ -124,6 +124,7 @@ EditorWindow* ModuleEditor::openWindow(const std::string& typeKey)
     }
 
     EditorWindow* window = it->second();
+    window->setOpen(true);
     window->setInstanceId(m_nextInstanceId++);
     m_editorWindows.push_back(window);
     return window;

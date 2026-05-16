@@ -6,6 +6,7 @@
 #include "UID.h"
 
 #include <filesystem>
+#include <unordered_set>
 
 struct AssetEntry;
 struct DirectoryEntry;
@@ -26,6 +27,7 @@ private:
 
     void drawDirectoryItem(DirectoryEntry* directory);
     void drawAssetItem(DirectoryEntry* directory, const AssetEntry& asset);
+    void drawSubAssetItem(const AssetEntry& subAsset);
 
     void navigateTo(const std::filesystem::path& path);
 
@@ -52,6 +54,7 @@ private:
     UID m_selectedAsset = INVALID_UID;
 
     FileDialogClipboard m_clipboard;
+    std::unordered_set<UID> m_expandedAssets;
 
     bool m_showVariantModal = false;
     bool m_showSavePrefabModal = false;

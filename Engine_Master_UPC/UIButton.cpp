@@ -56,7 +56,7 @@ void UIButton::setTargetGraphic(UIImage* img)
 }
 
 #pragma region Events
-void UIButton::applyTargetTexture(AssetReference& assetId)
+void UIButton::applyTargetTexture(const AssetReference& assetId)
 {
 	if (!m_targetGraphic)
 	{
@@ -71,7 +71,7 @@ void UIButton::applyTargetTexture(AssetReference& assetId)
 	m_targetGraphic->setTextureAssetId(assetId);
 }
 
-AssetReference& UIButton::getDefaultTextureAssetId()
+const AssetReference& UIButton::getDefaultTextureAssetId()
 {
 	if (m_defaultTextureAssetId.isValid())
 	{
@@ -83,34 +83,34 @@ AssetReference& UIButton::getDefaultTextureAssetId()
 		return m_targetGraphic->getTextureAssetId();
 	}
 
-	AssetReference defaultAsset{};
-	return defaultAsset;
+	static AssetReference s_defaultAsset{};
+	return s_defaultAsset;
 }
 
 void UIButton::applyCurrentStateTexture()
 {
-	AssetReference& targetAsset = getDefaultTextureAssetId();
+	const AssetReference* targetAsset = &getDefaultTextureAssetId();
 
 	if (m_isPressed && m_isHovered)
 	{
 		if (m_pressedTextureAssetId.isValid())
 		{
-			targetAsset = m_pressedTextureAssetId;
+			targetAsset = &m_pressedTextureAssetId;
 		}
 		else if (m_hoverTextureAssetId.isValid())
 		{
-			targetAsset = m_hoverTextureAssetId;
+			targetAsset = &m_hoverTextureAssetId;
 		}
 	}
 	else if (m_isHovered || m_isSelected)
 	{
 		if (m_hoverTextureAssetId.isValid())
 		{
-			targetAsset = m_hoverTextureAssetId;
+			targetAsset = &m_hoverTextureAssetId;
 		}
 	}
 
-	applyTargetTexture(targetAsset);
+	applyTargetTexture(*targetAsset);
 }
 
 void UIButton::onPointerEnter(PointerEventData&)

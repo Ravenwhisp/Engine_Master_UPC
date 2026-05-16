@@ -110,6 +110,14 @@ public:
                 }
             }
 
+            {
+                auto it = m_uidIndex.find(ref.m_uid);
+                if (it != m_uidIndex.end() && isValidAsset(it->second.contentHash))
+                {
+                    ref.m_libId = it->second.contentHash;
+                }
+            }
+
             if (auto loaded = loadFromLibrary<T>(ref))
             {
                 return loaded;
@@ -176,6 +184,9 @@ public:
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
 
     void flushDialogRequests();
+
+    bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
+
 private:
     UID findUID(const std::filesystem::path& sourcePath) const;
     

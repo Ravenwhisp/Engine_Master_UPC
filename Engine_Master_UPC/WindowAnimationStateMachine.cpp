@@ -198,7 +198,7 @@ void WindowAnimationStateMachine::drawHeaderUi()
 
     ImGui::SameLine();
 
-    if (!m_targetStateMachineUID->isValid())
+    if (!m_targetStateMachineUID)
     {
         ImGui::Spacing();
         ImGui::TextDisabled("No state machine selected.");
@@ -1231,7 +1231,23 @@ void WindowAnimationStateMachine::drawInternal()
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (!m_targetStateMachineUID->isValid())
+    ImGui::Button("Drop State Machine Here");
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            UID* ref = static_cast<UID*>(payload->Data);
+            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            m_asset = app->getModuleAssets()->load<AnimationStateMachineAsset>(*assetRef);
+            if (m_asset)
+            {
+                setTargetStateMachineUID(*assetRef);
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    if (!m_targetStateMachineUID)
     {
         ImGui::TextDisabled("Graph unavailable without a selected state machine.");
         return;
