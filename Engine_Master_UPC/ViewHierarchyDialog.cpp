@@ -318,6 +318,7 @@ void ViewHierarchyDialog::removeFromList(GameObject* obj, std::vector<GameObject
 
 GameObject* ViewHierarchyDialog::createGameObjectWithUID(UID id, UID transformUID, std::vector<GameObject*>& rootObjects)
 {
+    //esto no se llama nunca
     auto newGO = std::make_unique<GameObject>(id, transformUID);
     GameObject* raw = newGO.get();
 
@@ -325,10 +326,11 @@ GameObject* ViewHierarchyDialog::createGameObjectWithUID(UID id, UID transformUI
     rootObjects.push_back(raw);
     raw->onTransformChange();
 
+    /* tengo la teoria de que esto de aqui no es necesario. igualmente, nunca se ejecuta esta parte del codigo
     if (Quadtree* qt = m_sceneModule->getQuadtree())
     {
         qt->getRoot().insert(*raw);
-    }
+    }*/
 
     return raw;
 }

@@ -796,7 +796,8 @@ namespace SceneAPI
 
     std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive)
     {
-		std::vector<GameObject*> candidates = app->getModuleScene()->getQuadtree()->queryInArea(center, radius);
+        //cambiar nombre de la funcion a getDynamicObjects?
+		std::vector<GameObject*> candidates = app->getModuleScene()->getDynamicQuadtree()->queryInArea(center, radius);
 
         std::vector<GameObject*> result;
         for (GameObject* candidate : candidates)
