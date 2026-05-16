@@ -114,17 +114,15 @@ void ParticleSystemComponent::drawUi()
 
 void ParticleSystemComponent::update()
 {
-    /* RIGHT NOW EXECUTON HAPPENS IN PARTICLESYSTEMODULE
-    for (auto& particleState : m_particlesState)
+    if (m_textureAssetId != INVALID_ASSET_ID) 
     {
-        particleState.updateModules();
+            for (auto& particleState : m_particlesState)
+        {
+            particleState.updateModules();
+        }
     }
-    */
 
-
-    
-
-    m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position (maybe after threating particles?)
+    m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position
 }
 
 rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)

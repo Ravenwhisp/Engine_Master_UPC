@@ -55,14 +55,11 @@ void ModuleParticleSystem::preRender()
 
 void ModuleParticleSystem::update()
 {
+    if (app->getCurrentEngineState() != ENGINE_STATE::EDITOR) return;
+
     for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
     {
-        if (currentParticleSystemComponent->getTextureAssetId() == INVALID_ASSET_ID) continue;
-
-        for (auto& emitter : currentParticleSystemComponent->getEmitterInstances())
-        {
-            emitter.updateModules();
-        }
+        currentParticleSystemComponent->update();
     }
 }
 
