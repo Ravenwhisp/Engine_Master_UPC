@@ -143,7 +143,7 @@ bool ImporterAnimationStateMachine::importNative(const std::filesystem::path& pa
             if (clipJson.HasMember("name") && clipJson["name"].IsString())
                 clip.name = clipJson["name"].GetString();
 
-            if (clipJson.HasMember("animationUID") && clipJson["animationUID"].IsUint64())
+            if (clipJson.HasMember("animationUID"))
                 clip.animationUID.deserializeJson(clipJson["animationUID"]);
 
             if (clipJson.HasMember("loop") && clipJson["loop"].IsBool())
@@ -249,7 +249,9 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     for (const AnimationStateMachineClip& clip : source->m_clips)
     {
         size += SerializedStringSize(clip.name);
-        size += sizeof(clip.animationUID);
+        size += sizeof(UID);                              // m_uid
+        size += SerializedStringSize(clip.animationUID.m_libId); // m_libId (MD5Hash string)
+        size += sizeof(uint32_t);
         size += sizeof(uint8_t);
     }
 
@@ -287,7 +289,9 @@ uint64_t ImporterAnimationStateMachine::saveTyped(const AnimationStateMachineAss
     for (const AnimationStateMachineClip& clip : source->m_clips)
     {
         writer.string(clip.name);
-        writer.bytes(&clip.animationUID, sizeof(AssetReference));
+        writer.bytes(&clip.animationUID.m_uid, sizeof(UID));
+        writer.string(clip.animationUID.m_libId);
+        writer.u32(static_cast<uint32_t>(clip.animationUID.m_type));
         writer.u8(clip.loop ? 1u : 0u);
     }
 
@@ -333,7 +337,11 @@ void ImporterAnimationStateMachine::loadTyped(const uint8_t* buffer, AnimationSt
     {
         AnimationStateMachineClip& clip = dst->m_clips[i];
         clip.name = reader.string();
-        reader.bytes(&clip.animationUID, sizeof(AssetReference));
+        UID uid;
+        reader.bytes(&uid, sizeof(UID));
+        std::string libId = reader.string();
+        AssetType type = static_cast<AssetType>(reader.u32());
+        clip.animationUID = AssetReference(uid, libId, type);
         clip.loop = reader.u8() != 0;
     }
 

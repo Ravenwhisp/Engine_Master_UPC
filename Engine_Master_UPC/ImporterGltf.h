@@ -32,6 +32,8 @@ public:
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(AssetReference& ref) const override;
 
+    bool createStateMachine(const std::filesystem::path& gltfPath);
+
 protected:
     bool     loadExternal(const std::filesystem::path& path, tinygltf::Model& out) override;
     void     importTyped(const tinygltf::Model& source, PrefabAsset* model)        override;
@@ -41,12 +43,9 @@ protected:
 private:
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
     void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& prim, MeshAsset* out, const AssetReference& materialRef);
-    void loadAnimation(const tinygltf::Model& model,
-        const tinygltf::Animation& anim,
-        AnimationAsset* outAnim);
-    void buildDefaultStateMachine(const tinygltf::Model& model,
-        const std::vector<AssetReference>& animationRefs,
-        PrefabAsset* dst);
+    void loadAnimation(const tinygltf::Model& model, const tinygltf::Animation& anim, AnimationAsset* outAnim);
+
+    AssetReference buildDefaultStateMachine(const tinygltf::Model& model, const std::vector<AssetReference>& animationRefs, bool forceNew = false);
 
     void loadSkin(const tinygltf::Model& model,
         const tinygltf::Skin& skin,

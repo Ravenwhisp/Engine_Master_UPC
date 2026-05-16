@@ -483,6 +483,7 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="Skin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1158,6 +1159,7 @@
     <ClInclude Include="NavMeshTypes.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
+    <ClInclude Include="Skin.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1367,9 +1369,6 @@
     </None>
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
-    </None>
-    <None Include="EngineAPI.inl">
-      <Filter>Core</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

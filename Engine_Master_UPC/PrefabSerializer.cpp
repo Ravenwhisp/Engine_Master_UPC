@@ -4,6 +4,8 @@
 #include "GameObject.h"
 #include "Scene.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+#include "Skin.h"
 #include "Component.h"
 #include "ComponentType.h"
 #include "PrefabAsset.h"
@@ -118,10 +120,12 @@ void PrefabSerializer::deserialiseTransform(const Value& node, GameObject* go)
 void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
 {
     if (!node.HasMember("Components") || !node["Components"].IsArray()) return;
+
     for (SizeType i = 0; i < node["Components"].Size(); ++i)
     {
         const Value& cn = node["Components"][i];
         auto type = static_cast<ComponentType>(cn["Type"].GetInt());
+
         Component* comp = go->AddComponentWithUID(type, GenerateUID());
         if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
         {

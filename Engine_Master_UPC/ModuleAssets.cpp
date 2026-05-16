@@ -1,4 +1,4 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ModuleAssets.h"
 
 #include "Application.h"
@@ -208,12 +208,21 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
     asset->setLibId(meta.contentHash);
     reference.m_type = meta.type;
 
+    {
+        auto prevIt = m_uidIndex.find(meta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != meta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+
     std::error_code ec;
     meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
     if (ec) meta.sourceFileSize = 0;
-
-    const auto ftime = fs::last_write_time(sourcePath, ec);
-    meta.sourceLastModified = ec ? 0 : static_cast<int64_t>(ftime.time_since_epoch().count());
 
     std::filesystem::path metaPath = sourcePath;
     Metadata::getMetadataPath(metaPath);
@@ -234,6 +243,8 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
         return false;
     }
+
+    m_contentRegistry->registerAsset(sourcePath);
 
     return true;
 }
@@ -383,6 +394,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         dep.uid = subMeta.uid;
         dep.contentHash = subMeta.contentHash;
         dep.type = subMeta.type;
+        dep.displayName = subMeta.displayName;
         m_pendingDependencies[parentUID].push_back(dep);
     }
 }
@@ -398,7 +410,6 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
     doc.AddMember("type", Value(static_cast<uint32_t>(meta.type)), alloc);
     doc.AddMember("sourcePath", Value(meta.sourcePath.string().c_str(), alloc), alloc);
     doc.AddMember("sourceFileSize", Value(meta.sourceFileSize), alloc);
-    doc.AddMember("sourceLastModified", Value(meta.sourceLastModified), alloc);
 
     if (!meta.m_dependencies.empty())
     {
@@ -409,6 +420,8 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
             entry.AddMember("uid", dep.uid, alloc);
             entry.AddMember("contentHash", Value(dep.contentHash.c_str(), alloc), alloc);
             entry.AddMember("type", Value(static_cast<uint32_t>(dep.type)), alloc);
+            if (!dep.displayName.empty())
+                entry.AddMember("displayName", Value(dep.displayName.c_str(), alloc), alloc);
             deps.PushBack(entry, alloc);
         }
         doc.AddMember("dependencies", deps, alloc);
@@ -485,9 +498,6 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     if (doc.HasMember("sourceFileSize") && doc["sourceFileSize"].IsUint64())
         outMeta.sourceFileSize = doc["sourceFileSize"].GetUint64();
 
-    if (doc.HasMember("sourceLastModified") && doc["sourceLastModified"].IsInt64())
-        outMeta.sourceLastModified = doc["sourceLastModified"].GetInt64();
-
     outMeta.m_dependencies.clear();
     if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())
     {
@@ -504,6 +514,8 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
             if (entry.HasMember("contentHash") && entry["contentHash"].IsString())
                 rec.contentHash = entry["contentHash"].GetString();
+            if (entry.HasMember("displayName") && entry["displayName"].IsString())
+                rec.displayName = entry["displayName"].GetString();
 
             outMeta.m_dependencies.push_back(std::move(rec));
         }
@@ -561,6 +573,11 @@ void ModuleAssets::flushDialogRequests()
         m_dialogCallback(*result);
         m_dialogCallback = nullptr;
     }
+}
+
+bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfPath)
+{
+    return m_importerGltf->createStateMachine(gltfPath);
 }
 
 ContentRegistry* ModuleAssets::getContentRegistry() const

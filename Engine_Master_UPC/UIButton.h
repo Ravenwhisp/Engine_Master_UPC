@@ -87,9 +87,9 @@ public:
 #pragma endregion
 
 private:
-	void applyTargetTexture(AssetReference& assetId);
+	void applyTargetTexture(const AssetReference& assetId);
 	void applyCurrentStateTexture();
-	AssetReference& getDefaultTextureAssetId();
+	const AssetReference& getDefaultTextureAssetId();
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;

@@ -833,7 +833,8 @@ namespace SceneAPI
 
             if (distanceSquared <= radius * radius)
             {
-                result.push_back(candidate->GetTransform()->getRoot()->getOwner());
+				const Transform* transform = candidate->GetTransform();
+                result.push_back((transform && transform->getRoot()) ? transform->getRoot()->getOwner() : candidate);
             }
         }
 

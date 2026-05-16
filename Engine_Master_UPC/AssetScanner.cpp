@@ -321,7 +321,7 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 
 bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, const Metadata& meta) const
 {
-    if (meta.sourceFileSize == 0 && meta.sourceLastModified == 0)
+    if (meta.sourceFileSize == 0)
     {
         return true;
     }
@@ -344,17 +344,7 @@ bool AssetScanner::hasSourceChanged(const std::filesystem::path& sourcePath, con
         }
     }
 
-    const auto ftime = std::filesystem::last_write_time(sourcePath, ec);
-    if (ec)
-    {
-        DEBUG_WARN("[AssetScanner] Could not read mtime of '%s': %s", sourcePath.string().c_str(), ec.message().c_str());
-        {
-            return true;
-        }
-    }
-
-    const int64_t lastModified = static_cast<int64_t>(ftime.time_since_epoch().count());
-    return lastModified != meta.sourceLastModified;
+    return false;
 }
 
 void AssetScanner::queueImport(
