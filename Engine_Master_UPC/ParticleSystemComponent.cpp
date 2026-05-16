@@ -97,6 +97,11 @@ void ParticleSystemComponent::drawUi()
     }
     else if (ImGui::Button("Stop")) app->getModuleParticleSystem()->setScale(0.f);
 
+    // Reset button (temporary implementation, until we can have more than one emitter per component)
+    ImGui::SameLine();
+    if (ImGui::Button("Restart")) app->getModuleParticleSystem()->resetAllParticles();
+
+
     if (ImGui::SliderFloat("Speed", &timeScale, 0.0f, 1.0f))
     {
         app->getModuleParticleSystem()->setScale(timeScale);
