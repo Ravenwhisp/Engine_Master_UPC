@@ -344,7 +344,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="ThreadPool.h" />
-    <ClInclude Include="ModuleTrigger.h" />
+    <ClInclude Include="TriggerSystem.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
     <ClInclude Include="OptickProfiler.h" />
@@ -672,7 +672,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
-    <ClCompile Include="ModuleTrigger.cpp" />
+    <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
