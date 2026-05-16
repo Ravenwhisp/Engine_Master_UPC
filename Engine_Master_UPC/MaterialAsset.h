@@ -21,6 +21,7 @@ public:
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
 	uint32_t getNormalFactor() const { return normalFactor; }
+	MD5Hash getEmissive() const { return emissiveMap; }
 protected:
 
 	MD5Hash				baseMap = INVALID_ASSET_ID;

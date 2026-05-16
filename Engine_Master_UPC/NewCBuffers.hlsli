@@ -19,6 +19,9 @@ cbuffer ModelData : register(b2)
     float normalFactor;
     uint hasNormal;
     
+    float3 emissiveColor;
+    uint hasEmissiveTex;
+    
     float3 padding;
 };
 

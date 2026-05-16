@@ -446,6 +446,7 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primit
     loadAccessorData(vBase + offsetof(Vertex, position), sizeof(Vector3), sizeof(Vertex), vertexCount, model, itPos->second);
     loadAccessorData(vBase + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex), vertexCount, model, primitive.attributes, "NORMAL");
     loadAccessorData(vBase + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex), vertexCount, model, primitive.attributes, "TEXCOORD_0");
+    loadAccessorData(vBase + offsetof(Vertex, tangent), sizeof(Vector3), sizeof(Vertex), vertexCount, model, primitive.attributes, "TANGENT");
 
     auto itJoints = primitive.attributes.find("JOINTS_0");
     if (itJoints != primitive.attributes.end())
