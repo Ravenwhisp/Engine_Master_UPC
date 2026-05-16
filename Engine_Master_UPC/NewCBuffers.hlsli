@@ -16,7 +16,10 @@ cbuffer ModelData : register(b2)
     float roughnessFactor;
     uint hasMetallicRoughnessTex;
     
-    float padding;
+    float normalFactor;
+    uint hasNormal;
+    
+    float3 padding;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4

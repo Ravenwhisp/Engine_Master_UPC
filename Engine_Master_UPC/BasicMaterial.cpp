@@ -38,9 +38,23 @@ BasicMaterial::BasicMaterial(const UID uid, const MaterialAsset& asset) : ICache
 		m_materialData.hasMetallicRoughnessTex = false;
 	}
 
+	if (asset.getNormalMap() != INVALID_ASSET_ID)
+	{
+		auto normalTexture = app->getModuleAssets()->load<TextureAsset>(asset.getNormalMap());
+
+		m_textureNormal = app->getModuleResources()->createTextureLinear(*normalTexture);
+		m_materialData.hasNormalTex = true;
+	}
+	else
+	{
+		m_textureNormal.reset(app->getModuleResources()->createNullTexture2D());
+		m_materialData.hasNormalTex = false;
+	}
+
 	m_materialData.diffuseColour = Vector3(asset.getBaseColour().R(), asset.getBaseColour().G(), asset.getBaseColour().B());
 	m_materialData.metallicFactor = asset.getMetallicFactor();
 	m_materialData.roughnessFactor = asset.getRoughnessFactor();
+	m_materialData.normalFactor = asset.getNormalFactor();
 	m_materialBuffer = app->getModuleResources()->createDefaultBuffer(&m_materialData, alignUp(sizeof(PbrMetallicRoughnessData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 
     buildDescriptorTable();
@@ -80,6 +94,7 @@ void BasicMaterial::buildDescriptorTable()
     // then release the texture's own private 1-slot block.
     copyTextureIntoSlot(m_textureColor.get(), SLOT_DIFFUSE);
     copyTextureIntoSlot(m_textureMetallicRoughness.get(), SLOT_METAL);
+	copyTextureIntoSlot(m_textureNormal.get(), SLOT_NORMAL);
 
 }
 
