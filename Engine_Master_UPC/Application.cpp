@@ -16,17 +16,22 @@
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
-#include "ModuleTrigger.h"
+#include "ModuleHaptics.h"
 
 #include "ScriptFactory.h"
 
 #include "Settings.h"
+#include "ThreadPool.h"
+
 #include "OptickProfiler.h"
 
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
     srand(time(0)); // To generate random numbers
+
+    m_settings = new Settings();
+    m_threadPool = new ThreadPool();
 
     modules.push_back(m_moduleTime = new ModuleTime(120));
     modules.push_back(m_moduleInput = new ModuleInput((HWND)hWnd));
@@ -36,6 +41,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     //Needed to create the LOGs
     modules.push_back(m_moduleEditor = new ModuleEditor());
+    modules.push_back(m_moduleHaptics = new ModuleHaptics());
 
     modules.push_back(m_moduleAssets = new ModuleAssets());
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
@@ -50,9 +56,6 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_moduleCamera = new ModuleCamera());
     modules.push_back(m_moduleScene = new ModuleScene());
 
-    modules.push_back(m_moduleTrigger = new ModuleTrigger());
-
-    m_settings = new Settings();
 }
 
 Application::~Application()

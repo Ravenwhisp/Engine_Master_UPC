@@ -4,6 +4,8 @@
 #include "GameObject.h"
 #include "Scene.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+#include "Skin.h"
 #include "Component.h"
 #include "ComponentType.h"
 #include "PrefabAsset.h"
@@ -67,13 +69,15 @@ void PrefabSerializer::serialiseNodeInto(const GameObject* go, Value& out, Docum
     out.SetObject();
     out.AddMember("Name", Value(go->GetName().c_str(), alloc), alloc);
     out.AddMember("Active", go->GetActive(), alloc);
+    out.AddMember("Tag", Value(TagToString(go->GetTag()), alloc), alloc);
+    out.AddMember("Layer", Value(LayerToString(go->GetLayer()), alloc), alloc);
 
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (info.isInstance())
     {
         Value prefabLink(kObjectType);
         prefabLink.AddMember("SourcePath", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
-        prefabLink.AddMember("AssetUID", Value(info.m_assetUID.c_str(), alloc), alloc);
+        prefabLink.AddMember("AssetUID", info.m_assetUID, alloc);
         out.AddMember("PrefabLink", prefabLink, alloc);
     }
 
@@ -116,13 +120,17 @@ void PrefabSerializer::deserialiseTransform(const Value& node, GameObject* go)
 void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
 {
     if (!node.HasMember("Components") || !node["Components"].IsArray()) return;
+
     for (SizeType i = 0; i < node["Components"].Size(); ++i)
     {
         const Value& cn = node["Components"][i];
         auto type = static_cast<ComponentType>(cn["Type"].GetInt());
+
         Component* comp = go->AddComponentWithUID(type, GenerateUID());
         if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
+        {
             comp->deserializeJSON(cn["Data"]);
+        }
     }
 }
 
@@ -174,9 +182,11 @@ void PrefabSerializer::buildDocumentHeader(Document& doc, const GameObject* go, 
     doc.AddMember("Name", Value(name.c_str(), alloc), alloc);
     doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
 
-    const PrefabInfo& info = go->GetPrefabInfo();
+    const PrefabInstanceInfo& info = go->GetPrefabInfo();
     if (info.isInstance() && info.m_sourcePath != savePath)
+    {
         doc.AddMember("VariantOf", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
+    }
 }
 
 std::string PrefabSerializer::buildPrefabJSON(const GameObject* go, const fs::path& savePath)
@@ -205,7 +215,11 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
 
     go->SetName(node.HasMember("Name") ? node["Name"].GetString() : "Unnamed");
     go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
+    if (node.HasMember("Tag") && node["Tag"].IsString())
+        go->SetTag(StringToTag(node["Tag"].GetString()));
 
+    if (node.HasMember("Layer") && node["Layer"].IsString())
+        go->SetLayer(StringToLayer(node["Layer"].GetString()));
     if (parent)
     {
         go->GetTransform()->setRoot(parent->GetTransform());
@@ -216,11 +230,15 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
     if (node.HasMember("PrefabLink") && node["PrefabLink"].IsObject())
     {
         const Value& pl = node["PrefabLink"];
-        PrefabInfo& info = go->GetPrefabInfo();
+        PrefabInstanceInfo& info = go->GetPrefabInfo();
         if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+        {
             info.m_sourcePath = pl["SourcePath"].GetString();
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsString())
-            info.m_assetUID = pl["AssetUID"].GetString();
+        }
+        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+        {
+            info.m_assetUID = pl["AssetUID"].GetUint64();
+        }
     }
 
     deserialiseTransform(node, go);
@@ -230,6 +248,11 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
     {
         for (SizeType i = 0; i < node["Children"].Size(); ++i)
             deserialiseNode(node["Children"][i], scene, go);
+    }
+
+    if (!parent)
+    {
+        go->init();
     }
 
     return go;

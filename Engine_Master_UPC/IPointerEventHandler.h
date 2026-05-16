@@ -1,4 +1,6 @@
-#include <PointerEventData.h>
+#pragma once
+
+#include "PointerEventData.h"
 
 class IPointerEventHandler
 {

@@ -301,7 +301,13 @@ GameObject* ViewHierarchyDialog::rebuildGameObject(const rapidjson::Value& objec
         removeFromList(child, rootObjects);
     }
 
-    return rootObjects[0];
+    if (!rootObjects.empty())
+    {
+        rootObjects[0]->init();
+        return rootObjects[0];
+    }
+
+    return nullptr;
 }
 
 void ViewHierarchyDialog::removeFromList(GameObject* obj, std::vector<GameObject*>& objects)
@@ -314,8 +320,6 @@ GameObject* ViewHierarchyDialog::createGameObjectWithUID(UID id, UID transformUI
 {
     auto newGO = std::make_unique<GameObject>(id, transformUID);
     GameObject* raw = newGO.get();
-
-    raw->init();
 
     m_sceneModule->getScene()->addGameObject(std::move(newGO));
     rootObjects.push_back(raw);

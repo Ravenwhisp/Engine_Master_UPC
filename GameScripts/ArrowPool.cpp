@@ -4,7 +4,7 @@
 
 IMPLEMENT_SCRIPT_FIELDS(ArrowPool,
     SERIALIZED_INT(m_maxArrows, "Max Arrows"),
-    SERIALIZED_STRING(m_arrowPrefabPath, "Arrow Prefab Path")
+    SERIALIZED_STRING(m_arrowPrefabPath, "Arrow Prefab path")
 )
 
 ArrowPool::ArrowPool(GameObject* owner)
@@ -39,15 +39,15 @@ bool ArrowPool::createArrow()
         return false;
     }
 
-    Script* script = GameObjectAPI::getScript(arrowObject, "LyrielArrowProjectile");
-    if (script == nullptr)
+    LyrielArrowProjectile* arrow = GameObjectAPI::findScript<LyrielArrowProjectile>(arrowObject);
+    if (arrow == nullptr)
     {
         GameObjectAPI::setActive(arrowObject, false);
         return false;
     }
-    LyrielArrowProjectile* arrow = static_cast<LyrielArrowProjectile*>(script);
 
     arrow->setPool(this);
+    arrow->setArrowOwnerTransform(GameObjectAPI::getTransform(getOwner()));
     arrow->resetProjectile();
 
     m_arrows.push_back(arrow);

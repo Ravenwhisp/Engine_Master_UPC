@@ -20,13 +20,13 @@ public:
     void drawGizmo() override;
 
     void enterDownState();
+    void enterDefeatedState();
 
     bool isDowned() const;
     float getReviveProgress() const;
+    void blockRevive();
 
 private:
-    Damageable* findDamageable() const;
-
     bool isTeammateInAssistRange() const;
     void completeRevive();
 
@@ -43,4 +43,6 @@ private:
     Damageable* m_damageable = nullptr;
 
     float m_reviveProgress = 0.0f;
+
+    bool m_reviveBlocked = false;
 };

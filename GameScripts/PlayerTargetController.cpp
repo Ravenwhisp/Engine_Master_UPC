@@ -14,13 +14,7 @@ PlayerTargetController::PlayerTargetController(GameObject* owner)
 
 void PlayerTargetController::Start()
 {
-    Script* characterScript = GameObjectAPI::getScript(getOwner(), "LyrielCharacter");
-    if (characterScript == nullptr)
-    {
-        characterScript = GameObjectAPI::getScript(getOwner(), "DeathCharacter");
-    }
-
-    m_character = static_cast<CharacterBase*>(characterScript);
+    m_character = GameObjectAPI::findScript<CharacterBase>(getOwner());
 
     if (m_character == nullptr)
     {

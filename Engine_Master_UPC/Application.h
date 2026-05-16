@@ -21,10 +21,11 @@ class ModuleScene;
 class ModuleGameView;
 class ModuleAssets;
 class ModuleEventSystem;
-class ModuleTrigger;
+class ModuleHaptics;
 
 class CameraComponent;
 class Settings;
+class ThreadPool;
 
 enum class ENGINE_STATE
 {
@@ -57,10 +58,11 @@ public:
     ModuleGameView*             getModuleGameView() { return m_moduleGameView; }
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
-    ModuleTrigger*              getModuleTrigger() { return m_moduleTrigger; }
+    ModuleHaptics* getModuleHaptics() { return m_moduleHaptics; }
     ModuleParticleSystem* getModuleParticleSystem() { return m_moduleParticleSystem; }
 
     Settings*                   getSettings() { return m_settings; }
+    ThreadPool*                 getThreadPool() { return m_threadPool; }
 
     // FIXME: Cannot return const CameraComponent* (which it should) because render is not const
     const CameraComponent* getCurrentCameraPerspective() const { return m_currentCameraPerspective; }
@@ -97,10 +99,11 @@ private:
     ModuleAssets*           m_moduleAssets = nullptr;
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
-    ModuleTrigger* m_moduleTrigger = nullptr;
+    ModuleHaptics* m_moduleHaptics = nullptr;
     ModuleParticleSystem* m_moduleParticleSystem = nullptr;
 
     Settings*               m_settings = nullptr;
+    ThreadPool*             m_threadPool = nullptr;
 
     HMODULE m_gameScriptsModule = nullptr;
 

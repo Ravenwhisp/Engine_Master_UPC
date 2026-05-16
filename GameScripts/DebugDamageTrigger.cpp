@@ -15,7 +15,7 @@ DebugDamageTrigger::DebugDamageTrigger(GameObject* owner)
 
 void DebugDamageTrigger::Start()
 {
-    m_damageable = findDamageable();
+    m_damageable = GameObjectAPI::findScript<Damageable>(getOwner());
 
     if (!m_damageable)
     {
@@ -49,35 +49,6 @@ void DebugDamageTrigger::Update()
     {
         m_damageable->revive();
     }
-}
-
-Damageable* DebugDamageTrigger::findDamageable() const
-{
-    if (!m_owner)
-    {
-        return nullptr;
-    }
-
-    Script* script = GameObjectAPI::getScript(m_owner, "PlayerDamageable");
-    Damageable* damageable = dynamic_cast<Damageable*>(script);
-
-    if (damageable)
-    {
-        return damageable;
-    }
-
-    script = GameObjectAPI::getScript(m_owner, "EnemyDamageable");
-    damageable = dynamic_cast<Damageable*>(script);
-
-    if (damageable)
-    {
-        return damageable;
-    }
-
-    script = GameObjectAPI::getScript(m_owner, "Damageable");
-    damageable = dynamic_cast<Damageable*>(script);
-
-    return damageable;
 }
 
 IMPLEMENT_SCRIPT(DebugDamageTrigger)

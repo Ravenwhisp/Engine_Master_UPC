@@ -145,6 +145,22 @@ std::vector<GameObject*> Quadtree::query() const
     return result;
 }
 
+std::vector<GameObject*> Quadtree::queryInArea(const Vector2& center, const float radius) const
+{
+    std::vector<GameObject*> result;
+
+    if (!m_root)
+    {
+        return result;
+    }
+
+    const BoundingRect area(center.x - radius, center.y - radius, radius * 2, radius * 2);
+
+    m_root->gatherObjectsInArea(area, result);
+
+    return result;
+}
+
 std::vector<BoundingRect> Quadtree::getQuadrants() const
 {
     std::vector<BoundingRect> result;

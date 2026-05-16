@@ -1,6 +1,7 @@
 #pragma once
 #include "Module.h"
 #include "IDebugDrawable.h"
+#include "NavMeshTypes.h"
 
 #include <vector>
 #include <string>
@@ -8,10 +9,11 @@
 
 class dtNavMesh;
 class dtNavMeshQuery;
+class Scene;
 
 struct NavMeshSettings
 {
-    float cellSize = 0.3f;
+    float cellSize = 0.2f;
     float cellHeight = 0.2f;
 
     float agentHeight = 1.8f;
@@ -43,6 +45,7 @@ public:
     {
         Vector3 a;
         Vector3 b;
+        const float* color;
     };
 
     const std::vector<NavDebugLine>& getNavMeshDebugLines() const { return m_navDebugLines; }
@@ -54,11 +57,11 @@ public:
     NavMeshSettings& getSettings() { return m_settings; }
     bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
 
-    void setPathStart(const Vector3& p);
-    void setPathEnd(const Vector3& p);
+    void setPathStart(const Vector3& p, NavAgentProfile profile);
+    void setPathEnd(const Vector3& p, NavAgentProfile profile);
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
-    bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents) const;
+    bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
 
     void debugDraw() override;
 
@@ -82,7 +85,14 @@ private:
     Vector3 m_pathEnd{};
     std::vector<Vector3> m_debugPathPoints;
 
-    bool computeDebugPath();
+    std::vector<NavModifierVolumeData> m_modifierVolumes;
+    NavAgentProfile m_debugPathProfile = NavAgentProfile::PlayerNormal;
 
+private:
+    bool computeDebugPath(NavAgentProfile profile);
+    std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
+
+public:
+    unsigned short getIncludeFlagsForProfile(NavAgentProfile profile) const; // Helper
 };
 

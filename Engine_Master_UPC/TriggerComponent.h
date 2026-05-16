@@ -4,7 +4,8 @@
 #include "TriggerShape.h"
 #include "TriggerDebugDrawMode.h"
 #include "BoundingBox.h"
-#include "MeshRenderer.h"
+
+class MeshRenderer;
 
 class TriggerComponent : public Component
 {

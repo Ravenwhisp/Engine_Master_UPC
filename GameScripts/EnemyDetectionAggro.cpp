@@ -11,6 +11,33 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyDetectionAggro,
 	SERIALIZED_COMPONENT_REF(m_player2Transform, "Player 2 Transform", ComponentType::TRANSFORM)
 )
 
+static bool isDeadTarget(Transform* targetTransform)
+{
+	if (targetTransform == nullptr)
+	{
+		return false;
+	}
+
+	GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
+	if (targetObject == nullptr)
+	{
+		return false;
+	}
+
+	Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetObject);
+	if (damageable == nullptr)
+	{
+		return false;
+	}
+
+	return damageable->isDead();
+}
+
+static bool isValidAliveTarget(Transform* targetTransform)
+{
+	return targetTransform && !isDeadTarget(targetTransform);
+}
+
 EnemyDetectionAggro::EnemyDetectionAggro(GameObject* owner) : Script(owner) {}
 
 void EnemyDetectionAggro::Start()
@@ -79,6 +106,14 @@ void EnemyDetectionAggro::updateAggroState()
 {
 	updateAggroEntries();
 
+	if (m_currentTargetTransform && isDeadTarget(m_currentTargetTransform))
+	{
+		m_currentTargetTransform = nullptr;
+		m_isAggro = false;
+		m_canSeeTarget = false;
+		m_currentTargetLockTimer = 0.0f;
+	}
+
 	if (isTaunted())
 	{
 		if (!isTransformAlive(m_tauntTargetTransform))
@@ -109,8 +144,11 @@ void EnemyDetectionAggro::updateAggroState()
 	}
 
 	const bool currentTargetStillDetected =
-		(m_currentTargetTransform == m_player1Aggro.targetTransform && m_player1Aggro.isInDetectionRange) ||
-		(m_currentTargetTransform == m_player2Aggro.targetTransform && m_player2Aggro.isInDetectionRange);
+		isValidAliveTarget(m_currentTargetTransform) &&
+		(
+			(m_currentTargetTransform == m_player1Aggro.targetTransform && m_player1Aggro.isInDetectionRange) ||
+			(m_currentTargetTransform == m_player2Aggro.targetTransform && m_player2Aggro.isInDetectionRange)
+			);
 
 	if (currentTargetStillDetected)
 	{
@@ -206,8 +244,8 @@ bool EnemyDetectionAggro::isTaunted() const
 
 Transform* EnemyDetectionAggro::selectClosestDetectedPlayer() const
 {
-	const bool player1InRange = m_player1Aggro.isInDetectionRange;
-	const bool player2InRange = m_player2Aggro.isInDetectionRange;
+	const bool player1InRange = m_player1Aggro.isInDetectionRange && isValidAliveTarget(m_player1Aggro.targetTransform);
+	const bool player2InRange = m_player2Aggro.isInDetectionRange && isValidAliveTarget(m_player2Aggro.targetTransform);
 
 	if (player1InRange && !player2InRange)
 	{
@@ -236,8 +274,8 @@ Transform* EnemyDetectionAggro::selectClosestDetectedPlayer() const
 
 Transform* EnemyDetectionAggro::selectReevaluatedTarget() const
 {
-	const bool player1Aggroing = isPlayer1Aggroing();
-	const bool player2Aggroing = isPlayer2Aggroing();
+	const bool player1Aggroing = isPlayer1Aggroing() && isValidAliveTarget(m_player1Aggro.targetTransform);
+	const bool player2Aggroing = isPlayer2Aggroing() && isValidAliveTarget(m_player2Aggro.targetTransform);
 
 	if (player1Aggroing && !player2Aggroing)
 	{
@@ -261,11 +299,21 @@ Transform* EnemyDetectionAggro::selectReevaluatedTarget() const
 		}
 	}
 
-	return m_currentTargetTransform;
+	if (isValidAliveTarget(m_currentTargetTransform))
+	{
+		return m_currentTargetTransform;
+	}
+
+	return selectClosestDetectedPlayer();
 }
 
 void EnemyDetectionAggro::notifyPlayerAttackedEnemy(Transform* playerTransform)
 {
+	if (!isValidAliveTarget(playerTransform))
+	{
+		return;
+	}
+
 	AggroEntry* entry = getAggroEntry(playerTransform);
 
 	if (!entry)
@@ -450,13 +498,8 @@ bool EnemyDetectionAggro::isTransformAlive(Transform* target) const
 		return false;
 	}
 
-	Script* script = GameObjectAPI::getScript(targetOwner, "Damageable");
-	if (script == nullptr)
-	{
-		script = GameObjectAPI::getScript(targetOwner, "DeathCharacter");
-	}
+	Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetOwner);
 
-	Damageable* damageable = static_cast<Damageable*>(script);
 	return damageable == nullptr || !damageable->isDead();
 }
 

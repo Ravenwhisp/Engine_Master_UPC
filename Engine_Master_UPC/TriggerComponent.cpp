@@ -5,7 +5,8 @@
 #include "Transform.h"
 
 #include "Application.h"
-#include "ModuleTrigger.h"
+#include "ModuleScene.h"
+#include "Scene.h"
 #include "MeshRenderer.h"
 
 #include <array>
@@ -23,13 +24,25 @@ bool TriggerComponent::init()
         m_setDefaultBoundsOnInit = false;
     }
 
-    app->getModuleTrigger()->registerTrigger(this);
+    Scene* scene = app->getModuleScene()->getScene();
+
+    if (scene)
+    {
+        scene->registerTrigger(this);
+    }
+
     return true;
 }
 
 bool TriggerComponent::cleanUp()
 {
-    app->getModuleTrigger()->unregisterTrigger(this);
+    Scene* scene = app->getModuleScene()->getScene();
+
+    if (scene)
+    {
+        scene->unregisterTrigger(this);
+    }
+
     return true;
 }
 

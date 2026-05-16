@@ -21,6 +21,7 @@
 #include "UIText.h"
 #include <unordered_map>
 #include "WindowSceneEditor.h"
+#include "AssetReference.h"
 
 void ModuleUI::preRender()
 {
@@ -58,11 +59,11 @@ void ModuleUI::preRender()
 		{
 			if (canvasTransform->isActive())
 			{
-				rootRect = canvasTransform->getRect(rootRect);
+				rootRect = canvasTransform->getRect(rootRect, { 1.0f, 1.0f });
 			}
 		}
 
-		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest);
+		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, { 1.0f, 1.0f });
     }
 }
 
@@ -122,7 +123,8 @@ static std::wstring stringToWString(const std::string& string)
     return wstring;
 }
 
-void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
+void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest,
+    const Vector2& inheritedScale, float parentAlpha)
 {
     if (!gameObject || !gameObject->GetActive())
     {
@@ -132,12 +134,16 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
     Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
 
     Rect2D myRect = parentRect;
+    Vector2 scale = inheritedScale;
+    float alpha = parentAlpha;
 
     if (t2d && t2d->isActive())
     {
-        myRect = t2d->getRect(parentRect);
+        myRect = t2d->getRect(parentRect, scale);
+        scale = { t2d->scale.x * inheritedScale.x, t2d->scale.y * inheritedScale.y };
+        alpha = t2d->getInheritedAlpha(parentAlpha);
 
-        buildUIImage(gameObject, myRect, renderMode, canvasWorld, zTest);
+        buildUIImage(gameObject, myRect, renderMode, canvasWorld, zTest, alpha);
         buildUIText(gameObject, myRect);
     }
 
@@ -145,11 +151,11 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 
     for (GameObject* child : transform->getAllChildren())
     {
-        buildUIDrawCommands(child, myRect, renderMode, canvasWorld, zTest);
+        buildUIDrawCommands(child, myRect, renderMode, canvasWorld, zTest, scale, alpha);
     }
 }
 
-void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest)
+void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest, float alpha)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
 
@@ -158,44 +164,45 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         return;
     }
 
-    if (uiImg->consumeLoadRequest())
-    {
-        TextureAsset* asset = uiImg->getTextureAsset();
-        MD5Hash assetId = uiImg->getTextureAssetId();
+        if (uiImg->consumeLoadRequest())
+        {
+            TextureAsset* asset = uiImg->getTextureAsset();
+            const AssetReference& assetId = uiImg->getTextureAssetId();
 
-        if (!asset || assetId == INVALID_ASSET_ID)
-        {
-            uiImg->setTexture(nullptr);
-        }
-        else
-        {
-            auto textureIteration = m_uiTextures.find(assetId);
-            if (textureIteration == m_uiTextures.end())
+            if (!asset || !assetId.isValid())
             {
-                auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
-                if (texture)
-                {
-                    Texture* raw = texture.get();
-                    m_uiTextures.emplace(assetId, std::move(texture));
-                    uiImg->setTexture(raw);
-                }
-                else
-                {
-                    uiImg->setTexture(nullptr);
-                }
+                uiImg->setTexture(nullptr);
             }
             else
             {
-                uiImg->setTexture(textureIteration->second.get());
+                auto textureIteration = m_uiTextures.find(assetId.m_uid);
+                if (textureIteration == m_uiTextures.end())
+                {
+                    auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
+                    if (texture)
+                    {
+                        Texture* raw = texture.get();
+                        m_uiTextures.emplace(assetId.m_uid, std::move(texture));
+                        uiImg->setTexture(raw);
+                    }
+                    else
+                    {
+                        uiImg->setTexture(nullptr);
+                    }
+                }
+                else
+                {
+                    uiImg->setTexture(textureIteration->second.get());
+                }
             }
         }
-    }
 
     if (uiImg->getTexture() != nullptr)
     {
         UIImageCommand command;
         command.texture = uiImg->getTexture();
         command.rect = myRect;
+        command.alpha = alpha;
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();

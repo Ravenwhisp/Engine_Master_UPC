@@ -5,6 +5,7 @@
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_BoundUI, "Bound UI", ComponentType::TRANSFORM),
     SERIALIZED_FLOAT(m_minDistance, "Min Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_distanceDamage, "Damage Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
@@ -13,27 +14,6 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f)
 )
 
-Damageable* findDamageable(GameObject* gameObject)
-{
-    if (!gameObject)
-    {
-        return nullptr;
-    }
-
-    Script* script = GameObjectAPI::getScript(gameObject, "PlayerDamageable");
-    Damageable* damageable = dynamic_cast<Damageable*>(script);
-
-    if (damageable)
-    {
-        return damageable;
-    }
-
-    script = GameObjectAPI::getScript(gameObject, "Damageable");
-    damageable = dynamic_cast<Damageable*>(script);
-
-    return damageable;
-}
-
 Bound::Bound(GameObject* owner) : Script(owner)
 {
 
@@ -41,18 +21,18 @@ Bound::Bound(GameObject* owner) : Script(owner)
 
 void Bound::Start()
 {
+    GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.getReferencedComponent());
+    GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.getReferencedComponent());
 
-    if (!m_firstTarget.getReferencedComponent() || !m_secondTarget.getReferencedComponent())
+    if (player1 != nullptr)
     {
-        return;
+        m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
     }
 
-    GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.component);
-    GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.component);
-
-
-    m_firstDamageable = findDamageable(player1);
-    m_secondDamageable = findDamageable(player2);
+    if (player2 != nullptr)
+    {
+        m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
+    }
 
 }
 
@@ -67,6 +47,10 @@ void Bound::Update()
 
     // Midpoint
     m_center = (p1 + p2) * 0.5f;
+	if (m_BoundUI.getReferencedComponent())
+	{
+		TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
+	}
 
     const float distance = Vector3::Distance(p1, p2);
 
@@ -75,8 +59,8 @@ void Bound::Update()
 
     if (m_previousDistance < m_distanceInstaKill && distance >= m_distanceInstaKill)
     {
-        m_firstDamageable->kill();
-        m_secondDamageable->kill();
+        m_firstDamageable->takeDamage(m_firstDamageable->getCurrentHp());
+        m_secondDamageable->takeDamage(m_secondDamageable->getCurrentHp());
         return;
     }
 

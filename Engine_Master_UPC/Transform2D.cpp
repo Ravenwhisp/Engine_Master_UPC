@@ -21,6 +21,7 @@ std::unique_ptr<Component> Transform2D::clone(GameObject* newOwner) const
     clonedComponent->stretchMode = stretchMode;
     clonedComponent->sizingMode = sizingMode;
     clonedComponent->aspectRatio = aspectRatio;
+    clonedComponent->alpha = alpha;
 
 	return clonedComponent;
 }
@@ -47,7 +48,7 @@ Rect2D Transform2D::getRect() const
     return r;
 }
 
-Rect2D Transform2D::getRect(const Rect2D& parent) const
+Rect2D Transform2D::getRect(const Rect2D& parent, const Vector2& inheritedScale) const
 {
     const float anchorMinX = std::max(0.0f, std::min(1.0f, anchorMin.x));
     const float anchorMinY = std::max(0.0f, std::min(1.0f, anchorMin.y));
@@ -68,22 +69,22 @@ Rect2D Transform2D::getRect(const Rect2D& parent) const
     Rect2D rect;
     float referenceX = 0.0f;
     float referenceY = 0.0f;
-    
+
     float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+    const Vector2 effectiveScale = { scale.x * inheritedScale.x, scale.y * inheritedScale.y };
     
     if (stretchMode == StretchMode::NONE)
     {
         if (sizingMode == SizingMode::KEEP_ASPECT_RATIO)
         {
-            rect.w = baseSize.x * scale.x;
+            rect.w = baseSize.x * effectiveScale.x;
             rect.h = rect.w / baseAspectRatio;
         }
         else
         {
-            rect.w = baseSize.x * scale.x;
-            rect.h = baseSize.y * scale.y;
+            rect.w = baseSize.x * effectiveScale.x;
+            rect.h = baseSize.y * effectiveScale.y;
         }
-        
         referenceX = anchorMinPixelX + position.x;
         referenceY = anchorMinPixelY + position.y;
     }
@@ -91,10 +92,10 @@ Rect2D Transform2D::getRect(const Rect2D& parent) const
     {
         rect.w = std::max(0.0f, stretchW);
         rect.h = std::max(0.0f, stretchH);
-        
+
         float centerX = (anchorMinPixelX + anchorMaxPixelX) * 0.5f;
         float centerY = (anchorMinPixelY + anchorMaxPixelY) * 0.5f;
-        
+
         referenceX = centerX + position.x;
         referenceY = centerY + position.y;
     }
@@ -102,14 +103,14 @@ Rect2D Transform2D::getRect(const Rect2D& parent) const
     {
         rect.w = std::max(0.0f, stretchW);
         rect.h = rect.w / baseAspectRatio;
-        
+
         if (sizingMode == SizingMode::FIXED_SIZE)
         {
-            rect.h *= scale.y;
+            rect.h *= effectiveScale.y;
         }
-        
+
         float centerX = (anchorMinPixelX + anchorMaxPixelX) * 0.5f;
-        
+
         referenceX = centerX + position.x;
         referenceY = anchorMinPixelY + position.y;
     }
@@ -117,14 +118,14 @@ Rect2D Transform2D::getRect(const Rect2D& parent) const
     {
         rect.h = std::max(0.0f, stretchH);
         rect.w = rect.h * baseAspectRatio;
-        
+
         if (sizingMode == SizingMode::FIXED_SIZE)
         {
-            rect.w *= scale.x;
+            rect.w *= effectiveScale.x;
         }
-        
+
         float centerY = (anchorMinPixelY + anchorMaxPixelY) * 0.5f;
-        
+
         referenceX = anchorMinPixelX + position.x;
         referenceY = centerY + position.y;
     }
@@ -150,6 +151,7 @@ void Transform2D::drawUi()
     ImGui::Text("Transform2D");
 
     ImGui::DragFloat2("Position", &position.x, 1.0f);
+    ImGui::DragFloat("Alpha", &alpha, 0.01f, 0.0f, 1.0f);
     ImGui::DragFloat2("Pivot", &pivot.x, 0.01f, 0.0f, 1.0f);
     ImGui::DragFloat2("Base Size", &baseSize.x, 1.0f, 0.0f, 10000.0f);
     
@@ -362,6 +364,7 @@ rapidjson::Value Transform2D::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("StretchMode", static_cast<int>(stretchMode), domTree.GetAllocator());
     componentInfo.AddMember("SizingMode", static_cast<int>(sizingMode), domTree.GetAllocator());
     componentInfo.AddMember("AspectRatio", aspectRatio, domTree.GetAllocator());
+    componentInfo.AddMember("Alpha", alpha, domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -427,6 +430,15 @@ bool Transform2D::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("AspectRatio"))
     {
         aspectRatio = componentInfo["AspectRatio"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("Alpha"))
+    {
+        alpha = componentInfo["Alpha"].GetFloat();
+    }
+    else
+    {
+        alpha = 1.0f;
     }
 
     return true;

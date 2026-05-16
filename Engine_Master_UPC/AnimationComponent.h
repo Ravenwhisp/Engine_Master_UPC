@@ -7,6 +7,8 @@
 #include <memory>
 #include <unordered_map>
 #include "AnimationStateMachineAsset.h"
+
+
 class AnimationAsset;
 class GameObject;
 class StateMachineScript;
@@ -29,8 +31,10 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
-    void setStateMachineUID(const MD5Hash& uid);
-    const MD5Hash& getStateMachineUID() const { return m_stateMachineUID; }
+    void setStateMachineUID(AssetReference& uid);
+    AssetReference& getStateMachineUID()  { return m_stateMachine; }
+    void setAnimationSourceUID(AssetReference& uid);
+    AssetReference& getAnimationSourceUID() { return m_animationSource; }
 
     bool SendTrigger(const std::string& triggerName);
 
@@ -130,7 +134,8 @@ private:
 
 private:
 
-    MD5Hash m_stateMachineUID = INVALID_ASSET_ID;
+    AssetReference m_stateMachine = {};
+    AssetReference m_animationSource = {};
 
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
     std::shared_ptr<AnimationAsset> m_currentAnimationAsset;
@@ -152,7 +157,7 @@ private:
     bool m_hasStartedPlayback = false;
     bool m_stateMachineDirty = false;
 
-    std::string m_stateMachineUIDInput;
+    std::string m_newStateMachineNameInput = "NewStateMachine";
     std::string m_triggerInput;
 
     bool m_debugDrawHierarchy = false;

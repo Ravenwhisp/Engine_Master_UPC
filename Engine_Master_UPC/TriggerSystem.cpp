@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "ModuleTrigger.h"
+#include "TriggerSystem.h"
 
 #include "Application.h"
 #include "GameObject.h"
@@ -9,27 +9,20 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 
-void ModuleTrigger::update()
+void TriggerSystem::update()
 {
-    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
-    {
-        return;
-    }
-
     detectOverlaps();
     processOverlapChanges();
 }
 
-bool ModuleTrigger::cleanUp()
+void TriggerSystem::clear()
 {
     m_triggers.clear();
     m_previousOverlaps.clear();
     m_currentOverlaps.clear();
-
-    return true;
 }
 
-void ModuleTrigger::registerTrigger(TriggerComponent* trigger)
+void TriggerSystem::registerTrigger(TriggerComponent* trigger)
 {
     if (!trigger)
     {
@@ -43,10 +36,10 @@ void ModuleTrigger::registerTrigger(TriggerComponent* trigger)
 
     m_triggers.push_back(trigger);
 
-    DEBUG_LOG( "[ModuleTrigger] Registered trigger %llu", static_cast<unsigned long long>(trigger->getID()));
+    DEBUG_LOG("[TrigerSystem] Registered trigger %llu. Total: %zu", static_cast<unsigned long long>(trigger->getID()), m_triggers.size());
 }
 
-void ModuleTrigger::unregisterTrigger(TriggerComponent* trigger)
+void TriggerSystem::unregisterTrigger(TriggerComponent* trigger)
 {
     if(!trigger)
     {
@@ -65,10 +58,10 @@ void ModuleTrigger::unregisterTrigger(TriggerComponent* trigger)
     m_triggers.erase(it);
     removeOverlaps(triggerId);
 
-    DEBUG_LOG( "[ModuleTrigger] Unregistered trigger %llu", static_cast<unsigned long long>(trigger->getID()));
+    DEBUG_LOG("[TrigerSystem] Unregistered trigger %llu. Total: %zu", static_cast<unsigned long long>(triggerId), m_triggers.size());
 }
 
-void ModuleTrigger::detectOverlaps()
+void TriggerSystem::detectOverlaps()
 {
     m_previousOverlaps = m_currentOverlaps;
     m_currentOverlaps.clear();
@@ -104,7 +97,7 @@ void ModuleTrigger::detectOverlaps()
     }
 }
 
-void ModuleTrigger::processOverlapChanges()
+void TriggerSystem::processOverlapChanges()
 {
     for (const TriggerOverlap& overlap : m_currentOverlaps)
     {
@@ -135,7 +128,7 @@ void ModuleTrigger::processOverlapChanges()
     }
 }
 
-void ModuleTrigger::removeOverlaps(UID triggerId)
+void TriggerSystem::removeOverlaps(UID triggerId)
 {
     auto removeOverlap = [triggerId](const TriggerOverlap& overlap)
         {
@@ -147,7 +140,7 @@ void ModuleTrigger::removeOverlaps(UID triggerId)
     m_currentOverlaps.erase(std::remove_if(m_currentOverlaps.begin(), m_currentOverlaps.end(), removeOverlap), m_currentOverlaps.end());
 }
 
-void ModuleTrigger::sendTriggerEnterToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB)
+void TriggerSystem::sendTriggerEnterToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB)
 {
     GameObject* objectA = triggerA->getOwner();
     GameObject* objectB = triggerB->getOwner();
@@ -156,7 +149,7 @@ void ModuleTrigger::sendTriggerEnterToBothObjects(TriggerComponent* triggerA, Tr
     notifyScriptsTriggerEnter(objectB, objectA);
 }
 
-void ModuleTrigger::sendTriggerExitToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB)
+void TriggerSystem::sendTriggerExitToBothObjects(TriggerComponent* triggerA, TriggerComponent* triggerB)
 {
     GameObject* objectA = triggerA->getOwner();
     GameObject* objectB = triggerB->getOwner();
@@ -165,7 +158,7 @@ void ModuleTrigger::sendTriggerExitToBothObjects(TriggerComponent* triggerA, Tri
     notifyScriptsTriggerExit(objectB, objectA);
 }
 
-std::vector<Script*> ModuleTrigger::getActiveScripts(GameObject* gameObject) const
+std::vector<Script*> TriggerSystem::getActiveScripts(GameObject* gameObject) const
 {
     std::vector<Script*> scripts;
 
@@ -200,7 +193,7 @@ std::vector<Script*> ModuleTrigger::getActiveScripts(GameObject* gameObject) con
     return scripts;
 }
 
-void ModuleTrigger::notifyScriptsTriggerEnter(GameObject* receiver, GameObject* other)
+void TriggerSystem::notifyScriptsTriggerEnter(GameObject* receiver, GameObject* other)
 {
     if (!receiver || !other)
     {
@@ -213,7 +206,7 @@ void ModuleTrigger::notifyScriptsTriggerEnter(GameObject* receiver, GameObject* 
     }
 }
 
-void ModuleTrigger::notifyScriptsTriggerExit(GameObject* receiver, GameObject* other)
+void TriggerSystem::notifyScriptsTriggerExit(GameObject* receiver, GameObject* other)
 {
     if (!receiver || !other)
     {
@@ -226,7 +219,7 @@ void ModuleTrigger::notifyScriptsTriggerExit(GameObject* receiver, GameObject* o
     }
 }
 
-TriggerComponent* ModuleTrigger::findTriggerById(UID triggerId) const
+TriggerComponent* TriggerSystem::findTriggerById(UID triggerId) const
 {
     for (TriggerComponent* trigger : m_triggers)
     {
@@ -239,12 +232,12 @@ TriggerComponent* ModuleTrigger::findTriggerById(UID triggerId) const
     return nullptr;
 }
 
-bool ModuleTrigger::isTriggerRegistered(TriggerComponent* trigger) const
+bool TriggerSystem::isTriggerRegistered(TriggerComponent* trigger) const
 {
     return std::find(m_triggers.begin(), m_triggers.end(), trigger) != m_triggers.end();
 }
 
-bool ModuleTrigger::isValidTrigger(TriggerComponent* trigger) const
+bool TriggerSystem::isValidTrigger(TriggerComponent* trigger) const
 {
     if (!trigger || !trigger->isActive())
     {
@@ -261,12 +254,12 @@ bool ModuleTrigger::isValidTrigger(TriggerComponent* trigger) const
     return true;
 }
 
-bool ModuleTrigger::containsOverlap(const std::vector<TriggerOverlap>& overlaps, const TriggerOverlap& overlap) const
+bool TriggerSystem::containsOverlap(const std::vector<TriggerOverlap>& overlaps, const TriggerOverlap& overlap) const
 {
     return std::find(overlaps.begin(), overlaps.end(), overlap) != overlaps.end();
 }
 
-bool ModuleTrigger::intersectsAABB(TriggerComponent* a, TriggerComponent* b)
+bool TriggerSystem::intersectsAABB(TriggerComponent* a, TriggerComponent* b)
 {
     Engine::BoundingBox& boxA = a->getWorldAABB();
     Engine::BoundingBox& boxB = b->getWorldAABB();
