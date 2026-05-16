@@ -379,8 +379,8 @@ Vector3 EmitterArea::getCircleDirection(Vector3 center, const Transform& objectT
 
 	do 
 	{
-		rightOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511); // 'and' is because x % 2^n == x & (2^n - 1) for positive numbers; << 1 is for double (we are trying to generate a value in the range [-511, 511], because 512 is even and we can use the 'and' trick for its mod)
-		forwardOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511);
+		rightOffset = static_cast<float>(((rand() & 511) << 1) - 511); // 'and' is because x % 2^n == x & (2^n - 1) for positive numbers; << 1 is for double (we are trying to generate a value in the range [-511, 511], because 512 is even and we can use the 'and' trick for its mod)
+		forwardOffset = static_cast<float>(((rand() & 511) << 1) - 511);
 
 	} while (rightOffset == 0.f and forwardOffset == 0.f);
 
@@ -399,9 +399,9 @@ Vector3 EmitterArea::getSphereDirection(Vector3 center, const Transform& objectT
 
 	do
 	{
-		rightOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511); // 'and' is because x % 2^n == x & (2^n - 1) for positive numbers; << 1 is for double (we are trying to generate a value in the range [-511, 511], because 512 is even and we can use the 'and' trick for its mod)
-		forwardOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511);
-		upOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511);
+		rightOffset = static_cast<float>(((rand() & 511) << 1) - 511); // 'and' is because x % 2^n == x & (2^n - 1) for positive numbers; << 1 is for double (we are trying to generate a value in the range [-511, 511], because 512 is even and we can use the 'and' trick for its mod)
+		forwardOffset = static_cast<float>(((rand() & 511) << 1) - 511);
+		upOffset = static_cast<float>(((rand() & 511) << 1) - 511);
 
 	} while (rightOffset == 0.f and forwardOffset == 0.f and upOffset == 0.f);
 
@@ -420,8 +420,8 @@ Vector3 EmitterArea::getHemisphereDirection(Vector3 center, const Transform& obj
 
 	do
 	{
-		rightOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511); // 'and' is because x % 2^n == x & (2^n - 1) for positive numbers; << 1 is for double (we are trying to generate a value in the range [-511, 511], because 512 is even and we can use the 'and' trick for its mod)
-		forwardOffset = static_cast<float>((rand() & (512 - 1)) << 1 - 511);
+		rightOffset = static_cast<float>(((rand() & 511) << 1) - 511); // 'and' is because x % 2^n == x & (2^n - 1) for positive numbers; << 1 is for double (we are trying to generate a value in the range [-511, 511], because 512 is even and we can use the 'and' trick for its mod)
+		forwardOffset = static_cast<float>(((rand() & 511) << 1) - 511);
 		upOffset = static_cast<float>(rand() & (512 - 1)); // This HAS to be different, because up will always need to be positive or 0
 
 	} while (rightOffset == 0.f and forwardOffset == 0.f and upOffset == 0.f);
