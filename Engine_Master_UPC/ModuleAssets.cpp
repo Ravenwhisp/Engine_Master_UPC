@@ -224,9 +224,6 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
     meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
     if (ec) meta.sourceFileSize = 0;
 
-    const auto ftime = fs::last_write_time(sourcePath, ec);
-    meta.sourceLastModified = ec ? 0 : static_cast<int64_t>(ftime.time_since_epoch().count());
-
     std::filesystem::path metaPath = sourcePath;
     Metadata::getMetadataPath(metaPath);
     if (!saveMetaFile(meta, metaPath))
@@ -413,7 +410,6 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
     doc.AddMember("type", Value(static_cast<uint32_t>(meta.type)), alloc);
     doc.AddMember("sourcePath", Value(meta.sourcePath.string().c_str(), alloc), alloc);
     doc.AddMember("sourceFileSize", Value(meta.sourceFileSize), alloc);
-    doc.AddMember("sourceLastModified", Value(meta.sourceLastModified), alloc);
 
     if (!meta.m_dependencies.empty())
     {
@@ -501,9 +497,6 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
 
     if (doc.HasMember("sourceFileSize") && doc["sourceFileSize"].IsUint64())
         outMeta.sourceFileSize = doc["sourceFileSize"].GetUint64();
-
-    if (doc.HasMember("sourceLastModified") && doc["sourceLastModified"].IsInt64())
-        outMeta.sourceLastModified = doc["sourceLastModified"].GetInt64();
 
     outMeta.m_dependencies.clear();
     if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())
