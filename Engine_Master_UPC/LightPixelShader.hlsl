@@ -325,7 +325,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     //IBL 
     float3 indirectLighting = computeLighting(viewDirection, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
     
-    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
+    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
     float3 finalColor = LinearToSRGB(colorMapped);
 
     return float4(finalColor, 1.0f);
