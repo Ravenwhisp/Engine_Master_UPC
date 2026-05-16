@@ -26,7 +26,7 @@ void EmitterColor::update(EmitterInstance* particleData)
 
 			float scale = particlePool[poolIndex].lifeTime / startLifetime;
 
-			particlePool[poolIndex].colorAndAlpha = m_creationColor * (m_startColor*scale + m_endColor*(1.f-scale)); // We need to use Bezier curves instead of this
+			particlePool[poolIndex].colorAndAlpha = m_startColor*scale + m_endColor*(1.f-scale); // We need to use Bezier curves instead of this
 		}
 	}
 
@@ -34,7 +34,7 @@ void EmitterColor::update(EmitterInstance* particleData)
 
 	for (auto& particleIndex : particleData->getNewParticles())
 	{
-		particlePool[particleIndex].colorAndAlpha = m_creationColor;
+		particlePool[particleIndex].colorAndAlpha = m_startColor;
 	}
 }
 
@@ -45,22 +45,10 @@ bool EmitterColor::drawUi()
 	
 	if (ImGui::CollapsingHeader("Color")) 
 	{
-		
-		// Creation color //
 
-		float color[4] = { m_creationColor.x, m_creationColor.y, m_creationColor.z, m_creationColor.w};
-		if (ImGui::ColorEdit4("Creation color", color))
-		{
-			Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]); 
-			m_creationColor = newColor;
-			parameterChanged |= true; 
-		}
+		// 2 colors to interpolate
 
-		ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
-
-		// 2 colors to interpotate //
-
-		color[0] = m_startColor.x; color[1] = m_startColor.y; color[2] = m_startColor.z; color[3] = m_startColor.w;
+		float color[4] = { m_startColor.x, m_startColor.y, m_startColor.z, m_startColor.w };
 		if (ImGui::ColorEdit4("Starting color", color))
 		{
 			Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
@@ -100,17 +88,6 @@ rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
 	{
 		rapidjson::Value colorData(rapidjson::kArrayType);
 
-		colorData.PushBack(m_creationColor.x, domTree.GetAllocator());
-		colorData.PushBack(m_creationColor.y, domTree.GetAllocator());
-		colorData.PushBack(m_creationColor.z, domTree.GetAllocator());
-		colorData.PushBack(m_creationColor.w, domTree.GetAllocator());
-
-		moduleInfo.AddMember("CreationColor", colorData, domTree.GetAllocator());
-	}
-
-	{
-		rapidjson::Value colorData(rapidjson::kArrayType);
-
 		colorData.PushBack(m_startColor.x, domTree.GetAllocator());
 		colorData.PushBack(m_startColor.y, domTree.GetAllocator());
 		colorData.PushBack(m_startColor.z, domTree.GetAllocator());
@@ -135,12 +112,6 @@ rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
 
 bool EmitterColor::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	if (moduleInfo.HasMember("CreationColor"))
-	{
-		const auto& color = moduleInfo["CreationColor"].GetArray();
-		m_creationColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
-	}
-
 	if (moduleInfo.HasMember("StartColor"))
 	{
 		const auto& color = moduleInfo["StartColor"].GetArray();
