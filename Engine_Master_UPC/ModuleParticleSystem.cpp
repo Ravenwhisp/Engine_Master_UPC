@@ -10,6 +10,14 @@
 #include "ParticleSystemComponent.h"
 
 
+void ModuleParticleSystem::resetAllParticles()
+{
+    for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
+    {
+        currentParticleSystemComponent->resetParticles();
+    }
+}
+
 Texture* ModuleParticleSystem::resolveTexture(const MD5Hash& textureId)
 {
     if (textureId == INVALID_ASSET_ID)
@@ -130,12 +138,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
     }
 }
 
-float ModuleParticleSystem::deltaTime()
+float ModuleParticleSystem::deltaTime() const
 {
-    if (app->getCurrentEngineState() == ENGINE_STATE::EDITOR)
-    {
-        return m_timeScale * app->getModuleTime()->unscaledDeltaTime();
-    }
-
     return m_timeScale * app->getModuleTime()->deltaTime();
 }

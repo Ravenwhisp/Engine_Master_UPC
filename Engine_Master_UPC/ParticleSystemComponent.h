@@ -24,6 +24,8 @@ public:
     std::vector<EmitterInstance>& getEmitterInstances() { return m_particlesState; }
     const std::vector<EmitterInstance>& getEmitterInstances() const { return m_particlesState; }
 
+    void resetParticles();
+
     void drawUi() override;
 
     void update() override;

@@ -52,6 +52,13 @@ float ParticleSystemComponent::getDistance() const
     return Vector3::Distance(m_owner->GetTransform()->getPosition(), m_previousPosition);
 }
 
+void inline ParticleSystemComponent::resetParticles()
+{
+    for (auto& particleState : m_particlesState) particleState.reset();
+
+    m_previousPosition = m_owner->GetTransform()->getPosition(); // just in case
+}
+
 void ParticleSystemComponent::drawUi()
 {
     ImGui::Text("Particle system");
@@ -106,10 +113,7 @@ void ParticleSystemComponent::drawUi()
         ImGui::Separator();
     }
 
-    if (parameterChanged) 
-    {
-        for (auto& particleState : m_particlesState) particleState.reset();
-    }
+    if (parameterChanged) resetParticles();
 }
 
 void ParticleSystemComponent::update()

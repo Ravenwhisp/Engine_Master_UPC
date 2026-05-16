@@ -26,10 +26,12 @@ public:
 
     const std::vector<ParticleEmitterCommand>& getParticleCommands() const { return m_particleCommands; }
 
-    float deltaTime(); // required to have more control and show particles on Editor mode
+    float deltaTime() const; // required to have more control on Editor mode
 
     void setScale(float value) { m_timeScale = value; };
     float getScale() const { return m_timeScale; };
+
+    void resetAllParticles();
 
 private:
 
