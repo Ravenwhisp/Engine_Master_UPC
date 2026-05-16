@@ -9,7 +9,7 @@ struct Particle {
 
 	Vector3 position; // CHANGE TO A TRANSFORM?
 	Vector4 colorAndAlpha;
-	float rotationZ; // since they are billboards, other rotations don't make sense
+	float rotationZ = 0.f; // since they are billboards, other rotations don't make sense
 	Vector2 scale = Vector2 (1.0f, 1.0f); // FOR NOW
 
 	float velocity;

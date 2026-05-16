@@ -6,7 +6,7 @@ class ParticleSystem
 {
 public:
 
-	ParticleSystem(unsigned int numEmitters = 1);
+	ParticleSystem(unsigned int numEmitters = 0);
 	ParticleSystem(const ParticleSystem& particleSystem);
 
 	std::vector<ParticleEmitter>& getEmitters() { return m_emitters; }

@@ -118,11 +118,3 @@ bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
 	}
 	return true;
 }
-
-/*
-BASE,
-AREA,
-SPAWN,
-COLOR,
-LIFETIME,
-VELOCITY*/
