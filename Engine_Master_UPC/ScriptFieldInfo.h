@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstddef>
-#include "UID.h"
+#include <vector>
 #include "ComponentType.h"
+#include "ScriptFieldHandler.h"
 
 enum class ScriptFieldType
 {
@@ -12,6 +12,7 @@ enum class ScriptFieldType
     Vec3,
     EnumInt,
     ComponentRef,
+    ComponentRefList,
     String
 };
 
@@ -39,6 +40,8 @@ struct ScriptFieldInfo
     ScriptFieldType type;
     size_t offset;
 
+    const ScriptFieldHandler* handler = nullptr;
+
     ScriptFieldFloatInfo floatInfo{};
     ScriptFieldEnumInfo enumInfo{};
     ScriptFieldComponentRefInfo componentRefInfo{ ComponentType::TRANSFORM };
@@ -46,6 +49,17 @@ struct ScriptFieldInfo
 
 struct ScriptFieldList
 {
-    const ScriptFieldInfo* fields = nullptr;
-    size_t count = 0;
+    std::vector<ScriptFieldInfo> fields;
+
+    ScriptFieldList() = default;
+
+    ScriptFieldList(const ScriptFieldInfo* fieldArray, size_t fieldCount)
+    {
+        append(fieldArray, fieldCount);
+    }
+
+    void append(const ScriptFieldInfo* fieldArray, size_t fieldCount)
+    {
+        fields.insert(fields.end(), fieldArray, fieldArray + fieldCount);
+    }
 };

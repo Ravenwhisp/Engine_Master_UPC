@@ -2,13 +2,11 @@
 #include "EnemyCHASE.h"
 #include "EnemyController.h"
 
-static const ScriptFieldInfo CHASEFields[] =
-{
-	{ "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyCHASE, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyCHASE, CHASEFields)
-
+IMPLEMENT_SCRIPT_FIELDS(EnemyCHASE,
+	SERIALIZED_BOOL(m_useCharge, "Use Charge"),
+	SERIALIZED_FLOAT(m_chargeTriggerRange, "Charge Trigger Range", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 EnemyCHASE::EnemyCHASE(GameObject* owner) : StateMachineScript(owner)
 {
@@ -16,8 +14,7 @@ EnemyCHASE::EnemyCHASE(GameObject* owner) : StateMachineScript(owner)
 
 void EnemyCHASE::OnStateEnter()
 {
-	Script* script = GameObjectAPI::getScript(getOwner(), "EnemyController");
-	m_enemyController = dynamic_cast<EnemyController*>(script);
+	m_enemyController = GameObjectAPI::findScript<EnemyController>(getOwner());
 
 	if (!m_enemyController)
 	{
@@ -53,6 +50,7 @@ void EnemyCHASE::OnStateUpdate()
 		return;
 	}
 
+	m_enemyController->tickChargeCooldown(Time::getDeltaTime());
 	m_enemyController->updateCurrentTarget();
 
 	if (!m_enemyController->hasValidTarget())
@@ -61,10 +59,30 @@ void EnemyCHASE::OnStateUpdate()
 		return;
 	}
 
-	if (m_enemyController->isTargetInCombatRange())
+	Transform* currentTarget = m_enemyController->getCurrentTarget();
+
+	if (m_useCharge && currentTarget && m_enemyController->isChargeReady())
+	{
+		Vector3 ownerPosition = getOwner()->GetTransform()->getPosition();
+		Vector3 targetPosition = currentTarget->getPosition();
+
+		Vector3 difference = targetPosition - ownerPosition;
+		difference.y = 0.0f;
+
+		float distanceToTarget = difference.Length();
+
+		if (distanceToTarget <= m_chargeTriggerRange && distanceToTarget > m_enemyController->m_combatRange)
+		{
+			m_enemyController->faceCurrentTarget();
+			AnimationAPI::playState(animation, "Charge");
+			return;
+		}
+	}
+
+	if (m_enemyController->isTargetInAttackEnterRange())
 	{
 		m_enemyController->faceCurrentTarget();
-		AnimationAPI::playState(animation, "Idle"); // need to trigger combat state
+		AnimationAPI::playState(animation, "Attack");
 		return;
 	}
 

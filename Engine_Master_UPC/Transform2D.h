@@ -30,7 +30,16 @@ public:
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
     Rect2D getRect() const;
-    Rect2D getRect(const Rect2D& parent) const;
+    Rect2D getRect(const Rect2D& parent, const Vector2& inheritedScale = { 1.0f, 1.0f }) const;
+
+    float getAlpha() const { return alpha; }
+    void setAlpha(float a) { alpha = a; }
+    float getInheritedAlpha(float parentAlpha = 1.0f) const { return alpha * parentAlpha; }
+
+	Vector2 getPosition() const { return Vector2(position.x, position.y); }
+	void setPosition(const Vector2& pos) { position.x = pos.x; position.y = pos.y; }
+	Vector2 getScale() const { return Vector2(scale.x, scale.y); }
+	void setScale(const Vector2& s) { scale.x = s.x; scale.y = s.y; }
     
     void setStretchMode(StretchMode mode);
     StretchMode getStretchMode() const { return stretchMode; }
@@ -44,6 +53,8 @@ public:
     Float2 position{ 0.0f, 0.0f };
     Float2 scale{ 1.0f, 1.0f };
     Float2 pivot{ 0.5f, 0.5f };
+
+    float alpha = 1.0f;
 
     Float2 anchorMin{ 0.0f, 0.0f };
     Float2 anchorMax{ 0.0f, 0.0f };

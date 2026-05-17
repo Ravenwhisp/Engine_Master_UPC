@@ -1,99 +1,140 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ContentRegistry.h"
-#include "AssetRegistry.h"
-#include "Asset.h"
-#include <FileIO.h>
 
-ContentRegistry::ContentRegistry(AssetRegistry* registry):
-    m_registry(registry)
+#include "FileIO.h"
+#include "AssetsDictionary.h"
+#include "ModuleAssets.h"
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
+ContentRegistry::ContentRegistry(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
 {
 }
 
-void ContentRegistry::rebuild(const std::filesystem::path& rootPath)
+void ContentRegistry::rebuild(const fs::path& rootPath)
 {
-    m_root = buildTree(rootPath);
+    m_root = buildDirectory(rootPath.lexically_normal(), nullptr);
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::getEntry(const std::filesystem::path& path) const
+void ContentRegistry::registerAsset(const fs::path& sourcePath)
 {
     if (!m_root)
-    {
-        DEBUG_ERROR("[ContentRegistry] Tree has not been built yet — call rebuild() first.");
-        return nullptr;
-    }
-    return getEntryRecursive(m_root, path);
-}
+        return;
 
-std::shared_ptr<FileEntry> ContentRegistry::buildTree(const std::filesystem::path& path) const
-{
-    if (FileIO::isDirectory(path))
+    const fs::path normSource = sourcePath.lexically_normal();
+    const fs::path parentPath = normSource.parent_path();
+
+    DirectoryEntry* dir = getDirectory(parentPath);
+    if (!dir)
     {
-        return buildDirectoryEntry(path);
+
+        return;
     }
 
+    const std::string displayName = normSource.filename().string();
 
-    if (path.extension() == METADATA_EXTENSION)
+    for (AssetEntry& existing : dir->assets)
     {
-        return buildAssetEntry(path);
-    }
-
-    // Raw source files (.png, .fbx, …) are not shown in the browser.
-    return nullptr;
-}
-
-std::shared_ptr<FileEntry> ContentRegistry::buildDirectoryEntry(const std::filesystem::path& path) const
-{
-    auto entry = std::make_shared<FileEntry>();
-    entry->path = path.lexically_normal();
-    entry->isDirectory = true;
-    entry->displayName = entry->path.filename().string();
-
-    for (const auto& p : std::filesystem::directory_iterator(path))
-    {
-        if (auto child = buildTree(p.path()))
+        if (existing.displayName == displayName)
         {
-            entry->children.push_back(std::move(child));
+            existing.uid = m_moduleAssets->findUID(normSource);
+            return;
         }
     }
 
-    return entry;
+    fs::path metaPath = normSource;
+    Metadata::getMetadataPath(metaPath);
+    addAsset(*dir, metaPath);
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::buildAssetEntry(const std::filesystem::path& metaPath) const
+DirectoryEntry* ContentRegistry::getRoot() const
 {
-    auto entry = std::make_shared<FileEntry>();
-    entry->path = metaPath.lexically_normal();
-    entry->isDirectory = false;
-    entry->displayName = metaPath.stem().string();  // strips .metadata → shows asset name
+    return m_root.get();
+}
 
-    // Resolve UID from the in-memory store — no disk read needed here
-    // because rebuild() is always called after AssetScanner::scan().
-    const std::filesystem::path sourcePath = metaPath.parent_path() / metaPath.stem();
-    entry->uid = m_registry->findByPath(sourcePath);
-
-    if (entry->uid == INVALID_ASSET_ID)
+DirectoryEntry* ContentRegistry::getDirectory(const fs::path& path) const
+{
+    if (!m_root)
     {
-        DEBUG_WARN("[ContentRegistry] No metadata in store for '%s'. Was rebuild() called before scan()?", sourcePath.string().c_str());
+        return nullptr;
     }
 
-
-    return entry;
+    return findDirectoryRecursive(m_root.get(), path.lexically_normal());
 }
 
-std::shared_ptr<FileEntry> ContentRegistry::getEntryRecursive(
-    const std::shared_ptr<FileEntry>& node,
-    const std::filesystem::path& path) const
+std::unique_ptr<DirectoryEntry> ContentRegistry::buildDirectory(const fs::path& path, DirectoryEntry* parent) const
 {
-    if (!node)
-        return nullptr;
+    auto directory = std::make_unique<DirectoryEntry>();
 
-    if (node->path == path)
-        return node;
+    directory->path = path.lexically_normal();
+    directory->parent = parent;
+    directory->displayName = directory->path.filename().string();
 
-    for (const auto& child : node->children)
+    for (const auto& entry : fs::directory_iterator(path))
     {
-        if (auto found = getEntryRecursive(child, path))
+        const fs::path entryPath = entry.path().lexically_normal();
+
+        if (FileIO::isDirectory(entryPath))
+        {
+            directory->directories.push_back(buildDirectory(entryPath, directory.get()));
+        }
+        else if (entryPath.extension() == METADATA_EXTENSION)
+        {
+            addAsset(*directory, entryPath);
+        }
+    }
+
+    return directory;
+}
+
+void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPath) const
+{
+    fs::path sourcePath = metaPath;
+    sourcePath.replace_extension();
+
+    AssetEntry asset;
+    asset.displayName = sourcePath.filename().string();
+    asset.uid = m_moduleAssets->findUID(sourcePath.lexically_normal().string());
+
+    Metadata meta;
+    if (m_moduleAssets->loadMetaFile(metaPath, meta))
+    {
+        asset.metadata = meta;
+        for (const DependencyRecord& dep : meta.m_dependencies)
+        {
+            if (!isValidUID(dep.uid))
+                continue;
+
+            AssetEntry sub;
+            sub.uid = dep.uid;
+            sub.displayName = dep.displayName.empty() ? "SubAsset" : dep.displayName;
+            asset.subAssets.push_back(std::move(sub));
+        }
+    }
+
+    directory.assets.push_back(std::move(asset));
+}
+
+DirectoryEntry* ContentRegistry::findDirectoryRecursive(DirectoryEntry* directory, const fs::path& path) const
+{
+    if (!directory)
+    {
+        return nullptr;
+    }
+
+    if (directory->path.lexically_normal() == path.lexically_normal())
+    {
+        return directory;
+    }
+
+    for (const auto& child : directory->directories)
+    {
+        if (DirectoryEntry* found = findDirectoryRecursive(child.get(), path))
+        {
             return found;
+        }
     }
 
     return nullptr;

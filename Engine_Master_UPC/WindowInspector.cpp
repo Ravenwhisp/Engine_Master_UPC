@@ -8,7 +8,8 @@
 #include "GameObject.h"
 #include "Scene.h"
 #include "PrefabUI.h"
-#include "PrefabEditSession.h"
+
+#include "Asset.h"
 
 WindowInspector::WindowInspector()
 {
@@ -33,12 +34,10 @@ bool WindowInspector::isLocked() const
 
 void WindowInspector::drawInternal()
 {
-    PrefabEditSession* session = app->getModuleEditor()->getPrefabSession();
-    const bool prefabMode = session && session->m_active;
-
+    const bool prefabMode = app->getModuleEditor()->isInPrefabEditMode();
     if (prefabMode)
     {
-        PrefabUI::drawModeHeader(session->m_sourcePath.stem().string().c_str());
+        PrefabUI::drawModeHeader(app->getModuleEditor()->getPrefabEditSourcePath().stem().string().c_str());
         PrefabUI::drawApplyRevertBar(ImGui::GetContentRegionAvail().x);
     }
 
@@ -78,5 +77,18 @@ void WindowInspector::drawInternal()
     if (displayObject)
     {
         displayObject->drawUI();
+        return;
     }
+
+    if (!m_isLocked)
+    {
+        std::shared_ptr<Asset> selectedAsset = app->getModuleEditor()->getSelectedAsset();
+        if (selectedAsset)
+        {
+            selectedAsset->drawUI();
+            return;
+        }
+    }
+
+    ImGui::TextDisabled("Nothing selected.");
 }

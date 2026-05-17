@@ -8,6 +8,7 @@
 #include "ModuleEditor.h"
 #include "ModuleCamera.h"
 #include "ModuleResources.h"
+#include "ModuleInput.h"
 
 #include "ModuleRender.h"
 #include "ModuleScene.h"
@@ -88,6 +89,8 @@ void WindowSceneEditor::drawInternal()
     
     m_isViewportHovered = ImGui::IsItemHovered();
     m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+
+    handleObjectPicking(viewportSize);
 
     ImGuizmo::SetOrthographic(false);
     ImGuizmo::SetDrawlist(ImGui::GetWindowDrawList());
@@ -171,4 +174,50 @@ void WindowSceneEditor::debugDraw()
     {
         dd::axisTriad(ddConvert(Matrix::Identity), 0.1f, 1.0f);
     }
+}
+
+void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
+{
+    if (!app->getModuleInput()->isLeftMousePressed())
+    {
+        return;
+    }
+
+    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+    {
+        return;
+    }
+
+    ModuleEditor* editor = app->getModuleEditor();
+
+    Keyboard::State keyboardState = Keyboard::Get().GetState();
+
+    if (keyboardState.LeftAlt || keyboardState.RightAlt)
+    {
+        return;
+    }
+
+    Vector2 mousePos = app->getModuleInput()->getMousePosition();
+
+    if (!isMouseInsideViewport(mousePos, viewportSize))
+    {
+        return;
+    }
+
+    Ray ray = m_moduleCamera->createRayFromViewport(mousePos.x, mousePos.y, m_viewportX, m_viewportY, viewportSize.x, viewportSize.y);
+
+    GameObjectPickHit hit;
+
+    if (app->getModuleScene()->pickGameObject(ray, hit))
+    {
+        editor->setSelectedGameObject(hit.gameObject);
+    }
+}
+
+bool WindowSceneEditor::isMouseInsideViewport(const Vector2& mousePosition, const ImVec2& viewportSize) const
+{
+    return mousePosition.x >= m_viewportX &&
+        mousePosition.x <= m_viewportX + viewportSize.x &&
+        mousePosition.y >= m_viewportY &&
+        mousePosition.y <= m_viewportY + viewportSize.y;
 }

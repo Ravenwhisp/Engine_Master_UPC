@@ -38,7 +38,7 @@ private:
 
     void transitionAndClearTargets(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles, D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle) const;
     void setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList) const;
-    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer) const;
+    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer);
 
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
@@ -54,4 +54,7 @@ private:
 
     const Matrix* m_view = nullptr;
     const Matrix* m_projection = nullptr;
+
+    int m_trianglesCount = 0;
+    int m_meshCount = 0;
 };

@@ -2,14 +2,11 @@
 #include "DebugDamageTrigger.h"
 #include "Damageable.h"
 
-static const ScriptFieldInfo debugDamageTriggerFields[] =
-{
-    { "Damage Amount", ScriptFieldType::Float, offsetof(DebugDamageTrigger, m_damageAmount), { 0.0f, 999999.0f, 1.0f } },
-    { "Heal Amount", ScriptFieldType::Float, offsetof(DebugDamageTrigger, m_healAmount), { 0.0f, 999999.0f, 1.0f } },
-    { "Player Index", ScriptFieldType::Int, offsetof(DebugDamageTrigger, m_playerIndex) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(DebugDamageTrigger, debugDamageTriggerFields)
+IMPLEMENT_SCRIPT_FIELDS(DebugDamageTrigger,
+    SERIALIZED_FLOAT(m_damageAmount, "Damage Amount", 0.0f, 999999.0f, 1.0f),
+    SERIALIZED_FLOAT(m_healAmount, "Heal Amount", 0.0f, 999999.0f, 1.0f),
+    SERIALIZED_INT(m_playerIndex, "Player Index")
+)
 
 DebugDamageTrigger::DebugDamageTrigger(GameObject* owner)
     : Script(owner)
@@ -18,7 +15,7 @@ DebugDamageTrigger::DebugDamageTrigger(GameObject* owner)
 
 void DebugDamageTrigger::Start()
 {
-    m_damageable = findDamageable();
+    m_damageable = GameObjectAPI::findScript<Damageable>(getOwner());
 
     if (!m_damageable)
     {
@@ -52,35 +49,6 @@ void DebugDamageTrigger::Update()
     {
         m_damageable->revive();
     }
-}
-
-Damageable* DebugDamageTrigger::findDamageable() const
-{
-    if (!m_owner)
-    {
-        return nullptr;
-    }
-
-    Script* script = GameObjectAPI::getScript(m_owner, "PlayerDamageable");
-    Damageable* damageable = dynamic_cast<Damageable*>(script);
-
-    if (damageable)
-    {
-        return damageable;
-    }
-
-    script = GameObjectAPI::getScript(m_owner, "EnemyDamageable");
-    damageable = dynamic_cast<Damageable*>(script);
-
-    if (damageable)
-    {
-        return damageable;
-    }
-
-    script = GameObjectAPI::getScript(m_owner, "Damageable");
-    damageable = dynamic_cast<Damageable*>(script);
-
-    return damageable;
 }
 
 IMPLEMENT_SCRIPT(DebugDamageTrigger)

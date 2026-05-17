@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 
+
 class BinaryReader 
 {
 public:

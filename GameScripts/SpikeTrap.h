@@ -36,13 +36,11 @@ public:
 	Vector3 normalSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
 	Vector3 spectralSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
 
-    float dt = Time::getDeltaTime();
-
     float m_xWidth = 2.0f;
     float m_zWidth = 2.0f;
 
-	GameObject* owner = getOwner();
-	Transform* ownerTransform = GameObjectAPI::getTransform(owner);
+	GameObject* owner = nullptr;
+	Transform* ownerTransform = nullptr;
 
     Transform* m_normalSpike;
 	Transform* m_spectralSpike;

@@ -82,7 +82,7 @@ public:
 	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
-	std::shared_ptr<BasicMaterial>	createMaterial(const MaterialAsset& materialAsset);
+	std::shared_ptr<BasicMaterial>	createMaterial(MaterialAsset& materialAsset);
 
 
 private:

@@ -2,18 +2,15 @@
 #include "SpikeTrap.h"
 #include "PlayerDamageable.h"
 
-static const ScriptFieldInfo myScriptFields[] =
-{
-	{ "Alternative Mode", ScriptFieldType::Bool, offsetof(SpikeTrap, alternativeMode) },
-    { "Active Duration" , ScriptFieldType::Float, offsetof(SpikeTrap, a_duration), {0.0f, 50.0f, 0.1f } },
-	{ "Preparing Duration" , ScriptFieldType::Float, offsetof(SpikeTrap, p_duration), {0.0f, 50.0f, 0.1f } },
-    { "Start Position Y", ScriptFieldType::Float, offsetof(SpikeTrap, startPositionY), { -10.0f, 10.0f, 0.1f } },
-    { "Wait Position Y", ScriptFieldType::Float, offsetof(SpikeTrap, waitPositionY), { -10.0f, 10.0f, 0.1f } },
-	{ "Active Position Y", ScriptFieldType::Float, offsetof(SpikeTrap, activePositionY), { -10.0f, 10.0f, 0.1f } },
-	{ "Trap Damage", ScriptFieldType::Float, offsetof(SpikeTrap, trapDamage), { 0.0f, 1000.0f, 1.0f } },
-};
-
-IMPLEMENT_SCRIPT_FIELDS(SpikeTrap, myScriptFields)
+IMPLEMENT_SCRIPT_FIELDS(SpikeTrap,
+    SERIALIZED_BOOL(alternativeMode, "Alternative Mode"),
+    SERIALIZED_FLOAT(a_duration, "Active Duration", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(p_duration, "Preparing Duration", 0.0f, 50.0f, 0.1f),
+    SERIALIZED_FLOAT(startPositionY, "Start Position Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(waitPositionY, "Wait Position Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(activePositionY, "Active Position Y", -10.0f, 10.0f, 0.1f),
+    SERIALIZED_FLOAT(trapDamage, "Trap Damage", 0.0f, 1000.0f, 1.0f)
+)
 
 SpikeTrap::SpikeTrap(GameObject* owner)
     : Script(owner)
@@ -22,20 +19,24 @@ SpikeTrap::SpikeTrap(GameObject* owner)
 
 void SpikeTrap::Start()
 {
+    owner = getOwner();
+    ownerTransform = GameObjectAPI::getTransform(owner);
 
-    if (alternativeMode)
-    {
-		spikeType = 1;
-    }
+    m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
+	m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
 
+    spikeType = alternativeMode ? 1 : 0;
+
+    currentTime = 0.0f;
+    state = WAIT;
+    damagedPlayers.clear();
 }
 
 void SpikeTrap::Update()
 {
+    float dt = Time::getDeltaTime();
     currentTime += dt;
-	m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
-	m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
-
+	
     switch (state)
     {
         case SpikeTrap::WAIT:
@@ -122,8 +123,7 @@ void SpikeTrap::damagePlayer(GameObject* player)
     // Skip if this player was already damaged
     if (damagedPlayers.count(player)) return;
 
-    Script* damageableScript = GameObjectAPI::getScript(player, "PlayerDamageable");
-    PlayerDamageable* damageable = dynamic_cast<PlayerDamageable*>(damageableScript);
+    PlayerDamageable* damageable = GameObjectAPI::findScript<PlayerDamageable>(player);
     if (damageable)
     {
         damageable->takeDamage(trapDamage);

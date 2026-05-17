@@ -1,11 +1,8 @@
 #include "pch.h"
 #include "$safeitemname$.h"
 
-static const ScriptFieldInfo $safeitemname$Fields[] =
-{
-};
-
-IMPLEMENT_SCRIPT_FIELDS($safeitemname$, $safeitemname$Fields)
+IMPLEMENT_SCRIPT_FIELDS($safeitemname$
+)
 
 $safeitemname$::$safeitemname$(GameObject* owner)
     : Script(owner)

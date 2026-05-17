@@ -1,16 +1,44 @@
 #include "pch.h"
 #include "LyrielArrowProjectile.h"
 #include "ArrowPool.h"
-#include "Damageable.h"
+#include "EnemyDamageable.h"
+#include "EnemyShadowMark.h"
 
 LyrielArrowProjectile::LyrielArrowProjectile(GameObject* owner)
     : Script(owner)
 {
 }
 
+void LyrielArrowProjectile::Update()
+{
+    if (!m_inUse)
+    {
+        return;
+    }
+
+    m_lifeTimer += Time::getDeltaTime();
+
+    Transform* transform = GameObjectAPI::getTransform(getOwner());
+    if (transform != nullptr)
+    {
+        TransformAPI::translateGlobal(transform, m_direction * m_speed * Time::getDeltaTime());
+    }
+
+    if (m_lifeTimer >= m_currentLifetime)
+    {
+        applyImpactDamage();
+        returnToPool();
+    }
+}
+
 void LyrielArrowProjectile::setPool(ArrowPool* pool)
 {
     m_pool = pool;
+}
+
+void LyrielArrowProjectile::setArrowOwnerTransform(Transform* owner)
+{
+    m_arrowOwner = owner;
 }
 
 bool LyrielArrowProjectile::isInUse() const
@@ -37,28 +65,6 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
     }
 
     GameObjectAPI::setActive(getOwner(), true);
-}
-
-void LyrielArrowProjectile::Update()
-{
-    if (!m_inUse)
-    {
-        return;
-    }
-
-    m_lifeTimer += Time::getDeltaTime();
-
-    Transform* transform = GameObjectAPI::getTransform(getOwner());
-    if (transform != nullptr)
-    {
-        TransformAPI::translateGlobal(transform, m_direction * m_speed * Time::getDeltaTime());
-    }
-
-    if (m_lifeTimer >= m_currentLifetime)
-    {
-        applyImpactDamage();
-        returnToPool();
-    }
 }
 
 void LyrielArrowProjectile::resetProjectile()
@@ -92,12 +98,17 @@ void LyrielArrowProjectile::applyImpactDamage()
         return;
     }
 
-    Script* script = GameObjectAPI::getScript(m_target, "Damageable");
-    Damageable* damageable = dynamic_cast<Damageable*>(script);
+    EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(m_target);
 
     if (damageable != nullptr)
     {
-        damageable->takeDamage(m_damage);
+        damageable->takeDamageEnemy(m_damage, m_arrowOwner);
+
+        EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(m_target);
+        if (mark != nullptr && mark->isExploitable())
+        {
+            mark->exploit();
+        }
     }
 }
 

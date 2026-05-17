@@ -1,24 +1,20 @@
 #include "pch.h"
 #include "PlayerAnimationController.h"
 
-static const ScriptFieldInfo PlayerAnimationControllerFields[] =
-{
-	{ "Idle state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_idleStateName)  },
-	{ "Move state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_moveStateName) },
-	{ "Dash state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_dashStateName) },
-	{ "Attack state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_attackStateName) },
-	{ "Damaged state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_damagedStateName) },
-    { "Downed state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_downedStateName) },
-	{ "Death state name", ScriptFieldType::String, offsetof(PlayerAnimationController, m_deathStateName) },
-
-	{ "Default blend time", ScriptFieldType::Float, offsetof(PlayerAnimationController, m_defaultBlendTime), { 0.0f, 2.0f, 0.01f } },
-	{ "Attack blend time",  ScriptFieldType::Float, offsetof(PlayerAnimationController, m_attackBlendTime),  { 0.0f, 2.0f, 0.01f } },
-	{ "Damaged blend time", ScriptFieldType::Float, offsetof(PlayerAnimationController, m_damagedBlendTime), { 0.0f, 2.0f, 0.01f } },
-    { "Downed blend time", ScriptFieldType::Float, offsetof(PlayerAnimationController, m_downedBlendTime), { 0.0f, 2.0f, 0.01f } },
-	{ "Death blend time",   ScriptFieldType::Float, offsetof(PlayerAnimationController, m_deathBlendTime),   { 0.0f, 2.0f, 0.01f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerAnimationController, PlayerAnimationControllerFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerAnimationController,
+    SERIALIZED_STRING(m_idleStateName, "Idle state name"),
+    SERIALIZED_STRING(m_moveStateName, "Move state name"),
+    SERIALIZED_STRING(m_dashStateName, "Dash state name"),
+    SERIALIZED_STRING(m_attackStateName, "Attack state name"),
+    SERIALIZED_STRING(m_damagedStateName, "Damaged state name"),
+    SERIALIZED_STRING(m_downedStateName, "Downed state name"),
+    SERIALIZED_STRING(m_deathStateName, "Death state name"),
+    SERIALIZED_FLOAT(m_defaultBlendTime, "Default blend time", 0.0f, 2.0f, 0.01f),
+    SERIALIZED_FLOAT(m_attackBlendTime, "Attack blend time", 0.0f, 2.0f, 0.01f),
+    SERIALIZED_FLOAT(m_damagedBlendTime, "Damaged blend time", 0.0f, 2.0f, 0.01f),
+    SERIALIZED_FLOAT(m_downedBlendTime, "Downed blend time", 0.0f, 2.0f, 0.01f),
+    SERIALIZED_FLOAT(m_deathBlendTime, "Death blend time", 0.0f, 2.0f, 0.01f)
+)
 
 PlayerAnimationController::PlayerAnimationController(GameObject* owner)
     : Script(owner)

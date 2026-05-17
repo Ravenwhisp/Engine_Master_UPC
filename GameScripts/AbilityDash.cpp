@@ -7,6 +7,11 @@
 
 #define PI 3.1415926535897931f
 
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(AbilityDash, AbilityBase,
+    SERIALIZED_FLOAT(m_dashDuration, "Dash Duration", 0.0f, 1.0f, 0.01f),
+    SERIALIZED_FLOAT(m_dashDistance, "Dash Distance", 0.0f, 10.0f, 0.1f)
+)
+
 AbilityDash::AbilityDash(GameObject* owner)
     : AbilityBase(owner)
 {
@@ -16,23 +21,23 @@ void AbilityDash::Start()
 {
     AbilityBase::Start();
 
-    m_playerController = findControllerScript(getOwner());
-    m_playerMovement = findMovementScript(getOwner());
+    m_playerController = GameObjectAPI::findScript<PlayerController>(getOwner());
+    m_playerMovement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
 
-    if (m_character == nullptr)
+    if (m_playerController == nullptr)
     {
-        Debug::warn("AbilityDash: CharacterBase not found on this GameObject.");
+        Debug::warn("AbilityDash: PlayerController not found on this GameObject.");
+    }
+
+    if (m_playerMovement == nullptr)
+    {
+        Debug::warn("AbilityDash: PlayerMovement not found on this GameObject.");
     }
 }
 
 void AbilityDash::Update()
 {
     AbilityBase::Update();
-
-    if (m_character == nullptr)
-    {
-        return;
-    }
 
     const float dt = Time::getDeltaTime();
 
@@ -43,15 +48,20 @@ void AbilityDash::Update()
         updateDash(dt);
         return;
     }
-
-    if (Input::isLeftShoulderJustPressed(getPlayerIndex()))
-    {
-        tryStartDash();
-    }
 }
 
 void AbilityDash::drawGizmo()
 {
+}
+
+bool AbilityDash::canStartSpecificAbility() const
+{
+	return canDash() && m_playerController != nullptr && m_playerMovement != nullptr && !m_isDashing;
+}
+
+void AbilityDash::startAbility()
+{
+    startDash();
 }
 
 bool AbilityDash::canDash() const
@@ -63,28 +73,13 @@ void AbilityDash::onDashStarted()
 {
 }
 
-void AbilityDash::tryStartDash()
+void AbilityDash::startDash()
 {
-    if (!canStartAbility())
-    {
-        return;
-    }
-
-    if (!canDash())
-    {
-        return;
-    }
-
-    if (m_playerController == nullptr || m_playerMovement == nullptr)
-    {
-        return;
-    }
-
     m_dashTimer = 0.0f;
     m_isDashing = true;
 
     setAbilityLocked(true);
-    m_cooldownTimer = m_cooldown;
+    startCooldown();
 
     Vector3 moveDirection = m_playerController->getMoveDirection();
 
@@ -154,29 +149,5 @@ void AbilityDash::calculateDashMovement(float dt)
     {
         m_playerMovement->playerDashMovement(getOwner(), velocity * dt);
     }
-}
-
-PlayerController* AbilityDash::findControllerScript(GameObject* owner) const
-{
-    Script* script = GameObjectAPI::getScript(owner, "PlayerController");
-    if (script == nullptr)
-    {
-        Debug::warn("AbilityDash: PlayerController not found on this GameObject.");
-        return nullptr;
-    }
-
-    return static_cast<PlayerController*>(script);
-}
-
-PlayerMovement* AbilityDash::findMovementScript(GameObject* owner) const
-{
-    Script* script = GameObjectAPI::getScript(owner, "PlayerMovement");
-    if (script == nullptr)
-    {
-        Debug::warn("AbilityDash: PlayerMovement not found on this GameObject.");
-        return nullptr;
-    }
-
-    return static_cast<PlayerMovement*>(script);
 }
 

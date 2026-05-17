@@ -6,13 +6,11 @@
 #include "IDebugDrawable.h"
 
 #include "BasicMesh.h"
-#include "Vertex.h"
-#include "VertexBuffer.h"
+#include "Skin.h"
 
-class BasicMesh;
+#include <memory>
+
 class MaterialAsset;
-class SkinAsset;
-class Transform;
 
 namespace tinygltf { class Model; }
 
@@ -28,7 +26,7 @@ class MeshRenderer : public Component
 {
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
-	~MeshRenderer() = default;
+	~MeshRenderer() override;
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
@@ -52,74 +50,41 @@ public:
 
 	int getTriangles() const { return m_triangles; }
 
-	MD5Hash& getMeshReference() { return m_meshAsset; }
-	std::vector<MD5Hash>& getMaterialsReference() { return m_materialAssets; }
+	void setMeshReference(AssetReference& meshRef);
+	AssetReference& getMeshReference() { return m_meshAsset; }
+	void addMaterialReference(AssetReference& materialRef);
+	std::vector<AssetReference>& getMaterialsReference() { return m_materialAssets; }
 
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
-	MD5Hash& getSkinReference() { return m_skinAsset; }
-	const MD5Hash& getSkinReference() const { return m_skinAsset; }
+	// Legacy only: used to migrate old prefabs/scenes that stored SkinAssetId inside MeshRenderer.
+	AssetReference& getSkinReference() { return m_skinAsset; }
+	void setSkinReference(AssetReference& skinUID) { m_skinAsset = skinUID; }
 
-	const std::vector<Matrix>& getMatrixPalette() const { return m_matrixPalette; }
-	const std::vector<Matrix>& getNormalPalette() const { return m_normalPalette; }
-	bool hasSkinPalette() const { return !m_matrixPalette.empty(); }
+	bool hasSkin() const { return m_skin != nullptr; }
 
-	const VertexBuffer* getCurrentGpuSkinnedVertexBuffer() const;
-	ID3D12Resource* getCurrentGpuSkinnedOutputResource() const;
-	ID3D12Resource* getCurrentGpuPaletteModelResource() const;
-	ID3D12Resource* getCurrentGpuPaletteNormalResource() const;
+	Skin* getSkin() { return m_skin.get(); }
+	const Skin* getSkin() const { return m_skin.get(); }
 
-	uint32_t getSkinningVertexCount() const { return static_cast<uint32_t>(m_sourceVertices.size()); }
-	bool hasGpuSkinningResources() const;
+	Skin& ensureSkin();
+	void clearSkin();
 
-	const VertexBuffer* getCpuSkinnedVertexBuffer() const { return m_skinnedVertexBuffer.get(); }
-	bool isCpuSkinningFallbackEnabled() const { return m_enableCpuSkinningFallback; }
-	
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
 private:
-	bool ensureSkinLoaded();
-	bool resolveSkinBindings();
-	void rebuildMatrixPalette();
-	void invalidateSkinningRuntime();
-
-	bool ensureGpuSkinningResources();
-	void updateGpuPaletteBuffers();
-	void invalidateGpuSkinningResources();
-
-	void cacheSourceVertices(const MeshAsset& meshAsset);
-	void rebuildCpuSkinnedVertexBuffer();
-
-private:
-	std::shared_ptr<SkinAsset>  m_skin;
-	std::vector<Transform*>     m_jointTransforms;
-	std::vector<Matrix>         m_matrixPalette;
-	std::vector<Matrix>         m_normalPalette;
-	bool                        m_skinBindingsResolved = false;
-	bool						m_enableCpuSkinningFallback = false;
 	std::shared_ptr<BasicMesh>		m_mesh;
+	std::unique_ptr<Skin>			m_skin;
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
-	std::vector<Vertex>                m_sourceVertices;
-	std::vector<Vertex>                m_skinnedVertices;
-	std::unique_ptr<VertexBuffer>      m_skinnedVertexBuffer;
-
-	MD5Hash							m_meshAsset = INVALID_ASSET_ID;
-	MD5Hash							m_skinAsset = INVALID_ASSET_ID;
-	std::vector<MD5Hash>			m_materialAssets;
+	AssetReference m_meshAsset{};
+	AssetReference m_skinAsset{};
+	std::vector<AssetReference> m_materialAssets{};
 
 	mutable Engine::BoundingBox				m_boundingBox;
 
 	int m_triangles = 0;
-
-	std::unique_ptr<VertexBuffer>  m_gpuSkinnedVertexBuffers[FRAMES_IN_FLIGHT];
-	ComPtr<ID3D12Resource>         m_gpuPaletteModelBuffers[FRAMES_IN_FLIGHT];
-	ComPtr<ID3D12Resource>         m_gpuPaletteNormalBuffers[FRAMES_IN_FLIGHT];
-
-	size_t                         m_gpuSkinningVertexCapacity = 0;
-	size_t                         m_gpuPaletteJointCapacity = 0;
 
 	bool m_isCulled = false;
 };

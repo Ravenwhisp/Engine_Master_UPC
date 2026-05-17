@@ -62,7 +62,7 @@ public:
 		float       padding;
 	};
 
-	explicit BasicMaterial(const UID uid, const MaterialAsset& asset);
+	explicit BasicMaterial(const UID uid, MaterialAsset& asset);
 	~BasicMaterial();
 
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }

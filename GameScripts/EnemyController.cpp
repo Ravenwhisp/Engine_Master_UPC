@@ -1,18 +1,18 @@
 #include "pch.h"
 #include "EnemyController.h"
 #include "EnemyDetectionAggro.h"
+#include "Damageable.h"
 #include <cmath>
 
-static const ScriptFieldInfo EnemyControllerFields[] =
-{
-	{ "Combat Range", ScriptFieldType::Float, offsetof(EnemyController, m_combatRange), { 0.0f, 50.0f, 0.1f } },
-	{ "Move Speed", ScriptFieldType::Float, offsetof(EnemyController, m_moveSpeed), { 0.0f, 50.0f, 0.1f } },
-	{ "Turn Speed", ScriptFieldType::Float, offsetof(EnemyController, m_turnSpeed), { 0.0f, 5.0f, 0.1f } },
-	{ "Interval", ScriptFieldType::Float, offsetof(EnemyController, m_intervalRepath), { 0.0f, 50.0f, 0.1f } },
-	{ "Debug Enabled", ScriptFieldType::Bool, offsetof(EnemyController, m_debugEnabled) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(EnemyController, EnemyControllerFields)
+IMPLEMENT_SCRIPT_FIELDS(EnemyController,
+	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_FLOAT(m_turnSpeed, "Turn Speed", 0.0f, 5.0f, 0.1f),
+	SERIALIZED_FLOAT(m_intervalRepath, "Interval", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_FLOAT(m_attackEnterRangeBonus, "Attack Enter Range Bonus", 0.0f, 5.0f, 0.05f),
+  SERIALIZED_FLOAT(m_attackExitRangeBonus, "Attack Exit Range Bonus", 0.0f, 5.0f, 0.05f),
+	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled")
+)
 
 EnemyController::EnemyController(GameObject* owner)
     : Script(owner)
@@ -22,8 +22,7 @@ EnemyController::EnemyController(GameObject* owner)
 void EnemyController::Start()
 {
 
-	Script* script = GameObjectAPI::getScript(m_owner, "EnemyDetectionAggro");
-	m_enemyDetectionAggro = dynamic_cast<EnemyDetectionAggro*>(script);
+	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 
 	if (!m_enemyDetectionAggro)
 	{
@@ -52,24 +51,46 @@ void EnemyController::drawGizmo()
 
 bool EnemyController::hasValidTarget() const
 {
-	if (m_enemyDetectionAggro->getCurrentTarget())
+	if (!m_enemyDetectionAggro)
 	{
-		return true;
+		return false;
 	}
 
-	return false;
-}
+	Transform* targetTransform = m_enemyDetectionAggro->getCurrentTarget();
+	if (!targetTransform)
+	{
+		return false;
+	}
 
+	GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
+	if (!targetObject)
+	{
+		return false;
+	}
+
+	Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetObject);
+
+	if (damageable && damageable->isDead())
+	{
+		return false;
+	}
+
+	return true;
+}
 void EnemyController::updateCurrentTarget()
 {
 	if (!m_enemyDetectionAggro)
 	{
-		m_currentTarget = nullptr;
+		m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 	}
-	else
+
+	if (!m_enemyDetectionAggro)
 	{
-		m_currentTarget = m_enemyDetectionAggro->getCurrentTarget();
+		m_currentTarget = nullptr;
+		return;
 	}
+
+	m_currentTarget = m_enemyDetectionAggro->getCurrentTarget();
 }
 
 bool EnemyController::isTargetInCombatRange() const
@@ -79,14 +100,44 @@ bool EnemyController::isTargetInCombatRange() const
 		return false;
 	}
 
-	Vector3 distance = m_owner->GetTransform()->getPosition() - m_currentTarget->getPosition();
+	Vector3 ownerPosition = m_owner->GetTransform()->getPosition();
+	Vector3 targetPosition = m_currentTarget->getPosition();
 
-	if (distance.Length() <= m_combatRange)
+	Vector3 difference = ownerPosition - targetPosition;
+	difference.y = 0.0f;
+
+	return difference.Length() <= m_combatRange;
+}
+bool EnemyController::isTargetInAttackEnterRange() const
+{
+	if (!m_currentTarget)
 	{
-		return true;
+		return false;
 	}
 
-	return false;
+	Vector3 ownerPosition = m_owner->GetTransform()->getPosition();
+	Vector3 targetPosition = m_currentTarget->getPosition();
+
+	Vector3 difference = ownerPosition - targetPosition;
+	difference.y = 0.0f;
+
+	return difference.Length() <= (m_combatRange + m_attackEnterRangeBonus);
+}
+
+bool EnemyController::isTargetInAttackExitRange() const
+{
+	if (!m_currentTarget)
+	{
+		return false;
+	}
+
+	Vector3 ownerPosition = m_owner->GetTransform()->getPosition();
+	Vector3 targetPosition = m_currentTarget->getPosition();
+
+	Vector3 difference = ownerPosition - targetPosition;
+	difference.y = 0.0f;
+
+	return difference.Length() <= (m_combatRange + m_attackExitRangeBonus);
 }
 
 void EnemyController::clearPath()
@@ -272,6 +323,28 @@ void EnemyController::addToRepathTimer(float dt)
 bool EnemyController::shouldRepath() const
 {
 	return m_repathTimer >= m_intervalRepath;
+}
+void EnemyController::tickChargeCooldown(float dt)
+{
+	if (m_chargeCooldownTimer > 0.0f)
+	{
+		m_chargeCooldownTimer -= dt;
+
+		if (m_chargeCooldownTimer < 0.0f)
+		{
+			m_chargeCooldownTimer = 0.0f;
+		}
+	}
+}
+
+bool EnemyController::isChargeReady() const
+{
+	return m_chargeCooldownTimer <= 0.0f;
+}
+
+void EnemyController::consumeChargeCooldown(float cooldownDuration)
+{
+	m_chargeCooldownTimer = cooldownDuration;
 }
 
 IMPLEMENT_SCRIPT(EnemyController)

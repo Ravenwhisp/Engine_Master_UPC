@@ -14,7 +14,8 @@ static const float TWO_PI = 6.28318530f;
 struct PSInput
 {
     float2 texCoord : TEXCOORD;
-    float4 color : COLOR;
+    float4 fillData : COLOR0;
+    float alpha : TEXCOORD1;
     float4 position : SV_POSITION;
 };
 
@@ -49,10 +50,10 @@ float ComputeRadialMask(float2 uv, float fillAmount, float clockwise, float rang
 
 float4 main(PSInput input) : SV_TARGET
 {
-    float fillAmount = saturate(input.color.r);
-    float method = input.color.g;
-    float origin = input.color.b;
-    float aspectRatio = max(input.color.a, 0.0001f);
+    float fillAmount = saturate(input.fillData.r);
+    float method = input.fillData.g;
+    float origin = input.fillData.b;
+    float aspectRatio = max(input.fillData.a, 0.0001f);
     
     if (fillAmount <= 0.0f)
         return 0;
@@ -125,6 +126,7 @@ float4 main(PSInput input) : SV_TARGET
     
     float4 texColor = uiTexture.Sample(uiSampler, input.texCoord);
     texColor.a *= mask;
+    texColor.a *= saturate(input.alpha);
     clip(texColor.a - 0.001f);
     return float4(LinearToSRGB(texColor.rgb), texColor.a);
 

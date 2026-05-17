@@ -2,14 +2,11 @@
 #include "PlayerMovement.h"
 #include "PlayerAnimationController.h"
 
-static const ScriptFieldInfo playerMovementFields[]
-{
-    { "Move Speed", ScriptFieldType::Float, offsetof(PlayerMovement, m_moveSpeed), { 0.0f, 50.0f, 0.05f } },
-    { "Constrain To NavMesh", ScriptFieldType::Bool, offsetof(PlayerMovement, m_constrainToNavMesh) },
-    { "Nav Extents", ScriptFieldType::Vec3, offsetof(PlayerMovement, m_navExtents) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerMovement, playerMovementFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerMovement,
+    SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.05f),
+    SERIALIZED_BOOL(m_constrainToNavMesh, "Constrain To NavMesh"),
+    SERIALIZED_VEC3(m_navExtents, "Nav Extents")
+)
 
 PlayerMovement::PlayerMovement(GameObject* owner)
     : Script(owner)
@@ -18,7 +15,12 @@ PlayerMovement::PlayerMovement(GameObject* owner)
 
 void PlayerMovement::Start()
 {
-    m_playerAnimationController = findAnimationController();
+    m_playerAnimationController = GameObjectAPI::findScript<PlayerAnimationController>(getOwner());
+
+    if (m_playerAnimationController == nullptr)
+    {
+        Debug::warn("PlayerMovement on '%s' could not find PlayerAnimationController on the same GameObject.", GameObjectAPI::getName(getOwner()));
+    }
 }
 
 void PlayerMovement::Update()
@@ -64,18 +66,6 @@ void PlayerMovement::applyTranslation(Transform* transform, const Vector3& curre
     {
         TransformAPI::setPosition(transform, constrainedPos);
     }
-}
-
-PlayerAnimationController* PlayerMovement::findAnimationController()
-{
-    Script* animationScript = m_owner ? GameObjectAPI::getScript(m_owner, "PlayerAnimationController") : nullptr;
-    if (animationScript)
-    {
-        return static_cast<PlayerAnimationController*>(animationScript);
-    }
-
-    Debug::warn("PlayerMovement on '%s' could not find PlayerAnimationController on the same GameObject.", GameObjectAPI::getName(m_owner));
-    return nullptr;
 }
 
 IMPLEMENT_SCRIPT(PlayerMovement)

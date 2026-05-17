@@ -1,10 +1,10 @@
 #pragma once
-#include "MD5Fwd.h"
+#include "AssetReference.h"
 
 struct SkyBoxSettings
 {
 	bool enabled = true;
-	MD5Hash cubemapAssetId = "51513e627d3296012beac59084735eaa";
+	AssetReference cubemapAssetId{};
 
 	bool operator==(const SkyBoxSettings& o) const
     {

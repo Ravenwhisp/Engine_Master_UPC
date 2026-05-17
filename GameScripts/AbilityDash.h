@@ -12,22 +12,24 @@ public:
 
     void Start() override;
     void Update() override;
+    ScriptFieldList getExposedFields() const override;
+
     void drawGizmo() override;
 
 protected:
+	void startAbility() override;
+	bool canStartSpecificAbility() const override;
+
     virtual bool canDash() const;
     virtual void onDashStarted();
     virtual void onDashUpdate(float dt) {}
     virtual void onDashEnded() {}
 
 private:
-    void tryStartDash();
+    void startDash();
     void updateDash(float dt);
     void stopDash();
     void calculateDashMovement(float dt);
-
-    PlayerController* findControllerScript(GameObject* owner) const;
-    PlayerMovement* findMovementScript(GameObject* owner) const;
 
 protected:
     PlayerController* m_playerController = nullptr;

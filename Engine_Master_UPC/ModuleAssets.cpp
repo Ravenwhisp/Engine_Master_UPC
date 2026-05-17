@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "Importer.h"
+#include "ImporterNative.h"
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
 #include "ImporterTexture.h"
@@ -12,12 +13,19 @@
 #include "ImporterAnimationStateMachine.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
+#include "ImporterScene.h"
 #include "MD5.h"
 
-#include "Asset.h"
-#include "AnimationStateMachineAsset.h"
-#include "Metadata.h"
-#include "UID.h"
+#include "AssetScanner.h"
+#include "ContentRegistry.h"
+#include "PrefabManager.h"
+
+#include "PrefabSerializer.h"
+#include "PrefabAsset.h"
+#include "Scene.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "ModuleScene.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -25,148 +33,220 @@
 #include "rapidjson/filereadstream.h"
 #include <fstream>
 
+#include "Asset.h"
+#include "AnimationStateMachineAsset.h"
+#include "Metadata.h"
+#include "UID.h"
+
 #include <filesystem>
 #include <FileIO.h>
+#include <AssetDialogFilter.h>
+#include <FileDialog.h>
 
+using namespace rapidjson;
+namespace fs = std::filesystem;
+
+constexpr bool ASSETS_MY_DEBUG = false;
+#define DEBUG_ASSETS(...) do { if constexpr (ASSETS_MY_DEBUG) { DEBUG_LOG(__VA_ARGS__); } } while (0)
+
+double elapsedMs(
+    const std::chrono::high_resolution_clock::time_point& begin,
+    const std::chrono::high_resolution_clock::time_point& end)
+{
+    return std::chrono::duration<double, std::milli>(end - begin).count();
+}
+
+ModuleAssets::ModuleAssets() = default;
+ModuleAssets::~ModuleAssets() = default;
 
 bool ModuleAssets::init()
 {
-    m_registry = std::make_unique<AssetRegistry>();
-    m_importerRegistry = std::make_unique<ImporterRegistry>();
-    
-    m_importerRegistry->registerImporter(std::make_unique<ImporterTexture>());
+    m_importers.push_back(m_importerTexture = new ImporterTexture());
+    m_importers.push_back(m_importerMesh = new ImporterMesh());
+    m_importers.push_back(m_importerMaterial = new ImporterMaterial());
+    m_importers.push_back(m_importerPrefab = new ImporterPrefab());
+    m_importers.push_back(m_importerAnimation = new ImporterAnimation());
+    m_importers.push_back(m_importerSkin = new ImporterSkin());
+    m_importers.push_back(m_importerAnimationStateMachine = new ImporterAnimationStateMachine());
+    m_importers.push_back(m_importerGltf = new ImporterGltf(
+    m_importerMesh, m_importerMaterial, m_importerPrefab,
+    m_importerAnimation, m_importerSkin, m_importerAnimationStateMachine));
+    m_importers.push_back(m_importerFont = new ImporterFont());
+    m_importers.push_back(m_importerScene = new ImporterScene());
 
-    {
-        auto mesh = std::make_unique<ImporterMesh>();
-        m_importerMesh = mesh.get();
-        m_importerRegistry->registerImporter(std::move(mesh));
-    }
-    {
-        auto mat = std::make_unique<ImporterMaterial>();
-        m_importerMaterial = mat.get();
-        m_importerRegistry->registerImporter(std::move(mat));
-    }
-    {
-        auto prefab = std::make_unique<ImporterPrefab>();
-        m_importerPrefab = prefab.get();
-        m_importerRegistry->registerImporter(std::move(prefab));
-    }
-
-    {
-        auto anim = std::make_unique<ImporterAnimation>();
-        m_importerAnimation = anim.get();
-        m_importerRegistry->registerImporter(std::move(anim));
-    }
-
-    {
-        auto skin = std::make_unique<ImporterSkin>();
-        m_importerSkin = skin.get();
-        m_importerRegistry->registerImporter(std::move(skin));
-    }
-
-    {
-        auto animStateMachine = std::make_unique<ImporterAnimationStateMachine>();
-        m_importerAnimationStateMachine = animStateMachine.get();
-        m_importerRegistry->registerImporter(std::move(animStateMachine));
-    }
-
-    // GLTF importer holds references to the three importers above so it can
-    // delegate sub-asset serialisation without duplicating binary format logic.
-    m_importerRegistry->registerImporter(
-        std::make_unique<ImporterGltf>(
-            *m_importerMesh,
-            *m_importerMaterial,
-            *m_importerPrefab,
-            *m_importerAnimation,
-            *m_importerSkin,
-            *m_importerAnimationStateMachine));
-
-    m_importerRegistry->registerImporter(std::make_unique<ImporterFont>());
-
-    m_scanner = std::make_unique<AssetScanner>(m_registry.get(), m_importerRegistry.get());
-    m_contentRegistry = std::make_unique<ContentRegistry>(m_registry.get());
+    m_scanner = std::make_unique<AssetScanner>();
+    m_contentRegistry = std::make_unique<ContentRegistry>(this);
+    m_prefabManager = std::make_unique<PrefabManager>(this);
 
     refresh();
-
     return true;
+}
+
+void ModuleAssets::postRender()
+{
+    flushDialogRequests();
 }
 
 bool ModuleAssets::cleanUp()
 {
     m_assets.clear();
+    for (auto it = m_importers.rbegin(); it != m_importers.rend(); ++it)
+        delete* it;
     return true;
+}
+
+Importer* ModuleAssets::findImporter(const std::filesystem::path& filePath) const
+{
+    for (auto& importer : m_importers)
+    {
+        if (importer->canImport(filePath)) return importer;
+    }
+    return nullptr;
+}
+
+Importer* ModuleAssets::findImporter(AssetType type) const
+{
+    for (auto& importer : m_importers)
+    {
+        if (importer->getAssetType() == type) return importer;
+    }
+    return nullptr;
 }
 
 bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
 {
-    return m_importerRegistry->findImporter(sourcePath) != nullptr;
+    return findImporter(sourcePath) != nullptr;
 }
 
-void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, MD5Hash& uid)
+void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetReference& reference)
 {
-    Importer* importer = m_importerRegistry->findImporter(sourcePath);
+    Importer* importer = findImporter(sourcePath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_ASSET_ID;
+        reference = AssetReference();
         return;
     }
 
-    if (!isValidAsset(uid))
-    {
-        uid = computeMD5(sourcePath);
-    }
+    const bool isReimport = isValidUID(reference.m_uid);
+    UID uid = isReimport ? reference.m_uid : GenerateUID();
 
-    // Scoped to this function — not cached, not shared.
-    std::unique_ptr<Asset> asset(importer->createAssetInstance(uid));
+    reference.m_uid = uid;
+    reference.m_type = importer->getAssetType();
+    reference.m_libId = INVALID_ASSET_ID;
+
+    std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
 
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_ASSET_ID;
+        if (!isReimport) reference = AssetReference();
         return;
     }
 
-    // Write the .metadata sidecar alongside the source file.
-    Metadata meta;
-    meta.uid = uid;
-    meta.type = asset->getType();
-    meta.sourcePath = sourcePath;
-    
-    auto it = m_pendingDependencies.find(uid);
-    if (it != m_pendingDependencies.end()) {
-        meta.m_dependencies = std::move(it->second);
-        m_pendingDependencies.erase(it);
+    if (!persistAsset(asset.get(), importer, reference, sourcePath))
+    {
+        if (!isReimport) reference = AssetReference();
+    }
+}
+
+
+bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
+{
+    std::filesystem::path targetPath = path;
+
+    if (targetPath.empty())
+    {
+        auto it = m_uidIndex.find(asset.getUID());
+        if (it != m_uidIndex.end() && !it->second.sourcePath.empty())
+        {
+            targetPath = it->second.sourcePath;
+        }
     }
 
-    std::filesystem::path metaPath = sourcePath;
-    metaPath += METADATA_EXTENSION;
+    if (targetPath.empty())
+    {
+        requestSave(asset);
+        return false;
+    }
 
+    Importer* importer = findImporter(asset.getType());
+    if (!importer)
+    {
+        DEBUG_ERROR("[ModuleAssets] No importer for type %u.", static_cast<unsigned>(asset.getType()));
+        return false;
+    }
+
+    if (!importer->saveNative(&asset, targetPath))
+    {
+        DEBUG_ERROR("[ModuleAssets] saveNative failed for '%s'.", targetPath.string().c_str());
+        return false;
+    }
+
+    const UID uid = isValidUID(asset.getUID()) ? asset.getUID() : GenerateUID();
+    AssetReference ref(uid, INVALID_ASSET_ID, asset.getType());
+    return persistAsset(&asset, importer, ref, targetPath);
+}
+
+
+bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath)
+{
+    Metadata meta;
+    meta.uid = reference.m_uid;
+    meta.type = (reference.m_type != AssetType::UNKNOWN) ? reference.m_type: asset->getType();
+    meta.sourcePath = sourcePath;
+
+    auto depIt = m_pendingDependencies.find(meta.uid);
+    if (depIt != m_pendingDependencies.end())
+    {
+        meta.m_dependencies = std::move(depIt->second);
+        m_pendingDependencies.erase(depIt);
+    }
+
+    meta.contentHash = computeMD5(sourcePath);
+    reference.m_libId = meta.contentHash;
+    asset->setLibId(meta.contentHash);
+    reference.m_type = meta.type;
+
+    {
+        auto prevIt = m_uidIndex.find(meta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != meta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+
+    std::error_code ec;
+    meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
+    if (ec) meta.sourceFileSize = 0;
+
+    std::filesystem::path metaPath = sourcePath;
+    Metadata::getMetadataPath(metaPath);
     if (!saveMetaFile(meta, metaPath))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write metadata for '%s'.", sourcePath.string().c_str());
-        uid = INVALID_ASSET_ID;
-        return;
+        return false;
     }
 
-    m_registry->registerAsset(meta);
+    registerIndex(meta.uid, meta.type, sourcePath, meta.contentHash);
 
-    // Serialise the processed binary into the library folder.
     uint8_t* rawBuffer = nullptr;
-    const uint64_t size = importer->save(asset.get(), &rawBuffer);
+    const uint64_t size = importer->save(asset, &rawBuffer);
     std::unique_ptr<uint8_t[]> buffer(rawBuffer);
 
     if (!FileIO::write(meta.getBinaryPath(), buffer.get(), static_cast<size_t>(size)))
     {
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
-        // Metadata was already written — roll back the in-memory store entry
-        // so it doesn't reference a binary that doesn't exist.
-        m_registry->remove(uid);
-        uid = INVALID_ASSET_ID;
-        return;
+        return false;
     }
 
-    return;
+    m_contentRegistry->registerAsset(sourcePath);
+
+    return true;
 }
 
 void ModuleAssets::refresh()
@@ -177,114 +257,192 @@ void ModuleAssets::refresh()
         rootStr.pop_back();
     }
 
-    const std::filesystem::path root = rootStr;
+    const fs::path root = rootStr;
 
-    std::vector<ImportRequest> pending = m_scanner->scan(root);
-    for (ImportRequest& req : pending)
+    auto tCollect0 = std::chrono::high_resolution_clock::now();
+    ScanFileResult scanResult = m_scanner->scan(root);
+    auto tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Scaner took %.3f ms", elapsedMs(tCollect0, tCollect1));
+
+
+    tCollect0 = std::chrono::high_resolution_clock::now();
+    for (const Metadata& meta : scanResult.metadata)
     {
-        importAsset(req.sourcePath, req.existingUID);
+        if (!isValidUID(meta.uid))
+        {
+            continue;
+        }
+        registerIndex(meta.uid, meta.type, meta.sourcePath, meta.contentHash);
     }
+    tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Metadata check took %.3f ms", elapsedMs(tCollect0, tCollect1));
 
+    tCollect0 = std::chrono::high_resolution_clock::now();
+    // Process assets that need (re)importing.
+    for (ImportRequest& req : scanResult.imports)
+    {
+        AssetReference ref(req.existingUID);
+        importAsset(req.sourcePath, ref);
+    }
+    tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Metadata reimport loop took %.3f ms", elapsedMs(tCollect0, tCollect1));
+
+    tCollect0 = std::chrono::high_resolution_clock::now();
+    // Rebuild the content-browser tree (uses findUID, which is now populated).
     m_contentRegistry->rebuild(root);
+    tCollect1 = std::chrono::high_resolution_clock::now();
+    DEBUG_ASSETS("[Module Assets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
 }
 
-
-MD5Hash ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
+void ModuleAssets::registerIndex(const UID& uid, AssetType type,
+    const std::filesystem::path& sourcePath,
+    const MD5Hash& contentHash)
 {
-    return m_registry->findByPath(sourcePath);
-}
-
-bool ModuleAssets::isLoaded(const MD5Hash& id)
-{
-    return m_assets.contains(id);
-}
-
-void ModuleAssets::unload(const MD5Hash& id)
-{
-    m_assets.remove(id);
-}
-
-
-std::shared_ptr<FileEntry> ModuleAssets::getRoot() const
-{
-    return m_contentRegistry->getRoot();
-}
-
-std::shared_ptr<FileEntry> ModuleAssets::getEntry(const std::filesystem::path& path) const
-{
-    return m_contentRegistry->getEntry(path);
-}
-
-
-std::shared_ptr<Asset> ModuleAssets::loadAsset(const Metadata* metadata)
-{
-    Importer* importer = m_importerRegistry->findImporter(metadata->type);
-    if (!importer)
+    const fs::path norm = sourcePath.lexically_normal();
+    m_uidIndex[uid] = { type, norm, contentHash };
+    if (!norm.empty())
     {
-        DEBUG_ERROR("[ModuleAssets] No importer for asset type %u (UID %llu).", static_cast<unsigned>(metadata->type), metadata->uid);
+        m_pathIndex[norm.string()] = uid;
+    }
+}
+
+UID ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
+{
+    const auto it = m_pathIndex.find(sourcePath.lexically_normal().string());
+    return it != m_pathIndex.end() ? it->second : INVALID_UID;
+}
+
+AssetReference* ModuleAssets::findReference(const UID& uid)
+{
+    if (!isValidUID(uid))
+    {
         return nullptr;
     }
 
-    std::shared_ptr<Asset> asset(importer->createAssetInstance(metadata->uid));
-
-    const std::vector<uint8_t> buffer = FileIO::read(metadata->getBinaryPath());
-    if (buffer.empty())
+    const auto it = m_uidIndex.find(uid);
+    if (it == m_uidIndex.end())
     {
-        DEBUG_ERROR("[ModuleAssets] Binary missing or empty for UID %llu.", metadata->uid);
         return nullptr;
     }
 
-    importer->load(buffer.data(), asset.get());
-    m_assets.insert(metadata->uid, asset);
+    const AssetIndexEntry& entry = it->second;
 
-    return asset;
+    if (isValidAsset(entry.contentHash))
+    {
+        return new AssetReference(uid, entry.contentHash, entry.type);
+    }
+
+    if (!entry.sourcePath.empty())
+    {
+        std::filesystem::path metaPath = entry.sourcePath;
+        Metadata::getMetadataPath(metaPath);
+        Metadata meta;
+        if (loadMetaFile(metaPath, meta))
+        {
+            const_cast<AssetIndexEntry&>(entry).contentHash = meta.contentHash;
+            return new AssetReference(uid, meta.contentHash, meta.type);
+        }
+    }
+
+    DEBUG_WARN("[ModuleAssets] findReference: UID '%s' found in index but contentHash could not be resolved.", std::to_string(uid).c_str());
+    return nullptr;
 }
 
-bool ModuleAssets::saveMetaFile(const Metadata& meta,
-    const std::filesystem::path& metaPath)
+bool ModuleAssets::isLoaded(const AssetReference& ref)
+{
+    return m_assets.contains(ref.m_uid);
+}
+
+void ModuleAssets::unload(const AssetReference& ref)
+{
+    m_assets.remove(ref.m_uid);
+}
+
+void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize)
+{
+    Metadata subMeta = meta;
+    subMeta.m_isSubAsset = true;
+
+    if (binaryData && binarySize > 0)
+    {
+        const std::vector<int8_t> hashInput( reinterpret_cast<const int8_t*>(binaryData), reinterpret_cast<const int8_t*>(binaryData) + binarySize);
+        subMeta.contentHash = to_hex_string(computeMD5(hashInput));
+    }
+
+    if (!isValidAsset(subMeta.contentHash))
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot register sub-asset (UID '%s'): binary data is null or empty.",
+            std::to_string(subMeta.uid).c_str());
+        return;
+    }
+
+    if (binaryData && binarySize > 0)
+    {
+        if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
+        {
+            DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary (UID '%s').",
+                std::to_string(subMeta.uid).c_str());
+            return;
+        }
+    }
+
+    m_uidIndex[subMeta.uid] = { subMeta.type, {} };
+
+    if (isValidUID(parentUID))
+    {
+        DependencyRecord dep;
+        dep.uid = subMeta.uid;
+        dep.contentHash = subMeta.contentHash;
+        dep.type = subMeta.type;
+        dep.displayName = subMeta.displayName;
+        m_pendingDependencies[parentUID].push_back(dep);
+    }
+}
+
+bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath)
 {
     rapidjson::Document doc;
     doc.SetObject();
     auto& alloc = doc.GetAllocator();
 
-    doc.AddMember("uid", rapidjson::Value(meta.uid.c_str(), alloc), alloc);
-    doc.AddMember("type", rapidjson::Value(static_cast<uint32_t>(meta.type)), alloc);
-    doc.AddMember("sourcePath", rapidjson::Value(meta.sourcePath.string().c_str(), alloc), alloc);
+    doc.AddMember("uid", meta.uid, alloc);
+    doc.AddMember("contentHash", Value(meta.contentHash.c_str(), alloc), alloc);
+    doc.AddMember("type", Value(static_cast<uint32_t>(meta.type)), alloc);
+    doc.AddMember("sourcePath", Value(meta.sourcePath.string().c_str(), alloc), alloc);
+    doc.AddMember("sourceFileSize", Value(meta.sourceFileSize), alloc);
 
-    // Write the dependency list so the scanner can re-register sub-assets on
-    // the next startup without re-importing the parent source file.
     if (!meta.m_dependencies.empty())
     {
-        rapidjson::Value deps(rapidjson::kArrayType);
+        Value deps(kArrayType);
         for (const DependencyRecord& dep : meta.m_dependencies)
         {
-            rapidjson::Value entry(rapidjson::kObjectType);
-            entry.AddMember("uid", rapidjson::Value(dep.uid.c_str(), alloc), alloc);
-            entry.AddMember("type", rapidjson::Value(static_cast<uint32_t>(dep.type)), alloc);
+            Value entry(kObjectType);
+            entry.AddMember("uid", dep.uid, alloc);
+            entry.AddMember("contentHash", Value(dep.contentHash.c_str(), alloc), alloc);
+            entry.AddMember("type", Value(static_cast<uint32_t>(dep.type)), alloc);
+            if (!dep.displayName.empty())
+                entry.AddMember("displayName", Value(dep.displayName.c_str(), alloc), alloc);
             deps.PushBack(entry, alloc);
         }
         doc.AddMember("dependencies", deps, alloc);
     }
 
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
     doc.Accept(writer);
 
     std::ofstream file(metaPath);
     if (!file.is_open())
     {
-        DEBUG_ERROR("[AssetMetadata] Could not open '%s' for writing.",
-            metaPath.string().c_str());
+        DEBUG_ERROR("[AssetMetadata] Could not open '%s' for writing.", metaPath.string().c_str());
         return false;
     }
-
     file << buffer.GetString();
     if (!file)
     {
         DEBUG_ERROR("[AssetMetadata] Failed to write '%s'.", metaPath.string().c_str());
         return false;
     }
-
     return true;
 }
 
@@ -299,9 +457,8 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     char readBuffer[65536];
-    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    rapidjson::Document doc;
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    Document doc;
     doc.ParseStream(is);
     std::fclose(fp);
 
@@ -311,15 +468,19 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
         return false;
     }
 
-    if (doc.HasMember("uid") && doc["uid"].IsString())
+    if (doc.HasMember("uid") && doc["uid"].IsUint64())
     {
-        outMeta.uid = doc["uid"].GetString();
+        outMeta.uid = doc["uid"].GetUint64();
     }
     else
     {
         DEBUG_ERROR("[AssetMetadata] Missing 'uid' in '%s'.", pathStr.c_str());
         return false;
     }
+
+    outMeta.contentHash = (doc.HasMember("contentHash") && doc["contentHash"].IsString())
+        ? doc["contentHash"].GetString()
+        : INVALID_ASSET_ID;
 
     if (doc.HasMember("type") && doc["type"].IsNumber())
     {
@@ -332,26 +493,30 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     }
 
     if (doc.HasMember("sourcePath") && doc["sourcePath"].IsString())
-    {
         outMeta.sourcePath = doc["sourcePath"].GetString();
-    }
 
+    if (doc.HasMember("sourceFileSize") && doc["sourceFileSize"].IsUint64())
+        outMeta.sourceFileSize = doc["sourceFileSize"].GetUint64();
 
-    // Restore the dependency list.
     outMeta.m_dependencies.clear();
     if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())
     {
         const auto& deps = doc["dependencies"];
         outMeta.m_dependencies.reserve(deps.Size());
-        for (rapidjson::SizeType i = 0; i < deps.Size(); ++i)
+        for (SizeType i = 0; i < deps.Size(); ++i)
         {
             const auto& entry = deps[i];
-            if (!entry.HasMember("uid") || !entry["uid"].IsString())  continue;
+            if (!entry.HasMember("uid") || !entry["uid"].IsUint64())  continue;
             if (!entry.HasMember("type") || !entry["type"].IsNumber()) continue;
 
             DependencyRecord rec;
-            rec.uid = entry["uid"].GetString();
+            rec.uid = entry["uid"].GetUint64();
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
+            if (entry.HasMember("contentHash") && entry["contentHash"].IsString())
+                rec.contentHash = entry["contentHash"].GetString();
+            if (entry.HasMember("displayName") && entry["displayName"].IsString())
+                rec.displayName = entry["displayName"].GetString();
+
             outMeta.m_dependencies.push_back(std::move(rec));
         }
     }
@@ -359,206 +524,68 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     return true;
 }
 
-void ModuleAssets::registerSubAsset(const Metadata& meta,
-    const MD5Hash& parentUID,
-    uint8_t* binaryData, size_t binarySize)
+void ModuleAssets::requestSave(Asset& asset)
 {
-    Metadata subMeta = meta;
-    subMeta.m_isSubAsset = true;
+    if (m_dialogRunning.load()) return;
 
-    // Write the binary to Library/ — caller still owns the buffer.
-    if (binaryData && binarySize > 0)
-    {
-        if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
+    m_pendingAsset = &asset;
+    m_pendingAssetType = asset.getType();
+    m_pendingIsSave = true;
+    m_dialogCallback = nullptr;
+
+    { std::lock_guard lock(m_dialogResultMutex); m_dialogResult.reset(); }
+    m_dialogRunning.store(true);
+
+    std::thread([this]()
         {
-            DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary '%s'.", subMeta.uid.c_str());
-            return;
-        }
-    }
-
-    m_registry->registerAsset(subMeta);
-
-    if (isValidAsset(parentUID))
-    {
-        DependencyRecord dep;
-        dep.uid = subMeta.uid;
-        dep.type = subMeta.type;
-        m_pendingDependencies[parentUID].push_back(dep);
-    }
+            const AssetDialogFilter filter = getDialogFilter(m_pendingAssetType);
+            auto result = saveAs(filter.filterSpec, filter.defaultExtension, "Save Asset", ASSETS_FOLDER);
+            { std::lock_guard lock(m_dialogResultMutex); m_dialogResult = std::move(result); }
+            m_dialogRunning.store(false);
+        }).detach();
 }
 
-bool ModuleAssets::saveAnimationStateMachine(const std::shared_ptr<AnimationStateMachineAsset>& asset)
+void ModuleAssets::flushDialogRequests()
 {
-    if (!asset)
+    if (m_dialogRunning.load()) return;
+
+    std::optional<fs::path> result;
     {
-        DEBUG_ERROR("[ModuleAssets] saveAnimationStateMachine called with null asset.");
-        return false;
+        std::lock_guard lock(m_dialogResultMutex);
+        if (!m_dialogResult.has_value()) return;
+        result = std::move(m_dialogResult);
+        m_dialogResult.reset();
     }
 
-    if (!m_importerAnimationStateMachine)
+    if (!result.has_value())
     {
-        DEBUG_ERROR("[ModuleAssets] AnimationStateMachine importer is not initialized.");
-        return false;
-    }
-
-    if (!saveAnimationStateMachineSource(asset))
-    {
-        return false;
-    }
-
-    const Metadata* meta = m_registry->getMetadata(asset->getId());
-    if (!meta)
-    {
-        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
-        return false;
-    }
-
-    MD5Hash uid = asset->getId();
-    importAsset(meta->sourcePath, uid);
-    m_assets.remove(asset->getId());
-
-    return uid != INVALID_ASSET_ID;
-}
-
-bool ModuleAssets::saveAnimationStateMachineSource(const std::shared_ptr<AnimationStateMachineAsset>& asset)
-{
-    if (!asset)
-    {
-        return false;
-    }
-
-    const Metadata* meta = m_registry->getMetadata(asset->getId());
-    if (!meta)
-    {
-        DEBUG_ERROR("[ModuleAssets] No metadata found for AnimationStateMachine '%s'.", asset->getId().c_str());
-        return false;
-    }
-
-    Metadata updatedMeta = *meta;
-
-    // HOTFIX: old state machines have no sourcePath. Create one automatically.
-    if (updatedMeta.sourcePath.empty())
-    {
-        std::filesystem::path dir = std::filesystem::path(ASSETS_FOLDER) / "StateMachines";
-        std::filesystem::create_directories(dir);
-
-        std::string fileName = asset->getName();
-        if (fileName.empty())
-        {
-            fileName = asset->getId();
-        }
-
-        // very simple sanitization
-        for (char& c : fileName)
-        {
-            if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|')
-            {
-                c = '_';
-            }
-        }
-
-        updatedMeta.sourcePath = dir / (fileName + ".statemachine");
-
-        std::filesystem::path metaPath = updatedMeta.sourcePath;
-        metaPath += METADATA_EXTENSION;
-
-        if (!saveMetaFile(updatedMeta, metaPath))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to create metadata for '%s'.", updatedMeta.sourcePath.string().c_str());
-            return false;
-        }
-
-        m_registry->registerAsset(updatedMeta);
-    }
-
-    rapidjson::Document doc;
-    doc.SetObject();
-    auto& alloc = doc.GetAllocator();
-
-    doc.AddMember("name", rapidjson::Value(asset->getName().c_str(), alloc), alloc);
-    doc.AddMember("defaultState", rapidjson::Value(asset->getDefaultStateName().c_str(), alloc), alloc);
-
-    {
-        rapidjson::Value clips(rapidjson::kArrayType);
-        for (const AnimationStateMachineClip& clip : asset->getClips())
-        {
-            rapidjson::Value clipJson(rapidjson::kObjectType);
-            clipJson.AddMember("name", rapidjson::Value(clip.name.c_str(), alloc), alloc);
-            clipJson.AddMember("animationUID", rapidjson::Value(clip.animationUID.c_str(), alloc), alloc);
-            clipJson.AddMember("loop", clip.loop, alloc);
-            clips.PushBack(clipJson, alloc);
-        }
-        doc.AddMember("clips", clips, alloc);
-    }
-
-    {
-        rapidjson::Value states(rapidjson::kArrayType);
-        for (const AnimationStateMachineState& state : asset->getStates())
-        {
-            rapidjson::Value stateJson(rapidjson::kObjectType);
-            stateJson.AddMember("name", rapidjson::Value(state.name.c_str(), alloc), alloc);
-            stateJson.AddMember("clipName", rapidjson::Value(state.clipName.c_str(), alloc), alloc);
-            stateJson.AddMember("speed", state.speed, alloc);
-            stateJson.AddMember("behaviourScriptName", rapidjson::Value(state.behaviourScriptName.c_str(), alloc), alloc);
-            stateJson.AddMember("behaviourFieldsJson", rapidjson::Value(state.behaviourFieldsJson.c_str(), alloc), alloc);
-            stateJson.AddMember("overrideLoop", state.overrideLoop, alloc);
-            stateJson.AddMember("loop", state.loop, alloc);
-            states.PushBack(stateJson, alloc);
-        }
-        doc.AddMember("states", states, alloc);
-    }
-
-    {
-        rapidjson::Value transitions(rapidjson::kArrayType);
-        for (const AnimationStateMachineTransition& transition : asset->getTransitions())
-        {
-            rapidjson::Value transitionJson(rapidjson::kObjectType);
-            transitionJson.AddMember("sourceStateName", rapidjson::Value(transition.sourceStateName.c_str(), alloc), alloc);
-            transitionJson.AddMember("targetStateName", rapidjson::Value(transition.targetStateName.c_str(), alloc), alloc);
-            transitionJson.AddMember("triggerName", rapidjson::Value(transition.triggerName.c_str(), alloc), alloc);
-            transitionJson.AddMember("blendTimeSeconds", transition.blendTimeSeconds, alloc);
-            transitions.PushBack(transitionJson, alloc);
-        }
-        doc.AddMember("transitions", transitions, alloc);
-    }
-
-    rapidjson::StringBuffer buffer;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-
-    std::ofstream file(updatedMeta.sourcePath);
-    if (!file.is_open())
-    {
-        DEBUG_ERROR("[ModuleAssets] Could not open '%s' for writing.", updatedMeta.sourcePath.string().c_str());
-        return false;
-    }
-
-    file << buffer.GetString();
-    return file.good();
-}
-
-void ModuleAssets::flushDependencies(const MD5Hash& parentUID,
-    const std::filesystem::path& parentSourcePath,
-    AssetType parentType)
-{
-    auto it = m_pendingDependencies.find(parentUID);
-    if (it == m_pendingDependencies.end())
+        m_pendingAsset = nullptr;
         return;
-
-    // Upsert the parent's registry entry with the collected dependency list.
-    Metadata parentMeta;
-    const Metadata* existing = m_registry->getMetadata(parentUID);
-    if (existing)
-        parentMeta = *existing;
-    else
-    {
-        parentMeta.uid = parentUID;
-        parentMeta.type = parentType;
-        parentMeta.sourcePath = parentSourcePath;
     }
 
-    parentMeta.m_dependencies = std::move(it->second);
-    m_pendingDependencies.erase(it);
+    if (m_pendingIsSave && m_pendingAsset)
+    {
+        save(*m_pendingAsset, *result);
+        m_pendingAsset = nullptr;
+    }
+    else if (!m_pendingIsSave && m_dialogCallback)
+    {
+        m_dialogCallback(*result);
+        m_dialogCallback = nullptr;
+    }
+}
 
-    m_registry->registerAsset(parentMeta);
+bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfPath)
+{
+    return m_importerGltf->createStateMachine(gltfPath);
+}
+
+ContentRegistry* ModuleAssets::getContentRegistry() const
+{
+    return m_contentRegistry.get();
+}
+
+PrefabManager* ModuleAssets::getPrefabManager() const
+{
+    return m_prefabManager.get();
 }

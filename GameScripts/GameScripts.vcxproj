@@ -168,6 +168,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;$(SolutionDir)3rdParty\WinPixEventRuntime\Include;$(SolutionDir)3rdParty\directX;$(SolutionDir)3rdParty\imgui-docking</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -196,6 +197,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -224,6 +226,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -258,6 +261,7 @@
     <ClInclude Include="DeathTaunt.h" />
     <ClInclude Include="DebugDamageTrigger.h" />
     <ClInclude Include="DebugDrawTest.h" />
+    <ClInclude Include="DebugGetObjectsArea.h" />
     <ClInclude Include="DefeatConditionManager.h" />
     <ClInclude Include="EnemyATTACK.h" />
     <ClInclude Include="EnemyCHASE.h" />
@@ -266,7 +270,9 @@
     <ClInclude Include="EnemyDeathHandler.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
     <ClInclude Include="EnemyIDLE.h" />
+    <ClInclude Include="ExportListTest.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="HapticTester.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LevelCheats.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
@@ -295,7 +301,9 @@
     <ClInclude Include="TestSceneChangeButton.h" />
     <ClInclude Include="TransformGlobalTest.h" />
     <ClInclude Include="TriggerArea.h" />
+    <ClInclude Include="TriggerDebugScript.h" />
     <ClInclude Include="UIController.h" />
+    <ClInclude Include="UIPause.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
@@ -314,6 +322,7 @@
     <ClCompile Include="DeathTaunt.cpp" />
     <ClCompile Include="DebugDamageTrigger.cpp" />
     <ClCompile Include="DebugDrawTest.cpp" />
+    <ClCompile Include="DebugGetObjectsArea.cpp" />
     <ClCompile Include="DefeatConditionManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EnemyATTACK.cpp" />
@@ -323,6 +332,9 @@
     <ClCompile Include="EnemyDeathHandler.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
+    <ClCompile Include="EnemyShadowMark.cpp" />
+    <ClCompile Include="ExportListTest.cpp" />
+    <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LevelCheats.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
@@ -341,6 +353,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PersistingPowerupState.cpp" />
     <ClCompile Include="PlayerAnimationController.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerDamageable.cpp" />
@@ -350,6 +363,7 @@
     <ClCompile Include="PlayerState.cpp" />
     <ClCompile Include="PlayerTargetController.cpp" />
     <ClCompile Include="ProjectileController.cpp" />
+    <ClCompile Include="ReaperGauge.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -363,7 +377,9 @@
     <ClCompile Include="TestSceneChangeButton.cpp" />
     <ClCompile Include="TransformGlobalTest.cpp" />
     <ClCompile Include="TriggerArea.cpp" />
+    <ClCompile Include="TriggerDebugScript.cpp" />
     <ClCompile Include="UIController.cpp" />
+    <ClCompile Include="UIPause.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PlayerCharacterGuide.md" />

@@ -14,9 +14,11 @@
 #include "Transform2D.h"
 #include "Canvas.h"
 #include "Component.h"
+#include "UINavigation.h"
 
 #include <IPointerEventHandler.h>
 #include <UIImage.h>
+#include <UIButton.h>
 #include <WindowSceneEditor.h>
 #include "Delegates.h"
 
@@ -56,23 +58,38 @@ static bool IsMouseButtonReleased(PointerButton btn)
 #pragma region Game Loop
 bool ModuleEventSystem::init()
 {
+    m_navigation = new UINavigation();
+
     return true;
 }
 
 void ModuleEventSystem::update()
 {
-    if (app->getModuleScene()->isPendingSceneLoad()) {
-        clearHoverState();
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
         return;
-
     }
-    process();
+
+    if (app->getModuleScene()->isPendingSceneLoad())
+    {
+        clearHoverState();
+    }
+    else
+    {
+        process();
+    }
 }
 
 bool ModuleEventSystem::cleanUp()
 {
     for (auto& state : m_buttonStates)
+    {
         state = ButtonState{};
+    }
+
+    delete m_navigation;
+    m_navigation = nullptr;
+
     return true;
 }
 #pragma endregion
@@ -158,7 +175,18 @@ void ModuleEventSystem::clearHoverState()
         state.pointerPress = nullptr;
         state.pressPosition = { 0.0f, 0.0f };
     }
+
+    if (m_navigation)
+    {
+        m_navigation->clearSelection();
+    }
 }
+
+void ModuleEventSystem::onSubmit(GameObject* go, PointerEventData& data)
+{
+    sendPointerClick(go, data);
+}
+
 
 GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
 {
@@ -204,7 +232,7 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
     Transform2D* t2d = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
     if (t2d && t2d->isActive())
     {
-        myRect = t2d->getRect(parentRect);
+        myRect = t2d->getRect(parentRect, { 1.0f, 1.0f });
 
         if (myRect.contains(screenPos))
         {
@@ -224,6 +252,20 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 
 #pragma region Events
 void ModuleEventSystem::process()
+{
+    processController();
+    processMouse();
+}
+
+void ModuleEventSystem::processController()
+{
+    if (m_navigation)
+    {
+        m_navigation->update();
+    }
+}
+
+void ModuleEventSystem::processMouse()
 {
     Vector2 mousePos;
     if (!getViewportMousePos(mousePos))
@@ -259,6 +301,11 @@ void ModuleEventSystem::process()
         {
             data.pointerEnter = hovered;
             sendPointerEnter(hovered, data);
+
+            if (m_navigation)
+            {
+				m_navigation->setSelected(hovered);
+            }
         }
 
         m_hoveredLast = hovered;

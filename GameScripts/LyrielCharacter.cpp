@@ -2,12 +2,9 @@
 #include "LyrielCharacter.h"
 #include "ArrowPool.h"
 
-static const ScriptFieldInfo LyrielCharacterFields[] =
-{
-    { "Arrow Spawn Child Name", ScriptFieldType::String, offsetof(LyrielCharacter, m_arrowSpawnChildName) }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(LyrielCharacter, LyrielCharacterFields)
+IMPLEMENT_SCRIPT_FIELDS(LyrielCharacter,
+    SERIALIZED_STRING(m_arrowSpawnChildName, "Arrow Spawn Child Name")
+)
 
 LyrielCharacter::LyrielCharacter(GameObject* owner)
     : CharacterBase(owner)
@@ -18,8 +15,7 @@ void LyrielCharacter::Start()
 {
     CharacterBase::Start();
 
-    Script* arrowPoolScript = GameObjectAPI::getScript(getOwner(), "ArrowPool");
-    m_arrowPool = static_cast<ArrowPool*>(arrowPoolScript);
+    m_arrowPool = GameObjectAPI::findScript<ArrowPool>(getOwner());
 
     if (m_arrowPool == nullptr)
     {

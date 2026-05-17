@@ -3,12 +3,9 @@
 
 #include "CharacterBase.h"
 
-static const ScriptFieldInfo playerTargetControllerFields[] =
-{
-    { "Target Range", ScriptFieldType::Float, offsetof(PlayerTargetController, m_targetRange), { 0.0f, 20.0f, 0.05f } }
-};
-
-IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController, playerTargetControllerFields)
+IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController,
+    SERIALIZED_FLOAT(m_targetRange, "Target Range", 0.0f, 20.0f, 0.05f)
+)
 
 PlayerTargetController::PlayerTargetController(GameObject* owner)
     : Script(owner)
@@ -17,13 +14,7 @@ PlayerTargetController::PlayerTargetController(GameObject* owner)
 
 void PlayerTargetController::Start()
 {
-    Script* characterScript = GameObjectAPI::getScript(getOwner(), "LyrielCharacter");
-    if (characterScript == nullptr)
-    {
-        characterScript = GameObjectAPI::getScript(getOwner(), "DeathCharacter");
-    }
-
-    m_character = static_cast<CharacterBase*>(characterScript);
+    m_character = GameObjectAPI::findScript<CharacterBase>(getOwner());
 
     if (m_character == nullptr)
     {

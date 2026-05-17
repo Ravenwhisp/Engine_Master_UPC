@@ -5,6 +5,8 @@
 #include "ModuleCamera.h"
 #include <backends/imgui_impl_dx12.h>
 
+#include "Scene.h"
+#include "GameObject.h"
 #include "WindowSceneEditor.h"
 #include "WindowHardware.h"
 #include "EditorWindow.h"
@@ -18,13 +20,14 @@
 #include "SceneConfig.h"
 #include "WindowGame.h"
 #include "WindowGameDebug.h"
-#include "PrefabManager.h"
 #include "ModuleRender.h"
 #include "WindowAnimationStateMachine.h"
+#include "PrefabManager.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleGameView.h"
+#include "ModuleAssets.h"
 #include "Mouse.h"
 
 #include <fstream>
@@ -121,6 +124,7 @@ EditorWindow* ModuleEditor::openWindow(const std::string& typeKey)
     }
 
     EditorWindow* window = it->second();
+    window->setOpen(true);
     window->setInstanceId(m_nextInstanceId++);
     m_editorWindows.push_back(window);
     return window;
@@ -199,6 +203,8 @@ void ModuleEditor::render()
     {
         window->draw();
     }
+
+    removeClosedWindows();
 
     if (m_moduleGameView->getShowDebugWindow() && m_viewGameDebug)
     {
@@ -431,9 +437,14 @@ void ModuleEditor::saveWindowStates()
 
     for (EditorWindow* window : m_editorWindows)
     {
+        if (!window->isOpen())
+        {
+            continue;
+        }
+
         file << window->getWindowName() << "|"
             << window->getInstanceId() << "|"
-            << (window->isOpen() ? 1 : 0) << "\n";
+            << 1 << "\n";
     }
 }
 
@@ -493,6 +504,11 @@ void ModuleEditor::loadWindowStates()
 
             if (!target)
             {
+                if (!isOpen)
+                {
+                    continue;
+                }
+
                 auto it = m_windowFactories.find(typeKey);
                 if (it != m_windowFactories.end())
                 {
@@ -506,6 +522,25 @@ void ModuleEditor::loadWindowStates()
             {
                 target->setOpen(isOpen);
             }
+        }
+    }
+}
+
+void ModuleEditor::removeClosedWindows()
+{
+    for (auto it = m_editorWindows.begin(); it != m_editorWindows.end(); )
+    {
+        EditorWindow* window = *it;
+
+        if (!window->isOpen())
+        {
+            window->cleanUp();
+            delete window;
+            it = m_editorWindows.erase(it);
+        }
+        else
+        {
+            ++it;
         }
     }
 }
@@ -591,14 +626,10 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
 {
     app->getModuleD3D12()->getCommandQueue()->flush();
 
-    if (m_prefabSession.m_active)
-    {
-        m_prefabSession.clear();
-    }
+    Scene* mainScene = app->getModuleScene()->getScene();
+    m_prefabSession.m_isolatedScene = mainScene;
 
-    m_prefabSession.m_isolatedScene = app->getModuleScene()->getScene();
-
-    GameObject* loaded = PrefabManager::instantiatePrefab(sourcePath, m_prefabSession.m_isolatedScene);
+    GameObject* loaded = app->getModuleAssets()->getPrefabManager()->spawnPrefab(sourcePath, mainScene);
 
     if (!loaded)
     {
@@ -609,7 +640,6 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     m_prefabSession.m_sourcePath = sourcePath;
     m_prefabSession.m_rootObject = loaded;
     m_prefabSession.m_active = true;
-    m_prefabSession.m_editingInMainScene = false;
     m_selectedGameObject = loaded;
 }
 
@@ -619,6 +649,7 @@ void ModuleEditor::exitPrefabEdit()
     {
         return;
     }
+
     m_pendingExitPrefab = true;
 }
 
@@ -632,5 +663,11 @@ void ModuleEditor::flushExitPrefabEdit()
     m_pendingExitPrefab = false;
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_selectedGameObject = nullptr;
+
+    if (m_prefabSession.m_rootObject && m_prefabSession.m_isolatedScene)
+    {
+        m_prefabSession.m_isolatedScene->removeGameObject(m_prefabSession.m_rootObject->GetID());
+    }
+
     m_prefabSession.clear();
 }

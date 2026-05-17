@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "MeshRenderer.h"
+#include "Skin.h"
 #include "GameObject.h"
 #include "Transform.h"
 #include "BasicMesh.h"
@@ -22,7 +23,7 @@ SkinningComputePass::SkinningComputePass(ComPtr<ID3D12Device4> device)
     rootParameters[1].InitAsUnorderedAccessView(0);     // u0: output vertices
     rootParameters[2].InitAsShaderResourceView(1);      // t1: palette model
     rootParameters[3].InitAsShaderResourceView(2);      // t2: palette normal
-    rootParameters[4].InitAsConstants(1, 0);            // b0: vertex count
+    rootParameters[4].InitAsConstants(2, 0);            // b0: vertex count + palette count
 
     rootSignatureDesc.Init(
         _countof(rootParameters),
@@ -74,30 +75,38 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         if (!owner || !owner->IsActiveInWindowHierarchy())
             continue;
 
+        Skin* skin = renderer->getSkin();
+        if (!skin)
+            continue;
+
         if (!renderer->isActive())
             continue;
 
         if (!renderer->hasMesh())
             continue;
 
-        if (!renderer->hasSkinPalette())
+        if (!skin->hasSkinPalette())
             continue;
 
-        if (!renderer->hasGpuSkinningResources())
+        if (!skin->hasGpuSkinningResources())
             continue;
 
-        const uint32_t vertexCount = renderer->getSkinningVertexCount();
+        const uint32_t vertexCount = skin->getSkinningVertexCount();
+
+
         if (vertexCount == 0)
             continue;
+        
+        const uint32_t paletteCount = static_cast<uint32_t>(skin->getMatrixPalette().size());
 
         auto& mesh = renderer->getMesh();
         if (!mesh || !mesh->getVertexBuffer())
             continue;
 
         ID3D12Resource* inputResource = mesh->getVertexBuffer()->getD3D12Resource().Get();
-        ID3D12Resource* outputResource = renderer->getCurrentGpuSkinnedOutputResource();
-        ID3D12Resource* paletteModelResource = renderer->getCurrentGpuPaletteModelResource();
-        ID3D12Resource* paletteNormalResource = renderer->getCurrentGpuPaletteNormalResource();
+        ID3D12Resource* outputResource = skin->getCurrentGpuSkinnedOutputResource();
+        ID3D12Resource* paletteModelResource = skin->getCurrentGpuPaletteModelResource();
+        ID3D12Resource* paletteNormalResource = skin->getCurrentGpuPaletteNormalResource();
 
         if (!inputResource || !outputResource || !paletteModelResource || !paletteNormalResource)
             continue;
@@ -120,6 +129,7 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         commandList->SetComputeRootShaderResourceView(2, paletteModelResource->GetGPUVirtualAddress());
         commandList->SetComputeRootShaderResourceView(3, paletteNormalResource->GetGPUVirtualAddress());
         commandList->SetComputeRoot32BitConstant(4, vertexCount, 0);
+        commandList->SetComputeRoot32BitConstant(4, paletteCount, 1);
 
         const uint32_t threadGroupCount = (vertexCount + 63u) / 64u;
         commandList->Dispatch(threadGroupCount, 1, 1);
