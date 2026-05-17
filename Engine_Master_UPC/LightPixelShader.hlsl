@@ -2,6 +2,8 @@
 
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
+Texture2D normalTex : register(t2);
+Texture2D emissiveTex : register(t3);
 
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
@@ -175,6 +177,11 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 viewDirection, 
     //-----------------------------------------//
 }
 
+float computeSpecularAO(float NdotV, float diffuseAO, float roughness)
+{
+    return saturate(pow(NdotV + diffuseAO, exp2(-16.0 * roughness - 1.0)) - 1.0 + diffuseAO);
+}
+
 float3 LinearToSRGB(float3 color)
 {
     return pow(color, INV_GAMMA);
@@ -207,21 +214,24 @@ void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness,
      secondTerm = radiance * fab.y;
 }
 
-float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float roughness, in float roughnessLevels, in float metallic )
+float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float roughness, in float roughnessLevels, in float metallic, in float ao, in float specularAO)
 {
     float3 R = reflect(-V, N);
     float NdotV = saturate(dot(N, V));
     float3 diffuse = getDiffuseAmbientLight(N, baseColour);
+    diffuse *= ao;
     float3 firstTerm, secondTerm;
     getSpecularAmbientLightNoFresnel(R, NdotV, roughness, roughnessLevels, firstTerm, secondTerm);
 
     float3 metalSpecular = baseColour * firstTerm + secondTerm;
+    metalSpecular *= specularAO;
 
     float3 dielectricSpecular = 0.04 * firstTerm + secondTerm;
+    dielectricSpecular *= specularAO;
     return lerp(diffuse + dielectricSpecular, metalSpecular, metallic);
 }
 
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : TEXCOORD) : SV_TARGET
+float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET 
 {
     //Load texture & material data
     float4 texSample = baseColorTex.Sample(linearWrapSample, coord);
@@ -231,14 +241,25 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     }
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
     
-    float2 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, coord).bg;
-    float metallic = hasMetallicRoughnessTex != 0 ? 1 - saturate(metallicRoughnessSample.x * metallicFactor) : metallicFactor;
-    
+    float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
+    float2 metallicRoughnessSample = metallicRoughnessAOSample.bg;
+    float ao = 1;
+    float metallic = metallicFactor;
+    float perceptualRoughness = roughnessFactor;
     float minRoughness = 0.04;
-    //float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp((1 - metallicRoughnessSample.y) * roughnessFactor, minRoughness, 1.0) : roughnessFactor;
-    float perceptualRoughness = hasMetallicRoughnessTex != 0 ? clamp(metallicRoughnessSample.y * 1, minRoughness, 1.0) : roughnessFactor;
-    //float alphaRoughness = perceptualRoughness * perceptualRoughness;
+    
+    if (hasMetallicRoughnessTex != 0)
+    {
+        metallic = 1 - saturate(metallicRoughnessSample.x * metallicFactor);
+        ao = metallicRoughnessAOSample.r;
+        perceptualRoughness = clamp(metallicRoughnessSample.y * 1, minRoughness, 1.0);
+
+    }
     float alphaRoughness = perceptualRoughness;
+    metallic = 0;
+    
+    float3 emissiveSample = emissiveTex.Sample(linearWrapSample, coord);
+    float3 emissive = (hasEmissiveTex != 0) ? emissiveSample.rgb * emissiveColor : 0;
     
     float3 F0Metallic = albedo;
     float3 F0NonMetallic = 0.04;
@@ -247,43 +268,55 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float2 coord : T
     float3 diffuseColorNonMetallic = albedo / PI;
     
     float3 normalVector = normalize(normal);
+    float3 tangentVector = normalize(tangent.xyz);
+    float3 bitangentVector = cross(normalVector, tangentVector);
+    float3x3 TBN = float3x3(tangentVector, bitangentVector, normalVector);
+    
+    float3 tangentNormal = normalTex.Sample(linearWrapSample, coord).rgb;
+    tangentNormal = tangentNormal * 2.0 - 1.0;
+    
+    float3 finalWorldNormal = mul(tangentNormal, TBN);
     
     float3 viewDirection = normalize(viewPos - worldPos);
     float3 reflection = -normalize(reflect(viewDirection, normal));
     
-    float NdotV = abs(dot(normalVector, viewDirection)) + 0.001;
+    float NdotV = abs(dot(finalWorldNormal, viewDirection)) + 0.001;
     
     float3 colorMetallic = 0.0;
     float3 colorNonMetallic = 0.0;
-
+    
+    float specularAO = computeSpecularAO(NdotV, ao, alphaRoughness);
+    float horizon = min(1.0 + dot(reflection, finalWorldNormal), 1.0);
+    specularAO *= horizon;
+    
     // Directional lights
     for (uint i = 0; i < directionalCount; ++i)
     {
-        colorMetallic += ComputeDirectionalLight(i, viewDirection, normalVector, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputeDirectionalLight(i, viewDirection, normalVector, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        colorMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        colorNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
     // Point lights
     for (uint i = 0; i < pointCount; ++i)
     {
-        colorMetallic += ComputePointLight(i, worldPos, viewDirection, normalVector, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputePointLight(i, worldPos, viewDirection, normalVector, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        colorMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        colorNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
     // Spot lights
     for (uint i = 0; i < spotCount; ++i)
     {
-        colorMetallic += ComputeSpotLight(i, worldPos, viewDirection, normalVector, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, normalVector, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        colorMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        colorNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
         
     // Ambient
     float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
     
-    //IBL
-    float3 indirectLighting = computeLighting(viewDirection, normalVector, F0Metallic, alphaRoughness, 11, metallic);
+    //IBL 
+    float3 indirectLighting = computeLighting(viewDirection, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
     
-    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting);
+    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
     float3 finalColor = LinearToSRGB(colorMapped);
 
     return float4(finalColor, 1.0f);
