@@ -28,7 +28,7 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
 {
     std::unique_ptr<ParticleSystemComponent> cloned = std::make_unique<ParticleSystemComponent>(m_uuid, newOwner);
 
-    cloned->m_textureAssetId = m_textureAssetId;
+    cloned->m_textureAsset = m_textureAsset;
     cloned->m_currentEditableEmitter = m_currentEditableEmitter;
     cloned->setActive(this->isActive());
 
@@ -45,6 +45,11 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
     }
 
     return cloned;
+}
+
+void ParticleSystemComponent::setTextureAssetReference(AssetReference& assetRef)
+{
+    m_textureAsset = assetRef;
 }
 
 float ParticleSystemComponent::getDistance() const
@@ -71,18 +76,22 @@ void ParticleSystemComponent::drawUi()
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
-            const MD5Hash* data = static_cast<const MD5Hash*>(payload->Data);
-            m_textureAssetId = *data;
-            DEBUG_LOG("Texture on particle system drop: assetId=%s", data->c_str());
+            UID* ref = static_cast<UID*>(payload->Data);
+            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            if (assetRef)
+            {
+                m_textureAsset = *assetRef;
+                DEBUG_LOG("Texture on particle system drop: assetId=%s", assetRef->m_libId.c_str());
+            }
         }
         ImGui::EndDragDropTarget();
     }
 
     ImGui::SameLine();
 
-    ImGui::Text("Loaded: %s", (m_textureAssetId != INVALID_ASSET_ID) ? "YES" : "NO");
+    ImGui::Text("Loaded: %s", m_textureAsset.isValid() ? "YES" : "NO");
 
-    if (m_textureAssetId == INVALID_ASSET_ID) return;
+    if (!m_textureAsset.isValid()) return;
 
     // EMITTER INTERFACE
 
@@ -123,7 +132,7 @@ void ParticleSystemComponent::drawUi()
 
 void ParticleSystemComponent::update()
 {
-    if (m_textureAssetId != INVALID_ASSET_ID) 
+    if (m_textureAsset.isValid()) 
     {
             for (auto& particleState : m_particlesState)
         {
@@ -143,7 +152,7 @@ rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     // Should go on the Emitter class? (or at least have an array of texture assets, one per emitter, in the future)
-    componentInfo.AddMember("TextureAssetId", rapidjson::Value(m_textureAssetId.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+    componentInfo.AddMember("TextureAssetId", m_textureAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
 
     rapidjson::Value emitterData(rapidjson::kArrayType);
@@ -161,7 +170,7 @@ bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentI
 {
     if (componentInfo.HasMember("TextureAssetId"))
     {
-        m_textureAssetId = componentInfo["TextureAssetId"].GetString();
+        m_textureAsset.deserializeJson(componentInfo["TextureAssetId"]);
     }
 
     // Emitters and instances set up //

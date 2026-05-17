@@ -3,11 +3,11 @@
 
 #include "ParticleSystem.h"
 #include "ParticleCommands.h"
-#include "MD5Fwd.h"
+#include "AssetReference.h"
 
 class ParticleSystemComponent;
 
-// IN THE FUTURE, THE IDEA IS THAT IT HOLDS ALL PARTICLE SYSTEMS FOR EASY ACCESS
+// IN THE FUTURE, THE IDEA IS THAT IT HOLDS ALL PARTICLE SYSTEMS FOR EASY ACESS
 
 class ModuleParticleSystem : public Module
 {
@@ -35,7 +35,7 @@ public:
 
 private:
 
-    Texture* resolveTexture(const MD5Hash& textureId);
+    Texture* resolveTexture(AssetReference& textureRef);
 
     std::vector<std::unique_ptr<ParticleSystem>> m_particleSystems;
     std::vector<Transform*> m_parents;

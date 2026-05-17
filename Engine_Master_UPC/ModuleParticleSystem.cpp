@@ -18,35 +18,36 @@ void ModuleParticleSystem::resetAllParticles()
     }
 }
 
-Texture* ModuleParticleSystem::resolveTexture(const MD5Hash& textureId)
+Texture* ModuleParticleSystem::resolveTexture(AssetReference& textureRef)
 {
-    if (textureId == INVALID_ASSET_ID)
+    if (!textureRef.isValid())
     {
         return nullptr;
     }
 
-    auto it = m_particleTextures.find(textureId);
+    const MD5Hash& libId = textureRef.m_libId;
+    auto it = m_particleTextures.find(libId);
     if (it != m_particleTextures.end())
     {
         return it->second.get();
     }
 
-    std::shared_ptr<TextureAsset> asset = app->getModuleAssets()->load<TextureAsset>(textureId);
+    std::shared_ptr<TextureAsset> asset = app->getModuleAssets()->load<TextureAsset>(textureRef);
     if (!asset)
     {
-        DEBUG_WARN("[ModuleParticleSystem] Missing TextureAsset: %s", textureId.c_str());
+        DEBUG_WARN("[ModuleParticleSystem] Missing TextureAsset: %s", libId.c_str());
         return nullptr;
     }
 
     auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
     if (!texture)
     {
-        DEBUG_WARN("[ModuleParticleSystem] Texture creation failed: %s", textureId.c_str());
+        DEBUG_WARN("[ModuleParticleSystem] Texture creation failed: %s", libId.c_str());
         return nullptr;
     }
 
     Texture* raw = texture.get();
-    m_particleTextures.emplace(textureId, std::move(texture));
+    m_particleTextures.emplace(libId, std::move(texture));
     return raw;
 }
 
@@ -101,8 +102,8 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
         return;
     }
 
-    const MD5Hash& textureID = particleSystemComponent->getTextureAssetId();
-    Texture* texture = resolveTexture(textureID);
+    AssetReference& textureRef = particleSystemComponent->getTextureAssetReference();
+    Texture* texture = resolveTexture(textureRef);
     if (!texture)
     {
         return;
