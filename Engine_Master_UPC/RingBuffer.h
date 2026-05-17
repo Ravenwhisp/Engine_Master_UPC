@@ -16,7 +16,12 @@ struct AllocationInfo
 class RingBuffer : public Buffer 
 {
 public:
-    ~RingBuffer();
+    ~RingBuffer() override;
+
+    RingBuffer(const RingBuffer&) = delete;
+    RingBuffer& operator=(const RingBuffer&) = delete;
+    RingBuffer(RingBuffer&&) = delete;
+    RingBuffer& operator=(RingBuffer&&) = delete;
 
     D3D12_GPU_VIRTUAL_ADDRESS allocate(const void* data, size_t size, uint64_t currentFrame);
     void free(uint64_t lastCompletedFrame);
