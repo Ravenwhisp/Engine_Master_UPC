@@ -104,11 +104,29 @@ void ModuleRender::preRender()
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
 
+    // Resolve pending viewport resizes
+    for (ViewportEntry& entry : m_viewports)
+    {
+        if (entry.pendingResize)
+        {
+            entry.width = entry.pendingResizeWidth;
+            entry.height = entry.pendingResizeHeight;
+            app->getModuleD3D12()->getCommandQueue()->flush();
+            entry.surface->resize(entry.width, entry.height);
+            entry.pendingResize = false;
+        }
+    }
+
 #ifndef GAME_RELEASE
     {
         PERF_RENDER("ModuleRender::RenderViewports");
         for (const ViewportEntry& entry : m_viewports)
         {
+            if (!entry.isVisible)
+            {
+                continue;
+            }
+
             auto colorTex = entry.surface->getTexture(RenderSurface::COMPOSITE);
             transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -172,25 +190,34 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
     uint32_t w = static_cast<uint32_t>(width);
     uint32_t h = static_cast<uint32_t>(height);
 
-    for (ViewportEntry& entry : m_viewports)
-    {
-        if (entry.surface == surface) 
-        {
-            if (entry.width != w || entry.height != h)
-            {
-                entry.width = w;
-                entry.height = h;
-                surface->resize(w, h);
-                app->getModuleD3D12()->getCommandQueue()->flush();
-            }
-            return;
-        }
-    }
-
     surface->resize(w, h);
     initViewportGBuffers(*surface, w, h);
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
+}
+
+void ModuleRender::setViewportPendingResize(RenderSurface* surface, ViewportType type, float width, float height)
+{
+    for (ViewportEntry& entry : m_viewports)
+    {
+        if (entry.surface == surface)
+        {
+            entry.pendingResize = true;
+            entry.pendingResizeWidth = width;
+            entry.pendingResizeHeight = height;
+        }
+    }
+}
+
+void ModuleRender::setViewportVisible(RenderSurface* surface, bool isVisible)
+{
+    for (ViewportEntry& entry : m_viewports)
+    {
+        if (entry.surface == surface)
+        {
+            entry.isVisible = isVisible;
+        }
+    }
 }
 
 void ModuleRender::unregisterViewport(RenderSurface* surface)

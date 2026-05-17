@@ -49,6 +49,10 @@ public:
         ViewportType   type = ViewportType::EDITOR;
         float          width = 0.0f;
         float          height = 0.0f;
+        float          pendingResizeWidth = 0.0f;
+        float          pendingResizeHeight = 0.0f;
+        bool           pendingResize = false;
+        bool           isVisible = false;
     };
 private:
     Settings* m_settings = nullptr;
@@ -80,6 +84,8 @@ public:
     bool cleanUp()   override;
 
     void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
+    void setViewportPendingResize(RenderSurface* surface, ViewportType type, float width, float height);
+    void setViewportVisible(RenderSurface* surface, bool isVisible);
     void unregisterViewport(RenderSurface* surface);
 
     GeometryPass* getGeometryPass() { return m_geometryPass; }

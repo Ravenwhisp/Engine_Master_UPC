@@ -21,6 +21,9 @@ public:
 	const float getFarPlane() const { return m_farPlane; }
 	void setFarPlane(float farPlane) { m_farPlane = farPlane; }
 
+	const float getAspectRatio() const { return m_aspectRatio; }
+	void setAspectRatio(const float aspectRatio) { m_aspectRatio = aspectRatio; }
+
 	const Matrix& getWorldMatrix() const { return m_world; }
 
 	const Matrix& getViewMatrix() const { return m_view; }

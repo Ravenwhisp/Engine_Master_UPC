@@ -44,4 +44,5 @@ public:
     }
 protected:
     void onBecameHidden()  override;
+    void onBecameVisible() override;
 };

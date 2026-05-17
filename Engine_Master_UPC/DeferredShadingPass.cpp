@@ -83,19 +83,6 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     ComPtr<ID3DBlob> pixelShaderBlob;
     ThrowIfFailed(D3DReadFileToBlob(L"LightPixelShader.cso", &pixelShaderBlob));
 
-    std::ostringstream vsoss;
-    std::ostringstream psoss;
-
-    vsoss << "VS blob: "
-        << (vertexShaderBlob ? vertexShaderBlob->GetBufferSize() : 0)
-        << " bytes\n";
-    psoss << "PS blob: "
-        << (pixelShaderBlob ? pixelShaderBlob->GetBufferSize() : 0)
-        << " bytes\n";
-
-    OutputDebugStringA(vsoss.str().c_str());
-    OutputDebugStringA(psoss.str().c_str());
-
     // Describe and create the graphics pipeline state object (PSO).
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
     psoDesc.InputLayout = { nullptr, 0 };
@@ -117,37 +104,7 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     psoDesc.SampleDesc.Count = 1;
     psoDesc.SampleDesc.Quality = 0;
 
-    //DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
-    HRESULT hr = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
-    if (FAILED(hr))
-    {
-        std::ostringstream oss;
-
-        oss << "CreateGraphicsPipelineState failed: 0x" << std::hex << hr << std::endl;
-        OutputDebugStringA(oss.str().c_str());
-    }
-
-    ComPtr<ID3D12InfoQueue> infoQueue;
-    if (SUCCEEDED(m_device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
-    {
-        UINT64 messageCount = infoQueue->GetNumStoredMessages();
-
-        for (UINT64 i = 0; i < messageCount; ++i)
-        {
-            SIZE_T messageLength = 0;
-            infoQueue->GetMessage(i, nullptr, &messageLength);
-
-            std::vector<char> bytes(messageLength);
-            auto* message = reinterpret_cast<D3D12_MESSAGE*>(bytes.data());
-
-            infoQueue->GetMessage(i, message, &messageLength);
-
-            OutputDebugStringA(message->pDescription);
-            OutputDebugStringA("\n");
-        }
-
-        infoQueue->ClearStoredMessages();
-    }
+    DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
 
@@ -215,7 +172,7 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetGraphicsRootConstantBufferView(1, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(2, app->getModuleRender()->getGeometryPass()->getRenderSurface()->getTextures()[0]->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(2, m_renderSurface->getTextures()[GeometryPass::kSlots[0]]->getSRV().gpu);
 
     commandList->SetGraphicsRootDescriptorTable(3, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(4, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);

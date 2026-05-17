@@ -11,12 +11,16 @@
 #include "EditorToolbar.h"
 #include "RenderSurface.h"
 #include "Texture.h"
+#include "ModuleScene.h"
+#include "Scene.h"
+#include "CameraComponent.h"
 
 WindowGame::WindowGame()
 {
     m_editorToolbar = new EditorToolbar();
     m_playToolbar = new PlayToolbar();
     m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
+    app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::PLAY, m_size.x, m_size.y);
 }
 
 WindowGame::~WindowGame()
@@ -28,7 +32,12 @@ WindowGame::~WindowGame()
 
 void WindowGame::onBecameHidden()
 {
-    app->getModuleRender()->unregisterViewport(m_surface.get());
+    app->getModuleRender()->setViewportVisible(m_surface.get(), false);
+}
+
+void WindowGame::onBecameVisible()
+{
+    app->getModuleRender()->setViewportVisible(m_surface.get(), true);
 }
 
 void WindowGame::drawInternal()
@@ -57,23 +66,9 @@ void WindowGame::drawInternal()
         // Resize the render surface and register the viewport
         if (abs(viewportSize.x - m_size.x) > 1.0f || abs(viewportSize.y - m_size.y) > 1.0f)
         {
-            setSize(viewportSize);
-            app->getModuleRender()->registerViewport(m_surface.get(),
-                ModuleRender::ViewportType::PLAY,
-                viewportSize.x, viewportSize.y);
+            resize(viewportSize);
         }
-
-        // Get the texture ID and draw the image
-        ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COMPOSITE)->getSRV().gpu.ptr;
-        ImGui::Image(textureID, viewportSize);
-
-        // Update hover/focus states
-        m_isViewportHovered = ImGui::IsItemHovered();
-        m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
     }
-
-    ImGui::EndChild();
-    ImGui::PopStyleVar();
 
     // Store window coordinates if needed elsewhere
     ImVec2 windowPos = ImGui::GetWindowPos();
@@ -81,16 +76,26 @@ void WindowGame::drawInternal()
     m_windowY = windowPos.y;
     m_viewportX = ImGui::GetCursorScreenPos().x;
     m_viewportY = ImGui::GetCursorScreenPos().y;
+    m_size = viewportSize;
+
+    // Get the texture ID and draw the image
+    ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COMPOSITE)->getSRV().gpu.ptr;
+    ImGui::Image(textureID, viewportSize);
+
+    // Update hover/focus states
+    m_isViewportHovered = ImGui::IsItemHovered();
+    m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
 }
 
 bool WindowGame::resize(ImVec2 contentRegion)
 {
-    if (abs(contentRegion.x - m_size.x) > 1.0f || abs(contentRegion.y - m_size.y) > 1.0f)
-    {
-        setSize(contentRegion);
-        app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::PLAY, contentRegion.x, contentRegion.y);
-        return true;
-    }
-
-    return false;
+    setSize(contentRegion);
+    // If we want Game window resize to behave the same as the Editor one, uncomment this option. Test it, it's a little weird and not sure 
+    // it's something we want, but I "fixed" it because it was in the "engine known issues"
+    // app->getModuleScene()->getScene()->getDefaultCamera()->setAspectRatio(contentRegion.x / contentRegion.y);
+    app->getModuleRender()->setViewportPendingResize(m_surface.get(), ModuleRender::ViewportType::PLAY, contentRegion.x, contentRegion.y);
+    return true;
 }
