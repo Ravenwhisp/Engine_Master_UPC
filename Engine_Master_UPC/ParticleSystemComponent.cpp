@@ -22,6 +22,8 @@ ParticleSystemComponent::ParticleSystemComponent(UID id, GameObject* owner) : Co
     m_particlesState.push_back(EmitterInstance(firstEmitter, this));
 
     m_previousPosition = m_owner->GetTransform()->getPosition();
+
+    m_moduleParticleSystem = app->getModuleParticleSystem();
 }
 
 std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) const
@@ -64,6 +66,11 @@ void inline ParticleSystemComponent::resetParticles()
     m_previousPosition = m_owner->GetTransform()->getPosition(); // just in case
 }
 
+float ParticleSystemComponent::deltaTime() const 
+{
+    return m_localTimeScale * m_moduleParticleSystem->deltaTime();
+}
+
 void ParticleSystemComponent::drawUi()
 {
     ImGui::Text("Particle system");
@@ -99,23 +106,18 @@ void ParticleSystemComponent::drawUi()
 
     ImGui::Separator();
 
-    float timeScale = app->getModuleParticleSystem()->getScale();
-    if (timeScale <= 0.f) 
+    if (m_localTimeScale <= 0.f) 
     {
-        if (ImGui::Button("Play")) app->getModuleParticleSystem()->setScale(1.f);
+        if (ImGui::Button("Play")) m_localTimeScale = 1.f;
     }
-    else if (ImGui::Button("Stop")) app->getModuleParticleSystem()->setScale(0.f);
+    else if (ImGui::Button("Stop")) m_localTimeScale = 0.f;
 
     // Reset button (temporary implementation, until we can have more than one emitter per component)
     ImGui::SameLine();
-    if (ImGui::Button("Restart")) app->getModuleParticleSystem()->resetAllParticles();
+    if (ImGui::Button("Restart")) m_moduleParticleSystem->resetAllParticles();
 
-
-    if (ImGui::SliderFloat("Speed", &timeScale, 0.0f, 1.0f))
-    {
-        app->getModuleParticleSystem()->setScale(timeScale);
-    }
-
+    ImGui::SliderFloat("Speed", &m_localTimeScale, 0.0f, 1.0f);
+   
     ImGui::Separator();
 
     // Modules parameters //

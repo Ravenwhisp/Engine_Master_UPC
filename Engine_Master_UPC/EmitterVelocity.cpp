@@ -3,7 +3,7 @@
 
 #include "EmitterInstance.h"
 #include "Application.h"
-#include "ModuleParticleSystem.h"
+#include "ParticleSystemComponent.h"
 #include "ModuleCamera.h"
 
 void EmitterVelocity::update(EmitterInstance* particleData)
@@ -15,7 +15,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 
 		// Dealing with already existing particles //
 
-		float deltaTime = app->getModuleParticleSystem()->deltaTime();
+		float deltaTime = particleData->getParticleSystemComponent()->deltaTime();
 		Vector3 cameraPosition = app->getModuleCamera()->getPosition();
 
 		for (auto& aliveParticle : *aliveParticles)

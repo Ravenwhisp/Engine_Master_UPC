@@ -15,7 +15,10 @@ void ModuleParticleSystem::resetAllParticles()
     for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
     {
         currentParticleSystemComponent->resetParticles();
+        currentParticleSystemComponent->setLocalTimeScale(1.f); // FOR NOW, SO THAT TRANSITION TO PLAY MODE WORKS WELL
     }
+
+    m_timeScale = 1.f; // ALSO FOR NOW, FOR THE SAME REASON
 }
 
 Texture* ModuleParticleSystem::resolveTexture(AssetReference& textureRef)

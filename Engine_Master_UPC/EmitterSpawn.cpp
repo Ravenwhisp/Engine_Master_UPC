@@ -2,7 +2,6 @@
 #include "EmitterSpawn.h"
 
 #include "Application.h"
-#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 
@@ -13,9 +12,9 @@ void EmitterSpawn::update(EmitterInstance* instance)
 		return;
 
 	float spawn = instance->getParticlesToSpawn();
-	float dt = app->getModuleParticleSystem()->deltaTime();
+	float deltaTime = instance->getParticleSystemComponent()->deltaTime();
 
-	spawn += m_rateOverTime * dt;
+	spawn += m_rateOverTime * deltaTime;
 	spawn += m_rateOverDistance * instance->getParticleSystemComponent()->getDistance();
 
 	std::vector<unsigned int>& newParticles = instance->getNewParticles();

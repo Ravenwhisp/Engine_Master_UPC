@@ -2,8 +2,7 @@
 #include "EmitterLifetime.h"
 
 #include "EmitterInstance.h"
-#include "Application.h"
-#include "ModuleParticleSystem.h"
+#include "ParticleSystemComponent.h"
 
 void EmitterLifetime::update(EmitterInstance* particleData)
 {
@@ -13,7 +12,9 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		particleData->getPoolAndAlives(particlePool, aliveParticles);
 		
 		// Dealing with already existing particles //
-	
+
+		float deltaTime = particleData->getParticleSystemComponent()->deltaTime();
+
 		unsigned int i = 0;
 		while (i < aliveParticles->size()) 
 		{
@@ -28,7 +29,7 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 			}
 			else 
 			{
-				particlePool[poolIndex].lifeTime = std::max(0.f, particlePool[poolIndex].lifeTime - app->getModuleParticleSystem()->deltaTime());
+				particlePool[poolIndex].lifeTime = std::max(0.f, particlePool[poolIndex].lifeTime - deltaTime);
 				++i;
 			}
 		}

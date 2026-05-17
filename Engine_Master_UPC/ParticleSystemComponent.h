@@ -7,6 +7,7 @@
 #include "AssetReference.h"
 
 class Texture;
+class ModuleParticleSystem;
 
 class ParticleSystemComponent : public Component
 {
@@ -27,6 +28,10 @@ public:
 
     void resetParticles();
 
+    float getLocalTimeScale() const { return m_localTimeScale; }
+    void setLocalTimeScale(float value) { m_localTimeScale = value; }
+    float deltaTime() const;
+
     void drawUi() override;
 
     void update() override;
@@ -36,6 +41,8 @@ public:
 
 private:
 
+    ModuleParticleSystem* m_moduleParticleSystem;
+
     AssetReference m_textureAsset{};
 
     std::unique_ptr<ParticleSystem> m_particleSystem;
@@ -44,5 +51,6 @@ private:
     unsigned int m_currentEditableEmitter = 0;
 
     Vector3 m_previousPosition; // maybe move this to the Transform?
+    float m_localTimeScale = 1.f;
 };
 

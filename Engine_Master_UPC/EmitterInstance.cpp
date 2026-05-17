@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "ModuleCamera.h"
 #include "ParticleEmitter.h"
-#include "ModuleParticleSystem.h"
+#include "ParticleSystemComponent.h"
 
 #include <algorithm>
 
@@ -31,7 +31,7 @@ void EmitterInstance::updateModules()
 		return a.first > b.first;
 	});
 
-	m_currentTime += app->getModuleParticleSystem()->deltaTime();
+	m_currentTime += m_owner->deltaTime();
 }
 
 void EmitterInstance::reset() {

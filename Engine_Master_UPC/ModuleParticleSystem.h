@@ -28,8 +28,8 @@ public:
 
     float deltaTime() const; // required to have more control on Editor mode
 
-    void setScale(float value) { m_timeScale = value; };
-    float getScale() const { return m_timeScale; };
+    void setTimeScale(float value) { m_timeScale = value; };
+    float getTimeScale() const { return m_timeScale; };
 
     void resetAllParticles();
 
