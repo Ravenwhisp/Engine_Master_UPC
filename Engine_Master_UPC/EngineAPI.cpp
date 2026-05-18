@@ -25,6 +25,7 @@
 #include "Transform2D.h"
 #include "MeshRenderer.h"
 #include "BoundingBox.h"
+#include "ParticleSystemComponent.h"
 
 #include "CameraComponent.h"
 
@@ -2274,4 +2275,70 @@ namespace HapticAPI
     {
         return HapticEffectLibrary::get().findEffect(id);
     }
+}
+
+ENGINE_API ParticleSystemComponent* ParticleSystemAPI::getParticleSystemComponent(GameObject* gameObject)
+{
+    if (!gameObject)
+    {
+        return nullptr;
+    }
+
+    return gameObject->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM);
+}
+
+ENGINE_API const ParticleSystemComponent* ParticleSystemAPI::getParticleSystemComponent(const GameObject* gameObject)
+{
+    if (!gameObject)
+    {
+        return nullptr;
+    }
+
+    return gameObject->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM);
+}
+
+ENGINE_API void ParticleSystemAPI::play(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->setLocalTimeScale(1.f);
+}
+
+ENGINE_API void ParticleSystemAPI::pause(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->setLocalTimeScale(0.f);
+}
+
+ENGINE_API void ParticleSystemAPI::stop(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->resetParticles();
+    particleSystem->setLocalTimeScale(0.f);
+}
+
+ENGINE_API bool ParticleSystemAPI::isPlaying(ParticleSystemComponent* particleSystem)
+{
+    return particleSystem ? particleSystem->getLocalTimeScale() > 0.f : false;
+}
+
+ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->resetParticles();
 }
