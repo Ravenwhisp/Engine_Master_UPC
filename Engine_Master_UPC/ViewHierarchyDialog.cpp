@@ -11,6 +11,7 @@
 #include "Transform.h"
 #include "Scene.h"
 #include "UIButton.h"
+#include "UISlider.h"
 #include "UIImage.h"
 #include "Quadtree.h"
 #include "WindowHierarchy.h"
@@ -177,7 +178,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 container->SetName("New Container");
                 container->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
 
-                if (!canvasExists(scene))
+                if (!hasCanvas(parent))
                 {
                     if (GameObject* canvas = createGO(scene, parent))
                     {
@@ -199,13 +200,35 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 auto* ic = static_cast<UIImage*>(button->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID()));
                 bc->setTargetGraphic(ic);
 
-                if (!canvasExists(scene))
+                if (!hasCanvas(parent))
                 {
                     if (GameObject* canvas = createGO(scene, parent))
                     {
                         canvas->SetName("New Canvas");
                         canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
                         m_hierarchy->reparent(button, canvas);
+                    }
+                }
+            }
+        }
+
+        if (ImGui::MenuItem("Slider"))
+        {
+            if (GameObject* slider = createGO(scene, parent))
+            {
+                slider->SetName("New Slider");
+                slider->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+                auto* bc = static_cast<UISlider*>(slider->AddComponentWithUID(ComponentType::UISLIDER, GenerateUID()));
+                auto* ic = static_cast<UIImage*>(slider->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID()));
+                bc->setTargetGraphic(ic);
+
+                if (!hasCanvas(parent))
+                {
+                    if (GameObject* canvas = createGO(scene, parent))
+                    {
+                        canvas->SetName("New Canvas");
+                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+                        m_hierarchy->reparent(slider, canvas);
                     }
                 }
             }
@@ -219,7 +242,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 text->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
                 text->AddComponentWithUID(ComponentType::UITEXT, GenerateUID());
 
-                if (!canvasExists(scene))
+                if (!hasCanvas(parent))
                 {
                     if (GameObject* canvas = createGO(scene, parent))
                     {
@@ -239,7 +262,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 image->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
                 image->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
 
-                if (!canvasExists(scene))
+                if (!hasCanvas(parent))
                 {
                     if (GameObject* canvas = createGO(scene, parent))
                     {
@@ -333,14 +356,19 @@ GameObject* ViewHierarchyDialog::createGameObjectWithUID(UID id, UID transformUI
     return raw;
 }
 
-bool ViewHierarchyDialog::canvasExists(Scene* scene)
+bool ViewHierarchyDialog::hasCanvas(GameObject* gameObject)
 {
-    for (GameObject* go : scene->getAllGameObjects())
+    while (gameObject)
     {
-        if (go && go->GetComponent(ComponentType::CANVAS))
+        if (gameObject->GetComponent(ComponentType::CANVAS))
         {
             return true;
         }
+
+        Transform* transform = gameObject->GetTransform();
+        Transform* parent = transform ? transform->getRoot() : nullptr;
+        gameObject = parent ? parent->getOwner() : nullptr;
     }
+
     return false;
 }
