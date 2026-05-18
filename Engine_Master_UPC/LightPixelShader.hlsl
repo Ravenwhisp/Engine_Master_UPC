@@ -214,9 +214,8 @@ void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness,
      secondTerm = radiance * fab.y;
 }
 
-float3 computeLighting(in float3 V, in float3 N, in float3 baseColour, in float roughness, in float roughnessLevels, in float metallic, in float ao, in float specularAO)
+float3 computeLighting(in float3 R, in float3 V, in float3 N, in float3 baseColour, in float roughness, in float roughnessLevels, in float metallic, in float ao, in float specularAO)
 {
-    float3 R = reflect(-V, N);
     float NdotV = saturate(dot(N, V));
     float3 diffuse = getDiffuseAmbientLight(N, baseColour);
     diffuse *= ao;
@@ -267,6 +266,12 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 diffuseColorMetallic = 0;
     float3 diffuseColorNonMetallic = albedo / PI;
     
+    
+    float3 viewDirection = normalize(viewPos - worldPos);
+    
+    
+    
+    
     float3 normalVector = normalize(normal);
     float3 tangentVector = normalize(tangent.xyz);
     float3 bitangentVector = cross(normalVector, tangentVector);
@@ -276,9 +281,12 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     tangentNormal = tangentNormal * 2.0 - 1.0;
     
     float3 finalWorldNormal = mul(tangentNormal, TBN);
+    //finalWorldNormal = normal;
     
-    float3 viewDirection = normalize(viewPos - worldPos);
-    float3 reflection = -normalize(reflect(viewDirection, normal));
+    
+    
+    
+    float3 reflection = normalize(reflect(-viewDirection, finalWorldNormal));
     
     float NdotV = abs(dot(finalWorldNormal, viewDirection)) + 0.001;
     
@@ -314,7 +322,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
     
     //IBL 
-    float3 indirectLighting = computeLighting(viewDirection, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
+    float3 indirectLighting = computeLighting(reflection, viewDirection, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
     
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
     float3 finalColor = LinearToSRGB(colorMapped);

@@ -18,8 +18,13 @@ VertexOutput main(float3 position : POSITION, float2 texCoord : TEXCOORD, float3
 {
     VertexOutput output;
     output.worldPos = mul(float4(position, 1.0), model).xyz;
-    output.normal = normalize(mul(normal, (float3x3)normalMat));
-    output.tangent = normalize(tangent);
+    
+    float3 normalVec = normalize(mul(normal, (float3x3)normalMat));
+    output.normal = mul(float4(normalVec, 1), mvp);
+    
+    float3 tangentVec = normalize(tangent);
+    output.tangent = mul(float4(tangentVec, 1), mvp);
+    
     output.texCoord = texCoord;
     output.position = mul(float4(position, 1.0f), mvp);
  
