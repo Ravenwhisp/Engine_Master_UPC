@@ -279,6 +279,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     float3 tangentNormal = normalTex.Sample(linearWrapSample, coord).rgb;
     tangentNormal = tangentNormal * 2.0 - 1.0;
+    tangentNormal = float3(0, 0, 1);
     
     float3 finalWorldNormal = mul(tangentNormal, TBN);
     //finalWorldNormal = normal;
