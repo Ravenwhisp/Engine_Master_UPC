@@ -12,6 +12,7 @@ struct DependencyRecord
 	UID			uid = INVALID_UID;
 	MD5Hash		contentHash = INVALID_ASSET_ID;
 	AssetType	type = AssetType::UNKNOWN;
+	std::string displayName;
 
 	std::filesystem::path getBinaryPath() const
 	{
@@ -27,10 +28,10 @@ struct Metadata
 	AssetType type = AssetType::UNKNOWN;
 
 	uint64_t sourceFileSize = 0;
-	int64_t  sourceLastModified = 0;
 
 	std::vector<DependencyRecord> m_dependencies;
 	bool m_isSubAsset = false;
+	std::string displayName;
 
 
 	std::filesystem::path getSourcePath(std::filesystem::path& metadataPath) const

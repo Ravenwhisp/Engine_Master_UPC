@@ -304,6 +304,7 @@
     <ClInclude Include="TriggerArea.h" />
     <ClInclude Include="TriggerDebugScript.h" />
     <ClInclude Include="UIController.h" />
+    <ClInclude Include="UIPause.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
@@ -380,6 +381,7 @@
     <ClCompile Include="TriggerArea.cpp" />
     <ClCompile Include="TriggerDebugScript.cpp" />
     <ClCompile Include="UIController.cpp" />
+    <ClCompile Include="UIPause.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PlayerCharacterGuide.md" />

@@ -9,6 +9,8 @@
 #include "ComponentType.h"
 #include "Component.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
+#include "Skin.h"
 #include "CameraComponent.h"
 #include "ScriptComponent.h"
 #include "ComponentFactory.h"
@@ -840,7 +842,7 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
         if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
             m_prefabInfo.m_assetUID = pl["AssetUID"].GetUint64();
     }
-    
+
     const auto& components = gameObjectJson["Components"].GetArray();
     for (auto& componentJson : components)
     {
