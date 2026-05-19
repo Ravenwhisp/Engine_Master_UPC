@@ -1838,11 +1838,9 @@ namespace NavigationAPI
             return false;
         }
 
-        const float twoPi = 6.28318530717958647692f;
-
         for (int attempt = 0; attempt < maxAttempts; ++attempt)
         {
-            const float angle = ((float)std::rand() / (float)RAND_MAX) * twoPi;
+            const float angle = ((float)std::rand() / (float)RAND_MAX) * MathAPI::TWO_PI;
 
             const float t = (float)std::rand() / (float)RAND_MAX;
             const float distance = std::sqrt(t) * radius;
@@ -1885,67 +1883,104 @@ namespace MathAPI
     float smoothStep(float edge0, float edge1, float x)
     {
         x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-        return x * x * (3 - 2 * x);
+        return x * x * (3.0f - 2.0f * x);
     }
     float pingPong(float t)
     {
-        return 1.0f - fabsf(2.0f * t - 1.0f);
+        return 1.0f - std::fabsf(2.0f * t - 1.0f);
     }
 
     float evaluateEasing(EasingType type, float t)
     {
+        t = std::clamp(t, 0.0f, 1.0f);
+
         switch (type)
         {
         case EasingType::EaseInQuad:
             return t * t;
         case EasingType::EaseOutQuad:
-            return t * (2 - t);
+            return t * (2.0f - t);
         case EasingType::EaseInOutQuad:
-            return t < 0.5 ? 2 * t * t : 1 - pow(-2 * t + 2, 2) / 2;
+        {
+            float x = -2.0f * t + 2.0f;
+            return t < 0.5f ? 2.0f * t * t : 1.0f - (x * x) / 2.0f;
+        }
         case EasingType::EaseInCubic:
             return t * t * t;
         case EasingType::EaseOutCubic:
-            return 1 - pow(1 - t, 3);
+        {
+            float x = 1.0f - t;
+            return 1.0f - x * x * x;
+        }
         case EasingType::EaseInOutCubic:
-            return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
+        {
+            float x = -2.0f * t + 2.0f;
+            return t < 0.5f
+                ? 4.0f * t * t * t
+                : 1.0f - (x * x * x) / 2.0f;
+        }
         case EasingType::EaseInQuart:
             return t * t * t * t;
         case EasingType::EaseOutQuart:
-            return 1 - pow(1 - t, 4);
+        {
+            float x = 1.0f - t;
+            return 1.0f - x * x * x * x;
+        }
         case EasingType::EaseInOutQuart:
-            return t < 0.5 ? 8 * t * t * t * t : 1 - pow(-2 * t + 2, 4) / 2;
+        {
+            float x = -2.0f * t + 2.0f;
+            return t < 0.5f
+                ? 8.0f * t * t * t * t
+                : 1.0f - (x * x * x * x) / 2.0f;
+        }
         case EasingType::EaseInQuint:
             return t * t * t * t * t;
         case EasingType::EaseOutQuint:
-            return 1 - pow(1 - t, 5);
+        {
+            float x = 1.0f - t;
+            return 1.0f - x * x * x * x * x;
+        }
         case EasingType::EaseInOutQuint:
-            return t < 0.5 ? 16 * t * t * t * t * t : 1 - pow(-2 * t + 2, 5) / 2;
+        {
+            float x = -2.0f * t + 2.0f;
+            return t < 0.5f
+                ? 16.0f * t * t * t * t * t
+                : 1.0f - (x * x * x * x * x) / 2.0f;
+        }
         case EasingType::EaseInSine:
-            return 1 - cos((t * PI) / 2);
+            return 1.0f - cosf(t * PI * 0.5f);
         case EasingType::EaseOutSine:
-            return sin((t * PI) / 2);
+            return sinf(t * PI * 0.5f);
         case EasingType::EaseInOutSine:
-            return -(cos(PI * t) - 1) / 2;
+            return -(cosf(PI * t) - 1.0f) / 2.0f;
         case EasingType::EaseInExpo:
-            return t == 0 ? 0 : pow(2, 10 * t - 10);
+            return t == 0.0f ? 0.0f : powf(2.0f, 10.0f * t - 10.0f);
         case EasingType::EaseOutExpo:
-            return t == 1 ? 1 : 1 - pow(2, -10 * t);
+            return t == 1.0f ? 1.0f : 1.0f - powf(2.0f, -10.0f * t);
         case EasingType::EaseInOutExpo:
-            return t == 0
-                ? 0
-                : t == 1
-                ? 1
-                : t < 0.5
-                ? pow(2, 20 * t - 10) / 2
-                : (2 - pow(2, -20 * t + 10)) / 2;
+            return t == 0.0f
+                ? 0.0f
+                : t == 1.0f
+                ? 1.0f
+                : t < 0.5f
+                ? powf(2.0f, 20.0f * t - 10.0f) / 2.0f
+                : (2.0f - powf(2.0f, -20.0f * t + 10.0f)) / 2.0f;
         case EasingType::EaseInCirc:
-            return 1 - sqrt(1 - pow(t, 2));
+            return 1.0f - sqrtf(1.0f - t * t);
         case EasingType::EaseOutCirc:
-            return sqrt(1 - pow(t - 1, 2));
+        {
+            float x = t - 1.0f;
+            return sqrtf(1.0f - x * x);
+        }
         case EasingType::EaseInOutCirc:
-            return t < 0.5
-                ? (1 - sqrt(1 - pow(2 * t, 2))) / 2
-                : (sqrt(1 - pow(-2 * t + 2, 2)) + 1) / 2;
+        {
+            float x1 = 2.0f * t;
+            float x2 = -2.0f * t + 2.0f;
+
+            return t < 0.5f
+                ? (1.0f - sqrtf(1.0f - x1 * x1)) / 2.0f
+                : (sqrtf(1.0f - x2 * x2) + 1.0f) / 2.0f;
+        }
         default:
             return t;
         }

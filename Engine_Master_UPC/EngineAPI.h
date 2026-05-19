@@ -236,6 +236,7 @@ namespace NavigationAPI
 namespace MathAPI
 {
     constexpr float PI = 3.14159265358979323846f;
+	constexpr float TWO_PI = 2.0f * PI;
     ENGINE_API float lerp(float a, float b, float t);
     ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
     ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
