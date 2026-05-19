@@ -22,6 +22,7 @@
 #include "Script.h"
 #include "AnimationComponent.h"
 #include "UISlider.h"
+#include "UISheet.h"
 #include "Transform2D.h"
 #include "MeshRenderer.h"
 #include "BoundingBox.h"
@@ -2108,6 +2109,63 @@ namespace SliderAPI
         }
         slider->setFillOrigin(origin);
 	}
+}
+
+namespace UISheetAPI
+{
+    void play(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+        sheet->play();
+    }
+
+    void stop(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+        sheet->stop();
+    }
+    
+    void playReverse(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+        sheet->playReverse();
+    }
+    
+    bool getLoop(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return false;
+        }
+        return sheet->getLoop();
+    }
+    
+    void setLoop(UISheet* sheet, bool isLoop)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+        sheet->setLoop(isLoop);
+    }
+
+    bool isPlaying(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return false;
+        }
+        return sheet->isPlaying();
+    }
 }
 
 namespace DebugDrawAPI

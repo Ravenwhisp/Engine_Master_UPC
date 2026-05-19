@@ -22,6 +22,7 @@ class Component;
 class Script;
 class AnimationComponent;
 class UISlider;
+class UISheet;
 class Transform2D;
 
 struct HapticEffectDefinition;
@@ -287,6 +288,16 @@ namespace SliderAPI
 {
     ENGINE_API float getFillAmount(const UISlider* slider);
     ENGINE_API void setFillAmount(UISlider* slider, float amount);
+}
+
+namespace UISheetAPI
+{
+    ENGINE_API void play(UISheet* sheet);
+    ENGINE_API void stop(UISheet* sheet);
+    ENGINE_API void playReverse(UISheet* sheet);
+    ENGINE_API bool getLoop(UISheet* sheet);
+    ENGINE_API void setLoop(UISheet* sheet, bool isLoop);
+    ENGINE_API bool isPlaying(UISheet* sheet);
 }
 
 namespace DebugDrawAPI
