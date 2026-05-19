@@ -206,6 +206,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();
+        command.sheetColumns = uiImg->getSheetColumns();
+        command.sheetRows = uiImg->getSheetRows();
+        command.sheetOffset = uiImg->getSheetOffset();
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity

@@ -41,6 +41,10 @@ std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
     cloned->m_fillAmount = m_fillAmount;
     cloned->m_fillMethod = m_fillMethod;
     cloned->m_fillOrigin = m_fillOrigin;
+
+    cloned->m_sheetColumns = m_sheetColumns;
+    cloned->m_sheetRows = m_sheetRows;
+    cloned->m_sheetOffset = m_sheetOffset;
     return cloned;
 }
 
@@ -121,6 +125,15 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
     componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
 
+    componentInfo.AddMember("SheetColumns", m_sheetColumns, domTree.GetAllocator());
+    componentInfo.AddMember("SheetRows", m_sheetRows, domTree.GetAllocator());
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_sheetOffset.x, domTree.GetAllocator());
+        offset.PushBack(m_sheetOffset.y, domTree.GetAllocator());
+        componentInfo.AddMember("SheetOffset", offset, domTree.GetAllocator());
+    }
+
     return componentInfo;
 }
 
@@ -148,6 +161,26 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("FillOrigin"))
     {
         m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
+    }
+
+    if (componentInfo.HasMember("SheetColumns"))
+        m_sheetColumns = std::max(1, componentInfo["SheetColumns"].GetInt());
+    else
+        m_sheetColumns = 1;
+
+    if (componentInfo.HasMember("SheetRows"))
+        m_sheetRows = std::max(1, componentInfo["SheetRows"].GetInt());
+    else
+        m_sheetRows = 1;
+
+    if (componentInfo.HasMember("SheetOffset"))
+    {
+        m_sheetOffset.x = componentInfo["SheetOffset"][0].GetFloat();
+        m_sheetOffset.y = componentInfo["SheetOffset"][1].GetFloat();
+    }
+    else
+    {
+        m_sheetOffset = { 0.0f, 0.0f };
     }
 
     return true;

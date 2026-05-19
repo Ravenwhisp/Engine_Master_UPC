@@ -156,6 +156,9 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
             aspectRatio);
 
         params.alpha = command.alpha;
+        params.sheetColumns = float(std::max(1, command.sheetColumns));
+        params.sheetRows = float(std::max(1, command.sheetRows));
+        params.sheetOffset = Vector4(command.sheetOffset.x, command.sheetOffset.y, 0.0f, 0.0f);
 
         commandList->SetGraphicsRootConstantBufferView(
             0,

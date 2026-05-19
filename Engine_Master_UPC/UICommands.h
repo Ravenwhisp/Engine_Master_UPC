@@ -32,4 +32,8 @@ struct UIImageCommand
     CanvasRenderMode renderMode = CanvasRenderMode::SCREEN_SPACE;
     Matrix world = Matrix::Identity;
     bool zTest = false;
+
+    int sheetColumns = 1;
+    int sheetRows = 1;
+    Vector2 sheetOffset = { 0.0f, 0.0f };
 };

@@ -16,6 +16,7 @@
     X(NAVMESH_WALK)         \
     X(ANIMATION)            \
     X(UISLIDER)             \
+    X(UISHEET)              \
     X(TRIGGER)              \
     X(NAVMODIFIER_VOLUME)
 
