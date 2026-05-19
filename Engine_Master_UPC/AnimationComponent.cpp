@@ -1010,8 +1010,7 @@ void AnimationComponent::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
-            if (assetRef)
+            if (auto assetRef = app->getModuleAssets()->findReference(*ref))
             {
                 setStateMachineUID(*assetRef);
             }

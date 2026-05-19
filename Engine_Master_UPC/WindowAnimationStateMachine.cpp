@@ -1237,11 +1237,14 @@ void WindowAnimationStateMachine::drawInternal()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
-            m_asset = app->getModuleAssets()->load<AnimationStateMachineAsset>(*assetRef);
-            if (m_asset)
+            auto assetRef = app->getModuleAssets()->findReference(*ref);
+            if (assetRef)
             {
-                setTargetStateMachineUID(*assetRef);
+                m_asset = app->getModuleAssets()->load<AnimationStateMachineAsset>(*assetRef);
+                if (m_asset)
+                {
+                    setTargetStateMachineUID(*assetRef);
+                }
             }
         }
         ImGui::EndDragDropTarget();

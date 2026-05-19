@@ -173,7 +173,7 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
     Importer* importer = findImporter(asset.getType());
     if (!importer)
     {
-        DEBUG_ERROR("[ModuleAssets] No importer for type %u.", static_cast<unsigned>(asset.getType()));
+        DEBUG_ERROR("[ModuleAssets] No importer for type %u.", static_cast<uint32_t>(asset.getType()));
         return false;
     }
 
@@ -215,7 +215,7 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
             const MD5Hash& prevHash = prevIt->second.contentHash;
             if (isValidAsset(prevHash) && prevHash != meta.contentHash)
             {
-                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+                FileIO::remove(buildLibraryPath(prevHash));
             }
         }
     }
@@ -312,24 +312,24 @@ UID ModuleAssets::findUID(const std::filesystem::path& sourcePath) const
     return it != m_pathIndex.end() ? it->second : INVALID_UID;
 }
 
-AssetReference* ModuleAssets::findReference(const UID& uid)
+std::optional<AssetReference> ModuleAssets::findReference(const UID& uid)
 {
     if (!isValidUID(uid))
     {
-        return nullptr;
+        return std::nullopt;
     }
 
     const auto it = m_uidIndex.find(uid);
     if (it == m_uidIndex.end())
     {
-        return nullptr;
+        return std::nullopt;
     }
 
-    const AssetIndexEntry& entry = it->second;
+    AssetIndexEntry& entry = it->second;
 
     if (isValidAsset(entry.contentHash))
     {
-        return new AssetReference(uid, entry.contentHash, entry.type);
+        return AssetReference(uid, entry.contentHash, entry.type);
     }
 
     if (!entry.sourcePath.empty())
@@ -339,13 +339,13 @@ AssetReference* ModuleAssets::findReference(const UID& uid)
         Metadata meta;
         if (loadMetaFile(metaPath, meta))
         {
-            const_cast<AssetIndexEntry&>(entry).contentHash = meta.contentHash;
-            return new AssetReference(uid, meta.contentHash, meta.type);
+            entry.contentHash = meta.contentHash;
+            return AssetReference(uid, meta.contentHash, meta.type);
         }
     }
 
     DEBUG_WARN("[ModuleAssets] findReference: UID '%s' found in index but contentHash could not be resolved.", std::to_string(uid).c_str());
-    return nullptr;
+    return std::nullopt;
 }
 
 bool ModuleAssets::isLoaded(const AssetReference& ref)
@@ -363,9 +363,10 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
     Metadata subMeta = meta;
     subMeta.m_isSubAsset = true;
 
-    if (binaryData && binarySize > 0)
+    const bool hasBinary = (binaryData && binarySize > 0);
+    if (hasBinary)
     {
-        const std::vector<int8_t> hashInput( reinterpret_cast<const int8_t*>(binaryData), reinterpret_cast<const int8_t*>(binaryData) + binarySize);
+        const std::vector<int8_t> hashInput(reinterpret_cast<const int8_t*>(binaryData), reinterpret_cast<const int8_t*>(binaryData) + binarySize);
         subMeta.contentHash = to_hex_string(computeMD5(hashInput));
     }
 
@@ -376,14 +377,11 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         return;
     }
 
-    if (binaryData && binarySize > 0)
+    if (hasBinary && !FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
     {
-        if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary (UID '%s').",
-                std::to_string(subMeta.uid).c_str());
-            return;
-        }
+        DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary (UID '%s').",
+            std::to_string(subMeta.uid).c_str());
+        return;
     }
 
     m_uidIndex[subMeta.uid] = { subMeta.type, {} };

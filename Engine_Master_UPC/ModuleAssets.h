@@ -4,14 +4,14 @@
 #include "AssetsDictionary.h"
 #include "WeakCache.h"
 
-#include "PrefabSerializer.h"
 #include "PrefabAsset.h"
 
 #include <filesystem>
 #include <memory>
-#include <Metadata.h>
+#include <optional>
 #include <mutex>
-#include <AssetReference.h>
+#include "Metadata.h"
+#include "AssetReference.h"
 #include "FileIO.h"
 #include "Importer.h"
 
@@ -22,7 +22,6 @@ class PrefabManager;
 
 class Asset;
 
-class AnimationStateMachineAsset;
 class ImporterTexture;
 class ImporterMaterial;
 class ImporterMesh;
@@ -47,10 +46,6 @@ struct AssetIndexEntry
 
 class ModuleAssets : public Module
 {
-friend ContentRegistry;
-friend ImporterGltf;
-friend PrefabManager;
-
 private:
     std::unordered_map<UID, AssetIndexEntry>  m_uidIndex;
     std::unordered_map<std::string, UID>      m_pathIndex;
@@ -99,23 +94,18 @@ public:
             return cached;
         }
 
+        const auto idxIt = m_uidIndex.find(ref.m_uid);
+
         if (isValidAsset(ref.m_libId))
         {
-            if (ref.m_type == AssetType::UNKNOWN)
+            if (ref.m_type == AssetType::UNKNOWN && idxIt != m_uidIndex.end())
             {
-                auto it = m_uidIndex.find(ref.m_uid);
-                if (it != m_uidIndex.end())
-                {
-                    ref.m_type = it->second.type;
-                }
+                ref.m_type = idxIt->second.type;
             }
 
+            if (idxIt != m_uidIndex.end() && isValidAsset(idxIt->second.contentHash))
             {
-                auto it = m_uidIndex.find(ref.m_uid);
-                if (it != m_uidIndex.end() && isValidAsset(it->second.contentHash))
-                {
-                    ref.m_libId = it->second.contentHash;
-                }
+                ref.m_libId = idxIt->second.contentHash;
             }
 
             if (auto loaded = loadFromLibrary<T>(ref))
@@ -124,14 +114,13 @@ public:
             }
         }
 
-        auto it = m_uidIndex.find(ref.m_uid);
-        if (it == m_uidIndex.end() || it->second.sourcePath.empty())
+        if (idxIt == m_uidIndex.end() || idxIt->second.sourcePath.empty())
         {
             DEBUG_ERROR("[ModuleAssets] Cannot load UID '%s': no source path available for re-import.", std::to_string(ref.m_uid).c_str());
             return nullptr;
         }
 
-        importAsset(it->second.sourcePath, ref);
+        importAsset(idxIt->second.sourcePath, ref);
         if (!isValidAsset(ref.m_libId))
         {
             return nullptr;
@@ -176,7 +165,9 @@ public:
     bool isLoaded(const AssetReference& id);
     void unload(const AssetReference& id);
 
-    AssetReference* findReference(const UID& uid);
+    std::optional<AssetReference> findReference(const UID& uid);
+
+    UID findUID(const std::filesystem::path& sourcePath) const;
 
     bool saveMetaFile(const Metadata& meta, const std::filesystem::path& metaPath);
     bool loadMetaFile(const std::filesystem::path& metaPath, Metadata& outMeta);
@@ -188,7 +179,6 @@ public:
     bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
 
 private:
-    UID findUID(const std::filesystem::path& sourcePath) const;
     
     template<typename T>
     std::shared_ptr<T> loadFromLibrary(AssetReference& ref)
@@ -201,11 +191,11 @@ private:
         Importer* importer = findImporter(ref.m_type);
         if (!importer)
         {
-            DEBUG_ERROR("[ModuleAssets] No importer for type %u (UID '%s').", static_cast<unsigned>(ref.m_type), std::to_string(ref.m_uid).c_str());
+            DEBUG_ERROR("[ModuleAssets] No importer for type %u (UID '%s').", static_cast<uint32_t>(ref.m_type), std::to_string(ref.m_uid).c_str());
             return nullptr;
         }
 
-        const std::filesystem::path binaryPath = std::filesystem::path(LIBRARY_FOLDER) / ref.m_libId += ASSET_EXTENSION;
+        const std::filesystem::path binaryPath = buildLibraryPath(ref.m_libId);
 
         const std::vector<uint8_t> buffer = FileIO::read(binaryPath);
         if (buffer.empty())
@@ -243,16 +233,15 @@ private:
 #pragma endregion
 
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;
-    ScanFileResult* m_scanResult = nullptr;
 
 #pragma region FileDialog
     std::atomic<bool>                                           m_dialogRunning{ false };
     std::mutex                                                  m_dialogResultMutex;
     std::optional<std::filesystem::path>                        m_dialogResult;
     std::function<void(const std::filesystem::path&)>           m_dialogCallback;
-    Asset* m_pendingAsset = nullptr;
+    Asset*                                                      m_pendingAsset = nullptr;
     AssetType                                                   m_pendingAssetType = AssetType::UNKNOWN;
-    bool                                                        m_pendingIsSave = false;
+    std::atomic<bool>                                           m_pendingIsSave{ false };
 #pragma endregion
 
 };

@@ -275,7 +275,8 @@ void UIButton::drawUi()
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
 			{
 				UID* data = static_cast<UID*>(payload->Data);
-				m_hoverTextureAssetId = *app->getModuleAssets()->findReference(*data);
+				if (auto ref = app->getModuleAssets()->findReference(*data))
+				m_hoverTextureAssetId = *ref;
 				applyCurrentStateTexture();
 			}
 			ImGui::EndDragDropTarget();
@@ -295,7 +296,8 @@ void UIButton::drawUi()
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
 			{
 				UID* data = static_cast<UID*>(payload->Data);
-				m_pressedTextureAssetId = *app->getModuleAssets()->findReference(*data);
+				if (auto ref = app->getModuleAssets()->findReference(*data))
+					m_pressedTextureAssetId = *ref;
 				applyCurrentStateTexture();
 			}
 			ImGui::EndDragDropTarget();

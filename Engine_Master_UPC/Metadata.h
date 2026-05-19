@@ -16,7 +16,7 @@ struct DependencyRecord
 
 	std::filesystem::path getBinaryPath() const
 	{
-		return std::filesystem::path(LIBRARY_FOLDER) / contentHash += ASSET_EXTENSION;
+		return buildLibraryPath(contentHash);
 	}
 };
 
@@ -41,7 +41,7 @@ struct Metadata
 
 	std::filesystem::path getBinaryPath() const
 	{
-		return std::filesystem::path(LIBRARY_FOLDER) / contentHash += ASSET_EXTENSION;
+		return buildLibraryPath(contentHash);
 	}
 
 	static void getMetadataPath(std::filesystem::path& assetPath)
