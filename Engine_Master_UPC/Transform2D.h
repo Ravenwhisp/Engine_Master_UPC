@@ -40,6 +40,8 @@ public:
 	void setPosition(const Vector2& pos) { position.x = pos.x; position.y = pos.y; }
 	Vector2 getScale() const { return Vector2(scale.x, scale.y); }
 	void setScale(const Vector2& s) { scale.x = s.x; scale.y = s.y; }
+	Vector2 getBaseSize() const { return Vector2(baseSize.x, baseSize.y); }
+	void setBaseSize(const Vector2& s) { baseSize.x = s.x; baseSize.y = s.y; }
     
     void setStretchMode(StretchMode mode);
     StretchMode getStretchMode() const { return stretchMode; }

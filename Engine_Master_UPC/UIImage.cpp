@@ -5,6 +5,8 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include <UIRect.h>
+#include <Transform2D.h>
+#include <GameObject.h>
 
 UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAGE, owner)
 {
@@ -86,6 +88,17 @@ void UIImage::drawUi()
 
     ImGui::SameLine();
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
+
+    if (m_texture)
+    {
+        if (ImGui::Button("Set Native Size"))
+        {
+            if (Transform2D* transform = getOwner()->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
+            {
+                transform->setBaseSize({ static_cast<float>(m_textureAsset->getWidth()), static_cast<float>(m_textureAsset->getHeight()) });
+            }
+        }
+    }
 }
 
 bool UIImage::consumeLoadRequest()
