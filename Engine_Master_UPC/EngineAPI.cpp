@@ -1985,6 +1985,18 @@ namespace MathAPI
             return t;
         }
     }
+
+    float moveTowards(float current, float target, float maxDelta)
+    {
+        float delta = target - current;
+
+        if (std::fabsf(delta) <= maxDelta)
+        {
+            return target;
+        }
+
+        return current + (delta > 0.0f ? maxDelta : -maxDelta);
+    }
 }
 
 namespace Transform2DAPI

@@ -269,6 +269,8 @@ namespace MathAPI
     };
 
     ENGINE_API float evaluateEasing(EasingType type, float t);
+
+	ENGINE_API float moveTowards(float current, float target, float maxDelta);
 }
 
 namespace Transform2DAPI
