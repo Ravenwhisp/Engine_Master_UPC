@@ -224,7 +224,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    m_quadtree->build();
+    m_staticQuadtree->build();
+	m_dynamicQuadtree->build();
 #endif
 
     rebuildComponentCaches();
@@ -264,7 +265,8 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    m_quadtree->build();
+    m_staticQuadtree->build();
+	m_dynamicQuadtree->build();
 #endif
 
     rebuildComponentCaches();
