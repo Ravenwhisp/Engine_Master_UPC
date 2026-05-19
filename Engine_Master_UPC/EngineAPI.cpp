@@ -2072,6 +2072,42 @@ namespace SliderAPI
 
         slider->setFillAmount(amount);
     }
+
+    FillMethod getFillMethod(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return FillMethod::Horizontal;
+        }
+        return slider->getFillMethod();
+	}
+
+    void setFillMethod(UISlider* slider, FillMethod method)
+    {
+        if (!slider)
+        {
+            return;
+        }
+        slider->setFillMethod(method);
+	}
+
+    FillOrigin getFillOrigin(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return FillOrigin::HorizontalLeft;
+        }
+        return slider->getFillOrigin();
+    }
+
+    void setFillOrigin(UISlider* slider, FillOrigin origin)
+    {
+        if (!slider)
+        {
+            return;
+        }
+        slider->setFillOrigin(origin);
+	}
 }
 
 namespace DebugDrawAPI
