@@ -12,6 +12,7 @@
 #include "Scene.h"
 #include "UIButton.h"
 #include "UISlider.h"
+#include "UISheet.h"
 #include "UIImage.h"
 #include "Quadtree.h"
 #include "WindowHierarchy.h"
@@ -218,9 +219,30 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
             {
                 slider->SetName("New Slider");
                 slider->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
-                auto* bc = static_cast<UISlider*>(slider->AddComponentWithUID(ComponentType::UISLIDER, GenerateUID()));
+                auto* sc = static_cast<UISlider*>(slider->AddComponentWithUID(ComponentType::UISLIDER, GenerateUID()));
                 auto* ic = static_cast<UIImage*>(slider->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID()));
-                bc->setTargetGraphic(ic);
+                sc->setTargetGraphic(ic);
+
+                if (!hasCanvas(parent))
+                {
+                    if (GameObject* canvas = createGO(scene, parent))
+                    {
+                        canvas->SetName("New Canvas");
+                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+                        m_hierarchy->reparent(slider, canvas);
+                    }
+                }
+            }
+        }
+
+        if (ImGui::MenuItem("Sprite Sheet"))
+        {
+            if (GameObject* slider = createGO(scene, parent))
+            {
+                slider->SetName("New Sprite Sheet");
+                slider->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+                slider->AddComponentWithUID(ComponentType::UISHEET, GenerateUID());
+                slider->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
 
                 if (!hasCanvas(parent))
                 {
