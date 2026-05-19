@@ -30,7 +30,6 @@ void EmitterArea::update(EmitterInstance* particleData)
 	case AreaType::HEMISPHERE:
 
 		setNewParticlesPlacementHemisphere(particleData);
-		break;
 	}
 }
 
@@ -61,6 +60,43 @@ bool EmitterArea::drawUi()
 	}
 
 	return parameterChanged;
+}
+
+void EmitterArea::debugDraw(Transform* parent)
+{
+	bool depthEnabled = false;
+	auto asFloat3 = [](const Vector3& v) { return &v.x; };
+
+	Vector3 position = parent->getPosition();
+
+	switch (m_shapeType)
+	{
+
+	case AreaType::CIRCLE:
+	
+	{
+		Vector3 circleNormal = parent->getUp();
+
+		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor*m_thicknessAreaColor), m_radius*m_radiusThickness, 20, 0, depthEnabled);  // thickness radius
+		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor), m_radius, 20, 0, depthEnabled);
+		
+	}
+		break;
+
+	case AreaType::CONE:
+
+		break;
+
+	case AreaType::SPHERE:
+
+		dd::sphere(asFloat3(position), asFloat3(m_areaColor*m_thicknessAreaColor), m_radius*m_radiusThickness, 0, depthEnabled); // thickness radius
+		dd::sphere(asFloat3(position), asFloat3(m_areaColor), m_radius, 0, depthEnabled);
+		
+		break;
+
+	case AreaType::HEMISPHERE:
+		break;
+	}
 }
 
 rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)

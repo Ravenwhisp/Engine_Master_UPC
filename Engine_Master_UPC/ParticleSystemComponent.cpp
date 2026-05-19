@@ -199,3 +199,14 @@ bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentI
 
     return true;
 }
+
+void ParticleSystemComponent::debugDraw()
+{
+    ParticleEmitter& currentEmitter = m_particleSystem->getEmitters()[m_currentEditableEmitter];
+    Transform* parentTransform = m_owner->GetTransform();
+
+    for (std::unique_ptr<ParticleModule>& module : currentEmitter.getModules())
+    {
+        module->debugDraw(parentTransform);
+    }
+}

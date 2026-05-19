@@ -26,6 +26,7 @@ public:
 	void update(EmitterInstance* particleData) override;
 
 	bool drawUi() override;
+	void debugDraw(Transform* parent) override;
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
@@ -48,5 +49,8 @@ private:
 	Vector3 getSphereDirection(Vector3 center, const Transform& objectTransform);
 	Vector3 getHemisphereDirection(Vector3 center, const Transform& objectTransform);
 
+	// DEBUG DRAW COLORS
+	const Vector3 m_areaColor = Vector3(0.65f, 0.90f, 0.98f);
+	const float m_thicknessAreaColor = 0.5f;
 };
 

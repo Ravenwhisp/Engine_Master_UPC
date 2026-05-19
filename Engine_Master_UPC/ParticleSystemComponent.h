@@ -39,6 +39,8 @@ public:
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
+    void debugDraw() override;
+
 private:
 
     ModuleParticleSystem* m_moduleParticleSystem;
