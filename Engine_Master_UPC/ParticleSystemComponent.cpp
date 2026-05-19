@@ -202,6 +202,8 @@ bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentI
 
 void ParticleSystemComponent::debugDraw()
 {
+    if (!m_textureAsset.isValid()) return;
+
     ParticleEmitter& currentEmitter = m_particleSystem->getEmitters()[m_currentEditableEmitter];
     Transform* parentTransform = m_owner->GetTransform();
 

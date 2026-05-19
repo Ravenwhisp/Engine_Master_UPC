@@ -95,6 +95,20 @@ void EmitterArea::debugDraw(Transform* parent)
 		break;
 
 	case AreaType::HEMISPHERE:
+
+	{
+		Vector3 circleNormal = parent->getUp();
+		Vector3 thicknessColor = m_areaColor * m_thicknessAreaColor;
+
+		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(thicknessColor), m_radius * m_radiusThickness, 20, 0, depthEnabled);  // thickness radius circle
+		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor), m_radius, 20, 0, depthEnabled);
+
+		Vector3 hemisphereHeight = circleNormal * m_radius;
+		dd::arrow(asFloat3(position), asFloat3(position + hemisphereHeight * m_radiusThickness), asFloat3(thicknessColor), 0.25f, 0, depthEnabled); // thickness hemisphere height
+		dd::arrow(asFloat3(position), asFloat3(position + hemisphereHeight), asFloat3(m_areaColor), 0.25f, 0, depthEnabled); // hemisphere height
+
+	}
+
 		break;
 	}
 }
