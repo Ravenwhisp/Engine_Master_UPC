@@ -282,6 +282,12 @@ namespace Transform2DAPI
     ENGINE_API void setScale(Transform2D* transform, const Vector2& newScale);
     ENGINE_API float getAlpha(const Transform2D* transform);
 	ENGINE_API void setAlpha(Transform2D* transform, float alpha);
+	ENGINE_API Vector2 getPivot(const Transform2D* transform);
+    ENGINE_API void setPivot(Transform2D* transform, const Vector2& newPivot);
+    ENGINE_API Vector2 getAnchorMin(const Transform2D* transform);
+    ENGINE_API void setAnchorMin(Transform2D* transform, const Vector2& newAnchorMin);
+    ENGINE_API Vector2 getAnchorMax(const Transform2D* transform);
+	ENGINE_API void setAnchorMax(Transform2D* transform, const Vector2& newAnchorMax);
 }
 
 namespace SliderAPI

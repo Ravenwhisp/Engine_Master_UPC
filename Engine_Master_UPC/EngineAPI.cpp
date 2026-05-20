@@ -2050,6 +2050,53 @@ namespace Transform2DAPI
         }
         transform->setAlpha(newAlpha);
 	}
+    Vector2 getPivot(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(0.5f, 0.5f);
+        }
+		return transform->getPivot();
+    }
+    void setPivot(Transform2D* transform, const Vector2& newPivot)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setPivot(newPivot);
+    }
+    Vector2 getAnchorMin(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+    }
+    void setAnchorMin(Transform2D* transform, const Vector2& newAnchorMin)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setAnchorMin(newAnchorMin);
+	}
+    Vector2 getAnchorMax(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(1.0f, 1.0f);
+        }
+        return transform->getAnchorMax();
+    }
+    void setAnchorMax(Transform2D* transform, const Vector2& newAnchorMax)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setAnchorMax(newAnchorMax);
+	}
 }
 
 namespace SliderAPI

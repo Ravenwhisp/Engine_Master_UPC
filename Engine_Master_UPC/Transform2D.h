@@ -42,6 +42,13 @@ public:
 	void setScale(const Vector2& s) { scale.x = s.x; scale.y = s.y; }
 	Vector2 getBaseSize() const { return Vector2(baseSize.x, baseSize.y); }
 	void setBaseSize(const Vector2& s) { baseSize.x = s.x; baseSize.y = s.y; }
+
+	Vector2 getPivot() const { return Vector2(pivot.x, pivot.y); }
+	void setPivot(const Vector2& p) { pivot.x = p.x; pivot.y = p.y; }
+	Vector2 getAnchorMin() const { return Vector2(anchorMin.x, anchorMin.y); }
+	void setAnchorMin(const Vector2& a) { anchorMin.x = a.x; anchorMin.y = a.y; }
+	Vector2 getAnchorMax() const { return Vector2(anchorMax.x, anchorMax.y); }
+	void setAnchorMax(const Vector2& a) { anchorMax.x = a.x; anchorMax.y = a.y; }
     
     void setStretchMode(StretchMode mode);
     StretchMode getStretchMode() const { return stretchMode; }
