@@ -6,6 +6,7 @@
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
 #include "ModuleD3D12.h"
+#include "ModuleMusic.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -86,6 +87,7 @@ void Scene::update()
 
 bool Scene::cleanUp()
 {
+    app->getModuleMusic()->unloadAllBanks(); //if not snapshots break probably
     clearScene();
     return true;
 }

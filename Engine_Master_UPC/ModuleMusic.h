@@ -13,7 +13,8 @@ class ModuleMusic : public Module
 private:
 	WwiseManager m_wwiseManager;
 	MusicPlaybackTracker m_playbackTracker;
-
+	
+	WwiseBank m_initBnk;
 	std::vector<WwiseBank> m_banks;
 
 public:
@@ -36,6 +37,10 @@ public:
 #pragma region Extra
 	std::vector<WwiseBank>& getBankList() { return m_banks; }
 	const std::vector<PlayingSound>& getPlayingSounds() const { return m_playbackTracker.getPlayingSounds(); }
+	
+	void unloadAllBanks();
+	bool loadBank(const std::string& bankName);
+	bool unloadBank(const std::string& bankName);
 #pragma endregion
 
 private:

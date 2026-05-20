@@ -6,6 +6,10 @@
 #include <filesystem>
 #include <string>
 
+constexpr bool DEBUG_MODULE_MUSIC = false;
+#define WWISE_BANK_LOG(...) do { if constexpr (DEBUG_MODULE_MUSIC) { DEBUG_LOG(__VA_ARGS__); } } while (false)
+#define WWISE_BANK_ERROR(...) do { if constexpr (DEBUG_MODULE_MUSIC) { DEBUG_ERROR(__VA_ARGS__); } } while (false)
+
 constexpr const char* WWISE_ASSETS_PATH = "Assets\\Audio\\";
 
 ModuleMusic::ModuleMusic() = default;
@@ -25,7 +29,7 @@ bool ModuleMusic::init()
 		return false;
 	}
 
-	DEBUG_LOG("[Module Music] Initialized");
+	WWISE_BANK_LOG("[Module Music] Initialized");
 
 	return true;
 }
@@ -38,6 +42,9 @@ void ModuleMusic::update()
 
 bool ModuleMusic::cleanUp()
 {
+	m_initBnk.unload();
+	m_initBnk.cleanUp();
+
 	m_playbackTracker.cleanUp();
 
 	for (WwiseBank& bank : m_banks)
@@ -57,7 +64,7 @@ bool ModuleMusic::loadBanksFromFolder()
 {
 	if (!std::filesystem::exists(WWISE_ASSETS_PATH))
 	{
-		DEBUG_ERROR("[Module Music] Audio folder not found: %s", WWISE_ASSETS_PATH);
+		WWISE_BANK_ERROR("[Module Music] Audio folder not found: %s", WWISE_ASSETS_PATH);
 		return false;
 	}
 
@@ -86,7 +93,7 @@ bool ModuleMusic::loadBanksFromFolder()
 
 		if (!std::filesystem::exists(bankPath))
 		{
-			DEBUG_ERROR("[Module Music] Missing bank file for json: %s", jsonPath.c_str());
+			WWISE_BANK_ERROR("[Module Music] Missing bank file for json: %s", jsonPath.c_str());
 			continue;
 		}
 
@@ -94,14 +101,25 @@ bool ModuleMusic::loadBanksFromFolder()
 
 		if (!bank.init(bankName.c_str(), jsonPath.c_str()))
 		{
-			DEBUG_ERROR("[Module Music] Failed loading bank: %s", bankName.c_str());
+			WWISE_BANK_ERROR("[Module Music] Failed loading bank: %s", bankName.c_str());
 			return false;
 		}
 
-		m_banks.push_back(bank);
+		if (bank.getName() == "Init.bnk")
+		{
+			m_initBnk = bank;
+			m_initBnk.load();
+			WWISE_BANK_LOG("Detected and loaded bank: %s", bank.getName().c_str());
+		}
+		else 
+		{
+			WWISE_BANK_LOG("Detected bank: %s", bank.getName().c_str());
+			m_banks.push_back(bank);
+		}
+
 	}
 
-	DEBUG_LOG("[Module Music] Detected banks: %zu", m_banks.size());
+	WWISE_BANK_LOG("[Module Music] Detected banks: %zu", m_banks.size());
 
 	return true;
 }
@@ -165,3 +183,55 @@ void ModuleMusic::resumeEvent(uint32_t playingID)
 	m_playbackTracker.setState(playingID, PlayingSoundState::Playing);
 }
 #pragma endregion
+
+
+#pragma region Extra
+void ModuleMusic::unloadAllBanks()
+{
+	for (WwiseBank& bank : m_banks)
+	{
+		if (bank.isLoaded())
+		{
+			bank.unload();
+		}
+	}
+
+	WWISE_BANK_LOG("[Module Music] All banks unloaded.");
+}
+
+bool ModuleMusic::loadBank(const std::string& bankName)
+{
+	for (WwiseBank& bank : m_banks)
+	{
+		if (bank.getName() != bankName)
+		{
+			continue;
+		}
+
+		return bank.load();
+	}
+
+	WWISE_BANK_ERROR("[Module Music] Bank not found: %s", bankName.c_str());
+	return false;
+}
+
+bool ModuleMusic::unloadBank(const std::string& bankName)
+{
+	for (WwiseBank& bank : m_banks)
+	{
+		if (bank.getName() != bankName)
+		{
+			continue;
+		}
+
+		bank.unload();
+		return true;
+	}
+
+	WWISE_BANK_ERROR("[Module Music] Bank not found: %s", bankName.c_str());
+	return false;
+}
+#pragma endregion
+
+#undef WWISE_BANK_LOG
+#undef WWISE_BANK_ERROR

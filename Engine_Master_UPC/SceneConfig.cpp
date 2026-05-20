@@ -225,15 +225,17 @@ void SceneConfig::drawMusicBanksSettings()
             {
                 if (ImGui::Button("Unload", ImVec2(-1.0f, 0.0f)))
                 {
-                    bank.unload();
-                    m_moduleScene->getScene()->removeLoadedBank(bankName);
+                    if (m_moduleMusic->unloadBank(bankName))
+                    {
+                        m_moduleScene->getScene()->removeLoadedBank(bankName);
+                    }
                 }
             }
             else
             {
                 if (ImGui::Button("Load", ImVec2(-1.0f, 0.0f)))
                 {
-                    if (bank.load())
+                    if (m_moduleMusic->loadBank(bankName))
                     {
                         m_moduleScene->getScene()->addLoadedBank(bankName);
                     }

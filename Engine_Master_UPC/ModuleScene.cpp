@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
+#include "ModuleMusic.h"
 
 #include "Scene.h"
 #include "Quadtree.h"
@@ -195,6 +196,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         return false;
     }
 
+    m_scene->cleanUp();
     m_scene = std::move(newScene);
     m_scene->setName(sceneName.c_str());
     m_scene->markDirty();
@@ -212,6 +214,11 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     }
 
     app->getModuleEditor()->setSelectedGameObject(nullptr);
+
+    for (std::string bank : m_scene->getLoadedBanks())
+    {
+        app->getModuleMusic()->loadBank(bank);
+    }
 
 #ifdef GAME_RELEASE
     m_quadtree->build();
