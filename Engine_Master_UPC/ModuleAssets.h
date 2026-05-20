@@ -33,6 +33,7 @@ class ImporterAnimationStateMachine;
 class ImporterGltf;
 class ImporterFont;
 class ImporterScene;
+class ImporterDataContainer;
 
 struct ScanFileResult;
 
@@ -238,6 +239,7 @@ private:
     ImporterFont* m_importerFont = nullptr;
     ImporterScene* m_importerScene = nullptr;
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
+    ImporterDataContainer* m_importerDataContainer = nullptr;
 
     std::vector<Importer*> m_importers;
 #pragma endregion

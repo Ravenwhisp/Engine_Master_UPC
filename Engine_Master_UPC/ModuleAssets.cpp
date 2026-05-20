@@ -14,6 +14,7 @@
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
 #include "ImporterScene.h"
+#include "ImporterDataContainer.h"
 #include "MD5.h"
 
 #include "AssetScanner.h"
@@ -73,6 +74,7 @@ bool ModuleAssets::init()
     m_importerAnimation, m_importerSkin, m_importerAnimationStateMachine));
     m_importers.push_back(m_importerFont = new ImporterFont());
     m_importers.push_back(m_importerScene = new ImporterScene());
+    m_importers.push_back(m_importerDataContainer = new ImporterDataContainer());
 
     m_scanner = std::make_unique<AssetScanner>();
     m_contentRegistry = std::make_unique<ContentRegistry>(this);

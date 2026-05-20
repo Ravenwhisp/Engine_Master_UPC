@@ -302,6 +302,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="CommandCreateFolder.h" />
     <ClInclude Include="CommandCutItem.h" />
+    <ClInclude Include="DataContainer.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="DescriptorHeapBlock.h" />
     <ClInclude Include="DescriptorHandle.h" />
@@ -324,6 +325,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandImportAsset.h" />
     <ClInclude Include="ImporterAnimation.h" />
     <ClInclude Include="ImporterAnimationStateMachine.h" />
+    <ClInclude Include="ImporterDataContainer.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterMaterial.h" />
@@ -655,8 +657,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
+    <ClCompile Include="DataContainer.cpp" />
     <ClCompile Include="ImporterAnimation.cpp" />
     <ClCompile Include="ImporterAnimationStateMachine.cpp" />
+    <ClCompile Include="ImporterDataContainer.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
     <ClCompile Include="ImporterMaterial.cpp" />
