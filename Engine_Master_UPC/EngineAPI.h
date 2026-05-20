@@ -28,7 +28,7 @@ class Transform2D;
 struct HapticEffectDefinition;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
-ENGINE_API void registerDataContainer(const char* name, const char* displayName, const char* extension, DataContainerCreator creator);
+ENGINE_API void registerDataContainer(const char* name, const char* displayName, DataContainerCreator creator);
 
 namespace GameObjectAPI 
 {

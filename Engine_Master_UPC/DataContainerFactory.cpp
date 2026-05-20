@@ -4,7 +4,7 @@
 
 std::vector<DataContainerRegistry> DataContainerFactory::m_registry;
 
-void DataContainerFactory::registerDataContainer(const std::string& name, const std::string& displayName, const std::string& extension, DataContainerCreator creator)
+void DataContainerFactory::registerDataContainer(const std::string& name, const std::string& displayName, DataContainerCreator creator)
 {
     for (DataContainerRegistry& entry : m_registry)
     {
@@ -15,7 +15,7 @@ void DataContainerFactory::registerDataContainer(const std::string& name, const 
         }
     }
 
-    m_registry.push_back({ name, displayName, extension, creator });
+    m_registry.push_back({ name, displayName, creator });
 }
 
 DataContainer* DataContainerFactory::createDataContainer(const std::string& name, AssetReference& uid)

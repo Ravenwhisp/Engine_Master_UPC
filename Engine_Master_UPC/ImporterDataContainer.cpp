@@ -14,22 +14,7 @@
 
 bool ImporterDataContainer::canImport(const std::filesystem::path& path) const
 {
-	const std::string ext = path.extension().string();
-	if (ext == DATA_CONTAINER_EXTENSION || ext == CONFIG_EXTENSION)
-	{
-		return true;
-	}
-
-	const auto& registry = DataContainerFactory::getAllRegistered();
-	for (const auto& entry : registry)
-	{
-		if (ext == entry.extension)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return path.extension().string() == DATA_CONTAINER_EXTENSION;
 }
 
 Asset* ImporterDataContainer::createAssetInstance(AssetReference& uid) const

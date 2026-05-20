@@ -2,26 +2,27 @@
 
 // Include this header in your external project to create custom DataContainer assets
 // (similar to Unity ScriptableObjects)
+//
+// All DataContainer assets use the .datacontainer file extension.
+// Derived classes are identified by _typeName in the JSON file.
+//
+// Usage:
+//   .h file:
+//     class MyConfig : public DataContainer {
+//         DECLARE_DATACONTAINER(MyConfig)
+//     public:
+//         MyConfig() = default;
+//         explicit MyConfig(AssetReference& id) : DataContainer(id) {}
+//         bool deserializeJson(const rapidjson::Value& obj) override;
+//         rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const override;
+//         float m_value = 10.0f;
+//     };
+//   .cpp file:
+//     IMPLEMENT_DATACONTAINER(MyConfig)
+//     // override deserializeJson/getJson to serialize members
+//
+// The class auto-registers and appears in the FileDialog "Create" menu and "Asset" top menu.
 
 #include "DataContainer.h"
 #include "DataContainerAutoRegister.h"
 #include "EngineAPI.h"
-
-// Usage example:
-//
-// In your .h file:
-// class MyConfig : public DataContainer {
-// public:
-//     DECLARE_DATACONTAINER(MyConfig)
-//     MyConfig() = default;
-//     explicit MyConfig(AssetReference& id) : DataContainer(id) {}
-//     const char* getTypeName() const override { return "MyConfig"; }
-//     const char* getDisplayTypeName() const override { return "My Config"; }
-//     const char* getFileExtension() const override { return ".myconfig"; }
-//     // Add your typed accessor methods here...
-// };
-//
-// In your .cpp file:
-// IMPLEMENT_DATACONTAINER(MyConfig, ".myconfig")
-//
-// The class will auto-register and appear in the FileDialog right-click "Create" menu.

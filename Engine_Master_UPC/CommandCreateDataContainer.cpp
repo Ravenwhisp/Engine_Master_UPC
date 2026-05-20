@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "DataContainerFactory.h"
+#include "DataContainer.h"
+#include "Extensions.h"
 #include "UID.h"
 
 #include <rapidjson/document.h>
@@ -15,18 +17,16 @@
 CommandCreateDataContainer::CommandCreateDataContainer(
     const std::filesystem::path& targetDir,
     const std::string& typeName,
-    const std::string& assetName,
-    const std::string& extension)
+    const std::string& assetName)
     : m_targetDir(targetDir)
     , m_typeName(typeName)
     , m_assetName(assetName)
-    , m_extension(extension)
 {
 }
 
 void CommandCreateDataContainer::run()
 {
-    std::filesystem::path filePath = m_targetDir / (m_assetName + m_extension);
+    std::filesystem::path filePath = m_targetDir / (m_assetName + DATA_CONTAINER_EXTENSION);
 
     if (std::filesystem::exists(filePath))
     {
@@ -39,6 +39,28 @@ void CommandCreateDataContainer::run()
     rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
 
     doc.AddMember("_typeName", rapidjson::Value(m_typeName.c_str(), allocator), allocator);
+
+    AssetReference tempRef(INVALID_UID);
+    DataContainer* instance = DataContainerFactory::createDataContainer(m_typeName, tempRef);
+    if (instance)
+    {
+        rapidjson::Value instanceJson = instance->getJson(allocator);
+        if (instanceJson.IsObject())
+        {
+            for (auto it = instanceJson.MemberBegin(); it != instanceJson.MemberEnd(); ++it)
+            {
+                if (!doc.HasMember(it->name.GetString()))
+                {
+                    doc.AddMember(
+                        rapidjson::Value(it->name, allocator),
+                        rapidjson::Value(it->value, allocator),
+                        allocator
+                    );
+                }
+            }
+        }
+        delete instance;
+    }
 
     rapidjson::StringBuffer buffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);

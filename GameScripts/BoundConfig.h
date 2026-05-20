@@ -13,10 +13,6 @@ public:
     {
     }
 
-    const char* getTypeName() const override { return "BoundConfig"; }
-    const char* getDisplayTypeName() const override { return "Bound Config"; }
-    const char* getFileExtension() const override { return ".config"; }
-
     bool deserializeJson(const rapidjson::Value& obj) override;
     rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const override;
 

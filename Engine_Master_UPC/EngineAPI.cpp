@@ -45,9 +45,9 @@ void registerScript(const char* scriptName, ScriptCreator creator)
     ScriptFactory::registerScript(scriptName, creator);
 }
 
-void registerDataContainer(const char* name, const char* displayName, const char* extension, DataContainerCreator creator)
+void registerDataContainer(const char* name, const char* displayName, DataContainerCreator creator)
 {
-    DataContainerFactory::registerDataContainer(name, displayName, extension, creator);
+    DataContainerFactory::registerDataContainer(name, displayName, creator);
 }
 
 namespace GameObjectAPI

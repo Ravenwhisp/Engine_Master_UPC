@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "BoundConfig.h"
 
-IMPLEMENT_DATACONTAINER(BoundConfig, ".config")
+IMPLEMENT_DATACONTAINER(BoundConfig)
 
 bool BoundConfig::deserializeJson(const rapidjson::Value& obj)
 {

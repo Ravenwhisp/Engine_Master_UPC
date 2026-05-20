@@ -350,7 +350,7 @@ void ModuleEditor::mainMenuBar()
                         assetsDir = std::filesystem::current_path() / "Assets";
                     }
                     std::string assetName = std::string("New_") + entry.name;
-                    CommandCreateDataContainer(assetsDir, entry.name, assetName, entry.extension).run();
+                    CommandCreateDataContainer(assetsDir, entry.name, assetName).run();
                 }
             }
         }

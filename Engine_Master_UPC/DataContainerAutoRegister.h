@@ -5,9 +5,9 @@
 class DataContainerAutoRegister
 {
 public:
-    DataContainerAutoRegister(const char* name, const char* displayName, const char* extension, DataContainerCreator creator)
+    DataContainerAutoRegister(const char* name, const char* displayName, DataContainerCreator creator)
     {
-        registerDataContainer(name, displayName, extension, creator);
+        registerDataContainer(name, displayName, creator);
     }
 };
 
@@ -15,7 +15,7 @@ public:
 public: \
     static DataContainer* Create(AssetReference& uid);
 
-#define IMPLEMENT_DATACONTAINER(TypeName, Extension) \
+#define IMPLEMENT_DATACONTAINER(TypeName) \
     DataContainer* TypeName::Create(AssetReference& uid) \
     { \
         return new TypeName(uid); \
@@ -23,6 +23,5 @@ public: \
     static DataContainerAutoRegister s_autoRegister_##TypeName( \
         #TypeName, \
         #TypeName, \
-        Extension, \
         &TypeName::Create \
     );

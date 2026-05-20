@@ -15,8 +15,6 @@
 #include "ImporterFont.h"
 #include "ImporterScene.h"
 #include "ImporterDataContainer.h"
-#include "DataContainerFactory.h"
-#include "DataContainer.h"
 #include "MD5.h"
 
 #include "AssetScanner.h"
@@ -150,11 +148,16 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
 
     if (reference.m_type == AssetType::DATA_CONTAINER)
     {
-        DataContainer* dc = resolveDataContainerType(static_cast<DataContainer*>(asset.get()));
-        if (dc != static_cast<DataContainer*>(asset.get()))
+        DataContainer* baseDc = static_cast<DataContainer*>(asset.release());
+        DataContainer* derivedDc = resolveDataContainerType(baseDc);
+        if (derivedDc)
         {
-            asset.release();
-            asset.reset(dc);
+            delete baseDc;
+            asset.reset(derivedDc);
+        }
+        else
+        {
+            asset.reset(baseDc);
         }
     }
 
@@ -614,7 +617,7 @@ DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContain
     const rapidjson::Document& data = baseContainer->getData();
     if (!data.HasMember("_typeName") || !data["_typeName"].IsString())
     {
-        return baseContainer;
+        return nullptr;
     }
 
     const char* typeName = data["_typeName"].GetString();
@@ -623,10 +626,9 @@ DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContain
     DataContainer* derived = DataContainerFactory::createDataContainer(typeName, ref);
     if (!derived)
     {
-        return baseContainer;
+        return nullptr;
     }
 
     derived->deserializeJson(data);
-    delete baseContainer;
     return derived;
 }

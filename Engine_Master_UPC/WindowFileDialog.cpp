@@ -391,7 +391,7 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
                     if (ImGui::MenuItem(entry.displayName.c_str()))
                     {
                         std::string assetName = entry.displayName + "_New";
-                        CommandCreateDataContainer(m_currentDirectory, entry.name, assetName, entry.extension).run();
+                        CommandCreateDataContainer(m_currentDirectory, entry.name, assetName).run();
                     }
                 }
                 ImGui::EndMenu();

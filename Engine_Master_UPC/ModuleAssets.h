@@ -222,10 +222,11 @@ private:
 
         if (ref.m_type == AssetType::DATA_CONTAINER)
         {
-            DataContainer* dc = resolveDataContainerType(static_cast<DataContainer*>(asset.get()));
-            if (dc != static_cast<DataContainer*>(asset.get()))
+            DataContainer* baseDc = static_cast<DataContainer*>(asset.get());
+            DataContainer* derivedDc = resolveDataContainerType(baseDc);
+            if (derivedDc)
             {
-                asset.reset(dc);
+                asset = std::shared_ptr<Asset>(derivedDc);
             }
         }
 

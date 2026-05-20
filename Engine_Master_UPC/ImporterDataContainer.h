@@ -1,7 +1,6 @@
 #pragma once
 #include "ImporterNative.h"
 #include "DataContainer.h"
-#include "DataContainerFactory.h"
 #include "Extensions.h"
 
 class ImporterDataContainer
