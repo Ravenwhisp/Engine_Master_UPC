@@ -3,7 +3,7 @@
 #include "DataContainerRegistry.h"
 #include <vector>
 
-class AssetReference;
+struct AssetReference;
 
 class DataContainerFactory
 {

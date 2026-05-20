@@ -15,7 +15,7 @@
 bool ImporterDataContainer::canImport(const std::filesystem::path& path) const
 {
 	const std::string ext = path.extension().string();
-	if (ext == DATA_CONTAINER_EXTENSION)
+	if (ext == DATA_CONTAINER_EXTENSION || ext == CONFIG_EXTENSION)
 	{
 		return true;
 	}

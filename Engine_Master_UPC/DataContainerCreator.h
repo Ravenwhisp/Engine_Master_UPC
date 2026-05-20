@@ -2,7 +2,7 @@
 
 #include <memory>
 
-class AssetReference;
+struct AssetReference;
 class DataContainer;
 
 using DataContainerCreator = DataContainer* (*)(AssetReference& uid);

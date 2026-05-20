@@ -1,4 +1,5 @@
 #pragma once
+#include "Globals.h"
 #include <string>
 #include <filesystem>
 #include <fstream>

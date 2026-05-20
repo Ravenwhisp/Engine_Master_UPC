@@ -3,8 +3,12 @@
 #include "AssetReference.h"
 #include "AssetsDictionary.h"
 #include "AssetType.h"
+#include "EngineAPI.h"
 
-class Asset
+#pragma warning(push)
+#pragma warning(disable: 4251)
+
+class ENGINE_API Asset
 {
 public:
 	Asset() = default;
@@ -24,3 +28,5 @@ protected:
 	AssetReference 				m_reference;
 	AssetType			m_type = AssetType::UNKNOWN;
 };
+
+#pragma warning(pop)

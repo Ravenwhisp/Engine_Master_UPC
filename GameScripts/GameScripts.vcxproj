@@ -249,6 +249,7 @@
     <ClInclude Include="AbilityDash.h" />
     <ClInclude Include="ArrowPool.h" />
     <ClInclude Include="Bound.h" />
+    <ClInclude Include="BoundConfig.h" />
     <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="CharacterBase.h" />
@@ -310,6 +311,7 @@
     <ClCompile Include="AbilityDash.cpp" />
     <ClCompile Include="ArrowPool.cpp" />
     <ClCompile Include="Bound.cpp" />
+    <ClCompile Include="BoundConfig.cpp" />
     <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="CharacterBase.cpp" />

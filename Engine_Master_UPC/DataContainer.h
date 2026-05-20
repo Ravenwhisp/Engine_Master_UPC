@@ -1,11 +1,14 @@
 #pragma once
 #include "Asset.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4251)
+
 #include <rapidjson/document.h>
 
 class ImporterDataContainer;
 
-class DataContainer : public Asset
+class ENGINE_API DataContainer : public Asset
 {
 public:
 	friend class ImporterDataContainer;
@@ -31,3 +34,5 @@ public:
 protected:
 	rapidjson::Document m_data;
 };
+
+#pragma warning(pop)

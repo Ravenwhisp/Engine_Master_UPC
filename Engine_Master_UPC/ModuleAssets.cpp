@@ -16,6 +16,7 @@
 #include "ImporterScene.h"
 #include "ImporterDataContainer.h"
 #include "DataContainerFactory.h"
+#include "DataContainer.h"
 #include "MD5.h"
 
 #include "AssetScanner.h"
@@ -145,6 +146,16 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
         if (!isReimport) reference = AssetReference();
         return;
+    }
+
+    if (reference.m_type == AssetType::DATA_CONTAINER)
+    {
+        DataContainer* dc = resolveDataContainerType(static_cast<DataContainer*>(asset.get()));
+        if (dc != static_cast<DataContainer*>(asset.get()))
+        {
+            asset.release();
+            asset.reset(dc);
+        }
     }
 
     if (!persistAsset(asset.get(), importer, reference, sourcePath))
@@ -591,4 +602,31 @@ ContentRegistry* ModuleAssets::getContentRegistry() const
 PrefabManager* ModuleAssets::getPrefabManager() const
 {
     return m_prefabManager.get();
+}
+
+DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer) const
+{
+    if (!baseContainer)
+    {
+        return nullptr;
+    }
+
+    const rapidjson::Document& data = baseContainer->getData();
+    if (!data.HasMember("_typeName") || !data["_typeName"].IsString())
+    {
+        return baseContainer;
+    }
+
+    const char* typeName = data["_typeName"].GetString();
+    AssetReference ref = baseContainer->getReference();
+
+    DataContainer* derived = DataContainerFactory::createDataContainer(typeName, ref);
+    if (!derived)
+    {
+        return baseContainer;
+    }
+
+    derived->deserializeJson(data);
+    delete baseContainer;
+    return derived;
 }

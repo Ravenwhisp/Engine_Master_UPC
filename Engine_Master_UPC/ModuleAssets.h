@@ -14,7 +14,8 @@
 #include <AssetReference.h>
 #include "FileIO.h"
 #include "Importer.h"
-#include <DataContainerCreator.h>
+#include "DataContainer.h"
+#include "DataContainerFactory.h"
 
 
 class AssetScanner;
@@ -190,6 +191,7 @@ public:
     bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
 
 private:
+    DataContainer* resolveDataContainerType(DataContainer* baseContainer) const;
     UID findUID(const std::filesystem::path& sourcePath) const;
     
     template<typename T>
@@ -217,6 +219,16 @@ private:
 
         std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
         importer->load(buffer.data(), asset.get());
+
+        if (ref.m_type == AssetType::DATA_CONTAINER)
+        {
+            DataContainer* dc = resolveDataContainerType(static_cast<DataContainer*>(asset.get()));
+            if (dc != static_cast<DataContainer*>(asset.get()))
+            {
+                asset.reset(dc);
+            }
+        }
+
         m_assets.insert(ref.m_uid, asset);
 
         return std::static_pointer_cast<T>(asset);

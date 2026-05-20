@@ -29,6 +29,9 @@
 #include "ModuleGameView.h"
 #include "ModuleAssets.h"
 #include "Mouse.h"
+#include "DataContainerFactory.h"
+#include "ContentRegistry.h"
+#include "CommandCreateDataContainer.h"
 
 #include <fstream>
 
@@ -312,7 +315,7 @@ void ModuleEditor::mainMenuBar()
 
     if (ImGui::BeginMenu("Window"))
     {
-        // ---- New Window submenu — spawn additional instances ----
+        // ---- New Window submenu â€“ spawn additional instances ----
         if (!m_windowFactories.empty())
         {
             ImGui::Separator();
@@ -327,6 +330,33 @@ void ModuleEditor::mainMenuBar()
                 }
                 ImGui::EndMenu();
             }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Asset"))
+    {
+        const auto& dcRegistry = DataContainerFactory::getAllRegistered();
+        if (!dcRegistry.empty())
+        {
+            for (const auto& entry : dcRegistry)
+            {
+                if (ImGui::MenuItem(entry.displayName.c_str()))
+                {
+                    std::filesystem::path assetsDir = ASSETS_FOLDER;
+                    if (assetsDir.empty())
+                    {
+                        assetsDir = std::filesystem::current_path() / "Assets";
+                    }
+                    std::string assetName = std::string("New_") + entry.name;
+                    CommandCreateDataContainer(assetsDir, entry.name, assetName, entry.extension).run();
+                }
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("No asset types registered");
         }
 
         ImGui::EndMenu();
