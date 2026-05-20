@@ -2072,6 +2072,7 @@ namespace Transform2DAPI
         {
             return Vector2(0.0f, 0.0f);
         }
+		return transform->getAnchorMin();
     }
     void setAnchorMin(Transform2D* transform, const Vector2& newAnchorMin)
     {
