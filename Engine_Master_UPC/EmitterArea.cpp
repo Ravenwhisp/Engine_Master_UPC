@@ -85,6 +85,9 @@ void EmitterArea::debugDraw(Transform* parent)
 
 	case AreaType::CONE:
 
+		drawCone(parent, m_areaColor * m_thicknessAreaColor, m_radius * m_radiusThickness, depthEnabled); // Thickness area
+		drawCone(parent, m_areaColor, m_radius, depthEnabled);
+		
 		break;
 
 	case AreaType::SPHERE:
@@ -481,4 +484,28 @@ Vector3 EmitterArea::getHemisphereDirection(Vector3 center, const Transform& obj
 	Vector3 direction = (pointToDirection - center);
 	direction.Normalize();
 	return direction;
+}
+
+void EmitterArea::drawCone(Transform* parent, const Vector3& color, float radius, bool depthEnabled) const
+{
+	auto asFloat3 = [](const Vector3& v) { return &v.x; };
+
+	Vector3 right = parent->getRight();
+	Vector3 up = parent->getUp(); // will be the circles' normal
+
+	Vector3 bottomCircleCenter = parent->getPosition();
+	Vector3 topCircleCenter = bottomCircleCenter + up * m_topConeCircleHeight;
+
+	Vector3 bottomLeftPoint = bottomCircleCenter - right * radius;
+	Vector3 bottomRightPoint = bottomCircleCenter + right * radius;
+
+	float topCircleRadius = radius * m_radiusScale;
+	Vector3 topLeftPoint = topCircleCenter - right * topCircleRadius;
+	Vector3 topRightPoint = topCircleCenter + right * topCircleRadius;
+
+	dd::circle(asFloat3(bottomCircleCenter), asFloat3(up), asFloat3(color), m_radius, 20, 0, depthEnabled);
+	dd::circle(asFloat3(topCircleCenter), asFloat3(up), asFloat3(color), topCircleRadius, 20, 0, depthEnabled);
+
+	dd::line(asFloat3(bottomLeftPoint), asFloat3(topLeftPoint), asFloat3(color), 0, depthEnabled);
+	dd::line(asFloat3(bottomRightPoint), asFloat3(topRightPoint), asFloat3(color), 0, depthEnabled);
 }

@@ -524,7 +524,9 @@
     <ClCompile Include="EmitterSpawn.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
-    <ClCompile Include="EmitterSize.cpp" />
+    <ClCompile Include="EmitterSize.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1239,7 +1241,9 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="Skin.h" />
-    <ClInclude Include="EmitterSize.h" />
+    <ClInclude Include="EmitterSize.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

@@ -49,8 +49,12 @@ private:
 	Vector3 getSphereDirection(Vector3 center, const Transform& objectTransform);
 	Vector3 getHemisphereDirection(Vector3 center, const Transform& objectTransform);
 
-	// DEBUG DRAW COLORS
+	// DEBUG DRAW //
 	const Vector3 m_areaColor = Vector3(0.65f, 0.90f, 0.98f);
-	const float m_thicknessAreaColor = 0.5f;
+	const float m_thicknessAreaColor = 0.65f;
+	
+	const float m_topConeCircleHeight = 2.5f; // if not enough, number can be increased
+
+	void drawCone(Transform* parent, const Vector3& color, float radius, bool depthEnabled) const;
 };
 
