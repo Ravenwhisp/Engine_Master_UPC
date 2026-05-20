@@ -42,7 +42,6 @@ bool EmitterColor::drawUi()
 {
 	bool parameterChanged = false;
 
-	
 	if (ImGui::CollapsingHeader("Color")) 
 	{
 

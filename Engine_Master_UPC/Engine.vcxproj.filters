@@ -524,6 +524,7 @@
     <ClCompile Include="EmitterSpawn.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
+    <ClCompile Include="EmitterSize.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1197,7 +1198,6 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
-
     <ClInclude Include="ThreadPool.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -1239,6 +1239,7 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="Skin.h" />
+    <ClInclude Include="EmitterSize.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1455,6 +1456,7 @@
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
+    <None Include="EngineAPI.inl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1505,5 +1507,6 @@
     <FxCompile Include="ParticlePixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="SpritePixelShader.hlsl" />
   </ItemGroup>
 </Project>

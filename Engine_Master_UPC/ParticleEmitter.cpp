@@ -6,6 +6,7 @@
 #include "EmitterArea.h"
 #include "EmitterColor.h"
 #include "EmitterVelocity.h"
+#include "EmitterSize.h"
 
 ParticleEmitter::ParticleEmitter()
 {
@@ -23,6 +24,7 @@ ParticleEmitter::ParticleEmitter()
 	m_particleModules.push_back(std::make_unique<EmitterArea>());
 	m_particleModules.push_back(std::make_unique<EmitterColor>());
 	m_particleModules.push_back(std::make_unique<EmitterVelocity>());
+	m_particleModules.push_back(std::make_unique<EmitterSize>());
 }
 
 ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
@@ -41,6 +43,7 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 	m_particleModules.push_back(particleEmitter.m_particleModules[2]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[3]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[4]->clone());
+	m_particleModules.push_back(particleEmitter.m_particleModules[5]->clone());
 }
 
 ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
@@ -114,6 +117,11 @@ bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
 		case ParticleModuleType::VELOCITY:
 
 			m_particleModules[4]->deserializeJSON(moduleData);
+			break;
+
+		case ParticleModuleType::SIZE:
+
+			m_particleModules[5]->deserializeJSON(moduleData);
 		}
 	}
 	return true;

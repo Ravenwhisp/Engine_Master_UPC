@@ -11,7 +11,8 @@ enum class ParticleModuleType {
 	SPAWN,
 	COLOR,
 	LIFETIME,
-	VELOCITY
+	VELOCITY,
+	SIZE
 };
 
 class ParticleModule
