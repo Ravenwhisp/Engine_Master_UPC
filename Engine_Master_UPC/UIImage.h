@@ -10,6 +10,11 @@ struct Rect2D;
 class UIImage : public Component
 {
 public:
+    enum class StretchDrawMode
+    {
+        Stretch = 0,
+        Tile = 1
+    };
     UIImage(UID id, GameObject* owner);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
@@ -50,6 +55,9 @@ public:
 
     void setSheetOffset(const Vector2& offset) { m_sheetOffset = offset; }
 
+    StretchDrawMode getStretchDrawMode() const { return m_stretchDrawMode; }
+    void setStretchDrawMode(StretchDrawMode mode) { m_stretchDrawMode = mode; }
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -68,4 +76,6 @@ private:
     int m_sheetColumns = 1;
     int m_sheetRows = 1;
     Vector2 m_sheetOffset = { 0.0f, 0.0f };
+
+    StretchDrawMode m_stretchDrawMode = StretchDrawMode::Stretch;
 };

@@ -158,6 +158,7 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest, float alpha)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
+    Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
 
     if (!uiImg || !uiImg->isActive())
     {
@@ -209,6 +210,23 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.sheetColumns = uiImg->getSheetColumns();
         command.sheetRows = uiImg->getSheetRows();
         command.sheetOffset = uiImg->getSheetOffset();
+
+        command.uvScale = { 1.0f, 1.0f };
+        if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile)
+        {
+            if (t2d->getStretchMode() == StretchMode::HORIZONTAL)
+            {
+                command.uvScale.y = t2d->getScale().y;
+            }
+            else if (t2d->getStretchMode() == StretchMode::VERTICAL)
+            {
+                command.uvScale.x = t2d->getScale().x;
+			}
+            else
+            {
+                command.uvScale = t2d->getScale();
+			}
+        }
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity

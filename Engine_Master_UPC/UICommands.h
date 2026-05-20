@@ -36,4 +36,6 @@ struct UIImageCommand
     int sheetColumns = 1;
     int sheetRows = 1;
     Vector2 sheetOffset = { 0.0f, 0.0f };
+
+    Vector2 uvScale = { 1.0f, 1.0f };
 };

@@ -6,7 +6,8 @@ cbuffer UIParams : register(b0)
     float sheetColumns;
     float sheetRows;
     float _pad0;
-    float4 sheetOffset;
+    float2 sheetOffset;
+    float2 uvScale;
 };
 
 struct VSOut
@@ -20,8 +21,10 @@ struct VSOut
 VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, float4 color : COLOR)
 {
     VSOut output;
+    float2 scaledUv = texCoord * uvScale;
     float2 tile = float2(max(sheetColumns, 1.0f), max(sheetRows, 1.0f));
-    output.texCoord = texCoord / tile + sheetOffset.xy;
+
+    output.texCoord = scaledUv / tile + sheetOffset;
     output.fillData = fillData;
     output.alpha = alpha;
     output.position = mul(float4(position, 0.0f, 1.0f), mvp);

@@ -45,6 +45,8 @@ std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
     cloned->m_sheetColumns = m_sheetColumns;
     cloned->m_sheetRows = m_sheetRows;
     cloned->m_sheetOffset = m_sheetOffset;
+
+    cloned->m_stretchDrawMode = m_stretchDrawMode;
     return cloned;
 }
 
@@ -102,6 +104,17 @@ void UIImage::drawUi()
                 transform->setBaseSize({ static_cast<float>(m_textureAsset->getWidth()), static_cast<float>(m_textureAsset->getHeight()) });
             }
         }
+        ImGui::Separator();
+        ImGui::TextUnformatted("Stretch");
+        {
+            const char* modes[] = { "Stretch", "Tile" };
+            int mode = static_cast<int>(m_stretchDrawMode);
+            if (ImGui::Combo("When Stretched", &mode, modes, IM_ARRAYSIZE(modes)))
+            {
+                m_stretchDrawMode = static_cast<StretchDrawMode>(mode);
+            }
+            ImGui::TextDisabled("Used when Transform2D Stretch Mode is not None.");
+        }
     }
 }
 
@@ -133,6 +146,8 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
         offset.PushBack(m_sheetOffset.y, domTree.GetAllocator());
         componentInfo.AddMember("SheetOffset", offset, domTree.GetAllocator());
     }
+
+    componentInfo.AddMember("StretchDrawMode", static_cast<int>(m_stretchDrawMode), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -181,6 +196,15 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
     else
     {
         m_sheetOffset = { 0.0f, 0.0f };
+    }
+
+    if (componentInfo.HasMember("StretchDrawMode"))
+    {
+        m_stretchDrawMode = static_cast<StretchDrawMode>(componentInfo["StretchDrawMode"].GetInt());
+    }
+    else
+    {
+        m_stretchDrawMode = StretchDrawMode::Stretch;
     }
 
     return true;

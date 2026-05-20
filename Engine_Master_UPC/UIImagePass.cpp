@@ -116,7 +116,7 @@ void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
     ID3D12DescriptorHeap* descriptorHeaps[] = {app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootDescriptorTable( 2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable( 2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -158,7 +158,8 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
         params.alpha = command.alpha;
         params.sheetColumns = float(std::max(1, command.sheetColumns));
         params.sheetRows = float(std::max(1, command.sheetRows));
-        params.sheetOffset = Vector4(command.sheetOffset.x, command.sheetOffset.y, 0.0f, 0.0f);
+        params.sheetOffset = Vector2(command.sheetOffset.x, command.sheetOffset.y);
+        params.uvScale = Vector2(command.uvScale.x, command.uvScale.y);
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
