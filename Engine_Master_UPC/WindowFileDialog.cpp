@@ -19,6 +19,9 @@
 #include "CommandImportAsset.h"
 #include "CommandPasteFile.h"
 #include "CommandSaveGameObjectAsPrefab.h"
+#include "CommandCreateDataContainer.h"
+
+#include "DataContainerFactory.h"
 
 #include <algorithm>
 #include <string>
@@ -375,6 +378,24 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
         if (ImGui::MenuItem("New Folder"))
         {
             CommandCreateFolder(m_currentDirectory).run();
+        }
+
+        const auto& dcRegistry = DataContainerFactory::getAllRegistered();
+        if (!dcRegistry.empty())
+        {
+            ImGui::Spacing();
+            if (ImGui::BeginMenu("New Data Asset"))
+            {
+                for (const auto& entry : dcRegistry)
+                {
+                    if (ImGui::MenuItem(entry.displayName.c_str()))
+                    {
+                        std::string assetName = entry.displayName + "_New";
+                        CommandCreateDataContainer(m_currentDirectory, entry.name, assetName, entry.extension).run();
+                    }
+                }
+                ImGui::EndMenu();
+            }
         }
 
         ImGui::Spacing();

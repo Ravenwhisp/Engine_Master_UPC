@@ -12,6 +12,31 @@
 #include <cstdio>
 #include <fstream>
 
+bool ImporterDataContainer::canImport(const std::filesystem::path& path) const
+{
+	const std::string ext = path.extension().string();
+	if (ext == DATA_CONTAINER_EXTENSION)
+	{
+		return true;
+	}
+
+	const auto& registry = DataContainerFactory::getAllRegistered();
+	for (const auto& entry : registry)
+	{
+		if (ext == entry.extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Asset* ImporterDataContainer::createAssetInstance(AssetReference& uid) const
+{
+	return new DataContainer(uid);
+}
+
 bool ImporterDataContainer::saveNative(const DataContainer* asset, const std::filesystem::path& path)
 {
 	rapidjson::StringBuffer buffer;

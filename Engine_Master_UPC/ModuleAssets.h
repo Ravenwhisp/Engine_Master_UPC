@@ -14,6 +14,7 @@
 #include <AssetReference.h>
 #include "FileIO.h"
 #include "Importer.h"
+#include <DataContainerCreator.h>
 
 
 class AssetScanner;

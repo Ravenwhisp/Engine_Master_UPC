@@ -24,6 +24,10 @@ public:
 	const rapidjson::Document& getData() const { return m_data; }
 	rapidjson::Document& getDataMutable() { return m_data; }
 
+	virtual const char* getTypeName() const { return "DataContainer"; }
+	virtual const char* getDisplayTypeName() const { return "Data Container"; }
+	virtual const char* getFileExtension() const { return ".datacontainer"; }
+
 protected:
 	rapidjson::Document m_data;
 };

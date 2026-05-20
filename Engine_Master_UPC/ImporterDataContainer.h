@@ -1,21 +1,16 @@
 #pragma once
 #include "ImporterNative.h"
 #include "DataContainer.h"
+#include "DataContainerFactory.h"
 #include "Extensions.h"
 
 class ImporterDataContainer
 	: public ImporterNative<DataContainer, AssetType::DATA_CONTAINER>
 {
 public:
-	bool canImport(const std::filesystem::path& path) const override
-	{
-		return path.extension().string() == DATA_CONTAINER_EXTENSION;
-	}
+	bool canImport(const std::filesystem::path& path) const override;
 
-	Asset* createAssetInstance(AssetReference& uid) const override
-	{
-		return new DataContainer(uid);
-	}
+	Asset* createAssetInstance(AssetReference& uid) const override;
 
 	bool saveNative(const DataContainer* asset, const std::filesystem::path& path);
 

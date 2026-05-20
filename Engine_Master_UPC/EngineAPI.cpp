@@ -14,6 +14,7 @@
 #include "Scene.h"
 #include "Keyboard.h"
 #include "ScriptFactory.h"
+#include "DataContainerFactory.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -42,6 +43,11 @@
 void registerScript(const char* scriptName, ScriptCreator creator)
 {
     ScriptFactory::registerScript(scriptName, creator);
+}
+
+void registerDataContainer(const char* name, const char* displayName, const char* extension, DataContainerCreator creator)
+{
+    DataContainerFactory::registerDataContainer(name, displayName, extension, creator);
 }
 
 namespace GameObjectAPI

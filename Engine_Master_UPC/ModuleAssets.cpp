@@ -15,6 +15,7 @@
 #include "ImporterFont.h"
 #include "ImporterScene.h"
 #include "ImporterDataContainer.h"
+#include "DataContainerFactory.h"
 #include "MD5.h"
 
 #include "AssetScanner.h"

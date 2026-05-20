@@ -7,6 +7,7 @@
 #endif
 
 #include "ScriptCreator.h"
+#include "DataContainerCreator.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
@@ -27,6 +28,7 @@ class Transform2D;
 struct HapticEffectDefinition;
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
+ENGINE_API void registerDataContainer(const char* name, const char* displayName, const char* extension, DataContainerCreator creator);
 
 namespace GameObjectAPI 
 {

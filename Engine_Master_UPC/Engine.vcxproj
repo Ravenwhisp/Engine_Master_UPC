@@ -301,8 +301,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="CommandCreateFolder.h" />
+    <ClInclude Include="CommandCreateDataContainer.h" />
     <ClInclude Include="CommandCutItem.h" />
     <ClInclude Include="DataContainer.h" />
+    <ClInclude Include="DataContainerCreator.h" />
+    <ClInclude Include="DataContainerRegistry.h" />
+    <ClInclude Include="DataContainerFactory.h" />
+    <ClInclude Include="DataContainerAutoRegister.h" />
+    <ClInclude Include="DataContainerAPI.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="DescriptorHeapBlock.h" />
     <ClInclude Include="DescriptorHandle.h" />
@@ -647,9 +653,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ComponentFactory.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />
     <ClCompile Include="CommandCreateFolder.cpp" />
+    <ClCompile Include="CommandCreateDataContainer.cpp" />
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
+    <ClCompile Include="DataContainerFactory.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="HapticEffectDefinition.cpp" />
     <ClCompile Include="HapticEffectLibrary.cpp" />
