@@ -549,13 +549,21 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
     m_tempDrawables.reserve(m_staticDrawers.size() + 128);
     m_tempDrawables.insert(m_tempDrawables.end(), m_staticDrawers.begin(), m_staticDrawers.end());
 
-    if (settings->sceneEditor.showQuadTree)
+    if (settings->sceneEditor.showStaticQuadTree)
     {
-        if (Quadtree* quadtree = moduleScene->getQuadtree())
+        if (Quadtree* staticQuadtree = moduleScene->getStaticQuadtree())
         {
-            m_tempDrawables.push_back(static_cast<IDebugDrawable*>(quadtree));
+            m_tempDrawables.push_back(static_cast<IDebugDrawable*>(staticQuadtree));
         }
     }
+
+    if(settings->sceneEditor.showDynamicQuadTree)
+    {
+        if (Quadtree* dynamicQuadtree = moduleScene->getDynamicQuadtree())
+        {
+            m_tempDrawables.push_back(static_cast<IDebugDrawable*>(dynamicQuadtree));
+        }
+	}
 
     if (settings->sceneEditor.showLightComponent)
     {

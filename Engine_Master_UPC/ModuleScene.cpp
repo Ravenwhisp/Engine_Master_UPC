@@ -24,7 +24,8 @@ ModuleScene::ModuleScene()
     m_sceneSerializer = std::make_unique<SceneSerializer>();
     AssetReference defaultSceneRef;
     m_scene = std::make_unique<Scene>(defaultSceneRef);
-    m_quadtree = std::make_unique<Quadtree>();
+    m_staticQuadtree = std::make_unique<Quadtree>();
+    m_dynamicQuadtree = std::make_unique<Quadtree>();
 }
 
 ModuleScene::~ModuleScene() = default;
@@ -44,7 +45,8 @@ void ModuleScene::requestSceneChange(std::shared_ptr<Scene> scene)
 bool ModuleScene::init()
 {
     m_scene->init();
-    m_quadtree->init(m_scene.get());
+    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
+    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
     
     return true;
 }
@@ -66,7 +68,8 @@ void ModuleScene::update()
     syncQuadtreeWithSettings();
   
     m_scene->update();
-    m_quadtree->update();
+    m_staticQuadtree->update();
+    m_dynamicQuadtree->update();
 }
 
 bool ModuleScene::cleanUp()
@@ -74,7 +77,8 @@ bool ModuleScene::cleanUp()
     clearComponentCaches();
 
     m_scene.reset();
-    m_quadtree.reset();
+    m_staticQuadtree.reset();
+    m_dynamicQuadtree.reset();
     m_sceneSerializer.reset();
 
     return true;
@@ -136,7 +140,16 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
     if (app->getSettings()->frustumCulling.debugFrustumCulling)
     {
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
-        for (GameObject* gO : app->getModuleScene()->getQuadtree()->query())
+        for (GameObject* gO : m_staticQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+
+        for (GameObject* gO : m_dynamicQuadtree->query())
         {
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
@@ -194,8 +207,10 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     m_scene->markDirty();
 
-    m_quadtree = std::make_unique<Quadtree>();
-    m_quadtree->init(m_scene.get());
+    m_staticQuadtree = std::make_unique<Quadtree>();
+    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
+    m_dynamicQuadtree = std::make_unique<Quadtree>();
+    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
 
     if (app->getModuleNavigation()->loadNavMeshForScene(sceneName.c_str()))
     {
@@ -209,7 +224,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    m_quadtree->build();
+    m_staticQuadtree->build();
+	m_dynamicQuadtree->build();
 #endif
 
     rebuildComponentCaches();
@@ -232,8 +248,10 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     m_scene->setName(sceneName);
     m_scene->markDirty();
 
-    m_quadtree = std::make_unique<Quadtree>();
-    m_quadtree->init(m_scene.get());
+    m_staticQuadtree = std::make_unique<Quadtree>();
+    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
+    m_dynamicQuadtree = std::make_unique<Quadtree>();
+    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
 
     if (app->getModuleNavigation()->loadNavMeshForScene(sceneName))
     {
@@ -247,7 +265,8 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    m_quadtree->build();
+    m_staticQuadtree->build();
+	m_dynamicQuadtree->build();
 #endif
 
     rebuildComponentCaches();
@@ -272,8 +291,10 @@ void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
     snapshot.applyTo(*m_scene.get());
     m_scene->markDirty();
 
-    m_quadtree = std::make_unique<Quadtree>();
-    m_quadtree->init(m_scene.get());
+    m_staticQuadtree = std::make_unique<Quadtree>();
+    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
+    m_dynamicQuadtree = std::make_unique<Quadtree>();
+    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
 
     rebuildComponentCaches();
 }
@@ -282,21 +303,57 @@ void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
 #pragma region Quadtree
 void ModuleScene::syncQuadtreeWithSettings()
 {
-    if (!m_quadtree)
+    if (!m_staticQuadtree || !m_dynamicQuadtree)
     {
         return;
     }
 
-    const bool shouldShowQuadtree = app->getSettings()->sceneEditor.showQuadTree;
+    const bool shouldShowStaticQuadtree = app->getSettings()->sceneEditor.showStaticQuadTree;
 
-    if (shouldShowQuadtree && !m_quadtree->getIsBuilded())
+    if(shouldShowStaticQuadtree)
     {
-        m_quadtree->build();
+        if (!m_staticQuadtree->getIsBuilded())
+        {
+            m_staticQuadtree->build(m_staticLayers);
+        }
     }
-    else if (!shouldShowQuadtree && m_quadtree->getIsBuilded())
+    else
     {
-        m_quadtree->clear();
+        if (m_staticQuadtree->getIsBuilded())
+        {
+            m_staticQuadtree->clear();
+        }
+	}
+
+	const bool shouldShowDynamicQuadtree = app->getSettings()->sceneEditor.showDynamicQuadTree;
+
+    if (shouldShowDynamicQuadtree)
+    {
+        if (!m_dynamicQuadtree->getIsBuilded())
+        {
+            m_dynamicQuadtree->build(m_dynamicLayers);
+        }
     }
+    else
+    {
+        if (m_dynamicQuadtree->getIsBuilded())
+        {
+            m_dynamicQuadtree->clear();
+        }
+    }
+}
+void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
+{
+	const Layer layer = gameObject.GetLayer();
+
+    if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    {
+        m_staticQuadtree->move(gameObject);
+    }
+	else if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    {
+        m_dynamicQuadtree->move(gameObject);
+	}
 }
 #pragma endregion
 
