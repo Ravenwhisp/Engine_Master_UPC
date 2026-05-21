@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Damageable.h"
-#include "HapticEffectDefinition.h"
 
 class PlayerAnimationController;
+class HeartbeatHaptic;
 
 class PlayerDamageable : public Damageable
 {
@@ -12,28 +12,20 @@ class PlayerDamageable : public Damageable
 public:
     explicit PlayerDamageable(GameObject* owner);
 
-    void Start()  override;
+    void Start() override;
     void Update() override;
 
     ScriptFieldList getExposedFields() const override;
 
-protected:
-    void onDamaged(float amount) override;
-    void onHpDepleted()          override;
-    void onDeath()               override;
-    void onRevive()              override;
-
-public:
     float m_heartbeatThreshold = 0.5f;
 
-    float m_hapticIntensity = 1.0f; 
+protected:
+    void onDamaged(float amount) override;
+    void onHpDepleted() override;
+    void onDeath() override;
+    void onRevive() override;
+
 private:
-    void fireLub();
-
     PlayerAnimationController* m_playerAnimationController = nullptr;
-
-    float m_dubTimer = -1.0f;  // counts down to firing the dub;  -1 = inactive
-    float m_lubTimer = -1.0f;  // counts down to firing next lub (diastole wait)
-    float m_dubScale = 0.0f;  // danger scale captured at lub-fire time
-    bool  m_dyingBeat = false;  // true when the current cycle is the final death beat
+    HeartbeatHaptic* m_haptic = nullptr;
 };

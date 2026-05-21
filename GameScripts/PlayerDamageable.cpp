@@ -1,86 +1,48 @@
 #include "pch.h"
 #include "PlayerDamageable.h"
+#include "HeartbeatHaptic.h"
 
 #include "PlayerDownState.h"
 #include "PlayerAnimationController.h"
+
+IMPLEMENT_SCRIPT_FIELDS(PlayerDamageable,
+    SERIALIZED_FLOAT(m_heartbeatThreshold, "Heartbeat Threshold", 0.5f, 0.25f, 0.0f)
+)
 
 PlayerDamageable::PlayerDamageable(GameObject* owner)
     : Damageable(owner)
 {
 }
 
-IMPLEMENT_SCRIPT_FIELDS(PlayerDamageable,
-    SERIALIZED_FLOAT(m_hapticIntensity, "Heartbeat Intensity", 100.0f, 0.0f, 0.01f),
-	SERIALIZED_FLOAT(m_heartbeatThreshold, "Heartbeat Threshold", 0.5f, 0.25f, 0.0f)
-)
-
 void PlayerDamageable::Start()
 {
     Damageable::Start();
 
     m_playerAnimationController = GameObjectAPI::findScript<PlayerAnimationController>(m_owner);
-
     if (m_playerAnimationController == nullptr)
-    {
         Debug::warn("%s has PlayerDamageable but no PlayerAnimationController.", GameObjectAPI::getName(m_owner));
-    }
 
-    HapticAPI::registerEffect(HapticEffectDefinition::makeHeartbeatLub(1.0f, HapticEffectDefinition::HeartbeatVariant::Health));
-    HapticAPI::registerEffect(HapticEffectDefinition::makeHeartbeatDub(1.0f, HapticEffectDefinition::HeartbeatVariant::Health));
+    m_haptic = GameObjectAPI::findScript<HeartbeatHaptic>(m_owner);
+    if (m_haptic != nullptr)
+        m_haptic->m_variant = HapticEffectDefinition::HeartbeatVariant::Health;
 }
 
 void PlayerDamageable::Update()
 {
-    const float dt = Time::getDeltaTime();
+    if (!m_haptic) return;
 
-    if (getHpPercent() >= m_heartbeatThreshold && !m_dyingBeat)
+    if (isDead())
+        return; // dying beat is self-terminating; don't interfere
+
+    if (getHpPercent() >= m_heartbeatThreshold)
     {
-        m_dubTimer = -1.0f;
-        m_lubTimer = -1.0f;
+        m_haptic->stop();
         return;
     }
 
-    if (m_dubTimer < 0.0f && m_lubTimer < 0.0f && !isDead())
-        fireLub();
-
-    if (m_dubTimer >= 0.0f)
-    {
-        m_dubTimer -= dt;
-        if (m_dubTimer < 0.0f)
-        {
-            HapticAPI::playAtScale("HeartbeatDub_Separation", m_dubScale * m_hapticIntensity, 0);
-
-            if (m_dyingBeat)
-            {
-                m_dyingBeat = false;
-                m_dubTimer = -1.0f;
-                m_lubTimer = -1.0f;
-                return;
-            }
-
-            const HeartbeatCycle cycle = HeartbeatCycle::fromHealth(getHpPercent());
-            m_lubTimer = cycle.diastoleSeconds;
-        }
-    }
-
-    if (m_lubTimer >= 0.0f)
-    {
-        m_lubTimer -= dt;
-        if (m_lubTimer < 0.0f)
-            fireLub();
-    }
-}
-
-void PlayerDamageable::fireLub()
-{
+    // danger is the inverse of HP, drives beat speed and intensity
     const float danger = 1.0f - getHpPercent();
-    const HeartbeatCycle cycle = HeartbeatCycle::fromHealth(getHpPercent());
-
-    HapticAPI::playAtScale("HeartbeatLub_Health", danger * m_hapticIntensity, 0);
-
-    m_dubScale = danger * m_hapticIntensity;
-    m_dubTimer = cycle.interBeatSeconds;
-    m_lubTimer = -1.0f;
+    m_haptic->tick(danger);
 }
 
 void PlayerDamageable::onDamaged(float amount)
@@ -88,9 +50,7 @@ void PlayerDamageable::onDamaged(float amount)
     Damageable::onDamaged(amount);
 
     if (m_playerAnimationController != nullptr)
-    {
         m_playerAnimationController->requestDamaged();
-    }
 }
 
 void PlayerDamageable::onHpDepleted()
@@ -102,9 +62,7 @@ void PlayerDamageable::onHpDepleted()
         downState->enterDownState();
 
         if (m_playerAnimationController != nullptr)
-        {
             m_playerAnimationController->setDowned(true);
-        }
 
         return;
     }
@@ -118,12 +76,13 @@ void PlayerDamageable::onDeath()
     Damageable::onDeath();
 
     if (m_playerAnimationController != nullptr)
-    {
         m_playerAnimationController->setDead(true);
-    }
 
-    m_dyingBeat = true;
-    fireLub();
+    if (m_haptic)
+    {
+        const float danger = 1.0f - getHpPercent();
+        m_haptic->playDyingBeat(danger);
+    }
 }
 
 void PlayerDamageable::onRevive()
@@ -136,10 +95,7 @@ void PlayerDamageable::onRevive()
         m_playerAnimationController->setDowned(false);
     }
 
-    m_dubTimer = -1.0f;
-    m_lubTimer = -1.0f;
-    m_dubScale = 0.0f;
-    m_dyingBeat = false;
+    if (m_haptic) m_haptic->stop();
 }
 
 IMPLEMENT_SCRIPT(PlayerDamageable)

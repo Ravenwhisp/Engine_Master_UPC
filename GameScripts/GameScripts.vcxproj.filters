@@ -192,6 +192,12 @@
     <ClInclude Include="UIPause.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="HeartbeatTester.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="HeartbeatHaptic.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -381,6 +387,12 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="UIPause.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="HeartbeatTester.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="HeartbeatHaptic.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
