@@ -794,10 +794,22 @@ namespace SceneAPI
 		return result;
     }
 
-    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive)
+    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive, QuadtreeTarget target)
     {
-        //cambiar nombre de la funcion a getDynamicObjects?
-		std::vector<GameObject*> candidates = app->getModuleScene()->getDynamicQuadtree()->queryInArea(center, radius);
+        std::vector<GameObject*> candidates;
+
+		auto* sceneModule = app->getModuleScene();
+
+        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Static)) != 0)
+        {
+            auto staticResult = sceneModule->getStaticQuadtree()->queryInArea(center, radius);
+            candidates.insert(candidates.end(), staticResult.begin(), staticResult.end());
+        }
+        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Dynamic)) != 0)
+        {
+            auto dynamicResult = sceneModule->getDynamicQuadtree()->queryInArea(center, radius);
+            candidates.insert(candidates.end(), dynamicResult.begin(), dynamicResult.end());
+        }
 
         std::vector<GameObject*> result;
         for (GameObject* candidate : candidates)
