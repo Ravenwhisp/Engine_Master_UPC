@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <cctype>
 #include <array>
+#include <PrefabSerializer.h>
 
 static const DXGI_FORMAT INDEX_FORMATS[3] = { DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R32_UINT };
 

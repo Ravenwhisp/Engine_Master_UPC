@@ -9,7 +9,6 @@ class GameObject;
 class UIImagePass;
 class Texture;
 class Transform2D;
-struct AssetReference;
 
 class ModuleUI : public Module
 {

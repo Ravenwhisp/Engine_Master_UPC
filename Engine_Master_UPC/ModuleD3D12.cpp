@@ -5,6 +5,8 @@
 #include "ModuleCamera.h"
 #include "ModuleDescriptors.h"
 #include "ModuleEditor.h"
+#include "CommandQueue.h"
+#include "SwapChain.h"
 #include "Transform.h"
 #include <d3dcompiler.h>
 #include "RingBuffer.h"

@@ -11,6 +11,7 @@
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
 
+
 MeshRenderer::~MeshRenderer() = default;
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const

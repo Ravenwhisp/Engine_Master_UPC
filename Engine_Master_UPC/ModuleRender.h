@@ -20,8 +20,6 @@ class RenderSurface;
 class SkyBoxPass;
 class MeshRendererPass;
 
-struct ViewportEntry;
-struct SkyBoxSettings;
 class DebugDrawPass;
 
 namespace DirectX { namespace SimpleMath { struct Matrix; struct Vector3; } }

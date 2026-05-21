@@ -1,6 +1,6 @@
 #pragma once
 #include "BoundingVolume.h"
-#include "Frustum.h"
+#include "SimpleMath.h"
 
 namespace Engine
 {

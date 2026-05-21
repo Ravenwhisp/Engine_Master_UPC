@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ModuleResources.h"
+#include "ModuleDescriptors.h"
 #include "ModuleD3D12.h"
 #include "Application.h"
 #include "CommandQueue.h"

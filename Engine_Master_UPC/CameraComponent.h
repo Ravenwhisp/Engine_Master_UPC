@@ -1,5 +1,4 @@
 #pragma once
-#include "Globals.h"
 #include "Component.h"
 #include "Frustum.h"
 #include "IDebugDrawable.h"

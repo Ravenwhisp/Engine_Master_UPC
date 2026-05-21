@@ -27,6 +27,8 @@ class MeshRenderer : public Component
 public:
 	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
 	~MeshRenderer() override;
+	MeshRenderer(MeshRenderer&&) noexcept;
+	MeshRenderer& operator=(MeshRenderer&&) noexcept;
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 

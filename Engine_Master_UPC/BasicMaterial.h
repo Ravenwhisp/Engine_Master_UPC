@@ -5,9 +5,9 @@
 #include <memory>
 #include <wrl/client.h>
 #include <d3d12.h>
-#include "DescriptorHeapBlock.h"
-
 #include "SimpleMath.h"
+
+class DescriptorHeapBlock;
 
 class Texture;
 class MaterialAsset;

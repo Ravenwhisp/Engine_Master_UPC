@@ -10,7 +10,6 @@ class ModuleEditor;
 class ModuleResources;
 class ModuleCamera;
 class ModuleInput;
-class ShaderModuleDescriptors;
 class ModuleDescriptors;
 class ModuleTime;
 class ModuleUI;

@@ -6,7 +6,7 @@
 #include <string>
 
 class AnimationStateMachineAsset;
-class AssetReference;
+struct AssetReference;
 
 namespace ax
 {

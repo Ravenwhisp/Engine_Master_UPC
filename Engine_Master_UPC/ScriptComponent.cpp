@@ -4,6 +4,10 @@
 #include "ScriptFactory.h"
 #include "SceneReferenceResolver.h"
 
+ScriptComponent::~ScriptComponent()
+{
+}
+
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
 {

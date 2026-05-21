@@ -10,6 +10,8 @@
 
 #include "SkyBoxSettings.h"
 #include "SkyBox.h"
+
+SkyBoxPass::~SkyBoxPass() = default;
 #include "SkyboxParams.h"
 #include "Texture.h"
 #include "TextureAsset.h"

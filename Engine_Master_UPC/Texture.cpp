@@ -111,7 +111,7 @@ DescriptorHandle Texture::getUAV(uint32_t mip) const
 DescriptorHandle Texture::getContiguousRTV(uint32_t index) const
 {
     //Put Assert Here.
-    return m_contiguousRTV->getHandle(index);
+    return m_contiguousRTV.getHandle(index);
 }
 
 
@@ -257,7 +257,10 @@ void Texture::createRTV()
         rtvDesc.Texture2DArray.ArraySize = 1;
         rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-        m_contiguousRTV = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize * m_mipCount);
+        if (DescriptorHeapBlock* block = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocateBlock(m_desc.arraySize * m_mipCount))
+        {
+            m_contiguousRTV = *block;
+        }
 
         for (size_t mip = 0; mip < m_mipCount; mip++)
         {
@@ -267,7 +270,7 @@ void Texture::createRTV()
             {
                 rtvDesc.Texture2DArray.FirstArraySlice = i;
 
-                m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_contiguousRTV->getCPUHandle(mip * m_desc.arraySize + i));
+                m_device.CreateRenderTargetView(m_Resource.Get(), &rtvDesc, m_contiguousRTV.getCPUHandle(mip * m_desc.arraySize + i));
             }
         }
 
@@ -343,10 +346,10 @@ void Texture::releaseViews()
 
     if (hasRTV())
     {
-        if (m_contiguousRTV)
+        if (m_contiguousRTV.isValid())
         {
-            descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).freeBlock(m_contiguousRTV);
-            m_contiguousRTV = nullptr;
+            descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).freeBlock(&m_contiguousRTV);
+            m_contiguousRTV = {};
         }
 
         for (uint32_t mip = 0; mip < m_mipCount; ++mip)

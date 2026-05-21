@@ -5,10 +5,8 @@
 #include <dxgi1_6.h>
 #include <cstdint>
 #include <chrono>
-#include "DebugDrawPass.h"
-#include "CommandQueue.h"
-#include "ModuleDescriptors.h"
-#include "SwapChain.h"
+class CommandQueue;
+class SwapChain;
 #include <GraphicsMemory.h>
 
 class ModuleD3D12 : public Module

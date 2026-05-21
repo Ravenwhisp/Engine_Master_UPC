@@ -6,6 +6,7 @@
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
 #include "ModuleD3D12.h"
+#include "CommandQueue.h"
 
 #include "GameObject.h"
 #include "Component.h"

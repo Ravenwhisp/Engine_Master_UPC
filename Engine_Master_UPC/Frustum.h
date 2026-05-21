@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BoundingBox.h"
+#include "SimpleMath.h"
 
 namespace Engine
 {

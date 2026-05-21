@@ -11,6 +11,7 @@ class ScriptComponent : public Component
 {
 public:
     ScriptComponent(UID id, GameObject* owner);
+    ~ScriptComponent();
 
     void setScript(std::unique_ptr<Script> script);
     Script* getScript() const;

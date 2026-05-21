@@ -8,6 +8,7 @@
 
 #include "Application.h"
 #include "ModuleD3D12.h"
+#include "SwapChain.h"
 
 #include <shellapi.h>
 

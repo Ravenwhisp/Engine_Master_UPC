@@ -103,11 +103,7 @@ void SwapChain::resize()
         // Release the render targets
         for (UINT n = 0; n < FRAMES_IN_FLIGHT; n++)
         {
-            if (m_backBufferTextures[n])
-            {
-                app->getModuleResources()->deferResourceRelease(m_backBufferTextures[n]->getD3D12Resource());
-                m_backBufferTextures[n].reset();
-            }
+            m_backBufferTextures[n]->release();
         }
 
         // Resize the swap chain

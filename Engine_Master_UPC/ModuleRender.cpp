@@ -15,6 +15,7 @@
 #include "RingBuffer.h"
 #include "RenderSurface.h"
 #include "Texture.h"
+#include "SwapChain.h"
 
 #include "Scene.h"
 #include "GameObject.h"

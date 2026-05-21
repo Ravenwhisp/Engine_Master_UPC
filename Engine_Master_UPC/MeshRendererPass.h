@@ -9,7 +9,6 @@
 
 using Microsoft::WRL::ComPtr;
 
-struct Submesh;
 class RingBuffer;
 class MeshRenderer;
 class GameObject;

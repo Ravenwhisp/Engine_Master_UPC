@@ -112,7 +112,7 @@ private:
     DescriptorHandle    m_dsv{};
     DescriptorHandle    m_uav[MAX_MIPS]{};
 
-    DescriptorHeapBlock* m_contiguousRTV;
+    DescriptorHeapBlock m_contiguousRTV;
 };
 
 

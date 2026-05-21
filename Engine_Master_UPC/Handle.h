@@ -1,5 +1,5 @@
 #pragma once
-#include "Globals.h"
+#include <windef.h>
 
 struct Handle {
 	UINT index : 24;

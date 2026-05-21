@@ -8,8 +8,6 @@ class GameObject;
 
 class SceneReferenceResolver;
 
-class IDebugDrawable;
-
 class Component: public IDebugDrawable {
 public:
     friend class GameObject;

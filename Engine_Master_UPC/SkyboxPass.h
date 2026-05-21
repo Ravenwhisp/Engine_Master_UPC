@@ -19,6 +19,7 @@ using Matrix = DirectX::SimpleMath::Matrix;
 class SkyBoxPass : public IRenderPass {
 public:
     SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings);
+    ~SkyBoxPass() override;
 
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;

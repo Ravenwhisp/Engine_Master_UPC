@@ -13,7 +13,6 @@
 #include <rapidjson/document.h>
 
 class Component;
-class ModelComponent;
 class Transform;
 class SceneSnapshot;
 
