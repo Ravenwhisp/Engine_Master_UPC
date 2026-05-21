@@ -505,6 +505,12 @@
     <ClCompile Include="MusicPlaybackTracker.cpp">
       <Filter>MusicSystem</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentSoundListener.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSoundSource.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1195,6 +1201,12 @@
     </ClInclude>
     <ClInclude Include="MusicPlaybackTracker.h">
       <Filter>MusicSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentSoundListener.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentSoundSource.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

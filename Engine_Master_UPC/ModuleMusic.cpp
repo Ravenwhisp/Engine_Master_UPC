@@ -125,7 +125,7 @@ bool ModuleMusic::loadBanksFromFolder()
 }
 
 #pragma region API
-void ModuleMusic::postGLobalEvent(const char* bankName, const char* eventName)
+uint32_t ModuleMusic::postGlobalEvent(const char* bankName, const char* eventName)
 {
 	for (const WwiseBank& bank : m_banks)
 	{
@@ -141,12 +141,17 @@ void ModuleMusic::postGLobalEvent(const char* bankName, const char* eventName)
 				continue;
 			}
 
-			const AkPlayingID playingID = AK::SoundEngine::PostEvent(event.id, m_wwiseManager.getGlobalGameObject(), AK_EndOfEvent, MusicPlaybackTracker::getCallbackFunction(), &m_playbackTracker);
+			const AkGameObjectID globalGameObject = m_wwiseManager.getGlobalGameObject();
+			const AkGameObjectID globalListener = m_wwiseManager.getGlobalListenerGameObject();
+
+			m_wwiseManager.setListeners(globalGameObject, &globalListener, 1);
+
+			const AkPlayingID playingID = AK::SoundEngine::PostEvent(event.id, globalGameObject, AK_EndOfEvent, MusicPlaybackTracker::getCallbackFunction(), &m_playbackTracker);
 
 			if (playingID == AK_INVALID_PLAYING_ID)
 			{
-				DEBUG_ERROR("[Module Music] Failed posting event: %s", eventName);
-				return;
+				DEBUG_ERROR("[Module Music] Failed posting global event: %s", eventName);
+				return 0;
 			}
 
 			PlayingSound playingSound;
@@ -155,11 +160,64 @@ void ModuleMusic::postGLobalEvent(const char* bankName, const char* eventName)
 			playingSound.playingID = static_cast<uint32_t>(playingID);
 
 			m_playbackTracker.queuePlayingSoundToAdd(playingSound);
-			return;
+
+			return static_cast<uint32_t>(playingID);
+		}
+	}
+
+	DEBUG_ERROR("[Module Music] Global event not found in any bank: %s", eventName);
+	return 0;
+}
+
+uint32_t ModuleMusic::postEvent(const char* bankName, const char* eventName, uint64_t emitterID)
+{
+	for (const WwiseBank& bank : m_banks)
+	{
+		if (bank.getName() != bankName)
+		{
+			continue;
+		}
+
+		for (const WwiseEvent& event : bank.getEvents())
+		{
+			if (event.name != eventName)
+			{
+				continue;
+			}
+
+			const std::vector<AkGameObjectID>& listeners = m_wwiseManager.getListeners();
+
+			if (listeners.empty())
+			{
+				DEBUG_ERROR("[Module Music] Cannot post event without scene listeners: %s", eventName);
+				return 0;
+			}
+
+			const AkGameObjectID wwiseEmitterID = static_cast<AkGameObjectID>(emitterID);
+
+			m_wwiseManager.setListeners(wwiseEmitterID, listeners.data(), static_cast<AkUInt32>(listeners.size()));
+
+			const AkPlayingID playingID = AK::SoundEngine::PostEvent(event.id, wwiseEmitterID, AK_EndOfEvent, MusicPlaybackTracker::getCallbackFunction(), &m_playbackTracker);
+
+			if (playingID == AK_INVALID_PLAYING_ID)
+			{
+				DEBUG_ERROR("[Module Music] Failed posting event: %s", eventName);
+				return 0;
+			}
+
+			PlayingSound playingSound;
+			playingSound.bankName = bankName;
+			playingSound.eventName = eventName;
+			playingSound.playingID = static_cast<uint32_t>(playingID);
+
+			m_playbackTracker.queuePlayingSoundToAdd(playingSound);
+
+			return static_cast<uint32_t>(playingID);
 		}
 	}
 
 	DEBUG_ERROR("[Module Music] Event not found in any bank: %s", eventName);
+	return 0;
 }
 
 void ModuleMusic::stopEvent(uint32_t playingID)
@@ -182,6 +240,38 @@ void ModuleMusic::resumeEvent(uint32_t playingID)
 
 	m_playbackTracker.setState(playingID, PlayingSoundState::Playing);
 }
+
+bool ModuleMusic::registerAudioGameObject(uint64_t gameObjectID, const char* name)
+{
+	return m_wwiseManager.registerGameObject(gameObjectID, name);
+}
+
+void ModuleMusic::unregisterAudioGameObject(uint64_t gameObjectID)
+{
+	m_wwiseManager.unregisterGameObject(gameObjectID);
+}
+
+bool ModuleMusic::registerListener(uint64_t id, const char* name)
+{
+	return m_wwiseManager.registerListener(id, name);
+}
+
+void ModuleMusic::unregisterListener(uint64_t id)
+{
+	m_wwiseManager.unregisterListener(id);
+}
+
+void ModuleMusic::setAudioGameObjectTransform(uint64_t gameObjectID, const Vector3& position, const Vector3& forward, const Vector3& up)
+{
+	AkTransform akTransform;
+
+	akTransform.SetPosition(position.x, position.y, position.z);
+
+	akTransform.SetOrientation(forward.x, forward.y, forward.z, up.x, up.y, up.z);
+
+	m_wwiseManager.setGameObjectTransform(static_cast<AkGameObjectID>(gameObjectID), akTransform);
+}
+
 #pragma endregion
 
 

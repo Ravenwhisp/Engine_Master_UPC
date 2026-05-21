@@ -301,6 +301,8 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClInclude Include="ChangeScene.h" />
     <ClInclude Include="Channel.h" />
     <ClInclude Include="ComponentFactory.h" />
+    <ClInclude Include="ComponentSoundListener.h" />
+    <ClInclude Include="ComponentSoundSource.h" />
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="CommandCreateFolder.h" />
     <ClInclude Include="CommandCutItem.h" />
@@ -678,6 +680,8 @@ CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDepende
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeScene.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentSoundListener.cpp" />
+    <ClCompile Include="ComponentSoundSource.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />

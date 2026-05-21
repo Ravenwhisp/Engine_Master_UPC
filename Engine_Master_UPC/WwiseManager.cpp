@@ -8,6 +8,8 @@
 
 #include <AkDefaultIOHookDeferred.h>
 
+#include <algorithm>
+
 WwiseManager::WwiseManager()
 {
 	m_lowLevelIO = new CAkDefaultIOHookDeferred();
@@ -74,65 +76,95 @@ void WwiseManager::cleanUp()
 	}
 }
 
-bool WwiseManager::isInitialized() const
-{
-	return m_soundEngineCreated;
-}
-
 AkGameObjectID WwiseManager::getGlobalGameObject() const
 {
 	return GLOBAL_GAME_OBJECT;
 }
 
-AkGameObjectID WwiseManager::getDefaultListenerGameObject() const
+AkGameObjectID WwiseManager::getGlobalListenerGameObject() const
 {
-	return DEFAULT_LISTENER_GAME_OBJECT;
+	return GLOBAL_LISTENER_GAME_OBJECT;
 }
 
-bool WwiseManager::registerGameObject(AkGameObjectID gameObjectID, const char* name)
+bool WwiseManager::registerGameObject(AkGameObjectID id, const char* name)
 {
 	if (!m_soundEngineCreated)
 	{
 		return false;
 	}
 
-	if (AK::SoundEngine::RegisterGameObj(gameObjectID, name) != AK_Success)
+	if (AK::SoundEngine::RegisterGameObj(id, name) != AK_Success)
 	{
-		DEBUG_ERROR("[Wwise Manager] Failed registering GameObject: %llu", gameObjectID);
+		DEBUG_ERROR("[Wwise Manager] Failed registering GameObject: %llu", id);
 		return false;
 	}
 
 	return true;
 }
 
-void WwiseManager::unregisterGameObject(AkGameObjectID gameObjectID)
+void WwiseManager::unregisterGameObject(AkGameObjectID id)
 {
 	if (!m_soundEngineCreated)
 	{
 		return;
 	}
 
-	AK::SoundEngine::UnregisterGameObj(gameObjectID);
+	AK::SoundEngine::UnregisterGameObj(id);
 }
 
-void WwiseManager::setDefaultListener(AkGameObjectID listenerGameObjectID)
+bool WwiseManager::registerListener(AkGameObjectID id, const char* name)
 {
-	if (!m_soundEngineCreated)
+	if (!registerGameObject(id, name))
 	{
-		return;
+		return false;
 	}
 
-	AK::SoundEngine::SetDefaultListeners(&listenerGameObjectID, 1);
+	if (std::find(m_sceneListeners.begin(), m_sceneListeners.end(), id) == m_sceneListeners.end())
+	{
+		m_sceneListeners.push_back(id);
+	}
+
+	return true;
 }
 
-void WwiseManager::setListeners(AkGameObjectID emitterGameObjectID, const AkGameObjectID* listenerGameObjectIDs, AkUInt32 listenerCount)
+void WwiseManager::unregisterListener(AkGameObjectID id)
+{
+	m_sceneListeners.erase(
+		std::remove(m_sceneListeners.begin(), m_sceneListeners.end(), id),
+		m_sceneListeners.end()
+	);
+
+	unregisterGameObject(id);
+}
+
+void WwiseManager::setGameObjectTransform(AkGameObjectID gameObjectID, const AkTransform& transform)
 {
 	if (!m_soundEngineCreated)
 	{
 		return;
 	}
 
-	AK::SoundEngine::SetListeners(emitterGameObjectID, listenerGameObjectIDs, listenerCount);
+	AK::SoundEngine::SetPosition(gameObjectID, transform);
+}
+
+const std::vector<AkGameObjectID>& WwiseManager::getListeners() const
+{
+	return m_sceneListeners;
+}
+
+void WwiseManager::setListeners(AkGameObjectID emitterID, const AkGameObjectID* listenerIDs, AkUInt32 listenerCount)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	if (listenerIDs == nullptr || listenerCount == 0)
+	{
+		return;
+	}
+
+	AK::SoundEngine::SetListeners(emitterID, listenerIDs, listenerCount);
 }
 
 bool WwiseManager::initMemory()
@@ -222,25 +254,26 @@ bool WwiseManager::registerDefaultGameObjects()
 
 	m_globalGameObjectRegistered = true;
 
-	if (!registerGameObject(DEFAULT_LISTENER_GAME_OBJECT, "Default Listener"))
+	if (!registerGameObject(GLOBAL_LISTENER_GAME_OBJECT, "Global Listener"))
 	{
 		return false;
 	}
 
-	m_defaultListenerGameObjectRegistered = true;
+	m_globalListenerGameObjectRegistered = true;
 
-	setDefaultListener(DEFAULT_LISTENER_GAME_OBJECT);
-	setListeners(GLOBAL_GAME_OBJECT, &DEFAULT_LISTENER_GAME_OBJECT, 1);
+	setListeners(GLOBAL_GAME_OBJECT, &GLOBAL_LISTENER_GAME_OBJECT, 1);
 
 	return true;
 }
 
 void WwiseManager::unregisterDefaultGameObjects()
 {
-	if (m_defaultListenerGameObjectRegistered)
+	m_sceneListeners.clear();
+
+	if (m_globalListenerGameObjectRegistered)
 	{
-		unregisterGameObject(DEFAULT_LISTENER_GAME_OBJECT);
-		m_defaultListenerGameObjectRegistered = false;
+		unregisterGameObject(GLOBAL_LISTENER_GAME_OBJECT);
+		m_globalListenerGameObjectRegistered = false;
 	}
 
 	if (m_globalGameObjectRegistered)
