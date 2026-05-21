@@ -2,6 +2,17 @@
 #include "UIText.h"
 #include <imgui.h>
 
+std::wstring UIText::stringToWString(const std::string& string)
+{
+    if (string.empty()) return L"";
+    int len = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.size(), nullptr, 0);
+    if (len <= 0) return L"";
+    std::wstring wstring;
+    wstring.resize(len);
+    MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.size(), wstring.data(), len);
+    return wstring;
+}
+
 UIText::UIText(UID id, GameObject* owner)
     : Component(id, ComponentType::UITEXT, owner)
 {

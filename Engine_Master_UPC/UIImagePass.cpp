@@ -104,8 +104,10 @@ void UIImagePass::prepare(const RenderContext& ctx)
     m_view = &ctx.view;
     m_projection = &ctx.projection;
 
-    m_sortedCommands = *m_commands;
-    std::stable_sort(m_sortedCommands.begin(), m_sortedCommands.end(), compareUI);
+    if (m_commands && m_commands->size() > 1)
+    {
+        std::stable_sort(m_commands->begin(), m_commands->end(), compareUI);
+    }
 }
 
 void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -128,7 +130,8 @@ void UIImagePass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
-    for (const auto& command : m_sortedCommands)
+    if (!m_commands) return;
+    for (const auto& command : *m_commands)
     {
         if (!command.texture)
             continue;

@@ -271,7 +271,16 @@ void Scene::releasePendingDestroyedGameObjects()
         }
         else
         {
-            ++it;
+            ++it->framesSinceDestroy;
+            if (it->framesSinceDestroy > MAX_PENDING_DESTROY_FRAMES)
+            {
+                it->gameObject->cleanUp();
+                it = m_pendingDestroyedObjects.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
         }
     }
 }

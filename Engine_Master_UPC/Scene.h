@@ -53,7 +53,10 @@ private:
     {
         std::unique_ptr<GameObject> gameObject;
         uint64_t fenceValue = 0;
+        uint32_t framesSinceDestroy = 0;
     };
+
+    static constexpr uint32_t MAX_PENDING_DESTROY_FRAMES = 120;
 
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();

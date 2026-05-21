@@ -33,6 +33,7 @@ private:
     std::shared_ptr<Scene> m_pendingScene;
 
     std::vector<MeshRenderer*>       m_meshRenderers;
+    std::vector<MeshRenderer*>       m_visibleMeshRenderers;
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
 
@@ -79,7 +80,7 @@ public:
 
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
     const std::vector<MeshRenderer*>& getMeshRenderers();
-    const std::vector<MeshRenderer*> getVisibleMeshRenderers();
+    const std::vector<MeshRenderer*>& getVisibleMeshRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
 };

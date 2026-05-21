@@ -50,7 +50,7 @@ public:
     Texture() = delete;
     explicit Texture(UID uid, ID3D12Device4& device, const TextureDesc& desc);
     explicit Texture(UID uid, ID3D12Device4& device, ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
-    ~Texture();
+    virtual ~Texture();
 
     Texture(const Texture&) = delete;
     Texture& operator=(const Texture&) = delete;

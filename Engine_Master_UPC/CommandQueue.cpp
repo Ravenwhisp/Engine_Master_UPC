@@ -96,9 +96,13 @@ uint64_t CommandQueue::executeCommandList(ComPtr<GraphicsCommandList> commandLis
 {
     commandList->Close();
 
-    ID3D12CommandAllocator* commandAllocator;
+    ID3D12CommandAllocator* commandAllocator = nullptr;
     UINT dataSize = sizeof(commandAllocator);
-    DXCall(commandList->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator));
+    HRESULT hr = commandList->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator);
+    if (FAILED(hr) || !commandAllocator)
+    {
+        return 0;
+    }
 
     ID3D12CommandList* const ppCommandLists[] = {
         commandList.Get()

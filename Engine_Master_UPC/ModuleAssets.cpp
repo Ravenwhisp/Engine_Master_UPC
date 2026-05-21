@@ -61,6 +61,8 @@ ModuleAssets::~ModuleAssets() = default;
 
 bool ModuleAssets::init()
 {
+    if (!m_importers.empty()) return true;
+
     m_importers.push_back(m_importerTexture = new ImporterTexture());
     m_importers.push_back(m_importerMesh = new ImporterMesh());
     m_importers.push_back(m_importerMaterial = new ImporterMaterial());

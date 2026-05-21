@@ -18,7 +18,7 @@ public:
     bool cleanUp() override;
 
     const std::vector<UITextCommand>& getTextCommands()  const { return m_textCommands; }
-    const std::vector<UIImageCommand>& getImageCommands() const { return m_imageCommands; }
+    std::vector<UIImageCommand>& getImageCommands() { return m_imageCommands; }
 
     void text(const wchar_t* msg, float x, float y);
     void text(const std::wstring& msg, float x, float y);

@@ -106,22 +106,7 @@ bool ModuleUI::cleanUp()
     return true;
 }
 
-static std::wstring stringToWString(const std::string& string)
-{
-    if (string.empty())
-    {
-        return L"";
-    }
-    int len = MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.size(), nullptr, 0);
-    if (len <= 0)
-    {
-        return L"";
-    }
-    std::wstring wstring;
-    wstring.resize(len);
-    MultiByteToWideChar(CP_UTF8, 0, string.c_str(), (int)string.size(), wstring.data(), len);
-    return wstring;
-}
+
 
 void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest,
     const Vector2& inheritedScale, float parentAlpha)
@@ -225,7 +210,7 @@ void ModuleUI::buildUIText(GameObject* gameObject, const Rect2D& myRect)
     }
 
     UITextCommand command;
-    command.text = stringToWString(uiText->getText());
+    command.text = uiText->getWideText();
     command.x = myRect.x;
     command.y = myRect.y;
     command.color = uiText->getColor();

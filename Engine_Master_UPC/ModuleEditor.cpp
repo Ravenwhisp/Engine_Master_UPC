@@ -231,6 +231,7 @@ bool ModuleEditor::cleanUp()
     }
 
     m_editorWindows.clear();
+    m_windowFactories.clear();
 
     return true;
 }
@@ -312,7 +313,7 @@ void ModuleEditor::mainMenuBar()
 
     if (ImGui::BeginMenu("Window"))
     {
-        // ---- New Window submenu — spawn additional instances ----
+        // ---- New Window submenu ï¿½ spawn additional instances ----
         if (!m_windowFactories.empty())
         {
             ImGui::Separator();

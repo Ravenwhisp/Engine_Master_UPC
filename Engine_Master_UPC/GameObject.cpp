@@ -44,7 +44,7 @@ GameObject::~GameObject()
 
 std::unique_ptr<GameObject> GameObject::clone() const
 {
-    auto newGameObject = std::make_unique<GameObject>(m_uuid);
+    auto newGameObject = std::make_unique<GameObject>(m_uuid, m_transform->getID());
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());

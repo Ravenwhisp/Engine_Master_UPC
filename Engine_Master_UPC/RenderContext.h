@@ -20,7 +20,7 @@ struct RenderContext
     RenderViewType viewType = RenderViewType::Game;
 
     const std::vector<UITextCommand>* uiTextCommands = nullptr;
-    const std::vector<UIImageCommand>* uiImageCommands = nullptr;
+    std::vector<UIImageCommand>* uiImageCommands = nullptr;
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
 

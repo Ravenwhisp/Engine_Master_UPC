@@ -131,20 +131,20 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
     return m_meshRenderers;
 }
 
-const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
+const std::vector<MeshRenderer*>& ModuleScene::getVisibleMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.debugFrustumCulling)
     {
-        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        m_visibleMeshRenderers.clear();
         for (GameObject* gO : app->getModuleScene()->getQuadtree()->query())
         {
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
-                visibleMeshRenderers.push_back(renderer);
+                m_visibleMeshRenderers.push_back(renderer);
             }
         }
-        return visibleMeshRenderers;
+        return m_visibleMeshRenderers;
     }
     return app->getModuleScene()->getMeshRenderers();
 }

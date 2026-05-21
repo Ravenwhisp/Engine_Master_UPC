@@ -9,7 +9,6 @@
 #include "Transform2D.h"
 
 #include <imgui.h>
-#include <format>
 #include <cstring>
 
 #include "Application.h"
@@ -356,12 +355,12 @@ void UIButton::drawUi()
 
 void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>& bindings)
 {
-	std::string headerLabel = std::format("{} Events", label);
+	std::string headerLabel = std::string(label) + " Events";
 	if (!ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		return;
 	}
-	std::string addLabel = std::format("Add {}###Add{}", label, label);
+	std::string addLabel = "Add " + std::string(label) + "###Add" + std::string(label);
 	if (ImGui::Button(addLabel.c_str()))
 	{
 		bindings.emplace_back();
@@ -427,7 +426,7 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 			if (binding.targetGameObject)
 			{
 				const char* preview = binding.methodName.empty() ? "Select Method" : binding.methodName.c_str();
-				std::string comboLabel = std::format("Method###Method{}_{}", label, i);
+				std::string comboLabel = "Method###Method" + std::string(label) + "_" + std::to_string(i);
 				if (ImGui::BeginCombo(comboLabel.c_str(), preview))
 				{
 					if (ImGui::BeginMenu("GameObject"))
@@ -534,7 +533,7 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.75f, 0.2f, 0.2f, 1.0f));
 			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.85f, 0.25f, 0.25f, 1.0f));
 			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
-			std::string removeLabel = std::format("X###Remove{}_{}", label, i);
+			std::string removeLabel = "X###Remove" + std::string(label) + "_" + std::to_string(i);
 			if (ImGui::SmallButton(removeLabel.c_str()))
 			{
 				bindings.erase(bindings.begin() + i);

@@ -68,13 +68,19 @@ bool ModuleD3D12::cleanUp()
     // 5. Reset command list
     m_commandList.Reset();
 
-    // 7. Reset command queue
+    // 6. Reset graphics memory
+    m_graphicsMemory.reset();
+
+    // 7. Reset adapter
+    m_adapter.Reset();
+
+    // 8. Reset command queue
     m_commandQueue.reset();
 
-    // 8. Reset device
+    // 9. Reset device
     m_device.Reset();
 
-    // 9. Reset DXGI factory
+    // 10. Reset DXGI factory
     m_dxgiFactory.Reset();
 
     return true;
