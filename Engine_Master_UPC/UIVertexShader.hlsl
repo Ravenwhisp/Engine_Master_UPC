@@ -3,11 +3,10 @@ cbuffer UIParams : register(b0)
     float4x4 mvp;
     float4 fillData;
     float alpha;
-    float sheetColumns;
-    float sheetRows;
     float flipY;
     float2 sheetOffset;
     float2 uvScale;
+    float2 padding;
 };
 
 struct VSOut
@@ -25,7 +24,6 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, float4 color 
     output.fillUV = texCoord;
         
     float2 scaledUv = (texCoord - 0.5f) * uvScale + 0.5f + floor(uvScale);
-    float2 tile = float2(max(sheetColumns, 1.0f), max(sheetRows, 1.0f));
     if (flipY > 0.5f)
     {
         scaledUv.y = 1.0f - scaledUv.y;
@@ -34,7 +32,7 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, float4 color 
     {
         scaledUv.x = 1.0f - scaledUv.x;
     }
-    output.texCoord = scaledUv / tile + sheetOffset;
+    output.texCoord = scaledUv + sheetOffset;
     output.fillData = fillData;
     output.alpha = alpha;
     output.position = mul(float4(position, 0.0f, 1.0f), mvp);

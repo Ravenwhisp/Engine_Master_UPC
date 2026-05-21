@@ -164,8 +164,6 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
             aspectRatio);
 
         params.alpha = command.alpha;
-        params.sheetColumns = float(std::max(1, command.sheetColumns));
-        params.sheetRows = float(std::max(1, command.sheetRows));
         params.sheetOffset = Vector2(command.sheetOffset.x, command.sheetOffset.y);
         params.uvScale = Vector2(command.uvScale.x, command.uvScale.y);
         if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)

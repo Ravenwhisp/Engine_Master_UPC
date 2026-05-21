@@ -207,8 +207,6 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();
-        command.sheetColumns = uiImg->getSheetColumns();
-        command.sheetRows = uiImg->getSheetRows();
         command.sheetOffset = uiImg->getSheetOffset();
 
         command.uvScale = { 1.0f, 1.0f };
@@ -230,6 +228,8 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
             {
                 command.uvScale = t2d->getScale();
 			}
+			command.uvScale.x /= uiImg->getSheetColumns();
+			command.uvScale.y /= uiImg->getSheetRows();
         }
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
