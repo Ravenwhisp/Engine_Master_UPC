@@ -30,6 +30,9 @@ public:
 
     RenderSurface* getRenderSurface() { return m_gbufferSurface; }
 
+    int getTriangleCount() const { return m_trianglesCount; }
+    int getMeshCount() const { return m_meshCount; }
+
 private:
     void createRootSignature();
     void createPipelineState();

@@ -111,7 +111,6 @@ void ModuleRender::preRender()
             entry.width = entry.pendingResizeWidth;
             entry.height = entry.pendingResizeHeight;
             app->getModuleD3D12()->getCommandQueue()->flush();
-            entry.surface->releaseDescriptorTable();
             entry.surface->resize(entry.width, entry.height);
             entry.pendingResize = false;
         }
@@ -237,7 +236,6 @@ void ModuleRender::initViewportGBuffers(RenderSurface& surface, float width, flo
     ID3D12Device* device = app->getModuleD3D12()->getDevice();
     DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    
     for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
     {
         auto tex = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
@@ -394,5 +392,5 @@ void ModuleRender::markDebugDrawCacheDirty()
     }
 }
 
-int ModuleRender::getTrianglesCount() const { return m_meshRenderPass->getTriangleCount(); }
-int ModuleRender::getMeshCount() const { return m_meshRenderPass->getMeshCount(); }
+int ModuleRender::getTrianglesCount() const { return m_geometryPass->getTriangleCount(); }
+int ModuleRender::getMeshCount() const { return m_geometryPass->getMeshCount(); }

@@ -10,6 +10,7 @@
 RenderSurface::RenderSurface() : m_textures(AttachmentPoint::NUM_ATTACHMENT_POINTS)
 , m_size(0, 0)
 {
+	createDescriptorTable();
 }
 
 void RenderSurface::attachTexture(AttachmentPoint attachmentPoint, std::shared_ptr<Texture> texture)
@@ -34,7 +35,7 @@ void RenderSurface::createDescriptorTable()
 {
 	DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	// Allocate one contiguous block covering all material texture slots.
+	// Allocate one contiguous block covering all GBuffer texture slots.
 	m_block = srvHeap.allocateBlock(RenderSurface::NUM_ATTACHMENT_POINTS);
 	assert(m_block && "Failed to allocate material descriptor block");
 }
@@ -49,20 +50,8 @@ void RenderSurface::releaseDescriptorTable()
 
 void RenderSurface::resize(Vector2 size)
 {
-	if (!m_block)
-	{
-		createDescriptorTable();
-		for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
-		{
-			auto tex = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(m_size.x, m_size.y, GeometryPass::GBUFFER_FORMATS[i]));
-			tex->setName(L"GBuffer_" + std::to_wstring(i));
-			attachTexture(GeometryPass::kSlots[i], tex);
-		}
-	}
-	else
-	{
-		releaseDescriptorTable();
-	}
+	releaseDescriptorTable();
+	createDescriptorTable();
 
 	m_size = size;
 
