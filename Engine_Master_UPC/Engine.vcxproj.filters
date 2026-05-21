@@ -482,6 +482,11 @@
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="Skin.cpp" />
+    <ClCompile Include="CommandCreateDataContainer.cpp" />
+    <ClCompile Include="DataContainerFactory.cpp" />
+    <ClCompile Include="DataContainer.cpp" />
+    <ClCompile Include="ImporterDataContainer.cpp" />
+    <ClCompile Include="DataContainerExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1113,7 +1118,6 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
-
     <ClInclude Include="ThreadPool.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -1155,6 +1159,15 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="Skin.h" />
+    <ClInclude Include="CommandCreateDataContainer.h" />
+    <ClInclude Include="DataContainer.h" />
+    <ClInclude Include="DataContainerCreator.h" />
+    <ClInclude Include="DataContainerRegistry.h" />
+    <ClInclude Include="DataContainerFactory.h" />
+    <ClInclude Include="DataContainerAutoRegister.h" />
+    <ClInclude Include="DataContainerAPI.h" />
+    <ClInclude Include="ImporterDataContainer.h" />
+    <ClInclude Include="DataContainerExporter.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1365,6 +1378,7 @@
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
+    <None Include="EngineAPI.inl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1409,5 +1423,6 @@
     <FxCompile Include="BRDFVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="SpritePixelShader.hlsl" />
   </ItemGroup>
 </Project>

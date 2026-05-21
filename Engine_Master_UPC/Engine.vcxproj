@@ -305,6 +305,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandCutItem.h" />
     <ClInclude Include="DataContainer.h" />
     <ClInclude Include="DataContainerCreator.h" />
+    <ClInclude Include="DataContainerExporter.h" />
     <ClInclude Include="DataContainerRegistry.h" />
     <ClInclude Include="DataContainerFactory.h" />
     <ClInclude Include="DataContainerAutoRegister.h" />
@@ -651,6 +652,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
+    <ClCompile Include="DataContainerExporter.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />
     <ClCompile Include="CommandCreateFolder.cpp" />
     <ClCompile Include="CommandCreateDataContainer.cpp" />

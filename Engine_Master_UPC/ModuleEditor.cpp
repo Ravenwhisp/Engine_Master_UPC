@@ -32,6 +32,8 @@
 #include "DataContainerFactory.h"
 #include "ContentRegistry.h"
 #include "CommandCreateDataContainer.h"
+#include "DataContainerExporter.h"
+#include "FileDialog.h"
 
 #include <fstream>
 
@@ -183,6 +185,28 @@ void ModuleEditor::update()
         if (sceneEditor->isFocused())
         {
             handleKeyboardShortcuts();
+        }
+    }
+
+    if (!m_dcDialogRunning.load())
+    {
+        std::optional<std::filesystem::path> result;
+        {
+            std::lock_guard lock(m_dcDialogMutex);
+            if (m_dcDialogResult.has_value())
+            {
+                result = std::move(m_dcDialogResult);
+                m_dcDialogResult.reset();
+            }
+        }
+
+        if (result.has_value())
+        {
+            if (m_dcDialogMode == 1)
+                DataContainerExporter::exportToJson(result.value());
+            else if (m_dcDialogMode == 2)
+                DataContainerExporter::importFromJson(result.value());
+            m_dcDialogMode = 0;
         }
     }
 }
@@ -357,6 +381,36 @@ void ModuleEditor::mainMenuBar()
         else
         {
             ImGui::TextDisabled("No asset types registered");
+        }
+
+        ImGui::Separator();
+        if (ImGui::MenuItem("Export Data Assets..."))
+        {
+            if (!m_dcDialogRunning.load())
+            {
+                m_dcDialogMode = 1;
+                m_dcDialogRunning.store(true);
+                { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult.reset(); }
+                std::thread([this]() {
+                    auto result = saveAs("JSON Files (*.json)\0*.json\0", "json", "Export Data Assets", ASSETS_FOLDER);
+                    { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult = std::move(result); }
+                    m_dcDialogRunning.store(false);
+                }).detach();
+            }
+        }
+        if (ImGui::MenuItem("Import Data Assets..."))
+        {
+            if (!m_dcDialogRunning.load())
+            {
+                m_dcDialogMode = 2;
+                m_dcDialogRunning.store(true);
+                { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult.reset(); }
+                std::thread([this]() {
+                    auto result = open("JSON Files (*.json)\0*.json\0", "Import Data Assets", ASSETS_FOLDER);
+                    { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult = std::move(result); }
+                    m_dcDialogRunning.store(false);
+                }).detach();
+            }
         }
 
         ImGui::EndMenu();
