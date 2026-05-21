@@ -42,3 +42,22 @@ rapidjson::Value BoundConfig::getJson(rapidjson::Document::AllocatorType& alloca
 
     return obj;
 }
+
+void BoundConfig::syncFromData()
+{
+    if (!m_data.IsObject())
+        return;
+
+    if (m_data.HasMember("MinDistance") && m_data["MinDistance"].IsFloat())
+        m_minDistance = m_data["MinDistance"].GetFloat();
+    if (m_data.HasMember("DistanceDamage") && m_data["DistanceDamage"].IsFloat())
+        m_distanceDamage = m_data["DistanceDamage"].GetFloat();
+    if (m_data.HasMember("DistanceInstaKill") && m_data["DistanceInstaKill"].IsFloat())
+        m_distanceInstaKill = m_data["DistanceInstaKill"].GetFloat();
+    if (m_data.HasMember("BaseDamage") && m_data["BaseDamage"].IsFloat())
+        m_baseDamage = m_data["BaseDamage"].GetFloat();
+    if (m_data.HasMember("MaxDamage") && m_data["MaxDamage"].IsFloat())
+        m_maxDamage = m_data["MaxDamage"].GetFloat();
+    if (m_data.HasMember("RadiusThreshold") && m_data["RadiusThreshold"].IsFloat())
+        m_radiusThreshold = m_data["RadiusThreshold"].GetFloat();
+}

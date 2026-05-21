@@ -1,5 +1,7 @@
 #include "Globals.h"
 #include "DataContainer.h"
+#include "Application.h"
+#include "ModuleAssets.h"
 
 #include <string>
 
@@ -25,6 +27,16 @@ void DataContainer::drawUI()
 	ImGui::Separator();
 
 	ImGui::TextDisabled("UID: %llu", static_cast<unsigned long long>(getUID()));
+
+	ImGui::Spacing();
+
+	if (ImGui::Button("Save"))
+	{
+		app->getModuleAssets()->save(*this);
+	}
+
+	ImGui::SameLine();
+	ImGui::TextDisabled("(Ctrl+S)");
 
 	ImGui::Spacing();
 	ImGui::SeparatorText("Properties");

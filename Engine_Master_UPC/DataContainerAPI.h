@@ -15,11 +15,12 @@
 //         explicit MyConfig(AssetReference& id) : DataContainer(id) {}
 //         bool deserializeJson(const rapidjson::Value& obj) override;
 //         rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const override;
+//         void syncFromData() override;  // sync typed members from m_data after inspector edits
 //         float m_value = 10.0f;
 //     };
 //   .cpp file:
 //     IMPLEMENT_DATACONTAINER(MyConfig)
-//     // override deserializeJson/getJson to serialize members
+//     // override deserializeJson, getJson, and syncFromData to handle your members
 //
 // The class auto-registers and appears in the FileDialog "Create" menu and "Asset" top menu.
 
