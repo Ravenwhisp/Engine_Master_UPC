@@ -222,6 +222,10 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
             {
                 command.uvScale.x = t2d->getScale().x;
 			}
+            else if (t2d->getStretchMode() == StretchMode::BOTH)
+             {
+				command.uvScale = Vector2(myRect.w / t2d->getBaseSize().x, myRect.h / t2d->getBaseSize().y);
+			}
             else
             {
                 command.uvScale = t2d->getScale();

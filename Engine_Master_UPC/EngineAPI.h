@@ -12,6 +12,7 @@
 #include "SimpleMath.h"
 #include "KeyCode.h"
 #include "NavMeshTypes.h"
+#include "UIFill.h"
 
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
@@ -294,6 +295,10 @@ namespace SliderAPI
 {
     ENGINE_API float getFillAmount(const UISlider* slider);
     ENGINE_API void setFillAmount(UISlider* slider, float amount);
+	ENGINE_API FillMethod getFillMethod(const UISlider* slider);
+    ENGINE_API void setFillMethod(UISlider* slider, FillMethod method);
+    ENGINE_API FillOrigin getFillOrigin(const UISlider* slider);
+	ENGINE_API void setFillOrigin(UISlider* slider, FillOrigin origin);
 }
 
 namespace UISheetAPI
