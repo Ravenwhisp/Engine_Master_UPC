@@ -83,16 +83,16 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineStateDepth)));
 
-	const UIVertex quadVertices[6] =
-	{
-        { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
-        { Vector2(1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
-        { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
+    const UIVertex quadVertices[6] =
+    {
+        { Vector2(0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) },
+        { Vector2(1.0f, 0.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
+        { Vector2(1.0f, 1.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
 
-        { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
-        { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
-        { Vector2(0.0f, 1.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) }
-	};
+        { Vector2(0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) },
+        { Vector2(1.0f, 1.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
+        { Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) }
+    };
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(UIVertex)));
 }
@@ -131,16 +131,24 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
     for (const auto& command : m_sortedCommands)
     {
         if (!command.texture)
+        {
             continue;
+        }
 
         const auto srv = command.texture->getSRV();
         if (!srv.IsShaderVisible() || srv.gpu.ptr == 0)
+        {
             continue;
+        }
 
         if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
+        {
             commandList->SetPipelineState(m_pipelineState.Get());
+        }
         else
+        {
             commandList->SetPipelineState(m_pipelineStateDepth.Get());
+        }
 
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
@@ -160,6 +168,10 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
         params.sheetRows = float(std::max(1, command.sheetRows));
         params.sheetOffset = Vector2(command.sheetOffset.x, command.sheetOffset.y);
         params.uvScale = Vector2(command.uvScale.x, command.uvScale.y);
+        if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
+        {
+			params.flipY = 1.0f;
+        }
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
@@ -196,8 +208,8 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
 
     const float uiToWorld = 0.01f;
 
-	Matrix scale = Matrix::CreateScale(w * uiToWorld, -h * uiToWorld, uiToWorld);
-	Matrix translate = Matrix::CreateTranslation(- (x + w) * uiToWorld, (y + h) * uiToWorld, 0.0f);
+    Matrix scale = Matrix::CreateScale(w * uiToWorld, h * uiToWorld, uiToWorld);
+	Matrix translate = Matrix::CreateTranslation(x * uiToWorld, y * uiToWorld, 0.0f);
 
     local = scale * translate;
 
@@ -206,15 +218,13 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
     if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
     {
         Matrix invView = m_view->Invert();
+        invView._11 *= -1.0f;
+        invView._12 *= -1.0f;
+        invView._13 *= -1.0f;
         invView._41 = world._41;
         invView._42 = world._42;
         invView._43 = world._43;
 		world = invView;
-    }
-    else
-    {
-		Matrix rotate = Matrix::CreateRotationY(DirectX::XM_PI);
-		world = rotate * world;
     }
 
     return (local * world) * (*m_view) * (*m_projection);
