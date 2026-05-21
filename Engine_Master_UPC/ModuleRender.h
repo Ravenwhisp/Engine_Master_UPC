@@ -101,8 +101,8 @@ private:
     void renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,  D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
 
     // Camera helpers
-    RenderCamera getEditorCamera();
-    RenderCamera getGameCamera();
+    void getEditorCamera(RenderCamera& camera);
+    void getGameCamera(RenderCamera& camera);
 
     // D3D12 helpers
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);

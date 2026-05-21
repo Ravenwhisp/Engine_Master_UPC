@@ -24,7 +24,7 @@ public:
 	RenderSurface& operator=(const RenderSurface& other) = default;
 	RenderSurface& operator=(RenderSurface&& other) = default;
 
-    void                     attachTexture(AttachmentPoint attachmentPoint, std::shared_ptr<Texture> texture);
+    void                     attachTexture(AttachmentPoint attachmentPoint, const std::shared_ptr<Texture>& texture);
     std::shared_ptr<Texture> getTexture(AttachmentPoint attachmentPoint) const;
 
 	void             resize(Vector2 size);

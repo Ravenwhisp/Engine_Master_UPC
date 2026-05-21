@@ -50,6 +50,10 @@ BasicMaterial::~BasicMaterial()
 {
 	app->getModuleResources()->deferResourceRelease(m_materialBuffer);
 
+	if (m_block) {
+		app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).freeBlock(m_block);
+		m_block = nullptr;
+	}
 }
 
 Texture* BasicMaterial::getTexture() const noexcept

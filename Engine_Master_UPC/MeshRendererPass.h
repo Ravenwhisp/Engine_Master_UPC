@@ -32,7 +32,7 @@ public:
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
-    GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
+    void packLightsForGPU(GPULightsConstantBuffer& cb, const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
 
     void renderMesh(ID3D12GraphicsCommandList* commandList);
 

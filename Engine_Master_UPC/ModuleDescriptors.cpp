@@ -38,7 +38,8 @@ void ModuleDescriptors::preRender()
 {
     // For now only the SRV heap is having deferred releases since it's the only one used for textures
 	UINT lastCompletedFrame = (UINT)app->getModuleD3D12()->getLastCompletedFrame();
-	for (int i = 0; i < m_defferedDescriptors.size(); ++i) {
+	int i = 0;
+	while (i < (int)m_defferedDescriptors.size()) {
 
         if (lastCompletedFrame > m_defferedDescriptors[i].frame)
         {

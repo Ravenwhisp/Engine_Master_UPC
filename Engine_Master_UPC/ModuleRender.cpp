@@ -216,9 +216,9 @@ void ModuleRender::renderToSurface(ID3D12GraphicsCommandList4* commandList,Rende
 }
 
 
-ModuleRender::RenderCamera ModuleRender::getEditorCamera()
+void ModuleRender::getEditorCamera(RenderCamera& camera)
 {
-    RenderCamera camera;
+    camera = {};
 
     if (const CameraComponent* c = app->getCurrentCameraPerspective())
     {
@@ -234,23 +234,19 @@ ModuleRender::RenderCamera ModuleRender::getEditorCamera()
         camera.position = app->getModuleCamera()->getPosition();
         camera.valid = true;
     }
-
-    return camera;
 }
 
-ModuleRender::RenderCamera ModuleRender::getGameCamera()
+void ModuleRender::getGameCamera(RenderCamera& camera)
 {
-    RenderCamera camera;
+    camera = {};
 
     const CameraComponent* c = app->getModuleScene()->getScene()->getDefaultCamera();
-    if (!c) return camera;
+    if (!c) return;
 
     camera.view = c->getViewMatrix();
     camera.projection = c->getProjectionMatrix();
     camera.position = c->getOwner()->GetTransform()->getPosition();
     camera.valid = true;
-
-    return camera;
 }
 
 void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES  beforeState,D3D12_RESOURCE_STATES  afterState)
@@ -316,12 +312,15 @@ void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
+    RenderCamera camera;
+    getEditorCamera(camera);
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
 }
 
 void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
 {
-    const RenderCamera camera = getGameCamera();
+    RenderCamera camera;
+    getGameCamera(camera);
     if (!camera.valid) return;
 
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
@@ -332,7 +331,8 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
 
 void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
 {
-    const RenderCamera camera = getGameCamera();
+    RenderCamera camera;
+    getGameCamera(camera);
     if (!camera.valid) return;
 
     renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);

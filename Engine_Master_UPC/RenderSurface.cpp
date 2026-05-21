@@ -7,7 +7,7 @@ RenderSurface::RenderSurface() : m_textures(AttachmentPoint::NUM_ATTACHMENT_POIN
 {
 }
 
-void RenderSurface::attachTexture(AttachmentPoint attachmentPoint, std::shared_ptr<Texture> texture)
+void RenderSurface::attachTexture(AttachmentPoint attachmentPoint, const std::shared_ptr<Texture>& texture)
 {
 	m_textures[attachmentPoint] = texture;
 
@@ -28,7 +28,7 @@ std::shared_ptr<Texture> RenderSurface::getTexture(AttachmentPoint attachmentPoi
 void RenderSurface::resize(Vector2 size)
 {
 	m_size = size;
-	for (auto texture : m_textures) 
+	for (const auto& texture : m_textures) 
 	{ 
 		if (texture) {
 			texture->resize(static_cast<uint32_t>(m_size.x), static_cast<uint32_t>(m_size.y));

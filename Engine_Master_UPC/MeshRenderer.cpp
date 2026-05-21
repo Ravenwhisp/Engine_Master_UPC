@@ -77,7 +77,7 @@ void MeshRenderer::drawUi()
 
     if(m_meshAsset.isValid())
     {
-        ImGui::Text("Mesh: %s", std::to_string(m_meshAsset.m_uid).c_str());
+        ImGui::Text("Mesh: %llu", m_meshAsset.m_uid);
     }
 	else
     {
@@ -111,13 +111,13 @@ void MeshRenderer::drawUi()
         ImGui::Text("Materials:");
         for (const auto& materialRef : m_materialAssets)
         {
-            ImGui::BulletText("%s", std::to_string(materialRef.m_uid).c_str());
+            ImGui::BulletText("%llu", materialRef.m_uid);
         }
     }
 
     if (m_skinAsset.isValid())
     {
-        ImGui::Text("Skin: %s", std::to_string(m_meshAsset.m_uid).c_str());
+        ImGui::Text("Skin: %llu", m_meshAsset.m_uid);
     }
     else
     {

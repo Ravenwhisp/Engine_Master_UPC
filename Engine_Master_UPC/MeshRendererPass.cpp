@@ -141,7 +141,8 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
     GPULightsConstantBuffer lightsCB{};
     {
         PERF_RENDER("MeshRendererPass::prepare::PackLights");
-        lightsCB = packLightsForGPU(
+        packLightsForGPU(
+            lightsCB,
             app->getModuleScene()->getLightComponents(),
             m_lighting->ambientColor,
             m_lighting->ambientIntensity);
@@ -284,12 +285,13 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
     }
 }
 
-GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
+void MeshRendererPass::packLightsForGPU(
+    GPULightsConstantBuffer& cb,
     const std::vector<LightComponent*>& lights,
     const Vector3& ambientColor,
     float ambientIntensity) const
 {
-    GPULightsConstantBuffer cb{};
+    cb = {};
     cb.ambientColor = ambientColor;
     cb.ambientIntensity = ambientIntensity;
 
@@ -353,6 +355,4 @@ GPULightsConstantBuffer MeshRendererPass::packLightsForGPU(
         default: break;
         }
     }
-
-    return cb;
 }
