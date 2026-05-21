@@ -88,7 +88,7 @@ void WindowMusicDebug::drawInternal()
 
 				if (ImGui::Button("Play", ImVec2(60.0f, 0.0f)))
 				{
-					m_moduleMusic->postEvent(bank.getName().c_str(), event.name.c_str());
+					m_moduleMusic->postGLobalEvent(bank.getName().c_str(), event.name.c_str());
 				}
 
 				ImGui::PopID();

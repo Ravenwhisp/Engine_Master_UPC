@@ -125,7 +125,7 @@ bool ModuleMusic::loadBanksFromFolder()
 }
 
 #pragma region API
-void ModuleMusic::postEvent(const char* bankName, const char* eventName)
+void ModuleMusic::postGLobalEvent(const char* bankName, const char* eventName)
 {
 	for (const WwiseBank& bank : m_banks)
 	{
@@ -141,7 +141,7 @@ void ModuleMusic::postEvent(const char* bankName, const char* eventName)
 				continue;
 			}
 
-			const AkPlayingID playingID = AK::SoundEngine::PostEvent(event.id, m_wwiseManager.getMusicGameObject(), AK_EndOfEvent, MusicPlaybackTracker::getCallbackFunction(), &m_playbackTracker);
+			const AkPlayingID playingID = AK::SoundEngine::PostEvent(event.id, m_wwiseManager.getGlobalGameObject(), AK_EndOfEvent, MusicPlaybackTracker::getCallbackFunction(), &m_playbackTracker);
 
 			if (playingID == AK_INVALID_PLAYING_ID)
 			{

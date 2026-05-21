@@ -8,14 +8,15 @@
 
 #include <AkDefaultIOHookDeferred.h>
 
-namespace
+WwiseManager::WwiseManager()
 {
-	constexpr const wchar_t* WWISE_BASE_PATH = L"Assets\\Audio\\";
+	m_lowLevelIO = new CAkDefaultIOHookDeferred();
+}
 
-	constexpr AkGameObjectID MUSIC_GAME_OBJECT = 1;
-	constexpr AkGameObjectID LISTENER_GAME_OBJECT = 2;
-
-	CAkDefaultIOHookDeferred g_lowLevelIO;
+WwiseManager::~WwiseManager()
+{
+	delete m_lowLevelIO;
+	m_lowLevelIO = nullptr;
 }
 
 bool WwiseManager::init()
@@ -25,7 +26,7 @@ bool WwiseManager::init()
 	if (!initLowLevelIO()) return false;
 	if (!initSoundEngine()) return false;
 	if (!initComm()) return false;
-	if (!registerGameObjects()) return false;
+	if (!registerDefaultGameObjects()) return false;
 
 	return true;
 }
@@ -40,17 +41,7 @@ void WwiseManager::update()
 
 void WwiseManager::cleanUp()
 {
-	if (m_listenerGameObjectRegistered)
-	{
-		AK::SoundEngine::UnregisterGameObj(LISTENER_GAME_OBJECT);
-		m_listenerGameObjectRegistered = false;
-	}
-
-	if (m_musicGameObjectRegistered)
-	{
-		AK::SoundEngine::UnregisterGameObj(MUSIC_GAME_OBJECT);
-		m_musicGameObjectRegistered = false;
-	}
+	unregisterDefaultGameObjects();
 
 	if (m_commCreated)
 	{
@@ -66,7 +57,7 @@ void WwiseManager::cleanUp()
 
 	if (m_lowLevelIOCreated)
 	{
-		g_lowLevelIO.Term();
+		m_lowLevelIO->Term();
 		m_lowLevelIOCreated = false;
 	}
 
@@ -88,14 +79,60 @@ bool WwiseManager::isInitialized() const
 	return m_soundEngineCreated;
 }
 
-AkGameObjectID WwiseManager::getMusicGameObject() const
+AkGameObjectID WwiseManager::getGlobalGameObject() const
 {
-	return MUSIC_GAME_OBJECT;
+	return GLOBAL_GAME_OBJECT;
 }
 
-AkGameObjectID WwiseManager::getListenerGameObject() const
+AkGameObjectID WwiseManager::getDefaultListenerGameObject() const
 {
-	return LISTENER_GAME_OBJECT;
+	return DEFAULT_LISTENER_GAME_OBJECT;
+}
+
+bool WwiseManager::registerGameObject(AkGameObjectID gameObjectID, const char* name)
+{
+	if (!m_soundEngineCreated)
+	{
+		return false;
+	}
+
+	if (AK::SoundEngine::RegisterGameObj(gameObjectID, name) != AK_Success)
+	{
+		DEBUG_ERROR("[Wwise Manager] Failed registering GameObject: %llu", gameObjectID);
+		return false;
+	}
+
+	return true;
+}
+
+void WwiseManager::unregisterGameObject(AkGameObjectID gameObjectID)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	AK::SoundEngine::UnregisterGameObj(gameObjectID);
+}
+
+void WwiseManager::setDefaultListener(AkGameObjectID listenerGameObjectID)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	AK::SoundEngine::SetDefaultListeners(&listenerGameObjectID, 1);
+}
+
+void WwiseManager::setListeners(AkGameObjectID emitterGameObjectID, const AkGameObjectID* listenerGameObjectIDs, AkUInt32 listenerCount)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	AK::SoundEngine::SetListeners(emitterGameObjectID, listenerGameObjectIDs, listenerCount);
 }
 
 bool WwiseManager::initMemory()
@@ -133,14 +170,14 @@ bool WwiseManager::initLowLevelIO()
 	AkDeviceSettings deviceSettings;
 	AK::StreamMgr::GetDefaultDeviceSettings(deviceSettings);
 
-	if (g_lowLevelIO.Init(deviceSettings) != AK_Success)
+	if (m_lowLevelIO->Init(deviceSettings) != AK_Success)
 	{
 		DEBUG_ERROR("[Wwise Manager] Failed initializing LowLevelIO");
 		return false;
 	}
 
 	m_lowLevelIOCreated = true;
-	g_lowLevelIO.SetBasePath(WWISE_BASE_PATH);
+	m_lowLevelIO->SetBasePath(WWISE_BASE_PATH);
 
 	return true;
 }
@@ -176,26 +213,39 @@ bool WwiseManager::initComm()
 	return true;
 }
 
-bool WwiseManager::registerGameObjects()
+bool WwiseManager::registerDefaultGameObjects()
 {
-	if (AK::SoundEngine::RegisterGameObj(MUSIC_GAME_OBJECT, "Music") != AK_Success)
+	if (!registerGameObject(GLOBAL_GAME_OBJECT, "Global Audio"))
 	{
-		DEBUG_ERROR("[Wwise Manager] Failed registering Music GameObject");
 		return false;
 	}
 
-	m_musicGameObjectRegistered = true;
+	m_globalGameObjectRegistered = true;
 
-	if (AK::SoundEngine::RegisterGameObj(LISTENER_GAME_OBJECT, "Listener") != AK_Success)
+	if (!registerGameObject(DEFAULT_LISTENER_GAME_OBJECT, "Default Listener"))
 	{
-		DEBUG_ERROR("[Wwise Manager] Failed registering Listener GameObject");
 		return false;
 	}
 
-	m_listenerGameObjectRegistered = true;
+	m_defaultListenerGameObjectRegistered = true;
 
-	AK::SoundEngine::SetDefaultListeners(&LISTENER_GAME_OBJECT, 1);
-	AK::SoundEngine::SetListeners(MUSIC_GAME_OBJECT, &LISTENER_GAME_OBJECT, 1);
+	setDefaultListener(DEFAULT_LISTENER_GAME_OBJECT);
+	setListeners(GLOBAL_GAME_OBJECT, &DEFAULT_LISTENER_GAME_OBJECT, 1);
 
 	return true;
+}
+
+void WwiseManager::unregisterDefaultGameObjects()
+{
+	if (m_defaultListenerGameObjectRegistered)
+	{
+		unregisterGameObject(DEFAULT_LISTENER_GAME_OBJECT);
+		m_defaultListenerGameObjectRegistered = false;
+	}
+
+	if (m_globalGameObjectRegistered)
+	{
+		unregisterGameObject(GLOBAL_GAME_OBJECT);
+		m_globalGameObjectRegistered = false;
+	}
 }
