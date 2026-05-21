@@ -4,6 +4,7 @@
 #include <dxgiformat.h>
 
 class Texture;
+class DescriptorHeapBlock;
 
 class RenderSurface 
 {
@@ -47,9 +48,16 @@ public:
 		m_textures = RenderTargetList(AttachmentPoint::NUM_ATTACHMENT_POINTS);
 	}
 
+	void createDescriptorTable();
+	void releaseDescriptorTable();
+	D3D12_GPU_DESCRIPTOR_HANDLE getDescriptorTableGPUHandle() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE getDescriptorTableCPUHandle(uint32_t slot) const;
+
 private:
 	using RenderTargetList = std::vector<std::shared_ptr<Texture>>;
 	RenderTargetList m_textures;
+
+	DescriptorHeapBlock* m_block{};
 
 	Vector2 m_size;
 };

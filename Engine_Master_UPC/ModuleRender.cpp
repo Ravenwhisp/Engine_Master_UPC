@@ -111,6 +111,7 @@ void ModuleRender::preRender()
             entry.width = entry.pendingResizeWidth;
             entry.height = entry.pendingResizeHeight;
             app->getModuleD3D12()->getCommandQueue()->flush();
+            entry.surface->releaseDescriptorTable();
             entry.surface->resize(entry.width, entry.height);
             entry.pendingResize = false;
         }
@@ -189,8 +190,8 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
     uint32_t w = static_cast<uint32_t>(width);
     uint32_t h = static_cast<uint32_t>(height);
 
-    surface->resize(w, h);
     initViewportGBuffers(*surface, w, h);
+    surface->resize(w, h);
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
 }
@@ -233,6 +234,10 @@ void ModuleRender::unregisterViewport(RenderSurface* surface)
 
 void ModuleRender::initViewportGBuffers(RenderSurface& surface, float width, float height)
 {
+    ID3D12Device* device = app->getModuleD3D12()->getDevice();
+    DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    
     for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
     {
         auto tex = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));

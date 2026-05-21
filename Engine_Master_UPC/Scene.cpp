@@ -26,6 +26,10 @@
 Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
+    m_skybox = {};
+    m_skybox.cubemapAssetId.m_uid = 11970188361064272780;
+    m_skybox.cubemapAssetId.m_type = AssetType::TEXTURE;
+    m_skybox.cubemapAssetId.m_libId = "51513e627d3296012beac59084735eaa";
 }
 
 Scene::~Scene() = default;

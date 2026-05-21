@@ -172,7 +172,7 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetGraphicsRootConstantBufferView(1, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(2, m_renderSurface->getTextures()[GeometryPass::kSlots[0]]->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(2, m_renderSurface->getDescriptorTableGPUHandle());
 
     commandList->SetGraphicsRootDescriptorTable(3, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(4, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);

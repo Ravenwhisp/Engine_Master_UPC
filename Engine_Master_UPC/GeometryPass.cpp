@@ -259,10 +259,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
                     {
                         PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
-                        commandList->SetGraphicsRootDescriptorTable(4, material->getTableGPUHandle());
-                        commandList->SetGraphicsRootDescriptorTable(5, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
-                        commandList->SetGraphicsRootDescriptorTable(6, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
-                        commandList->SetGraphicsRootDescriptorTable(7, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
+                        commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
 
                         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
