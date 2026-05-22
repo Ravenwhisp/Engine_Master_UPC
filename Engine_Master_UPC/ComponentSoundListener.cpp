@@ -75,7 +75,7 @@ rapidjson::Value ComponentSoundListener::getJSON(rapidjson::Document& domTree)
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
 
 	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", int(ComponentType::SPRITE_RENDERER), domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", int(ComponentType::SOUND_LISTENER), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
 	return componentInfo;
