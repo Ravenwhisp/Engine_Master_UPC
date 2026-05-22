@@ -17,7 +17,8 @@
     X(ANIMATION)            \
     X(UISLIDER)             \
     X(TRIGGER)              \
-    X(NAVMODIFIER_VOLUME)
+    X(NAVMODIFIER_VOLUME)   \
+    X(PARTICLE_SYSTEM)
 
 enum class ComponentType
 {

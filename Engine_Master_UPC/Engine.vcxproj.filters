@@ -484,6 +484,51 @@
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="Skin.cpp" />
+    <ClCompile Include="PrefabSerializer.cpp" />
+    <ClCompile Include="ParticleSystemComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticlesPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleEmitter.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleRender.cpp">
+      <Filter>D3D12\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleParticleSystem.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterInstance.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterLifetime.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleModule.cpp">
+      <Filter>ParticleSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterColor.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterVelocity.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterArea.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\ImguiColorGradient\imgui_color_gradient.cpp" />
+    <ClCompile Include="3rdParty\ImGuiBezier\imgui_bezier.cpp" />
+    <ClCompile Include="EmitterSpawn.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterSize.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -624,9 +669,6 @@
     </ClInclude>
     <ClInclude Include="Layer.h">
       <Filter>GameEntity</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="ComponentType.h">
       <Filter>GameEntity\Components</Filter>
@@ -1099,6 +1141,51 @@
       <Filter>GameEntity</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />
+    <ClInclude Include="ParticleSystemComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleCommands.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticlesPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleEmitter.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleParticleSystem.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterInstance.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterLifetime.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleModule.h">
+      <Filter>ParticleSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterColor.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterVelocity.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterArea.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\ImguiColorGradient\imgui_color_gradient.h" />
+    <ClInclude Include="3rdParty\ImGuiBezier\imgui_bezier.h" />
+    <ClInclude Include="EmitterSpawn.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="ScriptFieldHandler.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
@@ -1118,7 +1205,6 @@
     <ClInclude Include="HapticEffectLibrary.h">
       <Filter>Haptics</Filter>
     </ClInclude>
-
     <ClInclude Include="ThreadPool.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -1160,6 +1246,9 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="Skin.h" />
+    <ClInclude Include="EmitterSize.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1347,6 +1436,12 @@
     <Filter Include="Persistence\ToChange">
       <UniqueIdentifier>{afaa9501-4f43-49cd-95c9-399393654ca2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ParticleSystem">
+      <UniqueIdentifier>{bb687942-694d-4f64-b44d-f6636214e378}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ParticleSystem\Properties">
+      <UniqueIdentifier>{8be1fc98-4b7a-45b0-a5a2-8c211b271905}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1370,6 +1465,7 @@
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
+    <None Include="EngineAPI.inl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1418,7 +1514,15 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="EquirectangularPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticleVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ParticlePixelShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

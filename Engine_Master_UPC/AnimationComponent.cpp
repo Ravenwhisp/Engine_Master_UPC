@@ -14,6 +14,9 @@
 #include "StateMachineScript.h"
 #include "ScriptFactory.h"
 #include "Script.h"
+#include "ScriptComponentRef.h"
+#include "ModuleScene.h"
+#include "Scene.h"
 
 #include <imgui.h>
 #include <rapidjson/document.h>
@@ -876,7 +879,65 @@ void AnimationComponent::drawScriptFieldsUi(Script& script)
 
         case ScriptFieldType::ComponentRef:
         {
-            ImGui::TextDisabled("%s: ComponentRef not supported yet in state behaviour inspector", field.name);
+            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+
+            Component* component = componentReference->component;
+
+            ImGui::Text("%s", field.name);
+            ImGui::SameLine();
+
+            if (component != nullptr)
+            {
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str());
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+            }
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+                {
+                    GameObject* droppedObject = *(GameObject**)payload->Data;
+                    GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
+
+                    if (sceneObject != nullptr)
+                    {
+                        Component* candidate = nullptr;
+
+                        if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
+                        {
+                            candidate = sceneObject->GetTransform();
+                        }
+                        else
+                        {
+                            candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
+                        }
+
+                        if (candidate != nullptr)
+                        {
+                            componentReference->uid = candidate->getID();
+                            componentReference->component = candidate;
+                            script.onFieldEdited(field);
+                            changed = true;
+                        }
+                    }
+                }
+
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SameLine();
+
+            std::string clearLabel = std::string("Clear###") + field.name;
+            if (ImGui::Button(clearLabel.c_str()))
+            {
+                componentReference->uid = 0;
+                componentReference->component = nullptr;
+                script.onFieldEdited(field);
+                changed = true;
+            }
             break;
         }
         }
@@ -1475,9 +1536,6 @@ StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const Anima
     std::unique_ptr<Script> newScript = ScriptFactory::createScript(state.behaviourScriptName, getOwner());
     if (!newScript)
     {
-        DEBUG_WARN("[AnimationComponent] Could not create StateMachineScript '%s' for state '%s'.",
-            state.behaviourScriptName.c_str(),
-            state.name.c_str());
         return nullptr;
     }
 
@@ -1625,7 +1683,11 @@ std::string AnimationComponent::serializeScriptFields(const Script& script) cons
         }
 
         case ScriptFieldType::ComponentRef:
+        {
+            const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
+            document.AddMember(key, static_cast<uint64_t>(componentReference->uid), allocator);
             break;
+        }
         }
     }
 
@@ -1706,6 +1768,12 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
             break;
 
         case ScriptFieldType::ComponentRef:
+            if (valueJson.IsUint64())
+            {
+                ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+                componentReference->uid = static_cast<UID>(valueJson.GetUint64());
+                componentReference->component = nullptr;
+            }
             break;
         }
     }

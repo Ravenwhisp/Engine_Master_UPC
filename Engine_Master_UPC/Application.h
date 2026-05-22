@@ -14,6 +14,7 @@ class ShaderModuleDescriptors;
 class ModuleDescriptors;
 class ModuleTime;
 class ModuleUI;
+class ModuleParticleSystem;
 class ModuleRender;
 class ModuleNavigation;
 class ModuleScene;
@@ -58,6 +59,7 @@ public:
     ModuleAssets*               getModuleAssets() { return m_moduleAssets; }
     ModuleEventSystem*          getModuleEventSystem() { return m_eventSystemModule; }
     ModuleHaptics* getModuleHaptics() { return m_moduleHaptics; }
+    ModuleParticleSystem* getModuleParticleSystem() { return m_moduleParticleSystem; }
 
     Settings*                   getSettings() { return m_settings; }
     ThreadPool*                 getThreadPool() { return m_threadPool; }
@@ -98,6 +100,7 @@ private:
     ModuleUI*               m_moduleUI = nullptr;
     ModuleEventSystem*      m_eventSystemModule = nullptr;
     ModuleHaptics* m_moduleHaptics = nullptr;
+    ModuleParticleSystem* m_moduleParticleSystem = nullptr;
 
     Settings*               m_settings = nullptr;
     ThreadPool*             m_threadPool = nullptr;

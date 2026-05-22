@@ -25,6 +25,7 @@
 #include "Transform2D.h"
 #include "MeshRenderer.h"
 #include "BoundingBox.h"
+#include "ParticleSystemComponent.h"
 
 #include "CameraComponent.h"
 
@@ -794,9 +795,22 @@ namespace SceneAPI
 		return result;
     }
 
-    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive)
+    std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive, QuadtreeTarget target)
     {
-		std::vector<GameObject*> candidates = app->getModuleScene()->getQuadtree()->queryInArea(center, radius);
+        std::vector<GameObject*> candidates;
+
+		auto* sceneModule = app->getModuleScene();
+
+        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Static)) != 0)
+        {
+            auto staticResult = sceneModule->getStaticQuadtree()->queryInArea(center, radius);
+            candidates.insert(candidates.end(), staticResult.begin(), staticResult.end());
+        }
+        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Dynamic)) != 0)
+        {
+            auto dynamicResult = sceneModule->getDynamicQuadtree()->queryInArea(center, radius);
+            candidates.insert(candidates.end(), dynamicResult.begin(), dynamicResult.end());
+        }
 
         std::vector<GameObject*> result;
         for (GameObject* candidate : candidates)
@@ -2274,4 +2288,70 @@ namespace HapticAPI
     {
         return HapticEffectLibrary::get().findEffect(id);
     }
+}
+
+ENGINE_API ParticleSystemComponent* ParticleSystemAPI::getParticleSystemComponent(GameObject* gameObject)
+{
+    if (!gameObject)
+    {
+        return nullptr;
+    }
+
+    return gameObject->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM);
+}
+
+ENGINE_API const ParticleSystemComponent* ParticleSystemAPI::getParticleSystemComponent(const GameObject* gameObject)
+{
+    if (!gameObject)
+    {
+        return nullptr;
+    }
+
+    return gameObject->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM);
+}
+
+ENGINE_API void ParticleSystemAPI::play(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->setLocalTimeScale(1.f);
+}
+
+ENGINE_API void ParticleSystemAPI::pause(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->setLocalTimeScale(0.f);
+}
+
+ENGINE_API void ParticleSystemAPI::stop(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->resetParticles();
+    particleSystem->setLocalTimeScale(0.f);
+}
+
+ENGINE_API bool ParticleSystemAPI::isPlaying(ParticleSystemComponent* particleSystem)
+{
+    return particleSystem ? particleSystem->getLocalTimeScale() > 0.f : false;
+}
+
+ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+    particleSystem->resetParticles();
 }

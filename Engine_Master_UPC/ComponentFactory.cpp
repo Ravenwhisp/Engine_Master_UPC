@@ -14,6 +14,7 @@
 #include "ScriptComponent.h"
 #include "AnimationComponent.h"
 #include "TriggerComponent.h"
+#include "ParticleSystemComponent.h"
 
 // UI components
 #include "Canvas.h"
@@ -77,6 +78,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::TRIGGER:
         return std::make_unique<TriggerComponent>(id, owner);
+
+    case ComponentType::PARTICLE_SYSTEM:
+        return std::make_unique<ParticleSystemComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

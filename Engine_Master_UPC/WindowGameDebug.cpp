@@ -22,7 +22,8 @@ void WindowGameDebug::render()
     ImGui::Separator();
     ImGui::Checkbox("Show Grid", &m_settings->sceneEditor.showGrid);
     ImGui::Checkbox("Show Axis", &m_settings->sceneEditor.showAxis);
-    ImGui::Checkbox("Show QuadTree", &m_settings->sceneEditor.showQuadTree);
+    ImGui::Checkbox("Show Static QuadTree", &m_settings->sceneEditor.showStaticQuadTree);
+    ImGui::Checkbox("Show Dynamic QuadTree", &m_settings->sceneEditor.showDynamicQuadTree);
     ImGui::Checkbox("Show Model Bounding Boxes", &m_settings->sceneEditor.showModelBoundingBoxes);
     ImGui::Separator();
     ImGui::Checkbox("Frustum culling", &m_settings->frustumCulling.debugFrustumCulling);

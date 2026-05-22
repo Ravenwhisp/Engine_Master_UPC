@@ -88,8 +88,11 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatLub(float intensity,
     const float i = intensity < 0.0f ? 0.0f : (intensity > 1.0f ? 1.0f : intensity);
 
     HapticEffectDefinition def;
-    def.durationSeconds = 0.08f;   
-    def.attackSeconds = 0.005f; 
+
+    // Strong sharp primary heartbeat impact
+    def.durationSeconds = 0.075f;
+    def.attackSeconds = 0.001f;
+
     def.curve = HapticCurve::Punch;
     def.priority = HapticPriority::High;
 
@@ -97,25 +100,41 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatLub(float intensity,
     {
         def.id = "HeartbeatLub_Health";
 
-        def.peak.leftMotor = i;    
-        def.peak.rightMotor = i * 0.75f;
+        // Heavy centered THUMP
+        def.peak.leftMotor = i;
+        def.peak.rightMotor = i;
 
+        // Triggers only when danger is high
         if (i > 0.55f)
         {
-            const float triggerAmount = (i - 0.55f) / 0.45f; 
-            def.peak.leftTrigger = triggerAmount * 0.50f;
-            def.peak.rightTrigger = triggerAmount * 0.50f;
+            const float triggerAmount = (i - 0.55f) / 0.45f;
+
+            def.peak.leftTrigger = triggerAmount * 0.60f;
+            def.peak.rightTrigger = triggerAmount * 0.60f;
         }
     }
-    else 
+    else
     {
         def.id = "HeartbeatLub_Separation";
 
-        def.peak.rightMotor = i;      
-        def.peak.leftMotor = i * 0.60f;
+        // Longer, heavier uneasy pulse
+        def.durationSeconds = 0.11f;
+        def.attackSeconds = 0.0025f;
 
-        def.peak.leftTrigger = 0.0f;
-        def.peak.rightTrigger = 0.0f;
+        // More body than a pure punch
+        def.releaseSeconds = 0.05f;
+
+        // Strong asymmetry
+        def.peak.leftMotor = i * 0.45f;
+        def.peak.rightMotor = i;
+
+        // Small trigger texture near high danger
+        if (i > 0.65f)
+        {
+            const float triggerAmount = (i - 0.65f) / 0.35f;
+
+            def.peak.rightTrigger = triggerAmount * 0.25f;
+        }
     }
 
     return def;
@@ -125,12 +144,16 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatDub(float intensity,
 {
     const float i = intensity < 0.0f ? 0.0f : (intensity > 1.0f ? 1.0f : intensity);
 
-    const float dubScale = (variant == HeartbeatVariant::Health) ? 0.65f : 0.55f;
+    const float dubScale = 0.7f;
+
     const float di = i * dubScale;
 
     HapticEffectDefinition def;
-    def.durationSeconds = 0.08f;
-    def.attackSeconds = 0.005f;
+
+    // Very short follow-up tap
+    def.durationSeconds = 0.02f;
+    def.attackSeconds = 0.001f;
+
     def.curve = HapticCurve::Punch;
     def.priority = HapticPriority::High;
 
@@ -138,24 +161,39 @@ HapticEffectDefinition HapticEffectDefinition::makeHeartbeatDub(float intensity,
     {
         def.id = "HeartbeatDub_Health";
 
-        def.peak.leftMotor = di;
-        def.peak.rightMotor = di * 0.75f;
+        // Smaller off-center tap
+        def.peak.leftMotor = 0.0f;
+        def.peak.rightMotor = di;
 
+        // Much lighter trigger feedback
         if (i > 0.70f)
         {
             const float triggerAmount = (i - 0.70f) / 0.30f;
-            def.peak.leftTrigger = triggerAmount * 0.30f; 
-            def.peak.rightTrigger = triggerAmount * 0.30f;
+
+            def.peak.leftTrigger = triggerAmount * 0.20f;
+            def.peak.rightTrigger = triggerAmount * 0.20f;
         }
     }
     else
     {
         def.id = "HeartbeatDub_Separation";
 
+        // More present follow-up beat
+        def.durationSeconds = 0.055f;
+        def.attackSeconds = 0.002f;
+        def.releaseSeconds = 0.03f;
+
+        // Uneven nervous rebound
+        def.peak.leftMotor = 0.0f;
         def.peak.rightMotor = di;
-        def.peak.leftMotor = di * 0.60f;
-        def.peak.leftTrigger = 0.0f;
-        def.peak.rightTrigger = 0.0f;
+
+        // Tiny unstable trigger tap
+        if (i > 0.75f)
+        {
+            const float triggerAmount = (i - 0.75f) / 0.25f;
+
+            def.peak.rightTrigger = triggerAmount * 0.12f;
+        }
     }
 
     return def;
