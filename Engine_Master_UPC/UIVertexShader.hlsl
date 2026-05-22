@@ -23,7 +23,7 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, float4 color 
     VSOut output;
     output.fillUV = texCoord;
         
-    float2 scaledUv = (texCoord - 0.5f) * uvScale + 0.5f + floor(uvScale);
+    float2 scaledUv = (texCoord - 0.5f) * uvScale;
     if (flipY > 0.5f)
     {
         scaledUv.y = 1.0f - scaledUv.y;

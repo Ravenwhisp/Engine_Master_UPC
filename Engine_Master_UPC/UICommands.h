@@ -28,8 +28,8 @@ struct UIImageCommand
     float fillAmount = 1.0f;
     FillMethod fillMethod = FillMethod::Horizontal;
     FillOrigin fillOrigin = FillOrigin::HorizontalLeft;
-
     CanvasRenderMode renderMode = CanvasRenderMode::SCREEN_SPACE;
+
     Matrix world = Matrix::Identity;
     bool zTest = false;
 
