@@ -13,6 +13,7 @@ struct Particle {
 	Vector2 scale = Vector2 (1.0f, 1.0f); // FOR NOW
 
 	float velocity;
+	float rotationVelocity;
 	Vector3 movementDirection; // should be normalized
 
 	float lifeTime = 0.f;
