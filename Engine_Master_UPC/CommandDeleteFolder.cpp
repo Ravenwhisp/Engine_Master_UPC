@@ -21,7 +21,7 @@ void CommandDeleteFolder::run()
 
     std::filesystem::remove_all(m_folderPath);
 
-    app->getModuleAssets()->unregisterDirectory(m_folderPath);
+    app->getModuleAssets()->refresh();
 
     const std::string currentStr = m_currentDirectory.string();
     const std::string deletedStr = m_folderPath.string();

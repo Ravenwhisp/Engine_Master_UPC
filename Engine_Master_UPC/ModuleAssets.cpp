@@ -308,24 +308,6 @@ void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
     m_contentRegistry->unregisterAsset(normPath);
 }
 
-void ModuleAssets::registerDirectory(const fs::path& dirPath)
-{
-    m_contentRegistry->registerDirectory(dirPath.lexically_normal());
-}
-
-void ModuleAssets::unregisterDirectory(const fs::path& dirPath)
-{
-    const fs::path normDir = dirPath.lexically_normal();
-
-    DirectoryEntry* dir = m_contentRegistry->getDirectory(normDir);
-    if (dir)
-    {
-        collectDirectoryAssets(dir);
-    }
-
-    m_contentRegistry->unregisterDirectory(normDir);
-}
-
 void ModuleAssets::collectDirectoryAssets(DirectoryEntry* dir)
 {
     for (const AssetEntry& asset : dir->assets)

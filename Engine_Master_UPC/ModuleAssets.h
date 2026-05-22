@@ -84,8 +84,6 @@ public:
     void refresh();
 
     void unregisterAsset(const std::filesystem::path& sourcePath);
-    void registerDirectory(const std::filesystem::path& dirPath);
-    void unregisterDirectory(const std::filesystem::path& dirPath);
 
     ContentRegistry* getContentRegistry() const;
     PrefabManager* getPrefabManager() const;
