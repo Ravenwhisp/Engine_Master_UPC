@@ -273,6 +273,8 @@
     <ClInclude Include="ExportListTest.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HapticTester.h" />
+    <ClInclude Include="HeartbeatHaptic.h" />
+    <ClInclude Include="HeartbeatTester.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LevelCheats.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
@@ -335,6 +337,8 @@
     <ClCompile Include="EnemyShadowMark.cpp" />
     <ClCompile Include="ExportListTest.cpp" />
     <ClCompile Include="HapticTester.cpp" />
+    <ClCompile Include="HeartbeatHaptic.cpp" />
+    <ClCompile Include="HeartbeatTester.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LevelCheats.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
