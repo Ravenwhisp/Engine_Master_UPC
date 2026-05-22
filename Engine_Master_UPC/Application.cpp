@@ -8,6 +8,7 @@
 #include "ModuleCamera.h"
 #include "ModuleDescriptors.h"
 #include "ModuleUI.h"
+#include "ModuleParticleSystem.h"
 #include "ModuleRender.h"
 #include "ModuleScene.h"
 #include "ModuleAssets.h"
@@ -27,6 +28,8 @@
 Application::Application(int argc, wchar_t** argv, void* hWnd)
     : m_hWnd((HWND)hWnd)
 {
+    srand(time(0)); // To generate random numbers
+
     m_settings = new Settings();
     m_threadPool = new ThreadPool();
 
@@ -44,6 +47,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
     modules.push_back(m_moduleUI = new ModuleUI());
+    modules.push_back(m_moduleParticleSystem = new ModuleParticleSystem());
     modules.push_back(m_moduleNavigation = new ModuleNavigation());
     modules.push_back(m_moduleRender = new ModuleRender());
     

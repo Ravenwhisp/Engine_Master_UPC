@@ -23,6 +23,7 @@ class Script;
 class AnimationComponent;
 class UISlider;
 class Transform2D;
+class ParticleSystemComponent;
 
 struct HapticEffectDefinition;
 
@@ -330,6 +331,19 @@ namespace HapticAPI
     ENGINE_API void registerEffect(const HapticEffectDefinition& def);
     ENGINE_API bool saveToJSON(const char* path);
     ENGINE_API const HapticEffectDefinition* findEffect(const char* id);
+}
+
+namespace ParticleSystemAPI 
+{
+    ENGINE_API ParticleSystemComponent* getParticleSystemComponent(GameObject* gameObject);
+    ENGINE_API const ParticleSystemComponent* getParticleSystemComponent(const GameObject* gameObject);
+
+    ENGINE_API void play(ParticleSystemComponent* particleSystem);
+    ENGINE_API void pause(ParticleSystemComponent* particleSystem);
+    ENGINE_API void stop(ParticleSystemComponent* particleSystem);
+    ENGINE_API bool isPlaying(ParticleSystemComponent* particleSystem);
+
+    ENGINE_API void reset(ParticleSystemComponent* particleSystem); // resets the particles
 }
 
 #include "EngineAPI.inl"

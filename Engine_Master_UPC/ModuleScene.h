@@ -20,6 +20,7 @@ class MeshRenderer;
 class ScriptComponent;
 class LightComponent;
 class IDebugDrawable;
+class ParticleSystemComponent;
 
 struct ID3D12GraphicsCommandList;
 
@@ -38,6 +39,7 @@ private:
     std::vector<MeshRenderer*>       m_meshRenderers;
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
+    std::vector<ParticleSystemComponent*> m_particleSystemComponents;
 
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
@@ -90,4 +92,5 @@ public:
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
+    const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
 };
