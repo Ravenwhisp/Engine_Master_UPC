@@ -344,11 +344,11 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	Vector3 up[]    = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
 
 
-	if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+	//if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 
 	for (size_t i = 0; i < desc.arraySize; i++)
 	{
-		BEGIN_EVENT(commandList.Get(), "Irradiance Generation");
+		//BEGIN_EVENT(commandList.Get(), "Irradiance Generation");
 
 		Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
 		Matrix viewProjection = view * proj;
@@ -388,11 +388,11 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 
 		commandList->ResourceBarrier(1, &barrierOut);
 	
-		END_EVENT(commandList.Get());
+		//END_EVENT(commandList.Get());
 	}
 	
 	m_queue->executeCommandList(commandList);
-	if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
+	//if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 	
 	m_queue->flush();
 
@@ -497,7 +497,7 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	Vector3 up[] = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
 
 
-	if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+	//if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 
 	for (size_t mip = 0; mip < desc.mipLevels; mip++)
 	{
@@ -527,7 +527,7 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 
 		for (size_t i = 0; i < desc.arraySize; i++)
 		{
-			BEGIN_EVENT(commandList.Get(), "Environment Generation");
+			//BEGIN_EVENT(commandList.Get(), "Environment Generation");
 
 			Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
 			Matrix viewProjection = view * proj;
@@ -569,12 +569,12 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 
 			commandList->ResourceBarrier(1, &barrierOut);
 
-			END_EVENT(commandList.Get());
+			//END_EVENT(commandList.Get());
 		}
 	}
 
 	m_queue->executeCommandList(commandList);
-	if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
+	//if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 
 	m_queue->flush();
 

@@ -112,7 +112,7 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
     Vector3 front[] = { Vector3(1,0,0), Vector3(-1,0,0), Vector3(0,1,0), Vector3(0,-1,0), Vector3(0,0,1), Vector3(0,0,-1) };
     Vector3 up[] = { Vector3(0,1,0), Vector3(0,1,0), Vector3(0,0,-1), Vector3(0,0,1), Vector3(0,1,0), Vector3(0,1,0) };
 
-    if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+    //if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
 
     for (size_t mip = 0; mip < desc.mipLevels; mip++)
     {
@@ -136,7 +136,7 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
 
         for (size_t i = 0; i < desc.arraySize; i++)
         {
-            BEGIN_EVENT(commandList.Get(), "Cubemap Generation");
+            //BEGIN_EVENT(commandList.Get(), "Cubemap Generation");
 
             Matrix view = Matrix::CreateLookAt(Vector3::Zero, front[i], up[i]);
             Matrix viewProjection = view * proj;
@@ -172,12 +172,12 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
             commandList->DrawIndexedInstanced(static_cast<UINT>(skybox->getIndexBuffer()->getNumIndices()), 1, 0, 0, 0);
             commandList->ResourceBarrier(1, &barrierOut);
 
-            END_EVENT(commandList.Get());
+            //END_EVENT(commandList.Get());
         }
     }
 
     commandQueue->executeCommandList(commandList);
-    if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
+    //if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 
     commandQueue->flush();
 
