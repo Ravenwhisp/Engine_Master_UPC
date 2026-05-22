@@ -207,32 +207,33 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();
-        command.sheetOffset = uiImg->getSheetOffset() + Vector2(0.5f, 0.5f);
 
         command.uvScale = { 1.0f, 1.0f };
+        command.uvScale.x /= uiImg->getSheetColumns();
+        command.uvScale.y /= uiImg->getSheetRows();
+
         if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile)
         {
-            command.sheetOffset = Vector2(0.5f, 0.5f);
 
             if (t2d->getStretchMode() == StretchMode::HORIZONTAL)
             {
-                command.uvScale.y = t2d->getScale().y;
+                command.uvScale.y *= t2d->getScale().y;
             }
             else if (t2d->getStretchMode() == StretchMode::VERTICAL)
             {
-                command.uvScale.x = t2d->getScale().x;
+                command.uvScale.x *= t2d->getScale().x;
 			}
             else if (t2d->getStretchMode() == StretchMode::BOTH)
              {
-				command.uvScale = Vector2(myRect.w / t2d->getBaseSize().x, myRect.h / t2d->getBaseSize().y);
+				command.uvScale *= Vector2(myRect.w / t2d->getBaseSize().x, myRect.h / t2d->getBaseSize().y);
 			}
             else
             {
-                command.uvScale = t2d->getScale();
+                command.uvScale *= t2d->getScale();
 			}
-        } 
-        command.uvScale.x /= uiImg->getSheetColumns();
-        command.uvScale.y /= uiImg->getSheetRows();
+        }
+
+        command.sheetOffset = Vector2(0.5f, 0.5f) * command.uvScale + uiImg->getSheetOffset();
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity

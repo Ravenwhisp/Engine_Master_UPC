@@ -3,10 +3,9 @@ cbuffer UIParams : register(b0)
     float4x4 mvp;
     float4 fillData;
     float alpha;
-    float flipY;
+    float3 padding;
     float2 sheetOffset;
     float2 uvScale;
-    float2 padding;
 };
 
 struct VSOut
@@ -23,8 +22,7 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, float4 color 
     VSOut output;
     output.fillUV = texCoord;
         
-    float2 scaledUv = (texCoord - 0.5f) * uvScale;
-    output.texCoord = scaledUv + sheetOffset;
+    output.texCoord = (texCoord - 0.5f) * uvScale + sheetOffset;
     output.fillData = fillData;
     output.alpha = alpha;
     output.position = mul(float4(position, 0.0f, 1.0f), mvp);
