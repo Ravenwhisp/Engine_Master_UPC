@@ -207,7 +207,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();
-        command.sheetOffset = uiImg->getSheetOffset();
+        command.sheetOffset = uiImg->getSheetOffset() + Vector2(0.5f, 0.5f);
 
         command.uvScale = { 1.0f, 1.0f };
         if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile)
@@ -230,7 +230,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
             {
                 command.uvScale = t2d->getScale();
 			}
-        }
+        } 
         command.uvScale.x /= uiImg->getSheetColumns();
         command.uvScale.y /= uiImg->getSheetRows();
         command.renderMode = renderMode;

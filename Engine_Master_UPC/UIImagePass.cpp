@@ -85,13 +85,13 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
 
     const UIVertex quadVertices[6] =
     {
-        { Vector2(0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) },
-        { Vector2(1.0f, 0.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
-        { Vector2(1.0f, 1.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
+        { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
+        { Vector2(1.0f, 0.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
+        { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
 
-        { Vector2(0.0f, 0.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) },
-        { Vector2(1.0f, 1.0f), Vector2(1.0f, 0.0f), Vector4(1,1,1,1) },
-        { Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) }
+        { Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Vector4(1,1,1,1) },
+        { Vector2(1.0f, 1.0f), Vector2(1.0f, 1.0f), Vector4(1,1,1,1) },
+        { Vector2(0.0f, 1.0f), Vector2(0.0f, 1.0f), Vector4(1,1,1,1) }
     };
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(UIVertex)));
@@ -166,10 +166,6 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
         params.alpha = command.alpha;
         params.sheetOffset = Vector2(command.sheetOffset.x, command.sheetOffset.y);
         params.uvScale = Vector2(command.uvScale.x, command.uvScale.y);
-        if (command.renderMode == CanvasRenderMode::SCREEN_SPACE)
-        {
-			params.flipY = 1.0f;
-        }
 
         commandList->SetGraphicsRootConstantBufferView(
             0,
@@ -206,23 +202,34 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
 
     const float uiToWorld = 0.01f;
 
-    Matrix scale = Matrix::CreateScale(w * uiToWorld, h * uiToWorld, uiToWorld);
-	Matrix translate = Matrix::CreateTranslation(x * uiToWorld, y * uiToWorld, 0.0f);
+    Matrix scale = Matrix::CreateScale(w * uiToWorld, -h * uiToWorld, uiToWorld);
+	Matrix translate = Matrix::CreateTranslation(x * uiToWorld, -y * uiToWorld, 0.0f);
 
     local = scale * translate;
 
 	Matrix world = command.world;
 
-    if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
+    if (command.renderMode == CanvasRenderMode::WORLD_SPACE)
+    {
+        Matrix flipY = Matrix::CreateRotationY(DirectX::XM_PI);
+        world = flipY * world;
+    }
+    else if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
     {
         Matrix invView = m_view->Invert();
-        invView._11 *= -1.0f;
-        invView._12 *= -1.0f;
-        invView._13 *= -1.0f;
-        invView._41 = world._41;
-        invView._42 = world._42;
-        invView._43 = world._43;
-		world = invView;
+
+        Matrix rotation = invView;
+        rotation._41 = 0.0f;
+        rotation._42 = 0.0f;
+        rotation._43 = 0.0f;
+
+        Matrix translation = Matrix::CreateTranslation(
+            world._41,
+            world._42,
+            world._43
+        );
+
+        world = rotation * translation;
     }
 
     return (local * world) * (*m_view) * (*m_projection);
