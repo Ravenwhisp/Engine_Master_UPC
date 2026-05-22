@@ -373,6 +373,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
+    <ClInclude Include="ScriptDataContainerRef.h" />
     <ClInclude Include="ScriptFieldHandler.h" />
     <ClInclude Include="ScriptFieldHandlerRegistry.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
@@ -692,6 +693,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
+    <ClCompile Include="ScriptFieldHandler_DataContainerRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
     <ClCompile Include="ScriptFieldHandler_Float.cpp" />
     <ClCompile Include="ScriptFieldHandler_Int.cpp" />

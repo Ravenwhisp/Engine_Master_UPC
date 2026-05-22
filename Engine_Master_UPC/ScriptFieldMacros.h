@@ -54,3 +54,6 @@
 
 #define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), getComponentRefListFieldHandler(), {}, {}, { ComponentTypeValue } }
+
+#define SERIALIZED_DATACONTAINER_REF(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::DataContainerRef, offsetof(ThisScript, MemberName), getDataContainerRefFieldHandler() }

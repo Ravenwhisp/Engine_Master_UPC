@@ -13,7 +13,8 @@ enum class ScriptFieldType
     EnumInt,
     ComponentRef,
     ComponentRefList,
-    String
+    String,
+    DataContainerRef
 };
 
 struct ScriptFieldFloatInfo
