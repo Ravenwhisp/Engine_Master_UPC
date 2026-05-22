@@ -268,6 +268,7 @@
     <ClInclude Include="EnemyController.h" />
     <ClInclude Include="EnemyDamageable.h" />
     <ClInclude Include="EnemyDeathHandler.h" />
+    <ClInclude Include="EnemyDeathState.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
     <ClInclude Include="EnemyIDLE.h" />
     <ClInclude Include="ExportListTest.h" />
@@ -275,8 +276,10 @@
     <ClInclude Include="HapticTester.h" />
     <ClInclude Include="HeartbeatHaptic.h" />
     <ClInclude Include="HeartbeatTester.h" />
+    <ClInclude Include="HealthPickup.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LevelCheats.h" />
+    <ClInclude Include="LinkedDeathEnemyState.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
     <ClInclude Include="LyrielAbilityBase.h" />
     <ClInclude Include="LyrielArrowProjectile.h" />
@@ -332,6 +335,7 @@
     <ClCompile Include="EnemyController.cpp" />
     <ClCompile Include="EnemyDamageable.cpp" />
     <ClCompile Include="EnemyDeathHandler.cpp" />
+    <ClCompile Include="EnemyDeathState.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
     <ClCompile Include="EnemyShadowMark.cpp" />
@@ -339,8 +343,10 @@
     <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="HeartbeatHaptic.cpp" />
     <ClCompile Include="HeartbeatTester.cpp" />
+    <ClCompile Include="HealthPickup.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LevelCheats.cpp" />
+    <ClCompile Include="LinkedDeathEnemyState.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
     <ClCompile Include="LyrielAbilityBase.cpp" />
     <ClCompile Include="LyrielArrowProjectile.cpp" />
