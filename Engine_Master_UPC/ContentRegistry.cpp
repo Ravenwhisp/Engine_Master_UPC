@@ -5,6 +5,7 @@
 #include "AssetsDictionary.h"
 #include "ModuleAssets.h"
 
+#include <algorithm>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -47,6 +48,63 @@ void ContentRegistry::registerAsset(const fs::path& sourcePath)
     fs::path metaPath = normSource;
     Metadata::getMetadataPath(metaPath);
     addAsset(*dir, metaPath);
+}
+
+void ContentRegistry::unregisterAsset(const fs::path& sourcePath)
+{
+    if (!m_root) return;
+
+    const fs::path normSource = sourcePath.lexically_normal();
+    const fs::path parentPath = normSource.parent_path();
+    const std::string displayName = normSource.filename().string();
+
+    DirectoryEntry* dir = getDirectory(parentPath);
+    if (!dir) return;
+
+    auto it = std::find_if(dir->assets.begin(), dir->assets.end(),
+        [&](const AssetEntry& entry) { return entry.displayName == displayName; });
+
+    if (it != dir->assets.end())
+        dir->assets.erase(it);
+}
+
+void ContentRegistry::registerDirectory(const fs::path& dirPath)
+{
+    if (!m_root) return;
+
+    const fs::path normDir = dirPath.lexically_normal();
+    const fs::path parentPath = normDir.parent_path();
+
+    DirectoryEntry* parent = getDirectory(parentPath);
+    if (!parent) return;
+
+    for (const auto& child : parent->directories)
+    {
+        if (child->path == normDir)
+            return;
+    }
+
+    parent->directories.push_back(buildDirectory(normDir, parent));
+}
+
+void ContentRegistry::unregisterDirectory(const fs::path& dirPath)
+{
+    if (!m_root) return;
+
+    const fs::path normDir = dirPath.lexically_normal();
+
+    if (m_root->path == normDir)
+        return;
+
+    const fs::path parentPath = normDir.parent_path();
+    DirectoryEntry* parent = getDirectory(parentPath);
+    if (!parent) return;
+
+    auto it = std::find_if(parent->directories.begin(), parent->directories.end(),
+        [&](const std::unique_ptr<DirectoryEntry>& child) { return child->path == normDir; });
+
+    if (it != parent->directories.end())
+        parent->directories.erase(it);
 }
 
 DirectoryEntry* ContentRegistry::getRoot() const

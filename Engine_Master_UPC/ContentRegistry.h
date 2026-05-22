@@ -43,6 +43,10 @@ public:
     void rebuild(const std::filesystem::path& rootPath);
     void registerAsset(const std::filesystem::path& sourcePath);
 
+    void unregisterAsset(const std::filesystem::path& sourcePath);
+    void registerDirectory(const std::filesystem::path& dirPath);
+    void unregisterDirectory(const std::filesystem::path& dirPath);
+
     DirectoryEntry* getRoot() const;
     DirectoryEntry* getDirectory(const std::filesystem::path& path) const;
 

@@ -18,6 +18,7 @@
 
 class AssetScanner;
 class ContentRegistry;
+struct DirectoryEntry;
 class PrefabManager;
 
 class Asset;
@@ -81,6 +82,10 @@ public:
     void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
     bool save(Asset& asset, const std::filesystem::path& path = {});
     void refresh();
+
+    void unregisterAsset(const std::filesystem::path& sourcePath);
+    void registerDirectory(const std::filesystem::path& dirPath);
+    void unregisterDirectory(const std::filesystem::path& dirPath);
 
     ContentRegistry* getContentRegistry() const;
     PrefabManager* getPrefabManager() const;
@@ -224,6 +229,8 @@ private:
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
    
     void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath, const MD5Hash& contentHash = INVALID_ASSET_ID);
+
+    void collectDirectoryAssets(DirectoryEntry* dir);
 
 
 

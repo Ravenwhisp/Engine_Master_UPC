@@ -20,5 +20,5 @@ void CommandCreateFolder::run()
     }
 
     std::filesystem::create_directory(newPath);
-    app->getModuleAssets()->refresh();
+    app->getModuleAssets()->registerDirectory(newPath);
 }
