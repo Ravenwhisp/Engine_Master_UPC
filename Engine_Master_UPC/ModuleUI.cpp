@@ -211,8 +211,10 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.uvScale = { 1.0f, 1.0f };
         command.uvScale.x /= uiImg->getSheetColumns();
         command.uvScale.y /= uiImg->getSheetRows();
+        command.sheetOffset = Vector2(0.5f, 0.5f) * command.uvScale + uiImg->getSheetOffset();
 
-        if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile)
+        const bool hasSheet = uiImg->getSheetColumns() > 1 || uiImg->getSheetRows() > 1;
+        if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile && !hasSheet)
         {
 
             if (t2d->getStretchMode() == StretchMode::HORIZONTAL)
@@ -231,9 +233,9 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
             {
                 command.uvScale *= t2d->getScale();
 			}
+			command.sheetOffset = Vector2(0.5f, 0.5f);
         }
 
-        command.sheetOffset = Vector2(0.5f, 0.5f) * command.uvScale + uiImg->getSheetOffset();
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity
