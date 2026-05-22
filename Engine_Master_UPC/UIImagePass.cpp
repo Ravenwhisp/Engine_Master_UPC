@@ -203,18 +203,19 @@ Matrix UIImagePass::buildImageMVP(const UIImageCommand& command) const
     const float uiToWorld = 0.01f;
 
     Matrix scale = Matrix::CreateScale(w * uiToWorld, -h * uiToWorld, uiToWorld);
-	Matrix translate = Matrix::CreateTranslation(x * uiToWorld, -y * uiToWorld, 0.0f);
+	Matrix translate = Matrix::CreateTranslation(-(x + w ) * uiToWorld, (y + h ) * uiToWorld, 0.0f);
 
     local = scale * translate;
-
-	Matrix world = command.world;
 
     if (command.renderMode == CanvasRenderMode::WORLD_SPACE)
     {
         Matrix flipY = Matrix::CreateRotationY(DirectX::XM_PI);
-        world = flipY * world;
+        local = flipY * local;
     }
-    else if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
+
+	Matrix world = command.world;
+
+     if (command.renderMode == CanvasRenderMode::WORLD_SPACE_CAMERA)
     {
         Matrix invView = m_view->Invert();
 
