@@ -20,4 +20,6 @@ public:
 #pragma endregion
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 };

@@ -29,4 +29,6 @@ public:
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 	void drawUi() override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 };

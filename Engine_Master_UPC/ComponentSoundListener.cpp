@@ -70,4 +70,14 @@ std::unique_ptr<Component> ComponentSoundListener::clone(GameObject* newOwner) c
 	return cloned;
 }
 
+rapidjson::Value ComponentSoundListener::getJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", int(ComponentType::SPRITE_RENDERER), domTree.GetAllocator());
+	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+	return componentInfo;
+}
 

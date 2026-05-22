@@ -209,3 +209,14 @@ void ComponentSoundSource::drawUi()
 		postEvent(selectedBank.getName().c_str(), selectedEvent.name.c_str());
 	}
 }
+
+rapidjson::Value ComponentSoundSource::getJSON(rapidjson::Document& domTree)
+{
+	rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", int(ComponentType::SPRITE_RENDERER), domTree.GetAllocator());
+	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+	return componentInfo;
+}
