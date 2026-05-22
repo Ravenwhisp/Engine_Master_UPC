@@ -221,7 +221,6 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 slider->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
                 auto* sc = static_cast<UISlider*>(slider->AddComponentWithUID(ComponentType::UISLIDER, GenerateUID()));
                 auto* ic = static_cast<UIImage*>(slider->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID()));
-                sc->setTargetGraphic(ic);
 
                 if (!hasCanvas(parent))
                 {

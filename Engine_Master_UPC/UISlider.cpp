@@ -3,7 +3,7 @@
 
 #include <imgui.h>
 #include "UIImage.h"
-#include "SceneReferenceResolver.h"
+#include "GameObject.h"
 
 UISlider::UISlider(UID id, GameObject* owner)
     : Component(id, ComponentType::UISLIDER, owner)
@@ -15,8 +15,6 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
     std::unique_ptr<UISlider> clonedSlider = std::make_unique<UISlider>(m_uuid, newOwner);
 
     clonedSlider->setActive(this->isActive());
-    clonedSlider->m_targetGraphic = this->m_targetGraphic;
-    clonedSlider->m_targetGraphicUid = this->m_targetGraphicUid;
 
     clonedSlider->m_fillAmount = this->m_fillAmount;
     clonedSlider->m_fillMethod = this->m_fillMethod;
@@ -25,29 +23,29 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
     return clonedSlider;
 }
 
-void UISlider::applyToTarget()
+void UISlider::applyToImage()
 {
-    if (!m_targetGraphic)
+    if (!getOwner())
     {
         return;
     }
 
-    m_targetGraphic->setFillAmount(m_fillAmount);
-    m_targetGraphic->setFillMethod(m_fillMethod);
-    m_targetGraphic->setFillOrigin(m_fillOrigin);
-}
+    UIImage* img = getOwner()->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
+    
+    if (!img)
+    {
+        return;
+    }
 
-void UISlider::setTargetGraphic(UIImage* img)
-{
-    m_targetGraphic = img;
-    m_targetGraphicUid = img ? img->getID() : 0;
-    applyToTarget();
+    img->setFillAmount(m_fillAmount);
+    img->setFillMethod(m_fillMethod);
+    img->setFillOrigin(m_fillOrigin);
 }
 
 void UISlider::setFillAmount(float amount)
 {
     m_fillAmount = amount;
-    applyToTarget();
+    applyToImage();
 }
 
 void UISlider::setFillMethod(FillMethod method)
@@ -71,35 +69,18 @@ void UISlider::setFillMethod(FillMethod method)
         m_fillOrigin = FillOrigin::Radial360Clockwise;
         break;
     }
-    applyToTarget();
+    applyToImage();
 }
 
 void UISlider::setFillOrigin(FillOrigin origin)
 {
     m_fillOrigin = origin;
-    applyToTarget();
+    applyToImage();
 }
 
 void UISlider::drawUi()
 {
     ImGui::Text("UISlider");
-
-    ImGui::Button("Drop Here the Texture");
-
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
-        {
-            Component* data = *static_cast<Component**>(payload->Data);
-            UIImage* image = static_cast<UIImage*>(data);
-            if (image)
-            {
-                setTargetGraphic(image);
-            }
-        }
-        ImGui::EndDragDropTarget();
-    }
-    ImGui::Text("Target Graphic: %s", m_targetGraphic ? "Assigned" : "None");
 
     ImGui::Separator();
 
@@ -178,7 +159,7 @@ void UISlider::drawUi()
 
     if (changed)
     {
-        applyToTarget();
+        applyToImage();
     }
 }
 
@@ -190,8 +171,6 @@ rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("ComponentType", int(ComponentType::UISLIDER), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    componentInfo.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
-
     componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
     componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
@@ -201,11 +180,6 @@ rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
 
 bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("TargetGraphicUID"))
-    {
-        m_targetGraphicUid = (UID)componentInfo["TargetGraphicUID"].GetUint64();
-    }
-
     if (componentInfo.HasMember("FillAmount"))
         m_fillAmount = componentInfo["FillAmount"].GetFloat();
 
@@ -229,18 +203,5 @@ bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
         }
     }
 
-    m_targetGraphic = nullptr;
     return true;
-}
-
-void UISlider::fixReferences(const SceneReferenceResolver& resolver)
-{
-    if (m_targetGraphicUid == 0)
-    {
-        m_targetGraphic = nullptr;
-        return;
-    }
-
-    m_targetGraphic = static_cast<UIImage*>(resolver.getClonedComponent(m_targetGraphicUid));
-    applyToTarget();
 }
