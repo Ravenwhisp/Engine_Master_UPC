@@ -57,6 +57,24 @@ namespace GameObjectAPI
         return gameObject->GetTransform();
     }
 
+    Component* getComponent(GameObject* gameObject, ComponentType type)
+    {
+        if (gameObject == nullptr)
+        {
+            return nullptr;
+        }
+        return gameObject->GetComponent(type);
+    }
+
+    const Component* getComponent(const GameObject* gameObject, ComponentType type)
+    {
+        if (gameObject == nullptr)
+        {
+            return nullptr;
+        }
+        return gameObject->GetComponent(type);
+    }
+
     Script* GameObjectAPI::getScript(GameObject* gameObject, const char* scriptName)
     {
         if (gameObject == nullptr || scriptName == nullptr)

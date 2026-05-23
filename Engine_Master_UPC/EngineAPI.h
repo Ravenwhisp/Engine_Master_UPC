@@ -62,6 +62,9 @@ namespace GameObjectAPI
     ENGINE_API Script* getScriptByIndex(GameObject* gameObject, int index);
     ENGINE_API const Script* getScriptByIndex(const GameObject* gameObject, int index);
 
+    ENGINE_API Component* getComponent(GameObject* gameObject, ComponentType type);
+    ENGINE_API const Component* getComponent(const GameObject* gameObject, ComponentType type);
+
     template<typename T>
     T* findScript(GameObject* gameObject);
 
