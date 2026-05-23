@@ -289,7 +289,6 @@
     <ClCompile Include="SceneReferenceResolver.cpp">
       <Filter>GameEntity\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="EngineAPI.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -398,14 +397,12 @@
     <ClCompile Include="WindowAnimationStateMachine.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="TriggerComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="TriggerSystem.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp" />
     <ClCompile Include="ScriptFieldHandler_Float.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
@@ -484,7 +481,6 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="Skin.cpp" />
     <ClCompile Include="PrefabSerializer.cpp" />
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
@@ -529,6 +525,21 @@
     </ClCompile>
     <ClCompile Include="EmitterSize.cpp">
       <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EquirectangularPass.cpp">
+      <Filter>D3D12\Rendering\IBL</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabSerializer.cpp">
+      <Filter>Prefabs</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabUI.cpp">
+      <Filter>Prefabs</Filter>
+    </ClCompile>
+    <ClCompile Include="Skin.cpp">
+      <Filter>D3D12\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="UISlider.cpp">
+      <Filter>UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -724,7 +735,6 @@
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h" />
     <ClInclude Include="UIImage.h">
       <Filter>UI</Filter>
     </ClInclude>
@@ -920,8 +930,6 @@
     <ClInclude Include="SceneReferenceResolver.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabEditSession.h" />
-    <ClInclude Include="PrefabUI.h" />
     <ClInclude Include="Extensions.h">
       <Filter>Persistence\Importers\Core</Filter>
     </ClInclude>
@@ -1007,7 +1015,6 @@
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="ImporterAnimation.h">
       <Filter>Persistence\Importers</Filter>
     </ClInclude>
@@ -1124,8 +1131,6 @@
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="CanvasRenderMode.h" />
-    <ClInclude Include="UIFill.h" />
-    <ClInclude Include="UISlider.h" />
     <ClInclude Include="ScriptFieldMacros.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
@@ -1141,7 +1146,6 @@
     <ClInclude Include="TriggerSystem.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="ParticleSystemComponent.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -1193,7 +1197,6 @@
     <ClInclude Include="ScriptFieldHandlerRegistry.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabInstance.h" />
     <ClInclude Include="ModuleHaptics.h">
       <Filter>Haptics</Filter>
     </ClInclude>
@@ -1243,9 +1246,38 @@
     <ClInclude Include="NavMeshTypes.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="Skin.h" />
     <ClInclude Include="EmitterSize.h">
       <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="EquirectangularPass.h">
+      <Filter>D3D12\Rendering\IBL</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabEditSession.h">
+      <Filter>Prefabs</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabInstance.h">
+      <Filter>Prefabs</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabSerializer.h">
+      <Filter>Prefabs</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefabUI.h">
+      <Filter>Prefabs</Filter>
+    </ClInclude>
+    <ClInclude Include="Skin.h">
+      <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="UISlider.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIFill.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyboxParams.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>D3D12\Geometry</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1440,6 +1472,12 @@
     <Filter Include="ParticleSystem\Properties">
       <UniqueIdentifier>{8be1fc98-4b7a-45b0-a5a2-8c211b271905}</UniqueIdentifier>
     </Filter>
+    <Filter Include="D3D12\Rendering\IBL">
+      <UniqueIdentifier>{3249c748-325f-48f1-9c9c-b33f8ba2a2a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Prefabs">
+      <UniqueIdentifier>{30cee5ed-7863-4445-80bc-c83da443d5f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1515,5 +1553,11 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
+    <FxCompile Include="EquirectangularVertexShader.hlsl">
+      <Filter>D3D12\Rendering\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="EquirectangularPixelShader.hlsl">
+      <Filter>D3D12\Rendering\IBL</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
