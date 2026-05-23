@@ -64,8 +64,8 @@ public:
 	Texture* createNullTexture2D();
 
 	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
-	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
-	Texture* createEnvironmentInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
+	Texture* createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox);
+	Texture* createEnvironmentInternal(const IndexBuffer* indexBuffer, SkyBox* skybox);
 
 	Texture* getEnvironmentBrdfTexture() { return m_enviromentBrdfTexture.get(); }
 	void  setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture);
@@ -75,8 +75,8 @@ public:
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
-	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
-	std::shared_ptr<Texture>		createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
+	std::shared_ptr<Texture>		createIrradiance(const IndexBuffer* indexBuffer, SkyBox* skybox);
+	std::shared_ptr<Texture>		createEnvironment(const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);

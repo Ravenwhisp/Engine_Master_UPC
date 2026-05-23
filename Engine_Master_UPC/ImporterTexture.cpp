@@ -13,13 +13,24 @@ bool ImporterTexture::loadExternal(const std::filesystem::path& path, ScratchIma
     const wchar_t* widePath = path.c_str();
 
     if (SUCCEEDED(LoadFromDDSFile(widePath, DDS_FLAGS_NONE, nullptr, out)))
+    {
         return true;
+    }
 
     if (SUCCEEDED(LoadFromTGAFile(widePath, nullptr, out)))
+    {
         return true;
+    }
 
     if (SUCCEEDED(LoadFromWICFile(widePath, WIC_FLAGS_NONE, nullptr, out)))
+    {
         return true;
+    }
+
+    if (SUCCEEDED(LoadFromHDRFile(widePath, nullptr, out)))
+    {
+        return true;
+    }
 
     DEBUG_ERROR("[ImporterTexture] Failed to load texture from '%s'.", path.string().c_str());
     return false;
@@ -74,7 +85,8 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
             working->GetImages(),
             working->GetImageCount(),
             meta,
-            DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+            //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+            DXGI_FORMAT_R8G8B8A8_UNORM,
             TEX_FILTER_DEFAULT,
             TEX_THRESHOLD_DEFAULT,
             converted

@@ -38,9 +38,36 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 		m_materialData.hasMetallicRoughnessTex = false;
 	}
 
+	if (asset.getNormalMap().isValid())
+	{
+		auto normalTexture = app->getModuleAssets()->load<TextureAsset>(asset.getNormalMap());
+
+		m_textureNormal = app->getModuleResources()->createTextureLinear(*normalTexture);
+		m_materialData.hasNormalTex = true;
+	}
+	else
+	{
+		m_textureNormal.reset(app->getModuleResources()->createNullTexture2D());
+		m_materialData.hasNormalTex = false;
+	}
+
+	if (asset.getEmissive().isValid())
+	{
+		auto emissiveTexture = app->getModuleAssets()->load<TextureAsset>(asset.getEmissive());
+		m_textureEmissive = app->getModuleResources()->createTextureLinear(*emissiveTexture);
+		m_materialData.hasEmissiveTex = true;
+	}
+	else
+	{
+		m_textureEmissive.reset(app->getModuleResources()->createNullTexture2D());
+		m_materialData.hasEmissiveTex = false;
+	}
+
 	m_materialData.diffuseColour = Vector3(asset.getBaseColour().R(), asset.getBaseColour().G(), asset.getBaseColour().B());
 	m_materialData.metallicFactor = asset.getMetallicFactor();
 	m_materialData.roughnessFactor = asset.getRoughnessFactor();
+	m_materialData.normalFactor = asset.getNormalFactor();
+	m_materialData.emmisiveColour = Vector3(1, 1, 1);
 	m_materialBuffer = app->getModuleResources()->createDefaultBuffer(&m_materialData, alignUp(sizeof(PbrMetallicRoughnessData), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT), "MaterialBuffer");
 
     buildDescriptorTable();
@@ -80,6 +107,8 @@ void BasicMaterial::buildDescriptorTable()
     // then release the texture's own private 1-slot block.
     copyTextureIntoSlot(m_textureColor.get(), SLOT_DIFFUSE);
     copyTextureIntoSlot(m_textureMetallicRoughness.get(), SLOT_METAL);
+	copyTextureIntoSlot(m_textureNormal.get(), SLOT_NORMAL);
+	copyTextureIntoSlot(m_textureEmissive.get(), SLOT_EMISSIVE);
 
 }
 

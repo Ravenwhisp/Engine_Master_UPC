@@ -103,7 +103,7 @@ void SkyBoxPass::prepare(const RenderContext& ctx)
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     if (!m_skyBox) return;
-    if (!m_skyBox->getTexture()) return;
+    if (!m_skyBox->getHdrTexture()) return;
     if (!m_view || !m_projection) return;
 
     Matrix view = *m_view;

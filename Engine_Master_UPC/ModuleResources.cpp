@@ -226,28 +226,28 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	return texture;
 }
 
-Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
+Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
 	
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
-	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
-	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
+	desc.width = static_cast<uint32_t>(skybox->getTexture()->getDesc().width);
+	desc.height = static_cast<uint32_t>(skybox->getTexture()->getDesc().height);
+	desc.arraySize = static_cast<uint16_t>(skybox->getTexture()->getDesc().arraySize);
 	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto irradianceTexture = new Texture(textureAsset.getUID(), *m_device.Get(), desc);
+	auto irradianceTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
 
 
 	//ROOT SIGNATURE
 	ComPtr<ID3D12RootSignature> rootSignature;
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
+	CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
 	CD3DX12_DESCRIPTOR_RANGE srvRange;
 	CD3DX12_DESCRIPTOR_RANGE sampRange;
 	ComPtr<ID3DBlob> signature;
@@ -257,10 +257,11 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
 	rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
-	rootParameters[2].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[1].InitAsConstants(sizeof(TextureSize) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[3].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-	rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(4, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
 	DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
@@ -322,6 +323,9 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	scissor.right = (LONG)desc.width;
 	scissor.bottom = (LONG)desc.height;
 
+	TextureSize textureSize = {};
+	textureSize.textureSize = viewport.Width;
+
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissor);
 	
@@ -368,8 +372,9 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 		
 		
 		commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
-		commandList->SetGraphicsRootDescriptorTable(1, skybox->getTexture()->getSRV().gpu);
-		commandList->SetGraphicsRootDescriptorTable(2, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+		commandList->SetGraphicsRoot32BitConstants(1, sizeof(TextureSize) / sizeof(UINT32), &textureSize, 0);
+		commandList->SetGraphicsRootDescriptorTable(2, skybox->getTexture()->getSRV().gpu);
+		commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 		commandList->IASetIndexBuffer(&indexBufferView);
@@ -391,31 +396,31 @@ Texture* ModuleResources::createIrradianceInternal(const TextureAsset& textureAs
 	
 	m_queue->flush();
 
-	auto finalTexture = new Texture(textureAsset.getUID(), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	auto finalTexture = new Texture(GenerateUID(), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	return finalTexture;
 }
 
-Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
+Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
 
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
-	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
-	desc.arraySize = static_cast<uint16_t>(textureAsset.getArraySize());
-	desc.mipLevels = 5; //roughness levels
+	desc.width = static_cast<uint32_t>(skybox->getTexture()->getDesc().width);
+	desc.height = static_cast<uint32_t>(skybox->getTexture()->getDesc().height);
+	desc.arraySize = static_cast<uint16_t>(skybox->getTexture()->getDesc().arraySize);
+	desc.mipLevels = 11; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	auto environmentTexture = new Texture(textureAsset.getUID(), *m_device.Get(), desc);
+	auto environmentTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
 
 	//ROOT SIGNATURE
 	ComPtr<ID3D12RootSignature> rootSignature;
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+	CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
 	CD3DX12_DESCRIPTOR_RANGE srvRange;
 	CD3DX12_DESCRIPTOR_RANGE sampRange;
 	ComPtr<ID3DBlob> signature;
@@ -426,10 +431,11 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 	rootParameters[0].InitAsConstants(sizeof(SkyboxParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[1].InitAsConstants(sizeof(SkyBox::EnvironmentData) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-	rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
-	rootParameters[3].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsConstants(sizeof(TextureSize) / sizeof(UINT32), 2, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[4].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-	rootSignatureDesc.Init(4, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(5, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
 	DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
@@ -475,23 +481,6 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 
 
-	//Viewport and scissor
-	D3D12_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = (float)desc.width;
-	viewport.Height = (float)desc.height;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-
-	D3D12_RECT scissor = {};
-	scissor.left = 0;
-	scissor.top = 0;
-	scissor.right = (LONG)desc.width;
-	scissor.bottom = (LONG)desc.height;
-
-	commandList->RSSetViewports(1, &viewport);
-	commandList->RSSetScissorRects(1, &scissor);
 
 
 
@@ -512,6 +501,27 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 	for (size_t mip = 0; mip < desc.mipLevels; mip++)
 	{
+		//Viewport and scissor
+		D3D12_VIEWPORT viewport = {};
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = desc.width >> mip;
+		viewport.Height = desc.height >> mip;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+
+		D3D12_RECT scissor = {};
+		scissor.left = 0;
+		scissor.top = 0;
+		scissor.right = desc.width >> mip;
+		scissor.bottom = desc.height >> mip;
+
+		TextureSize textureSize = {};
+		textureSize.textureSize = viewport.Width;
+
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &scissor);
+
 		SkyBox::EnvironmentData environmentData{};
 		environmentData.roughness = (float)mip / (desc.mipLevels - 1); //clamp 
 
@@ -543,8 +553,9 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 			commandList->SetGraphicsRoot32BitConstants(0, sizeof(SkyboxParams) / sizeof(UINT32), &params, 0);
 			commandList->SetGraphicsRoot32BitConstants(1, sizeof(SkyBox::EnvironmentData) / sizeof(UINT32), &environmentData, 0);
-			commandList->SetGraphicsRootDescriptorTable(2, skybox->getTexture()->getSRV().gpu);
-			commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+			commandList->SetGraphicsRoot32BitConstants(2, sizeof(TextureSize) / sizeof(UINT32), &textureSize, 0);
+			commandList->SetGraphicsRootDescriptorTable(3, skybox->getTexture()->getSRV().gpu);
+			commandList->SetGraphicsRootDescriptorTable(4, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 			commandList->IASetIndexBuffer(&indexBufferView);
@@ -570,7 +581,7 @@ Texture* ModuleResources::createEnvironmentInternal(const TextureAsset& textureA
 
 
 
-	auto finalTexture = new Texture(textureAsset.getUID(), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	auto finalTexture = new Texture(GenerateUID(), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	return finalTexture;
 }
 
@@ -641,20 +652,16 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	return texture;
 }
 
-std::shared_ptr<Texture> ModuleResources::createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
+std::shared_ptr<Texture> ModuleResources::createIrradiance(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
-	const UID uid = textureAsset.getUID();
-
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(textureAsset, indexBuffer, skybox));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createIrradianceInternal(indexBuffer, skybox));
 
 	return texture;
 }
 
-std::shared_ptr<Texture> ModuleResources::createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox)
+std::shared_ptr<Texture> ModuleResources::createEnvironment(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
-	const UID uid = textureAsset.getUID();
-
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createEnvironmentInternal(textureAsset, indexBuffer, skybox));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createEnvironmentInternal(indexBuffer, skybox));
 
 	return texture;
 }
