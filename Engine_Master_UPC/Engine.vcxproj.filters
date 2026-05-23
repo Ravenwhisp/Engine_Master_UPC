@@ -560,9 +560,11 @@
     <ClCompile Include="ComponentSoundSource.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Win32\AkDefaultIOHookDeferred.cpp" />
     <ClCompile Include="WindowMusicDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Win32\AkDefaultIOHookDeferred.cpp">
+      <Filter>MusicSystem\3rdParty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
