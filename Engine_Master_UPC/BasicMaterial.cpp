@@ -21,7 +21,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	}
 	else
 	{
-		m_textureColor.reset(app->getModuleResources()->createNullTexture2D());
+		m_textureColor = app->getModuleResources()->createNullTexture2D();
 		m_materialData.hasDiffuseTex = false;
 	}
 
@@ -34,7 +34,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	}
 	else
 	{
-		m_textureMetallicRoughness.reset(app->getModuleResources()->createNullTexture2D());
+		m_textureMetallicRoughness = app->getModuleResources()->createNullTexture2D();
 		m_materialData.hasMetallicRoughnessTex = false;
 	}
 
@@ -47,7 +47,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	}
 	else
 	{
-		m_textureNormal.reset(app->getModuleResources()->createNullTexture2D());
+		m_textureNormal = app->getModuleResources()->createNullTexture2D();
 		m_materialData.hasNormalTex = false;
 	}
 
@@ -59,7 +59,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	}
 	else
 	{
-		m_textureEmissive.reset(app->getModuleResources()->createNullTexture2D());
+		m_textureEmissive = app->getModuleResources()->createNullTexture2D();
 		m_materialData.hasEmissiveTex = false;
 	}
 
