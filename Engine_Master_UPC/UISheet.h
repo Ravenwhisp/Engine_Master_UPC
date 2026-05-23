@@ -19,8 +19,10 @@ public:
 
     int getColumns() const { return m_columns; }
     int getRows() const { return m_rows; }
+    Vector2 getOffset() const { return m_offset; }
 
     void setGrid(int columns, int rows);
+    void setOffset(const Vector2& offset);
 
     void setFps(float fps) { m_fps = fps; }
     float getFps() const { return m_fps; }
@@ -51,6 +53,7 @@ private:
 private:
     int m_columns = 1;
     int m_rows = 1;
+    Vector2 m_offset = { 0.0f, 0.0f };
 
     float m_fps = 10.0f;
     bool m_loop = true;

@@ -25,6 +25,7 @@ std::unique_ptr<Component> UISheet::clone(GameObject* newOwner) const
 
     cloned->m_columns = m_columns;
     cloned->m_rows = m_rows;
+    cloned->m_offset = m_offset;
 
     cloned->m_fps = m_fps;
     cloned->m_loop = m_loop;
@@ -50,6 +51,12 @@ void UISheet::setGrid(int columns, int rows)
     m_startFrame = std::clamp(m_startFrame, 0, m_endFrame);
     m_currentFrame = std::clamp(m_currentFrame, m_startFrame, m_endFrame);
 
+    applyToImage();
+}
+
+void UISheet::setOffset(const Vector2& offset)
+{
+    m_offset = offset;
     applyToImage();
 }
 
@@ -112,7 +119,7 @@ void UISheet::applyToImage()
     const float invCols = 1.0f / float(std::max(1, m_columns));
     const float invRows = 1.0f / float(std::max(1, m_rows));
 
-    const Vector2 uvOffset = { float(col) * invCols, + float(row) * invRows };
+    const Vector2 uvOffset = { m_offset.x + float(col) * invCols, m_offset.y + float(row) * invRows };
     img->setSheetOffset(uvOffset);
 }
 
@@ -186,6 +193,8 @@ void UISheet::drawUi()
         setGrid(cols, rows);
     }
 
+    ImGui::DragFloat2("UV Offset (base)", &m_offset.x, 0.001f);
+
     ImGui::Separator();
 
 	if (m_playing)
@@ -247,6 +256,13 @@ rapidjson::Value UISheet::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Columns", m_columns, domTree.GetAllocator());
     componentInfo.AddMember("Rows", m_rows, domTree.GetAllocator());
 
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_offset.x, domTree.GetAllocator());
+        offset.PushBack(m_offset.y, domTree.GetAllocator());
+        componentInfo.AddMember("Offset", offset, domTree.GetAllocator());
+    }
+
     componentInfo.AddMember("FPS", m_fps, domTree.GetAllocator());
     componentInfo.AddMember("Loop", m_loop, domTree.GetAllocator());
     componentInfo.AddMember("Playing", m_playing, domTree.GetAllocator());
@@ -262,6 +278,12 @@ bool UISheet::deserializeJSON(const rapidjson::Value& componentInfo)
 {
     if (componentInfo.HasMember("Columns")) m_columns = std::max(1, componentInfo["Columns"].GetInt());
     if (componentInfo.HasMember("Rows")) m_rows = std::max(1, componentInfo["Rows"].GetInt());
+
+    if (componentInfo.HasMember("Offset"))
+    {
+        m_offset.x = componentInfo["Offset"][0].GetFloat();
+        m_offset.y = componentInfo["Offset"][1].GetFloat();
+    }
 
     if (componentInfo.HasMember("FPS")) m_fps = componentInfo["FPS"].GetFloat();
     if (componentInfo.HasMember("Loop")) m_loop = componentInfo["Loop"].GetBool();
