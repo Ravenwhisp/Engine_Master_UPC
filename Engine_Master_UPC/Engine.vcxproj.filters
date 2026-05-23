@@ -527,7 +527,9 @@
     <ClCompile Include="EmitterSize.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
-    <ClCompile Include="EmitterRotation.cpp" />
+    <ClCompile Include="EmitterRotation.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1245,7 +1247,9 @@
     <ClInclude Include="EmitterSize.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="EmitterRotation.h" />
+    <ClInclude Include="EmitterRotation.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

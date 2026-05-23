@@ -20,7 +20,7 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		{
 			unsigned int poolIndex = (*aliveParticles)[i].second;
 
-			if (particlePool[poolIndex].lifeTime == 0) 
+			if (particlePool[poolIndex].lifeTime == 0.f) 
 			{
 				// Remove from alives
 				// aliveParticles->erase(aliveParticles->begin() + i); <- Should not need to be brough back

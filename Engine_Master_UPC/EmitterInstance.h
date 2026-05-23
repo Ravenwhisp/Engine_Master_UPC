@@ -10,10 +10,11 @@ struct Particle {
 	Vector3 position; // CHANGE TO A TRANSFORM?
 	Vector4 colorAndAlpha;
 	float rotationZ = 0.f; // since they are billboards, other rotations don't make sense
-	Vector2 scale = Vector2 (1.0f, 1.0f); // FOR NOW
+	Vector2 scale;
 
 	float velocity;
 	float rotationVelocity;
+	bool flippedRotation;
 	Vector3 movementDirection; // should be normalized
 
 	float lifeTime = 0.f;
