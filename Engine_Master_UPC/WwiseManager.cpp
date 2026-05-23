@@ -4,7 +4,10 @@
 #include <AK/SoundEngine/Common/AkMemoryMgrModule.h>
 #include <AK/SoundEngine/Common/AkStreamMgrModule.h>
 #include <AK/SoundEngine/Common/AkSoundEngine.h>
+
+#ifndef AK_OPTIMIZED
 #include <AK/Comm/AkCommunication.h>
+#endif
 
 #include <AkDefaultIOHookDeferred.h>
 
@@ -27,7 +30,11 @@ bool WwiseManager::init()
 	if (!initStream()) return false;
 	if (!initLowLevelIO()) return false;
 	if (!initSoundEngine()) return false;
+
+#ifndef AK_OPTIMIZED
 	if (!initComm()) return false;
+#endif
+
 	if (!registerDefaultGameObjects()) return false;
 
 	return true;
@@ -45,11 +52,13 @@ void WwiseManager::cleanUp()
 {
 	unregisterDefaultGameObjects();
 
+#ifndef AK_OPTIMIZED
 	if (m_commCreated)
 	{
 		AK::Comm::Term();
 		m_commCreated = false;
 	}
+#endif
 
 	if (m_soundEngineCreated)
 	{
@@ -232,6 +241,7 @@ bool WwiseManager::initSoundEngine()
 	return true;
 }
 
+#ifndef AK_OPTIMIZED
 bool WwiseManager::initComm()
 {
 	AkCommSettings commSettings;
@@ -244,6 +254,7 @@ bool WwiseManager::initComm()
 
 	return true;
 }
+#endif
 
 bool WwiseManager::registerDefaultGameObjects()
 {

@@ -238,7 +238,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Release;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\release;.\3rdParty\Wwise\lib\x64\Profile</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
@@ -252,7 +252,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GAME_RELEASE;_WINDOWS;ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GAME_RELEASE;AK_OPTIMIZED;_WINDOWS;ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
@@ -265,7 +265,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;OptickCore.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;OptickCore.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Release;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\release;.\3rdParty\Wwise\lib\x64\Release</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
