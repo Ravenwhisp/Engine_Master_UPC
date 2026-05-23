@@ -17,8 +17,11 @@ public:
 	Color& getBaseColour() const { return baseColour; }
 
 	AssetReference& getMetallicRoughnessMap() { return metallicRoughnessMap; }
+	AssetReference& getNormalMap() { return normalMap; }
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
+	uint32_t getNormalFactor() const { return normalFactor; }
+	AssetReference& getEmissive() { return emissiveMap; }
 protected:
 
 	AssetReference		baseMap{};
@@ -28,6 +31,7 @@ protected:
 	uint32_t			roughnessFactor = 0;
 	uint32_t			metallicFactor = 0;
 	AssetReference		normalMap{};
+	uint32_t			normalFactor = 0;
 	AssetReference		occlusionMap{};
 
 	bool				isEmissive = false;

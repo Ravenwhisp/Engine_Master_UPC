@@ -22,10 +22,11 @@ public:
 
 	enum TextureSlot : uint32_t
 	{
-		SLOT_DIFFUSE = 0,
-		SLOT_METAL  = 1,
-		// SLOT_ROUGHNESS = 2,
-		SLOT_COUNT = 8
+		SLOT_DIFFUSE	= 0,
+		SLOT_METAL		= 1,
+		SLOT_NORMAL		= 2,
+		SLOT_EMISSIVE	= 3,
+		SLOT_COUNT   = 8
 	};
 
 
@@ -58,8 +59,14 @@ public:
 		float       metallicFactor;
 		float       roughnessFactor;
 		BOOL        hasMetallicRoughnessTex;
+		
+		float		normalFactor;
+		BOOL		hasNormalTex;
 
-		float       padding;
+		Vector3     emmisiveColour;
+		BOOL		hasEmissiveTex;
+
+		Vector3      padding;
 	};
 
 	explicit BasicMaterial(const UID uid, MaterialAsset& asset);
@@ -81,6 +88,8 @@ private:
 
 	std::shared_ptr<Texture>	  m_textureColor;
 	std::shared_ptr<Texture>	  m_textureMetallicRoughness;
+	std::shared_ptr<Texture>	  m_textureNormal;
+	std::shared_ptr<Texture>      m_textureEmissive;
 	ComPtr<ID3D12Resource>		  m_materialBuffer;
 	PbrMetallicRoughnessData	  m_materialData;
 

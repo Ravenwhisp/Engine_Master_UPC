@@ -55,9 +55,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     if (ImGui::Button("Apply", ImVec2(buttonWidth, 0)))
     {
         app->getModuleAssets()->getPrefabManager()->applyPrefab(root);
-        app->getModuleAssets()->refresh();
         app->getModuleEditor()->exitPrefabEdit();
-
     }
 
     ImGui::PopStyleColor(2);
@@ -264,7 +262,6 @@ void PrefabUI::drawNodeContextMenu(bool prefabMode)
     if (ImGui::MenuItem("Apply  -  Save changes to prefab file"))
     {
         app->getModuleAssets()->getPrefabManager()->applyPrefab(root);
-        app->getModuleAssets()->refresh();
         app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor();
@@ -465,7 +462,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         if (FileIO::exists(sourcePath))
         {
             FileIO::remove(sourcePath);
-            app->getModuleAssets()->refresh();
+            app->getModuleAssets()->unregisterAsset(sourcePath.parent_path() / sourcePath.stem());
         }
     }
     ImGui::PopStyleColor();
@@ -499,7 +496,8 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
                 app->getModuleAssets()->getPrefabManager()->createVariant(
                     std::filesystem::path(buffers.variantSource),
                     std::filesystem::path(buffers.variantDest));
-                app->getModuleAssets()->refresh();
+                AssetReference ref;
+                app->getModuleAssets()->importAsset(std::filesystem::path(buffers.variantDest), ref);
             }
             ImGui::CloseCurrentPopup();
         }
@@ -567,7 +565,6 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
             if (selected)
             {
                 linkAndSavePrefab(selected, std::filesystem::path(buffers.savePrefab));
-                app->getModuleAssets()->refresh();
             }
             ImGui::CloseCurrentPopup();
         }
