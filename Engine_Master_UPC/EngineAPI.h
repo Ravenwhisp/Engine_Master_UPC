@@ -289,12 +289,14 @@ namespace Transform2DAPI
     ENGINE_API void setAnchorMin(Transform2D* transform, const Vector2& newAnchorMin);
     ENGINE_API Vector2 getAnchorMax(const Transform2D* transform);
 	ENGINE_API void setAnchorMax(Transform2D* transform, const Vector2& newAnchorMax);
+	ENGINE_API Vector2 getBaseSize(const Transform2D* transform);
+	ENGINE_API void setBaseSize(Transform2D* transform, const Vector2& newBaseSize);
 }
 
 namespace SliderAPI
 {
     ENGINE_API float getFillAmount(const UISlider* slider);
-    ENGINE_API void setFillAmount(UISlider* slider, float amount);
+    ENGINE_API void setFillAmount(UISlider* slider, const float amount);
 	ENGINE_API FillMethod getFillMethod(const UISlider* slider);
     ENGINE_API void setFillMethod(UISlider* slider, FillMethod method);
     ENGINE_API FillOrigin getFillOrigin(const UISlider* slider);
@@ -309,6 +311,8 @@ namespace UISheetAPI
     ENGINE_API bool getLoop(UISheet* sheet);
     ENGINE_API void setLoop(UISheet* sheet, bool isLoop);
     ENGINE_API bool isPlaying(UISheet* sheet);
+    ENGINE_API Vector2 getOffset(UISheet* sheet);
+    ENGINE_API void setOffset(UISheet* sheet, const Vector2& offset);
 }
 
 namespace DebugDrawAPI

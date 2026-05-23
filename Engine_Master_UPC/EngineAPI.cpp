@@ -2098,6 +2098,22 @@ namespace Transform2DAPI
         }
         transform->setAnchorMax(newAnchorMax);
 	}
+    Vector2 getBaseSize(const Transform2D* transform)
+    {
+        if (!transform)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+		return transform->getBaseSize();
+    }
+    void setBaseSize(Transform2D* transform, const Vector2& newBaseSize)
+    {
+        if (!transform)
+        {
+            return;
+        }
+        transform->setBaseSize(newBaseSize);
+    }
 }
 
 namespace SliderAPI
@@ -2112,7 +2128,7 @@ namespace SliderAPI
         return slider->getFillAmount();
     }
 
-    void setFillAmount(UISlider* slider, float amount)
+    void setFillAmount(UISlider* slider, const float amount)
     {
         if (!slider)
         {
@@ -2213,6 +2229,24 @@ namespace UISheetAPI
             return false;
         }
         return sheet->isPlaying();
+    }
+
+    Vector2 getOffset(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+        return sheet->getOffset();
+    }
+
+    void setOffset(UISheet* sheet, const Vector2& offset)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+        sheet->setOffset(offset);
     }
 }
 
