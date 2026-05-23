@@ -714,6 +714,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
     <ClCompile Include="ScriptFieldHandler_Float.cpp" />
     <ClCompile Include="ScriptFieldHandler_Int.cpp" />
+    <ClCompile Include="ScriptFieldHandler_List.cpp" />
     <ClCompile Include="ScriptFieldHandler_String.cpp" />
     <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
     <ClCompile Include="Skin.cpp" />
