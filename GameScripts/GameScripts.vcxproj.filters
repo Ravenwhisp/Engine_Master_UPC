@@ -69,6 +69,7 @@
     <ClCompile Include="TriggerDebugScript.cpp" />
     <ClCompile Include="UIController.cpp" />
     <ClCompile Include="UIPause.cpp" />
+    <ClCompile Include="MusicSystemTester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="TriggerDebugScript.h" />
     <ClInclude Include="UIController.h" />
     <ClInclude Include="UIPause.h" />
+    <ClInclude Include="MusicSystemTester.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PlayerCharacterGuide.md" />
