@@ -421,7 +421,18 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         }
     }
 
-    m_uidIndex[subMeta.uid] = { subMeta.type, {} };
+    {
+        auto prevIt = m_uidIndex.find(subMeta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != subMeta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+    m_uidIndex[subMeta.uid] = { subMeta.type, {}, subMeta.contentHash };
 
     if (isValidUID(parentUID))
     {

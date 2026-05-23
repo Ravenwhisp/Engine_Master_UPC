@@ -97,6 +97,15 @@ AssetReference ImporterGltf::resolveOrGenerateReference(AssetType type, const ui
                 return AssetReference(m_existingDeps[i].uid, contentHash, type);
             }
         }
+
+        for (size_t i = 0; i < m_existingDeps.size(); ++i)
+        {
+            if (!m_existingDepsUsed[i] && m_existingDeps[i].type == type)
+            {
+                m_existingDepsUsed[i] = true;
+                return AssetReference(m_existingDeps[i].uid, contentHash, type);
+            }
+        }
     }
 
     return AssetReference(GenerateUID(), contentHash, type);
