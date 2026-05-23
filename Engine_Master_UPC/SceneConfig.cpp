@@ -13,6 +13,7 @@
 SceneConfig::SceneConfig()
 {
     m_moduleScene = app->getModuleScene();
+    m_moduleMusic = app->getModuleMusic();
 }
 
 void SceneConfig::drawInternal()
@@ -27,8 +28,8 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawLightSettings();
     ImGui::Separator();
-    ImGui::Separator();
     drawMusicBanksSettings();
+    ImGui::Separator();
 }
 
 void SceneConfig::drawSaveSceneSettings()

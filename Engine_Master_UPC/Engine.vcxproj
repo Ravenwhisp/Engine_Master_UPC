@@ -156,6 +156,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -230,6 +231,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -256,6 +258,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -501,6 +504,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Resources.h" />
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
+    <ClInclude Include="WindowMusicDebug.h" />
     <ClInclude Include="WindowSceneEditor.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="SceneSnapshot.h" />
@@ -847,6 +851,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
+    <ClCompile Include="WindowMusicDebug.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
