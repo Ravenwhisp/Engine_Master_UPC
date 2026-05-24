@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EngineAPI.h"
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -58,9 +59,9 @@ struct HapticEffectDefinition
         Separation,  
     };
 
-    static HapticEffectDefinition makeHeartbeatLub(float intensity = 0.5f, HeartbeatVariant variant = HeartbeatVariant::Health);
+    ENGINE_API static HapticEffectDefinition makeHeartbeatLub(float intensity = 0.5f, HeartbeatVariant variant = HeartbeatVariant::Health);
 
-    static HapticEffectDefinition makeHeartbeatDub(float intensity = 0.5f, HeartbeatVariant variant = HeartbeatVariant::Health);
+    ENGINE_API static HapticEffectDefinition makeHeartbeatDub(float intensity = 0.5f, HeartbeatVariant variant = HeartbeatVariant::Health);
 };
 
 struct HeartbeatCycle

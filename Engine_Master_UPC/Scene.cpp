@@ -535,3 +535,34 @@ void Scene::clearTriggers()
         m_triggerSystem->clear();
     }
 }
+
+#pragma region MusicBanks
+const std::vector<std::string>& Scene::getLoadedBanks() const
+{
+    return m_loadedBanks;
+}
+
+void Scene::addLoadedBank(const std::string& bank)
+{
+    if (std::find(m_loadedBanks.begin(), m_loadedBanks.end(), bank) != m_loadedBanks.end())
+    {
+        return;
+    }
+
+    m_loadedBanks.push_back(bank);
+}
+
+void Scene::removeLoadedBank(const std::string& bank)
+{
+    for (auto it = m_loadedBanks.begin(); it != m_loadedBanks.end(); ++it)
+    {
+        if (*it != bank)
+        {
+            continue;
+        }
+
+        m_loadedBanks.erase(it);
+        return;
+    }
+}
+#pragma endregion

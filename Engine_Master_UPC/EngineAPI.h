@@ -25,8 +25,17 @@ class AnimationComponent;
 class UISlider;
 class UISheet;
 class Transform2D;
+class ParticleSystemComponent;
+class ComponentSoundSource;
 
 struct HapticEffectDefinition;
+
+enum class QuadtreeTarget : uint8_t
+{
+    Dynamic = 1 << 0,
+    Static = 1 << 1,
+    Both = Dynamic | Static
+};
 
 ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
 
@@ -55,6 +64,9 @@ namespace GameObjectAPI
     ENGINE_API int getScriptCount(const GameObject* gameObject);
     ENGINE_API Script* getScriptByIndex(GameObject* gameObject, int index);
     ENGINE_API const Script* getScriptByIndex(const GameObject* gameObject, int index);
+
+    ENGINE_API Component* getComponent(GameObject* gameObject, ComponentType type);
+    ENGINE_API const Component* getComponent(const GameObject* gameObject, ComponentType type);
 
     template<typename T>
     T* findScript(GameObject* gameObject);
@@ -144,7 +156,7 @@ namespace SceneAPI
     template<typename T>
     std::vector<GameObject*> findAllGameObjectsWithScript();
 
-	ENGINE_API std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive = true);
+	ENGINE_API std::vector<GameObject*> getObjectsInCircularArea(const Vector2& center, const float radius, bool onlyActive = true, QuadtreeTarget target = QuadtreeTarget::Dynamic);
 
     ENGINE_API GameObject* getDefaultCameraGameObject();
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
@@ -352,6 +364,29 @@ namespace HapticAPI
     ENGINE_API void registerEffect(const HapticEffectDefinition& def);
     ENGINE_API bool saveToJSON(const char* path);
     ENGINE_API const HapticEffectDefinition* findEffect(const char* id);
+}
+
+namespace ParticleSystemAPI 
+{
+    ENGINE_API ParticleSystemComponent* getParticleSystemComponent(GameObject* gameObject);
+    ENGINE_API const ParticleSystemComponent* getParticleSystemComponent(const GameObject* gameObject);
+
+    ENGINE_API void play(ParticleSystemComponent* particleSystem);
+    ENGINE_API void pause(ParticleSystemComponent* particleSystem);
+    ENGINE_API void stop(ParticleSystemComponent* particleSystem);
+    ENGINE_API bool isPlaying(ParticleSystemComponent* particleSystem);
+
+    ENGINE_API void reset(ParticleSystemComponent* particleSystem); // resets the particles
+}
+
+namespace AudioAPI
+{
+    ENGINE_API ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject);
+    ENGINE_API const ComponentSoundSource* getSoundSourceComponent(const GameObject* gameObject);
+    ENGINE_API uint32_t postEvent(ComponentSoundSource* component, const char* bankName, const char* eventName);
+    ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
+    ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
+    ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);
 }
 
 #include "EngineAPI.inl"

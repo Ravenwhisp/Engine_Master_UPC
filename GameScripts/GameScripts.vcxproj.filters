@@ -1,388 +1,142 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Archivos de origen">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Archivos de encabezado">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Archivos de recursos">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="AbilityBase.cpp" />
+    <ClCompile Include="AbilityDash.cpp" />
+    <ClCompile Include="ArrowPool.cpp" />
+    <ClCompile Include="Bound.cpp" />
+    <ClCompile Include="CameraFollow.cpp" />
+    <ClCompile Include="CameraSwitcher.cpp" />
+    <ClCompile Include="CharacterBase.cpp" />
+    <ClCompile Include="Damageable.cpp" />
+    <ClCompile Include="DeathAbilityBase.cpp" />
+    <ClCompile Include="DeathBasicAttack.cpp" />
+    <ClCompile Include="DeathCharacter.cpp" />
+    <ClCompile Include="DeathChargedAttack.cpp" />
+    <ClCompile Include="DeathDash.cpp" />
+    <ClCompile Include="DeathTaunt.cpp" />
+    <ClCompile Include="DebugDamageTrigger.cpp" />
+    <ClCompile Include="DebugDrawTest.cpp" />
+    <ClCompile Include="DebugGetObjectsArea.cpp" />
+    <ClCompile Include="DefeatConditionManager.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="EnemyATTACK.cpp" />
+    <ClCompile Include="EnemyCHASE.cpp" />
+    <ClCompile Include="EnemyController.cpp" />
+    <ClCompile Include="EnemyDamageable.cpp" />
+    <ClCompile Include="EnemyDeathHandler.cpp" />
+    <ClCompile Include="EnemyDeathState.cpp" />
+    <ClCompile Include="EnemyDetectionAggro.cpp" />
+    <ClCompile Include="EnemyIDLE.cpp" />
+    <ClCompile Include="EnemyShadowMark.cpp" />
+    <ClCompile Include="ExportListTest.cpp" />
+    <ClCompile Include="HapticTester.cpp" />
+    <ClCompile Include="HeartbeatHaptic.cpp" />
+    <ClCompile Include="HeartbeatTester.cpp" />
+    <ClCompile Include="HealthPickup.cpp" />
+    <ClCompile Include="InputTest.cpp" />
+    <ClCompile Include="LevelCheats.cpp" />
+    <ClCompile Include="LinkedDeathEnemyState.cpp" />
+    <ClCompile Include="LocalMultiplayerSetup.cpp" />
+    <ClCompile Include="LyrielAbilityBase.cpp" />
+    <ClCompile Include="LyrielArrowProjectile.cpp" />
+    <ClCompile Include="LyrielArrowVolley.cpp" />
+    <ClCompile Include="LyrielBasicAttack.cpp" />
+    <ClCompile Include="LyrielCharacter.cpp" />
+    <ClCompile Include="LyrielChargedAttack.cpp" />
+    <ClCompile Include="LyrielDash.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="PersistingPowerupState.cpp" />
+    <ClCompile Include="PlayerAnimationController.cpp" />
+    <ClCompile Include="PlayerController.cpp" />
+    <ClCompile Include="PlayerDamageable.cpp" />
+    <ClCompile Include="PlayerDownState.cpp" />
+    <ClCompile Include="PlayerMovement.cpp" />
+    <ClCompile Include="PlayerRotation.cpp" />
+    <ClCompile Include="PlayerState.cpp" />
+    <ClCompile Include="PlayerTargetController.cpp" />
+    <ClCompile Include="ProjectileController.cpp" />
+    <ClCompile Include="ReaperGauge.cpp" />
+    <ClCompile Include="SimpleMath.cpp" />
+    <ClCompile Include="SliderTest.cpp" />
+    <ClCompile Include="SpikeTrap.cpp" />
+    <ClCompile Include="StateMachineTest.cpp" />
+    <ClCompile Include="TargetIndicatorUI.cpp" />
+    <ClCompile Include="TestingButton.cpp" />
+    <ClCompile Include="TestSceneChangeButton.cpp" />
+    <ClCompile Include="TransformGlobalTest.cpp" />
+    <ClCompile Include="TriggerArea.cpp" />
+    <ClCompile Include="TriggerDebugScript.cpp" />
+    <ClCompile Include="UIController.cpp" />
+    <ClCompile Include="UIPause.cpp" />
+    <ClCompile Include="MusicSystemTester.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraFollow.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraSwitcher.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="TriggerArea.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LocalMultiplayerSetup.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="InputTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="ProjectileController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugDrawTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformGlobalTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="SliderTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="StateMachineTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyIDLE.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyCHASE.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyATTACK.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="TestSceneChangeButton.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="AbilityBase.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="AbilityDash.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrowPool.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="Bound.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="CharacterBase.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="Damageable.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DeathAbilityBase.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DeathBasicAttack.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DeathCharacter.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DeathChargedAttack.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DeathDash.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DeathTaunt.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugDamageTrigger.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DefeatConditionManager.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyDamageable.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyDeathHandler.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyDetectionAggro.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LevelCheats.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielAbilityBase.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielArrowProjectile.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielArrowVolley.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielBasicAttack.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielCharacter.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielChargedAttack.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="LyrielDash.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerAnimationController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerDamageable.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerDownState.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerMovement.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerRotation.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerState.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerTargetController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="SpikeTrap.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="TargetIndicatorUI.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="TestingButton.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="UIController.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="TriggerDebugScript.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="ExportListTest.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="HapticTester.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugGetObjectsArea.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="UIPause.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraFollow.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraSwitcher.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="TriggerArea.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LocalMultiplayerSetup.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="InputTest.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="ProjectileController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugDrawTest.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformGlobalTest.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="SliderTest.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="StateMachineTest.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyIDLE.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyCHASE.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyATTACK.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="TestSceneChangeButton.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="AbilityBase.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="AbilityDash.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrowPool.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="Bound.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="CharacterBase.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="Damageable.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DeathAbilityBase.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DeathBasicAttack.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DeathCharacter.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DeathChargedAttack.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DeathDash.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DeathTaunt.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugDamageTrigger.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DefeatConditionManager.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyDamageable.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyDeathHandler.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyDetectionAggro.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LevelCheats.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielAbilityBase.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielArrowProjectile.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielArrowVolley.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielBasicAttack.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielCharacter.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielChargedAttack.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="LyrielDash.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerAnimationController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerDamageable.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerDownState.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerMovement.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerRotation.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerState.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerTargetController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="SpikeTrap.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="TargetIndicatorUI.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="TestingButton.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="UIController.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleMath.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="TriggerDebugScript.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="ExportListTest.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="HapticTester.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyShadowMark.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="PersistingPowerupState.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="ReaperGauge.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugGetObjectsArea.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="UIPause.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
+    <ClInclude Include="AbilityBase.h" />
+    <ClInclude Include="AbilityDash.h" />
+    <ClInclude Include="ArrowPool.h" />
+    <ClInclude Include="Bound.h" />
+    <ClInclude Include="CameraFollow.h" />
+    <ClInclude Include="CameraSwitcher.h" />
+    <ClInclude Include="CharacterBase.h" />
+    <ClInclude Include="Damageable.h" />
+    <ClInclude Include="DeathAbilityBase.h" />
+    <ClInclude Include="DeathBasicAttack.h" />
+    <ClInclude Include="DeathCharacter.h" />
+    <ClInclude Include="DeathChargedAttack.h" />
+    <ClInclude Include="DeathDash.h" />
+    <ClInclude Include="DeathTaunt.h" />
+    <ClInclude Include="DebugDamageTrigger.h" />
+    <ClInclude Include="DebugDrawTest.h" />
+    <ClInclude Include="DebugGetObjectsArea.h" />
+    <ClInclude Include="DefeatConditionManager.h" />
+    <ClInclude Include="EnemyATTACK.h" />
+    <ClInclude Include="EnemyCHASE.h" />
+    <ClInclude Include="EnemyController.h" />
+    <ClInclude Include="EnemyDamageable.h" />
+    <ClInclude Include="EnemyDeathHandler.h" />
+    <ClInclude Include="EnemyDeathState.h" />
+    <ClInclude Include="EnemyDetectionAggro.h" />
+    <ClInclude Include="EnemyIDLE.h" />
+    <ClInclude Include="ExportListTest.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="HapticTester.h" />
+    <ClInclude Include="HeartbeatHaptic.h" />
+    <ClInclude Include="HeartbeatTester.h" />
+    <ClInclude Include="HealthPickup.h" />
+    <ClInclude Include="InputTest.h" />
+    <ClInclude Include="LevelCheats.h" />
+    <ClInclude Include="LinkedDeathEnemyState.h" />
+    <ClInclude Include="LocalMultiplayerSetup.h" />
+    <ClInclude Include="LyrielAbilityBase.h" />
+    <ClInclude Include="LyrielArrowProjectile.h" />
+    <ClInclude Include="LyrielArrowVolley.h" />
+    <ClInclude Include="LyrielBasicAttack.h" />
+    <ClInclude Include="LyrielCharacter.h" />
+    <ClInclude Include="LyrielChargedAttack.h" />
+    <ClInclude Include="LyrielDash.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="PlayerAnimationController.h" />
+    <ClInclude Include="PlayerController.h" />
+    <ClInclude Include="PlayerDamageable.h" />
+    <ClInclude Include="PlayerDownState.h" />
+    <ClInclude Include="PlayerMovement.h" />
+    <ClInclude Include="PlayerRotation.h" />
+    <ClInclude Include="PlayerState.h" />
+    <ClInclude Include="PlayerTargetController.h" />
+    <ClInclude Include="ProjectileController.h" />
+    <ClInclude Include="SliderTest.h" />
+    <ClInclude Include="SpikeTrap.h" />
+    <ClInclude Include="StateMachineTest.h" />
+    <ClInclude Include="TargetIndicatorUI.h" />
+    <ClInclude Include="TestingButton.h" />
+    <ClInclude Include="TestSceneChangeButton.h" />
+    <ClInclude Include="TransformGlobalTest.h" />
+    <ClInclude Include="TriggerArea.h" />
+    <ClInclude Include="TriggerDebugScript.h" />
+    <ClInclude Include="UIController.h" />
+    <ClInclude Include="UIPause.h" />
+    <ClInclude Include="MusicSystemTester.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PlayerCharacterGuide.md" />

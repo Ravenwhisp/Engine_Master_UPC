@@ -38,3 +38,5 @@ cp .\Engine_Master_UPC\NavMeshTypes.h .\export\EngineDependencies\
 
 cp .\Engine_Master_UPC\PrefabInstance.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\MD5Fwd.h .\export\EngineDependencies\
+
+cp .\Engine_Master_UPC\ScriptFieldTypeTraits.h .\export\EngineDependencies\

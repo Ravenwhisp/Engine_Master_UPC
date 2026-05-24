@@ -169,6 +169,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;$(SolutionDir)3rdParty\WinPixEventRuntime\Include;$(SolutionDir)3rdParty\directX;$(SolutionDir)3rdParty\imgui-docking</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -198,6 +199,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -227,6 +229,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\Engine_Master_UPC\;$(SolutionDir)3rdParty\rapidjson\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -268,13 +271,18 @@
     <ClInclude Include="EnemyController.h" />
     <ClInclude Include="EnemyDamageable.h" />
     <ClInclude Include="EnemyDeathHandler.h" />
+    <ClInclude Include="EnemyDeathState.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
     <ClInclude Include="EnemyIDLE.h" />
     <ClInclude Include="ExportListTest.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HapticTester.h" />
+    <ClInclude Include="HeartbeatHaptic.h" />
+    <ClInclude Include="HeartbeatTester.h" />
+    <ClInclude Include="HealthPickup.h" />
     <ClInclude Include="InputTest.h" />
     <ClInclude Include="LevelCheats.h" />
+    <ClInclude Include="LinkedDeathEnemyState.h" />
     <ClInclude Include="LocalMultiplayerSetup.h" />
     <ClInclude Include="LyrielAbilityBase.h" />
     <ClInclude Include="LyrielArrowProjectile.h" />
@@ -283,6 +291,7 @@
     <ClInclude Include="LyrielCharacter.h" />
     <ClInclude Include="LyrielChargedAttack.h" />
     <ClInclude Include="LyrielDash.h" />
+    <ClInclude Include="MusicSystemTester.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerAnimationController.h" />
     <ClInclude Include="PlayerController.h" />
@@ -330,13 +339,18 @@
     <ClCompile Include="EnemyController.cpp" />
     <ClCompile Include="EnemyDamageable.cpp" />
     <ClCompile Include="EnemyDeathHandler.cpp" />
+    <ClCompile Include="EnemyDeathState.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
     <ClCompile Include="EnemyShadowMark.cpp" />
     <ClCompile Include="ExportListTest.cpp" />
     <ClCompile Include="HapticTester.cpp" />
+    <ClCompile Include="HeartbeatHaptic.cpp" />
+    <ClCompile Include="HeartbeatTester.cpp" />
+    <ClCompile Include="HealthPickup.cpp" />
     <ClCompile Include="InputTest.cpp" />
     <ClCompile Include="LevelCheats.cpp" />
+    <ClCompile Include="LinkedDeathEnemyState.cpp" />
     <ClCompile Include="LocalMultiplayerSetup.cpp" />
     <ClCompile Include="LyrielAbilityBase.cpp" />
     <ClCompile Include="LyrielArrowProjectile.cpp" />
@@ -345,6 +359,7 @@
     <ClCompile Include="LyrielCharacter.cpp" />
     <ClCompile Include="LyrielChargedAttack.cpp" />
     <ClCompile Include="LyrielDash.cpp" />
+    <ClCompile Include="MusicSystemTester.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

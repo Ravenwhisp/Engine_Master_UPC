@@ -741,7 +741,8 @@ void GameObject::onTransformChange()
     {
         component->onTransformChange();
     }
-    app->getModuleScene()->getQuadtree()->move(*this);
+
+    app->getModuleScene()->moveGameObjectInQuadtrees(*this);
 }
 
 #pragma endregion

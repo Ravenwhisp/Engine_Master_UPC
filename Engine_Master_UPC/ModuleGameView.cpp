@@ -5,6 +5,7 @@
 #include "ModuleScene.h"
 #include "ModuleInput.h"
 #include "ModuleD3D12.h"
+#include "ModuleParticleSystem.h"
 
 #include "Scene.h"
 #include "SceneSnapshot.h"
@@ -18,6 +19,7 @@ bool ModuleGameView::init()
 {
 	m_moduleScene = app->getModuleScene();
 	m_moduleInput = app->getModuleInput();
+	m_moduleParticleSystem = app->getModuleParticleSystem();
 
 	m_showDebugWindow = false;
 
@@ -48,6 +50,8 @@ void ModuleGameView::update()
 void ModuleGameView::startGameSimulation()
 {	
 	m_sceneCloned = std::unique_ptr<SceneSnapshot>(m_moduleScene->takeSnapshot());
+	m_moduleParticleSystem->resetAllParticles();
+
 	instantiateScriptsOnPlay();
 }
 

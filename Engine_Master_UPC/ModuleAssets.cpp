@@ -294,6 +294,41 @@ void ModuleAssets::refresh()
     DEBUG_ASSETS("[Module Assets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
 }
 
+void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
+{
+    const fs::path normPath = sourcePath.lexically_normal();
+
+    auto pathIt = m_pathIndex.find(normPath.string());
+    if (pathIt != m_pathIndex.end())
+    {
+        m_uidIndex.erase(pathIt->second);
+        m_pathIndex.erase(pathIt);
+    }
+
+    m_contentRegistry->unregisterAsset(normPath);
+}
+
+void ModuleAssets::collectDirectoryAssets(DirectoryEntry* dir)
+{
+    for (const AssetEntry& asset : dir->assets)
+    {
+        if (isValidUID(asset.uid))
+        {
+            auto it = m_uidIndex.find(asset.uid);
+            if (it != m_uidIndex.end())
+            {
+                m_pathIndex.erase(it->second.sourcePath.lexically_normal().string());
+                m_uidIndex.erase(it);
+            }
+        }
+    }
+
+    for (auto& child : dir->directories)
+    {
+        collectDirectoryAssets(child.get());
+    }
+}
+
 void ModuleAssets::registerIndex(const UID& uid, AssetType type,
     const std::filesystem::path& sourcePath,
     const MD5Hash& contentHash)
@@ -386,7 +421,18 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         }
     }
 
-    m_uidIndex[subMeta.uid] = { subMeta.type, {} };
+    {
+        auto prevIt = m_uidIndex.find(subMeta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != subMeta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+    m_uidIndex[subMeta.uid] = { subMeta.type, {}, subMeta.contentHash };
 
     if (isValidUID(parentUID))
     {

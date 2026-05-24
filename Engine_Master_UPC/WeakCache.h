@@ -7,11 +7,10 @@ template<typename Key, typename T>
 class WeakCache 
 {
 public:
-    std::shared_ptr<T> get(Key key) 
+    std::shared_ptr<T> get(Key key)
     {
         auto it = m_map.find(key);
-
-        if (it == m_map.end()) 
+        if (it == m_map.end())
         {
             return nullptr;
         }
@@ -20,14 +19,15 @@ public:
         if (!live)
         {
             m_map.erase(it);
+            return nullptr;
         }
 
         return live;
     }
 
-    void insert(Key key, std::shared_ptr<T> resource) 
+    void insert(Key key, std::shared_ptr<T> resource)
     {
-        m_map.emplace(key, resource);
+        m_map[key] = resource;
     }
 
     template<typename Derived>

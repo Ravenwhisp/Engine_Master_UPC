@@ -4,6 +4,7 @@
 
 class Transform;
 class Damageable;
+class HeartbeatHaptic;
 
 class Bound : public Script
 {
@@ -22,7 +23,6 @@ public:
 public:
     ScriptComponentRef<Transform> m_firstTarget;
     ScriptComponentRef<Transform> m_secondTarget;
-
     ScriptComponentRef<Transform> m_BoundUI;
 
     Damageable* m_firstDamageable = nullptr;
@@ -37,8 +37,12 @@ public:
 
     float m_radiusThreshold = 2.0f;
 
+    float m_separationHapticHpGate = 0.5f;
+
     Vector3 m_center = Vector3(0.0f, 0.0f, 0.0f);
     float   m_currentRadius = 0.0f;
-
-    float m_previousDistance = 0.0f;
+    float   m_previousDistance = 0.0f;
+    std::vector<float> speeds;
+private:
+    HeartbeatHaptic* m_haptic = nullptr;
 };

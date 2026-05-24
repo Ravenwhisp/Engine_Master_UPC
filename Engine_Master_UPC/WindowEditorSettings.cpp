@@ -77,7 +77,8 @@ void WindowEditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show Axis###SceneShowAxis", &m_settings->sceneEditor.showAxis);
         ImGui::Checkbox("Show Gizmo###SceneShowGizmo", &m_settings->sceneEditor.showGuizmo);
 
-        ImGui::Checkbox("Show Quadtree###SceneShowQuadtree", &m_settings->sceneEditor.showQuadTree);
+        ImGui::Checkbox("Show Static Quadtree###SceneShowStaticQuadtree", &m_settings->sceneEditor.showStaticQuadTree);
+        ImGui::Checkbox("Show Dynamic Quadtree###SceneShowDynamicQuadtree", &m_settings->sceneEditor.showDynamicQuadTree);
 
         ImGui::Checkbox("Show Model Bounding Boxes###ModelShowBoundingBoxes", &m_settings->sceneEditor.showModelBoundingBoxes);
         ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);
@@ -102,9 +103,9 @@ void WindowEditorSettings::drawFrustumCullingSettings()
             DEBUG_WARN("Cannot debug frustum culling there is no default camera set in the scene.");
         }
 
-        if (!app->getModuleScene()->getQuadtree()->getIsBuilded()) {
+        if (!app->getModuleScene()->getStaticQuadtree()->getIsBuilded() && !app->getModuleScene()->getDynamicQuadtree()->getIsBuilded()) {
             m_settings->frustumCulling.debugFrustumCulling = false;
-            DEBUG_WARN("Cannot debug frustum culling because quadtree is not builded.");
+            DEBUG_WARN("Cannot debug frustum culling because none of the quadtrees are builded.");
         }
     }
 }
