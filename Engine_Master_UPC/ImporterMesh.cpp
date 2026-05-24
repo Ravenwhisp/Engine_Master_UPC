@@ -30,7 +30,11 @@ uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
     uint64_t size = 0;
 
     size += sizeof(uint32_t);                                 // vertexCount
-    size += source->vertices.size() * sizeof(Vertex);
+    size += source->vertices.size()                           // per-field vertex data
+        * (sizeof(Vector3)  + sizeof(Vector2)
+         + sizeof(Vector3)  + sizeof(Vector3)
+         + sizeof(uint16_t) * 4
+         + sizeof(Vector4));
 
     size += sizeof(uint32_t);                                 // indexByteCount
     size += sizeof(uint32_t);                                 // indexFormat
@@ -47,7 +51,15 @@ uint64_t ImporterMesh::saveTyped(const MeshAsset* source, uint8_t** outBuffer)
     BinaryWriter writer(buffer);
 
     writer.u32(static_cast<uint32_t>(source->vertices.size()));
-    writer.bytes(source->vertices.data(), source->vertices.size() * sizeof(Vertex));
+    for (const Vertex& v : source->vertices)
+    {
+        writer.bytes(&v.position, sizeof(Vector3));
+        writer.bytes(&v.texCoord0, sizeof(Vector2));
+        writer.bytes(&v.normal, sizeof(Vector3));
+        writer.bytes(&v.tangent, sizeof(Vector3));
+        writer.bytes(v.joints, sizeof(uint16_t) * 4);
+        writer.bytes(&v.weights, sizeof(Vector4));
+    }
 
     writer.u32(static_cast<uint32_t>(source->indices.size()));
     writer.u32(static_cast<uint32_t>(source->indexFormat));
@@ -74,7 +86,15 @@ void ImporterMesh::loadTyped(const uint8_t* buffer, MeshAsset* mesh)
 
     const uint32_t vertexCount = reader.u32();
     mesh->vertices.resize(vertexCount);
-    reader.bytes(mesh->vertices.data(), vertexCount * sizeof(Vertex));
+    for (Vertex& v : mesh->vertices)
+    {
+        reader.bytes(&v.position, sizeof(Vector3));
+        reader.bytes(&v.texCoord0, sizeof(Vector2));
+        reader.bytes(&v.normal, sizeof(Vector3));
+        reader.bytes(&v.tangent, sizeof(Vector3));
+        reader.bytes(v.joints, sizeof(uint16_t) * 4);
+        reader.bytes(&v.weights, sizeof(Vector4));
+    }
 
     const uint32_t indexByteCount = reader.u32();
     mesh->indexFormat = static_cast<DXGI_FORMAT>(reader.u32());

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "ScriptFieldInfo.h"
 #include "EngineAPI.h"
-
 
 struct ScriptFieldHandler;
 
@@ -13,3 +13,4 @@ ENGINE_API const ScriptFieldHandler* getEnumIntFieldHandler();
 ENGINE_API const ScriptFieldHandler* getComponentRefFieldHandler();
 ENGINE_API const ScriptFieldHandler* getComponentRefListFieldHandler();
 ENGINE_API const ScriptFieldHandler* getStringFieldHandler();
+ENGINE_API const ScriptFieldHandler* getListFieldHandler(ScriptFieldType elementType);

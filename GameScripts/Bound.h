@@ -42,7 +42,7 @@ public:
     Vector3 m_center = Vector3(0.0f, 0.0f, 0.0f);
     float   m_currentRadius = 0.0f;
     float   m_previousDistance = 0.0f;
-
+    std::vector<float> speeds;
 private:
     HeartbeatHaptic* m_haptic = nullptr;
 };

@@ -4,6 +4,7 @@
 
 #include "ScriptFieldInfo.h"
 #include "ScriptFieldHandlerRegistry.h"
+#include "ScriptFieldTypeTraits.h"
 
 #define SCRIPT_FIELD_COUNT(FieldArrayName) \
     (sizeof(FieldArrayName) / sizeof(ScriptFieldInfo))
@@ -54,3 +55,36 @@
 
 #define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), getComponentRefListFieldHandler(), {}, {}, { ComponentTypeValue } }
+
+// Vector (std::vector<T>) field macros
+
+// Generic — auto-detects the element type at compile time
+#define SERIALIZED_VECTOR(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), \
+      getListFieldHandler(scriptFieldTypeOf<typename decltype(ThisScript::MemberName)::value_type>()), \
+      {}, {}, {}, \
+      { scriptFieldTypeOf<typename decltype(ThisScript::MemberName)::value_type>(), \
+        scriptFieldHandlerOf<typename decltype(ThisScript::MemberName)::value_type>() } }
+
+// Type-specific convenience macros (no auto-detection needed)
+
+#define SERIALIZED_FLOAT_VECTOR(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::Float), {}, {}, {}, { ScriptFieldType::Float, getFloatFieldHandler() } }
+
+#define SERIALIZED_INT_VECTOR(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::Int), {}, {}, {}, { ScriptFieldType::Int, getIntFieldHandler() } }
+
+#define SERIALIZED_BOOL_VECTOR(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::Bool), {}, {}, {}, { ScriptFieldType::Bool, getBoolFieldHandler() } }
+
+#define SERIALIZED_VEC3_VECTOR(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::Vec3), {}, {}, {}, { ScriptFieldType::Vec3, getVec3FieldHandler() } }
+
+#define SERIALIZED_STRING_VECTOR(MemberName, DisplayName) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::String), {}, {}, {}, { ScriptFieldType::String, getStringFieldHandler() } }
+
+#define SERIALIZED_ENUM_INT_VECTOR(MemberName, DisplayName, NamesArray, Count) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::EnumInt), {}, { NamesArray, Count }, {}, { ScriptFieldType::EnumInt, getEnumIntFieldHandler() } }
+
+#define SERIALIZED_COMPONENT_REF_VECTOR(MemberName, DisplayName, ComponentTypeValue) \
+    { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::ComponentRef), {}, {}, { ComponentTypeValue }, { ScriptFieldType::ComponentRef, getComponentRefFieldHandler() } }

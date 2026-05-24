@@ -173,15 +173,24 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 	return surface;
 }
 
-Texture* ModuleResources::createNullTexture2D()
+std::shared_ptr<Texture> ModuleResources::createNullTexture2D()
 {
+	if (auto cached = m_resources.getAs<Texture>(NULL_TEXTURE_HASH))
+	{
+		DEBUG_LOG("[Cache HIT] NullTexture");
+		return cached;
+	}
+
+	DEBUG_LOG("[Cache MISS] NullTexture - creating new 1x1 texture");
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.width = 1;
 	desc.height = 1;
 	desc.mipLevels = 1;
 	desc.views = TextureView::SRV;
-	return new Texture(GenerateUID(), *m_device.Get(), desc);
+	auto texture = std::make_shared<Texture>(GenerateUID(), *m_device.Get(), desc);
+	m_resources.insert(NULL_TEXTURE_HASH, texture);
+	return texture;
 }
 
 Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
@@ -640,15 +649,17 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 
 std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
 {
-	const UID uid = textureAsset.getUID();
+	const MD5Hash& libId = textureAsset.getLibId();
 
-	if (auto cached = m_resources.getAs<Texture>(uid))
+	if (auto cached = m_resources.getAs<Texture>(libId))
 	{
+		DEBUG_LOG("[Cache HIT] Texture libId=%s", libId.c_str());
 		return cached;
 	}
 
+	DEBUG_LOG("[Cache MISS] Texture libId=%s", libId.c_str());
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace, shaderVisible));
-	m_resources.insert(uid, texture);
+	m_resources.insert(libId, texture);
 	return texture;
 }
 
@@ -687,29 +698,32 @@ std::shared_ptr<Texture> ModuleResources::createTexture(ComPtr<ID3D12Resource> e
 
 std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsset)
 {
-	const UID uid = meshAsset.getUID();
+	const MD5Hash& libId = meshAsset.getLibId();
 
-	if (auto cached = m_resources.getAs<BasicMesh>(uid))
+	if (auto cached = m_resources.getAs<BasicMesh>(libId))
 	{
+		DEBUG_LOG("[Cache HIT] Mesh libId=%s", libId.c_str());
 		return cached;
 	}
 
-
-	auto mesh = std::make_shared<BasicMesh>(uid, meshAsset);
-	m_resources.insert(uid, mesh);
+	DEBUG_LOG("[Cache MISS] Mesh libId=%s", libId.c_str());
+	auto mesh = std::make_shared<BasicMesh>(meshAsset.getUID(), meshAsset);
+	m_resources.insert(libId, mesh);
 	return mesh;
 }
 
 std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(MaterialAsset& materialAsset)
 {
-	const UID uid = materialAsset.getUID();
+	const MD5Hash& libId = materialAsset.getLibId();
 
-	if (auto cached = m_resources.getAs<BasicMaterial>(uid))
+	if (auto cached = m_resources.getAs<BasicMaterial>(libId))
 	{
+		DEBUG_LOG("[Cache HIT] Material libId=%s", libId.c_str());
 		return cached;
 	}
 
-	auto material = std::make_shared<BasicMaterial>(uid, materialAsset);
-	m_resources.insert(uid, material);
+	DEBUG_LOG("[Cache MISS] Material libId=%s", libId.c_str());
+	auto material = std::make_shared<BasicMaterial>(materialAsset.getUID(), materialAsset);
+	m_resources.insert(libId, material);
 	return material;
 }
