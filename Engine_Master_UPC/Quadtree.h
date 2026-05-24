@@ -56,7 +56,8 @@ public:
     bool getIsBuilded() { return isBuilded; }
 
     void move(GameObject& object);
+    void remove(GameObject& object);
+
 private:
     void insert(GameObject& object);
-    void remove(GameObject& object);
 };

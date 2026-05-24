@@ -49,7 +49,7 @@ struct WindowSceneEditorSettings
 
 struct FrustumCullingSettings
 {
-    bool debugFrustumCulling = !DEFAULT_DEBUG;
+    bool enabled = false;
     float quadtreeXExtraSize = 10.0f;
     float quadtreeZExtraSize = 10.0f;
 };

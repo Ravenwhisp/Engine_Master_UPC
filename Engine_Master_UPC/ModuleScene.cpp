@@ -65,10 +65,10 @@ void ModuleScene::update()
 		loadScene(m_pendingScene);
 		m_pendingScene.reset();
 	}
-
-    syncQuadtreeWithSettings();
   
     m_scene->update();
+
+    syncQuadtreeWithSettings();
     m_staticQuadtree->update();
     m_dynamicQuadtree->update();
 }
@@ -144,7 +144,7 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
 
 const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 {
-    if (app->getSettings()->frustumCulling.debugFrustumCulling)
+    if (app->getSettings()->frustumCulling.enabled)
     {
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
@@ -242,8 +242,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    m_staticQuadtree->build();
-	m_dynamicQuadtree->build();
+    app->getSettings()->frustumCulling.enabled = true;
 #endif
 
     rebuildComponentCaches();
@@ -283,8 +282,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    m_staticQuadtree->build();
-	m_dynamicQuadtree->build();
+    app->getSettings()->frustumCulling.enabled = true;
 #endif
 
     rebuildComponentCaches();
@@ -326,13 +324,19 @@ void ModuleScene::syncQuadtreeWithSettings()
         return;
     }
 
-    const bool shouldShowStaticQuadtree = app->getSettings()->sceneEditor.showStaticQuadTree;
+    const bool shouldUseQuadtrees =
+        app->getSettings()->frustumCulling.enabled;
 
-    if(shouldShowStaticQuadtree)
+    if (shouldUseQuadtrees)
     {
         if (!m_staticQuadtree->getIsBuilded())
         {
             m_staticQuadtree->build(m_staticLayers);
+        }
+
+        if (!m_dynamicQuadtree->getIsBuilded())
+        {
+            m_dynamicQuadtree->build(m_dynamicLayers);
         }
     }
     else
@@ -341,36 +345,39 @@ void ModuleScene::syncQuadtreeWithSettings()
         {
             m_staticQuadtree->clear();
         }
-	}
 
-	const bool shouldShowDynamicQuadtree = app->getSettings()->sceneEditor.showDynamicQuadTree;
-
-    if (shouldShowDynamicQuadtree)
-    {
-        if (!m_dynamicQuadtree->getIsBuilded())
-        {
-            m_dynamicQuadtree->build(m_dynamicLayers);
-        }
-    }
-    else
-    {
         if (m_dynamicQuadtree->getIsBuilded())
         {
             m_dynamicQuadtree->clear();
         }
     }
 }
+
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
 	const Layer layer = gameObject.GetLayer();
 
-    if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    {
+        m_dynamicQuadtree->move(gameObject);
+    }
+	else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
     {
         m_staticQuadtree->move(gameObject);
     }
-	else if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+}
+
+void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
+{
+    const Layer layer = gameObject.GetLayer();
+
+    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
     {
-        m_dynamicQuadtree->move(gameObject);
+        m_dynamicQuadtree->remove(gameObject);
+    }
+    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    {
+        m_staticQuadtree->remove(gameObject);
 	}
 }
 #pragma endregion

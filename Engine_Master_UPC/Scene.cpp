@@ -6,6 +6,7 @@
 #include "ModuleRender.h"
 #include "ModuleEditor.h"
 #include "ModuleD3D12.h"
+#include "ModuleScene.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -297,6 +298,8 @@ void Scene::destroyGameObject(GameObject* gameObject)
     if (it != m_allObjects.end())
     {
         const uint64_t fenceValue = app->getModuleD3D12()->getCommandQueue()->signal();
+
+		app->getModuleScene()->removeGameObjectFromQuadtree(*it->get());
 
         m_pendingDestroyedObjects.push_back(
             PendingDestroyedGameObject{
