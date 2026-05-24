@@ -9,6 +9,21 @@
 
 using namespace DirectX;
 
+bool ImporterTexture::import(const std::filesystem::path& path, Asset* outAsset)
+{
+    auto* texAsset = static_cast<TextureAsset*>(outAsset);
+    if (auto* settings = static_cast<TextureImportSettings*>(texAsset->getImportSettings()))
+    {
+        if (settings->targetFormat == TextureImportFormat::AUTO)
+        {
+            TextureImportFormat detected = TextureImportSettings::DetectFromFilename(path);
+            if (detected != TextureImportFormat::AUTO)
+                settings->resolvedFormat = detected;
+        }
+    }
+    return ImporterSource::import(path, outAsset);
+}
+
 bool ImporterTexture::loadExternal(const std::filesystem::path& path, ScratchImage& out)
 {
     const wchar_t* widePath = path.c_str();
@@ -40,12 +55,17 @@ bool ImporterTexture::loadExternal(const std::filesystem::path& path, ScratchIma
 
 static DXGI_FORMAT ResolveTargetFormat(const TextureImportSettings* settings)
 {
-    if (!settings || settings->targetFormat == TextureImportFormat::AUTO)
-    {
-        return (settings && settings->srgb) ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-    }
+    if (!settings)
+        return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
-    switch (settings->targetFormat)
+    TextureImportFormat fmt = settings->targetFormat;
+    if (fmt == TextureImportFormat::AUTO && settings->resolvedFormat != TextureImportFormat::AUTO)
+        fmt = settings->resolvedFormat;
+
+    if (fmt == TextureImportFormat::AUTO)
+        return settings->srgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
+
+    switch (fmt)
     {
     case TextureImportFormat::R8G8B8A8_UNORM:     return DXGI_FORMAT_R8G8B8A8_UNORM;
     case TextureImportFormat::R8G8B8A8_UNORM_SRGB: return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
