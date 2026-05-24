@@ -218,6 +218,26 @@ private:
 
         std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
         importer->load(buffer.data(), asset.get());
+
+        // Restore import settings from metadata
+        {
+            auto it = m_uidIndex.find(ref.m_uid);
+            if (it != m_uidIndex.end() && !it->second.sourcePath.empty())
+            {
+                std::filesystem::path metaPath = it->second.sourcePath;
+                Metadata::getMetadataPath(metaPath);
+                Metadata meta;
+                if (loadMetaFile(metaPath, meta) && meta.importSettings)
+                {
+                    asset->setImportSettings(std::move(meta.importSettings));
+                }
+            }
+        }
+        if (!asset->getImportSettings())
+        {
+            asset->setImportSettings(asset->createDefaultImportSettings());
+        }
+
         m_assets.insert(ref.m_uid, asset);
 
         return std::static_pointer_cast<T>(asset);

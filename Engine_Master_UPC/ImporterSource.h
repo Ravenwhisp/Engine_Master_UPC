@@ -5,7 +5,7 @@ template<typename ExternalFormat, typename AssetFormat, AssetType TType>
 class ImporterSource : public Importer
 {
 public:
-    bool import(const std::filesystem::path& path, Asset* outAsset) final
+    bool import(const std::filesystem::path& path, Asset* outAsset) override
     {
         ExternalFormat external{};
         if (!loadExternal(path, external))

@@ -21,6 +21,8 @@ public:
 		return new TextureAsset(uid);
 	}
 
+	bool import(const std::filesystem::path& path, Asset* outAsset) override;
+
 protected:
 	bool loadExternal(const std::filesystem::path& path, DirectX::ScratchImage& out) override;
 	void importTyped(const DirectX::ScratchImage& source, TextureAsset* destiny) override;

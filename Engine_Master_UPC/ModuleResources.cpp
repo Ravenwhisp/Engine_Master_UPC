@@ -196,18 +196,10 @@ std::shared_ptr<Texture> ModuleResources::createNullTexture2D()
 	return texture;
 }
 
-Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
+Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset, bool shaderVisible)
 {
 	TextureDesc desc{};
-	//DXGI_FORMAT baseFormat = textureAsset.getFormat();
-	if (colorSpace == TextureColorSpace::SRGB)
-	{
-		desc.format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	}
-	else
-	{
-		desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	}
+	desc.format = textureAsset.getFormat();
 
 	desc.width = static_cast<uint32_t>(textureAsset.getWidth());
 	desc.height = static_cast<uint32_t>(textureAsset.getHeight());
@@ -650,7 +642,7 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	m_queue->flush();
 }
 
-std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible)
+std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, bool shaderVisible)
 {
 	const MD5Hash& libId = textureAsset.getLibId();
 
@@ -661,7 +653,7 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 	}
 
 	DEBUG_LOG("[Cache MISS] Texture libId=%s", libId.c_str());
-	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, colorSpace, shaderVisible));
+	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, shaderVisible));
 	m_resources.insert(libId, texture);
 	return texture;
 }
@@ -680,15 +672,6 @@ std::shared_ptr<Texture> ModuleResources::createEnvironment(const IndexBuffer* i
 	return texture;
 }
 
-std::shared_ptr<Texture> ModuleResources::createTextureSRGB(const TextureAsset& textureAsset, bool shaderVisible)
-{
-	return createTexture(textureAsset, TextureColorSpace::SRGB, shaderVisible);
-}
-
-std::shared_ptr<Texture> ModuleResources::createTextureLinear(const TextureAsset& textureAsset, bool shaderVisible)
-{
-	return createTexture(textureAsset, TextureColorSpace::Linear, shaderVisible);
-}
 
 std::shared_ptr<Texture> ModuleResources::createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat)
 {

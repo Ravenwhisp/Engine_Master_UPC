@@ -137,6 +137,34 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
 
     std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
 
+    // Try to get import settings from the in-memory cached asset first (user may have edited them)
+    if (auto cached = m_assets.get(reference.m_uid))
+    {
+        if (cached->getImportSettings())
+        {
+            asset->setImportSettings(cached->getImportSettings()->clone());
+        }
+    }
+    // Fall back to reading from metadata file on disk
+    if (!asset->getImportSettings())
+    {
+        std::filesystem::path metaPath = sourcePath;
+        Metadata::getMetadataPath(metaPath);
+        if (fs::exists(metaPath))
+        {
+            Metadata existingMeta;
+            if (loadMetaFile(metaPath, existingMeta) && existingMeta.importSettings)
+            {
+                asset->setImportSettings(std::move(existingMeta.importSettings));
+            }
+        }
+    }
+    // Create default settings if nothing else available
+    if (!asset->getImportSettings())
+    {
+        asset->setImportSettings(asset->createDefaultImportSettings());
+    }
+
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
@@ -223,6 +251,11 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
     std::error_code ec;
     meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
     if (ec) meta.sourceFileSize = 0;
+
+    if (asset->getImportSettings())
+    {
+        meta.importSettings = asset->getImportSettings()->clone();
+    }
 
     std::filesystem::path metaPath = sourcePath;
     Metadata::getMetadataPath(metaPath);
@@ -473,6 +506,14 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
         doc.AddMember("dependencies", deps, alloc);
     }
 
+    if (meta.importSettings)
+    {
+        Value settingsObj(kObjectType);
+        settingsObj.AddMember("typeName", Value(meta.importSettings->getTypeName(), alloc), alloc);
+        meta.importSettings->save(settingsObj, alloc);
+        doc.AddMember("importSettings", settingsObj, alloc);
+    }
+
     StringBuffer buffer;
     PrettyWriter<StringBuffer> writer(buffer);
     doc.Accept(writer);
@@ -564,6 +605,15 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
                 rec.displayName = entry["displayName"].GetString();
 
             outMeta.m_dependencies.push_back(std::move(rec));
+        }
+    }
+
+    if (doc.HasMember("importSettings") && doc["importSettings"].IsObject())
+    {
+        outMeta.importSettings = ImportSettings::CreateForType(outMeta.type);
+        if (outMeta.importSettings)
+        {
+            outMeta.importSettings->load(doc["importSettings"]);
         }
     }
 

@@ -301,6 +301,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="AssetType.h" />
@@ -757,6 +759,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
+    <ClCompile Include="TextureImportSettings.cpp" />
+    <ClCompile Include="ImportSettings.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
