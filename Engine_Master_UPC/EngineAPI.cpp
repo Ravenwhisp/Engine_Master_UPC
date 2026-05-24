@@ -26,6 +26,7 @@
 #include "MeshRenderer.h"
 #include "BoundingBox.h"
 #include "ParticleSystemComponent.h"
+#include "ComponentSoundSource.h"
 
 #include "CameraComponent.h"
 
@@ -2372,4 +2373,60 @@ ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem
     }
 
     particleSystem->resetParticles();
+}
+
+namespace AudioAPI
+{
+    ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<ComponentSoundSource>(ComponentType::SOUND_SOURCE);
+    }
+
+    const ComponentSoundSource* getSoundSourceComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<ComponentSoundSource>(ComponentType::SOUND_SOURCE);
+    }
+
+    uint32_t postEvent(ComponentSoundSource* component, const char* bankName, const char* eventName)
+    {
+        if (component)
+        {
+            return component->postEvent(bankName, eventName);
+        }
+        return NULL;
+    }
+
+    void stopEvent(ComponentSoundSource* component, uint32_t playingID)
+    {
+        if (component)
+        {
+            component->stopEvent(playingID);
+        }
+    }
+
+    void pauseEvent(ComponentSoundSource* component, uint32_t playingID)
+    {
+        if (component)
+        {
+            component->pauseEvent(playingID);
+        }
+    }
+
+    void resumeEvent(ComponentSoundSource* component, uint32_t playingID)
+    {
+        if (component)
+        {
+            component->resumeEvent(playingID);
+        }
+    }
 }

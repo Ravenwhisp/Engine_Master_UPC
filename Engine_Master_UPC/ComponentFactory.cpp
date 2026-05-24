@@ -15,6 +15,8 @@
 #include "AnimationComponent.h"
 #include "TriggerComponent.h"
 #include "ParticleSystemComponent.h"
+#include "ComponentSoundListener.h"
+#include "ComponentSoundSource.h"
 
 // UI components
 #include "Canvas.h"
@@ -81,6 +83,12 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::PARTICLE_SYSTEM:
         return std::make_unique<ParticleSystemComponent>(id, owner);
+
+    case ComponentType::SOUND_LISTENER:
+        return std::make_unique<ComponentSoundListener>(id, owner);
+
+    case ComponentType::SOUND_SOURCE:
+        return std::make_unique<ComponentSoundSource>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

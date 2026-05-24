@@ -24,6 +24,7 @@ class AnimationComponent;
 class UISlider;
 class Transform2D;
 class ParticleSystemComponent;
+class ComponentSoundSource;
 
 struct HapticEffectDefinition;
 
@@ -347,6 +348,16 @@ namespace ParticleSystemAPI
     ENGINE_API bool isPlaying(ParticleSystemComponent* particleSystem);
 
     ENGINE_API void reset(ParticleSystemComponent* particleSystem); // resets the particles
+}
+
+namespace AudioAPI
+{
+    ENGINE_API ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject);
+    ENGINE_API const ComponentSoundSource* getSoundSourceComponent(const GameObject* gameObject);
+    ENGINE_API uint32_t postEvent(ComponentSoundSource* component, const char* bankName, const char* eventName);
+    ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
+    ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
+    ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);
 }
 
 #include "EngineAPI.inl"
