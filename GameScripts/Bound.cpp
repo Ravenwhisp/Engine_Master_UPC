@@ -13,7 +13,8 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_FLOAT(m_radiusThreshold, "Radius Threshold", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(baseDamage, "Base Damage", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_separationHapticHpGate, "Separation Haptic HP Gate", 0.5f, 0.25f, 0.01f)
+    SERIALIZED_FLOAT(m_separationHapticHpGate, "Separation Haptic HP Gate", 0.5f, 0.25f, 0.01f),
+    SERIALIZED_VECTOR(speeds, "Speeds")
 )
 
 Bound::Bound(GameObject* owner) : Script(owner)

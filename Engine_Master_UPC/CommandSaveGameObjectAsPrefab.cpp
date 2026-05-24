@@ -35,6 +35,4 @@ void CommandSaveGameObjectAsPrefab::run()
         DEBUG_ERROR("[FileDialog] Failed to create prefab at '%s'.", savePath.string().c_str());
         return;
     }
-
-    app->getModuleAssets()->refresh();
 }

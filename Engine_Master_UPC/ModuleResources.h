@@ -3,6 +3,7 @@
 #include "Module.h"
 #include "CommandQueue.h"
 #include "UID.h"
+#include "MD5Fwd.h"
 #include "WeakCache.h"
 
 class SkyBox;
@@ -36,7 +37,7 @@ class RenderSurface;
 
 // Responsible for creation and management of raw GPU resources in D3D12.
 // Handles buffers, textures, render targets, depth stencils, and deferred GPU release.
-// Owns no asset-level objects — callers own everything returned here.
+// Owns no asset-level objects ï¿½ callers own everything returned here.
 class ModuleResources : public Module
 {
 public:
@@ -61,11 +62,13 @@ public:
 	Texture* createDepthBuffer(float width, float height);
 	Texture* createRenderTexture(float width, float height);
 	RenderSurface* createRenderSurface(float width, float height);
-	Texture* createNullTexture2D();
+	static constexpr const char* NULL_TEXTURE_HASH = "__NULL_TEXTURE__";
+
+	std::shared_ptr<Texture> createNullTexture2D();
 
 	Texture* createTextureInternal(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
-	Texture* createIrradianceInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
-	Texture* createEnvironmentInternal(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
+	Texture* createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox);
+	Texture* createEnvironmentInternal(const IndexBuffer* indexBuffer, SkyBox* skybox);
 
 	Texture* getEnvironmentBrdfTexture() { return m_enviromentBrdfTexture.get(); }
 	void  setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture);
@@ -75,8 +78,8 @@ public:
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, TextureColorSpace colorSpace, bool shaderVisible = false);
-	std::shared_ptr<Texture>		createIrradiance(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
-	std::shared_ptr<Texture>		createEnvironment(const TextureAsset& textureAsset, const IndexBuffer* indexBuffer, SkyBox* skybox);
+	std::shared_ptr<Texture>		createIrradiance(const IndexBuffer* indexBuffer, SkyBox* skybox);
+	std::shared_ptr<Texture>		createEnvironment(const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createTextureSRGB(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createTextureLinear(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
@@ -88,7 +91,7 @@ private:
 	ComPtr<ID3D12Device4>				m_device;
 	CommandQueue* m_queue{ nullptr };
 	std::vector<DeferredResource>		m_deferredResources;
-	WeakCache<UID, ICacheable>			m_resources;
+	WeakCache<MD5Hash, ICacheable>			m_resources;
 
 	std::shared_ptr<Texture>			m_enviromentBrdfTexture;
 };

@@ -138,6 +138,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;
 $(SolutionDir)3rdParty\RecastNavigation\Recast\Include;
 $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
 %(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,6 +186,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;
 $(SolutionDir)3rdParty\RecastNavigation\Recast\Include;
 $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
 %(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -204,6 +206,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PreprocessorDefinitions>WIN32;GAME_RELEASE;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -323,6 +326,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="EmitterSpawn.h" />
     <ClInclude Include="EmitterVelocity.h" />
     <ClInclude Include="EngineAPI.h" />
+    <ClInclude Include="EquirectangularPass.h" />
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FileDialogClipboard.h" />
@@ -727,6 +731,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="EmitterSpawn.cpp" />
     <ClCompile Include="EmitterVelocity.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
+    <ClCompile Include="EquirectangularPass.cpp" />
     <ClCompile Include="HapticEffectDefinition.cpp" />
     <ClCompile Include="HapticEffectLibrary.cpp" />
     <ClCompile Include="FileDialog.cpp" />
@@ -761,6 +766,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
     <ClCompile Include="ScriptFieldHandler_Float.cpp" />
     <ClCompile Include="ScriptFieldHandler_Int.cpp" />
+    <ClCompile Include="ScriptFieldHandler_List.cpp" />
     <ClCompile Include="ScriptFieldHandler_String.cpp" />
     <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
     <ClCompile Include="Skin.cpp" />
@@ -924,6 +930,22 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="BRDFVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="EquirectangularPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="EquirectangularVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
