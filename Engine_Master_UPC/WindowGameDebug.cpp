@@ -26,7 +26,7 @@ void WindowGameDebug::render()
     ImGui::Checkbox("Show Dynamic QuadTree", &m_settings->sceneEditor.showDynamicQuadTree);
     ImGui::Checkbox("Show Model Bounding Boxes", &m_settings->sceneEditor.showModelBoundingBoxes);
     ImGui::Separator();
-    ImGui::Checkbox("Frustum culling", &m_settings->frustumCulling.debugFrustumCulling);
+    ImGui::Checkbox("Frustum culling", &m_settings->frustumCulling.enabled);
     ImGui::Separator();
     ImGui::Checkbox("Show FPS", &m_settings->debugGame.showFPS);
     ImGui::Checkbox("Show Frame time", &m_settings->debugGame.showFrametime);

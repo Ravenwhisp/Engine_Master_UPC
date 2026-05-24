@@ -89,10 +89,21 @@ void Quadtree::build(const std::vector<Layer> layers)
 
     for (const auto& go : objects)
     {
-        if (go->GetActive())
+        if (!go->GetActive())
         {
-            insert(*go);
+            continue;
         }
+
+        const bool layerMatch =
+            layers.empty() ||
+            std::find(layers.begin(), layers.end(), go->GetLayer()) != layers.end();
+
+        if (!layerMatch)
+        {
+            continue;
+        }
+
+        insert(*go);
     }
 
     isBuilded = true;
@@ -107,6 +118,7 @@ void Quadtree::clear()
 {
     m_dirtyNodes.clear();
     m_objectLocationMap.clear();
+    m_root.reset();
 
     isBuilded = false;
 }

@@ -91,21 +91,21 @@ void WindowEditorSettings::drawFrustumCullingSettings()
 {
     if (ImGui::CollapsingHeader("Frustum culling"))
     {
-        ImGui::Checkbox("Debug enable###FrustumCullingEnabled", &m_settings->frustumCulling.debugFrustumCulling);
+        ImGui::Checkbox("Enable Frustum Culling###FrustumCullingEnabled", &m_settings->frustumCulling.enabled);
+
         ImGui::DragFloat("Quadtree extra X size", &m_settings->frustumCulling.quadtreeXExtraSize, 1.f, 0.f, 100.f);
+
         ImGui::DragFloat("Quadtree extra Z size", &m_settings->frustumCulling.quadtreeZExtraSize, 1.f, 0.f, 100.f);
     }
 
-    if (m_settings->frustumCulling.debugFrustumCulling)
+    if (m_settings->frustumCulling.enabled)
     {
-        if (!app->getModuleScene()->getScene()->getDefaultCamera()) {
-            m_settings->frustumCulling.debugFrustumCulling = false;
-            DEBUG_WARN("Cannot debug frustum culling there is no default camera set in the scene.");
-        }
+        Scene* scene = app->getModuleScene()->getScene();
 
-        if (!app->getModuleScene()->getStaticQuadtree()->getIsBuilded() && !app->getModuleScene()->getDynamicQuadtree()->getIsBuilded()) {
-            m_settings->frustumCulling.debugFrustumCulling = false;
-            DEBUG_WARN("Cannot debug frustum culling because none of the quadtrees are builded.");
+        if (!scene || !scene->getDefaultCamera())
+        {
+            m_settings->frustumCulling.enabled = false;
+            DEBUG_WARN("Cannot enable frustum culling because there is no default camera set in the scene.");
         }
     }
 }
