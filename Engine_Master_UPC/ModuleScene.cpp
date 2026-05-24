@@ -364,26 +364,27 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
 	const Layer layer = gameObject.GetLayer();
 
-    if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    {
+        m_dynamicQuadtree->move(gameObject);
+    }
+	else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
     {
         m_staticQuadtree->move(gameObject);
     }
-	else if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
-    {
-        m_dynamicQuadtree->move(gameObject);
-	}
 }
+
 void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
 {
     const Layer layer = gameObject.GetLayer();
 
-    if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
-    {
-        m_staticQuadtree->remove(gameObject);
-    }
-    else if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
     {
         m_dynamicQuadtree->remove(gameObject);
+    }
+    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    {
+        m_staticQuadtree->remove(gameObject);
 	}
 }
 #pragma endregion
