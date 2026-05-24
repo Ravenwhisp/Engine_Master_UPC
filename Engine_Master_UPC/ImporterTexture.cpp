@@ -1,5 +1,6 @@
 ﻿#include "Globals.h"
 #include "ImporterTexture.h"
+#include "TextureImportSettings.h"
 
 #include <WindowLogger.h>
 
@@ -37,6 +38,37 @@ bool ImporterTexture::loadExternal(const std::filesystem::path& path, ScratchIma
 }
 
 
+static DXGI_FORMAT ResolveTargetFormat(const TextureImportSettings* settings)
+{
+    if (!settings || settings->targetFormat == TextureImportFormat::AUTO)
+    {
+        return (settings && settings->srgb) ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
+    }
+
+    switch (settings->targetFormat)
+    {
+    case TextureImportFormat::R8G8B8A8_UNORM:     return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case TextureImportFormat::R8G8B8A8_UNORM_SRGB: return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    case TextureImportFormat::BC1_UNORM:           return DXGI_FORMAT_BC1_UNORM;
+    case TextureImportFormat::BC3_UNORM:           return DXGI_FORMAT_BC3_UNORM;
+    case TextureImportFormat::BC5_UNORM:           return DXGI_FORMAT_BC5_UNORM;
+    case TextureImportFormat::BC7_UNORM:           return DXGI_FORMAT_BC7_UNORM;
+    case TextureImportFormat::BC7_UNORM_SRGB:      return DXGI_FORMAT_BC7_UNORM_SRGB;
+    default:                                       return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    }
+}
+
+static bool IsBlockCompressed(DXGI_FORMAT fmt)
+{
+    return fmt == DXGI_FORMAT_BC1_UNORM || fmt == DXGI_FORMAT_BC1_UNORM_SRGB
+        || fmt == DXGI_FORMAT_BC2_UNORM || fmt == DXGI_FORMAT_BC2_UNORM_SRGB
+        || fmt == DXGI_FORMAT_BC3_UNORM || fmt == DXGI_FORMAT_BC3_UNORM_SRGB
+        || fmt == DXGI_FORMAT_BC4_UNORM || fmt == DXGI_FORMAT_BC4_SNORM
+        || fmt == DXGI_FORMAT_BC5_UNORM || fmt == DXGI_FORMAT_BC5_SNORM
+        || fmt == DXGI_FORMAT_BC6H_UF16 || fmt == DXGI_FORMAT_BC6H_SF16
+        || fmt == DXGI_FORMAT_BC7_UNORM || fmt == DXGI_FORMAT_BC7_UNORM_SRGB;
+}
+
 void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* texture)
 {
     if (source.GetImageCount() == 0)
@@ -53,7 +85,11 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
         return;
     }
 
-    //Step 1: decompress if the source is a block-compressed format
+    TextureImportSettings* settings = static_cast<TextureImportSettings*>(texture->getImportSettings());
+    const bool shouldGenerateMips = settings ? settings->generateMips : true;
+    const DXGI_FORMAT targetFormat = ResolveTargetFormat(settings);
+
+    // Step 1: decompress if the source is a block-compressed format
     ScratchImage decompressed;
     const ScratchImage* working = &source;
 
@@ -63,7 +99,7 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
             source.GetImages(),
             source.GetImageCount(),
             meta,
-            DXGI_FORMAT_R8G8B8A8_UNORM,    // decompress to a plain UNORM target
+            DXGI_FORMAT_R8G8B8A8_UNORM,
             decompressed
         );
 
@@ -77,16 +113,17 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
         meta = decompressed.GetMetadata();
     }
 
-    //Step 2: convert to the canonical engine format
+    // Step 2: convert to the target intermediate format (uncompressed)
+    const DXGI_FORMAT intermediateFormat = IsBlockCompressed(targetFormat) ? DXGI_FORMAT_R8G8B8A8_UNORM : targetFormat;
+
     ScratchImage converted;
-    if (meta.format != DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+    if (meta.format != intermediateFormat)
     {
         HRESULT hr = Convert(
             working->GetImages(),
             working->GetImageCount(),
             meta,
-            DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
-            //DXGI_FORMAT_R8G8B8A8_UNORM,
+            intermediateFormat,
             TEX_FILTER_DEFAULT,
             TEX_THRESHOLD_DEFAULT,
             converted
@@ -94,8 +131,8 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
 
         if (FAILED(hr))
         {
-            DEBUG_ERROR("[ImporterTexture] Failed to convert format %u -> R8G8B8A8_UNORM_SRGB " "(HRESULT: %08X). Falling back to unconverted data.", static_cast<unsigned>(meta.format), static_cast<unsigned>(hr));
-            // Fall back: keep working data as-is so we still get something usable.
+            DEBUG_ERROR("[ImporterTexture] Failed to convert format %u -> %u (HRESULT: %08X). Falling back to unconverted data.",
+                static_cast<unsigned>(meta.format), static_cast<unsigned>(intermediateFormat), static_cast<unsigned>(hr));
         }
         else
         {
@@ -104,24 +141,24 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
         }
     }
 
-    //Step 3: generate mip chain
+    // Step 3: generate mip chain (if requested)
     ScratchImage mipped;
     const ScratchImage* final = working;
 
-    if (meta.mipLevels == 1 && meta.width > 1 && meta.height > 1)
+    if (shouldGenerateMips && meta.mipLevels == 1 && meta.width > 1 && meta.height > 1)
     {
         HRESULT hr = GenerateMipMaps(
             working->GetImages(),
             working->GetImageCount(),
             meta,
             TEX_FILTER_FANT | TEX_FILTER_SEPARATE_ALPHA,
-            0,          // 0 = full mip chain down to 1×1
+            0,
             mipped
         );
 
         if (FAILED(hr))
         {
-            DEBUG_WARN("[ImporterTexture] Failed to generate mipmaps (HRESULT: %08X) — " "importing without mips.", static_cast<unsigned>(hr));
+            DEBUG_WARN("[ImporterTexture] Failed to generate mipmaps (HRESULT: %08X) — importing without mips.", static_cast<unsigned>(hr));
         }
         else
         {
@@ -130,7 +167,33 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
         }
     }
 
-    // Step 4: copy pixel data into the TextureAsset
+    // Step 4: compress to final block-compressed format if requested
+    ScratchImage compressed;
+    if (IsBlockCompressed(targetFormat) && !IsBlockCompressed(meta.format))
+    {
+        HRESULT hr = Compress(
+            final->GetImages(),
+            final->GetImageCount(),
+            meta,
+            targetFormat,
+            TEX_COMPRESS_DEFAULT,
+            0.5f,
+            compressed
+        );
+
+        if (FAILED(hr))
+        {
+            DEBUG_WARN("[ImporterTexture] Failed to compress to %u (HRESULT: %08X) — keeping uncompressed.",
+                static_cast<unsigned>(targetFormat), static_cast<unsigned>(hr));
+        }
+        else
+        {
+            final = &compressed;
+            meta = compressed.GetMetadata();
+        }
+    }
+
+    // Step 5: copy pixel data into the TextureAsset
     const uint32_t mipCount = static_cast<uint32_t>(meta.mipLevels);
     const uint32_t arraySize = static_cast<uint32_t>(meta.arraySize);
 
