@@ -3,6 +3,7 @@ struct VertexData
     float3 position;
     float2 texCoord0;
     float3 normal;
+    float3 tangent;
     uint2 packedJoints;
     float4 weights;
 };
