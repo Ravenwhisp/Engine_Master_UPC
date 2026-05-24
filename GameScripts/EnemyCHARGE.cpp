@@ -65,6 +65,13 @@ void EnemyCHARGE::OnStateUpdate()
 		return;
 	}
 
+	if (m_enemyController->isDead())
+	{
+		m_enemyController->clearPath();
+		AnimationAPI::sendTrigger(animation, "ToDeath");
+		return;
+	}
+
 	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	if (!ownerTransform)
 	{

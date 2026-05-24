@@ -52,7 +52,7 @@ void TargetIndicatorUI::Update()
 
     showIndicator();
 
-    const Vector3 targetPosition = TransformAPI::getPosition(targetTransform);
+    const Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
     const Vector3 desiredPosition = targetPosition + m_positionOffset;
 
     const bool targetChanged = (currentTarget != m_previousTarget);
@@ -60,9 +60,11 @@ void TargetIndicatorUI::Update()
     if (targetChanged || m_followSharpness <= 0.0f)
     {
         TransformAPI::setPosition(visualTransform, desiredPosition);
+        m_previousTarget = currentTarget;
         return;
     }
-    else {
+    else
+    {
         const Vector3 currentPosition = TransformAPI::getPosition(visualTransform);
         const float dt = Time::getDeltaTime();
         const float followFraction = 1.0f - expf(-m_followSharpness * dt);

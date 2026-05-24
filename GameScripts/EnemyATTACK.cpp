@@ -52,6 +52,13 @@ void EnemyATTACK::OnStateUpdate()
 		return;
 	}
 
+	if (m_enemyController->isDead())
+	{
+		m_enemyController->clearPath();
+		AnimationAPI::sendTrigger(animation, "ToDeath");
+		return;
+	}
+
 	float dt = Time::getDeltaTime();
 	m_stateTimer += dt;
 

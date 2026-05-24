@@ -38,6 +38,13 @@ void EnemySTUN::OnStateUpdate()
 		return;
 	}
 
+	if (m_enemyController->isDead())
+	{
+		m_enemyController->clearPath();
+		AnimationAPI::sendTrigger(animation, "ToDeath");
+		return;
+	}
+
 	m_elapsedTime += Time::getDeltaTime();
 
 	if (m_elapsedTime < m_stunDuration)
