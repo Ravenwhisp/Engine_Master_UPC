@@ -2,7 +2,9 @@
 #include "LyrielArrowProjectile.h"
 #include "ArrowPool.h"
 #include "EnemyDamageable.h"
+#include "BreakableDamageable.h"
 #include "EnemyShadowMark.h"
+#include "LyrielCharacter.h"
 
 LyrielArrowProjectile::LyrielArrowProjectile(GameObject* owner)
     : Script(owner)
@@ -108,7 +110,26 @@ void LyrielArrowProjectile::applyImpactDamage()
         if (mark != nullptr && mark->isExploitable())
         {
             mark->exploit();
+
+            if (m_arrowOwner != nullptr)
+            {
+                GameObject* shooter = m_arrowOwner->getOwner();
+                if (shooter != nullptr)
+                {
+                    LyrielCharacter* lyriel = GameObjectAPI::findScript<LyrielCharacter>(shooter);
+                    if (lyriel != nullptr)
+                        lyriel->onMarkExploited();
+                }
+            }
         }
+    }
+
+	BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(m_target);
+
+    if (breakableDamageable != nullptr)
+    {
+        breakableDamageable->takeDamage(m_damage);
+        return;
     }
 }
 

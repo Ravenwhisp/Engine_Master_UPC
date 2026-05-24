@@ -26,7 +26,6 @@
     <ClCompile Include="EnemyDamageable.cpp" />
     <ClCompile Include="EnemyDeathHandler.cpp" />
     <ClCompile Include="EnemyDeathState.cpp" />
-    <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
     <ClCompile Include="EnemyShadowMark.cpp" />
     <ClCompile Include="ExportListTest.cpp" />
@@ -70,6 +69,33 @@
     <ClCompile Include="UIController.cpp" />
     <ClCompile Include="UIPause.cpp" />
     <ClCompile Include="MusicSystemTester.cpp" />
+    <ClCompile Include="ArthurAttackConfig.cpp" />
+    <ClCompile Include="ArthurAttackDebugDraw.cpp" />
+    <ClCompile Include="ArthurAttackExecutor.cpp" />
+    <ClCompile Include="ArthurBossController.cpp" />
+    <ClCompile Include="ArthurChargingSlam.cpp" />
+    <ClCompile Include="ArthurChase.cpp" />
+    <ClCompile Include="ArthurDetectionAggro.cpp" />
+    <ClCompile Include="ArthurEarthHammer.cpp" />
+    <ClCompile Include="ArthurHeavySwipe.cpp" />
+    <ClCompile Include="ArthurIdle.cpp" />
+    <ClCompile Include="ArthurRecover.cpp" />
+    <ClCompile Include="ArthurSideSweep.cpp" />
+    <ClCompile Include="BreakableDamageable.cpp" />
+    <ClCompile Include="BreakableExplosive.cpp" />
+    <ClCompile Include="BreakableHealingDrop.cpp" />
+    <ClCompile Include="BreakableObject.cpp" />
+    <ClCompile Include="CrystalShadowMark.cpp" />
+    <ClCompile Include="EnemyCHARGE.cpp" />
+    <ClCompile Include="EnemyRECOVER.cpp" />
+    <ClCompile Include="EnemySTUN.cpp" />
+    <ClCompile Include="HealthDropSpawner.cpp" />
+    <ClCompile Include="Pickup.cpp" />
+    <ClCompile Include="PowerupCollectible.cpp" />
+    <ClCompile Include="PuzzleManagerLVL1.cpp" />
+    <ClCompile Include="ShadowExecution.cpp" />
+    <ClCompile Include="EnemyDetectionAggro.cpp" />
+    <ClCompile Include="PlayerStunState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -137,8 +163,37 @@
     <ClInclude Include="UIController.h" />
     <ClInclude Include="UIPause.h" />
     <ClInclude Include="MusicSystemTester.h" />
+    <ClInclude Include="ArthurAttackConfig.h" />
+    <ClInclude Include="ArthurAttackDebugDraw.h" />
+    <ClInclude Include="ArthurAttackExecutor.h" />
+    <ClInclude Include="ArthurBossController.h" />
+    <ClInclude Include="ArthurChargingSlam.h" />
+    <ClInclude Include="ArthurChase.h" />
+    <ClInclude Include="ArthurDetectionAggro.h" />
+    <ClInclude Include="ArthurEarthHammer.h" />
+    <ClInclude Include="ArthurHeavySwipe.h" />
+    <ClInclude Include="ArthurIdle.h" />
+    <ClInclude Include="ArthurRecover.h" />
+    <ClInclude Include="ArthurSideSweep.h" />
+    <ClInclude Include="BreakableDamageable.h" />
+    <ClInclude Include="BreakableExplosive.h" />
+    <ClInclude Include="BreakableHealingDrop.h" />
+    <ClInclude Include="BreakableObject.h" />
+    <ClInclude Include="CrystalShadowMark.h" />
+    <ClInclude Include="EnemyCHARGE.h" />
+    <ClInclude Include="EnemyRECOVER.h" />
+    <ClInclude Include="EnemyShadowMark.h" />
+    <ClInclude Include="EnemySTUN.h" />
+    <ClInclude Include="HealthDropSpawner.h" />
+    <ClInclude Include="Pickup.h" />
+    <ClInclude Include="PowerupCollectible.h" />
+    <ClInclude Include="PuzzleManagerLVL1.h" />
+    <ClInclude Include="ReaperGauge.h" />
+    <ClInclude Include="ShadowExecution.h" />
+    <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="PlayerStunState.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PlayerCharacterGuide.md" />
+    <None Include="SimpleMath.inl" />
   </ItemGroup>
 </Project>

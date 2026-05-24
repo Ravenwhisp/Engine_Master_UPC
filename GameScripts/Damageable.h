@@ -11,6 +11,7 @@ public:
     explicit Damageable(GameObject* owner);
 
     void Start()     override;
+	void Update()	 override;
     void drawGizmo() override;
     ScriptFieldList getExposedFields() const override;
 
@@ -36,15 +37,23 @@ protected:
 
 private:
     void clampHp();
-    void updateHealthBar();
+    void updateUI();
 
 public:
     float m_maxHp = 100.0f;
 	ScriptComponentRef<UISlider> m_healthBar;
+    ScriptComponentRef<UISlider> m_healthBar2;
+    float m_uiUpdateTime = 1.0f;
 
 private:
     float m_currentHp   = 100.0f;
     bool  m_invulnerable = false;
     bool  m_isDead       = false;
 
+	UISlider* m_healthBarSlider = nullptr;
+	UISlider* m_healthBar2Slider = nullptr;
+	float m_uiTimer = 0.0f;
+	float m_currentDisplayedHp = 100.0f;
+    float m_uiStartPercent;
+    float m_uiTargetPercent;
 };

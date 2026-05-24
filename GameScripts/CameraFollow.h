@@ -34,7 +34,7 @@ private:
     Vector3 computeFollowPoint() const;
     float computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const;
     float smoothExtraHeight(float current, float target, float sharpness, float dt) const;
-    Vector3 computeDesiredCameraPosition(const Vector3& followPoint) const;
+    Vector3 computeDesiredCameraPosition(const Vector3& followPoint, Transform* const& cameraTransform) const;
     Vector3 smoothCameraPosition(const Vector3& current, const Vector3& target, float sharpness, float dt) const;
 
     Vector3 lerpVector(const Vector3& start, const Vector3& end, float alpha) const;

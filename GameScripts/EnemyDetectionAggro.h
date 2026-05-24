@@ -6,7 +6,7 @@ class EnemyDetectionAggro : public Script
 {
 	DECLARE_SCRIPT(EnemyDetectionAggro)
 
-private:
+protected:
 	struct AggroEntry
 	{
 		Transform* targetTransform = nullptr;
@@ -29,8 +29,8 @@ public:
 	float m_targetLockDuration = 5.0f;
 	bool m_debugEnabled = true;
 
-	ScriptComponentRef<Transform> m_player1Transform;
-	ScriptComponentRef<Transform> m_player2Transform;
+	ScriptComponentRef<Transform> m_lyrielTransform;
+	ScriptComponentRef<Transform> m_deathTransform;
 
 public:
 	void notifyPlayerAttackedEnemy(Transform* playerTransform);
@@ -39,12 +39,19 @@ public:
 
 	bool isAggro() const { return m_isAggro; }
 	bool canSeeTarget() const { return m_canSeeTarget; }
+
 	Transform* getCurrentTarget() const { return m_currentTargetTransform; }
 	Vector3 getLastKnownTargetPosition() const { return m_lastKnownTargetPosition; }
 
-private:
-	AggroEntry m_player1Aggro;
-	AggroEntry m_player2Aggro;
+	bool isDowned(Transform* target) const;
+	bool hasAnyTargetInDetectionRange();
+
+	Transform* getLyrielTransform() const;
+	Transform* getDeathTransform() const;
+
+protected:
+	AggroEntry m_lyrielAggro;
+	AggroEntry m_deathAggro;
 
 	Transform* m_currentTargetTransform = nullptr;
 	bool m_isAggro = false;
@@ -57,38 +64,36 @@ private:
 	float m_currentTime = 0.0f;
 	float m_recentAttackMemory = 3.0f;
 
-private:
+protected:
 	void enterAggro(Transform* target);
-	void updateAggroState();
+	virtual void updateAggroState();
 	void updateAggroEntries();
+	void resetAggro();
+	bool isTaunted() const;
 
+
+private:
 	bool isTargetLockActive() const;
 	void startTargetLock();
 	void updateTargetLockTimer();
 	void updateTauntTimer();
-	bool isTaunted() const;
 
 	Transform* selectClosestDetectedPlayer() const;
 	Transform* selectReevaluatedTarget() const;
 
-private:
 	Transform* getOwnerTransform() const;
-	Transform* getPlayer1Transform() const;
-	Transform* getPlayer2Transform() const;
-
 	Vector3 getOwnerPosition() const;
-	Vector3 getPlayer1Position() const;
-	Vector3 getPlayer2Position() const;
+	Vector3 getLyrielPosition() const;
+	Vector3 getDeathPosition() const;
 
-	float getDistanceToPlayer1() const;
-	float getDistanceToPlayer2() const;
+	float getDistanceToLyriel() const;
+	float getDistanceToDeath() const;
 
-	bool isPlayer1InDetectionRange() const;
-	bool isPlayer2InDetectionRange() const;
+	bool isLyrielInDetectionRange() const;
+	bool isDeathInDetectionRange() const;
 
-	bool isPlayer1Aggroing() const;
-	bool isPlayer2Aggroing() const;
-	bool isTransformAlive(Transform* target) const;
+	bool isLyrielAggroing() const;
+	bool isDeathAggroing() const;
 
 	AggroEntry* getAggroEntry(Transform* target);
 	const AggroEntry* getAggroEntry(Transform* target) const;
