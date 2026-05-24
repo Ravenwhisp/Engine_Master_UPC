@@ -76,7 +76,7 @@ ComPtr<ID3D12Resource> ModuleResources::createUploadBuffer(size_t size)
 	ComPtr<ID3D12Resource> buffer;
 	CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size);
-	m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+	DXCall(m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer)));
 	return buffer;
 }
 
@@ -85,7 +85,7 @@ ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(const void* data, si
 	ComPtr<ID3D12Resource> buffer;
 	auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
-	m_device->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&buffer));
+	DXCall(m_device->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &bufferDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&buffer)));
 
 	ComPtr<ID3D12Resource> uploadBuffer = createUploadBuffer(size);
 
@@ -100,7 +100,10 @@ ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(const void* data, si
 	m_queue->executeCommandList(commandList);
 	m_queue->flush();
 
-	buffer->SetName(std::wstring(name, name + strlen(name)).c_str());
+	if (name && name[0] != '\0')
+	{
+		buffer->SetName(std::wstring(name, name + strlen(name)).c_str());
+	}
 	return buffer;
 }
 
@@ -111,15 +114,15 @@ ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(size_t size, D3D12_R
 	auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	auto bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(size, flags);
 
-	m_device->CreateCommittedResource(
+	DXCall(m_device->CreateCommittedResource(
 		&defaultHeap,
 		D3D12_HEAP_FLAG_NONE,
 		&bufferDesc,
 		initialState,
 		nullptr,
-		IID_PPV_ARGS(&buffer));
+		IID_PPV_ARGS(&buffer)));
 
-	if (name && name[0] != '\0')
+	if (buffer && name && name[0] != '\0')
 	{
 		buffer->SetName(std::wstring(name, name + strlen(name)).c_str());
 	}
