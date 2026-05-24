@@ -137,6 +137,16 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
 
     std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
 
+    // Try to get import settings from the in-memory cached asset first (user may have edited them)
+    if (auto cached = m_assets.get(reference.m_uid))
+    {
+        if (cached->getImportSettings())
+        {
+            asset->setImportSettings(cached->getImportSettings()->clone());
+        }
+    }
+    // Fall back to reading from metadata file on disk
+    if (!asset->getImportSettings())
     {
         std::filesystem::path metaPath = sourcePath;
         Metadata::getMetadataPath(metaPath);
@@ -149,6 +159,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
             }
         }
     }
+    // Create default settings if nothing else available
     if (!asset->getImportSettings())
     {
         asset->setImportSettings(asset->createDefaultImportSettings());

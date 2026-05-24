@@ -42,7 +42,7 @@ Texture* ModuleParticleSystem::resolveTexture(AssetReference& textureRef)
         return nullptr;
     }
 
-    auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
+    auto texture = app->getModuleResources()->createTexture(*asset, true);
     if (!texture)
     {
         DEBUG_WARN("[ModuleParticleSystem] Texture creation failed: %s", libId.c_str());

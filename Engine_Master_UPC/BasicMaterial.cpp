@@ -16,7 +16,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	if (asset.getBaseMap().isValid())
 	{
 		auto baseMapTexture = app->getModuleAssets()->load<TextureAsset>(asset.getBaseMap());
-		m_textureColor = app->getModuleResources()->createTextureSRGB(*baseMapTexture);
+		m_textureColor = app->getModuleResources()->createTexture(*baseMapTexture);
 		m_materialData.hasDiffuseTex = true;
 	}
 	else
@@ -29,7 +29,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	{
 		auto metallicRoughnessTexture = app->getModuleAssets()->load<TextureAsset>(asset.getMetallicRoughnessMap());
 
-		m_textureMetallicRoughness = app->getModuleResources()->createTextureLinear(*metallicRoughnessTexture);
+		m_textureMetallicRoughness = app->getModuleResources()->createTexture(*metallicRoughnessTexture);
 		m_materialData.hasMetallicRoughnessTex = true;
 	}
 	else
@@ -42,7 +42,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	{
 		auto normalTexture = app->getModuleAssets()->load<TextureAsset>(asset.getNormalMap());
 
-		m_textureNormal = app->getModuleResources()->createTextureLinear(*normalTexture);
+		m_textureNormal = app->getModuleResources()->createTexture(*normalTexture);
 		m_materialData.hasNormalTex = true;
 	}
 	else
@@ -54,7 +54,7 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 	if (asset.getEmissive().isValid())
 	{
 		auto emissiveTexture = app->getModuleAssets()->load<TextureAsset>(asset.getEmissive());
-		m_textureEmissive = app->getModuleResources()->createTextureLinear(*emissiveTexture);
+		m_textureEmissive = app->getModuleResources()->createTexture(*emissiveTexture);
 		m_materialData.hasEmissiveTex = true;
 	}
 	else

@@ -34,7 +34,7 @@ SkyBox::SkyBox(TextureAsset& asset)
     m_vertexBuffer.reset(app->getModuleResources()->createVertexBuffer(vertexes, _countof(vertexes), sizeof(SkyBoxVertex)));
     m_vertexBuffer->setName(L"Vertex SkyBox");
     m_indexBuffer.reset(app->getModuleResources()->createIndexBuffer(indexes, _countof(indexes), DXGI_FORMAT_R16_UINT, "IndexBuffer skybox"));
-    m_hdrTexture = app->getModuleResources()->createTextureSRGB(asset, true);
+    m_hdrTexture = app->getModuleResources()->createTexture(asset, true);
 
     auto equirectangularPass = new EquirectangularPass(app->getModuleD3D12()->getDevice());
 
