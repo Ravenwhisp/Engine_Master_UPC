@@ -343,12 +343,20 @@ void Texture::releaseViews()
 
     if (hasRTV())
     {
-        for (uint32_t mip = 0; mip < m_mipCount; ++mip)
+        if (m_contiguousRTV)
         {
-            if (m_rtv[mip].IsValid())
+            descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).freeBlock(m_contiguousRTV);
+            m_contiguousRTV = nullptr;
+        }
+        else
+        {
+            for (uint32_t mip = 0; mip < m_mipCount; ++mip)
             {
-                descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
-                m_rtv[mip] = {};
+                if (m_rtv[mip].IsValid())
+                {
+                    descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
+                    m_rtv[mip] = {};
+                }
             }
         }
     }

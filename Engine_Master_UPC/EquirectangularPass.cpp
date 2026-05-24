@@ -182,5 +182,8 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
     commandQueue->flush();
 
     auto finalTexture = new Texture(hashToUID("SkyboxTexture"), *m_device.Get(), skyboxTextureRtv->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+    delete skyboxTextureRtv;
+
     return finalTexture;
 }

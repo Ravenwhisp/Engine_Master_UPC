@@ -401,6 +401,9 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	m_queue->flush();
 
 	auto finalTexture = new Texture(GenerateUID(), *m_device.Get(), irradianceTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+	delete irradianceTexture;
+
 	return finalTexture;
 }
 
@@ -586,6 +589,9 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 
 
 	auto finalTexture = new Texture(GenerateUID(), *m_device.Get(), environmentTexture->getD3D12Resource(), TextureView::SRV, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+	delete environmentTexture;
+
 	return finalTexture;
 }
 
