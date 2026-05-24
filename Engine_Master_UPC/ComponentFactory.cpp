@@ -25,6 +25,7 @@
 #include "UIText.h"
 #include "UIButton.h"
 #include "UISlider.h"
+#include "UISheet.h"
 
 
 std::unique_ptr<Component> ComponentFactory::create(ComponentType type, GameObject* owner)
@@ -77,6 +78,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::UISLIDER:
 		return std::make_unique<UISlider>(id, owner);
+
+    case ComponentType::UISHEET:
+        return std::make_unique<UISheet>(id, owner);
 
     case ComponentType::TRIGGER:
         return std::make_unique<TriggerComponent>(id, owner);

@@ -10,6 +10,11 @@ struct Rect2D;
 class UIImage : public Component
 {
 public:
+    enum class StretchDrawMode
+    {
+        Stretch = 0,
+        Tile = 1
+    };
     UIImage(UID id, GameObject* owner);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
@@ -38,6 +43,21 @@ public:
     FillOrigin getFillOrigin() const { return m_fillOrigin; }
     void setFillOrigin(FillOrigin origin) { m_fillOrigin = origin; }
 
+    int getSheetColumns() const { return m_sheetColumns; }
+    int getSheetRows() const { return m_sheetRows; }
+    Vector2 getSheetOffset() const { return m_sheetOffset; }
+
+    void setSheetGrid(int columns, int rows)
+    {
+        m_sheetColumns = std::max(1, columns);
+        m_sheetRows = std::max(1, rows);
+    }
+
+    void setSheetOffset(const Vector2& offset) { m_sheetOffset = offset; }
+
+    StretchDrawMode getStretchDrawMode() const { return m_stretchDrawMode; }
+    void setStretchDrawMode(StretchDrawMode mode) { m_stretchDrawMode = mode; }
+
     void drawUi() override;
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
@@ -52,4 +72,10 @@ private:
     float m_fillAmount = 1.0f;
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
+
+    int m_sheetColumns = 1;
+    int m_sheetRows = 1;
+    Vector2 m_sheetOffset = { 0.0f, 0.0f };
+
+    StretchDrawMode m_stretchDrawMode = StretchDrawMode::Stretch;
 };

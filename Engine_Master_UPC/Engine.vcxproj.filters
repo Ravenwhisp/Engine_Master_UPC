@@ -580,6 +580,8 @@
     <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Win32\AkDefaultIOHookDeferred.cpp">
       <Filter>MusicSystem\3rdParty</Filter>
     </ClCompile>
+    <ClCompile Include="Skin.cpp" />
+    <ClCompile Include="UISheet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1348,6 +1350,8 @@
     <ClInclude Include="WindowMusicDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
+    <ClInclude Include="Skin.h" />
+    <ClInclude Include="UISheet.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1637,5 +1641,6 @@
     <FxCompile Include="EquirectangularPixelShader.hlsl">
       <Filter>D3D12\Rendering\IBL</Filter>
     </FxCompile>
+    <FxCompile Include="SpritePixelShader.hlsl" />
   </ItemGroup>
 </Project>
