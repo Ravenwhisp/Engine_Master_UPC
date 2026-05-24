@@ -373,6 +373,19 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
         m_dynamicQuadtree->move(gameObject);
 	}
 }
+void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
+{
+    const Layer layer = gameObject.GetLayer();
+
+    if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    {
+        m_staticQuadtree->remove(gameObject);
+    }
+    else if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    {
+        m_dynamicQuadtree->remove(gameObject);
+	}
+}
 #pragma endregion
 
 #pragma region ObjectPicking

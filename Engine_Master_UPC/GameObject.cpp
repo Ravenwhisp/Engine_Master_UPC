@@ -283,6 +283,8 @@ void GameObject::lateUpdate()
 
 bool GameObject::cleanUp()
 {
+    app->getModuleScene()->removeGameObjectFromQuadtree(*this);
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         component->cleanUp();
