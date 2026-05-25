@@ -16,6 +16,33 @@ EnemyDetectionAggro::EnemyDetectionAggro(GameObject* owner) : Script(owner) {}
 
 void EnemyDetectionAggro::Start()
 {
+	findPlayerTransforms();
+}
+
+void EnemyDetectionAggro::findPlayerTransforms()
+{
+	m_lyrielCachedTransform = m_lyrielTransform.getReferencedComponent();
+	m_deathCachedTransform = m_deathTransform.getReferencedComponent();
+
+	if (m_lyrielCachedTransform && m_deathCachedTransform)
+		return;
+
+	const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
+	for (GameObject* player : players)
+	{
+		const char* name = GameObjectAPI::getName(player);
+		if (!name)
+			continue;
+
+		if (!m_lyrielCachedTransform && strcmp(name, "Lyriel") == 0)
+			m_lyrielCachedTransform = GameObjectAPI::getTransform(player);
+
+		if (!m_deathCachedTransform && strcmp(name, "Death") == 0)
+			m_deathCachedTransform = GameObjectAPI::getTransform(player);
+
+		if (m_lyrielCachedTransform && m_deathCachedTransform)
+			break;
+	}
 }
 
 void EnemyDetectionAggro::Update()
@@ -371,12 +398,14 @@ Transform* EnemyDetectionAggro::getOwnerTransform() const
 
 Transform* EnemyDetectionAggro::getLyrielTransform() const
 {
-	return m_lyrielTransform.getReferencedComponent();
+	Transform* ref = m_lyrielTransform.getReferencedComponent();
+	return ref ? ref : m_lyrielCachedTransform;
 }
 
 Transform* EnemyDetectionAggro::getDeathTransform() const
 {
-	return m_deathTransform.getReferencedComponent();
+	Transform* ref = m_deathTransform.getReferencedComponent();
+	return ref ? ref : m_deathCachedTransform;
 }
 
 Vector3 EnemyDetectionAggro::getOwnerPosition() const
@@ -478,8 +507,12 @@ bool EnemyDetectionAggro::isDowned(Transform* target) const
 	}
 
 	PlayerState* state = GameObjectAPI::findScript<PlayerState>(targetOwner);
+	if (!state)
+	{
+		return false;
+	}
 
-	return state == nullptr || state->isDowned();
+	return state->isDowned();
 }
 
 bool EnemyDetectionAggro::hasAnyTargetInDetectionRange()

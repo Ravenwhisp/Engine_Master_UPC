@@ -4,6 +4,8 @@
 #include <vector>
 
 class CharacterBase;
+class DeathSound;
+class LyrielSound;
 
 class PlayerTargetController : public Script
 {
@@ -36,4 +38,7 @@ private:
     CharacterBase* m_character = nullptr;
     GameObject* m_currentTarget = nullptr;
     std::vector<GameObject*> m_targetsInRange;
+
+    DeathSound*  m_deathSound  = nullptr;
+    LyrielSound* m_lyrielSound = nullptr;
 };

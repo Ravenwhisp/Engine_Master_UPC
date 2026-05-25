@@ -2,6 +2,7 @@
 #include "LyrielChargedAttack.h"
 
 #include "LyrielCharacter.h"
+#include "LyrielSound.h"
 #include "CharacterBase.h"
 #include "ArrowPool.h"
 #include "LyrielArrowProjectile.h"
@@ -130,6 +131,12 @@ void LyrielChargedAttack::beginCharge()
     {
         GameObjectAPI::setActive(m_ChargedAttackUI.getReferencedComponent()->getOwner(), true);
     }
+
+    LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
+    if (sound != nullptr)
+    {
+        sound->startChargedTenseLoop();
+    }
 }
 
 void LyrielChargedAttack::updateCharge()
@@ -165,6 +172,12 @@ void LyrielChargedAttack::updateCharge()
 void LyrielChargedAttack::releaseChargeAndShoot()
 {
     m_isCharging = false;
+
+    LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
+    if (sound != nullptr)
+    {
+        sound->stopChargedTenseLoop();
+    }
 
     if (m_ChargedAttackUI.getReferencedComponent())
     {
@@ -208,8 +221,21 @@ void LyrielChargedAttack::releaseChargeAndShoot()
 
     std::vector<GameObject*> targets;
     collectEnemiesInLine(origin, forward, targets);
-    applyChargedDamage(targets, damage);
+    const bool anyMarkExploited = applyChargedDamage(targets, damage);
     spawnChargedArrow(origin, forward);
+
+    if (sound != nullptr)
+    {
+        sound->playChargedRelease();
+        if (!targets.empty())
+        {
+            sound->playChargedImpact();
+        }
+        if (anyMarkExploited)
+        {
+            sound->playMarkExploit();
+        }
+    }
 
     beginAttackPresentation();
 
@@ -342,8 +368,10 @@ void LyrielChargedAttack::collectEnemiesInLine(const Vector3& origin, const Vect
     }
 }
 
-void LyrielChargedAttack::applyChargedDamage(const std::vector<GameObject*>& targets, float damage)
+bool LyrielChargedAttack::applyChargedDamage(const std::vector<GameObject*>& targets, float damage)
 {
+    bool anyMarkExploited = false;
+
     for (GameObject* target : targets)
     {
         if (target == nullptr)
@@ -355,12 +383,19 @@ void LyrielChargedAttack::applyChargedDamage(const std::vector<GameObject*>& tar
 
         if (damageable != nullptr)
         {
-            damageable->takeDamageEnemy(damage, GameObjectAPI::getTransform(getOwner()));
+            {
+                EnemyHitContext ctx;
+                ctx.damage = damage;
+                ctx.attacker = GameObjectAPI::getTransform(getOwner());
+                ctx.attackType = EnemyAttackType::LyrielCharged;
+                damageable->takeDamage(ctx);
+            }
 
             EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target);
             if (mark != nullptr && mark->isExploitable())
             {
                 mark->exploit();
+                anyMarkExploited = true;
                 if (m_lyrielCharacter != nullptr)
                     m_lyrielCharacter->onMarkExploited();
             }
@@ -372,6 +407,8 @@ void LyrielChargedAttack::applyChargedDamage(const std::vector<GameObject*>& tar
             breakableDamageable->takeDamage(damage);
         }
     }
+
+    return anyMarkExploited;
 }
 
 void LyrielChargedAttack::spawnChargedArrow(const Vector3& origin, const Vector3& forward)

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CrystalShadowMark.h"
 
-IMPLEMENT_SCRIPT_FIELDS(CrystalShadowMark,
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(CrystalShadowMark, EnemyShadowMark,
     SERIALIZED_COMPONENT_REF(m_puzzleManager, "PuzzleManager", ComponentType::TRANSFORM),
 	SERIALIZED_INT(m_puzzleID, "Puzzle ID"),
 	SERIALIZED_FLOAT(m_activeTime, "Active Time", 0.0f, 10.0f, 0.1f)
@@ -11,6 +11,8 @@ CrystalShadowMark::CrystalShadowMark(GameObject* owner) : EnemyShadowMark(owner)
 
 void CrystalShadowMark::Start()
 {
+    EnemyShadowMark::Start();
+
     managerObject = ComponentAPI::getOwner(m_puzzleManager.getReferencedComponent());
     if(managerObject == nullptr)
     {
@@ -26,6 +28,8 @@ void CrystalShadowMark::Start()
 
 void CrystalShadowMark::Update() 
 {
+    EnemyShadowMark::Update();
+
     if (!m_activated) return;
 
 	m_activationTimer += Time::getDeltaTime();

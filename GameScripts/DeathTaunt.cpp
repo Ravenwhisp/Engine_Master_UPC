@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "DeathTaunt.h"
 #include "DeathCharacter.h"
+#include "DeathSound.h"
 #include "EnemyDetectionAggro.h"
 #include "PlayerRotation.h"
 #include "PersistingPowerupState.h"
@@ -195,6 +196,13 @@ void DeathTaunt::releaseAimAndCast()
     if (isAimStickValid(finalDirection))
     {
         faceDirection(finalDirection);
+
+        DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
+        if (sound != nullptr)
+        {
+            sound->playTauntShout();
+        }
+
         applyTauntToEnemiesInCone(finalDirection);
         m_debugConeTimer = 0.25f;
     }
@@ -219,6 +227,7 @@ void DeathTaunt::applyTauntToEnemiesInCone(const Vector3& ownerForward) const
     Debug::log("[DeathTaunt] Enemies with Tag::ENEMY found: %d", (int)enemies.size());
 
     int taunted = 0;
+    bool anyMark = false;
     for (GameObject* enemy : enemies)
     {
         if (!isEnemyInsideTauntCone(enemy, ownerPosition, ownerForward))
@@ -243,10 +252,20 @@ void DeathTaunt::applyTauntToEnemiesInCone(const Vector3& ownerForward) const
             if (shadowMark != nullptr)
             {
                 shadowMark->notifyDeathHit();
+                anyMark = true;
             }
         }
 
         ++taunted;
+    }
+
+    if (anyMark)
+    {
+        DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
+        if (sound != nullptr)
+        {
+            sound->playMarkApply();
+        }
     }
 
     Debug::log("[DeathTaunt] Cast complete — %d enemies taunted.", taunted);

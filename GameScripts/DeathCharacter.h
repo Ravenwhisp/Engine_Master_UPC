@@ -2,6 +2,9 @@
 
 #include "CharacterBase.h"
 
+class DeathSound;
+class PlayerMovement;
+
 class DeathCharacter : public CharacterBase
 {
     DECLARE_SCRIPT(DeathCharacter)
@@ -13,6 +16,8 @@ public:
     void Update() override;
 
     ScriptFieldList getExposedFields() const override;
+
+    DeathSound* getSound() const { return m_sound; }
 
     int   getComboStep()       const { return m_comboStep; }
     bool  canUseR2InCombo()    const { return m_consecutiveR2Count < 2; }
@@ -45,4 +50,6 @@ private:
     float m_comboCooldownTimer  = 0.0f;
     float m_activeComboWindow   = 0.0f;
 
+    DeathSound*     m_sound    = nullptr;
+    PlayerMovement* m_movement = nullptr;
 };
