@@ -129,5 +129,6 @@ public:
     const std::vector<std::string>& getLoadedBanks() const;
     void addLoadedBank(const std::string& bank);
     void removeLoadedBank(const std::string& bank);
+	void unloadSoundBanks();
 #pragma endregion
 };
