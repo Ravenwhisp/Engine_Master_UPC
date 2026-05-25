@@ -256,11 +256,11 @@ namespace ImGui
             
             draw_list->AddRectFilled(ImVec2(to - 6, barBottom),
                                      ImVec2(to + 6, bar_pos.y + (height + 12)),
-                                     IM_COL32(100, 100, 100, 255), 1.0f, 1.0f);
+                                     IM_COL32(100, 100, 100, 255), 1.0f, 0.0f); // FINAL FLAG CHANGED! (and in subsequents; it was 1.0f)
             
             draw_list->AddRectFilled(ImVec2(to - 5, bar_pos.y + (height + 1)),
                                      ImVec2(to + 5, bar_pos.y + (height + 11)),
-                                     IM_COL32(0, 0, 0, 255), 1.0f, 1.0f);
+                                     IM_COL32(0, 0, 0, 255), 1.0f, 0.0f);
             
             if(selectedMark == mark)
             {
@@ -270,7 +270,7 @@ namespace ImGui
                 
                 draw_list->AddRect(ImVec2(to - 5, bar_pos.y + (height + 1)),
                                    ImVec2(to + 5, bar_pos.y + (height + 11)),
-                                   IM_COL32(0, 255, 0, 255), 1.0f, 1.0f);
+                                   IM_COL32(0, 255, 0, 255), 1.0f, 0.0f);
             }
             
             draw_list->AddRectFilledMultiColor(ImVec2(to - 3, bar_pos.y + (height + 3)),
