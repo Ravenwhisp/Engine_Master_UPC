@@ -22,6 +22,7 @@ class Scene: public Asset
     friend class SceneSnapshot;
 private:
     std::string m_name = "SampleScene";
+    std::string m_rawJson;
 
     std::vector<std::unique_ptr<GameObject>> m_allObjects;
 
@@ -77,6 +78,9 @@ public:
 
     const char* getName() const { return m_name.c_str(); }
     void setName(const char* newName) { m_name = newName; }
+
+    const std::string& getRawJson() const { return m_rawJson; }
+    void setRawJson(const std::string& json) { m_rawJson = json; }
 
     SceneLightingSettings& getLightingSettings() { return m_lighting; }
     const SceneLightingSettings& getLightingSettings() const { return m_lighting; }
