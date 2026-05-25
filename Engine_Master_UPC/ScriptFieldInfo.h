@@ -14,7 +14,7 @@ enum class ScriptFieldType
     ComponentRef,
     ComponentRefList,
     String,
-    DataContainerRef
+    DataContainerRef,
     List
 };
 

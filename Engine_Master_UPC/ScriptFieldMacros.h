@@ -58,7 +58,6 @@
 
 #define SERIALIZED_DATACONTAINER_REF(MemberName, DisplayName) \
     { DisplayName, ScriptFieldType::DataContainerRef, offsetof(ThisScript, MemberName), getDataContainerRefFieldHandler() }
-    { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), getComponentRefListFieldHandler(), {}, {}, { ComponentTypeValue } }
 
 // Vector (std::vector<T>) field macros
 
