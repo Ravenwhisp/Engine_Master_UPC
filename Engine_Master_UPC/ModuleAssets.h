@@ -20,6 +20,7 @@
 
 class AssetScanner;
 class ContentRegistry;
+struct DirectoryEntry;
 class PrefabManager;
 
 class Asset;
@@ -84,6 +85,8 @@ public:
     void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
     bool save(Asset& asset, const std::filesystem::path& path = {});
     void refresh();
+
+    void unregisterAsset(const std::filesystem::path& sourcePath);
 
     ContentRegistry* getContentRegistry() const;
     PrefabManager* getPrefabManager() const;
@@ -220,6 +223,26 @@ private:
         std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
         importer->load(buffer.data(), asset.get());
 
+        // Restore import settings from metadata
+        {
+            auto it = m_uidIndex.find(ref.m_uid);
+            if (it != m_uidIndex.end() && !it->second.sourcePath.empty())
+            {
+                std::filesystem::path metaPath = it->second.sourcePath;
+                Metadata::getMetadataPath(metaPath);
+                Metadata meta;
+                if (loadMetaFile(metaPath, meta) && meta.importSettings)
+                {
+                    asset->setImportSettings(std::move(meta.importSettings));
+                }
+            }
+        }
+        if (!asset->getImportSettings())
+        {
+            asset->setImportSettings(asset->createDefaultImportSettings());
+        }
+
+
         if (ref.m_type == AssetType::DATA_CONTAINER)
         {
             DataContainer* baseDc = static_cast<DataContainer*>(asset.get());
@@ -239,6 +262,8 @@ private:
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
    
     void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath, const MD5Hash& contentHash = INVALID_ASSET_ID);
+
+    void collectDirectoryAssets(DirectoryEntry* dir);
 
 
 

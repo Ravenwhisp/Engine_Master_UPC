@@ -313,7 +313,7 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
                 m_selectedAsset = INVALID_UID;
             }
 
-            app->getModuleAssets()->refresh();
+            app->getModuleAssets()->unregisterAsset(metaPath.parent_path() / metaPath.stem());
         }
 
         ImGui::EndPopup();

@@ -8,6 +8,7 @@
 #include "PlayerState.h"
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
+#include "BreakableDamageable.h"
 
 #include <cmath>
 
@@ -52,7 +53,7 @@ void DeathBasicAttack::Update()
 
 bool DeathBasicAttack::canStartSpecificAbility() const
 {
-	return m_deathCharacter != nullptr && !m_deathCharacter->isInComboCooldown() && !m_character->isUsingAbility();
+    return m_deathCharacter != nullptr && !m_deathCharacter->isInComboCooldown();
 }
 
 void DeathBasicAttack::startAbility()
@@ -169,6 +170,12 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(enemy);
             if (damageable == nullptr)
             {
+                BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(enemy);
+                if(breakableDamageable == nullptr)
+                {
+                    return;
+                }
+                breakableDamageable->takeDamage(m_basicAttackDamage);
                 return;
             }
 

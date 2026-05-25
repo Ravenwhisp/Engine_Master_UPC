@@ -65,7 +65,7 @@ void TriggerArea::triggerSceneChange()
     {
         return;
     }
-
+	Debug::log("Triggering scene change to: %s", m_sceneToLoad.c_str());
     SceneAPI::requestSceneChange(m_sceneToLoad.c_str());
 }
 

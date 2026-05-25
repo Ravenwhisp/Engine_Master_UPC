@@ -9,6 +9,7 @@
 #include "PlayerState.h"
 #include "PersistingPowerupState.h"
 #include "EnemyShadowMark.h"
+#include "BreakableDamageable.h"
 
 #include <cmath>
 
@@ -184,7 +185,7 @@ void LyrielArrowVolley::releaseAimAndCast()
     m_attackFacingDirection = forward;
     faceDirection(forward);
 
-    std::vector<GameObject*> targets;
+    std::vector<Damageable*> targets;
     collectEnemiesInCone(origin, forward, targets);
     applyVolleyDamage(targets);
     spawnVolleyArrows(origin, forward);
@@ -209,11 +210,31 @@ bool LyrielArrowVolley::isAimStickValid(const Vector3& direction) const
     return flatDirection.LengthSquared() > 0.0001f;
 }
 
-void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector3& forward, std::vector<GameObject*>& outTargets)
+void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector3& forward, std::vector<Damageable*>& outTargets)
 {
     outTargets.clear();
 
-    std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+    //std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true); //cambiar, esto no pilla los damageables
+
+    //detectar enemigos en cono
+
+	const std::vector<GameObject*> objectsInCircularRange = SceneAPI::getObjectsInCircularArea(Vector2(origin.x, origin.z), m_volleyRange);
+
+    std::vector<Damageable*> damageables;
+
+    for(GameObject* obj : objectsInCircularRange)
+    {
+        if (obj->GetTag() == Tag::PLAYER)
+        {
+            continue;
+        }
+
+        Damageable* damageableScript = GameObjectAPI::findScript<Damageable>(obj);
+        if (damageableScript)
+        {
+            damageables.push_back(damageableScript);
+        }
+	}
 
     Vector3 flatForward = forward;
     flatForward.y = 0.0f;
@@ -228,20 +249,21 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
     const float halfAngleRadians = DirectX::XMConvertToRadians(m_coneAngleDegrees * 0.5f);
     const float minDot = std::cos(halfAngleRadians);
 
-    for (GameObject* enemy : allEnemies)
+    for (Damageable* damageable : damageables)
     {
-        if (enemy == nullptr)
+        if (damageable == nullptr)
         {
             continue;
         }
 
-        Transform* enemyTransform = GameObjectAPI::getTransform(enemy);
+        const Transform* enemyTransform = GameObjectAPI::getTransform(damageable->getOwner());
+
         if (enemyTransform == nullptr)
         {
             continue;
         }
 
-        Vector3 enemyPosition = TransformAPI::getGlobalPosition(enemyTransform);
+        const Vector3 enemyPosition = TransformAPI::getGlobalPosition(enemyTransform);
         Vector3 toEnemy = enemyPosition - origin;
         toEnemy.y = 0.0f;
 
@@ -261,34 +283,56 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
         const float dot = flatForward.Dot(toEnemy);
         if (dot >= minDot)
         {
-            outTargets.push_back(enemy);
+            outTargets.push_back(damageable);
         }
     }
 }
 
-void LyrielArrowVolley::applyVolleyDamage(const std::vector<GameObject*>& targets)
+void LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& targets)
 {
-    for (GameObject* target : targets)
+    for (Damageable* target : targets)
     {
         if (target == nullptr)
         {
             continue;
         }
 
-        EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(target);
+        ////habra q hacer refactor de damageable pq esto no es del todo eficiente
+        //EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(target);
 
-        if (damageable != nullptr)
+        //if (damageable != nullptr)
+        //{
+        //    damageable->takeDamageEnemy(m_volleyDamage, GameObjectAPI::getTransform(getOwner()));
+        //}
+
+        //else
+        //{
+        //    BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(target);
+
+        //    if (breakableDamageable != nullptr)
+        //    {
+        //        breakableDamageable->takeDamage(m_volleyDamage);
+        //    }
+        //}
+
+        if(EnemyDamageable* enemyDamageable = dynamic_cast<EnemyDamageable*>(target))
         {
-            damageable->takeDamageEnemy(m_volleyDamage, GameObjectAPI::getTransform(getOwner()));
+            enemyDamageable->takeDamageEnemy(m_volleyDamage, GameObjectAPI::getTransform(getOwner()));
         }
+        else if(BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(target))
+        {
+            breakableDamageable->takeDamage(m_volleyDamage);
+		}
 
         if (PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1))
         {
-            EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target);
+            EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target->getOwner());
 
             if (mark != nullptr && mark->isExploitable())
             {
                 mark->exploit();
+                if (m_lyrielCharacter != nullptr)
+                    m_lyrielCharacter->onMarkExploited();
             }
         }
     }

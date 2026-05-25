@@ -7,6 +7,7 @@ class RingBuffer;
 struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
+struct ParticleEmitterCommand;
 
 struct RenderContext
 {
@@ -21,6 +22,7 @@ struct RenderContext
 
     const std::vector<UITextCommand>* uiTextCommands = nullptr;
     const std::vector<UIImageCommand>* uiImageCommands = nullptr;
+    const std::vector<ParticleEmitterCommand>* particleCommands = nullptr;
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
 

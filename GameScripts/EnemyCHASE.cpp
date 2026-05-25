@@ -50,6 +50,13 @@ void EnemyCHASE::OnStateUpdate()
 		return;
 	}
 
+	if (m_enemyController->isDead())
+	{
+		m_enemyController->clearPath();
+		AnimationAPI::sendTrigger(animation, "ToDeath");
+		return;
+	}
+
 	m_enemyController->tickChargeCooldown(Time::getDeltaTime());
 	m_enemyController->updateCurrentTarget();
 

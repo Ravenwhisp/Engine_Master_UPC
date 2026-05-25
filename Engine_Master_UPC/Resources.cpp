@@ -39,6 +39,7 @@ Resource::Resource(ID3D12Device4& device, const D3D12_RESOURCE_DESC& resourceDes
     device.CreateCommittedResource(
         &heap, D3D12_HEAP_FLAG_NONE, &resourceDesc,
         initialState, m_ClearValue.get(), IID_PPV_ARGS(&m_Resource));
+    //Add assert checking HRESULT in case is not created
 }
 
 Resource::Resource(ID3D12Device4& device, ComPtr<ID3D12Resource> resource, const D3D12_CLEAR_VALUE* clearValue) : m_Resource(resource), m_device(device) 

@@ -6,6 +6,7 @@
 #include "PlayerAnimationController.h"
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
+#include "BreakableDamageable.h"
 
 #include <cmath>
 
@@ -86,7 +87,7 @@ void DeathChargedAttack::startAbility()
 
 bool DeathChargedAttack::canStartSpecificAbility() const
 {
-	return m_deathCharacter != nullptr && m_attackStateTimer <= 0.0f && !m_deathCharacter->isInComboCooldown() && m_deathCharacter->canUseR2InCombo() && !m_deathCharacter->isUsingAbility();
+    return m_deathCharacter != nullptr && !m_deathCharacter->isInComboCooldown() && m_deathCharacter->canUseR2InCombo();
 }
 
 void DeathChargedAttack::startCharging()
@@ -181,17 +182,20 @@ void DeathChargedAttack::dealDamageInArc(float damage) const
     const float     arcRangeSq = m_arcRange * m_arcRange;
 
     const auto enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY);
+	const auto breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE);
+	auto targets = enemies;
+	targets.insert(targets.end(), breakables.begin(), breakables.end());
     int scanned = 0;
     int hit = 0;
 
-    for (GameObject* enemy : enemies)
+    for (GameObject* target : targets)
     {
-        if (enemy == nullptr)
+        if (target == nullptr)
         {
             continue;
         }
 
-        const Transform* enemyTr = GameObjectAPI::getTransform(enemy);
+        const Transform* enemyTr = GameObjectAPI::getTransform(target);
         if (enemyTr == nullptr)
         {
             continue;
@@ -218,21 +222,27 @@ void DeathChargedAttack::dealDamageInArc(float damage) const
             }
         }
 
-        EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(enemy);
+        EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(target);
         if (damageable == nullptr)
         {
-            Debug::log("[ARC] '%s' has no EnemyDamageable.", GameObjectAPI::getName(enemy));
-            continue;
+            BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(target);
+            if (breakableDamageable == nullptr)
+            {
+                Debug::log("[ARC] '%s' has no Damageable.", GameObjectAPI::getName(target));
+                continue;
+            }
+            breakableDamageable->takeDamage(damage);    
         }
-
-        damageable->takeDamageEnemy(damage, GameObjectAPI::getTransform(getOwner()));
+        else 
+        {
+            damageable->takeDamageEnemy(damage, GameObjectAPI::getTransform(getOwner()));
+            Debug::log("[ARC] hit '%s'  dmg=%.1f  hp=%.1f/%.1f",
+                GameObjectAPI::getName(target), damage,
+                damageable->getCurrentHp(), damageable->getMaxHp());
+        }
         hit++;
 
-        Debug::log("[ARC] hit '%s'  dmg=%.1f  hp=%.1f/%.1f",
-            GameObjectAPI::getName(enemy), damage,
-            damageable->getCurrentHp(), damageable->getMaxHp());
-
-        EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemy);
+        EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(target);
         if (shadowMark != nullptr)
         {
             shadowMark->notifyDeathHit();

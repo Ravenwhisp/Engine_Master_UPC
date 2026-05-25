@@ -17,7 +17,11 @@
     X(ANIMATION)            \
     X(UISLIDER)             \
     X(TRIGGER)              \
-    X(NAVMODIFIER_VOLUME)
+    X(NAVMODIFIER_VOLUME)   \
+    X(PARTICLE_SYSTEM)      \
+    X(UISHEET)              \
+    X(SOUND_LISTENER)       \
+    X(SOUND_SOURCE)
 
 enum class ComponentType
 {

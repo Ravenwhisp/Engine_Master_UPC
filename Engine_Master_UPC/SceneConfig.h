@@ -3,6 +3,8 @@
 #include <string>
 
 class ModuleScene;
+class ModuleMusic;
+
 class GameObject;
 
 class SceneConfig : public EditorWindow
@@ -11,6 +13,8 @@ class SceneConfig : public EditorWindow
 private:
 
     ModuleScene* m_moduleScene;
+    ModuleMusic* m_moduleMusic;
+
     std::string m_saveSceneName;
     std::string m_loadSceneName;
     GameObject* m_camera = nullptr;
@@ -41,4 +45,6 @@ private:
     void drawSkyBoxSettings();
 
     void drawLightSettings();
+
+    void drawMusicBanksSettings();
 };

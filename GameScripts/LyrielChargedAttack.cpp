@@ -8,6 +8,7 @@
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
 #include "PlayerState.h"
+#include "BreakableDamageable.h"
 
 #include <cmath>
 
@@ -152,7 +153,8 @@ void LyrielChargedAttack::updateCharge()
         const float yawRad = std::atan2(m_currentAimDirection.x, m_currentAimDirection.z);
         const float targetYawDeg = yawRad * (180.0f / PI);
 
-        const float range = m_chargeTimer / m_maxChargeTime * 0.45f + 0.65f;
+		const float timerRatio = m_chargeTimer / m_maxChargeTime;
+        const float range = m_minAttackRange + timerRatio * (m_maxAttackRange - m_minAttackRange);
 
         TransformAPI::setPosition(m_ChargedAttackUI.getReferencedComponent(), origin);
         TransformAPI::setRotationEuler(m_ChargedAttackUI.getReferencedComponent(), Vector3(0.0f, targetYawDeg, 0.0f));
@@ -280,6 +282,11 @@ void LyrielChargedAttack::collectEnemiesInLine(const Vector3& origin, const Vect
     outTargets.clear();
 
     std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+	std::vector<GameObject*> breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE, true);
+
+	std::vector<GameObject*> potentialTargets = allEnemies;
+	potentialTargets.insert(potentialTargets.end(), breakables.begin(), breakables.end());
+    //de momento la mejor "manera" que veo es esta, habra que hacer refactor o cambios o algo
 
     Vector3 flatForward = forward;
     flatForward.y = 0.0f;
@@ -294,14 +301,14 @@ void LyrielChargedAttack::collectEnemiesInLine(const Vector3& origin, const Vect
     const float currentRange = computeChargedRange();
     const float lineHalfWidthSq = m_lineHalfWidth * m_lineHalfWidth;
 
-    for (GameObject* enemy : allEnemies)
+    for (GameObject* target : potentialTargets)
     {
-        if (enemy == nullptr)
+        if (target == nullptr)
         {
             continue;
         }
 
-        Transform* enemyTransform = GameObjectAPI::getTransform(enemy);
+        Transform* enemyTransform = GameObjectAPI::getTransform(target);
         if (enemyTransform == nullptr)
         {
             continue;
@@ -330,7 +337,7 @@ void LyrielChargedAttack::collectEnemiesInLine(const Vector3& origin, const Vect
 
         if (lateralOffset.LengthSquared() <= lineHalfWidthSq)
         {
-            outTargets.push_back(enemy);
+            outTargets.push_back(target);
         }
     }
 }
@@ -354,7 +361,15 @@ void LyrielChargedAttack::applyChargedDamage(const std::vector<GameObject*>& tar
             if (mark != nullptr && mark->isExploitable())
             {
                 mark->exploit();
+                if (m_lyrielCharacter != nullptr)
+                    m_lyrielCharacter->onMarkExploited();
             }
+            continue;
+        }
+        BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(target);
+        if (breakableDamageable != nullptr)
+        {
+            breakableDamageable->takeDamage(damage);
         }
     }
 }

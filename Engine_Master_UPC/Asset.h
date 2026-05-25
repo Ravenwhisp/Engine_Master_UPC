@@ -3,6 +3,7 @@
 #include "AssetReference.h"
 #include "AssetsDictionary.h"
 #include "AssetType.h"
+#include "ImportSettings.h"
 #include "EngineAPI.h"
 
 #pragma warning(push)
@@ -24,9 +25,16 @@ public:
 	AssetType getType() const { return m_type; }
 
 	virtual void drawUI();
+
+	ImportSettings* getImportSettings() const { return m_importSettings.get(); }
+	void setImportSettings(std::unique_ptr<ImportSettings> settings) { m_importSettings = std::move(settings); }
+
+	virtual std::unique_ptr<ImportSettings> createDefaultImportSettings() const { return nullptr; }
+
 protected:
 	AssetReference 				m_reference;
 	AssetType			m_type = AssetType::UNKNOWN;
+	std::unique_ptr<ImportSettings> m_importSettings;
 };
 
 #pragma warning(pop)

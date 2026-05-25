@@ -90,8 +90,8 @@ Rect2D Transform2D::getRect(const Rect2D& parent, const Vector2& inheritedScale)
     }
     else if (stretchMode == StretchMode::BOTH)
     {
-        rect.w = std::max(0.0f, stretchW);
-        rect.h = std::max(0.0f, stretchH);
+        rect.w = std::max(0.0f, stretchW * effectiveScale.x);
+        rect.h = std::max(0.0f, stretchH * effectiveScale.y);
 
         float centerX = (anchorMinPixelX + anchorMaxPixelX) * 0.5f;
         float centerY = (anchorMinPixelY + anchorMaxPixelY) * 0.5f;

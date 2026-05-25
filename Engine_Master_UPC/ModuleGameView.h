@@ -5,6 +5,7 @@
 class ModuleScene;
 class ModuleInput;
 class SceneSnapshot;
+class ModuleParticleSystem;
 
 class GameObject;
 
@@ -13,6 +14,7 @@ class ModuleGameView : public Module
 private:
 	ModuleScene*								m_moduleScene;
 	ModuleInput*								m_moduleInput;
+	ModuleParticleSystem*						m_moduleParticleSystem;
 
 	std::unique_ptr<SceneSnapshot>				m_sceneCloned;
 
