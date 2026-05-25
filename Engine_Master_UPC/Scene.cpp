@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "ModuleD3D12.h"
 #include "ModuleScene.h"
+#include "ModuleMusic.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -567,5 +568,10 @@ void Scene::removeLoadedBank(const std::string& bank)
         m_loadedBanks.erase(it);
         return;
     }
+}
+
+void Scene::unloadSoundBanks()
+{
+    app->getModuleMusic()->unloadAllBanks();
 }
 #pragma endregion
