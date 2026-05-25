@@ -17,12 +17,14 @@
 Quadtree::Quadtree() = default;
 Quadtree::~Quadtree() = default;
 
-void Quadtree::init(Scene* scene)
+void Quadtree::init(Scene* scene, const ddVec3& baseColor, const ddVec3& culledColor)
 {
     m_scene = scene;
+    std::copy(std::begin(baseColor), std::end(baseColor), m_debugBaseColor);
+    std::copy(std::begin(culledColor), std::end(culledColor), m_debugCulledColor);
 }
 
-void Quadtree::build()
+void Quadtree::build(const std::vector<Layer> layers)
 {
     const std::vector<GameObject*>& objects = m_scene->getAllGameObjects();
     float minX = std::numeric_limits<float>::max();
@@ -33,11 +35,21 @@ void Quadtree::build()
     for (const auto& go : objects)
     {
         if (!go->GetActive())
+        {
             continue;
+        }
+
+		const bool layerMatch = layers.empty() || std::find(layers.begin(), layers.end(), go->GetLayer()) != layers.end();
+        if (!layerMatch)
+        {
+            continue;
+        }
 
         auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
         if (!mesh)
+        {
             continue;
+        }
 
         Engine::BoundingBox boundingBox = mesh->getBoundingBox();
 
@@ -77,10 +89,21 @@ void Quadtree::build()
 
     for (const auto& go : objects)
     {
-        if (go->GetActive())
+        if (!go->GetActive())
         {
-            insert(*go);
+            continue;
         }
+
+        const bool layerMatch =
+            layers.empty() ||
+            std::find(layers.begin(), layers.end(), go->GetLayer()) != layers.end();
+
+        if (!layerMatch)
+        {
+            continue;
+        }
+
+        insert(*go);
     }
 
     isBuilded = true;
@@ -95,6 +118,7 @@ void Quadtree::clear()
 {
     m_dirtyNodes.clear();
     m_objectLocationMap.clear();
+    m_root.reset();
 
     isBuilded = false;
 }
@@ -180,7 +204,7 @@ void Quadtree::debugDraw()
         Vector3 extents(rect.width * 0.5f, 0.0f, rect.height * 0.5f);
         Vector3 center(rect.x + rect.width * 0.5f, 0.1f, rect.y + rect.height * 0.5f);
 
-        const ddVec3& color = rect.m_debugIsCulled ? dd::colors::Red : dd::colors::Green;
+        const ddVec3& color = rect.m_debugIsCulled ? m_debugBaseColor : m_debugCulledColor;
         dd::box(ddConvert(center), color, extents.x * 2.f, extents.y * 2.f, extents.z * 2.f);
 
         center.y = 0.f;

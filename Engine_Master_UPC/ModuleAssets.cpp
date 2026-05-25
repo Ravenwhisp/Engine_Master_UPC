@@ -137,6 +137,34 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
 
     std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
 
+    // Try to get import settings from the in-memory cached asset first (user may have edited them)
+    if (auto cached = m_assets.get(reference.m_uid))
+    {
+        if (cached->getImportSettings())
+        {
+            asset->setImportSettings(cached->getImportSettings()->clone());
+        }
+    }
+    // Fall back to reading from metadata file on disk
+    if (!asset->getImportSettings())
+    {
+        std::filesystem::path metaPath = sourcePath;
+        Metadata::getMetadataPath(metaPath);
+        if (fs::exists(metaPath))
+        {
+            Metadata existingMeta;
+            if (loadMetaFile(metaPath, existingMeta) && existingMeta.importSettings)
+            {
+                asset->setImportSettings(std::move(existingMeta.importSettings));
+            }
+        }
+    }
+    // Create default settings if nothing else available
+    if (!asset->getImportSettings())
+    {
+        asset->setImportSettings(asset->createDefaultImportSettings());
+    }
+
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
@@ -224,6 +252,11 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
     meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
     if (ec) meta.sourceFileSize = 0;
 
+    if (asset->getImportSettings())
+    {
+        meta.importSettings = asset->getImportSettings()->clone();
+    }
+
     std::filesystem::path metaPath = sourcePath;
     Metadata::getMetadataPath(metaPath);
     if (!saveMetaFile(meta, metaPath))
@@ -292,6 +325,41 @@ void ModuleAssets::refresh()
     m_contentRegistry->rebuild(root);
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[Module Assets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
+}
+
+void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
+{
+    const fs::path normPath = sourcePath.lexically_normal();
+
+    auto pathIt = m_pathIndex.find(normPath.string());
+    if (pathIt != m_pathIndex.end())
+    {
+        m_uidIndex.erase(pathIt->second);
+        m_pathIndex.erase(pathIt);
+    }
+
+    m_contentRegistry->unregisterAsset(normPath);
+}
+
+void ModuleAssets::collectDirectoryAssets(DirectoryEntry* dir)
+{
+    for (const AssetEntry& asset : dir->assets)
+    {
+        if (isValidUID(asset.uid))
+        {
+            auto it = m_uidIndex.find(asset.uid);
+            if (it != m_uidIndex.end())
+            {
+                m_pathIndex.erase(it->second.sourcePath.lexically_normal().string());
+                m_uidIndex.erase(it);
+            }
+        }
+    }
+
+    for (auto& child : dir->directories)
+    {
+        collectDirectoryAssets(child.get());
+    }
 }
 
 void ModuleAssets::registerIndex(const UID& uid, AssetType type,
@@ -386,7 +454,18 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         }
     }
 
-    m_uidIndex[subMeta.uid] = { subMeta.type, {} };
+    {
+        auto prevIt = m_uidIndex.find(subMeta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != subMeta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+    m_uidIndex[subMeta.uid] = { subMeta.type, {}, subMeta.contentHash };
 
     if (isValidUID(parentUID))
     {
@@ -425,6 +504,14 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
             deps.PushBack(entry, alloc);
         }
         doc.AddMember("dependencies", deps, alloc);
+    }
+
+    if (meta.importSettings)
+    {
+        Value settingsObj(kObjectType);
+        settingsObj.AddMember("typeName", Value(meta.importSettings->getTypeName(), alloc), alloc);
+        meta.importSettings->save(settingsObj, alloc);
+        doc.AddMember("importSettings", settingsObj, alloc);
     }
 
     StringBuffer buffer;
@@ -518,6 +605,15 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
                 rec.displayName = entry["displayName"].GetString();
 
             outMeta.m_dependencies.push_back(std::move(rec));
+        }
+    }
+
+    if (doc.HasMember("importSettings") && doc["importSettings"].IsObject())
+    {
+        outMeta.importSettings = ImportSettings::CreateForType(outMeta.type);
+        if (outMeta.importSettings)
+        {
+            outMeta.importSettings->load(doc["importSettings"]);
         }
     }
 

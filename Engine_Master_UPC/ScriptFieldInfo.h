@@ -13,7 +13,8 @@ enum class ScriptFieldType
     EnumInt,
     ComponentRef,
     ComponentRefList,
-    String
+    String,
+    List
 };
 
 struct ScriptFieldFloatInfo
@@ -34,6 +35,12 @@ struct ScriptFieldComponentRefInfo
     ComponentType componentType;
 };
 
+struct ScriptFieldListInfo
+{
+    ScriptFieldType elementType;
+    const ScriptFieldHandler* elementHandler;
+};
+
 struct ScriptFieldInfo
 {
     const char* name;
@@ -45,6 +52,7 @@ struct ScriptFieldInfo
     ScriptFieldFloatInfo floatInfo{};
     ScriptFieldEnumInfo enumInfo{};
     ScriptFieldComponentRefInfo componentRefInfo{ ComponentType::TRANSFORM };
+    ScriptFieldListInfo listInfo{ ScriptFieldType::Float, nullptr };
 };
 
 struct ScriptFieldList

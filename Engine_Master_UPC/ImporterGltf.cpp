@@ -97,6 +97,15 @@ AssetReference ImporterGltf::resolveOrGenerateReference(AssetType type, const ui
                 return AssetReference(m_existingDeps[i].uid, contentHash, type);
             }
         }
+
+        for (size_t i = 0; i < m_existingDeps.size(); ++i)
+        {
+            if (!m_existingDepsUsed[i] && m_existingDeps[i].type == type)
+            {
+                m_existingDepsUsed[i] = true;
+                return AssetReference(m_existingDeps[i].uid, contentHash, type);
+            }
+        }
     }
 
     return AssetReference(GenerateUID(), contentHash, type);
@@ -431,6 +440,29 @@ void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primit
     loadAccessorData(vBase + offsetof(Vertex, normal), sizeof(Vector3), sizeof(Vertex), vertexCount, model, primitive.attributes, "NORMAL");
     loadAccessorData(vBase + offsetof(Vertex, texCoord0), sizeof(Vector2), sizeof(Vertex), vertexCount, model, primitive.attributes, "TEXCOORD_0");
 
+    const auto it = primitive.attributes.find("TANGENT");
+    if (it != primitive.attributes.end())
+    {
+        const tinygltf::Accessor& accessor = model.accessors[it->second];
+
+        if (tinygltf::GetNumComponentsInType(accessor.type) == 4)
+        {
+            std::vector<Vector4> v;
+            v.resize(vertexCount);
+            loadAccessorData(reinterpret_cast<uint8_t*>(v.data()), sizeof(Vector4), sizeof(Vector4), vertexCount, model, primitive.attributes, "TANGENT");
+
+            for (int i = 0; i < vertexCount; ++i)
+            {
+                mesh->vertices[i].tangent = Vector3(v[i].x / v[i].w, v[i].y / v[i].w, v[i].z / v[i].w);
+            }
+
+        }
+        else
+        {
+            loadAccessorData(vBase + offsetof(Vertex, tangent), sizeof(Vector3), sizeof(Vertex), vertexCount, model, primitive.attributes, "TANGENT");
+        }
+    }
+    
     auto itJoints = primitive.attributes.find("JOINTS_0");
     if (itJoints != primitive.attributes.end())
     {

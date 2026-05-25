@@ -40,6 +40,8 @@ private:
 
     void removePendingGameObjects();
 
+    std::vector<std::string> m_loadedBanks;
+
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
 
@@ -121,5 +123,11 @@ public:
     void registerTrigger(TriggerComponent* trigger);
     void unregisterTrigger(TriggerComponent* trigger);
     void clearTriggers();
+#pragma endregion
+
+#pragma region MusicBanks
+    const std::vector<std::string>& getLoadedBanks() const;
+    void addLoadedBank(const std::string& bank);
+    void removeLoadedBank(const std::string& bank);
 #pragma endregion
 };

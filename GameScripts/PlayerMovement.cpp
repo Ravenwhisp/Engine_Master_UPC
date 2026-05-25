@@ -2,7 +2,16 @@
 #include "PlayerMovement.h"
 #include "PlayerAnimationController.h"
 
+static const char* navAgentProfileNames[] =
+{
+    "PlayerNormal",
+    "PlayerSpectral"
+};
+
+constexpr int navAgentProfileCount = 2;
+
 IMPLEMENT_SCRIPT_FIELDS(PlayerMovement,
+    SERIALIZED_ENUM_INT(m_playerType, "Player Type", navAgentProfileNames, navAgentProfileCount),
     SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.05f),
     SERIALIZED_BOOL(m_constrainToNavMesh, "Constrain To NavMesh"),
     SERIALIZED_VEC3(m_navExtents, "Nav Extents")
@@ -62,7 +71,7 @@ void PlayerMovement::applyTranslation(Transform* transform, const Vector3& curre
     }
 
     Vector3 constrainedPos;
-    if (NavigationAPI::moveAlongSurface(currentPos, desiredPos, constrainedPos, m_navExtents))
+    if (NavigationAPI::moveAlongSurface(currentPos, desiredPos, constrainedPos, m_navExtents, static_cast<NavAgentProfile>(m_playerType)))
     {
         TransformAPI::setPosition(transform, constrainedPos);
     }

@@ -48,6 +48,15 @@ void DeathCharacter::tickCombo(float dt)
         return;
     }
 
+    // The combo window is for the time BETWEEN hits, not during them.
+    // While the character is locked in an attack (or about to fire a buffered
+    // one), the combo must not expire — otherwise long lock durations relative
+    // to the window would reset the combo before the next input fires.
+    if (isUsingAbility())
+    {
+        return;
+    }
+
     m_comboTimer += dt;
     if (m_comboTimer >= m_activeComboWindow)
     {

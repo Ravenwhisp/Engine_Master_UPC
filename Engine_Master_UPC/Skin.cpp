@@ -161,7 +161,6 @@ void Skin::setSkinReference(AssetReference& skinUID)
 
 void Skin::drawUi()
 {
-    ImGui::Text("Skin Asset: %s", m_skinAsset.isValid() ? std::to_string(m_skinAsset.m_uid) : "None");
     ImGui::Text("Skin Loaded: %s", m_skin ? "Yes" : "No");
     ImGui::Text("Resolved Joints: %d", static_cast<int>(m_jointTransforms.size()));
     ImGui::Text("Skin Bindings Resolved: %s", m_skinBindingsResolved ? "Yes" : "No");
@@ -531,11 +530,34 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
 
 void Skin::invalidateGpuSkinningResources()
 {
-    for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+    if (auto* res = app ? app->getModuleResources() : nullptr)
     {
-        m_gpuSkinnedVertexBuffers[i].reset();
-        m_gpuPaletteModelBuffers[i].Reset();
-        m_gpuPaletteNormalBuffers[i].Reset();
+        for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+        {
+            if (m_gpuSkinnedVertexBuffers[i])
+            {
+                res->deferResourceRelease(m_gpuSkinnedVertexBuffers[i]->getD3D12Resource());
+            }
+            m_gpuSkinnedVertexBuffers[i].reset();
+
+            if (m_gpuPaletteModelBuffers[i])
+            {
+                res->deferResourceRelease(std::move(m_gpuPaletteModelBuffers[i]));
+            }
+            if (m_gpuPaletteNormalBuffers[i])
+            {
+                res->deferResourceRelease(std::move(m_gpuPaletteNormalBuffers[i]));
+            }
+        }
+    }
+    else
+    {
+        for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+        {
+            m_gpuSkinnedVertexBuffers[i].reset();
+            m_gpuPaletteModelBuffers[i].Reset();
+            m_gpuPaletteNormalBuffers[i].Reset();
+        }
     }
 
     m_gpuSkinningVertexCapacity = 0;

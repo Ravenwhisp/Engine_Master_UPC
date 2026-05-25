@@ -39,7 +39,8 @@ struct WindowSceneEditorSettings
     bool showGrid = DEFAULT_DEBUG;
     bool showAxis = DEFAULT_DEBUG;
     bool showGuizmo = DEFAULT_DEBUG;
-    bool showQuadTree = false;
+    bool showStaticQuadTree = false;
+    bool showDynamicQuadTree = false;
     bool showModelBoundingBoxes = false;
     bool showNavPath = false;
     bool showLightComponent = false;
@@ -48,7 +49,7 @@ struct WindowSceneEditorSettings
 
 struct FrustumCullingSettings
 {
-    bool debugFrustumCulling = !DEFAULT_DEBUG;
+    bool enabled = false;
     float quadtreeXExtraSize = 10.0f;
     float quadtreeZExtraSize = 10.0f;
 };

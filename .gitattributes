@@ -1,0 +1,5 @@
+Engine_Master_UPC/3rdParty/Wwise/**/*.lib filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/**/*.dll filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/**/*.pdb filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/**/*.exe filter=lfs diff=lfs merge=lfs -text
+Engine_Master_UPC/3rdParty/Wwise/**/*.bank filter=lfs diff=lfs merge=lfs -text

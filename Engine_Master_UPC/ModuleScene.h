@@ -2,6 +2,7 @@
 #include "Module.h"
 
 #include "ScenePicking.h"
+#include "Layer.h"
 
 #include <memory>
 #include <string>
@@ -27,7 +28,9 @@ class ModuleScene : public Module
 {
 private:
     std::shared_ptr<Scene> m_scene;
-    std::unique_ptr<Quadtree> m_quadtree;
+
+    std::unique_ptr<Quadtree> m_staticQuadtree;
+    std::unique_ptr<Quadtree> m_dynamicQuadtree;
 
     std::unique_ptr<SceneSerializer> m_sceneSerializer;
     std::string m_pendingSceneLoad;
@@ -37,6 +40,9 @@ private:
     std::vector<LightComponent*>     m_lightComponents;
     std::vector<ScriptComponent*>    m_scriptComponents;
     std::vector<ParticleSystemComponent*> m_particleSystemComponents;
+
+    const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
+    const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
 
     void clearComponentCaches();
     void rebuildComponentCaches();
@@ -67,9 +73,12 @@ public:
     void loadFromSnapshot(SceneSnapshot& snapshot);
 #pragma endregion
 
-#pragma region Quadree
+#pragma region Quadtree
     void syncQuadtreeWithSettings();
-    Quadtree* getQuadtree() { return m_quadtree.get(); }
+	Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
+	Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
+	void moveGameObjectInQuadtrees(GameObject& gameObject);
+	void removeGameObjectFromQuadtree(GameObject& gameObject);
 #pragma endregion
 
 #pragma region ObjectPicking

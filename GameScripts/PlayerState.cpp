@@ -21,4 +21,9 @@ void PlayerState::setUsingAbility(bool value)
     m_isUsingAbility = value;
 }
 
+bool PlayerState::canUseAbilities() const
+{
+    return getState() != PlayerStateType::Downed && getState() != PlayerStateType::Stunned;
+}
+
 IMPLEMENT_SCRIPT(PlayerState)

@@ -17,6 +17,7 @@
 #include "ModuleNavigation.h"
 #include "ModuleTime.h"
 #include "ModuleHaptics.h"
+#include "ModuleMusic.h"
 
 #include "ScriptFactory.h"
 
@@ -55,6 +56,8 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
 
     modules.push_back(m_moduleCamera = new ModuleCamera());
     modules.push_back(m_moduleScene = new ModuleScene());
+
+    modules.push_back(m_moduleMusic = new ModuleMusic());
 
 }
 

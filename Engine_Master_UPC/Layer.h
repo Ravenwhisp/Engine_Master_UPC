@@ -7,7 +7,9 @@
     X(NAVMESH)     \
     X(PLAYER)      \
     X(ENEMY)       \
-    X(PROJECTILE)
+    X(PROJECTILE)  \
+    X(BREAKABLE)   \
+    X(PICKUP)
 
 enum class Layer {
 #define X(name) name,

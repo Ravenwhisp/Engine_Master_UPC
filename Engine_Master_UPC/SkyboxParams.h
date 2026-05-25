@@ -13,4 +13,10 @@ struct SkyboxParams
     uint32_t padding[2];
 };
 
+struct TextureSize
+{
+    uint32_t textureSize;
+    uint32_t padding[3];
+};
+
 static_assert(sizeof(SkyboxParams) % 16 == 0);

@@ -13,9 +13,10 @@ static const float TWO_PI = 6.28318530f;
 
 struct PSInput
 {
-    float2 texCoord : TEXCOORD;
+    float2 texCoord : TEXCOORD0;
+    float2 fillUV : TEXCOORD1;
     float4 fillData : COLOR0;
-    float alpha : TEXCOORD1;
+    float alpha : TEXCOORD2;
     float4 position : SV_POSITION;
 };
 
@@ -65,22 +66,22 @@ float4 main(PSInput input) : SV_TARGET
         if (method < (FILL_HORIZONTAL + 0.5f))
         {
             float edge = fillAmount;
-            float softness = max(fwidth(input.texCoord.x) * 1.5f, 0.001f);
+            float softness = max(fwidth(input.fillUV.x) * 1.5f, 0.001f);
             int o = (int)(origin + 0.5f);
             if (o == 0)
-                mask = smoothstep(edge + softness, edge - softness, input.texCoord.x);
+                mask = smoothstep(edge + softness, edge - softness, input.fillUV.x);
             else
-                mask = smoothstep(edge + softness, edge - softness, 1.0f - input.texCoord.x);
+                mask = smoothstep(edge + softness, edge - softness, 1.0f - input.fillUV.x);
         }
         else if (method < (FILL_VERTICAL + 0.5f))
         {
             float edge = fillAmount;
-            float softness = max(fwidth(input.texCoord.y) * 1.5f, 0.001f);
+            float softness = max(fwidth(input.fillUV.y) * 1.5f, 0.001f);
             int o = (int)(origin + 0.5f);
             if (o == 0)
-                mask = smoothstep(edge + softness, edge - softness, 1.0f - input.texCoord.y);
+                mask = smoothstep(edge + softness, edge - softness, 1.0f - input.fillUV.y);
             else
-                mask = smoothstep(edge + softness, edge - softness, input.texCoord.y);
+                mask = smoothstep(edge + softness, edge - softness, input.fillUV.y);
         }
         else if (method < (FILL_RADIAL90 + 0.5f))
         {
@@ -97,7 +98,7 @@ float4 main(PSInput input) : SV_TARGET
             {
                 offset = 1.0f - offset - 0.25f;
             }
-            mask = ComputeRadialMask(input.texCoord, fillAmount, clockwise, 0.25f, offset, center, aspectRatio);
+            mask = ComputeRadialMask(input.fillUV, fillAmount, clockwise, 0.25f, offset, center, aspectRatio);
         }
         else if (method < (FILL_RADIAL180 + 0.5f))
         {
@@ -114,13 +115,13 @@ float4 main(PSInput input) : SV_TARGET
             {
                 offset = 1.0f - offset - 0.5f;
             }
-            mask = ComputeRadialMask(input.texCoord, fillAmount, clockwise, 0.5f, offset, center, aspectRatio);
+            mask = ComputeRadialMask(input.fillUV, fillAmount, clockwise, 0.5f, offset, center, aspectRatio);
         }
         else
         {
             int o = (int)(origin + 0.5f);
             float clockwise = (o == 0) ? 1.0f : 0.0f;
-            mask = ComputeRadialMask(input.texCoord, fillAmount, clockwise, 1.0f, 0.0f, float2(0.5f, 0.5f), aspectRatio);
+            mask = ComputeRadialMask(input.fillUV, fillAmount, clockwise, 1.0f, 0.0f, float2(0.5f, 0.5f), aspectRatio);
         }
     }
     

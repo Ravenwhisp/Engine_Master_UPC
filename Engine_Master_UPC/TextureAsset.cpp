@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "TextureAsset.h"
+#include "TextureImportSettings.h"
 
 #include "imgui.h"
 
@@ -32,6 +33,11 @@ namespace
     }
 }
 
+std::unique_ptr<ImportSettings> TextureAsset::createDefaultImportSettings() const
+{
+    return std::make_unique<TextureImportSettings>();
+}
+
 void TextureAsset::drawUI()
 {
     ImGui::Text("Texture Asset");
@@ -43,6 +49,17 @@ void TextureAsset::drawUI()
     ImGui::Text("Mip Count: %u", mipCount);
     ImGui::Text("Array Size: %u", arraySize);
     ImGui::Text("Image Count: %u", imageCount);
+
+    ImGui::Spacing();
+
+    if (m_importSettings)
+    {
+        ImGui::Separator();
+        ImGui::Text("Import Settings");
+        ImGui::Indent();
+        m_importSettings->drawUI();
+        ImGui::Unindent();
+    }
 
     ImGui::Spacing();
 

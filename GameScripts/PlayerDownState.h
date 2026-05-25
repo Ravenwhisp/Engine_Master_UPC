@@ -38,6 +38,9 @@ public:
 
     ScriptComponentRef<Transform> m_teammateTransform;
 
+    ScriptComponentRef<Transform> m_downedSprite;
+    GameObject* m_downedSpriteGO = nullptr;
+
 private:
     PlayerState* m_playerState = nullptr;
     Damageable* m_damageable = nullptr;

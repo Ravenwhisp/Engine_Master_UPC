@@ -212,9 +212,9 @@ bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 			return false;
 		}
 
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         m_meshAsset = meshId;
 
-        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
         if (meshAsset)
         {
             addMesh(*meshAsset);
