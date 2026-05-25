@@ -119,6 +119,12 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 
 		switch (velocityType) {
 
+		case ParameterType::CONSTANT:
+
+			m_angularVelocityType = ParameterType::CONSTANT;
+
+			break;
+
 		case ParameterType::RANDOM_BETWEEN_TWO:
 
 			m_angularVelocityType = ParameterType::RANDOM_BETWEEN_TWO;
@@ -148,7 +154,9 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 				m_angularVelocityCurve[3] = curveArray[3].GetFloat();
 			}
 		}
-	}
+
+	}else m_angularVelocityType = ParameterType::CONSTANT; // we recreate state corresponding to previous version
+
 
 	if (moduleInfo.HasMember("FlipRotation"))
 	{
