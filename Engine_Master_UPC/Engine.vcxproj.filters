@@ -499,7 +499,7 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp" />
+
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -547,9 +547,7 @@
     <ClCompile Include="EquirectangularPass.cpp">
       <Filter>D3D12\Rendering\IBL</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp">
-      <Filter>Prefabs</Filter>
-    </ClCompile>
+
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>

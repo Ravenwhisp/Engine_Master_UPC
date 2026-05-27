@@ -7,7 +7,6 @@
 
 #include "Prefab.h"
 #include "AssetReference.h"
-#include "PrefabSerializer.h"
 
 #include "UID.h"
 #include "Scene.h"
@@ -26,6 +25,8 @@
 
 using namespace rapidjson;
 namespace fs = std::filesystem;
+
+static constexpr int PREFAB_FORMAT_VERSION = 2;
 
 namespace {
 
@@ -67,6 +68,60 @@ PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
     return comp;
 }
 
+void deserialiseTransform(const Value& node, GameObject* go)
+{
+    if (!node.HasMember("Transform") || !node["Transform"].IsObject()) return;
+    Transform* tf = go->GetTransform();
+    const Value& tfNode = node["Transform"];
+
+    if (tfNode.HasMember("position") && tfNode["position"].IsArray())
+    {
+        const auto& p = tfNode["position"];
+        tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
+    }
+    if (tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
+    {
+        const auto& r = tfNode["rotation"];
+        tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(), r[2].GetFloat(), r[3].GetFloat()));
+    }
+    if (tfNode.HasMember("scale") && tfNode["scale"].IsArray())
+    {
+        const auto& s = tfNode["scale"];
+        tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
+    }
+}
+
+void deserialiseComponents(const Value& node, GameObject* go)
+{
+    if (!node.HasMember("Components") || !node["Components"].IsArray()) return;
+
+    for (SizeType i = 0; i < node["Components"].Size(); ++i)
+    {
+        const Value& cn = node["Components"][i];
+        auto type = static_cast<ComponentType>(cn["Type"].GetInt());
+        Component* comp = go->AddComponentWithUID(type, GenerateUID());
+        if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
+            comp->deserializeJSON(cn["Data"]);
+    }
+}
+
+void applyPrefabLink(const Value& node, GameObject* go)
+{
+    if (node.HasMember("PrefabLink") && node["PrefabLink"].IsObject())
+    {
+        const Value& pl = node["PrefabLink"];
+        auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        if (preComp)
+        {
+            auto& data = preComp->getData();
+            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                data.m_sourcePath = pl["SourcePath"].GetString();
+            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                data.m_assetUID = pl["AssetUID"].GetUint64();
+        }
+    }
+}
+
 } // anonymous namespace
 
 PrefabManager::PrefabManager(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
@@ -79,16 +134,25 @@ bool PrefabManager::savePrefab(GameObject* go, const fs::path& savePath)
 {
     if (!go || savePath.empty()) return false;
 
-    const std::string json = PrefabSerializer::buildPrefabJSON(go, savePath);
     Document doc;
-    doc.Parse(json.c_str());
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
+    doc.AddMember("SourcePath", Value(savePath.string().c_str(), alloc), alloc);
+    doc.AddMember("Name", Value(savePath.stem().string().c_str(), alloc), alloc);
+    doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
+
+    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != savePath)
+        doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
+
+    Value goNode = go->getJSON(doc);
+    doc.AddMember("GameObject", goNode, alloc);
+
     if (!writeJsonFile(doc, savePath)) return false;
 
-    auto* preComp = getOrCreatePrefabComponent(go);
-    if (preComp)
-    {
-        preComp->getData().m_sourcePath = savePath;
-    }
+    getOrCreatePrefabComponent(go);
+    preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (preComp) preComp->getData().m_sourcePath = savePath;
 
     const UID existingUID = m_moduleAssets->getIndex().findUID(savePath);
     if (isValidUID(existingUID))
@@ -248,12 +312,80 @@ GameObject* PrefabManager::spawnPrefab(const fs::path& sourcePath, Scene* scene)
     Document doc;
     if (!readJsonFile(sourcePath, doc) || !doc.HasMember("GameObject")) return nullptr;
 
-    GameObject* go = PrefabSerializer::deserialiseNode(doc["GameObject"], scene, nullptr);
+    GameObject* go = createFromJSON(doc["GameObject"], scene, nullptr);
     if (!go) return nullptr;
 
     auto* preComp = getOrCreatePrefabComponent(go);
     if (preComp)
         preComp->getData().m_sourcePath = sourcePath;
 
+    return go;
+}
+
+// ── Static tree-building helpers ──
+
+GameObject* PrefabManager::createFromJSON(const Value& node, Scene* scene, GameObject* parent)
+{
+    if (!node.IsObject()) return nullptr;
+
+    GameObject* go = scene->createGameObjectWithUID(GenerateUID(), GenerateUID());
+    if (!go) return nullptr;
+
+    go->SetName(node.HasMember("Name") ? node["Name"].GetString() : "Unnamed");
+    go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
+    if (node.HasMember("Tag") && node["Tag"].IsString())
+        go->SetTag(StringToTag(node["Tag"].GetString()));
+    if (node.HasMember("Layer") && node["Layer"].IsString())
+        go->SetLayer(StringToLayer(node["Layer"].GetString()));
+    if (parent)
+    {
+        go->GetTransform()->setRoot(parent->GetTransform());
+        parent->GetTransform()->addChild(go);
+        scene->removeFromRootList(go);
+    }
+
+    applyPrefabLink(node, go);
+    deserialiseTransform(node, go);
+    deserialiseComponents(node, go);
+
+    if (node.HasMember("Children") && node["Children"].IsArray())
+    {
+        for (SizeType i = 0; i < node["Children"].Size(); ++i)
+            createFromJSON(node["Children"][i], scene, go);
+    }
+
+    if (!parent) go->init();
+    return go;
+}
+
+GameObject* PrefabManager::createFromJSON(const Value& node, GameObject* parent)
+{
+    if (!node.IsObject()) return nullptr;
+    GameObject* go = new GameObject(GenerateUID(), GenerateUID());
+    if (!go) return nullptr;
+
+    go->SetName(node.HasMember("Name") ? node["Name"].GetString() : "Unnamed");
+    go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
+    if (node.HasMember("Tag") && node["Tag"].IsString())
+        go->SetTag(StringToTag(node["Tag"].GetString()));
+    if (node.HasMember("Layer") && node["Layer"].IsString())
+        go->SetLayer(StringToLayer(node["Layer"].GetString()));
+    if (parent)
+    {
+        go->GetTransform()->setRoot(parent->GetTransform());
+        parent->GetTransform()->addChild(go);
+    }
+
+    applyPrefabLink(node, go);
+    deserialiseTransform(node, go);
+    deserialiseComponents(node, go);
+
+    if (node.HasMember("Children") && node["Children"].IsArray())
+    {
+        for (SizeType i = 0; i < node["Children"].Size(); ++i)
+            createFromJSON(node["Children"][i], go);
+    }
+
+    if (!parent) go->init();
     return go;
 }

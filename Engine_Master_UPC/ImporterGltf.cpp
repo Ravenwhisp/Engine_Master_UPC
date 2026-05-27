@@ -27,7 +27,7 @@
 #include "ModuleAssets.h"
 #include "AssetIndex.h"
 #include "MD5.h"
-#include "PrefabSerializer.h"
+#include "PrefabManager.h"
 
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
@@ -391,31 +391,51 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, Prefab* dst)
 
     if (root)
     {
-        // Serialise the temp tree to JSON, then deserialise into the Prefab
-        const std::string json = PrefabSerializer::buildPrefabJSON(root, *m_currentFilePath);
+        // Serialise the temp tree to JSON, then populate the Prefab from it.
         rapidjson::Document goDoc;
-        goDoc.Parse(json.c_str());
-        if (!goDoc.HasParseError() && goDoc.HasMember("GameObject"))
+        goDoc.SetObject();
+        rapidjson::Value goNode = root->getJSON(goDoc);
+        goDoc.Swap(goNode);
+
+        dst->SetName(goDoc.HasMember("Name") ? goDoc["Name"].GetString() : "Unnamed");
+        dst->SetActive(goDoc.HasMember("Active") ? goDoc["Active"].GetBool() : true);
+
+        // Inline deserialiseTransform
+        if (goDoc.HasMember("Transform") && goDoc["Transform"].IsObject())
         {
-            const rapidjson::Value& goNode = goDoc["GameObject"];
+            Transform* tf = dst->GetTransform();
+            const auto& tfNode = goDoc["Transform"];
+            if (tfNode.HasMember("position") && tfNode["position"].IsArray())
+                tf->setPosition(Vector3(tfNode["position"][0].GetFloat(), tfNode["position"][1].GetFloat(), tfNode["position"][2].GetFloat()));
+            if (tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
+                tf->setRotation(Quaternion(tfNode["rotation"][0].GetFloat(), tfNode["rotation"][1].GetFloat(), tfNode["rotation"][2].GetFloat(), tfNode["rotation"][3].GetFloat()));
+            if (tfNode.HasMember("scale") && tfNode["scale"].IsArray())
+                tf->setScale(Vector3(tfNode["scale"][0].GetFloat(), tfNode["scale"][1].GetFloat(), tfNode["scale"][2].GetFloat()));
+        }
 
-            dst->SetName(goNode.HasMember("Name") ? goNode["Name"].GetString() : "Unnamed");
-            dst->SetActive(goNode.HasMember("Active") ? goNode["Active"].GetBool() : true);
-
-            PrefabSerializer::deserialiseTransform(goNode, dst);
-            PrefabSerializer::deserialiseComponents(goNode, dst);
-
-            if (goNode.HasMember("Children") && goNode["Children"].IsArray())
+        // Inline deserialiseComponents
+        if (goDoc.HasMember("Components") && goDoc["Components"].IsArray())
+        {
+            for (auto& cn : goDoc["Components"].GetArray())
             {
-                for (rapidjson::SizeType i = 0; i < goNode["Children"].Size(); ++i)
-                    PrefabSerializer::deserialiseNode(goNode["Children"][i], dst);
+                auto type = static_cast<ComponentType>(cn["Type"].GetInt());
+                Component* comp = dst->AddComponentWithUID(type, GenerateUID());
+                if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
+                    comp->deserializeJSON(cn["Data"]);
             }
+        }
 
-            if (stateMachineRef.isValid())
-            {
-                auto* animator = static_cast<AnimationComponent*>(dst->AddComponentWithUID(ComponentType::ANIMATION, GenerateUID()));
-                if (animator) animator->setStateMachineUID(stateMachineRef);
-            }
+        // Children via tree-building helper
+        if (goDoc.HasMember("Children") && goDoc["Children"].IsArray())
+        {
+            for (auto& child : goDoc["Children"].GetArray())
+                PrefabManager::createFromJSON(child, dst);
+        }
+
+        if (stateMachineRef.isValid())
+        {
+            auto* animator = static_cast<AnimationComponent*>(dst->AddComponentWithUID(ComponentType::ANIMATION, GenerateUID()));
+            if (animator) animator->setStateMachineUID(stateMachineRef);
         }
     }
 

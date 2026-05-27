@@ -10,7 +10,7 @@
 #include "ContentRegistry.h"
 #include "PrefabManager.h"
 
-#include "PrefabSerializer.h"
+
 #include "Prefab.h"
 #include "Scene.h"
 #include "GameObject.h"

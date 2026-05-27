@@ -1,14 +1,15 @@
 ﻿#include "Globals.h"
 #include "ImporterPrefab.h"
 
-#include "Application.h"
-#include "PrefabSerializer.h"
 #include "Prefab.h"
+#include "PrefabManager.h"
+#include "PrefabInstanceComponent.h"
+#include "Transform.h"
 
 #include <rapidjson/document.h>
-#include <rapidjson/filewritestream.h>
-#include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 #include <FileIO.h>
 
 using namespace rapidjson;
@@ -20,9 +21,20 @@ Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
 
 bool ImporterPrefab::saveNative(const Prefab* asset, const std::filesystem::path& path)
 {
-    // Serialize the Prefab's GameObject tree to a .prefab JSON file.
-    const std::string json = PrefabSerializer::buildPrefabJSON(asset, path);
-    if (json.empty()) return false;
+    Document doc;
+    doc.SetObject();
+    auto& alloc = doc.GetAllocator();
+
+    doc.AddMember("SourcePath", Value(path.string().c_str(), alloc), alloc);
+    doc.AddMember("Name", Value(path.stem().string().c_str(), alloc), alloc);
+    doc.AddMember("Version", 2, alloc);
+
+    auto* preComp = const_cast<Prefab*>(asset)->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != path)
+        doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
+
+    Value goNode = const_cast<Prefab*>(asset)->getJSON(doc);
+    doc.AddMember("GameObject", goNode, alloc);
 
     const std::filesystem::path dir = path.parent_path();
     std::error_code ec;
@@ -32,7 +44,10 @@ bool ImporterPrefab::saveNative(const Prefab* asset, const std::filesystem::path
     FILE* file = fopen(path.string().c_str(), "wb");
     if (!file) return false;
 
-    fwrite(json.data(), 1, json.size(), file);
+    StringBuffer sb;
+    Writer<StringBuffer> writer(sb);
+    doc.Accept(writer);
+    fwrite(sb.GetString(), 1, sb.GetSize(), file);
     fclose(file);
     return true;
 }
@@ -55,7 +70,6 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
     }
 
     dst->m_sourcePath = path;
-
     const auto& goNode = doc["GameObject"];
 
     dst->SetName(goNode.HasMember("Name") ? goNode["Name"].GetString() : "Unnamed");
@@ -65,13 +79,46 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
     if (goNode.HasMember("Layer") && goNode["Layer"].IsString())
         dst->SetLayer(StringToLayer(goNode["Layer"].GetString()));
 
-    PrefabSerializer::deserialiseTransform(goNode, dst);
-    PrefabSerializer::deserialiseComponents(goNode, dst);
+    // Inline deserialiseTransform
+    if (goNode.HasMember("Transform") && goNode["Transform"].IsObject())
+    {
+        Transform* tf = dst->GetTransform();
+        const auto& tfNode = goNode["Transform"];
+        if (tfNode.HasMember("position") && tfNode["position"].IsArray())
+        {
+            const auto& p = tfNode["position"];
+            tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
+        }
+        if (tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
+        {
+            const auto& r = tfNode["rotation"];
+            tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(), r[2].GetFloat(), r[3].GetFloat()));
+        }
+        if (tfNode.HasMember("scale") && tfNode["scale"].IsArray())
+        {
+            const auto& s = tfNode["scale"];
+            tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
+        }
+    }
 
+    // Inline deserialiseComponents
+    if (goNode.HasMember("Components") && goNode["Components"].IsArray())
+    {
+        for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
+        {
+            const auto& cn = goNode["Components"][i];
+            auto type = static_cast<ComponentType>(cn["Type"].GetInt());
+            Component* comp = dst->AddComponentWithUID(type, GenerateUID());
+            if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
+                comp->deserializeJSON(cn["Data"]);
+        }
+    }
+
+    // Children via tree-building helper
     if (goNode.HasMember("Children") && goNode["Children"].IsArray())
     {
         for (SizeType i = 0; i < goNode["Children"].Size(); ++i)
-            PrefabSerializer::deserialiseNode(goNode["Children"][i], dst);
+            PrefabManager::createFromJSON(goNode["Children"][i], dst);
     }
 
     dst->init();
