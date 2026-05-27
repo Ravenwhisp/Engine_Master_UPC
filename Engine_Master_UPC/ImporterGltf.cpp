@@ -14,7 +14,7 @@
 #include "AnimationStateMachineAsset.h"
 #include "SkinAsset.h"
 #include "AnimationAsset.h"
-#include "PrefabAsset.h"
+#include "Prefab.h"
 #include "MeshAsset.h"
 #include "MaterialAsset.h"
 #include "ComponentType.h"
@@ -167,7 +167,7 @@ bool ImporterGltf::canImport(const std::filesystem::path& path) const
 
 Asset* ImporterGltf::createAssetInstance(AssetReference& ref) const
 {
-    return new PrefabAsset(ref);
+    return new Prefab(ref);
 }
 
 bool ImporterGltf::createStateMachine(const std::filesystem::path& gltfPath)
@@ -252,7 +252,7 @@ bool ImporterGltf::loadExternal(const std::filesystem::path& path, tinygltf::Mod
 }
 
 
-void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
+void ImporterGltf::importTyped(const tinygltf::Model& model, Prefab* dst)
 {
     ModuleAssets* assets = app->getModuleAssets();
 
@@ -285,7 +285,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         AssetReference matRef = resolveOrGenerateReference(AssetType::MATERIAL, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = matRef.m_uid; meta.type = matRef.m_type; meta.contentHash = matRef.m_libId;
         meta.displayName = model.materials[i].name;
-        assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
+        assets->registerSubAsset(meta, dst->getUID(), rawBuf, static_cast<size_t>(size));
         materialRefs[i] = matRef;
     }
 
@@ -308,7 +308,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         AssetReference meshRef = resolveOrGenerateReference(AssetType::MESH, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = meshRef.m_uid; meta.type = meshRef.m_type; meta.contentHash = meshRef.m_libId;
         meta.displayName = model.meshes[i].name;
-        assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
+        assets->registerSubAsset(meta, dst->getUID(), rawBuf, static_cast<size_t>(size));
         meshRefs[i] = meshRef;
     }
 
@@ -327,7 +327,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         AssetReference animRef = resolveOrGenerateReference(AssetType::ANIMATION, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = animRef.m_uid; meta.type = animRef.m_type; meta.contentHash = animRef.m_libId;
         meta.displayName = model.animations[i].name;
-        assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
+        assets->registerSubAsset(meta, dst->getUID(), rawBuf, static_cast<size_t>(size));
         animationRefs[i] = animRef;
     }
 
@@ -352,7 +352,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         AssetReference skinRef = resolveOrGenerateReference(AssetType::SKIN, rawBuf, static_cast<size_t>(size));
         Metadata meta; meta.uid = skinRef.m_uid; meta.type = skinRef.m_type; meta.contentHash = skinRef.m_libId;
         meta.displayName = model.skins[i].name;
-        assets->registerSubAsset(meta, dst->m_reference.m_uid, rawBuf, static_cast<size_t>(size));
+        assets->registerSubAsset(meta, dst->getUID(), rawBuf, static_cast<size_t>(size));
         skinRefs[i] = skinRef;
     }
 
@@ -386,26 +386,38 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         }
     }
 
-    if (stateMachineRef.isValid() && root)
-    {
-        auto* animator = static_cast<AnimationComponent*>(root->AddComponentWithUID(ComponentType::ANIMATION, GenerateUID()));
+    dst->m_sourcePath = *m_currentFilePath;
+    dst->SetName(prefabName);
 
-        if (animator)
+    if (root)
+    {
+        // Serialise the temp tree to JSON, then deserialise into the Prefab
+        const std::string json = PrefabSerializer::buildPrefabJSON(root, *m_currentFilePath);
+        rapidjson::Document goDoc;
+        goDoc.Parse(json.c_str());
+        if (!goDoc.HasParseError() && goDoc.HasMember("GameObject"))
         {
-            animator->setStateMachineUID(stateMachineRef);
-        }
-        else
-        {
-            DEBUG_WARN("[ImporterGltf] Could not add AnimatorComponent to root node '%s'.",
-                root->GetName().c_str());
+            const rapidjson::Value& goNode = goDoc["GameObject"];
+
+            dst->SetName(goNode.HasMember("Name") ? goNode["Name"].GetString() : "Unnamed");
+            dst->SetActive(goNode.HasMember("Active") ? goNode["Active"].GetBool() : true);
+
+            PrefabSerializer::deserialiseTransform(goNode, dst);
+            PrefabSerializer::deserialiseComponents(goNode, dst);
+
+            if (goNode.HasMember("Children") && goNode["Children"].IsArray())
+            {
+                for (rapidjson::SizeType i = 0; i < goNode["Children"].Size(); ++i)
+                    PrefabSerializer::deserialiseNode(goNode["Children"][i], dst);
+            }
+
+            if (stateMachineRef.isValid())
+            {
+                auto* animator = static_cast<AnimationComponent*>(dst->AddComponentWithUID(ComponentType::ANIMATION, GenerateUID()));
+                if (animator) animator->setStateMachineUID(stateMachineRef);
+            }
         }
     }
-
-    PrefabData& data = dst->getData();
-    data.m_json = PrefabSerializer::buildPrefabJSON(root, *m_currentFilePath);
-    data.m_sourcePath = *m_currentFilePath;
-    data.m_name = prefabName;
-    data.m_assetUID = dst->m_reference.m_uid;
 
     m_currentFilePath = nullptr;
     m_existingDeps.clear();

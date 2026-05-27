@@ -4,10 +4,10 @@
 #include "Tag.h"
 #include "Layer.h"
 #include "ComponentType.h"
-#include "PrefabInstance.h"
 #include "ISerializable.h"
 #include "IArchive.h"
 
+#include <filesystem>
 #include <vector>
 #include <memory>
 #include <string>
@@ -41,14 +41,6 @@ public:
 	void SetStatic(bool newIsStatic) { m_isStatic = newIsStatic; }
 	void SetLayer(Layer newLayer) { m_layer = newLayer; }
 	void SetTag(Tag newTag) { m_tag = newTag; }
-#pragma endregion
-
-#pragma region Prefab
-	PrefabInstanceInfo& GetPrefabInfo() { return m_prefabInfo; }
-	const PrefabInstanceInfo& GetPrefabInfo() const { return m_prefabInfo; }
-
-	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
-	void markGameObjectPropertyOverride(const char* propertyName);
 #pragma endregion
 
 #pragma region Components
@@ -95,8 +87,6 @@ private:
 	bool m_isStatic = false;
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
-
-	PrefabInstanceInfo m_prefabInfo;
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;

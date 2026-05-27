@@ -7,7 +7,7 @@
 #include "PrefabManager.h"
 
 #include "GameObject.h"
-#include "PrefabAsset.h"
+#include "Prefab.h"
 #include <Extensions.h>
 #include <FileIO.h>
 

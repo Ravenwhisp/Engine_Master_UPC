@@ -13,6 +13,7 @@
 #include "SkyBoxSettings.h"
 
 #include "GameObject.h"
+#include "PrefabInstanceComponent.h"
 #include "Transform.h"
 #include "Component.h"
 #include "CameraComponent.h"
@@ -130,6 +131,25 @@ rapidjson::Value SceneSerializer::getJSON(rapidjson::Document& domTree, const Sc
         for (GameObject* root : rootObjects)
         {
             serializeWindowHierarchy(root, gameObjectsData, domTree, scene);
+        }
+
+        // Add PrefabLink to GameObjects that have a PrefabInstanceComponent
+        for (auto& goVal : gameObjectsData.GetArray())
+        {
+            UID goUid = goVal["UID"].GetUint64();
+            GameObject* go = const_cast<Scene*>(scene)->findGameObjectByUID(goUid);
+            if (go)
+            {
+                auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+                if (preComp && preComp->isInstance())
+                {
+                    rapidjson::Value pl(rapidjson::kObjectType);
+                    pl.AddMember("SourcePath", rapidjson::Value(preComp->getData().m_sourcePath.string().c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+                    if (preComp->getData().m_assetUID != INVALID_UID)
+                        pl.AddMember("AssetUID", preComp->getData().m_assetUID, domTree.GetAllocator());
+                    goVal.AddMember("PrefabLink", pl, domTree.GetAllocator());
+                }
+            }
         }
 
         sceneInfo.AddMember("GameObjects", gameObjectsData, domTree.GetAllocator());

@@ -980,7 +980,7 @@
     <ClInclude Include="ImporterPrefab.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabAsset.h">
+    <ClInclude Include="Prefab.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="Script.h">

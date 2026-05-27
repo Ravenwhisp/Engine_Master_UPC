@@ -6,6 +6,7 @@
 
 #include "Application.h"
 #include "ModuleEditor.h"
+#include "PrefabInstanceComponent.h"
 #include "ModuleScene.h"
 
 #include "Scene.h"
@@ -97,24 +98,6 @@ bool GameObject::AddComponent(ComponentType componentType)
     m_components.push_back(std::move(newComponent));
     app->getModuleScene()->getScene()->markDirty();
 
-    GameObject* target = this;
-    while (target && !target->IsPrefabInstance())
-    {
-        Transform* parentTransform = target->GetTransform()->getRoot();
-        target = parentTransform ? parentTransform->getOwner() : nullptr;
-    }
-    if (target)
-    {
-        auto& added = target->GetPrefabInfo().m_overrides.m_addedComponentTypes;
-        const int ct = static_cast<int>(componentType);
-        if (std::find(added.begin(), added.end(), ct) == added.end())
-        {
-            added.push_back(ct);
-        }
-        auto& removed = target->GetPrefabInfo().m_overrides.m_removedComponentTypes;
-        removed.erase(std::remove(removed.begin(), removed.end(), ct), removed.end());
-    }
-
     return true;
 }
 
@@ -153,33 +136,9 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
         return false;
     }
 
-    ComponentType removedType = (*it)->getType();
-
-    // Resolve the prefab root BEFORE cleanup — cleanUp() may invalidate
-    // parent pointers if it releases references or triggers notifications.
-    GameObject* target = this;
-    while (target && !target->IsPrefabInstance())
-    {
-        Transform* parentTransform = target->GetTransform()->getRoot();
-        target = parentTransform ? parentTransform->getOwner() : nullptr;
-    }
-
     (*it)->cleanUp();
     m_components.erase(it);
     app->getModuleScene()->getScene()->markDirty();
-
-    if (target)
-    {
-        const int ct = static_cast<int>(removedType);
-        auto& removed = target->GetPrefabInfo().m_overrides.m_removedComponentTypes;
-        if (std::find(removed.begin(), removed.end(), ct) == removed.end())
-        {
-            removed.push_back(ct);
-        }
-        auto& added = target->GetPrefabInfo().m_overrides.m_addedComponentTypes;
-        added.erase(std::remove(added.begin(), added.end(), ct), added.end());
-        target->GetPrefabInfo().m_overrides.m_modifiedProperties.erase(ct);
-    }
 
     return true;
 }
@@ -327,22 +286,6 @@ bool DrawEnumCombo(const char* label, EnumType& currentValue, int count, const c
     return false;
 }
 
-void GameObject::markGameObjectPropertyOverride(const char* propertyName)
-{
-    // Walk up to the nearest prefab instance root (same pattern used elsewhere)
-    GameObject* target = this;
-    while (target && !target->IsPrefabInstance())
-    {
-        Transform* parentTransform = target->GetTransform()->getRoot();
-        target = parentTransform ? parentTransform->getOwner() : nullptr;
-    }
-    if (target)
-    {
-        // -1 is a safe sentinel key for GameObject-level (non-component) properties
-        target->GetPrefabInfo().m_overrides.m_modifiedProperties[-1].insert(propertyName);
-    }
-}
-
 void GameObject::drawUI()
 {
 #pragma region
@@ -384,11 +327,6 @@ void GameObject::drawUI()
         if (ImGui::Checkbox("##Active", &active))
         {
             SetActive(active);
-            
-            if (inPrefabMode && active != prevActive)
-    		{
-        		markGameObjectPropertyOverride("active");
-    		}
         }
 
         char buffer[256];
@@ -402,8 +340,6 @@ void GameObject::drawUI()
         if (ImGui::InputText("##Name", buffer, sizeof(buffer)))
         {
             m_name = buffer;
-            if (inPrefabMode)
-                markGameObjectPropertyOverride("name");
         }
 
         ImGui::TableNextRow();
@@ -411,10 +347,7 @@ void GameObject::drawUI()
         ImGui::TextUnformatted("Tag");
         ImGui::TableSetColumnIndex(1);
         {
-            Tag prevTag = m_tag;
             DrawEnumCombo("##Tag", m_tag, static_cast<int>(Tag::COUNT), TagToString);
-            if (inPrefabMode && m_tag != prevTag)
-                markGameObjectPropertyOverride("tag");
         }
 
         ImGui::TableNextRow();
@@ -435,10 +368,7 @@ void GameObject::drawUI()
                     m_layer = previousLayer; // revert until user decides
                     ImGui::OpenPopup("##LayerChildrenPopup");
                 }
-                else if (inPrefabMode && m_layer != previousLayer)
-                {
-                    markGameObjectPropertyOverride("layer");
-                }
+
             }
 
             if (ImGui::BeginPopupModal("##LayerChildrenPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
@@ -460,8 +390,6 @@ void GameObject::drawUI()
                         applyRecursive(s_pendingLayerTarget);
                         s_pendingLayerTarget = nullptr;
                     }
-                    if (inPrefabMode)
-                        markGameObjectPropertyOverride("layer");
                     ImGui::CloseCurrentPopup();
                 }
 
@@ -608,17 +536,6 @@ void GameObject::drawUI()
             if (ImGui::Checkbox("##Active", &enabled))
             {
                 component->setActive(enabled);
-                // Toggling a component's active state is a component-level override
-                if (inPrefabMode)
-                {
-                    const int componentType = static_cast<int>(component->getType());
-                    GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
-                    if (targetForOverride && targetForOverride->IsPrefabInstance())
-                    {
-                        targetForOverride->GetPrefabInfo()
-                            .m_overrides.m_modifiedProperties[componentType].insert("active");
-                    }
-                }
             }
 
             ImGui::SetCursorScreenPos(cursorAfterHeader);
@@ -626,22 +543,7 @@ void GameObject::drawUI()
 
         if (isOpen)
         {
-            const ImGuiID activeIdBefore = ImGui::GetActiveID();
             component->drawUi();
-            const ImGuiID activeIdAfter = ImGui::GetActiveID();
-
-            // If a widget inside this component was interacted with while in prefab
-            if (inPrefabMode && activeIdAfter != 0 && activeIdAfter != activeIdBefore)
-            {
-                const int componentType = static_cast<int>(component->getType());
-                GameObject* targetForOverride = app->getModuleEditor()->getSelectedGameObject();
-                if (targetForOverride && targetForOverride->IsPrefabInstance())
-                {
-                    targetForOverride->GetPrefabInfo()
-                        .m_overrides.m_modifiedProperties[componentType].insert("properties");
-                }
-            }
-
 
             if (component->getType() != ComponentType::TRANSFORM)
             {
@@ -783,21 +685,6 @@ rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
 
     gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
 
-    if (m_prefabInfo.isInstance())
-    {
-        rapidjson::Value prefabLink(rapidjson::kObjectType);
-
-        rapidjson::Value sourcePath(m_prefabInfo.m_sourcePath.string().c_str(), domTree.GetAllocator());
-        prefabLink.AddMember("SourcePath", sourcePath, domTree.GetAllocator());
-
-        if (m_prefabInfo.m_assetUID != INVALID_UID)
-        {
-            prefabLink.AddMember("AssetUID", m_prefabInfo.m_assetUID, domTree.GetAllocator());
-        }
-
-        gameObjectInfo.AddMember("PrefabLink", prefabLink, domTree.GetAllocator());
-    }
-
     // Components serialization //
     {
         rapidjson::Value componentsData(rapidjson::kArrayType);
@@ -840,11 +727,15 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
     if (gameObjectJson.HasMember("PrefabLink") && gameObjectJson["PrefabLink"].IsObject())
     {
         const auto& pl = gameObjectJson["PrefabLink"];
-        // Old files may have PrefabName/PrefabUID keys — we simply ignore them now.
-        if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
-            m_prefabInfo.m_sourcePath = pl["SourcePath"].GetString();
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
-            m_prefabInfo.m_assetUID = pl["AssetUID"].GetUint64();
+        auto* preComp = static_cast<PrefabInstanceComponent*>(AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        if (preComp)
+        {
+            auto& data = preComp->getData();
+            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                data.m_sourcePath = pl["SourcePath"].GetString();
+            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                data.m_assetUID = pl["AssetUID"].GetUint64();
+        }
     }
 
     const auto& components = gameObjectJson["Components"].GetArray();

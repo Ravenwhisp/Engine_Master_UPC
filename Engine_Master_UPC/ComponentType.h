@@ -21,7 +21,8 @@
     X(PARTICLE_SYSTEM)      \
     X(UISHEET)              \
     X(SOUND_LISTENER)       \
-    X(SOUND_SOURCE)
+    X(SOUND_SOURCE)          \
+    X(PREFAB_INSTANCE)
 
 enum class ComponentType
 {

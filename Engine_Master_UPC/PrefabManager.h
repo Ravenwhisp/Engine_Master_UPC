@@ -1,17 +1,16 @@
 #pragma once
 
+#include "ComponentType.h"
+#include "PrefabInstance.h"
 #include <filesystem>
 
 class ModuleAssets;
-class PrefabAsset;
+class Prefab;
 class Scene;
 class GameObject;
 
 class PrefabManager
 {
-private:
-    ModuleAssets* m_moduleAssets;
-
 public:
 	PrefabManager(ModuleAssets* moduleAssets);
 	~PrefabManager();
@@ -20,7 +19,9 @@ public:
     bool applyPrefab(const GameObject* go);
     bool revertPrefab(GameObject* go, Scene* scene);
     bool createVariant(const std::filesystem::path& src, const std::filesystem::path& dst);
-    GameObject* spawnPrefab(const PrefabAsset& asset, Scene* scene);
+    GameObject* spawnPrefab(const Prefab& prefab, Scene* scene);
     GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
-};
 
+private:
+    ModuleAssets* m_moduleAssets;
+};

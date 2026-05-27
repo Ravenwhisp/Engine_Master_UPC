@@ -11,7 +11,7 @@
 #include "PrefabManager.h"
 
 #include "PrefabSerializer.h"
-#include "PrefabAsset.h"
+#include "Prefab.h"
 #include "Scene.h"
 #include "GameObject.h"
 #include "Transform.h"

@@ -5,22 +5,69 @@
 #include "ModuleAssets.h"
 #include "ModuleScene.h"
 
-#include "PrefabAsset.h"
+#include "Prefab.h"
 #include "AssetReference.h"
 #include "PrefabSerializer.h"
 
 #include "UID.h"
 #include "Scene.h"
 #include "GameObject.h"
+#include "PrefabInstanceComponent.h"
 #include "Component.h"
 #include "Transform.h"
 
 #include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 #include <filesystem>
 #include <string>
 
 using namespace rapidjson;
 namespace fs = std::filesystem;
+
+namespace {
+
+bool writeJsonFile(const Document& doc, const fs::path& path)
+{
+    std::error_code ec;
+    fs::create_directories(path.parent_path(), ec);
+    if (ec) return false;
+
+    FILE* file = fopen(path.string().c_str(), "wb");
+    if (!file) return false;
+
+    char buf[65536];
+    FileWriteStream os(file, buf, sizeof(buf));
+    PrettyWriter<FileWriteStream> writer(os);
+    writer.SetIndent(' ', 2);
+    doc.Accept(writer);
+    fclose(file);
+    return true;
+}
+
+bool readJsonFile(const fs::path& path, Document& doc)
+{
+    FILE* file = fopen(path.string().c_str(), "rb");
+    if (!file) return false;
+
+    char buf[65536];
+    FileReadStream is(file, buf, sizeof(buf));
+    doc.ParseStream(is);
+    fclose(file);
+    return !doc.HasParseError();
+}
+
+PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
+{
+    auto* comp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!comp)
+        comp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+    return comp;
+}
+
+} // anonymous namespace
 
 PrefabManager::PrefabManager(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
 {
@@ -32,50 +79,49 @@ bool PrefabManager::savePrefab(GameObject* go, const fs::path& savePath)
 {
     if (!go || savePath.empty()) return false;
 
-    Document doc;
     const std::string json = PrefabSerializer::buildPrefabJSON(go, savePath);
+    Document doc;
     doc.Parse(json.c_str());
-    if (!PrefabSerializer::writeDocument(doc, savePath)) return false;
+    if (!writeJsonFile(doc, savePath)) return false;
 
-    go->GetPrefabInfo().m_sourcePath = savePath;
+    auto* preComp = getOrCreatePrefabComponent(go);
+    if (preComp)
+    {
+        preComp->getData().m_sourcePath = savePath;
+    }
 
-    // Evict stale cached version, then reimport.
     const UID existingUID = m_moduleAssets->getIndex().findUID(savePath);
     if (isValidUID(existingUID))
-    {
         m_moduleAssets->unload(AssetReference(existingUID));
-    }
 
     AssetReference ref(existingUID);
     m_moduleAssets->importAsset(savePath, ref);
 
-    if (auto asset = m_moduleAssets->load<PrefabAsset>(ref))
-    {
-        asset->getData().m_json = json;
-    }
+    if (isValidUID(ref.m_uid) && preComp)
+        preComp->getData().m_assetUID = ref.m_uid;
 
     return true;
 }
 
 bool PrefabManager::applyPrefab(const GameObject* go)
 {
-    const PrefabInstanceInfo& info = go->GetPrefabInfo();
-    if (!info.isInstance()) return false;
+    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!preComp || !preComp->isInstance()) return false;
 
-    if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
+    const fs::path& prefabPath = preComp->getData().m_sourcePath;
+
+    if (!savePrefab(const_cast<GameObject*>(go), prefabPath))
         return false;
 
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene) return true;
 
-    const fs::path& prefabPath = info.m_sourcePath;
     for (GameObject* instance : scene->getAllGameObjects())
     {
-        if (!instance)                                              continue;
-        if (!instance->GetPrefabInfo().isInstance())               continue;
-        if (instance->GetPrefabInfo().m_sourcePath != prefabPath)  continue;
-        if (instance == go)                                         continue;
-        revertPrefab(instance, scene);
+        if (!instance || instance == go) continue;
+        auto* instComp = instance->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+        if (instComp && instComp->getData().m_sourcePath == prefabPath)
+            revertPrefab(instance, scene);
     }
 
     scene->markDirty();
@@ -84,27 +130,14 @@ bool PrefabManager::applyPrefab(const GameObject* go)
 
 bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
 {
-    PrefabInstanceInfo& info = go->GetPrefabInfo();
-    if (!info.isInstance()) return false;
+    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!preComp || !preComp->isInstance()) return false;
+
+    const PrefabInstanceInfo& info = preComp->getData();
 
     Document doc;
-    bool loaded = false;
-
-    if (isValidUID(info.m_assetUID))
-    {
-        AssetReference ref(info.m_assetUID);
-        auto asset = m_moduleAssets->load<PrefabAsset>(ref);
-        if (asset && !asset->getJSON().empty())
-        {
-            doc.Parse(asset->getJSON().c_str());
-            loaded = !doc.HasParseError() && doc.HasMember("GameObject");
-        }
-    }
-    if (!loaded)
-    {
-        loaded = PrefabSerializer::loadDocument(info.m_sourcePath, doc);
-    }
-    if (!loaded) return false;
+    if (!readJsonFile(info.m_sourcePath, doc) || !doc.HasMember("GameObject"))
+        return false;
 
     const Value& goNode = doc["GameObject"];
     const PrefabOverrideRecord savedOverrides = info.m_overrides;
@@ -157,7 +190,7 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
         }
     }
 
-    info.m_overrides = savedOverrides;
+    preComp->getData().m_overrides = savedOverrides;
     return true;
 }
 
@@ -166,7 +199,7 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
     if (src.empty() || dst.empty()) return false;
 
     Document doc;
-    if (!PrefabSerializer::readDocument(src, doc)) return false;
+    if (!readJsonFile(src, doc)) return false;
     auto& alloc = doc.GetAllocator();
 
     auto setOrAdd = [&](const char* key, const std::string& value)
@@ -180,28 +213,27 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
     setOrAdd("Name", dst.stem().string());
     setOrAdd("VariantOf", src.string());
 
-    return PrefabSerializer::writeDocument(doc, dst);
+    return writeJsonFile(doc, dst);
 }
 
-GameObject* PrefabManager::spawnPrefab(const PrefabAsset& asset, Scene* scene)
+GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
 {
-    if (!scene || asset.getJSON().empty()) return nullptr;
+    auto clone = prefab.spawnClone();
+    if (!clone) return nullptr;
+    GameObject* go = clone.get();
 
-    Document doc;
-    doc.Parse(asset.getJSON().c_str());
-    if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
+    auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+    if (preComp)
     {
-        DEBUG_ERROR("[ModuleAssets] Malformed JSON in prefab asset '%s'.", std::to_string(asset.getUID()).c_str());
-        return nullptr;
+        preComp->getData().m_sourcePath = prefab.m_sourcePath;
+        preComp->getData().m_assetUID = prefab.getUID();
     }
 
-    GameObject* go = PrefabSerializer::deserialiseNode(doc["GameObject"], scene, nullptr);
-    if (!go) return nullptr;
-
-    const auto& data = asset.getData();
-    PrefabInstanceInfo& info = go->GetPrefabInfo();
-    info.m_sourcePath = data.m_sourcePath;
-    info.m_assetUID = data.m_assetUID;
+    if (scene)
+    {
+        scene->addGameObject(std::move(clone));
+        go->init();
+    }
 
     return go;
 }
@@ -210,15 +242,18 @@ GameObject* PrefabManager::spawnPrefab(const fs::path& sourcePath, Scene* scene)
 {
     if (!scene || sourcePath.empty()) return nullptr;
 
-    auto asset = m_moduleAssets->loadAtPath<PrefabAsset>(sourcePath);
+    auto asset = m_moduleAssets->loadAtPath<Prefab>(sourcePath);
     if (asset) return spawnPrefab(*asset, scene);
 
     Document doc;
-    if (!PrefabSerializer::loadDocument(sourcePath, doc)) return nullptr;
+    if (!readJsonFile(sourcePath, doc) || !doc.HasMember("GameObject")) return nullptr;
 
     GameObject* go = PrefabSerializer::deserialiseNode(doc["GameObject"], scene, nullptr);
     if (!go) return nullptr;
 
-    go->GetPrefabInfo().m_sourcePath = sourcePath;
+    auto* preComp = getOrCreatePrefabComponent(go);
+    if (preComp)
+        preComp->getData().m_sourcePath = sourcePath;
+
     return go;
 }

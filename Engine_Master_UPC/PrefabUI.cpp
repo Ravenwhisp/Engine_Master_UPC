@@ -9,10 +9,11 @@
 
 #include "Scene.h"
 #include "GameObject.h"
+#include "PrefabInstanceComponent.h"
 #include "ComponentType.h"
 #include "Transform.h"
 
-#include "PrefabAsset.h"
+#include "Prefab.h"
 #include "PrefabEditSession.h"
 #include <FileIO.h>
 
@@ -45,7 +46,9 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
 
 
     const float buttonWidth = (availableWidth - 8.f) / 3.f;
-    const bool  hasChanges = !root->GetPrefabInfo().m_overrides.isEmpty();
+    auto* _preComp = root->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    const PrefabInstanceInfo* info = _preComp ? &_preComp->getData() : nullptr;
+    const bool  hasChanges = info && !info->m_overrides.isEmpty();
 
     ImGui::BeginDisabled(!hasChanges);
     ImGui::PushStyleColor(ImGuiCol_Button,
@@ -144,22 +147,26 @@ void PrefabUI::drawSavePrefabSection(GameObject* go)
     ImGui::Spacing();
     ImGui::SeparatorText("Prefab");
 
-    if (go->IsPrefabInstance())
+    auto* _preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (_preComp && _preComp->isInstance())
     {
         ImGui::Spacing();
         if (ImGui::Button("Edit Prefab"))
         {
-            app->getModuleEditor()->enterPrefabEdit(go->GetPrefabInfo().m_sourcePath);
+            const PrefabInstanceInfo* info = &_preComp->getData();
+            if (info) app->getModuleEditor()->enterPrefabEdit(info->m_sourcePath);
         }
     }
 }
 
 void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
 {
-    if (!go || !go->IsPrefabInstance()) return;
+    if (!go) return;
+    auto* _preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!_preComp || !_preComp->isInstance()) return;
 
-    const PrefabInstanceInfo& info = go->GetPrefabInfo();
-    const bool        hasOverrides = !info.m_overrides.isEmpty();
+    const PrefabInstanceInfo* info = &_preComp->getData();
+    const bool        hasOverrides = info && !info->m_overrides.isEmpty();
 
     ImVec2 topLeft = ImGui::GetCursorScreenPos();
     ImVec2 bottomRight = { topLeft.x + ImGui::GetContentRegionAvail().x, topLeft.y + 52.f };
@@ -220,7 +227,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.4f, 0.4f, 1.f));
     if (ImGui::SmallButton("Unlink"))
     {
-        go->GetPrefabInfo().clear();
+        { auto* _pc = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE); if (_pc) _pc->getData().clear(); }
     }
     ImGui::PopStyleColor();
     if (ImGui::IsItemHovered())
@@ -232,7 +239,7 @@ void PrefabUI::drawFileDialogInstanceBar(GameObject* go)
 
     if (ImGui::SmallButton("Edit Prefab"))
     {
-        app->getModuleEditor()->enterPrefabEdit(info.m_sourcePath);
+        if (info) app->getModuleEditor()->enterPrefabEdit(info->m_sourcePath);
     }
     if (ImGui::IsItemHovered())
     {
@@ -250,7 +257,9 @@ void PrefabUI::drawNodeContextMenu(bool prefabMode)
     GameObject* root = app->getModuleEditor()->getPrefabEditRoot();
     if (!root) return;
 
-    const bool hasChanges = !root->GetPrefabInfo().m_overrides.isEmpty();
+    auto* _preComp = root->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    const PrefabInstanceInfo* info = _preComp ? &_preComp->getData() : nullptr;
+    const bool hasChanges = info && !info->m_overrides.isEmpty();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.75f, 0.2f, 1.f));
     ImGui::Text("Prefab: %s", app->getModuleEditor()->getPrefabEditSourcePath().stem().string().c_str());
@@ -286,7 +295,7 @@ void PrefabUI::drawNodeContextMenu(bool prefabMode)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.4f, 0.4f, 1.f));
     if (ImGui::MenuItem("Unlink  -  Break prefab connection"))
     {
-        root->GetPrefabInfo().clear();
+        { auto* _pc = root->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE); if (_pc) _pc->getData().clear(); }
         app->getModuleEditor()->exitPrefabEdit();
     }
     ImGui::PopStyleColor();
@@ -323,14 +332,15 @@ void PrefabUI::drawPrefabSubMenu(GameObject* go, Scene* scene)
         memset(pathBuffer, 0, sizeof(pathBuffer));
     }
 
-    if (go->IsPrefabInstance())
+    auto* _preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (_preComp && _preComp->isInstance())
     {
         ImGui::Separator();
-        const PrefabInstanceInfo& info = go->GetPrefabInfo();
+        const PrefabInstanceInfo* info = &_preComp->getData();
 
         if (ImGui::MenuItem("Edit Prefab"))
         {
-            app->getModuleEditor()->enterPrefabEdit(info.m_sourcePath);
+            if (info) app->getModuleEditor()->enterPrefabEdit(info->m_sourcePath);
         }
         if (ImGui::MenuItem("Apply to Prefab"))
         {
@@ -343,7 +353,7 @@ void PrefabUI::drawPrefabSubMenu(GameObject* go, Scene* scene)
         ImGui::Separator();
         if (ImGui::MenuItem("Unlink"))
         {
-            go->GetPrefabInfo().clear();
+            { auto* _pc = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE); if (_pc) _pc->getData().clear(); }
         }
     }
 
@@ -359,9 +369,10 @@ void PrefabUI::markTransformOverride(GameObject* go)
     GameObject* current = go;
     while (current)
     {
-        if (current->IsPrefabInstance())
+        auto* preComp = current->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+        if (preComp && preComp->isInstance())
         {
-            auto& props = current->GetPrefabInfo().m_overrides.m_modifiedProperties[transformType];
+            auto& props = preComp->getData().m_overrides.m_modifiedProperties[transformType];
             props.insert("position");
             props.insert("rotation");
             props.insert("scale");
@@ -415,8 +426,9 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     ImGui::Separator();
 
     GameObject* selected = app->getModuleEditor()->getSelectedGameObject();
-    const bool  isLinked = selected && selected->IsPrefabInstance() && selected->GetPrefabInfo().m_sourcePath == sourcePath;
-    const bool  hasOverrides = isLinked && !selected->GetPrefabInfo().m_overrides.isEmpty();
+    auto* _selPreComp = selected ? selected->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE) : nullptr;
+    const bool  isLinked = selected && _selPreComp && _selPreComp->isInstance() && _selPreComp->getData().m_sourcePath == sourcePath;
+    const bool  hasOverrides = isLinked && !_selPreComp->getData().m_overrides.isEmpty();
 
     ImGui::BeginDisabled(!hasOverrides);
     if (ImGui::MenuItem("Apply to Prefab"))

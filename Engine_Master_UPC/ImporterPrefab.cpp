@@ -2,22 +2,42 @@
 #include "ImporterPrefab.h"
 
 #include "Application.h"
-
+#include "PrefabSerializer.h"
+#include "Prefab.h"
 
 #include <rapidjson/document.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 #include <FileIO.h>
+
+using namespace rapidjson;
 
 Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
 {
-    return new PrefabAsset(uid);
+    return new Prefab(uid);
 }
 
-bool ImporterPrefab::saveNative(const PrefabAsset* asset, const std::filesystem::path& path)
+bool ImporterPrefab::saveNative(const Prefab* asset, const std::filesystem::path& path)
 {
-    return false;
+    // Serialize the Prefab's GameObject tree to a .prefab JSON file.
+    const std::string json = PrefabSerializer::buildPrefabJSON(asset, path);
+    if (json.empty()) return false;
+
+    const std::filesystem::path dir = path.parent_path();
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    if (ec) return false;
+
+    FILE* file = fopen(path.string().c_str(), "wb");
+    if (!file) return false;
+
+    fwrite(json.data(), 1, json.size(), file);
+    fclose(file);
+    return true;
 }
 
-bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset* dst)
+bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst)
 {
     const std::vector<uint8_t> raw = FileIO::read(path);
     if (raw.empty())
@@ -26,24 +46,34 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset
         return false;
     }
 
-    PrefabData& data = dst->getData();
-    data.m_json.assign(reinterpret_cast<const char*>(raw.data()), raw.size());
-    data.m_assetUID = dst->m_reference.m_uid;
-    data.m_sourcePath = path;
-    data.m_name = path.stem().string();
-
-    // Extract PrefabUID (uint64_t GO UID) from the top-level JSON key.
     rapidjson::Document doc;
-    doc.Parse(data.m_json.c_str());
-    if (!doc.HasParseError())
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (doc.HasParseError() || !doc.HasMember("GameObject"))
     {
-        // Allow the JSON to override the display name.
-        if (doc.HasMember("Name") && doc["Name"].IsString())
-        {
-            data.m_name = doc["Name"].GetString();
-        }
-
+        DEBUG_ERROR("[ImporterPrefab] Invalid JSON in '%s'.", path.string().c_str());
+        return false;
     }
 
+    dst->m_sourcePath = path;
+
+    const auto& goNode = doc["GameObject"];
+
+    dst->SetName(goNode.HasMember("Name") ? goNode["Name"].GetString() : "Unnamed");
+    dst->SetActive(goNode.HasMember("Active") ? goNode["Active"].GetBool() : true);
+    if (goNode.HasMember("Tag") && goNode["Tag"].IsString())
+        dst->SetTag(StringToTag(goNode["Tag"].GetString()));
+    if (goNode.HasMember("Layer") && goNode["Layer"].IsString())
+        dst->SetLayer(StringToLayer(goNode["Layer"].GetString()));
+
+    PrefabSerializer::deserialiseTransform(goNode, dst);
+    PrefabSerializer::deserialiseComponents(goNode, dst);
+
+    if (goNode.HasMember("Children") && goNode["Children"].IsArray())
+    {
+        for (SizeType i = 0; i < goNode["Children"].Size(); ++i)
+            PrefabSerializer::deserialiseNode(goNode["Children"][i], dst);
+    }
+
+    dst->init();
     return true;
 }

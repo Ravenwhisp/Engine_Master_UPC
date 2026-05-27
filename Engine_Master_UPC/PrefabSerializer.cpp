@@ -2,16 +2,15 @@
 #include "PrefabSerializer.h"
 
 #include "GameObject.h"
+#include "PrefabInstanceComponent.h"
 #include "Scene.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "Skin.h"
 #include "Component.h"
 #include "ComponentType.h"
-#include "PrefabAsset.h"
+#include "Prefab.h"
 
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/filewritestream.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -21,78 +20,6 @@ using namespace rapidjson;
 namespace fs = std::filesystem;
 
 static constexpr int PREFAB_FORMAT_VERSION = 2;
-
-void PrefabSerializer::serialiseTransform(const GameObject* go, Value& out, Document::AllocatorType& alloc)
-{
-    const Transform* tf = go->GetTransform();
-    const Vector3& pos = tf->getPosition();
-    const Quaternion rot = tf->getRotation();
-    const Vector3& sc = tf->getScale();
-
-    Value posArr(kArrayType);
-    posArr.PushBack(pos.x, alloc).PushBack(pos.y, alloc).PushBack(pos.z, alloc);
-    Value rotArr(kArrayType);
-    rotArr.PushBack(rot.x, alloc).PushBack(rot.y, alloc).PushBack(rot.z, alloc).PushBack(rot.w, alloc);
-    Value scArr(kArrayType);
-    scArr.PushBack(sc.x, alloc).PushBack(sc.y, alloc).PushBack(sc.z, alloc);
-
-    Value tfNode(kObjectType);
-    tfNode.AddMember("position", posArr, alloc);
-    tfNode.AddMember("rotation", rotArr, alloc);
-    tfNode.AddMember("scale", scArr, alloc);
-    out.AddMember("Transform", tfNode, alloc);
-}
-
-void PrefabSerializer::serialiseComponents(const GameObject* go, Value& out, Document::AllocatorType& alloc)
-{
-    Value    compArray(kArrayType);
-    Document helperDoc;
-    helperDoc.SetObject();
-
-    for (Component* comp : go->GetAllComponents())
-    {
-        if (comp->getType() == ComponentType::TRANSFORM) continue;
-
-        Value dataCopy;
-        dataCopy.CopyFrom(comp->getJSON(helperDoc), alloc);
-
-        Value compNode(kObjectType);
-        compNode.AddMember("Type", static_cast<int>(comp->getType()), alloc);
-        compNode.AddMember("Data", dataCopy, alloc);
-        compArray.PushBack(compNode, alloc);
-    }
-    out.AddMember("Components", compArray, alloc);
-}
-
-void PrefabSerializer::serialiseNodeInto(const GameObject* go, Value& out, Document::AllocatorType& alloc)
-{
-    out.SetObject();
-    out.AddMember("Name", Value(go->GetName().c_str(), alloc), alloc);
-    out.AddMember("Active", go->GetActive(), alloc);
-    out.AddMember("Tag", Value(TagToString(go->GetTag()), alloc), alloc);
-    out.AddMember("Layer", Value(LayerToString(go->GetLayer()), alloc), alloc);
-
-    const PrefabInstanceInfo& info = go->GetPrefabInfo();
-    if (info.isInstance())
-    {
-        Value prefabLink(kObjectType);
-        prefabLink.AddMember("SourcePath", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
-        prefabLink.AddMember("AssetUID", info.m_assetUID, alloc);
-        out.AddMember("PrefabLink", prefabLink, alloc);
-    }
-
-    serialiseTransform(go, out, alloc);
-    serialiseComponents(go, out, alloc);
-
-    Value childrenArray(kArrayType);
-    for (GameObject* child : go->GetTransform()->getAllChildren())
-    {
-        Value childNode;
-        serialiseNodeInto(child, childNode, alloc);
-        childrenArray.PushBack(childNode, alloc);
-    }
-    out.AddMember("Children", childrenArray, alloc);
-}
 
 void PrefabSerializer::deserialiseTransform(const Value& node, GameObject* go)
 {
@@ -134,43 +61,6 @@ void PrefabSerializer::deserialiseComponents(const Value& node, GameObject* go)
     }
 }
 
-bool PrefabSerializer::writeDocument(Document& doc, const fs::path& path)
-{
-    std::error_code ec;
-    fs::create_directories(path.parent_path(), ec);
-    if (ec) return false;
-
-    FILE* file = fopen(path.string().c_str(), "wb");
-    if (!file) return false;
-
-    char buf[65536];
-    FileWriteStream os(file, buf, sizeof(buf));
-    PrettyWriter<FileWriteStream> writer(os);
-    writer.SetIndent(' ', 2);
-    doc.Accept(writer);
-    fclose(file);
-    return true;
-}
-
-bool PrefabSerializer::readDocument(const fs::path& path, Document& doc)
-{
-    FILE* file = fopen(path.string().c_str(), "rb");
-    if (!file) return false;
-
-    char buf[65536];
-    FileReadStream is(file, buf, sizeof(buf));
-    doc.ParseStream(is);
-    fclose(file);
-    return !doc.HasParseError();
-}
-
-bool PrefabSerializer::loadDocument(const fs::path& path, Document& doc)
-{
-    return readDocument(path, doc)
-        && doc.HasMember("GameObject")
-        && doc["GameObject"].IsObject();
-}
-
 void PrefabSerializer::buildDocumentHeader(Document& doc, const GameObject* go, const fs::path& savePath)
 {
     doc.SetObject();
@@ -182,10 +72,10 @@ void PrefabSerializer::buildDocumentHeader(Document& doc, const GameObject* go, 
     doc.AddMember("Name", Value(name.c_str(), alloc), alloc);
     doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
 
-    const PrefabInstanceInfo& info = go->GetPrefabInfo();
-    if (info.isInstance() && info.m_sourcePath != savePath)
+    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != savePath)
     {
-        doc.AddMember("VariantOf", Value(info.m_sourcePath.string().c_str(), alloc), alloc);
+        doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
     }
 }
 
@@ -196,8 +86,9 @@ std::string PrefabSerializer::buildPrefabJSON(const GameObject* go, const fs::pa
     Document doc;
     buildDocumentHeader(doc, go, savePath);
 
-    Value goNode;
-    serialiseNodeInto(go, goNode, doc.GetAllocator());
+    // Use GameObject::getJSON() which already serializes name, active, tag, layer,
+    // transform, prefab info, components, and children recursively.
+    Value goNode = const_cast<GameObject*>(go)->getJSON(doc);
     doc.AddMember("GameObject", goNode, doc.GetAllocator());
 
     StringBuffer sb;
@@ -230,14 +121,14 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
     if (node.HasMember("PrefabLink") && node["PrefabLink"].IsObject())
     {
         const Value& pl = node["PrefabLink"];
-        PrefabInstanceInfo& info = go->GetPrefabInfo();
-        if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+        auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        if (preComp)
         {
-            info.m_sourcePath = pl["SourcePath"].GetString();
-        }
-        if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
-        {
-            info.m_assetUID = pl["AssetUID"].GetUint64();
+            auto& data = preComp->getData();
+            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                data.m_sourcePath = pl["SourcePath"].GetString();
+            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                data.m_assetUID = pl["AssetUID"].GetUint64();
         }
     }
 
@@ -255,5 +146,43 @@ GameObject* PrefabSerializer::deserialiseNode(const Value& node, Scene* scene, G
         go->init();
     }
 
+    return go;
+}
+
+GameObject* PrefabSerializer::deserialiseNode(const Value& node, GameObject* parent) {
+    if (!node.IsObject()) return nullptr;
+    GameObject* go = new GameObject(GenerateUID(), GenerateUID());
+    if (!go) return nullptr;
+    go->SetName(node.HasMember("Name") ? node["Name"].GetString() : "Unnamed");
+    go->SetActive(node.HasMember("Active") ? node["Active"].GetBool() : true);
+    if (node.HasMember("Tag") && node["Tag"].IsString())
+        go->SetTag(StringToTag(node["Tag"].GetString()));
+    if (node.HasMember("Layer") && node["Layer"].IsString())
+        go->SetLayer(StringToLayer(node["Layer"].GetString()));
+    if (parent) {
+        go->GetTransform()->setRoot(parent->GetTransform());
+        parent->GetTransform()->addChild(go);
+    }
+    if (node.HasMember("PrefabLink") && node["PrefabLink"].IsObject()) {
+        const Value& pl = node["PrefabLink"];
+        auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        if (preComp)
+        {
+            auto& data = preComp->getData();
+            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                data.m_sourcePath = pl["SourcePath"].GetString();
+            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                data.m_assetUID = pl["AssetUID"].GetUint64();
+        }
+    }
+    deserialiseTransform(node, go);
+    deserialiseComponents(node, go);
+    if (node.HasMember("Children") && node["Children"].IsArray()) {
+        for (SizeType i = 0; i < node["Children"].Size(); ++i)
+            deserialiseNode(node["Children"][i], go);
+    }
+    if (!parent) {
+        go->init();
+    }
     return go;
 }
