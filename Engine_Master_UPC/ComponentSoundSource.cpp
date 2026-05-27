@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ComponentSoundSource.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleMusic.h"
@@ -212,11 +213,23 @@ void ComponentSoundSource::drawUi()
 
 rapidjson::Value ComponentSoundSource::getJSON(rapidjson::Document& domTree)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
+}
 
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", int(ComponentType::SOUND_SOURCE), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+void ComponentSoundSource::serialize(IArchive& archive)
+{
+	if (archive.mode() == ArchiveMode::Output)
+	{
+		uint64_t uid = m_uuid;
+		archive.serialize(uid, "UID");
+		uint32_t type = static_cast<uint32_t>(ComponentType::SOUND_SOURCE);
+		archive.serialize(type, "ComponentType");
+	}
 
-	return componentInfo;
+	bool active = isActive();
+	archive.serialize(active, "Active");
+	if (archive.mode() == ArchiveMode::Input)
+		setActive(active);
 }

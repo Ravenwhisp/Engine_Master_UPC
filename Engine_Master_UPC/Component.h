@@ -2,6 +2,8 @@
 #include "ComponentType.h"
 #include "UID.h" 
 #include "IDebugDrawable.h"
+#include "ISerializable.h"
+#include "IArchive.h"
 
 class Transform;
 class GameObject;
@@ -10,7 +12,7 @@ class SceneReferenceResolver;
 
 class IDebugDrawable;
 
-class Component: public IDebugDrawable {
+class Component: public IDebugDrawable, public ISerializable {
 public:
     friend class GameObject;
 
@@ -40,6 +42,8 @@ public:
     virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
     virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};
+
+    void serialize(IArchive& archive) override;
 
     IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 

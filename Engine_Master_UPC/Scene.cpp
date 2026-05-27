@@ -577,8 +577,8 @@ void Scene::removeLoadedBank(const std::string& bank)
 
 void Scene::serialize(IArchive& archive)
 {
-    archive.serialize(m_name);
-
+    // Scene is serialized as a complete JSON document matching SceneSerializer.
+    // The JSON is stored as a single string in the binary archive.
     if (archive.mode() == ArchiveMode::Output)
     {
         rapidjson::Document domTree;

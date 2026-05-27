@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "UIButton.h"
+#include "JsonArchive.h"
 
 #include "SceneReferenceResolver.h"
 #include "Script.h"
@@ -609,34 +610,9 @@ void UIButton::SerializeBindings(const std::vector<UIButton::ButtonEventBinding>
 
 rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
 {
-	rapidjson::Value json(rapidjson::kObjectType);
-
-	json.AddMember("UID", m_uuid, domTree.GetAllocator());
-	json.AddMember("ComponentType", int(ComponentType::UIBUTTON), domTree.GetAllocator());
-	json.AddMember("Active", isActive(), domTree.GetAllocator());
-	json.AddMember("TargetGraphicUID", (uint64_t)m_targetGraphicUid, domTree.GetAllocator());
-	json.AddMember("DefaultTextureAssetId", m_defaultTextureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-	json.AddMember("HoverTextureAssetId", m_hoverTextureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-	json.AddMember("PressedTextureAssetId", m_pressedTextureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-
-	json.AddMember("NavUpUID", (uint64_t)m_navUpUid, domTree.GetAllocator());
-	json.AddMember("NavDownUID", (uint64_t)m_navDownUid, domTree.GetAllocator());
-	json.AddMember("NavLeftUID", (uint64_t)m_navLeftUid, domTree.GetAllocator());
-	json.AddMember("NavRightUID", (uint64_t)m_navRightUid, domTree.GetAllocator());
-
-	rapidjson::Value hoverArray(rapidjson::kArrayType);
-	rapidjson::Value pressArray(rapidjson::kArrayType);
-	rapidjson::Value releaseArray(rapidjson::kArrayType);
-
-	SerializeBindings(m_bindingsOnHover, hoverArray, domTree);
-	SerializeBindings(m_bindingsOnPress, pressArray, domTree);
-	SerializeBindings(m_bindingsOnRelease, releaseArray, domTree);
-
-	json.AddMember("OnHover", hoverArray, domTree.GetAllocator());
-	json.AddMember("OnPress", pressArray, domTree.GetAllocator());
-	json.AddMember("OnRelease", releaseArray, domTree.GetAllocator());
-
-	return json;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings)
@@ -699,68 +675,102 @@ void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UI
 
 bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("TargetGraphicUID"))
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
+
+    m_targetGraphic = nullptr;
+    m_navUp = nullptr;
+    m_navDown = nullptr;
+    m_navLeft = nullptr;
+    m_navRight = nullptr;
+
+    return true;
+}
+
+void UIButton::serialize(IArchive& archive)
+{
+	if (archive.mode() == ArchiveMode::Output)
 	{
-		m_targetGraphicUid = (UID)componentInfo["TargetGraphicUID"].GetUint64();
+		uint64_t uid = m_uuid;
+		archive.serialize(uid, "UID");
+		uint32_t type = static_cast<uint32_t>(ComponentType::UIBUTTON);
+		archive.serialize(type, "ComponentType");
 	}
 
-	if (componentInfo.HasMember("DefaultTextureAssetId"))
+	bool active = isActive();
+	archive.serialize(active, "Active");
+	if (archive.mode() == ArchiveMode::Input)
+		setActive(active);
+
+    archive.serialize(m_targetGraphicUid, "TargetGraphicUID");
+
+	archive.beginObject("DefaultTextureAssetId");
+	m_defaultTextureAssetId.serialize(archive);
+	archive.endObject();
+
+	archive.beginObject("HoverTextureAssetId");
+	m_hoverTextureAssetId.serialize(archive);
+	archive.endObject();
+
+	archive.beginObject("PressedTextureAssetId");
+	m_pressedTextureAssetId.serialize(archive);
+	archive.endObject();
+
+	archive.serialize(m_navUpUid, "NavUpUID");
+	archive.serialize(m_navDownUid, "NavDownUID");
+	archive.serialize(m_navLeftUid, "NavLeftUID");
+	archive.serialize(m_navRightUid, "NavRightUID");
+
+	auto serializeBindingVector = [&archive](std::vector<UIButton::ButtonEventBinding>& bindings)
 	{
-		m_defaultTextureAssetId.deserializeJson(componentInfo["DefaultTextureAssetId"]);
-	}
+		uint32_t count = static_cast<uint32_t>(bindings.size());
+		archive.serialize(count, "BindingCount");
+		if (archive.mode() == ArchiveMode::Input)
+			bindings.resize(count);
+		for (auto& b : bindings)
+		{
+			archive.serialize(b.gameObjectUid, "GameObjectUID");
+			archive.serialize(b.componentUid, "ComponentUID");
+			archive.serialize(b.methodName, "Method");
 
-	if (componentInfo.HasMember("HoverTextureAssetId"))
-	{
-		m_hoverTextureAssetId.deserializeJson(componentInfo["HoverTextureAssetId"]);
-	}
+			uint8_t paramType = static_cast<uint8_t>(b.paramType);
+			archive.serialize(paramType, "ParamType");
+			if (archive.mode() == ArchiveMode::Input)
+				b.paramType = static_cast<ScriptMethodParamType>(paramType);
 
-	if (componentInfo.HasMember("PressedTextureAssetId"))
-	{
-		m_pressedTextureAssetId.deserializeJson(componentInfo["PressedTextureAssetId"]);
-	}
+			switch (b.paramType)
+			{
+			case ScriptMethodParamType::None:
+			case ScriptMethodParamType::Unsupported:
+				break;
+			case ScriptMethodParamType::Float:
+				archive.serialize(b.paramFloat, "ParamValue");
+				break;
+			case ScriptMethodParamType::Int:
+			{
+				uint32_t tmp = static_cast<uint32_t>(b.paramInt);
+				archive.serialize(tmp, "ParamValue");
+				if (archive.mode() == ArchiveMode::Input)
+					b.paramInt = static_cast<int>(tmp);
+				break;
+			}
+			case ScriptMethodParamType::Bool:
+				archive.serialize(b.paramBool, "ParamValue");
+				break;
+			case ScriptMethodParamType::Vec3:
+				archive.serialize(b.paramVec3, "ParamValue");
+				break;
+			case ScriptMethodParamType::String:
+				archive.serialize(b.paramString, "ParamValue");
+				break;
+			}
+		}
+	};
 
-	if (componentInfo.HasMember("NavUpUID"))
-		m_navUpUid = (UID)componentInfo["NavUpUID"].GetUint64();
-	else
-		m_navUpUid = 0;
-
-	if (componentInfo.HasMember("NavDownUID"))
-		m_navDownUid = (UID)componentInfo["NavDownUID"].GetUint64();
-	else
-		m_navDownUid = 0;
-
-	if (componentInfo.HasMember("NavLeftUID"))
-		m_navLeftUid = (UID)componentInfo["NavLeftUID"].GetUint64();
-	else
-		m_navLeftUid = 0;
-
-	if (componentInfo.HasMember("NavRightUID"))
-		m_navRightUid = (UID)componentInfo["NavRightUID"].GetUint64();
-	else
-		m_navRightUid = 0;
-
-	m_targetGraphic = nullptr;
-	m_navUp = nullptr;
-	m_navDown = nullptr;
-	m_navLeft = nullptr;
-	m_navRight = nullptr;
-
-	if (componentInfo.HasMember("OnHover"))
-	{
-		DeserializeBindings(componentInfo["OnHover"], m_bindingsOnHover);
-	}
-
-	if (componentInfo.HasMember("OnPress"))
-	{
-		DeserializeBindings(componentInfo["OnPress"], m_bindingsOnPress);
-	}
-
-	if (componentInfo.HasMember("OnRelease"))
-	{
-		DeserializeBindings(componentInfo["OnRelease"], m_bindingsOnRelease);
-	}
-
-	return true;
+	serializeBindingVector(m_bindingsOnHover);
+	serializeBindingVector(m_bindingsOnPress);
+	serializeBindingVector(m_bindingsOnRelease);
 }
 
 void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver)

@@ -49,8 +49,6 @@ public:
 		archive.serialize(nmType);
 		normalMap.m_type = static_cast<AssetType>(nmType);
 
-		archive.serialize(normalFactor);
-
 		archive.serialize(occlusionMap.m_uid);
 		archive.serialize(occlusionMap.m_libId);
 		uint32_t omType = static_cast<uint32_t>(occlusionMap.m_type);

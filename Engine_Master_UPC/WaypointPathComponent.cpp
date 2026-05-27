@@ -1,6 +1,8 @@
 #include "Globals.h"
 
 #include "WaypointPathComponent.h"
+#include "JsonArchive.h"
+
 #include "GameObject.h"
 #include "Transform.h"
 #include "Application.h"
@@ -85,46 +87,52 @@ void WaypointPathComponent::drawWaypoints()
 
 rapidjson::Value WaypointPathComponent::getJSON(rapidjson::Document& domTree)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned(ComponentType::WAYPOINT_PATH), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-	rapidjson::Value arr(rapidjson::kArrayType);
-
-	for (auto& p : m_waypoints)
-	{
-		rapidjson::Value v(rapidjson::kArrayType);
-
-		v.PushBack(p.x, domTree.GetAllocator());
-		v.PushBack(p.y, domTree.GetAllocator());
-		v.PushBack(p.z, domTree.GetAllocator());
-
-		arr.PushBack(v, domTree.GetAllocator());
-	}
-
-	componentInfo.AddMember("Waypoints", arr, domTree.GetAllocator());
-
-	return componentInfo;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 bool WaypointPathComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("Waypoints"))
-	{
-		const auto& arr = componentInfo["Waypoints"];
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
 
-		for (auto& v : arr.GetArray())
-		{
-			Vector3 p(
-				v[0].GetFloat(),
-				v[1].GetFloat(),
-				v[2].GetFloat());
+    if (componentInfo.HasMember("Waypoints"))
+    {
+        const auto& arr = componentInfo["Waypoints"];
+        for (auto& v : arr.GetArray())
+        {
+            Vector3 p(v[0].GetFloat(), v[1].GetFloat(), v[2].GetFloat());
+            addWaypoint(p);
+        }
+    }
 
-			addWaypoint(p);
-		}
-	}
+    return true;
+}
 
-	return true;
+void WaypointPathComponent::serialize(IArchive& archive)
+{
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        uint64_t uid = m_uuid;
+        archive.serialize(uid, "UID");
+        uint32_t type = static_cast<uint32_t>(ComponentType::WAYPOINT_PATH);
+        archive.serialize(type, "ComponentType");
+    }
+
+    bool active = isActive();
+    archive.serialize(active, "Active");
+    if (archive.mode() == ArchiveMode::Input)
+        setActive(active);
+
+    uint32_t count = static_cast<uint32_t>(m_waypoints.size());
+    archive.serialize(count, "WaypointCount");
+    if (archive.mode() == ArchiveMode::Input)
+        m_waypoints.resize(count);
+
+    for (auto& wp : m_waypoints)
+    {
+        archive.serialize(wp, "Waypoint");
+    }
 }

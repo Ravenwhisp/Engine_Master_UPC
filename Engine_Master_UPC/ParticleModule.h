@@ -1,5 +1,8 @@
 #pragma once
 
+#include "IArchive.h"
+#include "JsonArchive.h"
+
 class EmitterInstance;
 class Transform;
 
@@ -31,8 +34,18 @@ public:
 	// Interface and saving/loading functions
 	virtual bool drawUi() { return false; }
 	virtual void debugDraw(Transform* parent)  {}
-	virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
-	virtual bool deserializeJSON(const rapidjson::Value& moduleInfo) { return true; }
+	virtual void serialize(IArchive& archive);
+	virtual rapidjson::Value getJSON(rapidjson::Document& domTree) {
+        JsonArchive archive(ArchiveMode::Output);
+        serialize(archive);
+        return archive.extractValue(domTree.GetAllocator());
+    };
+	virtual bool deserializeJSON(const rapidjson::Value& moduleInfo) {
+        JsonArchive archive(ArchiveMode::Input);
+        archive.setValue(moduleInfo);
+        serialize(archive);
+        return true;
+    }
 
 private:
 

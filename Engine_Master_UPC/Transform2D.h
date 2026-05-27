@@ -57,6 +57,7 @@ public:
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentValue) override;
+    void serialize(IArchive& archive) override;
 
 public:
     Float2 position{ 0.0f, 0.0f };

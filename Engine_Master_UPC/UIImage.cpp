@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "UIImage.h"
+#include "JsonArchive.h"
 #include <imgui.h>
 
 #include "Application.h"
@@ -127,85 +128,71 @@ bool UIImage::consumeLoadRequest()
 
 rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::UIIMAGE), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("TextureAssetId", m_textureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
-    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
-    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
-
-    componentInfo.AddMember("SheetColumns", m_sheetColumns, domTree.GetAllocator());
-    componentInfo.AddMember("SheetRows", m_sheetRows, domTree.GetAllocator());
-    {
-        rapidjson::Value offset(rapidjson::kArrayType);
-        offset.PushBack(m_sheetOffset.x, domTree.GetAllocator());
-        offset.PushBack(m_sheetOffset.y, domTree.GetAllocator());
-        componentInfo.AddMember("SheetOffset", offset, domTree.GetAllocator());
-    }
-
-    componentInfo.AddMember("StretchDrawMode", static_cast<int>(m_stretchDrawMode), domTree.GetAllocator());
-
-    return componentInfo;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("TextureAssetId"))
-    {
-        m_textureAssetId.deserializeJson(componentInfo["TextureAssetId"]);
-
-        m_texture = nullptr;
-        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
-
-        if (m_textureAsset)
-        {
-            m_loadRequested = true;
-        }
-    }
-
-    if (componentInfo.HasMember("FillAmount"))
-        m_fillAmount = componentInfo["FillAmount"].GetFloat();
-
-    if (componentInfo.HasMember("FillMethod"))
-        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
-
-    if (componentInfo.HasMember("FillOrigin"))
-    {
-        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
-    }
-
-    if (componentInfo.HasMember("SheetColumns"))
-        m_sheetColumns = std::max(1, componentInfo["SheetColumns"].GetInt());
-    else
-        m_sheetColumns = 1;
-
-    if (componentInfo.HasMember("SheetRows"))
-        m_sheetRows = std::max(1, componentInfo["SheetRows"].GetInt());
-    else
-        m_sheetRows = 1;
-
-    if (componentInfo.HasMember("SheetOffset"))
-    {
-        m_sheetOffset.x = componentInfo["SheetOffset"][0].GetFloat();
-        m_sheetOffset.y = componentInfo["SheetOffset"][1].GetFloat();
-    }
-    else
-    {
-        m_sheetOffset = { 0.0f, 0.0f };
-    }
-
-    if (componentInfo.HasMember("StretchDrawMode"))
-    {
-        m_stretchDrawMode = static_cast<StretchDrawMode>(componentInfo["StretchDrawMode"].GetInt());
-    }
-    else
-    {
-        m_stretchDrawMode = StretchDrawMode::Stretch;
-    }
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
 
     return true;
+}
+
+void UIImage::serialize(IArchive& archive)
+{
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        uint64_t uid = m_uuid;
+        archive.serialize(uid, "UID");
+        uint32_t type = static_cast<uint32_t>(ComponentType::UIIMAGE);
+        archive.serialize(type, "ComponentType");
+    }
+
+    bool active = isActive();
+    archive.serialize(active, "Active");
+    if (archive.mode() == ArchiveMode::Input)
+        setActive(active);
+
+    archive.beginObject("TextureAssetId");
+    m_textureAssetId.serialize(archive);
+    archive.endObject();
+
+    archive.serialize(m_fillAmount, "FillAmount");
+
+    uint32_t fillMethod = static_cast<uint32_t>(m_fillMethod);
+    archive.serialize(fillMethod, "FillMethod");
+    if (archive.mode() == ArchiveMode::Input)
+        m_fillMethod = static_cast<FillMethod>(fillMethod);
+
+    uint32_t fillOrigin = static_cast<uint32_t>(m_fillOrigin);
+    archive.serialize(fillOrigin, "FillOrigin");
+    if (archive.mode() == ArchiveMode::Input)
+        m_fillOrigin = static_cast<FillOrigin>(fillOrigin);
+
+    uint32_t sheetColumns = static_cast<uint32_t>(m_sheetColumns);
+    archive.serialize(sheetColumns, "SheetColumns");
+    if (archive.mode() == ArchiveMode::Input)
+        m_sheetColumns = static_cast<int>(sheetColumns);
+
+    uint32_t sheetRows = static_cast<uint32_t>(m_sheetRows);
+    archive.serialize(sheetRows, "SheetRows");
+    if (archive.mode() == ArchiveMode::Input)
+        m_sheetRows = static_cast<int>(sheetRows);
+
+    DirectX::SimpleMath::Vector3 sheetOffset(m_sheetOffset.x, m_sheetOffset.y, 0.0f);
+    archive.serialize(sheetOffset, "SheetOffset");
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_sheetOffset.x = sheetOffset.x;
+        m_sheetOffset.y = sheetOffset.y;
+    }
+
+    uint32_t stretchDrawMode = static_cast<uint32_t>(m_stretchDrawMode);
+    archive.serialize(stretchDrawMode, "StretchDrawMode");
+    if (archive.mode() == ArchiveMode::Input)
+        m_stretchDrawMode = static_cast<StretchDrawMode>(stretchDrawMode);
 }

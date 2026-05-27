@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ParticleSystemComponent.h"
+#include "JsonArchive.h"
 
 #include <imgui.h>
 
@@ -151,53 +152,77 @@ void ParticleSystemComponent::update()
 
 rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::PARTICLE_SYSTEM), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    // Should go on the Emitter class? (or at least have an array of texture assets, one per emitter, in the future)
-    componentInfo.AddMember("TextureAssetId", m_textureAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-
-
-    rapidjson::Value emitterData(rapidjson::kArrayType);
-    for (auto& emitter : m_particleSystem->getEmitters())
-    {
-        emitterData.PushBack(emitter.getJSON(domTree), domTree.GetAllocator());
-    }
-
-    componentInfo.AddMember("ParticleEmitters", emitterData, domTree.GetAllocator());
-
-    return componentInfo;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("TextureAssetId"))
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
+
+    if (componentInfo.HasMember("ParticleEmitters"))
     {
-        m_textureAsset.deserializeJson(componentInfo["TextureAssetId"]);
-    }
+        const rapidjson::Value& emittersInfo = componentInfo["ParticleEmitters"];
 
-    // Emitters and instances set up //
-    if (!componentInfo.HasMember("ParticleEmitters")) return false;
+        m_particleSystem.reset(new ParticleSystem(emittersInfo.Size()));
 
-    const rapidjson::Value& emittersInfo = componentInfo["ParticleEmitters"];
+        auto& emitters = m_particleSystem->getEmitters();
+        m_particlesState.clear();
+        m_particlesState.reserve(emitters.size());
 
-    m_particleSystem.reset(new ParticleSystem(emittersInfo.Size()));
-
-    auto& emitters = m_particleSystem->getEmitters();
-    m_particlesState.clear();
-    m_particlesState.reserve(emitters.size());
-
-    for (unsigned int i = 0; i < emitters.size(); ++i)
-    {
-        emitters[i].deserializeJSON(emittersInfo[i]);
-
-        m_particlesState.push_back(EmitterInstance(&emitters[i], this));
+        for (unsigned int i = 0; i < emitters.size(); ++i)
+        {
+            emitters[i].deserializeJSON(emittersInfo[i]);
+            m_particlesState.push_back(EmitterInstance(&emitters[i], this));
+        }
     }
 
     return true;
+}
+
+void ParticleSystemComponent::serialize(IArchive& archive)
+{
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        uint64_t uid = m_uuid;
+        archive.serialize(uid, "UID");
+        uint32_t type = static_cast<uint32_t>(ComponentType::PARTICLE_SYSTEM);
+        archive.serialize(type, "ComponentType");
+    }
+
+    bool active = isActive();
+    archive.serialize(active, "Active");
+    if (archive.mode() == ArchiveMode::Input)
+        setActive(active);
+
+    archive.beginObject("TextureAssetId");
+    m_textureAsset.serialize(archive);
+    archive.endObject();
+
+    uint32_t emitterCount = m_particleSystem ? static_cast<uint32_t>(m_particleSystem->getEmitters().size()) : 0;
+    archive.serialize(emitterCount, "EmitterCount");
+    if (archive.mode() == ArchiveMode::Input && emitterCount > 0)
+    {
+        m_particleSystem.reset(new ParticleSystem(emitterCount));
+        m_particlesState.clear();
+        m_particlesState.reserve(emitterCount);
+    }
+
+    for (uint32_t i = 0; i < emitterCount; ++i)
+    {
+        std::string key = "Emitter_" + std::to_string(i);
+        archive.beginObject(key.c_str());
+        m_particleSystem->getEmitters()[i].serialize(archive);
+        archive.endObject();
+
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            m_particlesState.push_back(EmitterInstance(&m_particleSystem->getEmitters()[i], this));
+        }
+    }
 }
 
 void ParticleSystemComponent::debugDraw()

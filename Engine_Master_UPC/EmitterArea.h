@@ -27,8 +27,7 @@ public:
 
 	bool drawUi() override;
 	void debugDraw(Transform* parent) override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 

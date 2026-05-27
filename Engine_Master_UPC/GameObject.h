@@ -5,6 +5,8 @@
 #include "Layer.h"
 #include "ComponentType.h"
 #include "PrefabInstance.h"
+#include "ISerializable.h"
+#include "IArchive.h"
 
 #include <vector>
 #include <memory>
@@ -17,7 +19,7 @@ class ModelComponent;
 class Transform;
 class SceneSnapshot;
 
-class GameObject 
+class GameObject : public ISerializable
 {
 public:
 	GameObject(UID newUuid);
@@ -69,6 +71,7 @@ public:
 #pragma region Persistence
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
+	void serialize(IArchive& archive) override;
 #pragma endregion
 
 #pragma region GameLoop

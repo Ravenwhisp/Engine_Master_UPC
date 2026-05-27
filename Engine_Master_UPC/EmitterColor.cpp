@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "EmitterColor.h"
+#include "JsonArchive.h"
 
 #include "EmitterInstance.h"
 #include "ParticleEmitter.h"
@@ -78,50 +79,27 @@ bool EmitterColor::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
+void EmitterColor::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+    ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::COLOR), domTree.GetAllocator());
+    DirectX::SimpleMath::Color startColor(m_startColor.x, m_startColor.y, m_startColor.z, m_startColor.w);
+    archive.serialize(startColor, "StartColor");
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_startColor.x = startColor.x;
+        m_startColor.y = startColor.y;
+        m_startColor.z = startColor.z;
+        m_startColor.w = startColor.w;
+    }
 
-	{
-		rapidjson::Value colorData(rapidjson::kArrayType);
-
-		colorData.PushBack(m_startColor.x, domTree.GetAllocator());
-		colorData.PushBack(m_startColor.y, domTree.GetAllocator());
-		colorData.PushBack(m_startColor.z, domTree.GetAllocator());
-		colorData.PushBack(m_startColor.w, domTree.GetAllocator());
-
-		moduleInfo.AddMember("StartColor", colorData, domTree.GetAllocator());
-	}
-
-	{
-		rapidjson::Value colorData(rapidjson::kArrayType);
-
-		colorData.PushBack(m_endColor.x, domTree.GetAllocator());
-		colorData.PushBack(m_endColor.y, domTree.GetAllocator());
-		colorData.PushBack(m_endColor.z, domTree.GetAllocator());
-		colorData.PushBack(m_endColor.w, domTree.GetAllocator());
-
-		moduleInfo.AddMember("EndColor", colorData, domTree.GetAllocator());
-	}
-
-	return moduleInfo;
-}
-
-bool EmitterColor::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartColor"))
-	{
-		const auto& color = moduleInfo["StartColor"].GetArray();
-		m_startColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
-	}
-
-	if (moduleInfo.HasMember("EndColor"))
-	{
-		const auto& color = moduleInfo["EndColor"].GetArray();
-		m_endColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
-	}
-
-	return true;
+    DirectX::SimpleMath::Color endColor(m_endColor.x, m_endColor.y, m_endColor.z, m_endColor.w);
+    archive.serialize(endColor, "EndColor");
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_endColor.x = endColor.x;
+        m_endColor.y = endColor.y;
+        m_endColor.z = endColor.z;
+        m_endColor.w = endColor.w;
+    }
 }

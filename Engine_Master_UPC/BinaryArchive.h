@@ -21,6 +21,11 @@ public:
     void serialize(std::string& val, const char* name = "") override;
     void serializeRaw(void* data, size_t size, const char* name = "") override;
 
+    void serialize(DirectX::SimpleMath::Vector3& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Quaternion& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Color& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") override;
+
     const uint8_t* data() const;
     size_t size() const;
 

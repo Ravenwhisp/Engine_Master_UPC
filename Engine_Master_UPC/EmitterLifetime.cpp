@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "EmitterLifetime.h"
-
+#include "JsonArchive.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 
@@ -55,22 +55,8 @@ bool EmitterLifetime::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
+void EmitterLifetime::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
-
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::LIFETIME), domTree.GetAllocator());
-
-	moduleInfo.AddMember("StartLifeTime", m_startLifeTime, domTree.GetAllocator());
-
-	return moduleInfo;
-}
-
-bool EmitterLifetime::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartLifeTime")) {
-		m_startLifeTime = moduleInfo["StartLifeTime"].GetFloat();
-	}
-
-	return true;
+    ParticleModule::serialize(archive);
+    archive.serialize(m_startLifeTime, "StartLifeTime");
 }

@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ParticleEmitter.h"
+#include "JsonArchive.h"
 
 #include "EmitterSpawn.h"
 #include "EmitterLifetime.h"
@@ -57,72 +58,54 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 }
 
 
-rapidjson::Value ParticleEmitter::getJSON(rapidjson::Document& domTree) {
-
-	rapidjson::Value emitterInfo(rapidjson::kObjectType);
-
-	// --- We will probably want to have the textureAssetID here in the future; for now it will be like this
-
-	rapidjson::Value moduleData(rapidjson::kArrayType);
-	for (auto& module : m_particleModules)
-	{
-		moduleData.PushBack(module->getJSON(domTree), domTree.GetAllocator());
-	}
-
-	emitterInfo.AddMember("Modules", moduleData, domTree.GetAllocator());
-
-	return emitterInfo;
+rapidjson::Value ParticleEmitter::getJSON(rapidjson::Document& domTree)
+{
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
-bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
+void ParticleEmitter::serialize(IArchive& archive)
+{
+    uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
+    archive.serialize(moduleCount, "ModuleCount");
 
-	if (!emitterInfo.HasMember("Modules")) return false;
-
-	const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
-
-	for (auto& moduleData : modulesInfo.GetArray()) 
-	{
-		if (!moduleData.HasMember("ModuleType")) continue;
-
-		unsigned int typeUInt = moduleData["ModuleType"].GetUint();
-		ParticleModuleType moduleType = static_cast<ParticleModuleType>(typeUInt);
-
-		switch (moduleType) { // WE SHOULD SERIOUSLY CONSIDER HAVING THE MODULES SEPARATED...
-
-		case ParticleModuleType::BASE:
-
-			// Not implemented yet
-			break;
-
-		case ParticleModuleType::AREA:
-
-			m_particleModules[2]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::SPAWN:
-
-			m_particleModules[0]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::COLOR:
-
-			m_particleModules[3]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::LIFETIME:
-
-			m_particleModules[1]->deserializeJSON(moduleData);
-			break;
-		
-		case ParticleModuleType::VELOCITY:
-
-			m_particleModules[4]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::SIZE:
-
-			m_particleModules[5]->deserializeJSON(moduleData);
-		}
-	}
-	return true;
+    for (uint32_t i = 0; i < moduleCount; ++i)
+    {
+        std::string key = "Module_" + std::to_string(i);
+        archive.beginObject(key.c_str());
+        m_particleModules[i]->serialize(archive);
+        archive.endObject();
+    }
 }
+
+bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo)
+{
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(emitterInfo);
+    serialize(archive);
+
+    if (emitterInfo.HasMember("Modules"))
+    {
+        const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
+        for (auto& moduleData : modulesInfo.GetArray())
+        {
+            if (!moduleData.HasMember("ModuleType")) continue;
+            unsigned int typeUInt = moduleData["ModuleType"].GetUint();
+            ParticleModuleType moduleType = static_cast<ParticleModuleType>(typeUInt);
+
+            switch (moduleType) {
+            case ParticleModuleType::AREA:       m_particleModules[2]->deserializeJSON(moduleData); break;
+            case ParticleModuleType::SPAWN:      m_particleModules[0]->deserializeJSON(moduleData); break;
+            case ParticleModuleType::COLOR:      m_particleModules[3]->deserializeJSON(moduleData); break;
+            case ParticleModuleType::LIFETIME:   m_particleModules[1]->deserializeJSON(moduleData); break;
+            case ParticleModuleType::VELOCITY:   m_particleModules[4]->deserializeJSON(moduleData); break;
+            case ParticleModuleType::SIZE:       m_particleModules[5]->deserializeJSON(moduleData); break;
+            default: break;
+            }
+        }
+    }
+
+    return true;
+}
+

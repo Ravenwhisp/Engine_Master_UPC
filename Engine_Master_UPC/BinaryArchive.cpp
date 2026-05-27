@@ -81,6 +81,26 @@ void BinaryArchive::serializeRaw(void* data, size_t size, const char* /*name*/)
         m_reader.bytes(data, size);
 }
 
+void BinaryArchive::serialize(DirectX::SimpleMath::Vector3& val, const char* /*name*/)
+{
+    serializeRaw(&val, sizeof(val));
+}
+
+void BinaryArchive::serialize(DirectX::SimpleMath::Quaternion& val, const char* /*name*/)
+{
+    serializeRaw(&val, sizeof(val));
+}
+
+void BinaryArchive::serialize(DirectX::SimpleMath::Color& val, const char* /*name*/)
+{
+    serializeRaw(&val, sizeof(val));
+}
+
+void BinaryArchive::serialize(DirectX::SimpleMath::Matrix& val, const char* /*name*/)
+{
+    serializeRaw(&val, sizeof(val));
+}
+
 const uint8_t* BinaryArchive::data() const
 {
     return m_outputBuffer.data();

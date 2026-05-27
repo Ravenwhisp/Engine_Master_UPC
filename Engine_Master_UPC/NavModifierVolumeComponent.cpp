@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "NavModifierVolumeComponent.h"
+#include "JsonArchive.h"
 #include "GameObject.h"
 #include "Transform.h"
 
@@ -45,63 +46,52 @@ void NavModifierVolumeComponent::onTransformChange()
 
 rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTree)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVMODIFIER_VOLUME), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-	rapidjson::Value halfExtentsObj(rapidjson::kObjectType);
-	halfExtentsObj.AddMember("x", m_halfExtents.x, domTree.GetAllocator());
-	halfExtentsObj.AddMember("y", m_halfExtents.y, domTree.GetAllocator());
-	halfExtentsObj.AddMember("z", m_halfExtents.z, domTree.GetAllocator());
-
-	componentInfo.AddMember("HalfExtents", halfExtentsObj, domTree.GetAllocator());
-	componentInfo.AddMember("AreaType", unsigned int(m_areaType), domTree.GetAllocator());
-	componentInfo.AddMember("Enabled", m_enabled, domTree.GetAllocator());
-	componentInfo.AddMember("Priority", m_priority, domTree.GetAllocator());
-
-	return componentInfo;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 bool NavModifierVolumeComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-	if (componentInfo.HasMember("HalfExtents") && componentInfo["HalfExtents"].IsObject())
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
+
+    return true;
+}
+
+void NavModifierVolumeComponent::serialize(IArchive& archive)
+{
+	if (archive.mode() == ArchiveMode::Output)
 	{
-		const auto& halfExtents = componentInfo["HalfExtents"];
-
-		if (halfExtents.HasMember("x"))
-		{
-			m_halfExtents.x = halfExtents["x"].GetFloat();
-		}
-
-		if (halfExtents.HasMember("y"))
-		{
-			m_halfExtents.y = halfExtents["y"].GetFloat();
-		}
-
-		if (halfExtents.HasMember("z"))
-		{
-			m_halfExtents.z = halfExtents["z"].GetFloat();
-		}
+		uint64_t uid = m_uuid;
+		archive.serialize(uid, "UID");
+		uint32_t type = static_cast<uint32_t>(ComponentType::NAVMODIFIER_VOLUME);
+		archive.serialize(type, "ComponentType");
 	}
 
-	if (componentInfo.HasMember("AreaType"))
-	{
-		m_areaType = static_cast<NavAreaType>(componentInfo["AreaType"].GetUint());
-	}
+	bool active = isActive();
+	archive.serialize(active, "Active");
+	if (archive.mode() == ArchiveMode::Input)
+		setActive(active);
 
-	if (componentInfo.HasMember("Enabled"))
-	{
-		m_enabled = componentInfo["Enabled"].GetBool();
-	}
+	archive.beginObject("HalfExtents");
+	archive.serialize(m_halfExtents.x, "x");
+	archive.serialize(m_halfExtents.y, "y");
+	archive.serialize(m_halfExtents.z, "z");
+	archive.endObject();
 
-	if (componentInfo.HasMember("Priority"))
-	{
-		m_priority = componentInfo["Priority"].GetInt();
-	}
+	uint32_t areaType = static_cast<uint32_t>(m_areaType);
+	archive.serialize(areaType, "AreaType");
+	if (archive.mode() == ArchiveMode::Input)
+		m_areaType = static_cast<NavAreaType>(areaType);
 
-	return true;
+	archive.serialize(m_enabled, "Enabled");
+
+	uint32_t priority = static_cast<uint32_t>(m_priority);
+	archive.serialize(priority, "Priority");
+	if (archive.mode() == ArchiveMode::Input)
+		m_priority = static_cast<int>(priority);
 }
 
 void NavModifierVolumeComponent::debugDraw()

@@ -28,6 +28,11 @@ public:
     void serialize(std::string& val, const char* name = "") override;
     void serializeRaw(void* data, size_t size, const char* name = "") override;
 
+    void serialize(DirectX::SimpleMath::Vector3& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Quaternion& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Color& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") override;
+
     // File I/O
     bool loadFile(const std::filesystem::path& path);
     bool saveFile(const std::filesystem::path& path) const;
@@ -38,6 +43,10 @@ public:
     void beginArray(const char* name);
     void endArray();
     size_t arraySize() const;
+
+    // Extract/copy the built document value for use in rapidjson context
+    rapidjson::Value extractValue(rapidjson::Document::AllocatorType& allocator) const;
+    void setValue(const rapidjson::Value& val);
 
     // Direct key access for reading
     bool hasKey(const char* name) const;

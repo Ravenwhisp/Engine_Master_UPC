@@ -56,6 +56,7 @@ public:
 
 #pragma region Filesystem
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override; // only the basics! (no children nor parent)
+	void serialize(IArchive& archive) override;
 #pragma endregion
 
 private:

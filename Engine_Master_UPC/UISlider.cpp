@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "UISlider.h"
+#include "JsonArchive.h"
 
 #include <imgui.h>
 #include "UIImage.h"
@@ -165,43 +166,44 @@ void UISlider::drawUi()
 
 rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::UISLIDER), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
-    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
-    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
-
-    return componentInfo;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("FillAmount"))
-        m_fillAmount = componentInfo["FillAmount"].GetFloat();
-
-    if (componentInfo.HasMember("FillMethod"))
-        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
-
-    if (componentInfo.HasMember("FillOrigin"))
-    {
-        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
-    }
-    else if (componentInfo.HasMember("Clockwise"))
-    {
-        const auto& clockwiseValue = componentInfo["Clockwise"];
-        if (clockwiseValue.IsBool())
-        {
-            m_fillOrigin = clockwiseValue.GetBool() ? FillOrigin::Radial360Clockwise : FillOrigin::Radial360CounterClockwise;
-        }
-        else if (clockwiseValue.IsInt())
-        {
-            m_fillOrigin = static_cast<FillOrigin>(clockwiseValue.GetInt());
-        }
-    }
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
 
     return true;
+}
+
+void UISlider::serialize(IArchive& archive)
+{
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        uint64_t uid = m_uuid;
+        archive.serialize(uid, "UID");
+        uint32_t type = static_cast<uint32_t>(ComponentType::UISLIDER);
+        archive.serialize(type, "ComponentType");
+    }
+
+    bool active = isActive();
+    archive.serialize(active, "Active");
+    if (archive.mode() == ArchiveMode::Input)
+        setActive(active);
+
+    archive.serialize(m_fillAmount, "FillAmount");
+
+    uint32_t fillMethod = static_cast<uint32_t>(m_fillMethod);
+    archive.serialize(fillMethod, "FillMethod");
+    if (archive.mode() == ArchiveMode::Input)
+        m_fillMethod = static_cast<FillMethod>(fillMethod);
+
+    uint32_t fillOrigin = static_cast<uint32_t>(m_fillOrigin);
+    archive.serialize(fillOrigin, "FillOrigin");
+    if (archive.mode() == ArchiveMode::Input)
+        m_fillOrigin = static_cast<FillOrigin>(fillOrigin);
 }

@@ -47,6 +47,7 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+	void serialize(IArchive& archive) override;
 
 	int getTriangles() const { return m_triangles; }
 

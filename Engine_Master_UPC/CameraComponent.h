@@ -40,6 +40,7 @@ public:
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
+	void serialize(IArchive& archive) override;
 
 private:
 	float m_horizontalFov = 90.0f;

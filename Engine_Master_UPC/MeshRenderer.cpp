@@ -1,8 +1,10 @@
 #include "Globals.h"
 #include "MeshRenderer.h"
+#include "JsonArchive.h"
 
 #include "Transform.h"
 #include "GameObject.h"
+#include <string>
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -178,80 +180,68 @@ void MeshRenderer::update()
 
 rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("MeshAssetId",m_meshAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("SkinAssetId",m_skinAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-
-    {
-        rapidjson::Value materialsData(rapidjson::kArrayType);
-
-        for (const auto& materials : m_materialAssets)
-        {
-            materialsData.PushBack(materials.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-        }
-
-        componentInfo.AddMember("MaterialAssetId", materialsData, domTree.GetAllocator());
-    }
-
-    return componentInfo;
+    JsonArchive archive(ArchiveMode::Output);
+    serialize(archive);
+    return archive.extractValue(domTree.GetAllocator());
 }
 
 bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (componentInfo.HasMember("MeshAssetId"))
-    {
-        AssetReference meshId;
-        if (!meshId.deserializeJson(componentInfo["MeshAssetId"]))
-		{
-			DEBUG_WARN("[MeshRenderer] Failed to deserialize MeshAssetId.");
-			return false;
-		}
-
-        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
-        m_meshAsset = meshId;
-
-        if (meshAsset)
-        {
-            addMesh(*meshAsset);
-        }
-    }
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(componentInfo);
+    serialize(archive);
 
     if (componentInfo.HasMember("MaterialAssetId"))
     {
         const auto& arr = componentInfo["MaterialAssetId"];
-
         for (auto& arrayStrings : arr.GetArray())
         {
             AssetReference materialId;
-            if (!materialId.deserializeJson(arrayStrings))
-			{
-				DEBUG_WARN("[MeshRenderer] Failed to deserialize a MaterialAssetId.");
-				continue;
-			}
-
+            if (!materialId.deserializeJson(arrayStrings)) continue;
             m_materialAssets.push_back(materialId);
-
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
-            if (materialAsset)
-            {
-                addMaterial(*materialAsset);
-            }
+            if (materialAsset) addMaterial(*materialAsset);
         }
     }
 
-    if (componentInfo.HasMember("SkinAssetId"))
-    {
-        m_skinAsset.deserializeJson(componentInfo["SkinAssetId"]);
+    return true;
+}
 
-        ensureSkin().setSkinReference(m_skinAsset);
+void MeshRenderer::serialize(IArchive& archive)
+{
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        uint64_t uid = m_uuid;
+        archive.serialize(uid, "UID");
+        uint32_t type = static_cast<uint32_t>(ComponentType::MODEL);
+        archive.serialize(type, "ComponentType");
     }
 
-    return true;
+    bool active = isActive();
+    archive.serialize(active, "Active");
+    if (archive.mode() == ArchiveMode::Input)
+        setActive(active);
+
+    archive.beginObject("MeshAssetId");
+    m_meshAsset.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("SkinAssetId");
+    m_skinAsset.serialize(archive);
+    archive.endObject();
+
+    uint32_t materialCount = static_cast<uint32_t>(m_materialAssets.size());
+    archive.serialize(materialCount, "MaterialCount");
+    if (archive.mode() == ArchiveMode::Input)
+        m_materialAssets.resize(materialCount);
+
+    for (uint32_t i = 0; i < materialCount; ++i)
+    {
+        std::string key = "Material_" + std::to_string(i);
+        archive.beginObject(key.c_str());
+        m_materialAssets[i].serialize(archive);
+        archive.endObject();
+    }
 }
 
 void MeshRenderer::setMeshReference(AssetReference& meshRef)

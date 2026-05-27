@@ -82,6 +82,7 @@ public:
 	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	void DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings);
 	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+	void serialize(IArchive& archive) override;
 	void ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver);
 	void fixReferences(const SceneReferenceResolver& resolver) override;
 #pragma endregion

@@ -1,6 +1,9 @@
 #include "Globals.h"
 #include "GameObject.h"
 
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleScene.h"
@@ -867,6 +870,34 @@ bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_
     }
 
     return true;
+}
+
+void GameObject::serialize(IArchive& archive)
+{
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        rapidjson::Document doc;
+        doc.SetObject();
+        rapidjson::Value json = getJSON(doc);
+        doc.Swap(json);
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        doc.Accept(writer);
+        std::string jsonStr = buffer.GetString();
+        archive.serialize(jsonStr);
+    }
+    else
+    {
+        std::string jsonStr;
+        archive.serialize(jsonStr);
+        rapidjson::Document doc;
+        doc.Parse(jsonStr.c_str());
+        if (!doc.HasParseError())
+        {
+            uint64_t parentUid = 0;
+            deserializeJSON(doc, parentUid);
+        }
+    }
 }
 
 #pragma endregion

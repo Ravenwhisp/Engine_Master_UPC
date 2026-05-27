@@ -190,6 +190,129 @@ void JsonArchive::serializeRaw(void* data, size_t size, const char* /*name*/)
     DEBUG_ERROR("[JsonArchive] serializeRaw not supported for JSON.");
 }
 
+void JsonArchive::serialize(DirectX::SimpleMath::Vector3& val, const char* name)
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(val.x, m_doc.GetAllocator());
+        arr.PushBack(val.y, m_doc.GetAllocator());
+        arr.PushBack(val.z, m_doc.GetAllocator());
+        rapidjson::Value key(name, m_doc.GetAllocator());
+        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+    }
+    else
+    {
+        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
+        const auto& v = (*m_currentInput)[name];
+        if (v.IsArray() && v.Size() >= 3)
+        {
+            val.x = v[0].GetFloat();
+            val.y = v[1].GetFloat();
+            val.z = v[2].GetFloat();
+        }
+        else if (v.IsArray() && v.Size() >= 2)
+        {
+            val.x = v[0].GetFloat();
+            val.y = v[1].GetFloat();
+            val.z = 0.0f;
+        }
+    }
+}
+
+void JsonArchive::serialize(DirectX::SimpleMath::Quaternion& val, const char* name)
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(val.x, m_doc.GetAllocator());
+        arr.PushBack(val.y, m_doc.GetAllocator());
+        arr.PushBack(val.z, m_doc.GetAllocator());
+        arr.PushBack(val.w, m_doc.GetAllocator());
+        rapidjson::Value key(name, m_doc.GetAllocator());
+        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+    }
+    else
+    {
+        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
+        const auto& v = (*m_currentInput)[name];
+        if (v.IsArray() && v.Size() >= 4)
+        {
+            val.x = v[0].GetFloat();
+            val.y = v[1].GetFloat();
+            val.z = v[2].GetFloat();
+            val.w = v[3].GetFloat();
+        }
+    }
+}
+
+void JsonArchive::serialize(DirectX::SimpleMath::Color& val, const char* name)
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(val.x, m_doc.GetAllocator());
+        arr.PushBack(val.y, m_doc.GetAllocator());
+        arr.PushBack(val.z, m_doc.GetAllocator());
+        arr.PushBack(val.w, m_doc.GetAllocator());
+        rapidjson::Value key(name, m_doc.GetAllocator());
+        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+    }
+    else
+    {
+        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
+        const auto& v = (*m_currentInput)[name];
+        if (v.IsArray() && v.Size() >= 4)
+        {
+            val.x = v[0].GetFloat();
+            val.y = v[1].GetFloat();
+            val.z = v[2].GetFloat();
+            val.w = v[3].GetFloat();
+        }
+    }
+}
+
+void JsonArchive::serialize(DirectX::SimpleMath::Matrix& val, const char* name)
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        rapidjson::Value arr(rapidjson::kArrayType);
+        const float* m = &val._11;
+        for (int i = 0; i < 16; ++i)
+            arr.PushBack(m[i], m_doc.GetAllocator());
+        rapidjson::Value key(name, m_doc.GetAllocator());
+        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+    }
+    else
+    {
+        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
+        const auto& v = (*m_currentInput)[name];
+        if (v.IsArray() && v.Size() >= 16)
+        {
+            float* m = &val._11;
+            for (int i = 0; i < 16; ++i)
+                m[i] = v[i].GetFloat();
+        }
+    }
+}
+
+rapidjson::Value JsonArchive::extractValue(rapidjson::Document::AllocatorType& allocator) const
+{
+    rapidjson::Value val;
+    val.CopyFrom(m_doc, allocator);
+    return val;
+}
+
+void JsonArchive::setValue(const rapidjson::Value& val)
+{
+    m_doc.CopyFrom(val, m_doc.GetAllocator());
+    m_currentInput = &m_doc;
+}
+
 // --- JSON-specific methods ---
 
 void JsonArchive::beginObject(const char* name)
