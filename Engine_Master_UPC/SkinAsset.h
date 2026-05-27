@@ -1,6 +1,7 @@
 #pragma once
 #include "Asset.h"
 #include "Globals.h"
+#include "IArchive.h"
 
 #include <string>
 #include <vector>
@@ -22,6 +23,22 @@ public:
 
     const std::string& getName() const { return m_name; }
     const std::vector<SkinJoint>& getJoints() const { return m_joints; }
+
+    void serialize(IArchive& archive) override
+    {
+        archive.serialize(m_name);
+
+        uint32_t jointCount = static_cast<uint32_t>(m_joints.size());
+        archive.serialize(jointCount);
+        if (archive.mode() == ArchiveMode::Input)
+            m_joints.resize(jointCount);
+
+        for (auto& joint : m_joints)
+        {
+            archive.serialize(joint.nodeName);
+            archive.serializeRaw(&joint.inverseBindMatrix, sizeof(Matrix));
+        }
+    }
 
 private:
     std::string m_name;

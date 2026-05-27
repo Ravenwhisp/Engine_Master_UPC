@@ -67,6 +67,8 @@ public:
     Scene(AssetReference& uid);
     ~Scene();
 
+    void serialize(IArchive& archive) override;
+
 #pragma region GameLoop
 
     bool init();

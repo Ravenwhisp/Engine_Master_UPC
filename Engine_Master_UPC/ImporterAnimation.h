@@ -24,6 +24,5 @@ protected:
         return false;
     }
 
-    uint64_t saveTyped(const AnimationAsset* source, uint8_t** outBuffer) override;
-    void loadTyped(const uint8_t* buffer, AnimationAsset* dst) override;
+
 };

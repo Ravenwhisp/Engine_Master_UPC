@@ -26,6 +26,4 @@ public:
 protected:
 	bool loadExternal(const std::filesystem::path& path, DirectX::ScratchImage& out) override;
 	void importTyped(const DirectX::ScratchImage& source, TextureAsset* destiny) override;
-	uint64_t saveTyped(const TextureAsset* source, uint8_t** buffer) override;
-	void loadTyped(const uint8_t* buffer, TextureAsset* dst) override;
 };

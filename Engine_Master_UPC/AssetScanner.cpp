@@ -218,7 +218,7 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
 
     auto tLoadMeta0 = std::chrono::high_resolution_clock::now();
 
-    if (!app->getModuleAssets()->loadMetaFile(metadataPath, meta))
+    if (!meta.load(metadataPath))
     {
         DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.", metadataPath.string().c_str());
         return;
@@ -303,7 +303,7 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 {
     auto tFindImporter0 = std::chrono::high_resolution_clock::now();
 
-    const bool hasImporter = app->getModuleAssets()->findImporter(sourcePath) != nullptr;
+    const bool hasImporter = app->getModuleAssets()->canImport(sourcePath);
 
     auto tFindImporter1 = std::chrono::high_resolution_clock::now();
 

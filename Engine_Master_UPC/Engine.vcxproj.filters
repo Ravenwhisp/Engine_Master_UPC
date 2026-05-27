@@ -190,6 +190,24 @@
     <ClCompile Include="SceneSerializer.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
+    <ClCompile Include="AssetCache.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryArchive.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Metadata.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetFileDialog.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetIndex.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
     <ClCompile Include="ModuleAssets.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
@@ -812,7 +830,34 @@
     <ClInclude Include="SceneSerializer.h">
       <Filter>Persistence</Filter>
     </ClInclude>
+    <ClInclude Include="AssetCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="IArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetFileDialog.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetIndex.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
     <ClInclude Include="ModuleAssets.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleAssets.inl">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">

@@ -40,7 +40,7 @@ bool PrefabManager::savePrefab(GameObject* go, const fs::path& savePath)
     go->GetPrefabInfo().m_sourcePath = savePath;
 
     // Evict stale cached version, then reimport.
-    const UID existingUID = m_moduleAssets->findUID(savePath);
+    const UID existingUID = m_moduleAssets->getIndex().findUID(savePath);
     if (isValidUID(existingUID))
     {
         m_moduleAssets->unload(AssetReference(existingUID));

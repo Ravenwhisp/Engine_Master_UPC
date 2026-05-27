@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Importer.h"
+#include "BinaryArchive.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -7,6 +8,7 @@
 #include "rapidjson/filereadstream.h"
 #include <rapidjson/writer.h>
 #include <fstream>
+#include <cstring>
 
 template<typename AssetFormat, AssetType TType>
 class ImporterNative : public Importer
@@ -24,12 +26,19 @@ public:
 
     uint64_t save(const Asset* asset, uint8_t** outBuffer) override
     {
-        return saveTyped(static_cast<const AssetFormat*>(asset), outBuffer);
+        BinaryArchive archive(ArchiveMode::Output);
+        const_cast<AssetFormat*>(static_cast<const AssetFormat*>(asset))->serialize(archive);
+        const size_t sz = archive.size();
+        uint8_t* buf = new uint8_t[sz];
+        std::memcpy(buf, archive.data(), sz);
+        *outBuffer = buf;
+        return sz;
     }
 
     void load(const uint8_t* buffer, Asset* outAsset) override
     {
-        loadTyped(buffer, static_cast<AssetFormat*>(outAsset));
+        BinaryArchive archive(buffer, ArchiveMode::Input);
+        static_cast<AssetFormat*>(outAsset)->serialize(archive);
     }
 
     bool saveNative(const Asset* asset, const std::filesystem::path& path) override
@@ -40,6 +49,4 @@ public:
 protected:
     virtual bool     saveNative(const AssetFormat* asset, const std::filesystem::path& path) = 0;
     virtual bool     importNative(const std::filesystem::path& path, AssetFormat* dst) = 0;
-    virtual uint64_t saveTyped(const AssetFormat* source, uint8_t** outBuffer) = 0;
-    virtual void     loadTyped(const uint8_t* buffer, AssetFormat* dst) = 0;
 };

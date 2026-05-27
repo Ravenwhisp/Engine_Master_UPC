@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Asset.h"
+#include "IArchive.h"
 
 #include <filesystem>
 #include <string>
@@ -36,6 +37,19 @@ public:
     const std::string& getName()       const { return m_data.m_name; }
     const std::filesystem::path& getSourcePath() const { return m_data.m_sourcePath; }
     UID                      getAssetUID()   const { return m_data.m_assetUID; }
+
+    void serialize(IArchive& archive) override
+    {
+        std::string pathStr = m_data.m_sourcePath.string();
+        archive.serialize(pathStr);
+        if (archive.mode() == ArchiveMode::Input)
+            m_data.m_sourcePath = pathStr;
+
+        archive.serialize(m_data.m_name);
+        archive.serialize(m_data.m_assetUID);
+        archive.serialize(m_data.m_json);
+    }
+
 private:
     PrefabData m_data;
 };

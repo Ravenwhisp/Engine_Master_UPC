@@ -15,6 +15,4 @@ public:
     bool saveNative(const Scene* asset, const std::filesystem::path& path);
 protected:
     bool     importNative(const std::filesystem::path& path, Scene* dst) override;
-    uint64_t saveTyped(const Scene* source, uint8_t** outBuffer)      override;
-    void     loadTyped(const uint8_t* buffer, Scene* dst)         override;
 };

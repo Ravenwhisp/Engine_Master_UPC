@@ -2,8 +2,7 @@
 #include "ImporterPrefab.h"
 
 #include "Application.h"
-#include "BinaryReader.h"
-#include "BinaryWriter.h"
+
 
 #include <rapidjson/document.h>
 #include <FileIO.h>
@@ -47,38 +46,4 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset
     }
 
     return true;
-}
-
-uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
-{
-    const PrefabData& data = src->getData();
-    const std::string  pathStr = data.m_sourcePath.string();
-
-    uint64_t size = 0;
-    size += sizeof(uint32_t) + pathStr.size();
-    size += sizeof(uint32_t) + data.m_name.size();
-    size += sizeof(uint64_t);
-    size += sizeof(uint64_t);
-    size += sizeof(uint32_t) + data.m_json.size();
-
-    uint8_t* buffer = new uint8_t[size];
-    BinaryWriter writer(buffer);
-    writer.string(pathStr);
-    writer.string(data.m_name);
-    writer.u64(data.m_assetUID);
-    writer.string(data.m_json);
-
-    *outBuffer = buffer;
-    return size;
-}
-
-void ImporterPrefab::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
-{
-    PrefabData& data = dst->getData();
-    BinaryReader reader(buffer);
-
-    data.m_sourcePath = reader.string();
-    data.m_name = reader.string();
-    data.m_assetUID = reader.u64();
-    data.m_json = reader.string();
 }

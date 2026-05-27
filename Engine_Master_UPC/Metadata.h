@@ -7,6 +7,7 @@
 
 #include <filesystem>
 #include <vector>
+#include <memory>
 
 struct DependencyRecord
 {
@@ -83,4 +84,7 @@ struct Metadata
 	{
 		assetPath += METADATA_EXTENSION;
 	}
+
+	bool load(const std::filesystem::path& metaPath);
+	bool save(const std::filesystem::path& metaPath) const;
 };

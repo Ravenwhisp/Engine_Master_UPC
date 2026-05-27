@@ -37,8 +37,6 @@ public:
 protected:
     bool     loadExternal(const std::filesystem::path& path, tinygltf::Model& out) override;
     void     importTyped(const tinygltf::Model& source, PrefabAsset* model)        override;
-    uint64_t saveTyped(const PrefabAsset* model, uint8_t** outBuffer)              override;
-    void     loadTyped(const uint8_t* buffer, PrefabAsset* model)                  override;
 
 private:
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);

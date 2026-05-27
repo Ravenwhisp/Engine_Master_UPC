@@ -42,6 +42,8 @@ public:
 
     void drawUI() override;
 
+    void serialize(IArchive& archive) override;
+
 protected:
     std::vector<Vertex> vertices;
     std::vector<uint8_t> indices;

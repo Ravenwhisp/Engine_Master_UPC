@@ -19,7 +19,4 @@ public:
 
 protected:
     bool importNative(const std::filesystem::path& path, AnimationStateMachineAsset* dst) override;
-
-    uint64_t saveTyped(const AnimationStateMachineAsset* source, uint8_t** outBuffer) override;
-    void loadTyped(const uint8_t* buffer, AnimationStateMachineAsset* dst) override;
 };

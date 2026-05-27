@@ -16,6 +16,4 @@ public:
 
 protected:
     bool     importNative(const std::filesystem::path& path, MeshAsset* dst)      override;
-    uint64_t saveTyped(const MeshAsset* source, uint8_t** outBuffer)           override;
-    void     loadTyped(const uint8_t* buffer, MeshAsset* dst)                override;
 };

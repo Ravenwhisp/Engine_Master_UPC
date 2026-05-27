@@ -22,6 +22,5 @@ protected:
         return false;
     }
 
-    uint64_t saveTyped(const SkinAsset* source, uint8_t** outBuffer) override;
-    void loadTyped(const uint8_t* buffer, SkinAsset* dst) override;
+
 };

@@ -17,6 +17,11 @@
 #include "SceneSnapshot.h"
 #include "Transform.h"
 
+#include "SceneSerializer.h"
+#include "IArchive.h"
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
 
@@ -569,3 +574,32 @@ void Scene::removeLoadedBank(const std::string& bank)
     }
 }
 #pragma endregion
+
+void Scene::serialize(IArchive& archive)
+{
+    archive.serialize(m_name);
+
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        rapidjson::Document domTree;
+        domTree.SetObject();
+        rapidjson::Value sceneValue = SceneSerializer::getJSON(domTree, this);
+        domTree.Swap(sceneValue);
+        rapidjson::StringBuffer jsonBuffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(jsonBuffer);
+        domTree.Accept(writer);
+        std::string jsonStr = jsonBuffer.GetString();
+        archive.serialize(jsonStr);
+    }
+    else
+    {
+        std::string jsonStr;
+        archive.serialize(jsonStr);
+        rapidjson::Document doc;
+        doc.Parse(jsonStr.c_str());
+        if (!doc.HasParseError())
+        {
+            SceneSerializer::LoadFromJSON(*this, doc);
+        }
+    }
+}

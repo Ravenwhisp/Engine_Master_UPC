@@ -25,7 +25,9 @@
 
 #include "Application.h"
 #include "ModuleAssets.h"
+#include "AssetIndex.h"
 #include "MD5.h"
+#include "PrefabSerializer.h"
 
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
@@ -135,14 +137,14 @@ AssetReference ImporterGltf::resolveTexture(const tinygltf::Model& model, int te
     ModuleAssets* assets = app->getModuleAssets();
 
     // Re-use an already-imported texture when possible.
-    const UID existingUID = assets->findUID(resolved);
+    const UID existingUID = assets->getIndex().findUID(resolved);
 
     if (isValidUID(existingUID))
     {
         std::filesystem::path metaPath = resolved;
         Metadata::getMetadataPath(metaPath);
         Metadata meta;
-        if (assets->loadMetaFile(metaPath, meta))
+        if (meta.load(metaPath))
         {
             return AssetReference(meta.uid, meta.contentHash, meta.type);
         }
@@ -184,7 +186,7 @@ bool ImporterGltf::createStateMachine(const std::filesystem::path& gltfPath)
         std::filesystem::path metaPath = gltfPath;
         Metadata::getMetadataPath(metaPath);
         Metadata existingMeta;
-        if (assets->loadMetaFile(metaPath, existingMeta))
+        if (existingMeta.load(metaPath))
         {
             m_existingDeps = existingMeta.m_dependencies;
             m_existingDepsUsed.assign(m_existingDeps.size(), false);
@@ -261,7 +263,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
         std::filesystem::path metaPath = *m_currentFilePath;
         Metadata::getMetadataPath(metaPath);
         Metadata existingMeta;
-        if (assets->loadMetaFile(metaPath, existingMeta))
+        if (existingMeta.load(metaPath))
         {
             m_existingDeps = existingMeta.m_dependencies;
             m_existingDepsUsed.assign(m_existingDeps.size(), false);
@@ -408,17 +410,6 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, PrefabAsset* dst)
     m_currentFilePath = nullptr;
     m_existingDeps.clear();
     m_existingDepsUsed.clear();
-}
-
-
-uint64_t ImporterGltf::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
-{
-    return m_importerPrefab->save(src, outBuffer);
-}
-
-void ImporterGltf::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
-{
-    m_importerPrefab->load(buffer, dst);
 }
 
 void ImporterGltf::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive,
@@ -713,13 +704,13 @@ AssetReference ImporterGltf::buildDefaultStateMachine(
     {
         smPath = dir / (stem + "_StateMachine.statemachine");
 
-        const UID existingUID = assets->findUID(smPath);
+        const UID existingUID = assets->getIndex().findUID(smPath);
         if (isValidUID(existingUID))
         {
             std::filesystem::path metaPath = smPath;
             Metadata::getMetadataPath(metaPath);
             Metadata meta;
-            if (assets->loadMetaFile(metaPath, meta))
+            if (meta.load(metaPath))
             {
                 DEBUG_LOG("[ImporterGltf] Reusing existing state machine '%s' (UID '%s').",
                     smPath.string().c_str(), std::to_string(meta.uid).c_str());
@@ -728,13 +719,13 @@ AssetReference ImporterGltf::buildDefaultStateMachine(
         }
     }
 
-    const UID existingUID = assets->findUID(smPath);
+    const UID existingUID = assets->getIndex().findUID(smPath);
     if (isValidUID(existingUID))
     {
         std::filesystem::path metaPath = smPath;
         Metadata::getMetadataPath(metaPath);
         Metadata meta;
-        if (assets->loadMetaFile(metaPath, meta))
+        if (meta.load(metaPath))
         {
             DEBUG_LOG("[ImporterGltf] Reusing existing state machine '%s' (UID '%s').",
                 smPath.string().c_str(), std::to_string(meta.uid).c_str());
