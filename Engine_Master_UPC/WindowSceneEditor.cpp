@@ -205,6 +205,7 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
     if (app->getModuleScene()->pickGameObject(ray, hit))
     {
         editor->setSelectedGameObject(hit.gameObject);
+        editor->revealGameObjectInHierarchy(hit.gameObject);
     }
 }
 
