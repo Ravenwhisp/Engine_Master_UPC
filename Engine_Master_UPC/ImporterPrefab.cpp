@@ -5,6 +5,7 @@
 #include "PrefabManager.h"
 #include "PrefabInstanceComponent.h"
 #include "Transform.h"
+#include "JsonArchive.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
@@ -33,7 +34,9 @@ bool ImporterPrefab::saveNative(const Prefab* asset, const std::filesystem::path
     if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != path)
         doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
 
-    Value goNode = const_cast<Prefab*>(asset)->getJSON(doc);
+    JsonArchive goArchive;
+    const_cast<Prefab*>(asset)->serialize(goArchive);
+    Value goNode = goArchive.extractValue(doc.GetAllocator());
     doc.AddMember("GameObject", goNode, alloc);
 
     const std::filesystem::path dir = path.parent_path();
@@ -82,23 +85,9 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
     // Inline deserialiseTransform
     if (goNode.HasMember("Transform") && goNode["Transform"].IsObject())
     {
-        Transform* tf = dst->GetTransform();
-        const auto& tfNode = goNode["Transform"];
-        if (tfNode.HasMember("position") && tfNode["position"].IsArray())
-        {
-            const auto& p = tfNode["position"];
-            tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
-        }
-        if (tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
-        {
-            const auto& r = tfNode["rotation"];
-            tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(), r[2].GetFloat(), r[3].GetFloat()));
-        }
-        if (tfNode.HasMember("scale") && tfNode["scale"].IsArray())
-        {
-            const auto& s = tfNode["scale"];
-            tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
-        }
+        JsonArchive tfArchive(ArchiveMode::Input);
+        tfArchive.setValue(goNode["Transform"]);
+        dst->GetTransform()->serialize(tfArchive);
     }
 
     // Inline deserialiseComponents
@@ -110,7 +99,11 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
             auto type = static_cast<ComponentType>(cn["Type"].GetInt());
             Component* comp = dst->AddComponentWithUID(type, GenerateUID());
             if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
-                comp->deserializeJSON(cn["Data"]);
+            {
+                JsonArchive compArchive(ArchiveMode::Input);
+                compArchive.setValue(cn["Data"]);
+                comp->serialize(compArchive);
+            }
         }
     }
 

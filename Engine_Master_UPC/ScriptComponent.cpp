@@ -128,13 +128,6 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     }
 }
 
-rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
 void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
 {
     ScriptFieldList fieldList = script.getExposedFields();
@@ -147,21 +140,6 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
         assert(field.handler != nullptr);
         field.handler->serialize(field, data, outFieldsJson, domTree);
     }
-}
-
-bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    if (componentInfo.HasMember("ScriptFields") && componentInfo["ScriptFields"].IsObject() && m_script)
-    {
-        deserializeScriptFields(*m_script, componentInfo["ScriptFields"]);
-        m_script->onAfterDeserialize();
-    }
-
-    return true;
 }
 
 void ScriptComponent::serialize(IArchive& archive)

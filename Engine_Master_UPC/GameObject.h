@@ -12,7 +12,6 @@
 #include <memory>
 #include <string>
 
-#include <rapidjson/document.h>
 
 class Component;
 class ModelComponent;
@@ -61,8 +60,6 @@ public:
 #pragma endregion
 
 #pragma region Persistence
-	rapidjson::Value getJSON(rapidjson::Document& domTree);
-	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
 	void serialize(IArchive& archive) override;
 #pragma endregion
 

@@ -266,20 +266,3 @@ void NavigationAgentComponent::reset()
 	m_path.clear();
 }
 
-rapidjson::Value NavigationAgentComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool NavigationAgentComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    m_running = m_autoStart;
-
-    return true;
-}

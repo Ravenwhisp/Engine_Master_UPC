@@ -26,6 +26,7 @@
 
 #include "SceneReferenceResolver.h"
 #include "MD5Fwd.h"
+#include "JsonArchive.h"
 
 
 constexpr std::string_view LOG_TAG = "SceneSerializer";
@@ -160,7 +161,11 @@ rapidjson::Value SceneSerializer::getJSON(rapidjson::Document& domTree, const Sc
 
 void SceneSerializer::serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree, const Scene* scene)
 {
-    gameObjectsData.PushBack(gameObject->getJSON(domTree), domTree.GetAllocator());
+    // Use JsonArchive to serialize GO
+    JsonArchive goArchive(ArchiveMode::Output);
+    gameObject->serialize(goArchive);
+    rapidjson::Value goVal = goArchive.extractValue(domTree.GetAllocator());
+    gameObjectsData.PushBack(goVal, domTree.GetAllocator());
 
     for (GameObject* child : gameObject->GetTransform()->getAllChildren())
     {
@@ -438,7 +443,24 @@ void SceneSerializer::CreateGameObjects(
         GameObject* go = scene.createGameObjectWithUID((UID)uid, (UID)transformUid);
 
         uint64_t parentUid = 0;
-        go->deserializeJSON(json, parentUid);
+        JsonArchive goArchive(ArchiveMode::Input);
+        goArchive.setValue(json);
+        go->serialize(goArchive);
+        parentUid = json.HasMember("ParentUID") ? json["ParentUID"].GetUint64() : 0;
+
+        if (json.HasMember("PrefabLink") && json["PrefabLink"].IsObject())
+        {
+            const auto& pl = json["PrefabLink"];
+            auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+            if (preComp)
+            {
+                auto& data = preComp->getData();
+                if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                    data.m_sourcePath = pl["SourcePath"].GetString();
+                if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                    data.m_assetUID = pl["AssetUID"].GetUint64();
+            }
+        }
 
         uidSet.push_back(uid);
         goSet.push_back(go);

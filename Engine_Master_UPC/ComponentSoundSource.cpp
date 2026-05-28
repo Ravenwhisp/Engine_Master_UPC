@@ -211,13 +211,6 @@ void ComponentSoundSource::drawUi()
 	}
 }
 
-rapidjson::Value ComponentSoundSource::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
 void ComponentSoundSource::serialize(IArchive& archive)
 {
 	if (archive.mode() == ArchiveMode::Output)

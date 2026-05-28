@@ -172,22 +172,6 @@ void LightComponent::drawUi()
     }
 }
 
-rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-    
-bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-    sanitize();
-    return true;
-}
-
 void LightComponent::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

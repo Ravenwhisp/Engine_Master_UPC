@@ -259,9 +259,3 @@ void Transform::serialize(IArchive& archive)
 	archive.serialize(m_scale, "Scale");
 }
 
-rapidjson::Value Transform::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}

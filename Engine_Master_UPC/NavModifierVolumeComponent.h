@@ -16,8 +16,6 @@ public:
 	void onTransformChange() override;
 
 	void serialize(IArchive& archive) override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
 
 	void debugDraw() override;
 

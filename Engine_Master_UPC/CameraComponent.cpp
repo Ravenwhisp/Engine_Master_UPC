@@ -143,22 +143,6 @@ bool CameraComponent::cleanUp()
 	return true;
 }
 
-rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool CameraComponent::deserializeJSON(const rapidjson::Value& componentValue)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentValue);
-    serialize(archive);
-    recalculateFrustum();
-    return true;
-}
-
 void CameraComponent::serialize(IArchive& archive)
 {
 	if (archive.mode() == ArchiveMode::Output)

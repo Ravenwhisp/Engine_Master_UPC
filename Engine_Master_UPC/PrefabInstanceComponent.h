@@ -31,26 +31,6 @@ public:
         archive.serialize(m_data.m_assetUID, "assetUID");
     }
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override
-    {
-        rapidjson::Value obj(rapidjson::kObjectType);
-        auto& alloc = domTree.GetAllocator();
-        obj.AddMember("UID", m_uuid, alloc);
-        obj.AddMember("SourcePath", rapidjson::Value(m_data.m_sourcePath.string().c_str(), alloc), alloc);
-        if (m_data.m_assetUID != INVALID_UID)
-            obj.AddMember("AssetUID", m_data.m_assetUID, alloc);
-        return obj;
-    }
-
-    bool deserializeJSON(const rapidjson::Value& obj) override
-    {
-        if (obj.HasMember("SourcePath") && obj["SourcePath"].IsString())
-            m_data.m_sourcePath = obj["SourcePath"].GetString();
-        if (obj.HasMember("AssetUID") && obj["AssetUID"].IsUint64())
-            m_data.m_assetUID = obj["AssetUID"].GetUint64();
-        return true;
-    }
-
 private:
     PrefabInstanceInfo m_data;
 };

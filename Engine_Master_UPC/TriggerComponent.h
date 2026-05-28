@@ -22,8 +22,6 @@ public:
     void onTransformChange() override { m_boundsDirty = true; };
 
     void serialize(IArchive& archive) override;
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 

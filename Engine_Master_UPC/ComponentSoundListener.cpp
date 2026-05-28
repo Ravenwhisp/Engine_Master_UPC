@@ -71,13 +71,6 @@ std::unique_ptr<Component> ComponentSoundListener::clone(GameObject* newOwner) c
 	return cloned;
 }
 
-rapidjson::Value ComponentSoundListener::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
 void ComponentSoundListener::serialize(IArchive& archive)
 {
 	if (archive.mode() == ArchiveMode::Output)

@@ -21,8 +21,6 @@ public:
     void drawUi() override;
     void onTransformChange() override {}
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
     void serialize(IArchive& archive) override;
 
     void debugDraw() override;

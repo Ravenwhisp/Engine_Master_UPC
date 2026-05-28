@@ -39,8 +39,6 @@ public:
     virtual void onTransformChange() {};
     Transform* getTransform();
 
-    virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
-    virtual bool deserializeJSON(const rapidjson::Value& componentValue) { return true; }
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};
 
     void serialize(IArchive& archive) override;

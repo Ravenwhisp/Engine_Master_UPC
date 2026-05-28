@@ -44,21 +44,6 @@ void NavModifierVolumeComponent::onTransformChange()
 	// useful for dynamic navmesh if we do it
 }
 
-rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool NavModifierVolumeComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    return true;
-}
 
 void NavModifierVolumeComponent::serialize(IArchive& archive)
 {

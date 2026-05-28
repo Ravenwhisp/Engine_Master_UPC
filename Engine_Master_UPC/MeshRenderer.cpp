@@ -178,35 +178,6 @@ void MeshRenderer::update()
     }
 }
 
-rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    if (componentInfo.HasMember("MaterialAssetId"))
-    {
-        const auto& arr = componentInfo["MaterialAssetId"];
-        for (auto& arrayStrings : arr.GetArray())
-        {
-            AssetReference materialId;
-            if (!materialId.deserializeJson(arrayStrings)) continue;
-            m_materialAssets.push_back(materialId);
-            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
-            if (materialAsset) addMaterial(*materialAsset);
-        }
-    }
-
-    return true;
-}
-
 void MeshRenderer::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

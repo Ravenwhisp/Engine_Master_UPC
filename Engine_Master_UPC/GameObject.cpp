@@ -1,9 +1,6 @@
 #include "Globals.h"
 #include "GameObject.h"
 
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "PrefabInstanceComponent.h"
@@ -23,6 +20,7 @@
 #include <cstring>
 #include <functional>
 #include <imgui.h>
+#include "IArchive.h"
 
 #include "Quadtree.h"
 
@@ -654,139 +652,86 @@ void GameObject::onTransformChange()
 
 #pragma region Persistence
 
-rapidjson::Value GameObject::getJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value gameObjectInfo(rapidjson::kObjectType);
-
-    gameObjectInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    {
-        Transform* parentTransform = m_transform->getRoot();
-        if (parentTransform)
-        {
-            gameObjectInfo.AddMember("ParentUID", parentTransform->getOwner()->GetID(), domTree.GetAllocator());
-        }
-        else {
-            gameObjectInfo.AddMember("ParentUID", 0, domTree.GetAllocator());
-        }
-    }
-
-
-    rapidjson::Value name(m_name.c_str(), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Name", name, domTree.GetAllocator());
-
-    gameObjectInfo.AddMember("Active", m_active, domTree.GetAllocator());
-    gameObjectInfo.AddMember("Static", m_isStatic, domTree.GetAllocator());
-
-    rapidjson::Value layer(LayerToString(m_layer), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Layer", layer, domTree.GetAllocator());
-
-    rapidjson::Value tag(TagToString(m_tag), domTree.GetAllocator());
-    gameObjectInfo.AddMember("Tag", tag, domTree.GetAllocator());
-
-    gameObjectInfo.AddMember("Transform", m_transform->getJSON(domTree), domTree.GetAllocator());
-
-    // Components serialization //
-    {
-        rapidjson::Value componentsData(rapidjson::kArrayType);
-
-        for (const std::unique_ptr<Component>& component : m_components)
-        {
-            if (component->getType() == ComponentType::TRANSFORM)
-                continue;
-
-            componentsData.PushBack(component->getJSON(domTree), domTree.GetAllocator());
-        }
-
-        gameObjectInfo.AddMember("Components", componentsData, domTree.GetAllocator());
-    }
-
-    return gameObjectInfo;
-}
-
-bool GameObject::deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& parentUid)
-{
-    parentUid = gameObjectJson["ParentUID"].GetUint64();
-    m_name = gameObjectJson["Name"].GetString();
-
-    m_active = gameObjectJson["Active"].GetBool();
-    m_isStatic = gameObjectJson["Static"].GetBool();
-    m_layer = StringToLayer(gameObjectJson["Layer"].GetString());
-    m_tag = StringToTag(gameObjectJson["Tag"].GetString());
-
-    const auto& transform = gameObjectJson["Transform"];
-
-    const auto& position = transform["Position"].GetArray();
-    m_transform->setPosition(Vector3(position[0].GetFloat(), position[1].GetFloat(), position[2].GetFloat()));
-
-    const auto& rotation = transform["Rotation"].GetArray();
-    m_transform->setRotation(Quaternion(rotation[0].GetFloat(), rotation[1].GetFloat(), rotation[2].GetFloat(), rotation[3].GetFloat()));
-
-    const auto& scale = transform["Scale"].GetArray();
-    m_transform->setScale(Vector3(scale[0].GetFloat(), scale[1].GetFloat(), scale[2].GetFloat()));
-
-    if (gameObjectJson.HasMember("PrefabLink") && gameObjectJson["PrefabLink"].IsObject())
-    {
-        const auto& pl = gameObjectJson["PrefabLink"];
-        auto* preComp = static_cast<PrefabInstanceComponent*>(AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
-        if (preComp)
-        {
-            auto& data = preComp->getData();
-            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
-                data.m_sourcePath = pl["SourcePath"].GetString();
-            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
-                data.m_assetUID = pl["AssetUID"].GetUint64();
-        }
-    }
-
-    const auto& components = gameObjectJson["Components"].GetArray();
-    for (auto& componentJson : components)
-    {
-        const uint64_t componentUid = componentJson["UID"].GetUint64();
-        const ComponentType componentType = (ComponentType)componentJson["ComponentType"].GetInt();
-
-        Component* newComponent = AddComponentWithUID(componentType, (UID)componentUid);
-        if (newComponent)
-        {
-            if (componentJson.HasMember("Active") && componentJson["Active"].IsBool())
-            {
-                newComponent->setActive(componentJson["Active"].GetBool());
-            }
-            else
-            {
-                newComponent->setActive(true);
-            }
-
-            newComponent->deserializeJSON(componentJson);
-        }
-    }
-
-    return true;
-}
-
 void GameObject::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)
     {
-        rapidjson::Document doc;
-        doc.SetObject();
-        rapidjson::Value json = getJSON(doc);
-        doc.Swap(json);
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        doc.Accept(writer);
-        std::string jsonStr = buffer.GetString();
-        archive.serialize(jsonStr);
+        archive.serialize(m_uuid, "UID");
+        {
+            Transform* parentTransform = m_transform->getRoot();
+            uint64_t parentUid = parentTransform ? parentTransform->getOwner()->GetID() : 0;
+            archive.serialize(parentUid, "ParentUID");
+        }
+        archive.serialize(m_name, "Name");
+        archive.serialize(m_active, "Active");
+        archive.serialize(m_isStatic, "Static");
+        {
+            std::string layer = LayerToString(m_layer);
+            archive.serialize(layer, "Layer");
+        }
+        {
+            std::string tag = TagToString(m_tag);
+            archive.serialize(tag, "Tag");
+        }
+
+        archive.beginObject("Transform");
+        m_transform->serialize(archive);
+        archive.endObject();
+
+        uint32_t compCount = 0;
+        for (const auto& comp : m_components)
+            if (comp->getType() != ComponentType::TRANSFORM) ++compCount;
+        archive.serialize(compCount, "ComponentCount");
+
+        uint32_t compIdx = 0;
+        for (const auto& comp : m_components)
+        {
+            if (comp->getType() == ComponentType::TRANSFORM) continue;
+            std::string key = "Component_" + std::to_string(compIdx++);
+            archive.beginObject(key.c_str());
+            comp->serialize(archive);
+            archive.endObject();
+        }
     }
     else
     {
-        std::string jsonStr;
-        archive.serialize(jsonStr);
-        rapidjson::Document doc;
-        doc.Parse(jsonStr.c_str());
-        if (!doc.HasParseError())
+        uint64_t parentUid = 0;
+        archive.serialize(parentUid, "ParentUID");
+        archive.serialize(m_name, "Name");
+        archive.serialize(m_active, "Active");
+        archive.serialize(m_isStatic, "Static");
         {
-            uint64_t parentUid = 0;
-            deserializeJSON(doc, parentUid);
+            std::string layer;
+            archive.serialize(layer, "Layer");
+            m_layer = StringToLayer(layer.c_str());
+        }
+        {
+            std::string tag;
+            archive.serialize(tag, "Tag");
+            m_tag = StringToTag(tag.c_str());
+        }
+
+        archive.beginObject("Transform");
+        m_transform->serialize(archive);
+        archive.endObject();
+
+        uint32_t componentCount = 0;
+        archive.serialize(componentCount, "ComponentCount");
+        for (uint32_t i = 0; i < componentCount; ++i)
+        {
+            std::string key = "Component_" + std::to_string(i);
+            archive.beginObject(key.c_str());
+
+            uint64_t uid = GenerateUID();
+            uint32_t compType = 0;
+            archive.serialize(uid, "UID");
+            archive.serialize(compType, "ComponentType");
+
+            Component* comp = AddComponentWithUID(static_cast<ComponentType>(compType), uid);
+            if (comp)
+                comp->serialize(archive);
+
+            archive.endObject();
         }
     }
 }

@@ -43,8 +43,6 @@ public:
     int getStartFrame() const { return m_startFrame; }
     int getEndFrame() const { return m_endFrame; }
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
     void serialize(IArchive& archive) override;
 
 private:

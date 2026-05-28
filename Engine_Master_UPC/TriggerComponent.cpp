@@ -330,24 +330,6 @@ void TriggerComponent::includeMeshRendererBounds(MeshRenderer* meshRenderer, con
     }
 }
 
-rapidjson::Value TriggerComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool TriggerComponent::deserializeJSON(const rapidjson::Value& componentValue)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentValue);
-    serialize(archive);
-
-    m_setDefaultBoundsOnInit = false;
-    m_boundsDirty = true;
-    return true;
-}
-
 std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
 {
     std::unique_ptr<TriggerComponent> clonedComponent = std::make_unique<TriggerComponent>(m_uuid, newOwner);

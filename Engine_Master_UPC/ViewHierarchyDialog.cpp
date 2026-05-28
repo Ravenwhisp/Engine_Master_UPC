@@ -9,6 +9,7 @@
 
 #include "GameObject.h"
 #include "Transform.h"
+#include "PrefabInstanceComponent.h"
 #include "Scene.h"
 #include "UIButton.h"
 #include "UISlider.h"
@@ -16,6 +17,7 @@
 #include "UIImage.h"
 #include "Quadtree.h"
 #include "WindowHierarchy.h"
+#include "JsonArchive.h"
 #include <LightComponent.h>
 
 #include <CommandAddGameObject.h>
@@ -324,7 +326,24 @@ GameObject* ViewHierarchyDialog::rebuildGameObject(const rapidjson::Value& objec
         GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid, rootObjects);
 
         uint64_t parentUid = 0;
-        go->deserializeJSON(goJson, parentUid);
+        JsonArchive goArchive(ArchiveMode::Input);
+        goArchive.setValue(goJson);
+        go->serialize(goArchive);
+        parentUid = goJson.HasMember("ParentUID") ? goJson["ParentUID"].GetUint64() : 0;
+
+        if (goJson.HasMember("PrefabLink") && goJson["PrefabLink"].IsObject())
+        {
+            const auto& pl = goJson["PrefabLink"];
+            auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+            if (preComp)
+            {
+                auto& data = preComp->getData();
+                if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                    data.m_sourcePath = pl["SourcePath"].GetString();
+                if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                    data.m_assetUID = pl["AssetUID"].GetUint64();
+            }
+        }
 
         uidToGo[uid] = go;
         childToParent[uid] = parentUid;

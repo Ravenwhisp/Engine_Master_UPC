@@ -150,39 +150,6 @@ void ParticleSystemComponent::update()
     m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position
 }
 
-rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    if (componentInfo.HasMember("ParticleEmitters"))
-    {
-        const rapidjson::Value& emittersInfo = componentInfo["ParticleEmitters"];
-
-        m_particleSystem.reset(new ParticleSystem(emittersInfo.Size()));
-
-        auto& emitters = m_particleSystem->getEmitters();
-        m_particlesState.clear();
-        m_particlesState.reserve(emitters.size());
-
-        for (unsigned int i = 0; i < emitters.size(); ++i)
-        {
-            emitters[i].deserializeJSON(emittersInfo[i]);
-            m_particlesState.push_back(EmitterInstance(&emitters[i], this));
-        }
-    }
-
-    return true;
-}
-
 void ParticleSystemComponent::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

@@ -85,32 +85,6 @@ void WaypointPathComponent::drawWaypoints()
 	}
 }
 
-rapidjson::Value WaypointPathComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool WaypointPathComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    if (componentInfo.HasMember("Waypoints"))
-    {
-        const auto& arr = componentInfo["Waypoints"];
-        for (auto& v : arr.GetArray())
-        {
-            Vector3 p(v[0].GetFloat(), v[1].GetFloat(), v[2].GetFloat());
-            addWaypoint(p);
-        }
-    }
-
-    return true;
-}
-
 void WaypointPathComponent::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

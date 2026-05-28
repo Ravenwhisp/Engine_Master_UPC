@@ -58,17 +58,13 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 }
 
 
-rapidjson::Value ParticleEmitter::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
 void ParticleEmitter::serialize(IArchive& archive)
 {
     uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
     archive.serialize(moduleCount, "ModuleCount");
+
+    if (moduleCount > m_particleModules.size())
+        moduleCount = static_cast<uint32_t>(m_particleModules.size());
 
     for (uint32_t i = 0; i < moduleCount; ++i)
     {
@@ -79,33 +75,5 @@ void ParticleEmitter::serialize(IArchive& archive)
     }
 }
 
-bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(emitterInfo);
-    serialize(archive);
 
-    if (emitterInfo.HasMember("Modules"))
-    {
-        const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
-        for (auto& moduleData : modulesInfo.GetArray())
-        {
-            if (!moduleData.HasMember("ModuleType")) continue;
-            unsigned int typeUInt = moduleData["ModuleType"].GetUint();
-            ParticleModuleType moduleType = static_cast<ParticleModuleType>(typeUInt);
-
-            switch (moduleType) {
-            case ParticleModuleType::AREA:       m_particleModules[2]->deserializeJSON(moduleData); break;
-            case ParticleModuleType::SPAWN:      m_particleModules[0]->deserializeJSON(moduleData); break;
-            case ParticleModuleType::COLOR:      m_particleModules[3]->deserializeJSON(moduleData); break;
-            case ParticleModuleType::LIFETIME:   m_particleModules[1]->deserializeJSON(moduleData); break;
-            case ParticleModuleType::VELOCITY:   m_particleModules[4]->deserializeJSON(moduleData); break;
-            case ParticleModuleType::SIZE:       m_particleModules[5]->deserializeJSON(moduleData); break;
-            default: break;
-            }
-        }
-    }
-
-    return true;
-}
 

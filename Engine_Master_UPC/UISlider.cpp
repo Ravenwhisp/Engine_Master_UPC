@@ -164,22 +164,6 @@ void UISlider::drawUi()
     }
 }
 
-rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    return true;
-}
-
 void UISlider::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

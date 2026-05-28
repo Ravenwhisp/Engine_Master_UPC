@@ -1206,27 +1206,6 @@ void AnimationComponent::drawUi()
     }
 }
 
-rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentValue);
-    serialize(archive);
-
-    m_stateMachineAsset.reset();
-    resetRuntime();
-    m_triggerInput.clear();
-    m_stateMachineDirty = false;
-
-    return true;
-}
-
 void AnimationComponent::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

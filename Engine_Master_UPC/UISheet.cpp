@@ -246,28 +246,6 @@ void UISheet::drawUi()
     applyToImage();
 }
 
-rapidjson::Value UISheet::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool UISheet::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    m_endFrame = std::clamp(m_endFrame, 0, frameCount() - 1);
-    m_startFrame = std::clamp(m_startFrame, 0, m_endFrame);
-    m_currentFrame = std::clamp(m_currentFrame, m_startFrame, m_endFrame);
-
-    applyToImage();
-
-    return true;
-}
-
 void UISheet::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

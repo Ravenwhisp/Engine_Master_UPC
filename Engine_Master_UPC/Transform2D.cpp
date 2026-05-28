@@ -312,22 +312,6 @@ void Transform2D::drawAnchorPresetsUI()
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Bottom Right");
 }
 
-rapidjson::Value Transform2D::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
-bool Transform2D::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    return true;
-}
-
 void Transform2D::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)

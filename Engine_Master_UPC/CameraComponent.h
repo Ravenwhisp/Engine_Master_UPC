@@ -38,8 +38,6 @@ public:
 
 	bool cleanUp() override;
 
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& componentValue) override;
 	void serialize(IArchive& archive) override;
 
 private:

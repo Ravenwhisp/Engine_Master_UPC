@@ -14,6 +14,7 @@
 #include "PrefabInstanceComponent.h"
 #include "Component.h"
 #include "Transform.h"
+#include "JsonArchive.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
@@ -93,15 +94,22 @@ void deserialiseTransform(const Value& node, GameObject* go)
 
 void deserialiseComponents(const Value& node, GameObject* go)
 {
-    if (!node.HasMember("Components") || !node["Components"].IsArray()) return;
+    uint32_t componentCount = node.HasMember("ComponentCount") ? node["ComponentCount"].GetUint() : 0;
+    if (componentCount == 0) return;
 
-    for (SizeType i = 0; i < node["Components"].Size(); ++i)
+    for (uint32_t i = 0; i < componentCount; ++i)
     {
-        const Value& cn = node["Components"][i];
-        auto type = static_cast<ComponentType>(cn["Type"].GetInt());
+        std::string key = "Component_" + std::to_string(i);
+        if (!node.HasMember(key.c_str())) continue;
+        const Value& cn = node[key.c_str()];
+        auto type = static_cast<ComponentType>(cn["ComponentType"].GetInt());
         Component* comp = go->AddComponentWithUID(type, GenerateUID());
-        if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
-            comp->deserializeJSON(cn["Data"]);
+        if (comp)
+        {
+            JsonArchive compArchive(ArchiveMode::Input);
+            compArchive.setValue(cn);
+            comp->serialize(compArchive);
+        }
     }
 }
 
@@ -145,7 +153,9 @@ bool PrefabManager::savePrefab(GameObject* go, const fs::path& savePath)
     if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != savePath)
         doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
 
-    Value goNode = go->getJSON(doc);
+    JsonArchive goArchive;
+    go->serialize(goArchive);
+    Value goNode = goArchive.extractValue(doc.GetAllocator());
     doc.AddMember("GameObject", goNode, alloc);
 
     if (!writeJsonFile(doc, savePath)) return false;
@@ -236,21 +246,27 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
         tf->markDirty();
     }
 
-    if (goNode.HasMember("Components") && goNode["Components"].IsArray())
+    uint32_t componentCount = goNode.HasMember("ComponentCount") ? goNode["ComponentCount"].GetUint() : 0;
+    for (uint32_t i = 0; i < componentCount; ++i)
     {
-        for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
+        std::string key = "Component_" + std::to_string(i);
+        if (!goNode.HasMember(key.c_str())) continue;
+
+        const Value& cn = goNode[key.c_str()];
+        if (!cn.HasMember("ComponentType")) continue;
+
+        const int ct = cn["ComponentType"].GetInt();
+        auto oit = savedOverrides.m_modifiedProperties.find(ct);
+        if (oit != savedOverrides.m_modifiedProperties.end()
+            && oit->second.count("properties") > 0)
+            continue;
+
+        Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
+        if (comp)
         {
-            const Value& cn = goNode["Components"][i];
-            if (!cn.HasMember("Type") || !cn.HasMember("Data")) continue;
-
-            const int ct = cn["Type"].GetInt();
-            auto oit = savedOverrides.m_modifiedProperties.find(ct);
-            if (oit != savedOverrides.m_modifiedProperties.end()
-                && oit->second.count("properties") > 0)
-                continue;
-
-            Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
-            if (comp) comp->deserializeJSON(cn["Data"]);
+            JsonArchive compArchive(ArchiveMode::Input);
+            compArchive.setValue(cn);
+            comp->serialize(compArchive);
         }
     }
 

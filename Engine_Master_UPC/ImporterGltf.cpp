@@ -22,6 +22,7 @@
 #include "AnimationComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -391,29 +392,24 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, Prefab* dst)
 
     if (root)
     {
-        // Serialise the temp tree to JSON, then populate the Prefab from it.
+        // Serialize the temp GO via JsonArchive, then populate the Prefab
+        JsonArchive goArchive;
+        root->serialize(goArchive);
         rapidjson::Document goDoc;
         goDoc.SetObject();
-        rapidjson::Value goNode = root->getJSON(goDoc);
-        goDoc.Swap(goNode);
+        rapidjson::Value goNodeVal = goArchive.extractValue(goDoc.GetAllocator());
+        goDoc.Swap(goNodeVal);
 
         dst->SetName(goDoc.HasMember("Name") ? goDoc["Name"].GetString() : "Unnamed");
         dst->SetActive(goDoc.HasMember("Active") ? goDoc["Active"].GetBool() : true);
 
-        // Inline deserialiseTransform
         if (goDoc.HasMember("Transform") && goDoc["Transform"].IsObject())
         {
-            Transform* tf = dst->GetTransform();
-            const auto& tfNode = goDoc["Transform"];
-            if (tfNode.HasMember("position") && tfNode["position"].IsArray())
-                tf->setPosition(Vector3(tfNode["position"][0].GetFloat(), tfNode["position"][1].GetFloat(), tfNode["position"][2].GetFloat()));
-            if (tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
-                tf->setRotation(Quaternion(tfNode["rotation"][0].GetFloat(), tfNode["rotation"][1].GetFloat(), tfNode["rotation"][2].GetFloat(), tfNode["rotation"][3].GetFloat()));
-            if (tfNode.HasMember("scale") && tfNode["scale"].IsArray())
-                tf->setScale(Vector3(tfNode["scale"][0].GetFloat(), tfNode["scale"][1].GetFloat(), tfNode["scale"][2].GetFloat()));
+            JsonArchive tfArchive(ArchiveMode::Input);
+            tfArchive.setValue(goDoc["Transform"]);
+            dst->GetTransform()->serialize(tfArchive);
         }
 
-        // Inline deserialiseComponents
         if (goDoc.HasMember("Components") && goDoc["Components"].IsArray())
         {
             for (auto& cn : goDoc["Components"].GetArray())
@@ -421,7 +417,11 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, Prefab* dst)
                 auto type = static_cast<ComponentType>(cn["Type"].GetInt());
                 Component* comp = dst->AddComponentWithUID(type, GenerateUID());
                 if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
-                    comp->deserializeJSON(cn["Data"]);
+                {
+                    JsonArchive compArchive(ArchiveMode::Input);
+                    compArchive.setValue(cn["Data"]);
+                    comp->serialize(compArchive);
+                }
             }
         }
 

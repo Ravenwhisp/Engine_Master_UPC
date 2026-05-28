@@ -24,8 +24,6 @@ public:
 	EmitterLifetime* getLifetimeModule() { return m_lifeTimeModule; }
 
 	void serialize(IArchive& archive);
-	rapidjson::Value getJSON(rapidjson::Document& domTree);
-	bool deserializeJSON(const rapidjson::Value& emitterInfo);
 
 private:
 

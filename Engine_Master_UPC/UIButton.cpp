@@ -608,13 +608,6 @@ void UIButton::SerializeBindings(const std::vector<UIButton::ButtonEventBinding>
 	}
 }
 
-rapidjson::Value UIButton::getJSON(rapidjson::Document& domTree)
-{
-    JsonArchive archive(ArchiveMode::Output);
-    serialize(archive);
-    return archive.extractValue(domTree.GetAllocator());
-}
-
 void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings)
 {
 	outBindings.clear();
@@ -671,21 +664,6 @@ void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UI
 
 		outBindings.push_back(b);
 	}
-}
-
-bool UIButton::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(componentInfo);
-    serialize(archive);
-
-    m_targetGraphic = nullptr;
-    m_navUp = nullptr;
-    m_navDown = nullptr;
-    m_navLeft = nullptr;
-    m_navRight = nullptr;
-
-    return true;
 }
 
 void UIButton::serialize(IArchive& archive)
