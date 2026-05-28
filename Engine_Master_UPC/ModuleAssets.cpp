@@ -19,6 +19,7 @@
 
 #include "Asset.h"
 #include "AnimationStateMachineAsset.h"
+#include "JsonArchive.h"
 #include "Metadata.h"
 #include "UID.h"
 
@@ -99,9 +100,14 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
         if (fs::exists(metaPath))
         {
             Metadata existingMeta;
-            if (existingMeta.load(metaPath) && existingMeta.importSettings)
+            JsonArchive archive(ArchiveMode::Input);
+            if (archive.loadFile(metaPath))
             {
-                asset->setImportSettings(std::move(existingMeta.importSettings));
+                existingMeta.serialize(archive);
+                if (existingMeta.importSettings)
+                {
+                    asset->setImportSettings(std::move(existingMeta.importSettings));
+                }
             }
         }
     }
@@ -195,9 +201,13 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
 
     std::filesystem::path metaPath = sourcePath;
     Metadata::getMetadataPath(metaPath);
-    if (!meta.save(metaPath))
     {
-        return false;
+        JsonArchive archive;
+        meta.serialize(archive);
+        if (!archive.saveFile(metaPath))
+        {
+            return false;
+        }
     }
 
     m_index.registerEntry(meta.uid, meta.type, sourcePath, meta.contentHash);
@@ -354,8 +364,10 @@ AssetReference* ModuleAssets::findReference(const UID& uid)
         std::filesystem::path metaPath = entry->sourcePath;
         Metadata::getMetadataPath(metaPath);
         Metadata meta;
-        if (meta.load(metaPath))
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(metaPath))
         {
+            meta.serialize(archive);
             AssetIndexEntry* mutableEntry = m_index.findEntryMutable(uid);
             if (mutableEntry)
             {

@@ -8,6 +8,7 @@
 #include "Metadata.h"
 #include "UID.h"
 #include "MD5.h"
+#include "JsonArchive.h"
 #include "ThreadPool.h"
 
 #include <FileIO.h>
@@ -218,11 +219,13 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
 
     auto tLoadMeta0 = std::chrono::high_resolution_clock::now();
 
-    if (!meta.load(metadataPath))
+    JsonArchive archive(ArchiveMode::Input);
+    if (!archive.loadFile(metadataPath))
     {
         DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.", metadataPath.string().c_str());
         return;
     }
+    meta.serialize(archive);
 
     auto tLoadMeta1 = std::chrono::high_resolution_clock::now();
     const double loadMetaMs = elapsedMs(tLoadMeta0, tLoadMeta1);

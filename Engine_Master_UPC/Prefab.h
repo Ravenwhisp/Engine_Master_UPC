@@ -31,6 +31,8 @@ public:
             m_sourcePath = pathStr;
 
         GameObject::serialize(archive);
+
+        serializeChildren(archive, this);
     }
 
     std::unique_ptr<GameObject> spawnClone() const
@@ -99,6 +101,42 @@ private:
             m_ownedChildren.push_back(std::move(childClone));
 
             cloneChildTree(child, rawChild);
+        }
+    }
+
+    void serializeChildren(IArchive& archive, GameObject* parent)
+    {
+        if (archive.mode() == ArchiveMode::Output)
+        {
+            uint32_t childCount = static_cast<uint32_t>(parent->GetTransform()->getAllChildren().size());
+            archive.serialize(childCount, "ChildCount");
+            for (uint32_t i = 0; i < childCount; ++i)
+            {
+                std::string key = "Child_" + std::to_string(i);
+                archive.beginObject(key.c_str());
+                GameObject* child = parent->GetTransform()->getAllChildren()[i];
+                child->serialize(archive);
+                serializeChildren(archive, child);
+                archive.endObject();
+            }
+        }
+        else
+        {
+            uint32_t childCount = 0;
+            archive.serialize(childCount, "ChildCount");
+            for (uint32_t i = 0; i < childCount; ++i)
+            {
+                std::string key = "Child_" + std::to_string(i);
+                archive.beginObject(key.c_str());
+                auto childGo = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
+                GameObject* rawChild = childGo.get();
+                rawChild->GetTransform()->setRoot(parent->GetTransform());
+                parent->GetTransform()->addChild(rawChild);
+                m_ownedChildren.push_back(std::move(childGo));
+                rawChild->serialize(archive);
+                serializeChildren(archive, rawChild);
+                archive.endObject();
+            }
         }
     }
 };

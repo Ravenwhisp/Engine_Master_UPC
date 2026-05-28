@@ -4,6 +4,7 @@
 #include "FileIO.h"
 #include "AssetsDictionary.h"
 #include "AssetIndex.h"
+#include "JsonArchive.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -120,8 +121,10 @@ void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPa
     asset.uid = index ? index->findUID(sourcePath.lexically_normal().string()) : INVALID_UID;
 
     Metadata meta;
-    if (meta.load(metaPath))
+    JsonArchive archive(ArchiveMode::Input);
+    if (archive.loadFile(metaPath))
     {
+        meta.serialize(archive);
         asset.metadata = meta;
         for (const DependencyRecord& dep : meta.m_dependencies)
         {

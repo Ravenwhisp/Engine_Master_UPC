@@ -70,11 +70,10 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
         return false;
     }
 
-    dst->m_sourcePath = path;
-
     JsonArchive goArchive(ArchiveMode::Input);
     goArchive.setValue(doc["GameObject"]);
-    dst->GameObject::serialize(goArchive);
+    dst->serialize(goArchive);
+    dst->m_sourcePath = path;
 
     dst->init();
     return true;

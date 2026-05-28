@@ -5,6 +5,7 @@
 #include "Metadata.h"
 #include "AssetsDictionary.h"
 #include "MD5.h"
+#include "JsonArchive.h"
 
 template<typename T>
 std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
@@ -83,8 +84,10 @@ std::shared_ptr<T> ModuleAssets::loadAtPath(const std::filesystem::path& sourceP
     Metadata::getMetadataPath(metaPath);
 
     Metadata meta;
-    if (meta.load(metaPath))
+    JsonArchive metaArchive(ArchiveMode::Input);
+    if (metaArchive.loadFile(metaPath))
     {
+        meta.serialize(metaArchive);
         m_index.registerEntry(meta.uid, meta.type, sourcePath);
         AssetReference ref(meta.uid, meta.contentHash, meta.type);
         return load<T>(ref);

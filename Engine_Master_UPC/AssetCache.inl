@@ -8,6 +8,7 @@
 #include "Metadata.h"
 #include "FileIO.h"
 #include "AssetsDictionary.h"
+#include "JsonArchive.h"
 #include <cstdint>
 #include <vector>
 
@@ -45,8 +46,15 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
         std::filesystem::path metaPath = entry->sourcePath;
         Metadata::getMetadataPath(metaPath);
         Metadata meta;
-        if (meta.load(metaPath) && meta.importSettings)
+        JsonArchive metaArchive(ArchiveMode::Input);
+        if (metaArchive.loadFile(metaPath))
         {
+            meta.serialize(metaArchive);
+            if (meta.importSettings)
+            {
+                asset->setImportSettings(std::move(meta.importSettings));
+            }
+        }
             asset->setImportSettings(std::move(meta.importSettings));
         }
     }
@@ -129,8 +137,10 @@ std::shared_ptr<T> AssetCache::loadAtPath(const std::filesystem::path& sourcePat
     Metadata::getMetadataPath(metaPath);
 
     Metadata meta;
-    if (meta.load(metaPath))
+    JsonArchive metaArchive(ArchiveMode::Input);
+    if (metaArchive.loadFile(metaPath))
     {
+        meta.serialize(metaArchive);
         index.registerEntry(meta.uid, meta.type, sourcePath);
         AssetReference ref(meta.uid, meta.contentHash, meta.type);
         return load<T>(ref, index, importers);

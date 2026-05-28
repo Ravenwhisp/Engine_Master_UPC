@@ -4,6 +4,8 @@
 #include "AssetType.h"
 #include "AssetsDictionary.h"
 #include "ImportSettings.h"
+#include "ISerializable.h"
+#include "IArchive.h"
 
 #include <filesystem>
 #include <vector>
@@ -22,7 +24,7 @@ struct DependencyRecord
 	}
 };
 
-struct Metadata
+struct Metadata : public ISerializable
 {
 	UID			uid = INVALID_UID;
 	MD5Hash		contentHash = INVALID_ASSET_ID;
@@ -85,6 +87,5 @@ struct Metadata
 		assetPath += METADATA_EXTENSION;
 	}
 
-	bool load(const std::filesystem::path& metaPath);
-	bool save(const std::filesystem::path& metaPath) const;
+	void serialize(IArchive& archive) override;
 };

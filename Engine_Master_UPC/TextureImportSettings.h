@@ -25,8 +25,7 @@ public:
     // Transient — not serialized; set during import from filename detection when targetFormat is AUTO
     TextureImportFormat resolvedFormat = TextureImportFormat::AUTO;
 
-    void save(rapidjson::Value& obj, rapidjson::Document::AllocatorType& allocator) const override;
-    void load(const rapidjson::Value& obj) override;
+    void serialize(IArchive& archive) override;
     std::unique_ptr<ImportSettings> clone() const override;
     const char* getTypeName() const override { return "TextureImportSettings"; }
     void drawUI() override;

@@ -29,21 +29,15 @@ static const char* TextureImportFormatToString(TextureImportFormat fmt)
     }
 }
 
-void TextureImportSettings::save(rapidjson::Value& obj, rapidjson::Document::AllocatorType& allocator) const
+void TextureImportSettings::serialize(IArchive& archive)
 {
-    obj.AddMember("targetFormat", static_cast<uint32_t>(targetFormat), allocator);
-    obj.AddMember("generateMips", generateMips, allocator);
-    obj.AddMember("srgb", srgb, allocator);
-}
+    uint32_t fmt = static_cast<uint32_t>(targetFormat);
+    archive.serialize(fmt, "targetFormat");
+    if (archive.mode() == ArchiveMode::Input)
+        targetFormat = static_cast<TextureImportFormat>(fmt);
 
-void TextureImportSettings::load(const rapidjson::Value& obj)
-{
-    if (obj.HasMember("targetFormat") && obj["targetFormat"].IsUint())
-        targetFormat = static_cast<TextureImportFormat>(obj["targetFormat"].GetUint());
-    if (obj.HasMember("generateMips") && obj["generateMips"].IsBool())
-        generateMips = obj["generateMips"].GetBool();
-    if (obj.HasMember("srgb") && obj["srgb"].IsBool())
-        srgb = obj["srgb"].GetBool();
+    archive.serialize(generateMips, "generateMips");
+    archive.serialize(srgb, "srgb");
 }
 
 std::unique_ptr<ImportSettings> TextureImportSettings::clone() const

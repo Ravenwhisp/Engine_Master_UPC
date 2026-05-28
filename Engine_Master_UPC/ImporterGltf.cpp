@@ -22,6 +22,7 @@
 #include "AnimationComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -143,8 +144,10 @@ AssetReference ImporterGltf::resolveTexture(const tinygltf::Model& model, int te
         std::filesystem::path metaPath = resolved;
         Metadata::getMetadataPath(metaPath);
         Metadata meta;
-        if (meta.load(metaPath))
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(metaPath))
         {
+            meta.serialize(archive);
             return AssetReference(meta.uid, meta.contentHash, meta.type);
         }
 
@@ -185,8 +188,10 @@ bool ImporterGltf::createStateMachine(const std::filesystem::path& gltfPath)
         std::filesystem::path metaPath = gltfPath;
         Metadata::getMetadataPath(metaPath);
         Metadata existingMeta;
-        if (existingMeta.load(metaPath))
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(metaPath))
         {
+            existingMeta.serialize(archive);
             m_existingDeps = existingMeta.m_dependencies;
             m_existingDepsUsed.assign(m_existingDeps.size(), false);
         }
@@ -262,8 +267,10 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, Prefab* dst)
         std::filesystem::path metaPath = *m_currentFilePath;
         Metadata::getMetadataPath(metaPath);
         Metadata existingMeta;
-        if (existingMeta.load(metaPath))
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(metaPath))
         {
+            existingMeta.serialize(archive);
             m_existingDeps = existingMeta.m_dependencies;
             m_existingDepsUsed.assign(m_existingDeps.size(), false);
         }
@@ -702,8 +709,10 @@ AssetReference ImporterGltf::buildDefaultStateMachine(
             std::filesystem::path metaPath = smPath;
             Metadata::getMetadataPath(metaPath);
             Metadata meta;
-            if (meta.load(metaPath))
+            JsonArchive archive(ArchiveMode::Input);
+            if (archive.loadFile(metaPath))
             {
+                meta.serialize(archive);
                 DEBUG_LOG("[ImporterGltf] Reusing existing state machine '%s' (UID '%s').",
                     smPath.string().c_str(), std::to_string(meta.uid).c_str());
                 return AssetReference(meta.uid, meta.contentHash, meta.type);
@@ -717,8 +726,10 @@ AssetReference ImporterGltf::buildDefaultStateMachine(
         std::filesystem::path metaPath = smPath;
         Metadata::getMetadataPath(metaPath);
         Metadata meta;
-        if (meta.load(metaPath))
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(metaPath))
         {
+            meta.serialize(archive);
             DEBUG_LOG("[ImporterGltf] Reusing existing state machine '%s' (UID '%s').",
                 smPath.string().c_str(), std::to_string(meta.uid).c_str());
             return AssetReference(meta.uid, meta.contentHash, meta.type);
