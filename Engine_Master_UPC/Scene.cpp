@@ -284,7 +284,9 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
+    GameObject* raw = gameObject.get();
     m_allObjects.push_back(std::move(gameObject));
+    m_rootObjects.push_back(raw);
     markDirty();
 }
 

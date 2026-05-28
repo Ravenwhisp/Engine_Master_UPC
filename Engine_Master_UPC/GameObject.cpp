@@ -77,6 +77,14 @@ std::unique_ptr<GameObject> GameObject::clone() const
         }
     }
 
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        auto childClone = child->clone();
+        childClone->GetTransform()->setRoot(newGameObject->GetTransform());
+        newGameObject->GetTransform()->addChild(childClone.get());
+        newGameObject->m_ownedChildren.push_back(std::move(childClone));
+    }
+
     return newGameObject;
 }
 

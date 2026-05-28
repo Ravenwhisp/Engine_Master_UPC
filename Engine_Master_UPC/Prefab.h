@@ -4,15 +4,16 @@
 #include "IArchive.h"
 #include "ISerializable.h"
 #include "UID.h"
+#include "Component.h"
+#include "Transform.h"
 #include <filesystem>
 #include <string>
-#include "Transform.h"
-
+#include <vector>
+#include <memory>
 
 class Prefab : public Asset, public GameObject
 {
 public:
-    Prefab() : Asset(), GameObject(GenerateUID(), GenerateUID()) {}
 
     explicit Prefab(AssetReference& id)
         : Asset(id, AssetType::PREFAB)
@@ -37,6 +38,7 @@ public:
         return GameObject::clone();
     }
 
+    // Copies scalars, clones components (not move), recursively clones children into m_ownedChildren
     void buildFrom(GameObject* source)
     {
         SetName(source->GetName());
@@ -49,7 +51,54 @@ public:
         GetTransform()->setRotation(source->GetTransform()->getRotation());
         GetTransform()->setScale(source->GetTransform()->getScale());
 
-        adoptComponentsFrom(source);
-        adoptChildrenFrom(source);
+        for (Component* comp : source->GetAllComponents())
+        {
+            if (comp->getType() != ComponentType::TRANSFORM)
+            {
+                auto cloned = comp->clone(this);
+                if (cloned)
+                    AddClonedComponent(std::move(cloned));
+            }
+        }
+
+        m_ownedChildren.clear();
+        cloneChildTree(source, this);
+    }
+
+private:
+    void cloneChildTree(GameObject* sourceParent, GameObject* dstParent)
+    {
+        for (GameObject* child : sourceParent->GetTransform()->getAllChildren())
+        {
+            auto childClone = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
+            GameObject* rawChild = childClone.get();
+
+            rawChild->SetName(child->GetName());
+            rawChild->SetActive(child->GetActive());
+            rawChild->SetStatic(child->GetStatic());
+            rawChild->SetLayer(child->GetLayer());
+            rawChild->SetTag(child->GetTag());
+
+            rawChild->GetTransform()->setPosition(child->GetTransform()->getPosition());
+            rawChild->GetTransform()->setRotation(child->GetTransform()->getRotation());
+            rawChild->GetTransform()->setScale(child->GetTransform()->getScale());
+
+            for (Component* comp : child->GetAllComponents())
+            {
+                if (comp->getType() != ComponentType::TRANSFORM)
+                {
+                    auto cloned = comp->clone(rawChild);
+                    if (cloned)
+                        rawChild->AddClonedComponent(std::move(cloned));
+                }
+            }
+
+            rawChild->GetTransform()->setRoot(dstParent->GetTransform());
+            dstParent->GetTransform()->addChild(rawChild);
+
+            m_ownedChildren.push_back(std::move(childClone));
+
+            cloneChildTree(child, rawChild);
+        }
     }
 };

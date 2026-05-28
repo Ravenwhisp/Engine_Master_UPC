@@ -19,7 +19,28 @@
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
 {
-    app->getModuleAssets()->getPrefabManager()->savePrefab(go, savePath);
+    AssetReference ref;
+    Prefab tempPrefab(ref);
+    tempPrefab.setUID(GenerateUID());
+    tempPrefab.buildFrom(go);
+    tempPrefab.m_sourcePath = savePath;
+
+    if (!app->getModuleAssets()->save(tempPrefab, savePath))
+        return;
+
+    auto* preComp = static_cast<PrefabInstanceComponent*>(
+        go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+    if (preComp)
+    {
+        preComp->getData().m_sourcePath = savePath;
+        const UID assetUID = app->getModuleAssets()->getIndex().findUID(savePath);
+        if (isValidUID(assetUID))
+            preComp->getData().m_assetUID = assetUID;
+    }
+
+    const UID existingUID = app->getModuleAssets()->getIndex().findUID(savePath);
+    if (isValidUID(existingUID))
+        app->getModuleAssets()->unload(AssetReference(existingUID));
 }
 
 void PrefabUI::drawModeHeader(const char* prefabName)

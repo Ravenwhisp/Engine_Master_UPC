@@ -27,8 +27,6 @@
 using namespace rapidjson;
 namespace fs = std::filesystem;
 
-static constexpr int PREFAB_FORMAT_VERSION = 2;
-
 namespace {
 
 bool writeJsonFile(const Document& doc, const fs::path& path)
@@ -77,45 +75,6 @@ PrefabManager::PrefabManager(ModuleAssets* moduleAssets) : m_moduleAssets(module
 
 PrefabManager::~PrefabManager() = default;
 
-bool PrefabManager::savePrefab(GameObject* go, const fs::path& savePath)
-{
-    if (!go || savePath.empty()) return false;
-
-    Document doc;
-    doc.SetObject();
-    auto& alloc = doc.GetAllocator();
-    doc.AddMember("SourcePath", Value(savePath.string().c_str(), alloc), alloc);
-    doc.AddMember("Name", Value(savePath.stem().string().c_str(), alloc), alloc);
-    doc.AddMember("Version", PREFAB_FORMAT_VERSION, alloc);
-
-    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
-    if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != savePath)
-        doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
-
-    JsonArchive goArchive;
-    go->serialize(goArchive);
-    Value goNode = goArchive.extractValue(doc.GetAllocator());
-    doc.AddMember("GameObject", goNode, alloc);
-
-    if (!writeJsonFile(doc, savePath)) return false;
-
-    getOrCreatePrefabComponent(go);
-    preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
-    if (preComp) preComp->getData().m_sourcePath = savePath;
-
-    const UID existingUID = m_moduleAssets->getIndex().findUID(savePath);
-    if (isValidUID(existingUID))
-        m_moduleAssets->unload(AssetReference(existingUID));
-
-    AssetReference ref(existingUID);
-    m_moduleAssets->importAsset(savePath, ref);
-
-    if (isValidUID(ref.m_uid) && preComp)
-        preComp->getData().m_assetUID = ref.m_uid;
-
-    return true;
-}
-
 bool PrefabManager::applyPrefab(const GameObject* go)
 {
     auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
@@ -123,8 +82,27 @@ bool PrefabManager::applyPrefab(const GameObject* go)
 
     const fs::path& prefabPath = preComp->getData().m_sourcePath;
 
-    if (!savePrefab(const_cast<GameObject*>(go), prefabPath))
+    const UID existingUID = m_moduleAssets->getIndex().findUID(prefabPath);
+    AssetReference ref;
+    Prefab tempPrefab(ref);
+    tempPrefab.setUID(isValidUID(existingUID) ? existingUID : GenerateUID());
+    tempPrefab.buildFrom(const_cast<GameObject*>(go));
+    tempPrefab.m_sourcePath = prefabPath;
+
+    if (!m_moduleAssets->save(tempPrefab, prefabPath))
         return false;
+
+    auto* goPreComp = const_cast<GameObject*>(go)->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (goPreComp)
+    {
+        goPreComp->getData().m_sourcePath = prefabPath;
+        const UID assetUID = m_moduleAssets->getIndex().findUID(prefabPath);
+        if (isValidUID(assetUID))
+            goPreComp->getData().m_assetUID = assetUID;
+    }
+
+    if (isValidUID(existingUID))
+        m_moduleAssets->unload(AssetReference(existingUID));
 
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene) return true;

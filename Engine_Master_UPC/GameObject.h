@@ -80,6 +80,9 @@ public:
 
 	void onTransformChange();
 
+protected:
+	std::vector<std::unique_ptr<GameObject>> m_ownedChildren;
+
 private:
 	UID m_uuid;
 
