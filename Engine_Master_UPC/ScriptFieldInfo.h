@@ -16,7 +16,9 @@ enum class ScriptFieldType
     String,
     List,
 
-    GroupLabel
+    GroupLabel,
+    GroupCollapseBegin,
+    GroupCollapseEnd
 };
 
 struct ScriptFieldFloatInfo
@@ -55,6 +57,13 @@ struct ScriptFieldInfo
     ScriptFieldEnumInfo enumInfo{};
     ScriptFieldComponentRefInfo componentRefInfo{ ComponentType::TRANSFORM };
     ScriptFieldListInfo listInfo{ ScriptFieldType::Float, nullptr };
+
+    bool editorOnly = false;
+
+    bool isDataField() const
+    {
+        return !editorOnly;
+    }
 };
 
 struct ScriptFieldList

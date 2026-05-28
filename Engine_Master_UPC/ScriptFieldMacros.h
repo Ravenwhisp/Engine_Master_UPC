@@ -91,5 +91,11 @@
 
 // Non serializable fields macros
 
-#define FIELD_GROUP(DisplayName) \
-    { DisplayName, ScriptFieldType::GroupLabel, 0, getGroupLabelFieldHandler() }
+#define FIELD_GROUP_LABEL(DisplayName) \
+    { DisplayName, ScriptFieldType::GroupLabel, 0, getGroupLabelFieldHandler(), {}, {}, {}, {}, true }
+
+#define FIELD_GROUP_COLLAPSE_BEGIN(DisplayName) \
+    { DisplayName, ScriptFieldType::GroupCollapseBegin, 0, nullptr, {}, {}, {}, {}, true }
+
+#define FIELD_GROUP_COLLAPSE_END() \
+    { "", ScriptFieldType::GroupCollapseEnd, 0, nullptr, {}, {}, {}, {}, true }
