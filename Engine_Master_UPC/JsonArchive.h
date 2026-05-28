@@ -76,5 +76,6 @@ private:
 
     // Read state
     const rapidjson::Value* m_currentInput;
+    std::vector<const rapidjson::Value*> m_inputStack;
     int m_currentArrayIndex;
 };

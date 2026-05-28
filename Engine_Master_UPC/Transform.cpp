@@ -249,11 +249,9 @@ void Transform::drawUi()
 
 void Transform::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output)
-	{
-		UID uid = m_uuid;
-		archive.serialize(uid, "UID");
-	}
+	UID uid = m_uuid;
+	archive.serialize(uid, "UID");
+
 	archive.serialize(m_position, "Position");
 	archive.serialize(m_rotation, "Rotation");
 	archive.serialize(m_scale, "Scale");

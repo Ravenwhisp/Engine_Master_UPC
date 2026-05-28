@@ -21,6 +21,7 @@ public:
     virtual std::unique_ptr<Component> clone(GameObject* newOwner) const = 0;
 
     UID getID() const { return m_uuid; }
+    void setUID(UID id) { m_uuid = id; }
     ComponentType getType() const { return m_type; }
     GameObject* getOwner() const { return m_owner; }
 	void setActive(bool active) { m_active = active; }
@@ -48,7 +49,7 @@ public:
 protected:
     GameObject* m_owner;
 
-    const UID m_uuid;
+    UID m_uuid;
 
 private:
     const ComponentType m_type;

@@ -31,26 +31,17 @@ BinaryArchive::BinaryArchive(const uint8_t* buffer, ArchiveMode mode)
 
 void BinaryArchive::serialize(uint8_t& val, const char* /*name*/)
 {
-    if (m_mode == ArchiveMode::Output)
-        m_writer.u8(val);
-    else
-        val = m_reader.u8();
+    serializeRaw(&val, sizeof(val));
 }
 
 void BinaryArchive::serialize(uint32_t& val, const char* /*name*/)
 {
-    if (m_mode == ArchiveMode::Output)
-        m_writer.u32(val);
-    else
-        val = m_reader.u32();
+    serializeRaw(&val, sizeof(val));
 }
 
 void BinaryArchive::serialize(uint64_t& val, const char* /*name*/)
 {
-    if (m_mode == ArchiveMode::Output)
-        m_writer.u64(val);
-    else
-        val = m_reader.u64();
+    serializeRaw(&val, sizeof(val));
 }
 
 void BinaryArchive::serialize(float& val, const char* /*name*/)
@@ -61,22 +52,42 @@ void BinaryArchive::serialize(float& val, const char* /*name*/)
 void BinaryArchive::serialize(bool& val, const char* /*name*/)
 {
     uint8_t b = val ? 1 : 0;
-    serialize(b);
+    serializeRaw(&b, sizeof(b));
     if (m_mode == ArchiveMode::Input) val = (b != 0);
 }
 
 void BinaryArchive::serialize(std::string& val, const char* /*name*/)
 {
     if (m_mode == ArchiveMode::Output)
-        m_writer.string(val);
+    {
+        uint32_t len = static_cast<uint32_t>(val.size());
+        serializeRaw(&len, sizeof(len));
+        serializeRaw(val.data(), len);
+    }
     else
-        val = m_reader.string();
+    {
+        uint32_t len = 0;
+        serializeRaw(&len, sizeof(len));
+        val.resize(len);
+        serializeRaw(val.data(), len);
+    }
 }
 
 void BinaryArchive::serializeRaw(void* data, size_t size, const char* /*name*/)
 {
     if (m_mode == ArchiveMode::Output)
+    {
+        if (m_bytesWritten + size > m_outputBuffer.size())
+        {
+            size_t newSize = m_outputBuffer.size() * 2;
+            if (newSize < m_bytesWritten + size)
+                newSize = m_bytesWritten + size;
+            m_outputBuffer.resize(newSize);
+            m_writer = BinaryWriter(m_outputBuffer.data() + m_bytesWritten);
+        }
         m_writer.bytes(data, size);
+        m_bytesWritten += size;
+    }
     else
         m_reader.bytes(data, size);
 }
@@ -110,7 +121,7 @@ size_t BinaryArchive::size() const
 {
     if (m_mode == ArchiveMode::Output)
     {
-        return m_writer.offset();
+        return m_bytesWritten;
     }
     return 0;
 }

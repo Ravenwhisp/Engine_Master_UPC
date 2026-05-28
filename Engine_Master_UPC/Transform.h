@@ -47,6 +47,7 @@ public:
 
 	void setRoot(Transform* root) { m_root = root; markDirty(); }
 	void addChild(GameObject* child) { m_children.push_back(child); markDirty(); }
+	void clearChildren() { m_children.clear(); markDirty(); }
 	void removeChild(UID id);
 
 	bool isDescendantOf(const Transform* potentialParent) const;

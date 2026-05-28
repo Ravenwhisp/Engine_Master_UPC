@@ -31,6 +31,7 @@ public:
 
 private:
     size_t m_size = 0;
+    size_t m_bytesWritten = 0;
     ArchiveMode m_mode;
 
     std::vector<uint8_t> m_outputBuffer;

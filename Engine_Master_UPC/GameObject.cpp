@@ -141,6 +141,33 @@ bool GameObject::RemoveComponent(Component* componentToRemove)
     return true;
 }
 
+void GameObject::adoptComponentsFrom(GameObject* source)
+{
+    auto& srcComps = source->m_components;
+    for (auto it = srcComps.begin(); it != srcComps.end(); )
+    {
+        if ((*it)->getType() == ComponentType::TRANSFORM)
+        {
+            ++it;
+            continue;
+        }
+        (*it)->m_owner = this;
+        m_components.push_back(std::move(*it));
+        it = srcComps.erase(it);
+    }
+}
+
+void GameObject::adoptChildrenFrom(GameObject* source)
+{
+    Transform* dstTf = GetTransform();
+    for (GameObject* child : source->GetTransform()->getAllChildren())
+    {
+        child->GetTransform()->setRoot(dstTf);
+        dstTf->addChild(child);
+    }
+    source->GetTransform()->clearChildren();
+}
+
 std::vector<Component*> GameObject::GetAllComponents() const
 {
     std::vector<Component*> result = std::vector<Component*>();;
@@ -695,18 +722,21 @@ void GameObject::serialize(IArchive& archive)
     }
     else
     {
+        UID uid = 0;
+        archive.serialize(uid, "UID");
+
         uint64_t parentUid = 0;
         archive.serialize(parentUid, "ParentUID");
         archive.serialize(m_name, "Name");
         archive.serialize(m_active, "Active");
         archive.serialize(m_isStatic, "Static");
         {
-            std::string layer;
+            std::string layer = LayerToString(m_layer);
             archive.serialize(layer, "Layer");
             m_layer = StringToLayer(layer.c_str());
         }
         {
-            std::string tag;
+            std::string tag = TagToString(m_tag);
             archive.serialize(tag, "Tag");
             m_tag = StringToTag(tag.c_str());
         }

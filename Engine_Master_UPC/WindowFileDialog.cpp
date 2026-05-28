@@ -37,8 +37,8 @@ void WindowFileDialog::handleAssetClick(const AssetEntry& asset)
         return;
     }
 
-    AssetReference ref(asset.uid);
-    std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(ref);
+    AssetReference* ref = app->getModuleAssets()->findReference(asset.uid);
+    std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(*ref);
 
     app->getModuleEditor()->setSelectedAsset(assetResource);
 

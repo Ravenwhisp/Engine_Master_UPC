@@ -6,6 +6,8 @@
 #include "UID.h"
 #include <filesystem>
 #include <string>
+#include "Transform.h"
+
 
 class Prefab : public Asset, public GameObject
 {
@@ -33,5 +35,21 @@ public:
     std::unique_ptr<GameObject> spawnClone() const
     {
         return GameObject::clone();
+    }
+
+    void buildFrom(GameObject* source)
+    {
+        SetName(source->GetName());
+        SetActive(source->GetActive());
+        SetStatic(source->GetStatic());
+        SetLayer(source->GetLayer());
+        SetTag(source->GetTag());
+
+        GetTransform()->setPosition(source->GetTransform()->getPosition());
+        GetTransform()->setRotation(source->GetTransform()->getRotation());
+        GetTransform()->setScale(source->GetTransform()->getScale());
+
+        adoptComponentsFrom(source);
+        adoptChildrenFrom(source);
     }
 };

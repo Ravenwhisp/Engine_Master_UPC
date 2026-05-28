@@ -2,9 +2,7 @@
 #include "ImporterPrefab.h"
 
 #include "Prefab.h"
-#include "PrefabManager.h"
 #include "PrefabInstanceComponent.h"
-#include "Transform.h"
 #include "JsonArchive.h"
 
 #include <rapidjson/document.h>
@@ -73,46 +71,10 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
     }
 
     dst->m_sourcePath = path;
-    const auto& goNode = doc["GameObject"];
 
-    dst->SetName(goNode.HasMember("Name") ? goNode["Name"].GetString() : "Unnamed");
-    dst->SetActive(goNode.HasMember("Active") ? goNode["Active"].GetBool() : true);
-    if (goNode.HasMember("Tag") && goNode["Tag"].IsString())
-        dst->SetTag(StringToTag(goNode["Tag"].GetString()));
-    if (goNode.HasMember("Layer") && goNode["Layer"].IsString())
-        dst->SetLayer(StringToLayer(goNode["Layer"].GetString()));
-
-    // Inline deserialiseTransform
-    if (goNode.HasMember("Transform") && goNode["Transform"].IsObject())
-    {
-        JsonArchive tfArchive(ArchiveMode::Input);
-        tfArchive.setValue(goNode["Transform"]);
-        dst->GetTransform()->serialize(tfArchive);
-    }
-
-    // Inline deserialiseComponents
-    if (goNode.HasMember("Components") && goNode["Components"].IsArray())
-    {
-        for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
-        {
-            const auto& cn = goNode["Components"][i];
-            auto type = static_cast<ComponentType>(cn["Type"].GetInt());
-            Component* comp = dst->AddComponentWithUID(type, GenerateUID());
-            if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
-            {
-                JsonArchive compArchive(ArchiveMode::Input);
-                compArchive.setValue(cn["Data"]);
-                comp->serialize(compArchive);
-            }
-        }
-    }
-
-    // Children via tree-building helper
-    if (goNode.HasMember("Children") && goNode["Children"].IsArray())
-    {
-        for (SizeType i = 0; i < goNode["Children"].Size(); ++i)
-            PrefabManager::createFromJSON(goNode["Children"][i], dst);
-    }
+    JsonArchive goArchive(ArchiveMode::Input);
+    goArchive.setValue(doc["GameObject"]);
+    dst->GameObject::serialize(goArchive);
 
     dst->init();
     return true;

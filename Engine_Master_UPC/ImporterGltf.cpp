@@ -22,13 +22,11 @@
 #include "AnimationComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
-#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "AssetIndex.h"
 #include "MD5.h"
-#include "PrefabManager.h"
 
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
@@ -392,45 +390,7 @@ void ImporterGltf::importTyped(const tinygltf::Model& model, Prefab* dst)
 
     if (root)
     {
-        // Serialize the temp GO via JsonArchive, then populate the Prefab
-        JsonArchive goArchive;
-        root->serialize(goArchive);
-        rapidjson::Document goDoc;
-        goDoc.SetObject();
-        rapidjson::Value goNodeVal = goArchive.extractValue(goDoc.GetAllocator());
-        goDoc.Swap(goNodeVal);
-
-        dst->SetName(goDoc.HasMember("Name") ? goDoc["Name"].GetString() : "Unnamed");
-        dst->SetActive(goDoc.HasMember("Active") ? goDoc["Active"].GetBool() : true);
-
-        if (goDoc.HasMember("Transform") && goDoc["Transform"].IsObject())
-        {
-            JsonArchive tfArchive(ArchiveMode::Input);
-            tfArchive.setValue(goDoc["Transform"]);
-            dst->GetTransform()->serialize(tfArchive);
-        }
-
-        if (goDoc.HasMember("Components") && goDoc["Components"].IsArray())
-        {
-            for (auto& cn : goDoc["Components"].GetArray())
-            {
-                auto type = static_cast<ComponentType>(cn["Type"].GetInt());
-                Component* comp = dst->AddComponentWithUID(type, GenerateUID());
-                if (comp && cn.HasMember("Data") && cn["Data"].IsObject())
-                {
-                    JsonArchive compArchive(ArchiveMode::Input);
-                    compArchive.setValue(cn["Data"]);
-                    comp->serialize(compArchive);
-                }
-            }
-        }
-
-        // Children via tree-building helper
-        if (goDoc.HasMember("Children") && goDoc["Children"].IsArray())
-        {
-            for (auto& child : goDoc["Children"].GetArray())
-                PrefabManager::createFromJSON(child, dst);
-        }
+        dst->buildFrom(root);
 
         if (stateMachineRef.isValid())
         {

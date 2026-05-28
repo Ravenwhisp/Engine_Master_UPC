@@ -58,6 +58,7 @@ bool JsonArchive::loadFile(const std::filesystem::path& path)
 
     m_currentInput = &m_doc;
     m_currentArrayIndex = 0;
+    m_inputStack.clear();
     return true;
 }
 
@@ -311,6 +312,7 @@ void JsonArchive::setValue(const rapidjson::Value& val)
 {
     m_doc.CopyFrom(val, m_doc.GetAllocator());
     m_currentInput = &m_doc;
+    m_inputStack.clear();
 }
 
 // --- JSON-specific methods ---
@@ -329,6 +331,7 @@ void JsonArchive::beginObject(const char* name)
     {
         if (m_currentInput && m_currentInput->HasMember(name))
         {
+            m_inputStack.push_back(m_currentInput);
             m_currentInput = &(*m_currentInput)[name];
             m_currentArrayIndex = 0;
         }
@@ -347,9 +350,11 @@ void JsonArchive::endObject()
     }
     else
     {
-        // We don't maintain a full input stack for simplicity.
-        // Objects are navigated by name via beginObject().
-        // For flat Metadata, this is acceptable.
+        if (!m_inputStack.empty())
+        {
+            m_currentInput = m_inputStack.back();
+            m_inputStack.pop_back();
+        }
         m_currentArrayIndex = 0;
     }
 }
@@ -368,6 +373,7 @@ void JsonArchive::beginArray(const char* name)
     {
         if (m_currentInput && m_currentInput->HasMember(name))
         {
+            m_inputStack.push_back(m_currentInput);
             m_currentInput = &(*m_currentInput)[name];
             m_currentArrayIndex = 0;
         }
@@ -386,6 +392,11 @@ void JsonArchive::endArray()
     }
     else
     {
+        if (!m_inputStack.empty())
+        {
+            m_currentInput = m_inputStack.back();
+            m_inputStack.pop_back();
+        }
         m_currentArrayIndex = 0;
     }
 }

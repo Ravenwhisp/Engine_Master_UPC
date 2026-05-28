@@ -28,6 +28,7 @@ public:
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }
+	void SetUID(UID uid) { m_uuid = uid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
 	bool IsActiveInWindowHierarchy() const;
@@ -51,6 +52,9 @@ public:
 	bool RemoveComponent(Component* componentToRemove);
 	Component* GetComponent(ComponentType type) const;
 	std::vector<Component*> GetAllComponents() const;
+
+	void adoptComponentsFrom(GameObject* source);
+	void adoptChildrenFrom(GameObject* source);
 
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const
