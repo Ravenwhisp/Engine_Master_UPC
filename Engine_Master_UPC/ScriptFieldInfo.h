@@ -14,7 +14,9 @@ enum class ScriptFieldType
     ComponentRef,
     ComponentRefList,
     String,
-    List
+    List,
+
+    GroupLabel
 };
 
 struct ScriptFieldFloatInfo

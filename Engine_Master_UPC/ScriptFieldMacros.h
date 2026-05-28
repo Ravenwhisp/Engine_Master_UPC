@@ -88,3 +88,8 @@
 
 #define SERIALIZED_COMPONENT_REF_VECTOR(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::ComponentRef), {}, {}, { ComponentTypeValue }, { ScriptFieldType::ComponentRef, getComponentRefFieldHandler() } }
+
+// Non serializable fields macros
+
+#define FIELD_GROUP(DisplayName) \
+    { DisplayName, ScriptFieldType::GroupLabel, 0, getGroupLabelFieldHandler() }

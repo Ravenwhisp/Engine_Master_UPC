@@ -14,3 +14,5 @@ ENGINE_API const ScriptFieldHandler* getComponentRefFieldHandler();
 ENGINE_API const ScriptFieldHandler* getComponentRefListFieldHandler();
 ENGINE_API const ScriptFieldHandler* getStringFieldHandler();
 ENGINE_API const ScriptFieldHandler* getListFieldHandler(ScriptFieldType elementType);
+
+ENGINE_API const ScriptFieldHandler* getGroupLabelFieldHandler();
