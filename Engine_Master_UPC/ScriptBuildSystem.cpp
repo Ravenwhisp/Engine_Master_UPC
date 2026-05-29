@@ -99,9 +99,16 @@ bool ScriptBuildSystem::runMsBuild(const std::filesystem::path& msbuildPath, con
 
     std::string solutionDirString = solutionDir.string();
 
-    if (!solutionDirString.empty() && solutionDirString.back() != '\\')
+    if (!solutionDirString.empty() && solutionDirString.back() != '\\' && solutionDirString.back() != '/')
     {
         solutionDirString += '\\';
+    }
+
+    std::string quotedSolutionDirString = solutionDirString;
+
+    if (!quotedSolutionDirString.empty() && quotedSolutionDirString.back() == '\\')
+    {
+        quotedSolutionDirString += '\\';
     }
 
     const std::string commandLine =
@@ -110,7 +117,7 @@ bool ScriptBuildSystem::runMsBuild(const std::filesystem::path& msbuildPath, con
         "\"/t:Build\" " +
         "\"/p:Configuration=" + configuration + "\" " +
         "\"/p:Platform=" + platform + "\" " +
-        "\"/p:SolutionDir=" + solutionDirString + "\"";
+        "\"/p:SolutionDir=" + quotedSolutionDirString + "\"";
 
     SECURITY_ATTRIBUTES securityAttributes = {};
     securityAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);

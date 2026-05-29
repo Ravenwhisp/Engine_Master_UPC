@@ -37,6 +37,8 @@ bool ModuleScripting::init()
 {
     loadScriptBuildSettings();
 
+    m_scriptLibraryLoader.cleanRuntimeFiles();
+
     return m_scriptLibraryLoader.load();
 }
 
