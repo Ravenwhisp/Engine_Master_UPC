@@ -33,5 +33,7 @@ private:
 
     std::array<char, 512> m_scriptProjectPathBuffer = {};
     std::array<char, 512> m_scriptSolutionDirBuffer = {};
+    std::array<char, 64> m_scriptConfigurationBuffer = {};
+    std::array<char, 64> m_scriptPlatformBuffer = {};
     bool m_scriptBuildSettingsSynced = false;
 };

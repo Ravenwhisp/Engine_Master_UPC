@@ -129,12 +129,16 @@ void WindowEditorSettings::drawScriptsSettings()
     if (!m_scriptBuildSettingsSynced)
     {
         std::strncpy(m_scriptProjectPathBuffer.data(), buildSettings.projectPath.c_str(), m_scriptProjectPathBuffer.size());
-
         m_scriptProjectPathBuffer[m_scriptProjectPathBuffer.size() - 1] = '\0';
 
         std::strncpy(m_scriptSolutionDirBuffer.data(), buildSettings.solutionDir.c_str(), m_scriptSolutionDirBuffer.size());
-
         m_scriptSolutionDirBuffer[m_scriptSolutionDirBuffer.size() - 1] = '\0';
+
+        std::strncpy(m_scriptConfigurationBuffer.data(), buildSettings.configuration.c_str(), m_scriptConfigurationBuffer.size());
+        m_scriptConfigurationBuffer[m_scriptConfigurationBuffer.size() - 1] = '\0';
+
+        std::strncpy(m_scriptPlatformBuffer.data(), buildSettings.platform.c_str(), m_scriptPlatformBuffer.size());
+        m_scriptPlatformBuffer[m_scriptPlatformBuffer.size() - 1] = '\0';
 
         m_scriptBuildSettingsSynced = true;
     }
@@ -142,13 +146,16 @@ void WindowEditorSettings::drawScriptsSettings()
     ImGui::TextUnformatted("Script Build Settings");
 
     ImGui::InputText("Project Path", m_scriptProjectPathBuffer.data(), m_scriptProjectPathBuffer.size());
-
     ImGui::InputText("Solution Dir", m_scriptSolutionDirBuffer.data(), m_scriptSolutionDirBuffer.size());
+    ImGui::InputText("Configuration", m_scriptConfigurationBuffer.data(), m_scriptConfigurationBuffer.size());
+    ImGui::InputText("Platform", m_scriptPlatformBuffer.data(), m_scriptPlatformBuffer.size());
 
     if (ImGui::Button("Save Script Build Settings"))
     {
         buildSettings.projectPath = m_scriptProjectPathBuffer.data();
         buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
+        buildSettings.configuration = m_scriptConfigurationBuffer.data();
+        buildSettings.platform = m_scriptPlatformBuffer.data();
 
         moduleScripting->saveScriptBuildSettings();
     }
@@ -159,6 +166,8 @@ void WindowEditorSettings::drawScriptsSettings()
     {
         buildSettings.projectPath = m_scriptProjectPathBuffer.data();
         buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
+        buildSettings.configuration = m_scriptConfigurationBuffer.data();
+        buildSettings.platform = m_scriptPlatformBuffer.data();
 
         moduleScripting->requestBuildAndReloadGameScriptsDll();
     }
