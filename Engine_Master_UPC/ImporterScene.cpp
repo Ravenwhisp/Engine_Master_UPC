@@ -4,6 +4,9 @@
 
 #include <rapidjson/filewritestream.h>
 #include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include "BinaryWriter.h"
+#include "BinaryReader.h"
 
 
 Asset* ImporterScene::createAssetInstance(AssetReference& uid) const
@@ -44,44 +47,87 @@ bool ImporterScene::importNative(const std::filesystem::path& path, Scene* dst)
     FILE* fp = std::fopen(pathStr.c_str(), "rb");
     if (!fp)
     {
-        DEBUG_ERROR("[AssetMetadata] Could not open '%s'.", pathStr.c_str());
+        DEBUG_ERROR("[ImporterScene] Could not open '%s'.", pathStr.c_str());
         return false;
     }
 
-    char readBuffer[65536];
-    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    std::fseek(fp, 0, SEEK_END);
+    const long fsize = std::ftell(fp);
+    std::fseek(fp, 0, SEEK_SET);
 
-    rapidjson::Document doc;
-    doc.ParseStream(is);
+    std::string jsonStr(static_cast<size_t>(fsize), '\0');
+    const size_t bytesRead = std::fread(jsonStr.data(), 1, static_cast<size_t>(fsize), fp);
     std::fclose(fp);
 
+    if (bytesRead != static_cast<size_t>(fsize))
+    {
+        DEBUG_ERROR("[ImporterScene] Failed to read entire file '%s'.", pathStr.c_str());
+        return false;
+    }
+
+    rapidjson::Document doc;
+    doc.Parse(jsonStr.c_str());
     if (doc.HasParseError())
     {
-        DEBUG_ERROR("[SceneSerializer] JSON parse error");
+        DEBUG_ERROR("[ImporterScene] JSON parse error in '%s'.", pathStr.c_str());
         return false;
     }
 
     if (!doc.IsObject())
     {
-        DEBUG_ERROR("[SceneSerializer] Scene JSON root is not an object");
+        DEBUG_ERROR("[ImporterScene] Scene JSON root is not an object in '%s'.", pathStr.c_str());
         return false;
     }
 
-    if (!SceneSerializer::LoadFromJSON(*dst, doc))
+    if (doc.HasMember("Scene") && doc["Scene"].IsString())
     {
-        DEBUG_ERROR("[SceneSerializer] Failed to load scene from JSON");
-        return false;
+        dst->setName(doc["Scene"].GetString());
     }
 
-	return true;
+    dst->setRawJson(jsonStr);
+    return true;
 }
 
 uint64_t ImporterScene::saveTyped(const Scene* source, uint8_t** outBuffer)
 {
-	return 0;
+    const std::string& jsonStr = source->getRawJson();
+    const std::string& name = source->getName();
+
+    uint64_t size = 0;
+    size += sizeof(uint32_t) + name.size();
+    size += sizeof(uint32_t) + jsonStr.size();
+
+    uint8_t* buffer = new uint8_t[size];
+    BinaryWriter bw(buffer);
+    bw.string(name);
+    bw.string(jsonStr);
+
+    *outBuffer = buffer;
+    return size;
 }
 
 void ImporterScene::loadTyped(const uint8_t* buffer, Scene* dst)
 {
+    BinaryReader reader(buffer);
 
+    const std::string name = reader.string();
+    const std::string jsonStr = reader.string();
+
+    dst->setName(name.c_str());
+
+    rapidjson::Document doc;
+    doc.Parse(jsonStr.c_str());
+    if (doc.HasParseError())
+    {
+        DEBUG_ERROR("[ImporterScene] JSON parse error in loadTyped");
+        return;
+    }
+
+    if (!doc.IsObject())
+    {
+        DEBUG_ERROR("[ImporterScene] Scene JSON root is not an object in loadTyped");
+        return;
+    }
+
+    dst->setRawJson(jsonStr);
 }

@@ -21,6 +21,10 @@ public:
 
     void tryAbility();
 
+    // Reduces the current cooldown timer by (fraction * baseCooldown).
+    // Clamps to 0. Hides the CD UI if it reaches 0.
+    void reduceCooldown(float fraction);
+
 protected:
 	virtual void startAbility() {}
 
@@ -49,10 +53,13 @@ protected:
 protected:
     CharacterBase* m_character = nullptr;
 
+	virtual void updateUI();
     float m_cooldown = 0.0f;
     float m_cooldownTimer = 0.0f;
     ScriptComponentRef<Transform> m_cdUI;
+    GameObject* m_cdGO = nullptr;
     ScriptComponentRef<UISlider> m_cdBar;
+	UISlider* m_cdBarSlider = nullptr;
 
     float m_attackStateTimer = 0.0f;
 

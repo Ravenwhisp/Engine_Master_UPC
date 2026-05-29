@@ -17,6 +17,7 @@ public:
     ScriptFieldList getExposedFields() const override;
 
 public:
+    int m_enemyType = static_cast<int>(NavAgentProfile::EnemyGround);
     float m_combatRange = 2.0f;
     float m_moveSpeed = 1.0f;
     float m_turnSpeed = 2.0f;
@@ -55,6 +56,7 @@ public:
     void tickChargeCooldown(float dt);
     bool isChargeReady() const;
     void consumeChargeCooldown(float cooldownDuration);
+    bool isDead() const;
 
 private:
     Vector3 getChasePosition() const;

@@ -110,6 +110,7 @@ rapidjson::Value SceneSerializer::getJSON(rapidjson::Document& domTree, const Sc
 
     sceneInfo.AddMember("SkyBox", getSkyBoxJSON(domTree, scene), domTree.GetAllocator());
     sceneInfo.AddMember("Lighting", getLightingJSON(domTree, scene), domTree.GetAllocator());
+    sceneInfo.AddMember("SoundBanks", getSoundBanksJSON(domTree, scene), domTree.GetAllocator());
 
     uint64_t defaultCameraOwnerUid = 0;
     auto defaultCamera = scene->getDefaultCamera();
@@ -177,6 +178,22 @@ rapidjson::Value SceneSerializer::getSkyBoxJSON(rapidjson::Document& domTree, co
     return skyboxInfo;
 }
 
+rapidjson::Value SceneSerializer::getSoundBanksJSON(rapidjson::Document& domTree, const Scene* scene)
+{
+    rapidjson::Value banksArray(rapidjson::kArrayType);
+
+    const std::vector<std::string>& banks = scene->getLoadedBanks();
+
+    for (const std::string& bank : banks)
+    {
+        banksArray.PushBack(
+            rapidjson::Value(bank.c_str(), domTree.GetAllocator()),
+            domTree.GetAllocator()
+        );
+    }
+
+    return banksArray;
+}
 #pragma endregion
 
 #pragma region Load
@@ -249,6 +266,7 @@ bool SceneSerializer::LoadFromJSON(Scene& scene, const rapidjson::Value& json)
     }
 
     LoadLighting(scene, json);
+    LoadSoundBanks(scene, json);
 
     if (!json.HasMember("GameObjects") || !json["GameObjects"].IsArray())
     {
@@ -356,6 +374,31 @@ void SceneSerializer::LoadLighting(Scene& scene, const rapidjson::Value& json)
     }
     else {
         DEBUG_WARN("[SceneSerializer] Invalid AmbientIntensity");
+    }
+}
+
+void SceneSerializer::LoadSoundBanks(Scene& scene, const rapidjson::Value& json)
+{
+    if (!json.HasMember("SoundBanks"))
+    {
+        return;
+    }
+
+    const rapidjson::Value& soundBanks = json["SoundBanks"];
+
+    if (!soundBanks.IsArray())
+    {
+        return;
+    }
+
+    for (rapidjson::SizeType i = 0; i < soundBanks.Size(); ++i)
+    {
+        if (!soundBanks[i].IsString())
+        {
+            continue;
+        }
+
+        scene.addLoadedBank(soundBanks[i].GetString());
     }
 }
 

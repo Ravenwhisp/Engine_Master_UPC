@@ -5,12 +5,14 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include <UIRect.h>
+#include <Transform2D.h>
+#include <GameObject.h>
 
 UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAGE, owner)
 {
 }
 
-void UIImage::setTextureAssetId(AssetReference& assetId)
+void UIImage::setTextureAssetId(const AssetReference& assetId)
 {
     m_textureAssetId = assetId;
     m_texture = nullptr;
@@ -39,6 +41,12 @@ std::unique_ptr<Component> UIImage::clone(GameObject* newOwner) const
     cloned->m_fillAmount = m_fillAmount;
     cloned->m_fillMethod = m_fillMethod;
     cloned->m_fillOrigin = m_fillOrigin;
+
+    cloned->m_sheetColumns = m_sheetColumns;
+    cloned->m_sheetRows = m_sheetRows;
+    cloned->m_sheetOffset = m_sheetOffset;
+
+    cloned->m_stretchDrawMode = m_stretchDrawMode;
     return cloned;
 }
 
@@ -86,6 +94,28 @@ void UIImage::drawUi()
 
     ImGui::SameLine();
     ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
+
+    if (m_texture)
+    {
+        if (ImGui::Button("Set Native Size"))
+        {
+            if (Transform2D* transform = getOwner()->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
+            {
+                transform->setBaseSize({ static_cast<float>(m_textureAsset->getWidth()), static_cast<float>(m_textureAsset->getHeight()) });
+            }
+        }
+        ImGui::Separator();
+        ImGui::TextUnformatted("Stretch");
+        {
+            const char* modes[] = { "Stretch", "Tile" };
+            int mode = static_cast<int>(m_stretchDrawMode);
+            if (ImGui::Combo("When Stretched", &mode, modes, IM_ARRAYSIZE(modes)))
+            {
+                m_stretchDrawMode = static_cast<StretchDrawMode>(mode);
+            }
+            ImGui::TextDisabled("Used when Transform2D Stretch Mode is not None.");
+        }
+    }
 }
 
 bool UIImage::consumeLoadRequest()
@@ -107,6 +137,17 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
     componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
+
+    componentInfo.AddMember("SheetColumns", m_sheetColumns, domTree.GetAllocator());
+    componentInfo.AddMember("SheetRows", m_sheetRows, domTree.GetAllocator());
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_sheetOffset.x, domTree.GetAllocator());
+        offset.PushBack(m_sheetOffset.y, domTree.GetAllocator());
+        componentInfo.AddMember("SheetOffset", offset, domTree.GetAllocator());
+    }
+
+    componentInfo.AddMember("StretchDrawMode", static_cast<int>(m_stretchDrawMode), domTree.GetAllocator());
 
     return componentInfo;
 }
@@ -135,6 +176,35 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
     if (componentInfo.HasMember("FillOrigin"))
     {
         m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
+    }
+
+    if (componentInfo.HasMember("SheetColumns"))
+        m_sheetColumns = std::max(1, componentInfo["SheetColumns"].GetInt());
+    else
+        m_sheetColumns = 1;
+
+    if (componentInfo.HasMember("SheetRows"))
+        m_sheetRows = std::max(1, componentInfo["SheetRows"].GetInt());
+    else
+        m_sheetRows = 1;
+
+    if (componentInfo.HasMember("SheetOffset"))
+    {
+        m_sheetOffset.x = componentInfo["SheetOffset"][0].GetFloat();
+        m_sheetOffset.y = componentInfo["SheetOffset"][1].GetFloat();
+    }
+    else
+    {
+        m_sheetOffset = { 0.0f, 0.0f };
+    }
+
+    if (componentInfo.HasMember("StretchDrawMode"))
+    {
+        m_stretchDrawMode = static_cast<StretchDrawMode>(componentInfo["StretchDrawMode"].GetInt());
+    }
+    else
+    {
+        m_stretchDrawMode = StretchDrawMode::Stretch;
     }
 
     return true;

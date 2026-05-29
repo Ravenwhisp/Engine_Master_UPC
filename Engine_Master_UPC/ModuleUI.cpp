@@ -64,7 +64,6 @@ void ModuleUI::preRender()
 		}
 
 		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, { 1.0f, 1.0f });
-		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, { 1.0f, 1.0f });
     }
 }
 
@@ -159,44 +158,45 @@ void ModuleUI::buildUIDrawCommands(GameObject* gameObject, const Rect2D& parentR
 void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, CanvasRenderMode renderMode, const Matrix& canvasWorld, bool zTest, float alpha)
 {
     UIImage* uiImg = gameObject->GetComponentAs<UIImage>(ComponentType::UIIMAGE);
+    Transform2D* t2d = gameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
 
     if (!uiImg || !uiImg->isActive())
     {
         return;
     }
 
-    if (uiImg->consumeLoadRequest())
-    {
-        TextureAsset* asset = uiImg->getTextureAsset();
-        AssetReference& assetId = uiImg->getTextureAssetId();
+        if (uiImg->consumeLoadRequest())
+        {
+            TextureAsset* asset = uiImg->getTextureAsset();
+            const AssetReference& assetId = uiImg->getTextureAssetId();
 
-        if (!asset || !assetId.isValid())
-        {
-            uiImg->setTexture(nullptr);
-        }
-        else
-        {
-            auto textureIteration = m_uiTextures.find(&assetId);
-            if (textureIteration == m_uiTextures.end())
+            if (!asset || !assetId.isValid())
             {
-                auto texture = app->getModuleResources()->createTextureSRGB(*asset, true);
-                if (texture)
-                {
-                    Texture* raw = texture.get();
-                    m_uiTextures.emplace(&assetId, std::move(texture));
-                    uiImg->setTexture(raw);
-                }
-                else
-                {
-                    uiImg->setTexture(nullptr);
-                }
+                uiImg->setTexture(nullptr);
             }
             else
             {
-                uiImg->setTexture(textureIteration->second.get());
+                auto textureIteration = m_uiTextures.find(assetId.m_uid);
+                if (textureIteration == m_uiTextures.end())
+                {
+                    auto texture = app->getModuleResources()->createTexture(*asset, true);
+                    if (texture)
+                    {
+                        Texture* raw = texture.get();
+                        m_uiTextures.emplace(assetId.m_uid, std::move(texture));
+                        uiImg->setTexture(raw);
+                    }
+                    else
+                    {
+                        uiImg->setTexture(nullptr);
+                    }
+                }
+                else
+                {
+                    uiImg->setTexture(textureIteration->second.get());
+                }
             }
         }
-    }
 
     if (uiImg->getTexture() != nullptr)
     {
@@ -207,6 +207,35 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.fillAmount = uiImg->getFillAmount();
         command.fillMethod = uiImg->getFillMethod();
         command.fillOrigin = uiImg->getFillOrigin();
+
+        command.uvScale = { 1.0f, 1.0f };
+        command.uvScale.x /= uiImg->getSheetColumns();
+        command.uvScale.y /= uiImg->getSheetRows();
+        command.sheetOffset = Vector2(0.5f, 0.5f) * command.uvScale + uiImg->getSheetOffset();
+
+        const bool hasSheet = uiImg->getSheetColumns() > 1 || uiImg->getSheetRows() > 1;
+        if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile && !hasSheet)
+        {
+
+            if (t2d->getStretchMode() == StretchMode::HORIZONTAL)
+            {
+                command.uvScale.y *= t2d->getScale().y;
+            }
+            else if (t2d->getStretchMode() == StretchMode::VERTICAL)
+            {
+                command.uvScale.x *= t2d->getScale().x;
+			}
+            else if (t2d->getStretchMode() == StretchMode::BOTH)
+             {
+				command.uvScale *= Vector2(myRect.w / t2d->getBaseSize().x, myRect.h / t2d->getBaseSize().y);
+			}
+            else
+            {
+                command.uvScale *= t2d->getScale();
+			}
+			command.sheetOffset = Vector2(0.5f, 0.5f);
+        }
+
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity

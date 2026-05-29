@@ -22,6 +22,8 @@ public:
 
 	void drawUI() override;
 
+	std::unique_ptr<ImportSettings> createDefaultImportSettings() const override;
+
 private:
 	uint32_t width = 0;
 	uint32_t height = 0;

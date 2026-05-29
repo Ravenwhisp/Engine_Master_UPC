@@ -15,6 +15,9 @@ Engine_OUT/imgui.ini
 Engine_OUT/editor_windows.ini
 Engine_OUT/script_build_settings.ini
 
+Engine_OUT/AnimationStateMachine*
+NodeEditor.json
+
 export
 
 # User-specific files

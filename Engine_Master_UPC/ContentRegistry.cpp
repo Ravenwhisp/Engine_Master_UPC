@@ -1,10 +1,11 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ContentRegistry.h"
 
 #include "FileIO.h"
 #include "AssetsDictionary.h"
 #include "ModuleAssets.h"
 
+#include <algorithm>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -16,6 +17,55 @@ ContentRegistry::ContentRegistry(ModuleAssets* moduleAssets) : m_moduleAssets(mo
 void ContentRegistry::rebuild(const fs::path& rootPath)
 {
     m_root = buildDirectory(rootPath.lexically_normal(), nullptr);
+}
+
+void ContentRegistry::registerAsset(const fs::path& sourcePath)
+{
+    if (!m_root)
+        return;
+
+    const fs::path normSource = sourcePath.lexically_normal();
+    const fs::path parentPath = normSource.parent_path();
+
+    DirectoryEntry* dir = getDirectory(parentPath);
+    if (!dir)
+    {
+
+        return;
+    }
+
+    const std::string displayName = normSource.filename().string();
+
+    for (AssetEntry& existing : dir->assets)
+    {
+        if (existing.displayName == displayName)
+        {
+            existing.uid = m_moduleAssets->findUID(normSource);
+            return;
+        }
+    }
+
+    fs::path metaPath = normSource;
+    Metadata::getMetadataPath(metaPath);
+    addAsset(*dir, metaPath);
+}
+
+void ContentRegistry::unregisterAsset(const fs::path& sourcePath)
+{
+    if (!m_root) return;
+
+    const fs::path normSource = sourcePath.lexically_normal();
+    const fs::path parentPath = normSource.parent_path();
+    const std::string displayName = normSource.filename().string();
+
+    DirectoryEntry* dir = getDirectory(parentPath);
+    if (!dir) return;
+
+    auto it = std::find_if(dir->assets.begin(), dir->assets.end(),
+        [&](const AssetEntry& entry) { return entry.displayName == displayName; });
+
+    if (it != dir->assets.end())
+        dir->assets.erase(it);
 }
 
 DirectoryEntry* ContentRegistry::getRoot() const
@@ -65,10 +115,25 @@ void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPa
 
     AssetEntry asset;
     asset.displayName = sourcePath.filename().string();
-
     asset.uid = m_moduleAssets->findUID(sourcePath.lexically_normal().string());
 
-    directory.assets.push_back(asset);
+    Metadata meta;
+    if (m_moduleAssets->loadMetaFile(metaPath, meta))
+    {
+        asset.metadata = meta;
+        for (const DependencyRecord& dep : meta.m_dependencies)
+        {
+            if (!isValidUID(dep.uid))
+                continue;
+
+            AssetEntry sub;
+            sub.uid = dep.uid;
+            sub.displayName = dep.displayName.empty() ? "SubAsset" : dep.displayName;
+            asset.subAssets.push_back(std::move(sub));
+        }
+    }
+
+    directory.assets.push_back(std::move(asset));
 }
 
 DirectoryEntry* ContentRegistry::findDirectoryRecursive(DirectoryEntry* directory, const fs::path& path) const

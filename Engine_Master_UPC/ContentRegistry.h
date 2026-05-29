@@ -1,5 +1,6 @@
-﻿#pragma once
+#pragma once
 
+#include "Metadata.h"
 #include "UID.h"
 
 #include <filesystem>
@@ -14,6 +15,8 @@ struct AssetEntry
 {
     UID uid = INVALID_UID;
     std::string displayName;
+    Metadata metadata;
+    std::vector<AssetEntry> subAssets;
 };
 
 struct DirectoryEntry
@@ -21,6 +24,7 @@ struct DirectoryEntry
     std::filesystem::path path;
     DirectoryEntry* parent = nullptr;
     std::string displayName;
+    Metadata metadata;
 
     std::vector<std::unique_ptr<DirectoryEntry>> directories;
     std::vector<AssetEntry> assets;
@@ -37,6 +41,9 @@ public:
     ContentRegistry(ModuleAssets* m_moduleAssets);
 
     void rebuild(const std::filesystem::path& rootPath);
+    void registerAsset(const std::filesystem::path& sourcePath);
+
+    void unregisterAsset(const std::filesystem::path& sourcePath);
 
     DirectoryEntry* getRoot() const;
     DirectoryEntry* getDirectory(const std::filesystem::path& path) const;

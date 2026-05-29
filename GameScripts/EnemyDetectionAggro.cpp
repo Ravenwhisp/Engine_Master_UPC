@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "EnemyDetectionAggro.h"
+#include "PlayerState.h"
 #include "Damageable.h"
 #include "DeathCharacter.h" 
 
@@ -7,41 +8,41 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyDetectionAggro,
 	SERIALIZED_FLOAT(m_detectionRadius, "Detection Radius", 0.0f, 50.0f, 0.1f),
 	SERIALIZED_FLOAT(m_targetLockDuration, "Target Lock Duration", 0.0f, 10.0f, 0.1f),
 	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled"),
-	SERIALIZED_COMPONENT_REF(m_player1Transform, "Player 1 Transform", ComponentType::TRANSFORM),
-	SERIALIZED_COMPONENT_REF(m_player2Transform, "Player 2 Transform", ComponentType::TRANSFORM)
+	SERIALIZED_COMPONENT_REF(m_lyrielTransform, "Lyriel Transform", ComponentType::TRANSFORM),
+	SERIALIZED_COMPONENT_REF(m_deathTransform, "Death Transform", ComponentType::TRANSFORM)
 )
-
-static bool isDeadTarget(Transform* targetTransform)
-{
-	if (targetTransform == nullptr)
-	{
-		return false;
-	}
-
-	GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
-	if (targetObject == nullptr)
-	{
-		return false;
-	}
-
-	Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetObject);
-	if (damageable == nullptr)
-	{
-		return false;
-	}
-
-	return damageable->isDead();
-}
-
-static bool isValidAliveTarget(Transform* targetTransform)
-{
-	return targetTransform && !isDeadTarget(targetTransform);
-}
 
 EnemyDetectionAggro::EnemyDetectionAggro(GameObject* owner) : Script(owner) {}
 
 void EnemyDetectionAggro::Start()
 {
+	findPlayerTransforms();
+}
+
+void EnemyDetectionAggro::findPlayerTransforms()
+{
+	m_lyrielCachedTransform = m_lyrielTransform.getReferencedComponent();
+	m_deathCachedTransform = m_deathTransform.getReferencedComponent();
+
+	if (m_lyrielCachedTransform && m_deathCachedTransform)
+		return;
+
+	const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
+	for (GameObject* player : players)
+	{
+		const char* name = GameObjectAPI::getName(player);
+		if (!name)
+			continue;
+
+		if (!m_lyrielCachedTransform && strcmp(name, "Lyriel") == 0)
+			m_lyrielCachedTransform = GameObjectAPI::getTransform(player);
+
+		if (!m_deathCachedTransform && strcmp(name, "Death") == 0)
+			m_deathCachedTransform = GameObjectAPI::getTransform(player);
+
+		if (m_lyrielCachedTransform && m_deathCachedTransform)
+			break;
+	}
 }
 
 void EnemyDetectionAggro::Update()
@@ -106,19 +107,17 @@ void EnemyDetectionAggro::updateAggroState()
 {
 	updateAggroEntries();
 
-	if (m_currentTargetTransform && isDeadTarget(m_currentTargetTransform))
+	if (m_currentTargetTransform && isDowned(m_currentTargetTransform))
 	{
-		m_currentTargetTransform = nullptr;
-		m_isAggro = false;
-		m_canSeeTarget = false;
-		m_currentTargetLockTimer = 0.0f;
+		resetAggro();
 	}
 
 	if (isTaunted())
 	{
-		if (!isTransformAlive(m_tauntTargetTransform))
+		if (isDowned(m_tauntTargetTransform))
 		{
 			clearTaunt(m_tauntTargetTransform);
+			return;
 		}
 		else
 		{
@@ -144,10 +143,10 @@ void EnemyDetectionAggro::updateAggroState()
 	}
 
 	const bool currentTargetStillDetected =
-		isValidAliveTarget(m_currentTargetTransform) &&
+		!isDowned(m_currentTargetTransform) &&
 		(
-			(m_currentTargetTransform == m_player1Aggro.targetTransform && m_player1Aggro.isInDetectionRange) ||
-			(m_currentTargetTransform == m_player2Aggro.targetTransform && m_player2Aggro.isInDetectionRange)
+			(m_currentTargetTransform == m_lyrielAggro.targetTransform && m_lyrielAggro.isInDetectionRange) ||
+			(m_currentTargetTransform == m_deathAggro.targetTransform && m_deathAggro.isInDetectionRange)
 			);
 
 	if (currentTargetStillDetected)
@@ -170,10 +169,10 @@ void EnemyDetectionAggro::updateAggroState()
 			m_lastKnownTargetPosition = TransformAPI::getPosition(m_currentTargetTransform);
 		}
 
-		const bool player1Aggroing = isPlayer1Aggroing();
-		const bool player2Aggroing = isPlayer2Aggroing();
+		const bool lyrielAggroing = isLyrielAggroing();
+		const bool deathAggroing = isDeathAggroing();
 
-		if (player1Aggroing || player2Aggroing)
+		if (lyrielAggroing || deathAggroing)
 		{
 			startTargetLock();
 		}
@@ -186,17 +185,27 @@ void EnemyDetectionAggro::updateAggroState()
 
 void EnemyDetectionAggro::updateAggroEntries()
 {
-	Transform* player1 = getPlayer1Transform();
-	Transform* player2 = getPlayer2Transform();
+	Transform* lyriel = getLyrielTransform();
+	Transform* death = getDeathTransform();
 
-	m_player1Aggro.targetTransform = player1;
-	m_player2Aggro.targetTransform = player2;
+	m_lyrielAggro.targetTransform = lyriel;
+	m_deathAggro.targetTransform = death;
 
-	m_player1Aggro.isInDetectionRange = isPlayer1InDetectionRange();
-	m_player2Aggro.isInDetectionRange = isPlayer2InDetectionRange();
+	m_lyrielAggro.isInDetectionRange = isLyrielInDetectionRange();
+	m_deathAggro.isInDetectionRange = isDeathInDetectionRange();
 
-	m_player1Aggro.distanceToEnemy = getDistanceToPlayer1();
-	m_player2Aggro.distanceToEnemy = getDistanceToPlayer2();
+	m_lyrielAggro.distanceToEnemy = getDistanceToLyriel();
+	m_deathAggro.distanceToEnemy = getDistanceToDeath();
+}
+
+void EnemyDetectionAggro::resetAggro()
+{
+	m_currentTargetTransform = nullptr;
+	m_isAggro = false;
+	m_canSeeTarget = false;
+	m_currentTargetLockTimer = 0.0f;
+	m_tauntTargetTransform = nullptr;
+	m_tauntTimer = 0.0f;
 }
 
 bool EnemyDetectionAggro::isTargetLockActive() const
@@ -244,28 +253,28 @@ bool EnemyDetectionAggro::isTaunted() const
 
 Transform* EnemyDetectionAggro::selectClosestDetectedPlayer() const
 {
-	const bool player1InRange = m_player1Aggro.isInDetectionRange && isValidAliveTarget(m_player1Aggro.targetTransform);
-	const bool player2InRange = m_player2Aggro.isInDetectionRange && isValidAliveTarget(m_player2Aggro.targetTransform);
+	const bool lyrielInRange = m_lyrielAggro.isInDetectionRange && !isDowned(m_lyrielAggro.targetTransform);
+	const bool deathInRange = m_deathAggro.isInDetectionRange && !isDowned(m_deathAggro.targetTransform);
 
-	if (player1InRange && !player2InRange)
+	if (lyrielInRange && !deathInRange)
 	{
-		return m_player1Aggro.targetTransform;
+		return m_lyrielAggro.targetTransform;
 	}
 
-	if (!player1InRange && player2InRange)
+	if (!lyrielInRange && deathInRange)
 	{
-		return m_player2Aggro.targetTransform;
+		return m_deathAggro.targetTransform;
 	}
 
-	if (player1InRange && player2InRange)
+	if (lyrielInRange && deathInRange)
 	{
-		if (m_player1Aggro.distanceToEnemy < m_player2Aggro.distanceToEnemy)
+		if (m_lyrielAggro.distanceToEnemy < m_deathAggro.distanceToEnemy)
 		{
-			return m_player1Aggro.targetTransform;
+			return m_lyrielAggro.targetTransform;
 		}
 		else
 		{
-			return m_player2Aggro.targetTransform;
+			return m_deathAggro.targetTransform;
 		}
 	}
 
@@ -274,32 +283,32 @@ Transform* EnemyDetectionAggro::selectClosestDetectedPlayer() const
 
 Transform* EnemyDetectionAggro::selectReevaluatedTarget() const
 {
-	const bool player1Aggroing = isPlayer1Aggroing() && isValidAliveTarget(m_player1Aggro.targetTransform);
-	const bool player2Aggroing = isPlayer2Aggroing() && isValidAliveTarget(m_player2Aggro.targetTransform);
+	const bool lyrielAggroing = isLyrielAggroing() && !isDowned(m_lyrielAggro.targetTransform);
+	const bool deathAggroing = isDeathAggroing() && !isDowned(m_deathAggro.targetTransform);
 
-	if (player1Aggroing && !player2Aggroing)
+	if (lyrielAggroing && !deathAggroing)
 	{
-		return m_player1Aggro.targetTransform;
+		return m_lyrielAggro.targetTransform;
 	}
 
-	if (!player1Aggroing && player2Aggroing)
+	if (!lyrielAggroing && deathAggroing)
 	{
-		return m_player2Aggro.targetTransform;
+		return m_deathAggro.targetTransform;
 	}
 
-	if (player1Aggroing && player2Aggroing)
+	if (lyrielAggroing && deathAggroing)
 	{
-		if (m_player1Aggro.distanceToEnemy < m_player2Aggro.distanceToEnemy)
+		if (m_lyrielAggro.distanceToEnemy < m_deathAggro.distanceToEnemy)
 		{
-			return m_player1Aggro.targetTransform;
+			return m_lyrielAggro.targetTransform;
 		}
 		else
 		{
-			return m_player2Aggro.targetTransform;
+			return m_deathAggro.targetTransform;
 		}
 	}
 
-	if (isValidAliveTarget(m_currentTargetTransform))
+	if (!isDowned(m_currentTargetTransform))
 	{
 		return m_currentTargetTransform;
 	}
@@ -309,7 +318,7 @@ Transform* EnemyDetectionAggro::selectReevaluatedTarget() const
 
 void EnemyDetectionAggro::notifyPlayerAttackedEnemy(Transform* playerTransform)
 {
-	if (!isValidAliveTarget(playerTransform))
+	if (isDowned(playerTransform))
 	{
 		return;
 	}
@@ -378,10 +387,7 @@ void EnemyDetectionAggro::clearTaunt(Transform* playerTransform)
 	}
 	else
 	{
-		m_currentTargetTransform = nullptr;
-		m_canSeeTarget = false;
-		m_isAggro = false;
-		m_currentTargetLockTimer = 0.0f;
+		resetAggro();
 	}
 }
 
@@ -390,14 +396,16 @@ Transform* EnemyDetectionAggro::getOwnerTransform() const
 	return GameObjectAPI::getTransform(getOwner());
 }
 
-Transform* EnemyDetectionAggro::getPlayer1Transform() const
+Transform* EnemyDetectionAggro::getLyrielTransform() const
 {
-	return m_player1Transform.getReferencedComponent();
+	Transform* ref = m_lyrielTransform.getReferencedComponent();
+	return ref ? ref : m_lyrielCachedTransform;
 }
 
-Transform* EnemyDetectionAggro::getPlayer2Transform() const
+Transform* EnemyDetectionAggro::getDeathTransform() const
 {
-	return m_player2Transform.getReferencedComponent();
+	Transform* ref = m_deathTransform.getReferencedComponent();
+	return ref ? ref : m_deathCachedTransform;
 }
 
 Vector3 EnemyDetectionAggro::getOwnerPosition() const
@@ -411,81 +419,81 @@ Vector3 EnemyDetectionAggro::getOwnerPosition() const
 	return TransformAPI::getPosition(ownerTransform);
 }
 
-Vector3 EnemyDetectionAggro::getPlayer1Position() const
+Vector3 EnemyDetectionAggro::getLyrielPosition() const
 {
-	Transform* player1Transform = getPlayer1Transform();
-	if (!player1Transform)
+	Transform* lyrielTransform = getLyrielTransform();
+	if (!lyrielTransform)
 	{
 		return Vector3(0.0f, 0.0f, 0.0f);
 	}
 
-	return TransformAPI::getPosition(player1Transform);
+	return TransformAPI::getPosition(lyrielTransform);
 }
 
-Vector3 EnemyDetectionAggro::getPlayer2Position() const
+Vector3 EnemyDetectionAggro::getDeathPosition() const
 {
-	Transform* player2Transform = getPlayer2Transform();
-	if (!player2Transform)
+	Transform* deathTransform = getDeathTransform();
+	if (!deathTransform)
 	{
 		return Vector3(0.0f, 0.0f, 0.0f);
 	}
 
-	return TransformAPI::getPosition(player2Transform);
+	return TransformAPI::getPosition(deathTransform);
 }
 
-float EnemyDetectionAggro::getDistanceToPlayer1() const
+float EnemyDetectionAggro::getDistanceToLyriel() const
 {
-	Vector3 difference = getPlayer1Position() - getOwnerPosition();
+	Vector3 difference = getLyrielPosition() - getOwnerPosition();
 	return difference.Length();
 }
 
-float EnemyDetectionAggro::getDistanceToPlayer2() const
+float EnemyDetectionAggro::getDistanceToDeath() const
 {
-	Vector3 difference = getPlayer2Position() - getOwnerPosition();
+	Vector3 difference = getDeathPosition() - getOwnerPosition();
 	return difference.Length();
 }
 
-bool EnemyDetectionAggro::isPlayer1InDetectionRange() const
+bool EnemyDetectionAggro::isLyrielInDetectionRange() const
 {
-	if (!getPlayer1Transform())
+	if (!getLyrielTransform())
 	{
 		return false;
 	}
 
-	return getDistanceToPlayer1() <= m_detectionRadius;
+	return getDistanceToLyriel() <= m_detectionRadius;
 }
 
-bool EnemyDetectionAggro::isPlayer2InDetectionRange() const
+bool EnemyDetectionAggro::isDeathInDetectionRange() const
 {
-	if (!getPlayer2Transform())
+	if (!getDeathTransform())
 	{
 		return false;
 	}
 
-	return getDistanceToPlayer2() <= m_detectionRadius;
+	return getDistanceToDeath() <= m_detectionRadius;
 }
 
-bool EnemyDetectionAggro::isPlayer1Aggroing() const
+bool EnemyDetectionAggro::isLyrielAggroing() const
 {
-	if (!m_player1Aggro.targetTransform)
+	if (!m_lyrielAggro.targetTransform)
 	{
 		return false;
 	}
 
-	return (m_currentTime - m_player1Aggro.lastAttackTime) <= m_recentAttackMemory;
+	return (m_currentTime - m_lyrielAggro.lastAttackTime) <= m_recentAttackMemory;
 }
 
-bool EnemyDetectionAggro::isPlayer2Aggroing() const
+bool EnemyDetectionAggro::isDeathAggroing() const
 {
-	if (!m_player2Aggro.targetTransform)
+	if (!m_deathAggro.targetTransform)
 	{
 		return false;
 	}
 
-	return (m_currentTime - m_player2Aggro.lastAttackTime) <= m_recentAttackMemory;
+	return (m_currentTime - m_deathAggro.lastAttackTime) <= m_recentAttackMemory;
 }
 
-bool EnemyDetectionAggro::isTransformAlive(Transform* target) const
+bool EnemyDetectionAggro::isDowned(Transform* target) const
 {
 	if (target == nullptr)
 	{
@@ -498,33 +506,46 @@ bool EnemyDetectionAggro::isTransformAlive(Transform* target) const
 		return false;
 	}
 
-	Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetOwner);
+	PlayerState* state = GameObjectAPI::findScript<PlayerState>(targetOwner);
+	if (!state)
+	{
+		return false;
+	}
 
-	return damageable == nullptr || !damageable->isDead();
+	return state->isDowned();
+}
+
+bool EnemyDetectionAggro::hasAnyTargetInDetectionRange()
+{
+	updateAggroEntries();
+
+	return
+		(m_lyrielAggro.isInDetectionRange && !isDowned(m_lyrielAggro.targetTransform)) ||
+		(m_deathAggro.isInDetectionRange && !isDowned(m_deathAggro.targetTransform));
 }
 
 EnemyDetectionAggro::AggroEntry* EnemyDetectionAggro::getAggroEntry(Transform* target)
 {
-	if (target == getPlayer1Transform())
+	if (target == getLyrielTransform())
 	{
-		return &m_player1Aggro;
+		return &m_lyrielAggro;
 	}
-	if (target == getPlayer2Transform())
+	if (target == getDeathTransform())
 	{
-		return &m_player2Aggro;
+		return &m_deathAggro;
 	}
 	return nullptr;
 }
 
 const EnemyDetectionAggro::AggroEntry* EnemyDetectionAggro::getAggroEntry(Transform* target) const
 {
-	if (target == getPlayer1Transform())
+	if (target == getLyrielTransform())
 	{
-		return &m_player1Aggro;
+		return &m_lyrielAggro;
 	}
-	if (target == getPlayer2Transform())
+	if (target == getDeathTransform())
 	{
-		return &m_player2Aggro;
+		return &m_deathAggro;
 	}
 	return nullptr;
 }

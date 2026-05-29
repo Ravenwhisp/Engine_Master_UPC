@@ -209,6 +209,21 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
 
     ImGui::PushID(static_cast<int>(asset.uid));
 
+    const bool hasSubAssets = !asset.subAssets.empty();
+
+    if (hasSubAssets)
+    {
+        const bool isExpanded = m_expandedAssets.count(asset.uid) > 0;
+        if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right))
+        {
+            if (isExpanded)
+                m_expandedAssets.erase(asset.uid);
+            else
+                m_expandedAssets.insert(asset.uid);
+        }
+        ImGui::SameLine();
+    }
+
     if (isPrefab)
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
@@ -268,6 +283,12 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
             CommandImportAsset(sourcePath, asset.uid).run();
         }
 
+        const bool isGltf = sourcePath.extension() == GLTF_EXTENSION;
+        if (isGltf && ImGui::MenuItem("Create State Machine"))
+        {
+            app->getModuleAssets()->createStateMachineFromGltf(sourcePath);
+        }
+
         if (ImGui::MenuItem("Cut", "Ctrl+X"))
         {
             CommandCutItem(m_clipboard, metaPath).run();
@@ -289,13 +310,45 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
                 m_selectedAsset = INVALID_UID;
             }
 
-            app->getModuleAssets()->refresh();
+            app->getModuleAssets()->unregisterAsset(metaPath.parent_path() / metaPath.stem());
         }
 
         ImGui::EndPopup();
     }
 
     ImGui::TextWrapped("%s", asset.displayName.c_str());
+    ImGui::NextColumn();
+
+    ImGui::PopID();
+}
+
+void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
+{
+    if (!isValidUID(subAsset.uid))
+        return;
+
+    ImGui::PushID(static_cast<int>(subAsset.uid));
+
+    ImGui::Button("[S]", ImVec2(40, 40));
+
+    if (ImGui::IsItemHovered() &&
+        ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
+        !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+    {
+        AssetReference ref(subAsset.uid);
+        std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(ref);
+        app->getModuleEditor()->setSelectedAsset(assetResource);
+        m_selectedAsset = subAsset.uid;
+    }
+
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+    {
+        ImGui::SetDragDropPayload("ASSET", &subAsset.uid, sizeof(UID));
+        ImGui::Text("Dragging %s", subAsset.displayName.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    ImGui::TextWrapped("%s", subAsset.displayName.c_str());
     ImGui::NextColumn();
 
     ImGui::PopID();
@@ -400,6 +453,13 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
     for (const AssetEntry& asset : directory->assets)
     {
         drawAssetItem(directory, asset);
+        if (!asset.subAssets.empty() && m_expandedAssets.count(asset.uid))
+        {
+            for (const AssetEntry& sub : asset.subAssets)
+            {
+                drawSubAssetItem(sub);
+            }
+        }
     }
 
     ImGui::Columns(1);

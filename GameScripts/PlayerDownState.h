@@ -45,4 +45,27 @@ private:
     float m_reviveProgress = 0.0f;
 
     bool m_reviveBlocked = false;
+
+public:
+    ScriptComponentRef<Transform> m_downedSprite;
+
+private:
+    Transform* m_downedSpriteTransform = nullptr;
+	
+	Transform* m_revivePivotTransform = nullptr;
+    Transform* m_reviveSliderCanvas = nullptr;
+    Transform* m_reviveHandleCanvas = nullptr;
+    Transform* m_reviveIconCanvas = nullptr;
+
+    UISlider* m_reviveSlider = nullptr;
+    UISlider* m_reviveSlider2 = nullptr;
+
+    Transform* m_reviveIconTransform = nullptr;
+    Transform* m_reviveHandleTransform = nullptr;
+	Transform* m_reviveIcon2Transform = nullptr;
+    Transform* m_reviveHandle2Transform = nullptr;
+
+    void setupUI();
+	void updateReviveUI();
+
 };

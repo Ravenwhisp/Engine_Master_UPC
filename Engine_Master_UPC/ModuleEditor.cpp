@@ -23,6 +23,7 @@
 #include "ModuleRender.h"
 #include "WindowAnimationStateMachine.h"
 #include "PrefabManager.h"
+#include "WindowMusicDebug.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -124,6 +125,7 @@ EditorWindow* ModuleEditor::openWindow(const std::string& typeKey)
     }
 
     EditorWindow* window = it->second();
+    window->setOpen(true);
     window->setInstanceId(m_nextInstanceId++);
     m_editorWindows.push_back(window);
     return window;
@@ -145,6 +147,7 @@ bool ModuleEditor::init()
     registerWindowType<WindowInspector>("WindowInspector");
     registerWindowType<WindowGame>("Game");
     registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
+    registerWindowType<WindowMusicDebug>("Music Library");
 
     // ---- Spawn the default set of windows (one each) ----
     openWindow("Console");

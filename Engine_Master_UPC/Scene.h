@@ -22,6 +22,7 @@ class Scene: public Asset
     friend class SceneSnapshot;
 private:
     std::string m_name = "SampleScene";
+    std::string m_rawJson;
 
     std::vector<std::unique_ptr<GameObject>> m_allObjects;
 
@@ -39,6 +40,8 @@ private:
     std::unique_ptr<TriggerSystem> m_triggerSystem;
 
     void removePendingGameObjects();
+
+    std::vector<std::string> m_loadedBanks;
 
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
@@ -75,6 +78,9 @@ public:
 
     const char* getName() const { return m_name.c_str(); }
     void setName(const char* newName) { m_name = newName; }
+
+    const std::string& getRawJson() const { return m_rawJson; }
+    void setRawJson(const std::string& json) { m_rawJson = json; }
 
     SceneLightingSettings& getLightingSettings() { return m_lighting; }
     const SceneLightingSettings& getLightingSettings() const { return m_lighting; }
@@ -123,5 +129,12 @@ public:
     void registerTrigger(TriggerComponent* trigger);
     void unregisterTrigger(TriggerComponent* trigger);
     void clearTriggers();
+#pragma endregion
+
+#pragma region MusicBanks
+    const std::vector<std::string>& getLoadedBanks() const;
+    void addLoadedBank(const std::string& bank);
+    void removeLoadedBank(const std::string& bank);
+	void unloadSoundBanks();
 #pragma endregion
 };

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ReaperGauge.h"
+#include "CooperativeSound.h"
 
 #include <cmath>
 
@@ -8,7 +9,12 @@ IMPLEMENT_SCRIPT_FIELDS(ReaperGauge,
     SERIALIZED_INT(m_numSegments, "Num Segments"),
     SERIALIZED_FLOAT(m_gainPerExploit, "Gain Per Exploit", 0.0f, 100.0f, 1.0f),
     SERIALIZED_FLOAT(m_gracePeriod, "Grace Period", 0.0f, 60.0f, 0.5f),
-    SERIALIZED_FLOAT(m_decayPerSecond, "Decay Per Second", 0.0f, 50.0f, 0.5f)
+    SERIALIZED_FLOAT(m_decayPerSecond, "Decay Per Second", 0.0f, 50.0f, 0.5f),
+	SERIALIZED_COMPONENT_REF(m_reaperGaugeUI, "Reaper Gauge UI", ComponentType::UISLIDER),
+    SERIALIZED_COMPONENT_REF(m_glowUI, "Glow UI", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_blinkAlphaUI, "Blink Alpha UI", ComponentType::TRANSFORM2D),
+    SERIALIZED_FLOAT(m_blinkSpeed, "Blink Speed", 0.1f, 20.0f, 0.1f),
+	SERIALIZED_FLOAT(m_blinkAlpha, "Blink Alpha", 0.0f, 1.0f, 0.05f)
 )
 
 ReaperGauge::ReaperGauge(GameObject* owner)
@@ -18,6 +24,15 @@ ReaperGauge::ReaperGauge(GameObject* owner)
 
 void ReaperGauge::Start()
 {
+	m_reaperGaugeSlider = m_reaperGaugeUI.getReferencedComponent();
+	m_glowTransform = m_glowUI.getReferencedComponent();
+	m_blinkAlphaTransform = m_blinkAlphaUI.getReferencedComponent();
+
+    m_sound = GameObjectAPI::findScript<CooperativeSound>(getOwner());
+
+    SliderAPI::setFillAmount(m_reaperGaugeSlider, getGaugePercent());
+    Transform2DAPI::setAlpha(m_glowTransform, 0.0f);
+    Transform2DAPI::setAlpha(m_blinkAlphaTransform, 0.0f);
 }
 
 void ReaperGauge::Update()
@@ -29,22 +44,59 @@ void ReaperGauge::Update()
 
     if (m_decayTimer > m_gracePeriod)
     {
+        const bool wasAboveZero = m_gauge > 0.0f;
+
+        if (!m_decaying)
+        {
+            m_decaying = true;
+            Debug::log("[ReaperGauge] Grace period ended. Gauge decaying: %.1f/%.1f", m_gauge, m_maxGauge);
+        }
+
         m_gauge -= m_decayPerSecond * Time::getDeltaTime();
         if (m_gauge < 0.0f)
             m_gauge = 0.0f;
+
+        if (wasAboveZero && m_gauge <= 0.0f)
+        {
+            m_decaying = false;
+            Debug::log("[ReaperGauge] Gauge empty. Shadow Execution NOT available.");
+        }
     }
+    updateUI();
 }
 
 void ReaperGauge::onMarkExploited()
 {
     m_everExploited = true;
     m_decayTimer    = 0.0f;
+    m_decaying      = false;
+
+    const bool wasFull = isFull();
 
     m_gauge += m_gainPerExploit;
     if (m_gauge > m_maxGauge)
         m_gauge = m_maxGauge;
 
-    Debug::log("[ReaperGauge] +%.1f  gauge=%.1f/%.1f", m_gainPerExploit, m_gauge, m_maxGauge);
+    Debug::log("[ReaperGauge] Mark exploited! +%.1f%%  =>  %.1f%%  (%d/%d segments)",
+        (m_gainPerExploit / m_maxGauge) * 100.0f, getGaugePercent() * 100.0f,
+        getCurrentSegments(), m_numSegments);
+
+    if (!wasFull && isFull())
+    {
+        Debug::log("[ReaperGauge] GAUGE FULL! Shadow Execution is now available.");
+        if (m_sound != nullptr)
+        {
+            m_sound->playReaperGaugeFull();
+        }
+    }
+}
+
+void ReaperGauge::consume()
+{
+    m_gauge      = 0.0f;
+    m_decayTimer = 0.0f;
+    m_decaying   = false;
+    Debug::log("[ReaperGauge] Gauge consumed by Shadow Execution.");
 }
 
 float ReaperGauge::getGaugePercent() const
@@ -60,6 +112,36 @@ int ReaperGauge::getCurrentSegments() const
         return 0;
     const float segValue = m_maxGauge / static_cast<float>(m_numSegments);
     return static_cast<int>(m_gauge / segValue);
+}
+
+void ReaperGauge::updateUI()
+{
+    if (m_reaperGaugeSlider)
+    {
+        SliderAPI::setFillAmount(m_reaperGaugeSlider, getGaugePercent());
+    }
+
+    if (m_glowTransform)
+    {
+        if (m_decayTimer <= m_gracePeriod)
+        {
+            const float alpha = 1.0f - (m_decayTimer / m_gracePeriod);
+            Transform2DAPI::setAlpha(m_glowTransform, alpha);
+        }
+    }
+
+    if (m_blinkAlphaTransform)
+    {
+        if (m_decayTimer > m_gracePeriod)
+        {
+			const float t = (sinf((m_decayTimer - m_gracePeriod) * m_blinkSpeed) + 1.0f) * 0.5f;
+            Transform2DAPI::setAlpha(m_blinkAlphaTransform, t * m_blinkAlpha);
+        }
+        else
+        {
+            Transform2DAPI::setAlpha(m_blinkAlphaTransform, 0.0f);
+        }
+    }
 }
 
 void ReaperGauge::drawGizmo()

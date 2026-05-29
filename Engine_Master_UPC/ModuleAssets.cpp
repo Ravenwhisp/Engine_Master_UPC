@@ -1,4 +1,4 @@
-﻿#include "Globals.h"
+#include "Globals.h"
 #include "ModuleAssets.h"
 
 #include "Application.h"
@@ -137,6 +137,34 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
 
     std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
 
+    // Try to get import settings from the in-memory cached asset first (user may have edited them)
+    if (auto cached = m_assets.get(reference.m_uid))
+    {
+        if (cached->getImportSettings())
+        {
+            asset->setImportSettings(cached->getImportSettings()->clone());
+        }
+    }
+    // Fall back to reading from metadata file on disk
+    if (!asset->getImportSettings())
+    {
+        std::filesystem::path metaPath = sourcePath;
+        Metadata::getMetadataPath(metaPath);
+        if (fs::exists(metaPath))
+        {
+            Metadata existingMeta;
+            if (loadMetaFile(metaPath, existingMeta) && existingMeta.importSettings)
+            {
+                asset->setImportSettings(std::move(existingMeta.importSettings));
+            }
+        }
+    }
+    // Create default settings if nothing else available
+    if (!asset->getImportSettings())
+    {
+        asset->setImportSettings(asset->createDefaultImportSettings());
+    }
+
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
@@ -208,12 +236,26 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
     asset->setLibId(meta.contentHash);
     reference.m_type = meta.type;
 
+    {
+        auto prevIt = m_uidIndex.find(meta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != meta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+
     std::error_code ec;
     meta.sourceFileSize = static_cast<uint64_t>(fs::file_size(sourcePath, ec));
     if (ec) meta.sourceFileSize = 0;
 
-    const auto ftime = fs::last_write_time(sourcePath, ec);
-    meta.sourceLastModified = ec ? 0 : static_cast<int64_t>(ftime.time_since_epoch().count());
+    if (asset->getImportSettings())
+    {
+        meta.importSettings = asset->getImportSettings()->clone();
+    }
 
     std::filesystem::path metaPath = sourcePath;
     Metadata::getMetadataPath(metaPath);
@@ -234,6 +276,8 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
         DEBUG_ERROR("[ModuleAssets] Failed to write binary for '%s'.", sourcePath.string().c_str());
         return false;
     }
+
+    m_contentRegistry->registerAsset(sourcePath);
 
     return true;
 }
@@ -281,6 +325,41 @@ void ModuleAssets::refresh()
     m_contentRegistry->rebuild(root);
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[Module Assets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
+}
+
+void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
+{
+    const fs::path normPath = sourcePath.lexically_normal();
+
+    auto pathIt = m_pathIndex.find(normPath.string());
+    if (pathIt != m_pathIndex.end())
+    {
+        m_uidIndex.erase(pathIt->second);
+        m_pathIndex.erase(pathIt);
+    }
+
+    m_contentRegistry->unregisterAsset(normPath);
+}
+
+void ModuleAssets::collectDirectoryAssets(DirectoryEntry* dir)
+{
+    for (const AssetEntry& asset : dir->assets)
+    {
+        if (isValidUID(asset.uid))
+        {
+            auto it = m_uidIndex.find(asset.uid);
+            if (it != m_uidIndex.end())
+            {
+                m_pathIndex.erase(it->second.sourcePath.lexically_normal().string());
+                m_uidIndex.erase(it);
+            }
+        }
+    }
+
+    for (auto& child : dir->directories)
+    {
+        collectDirectoryAssets(child.get());
+    }
 }
 
 void ModuleAssets::registerIndex(const UID& uid, AssetType type,
@@ -375,7 +454,18 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         }
     }
 
-    m_uidIndex[subMeta.uid] = { subMeta.type, {} };
+    {
+        auto prevIt = m_uidIndex.find(subMeta.uid);
+        if (prevIt != m_uidIndex.end())
+        {
+            const MD5Hash& prevHash = prevIt->second.contentHash;
+            if (isValidAsset(prevHash) && prevHash != subMeta.contentHash)
+            {
+                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
+            }
+        }
+    }
+    m_uidIndex[subMeta.uid] = { subMeta.type, {}, subMeta.contentHash };
 
     if (isValidUID(parentUID))
     {
@@ -383,6 +473,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID, 
         dep.uid = subMeta.uid;
         dep.contentHash = subMeta.contentHash;
         dep.type = subMeta.type;
+        dep.displayName = subMeta.displayName;
         m_pendingDependencies[parentUID].push_back(dep);
     }
 }
@@ -398,7 +489,6 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
     doc.AddMember("type", Value(static_cast<uint32_t>(meta.type)), alloc);
     doc.AddMember("sourcePath", Value(meta.sourcePath.string().c_str(), alloc), alloc);
     doc.AddMember("sourceFileSize", Value(meta.sourceFileSize), alloc);
-    doc.AddMember("sourceLastModified", Value(meta.sourceLastModified), alloc);
 
     if (!meta.m_dependencies.empty())
     {
@@ -409,9 +499,19 @@ bool ModuleAssets::saveMetaFile(const Metadata& meta, const std::filesystem::pat
             entry.AddMember("uid", dep.uid, alloc);
             entry.AddMember("contentHash", Value(dep.contentHash.c_str(), alloc), alloc);
             entry.AddMember("type", Value(static_cast<uint32_t>(dep.type)), alloc);
+            if (!dep.displayName.empty())
+                entry.AddMember("displayName", Value(dep.displayName.c_str(), alloc), alloc);
             deps.PushBack(entry, alloc);
         }
         doc.AddMember("dependencies", deps, alloc);
+    }
+
+    if (meta.importSettings)
+    {
+        Value settingsObj(kObjectType);
+        settingsObj.AddMember("typeName", Value(meta.importSettings->getTypeName(), alloc), alloc);
+        meta.importSettings->save(settingsObj, alloc);
+        doc.AddMember("importSettings", settingsObj, alloc);
     }
 
     StringBuffer buffer;
@@ -485,9 +585,6 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
     if (doc.HasMember("sourceFileSize") && doc["sourceFileSize"].IsUint64())
         outMeta.sourceFileSize = doc["sourceFileSize"].GetUint64();
 
-    if (doc.HasMember("sourceLastModified") && doc["sourceLastModified"].IsInt64())
-        outMeta.sourceLastModified = doc["sourceLastModified"].GetInt64();
-
     outMeta.m_dependencies.clear();
     if (doc.HasMember("dependencies") && doc["dependencies"].IsArray())
     {
@@ -504,8 +601,19 @@ bool ModuleAssets::loadMetaFile(const std::filesystem::path& metaPath, Metadata&
             rec.type = static_cast<AssetType>(entry["type"].GetUint());
             if (entry.HasMember("contentHash") && entry["contentHash"].IsString())
                 rec.contentHash = entry["contentHash"].GetString();
+            if (entry.HasMember("displayName") && entry["displayName"].IsString())
+                rec.displayName = entry["displayName"].GetString();
 
             outMeta.m_dependencies.push_back(std::move(rec));
+        }
+    }
+
+    if (doc.HasMember("importSettings") && doc["importSettings"].IsObject())
+    {
+        outMeta.importSettings = ImportSettings::CreateForType(outMeta.type);
+        if (outMeta.importSettings)
+        {
+            outMeta.importSettings->load(doc["importSettings"]);
         }
     }
 
@@ -561,6 +669,11 @@ void ModuleAssets::flushDialogRequests()
         m_dialogCallback(*result);
         m_dialogCallback = nullptr;
     }
+}
+
+bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfPath)
+{
+    return m_importerGltf->createStateMachine(gltfPath);
 }
 
 ContentRegistry* ModuleAssets::getContentRegistry() const

@@ -41,6 +41,13 @@ void EnemyIDLE::OnStateUpdate()
 		return;
 	}
 
+	if (m_enemyController->isDead())
+	{
+		m_enemyController->clearPath();
+		AnimationAPI::sendTrigger(animation, "ToDeath");
+		return;
+	}
+
 	m_enemyController->updateCurrentTarget();
 
 	if (!m_enemyController->hasValidTarget())

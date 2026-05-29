@@ -1,6 +1,12 @@
 TextureCube skyTexture : register(t0);
 SamplerState skySampler : register(s0);
 
+cbuffer TextureSize : register(b1)
+{
+    uint textureWidth;
+    uint padding[3];
+}
+
 static const uint NUM_SAMPLES = 256;
 static const float PI = 3.14159265f;
 
@@ -47,6 +53,15 @@ float3 hemisphereSample(float u1, float u2)
     return float3(radius * cos(phi), radius * sin(phi), sqrt(1.0 - u2));
 }
 
+float computeLod(float pdf, int numSamples, int width)
+{
+    float solidAngle = 1.0 / ((float) numSamples * pdf + 1e-6);
+
+    float texelSolidAngle = 1.0 / (6.0 * width * width);
+
+    return max(0.5 * log2(solidAngle / texelSolidAngle), 0.0);
+}
+
 float4 main(float3 direction : TEXCOORD0) : SV_TARGET
 {
     float3 irradiance = 0.0;
@@ -62,9 +77,12 @@ float4 main(float3 direction : TEXCOORD0) : SV_TARGET
         // Sample hemisphere and transform to world space
         float3 sampleDir = hemisphereSample(randomValue.x, randomValue.y);
         float3 worldDir = mul(sampleDir, tangentSpace);
-
+        float NdotL = dot(normal, worldDir);
+        
+        float pdf = NdotL / PI;
+        
         // Sample environment map and accumulate radiance
-        float3 sampleRadiance = skyTexture.SampleLevel(skySampler, worldDir, 0).rgb;
+        float3 sampleRadiance = skyTexture.SampleLevel(skySampler, worldDir, computeLod(pdf, NUM_SAMPLES, textureWidth)).rgb;
         irradiance += sampleRadiance;
     }
     

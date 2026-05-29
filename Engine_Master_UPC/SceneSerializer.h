@@ -23,6 +23,7 @@ private:
     static void serializeWindowHierarchy(GameObject* gameObject, rapidjson::Value& gameObjectsData, rapidjson::Document& domTree, const Scene* scene);
     static rapidjson::Value getLightingJSON(rapidjson::Document& domTree, const Scene* scene);
     static rapidjson::Value getSkyBoxJSON(rapidjson::Document& domTree, const Scene* scene);
+    static rapidjson::Value getSoundBanksJSON(rapidjson::Document& domTree, const Scene* scene);
 #pragma endregion
 
 #pragma region Load
@@ -31,6 +32,7 @@ private:
 
     static bool LoadSkybox(Scene& scene, const rapidjson::Value& json);
     static void LoadLighting(Scene& scene, const rapidjson::Value& json);
+    static void LoadSoundBanks(Scene& scene, const rapidjson::Value& json);
 
     static void CreateGameObjects(Scene& scene, const rapidjson::Value& array, std::vector<uint64_t>& uidSet, std::vector<GameObject*>& goSet, std::vector<std::pair<uint64_t, uint64_t>>& hierarchy);
     static void LinkHierarchy(Scene& scene, std::vector<uint64_t>& uidSet, std::vector<GameObject*>& goSet, const std::vector<std::pair<uint64_t, uint64_t>>& hierarchy);

@@ -14,6 +14,9 @@
 #include "ScriptComponent.h"
 #include "AnimationComponent.h"
 #include "TriggerComponent.h"
+#include "ParticleSystemComponent.h"
+#include "ComponentSoundListener.h"
+#include "ComponentSoundSource.h"
 
 // UI components
 #include "Canvas.h"
@@ -22,6 +25,7 @@
 #include "UIText.h"
 #include "UIButton.h"
 #include "UISlider.h"
+#include "UISheet.h"
 
 
 std::unique_ptr<Component> ComponentFactory::create(ComponentType type, GameObject* owner)
@@ -75,8 +79,20 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
     case ComponentType::UISLIDER:
 		return std::make_unique<UISlider>(id, owner);
 
+    case ComponentType::UISHEET:
+        return std::make_unique<UISheet>(id, owner);
+
     case ComponentType::TRIGGER:
         return std::make_unique<TriggerComponent>(id, owner);
+
+    case ComponentType::PARTICLE_SYSTEM:
+        return std::make_unique<ParticleSystemComponent>(id, owner);
+
+    case ComponentType::SOUND_LISTENER:
+        return std::make_unique<ComponentSoundListener>(id, owner);
+
+    case ComponentType::SOUND_SOURCE:
+        return std::make_unique<ComponentSoundSource>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

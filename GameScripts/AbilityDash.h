@@ -24,6 +24,7 @@ protected:
     virtual void onDashStarted();
     virtual void onDashUpdate(float dt) {}
     virtual void onDashEnded() {}
+    virtual bool validateDashTarget() { return true; }
 
 private:
     void startDash();
@@ -42,4 +43,8 @@ protected:
     bool m_isDashing = false;
 
     Vector3 m_dashDirection = Vector3::Zero;
+
+    Vector3 m_dashTargetPosition = Vector3::Zero;
+    Vector3 m_dashStartPosition = Vector3::Zero;
+    bool m_hasDashTarget = false;
 };

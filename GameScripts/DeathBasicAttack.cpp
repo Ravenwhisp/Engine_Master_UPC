@@ -2,12 +2,14 @@
 #include "DeathBasicAttack.h"
 
 #include "DeathCharacter.h"
+#include "DeathSound.h"
 #include "PlayerTargetController.h"
 #include "PlayerAnimationController.h"
 #include "PlayerRotation.h"
 #include "PlayerState.h"
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
+#include "BreakableDamageable.h"
 
 #include <cmath>
 
@@ -28,6 +30,8 @@ DeathBasicAttack::DeathBasicAttack(GameObject* owner)
 void DeathBasicAttack::Start()
 {
     DeathAbilityBase::Start();
+
+    setupUI();
 }
 
 void DeathBasicAttack::Update()
@@ -43,6 +47,8 @@ void DeathBasicAttack::Update()
         }
     }
 
+    updateUI();
+
     // Block new input while the attack window is still running
     if (m_attackStateTimer > 0.0f)
     {
@@ -52,7 +58,7 @@ void DeathBasicAttack::Update()
 
 bool DeathBasicAttack::canStartSpecificAbility() const
 {
-	return m_deathCharacter != nullptr && !m_deathCharacter->isInComboCooldown() && !m_character->isUsingAbility();
+    return m_deathCharacter != nullptr && !m_deathCharacter->isInComboCooldown();
 }
 
 void DeathBasicAttack::startAbility()
@@ -68,6 +74,12 @@ void DeathBasicAttack::startAbility()
     m_attackFacingTarget = target;
 
     const int comboStep = m_deathCharacter->getComboStep();
+
+    DeathSound* sound = m_deathCharacter->getSound();
+    if (sound != nullptr)
+    {
+        sound->playLightSwing();
+    }
 
     dealDamageToTarget(target);
     m_deathCharacter->advanceCombo(false);
@@ -164,15 +176,33 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             return true;
         };
 
+    DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
+
     auto applyDamage = [&](GameObject* enemy)
         {
             EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(enemy);
             if (damageable == nullptr)
             {
+                BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(enemy);
+                if(breakableDamageable == nullptr)
+                {
+                    return;
+                }
+                breakableDamageable->takeDamage(m_basicAttackDamage);
+                if (sound != nullptr)
+                {
+                    sound->playLightImpact();
+                }
                 return;
             }
 
-            damageable->takeDamageEnemy(m_basicAttackDamage, GameObjectAPI::getTransform(getOwner()));
+            {
+                EnemyHitContext ctx;
+                ctx.damage = m_basicAttackDamage;
+                ctx.attacker = GameObjectAPI::getTransform(getOwner());
+                ctx.attackType = EnemyAttackType::DeathBasic;
+                damageable->takeDamage(ctx);
+            }
 
             Debug::log("[BASIC] hit '%s'  dmg=%.1f  hp=%.1f/%.1f",
                 GameObjectAPI::getName(enemy),
@@ -180,10 +210,19 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
                 damageable->getCurrentHp(),
                 damageable->getMaxHp());
 
+            if (sound != nullptr)
+            {
+                sound->playLightImpact();
+            }
+
             EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemy);
             if (shadowMark != nullptr)
             {
                 shadowMark->notifyDeathHit();
+                if (sound != nullptr)
+                {
+                    sound->playMarkApply();
+                }
             }
         };
 
@@ -368,6 +407,56 @@ void DeathBasicAttack::faceTarget(GameObject* target)
     dir.Normalize();
 
     playerRotation->applyFacingFromDirection(getOwner(), dir, Time::getDeltaTime());
+}
+
+void DeathBasicAttack::setupUI()
+{
+    Transform* t = GameObjectAPI::getTransform(getOwner());
+    if (t)
+    {
+        m_deathSlashUITransform = TransformAPI::findChildByName(t, "DeathSlashUI");
+        if (m_deathSlashUITransform)
+        {
+            GameObjectAPI::setActive(m_deathSlashUITransform->getOwner(), false);
+            m_deathSlashUISlider = static_cast<UISlider*>(GameObjectAPI::getComponent(m_deathSlashUITransform->getOwner(), ComponentType::UISLIDER));
+            if (m_deathSlashUISlider)
+            {
+                SliderAPI::setFillAmount(m_deathSlashUISlider, 0.0f);
+            }
+        }
+    }
+
+    if (!m_deathSlashUITransform)
+    {
+        Debug::warn("DeathBasicAttack on '%s' could not find DeathSlashUI child for attack UI.", GameObjectAPI::getName(getOwner()));
+    }
+    else if (!m_deathSlashUISlider)
+    {
+        Debug::warn("DeathBasicAttack on '%s' could not find UISlider on DeathSlashUI for attack UI.", GameObjectAPI::getName(getOwner()));
+    }
+}
+
+void DeathBasicAttack::updateUI()
+{
+    AbilityBase::updateUI();
+
+    if (m_deathSlashUITransform == nullptr || m_deathSlashUISlider == nullptr)
+    {
+        return;
+    }
+
+	Debug::log("[UI] attack window timer: %.2f / %.2f", m_attackStateTimer, m_attackLockDuration);
+
+    const bool showUI = m_attackStateTimer > 0.0f;
+    GameObjectAPI::setActive(m_deathSlashUITransform->getOwner(), showUI);
+    if (showUI)
+    {
+        const float t = 1.0f - (m_attackStateTimer / m_attackLockDuration);
+        SliderAPI::setFillOrigin(m_deathSlashUISlider, t < 0.5f ? FillOrigin::Radial180BottomCCW : FillOrigin::Radial180Bottom);
+        const float fillAmount = MathAPI::pingPong(t);
+        const float easedFill = MathAPI::evaluateEasing(MathAPI::EasingType::EaseOutCubic, fillAmount);
+        SliderAPI::setFillAmount(m_deathSlashUISlider, fillAmount);
+    }
 }
 
 IMPLEMENT_SCRIPT(DeathBasicAttack)

@@ -11,10 +11,6 @@ public:
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-    UIImage* getTargetGraphic() const { return m_targetGraphic; }
-    void setTargetGraphic(UIImage* img);
-    void setTargetImage(UIImage* img) { setTargetGraphic(img); }
-
     float getFillAmount() const { return m_fillAmount; }
     void setFillAmount(float amount);
 
@@ -28,15 +24,11 @@ public:
 
     rapidjson::Value getJSON(rapidjson::Document& domTree) override;
     bool deserializeJSON(const rapidjson::Value& componentInfo) override;
-    void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
-    void applyToTarget();
+    void applyToImage();
 
 private:
-    UIImage* m_targetGraphic = nullptr;
-    UID m_targetGraphicUid = 0;
-
     float m_fillAmount = 1.0f;
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;

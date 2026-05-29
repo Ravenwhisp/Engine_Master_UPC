@@ -13,5 +13,6 @@ constexpr const char* JPEG_EXTENSION = ".jpeg";
 constexpr const char* BMP_EXTENSION = ".bmp";
 constexpr const char* TGA_EXTENSION = ".tga";
 constexpr const char* DDS_EXTENSION = ".dds";
+constexpr const char* HDR_EXTENSION = ".hdr";
 
 constexpr const char* GLTF_EXTENSION = ".gltf";

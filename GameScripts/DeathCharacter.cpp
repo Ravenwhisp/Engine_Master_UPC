@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "DeathCharacter.h"
+#include "DeathSound.h"
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
+#include "PlayerMovement.h"
 
 #include <cmath>
 #include <vector>
@@ -21,6 +23,18 @@ DeathCharacter::DeathCharacter(GameObject* owner)
 void DeathCharacter::Start()
 {
     CharacterBase::Start();
+
+    m_sound    = GameObjectAPI::findScript<DeathSound>(getOwner());
+    m_movement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
+
+    if (m_sound == nullptr)
+    {
+        Debug::log("[DeathCharacter] DeathSound not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+    if (m_movement == nullptr)
+    {
+        Debug::log("[DeathCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
 }
 
 void DeathCharacter::Update()
@@ -29,11 +43,20 @@ void DeathCharacter::Update()
 
     if (isDowned())
     {
+        if (m_sound != nullptr)
+        {
+            m_sound->stopAllLoops();
+        }
         resetCombo();
         return;
     }
 
     tickCombo(Time::getDeltaTime());
+
+    if (m_sound != nullptr && m_movement != nullptr)
+    {
+        m_sound->setHoverActive(m_movement->isMoving());
+    }
 }
 
 void DeathCharacter::tickCombo(float dt)
@@ -44,6 +67,15 @@ void DeathCharacter::tickCombo(float dt)
     }
 
     if (m_comboStep == 0)
+    {
+        return;
+    }
+
+    // The combo window is for the time BETWEEN hits, not during them.
+    // While the character is locked in an attack (or about to fire a buffered
+    // one), the combo must not expire — otherwise long lock durations relative
+    // to the window would reset the combo before the next input fires.
+    if (isUsingAbility())
     {
         return;
     }

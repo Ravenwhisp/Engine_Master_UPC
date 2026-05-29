@@ -18,6 +18,7 @@
 
 class AssetScanner;
 class ContentRegistry;
+struct DirectoryEntry;
 class PrefabManager;
 
 class Asset;
@@ -82,6 +83,8 @@ public:
     bool save(Asset& asset, const std::filesystem::path& path = {});
     void refresh();
 
+    void unregisterAsset(const std::filesystem::path& sourcePath);
+
     ContentRegistry* getContentRegistry() const;
     PrefabManager* getPrefabManager() const;
 
@@ -107,6 +110,14 @@ public:
                 if (it != m_uidIndex.end())
                 {
                     ref.m_type = it->second.type;
+                }
+            }
+
+            {
+                auto it = m_uidIndex.find(ref.m_uid);
+                if (it != m_uidIndex.end() && isValidAsset(it->second.contentHash))
+                {
+                    ref.m_libId = it->second.contentHash;
                 }
             }
 
@@ -176,6 +187,9 @@ public:
     void registerSubAsset(const Metadata& meta, const UID& parentUID,  uint8_t* binaryData, size_t binarySize);
 
     void flushDialogRequests();
+
+    bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
+
 private:
     UID findUID(const std::filesystem::path& sourcePath) const;
     
@@ -204,6 +218,26 @@ private:
 
         std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
         importer->load(buffer.data(), asset.get());
+
+        // Restore import settings from metadata
+        {
+            auto it = m_uidIndex.find(ref.m_uid);
+            if (it != m_uidIndex.end() && !it->second.sourcePath.empty())
+            {
+                std::filesystem::path metaPath = it->second.sourcePath;
+                Metadata::getMetadataPath(metaPath);
+                Metadata meta;
+                if (loadMetaFile(metaPath, meta) && meta.importSettings)
+                {
+                    asset->setImportSettings(std::move(meta.importSettings));
+                }
+            }
+        }
+        if (!asset->getImportSettings())
+        {
+            asset->setImportSettings(asset->createDefaultImportSettings());
+        }
+
         m_assets.insert(ref.m_uid, asset);
 
         return std::static_pointer_cast<T>(asset);
@@ -213,6 +247,8 @@ private:
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
    
     void registerIndex(const UID& uid, AssetType type, const std::filesystem::path& sourcePath, const MD5Hash& contentHash = INVALID_ASSET_ID);
+
+    void collectDirectoryAssets(DirectoryEntry* dir);
 
 
 
