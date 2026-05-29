@@ -3,7 +3,7 @@
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurAttackConfig,
     // Heavy Swipe
-    FIELD_GROUP_COLLAPSE_BEGIN("Heavy Swipe"),
+    FIELD_GROUP_COLLAPSE("Heavy Swipe",
         FIELD_GROUP_LABEL("Data"),
         SERIALIZED_FLOAT(m_heavySwipeDamage, "Heavy Swipe Damage", 0.0f, 9999.0f, 1.0f),
         SERIALIZED_FLOAT(m_heavySwipeRange, "Heavy Swipe Range", 0.0f, 20.0f, 0.1f),
@@ -25,10 +25,10 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurAttackConfig,
 	    SERIALIZED_COMPONENT_REF(m_heavySwipeUIBorder, "Heavy Swipe UI Border", ComponentType::TRANSFORM2D),
 	    SERIALIZED_COMPONENT_REF(m_heavySwipeUIGlow, "Heavy Swipe UI Glow", ComponentType::TRANSFORM2D),
 	    SERIALIZED_COMPONENT_REF(m_heavySwipeUIRightClaw, "Heavy Swipe UI Right Claw", ComponentType::TRANSFORM2D),
-	    SERIALIZED_COMPONENT_REF(m_heavySwipeUILeftClaw, "Heavy Swipe UI Left Claw", ComponentType::TRANSFORM2D),
-    FIELD_GROUP_COLLAPSE_END(),
+	    SERIALIZED_COMPONENT_REF(m_heavySwipeUILeftClaw, "Heavy Swipe UI Left Claw", ComponentType::TRANSFORM2D)
+    ),
     // Side Sweep
-    FIELD_GROUP_COLLAPSE_BEGIN("Side Sweep"),
+    FIELD_GROUP_COLLAPSE("Side Sweep",
         FIELD_GROUP_LABEL("Data"),
         SERIALIZED_FLOAT(m_sideSweepDamage, "Side Sweep Damage", 0.0f, 9999.0f, 1.0f),
         SERIALIZED_FLOAT(m_sideSweepRange, "Side Sweep Range", 0.0f, 30.0f, 0.1f),
@@ -44,10 +44,10 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurAttackConfig,
 	    SERIALIZED_COMPONENT_REF(m_sideSweepUICanvas, "Side Sweep UI Canvas", ComponentType::TRANSFORM),
 	    SERIALIZED_COMPONENT_REF(m_sideSweepUIContainer, "Side Sweep UI Container", ComponentType::TRANSFORM2D),
 	    SERIALIZED_COMPONENT_REF(m_sideSweepUIBackground, "Side Sweep UI Background", ComponentType::TRANSFORM2D),
-	    SERIALIZED_COMPONENT_REF(m_sideSweepUIShadow, "Side Sweep UI Shadow", ComponentType::TRANSFORM2D),
-    FIELD_GROUP_COLLAPSE_END(),
+	    SERIALIZED_COMPONENT_REF(m_sideSweepUIShadow, "Side Sweep UI Shadow", ComponentType::TRANSFORM2D)
+    ),
     // Charging Slam
-    FIELD_GROUP_COLLAPSE_BEGIN("Charging Slam"),
+    FIELD_GROUP_COLLAPSE("Charging Slam",
         FIELD_GROUP_LABEL("Data"),
         SERIALIZED_FLOAT(m_chargingSlamDashDamage, "Charging Slam Dash Damage", 0.0f, 9999.0f, 1.0f),
         SERIALIZED_FLOAT(m_chargingSlamFinalAreaImpactDamage, "Charging Slam Final Area Impact Damage", 0.0f, 9999.0f, 1.0f),
@@ -75,10 +75,10 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurAttackConfig,
 	    SERIALIZED_COMPONENT_REF(m_chargingSlamImpactUICanvas, "Charging Slam Impact UI Canvas", ComponentType::TRANSFORM),
 	    SERIALIZED_COMPONENT_REF(m_chargingSlamImpactUIContainer, "Charging Slam Impact UI Container", ComponentType::TRANSFORM2D),
 	    SERIALIZED_COMPONENT_REF(m_chargingSlamImpactUICenter, "Charging Slam Impact UI Center", ComponentType::TRANSFORM2D),
-	    SERIALIZED_COMPONENT_REF(m_chargingSlamImpactUIGlow, "Charging Slam Impact UI Glow", ComponentType::TRANSFORM2D),
-    FIELD_GROUP_COLLAPSE_END(),
+	    SERIALIZED_COMPONENT_REF(m_chargingSlamImpactUIGlow, "Charging Slam Impact UI Glow", ComponentType::TRANSFORM2D)
+    ),
     // Earth Hammer
-    FIELD_GROUP_COLLAPSE_BEGIN("Earth Hammer"),
+    FIELD_GROUP_COLLAPSE("Earth Hammer",
         FIELD_GROUP_LABEL("Data"),
         SERIALIZED_FLOAT(m_earthHammerDamage, "Earth Hammer Damage", 0.0f, 9999.0f, 1.0f),
         SERIALIZED_FLOAT(m_earthHammerRadius, "Earth Hammer Radius", 0.0f, 30.0f, 0.1f),
@@ -95,8 +95,8 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurAttackConfig,
 	    SERIALIZED_COMPONENT_REF(m_earthHammerUIInner, "Earth Hammer UI Inner", ComponentType::TRANSFORM2D),
 	    SERIALIZED_COMPONENT_REF(m_earthHammerUISpikes, "Earth Hammer UI Spikes", ComponentType::TRANSFORM2D),
 	    SERIALIZED_COMPONENT_REF(m_earthHammerUIGlow, "Earth Hammer UI Glow", ComponentType::TRANSFORM2D),
-	    SERIALIZED_COMPONENT_REF(m_earthHammerUIRing, "Earth Hammer UI Ring", ComponentType::TRANSFORM2D),
-    FIELD_GROUP_COLLAPSE_END()
+	    SERIALIZED_COMPONENT_REF(m_earthHammerUIRing, "Earth Hammer UI Ring", ComponentType::TRANSFORM2D)
+    )
 )
 
 ArthurAttackConfig::ArthurAttackConfig(GameObject* owner)
