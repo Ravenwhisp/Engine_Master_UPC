@@ -75,6 +75,8 @@ void Quadtree::build(const std::vector<Layer> layers)
 
     if (minX == std::numeric_limits<float>::max())
     {
+        DEBUG_LOG("[Quadtree] No MeshRenderers found to build quadtree (total GOs: %zu)", objects.size());
+        isBuilded = true;
         return;
     }
 
@@ -106,6 +108,8 @@ void Quadtree::build(const std::vector<Layer> layers)
         insert(*go);
     }
 
+    DEBUG_LOG("[Quadtree] Built with %zu objects (of %zu total GOs)",
+              m_objectLocationMap.size(), objects.size());
     isBuilded = true;
 }
 

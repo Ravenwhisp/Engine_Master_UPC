@@ -285,6 +285,22 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     m_allObjects.push_back(std::move(gameObject));
     m_rootObjects.push_back(raw);
     markDirty();
+
+    SceneReferenceResolver resolver;
+    std::vector<GameObject*> gos = {raw};
+    for (size_t i = 0; i < gos.size(); ++i)
+    {
+        resolver.registerGameObject(gos[i], gos[i]);
+        for (Component* c : gos[i]->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+
+        for (GameObject* child : gos[i]->GetTransform()->getAllChildren())
+            gos.push_back(child);
+    }
+
+    for (GameObject* go : gos)
+        for (Component* c : go->GetAllComponents())
+            c->fixReferences(resolver);
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
@@ -421,11 +437,17 @@ GameObject* Scene::createDirectionalLightOnInit()
 const std::vector<GameObject*> Scene::getAllGameObjects() const
 {
     std::vector<GameObject*> result;
-    result.reserve(m_allObjects.size());
+    result.reserve(m_allObjects.size() * 2);
 
     for (const auto& obj : m_allObjects)
     {
         result.push_back(obj.get());
+
+        for (size_t j = result.size() - 1; j < result.size(); ++j)
+        {
+            for (GameObject* child : result[j]->GetTransform()->getAllChildren())
+                result.push_back(child);
+        }
     }
 
     return result;
@@ -604,12 +626,13 @@ void Scene::serialize(IArchive& archive)
         }
         archive.serialize(defaultCameraUid, "defaultCameraUid");
 
-        uint32_t goCount = static_cast<uint32_t>(m_allObjects.size());
+        auto allGOs = getAllGameObjects();
+        uint32_t goCount = static_cast<uint32_t>(allGOs.size());
         archive.serialize(goCount, "goCount");
 
         for (uint32_t i = 0; i < goCount; ++i)
         {
-            GameObject* go = m_allObjects[i].get();
+            GameObject* go = allGOs[i];
             std::string key = "GameObject_" + std::to_string(i);
             archive.beginObject(key.c_str());
 

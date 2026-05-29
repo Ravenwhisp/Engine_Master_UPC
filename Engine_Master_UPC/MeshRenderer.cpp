@@ -12,6 +12,7 @@
 
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
+#include "SceneReferenceResolver.h"
 
 MeshRenderer::~MeshRenderer() = default;
 
@@ -193,25 +194,56 @@ void MeshRenderer::serialize(IArchive& archive)
     if (archive.mode() == ArchiveMode::Input)
         setActive(active);
 
-    archive.beginObject("MeshAssetId");
-    m_meshAsset.serialize(archive);
-    archive.endObject();
-
-    archive.beginObject("SkinAssetId");
-    m_skinAsset.serialize(archive);
-    archive.endObject();
-
-    uint32_t materialCount = static_cast<uint32_t>(m_materialAssets.size());
-    archive.serialize(materialCount, "MaterialCount");
     if (archive.mode() == ArchiveMode::Input)
-        m_materialAssets.resize(materialCount);
-
-    for (uint32_t i = 0; i < materialCount; ++i)
     {
-        std::string key = "Material_" + std::to_string(i);
-        archive.beginObject(key.c_str());
-        m_materialAssets[i].serialize(archive);
+        {
+            AssetReference ref;
+            archive.beginObject("MeshAssetId");
+            ref.serialize(archive);
+            archive.endObject();
+            setMeshReference(ref);
+        }
+
+        {
+            AssetReference ref;
+            archive.beginObject("SkinAssetId");
+            ref.serialize(archive);
+            archive.endObject();
+            setSkinReference(ref);
+        }
+
+        uint32_t materialCount = 0;
+        archive.serialize(materialCount, "MaterialCount");
+        for (uint32_t i = 0; i < materialCount; ++i)
+        {
+            std::string key = "Material_" + std::to_string(i);
+            archive.beginObject(key.c_str());
+            AssetReference ref;
+            ref.serialize(archive);
+            addMaterialReference(ref);
+            archive.endObject();
+        }
+    }
+    else
+    {
+        archive.beginObject("MeshAssetId");
+        m_meshAsset.serialize(archive);
         archive.endObject();
+
+        archive.beginObject("SkinAssetId");
+        m_skinAsset.serialize(archive);
+        archive.endObject();
+
+        uint32_t materialCount = static_cast<uint32_t>(m_materialAssets.size());
+        archive.serialize(materialCount, "MaterialCount");
+
+        for (uint32_t i = 0; i < materialCount; ++i)
+        {
+            std::string key = "Material_" + std::to_string(i);
+            archive.beginObject(key.c_str());
+            m_materialAssets[i].serialize(archive);
+            archive.endObject();
+        }
     }
 }
 
@@ -245,4 +277,26 @@ void MeshRenderer::clearSkin()
     }
 
     m_skin.reset();
+}
+
+void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
+{
+    if (m_meshAsset.isValid())
+    {
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+            addMesh(*meshAsset);
+    }
+
+    for (auto& matRef : m_materialAssets)
+    {
+        if (matRef.isValid())
+        {
+            matRef.m_type = AssetType::MATERIAL;
+            auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+            if (matAsset)
+                addMaterial(*matAsset);
+        }
+    }
 }

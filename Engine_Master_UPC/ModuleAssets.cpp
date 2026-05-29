@@ -251,6 +251,12 @@ void ModuleAssets::refresh()
             continue;
         }
         m_index.registerEntry(meta.uid, meta.type, meta.sourcePath, meta.contentHash);
+
+        for (const auto& dep : meta.m_dependencies)
+        {
+            if (isValidUID(dep.uid))
+                m_index.registerEntry(dep.uid, dep.type, {}, dep.contentHash);
+        }
     }
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[ModuleAssets] Metadata check took %.3f ms", elapsedMs(tCollect0, tCollect1));
