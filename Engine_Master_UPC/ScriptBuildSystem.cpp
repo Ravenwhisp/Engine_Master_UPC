@@ -20,6 +20,18 @@ bool ScriptBuildSystem::build(const ScriptBuildSettings& buildSettings) const
         return false;
     }
 
+    if (buildSettings.configuration.empty())
+    {
+        DEBUG_ERROR("[ScriptBuildSystem] Script build configuration is empty.");
+        return false;
+    }
+
+    if (buildSettings.platform.empty())
+    {
+        DEBUG_ERROR("[ScriptBuildSystem] Script build platform is empty.");
+        return false;
+    }
+
     const std::filesystem::path projectPath = resolveBuildPath(buildSettings.projectPath);
     const std::filesystem::path solutionDir = resolveBuildPath(buildSettings.solutionDir);
 
@@ -36,7 +48,7 @@ bool ScriptBuildSystem::build(const ScriptBuildSettings& buildSettings) const
         return false;
     }
 
-    if (!runMsBuild(msbuildPath, projectPath, solutionDir, BUILD_LOG_PATH))
+    if (!runMsBuild(msbuildPath, projectPath, solutionDir, buildSettings.configuration, buildSettings.platform, BUILD_LOG_PATH))
     {
         DEBUG_ERROR("[ScriptBuildSystem] Build output written to %s", BUILD_LOG_PATH);
         return false;
@@ -81,13 +93,13 @@ bool ScriptBuildSystem::validateScriptBuildPaths(const std::filesystem::path& pr
 }
 
 // Launch MSBuild without opening a cmd window
-bool ScriptBuildSystem::runMsBuild(const std::filesystem::path& msbuildPath, const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::string& buildLogPath) const
+bool ScriptBuildSystem::runMsBuild(const std::filesystem::path& msbuildPath, const std::filesystem::path& projectPath, const std::filesystem::path& solutionDir, const std::string& configuration, const std::string& platform, const std::string& buildLogPath) const
 {
     const std::filesystem::path absoluteLogPath = std::filesystem::absolute(buildLogPath).lexically_normal();
 
     std::string solutionDirString = solutionDir.string();
 
-    if (!solutionDirString.empty() && solutionDirString.back() == '\\')
+    if (!solutionDirString.empty() && solutionDirString.back() != '\\')
     {
         solutionDirString += '\\';
     }
@@ -95,8 +107,9 @@ bool ScriptBuildSystem::runMsBuild(const std::filesystem::path& msbuildPath, con
     const std::string commandLine =
         "\"" + msbuildPath.string() + "\" " +
         "\"" + projectPath.string() + "\" " +
-        "\"/p:Configuration=" + SCRIPT_BUILD_CONFIGURATION + "\" " +
-        "\"/p:Platform=" + SCRIPT_BUILD_PLATFORM + "\" " +
+        "\"/t:Build\" " +
+        "\"/p:Configuration=" + configuration + "\" " +
+        "\"/p:Platform=" + platform + "\" " +
         "\"/p:SolutionDir=" + solutionDirString + "\"";
 
     SECURITY_ATTRIBUTES securityAttributes = {};
