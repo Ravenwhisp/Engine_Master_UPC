@@ -261,6 +261,14 @@ bool ModuleScripting::loadScriptBuildSettings()
         {
             m_buildSettings.solutionDir = value;
         }
+        else if (key == "Configuration")
+        {
+            m_buildSettings.configuration = value;
+        }
+        else if (key == "Platform")
+        {
+            m_buildSettings.platform = value;
+        }
     }
 
     if (m_buildSettings.projectPath.empty())
@@ -272,6 +280,18 @@ bool ModuleScripting::loadScriptBuildSettings()
     if (m_buildSettings.solutionDir.empty())
     {
         DEBUG_WARN("[ModuleScripting] Script build SolutionDir is empty.");
+        return false;
+    }
+
+    if (m_buildSettings.configuration.empty())
+    {
+        DEBUG_WARN("[ModuleScripting] Script build Configuration is empty.");
+        return false;
+    }
+
+    if (m_buildSettings.platform.empty())
+    {
+        DEBUG_WARN("[ModuleScripting] Script build Platform is empty.");
         return false;
     }
 
@@ -291,6 +311,8 @@ bool ModuleScripting::saveScriptBuildSettings() const
     file << "[ScriptBuild]\n";
     file << "ProjectPath=" << m_buildSettings.projectPath << "\n";
     file << "SolutionDir=" << m_buildSettings.solutionDir << "\n";
+    file << "Configuration=" << m_buildSettings.configuration << "\n";
+    file << "Platform=" << m_buildSettings.platform << "\n";
 
     file.close();
 
