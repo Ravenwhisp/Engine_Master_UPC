@@ -7,6 +7,8 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+#include "SoundBanksData.h"
+#include "SceneReferenceResolver.h"
 #include "UID.h"
 
 struct ID3D12GraphicsCommandList;
@@ -59,6 +61,8 @@ private:
 
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();
+
+    void FixReferences();
     //
 
 public:

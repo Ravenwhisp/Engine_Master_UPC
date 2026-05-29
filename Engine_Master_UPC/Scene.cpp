@@ -17,10 +17,7 @@
 #include "SceneSnapshot.h"
 #include "Transform.h"
 
-#include "SceneSerializer.h"
 #include "IArchive.h"
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
 
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
@@ -579,29 +576,150 @@ void Scene::removeLoadedBank(const std::string& bank)
 
 void Scene::serialize(IArchive& archive)
 {
-    // Scene is serialized as a complete JSON document matching SceneSerializer.
-    // The JSON is stored as a single string in the binary archive.
     if (archive.mode() == ArchiveMode::Output)
     {
-        rapidjson::Document domTree;
-        domTree.SetObject();
-        rapidjson::Value sceneValue = SceneSerializer::getJSON(domTree, this);
-        domTree.Swap(sceneValue);
-        rapidjson::StringBuffer jsonBuffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(jsonBuffer);
-        domTree.Accept(writer);
-        std::string jsonStr = jsonBuffer.GetString();
-        archive.serialize(jsonStr);
+        archive.serialize(m_name, "name");
+
+        archive.beginObject("Lighting");
+        m_lighting.serialize(archive);
+        archive.endObject();
+
+        archive.beginObject("SkyBox");
+        m_skybox.serialize(archive);
+        archive.endObject();
+
+        {
+            SoundBanksData soundData;
+            soundData.banks = m_loadedBanks;
+            archive.beginObject("SoundBanks");
+            soundData.serialize(archive);
+            archive.endObject();
+        }
+
+        uint64_t defaultCameraUid = 0;
+        if (m_defaultCamera)
+        {
+            GameObject* owner = m_defaultCamera->getOwner();
+            defaultCameraUid = (uint64_t)owner->GetID();
+        }
+        archive.serialize(defaultCameraUid, "defaultCameraUid");
+
+        uint32_t goCount = static_cast<uint32_t>(m_allObjects.size());
+        archive.serialize(goCount, "goCount");
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            GameObject* go = m_allObjects[i].get();
+            std::string key = "GameObject_" + std::to_string(i);
+            archive.beginObject(key.c_str());
+
+            uint64_t uid = go->GetID();
+            uint64_t transformUid = go->GetTransform()->getID();
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+
+            Transform* parentTransform = go->GetTransform()->getRoot();
+            uint64_t parentUid = parentTransform ? (uint64_t)parentTransform->getOwner()->GetID() : 0;
+            archive.serialize(parentUid, "parentUid");
+
+            go->serialize(archive);
+
+            archive.endObject();
+        }
     }
     else
     {
-        std::string jsonStr;
-        archive.serialize(jsonStr);
-        rapidjson::Document doc;
-        doc.Parse(jsonStr.c_str());
-        if (!doc.HasParseError())
+        archive.serialize(m_name, "name");
+
+        archive.beginObject("Lighting");
+        m_lighting.serialize(archive);
+        archive.endObject();
+
+        archive.beginObject("SkyBox");
+        m_skybox.serialize(archive);
+        archive.endObject();
+
         {
-            SceneSerializer::LoadFromJSON(*this, doc);
+            SoundBanksData soundData;
+            archive.beginObject("SoundBanks");
+            soundData.serialize(archive);
+            archive.endObject();
+            m_loadedBanks = std::move(soundData.banks);
         }
+
+        uint64_t defaultCameraUid = 0;
+        archive.serialize(defaultCameraUid, "defaultCameraUid");
+
+        uint32_t goCount = 0;
+        archive.serialize(goCount, "goCount");
+
+        struct GoMeta { uint64_t uid; uint64_t transformUid; uint64_t parentUid; };
+        std::vector<GoMeta> goMeta;
+        goMeta.reserve(goCount);
+        std::vector<GameObject*> gos;
+        gos.reserve(goCount);
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            std::string key = "GameObject_" + std::to_string(i);
+            archive.beginObject(key.c_str());
+
+            uint64_t uid = 0, transformUid = 0, parentUid = 0;
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+            archive.serialize(parentUid, "parentUid");
+
+            GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid);
+            go->serialize(archive);
+
+            goMeta.push_back({uid, transformUid, parentUid});
+            gos.push_back(go);
+
+            archive.endObject();
+        }
+
+        for (size_t i = 0; i < gos.size(); ++i)
+        {
+            if (goMeta[i].parentUid == 0) continue;
+
+            GameObject* child = gos[i];
+            GameObject* parent = findGameObjectByUID((UID)goMeta[i].parentUid);
+            if (parent)
+            {
+                child->GetTransform()->setRoot(parent->GetTransform());
+                parent->GetTransform()->addChild(child);
+                removeFromRootList(child);
+            }
+        }
+
+        FixReferences();
+
+        if (defaultCameraUid != 0)
+        {
+            GameObject* go = findGameObjectByUID((UID)defaultCameraUid);
+            if (go)
+            {
+                auto* cam = go->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+                setDefaultCamera(cam);
+            }
+        }
+    }
+}
+
+void Scene::FixReferences()
+{
+    SceneReferenceResolver resolver;
+
+    for (GameObject* obj : getAllGameObjects())
+    {
+        resolver.registerGameObject(obj, obj);
+        for (Component* c : obj->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+    }
+
+    for (GameObject* obj : getAllGameObjects())
+    {
+        for (Component* c : obj->GetAllComponents())
+            c->fixReferences(resolver);
     }
 }

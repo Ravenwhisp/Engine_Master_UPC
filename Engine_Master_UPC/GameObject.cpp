@@ -691,12 +691,6 @@ void GameObject::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)
     {
-        archive.serialize(m_uuid, "UID");
-        {
-            Transform* parentTransform = m_transform->getRoot();
-            uint64_t parentUid = parentTransform ? parentTransform->getOwner()->GetID() : 0;
-            archive.serialize(parentUid, "ParentUID");
-        }
         archive.serialize(m_name, "Name");
         archive.serialize(m_active, "Active");
         archive.serialize(m_isStatic, "Static");
@@ -730,11 +724,6 @@ void GameObject::serialize(IArchive& archive)
     }
     else
     {
-        UID uid = 0;
-        archive.serialize(uid, "UID");
-
-        uint64_t parentUid = 0;
-        archive.serialize(parentUid, "ParentUID");
         archive.serialize(m_name, "Name");
         archive.serialize(m_active, "Active");
         archive.serialize(m_isStatic, "Static");

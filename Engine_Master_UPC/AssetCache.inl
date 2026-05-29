@@ -55,8 +55,8 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
                 asset->setImportSettings(std::move(meta.importSettings));
             }
         }
-            asset->setImportSettings(std::move(meta.importSettings));
-        }
+
+        asset->setImportSettings(std::move(meta.importSettings));
     }
     if (!asset->getImportSettings())
     {
@@ -70,8 +70,7 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
 
 
 template<typename T>
-std::shared_ptr<T> AssetCache::load(AssetReference& ref, AssetIndex& index,
-                                     ImporterRegistry& importers)
+std::shared_ptr<T> AssetCache::load(AssetReference& ref, AssetIndex& index, ImporterRegistry& importers)
 {
     if (!isValidUID(ref.m_uid))
     {

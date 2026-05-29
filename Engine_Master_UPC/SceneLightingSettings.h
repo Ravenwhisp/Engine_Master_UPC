@@ -10,7 +10,7 @@ struct SceneLightingSettings : public ISerializable
 
 	void serialize(IArchive& archive) override
 	{
-		archive.serializeRaw(&ambientColor, sizeof(ambientColor), "ambientColor");
+		archive.serialize(ambientColor, "ambientColor");
 		archive.serialize(ambientIntensity, "ambientIntensity");
 	}
 };

@@ -153,7 +153,6 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
@@ -186,9 +185,6 @@
     </ClCompile>
     <ClCompile Include="UIButton.cpp">
       <Filter>UI</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneSerializer.cpp">
-      <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="AssetCache.cpp">
       <Filter>Persistence</Filter>
@@ -824,9 +820,6 @@
     </ClInclude>
     <ClInclude Include="UIButton.h">
       <Filter>UI</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneSerializer.h">
-      <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="AssetCache.h">
       <Filter>Persistence</Filter>
