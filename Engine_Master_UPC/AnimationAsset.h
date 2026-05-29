@@ -47,78 +47,46 @@ public:
         archive.serialize(m_name);
         archive.serialize(m_durationSeconds);
 
-        uint32_t channelCount = static_cast<uint32_t>(m_channels.size());
-        archive.serialize(channelCount);
+        auto serializeKeys = [&](auto& keys)
+        {
+            uint32_t count = static_cast<uint32_t>(keys.size());
+            archive.serialize(count);
+            if (archive.mode() == ArchiveMode::Input)
+                keys.resize(count);
+            for (auto& k : keys)
+            {
+                archive.serialize(k.time);
+                archive.serializeRaw(&k.value, sizeof(k.value));
+            }
+        };
 
         if (archive.mode() == ArchiveMode::Input)
         {
+            uint32_t channelCount = 0;
+            archive.serialize(channelCount);
             m_channels.clear();
             for (uint32_t i = 0; i < channelCount; ++i)
             {
                 std::string nodeName;
                 archive.serialize(nodeName);
                 AnimChannel ch;
-
-                uint32_t posCount = 0;
-                archive.serialize(posCount);
-                ch.posKeys.resize(posCount);
-                for (auto& k : ch.posKeys)
-                {
-                    archive.serialize(k.time);
-                    archive.serializeRaw(&k.value, sizeof(Vector3));
-                }
-
-                uint32_t rotCount = 0;
-                archive.serialize(rotCount);
-                ch.rotKeys.resize(rotCount);
-                for (auto& k : ch.rotKeys)
-                {
-                    archive.serialize(k.time);
-                    archive.serializeRaw(&k.value, sizeof(Quaternion));
-                }
-
-                uint32_t scaleCount = 0;
-                archive.serialize(scaleCount);
-                ch.scaleKeys.resize(scaleCount);
-                for (auto& k : ch.scaleKeys)
-                {
-                    archive.serialize(k.time);
-                    archive.serializeRaw(&k.value, sizeof(Vector3));
-                }
-
+                serializeKeys(ch.posKeys);
+                serializeKeys(ch.rotKeys);
+                serializeKeys(ch.scaleKeys);
                 m_channels.emplace(nodeName, std::move(ch));
             }
         }
         else
         {
+            uint32_t channelCount = static_cast<uint32_t>(m_channels.size());
+            archive.serialize(channelCount);
             for (auto& pair : m_channels)
             {
                 std::string nodeName = pair.first;
                 archive.serialize(nodeName);
-
-                uint32_t posCount = static_cast<uint32_t>(pair.second.posKeys.size());
-                archive.serialize(posCount);
-                for (auto& k : pair.second.posKeys)
-                {
-                    archive.serialize(k.time);
-                    archive.serializeRaw(&k.value, sizeof(Vector3));
-                }
-
-                uint32_t rotCount = static_cast<uint32_t>(pair.second.rotKeys.size());
-                archive.serialize(rotCount);
-                for (auto& k : pair.second.rotKeys)
-                {
-                    archive.serialize(k.time);
-                    archive.serializeRaw(&k.value, sizeof(Quaternion));
-                }
-
-                uint32_t scaleCount = static_cast<uint32_t>(pair.second.scaleKeys.size());
-                archive.serialize(scaleCount);
-                for (auto& k : pair.second.scaleKeys)
-                {
-                    archive.serialize(k.time);
-                    archive.serializeRaw(&k.value, sizeof(Vector3));
-                }
+                serializeKeys(pair.second.posKeys);
+                serializeKeys(pair.second.rotKeys);
+                serializeKeys(pair.second.scaleKeys);
             }
         }
     }

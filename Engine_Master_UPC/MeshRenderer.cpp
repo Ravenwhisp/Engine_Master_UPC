@@ -183,8 +183,7 @@ void MeshRenderer::serialize(IArchive& archive)
 {
     if (archive.mode() == ArchiveMode::Output)
     {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
+        archive.serialize(m_uuid, "UID");
         uint32_t type = static_cast<uint32_t>(ComponentType::MODEL);
         archive.serialize(type, "ComponentType");
     }
@@ -196,21 +195,16 @@ void MeshRenderer::serialize(IArchive& archive)
 
     if (archive.mode() == ArchiveMode::Input)
     {
-        {
-            AssetReference ref;
-            archive.beginObject("MeshAssetId");
-            ref.serialize(archive);
-            archive.endObject();
-            setMeshReference(ref);
-        }
+        AssetReference ref;
+        archive.beginObject("MeshAssetId");
+        ref.serialize(archive);
+        archive.endObject();
+        setMeshReference(ref);
 
-        {
-            AssetReference ref;
-            archive.beginObject("SkinAssetId");
-            ref.serialize(archive);
-            archive.endObject();
-            setSkinReference(ref);
-        }
+        archive.beginObject("SkinAssetId");
+        ref.serialize(archive);
+        archive.endObject();
+        setSkinReference(ref);
 
         uint32_t materialCount = 0;
         archive.serialize(materialCount, "MaterialCount");
@@ -218,7 +212,6 @@ void MeshRenderer::serialize(IArchive& archive)
         {
             std::string key = "Material_" + std::to_string(i);
             archive.beginObject(key.c_str());
-            AssetReference ref;
             ref.serialize(archive);
             addMaterialReference(ref);
             archive.endObject();

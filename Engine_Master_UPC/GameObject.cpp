@@ -689,59 +689,27 @@ void GameObject::onTransformChange()
 
 void GameObject::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
+    archive.serialize(m_name, "Name");
+    archive.serialize(m_active, "Active");
+    archive.serialize(m_isStatic, "Static");
+
     {
-        archive.serialize(m_name, "Name");
-        archive.serialize(m_active, "Active");
-        archive.serialize(m_isStatic, "Static");
-        {
-            std::string layer = LayerToString(m_layer);
-            archive.serialize(layer, "Layer");
-        }
-        {
-            std::string tag = TagToString(m_tag);
-            archive.serialize(tag, "Tag");
-        }
-
-        archive.beginObject("Transform");
-        m_transform->serialize(archive);
-        archive.endObject();
-
-        uint32_t compCount = 0;
-        for (const auto& comp : m_components)
-            if (comp->getType() != ComponentType::TRANSFORM) ++compCount;
-        archive.serialize(compCount, "ComponentCount");
-
-        uint32_t compIdx = 0;
-        for (const auto& comp : m_components)
-        {
-            if (comp->getType() == ComponentType::TRANSFORM) continue;
-            std::string key = "Component_" + std::to_string(compIdx++);
-            archive.beginObject(key.c_str());
-            comp->serialize(archive);
-            archive.endObject();
-        }
+        std::string layer = archive.mode() == ArchiveMode::Output ? LayerToString(m_layer) : "";
+        archive.serialize(layer, "Layer");
+        if (archive.mode() == ArchiveMode::Input) m_layer = StringToLayer(layer.c_str());
     }
-    else
     {
-        archive.serialize(m_name, "Name");
-        archive.serialize(m_active, "Active");
-        archive.serialize(m_isStatic, "Static");
-        {
-            std::string layer = LayerToString(m_layer);
-            archive.serialize(layer, "Layer");
-            m_layer = StringToLayer(layer.c_str());
-        }
-        {
-            std::string tag = TagToString(m_tag);
-            archive.serialize(tag, "Tag");
-            m_tag = StringToTag(tag.c_str());
-        }
+        std::string tag = archive.mode() == ArchiveMode::Output ? TagToString(m_tag) : "";
+        archive.serialize(tag, "Tag");
+        if (archive.mode() == ArchiveMode::Input) m_tag = StringToTag(tag.c_str());
+    }
 
-        archive.beginObject("Transform");
-        m_transform->serialize(archive);
-        archive.endObject();
+    archive.beginObject("Transform");
+    m_transform->serialize(archive);
+    archive.endObject();
 
+    if (archive.mode() == ArchiveMode::Input)
+    {
         uint32_t componentCount = 0;
         archive.serialize(componentCount, "ComponentCount");
         for (uint32_t i = 0; i < componentCount; ++i)
@@ -758,6 +726,23 @@ void GameObject::serialize(IArchive& archive)
             if (comp)
                 comp->serialize(archive);
 
+            archive.endObject();
+        }
+    }
+    else
+    {
+        uint32_t compCount = 0;
+        for (const auto& comp : m_components)
+            if (comp->getType() != ComponentType::TRANSFORM) ++compCount;
+        archive.serialize(compCount, "ComponentCount");
+
+        uint32_t compIdx = 0;
+        for (const auto& comp : m_components)
+        {
+            if (comp->getType() == ComponentType::TRANSFORM) continue;
+            std::string key = "Component_" + std::to_string(compIdx++);
+            archive.beginObject(key.c_str());
+            comp->serialize(archive);
             archive.endObject();
         }
     }

@@ -598,81 +598,37 @@ void Scene::removeLoadedBank(const std::string& bank)
 
 void Scene::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
+    archive.serialize(m_name, "name");
+
+    archive.beginObject("Lighting");
+    m_lighting.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("SkyBox");
+    m_skybox.serialize(archive);
+    archive.endObject();
+
     {
-        archive.serialize(m_name, "name");
-
-        archive.beginObject("Lighting");
-        m_lighting.serialize(archive);
-        archive.endObject();
-
-        archive.beginObject("SkyBox");
-        m_skybox.serialize(archive);
-        archive.endObject();
-
-        {
-            SoundBanksData soundData;
+        SoundBanksData soundData;
+        if (archive.mode() == ArchiveMode::Output)
             soundData.banks = m_loadedBanks;
-            archive.beginObject("SoundBanks");
-            soundData.serialize(archive);
-            archive.endObject();
-        }
-
-        uint64_t defaultCameraUid = 0;
-        if (m_defaultCamera)
-        {
-            GameObject* owner = m_defaultCamera->getOwner();
-            defaultCameraUid = (uint64_t)owner->GetID();
-        }
-        archive.serialize(defaultCameraUid, "defaultCameraUid");
-
-        auto allGOs = getAllGameObjects();
-        uint32_t goCount = static_cast<uint32_t>(allGOs.size());
-        archive.serialize(goCount, "goCount");
-
-        for (uint32_t i = 0; i < goCount; ++i)
-        {
-            GameObject* go = allGOs[i];
-            std::string key = "GameObject_" + std::to_string(i);
-            archive.beginObject(key.c_str());
-
-            uint64_t uid = go->GetID();
-            uint64_t transformUid = go->GetTransform()->getID();
-            archive.serialize(uid, "uid");
-            archive.serialize(transformUid, "transformUid");
-
-            Transform* parentTransform = go->GetTransform()->getRoot();
-            uint64_t parentUid = parentTransform ? (uint64_t)parentTransform->getOwner()->GetID() : 0;
-            archive.serialize(parentUid, "parentUid");
-
-            go->serialize(archive);
-
-            archive.endObject();
-        }
-    }
-    else
-    {
-        archive.serialize(m_name, "name");
-
-        archive.beginObject("Lighting");
-        m_lighting.serialize(archive);
+        archive.beginObject("SoundBanks");
+        soundData.serialize(archive);
         archive.endObject();
-
-        archive.beginObject("SkyBox");
-        m_skybox.serialize(archive);
-        archive.endObject();
-
-        {
-            SoundBanksData soundData;
-            archive.beginObject("SoundBanks");
-            soundData.serialize(archive);
-            archive.endObject();
+        if (archive.mode() == ArchiveMode::Input)
             m_loadedBanks = std::move(soundData.banks);
-        }
+    }
 
-        uint64_t defaultCameraUid = 0;
-        archive.serialize(defaultCameraUid, "defaultCameraUid");
+    uint64_t defaultCameraUid = 0;
+    if (archive.mode() == ArchiveMode::Output && m_defaultCamera)
+    {
+        GameObject* owner = m_defaultCamera->getOwner();
+        defaultCameraUid = (uint64_t)owner->GetID();
+    }
+    archive.serialize(defaultCameraUid, "defaultCameraUid");
 
+    if (archive.mode() == ArchiveMode::Input)
+    {
         uint32_t goCount = 0;
         archive.serialize(goCount, "goCount");
 
@@ -725,6 +681,32 @@ void Scene::serialize(IArchive& archive)
                 auto* cam = go->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
                 setDefaultCamera(cam);
             }
+        }
+    }
+    else
+    {
+        auto allGOs = getAllGameObjects();
+        uint32_t goCount = static_cast<uint32_t>(allGOs.size());
+        archive.serialize(goCount, "goCount");
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            GameObject* go = allGOs[i];
+            std::string key = "GameObject_" + std::to_string(i);
+            archive.beginObject(key.c_str());
+
+            uint64_t uid = go->GetID();
+            uint64_t transformUid = go->GetTransform()->getID();
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+
+            Transform* parentTransform = go->GetTransform()->getRoot();
+            uint64_t parentUid = parentTransform ? (uint64_t)parentTransform->getOwner()->GetID() : 0;
+            archive.serialize(parentUid, "parentUid");
+
+            go->serialize(archive);
+
+            archive.endObject();
         }
     }
 }
