@@ -26,12 +26,11 @@ public:
     void serialize(IArchive& archive) override
     {
         std::string pathStr = m_sourcePath.string();
-        archive.serialize(pathStr);
+        archive.serialize(pathStr, "sourcePath");
         if (archive.mode() == ArchiveMode::Input)
             m_sourcePath = pathStr;
 
         GameObject::serialize(archive);
-
         serializeChildren(archive, this);
     }
 
@@ -55,7 +54,8 @@ public:
 
         for (Component* comp : source->GetAllComponents())
         {
-            if (comp->getType() != ComponentType::TRANSFORM)
+            if (comp->getType() != ComponentType::TRANSFORM &&
+                comp->getType() != ComponentType::PREFAB_INSTANCE)
             {
                 auto cloned = comp->clone(this);
                 if (cloned)

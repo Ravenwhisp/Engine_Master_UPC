@@ -5,6 +5,7 @@
 
 #include "Application.h"
 #include "ModuleAssets.h"
+#include "SceneReferenceResolver.h"
 #include <UIRect.h>
 #include <Transform2D.h>
 #include <GameObject.h>
@@ -179,4 +180,14 @@ void UIImage::serialize(IArchive& archive)
     archive.serialize(stretchDrawMode, "StretchDrawMode");
     if (archive.mode() == ArchiveMode::Input)
         m_stretchDrawMode = static_cast<StretchDrawMode>(stretchDrawMode);
+}
+
+void UIImage::fixReferences(const SceneReferenceResolver& resolver)
+{
+    if (m_textureAssetId.isValid())
+    {
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+        if (m_textureAsset)
+            m_loadRequested = true;
+    }
 }

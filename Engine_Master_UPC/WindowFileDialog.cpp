@@ -286,7 +286,8 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
         const bool isGltf = sourcePath.extension() == GLTF_EXTENSION;
         if (isGltf && ImGui::MenuItem("Create State Machine"))
         {
-            app->getModuleAssets()->createStateMachineFromGltf(sourcePath);
+            m_pendingStateMachinePath = sourcePath;
+            ImGui::CloseCurrentPopup();
         }
 
         if (ImGui::MenuItem("Cut", "Ctrl+X"))
@@ -480,6 +481,12 @@ void WindowFileDialog::drawInternal()
     if (!registry)
     {
         return;
+    }
+
+    if (!m_pendingStateMachinePath.empty())
+    {
+        app->getModuleAssets()->createStateMachineFromGltf(m_pendingStateMachinePath);
+        m_pendingStateMachinePath.clear();
     }
 
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);

@@ -48,7 +48,7 @@ private:
 
     PrefabUI::FileDialogBuffers buildFileDialogBuffers();
 
-private:
+    private:
     std::filesystem::path m_currentDirectory;
     std::filesystem::path m_selectedPath;
     UID m_selectedAsset = INVALID_UID;
@@ -59,6 +59,8 @@ private:
     bool m_showVariantModal = false;
     bool m_showSavePrefabModal = false;
     bool m_renamingPrefab = false;
+
+    std::filesystem::path m_pendingStateMachinePath;
 
     char m_variantSrcBuf[512] = {};
     char m_variantDstBuf[512] = {};

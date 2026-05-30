@@ -131,11 +131,10 @@ void WindowHierarchy::drawSceneTree()
 
 void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
 {
-    if (!session->m_isolatedScene)
+    if (!session->m_rootObject)
         return;
 
-    for (GameObject* go : session->m_isolatedScene->getRootObjects())
-        m_treeRenderer.renderNode(go, true, m_selectionState);
+    m_treeRenderer.renderNode(session->m_rootObject, true, m_selectionState);
 }
 
 void WindowHierarchy::drawBackgroundContextMenu(bool prefabMode, PrefabEditSession* session)

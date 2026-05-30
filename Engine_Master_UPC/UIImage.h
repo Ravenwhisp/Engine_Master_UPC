@@ -61,6 +61,7 @@ public:
     void drawUi() override;
 
     void serialize(IArchive& archive) override;
+    void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
     AssetReference m_textureAssetId{};

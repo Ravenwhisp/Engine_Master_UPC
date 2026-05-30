@@ -85,6 +85,7 @@ bool PrefabManager::applyPrefab(const GameObject* go)
             revertPrefab(instance, scene);
     }
 
+    scene->FixReferences();
     scene->markDirty();
     return true;
 }
@@ -117,46 +118,89 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
         auto isOverridden = [&](const char* prop)
             { return overrideSet && overrideSet->count(prop) > 0; };
 
-        if (!isOverridden("position") && tfNode.HasMember("position") && tfNode["position"].IsArray())
+        auto readMember = [&](const char* lower, const char* upper) -> const Value*
         {
-            const auto& p = tfNode["position"];
-            tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
+            if (tfNode.HasMember(upper)) return &tfNode[upper];
+            if (tfNode.HasMember(lower)) return &tfNode[lower];
+            return nullptr;
+        };
+        if (!isOverridden("position"))
+        {
+            if (const Value* v = readMember("position", "Position"))
+            {
+                if (v->IsArray() && v->Size() >= 3)
+                    tf->setPosition(Vector3((*v)[0].GetFloat(), (*v)[1].GetFloat(), (*v)[2].GetFloat()));
+            }
         }
-        if (!isOverridden("rotation") && tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
+        if (!isOverridden("rotation"))
         {
-            const auto& r = tfNode["rotation"];
-            tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(), r[2].GetFloat(), r[3].GetFloat()));
+            if (const Value* v = readMember("rotation", "Rotation"))
+            {
+                if (v->IsArray() && v->Size() >= 4)
+                    tf->setRotation(Quaternion((*v)[0].GetFloat(), (*v)[1].GetFloat(), (*v)[2].GetFloat(), (*v)[3].GetFloat()));
+            }
         }
-        if (!isOverridden("scale") && tfNode.HasMember("scale") && tfNode["scale"].IsArray())
+        if (!isOverridden("scale"))
         {
-            const auto& s = tfNode["scale"];
-            tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
+            if (const Value* v = readMember("scale", "Scale"))
+            {
+                if (v->IsArray() && v->Size() >= 3)
+                    tf->setScale(Vector3((*v)[0].GetFloat(), (*v)[1].GetFloat(), (*v)[2].GetFloat()));
+            }
         }
         tf->markDirty();
     }
 
-    uint32_t componentCount = goNode.HasMember("ComponentCount") ? goNode["ComponentCount"].GetUint() : 0;
-    for (uint32_t i = 0; i < componentCount; ++i)
     {
-        std::string key = "Component_" + std::to_string(i);
-        if (!goNode.HasMember(key.c_str())) continue;
+        uint32_t componentCount = goNode.HasMember("ComponentCount") ? goNode["ComponentCount"].GetUint() : 0;
+        std::vector<ComponentType> fileTypes;
+        fileTypes.reserve(componentCount);
 
-        const Value& cn = goNode[key.c_str()];
-        if (!cn.HasMember("ComponentType")) continue;
-
-        const int ct = cn["ComponentType"].GetInt();
-        auto oit = savedOverrides.m_modifiedProperties.find(ct);
-        if (oit != savedOverrides.m_modifiedProperties.end()
-            && oit->second.count("properties") > 0)
-            continue;
-
-        Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
-        if (comp)
+        for (uint32_t i = 0; i < componentCount; ++i)
         {
-            JsonArchive compArchive(ArchiveMode::Input);
-            compArchive.setValue(cn);
-            comp->serialize(compArchive);
+            std::string key = "Component_" + std::to_string(i);
+            if (!goNode.HasMember(key.c_str())) continue;
+
+            const Value& cn = goNode[key.c_str()];
+            if (!cn.HasMember("ComponentType")) continue;
+
+            ComponentType ct = static_cast<ComponentType>(cn["ComponentType"].GetInt());
+            fileTypes.push_back(ct);
+
+            auto oit = savedOverrides.m_modifiedProperties.find(static_cast<int>(ct));
+            if (oit != savedOverrides.m_modifiedProperties.end()
+                && oit->second.count("properties") > 0)
+                continue;
+
+            Component* comp = go->GetComponent(ct);
+            if (!comp && ct != ComponentType::PREFAB_INSTANCE && ct != ComponentType::TRANSFORM)
+                comp = go->AddComponentWithUID(ct, GenerateUID());
+
+            if (comp)
+            {
+                JsonArchive compArchive(ArchiveMode::Input);
+                compArchive.setValue(cn);
+                comp->serialize(compArchive);
+            }
         }
+
+        // Remove components that exist on the GO but are no longer in the prefab file
+        // (skipping Transform, PrefabInstance, and explicitly added overrides)
+        std::vector<Component*> toRemove;
+        for (Component* comp : go->GetAllComponents())
+        {
+            ComponentType ct = comp->getType();
+            if (ct == ComponentType::TRANSFORM || ct == ComponentType::PREFAB_INSTANCE)
+                continue;
+            if (std::find(fileTypes.begin(), fileTypes.end(), ct) == fileTypes.end())
+            {
+                auto oit = savedOverrides.m_modifiedProperties.find(static_cast<int>(ct));
+                if (oit == savedOverrides.m_modifiedProperties.end())
+                    toRemove.push_back(comp);
+            }
+        }
+        for (Component* comp : toRemove)
+            go->RemoveComponent(comp);
     }
 
     preComp->getData().m_overrides = savedOverrides;

@@ -62,7 +62,6 @@ private:
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();
 
-    void FixReferences();
     void fixReferencesFor(const std::vector<GameObject*>& gos);
     //
 
@@ -73,6 +72,7 @@ public:
     ~Scene();
 
     void serialize(IArchive& archive) override;
+    void FixReferences();
 
 #pragma region GameLoop
 

@@ -128,11 +128,35 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     if (!root) return;
 
     const float buttonWidth = (availableWidth - 8.f) / 3.f;
+    const bool hasChanges = app->getModuleEditor()->isInPrefabEditMode() || hasPrefabOverrides(root);
 
-    bool applied = false, reverted = false;
-    drawApplyRevertButtons(root, app->getModuleEditor()->getPrefabEditScene(), false, applied, reverted);
-    if (applied)
+    ImGui::BeginDisabled(!hasChanges);
+    ImGui::PushStyleColor(ImGuiCol_Button,
+        hasChanges ? ImVec4(0.14f, 0.42f, 0.14f, 1.f) : ImVec4(0.15f, 0.15f, 0.15f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.58f, 0.20f, 1.f));
+
+    if (ImGui::Button("Apply", ImVec2(buttonWidth, 0)))
+    {
+        app->getModuleAssets()->getPrefabManager()->applyPrefab(root);
         app->getModuleEditor()->exitPrefabEdit();
+    }
+
+    ImGui::PopStyleColor(2);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip(hasChanges ? "Save changes to prefab file" : "No changes to apply");
+
+    ImGui::SameLine(0, 4);
+
+    ImGui::BeginDisabled(!hasChanges);
+    if (ImGui::Button("Revert", ImVec2(buttonWidth, 0)))
+    {
+        app->getModuleAssets()->getPrefabManager()->revertPrefab(root, app->getModuleEditor()->getPrefabEditScene());
+        app->getModuleEditor()->setSelectedGameObject(root);
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip(hasChanges ? "Reload from prefab file" : "No changes to revert");
 
     ImGui::SameLine(0, 4);
 
@@ -144,9 +168,7 @@ void PrefabUI::drawApplyRevertBar(float availableWidth)
     }
     ImGui::PopStyleColor(2);
     if (ImGui::IsItemHovered())
-    {
         ImGui::SetTooltip("Leave without saving  [Esc]");
-    }
 
     ImGui::Spacing();
     ImGui::Separator();
