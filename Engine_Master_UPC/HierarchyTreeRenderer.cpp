@@ -56,6 +56,11 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
 
     const bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
 
+    if (gameObject == m_gameObjectToReveal)
+    {
+        ImGui::SetScrollHereY(0.5f);
+    }
+
     if (isEditRoot || isPrefabInst) {
         ImGui::PopStyleColor();
     }
