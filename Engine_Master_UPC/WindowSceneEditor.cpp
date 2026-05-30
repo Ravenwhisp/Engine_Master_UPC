@@ -89,6 +89,8 @@ void WindowSceneEditor::drawInternal()
 
     drawGizmo();
 
+    m_wasViewportFocusedLastFrame = m_isViewportFocused;
+
     ImGui::EndChild();
     ImGui::PopStyleVar();
 }
@@ -173,6 +175,11 @@ void WindowSceneEditor::debugDraw()
 void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
 {
     if (!app->getModuleInput()->isLeftMousePressed())
+    {
+        return;
+    }
+
+    if (!m_wasViewportFocusedLastFrame)
     {
         return;
     }
