@@ -36,6 +36,7 @@ public:
     // File I/O
     bool loadFile(const std::filesystem::path& path);
     bool saveFile(const std::filesystem::path& path) const;
+    void setPrettyPrint(bool enabled) { m_prettyPrint = enabled; }
 
     // Named object/array scopes (JSON-specific)
     void beginObject(const char* name);
@@ -67,6 +68,7 @@ private:
     void popWrite();
 
     ArchiveMode m_mode;
+    bool m_prettyPrint = false;
 
     rapidjson::Document m_doc;
 

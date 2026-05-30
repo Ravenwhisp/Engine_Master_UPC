@@ -65,8 +65,16 @@ bool JsonArchive::loadFile(const std::filesystem::path& path)
 bool JsonArchive::saveFile(const std::filesystem::path& path) const
 {
     StringBuffer buffer;
-    PrettyWriter<StringBuffer> writer(buffer);
-    m_doc.Accept(writer);
+    if (m_prettyPrint)
+    {
+        PrettyWriter<StringBuffer> writer(buffer);
+        m_doc.Accept(writer);
+    }
+    else
+    {
+        Writer<StringBuffer> writer(buffer);
+        m_doc.Accept(writer);
+    }
 
     std::ofstream file(path);
     if (!file.is_open())
