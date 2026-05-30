@@ -48,19 +48,23 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
     auto mesh = app->getModuleResources()->createMesh(meshAsset);
     if (mesh)
     {
-        m_triangles = 0;
+        m_mesh = mesh;
+        recompute();
 
-        for (const auto& submesh : mesh->getSubmeshes())
-        {
+        Vector3 boundsMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
+        Vector3 boundsMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
+        m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
+        m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+    }
+}
+
+void MeshRenderer::recompute()
+{
+    m_triangles = 0;
+    if (m_mesh)
+    {
+        for (const auto& submesh : m_mesh->getSubmeshes())
             m_triangles += submesh.indexCount / 3;
-        }
-
-         Vector3 boundsMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
-         Vector3 boundsMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
-         m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
-         m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
-
-         m_mesh = mesh;
     }
 }
 
@@ -274,6 +278,12 @@ void MeshRenderer::clearSkin()
 
 void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
 {
+
+    m_mesh = nullptr;
+    m_materials.clear();
+    m_skin = nullptr;
+
+
     if (m_meshAsset.isValid())
     {
         m_meshAsset.m_type = AssetType::MESH;
@@ -292,4 +302,6 @@ void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
                 addMaterial(*matAsset);
         }
     }
+
+    recompute();
 }

@@ -437,10 +437,13 @@ GameObject* Scene::createDirectionalLightOnInit()
 const std::vector<GameObject*> Scene::getAllGameObjects() const
 {
     std::vector<GameObject*> result;
-    result.reserve(m_allObjects.size() * 2);
+    result.reserve(m_allObjects.size());
 
     for (const auto& obj : m_allObjects)
     {
+        if (obj->GetTransform()->getRoot() != nullptr)
+            continue;
+
         result.push_back(obj.get());
 
         for (size_t j = result.size() - 1; j < result.size(); ++j)

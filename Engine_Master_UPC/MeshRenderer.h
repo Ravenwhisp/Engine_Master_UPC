@@ -73,6 +73,8 @@ public:
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
 private:
+	void recompute();
+
 	std::shared_ptr<BasicMesh>		m_mesh;
 	std::unique_ptr<Skin>			m_skin;
 	// The position of the material corresponds to the submesh number
