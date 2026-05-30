@@ -286,21 +286,12 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     m_rootObjects.push_back(raw);
     markDirty();
 
-    SceneReferenceResolver resolver;
     std::vector<GameObject*> gos = {raw};
     for (size_t i = 0; i < gos.size(); ++i)
-    {
-        resolver.registerGameObject(gos[i], gos[i]);
-        for (Component* c : gos[i]->GetAllComponents())
-            resolver.registerComponent(c->getID(), c);
-
         for (GameObject* child : gos[i]->GetTransform()->getAllChildren())
             gos.push_back(child);
-    }
 
-    for (GameObject* go : gos)
-        for (Component* c : go->GetAllComponents())
-            c->fixReferences(resolver);
+    fixReferencesFor(gos);
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
@@ -716,16 +707,21 @@ void Scene::serialize(IArchive& archive)
 
 void Scene::FixReferences()
 {
+    fixReferencesFor(getAllGameObjects());
+}
+
+void Scene::fixReferencesFor(const std::vector<GameObject*>& gos)
+{
     SceneReferenceResolver resolver;
 
-    for (GameObject* obj : getAllGameObjects())
+    for (GameObject* obj : gos)
     {
         resolver.registerGameObject(obj, obj);
         for (Component* c : obj->GetAllComponents())
             resolver.registerComponent(c->getID(), c);
     }
 
-    for (GameObject* obj : getAllGameObjects())
+    for (GameObject* obj : gos)
     {
         for (Component* c : obj->GetAllComponents())
             c->fixReferences(resolver);

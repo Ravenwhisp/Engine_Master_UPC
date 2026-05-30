@@ -63,6 +63,7 @@ private:
     void releasePendingDestroyedGameObjects();
 
     void FixReferences();
+    void fixReferencesFor(const std::vector<GameObject*>& gos);
     //
 
 public:

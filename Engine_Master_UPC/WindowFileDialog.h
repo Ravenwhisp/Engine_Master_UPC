@@ -60,9 +60,9 @@ private:
     bool m_showSavePrefabModal = false;
     bool m_renamingPrefab = false;
 
-    char m_variantSrcBuf[128] = {};
-    char m_variantDstBuf[128] = {};
-    char m_savePrefabNameBuf[128] = {};
-    char m_renameSrcBuf[128] = {};
-    char m_renameDstBuf[128] = {};
+    char m_variantSrcBuf[512] = {};
+    char m_variantDstBuf[512] = {};
+    char m_savePrefabNameBuf[512] = {};
+    char m_renameSrcBuf[512] = {};
+    char m_renameDstBuf[512] = {};
 };

@@ -5,13 +5,6 @@
 #include "PrefabInstanceComponent.h"
 #include "JsonArchive.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/prettywriter.h>
-#include <FileIO.h>
-
-using namespace rapidjson;
 
 Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
 {
@@ -20,59 +13,53 @@ Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
 
 bool ImporterPrefab::saveNative(const Prefab* asset, const std::filesystem::path& path)
 {
-    Document doc;
-    doc.SetObject();
-    auto& alloc = doc.GetAllocator();
+    JsonArchive archive(ArchiveMode::Output);
+    archive.setPrettyPrint(true);
 
-    doc.AddMember("SourcePath", Value(path.string().c_str(), alloc), alloc);
-    doc.AddMember("Name", Value(path.stem().string().c_str(), alloc), alloc);
-    doc.AddMember("Version", 2, alloc);
+    std::string pathStr = path.string();
+    archive.serialize(pathStr, "SourcePath");
+    std::string name = path.stem().string();
+    archive.serialize(name, "Name");
+    uint32_t version = 2;
+    archive.serialize(version, "Version");
 
     auto* preComp = const_cast<Prefab*>(asset)->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
     if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != path)
-        doc.AddMember("VariantOf", Value(preComp->getData().m_sourcePath.string().c_str(), alloc), alloc);
+    {
+        std::string variantOf = preComp->getData().m_sourcePath.string();
+        archive.serialize(variantOf, "VariantOf");
+    }
 
-    JsonArchive goArchive;
-    const_cast<Prefab*>(asset)->serialize(goArchive);
-    Value goNode = goArchive.extractValue(doc.GetAllocator());
-    doc.AddMember("GameObject", goNode, alloc);
+    archive.beginObject("GameObject");
+    const_cast<Prefab*>(asset)->serialize(archive);
+    archive.endObject();
 
     const std::filesystem::path dir = path.parent_path();
     std::error_code ec;
     std::filesystem::create_directories(dir, ec);
     if (ec) return false;
 
-    FILE* file = fopen(path.string().c_str(), "wb");
-    if (!file) return false;
-
-    StringBuffer sb;
-    Writer<StringBuffer> writer(sb);
-    doc.Accept(writer);
-    fwrite(sb.GetString(), 1, sb.GetSize(), file);
-    fclose(file);
-    return true;
+    return archive.saveFile(path);
 }
 
 bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst)
 {
-    const std::vector<uint8_t> raw = FileIO::read(path);
-    if (raw.empty())
+    JsonArchive archive(ArchiveMode::Input);
+    if (!archive.loadFile(path))
     {
-        DEBUG_ERROR("[ImporterPrefab] Could not read '%s'.", path.string().c_str());
+        DEBUG_ERROR("[ImporterPrefab] Failed to load '%s'.", path.string().c_str());
         return false;
     }
 
-    rapidjson::Document doc;
-    doc.Parse(reinterpret_cast<const char*>(raw.data()));
-    if (doc.HasParseError() || !doc.HasMember("GameObject"))
+    if (!archive.hasKey("GameObject"))
     {
-        DEBUG_ERROR("[ImporterPrefab] Invalid JSON in '%s'.", path.string().c_str());
+        DEBUG_ERROR("[ImporterPrefab] Invalid JSON in '%s' — missing GameObject.", path.string().c_str());
         return false;
     }
 
-    JsonArchive goArchive(ArchiveMode::Input);
-    goArchive.setValue(doc["GameObject"]);
-    dst->serialize(goArchive);
+    archive.beginObject("GameObject");
+    dst->serialize(archive);
+    archive.endObject();
     dst->m_sourcePath = path;
 
     dst->init();

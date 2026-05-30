@@ -17,10 +17,10 @@
 #include "JsonArchive.h"
 
 #include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/filewritestream.h>
-#include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include <FileIO.h>
 #include <filesystem>
 #include <string>
 
@@ -28,36 +28,6 @@ using namespace rapidjson;
 namespace fs = std::filesystem;
 
 namespace {
-
-bool writeJsonFile(const Document& doc, const fs::path& path)
-{
-    std::error_code ec;
-    fs::create_directories(path.parent_path(), ec);
-    if (ec) return false;
-
-    FILE* file = fopen(path.string().c_str(), "wb");
-    if (!file) return false;
-
-    char buf[65536];
-    FileWriteStream os(file, buf, sizeof(buf));
-    PrettyWriter<FileWriteStream> writer(os);
-    writer.SetIndent(' ', 2);
-    doc.Accept(writer);
-    fclose(file);
-    return true;
-}
-
-bool readJsonFile(const fs::path& path, Document& doc)
-{
-    FILE* file = fopen(path.string().c_str(), "rb");
-    if (!file) return false;
-
-    char buf[65536];
-    FileReadStream is(file, buf, sizeof(buf));
-    doc.ParseStream(is);
-    fclose(file);
-    return !doc.HasParseError();
-}
 
 PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
 {
@@ -126,8 +96,10 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
 
     const PrefabInstanceInfo& info = preComp->getData();
 
+    auto raw = FileIO::read(info.m_sourcePath);
     Document doc;
-    if (!readJsonFile(info.m_sourcePath, doc) || !doc.HasMember("GameObject"))
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (raw.empty() || doc.HasParseError() || !doc.HasMember("GameObject"))
         return false;
 
     const Value& goNode = doc["GameObject"];
@@ -195,10 +167,12 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
 {
     if (src.empty() || dst.empty()) return false;
 
+    auto raw = FileIO::read(src);
     Document doc;
-    if (!readJsonFile(src, doc)) return false;
-    auto& alloc = doc.GetAllocator();
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (raw.empty() || doc.HasParseError()) return false;
 
+    auto& alloc = doc.GetAllocator();
     auto setOrAdd = [&](const char* key, const std::string& value)
         {
             if (doc.HasMember(key))
@@ -210,7 +184,20 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
     setOrAdd("Name", dst.stem().string());
     setOrAdd("VariantOf", src.string());
 
-    return writeJsonFile(doc, dst);
+    StringBuffer sb;
+    PrettyWriter<StringBuffer> writer(sb);
+    writer.SetIndent(' ', 2);
+    doc.Accept(writer);
+
+    std::error_code ec;
+    fs::create_directories(dst.parent_path(), ec);
+    if (ec) return false;
+
+    FILE* file = fopen(dst.string().c_str(), "wb");
+    if (!file) return false;
+    fwrite(sb.GetString(), 1, sb.GetSize(), file);
+    fclose(file);
+    return true;
 }
 
 GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
@@ -242,8 +229,10 @@ GameObject* PrefabManager::spawnPrefab(const fs::path& sourcePath, Scene* scene)
     auto asset = m_moduleAssets->loadAtPath<Prefab>(sourcePath);
     if (asset) return spawnPrefab(*asset, scene);
 
+    auto raw = FileIO::read(sourcePath);
     Document doc;
-    if (!readJsonFile(sourcePath, doc) || !doc.HasMember("GameObject")) return nullptr;
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (raw.empty() || doc.HasParseError() || !doc.HasMember("GameObject")) return nullptr;
 
     const Value& goNode = doc["GameObject"];
     const UID savedGoUID = GenerateUID();

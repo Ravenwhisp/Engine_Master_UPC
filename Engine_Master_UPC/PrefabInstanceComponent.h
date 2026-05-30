@@ -6,8 +6,7 @@
 class PrefabInstanceComponent : public Component
 {
 public:
-    PrefabInstanceComponent(UID id, GameObject* owner)
-        : Component(id, ComponentType::PREFAB_INSTANCE, owner) {}
+    PrefabInstanceComponent(UID id, GameObject* owner) : Component(id, ComponentType::PREFAB_INSTANCE, owner) {}
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override
     {
