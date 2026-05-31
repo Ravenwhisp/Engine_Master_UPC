@@ -28,7 +28,9 @@ public:
         std::string pathStr = m_sourcePath.string();
         archive.serialize(pathStr, "sourcePath");
         if (archive.mode() == ArchiveMode::Input)
+        {
             m_sourcePath = pathStr;
+        }
 
         GameObject::serialize(archive);
         serializeChildren(archive, this);
@@ -39,7 +41,6 @@ public:
         return GameObject::clone();
     }
 
-    // Copies scalars, clones components (not move), recursively clones children into m_ownedChildren
     void buildFrom(GameObject* source)
     {
         SetName(source->GetName());
@@ -59,7 +60,9 @@ public:
             {
                 auto cloned = comp->clone(this);
                 if (cloned)
+                {
                     AddClonedComponent(std::move(cloned));
+                }
             }
         }
 
@@ -91,7 +94,9 @@ private:
                 {
                     auto cloned = comp->clone(rawChild);
                     if (cloned)
+                    {
                         rawChild->AddClonedComponent(std::move(cloned));
+                    }
                 }
             }
 

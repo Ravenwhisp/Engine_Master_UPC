@@ -15,7 +15,6 @@ struct SkinJoint
 class SkinAsset : public Asset
 {
 public:
-    friend class ImporterSkin;
     friend class ImporterGltf;
 
     SkinAsset() = default;

@@ -8,7 +8,6 @@ class MaterialAsset : public Asset
 {
 public:
 	friend class ModelImporter;
-	friend class ImporterMaterial;
 	friend class ImporterGltf;
 
 	MaterialAsset() = default;

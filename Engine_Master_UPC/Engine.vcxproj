@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -342,16 +342,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
-    <ClInclude Include="ImporterAnimation.h" />
-    <ClInclude Include="ImporterAnimationStateMachine.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
-    <ClInclude Include="ImporterMaterial.h" />
-    <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
-    <ClInclude Include="ImporterScene.h" />
-    <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="MaterialAsset.h" />
@@ -750,16 +744,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
-    <ClCompile Include="ImporterMaterial.cpp" />
-    <ClCompile Include="ImporterMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
-    <ClCompile Include="ImporterScene.cpp" />
-    <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />

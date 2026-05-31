@@ -6,12 +6,7 @@
 #include "JsonArchive.h"
 
 
-Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
-{
-    return new Prefab(uid);
-}
-
-bool ImporterPrefab::saveNative(const Prefab* asset, const std::filesystem::path& path)
+bool ImporterPrefab::saveNativeFile(const Prefab* asset, const std::filesystem::path& path)
 {
     JsonArchive archive(ArchiveMode::Output);
     archive.setPrettyPrint(true);

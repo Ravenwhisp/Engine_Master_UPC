@@ -39,7 +39,6 @@ struct AnimationStateMachineTransition
 class AnimationStateMachineAsset : public Asset
 {
 public:
-    friend class ImporterAnimationStateMachine;
     friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;

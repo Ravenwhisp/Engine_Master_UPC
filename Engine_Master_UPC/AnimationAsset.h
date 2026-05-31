@@ -32,7 +32,6 @@ struct AnimChannel
 class AnimationAsset : public Asset
 {
 public:
-    friend class ImporterAnimation;
     friend class ImporterGltf;
 
     AnimationAsset() = default;

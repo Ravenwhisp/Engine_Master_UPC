@@ -1,25 +1,39 @@
 ﻿#pragma once
 #include "Importer.h"
 #include "BinaryArchive.h"
+#include "JsonArchive.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
-#include "rapidjson/filereadstream.h"
-#include <rapidjson/writer.h>
-#include <fstream>
-#include <cstring>
+#include <vector>
+#include <string>
 
 template<typename AssetFormat, AssetType TType>
 class ImporterNative : public Importer
 {
 public:
+    ImporterNative(std::initializer_list<const char*> extensions)
+    {
+        for (const char* ext : extensions)
+            m_extensions.push_back(ext);
+    }
+
     AssetType getAssetType() const override
     {
         return TType;
     }
 
-    bool import(const std::filesystem::path & path, Asset * outAsset) final
+    bool canImport(const std::filesystem::path& path) const override
+    {
+        for (const auto& ext : m_extensions)
+            if (path.extension() == ext) return true;
+        return false;
+    }
+
+    Asset* createAssetInstance(AssetReference& uid) const override
+    {
+        return new AssetFormat(uid);
+    }
+
+    bool import(const std::filesystem::path& path, Asset* outAsset) final
     {
         return importNative(path, static_cast<AssetFormat*>(outAsset));
     }
@@ -43,10 +57,26 @@ public:
 
     bool saveNative(const Asset* asset, const std::filesystem::path& path) override
     {
-        return saveNative(static_cast<const AssetFormat*>(asset), path);
+        return saveNativeFile(static_cast<const AssetFormat*>(asset), path);
     }
 
 protected:
-    virtual bool     saveNative(const AssetFormat* asset, const std::filesystem::path& path) = 0;
-    virtual bool     importNative(const std::filesystem::path& path, AssetFormat* dst) = 0;
+    virtual bool saveNativeFile(const AssetFormat* asset, const std::filesystem::path& path)
+    {
+        JsonArchive archive(ArchiveMode::Output);
+        const_cast<AssetFormat*>(asset)->serialize(archive);
+        return archive.saveFile(path);
+    }
+
+    virtual bool importNative(const std::filesystem::path& path, AssetFormat* dst)
+    {
+        JsonArchive archive(ArchiveMode::Input);
+        if (!archive.loadFile(path))
+            return false;
+        dst->serialize(archive);
+        return true;
+    }
+
+private:
+    std::vector<std::string> m_extensions;
 };

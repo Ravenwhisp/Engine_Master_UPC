@@ -15,7 +15,6 @@ struct Submesh
 class MeshAsset : public Asset
 {
 public:
-    friend class ImporterMesh;
     friend class ImporterGltf;
 
 	MeshAsset() {}

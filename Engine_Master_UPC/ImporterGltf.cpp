@@ -29,12 +29,7 @@
 #include "AssetIndex.h"
 #include "MD5.h"
 
-#include "ImporterMesh.h"
-#include "ImporterMaterial.h"
 #include "ImporterPrefab.h"
-#include "ImporterAnimation.h"
-#include "ImporterSkin.h"
-#include "ImporterAnimationStateMachine.h"
 #include "Metadata.h"
 
 #include <functional>
@@ -66,13 +61,14 @@ static void setVec4Component(Vector4& v, int index, float value)
     }
 }
 
-ImporterGltf::ImporterGltf(ImporterMesh* importerMesh,
-    ImporterMaterial* importerMaterial,
+ImporterGltf::ImporterGltf(Importer* importerMesh,
+    Importer* importerMaterial,
     ImporterPrefab* importerPrefab,
-    ImporterAnimation* importerAnimation,
-    ImporterSkin* importerSkin,
-    ImporterAnimationStateMachine* importerAnimationStateMachine)
-    : m_importerMesh(importerMesh)
+    Importer* importerAnimation,
+    Importer* importerSkin,
+    Importer* importerAnimationStateMachine)
+    : ImporterSource()
+    , m_importerMesh(importerMesh)
     , m_importerMaterial(importerMaterial)
     , m_importerPrefab(importerPrefab)
     , m_importerAnimation(importerAnimation)
