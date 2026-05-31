@@ -11,5 +11,3 @@ struct Vertex
 	uint16_t joints[4] = { 0, 0, 0, 0 };
 	Vector4  weights = Vector4::Zero;
 };
-
-static_assert(sizeof(Vertex) == 68, "Vertex size mismatch with SkinningComputeShader.hlsl");

@@ -114,34 +114,17 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         if (!inputResource || !outputResource || !paletteModelResource || !paletteNormalResource)
             continue;
 
-        CD3DX12_RESOURCE_BARRIER preBarriers[2] = {};
-        preBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
-            inputResource,
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-            D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-        preBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(
-            outputResource,
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
-        commandList->ResourceBarrier(2, preBarriers);
-
         const uint32_t threadGroupCount = (vertexCount + 63u) / 64u;
 
         if (paletteCount == 0)
         {
-            DEBUG_ERROR("[SkinningComputePass] paletteCount is 0. owner=%s vertexCount=%u",
-                owner->GetName().c_str(),
-                vertexCount);
+            DEBUG_ERROR("[SkinningComputePass] paletteCount is 0. owner=%s vertexCount=%u", owner->GetName().c_str(), vertexCount);
             continue;
         }
 
         if (threadGroupCount == 0)
         {
-            DEBUG_ERROR("[SkinningComputePass] threadGroupCount is 0. owner=%s vertexCount=%u",
-                owner->GetName().c_str(),
-                vertexCount);
+            DEBUG_ERROR("[SkinningComputePass] threadGroupCount is 0. owner=%s vertexCount=%u", owner->GetName().c_str(), vertexCount);
             continue;
         }
 
@@ -155,43 +138,28 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
         if (inputDesc.Width < expectedVertexBytes)
         {
-            DEBUG_ERROR("[SkinningComputePass] Input VB too small. owner=%s width=%llu expected=%llu vertexCount=%u",
-                owner->GetName().c_str(),
-                inputDesc.Width,
-                expectedVertexBytes,
-                vertexCount);
+            DEBUG_ERROR("[SkinningComputePass] Input VB too small. owner=%s width=%llu expected=%llu vertexCount=%u", owner->GetName().c_str(), inputDesc.Width, expectedVertexBytes, vertexCount);
             continue;
         }
 
         if (outputDesc.Width < expectedVertexBytes)
         {
-            DEBUG_ERROR("[SkinningComputePass] Output VB too small. owner=%s width=%llu expected=%llu vertexCount=%u",
-                owner->GetName().c_str(),
-                outputDesc.Width,
-                expectedVertexBytes,
-                vertexCount);
+            DEBUG_ERROR("[SkinningComputePass] Output VB too small. owner=%s width=%llu expected=%llu vertexCount=%u", owner->GetName().c_str(), outputDesc.Width, expectedVertexBytes, vertexCount);
             continue;
         }
 
         if (paletteModelDesc.Width < expectedPaletteBytes || paletteNormalDesc.Width < expectedPaletteBytes)
         {
-            DEBUG_ERROR("[SkinningComputePass] Palette buffer too small. owner=%s modelWidth=%llu normalWidth=%llu expected=%llu paletteCount=%u",
-                owner->GetName().c_str(),
-                paletteModelDesc.Width,
-                paletteNormalDesc.Width,
-                expectedPaletteBytes,
-                paletteCount);
+            DEBUG_ERROR("[SkinningComputePass] Palette buffer too small. owner=%s modelWidth=%llu normalWidth=%llu expected=%llu paletteCount=%u", owner->GetName().c_str(), paletteModelDesc.Width, paletteNormalDesc.Width, expectedPaletteBytes, paletteCount);
             continue;
         }
 
-        DEBUG_LOG("[SkinningComputePass] Dispatch. owner=%s vertexCount=%u paletteCount=%u threadGroups=%u inputBytes=%llu outputBytes=%llu paletteBytes=%llu",
-            owner->GetName().c_str(),
-            vertexCount,
-            paletteCount,
-            threadGroupCount,
-            inputDesc.Width,
-            outputDesc.Width,
-            paletteModelDesc.Width);
+        CD3DX12_RESOURCE_BARRIER preBarriers[2] = {};
+        preBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition( inputResource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+        preBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition( outputResource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+        commandList->ResourceBarrier(2, preBarriers);
 
         commandList->SetComputeRootShaderResourceView(0, inputResource->GetGPUVirtualAddress());
         commandList->SetComputeRootUnorderedAccessView(1, outputResource->GetGPUVirtualAddress());
