@@ -155,9 +155,16 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         }
 
         CD3DX12_RESOURCE_BARRIER preBarriers[2] = {};
-        preBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition( inputResource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-        preBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition( outputResource, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        preBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
+            inputResource,
+            D3D12_RESOURCE_STATE_COMMON,
+            D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+        preBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(
+            outputResource,
+            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
         commandList->ResourceBarrier(2, preBarriers);
 
@@ -174,6 +181,7 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         commandList->ResourceBarrier(1, &uavBarrier);
 
         CD3DX12_RESOURCE_BARRIER postBarriers[2] = {};
+
         postBarriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
             outputResource,
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -182,7 +190,7 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         postBarriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(
             inputResource,
             D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
-            D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+            D3D12_RESOURCE_STATE_COMMON);
 
         commandList->ResourceBarrier(2, postBarriers);
     }

@@ -535,7 +535,11 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
 
         if (FAILED(hr) || mapped == nullptr)
         {
-            DEBUG_ERROR("[Skin] Failed to map GPU model palette buffer. HRESULT: 0x%08X", hr);
+            HRESULT reason = app->getModuleD3D12()->getDevice()->GetDeviceRemovedReason();
+
+            DEBUG_ERROR("[Skin] Failed to map GPU model palette buffer. HRESULT: 0x%08X. DeviceRemovedReason: 0x%08X",
+                hr,
+                reason);
             return;
         }
 
