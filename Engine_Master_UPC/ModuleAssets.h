@@ -15,7 +15,7 @@
 #include "FileIO.h"
 #include "Importer.h"
 #include "DataContainer.h"
-#include "DataContainerFactory.h"
+#include "GenericTypeFactory.h"
 
 
 class AssetScanner;

@@ -21,7 +21,7 @@
 #include "CommandSaveGameObjectAsPrefab.h"
 #include "CommandCreateDataContainer.h"
 
-#include "DataContainerFactory.h"
+#include "GenericTypeFactory.h"
 
 #include <algorithm>
 #include <string>

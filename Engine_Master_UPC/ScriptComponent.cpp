@@ -1,7 +1,7 @@
 #include "Globals.h"
 #include "ScriptComponent.h"
 #include "Script.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
@@ -37,7 +37,7 @@ bool ScriptComponent::createScriptInstance()
         return false;
     }
 
-    std::unique_ptr<Script> newScript = ScriptFactory::createScript(m_scriptName, getOwner());
+    std::unique_ptr<Script> newScript = ScriptFactory::create(m_scriptName, getOwner());
     if (!newScript)
     {
         return false;

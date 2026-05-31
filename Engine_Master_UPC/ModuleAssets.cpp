@@ -719,12 +719,12 @@ DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContain
     const char* typeName = data["_typeName"].GetString();
     AssetReference ref = baseContainer->getReference();
 
-    DataContainer* derived = DataContainerFactory::createDataContainer(typeName, ref);
+    auto derived = DataContainerFactory::create(typeName, ref);
     if (!derived)
     {
         return nullptr;
     }
 
     derived->deserializeJson(data);
-    return derived;
+    return derived.release();
 }

@@ -2,11 +2,44 @@
 #include "DataContainer.h"
 #include "Application.h"
 #include "ModuleAssets.h"
+#include "Script.h"
+#include "ScriptComponent.h"
 
 #include <string>
 
+namespace
+{
+	struct DataContainerScriptDummy : Script
+	{
+		DataContainerScriptDummy() : Script(nullptr) {}
+		void onFieldEdited(const ScriptFieldInfo&) override {}
+	};
+	static DataContainerScriptDummy s_dummyScript;
+
+	struct DataContainerComponentDummy : ScriptComponent
+	{
+		DataContainerComponentDummy() : ScriptComponent(0, nullptr) {}
+	};
+	static DataContainerComponentDummy s_dummyComponent;
+}
+
 rapidjson::Value DataContainer::getJson(rapidjson::Document::AllocatorType& allocator) const
 {
+	ScriptFieldList fields = getExposedFields();
+	if (!fields.fields.empty())
+	{
+		rapidjson::Value obj(rapidjson::kObjectType);
+		obj.AddMember("_typeName", rapidjson::Value(getTypeName(), allocator), allocator);
+
+		rapidjson::Document tempDoc(&allocator);
+		const char* base = reinterpret_cast<const char*>(this);
+		for (const auto& field : fields.fields)
+		{
+			field.handler->serialize(field, base + field.offset, obj, tempDoc);
+		}
+		return obj;
+	}
+
 	return rapidjson::Value(m_data, allocator);
 }
 
@@ -18,6 +51,20 @@ bool DataContainer::deserializeJson(const rapidjson::Value& obj)
 	}
 
 	m_data.CopyFrom(obj, m_data.GetAllocator());
+
+	ScriptFieldList fields = getExposedFields();
+	if (!fields.fields.empty())
+	{
+		char* base = reinterpret_cast<char*>(this);
+		for (const auto& field : fields.fields)
+		{
+			if (obj.HasMember(field.name))
+			{
+				field.handler->deserialize(field, base + field.offset, obj[field.name]);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -41,11 +88,23 @@ void DataContainer::drawUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Properties");
 
+	ScriptFieldList fields = getExposedFields();
+	if (!fields.fields.empty())
+	{
+		char* base = reinterpret_cast<char*>(this);
+		for (const ScriptFieldInfo& field : fields.fields)
+		{
+			void* data = base + field.offset;
+			field.handler->drawUi(field, data, s_dummyScript, s_dummyComponent);
+		}
+		return;
+	}
+
 	if (m_data.IsObject() && m_data.MemberCount() == 0)
 	{
 		ImGui::TextDisabled("No properties defined.");
 		ImGui::Spacing();
-		ImGui::TextWrapped("Override getJson()/deserializeJson() in a subclass to add typed properties,");
+		ImGui::TextWrapped("Override getExposedFields() in a subclass to add typed properties,");
 		ImGui::TextWrapped("or add entries directly in the .datacontainer JSON file.");
 		return;
 	}

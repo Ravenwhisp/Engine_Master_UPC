@@ -4,7 +4,7 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-#include "ScriptAutoRegister.h"
+#include "GenericTypeFactory.h"
 #include "ScriptFieldInfo.h"
 #include "ScriptFieldMacros.h"
 

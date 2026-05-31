@@ -268,9 +268,7 @@
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFactory.cpp">
-      <Filter>Core\Scripting</Filter>
-    </ClCompile>
+
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
@@ -944,9 +942,7 @@
     <ClInclude Include="Script.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptFactory.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
+
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -1019,12 +1015,8 @@
     <ClInclude Include="ScriptAPI.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptAutoRegister.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptCreator.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
+
+
     <ClInclude Include="ScriptFieldInfo.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
@@ -1034,9 +1026,7 @@
     <ClInclude Include="Scene.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptRegistry.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
+
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClInclude>
@@ -1177,6 +1167,12 @@
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="ScriptFieldMacros.h">
       <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="DataContainerFieldMacros.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="GenericTypeFactory.h">
+      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="TriggerComponent.h">
       <Filter>GameEntity\Components</Filter>

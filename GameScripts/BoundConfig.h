@@ -13,10 +13,6 @@ public:
     {
     }
 
-    bool deserializeJson(const rapidjson::Value& obj) override;
-    rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const override;
-    void syncFromData() override;
-
     float m_minDistance = 70.0f;
     float m_distanceDamage = 80.0f;
     float m_distanceInstaKill = 100.0f;

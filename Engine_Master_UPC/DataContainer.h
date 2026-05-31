@@ -1,5 +1,6 @@
 #pragma once
 #include "Asset.h"
+#include "ScriptFieldInfo.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4251)
@@ -27,6 +28,11 @@ public:
 
 	virtual void syncFromData() {}
 	void drawUI() override;
+
+	virtual ScriptFieldList getExposedFields() const
+	{
+		return {};
+	}
 
 	const rapidjson::Document& getData() const { return m_data; }
 	rapidjson::Document& getDataMutable() { return m_data; }

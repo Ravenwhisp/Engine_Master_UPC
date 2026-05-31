@@ -316,11 +316,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandCreateDataContainer.h" />
     <ClInclude Include="CommandCutItem.h" />
     <ClInclude Include="DataContainer.h" />
-    <ClInclude Include="DataContainerCreator.h" />
     <ClInclude Include="DataContainerExporter.h" />
-    <ClInclude Include="DataContainerRegistry.h" />
-    <ClInclude Include="DataContainerFactory.h" />
-    <ClInclude Include="DataContainerAutoRegister.h" />
+    <ClInclude Include="GenericTypeFactory.h" />
+    <ClInclude Include="DataContainerFieldMacros.h" />
     <ClInclude Include="DataContainerAPI.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="DescriptorHeapBlock.h" />
@@ -403,20 +401,17 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
-    <ClInclude Include="ScriptAutoRegister.h" />
     <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptDataContainerRef.h" />
     <ClInclude Include="ScriptFieldHandler.h" />
     <ClInclude Include="ScriptFieldHandlerRegistry.h" />
     <ClInclude Include="ScriptFieldInfo.h" />
-    <ClInclude Include="ScriptCreator.h" />
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
     <ClInclude Include="ScriptFieldMacros.h" />
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
-    <ClInclude Include="ScriptRegistry.h" />
     <ClInclude Include="Skin.h" />
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
@@ -739,7 +734,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
-    <ClCompile Include="DataContainerFactory.cpp" />
     <ClCompile Include="EmitterArea.cpp" />
     <ClCompile Include="EmitterColor.cpp" />
     <ClCompile Include="EmitterInstance.cpp" />
@@ -897,7 +891,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>

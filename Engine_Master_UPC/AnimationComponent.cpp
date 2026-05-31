@@ -12,7 +12,7 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "StateMachineScript.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 #include "Script.h"
 #include "ScriptComponentRef.h"
 #include "ModuleScene.h"
@@ -1533,7 +1533,7 @@ StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const Anima
         return existing;
     }
 
-    std::unique_ptr<Script> newScript = ScriptFactory::createScript(state.behaviourScriptName, getOwner());
+    std::unique_ptr<Script> newScript = ScriptFactory::create(state.behaviourScriptName, getOwner());
     if (!newScript)
     {
         return nullptr;

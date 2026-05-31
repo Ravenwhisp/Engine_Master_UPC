@@ -24,8 +24,6 @@ Asset* ImporterDataContainer::createAssetInstance(AssetReference& uid) const
 
 bool ImporterDataContainer::saveNative(const DataContainer* asset, const std::filesystem::path& path)
 {
-	const_cast<DataContainer*>(asset)->syncFromData();
-
 	rapidjson::Document doc;
 	rapidjson::Value json = asset->getJson(doc.GetAllocator());
 	doc.Swap(json);
@@ -77,8 +75,6 @@ bool ImporterDataContainer::importNative(const std::filesystem::path& path, Data
 
 uint64_t ImporterDataContainer::saveTyped(const DataContainer* source, uint8_t** outBuffer)
 {
-	const_cast<DataContainer*>(source)->syncFromData();
-
 	rapidjson::Document doc;
 	rapidjson::Value json = source->getJson(doc.GetAllocator());
 	doc.Swap(json);
