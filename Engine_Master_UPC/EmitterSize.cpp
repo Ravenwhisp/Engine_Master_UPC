@@ -3,7 +3,9 @@
 
 //#include "GameObject.h"
 //#include "Transform.h"
+#include "Application.h"
 
+#include "ModuleParticleSystem.h"
 //#include "ParticleSystemComponent.h"
 #include "EmitterInstance.h"
 #include "ParticleEmitter.h"
@@ -11,19 +13,18 @@
 
 void EmitterSize::update(EmitterInstance* particleData)
 {
-	Particle* particlePool;
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 
 	//Vector3 parentScale = particleData->getParticleSystemComponent()->getOwner()->GetTransform()->getScale();
 	//Vector2 parentScale2D = Vector2(parentScale.x, parentScale.y); // because for now we are only going to use these
 	{
-		std::vector<std::pair<float, unsigned int>>* aliveParticles;
-		particleData->getPoolAndAlives(particlePool, aliveParticles);
+		std::vector<std::pair<float, unsigned int>>& aliveParticles = particleData->getAliveParticles();
 
 		// Dealing with already existing particles //
 
 		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
 
-		for (auto& aliveParticle : *aliveParticles)
+		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
 

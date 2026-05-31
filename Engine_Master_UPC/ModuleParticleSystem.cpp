@@ -55,6 +55,25 @@ Texture* ModuleParticleSystem::resolveTexture(AssetReference& textureRef)
 }
 
 
+bool ModuleParticleSystem::init()
+{
+    initSlotManagement();
+
+    return true;
+}
+
+void ModuleParticleSystem::initSlotManagement()
+{
+    m_slots[MAX_PARTICLES - 1] = 0;
+
+    for (unsigned int i = 0; i < MAX_PARTICLES - 1; ++i)
+    {
+        m_slots[i] = i + 1;
+    }
+
+    m_firstFree = 0;
+}
+
 void ModuleParticleSystem::preRender()
 {
 	m_particleCommands.clear();
@@ -75,6 +94,7 @@ void ModuleParticleSystem::update()
     }
 }
 
+/*
 ParticleSystem* ModuleParticleSystem::addSystem(Transform* parent)
 {
 	m_particleSystems.push_back(std::make_unique<ParticleSystem>());
@@ -97,6 +117,30 @@ bool ModuleParticleSystem::removeSystem(ParticleSystem* system)
 
     return false;
 }
+*/
+
+int ModuleParticleSystem::requestPoolSlot()
+{
+
+    if (m_firstFree == m_slots[m_firstFree]) return -1; // because the slot points to itself, which indicates used
+
+    int slot = m_firstFree;
+
+    m_firstFree = m_slots[slot]; // update first free, to point to the next one
+
+    m_slots[slot] = slot; // mark as used
+
+    return slot;
+}
+
+void ModuleParticleSystem::freePoolSlot(unsigned int index) 
+{
+    m_slots[index] = m_firstFree; // Set next free (because we are adding the index slot as the new first)
+
+    m_firstFree = index; // Update first
+}
+
+
 
 void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystemComponent)
 {
@@ -114,26 +158,24 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 
     for (auto& emitterInstance : particleSystemComponent->getEmitterInstances())
     {
-        Particle* pool = nullptr;
-        std::vector<std::pair<float, unsigned int>>* aliveParticles = nullptr;
-        emitterInstance.getPoolAndAlives(pool, aliveParticles);
+        std::vector<std::pair<float, unsigned int>>& aliveParticles = emitterInstance.getAliveParticles();
 
-        if (!pool || !aliveParticles || aliveParticles->empty())
+        if (aliveParticles.empty())
         {
             continue;
         }
 
         ParticleEmitterCommand command;
 		command.texture = texture;
-		command.particles.reserve(aliveParticles->size());
+		command.particles.reserve(aliveParticles.size());
 
-		for (const auto& aliveParticle : *aliveParticles)
+		for (const auto& aliveParticle : aliveParticles)
 		{
 			ParticleCommand particleData;
-			particleData.position = pool[aliveParticle.second].position;
-			particleData.colorAndAlpha = pool[aliveParticle.second].colorAndAlpha;
-			particleData.rotationZ = pool[aliveParticle.second].rotationZ;
-			particleData.scale = pool[aliveParticle.second].scale;
+			particleData.position = m_pool[aliveParticle.second].position;
+			particleData.colorAndAlpha = m_pool[aliveParticle.second].colorAndAlpha;
+			particleData.rotationZ = m_pool[aliveParticle.second].rotationZ;
+			particleData.scale = m_pool[aliveParticle.second].scale;
 
 			command.particles.push_back(particleData);
 		}

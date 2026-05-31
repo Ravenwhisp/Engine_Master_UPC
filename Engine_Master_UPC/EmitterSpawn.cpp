@@ -2,26 +2,28 @@
 #include "EmitterSpawn.h"
 
 #include "Application.h"
+
+#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 
 void EmitterSpawn::update(EmitterInstance* instance)
 {
 
-	if (!m_looping && instance->getCurrentTime() > m_duration)
-		return;
+	if (!m_looping && instance->getCurrentTime() > m_duration) return;
 
 	float spawn = instance->getParticlesToSpawn();
 	float deltaTime = instance->getParticleSystemComponent()->deltaTime();
 
 	spawn += m_rateOverTime * deltaTime;
-	spawn += m_rateOverDistance * instance->getParticleSystemComponent()->getDistance();
+	spawn += m_rateOverDistance * instance->getParticleSystemComponent()->getDistance(); // on local position; this is Unity's behavior
 
 	std::vector<unsigned int>& newParticles = instance->getNewParticles();
+	ModuleParticleSystem* moduleParticleSystem = app->getModuleParticleSystem();
 
 	while (spawn >= 1.0f)
 	{
-		int index = instance->requestPoolSlot();
+		int index = moduleParticleSystem->requestPoolSlot();
 		if (index == -1)
 			break;
 
