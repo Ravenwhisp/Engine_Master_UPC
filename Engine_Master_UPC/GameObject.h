@@ -55,6 +55,7 @@ public:
 
 	void adoptComponentsFrom(GameObject* source);
 	void adoptChildrenFrom(GameObject* source);
+	std::vector<std::unique_ptr<GameObject>> releaseChildren();
 
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const

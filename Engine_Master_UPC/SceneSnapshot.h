@@ -30,5 +30,6 @@ public:
 
 private:
     std::unique_ptr<GameObject> cloneRecursive(GameObject* original);
+    void registerDescendants(GameObject* origParent, GameObject* cloneParent);
     void fixReferences();
 };

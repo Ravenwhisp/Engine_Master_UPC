@@ -281,17 +281,25 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
-    GameObject* raw = gameObject.get();
-    m_allObjects.push_back(std::move(gameObject));
-    m_rootObjects.push_back(raw);
+    std::vector<std::unique_ptr<GameObject>> all;
+    all.push_back(std::move(gameObject));
+
+    for (size_t i = 0; i < all.size(); ++i)
+        for (auto& child : all[i]->releaseChildren())
+            all.push_back(std::move(child));
+
+    for (auto& go : all)
+    {
+        GameObject* raw = go.get();
+        m_allObjects.push_back(std::move(go));
+        if (raw->GetTransform()->getRoot() == nullptr)
+            m_rootObjects.push_back(raw);
+    }
+
     markDirty();
 
-    std::vector<GameObject*> gos = {raw};
-    for (size_t i = 0; i < gos.size(); ++i)
-        for (GameObject* child : gos[i]->GetTransform()->getAllChildren())
-            gos.push_back(child);
-
-    fixReferencesFor(gos);
+    auto allGOs = getAllGameObjects();
+    fixReferencesFor(allGOs);
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)

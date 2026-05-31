@@ -209,6 +209,7 @@ void MeshRenderer::serialize(IArchive& archive)
         ref.serialize(archive);
         archive.endObject();
         setSkinReference(ref);
+        ensureSkin().setSkinReference(ref);
 
         uint32_t materialCount = 0;
         archive.serialize(materialCount, "MaterialCount");
@@ -281,7 +282,6 @@ void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
 
     m_mesh = nullptr;
     m_materials.clear();
-    m_skin = nullptr;
 
 
     if (m_meshAsset.isValid())

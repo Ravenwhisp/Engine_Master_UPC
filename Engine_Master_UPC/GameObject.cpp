@@ -176,6 +176,11 @@ void GameObject::adoptChildrenFrom(GameObject* source)
     source->GetTransform()->clearChildren();
 }
 
+std::vector<std::unique_ptr<GameObject>> GameObject::releaseChildren()
+{
+    return std::move(m_ownedChildren);
+}
+
 std::vector<Component*> GameObject::GetAllComponents() const
 {
     std::vector<Component*> result = std::vector<Component*>();;
