@@ -27,34 +27,38 @@ public:
     void postRender() override;
     bool cleanUp() override;
 
-    // ── LOAD ──
+#pragma region Load
     template<typename T>
     std::shared_ptr<T> load(AssetReference& ref);
+
 
     template<typename T>
     std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath);
 
     bool isLoaded(const AssetReference& id);
     void unload(const AssetReference& id);
+#pragma endregion
 
-    // ── SAVE ──
+#pragma region Save
     bool save(Asset& asset, const std::filesystem::path& path = {});
+#pragma endregion
 
-    // ── IMPORT ──
+#pragma region Import
     void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
     bool canImport(const std::filesystem::path& sourcePath) const;
-    void registerSubAsset(const Metadata& meta, const UID& parentUID,
-                          uint8_t* binaryData, size_t binarySize);
+    void registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize);
+#pragma endregion
 
-    // ── DELETE ──
+#pragma region Delete
     void unregisterAsset(const std::filesystem::path& sourcePath);
+#pragma endregion
 
-    // ── Editor ──
+#pragma region Editor
     ContentRegistry* getContentRegistry() const;
     PrefabManager*  getPrefabManager() const;
     bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
+#pragma endregion
 
-    // ── Internal access ──
     AssetIndex& getIndex()           { return m_index; }
     ImporterRegistry& getImporters() { return m_importers; }
 
@@ -63,8 +67,7 @@ public:
     void refresh();
 
 private:
-    bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference,
-                      const std::filesystem::path& sourcePath);
+    bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
 
     AssetIndex                           m_index;
     ImporterRegistry                     m_importers;

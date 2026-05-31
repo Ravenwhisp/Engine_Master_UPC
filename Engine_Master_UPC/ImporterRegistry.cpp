@@ -21,9 +21,7 @@ ImporterRegistry::ImporterRegistry()
     auto importerSkin = std::make_unique<ImporterSkin>();
     auto importerAnimStateMachine = std::make_unique<ImporterAnimationStateMachine>();
 
-    auto importerGltf = std::make_unique<ImporterGltf>(
-        importerMesh.get(), importerMaterial.get(), importerPrefab.get(),
-        importerAnimation.get(), importerSkin.get(), importerAnimStateMachine.get());
+    auto importerGltf = std::make_unique<ImporterGltf>(importerMesh.get(), importerMaterial.get(), importerPrefab.get(), importerAnimation.get(), importerSkin.get(), importerAnimStateMachine.get());
     m_importerGltfPtr = importerGltf.get();
 
     m_importers.push_back(std::make_unique<ImporterTexture>());
@@ -34,6 +32,7 @@ ImporterRegistry::ImporterRegistry()
     m_importers.push_back(std::move(importerSkin));
     m_importers.push_back(std::move(importerAnimStateMachine));
     m_importers.push_back(std::move(importerGltf));
+
     m_importers.push_back(std::make_unique<ImporterFont>());
     m_importers.push_back(std::make_unique<ImporterScene>());
 }

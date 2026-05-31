@@ -16,9 +16,7 @@ struct AssetIndexEntry
 class AssetIndex
 {
 public:
-    void registerEntry(const UID& uid, AssetType type,
-                       const std::filesystem::path& sourcePath,
-                       const MD5Hash& contentHash = INVALID_ASSET_ID);
+    void registerEntry(const UID& uid, AssetType type, const std::filesystem::path& sourcePath, const MD5Hash& contentHash = INVALID_ASSET_ID);
 
     void unregister(const UID& uid);
     void unregisterByPath(const std::filesystem::path& sourcePath);
