@@ -89,6 +89,8 @@ void WindowSceneEditor::drawInternal()
 
     drawGizmo();
 
+    m_wasViewportFocusedLastFrame = m_isViewportFocused;
+
     ImGui::EndChild();
     ImGui::PopStyleVar();
 }
@@ -177,6 +179,11 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
         return;
     }
 
+    if (!m_wasViewportFocusedLastFrame)
+    {
+        return;
+    }
+
     if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
     {
         return;
@@ -205,6 +212,7 @@ void WindowSceneEditor::handleObjectPicking(const ImVec2& viewportSize)
     if (app->getModuleScene()->pickGameObject(ray, hit))
     {
         editor->setSelectedGameObject(hit.gameObject);
+        editor->revealGameObjectInHierarchy(hit.gameObject);
     }
 }
 

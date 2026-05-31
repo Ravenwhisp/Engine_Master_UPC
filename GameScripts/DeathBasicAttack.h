@@ -36,4 +36,11 @@ public:
 
     float m_attackLockDuration = 0.35f;
     float m_finalHitLockDuration = 0.7f;
+
+private:
+	Transform* m_deathSlashUITransform = nullptr;
+    UISlider* m_deathSlashUISlider = nullptr;
+
+    void setupUI();
+    void updateUI() override;
 };

@@ -9,6 +9,7 @@
 
 #include "Scene.h"
 #include "GameObject.h"
+#include "Transform.h"
 
 #include "PrefabUI.h"
 #include "ViewHierarchyDialog.h"
@@ -108,6 +109,11 @@ void WindowHierarchy::drawSceneTree()
 {
     Scene* scene = app->getModuleScene()->getScene();
 
+    if (m_treeRenderer.hasGameObjectToReveal())
+    {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+    }
+
     if (ImGui::TreeNodeEx(scene->getName()))
     {
         if (ImGui::BeginDragDropTarget())
@@ -127,15 +133,23 @@ void WindowHierarchy::drawSceneTree()
 
         ImGui::TreePop();
     }
+
+    m_treeRenderer.clearGameObjectToReveal();
 }
 
 void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
 {
     if (!session->m_isolatedScene)
+    {
         return;
+    }
 
     for (GameObject* go : session->m_isolatedScene->getRootObjects())
+    {
         m_treeRenderer.renderNode(go, true, m_selectionState);
+    }
+
+    m_treeRenderer.clearGameObjectToReveal();
 }
 
 void WindowHierarchy::drawBackgroundContextMenu(bool prefabMode, PrefabEditSession* session)
@@ -224,6 +238,11 @@ void WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
     }
 
     CommandAddChildToPrefabRoot(session->m_isolatedScene, parent).run();
+}
+
+void WindowHierarchy::revealGameObject(GameObject* gameObject)
+{
+    m_treeRenderer.setGameObjectToReveal(gameObject);
 }
 
 void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)

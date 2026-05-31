@@ -3,6 +3,8 @@
 #include "ArrowPool.h"
 #include "LyrielDash.h"
 #include "LyrielArrowVolley.h"
+#include "LyrielSound.h"
+#include "PlayerMovement.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielCharacter,
     SERIALIZED_STRING(m_arrowSpawnChildName, "Arrow Spawn Child Name"),
@@ -21,6 +23,8 @@ void LyrielCharacter::Start()
     m_arrowPool   = GameObjectAPI::findScript<ArrowPool>(getOwner());
     m_dash        = GameObjectAPI::findScript<LyrielDash>(getOwner());
     m_arrowVolley = GameObjectAPI::findScript<LyrielArrowVolley>(getOwner());
+    m_sound       = GameObjectAPI::findScript<LyrielSound>(getOwner());
+    m_movement    = GameObjectAPI::findScript<PlayerMovement>(getOwner());
 
     if (m_arrowPool == nullptr)
     {
@@ -33,6 +37,33 @@ void LyrielCharacter::Start()
     if (m_arrowVolley == nullptr)
     {
         Debug::log("[LyrielCharacter] LyrielArrowVolley not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+    if (m_sound == nullptr)
+    {
+        Debug::log("[LyrielCharacter] LyrielSound not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+    if (m_movement == nullptr)
+    {
+        Debug::log("[LyrielCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+}
+
+void LyrielCharacter::Update()
+{
+    if (m_sound == nullptr)
+    {
+        return;
+    }
+
+    if (isDowned())
+    {
+        m_sound->stopAllLoops();
+        return;
+    }
+
+    if (m_movement != nullptr)
+    {
+        m_sound->setFootstepsActive(m_movement->isMoving());
     }
 }
 

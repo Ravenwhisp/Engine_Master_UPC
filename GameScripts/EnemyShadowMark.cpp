@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "EnemyShadowMark.h"
 #include "ReaperGauge.h"
-
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyShadowMark, 
@@ -29,6 +28,39 @@ void EnemyShadowMark::Start()
 	m_mark1Object = m_mark_1.getReferencedComponent() ? ComponentAPI::getOwner(m_mark_1.getReferencedComponent()) : nullptr;
 	m_mark2Object = m_mark_2.getReferencedComponent() ? ComponentAPI::getOwner(m_mark_2.getReferencedComponent()) : nullptr;
 	m_mark3Object = m_mark_3.getReferencedComponent() ? ComponentAPI::getOwner(m_mark_3.getReferencedComponent()) : nullptr;
+
+	if (!m_canvasTransform2D || !m_mark1Object || !m_mark2Object || !m_mark3Object)
+	{
+		Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+		Transform* shadowMarkTransform = TransformAPI::findChildByName(ownerTransform, "Shadow Mark");
+		if (shadowMarkTransform)
+		{
+			GameObject* shadowMarkObject = ComponentAPI::getOwner(shadowMarkTransform);
+			if (!m_canvasTransform2D)
+			{
+				m_canvasTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(shadowMarkObject, ComponentType::TRANSFORM2D));
+				if (m_canvasTransform2D)
+					m_startScale = Transform2DAPI::getScale(m_canvasTransform2D).x;
+			}
+
+			if (!m_mark1Object)
+			{
+				Transform* mark1 = TransformAPI::findChildByName(shadowMarkTransform, "Shadow Mark 1");
+				if (mark1) m_mark1Object = ComponentAPI::getOwner(mark1);
+			}
+			if (!m_mark2Object)
+			{
+				Transform* mark2 = TransformAPI::findChildByName(shadowMarkTransform, "Shadow Mark 2");
+				if (mark2) m_mark2Object = ComponentAPI::getOwner(mark2);
+			}
+			if (!m_mark3Object)
+			{
+				Transform* mark3 = TransformAPI::findChildByName(shadowMarkTransform, "Shadow Mark 3");
+				if (mark3) m_mark3Object = ComponentAPI::getOwner(mark3);
+			}
+		}
+	}
+
     updateUI();
 }
 

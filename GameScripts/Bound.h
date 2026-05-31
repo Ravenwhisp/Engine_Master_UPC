@@ -45,4 +45,9 @@ public:
     float   m_currentRadius = 0.0f;
 
     float m_previousDistance = 0.0f;
+
+    float m_separationHapticHpGate = 0.5f;
+
+private:
+    HeartbeatHaptic* m_haptic = nullptr;
 };

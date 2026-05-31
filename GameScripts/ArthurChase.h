@@ -5,6 +5,8 @@
 
 class ArthurBossController;
 class ArthurAttackConfig;
+class AnimationComponent;
+
 
 class ArthurChase : public StateMachineScript
 {
@@ -20,4 +22,5 @@ public:
 private:
 	ArthurBossController* m_arthurController = nullptr;
 	ArthurAttackConfig* m_arthurAttackConfig = nullptr;
+	AnimationComponent* m_animation = nullptr;
 };

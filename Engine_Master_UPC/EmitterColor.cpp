@@ -1,12 +1,21 @@
 #include "Globals.h"
 #include "EmitterColor.h"
 
+#include "Application.h"
+#include "ModuleInput.h"
+
 #include "EmitterInstance.h"
 #include "ParticleEmitter.h"
 #include "EmitterLifetime.h"
 
-#include "imgui_color_gradient.h"
+EmitterColor::EmitterColor() : ParticleModule(ParticleModuleType::COLOR) {
 
+	/*
+	m_colorsOverTime.getMarks().clear(); // because it has default values that we don't want
+
+	m_colorsOverTime.addMark(0.f, ImColor(1.f, 1.f, 1.f, 1.f));
+	m_colorsOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));*/
+}
 
 
 void EmitterColor::update(EmitterInstance* particleData)
@@ -52,7 +61,7 @@ bool EmitterColor::drawUi()
 		{
 			Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
 			m_startColor = newColor;
-			parameterChanged |= true;
+			parameterChanged = true;
 		}
 
 		color[0] = m_endColor.x; color[1] = m_endColor.y; color[2] = m_endColor.z; color[3] = m_endColor.w;
@@ -60,18 +69,32 @@ bool EmitterColor::drawUi()
 		{
 			Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
 			m_endColor = newColor;
-			parameterChanged |= true;
+			parameterChanged = true;
 		}
 
-		/* // TO EXPLORE LATER
-		ImGradient gradient;
-		ImGradientMark* draggingMark = nullptr;
-		ImGradientMark* selectedMark = nullptr;
-		if (ImGui::GradientButton(&gradient))
-		{
-			//set show editor flag to true/false
+		/*
+		// Color gradient editor
+		if (ImGui::GradientButton(&m_colorsOverTime)) {
+
+			ImGui::OpenPopup("GradientEditorPopup");
 		}
-		*/
+
+		if (ImGui::BeginPopup("GradientEditorPopup")) {
+			
+			//ImGui::PushID("GradientID"); // to avoid conflicting index error
+			//size_t beforeMarkers = m_colorsOverTime.getMarks().size();
+
+			parameterChanged |= ImGui::GradientEditor(&m_colorsOverTime, m_draggingMark, m_selectedMark);
+
+			if (app->getModuleInput()->isKeyJustPressed(Keyboard::Keys::Delete) && m_selectedMark != nullptr)
+			{
+				m_colorsOverTime.removeMark(m_selectedMark);
+			}
+
+			//ImGui::PopID(); // (same, corresponding)
+
+			ImGui::EndPopup();
+		}*/
 
 	}
 

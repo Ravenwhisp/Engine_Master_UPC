@@ -321,6 +321,24 @@ ImVec2 ModuleEditor::getEventViewportSize() const
     return ImVec2(-1, -1);
 }
 
+void ModuleEditor::revealGameObjectInHierarchy(GameObject* gameObject)
+{
+    if (!gameObject)
+    {
+        return;
+    }
+
+    std::vector<WindowHierarchy*> hierarchies = findAllWindows<WindowHierarchy>();
+
+    for (WindowHierarchy* hierarchy : hierarchies)
+    {
+        if (hierarchy)
+        {
+            hierarchy->revealGameObject(gameObject);
+        }
+    }
+}
+
 
 void ModuleEditor::mainMenuBar()
 {

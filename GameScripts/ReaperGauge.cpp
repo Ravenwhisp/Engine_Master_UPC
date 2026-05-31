@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ReaperGauge.h"
+#include "CooperativeSound.h"
 
 #include <cmath>
 
@@ -26,6 +27,8 @@ void ReaperGauge::Start()
 	m_reaperGaugeSlider = m_reaperGaugeUI.getReferencedComponent();
 	m_glowTransform = m_glowUI.getReferencedComponent();
 	m_blinkAlphaTransform = m_blinkAlphaUI.getReferencedComponent();
+
+    m_sound = GameObjectAPI::findScript<CooperativeSound>(getOwner());
 
     SliderAPI::setFillAmount(m_reaperGaugeSlider, getGaugePercent());
     Transform2DAPI::setAlpha(m_glowTransform, 0.0f);
@@ -79,7 +82,13 @@ void ReaperGauge::onMarkExploited()
         getCurrentSegments(), m_numSegments);
 
     if (!wasFull && isFull())
+    {
         Debug::log("[ReaperGauge] GAUGE FULL! Shadow Execution is now available.");
+        if (m_sound != nullptr)
+        {
+            m_sound->playReaperGaugeFull();
+        }
+    }
 }
 
 void ReaperGauge::consume()

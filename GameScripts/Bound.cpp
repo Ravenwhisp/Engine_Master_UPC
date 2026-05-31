@@ -2,6 +2,7 @@
 #include "Bound.h"
 #include "BoundConfig.h"
 #include "Damageable.h"
+#include "HeartbeatHaptic.h"
 
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
@@ -13,7 +14,8 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(m_radiusThreshold, "Radius Threshold", 0.0f, 0.0f, 0.1f),
     SERIALIZED_FLOAT(baseDamage, "Base Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f)
+    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f),
+    SERIALIZED_FLOAT(m_separationHapticHpGate, "Separation Haptic HP Gate", 0.5f, 0.25f, 0.01f)
 )
 
 Bound::Bound(GameObject* owner) : Script(owner)
@@ -47,6 +49,12 @@ void Bound::Start()
         m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
     }
 
+    m_haptic = GameObjectAPI::findScript<HeartbeatHaptic>(m_owner);
+
+    if (m_haptic != nullptr)
+    {
+        m_haptic->m_variant = HapticEffectDefinition::HeartbeatVariant::Separation;
+    }
 }
 
 void Bound::Update()
@@ -60,10 +68,10 @@ void Bound::Update()
 
     // Midpoint
     m_center = (p1 + p2) * 0.5f;
-	if (m_BoundUI.getReferencedComponent())
-	{
-		TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
-	}
+    if (m_BoundUI.getReferencedComponent())
+    {
+        TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
+    }
 
     const float distance = Vector3::Distance(p1, p2);
 
@@ -82,12 +90,12 @@ void Bound::Update()
     {
         const float range = m_distanceInstaKill - m_minDistance;
 
-        // Normalized factor [0..1] using raw math
-        float t = (distance - m_minDistance) / range;
-
         // Manual clamp
+        float t = (distance - m_minDistance) / range;
         if (t < 0.0f) t = 0.0f;
         if (t > 1.0f) t = 1.0f;
+
+        t = 0.45f + (t * t * 0.55f);
 
         // Linear damage scale
         const float damagePerSecond = baseDamage + (maxDamage - baseDamage) * t;
@@ -96,6 +104,21 @@ void Bound::Update()
 
         m_firstDamageable->takeDamage(damage);
         m_secondDamageable->takeDamage(damage);
+
+        const bool p1LowHp = m_firstDamageable->getHpPercent() < m_separationHapticHpGate;
+        const bool p2LowHp = m_secondDamageable->getHpPercent() < m_separationHapticHpGate;
+
+        if (m_haptic)
+        {
+            if (p1LowHp && p2LowHp)
+                m_haptic->tick(t);
+            else
+                m_haptic->stop();
+        }
+    }
+    else
+    {
+        if (m_haptic) m_haptic->stop();
     }
 
     m_previousDistance = distance;

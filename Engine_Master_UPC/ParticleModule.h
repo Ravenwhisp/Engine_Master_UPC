@@ -12,7 +12,16 @@ enum class ParticleModuleType {
 	COLOR,
 	LIFETIME,
 	VELOCITY,
-	SIZE
+	SIZE,
+	ROTATION
+};
+
+enum class ParameterType {
+
+	CONSTANT,
+	RANDOM_BETWEEN_TWO,
+	CURVE,
+	TOTAL_TYPES
 };
 
 class ParticleModule
