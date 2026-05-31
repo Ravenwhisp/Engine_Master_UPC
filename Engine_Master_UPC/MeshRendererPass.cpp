@@ -218,11 +218,12 @@ void MeshRendererPass::renderMesh(ID3D12GraphicsCommandList* commandList)
             PERF_RENDER("MeshRendererPass::renderMesh::VertexBufferSelection");
 
             const Skin* skin = renderer->getSkin();
+            const bool useCpuFallback = skin && skin->isCpuSkinningFallbackEnabled();
+
+            const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
 
             const VertexBuffer* gpuSkinnedVB = skin ? skin->getCurrentGpuSkinnedVertexBuffer() : nullptr;
             const VertexBuffer* cpuSkinnedVB = skin && skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
-
-            const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
 
             const bool useGpuSkinnedVB = (gpuSkinnedVB != nullptr);
             const bool useCpuSkinnedVB = (!useGpuSkinnedVB && cpuSkinnedVB != nullptr);

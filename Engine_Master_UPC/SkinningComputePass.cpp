@@ -79,6 +79,9 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         if (!skin)
             continue;
 
+        if (skin->isCpuSkinningFallbackEnabled())
+            continue;
+
         if (!renderer->isActive())
             continue;
 
