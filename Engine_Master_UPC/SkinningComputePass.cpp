@@ -127,6 +127,72 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
         commandList->ResourceBarrier(2, preBarriers);
 
+        const uint32_t threadGroupCount = (vertexCount + 63u) / 64u;
+
+        if (paletteCount == 0)
+        {
+            DEBUG_ERROR("[SkinningComputePass] paletteCount is 0. owner=%s vertexCount=%u",
+                owner->GetName().c_str(),
+                vertexCount);
+            continue;
+        }
+
+        if (threadGroupCount == 0)
+        {
+            DEBUG_ERROR("[SkinningComputePass] threadGroupCount is 0. owner=%s vertexCount=%u",
+                owner->GetName().c_str(),
+                vertexCount);
+            continue;
+        }
+
+        const UINT64 expectedVertexBytes = static_cast<UINT64>(vertexCount) * sizeof(Vertex);
+        const UINT64 expectedPaletteBytes = static_cast<UINT64>(paletteCount) * sizeof(Matrix);
+
+        const D3D12_RESOURCE_DESC inputDesc = inputResource->GetDesc();
+        const D3D12_RESOURCE_DESC outputDesc = outputResource->GetDesc();
+        const D3D12_RESOURCE_DESC paletteModelDesc = paletteModelResource->GetDesc();
+        const D3D12_RESOURCE_DESC paletteNormalDesc = paletteNormalResource->GetDesc();
+
+        if (inputDesc.Width < expectedVertexBytes)
+        {
+            DEBUG_ERROR("[SkinningComputePass] Input VB too small. owner=%s width=%llu expected=%llu vertexCount=%u",
+                owner->GetName().c_str(),
+                inputDesc.Width,
+                expectedVertexBytes,
+                vertexCount);
+            continue;
+        }
+
+        if (outputDesc.Width < expectedVertexBytes)
+        {
+            DEBUG_ERROR("[SkinningComputePass] Output VB too small. owner=%s width=%llu expected=%llu vertexCount=%u",
+                owner->GetName().c_str(),
+                outputDesc.Width,
+                expectedVertexBytes,
+                vertexCount);
+            continue;
+        }
+
+        if (paletteModelDesc.Width < expectedPaletteBytes || paletteNormalDesc.Width < expectedPaletteBytes)
+        {
+            DEBUG_ERROR("[SkinningComputePass] Palette buffer too small. owner=%s modelWidth=%llu normalWidth=%llu expected=%llu paletteCount=%u",
+                owner->GetName().c_str(),
+                paletteModelDesc.Width,
+                paletteNormalDesc.Width,
+                expectedPaletteBytes,
+                paletteCount);
+            continue;
+        }
+
+        DEBUG_LOG("[SkinningComputePass] Dispatch. owner=%s vertexCount=%u paletteCount=%u threadGroups=%u inputBytes=%llu outputBytes=%llu paletteBytes=%llu",
+            owner->GetName().c_str(),
+            vertexCount,
+            paletteCount,
+            threadGroupCount,
+            inputDesc.Width,
+            outputDesc.Width,
+            paletteModelDesc.Width);
+
         commandList->SetComputeRootShaderResourceView(0, inputResource->GetGPUVirtualAddress());
         commandList->SetComputeRootUnorderedAccessView(1, outputResource->GetGPUVirtualAddress());
         commandList->SetComputeRootShaderResourceView(2, paletteModelResource->GetGPUVirtualAddress());
@@ -134,7 +200,6 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         commandList->SetComputeRoot32BitConstant(4, vertexCount, 0);
         commandList->SetComputeRoot32BitConstant(4, paletteCount, 1);
 
-        const uint32_t threadGroupCount = (vertexCount + 63u) / 64u;
         commandList->Dispatch(threadGroupCount, 1, 1);
 
         CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(outputResource);
