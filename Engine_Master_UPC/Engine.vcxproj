@@ -760,6 +760,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
