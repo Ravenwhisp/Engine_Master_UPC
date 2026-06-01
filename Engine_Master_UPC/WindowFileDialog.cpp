@@ -292,6 +292,14 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
             app->getModuleAssets()->createStateMachineFromGltf(sourcePath);
         }
 
+        if (ImGui::MenuItem("Rename..."))
+        {
+            m_renamingAsset = true;
+            const std::string srcStr = sourcePath.string();
+            strncpy_s(m_renameSrcBuf, sizeof(m_renameSrcBuf), srcStr.c_str(), sizeof(m_renameSrcBuf) - 1);
+            strncpy_s(m_renameDstBuf, sizeof(m_renameDstBuf), srcStr.c_str(), sizeof(m_renameDstBuf) - 1);
+        }
+
         if (ImGui::MenuItem("Cut", "Ctrl+X"))
         {
             CommandCutItem(m_clipboard, metaPath).run();
@@ -490,6 +498,7 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
         m_showVariantModal,
         m_showSavePrefabModal,
         m_renamingPrefab,
+        m_renamingAsset,
         buffers
     );
 }

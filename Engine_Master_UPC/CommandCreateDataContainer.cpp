@@ -30,8 +30,17 @@ void CommandCreateDataContainer::run()
 
     if (std::filesystem::exists(filePath))
     {
-        DEBUG_WARN("[CommandCreateDataContainer] File '%s' already exists.", filePath.string().c_str());
-        return;
+        int suffix = 2;
+        while (true)
+        {
+            std::string numberedName = m_assetName + "_" + std::to_string(suffix);
+            filePath = m_targetDir / (numberedName + DATA_CONTAINER_EXTENSION);
+            if (!std::filesystem::exists(filePath))
+            {
+                break;
+            }
+            ++suffix;
+        }
     }
 
     rapidjson::Document doc;

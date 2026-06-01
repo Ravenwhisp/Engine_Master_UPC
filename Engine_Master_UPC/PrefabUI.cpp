@@ -14,6 +14,7 @@
 
 #include "PrefabAsset.h"
 #include "PrefabEditSession.h"
+#include "AssetsDictionary.h"
 #include <FileIO.h>
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
@@ -473,6 +474,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
 void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     bool& showSavePrefabModal,
     bool& renamingPrefab,
+    bool& renamingAsset,
     FileDialogBuffers& buffers)
 {
     const ImVec2 screenCenter = ImGui::GetMainViewport()->GetCenter();
@@ -510,12 +512,14 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     }
 
     // ── Rename modal ─────────────────────────────────────────────────────────
+    const bool isPrefabRename = renamingPrefab;
     if (renamingPrefab) { ImGui::OpenPopup("##pfRenameModal"); renamingPrefab = false; }
+    if (renamingAsset) { ImGui::OpenPopup("##pfRenameModal"); renamingAsset = false; }
     ImGui::SetNextWindowPos(screenCenter, ImGuiCond_Appearing, { 0.5f, 0.5f });
     ImGui::SetNextWindowSize({ 420, 0 });
     if (ImGui::BeginPopupModal("##pfRenameModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        ImGui::Text("Rename prefab:");
+        ImGui::Text(isPrefabRename ? "Rename prefab:" : "Rename asset:");
         ImGui::TextDisabled("%s", buffers.renameSource);
         ImGui::Separator();
         ImGui::SetNextItemWidth(-1);
@@ -526,10 +530,18 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
             && strcmp(buffers.renameSource, buffers.renameDest) != 0)
         {
             // Both buffers hold full paths — no folder is assumed.
-            if (FileIO::move(
-                std::filesystem::path(buffers.renameSource),
-                std::filesystem::path(buffers.renameDest)))
+            const std::filesystem::path srcPath(buffers.renameSource);
+            const std::filesystem::path dstPath(buffers.renameDest);
+            if (FileIO::move(srcPath, dstPath))
             {
+                std::filesystem::path srcMeta = srcPath;
+                std::filesystem::path dstMeta = dstPath;
+                srcMeta += METADATA_EXTENSION;
+                dstMeta += METADATA_EXTENSION;
+                if (FileIO::exists(srcMeta))
+                {
+                    FileIO::move(srcMeta, dstMeta);
+                }
                 app->getModuleAssets()->refresh();
             }
             ImGui::CloseCurrentPopup();

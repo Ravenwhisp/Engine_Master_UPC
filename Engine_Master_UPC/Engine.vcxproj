@@ -518,6 +518,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="WindowMusicDebug.h" />
+    <ClInclude Include="WindowDataContainerManager.h" />
     <ClInclude Include="WindowSceneEditor.h" />
     <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="SceneSnapshot.h" />
@@ -888,6 +889,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowMusicDebug.cpp" />
+    <ClCompile Include="WindowDataContainerManager.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />

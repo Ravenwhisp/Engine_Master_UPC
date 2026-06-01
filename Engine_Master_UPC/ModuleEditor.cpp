@@ -34,6 +34,7 @@
 #include "ContentRegistry.h"
 #include "CommandCreateDataContainer.h"
 #include "DataContainerExporter.h"
+#include "WindowDataContainerManager.h"
 #include "FileDialog.h"
 
 #include <fstream>
@@ -153,6 +154,7 @@ bool ModuleEditor::init()
     registerWindowType<WindowGame>("Game");
     registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
     registerWindowType<WindowMusicDebug>("Music Library");
+    registerWindowType<WindowDataContainerManager>("Data Container Manager");
 
     // ---- Spawn the default set of windows (one each) ----
     openWindow("Console");
