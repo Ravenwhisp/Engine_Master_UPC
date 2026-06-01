@@ -133,7 +133,6 @@ void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
 {
     if (!session->m_rootObject)
         return;
-    }
 
     m_treeRenderer.renderNode(session->m_rootObject, true, m_selectionState);
 }

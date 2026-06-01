@@ -49,8 +49,6 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
         ? session->m_sourcePath.filename().string()
         : gameObject->GetName();
 
-    const std::string nodeId = std::string(rawLabel) + "###" + std::to_string(gameObject->GetID());
-
     if (shouldOpenNodeToRevealGameObject(gameObject))
     {
         ImGui::SetNextItemOpen(true, ImGuiCond_Always);
