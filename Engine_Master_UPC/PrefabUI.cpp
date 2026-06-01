@@ -462,8 +462,8 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     if (ImGui::MenuItem("Rename..."))
     {
         outRenamingPrefab = true;
-        strncpy_s(buffers.renameSource, buffers.renameSourceSize, pathStr.c_str(), buffers.renameSourceSize - 1);
-        strncpy_s(buffers.renameDest, buffers.renameDestSize, pathStr.c_str(), buffers.renameDestSize - 1);
+        strncpy_s(buffers.renameSource, buffers.renameSourceSize, realPath.string().c_str(), buffers.renameSourceSize - 1);
+        strncpy_s(buffers.renameDest, buffers.renameDestSize, realPath.stem().string().c_str(), buffers.renameDestSize - 1);
     }
 
     ImGui::Separator();
@@ -526,20 +526,31 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     if (beginModal("##pfRenameModal", renamingPrefab, screenCenter))
     {
         ImGui::Text("Rename prefab:");
-        ImGui::TextDisabled("%s", buffers.renameSource);
+        ImGui::Text("From:  %s", buffers.renameSource);
         ImGui::Separator();
         ImGui::SetNextItemWidth(-1);
-        const bool enterPressed = ImGui::InputText("New path##rname", buffers.renameDest, buffers.renameDestSize, ImGuiInputTextFlags_EnterReturnsTrue);
+        const bool enterPressed = ImGui::InputText("New name##rname", buffers.renameDest, buffers.renameDestSize, ImGuiInputTextFlags_EnterReturnsTrue);
         ImGui::Spacing();
         if ((ImGui::Button("Rename", { 100, 0 }) || enterPressed)
-            && strlen(buffers.renameDest) > 0
-            && strcmp(buffers.renameSource, buffers.renameDest) != 0)
+            && strlen(buffers.renameDest) > 0)
         {
-            if (FileIO::move(
-                std::filesystem::path(buffers.renameSource),
-                std::filesystem::path(buffers.renameDest)))
+            const auto srcAsset = std::filesystem::path(buffers.renameSource);
+            if (strcmp(buffers.renameDest, srcAsset.stem().string().c_str()) != 0)
             {
-                app->getModuleAssets()->refresh();
+                const auto dir = srcAsset.parent_path();
+                const auto ext = srcAsset.extension().string();
+                const auto dstAsset = dir / (std::string(buffers.renameDest) + ext);
+                auto srcMeta = srcAsset; srcMeta += ".metadata";
+                auto dstMeta = dstAsset; dstMeta += ".metadata";
+
+                app->getModuleAssets()->unregisterAsset(srcAsset);
+                bool ok = FileIO::move(srcAsset, dstAsset);
+                if (ok) ok = FileIO::move(srcMeta, dstMeta);
+                if (ok)
+                {
+                    AssetReference ref;
+                    app->getModuleAssets()->importAsset(dstAsset, ref);
+                }
             }
             ImGui::CloseCurrentPopup();
         }
