@@ -1,8 +1,15 @@
 #include "pch.h"
 #include "PlayerDamageable.h"
+#include "HeartbeatHaptic.h"
+#include "DeathSound.h"
+#include "LyrielSound.h"
 
 #include "PlayerDownState.h"
 #include "PlayerAnimationController.h"
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(PlayerDamageable, Damageable,
+    SERIALIZED_FLOAT(m_heartbeatThreshold, "Heartbeat Threshold", 0.5f, 0.25f, 0.0f)
+)
 
 PlayerDamageable::PlayerDamageable(GameObject* owner)
     : Damageable(owner)
@@ -19,6 +26,35 @@ void PlayerDamageable::Start()
     {
         Debug::warn("%s has PlayerDamageable but no PlayerAnimationController.", GameObjectAPI::getName(m_owner));
     }
+
+    m_haptic = GameObjectAPI::findScript<HeartbeatHaptic>(m_owner);
+    if (m_haptic != nullptr)
+    {
+        m_haptic->m_variant = HapticEffectDefinition::HeartbeatVariant::Health;
+    }
+
+    m_deathSound  = GameObjectAPI::findScript<DeathSound>(m_owner);
+    m_lyrielSound = GameObjectAPI::findScript<LyrielSound>(m_owner);
+}
+
+void PlayerDamageable::Update()
+{
+    Damageable::Update();
+
+    if (!m_haptic) return;
+
+    if (isDead())
+        return; // dying beat is self-terminating; don't interfere
+
+    if (getHpPercent() >= m_heartbeatThreshold)
+    {
+        m_haptic->stop();
+        return;
+    }
+
+    // danger is the inverse of HP, drives beat speed and intensity
+    const float danger = 1.0f - getHpPercent();
+    m_haptic->tick(danger);
 }
 
 void PlayerDamageable::onDamaged(float amount)
@@ -28,6 +64,15 @@ void PlayerDamageable::onDamaged(float amount)
     if (m_playerAnimationController != nullptr)
     {
         m_playerAnimationController->requestDamaged();
+    }
+
+    if (m_deathSound != nullptr)
+    {
+        m_deathSound->playHurt();
+    }
+    if (m_lyrielSound != nullptr)
+    {
+        m_lyrielSound->playHurt();
     }
 }
 
@@ -59,6 +104,23 @@ void PlayerDamageable::onDeath()
     {
         m_playerAnimationController->setDead(true);
     }
+
+    if (m_haptic)
+    {
+        const float danger = 1.0f - getHpPercent();
+        m_haptic->playDyingBeat(danger);
+    }
+
+    if (m_deathSound != nullptr)
+    {
+        m_deathSound->stopAllLoops();
+        m_deathSound->playDown();
+    }
+    if (m_lyrielSound != nullptr)
+    {
+        m_lyrielSound->stopAllLoops();
+        m_lyrielSound->playDown();
+    }
 }
 
 void PlayerDamageable::onRevive()
@@ -69,6 +131,11 @@ void PlayerDamageable::onRevive()
     {
         m_playerAnimationController->setDead(false);
         m_playerAnimationController->setDowned(false);
+    }
+
+    if (m_haptic)
+    {
+        m_haptic->stop();
     }
 }
 

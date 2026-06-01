@@ -2,6 +2,7 @@
 #include "LyrielBasicAttack.h"
 
 #include "LyrielCharacter.h"
+#include "LyrielSound.h"
 #include "CharacterBase.h"
 #include "PlayerTargetController.h"
 #include "PlayerState.h"
@@ -68,6 +69,12 @@ void LyrielBasicAttack::startAbility()
         setAbilityLocked(false);
         m_attackFacingTarget = nullptr;
         return;
+    }
+
+    LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
+    if (sound != nullptr)
+    {
+        sound->playBowRelease();
     }
 
     beginAttackPresentation();

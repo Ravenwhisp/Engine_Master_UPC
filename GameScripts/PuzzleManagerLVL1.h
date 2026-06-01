@@ -20,8 +20,14 @@ public:
     void Update() override;
 
 	ScriptComponentRef<Transform> m_door1;
+	ScriptComponentRef<Transform> m_bridge1;
+	ScriptComponentRef<Transform> m_bridge2;
+	ScriptComponentRef<Transform> m_door2;
+	ScriptComponentRef<Transform> m_door3;
 
 	void puzzle1Solved();
+	void puzzle2Solved();
+	void puzzle3Solved();
 
 	void onCrystalsActivated(int puzzleID);
 	void onCrystalsDeactivated(int puzzleID);

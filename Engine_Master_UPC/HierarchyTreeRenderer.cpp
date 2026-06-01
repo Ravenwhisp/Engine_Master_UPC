@@ -49,8 +49,20 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
         ? session->m_sourcePath.filename().string()
         : gameObject->GetName();
 
+    const std::string nodeId = std::string(rawLabel) + "###" + std::to_string(gameObject->GetID());
+
+    if (shouldOpenNodeToRevealGameObject(gameObject))
+    {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Always);
+    }
+
     const std::string nodeId = label + "###" + std::to_string(gameObject->GetID());
     const bool opened = ImGui::TreeNodeEx(nodeId.c_str(), flags);
+
+    if (gameObject == m_gameObjectToReveal)
+    {
+        ImGui::SetScrollHereY(0.5f);
+    }
 
     if (isEditRoot || isPrefabInst) {
         ImGui::PopStyleColor();
@@ -82,6 +94,24 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
         }
         ImGui::TreePop();
     }
+}
+
+bool HierarchyTreeRenderer::shouldOpenNodeToRevealGameObject(GameObject* currentNode) const
+{
+    if (!currentNode || !m_gameObjectToReveal || currentNode == m_gameObjectToReveal)
+    {
+        return false;
+    }
+
+    Transform* currentTransform = currentNode->GetTransform();
+    Transform* targetTransform = m_gameObjectToReveal->GetTransform();
+
+    if (!currentTransform || !targetTransform)
+    {
+        return false;
+    }
+
+    return targetTransform->isDescendantOf(currentTransform);
 }
 
 void HierarchyTreeRenderer::drawContextMenu(GameObject* go, bool prefabMode, bool isEditRoot) const

@@ -594,6 +594,14 @@
     </ClCompile>
     <ClCompile Include="Skin.cpp" />
     <ClCompile Include="UISheet.cpp" />
+    <ClCompile Include="EmitterRotation.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureImportSettings.cpp" />
+    <ClCompile Include="ImportSettings.cpp" />
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1388,6 +1396,11 @@
     </ClInclude>
     <ClInclude Include="Skin.h" />
     <ClInclude Include="UISheet.h" />
+    <ClInclude Include="EmitterRotation.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="TextureImportSettings.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">

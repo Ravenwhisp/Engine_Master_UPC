@@ -64,6 +64,11 @@ void Damageable::takeDamage(float amount)
     }
 }
 
+void Damageable::takeDamage(const HitContext& ctx)
+{
+    takeDamage(ctx.damage);
+}
+
 void Damageable::heal(float amount)
 {
     if (m_isDead)

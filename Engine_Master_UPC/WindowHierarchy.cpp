@@ -133,6 +133,7 @@ void WindowHierarchy::drawPrefabTree(PrefabEditSession* session)
 {
     if (!session->m_rootObject)
         return;
+    }
 
     m_treeRenderer.renderNode(session->m_rootObject, true, m_selectionState);
 }
@@ -223,6 +224,11 @@ void WindowHierarchy::addChildToPrefabRoot(GameObject* parent)
     }
 
     CommandAddChildToPrefabRoot(session->m_isolatedScene, parent).run();
+}
+
+void WindowHierarchy::revealGameObject(GameObject* gameObject)
+{
+    m_treeRenderer.setGameObjectToReveal(gameObject);
 }
 
 void WindowHierarchy::reparent(GameObject* child, GameObject* newParent)

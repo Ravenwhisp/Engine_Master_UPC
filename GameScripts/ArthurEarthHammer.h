@@ -5,7 +5,9 @@
 
 class ArthurBossController;
 class ArthurAttackConfig;
-class ArthurAttackExecutor;
+class EnemyAttackExecutor;
+class AnimationComponent;
+
 
 class ArthurEarthHammer : public StateMachineScript
 {
@@ -22,12 +24,21 @@ private:
     void applyImpact();
     void goToRecover();
 
+    void setupUI();
+    void updateUI();
+
 private:
     ArthurBossController* m_arthurController = nullptr;
     ArthurAttackConfig* m_attackConfig = nullptr;
-    ArthurAttackExecutor* m_attackExecutor = nullptr;
+    EnemyAttackExecutor* m_attackExecutor = nullptr;
+    AnimationComponent* m_animation = nullptr;
 
     float m_stateTimer = 0.0f;
 
     bool m_hasAppliedImpact = false;
+
+    bool m_hasStartedImpactUI = false;
+    float m_impactUITimer = 0.0f;
+
+    float m_innerScale = 0.1f;
 };

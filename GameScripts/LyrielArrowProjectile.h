@@ -12,6 +12,7 @@ public:
     explicit LyrielArrowProjectile(GameObject* owner);
 
     void Update() override;
+    ScriptFieldList getExposedFields() const override;
 
     void launch(const Vector3& start_position, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
     void resetProjectile();
@@ -23,6 +24,10 @@ public:
 
 private:
     void applyImpactDamage();
+    void syncParticleTransform();
+
+public:
+    std::string m_particlePrefabPath = "";
 
 private:
     ArrowPool* m_pool = nullptr;
@@ -36,4 +41,6 @@ private:
 
     GameObject* m_target = nullptr;
     float m_damage = 0.0f;
+
+    GameObject* m_particleGO = nullptr;
 };

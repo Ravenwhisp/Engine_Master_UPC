@@ -68,7 +68,7 @@ void EmitterArea::debugDraw(Transform* parent)
 	bool depthEnabled = false;
 	auto asFloat3 = [](const Vector3& v) { return &v.x; };
 
-	Vector3 position = parent->getPosition();
+	Vector3 position = parent->getGlobalMatrix().Translation();
 
 	switch (m_shapeType)
 	{
@@ -137,6 +137,7 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
+	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
 	float realRadius = m_radiusThickness * m_radius;
 
@@ -144,9 +145,9 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 	{
 		for (auto& particleIndex : newParticles)
 		{
-			Vector3 direction = getCircleDirection(objectTransform->getPosition(), *objectTransform); // in the future, we may add offsets to the position
+			Vector3 direction = getCircleDirection(objectPosition, *objectTransform); // in the future, we may add offsets to the position
 
-			particlePool[particleIndex].position = objectTransform->getPosition();
+			particlePool[particleIndex].position = objectPosition;
 			particlePool[particleIndex].movementDirection = direction;
 		}
 
@@ -165,14 +166,14 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 				rightOffset = uniform_rand() * (realRadius * 2) - realRadius;
 				forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
 
-				spawnPosition = objectTransform->getPosition() + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
+				spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
 
-			} while (Vector3::DistanceSquared(spawnPosition, objectTransform->getPosition()) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
+			} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
 
 
 			if (rightOffset == 0.f && forwardOffset == 0.f) // similar case to realRadius == 0.f
 			{
-				Vector3 direction = getCircleDirection(objectTransform->getPosition(), *objectTransform);
+				Vector3 direction = getCircleDirection(objectPosition, *objectTransform);
 
 				particlePool[particleIndex].position = spawnPosition;
 				particlePool[particleIndex].movementDirection = direction;
@@ -180,7 +181,7 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 			}
 			else {
 
-				Vector3 direction = (spawnPosition - objectTransform->getPosition());
+				Vector3 direction = (spawnPosition - objectPosition);
 				direction.Normalize();
 
 				particlePool[particleIndex].position = spawnPosition;
@@ -196,6 +197,7 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
+	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
 	float realRadius = m_radiusThickness * m_radius;
 
@@ -203,9 +205,9 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 	{
 		for (auto& particleIndex : newParticles)
 		{
-			Vector3 direction = getSphereDirection(objectTransform->getPosition(), *objectTransform); // in the future, we may add offsets to the position
+			Vector3 direction = getSphereDirection(objectPosition, *objectTransform); // in the future, we may add offsets to the position
 
-			particlePool[particleIndex].position = objectTransform->getPosition();
+			particlePool[particleIndex].position = objectPosition;
 			particlePool[particleIndex].movementDirection = direction;
 		}
 
@@ -226,14 +228,14 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 				forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
 				upOffset = uniform_rand() * (realRadius * 2) - realRadius;
 
-				spawnPosition = objectTransform->getPosition() + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward() + upOffset * objectTransform->getUp();
+				spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward() + upOffset * objectTransform->getUp();
 
-			} while (Vector3::DistanceSquared(spawnPosition, objectTransform->getPosition()) > realRadius * realRadius);
+			} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius);
 
 
 			if (rightOffset == 0.f && forwardOffset == 0.f && upOffset == 0.f) // similar case to realRadius == 0.f
 			{
-				Vector3 direction = getSphereDirection(objectTransform->getPosition(), *objectTransform);
+				Vector3 direction = getSphereDirection(objectPosition, *objectTransform);
 
 				particlePool[particleIndex].position = spawnPosition;
 				particlePool[particleIndex].movementDirection = direction;
@@ -241,7 +243,7 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 			}
 			else {
 
-				Vector3 direction = (spawnPosition - objectTransform->getPosition());
+				Vector3 direction = (spawnPosition - objectPosition);
 				direction.Normalize();
 
 				particlePool[particleIndex].position = spawnPosition;
@@ -257,6 +259,7 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
+	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
 	float realRadius = m_radiusThickness * m_radius;
 
@@ -264,9 +267,9 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 	{
 		for (auto& particleIndex : newParticles)
 		{
-			Vector3 direction = getHemisphereDirection(objectTransform->getPosition(), *objectTransform); // in the future, we may add offsets to the position
+			Vector3 direction = getHemisphereDirection(objectPosition, *objectTransform); // in the future, we may add offsets to the position
 
-			particlePool[particleIndex].position = objectTransform->getPosition();
+			particlePool[particleIndex].position = objectPosition;
 			particlePool[particleIndex].movementDirection = direction;
 		}
 
@@ -287,14 +290,14 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 				forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
 				upOffset = uniform_rand() * realRadius; // different from the others, because it has to be positive or 0
 
-				spawnPosition = objectTransform->getPosition() + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward() + upOffset * objectTransform->getUp();
+				spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward() + upOffset * objectTransform->getUp();
 
-			} while (Vector3::DistanceSquared(spawnPosition, objectTransform->getPosition()) > realRadius * realRadius);
+			} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius);
 
 
 			if (rightOffset == 0.f && forwardOffset == 0.f && upOffset == 0.f) // similar case to realRadius == 0.f
 			{
-				Vector3 direction = getHemisphereDirection(objectTransform->getPosition(), *objectTransform);
+				Vector3 direction = getHemisphereDirection(objectPosition, *objectTransform);
 
 				particlePool[particleIndex].position = spawnPosition;
 				particlePool[particleIndex].movementDirection = direction;
@@ -302,7 +305,7 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 			}
 			else {
 
-				Vector3 direction = (spawnPosition - objectTransform->getPosition());
+				Vector3 direction = (spawnPosition - objectPosition);
 				direction.Normalize();
 
 				particlePool[particleIndex].position = spawnPosition;
@@ -318,6 +321,7 @@ void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
+	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
 	float realRadius = m_radiusThickness * m_radius;
 
@@ -332,13 +336,13 @@ void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
 			rightOffset = uniform_rand() * (realRadius * 2) - realRadius;
 			forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
 
-			spawnPosition = objectTransform->getPosition() + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
+			spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
 
-		} while (Vector3::DistanceSquared(spawnPosition, objectTransform->getPosition()) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
+		} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
 
 		// For now, we will use a scale on the offsets, to define the "upper circle" of the cone, and assume it is on an arbitrary height to get a direction
 
-		Vector3 scaledPosition = objectTransform->getPosition() + m_radiusScale * rightOffset * objectTransform->getRight() + m_radiusScale * forwardOffset * objectTransform->getForward() + objectTransform->getUp();
+		Vector3 scaledPosition = objectPosition + m_radiusScale * rightOffset * objectTransform->getRight() + m_radiusScale * forwardOffset * objectTransform->getForward() + objectTransform->getUp();
 		Vector3 direction = (scaledPosition - spawnPosition);
 		direction.Normalize();
 
@@ -415,7 +419,7 @@ void EmitterArea::drawCone(Transform* parent, const Vector3& color, float radius
 	Vector3 right = parent->getRight();
 	Vector3 up = parent->getUp(); // will be the circles' normal
 
-	Vector3 bottomCircleCenter = parent->getPosition();
+	Vector3 bottomCircleCenter = parent->getGlobalMatrix().Translation();
 	Vector3 topCircleCenter = bottomCircleCenter + up * m_topConeCircleHeight;
 
 	Vector3 bottomLeftPoint = bottomCircleCenter - right * radius;

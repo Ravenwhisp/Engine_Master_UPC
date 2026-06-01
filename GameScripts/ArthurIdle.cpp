@@ -11,10 +11,17 @@ ArthurIdle::ArthurIdle(GameObject* owner)
 void ArthurIdle::OnStateEnter()
 {
 	m_arthurController = GameObjectAPI::findScript<ArthurBossController>(getOwner());
+	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_arthurController)
 	{
 		Debug::error("[ArthurIdle] ArthurBossController not found.");
+		return;
+	}
+
+	if (!m_animation)
+	{
+		Debug::error("[ArthurIdle] AnimationComponent not found.");
 		return;
 	}
 
@@ -26,23 +33,13 @@ void ArthurIdle::OnStateEnter()
 
 void ArthurIdle::OnStateUpdate()
 {
-	if (!m_arthurController)
+	if (!m_arthurController || !m_animation)
 	{
-		Debug::error("[ArthurIdle] ArthurBossController not found.");
 		return;
 	}
 
-	AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
-	if (!animation)
+	if (m_arthurController->trySendDeathTrigger(m_animation))
 	{
-		Debug::error("[ArthurIdle] Animation Component not found.");
-		return;
-	}
-
-	if (m_arthurController->isDead())
-	{
-		m_arthurController->clearPath();
-		AnimationAPI::sendTrigger(animation, "ToDeath");
 		return;
 	}
 
@@ -53,7 +50,7 @@ void ArthurIdle::OnStateUpdate()
 		return;
 	}
 
-	AnimationAPI::sendTrigger(animation, "ToChase");
+	AnimationAPI::sendTrigger(m_animation, "ToChase");
 }
 
 void ArthurIdle::OnStateExit()

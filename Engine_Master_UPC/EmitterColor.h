@@ -2,11 +2,13 @@
 
 #include "ParticleModule.h"
 
+#include "imgui_color_gradient.h"
+
 class EmitterColor : public ParticleModule
 {
 public:
 
-	EmitterColor() : ParticleModule(ParticleModuleType::COLOR) {}
+	EmitterColor();
 	std::unique_ptr<ParticleModule> clone() const override {
 		return std::make_unique<EmitterColor>(*this); // calls copy constructor
 	}
@@ -24,8 +26,14 @@ public:
 
 private:
 
-	// We will want Bezier curves to tweak this better (Vector4 size, speed?)
+	// We will want Bezier curves to tweak this better
 	Vector4 m_startColor = Vector4(1.f, 1.f, 1.f, 1.f);
 	Vector4 m_endColor = Vector4(1.f, 1.f, 1.f, 1.f);
+
+	// TEST WITH GRADIENT
+	/*ImGradient m_colorsOverTime;
+
+	ImGradientMark* m_draggingMark = nullptr;
+	ImGradientMark* m_selectedMark = nullptr;*/
 };
 

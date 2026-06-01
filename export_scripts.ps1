@@ -40,3 +40,5 @@ cp .\Engine_Master_UPC\PrefabInstance.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\MD5Fwd.h .\export\EngineDependencies\
 
 cp .\Engine_Master_UPC\ScriptFieldTypeTraits.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\Transform2D.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\UIRect.h .\export\EngineDependencies\

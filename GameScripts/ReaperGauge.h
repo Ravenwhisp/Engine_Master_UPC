@@ -4,6 +4,8 @@
 #include "UISlider.h"
 #include "Transform2D.h"
 
+class CooperativeSound;
+
 class ReaperGauge : public Script
 {
     DECLARE_SCRIPT(ReaperGauge)
@@ -48,4 +50,6 @@ private:
     UISlider* m_reaperGaugeSlider = nullptr;
 	Transform2D* m_glowTransform = nullptr;
 	Transform2D* m_blinkAlphaTransform = nullptr;
+
+    CooperativeSound* m_sound = nullptr;
 };

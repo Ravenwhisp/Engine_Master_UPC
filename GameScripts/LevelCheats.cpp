@@ -6,14 +6,9 @@
 #include "PlayerController.h"
 #include "EnemyDamageable.h"
 
-//static const ScriptFieldInfo myScriptFields[] =
-//{
-//    { "Level Name", ScriptFieldType::String, offsetof(LevelCheats, levelName) },
-//    { "Win Scene Name", ScriptFieldType::String, offsetof(LevelCheats, winSceneName) },
-//    { "Lose Scene Name", ScriptFieldType::String, offsetof(LevelCheats, loseSceneName)}
-//};
-//
-//IMPLEMENT_SCRIPT_FIELDS(LevelCheats, myScriptFields)
+IMPLEMENT_SCRIPT_FIELDS(LevelCheats,
+    SERIALIZED_STRING_VECTOR(m_enemyPrefabPaths, "Enemy Prefab Paths")
+)
 
 LevelCheats::LevelCheats(GameObject* owner)
     : Script(owner)
@@ -29,8 +24,9 @@ void LevelCheats::Update()
     if (KeyComboPressed(KeyCode::Q)) AutoWin();
     if (KeyComboPressed(KeyCode::W)) AutoLose();
     if (KeyComboPressed(KeyCode::E)) Teleport();
-    if (KeyComboPressed(KeyCode::R)) ActivateGodMode();
-    /*if (KeyComboPressed(KeyCode::T)) SpawnEnemies();*/
+    if (KeyComboPressed(KeyCode::T)) ToggleInvincibility();
+    if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
+    if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
     if (KeyComboPressed(KeyCode::D)) restartLevel();
 	if (KeyComboPressed(KeyCode::F)) killEnemies();
     if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::A))
@@ -97,33 +93,61 @@ void LevelCheats::Teleport()
     }
 }
 
-void LevelCheats::ActivateGodMode()
+void LevelCheats::ToggleInvincibility()
 {
-    Debug::log("God Mode");
     std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
 
     for (GameObject* player : players)
     {
-        PlayerController* playerController = GameObjectAPI::findScript<PlayerController>(player);
-        if (playerController)
+        Damageable* damageable = GameObjectAPI::findScript<Damageable>(player);
+
+        if (damageable)
         {
-            playerController->m_godMode = !playerController->m_godMode;
+            bool newInvulnerableState = !damageable->isInvulnerable();
+            damageable->setInvulnerable(newInvulnerableState);
         }
     }
 }
 
-void LevelCheats::SpawnEnemies()
+void LevelCheats::SpawnEnemy(int enemyPrefabIndex)
 {
-    Debug::log("Spawn Enemies activated!");
+    if (enemyPrefabIndex < 0 || enemyPrefabIndex >= static_cast<int>(m_enemyPrefabPaths.size()))
+    {
+        Debug::warn("[LevelCheats] Invalid enemy prefab index: %i", enemyPrefabIndex);
+        return;
+    }
 
-    GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
-	Transform* playerTransform = GameObjectAPI::getTransform(player);
-	Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+    std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
 
-	Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
+    if (players.empty())
+    {
+        Debug::warn("[LevelCheats] Cannot spawn enemy. No players found.");
+        return;
+    }
 
-	GameObject* enemyPrefab = GameObjectAPI::instantiatePrefab("Assets/Prefabs/Spider.prefab", enemySpawnPosition, Vector3(0, 0, 0));
-    
+    if (m_playerIndex < 0 || m_playerIndex >= static_cast<int>(players.size()))
+    {
+        Debug::warn("[LevelCheats] Invalid player index: %i", m_playerIndex);
+        return;
+    }
+
+    GameObject* player = players[m_playerIndex];
+    Transform* playerTransform = GameObjectAPI::getTransform(player);
+
+    if (playerTransform == nullptr)
+    {
+        Debug::warn("[LevelCheats] Cannot spawn enemy. Player has no Transform.");
+        return;
+    }
+
+    Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+    Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
+
+    const std::string& prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
+
+    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.c_str());
+
+    GameObjectAPI::instantiatePrefab(prefabPath.c_str(), enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
 }
 
 void LevelCheats::RestoreHealth()

@@ -16,6 +16,10 @@ public:
 
     bool isActivated() const { return m_activated; }
 
+    void notifyDeathHit();
+
+    void updateUI();
+
     ScriptComponentRef<Transform> m_puzzleManager;
 
 	int m_puzzleID = 0;

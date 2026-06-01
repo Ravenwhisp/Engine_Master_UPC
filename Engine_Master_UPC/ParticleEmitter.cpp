@@ -8,11 +8,13 @@
 #include "EmitterColor.h"
 #include "EmitterVelocity.h"
 #include "EmitterSize.h"
+#include "EmitterRotation.h"
 
 ParticleEmitter::ParticleEmitter()
 {
 	// push_back of all modules we create (IF WE WANT ADDMODULE(TYPE), WE COULD HAVE THEM ALL AS NULL, AND INITIALIZE THEM AS NEEDED)
-	
+	// We may be able to make this more automatic if we iterate over the emitterType enum... (maybe not here, but in the other functions)
+
 	// (Spawn here)
 	m_particleModules.push_back(std::make_unique<EmitterSpawn>());
 
@@ -26,6 +28,7 @@ ParticleEmitter::ParticleEmitter()
 	m_particleModules.push_back(std::make_unique<EmitterColor>());
 	m_particleModules.push_back(std::make_unique<EmitterVelocity>());
 	m_particleModules.push_back(std::make_unique<EmitterSize>());
+	m_particleModules.push_back(std::make_unique<EmitterRotation>());
 }
 
 ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
@@ -45,6 +48,7 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 	m_particleModules.push_back(particleEmitter.m_particleModules[3]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[4]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[5]->clone());
+	m_particleModules.push_back(particleEmitter.m_particleModules[6]->clone());
 }
 
 ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)

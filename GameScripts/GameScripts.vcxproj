@@ -250,6 +250,9 @@
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
     <ClInclude Include="AbilityDash.h" />
+    <ClInclude Include="ArcherArrowBarrageState.h" />
+    <ClInclude Include="ArcherAttackConfig.h" />
+    <ClInclude Include="ArcherSomersaultState.h" />
     <ClInclude Include="ArrowPool.h" />
     <ClInclude Include="ArthurAttackConfig.h" />
     <ClInclude Include="ArthurAttackDebugDraw.h" />
@@ -271,6 +274,7 @@
     <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="CharacterBase.h" />
+    <ClInclude Include="CooperativeSound.h" />
     <ClInclude Include="CrystalShadowMark.h" />
     <ClInclude Include="Damageable.h" />
     <ClInclude Include="DeathAbilityBase.h" />
@@ -278,20 +282,25 @@
     <ClInclude Include="DeathCharacter.h" />
     <ClInclude Include="DeathChargedAttack.h" />
     <ClInclude Include="DeathDash.h" />
+    <ClInclude Include="DeathSound.h" />
     <ClInclude Include="DeathTaunt.h" />
     <ClInclude Include="DebugDamageTrigger.h" />
     <ClInclude Include="DebugDrawTest.h" />
     <ClInclude Include="DebugGetObjectsArea.h" />
     <ClInclude Include="DefeatConditionManager.h" />
     <ClInclude Include="EnemyATTACK.h" />
+    <ClInclude Include="EnemyAttackExecutor.h" />
+    <ClInclude Include="EnemyAttackState.h" />
     <ClInclude Include="EnemyCHARGE.h" />
     <ClInclude Include="EnemyCHASE.h" />
+    <ClInclude Include="EnemyChaseState.h" />
     <ClInclude Include="EnemyController.h" />
     <ClInclude Include="EnemyDamageable.h" />
     <ClInclude Include="EnemyDeathHandler.h" />
     <ClInclude Include="EnemyDeathState.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
     <ClInclude Include="EnemyIDLE.h" />
+    <ClInclude Include="EnemyIdleState.h" />
     <ClInclude Include="EnemyRECOVER.h" />
     <ClInclude Include="EnemyShadowMark.h" />
     <ClInclude Include="EnemySTUN.h" />
@@ -313,6 +322,7 @@
     <ClInclude Include="LyrielCharacter.h" />
     <ClInclude Include="LyrielChargedAttack.h" />
     <ClInclude Include="LyrielDash.h" />
+    <ClInclude Include="LyrielSound.h" />
     <ClInclude Include="MusicSystemTester.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pickup.h" />
@@ -328,6 +338,7 @@
     <ClInclude Include="PowerupCollectible.h" />
     <ClInclude Include="ProjectileController.h" />
     <ClInclude Include="PuzzleManagerLVL1.h" />
+    <ClInclude Include="RangedEnemyController.h" />
     <ClInclude Include="ReaperGauge.h" />
     <ClInclude Include="ShadowExecution.h" />
     <ClInclude Include="SimpleMath.h" />
@@ -346,6 +357,9 @@
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
     <ClCompile Include="AbilityDash.cpp" />
+    <ClCompile Include="ArcherArrowBarrageState.cpp" />
+    <ClCompile Include="ArcherAttackConfig.cpp" />
+    <ClCompile Include="ArcherSomersaultState.cpp" />
     <ClCompile Include="ArrowPool.cpp" />
     <ClCompile Include="ArthurAttackConfig.cpp" />
     <ClCompile Include="ArthurAttackDebugDraw.cpp" />
@@ -367,6 +381,7 @@
     <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
+    <ClCompile Include="CooperativeSound.cpp" />
     <ClCompile Include="CrystalShadowMark.cpp" />
     <ClCompile Include="Damageable.cpp" />
     <ClCompile Include="DeathAbilityBase.cpp" />
@@ -374,6 +389,7 @@
     <ClCompile Include="DeathCharacter.cpp" />
     <ClCompile Include="DeathChargedAttack.cpp" />
     <ClCompile Include="DeathDash.cpp" />
+    <ClCompile Include="DeathSound.cpp" />
     <ClCompile Include="DeathTaunt.cpp" />
     <ClCompile Include="DebugDamageTrigger.cpp" />
     <ClCompile Include="DebugDrawTest.cpp" />
@@ -381,14 +397,18 @@
     <ClCompile Include="DefeatConditionManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EnemyATTACK.cpp" />
+    <ClCompile Include="EnemyAttackExecutor.cpp" />
+    <ClCompile Include="EnemyAttackState.cpp" />
     <ClCompile Include="EnemyCHARGE.cpp" />
     <ClCompile Include="EnemyCHASE.cpp" />
+    <ClCompile Include="EnemyChaseState.cpp" />
     <ClCompile Include="EnemyController.cpp" />
     <ClCompile Include="EnemyDamageable.cpp" />
     <ClCompile Include="EnemyDeathHandler.cpp" />
     <ClCompile Include="EnemyDeathState.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="EnemyIDLE.cpp" />
+    <ClCompile Include="EnemyIdleState.cpp" />
     <ClCompile Include="EnemyRECOVER.cpp" />
     <ClCompile Include="EnemyShadowMark.cpp" />
     <ClCompile Include="EnemySTUN.cpp" />
@@ -409,6 +429,7 @@
     <ClCompile Include="LyrielCharacter.cpp" />
     <ClCompile Include="LyrielChargedAttack.cpp" />
     <ClCompile Include="LyrielDash.cpp" />
+    <ClCompile Include="LyrielSound.cpp" />
     <ClCompile Include="MusicSystemTester.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -432,6 +453,7 @@
     <ClCompile Include="PowerupCollectible.cpp" />
     <ClCompile Include="ProjectileController.cpp" />
     <ClCompile Include="PuzzleManagerLVL1.cpp" />
+    <ClCompile Include="RangedEnemyController.cpp" />
     <ClCompile Include="ReaperGauge.cpp" />
     <ClCompile Include="ShadowExecution.cpp" />
     <ClCompile Include="SimpleMath.cpp">

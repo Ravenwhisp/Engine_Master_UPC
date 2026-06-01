@@ -3,6 +3,11 @@
 #include "ScriptAPI.h"
 #include "UISlider.h"
 
+struct HitContext
+{
+    float damage = 0.0f;
+};
+
 class Damageable : public Script
 {
     DECLARE_SCRIPT(Damageable)
@@ -15,9 +20,10 @@ public:
     void drawGizmo() override;
     ScriptFieldList getExposedFields() const override;
 
-    void takeDamage(float amount);
+    virtual void takeDamage(float amount);
+    virtual void takeDamage(const HitContext& ctx);
     void heal(float amount);
-    void kill();
+    virtual void kill();
     void revive(float hp = -1.0f);
 
     float getCurrentHp() const { return m_currentHp; }
@@ -27,6 +33,8 @@ public:
 
     void setInvulnerable(bool invulnerable) { m_invulnerable = invulnerable; }
     bool isInvulnerable() const { return m_invulnerable; }
+
+    bool m_isGaugeExecution = false;
 
 protected:
     virtual void onDamaged(float amount);
@@ -45,7 +53,7 @@ public:
     ScriptComponentRef<UISlider> m_healthBar2;
     float m_uiUpdateTime = 1.0f;
 
-private:
+protected:
     float m_currentHp   = 100.0f;
     bool  m_invulnerable = false;
     bool  m_isDead       = false;

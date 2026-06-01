@@ -5,12 +5,13 @@
 #include "Settings.h"
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
+#include "ModuleAssets.h"
+#include "ModuleMusic.h"
 
 #include "Scene.h"
 #include "Quadtree.h"
 #include "JsonArchive.h"
 #include "SceneSnapshot.h"
-#include "ModuleAssets.h"
 
 #include "GameObject.h"
 #include "MeshRenderer.h"
@@ -213,6 +214,7 @@ void ModuleScene::saveScene()
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
     clearComponentCaches();
+    m_scene->unloadSoundBanks();
 
     std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
@@ -253,6 +255,12 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 #endif
 
     rebuildComponentCaches();
+
+    for (std::string bank : m_scene->getLoadedBanks())
+    {
+        app->getModuleMusic()->loadBank(bank);
+    }
+
     return true;
 }
 
