@@ -212,15 +212,15 @@ void MeshRenderer::serialize(IArchive& archive)
         ensureSkin().setSkinReference(ref);
 
         uint32_t materialCount = 0;
-        archive.serialize(materialCount, "MaterialCount");
+        archive.beginArray(materialCount, "Materials");
         for (uint32_t i = 0; i < materialCount; ++i)
         {
-            std::string key = "Material_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
             ref.serialize(archive);
             addMaterialReference(ref);
             archive.endObject();
         }
+        archive.endArray();
     }
     else
     {
@@ -233,15 +233,15 @@ void MeshRenderer::serialize(IArchive& archive)
         archive.endObject();
 
         uint32_t materialCount = static_cast<uint32_t>(m_materialAssets.size());
-        archive.serialize(materialCount, "MaterialCount");
+        archive.beginArray(materialCount, "Materials");
 
         for (uint32_t i = 0; i < materialCount; ++i)
         {
-            std::string key = "Material_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
             m_materialAssets[i].serialize(archive);
             archive.endObject();
         }
+        archive.endArray();
     }
 }
 

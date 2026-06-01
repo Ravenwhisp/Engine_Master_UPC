@@ -26,7 +26,8 @@ public:
     virtual void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") = 0;
 
     virtual void beginObject(const char* name) {}
+    virtual void beginObject() {}
     virtual void endObject() {}
-    virtual void beginArray(const char* name) {}
+    virtual void beginArray(uint32_t& count, const char* name) {}
     virtual void endArray() {}
 };

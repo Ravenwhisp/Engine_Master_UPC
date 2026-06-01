@@ -26,6 +26,9 @@ public:
     void serialize(DirectX::SimpleMath::Color& val, const char* name = "") override;
     void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") override;
 
+    void beginArray(uint32_t& count, const char* name = "") override;
+    void beginObject() override {}
+
     const uint8_t* data() const;
     size_t size() const;
 

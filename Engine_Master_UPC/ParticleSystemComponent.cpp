@@ -170,7 +170,7 @@ void ParticleSystemComponent::serialize(IArchive& archive)
     archive.endObject();
 
     uint32_t emitterCount = m_particleSystem ? static_cast<uint32_t>(m_particleSystem->getEmitters().size()) : 0;
-    archive.serialize(emitterCount, "EmitterCount");
+    archive.beginArray(emitterCount, "Emitters");
     if (archive.mode() == ArchiveMode::Input && emitterCount > 0)
     {
         m_particleSystem.reset(new ParticleSystem(emitterCount));
@@ -180,8 +180,7 @@ void ParticleSystemComponent::serialize(IArchive& archive)
 
     for (uint32_t i = 0; i < emitterCount; ++i)
     {
-        std::string key = "Emitter_" + std::to_string(i);
-        archive.beginObject(key.c_str());
+        archive.beginObject();
         m_particleSystem->getEmitters()[i].serialize(archive);
         archive.endObject();
 
@@ -190,6 +189,7 @@ void ParticleSystemComponent::serialize(IArchive& archive)
             m_particlesState.push_back(EmitterInstance(&m_particleSystem->getEmitters()[i], this));
         }
     }
+    archive.endArray();
 }
 
 void ParticleSystemComponent::debugDraw()

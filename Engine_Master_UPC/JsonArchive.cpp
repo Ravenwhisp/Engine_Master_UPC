@@ -97,15 +97,32 @@ void JsonArchive::serialize(uint8_t& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        if (m_valueStack.empty()) return;
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(rapidjson::Value(val), m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsUint()) val = static_cast<uint8_t>(v.GetUint());
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsUint()) val = static_cast<uint8_t>(v.GetUint());
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsUint()) val = static_cast<uint8_t>(v.GetUint());
+        }
     }
 }
 
@@ -113,16 +130,34 @@ void JsonArchive::serialize(uint32_t& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        if (m_valueStack.empty()) return;
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(rapidjson::Value(val), m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsUint64()) val = static_cast<uint32_t>(v.GetUint64());
-        else if (v.IsUint()) val = v.GetUint();
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsUint64()) val = static_cast<uint32_t>(v.GetUint64());
+            else if (v.IsUint()) val = v.GetUint();
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsUint64()) val = static_cast<uint32_t>(v.GetUint64());
+            else if (v.IsUint()) val = v.GetUint();
+        }
     }
 }
 
@@ -130,15 +165,32 @@ void JsonArchive::serialize(uint64_t& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        if (m_valueStack.empty()) return;
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(rapidjson::Value(val), m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsUint64()) val = v.GetUint64();
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsUint64()) val = v.GetUint64();
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsUint64()) val = v.GetUint64();
+        }
     }
 }
 
@@ -146,16 +198,34 @@ void JsonArchive::serialize(float& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        if (m_valueStack.empty()) return;
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(rapidjson::Value(val), m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsFloat()) val = v.GetFloat();
-        else if (v.IsDouble()) val = static_cast<float>(v.GetDouble());
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsFloat()) val = v.GetFloat();
+            else if (v.IsDouble()) val = static_cast<float>(v.GetDouble());
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsFloat()) val = v.GetFloat();
+            else if (v.IsDouble()) val = static_cast<float>(v.GetDouble());
+        }
     }
 }
 
@@ -163,15 +233,32 @@ void JsonArchive::serialize(bool& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        if (m_valueStack.empty()) return;
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, rapidjson::Value(val), m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(rapidjson::Value(val), m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsBool()) val = v.GetBool();
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsBool()) val = v.GetBool();
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsBool()) val = v.GetBool();
+        }
     }
 }
 
@@ -179,17 +266,36 @@ void JsonArchive::serialize(std::string& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        rapidjson::Value strVal;
-        strVal.SetString(val.c_str(), static_cast<SizeType>(val.size()), m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, strVal, m_doc.GetAllocator());
+        if (m_valueStack.empty()) return;
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            rapidjson::Value strVal;
+            strVal.SetString(val.c_str(), static_cast<SizeType>(val.size()), m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, strVal, m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            rapidjson::Value strVal;
+            strVal.SetString(val.c_str(), static_cast<SizeType>(val.size()), m_doc.GetAllocator());
+            m_valueStack.back()->PushBack(strVal, m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsString()) val = v.GetString();
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsString()) val = v.GetString();
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsString()) val = v.GetString();
+        }
     }
 }
 
@@ -203,28 +309,46 @@ void JsonArchive::serialize(DirectX::SimpleMath::Vector3& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        if (m_valueStack.empty()) return;
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(val.x, m_doc.GetAllocator());
         arr.PushBack(val.y, m_doc.GetAllocator());
         arr.PushBack(val.z, m_doc.GetAllocator());
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(arr, m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsArray() && v.Size() >= 3)
+        if (!m_currentInput) return;
+        const rapidjson::Value* v = nullptr;
+        if (m_currentInput->IsObject())
         {
-            val.x = v[0].GetFloat();
-            val.y = v[1].GetFloat();
-            val.z = v[2].GetFloat();
+            if (!m_currentInput->HasMember(name)) return;
+            v = &(*m_currentInput)[name];
         }
-        else if (v.IsArray() && v.Size() >= 2)
+        else if (m_currentInput->IsArray())
         {
-            val.x = v[0].GetFloat();
-            val.y = v[1].GetFloat();
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            v = &(*m_currentInput)[m_currentArrayIndex++];
+        }
+        if (!v) return;
+        if (v->IsArray() && v->Size() >= 3)
+        {
+            val.x = (*v)[0].GetFloat();
+            val.y = (*v)[1].GetFloat();
+            val.z = (*v)[2].GetFloat();
+        }
+        else if (v->IsArray() && v->Size() >= 2)
+        {
+            val.x = (*v)[0].GetFloat();
+            val.y = (*v)[1].GetFloat();
             val.z = 0.0f;
         }
     }
@@ -234,25 +358,43 @@ void JsonArchive::serialize(DirectX::SimpleMath::Quaternion& val, const char* na
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        if (m_valueStack.empty()) return;
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(val.x, m_doc.GetAllocator());
         arr.PushBack(val.y, m_doc.GetAllocator());
         arr.PushBack(val.z, m_doc.GetAllocator());
         arr.PushBack(val.w, m_doc.GetAllocator());
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(arr, m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsArray() && v.Size() >= 4)
+        if (!m_currentInput) return;
+        const rapidjson::Value* v = nullptr;
+        if (m_currentInput->IsObject())
         {
-            val.x = v[0].GetFloat();
-            val.y = v[1].GetFloat();
-            val.z = v[2].GetFloat();
-            val.w = v[3].GetFloat();
+            if (!m_currentInput->HasMember(name)) return;
+            v = &(*m_currentInput)[name];
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            v = &(*m_currentInput)[m_currentArrayIndex++];
+        }
+        if (!v) return;
+        if (v->IsArray() && v->Size() >= 4)
+        {
+            val.x = (*v)[0].GetFloat();
+            val.y = (*v)[1].GetFloat();
+            val.z = (*v)[2].GetFloat();
+            val.w = (*v)[3].GetFloat();
         }
     }
 }
@@ -261,25 +403,43 @@ void JsonArchive::serialize(DirectX::SimpleMath::Color& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        if (m_valueStack.empty()) return;
         rapidjson::Value arr(rapidjson::kArrayType);
         arr.PushBack(val.x, m_doc.GetAllocator());
         arr.PushBack(val.y, m_doc.GetAllocator());
         arr.PushBack(val.z, m_doc.GetAllocator());
         arr.PushBack(val.w, m_doc.GetAllocator());
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(arr, m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsArray() && v.Size() >= 4)
+        if (!m_currentInput) return;
+        const rapidjson::Value* v = nullptr;
+        if (m_currentInput->IsObject())
         {
-            val.x = v[0].GetFloat();
-            val.y = v[1].GetFloat();
-            val.z = v[2].GetFloat();
-            val.w = v[3].GetFloat();
+            if (!m_currentInput->HasMember(name)) return;
+            v = &(*m_currentInput)[name];
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            v = &(*m_currentInput)[m_currentArrayIndex++];
+        }
+        if (!v) return;
+        if (v->IsArray() && v->Size() >= 4)
+        {
+            val.x = (*v)[0].GetFloat();
+            val.y = (*v)[1].GetFloat();
+            val.z = (*v)[2].GetFloat();
+            val.w = (*v)[3].GetFloat();
         }
     }
 }
@@ -288,23 +448,41 @@ void JsonArchive::serialize(DirectX::SimpleMath::Matrix& val, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
-        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
+        if (m_valueStack.empty()) return;
         rapidjson::Value arr(rapidjson::kArrayType);
         const float* m = &val._11;
         for (int i = 0; i < 16; ++i)
             arr.PushBack(m[i], m_doc.GetAllocator());
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(arr, m_doc.GetAllocator());
+        }
     }
     else
     {
-        if (!m_currentInput || !m_currentInput->HasMember(name)) return;
-        const auto& v = (*m_currentInput)[name];
-        if (v.IsArray() && v.Size() >= 16)
+        if (!m_currentInput) return;
+        const rapidjson::Value* v = nullptr;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            v = &(*m_currentInput)[name];
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            v = &(*m_currentInput)[m_currentArrayIndex++];
+        }
+        if (!v) return;
+        if (v->IsArray() && v->Size() >= 16)
         {
             float* m = &val._11;
             for (int i = 0; i < 16; ++i)
-                m[i] = v[i].GetFloat();
+                m[i] = (*v)[i].GetFloat();
         }
     }
 }
@@ -339,7 +517,7 @@ void JsonArchive::beginObject(const char* name)
     {
         if (m_currentInput && m_currentInput->HasMember(name))
         {
-            m_inputStack.push_back(m_currentInput);
+            m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
             m_currentInput = &(*m_currentInput)[name];
             m_currentArrayIndex = 0;
         }
@@ -360,14 +538,43 @@ void JsonArchive::endObject()
     {
         if (!m_inputStack.empty())
         {
-            m_currentInput = m_inputStack.back();
+            auto& frame = m_inputStack.back();
+            m_currentInput = frame.value;
+            m_currentArrayIndex = frame.index;
             m_inputStack.pop_back();
+            if (m_currentInput && m_currentInput->IsArray())
+            {
+                m_currentArrayIndex++;
+            }
         }
-        m_currentArrayIndex = 0;
     }
 }
 
-void JsonArchive::beginArray(const char* name)
+void JsonArchive::beginObject()
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        if (!m_valueStack.empty() && m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(obj, m_doc.GetAllocator());
+            auto* arr = m_valueStack.back();
+            m_valueStack.push_back(&(*arr)[arr->Size() - 1]);
+        }
+        m_typeStack.push_back(Context::Object);
+    }
+    else
+    {
+        if (m_currentInput && m_currentInput->IsArray() && m_currentArrayIndex < (int)m_currentInput->Size())
+        {
+            m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
+            m_currentInput = &(*m_currentInput)[m_currentArrayIndex];
+            m_currentArrayIndex = 0;
+        }
+    }
+}
+
+void JsonArchive::beginArray(uint32_t& count, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
@@ -381,9 +588,11 @@ void JsonArchive::beginArray(const char* name)
     {
         if (m_currentInput && m_currentInput->HasMember(name))
         {
-            m_inputStack.push_back(m_currentInput);
+            m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
             m_currentInput = &(*m_currentInput)[name];
             m_currentArrayIndex = 0;
+            if (m_currentInput->IsArray())
+                count = m_currentInput->Size();
         }
     }
 }
@@ -402,10 +611,11 @@ void JsonArchive::endArray()
     {
         if (!m_inputStack.empty())
         {
-            m_currentInput = m_inputStack.back();
+            auto& frame = m_inputStack.back();
+            m_currentInput = frame.value;
+            m_currentArrayIndex = frame.index;
             m_inputStack.pop_back();
         }
-        m_currentArrayIndex = 0;
     }
 }
 

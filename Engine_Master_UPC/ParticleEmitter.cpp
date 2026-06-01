@@ -65,18 +65,19 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 void ParticleEmitter::serialize(IArchive& archive)
 {
     uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
-    archive.serialize(moduleCount, "ModuleCount");
+    archive.beginArray(moduleCount, "Modules");
 
     if (moduleCount > m_particleModules.size())
         moduleCount = static_cast<uint32_t>(m_particleModules.size());
 
     for (uint32_t i = 0; i < moduleCount; ++i)
     {
-        std::string key = "Module_" + std::to_string(i);
-        archive.beginObject(key.c_str());
+        archive.beginObject();
         m_particleModules[i]->serialize(archive);
         archive.endObject();
     }
+
+    archive.endArray();
 }
 
 

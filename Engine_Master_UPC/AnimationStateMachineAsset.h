@@ -67,14 +67,13 @@ public:
         archive.serialize(m_defaultStateName, "defaultState");
 
         uint32_t clipCount = static_cast<uint32_t>(m_clips.size());
-        archive.serialize(clipCount, "clipCount");
+        archive.beginArray(clipCount, "clips");
         if (archive.mode() == ArchiveMode::Input)
             m_clips.resize(clipCount);
 
         for (uint32_t i = 0; i < clipCount; ++i)
         {
-            std::string key = "clip_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
             auto& clip = m_clips[i];
             archive.serialize(clip.name, "name");
             archive.serialize(clip.animationUID.m_uid, "uid");
@@ -93,16 +92,16 @@ public:
             archive.serialize(clip.loop, "loop");
             archive.endObject();
         }
+        archive.endArray();
 
         uint32_t stateCount = static_cast<uint32_t>(m_states.size());
-        archive.serialize(stateCount, "stateCount");
+        archive.beginArray(stateCount, "states");
         if (archive.mode() == ArchiveMode::Input)
             m_states.resize(stateCount);
 
         for (uint32_t i = 0; i < stateCount; ++i)
         {
-            std::string key = "state_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
             auto& state = m_states[i];
             archive.serialize(state.name, "name");
             archive.serialize(state.clipName, "clipName");
@@ -113,16 +112,16 @@ public:
             archive.serialize(state.loop, "loop");
             archive.endObject();
         }
+        archive.endArray();
 
         uint32_t transitionCount = static_cast<uint32_t>(m_transitions.size());
-        archive.serialize(transitionCount, "transitionCount");
+        archive.beginArray(transitionCount, "transitions");
         if (archive.mode() == ArchiveMode::Input)
             m_transitions.resize(transitionCount);
 
         for (uint32_t i = 0; i < transitionCount; ++i)
         {
-            std::string key = "transition_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
             auto& transition = m_transitions[i];
             archive.serialize(transition.sourceStateName, "sourceStateName");
             archive.serialize(transition.targetStateName, "targetStateName");
@@ -130,6 +129,7 @@ public:
             archive.serialize(transition.blendTimeSeconds, "blendTimeSeconds");
             archive.endObject();
         }
+        archive.endArray();
     }
 
 private:

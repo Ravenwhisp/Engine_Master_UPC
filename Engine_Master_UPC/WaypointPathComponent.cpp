@@ -101,12 +101,14 @@ void WaypointPathComponent::serialize(IArchive& archive)
         setActive(active);
 
     uint32_t count = static_cast<uint32_t>(m_waypoints.size());
-    archive.serialize(count, "WaypointCount");
+    archive.beginArray(count, "Waypoints");
     if (archive.mode() == ArchiveMode::Input)
         m_waypoints.resize(count);
 
     for (auto& wp : m_waypoints)
     {
-        archive.serialize(wp, "Waypoint");
+        archive.serialize(wp);
     }
+
+    archive.endArray();
 }

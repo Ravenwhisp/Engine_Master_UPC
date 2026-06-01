@@ -40,9 +40,10 @@ public:
 
     // Named object/array scopes (JSON-specific)
     void beginObject(const char* name);
-    void endObject();
-    void beginArray(const char* name);
-    void endArray();
+    void beginObject() override;
+    void endObject() override;
+    void beginArray(uint32_t& count, const char* name) override;
+    void endArray() override;
     size_t arraySize() const;
 
     // Extract/copy the built document value for use in rapidjson context
@@ -78,6 +79,7 @@ private:
 
     // Read state
     const rapidjson::Value* m_currentInput;
-    std::vector<const rapidjson::Value*> m_inputStack;
+    struct InputFrame { const rapidjson::Value* value; int index; };
+    std::vector<InputFrame> m_inputStack;
     int m_currentArrayIndex;
 };

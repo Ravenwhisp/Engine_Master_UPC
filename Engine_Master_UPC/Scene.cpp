@@ -638,7 +638,7 @@ void Scene::serialize(IArchive& archive)
     if (archive.mode() == ArchiveMode::Input)
     {
         uint32_t goCount = 0;
-        archive.serialize(goCount, "goCount");
+        archive.beginArray(goCount, "GameObjects");
 
         struct GoMeta { uint64_t uid; uint64_t transformUid; uint64_t parentUid; };
         std::vector<GoMeta> goMeta;
@@ -648,8 +648,7 @@ void Scene::serialize(IArchive& archive)
 
         for (uint32_t i = 0; i < goCount; ++i)
         {
-            std::string key = "GameObject_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
 
             uint64_t uid = 0, transformUid = 0, parentUid = 0;
             archive.serialize(uid, "uid");
@@ -664,6 +663,7 @@ void Scene::serialize(IArchive& archive)
 
             archive.endObject();
         }
+        archive.endArray();
 
         for (size_t i = 0; i < gos.size(); ++i)
         {
@@ -695,13 +695,12 @@ void Scene::serialize(IArchive& archive)
     {
         auto allGOs = getAllGameObjects();
         uint32_t goCount = static_cast<uint32_t>(allGOs.size());
-        archive.serialize(goCount, "goCount");
+        archive.beginArray(goCount, "GameObjects");
 
         for (uint32_t i = 0; i < goCount; ++i)
         {
             GameObject* go = allGOs[i];
-            std::string key = "GameObject_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
 
             uint64_t uid = go->GetID();
             uint64_t transformUid = go->GetTransform()->getID();
@@ -716,6 +715,7 @@ void Scene::serialize(IArchive& archive)
 
             archive.endObject();
         }
+        archive.endArray();
     }
 }
 

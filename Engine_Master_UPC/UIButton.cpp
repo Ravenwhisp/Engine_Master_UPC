@@ -700,14 +700,15 @@ void UIButton::serialize(IArchive& archive)
 	archive.serialize(m_navLeftUid, "NavLeftUID");
 	archive.serialize(m_navRightUid, "NavRightUID");
 
-	auto serializeBindingVector = [&archive](std::vector<UIButton::ButtonEventBinding>& bindings)
+	auto serializeBindingVector = [&archive](std::vector<UIButton::ButtonEventBinding>& bindings, const char* name)
 	{
 		uint32_t count = static_cast<uint32_t>(bindings.size());
-		archive.serialize(count, "BindingCount");
+		archive.beginArray(count, name);
 		if (archive.mode() == ArchiveMode::Input)
 			bindings.resize(count);
 		for (auto& b : bindings)
 		{
+			archive.beginObject();
 			archive.serialize(b.gameObjectUid, "GameObjectUID");
 			archive.serialize(b.componentUid, "ComponentUID");
 			archive.serialize(b.methodName, "Method");
@@ -743,12 +744,14 @@ void UIButton::serialize(IArchive& archive)
 				archive.serialize(b.paramString, "ParamValue");
 				break;
 			}
+			archive.endObject();
 		}
+		archive.endArray();
 	};
 
-	serializeBindingVector(m_bindingsOnHover);
-	serializeBindingVector(m_bindingsOnPress);
-	serializeBindingVector(m_bindingsOnRelease);
+	serializeBindingVector(m_bindingsOnHover, "BindingsOnHover");
+	serializeBindingVector(m_bindingsOnPress, "BindingsOnPress");
+	serializeBindingVector(m_bindingsOnRelease, "BindingsOnRelease");
 }
 
 void UIButton::ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver)

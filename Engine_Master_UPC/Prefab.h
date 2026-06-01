@@ -114,25 +114,24 @@ private:
         if (archive.mode() == ArchiveMode::Output)
         {
             uint32_t childCount = static_cast<uint32_t>(parent->GetTransform()->getAllChildren().size());
-            archive.serialize(childCount, "ChildCount");
+            archive.beginArray(childCount, "Children");
             for (uint32_t i = 0; i < childCount; ++i)
             {
-                std::string key = "Child_" + std::to_string(i);
-                archive.beginObject(key.c_str());
+                archive.beginObject();
                 GameObject* child = parent->GetTransform()->getAllChildren()[i];
                 child->serialize(archive);
                 serializeChildren(archive, child);
                 archive.endObject();
             }
+            archive.endArray();
         }
         else
         {
             uint32_t childCount = 0;
-            archive.serialize(childCount, "ChildCount");
+            archive.beginArray(childCount, "Children");
             for (uint32_t i = 0; i < childCount; ++i)
             {
-                std::string key = "Child_" + std::to_string(i);
-                archive.beginObject(key.c_str());
+                archive.beginObject();
                 auto childGo = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
                 GameObject* rawChild = childGo.get();
                 rawChild->GetTransform()->setRoot(parent->GetTransform());
@@ -142,6 +141,7 @@ private:
                 serializeChildren(archive, rawChild);
                 archive.endObject();
             }
+            archive.endArray();
         }
     }
 };

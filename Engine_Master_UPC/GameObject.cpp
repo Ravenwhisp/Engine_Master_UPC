@@ -720,11 +720,10 @@ void GameObject::serialize(IArchive& archive)
     if (archive.mode() == ArchiveMode::Input)
     {
         uint32_t componentCount = 0;
-        archive.serialize(componentCount, "ComponentCount");
+        archive.beginArray(componentCount, "Components");
         for (uint32_t i = 0; i < componentCount; ++i)
         {
-            std::string key = "Component_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
 
             uint64_t uid = GenerateUID();
             uint32_t compType = 0;
@@ -737,23 +736,23 @@ void GameObject::serialize(IArchive& archive)
 
             archive.endObject();
         }
+        archive.endArray();
     }
     else
     {
         uint32_t compCount = 0;
         for (const auto& comp : m_components)
             if (comp->getType() != ComponentType::TRANSFORM) ++compCount;
-        archive.serialize(compCount, "ComponentCount");
+        archive.beginArray(compCount, "Components");
 
-        uint32_t compIdx = 0;
         for (const auto& comp : m_components)
         {
             if (comp->getType() == ComponentType::TRANSFORM) continue;
-            std::string key = "Component_" + std::to_string(compIdx++);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
             comp->serialize(archive);
             archive.endObject();
         }
+        archive.endArray();
     }
 }
 

@@ -30,13 +30,12 @@ void Metadata::serialize(IArchive& archive)
 
     {
         uint32_t depCount = static_cast<uint32_t>(m_dependencies.size());
-        archive.serialize(depCount, "depCount");
+        archive.beginArray(depCount, "dependencies");
         if (archive.mode() == ArchiveMode::Input) m_dependencies.resize(depCount);
 
         for (uint32_t i = 0; i < depCount; ++i)
         {
-            std::string key = "dep_" + std::to_string(i);
-            archive.beginObject(key.c_str());
+            archive.beginObject();
 
             auto& dep = m_dependencies[i];
             archive.serialize(dep.uid, "uid");
@@ -53,6 +52,8 @@ void Metadata::serialize(IArchive& archive)
 
             archive.endObject();
         }
+
+        archive.endArray();
     }
 
     {
