@@ -5,7 +5,7 @@
 #include <memory>
 #include <algorithm>
 
-class AssetReference;
+struct AssetReference;
 class Script;
 class GameObject;
 class DataContainer;
@@ -63,32 +63,7 @@ private:
 	static inline std::vector<Entry> m_registry;
 };
 
-template<typename TBase, typename TDerived, typename... TCreateArgs>
-class GenericAutoRegister
-{
-public:
-	GenericAutoRegister(const char* name, const char* displayName)
-	{
-		GenericTypeFactory<TBase, TCreateArgs...>::registerType(name, displayName, createFunc);
-	}
-
-private:
-	static std::unique_ptr<TBase> createFunc(TCreateArgs... args)
-	{
-		return std::make_unique<TDerived>(std::forward<TCreateArgs>(args)...);
-	}
-};
-
 using ScriptFactory = GenericTypeFactory<Script, GameObject*>;
 using DataContainerFactory = GenericTypeFactory<DataContainer, AssetReference&>;
 
-#define DECLARE_SCRIPT(ScriptType)
-#define DECLARE_DATACONTAINER(TypeName)
 
-#define IMPLEMENT_SCRIPT(ScriptType) \
-	static GenericAutoRegister<Script, ScriptType, GameObject*> \
-		s_autoRegister_##ScriptType(#ScriptType, #ScriptType);
-
-#define IMPLEMENT_DATACONTAINER(TypeName) \
-	static GenericAutoRegister<DataContainer, TypeName, AssetReference&> \
-		s_autoRegister_##TypeName(#TypeName, #TypeName);

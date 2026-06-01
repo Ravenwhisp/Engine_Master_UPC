@@ -6,6 +6,7 @@
 class Transform;
 class Damageable;
 class BoundConfig;
+class HeartbeatHaptic;
 
 class Bound : public Script
 {

@@ -375,7 +375,6 @@
     <ClCompile Include="ArthurRecover.cpp" />
     <ClCompile Include="ArthurSideSweep.cpp" />
     <ClCompile Include="Bound.cpp" />
-    <ClCompile Include="BoundConfig.cpp" />
     <ClCompile Include="BreakableDamageable.cpp" />
     <ClCompile Include="BreakableExplosive.cpp" />
     <ClCompile Include="BreakableHealingDrop.cpp" />
