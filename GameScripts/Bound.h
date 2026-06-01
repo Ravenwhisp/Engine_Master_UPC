@@ -31,7 +31,7 @@ public:
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
 
-    ScriptDataContainerRef m_config;
+    ScriptDataContainerRef<BoundConfig> m_config;
 
     float m_minDistance = 70.0f;
     float m_distanceDamage = 80.0f;

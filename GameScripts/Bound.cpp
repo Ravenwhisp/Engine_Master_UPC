@@ -27,7 +27,7 @@ void Bound::Start()
 {
     if (m_config.dataContainer)
     {
-        BoundConfig* cfg = static_cast<BoundConfig*>(m_config.dataContainer.get());
+        BoundConfig* cfg = m_config.get();
         m_minDistance = cfg->m_minDistance;
         m_distanceDamage = cfg->m_distanceDamage;
         m_distanceInstaKill = cfg->m_distanceInstaKill;

@@ -16,7 +16,7 @@ namespace
 {
     void drawDataContainerRefFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
-        ScriptDataContainerRef* ref = reinterpret_cast<ScriptDataContainerRef*>(data);
+        ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
         ImGui::Text("%s", field.name);
         ImGui::SameLine();
@@ -70,7 +70,7 @@ namespace
 
     void serializeDataContainerRefField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
-        const ScriptDataContainerRef* ref = reinterpret_cast<const ScriptDataContainerRef*>(data);
+        const ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<const ScriptDataContainerRef<DataContainer>*>(data);
 
         rapidjson::Value key(field.name, domTree.GetAllocator());
         outFieldsJson.AddMember(key, static_cast<uint64_t>(ref->uid), domTree.GetAllocator());
@@ -83,7 +83,7 @@ namespace
             return;
         }
 
-        ScriptDataContainerRef* ref = reinterpret_cast<ScriptDataContainerRef*>(data);
+        ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
         ref->uid = static_cast<UID>(valueJson.GetUint64());
         ref->dataContainer = nullptr;
@@ -91,9 +91,9 @@ namespace
 
     void cloneDataContainerRefField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
     {
-        const ScriptDataContainerRef* sourceRef = reinterpret_cast<const ScriptDataContainerRef*>(sourceData);
+        const ScriptDataContainerRef<DataContainer>* sourceRef = reinterpret_cast<const ScriptDataContainerRef<DataContainer>*>(sourceData);
 
-        ScriptDataContainerRef* targetRef = reinterpret_cast<ScriptDataContainerRef*>(targetData);
+        ScriptDataContainerRef<DataContainer>* targetRef = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(targetData);
 
         targetRef->uid = sourceRef->uid;
         targetRef->dataContainer = nullptr;
@@ -101,7 +101,7 @@ namespace
 
     void fixReferencesDataContainerRefField(const ScriptFieldInfo&, void* data, const SceneReferenceResolver&)
     {
-        ScriptDataContainerRef* ref = reinterpret_cast<ScriptDataContainerRef*>(data);
+        ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
         ref->dataContainer = nullptr;
 
