@@ -679,8 +679,6 @@ void Scene::serialize(IArchive& archive)
             }
         }
 
-        FixReferences();
-
         if (defaultCameraUid != 0)
         {
             GameObject* go = findGameObjectByUID((UID)defaultCameraUid);

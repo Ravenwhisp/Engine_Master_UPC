@@ -11,10 +11,6 @@ bool ImporterPrefab::saveNativeFile(const Prefab* asset, const std::filesystem::
     JsonArchive archive(ArchiveMode::Output);
     archive.setPrettyPrint(true);
 
-    std::string pathStr = path.string();
-    archive.serialize(pathStr, "SourcePath");
-    std::string name = path.stem().string();
-    archive.serialize(name, "Name");
     uint32_t version = 2;
     archive.serialize(version, "Version");
 
@@ -25,9 +21,7 @@ bool ImporterPrefab::saveNativeFile(const Prefab* asset, const std::filesystem::
         archive.serialize(variantOf, "VariantOf");
     }
 
-    archive.beginObject("GameObject");
     const_cast<Prefab*>(asset)->serialize(archive);
-    archive.endObject();
 
     const std::filesystem::path dir = path.parent_path();
     std::error_code ec;
@@ -43,12 +37,6 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
     if (!archive.loadFile(path))
     {
         DEBUG_ERROR("[ImporterPrefab] Failed to load '%s'.", path.string().c_str());
-        return false;
-    }
-
-    if (!archive.hasKey("GameObject"))
-    {
-        DEBUG_ERROR("[ImporterPrefab] Invalid JSON in '%s' — missing GameObject.", path.string().c_str());
         return false;
     }
 

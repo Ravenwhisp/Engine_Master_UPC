@@ -115,13 +115,21 @@ void JsonArchive::serialize(uint8_t& val, const char* name)
         {
             if (!m_currentInput->HasMember(name)) return;
             const auto& v = (*m_currentInput)[name];
-            if (v.IsUint()) val = static_cast<uint8_t>(v.GetUint());
+            if (v.IsUint64())       val = static_cast<uint8_t>(v.GetUint64());
+            else if (v.IsUint())    val = static_cast<uint8_t>(v.GetUint());
+            else if (v.IsInt64())   val = static_cast<uint8_t>(v.GetInt64());
+            else if (v.IsInt())     val = static_cast<uint8_t>(v.GetInt());
+            else if (v.IsDouble())  val = static_cast<uint8_t>(v.GetDouble());
         }
         else if (m_currentInput->IsArray())
         {
             if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
             const auto& v = (*m_currentInput)[m_currentArrayIndex++];
-            if (v.IsUint()) val = static_cast<uint8_t>(v.GetUint());
+            if (v.IsUint64())       val = static_cast<uint8_t>(v.GetUint64());
+            else if (v.IsUint())    val = static_cast<uint8_t>(v.GetUint());
+            else if (v.IsInt64())   val = static_cast<uint8_t>(v.GetInt64());
+            else if (v.IsInt())     val = static_cast<uint8_t>(v.GetInt());
+            else if (v.IsDouble())  val = static_cast<uint8_t>(v.GetDouble());
         }
     }
 }
@@ -148,15 +156,21 @@ void JsonArchive::serialize(uint32_t& val, const char* name)
         {
             if (!m_currentInput->HasMember(name)) return;
             const auto& v = (*m_currentInput)[name];
-            if (v.IsUint64()) val = static_cast<uint32_t>(v.GetUint64());
-            else if (v.IsUint()) val = v.GetUint();
+            if (v.IsUint64())       val = static_cast<uint32_t>(v.GetUint64());
+            else if (v.IsUint())    val = v.GetUint();
+            else if (v.IsInt64())   val = static_cast<uint32_t>(v.GetInt64());
+            else if (v.IsInt())     val = static_cast<uint32_t>(v.GetInt());
+            else if (v.IsDouble())  val = static_cast<uint32_t>(v.GetDouble());
         }
         else if (m_currentInput->IsArray())
         {
             if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
             const auto& v = (*m_currentInput)[m_currentArrayIndex++];
-            if (v.IsUint64()) val = static_cast<uint32_t>(v.GetUint64());
-            else if (v.IsUint()) val = v.GetUint();
+            if (v.IsUint64())       val = static_cast<uint32_t>(v.GetUint64());
+            else if (v.IsUint())    val = v.GetUint();
+            else if (v.IsInt64())   val = static_cast<uint32_t>(v.GetInt64());
+            else if (v.IsInt())     val = static_cast<uint32_t>(v.GetInt());
+            else if (v.IsDouble())  val = static_cast<uint32_t>(v.GetDouble());
         }
     }
 }
@@ -183,13 +197,21 @@ void JsonArchive::serialize(uint64_t& val, const char* name)
         {
             if (!m_currentInput->HasMember(name)) return;
             const auto& v = (*m_currentInput)[name];
-            if (v.IsUint64()) val = v.GetUint64();
+            if (v.IsUint64())       val = v.GetUint64();
+            else if (v.IsUint())    val = v.GetUint();
+            else if (v.IsInt64())   val = static_cast<uint64_t>(v.GetInt64());
+            else if (v.IsInt())     val = static_cast<uint64_t>(v.GetInt());
+            else if (v.IsDouble())  val = static_cast<uint64_t>(v.GetDouble());
         }
         else if (m_currentInput->IsArray())
         {
             if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
             const auto& v = (*m_currentInput)[m_currentArrayIndex++];
-            if (v.IsUint64()) val = v.GetUint64();
+            if (v.IsUint64())       val = v.GetUint64();
+            else if (v.IsUint())    val = v.GetUint();
+            else if (v.IsInt64())   val = static_cast<uint64_t>(v.GetInt64());
+            else if (v.IsInt())     val = static_cast<uint64_t>(v.GetInt());
+            else if (v.IsDouble())  val = static_cast<uint64_t>(v.GetDouble());
         }
     }
 }
@@ -251,13 +273,19 @@ void JsonArchive::serialize(bool& val, const char* name)
         {
             if (!m_currentInput->HasMember(name)) return;
             const auto& v = (*m_currentInput)[name];
-            if (v.IsBool()) val = v.GetBool();
+            if (v.IsBool())         val = v.GetBool();
+            else if (v.IsUint())    val = (v.GetUint() != 0);
+            else if (v.IsInt())     val = (v.GetInt() != 0);
+            else if (v.IsDouble())  val = (v.GetDouble() != 0.0);
         }
         else if (m_currentInput->IsArray())
         {
             if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
             const auto& v = (*m_currentInput)[m_currentArrayIndex++];
-            if (v.IsBool()) val = v.GetBool();
+            if (v.IsBool())         val = v.GetBool();
+            else if (v.IsUint())    val = (v.GetUint() != 0);
+            else if (v.IsInt())     val = (v.GetInt() != 0);
+            else if (v.IsDouble())  val = (v.GetDouble() != 0.0);
         }
     }
 }
@@ -507,6 +535,7 @@ void JsonArchive::beginObject(const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
+        if (m_valueStack.empty() || m_typeStack.back() != Context::Object) return;
         rapidjson::Value obj(rapidjson::kObjectType);
         rapidjson::Value key(name, m_doc.GetAllocator());
         m_valueStack.back()->AddMember(key, obj, m_doc.GetAllocator());
@@ -515,11 +544,15 @@ void JsonArchive::beginObject(const char* name)
     }
     else
     {
-        if (m_currentInput && m_currentInput->HasMember(name))
+        if (m_currentInput && m_currentInput->IsObject() && m_currentInput->HasMember(name))
         {
             m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
             m_currentInput = &(*m_currentInput)[name];
             m_currentArrayIndex = 0;
+        }
+        else
+        {
+            m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
         }
     }
 }
@@ -554,12 +587,17 @@ void JsonArchive::beginObject()
 {
     if (m_mode == ArchiveMode::Output)
     {
+        if (m_valueStack.empty()) return;
         rapidjson::Value obj(rapidjson::kObjectType);
-        if (!m_valueStack.empty() && m_typeStack.back() == Context::Array)
+        if (m_typeStack.back() == Context::Array)
         {
             m_valueStack.back()->PushBack(obj, m_doc.GetAllocator());
             auto* arr = m_valueStack.back();
             m_valueStack.push_back(&(*arr)[arr->Size() - 1]);
+        }
+        else if (m_typeStack.back() == Context::Object)
+        {
+            m_valueStack.push_back(nullptr);
         }
         m_typeStack.push_back(Context::Object);
     }
@@ -571,6 +609,10 @@ void JsonArchive::beginObject()
             m_currentInput = &(*m_currentInput)[m_currentArrayIndex];
             m_currentArrayIndex = 0;
         }
+        else
+        {
+            m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
+        }
     }
 }
 
@@ -578,21 +620,35 @@ void JsonArchive::beginArray(uint32_t& count, const char* name)
 {
     if (m_mode == ArchiveMode::Output)
     {
+        if (m_valueStack.empty()) return;
         rapidjson::Value arr(rapidjson::kArrayType);
-        rapidjson::Value key(name, m_doc.GetAllocator());
-        m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
-        m_valueStack.push_back(&(*m_valueStack.back())[name]);
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+            m_valueStack.push_back(&(*m_valueStack.back())[name]);
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(arr, m_doc.GetAllocator());
+            auto* parentArr = m_valueStack.back();
+            m_valueStack.push_back(&(*parentArr)[parentArr->Size() - 1]);
+        }
         m_typeStack.push_back(Context::Array);
     }
     else
     {
-        if (m_currentInput && m_currentInput->HasMember(name))
+        if (m_currentInput && m_currentInput->IsObject() && m_currentInput->HasMember(name))
         {
             m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
             m_currentInput = &(*m_currentInput)[name];
             m_currentArrayIndex = 0;
             if (m_currentInput->IsArray())
                 count = m_currentInput->Size();
+        }
+        else
+        {
+            m_inputStack.push_back({m_currentInput, m_currentArrayIndex});
         }
     }
 }
@@ -630,12 +686,12 @@ size_t JsonArchive::arraySize() const
 
 bool JsonArchive::hasKey(const char* name) const
 {
-    return m_currentInput && m_currentInput->HasMember(name);
+    return m_currentInput && m_currentInput->IsObject() && m_currentInput->HasMember(name);
 }
 
 bool JsonArchive::read(const char* key, uint64_t& val) const
 {
-    if (!m_currentInput || !m_currentInput->HasMember(key)) return false;
+    if (!m_currentInput || !m_currentInput->IsObject() || !m_currentInput->HasMember(key)) return false;
     const auto& v = (*m_currentInput)[key];
     if (v.IsUint64()) { val = v.GetUint64(); return true; }
     if (v.IsUint()) { val = v.GetUint(); return true; }
@@ -644,7 +700,7 @@ bool JsonArchive::read(const char* key, uint64_t& val) const
 
 bool JsonArchive::read(const char* key, std::string& val) const
 {
-    if (!m_currentInput || !m_currentInput->HasMember(key)) return false;
+    if (!m_currentInput || !m_currentInput->IsObject() || !m_currentInput->HasMember(key)) return false;
     const auto& v = (*m_currentInput)[key];
     if (v.IsString()) { val = v.GetString(); return true; }
     return false;
