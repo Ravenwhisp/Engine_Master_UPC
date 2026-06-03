@@ -1,6 +1,6 @@
 #pragma once
 
-#define LAYER_LIST \
+#define LAYER_LIST(X) \
     X(DEFAULT)     \
     X(UI)          \
     X(ENVIRONMENT) \
@@ -11,10 +11,12 @@
     X(BREAKABLE)   \
     X(PICKUP)
 
+#define LAYER_ENUM(name) name,
+#define LAYER_SWITCH(name) case Layer::name: return #name;
+#define LAYER_IF(name) if (std::strcmp(string, #name) == 0) return Layer::name;
+
 enum class Layer {
-#define X(name) name,
-    LAYER_LIST
-#undef X
+    LAYER_LIST(LAYER_ENUM)
     COUNT
 };
 
@@ -22,9 +24,7 @@ inline const char* LayerToString(Layer layer)
 {
     switch (layer)
     {
-#define X(name) case Layer::name: return #name;
-        LAYER_LIST
-#undef X
+        LAYER_LIST(LAYER_SWITCH)
     default:
         return "Unknown";
     }
@@ -32,8 +32,6 @@ inline const char* LayerToString(Layer layer)
 
 inline Layer StringToLayer(const char* string)
 {
-#define X(name) if (strcmp(string, #name) == 0) return Layer::name;
-    LAYER_LIST
-#undef X
-        return Layer::DEFAULT;
+    LAYER_LIST(LAYER_IF)
+    return Layer::DEFAULT;
 }

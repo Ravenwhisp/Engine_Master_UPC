@@ -1,7 +1,6 @@
 #pragma once
-#include <cstring>
 
-#define COMPONENT_TYPE_LIST \
+#define COMPONENT_TYPE_LIST(X) \
     X(TRANSFORM)            \
     X(MODEL)                \
     X(LIGHT)                \
@@ -25,11 +24,13 @@
     X(SOUND_SOURCE)          \
     X(PREFAB_INSTANCE)
 
+#define COMP_ENUM(name) name,
+#define COMP_SWITCH(name) case ComponentType::name: return #name;
+#define COMP_IF(name) if (std::strcmp(s, #name) == 0) return ComponentType::name;
+
 enum class ComponentType
 {
-#define X(name) name,
-    COMPONENT_TYPE_LIST
-#undef X
+    COMPONENT_TYPE_LIST(COMP_ENUM)
     COUNT
 };
 
@@ -37,9 +38,7 @@ inline const char* ComponentTypeToString(ComponentType type)
 {
     switch (type)
     {
-#define X(name) case ComponentType::name: return #name;
-        COMPONENT_TYPE_LIST
-#undef X
+        COMPONENT_TYPE_LIST(COMP_SWITCH)
     default:
         return "Unknown";
     }
@@ -47,9 +46,7 @@ inline const char* ComponentTypeToString(ComponentType type)
 
 inline ComponentType StringToComponentType(const char* s)
 {
-#define X(name) if (std::strcmp(s, #name) == 0) return ComponentType::name;
-    COMPONENT_TYPE_LIST
-#undef X
+    COMPONENT_TYPE_LIST(COMP_IF)
     return ComponentType::TRANSFORM;
 }
 
