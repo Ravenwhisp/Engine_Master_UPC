@@ -241,7 +241,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 albedo = (hasBaseColorTex != 0) ? texSample.rgb * baseColor : baseColor;
     
     float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
-    float2 metallicRoughnessSample = metallicRoughnessAOSample.bg;
+    float2 metallicRoughnessSample = metallicRoughnessAOSample.rg;
     float ao = 1;
     float metallic = metallicFactor;
     float perceptualRoughness = roughnessFactor;
@@ -250,9 +250,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     if (hasMetallicRoughnessTex != 0)
     {
         metallic = 1 - saturate(metallicRoughnessSample.x * metallicFactor);
-        ao = metallicRoughnessAOSample.r;
         perceptualRoughness = clamp(metallicRoughnessSample.y * 1, minRoughness, 1.0);
-
     }
     float alphaRoughness = perceptualRoughness;
     metallic = 0;
@@ -277,9 +275,18 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 bitangentVector = cross(normalVector, tangentVector);
     float3x3 TBN = float3x3(tangentVector, bitangentVector, normalVector);
     
-    float3 tangentNormal = normalTex.Sample(linearWrapSample, coord).rgb;
-    //float3 tangentNormal = normalTex.Sample(linearWrapSample, coord).bgr;
-    tangentNormal = normalize(tangentNormal * 2.0 - 1.0);
+    float3 tangentNormal;
+    if (hasBC5NormalTex != 0)
+    {
+        float2 packedNormal = normalTex.Sample(linearWrapSample, coord).rg * 2.0 - 1.0;
+        float z = sqrt(max(0.0, 1.0 - dot(packedNormal, packedNormal)));
+        tangentNormal = float3(packedNormal, z);
+    }
+    else
+    {
+        tangentNormal = normalTex.Sample(linearWrapSample, coord).rgb;
+        tangentNormal = normalize(tangentNormal * 2.0 - 1.0);
+    }
     //tangentNormal = float3(0, 0, 1);
     
     float3 finalWorldNormal = mul(tangentNormal, TBN);

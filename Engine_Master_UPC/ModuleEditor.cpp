@@ -332,7 +332,7 @@ void ModuleEditor::mainMenuBar()
 
     if (ImGui::BeginMenu("Window"))
     {
-        // ---- New Window submenu — spawn additional instances ----
+        // ---- New Window submenu â€” spawn additional instances ----
         if (!m_windowFactories.empty())
         {
             ImGui::Separator();
@@ -349,6 +349,15 @@ void ModuleEditor::mainMenuBar()
             }
         }
 
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Assets"))
+    {
+        if (ImGui::MenuItem("Reimport all AUTO textures"))
+        {
+            app->getModuleAssets()->reimportAllTexturesWithAutoFormat();
+        }
         ImGui::EndMenu();
     }
 

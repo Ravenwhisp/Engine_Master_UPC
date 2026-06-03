@@ -12,7 +12,10 @@ enum class TextureImportFormat : uint32_t
     BC3_UNORM,
     BC5_UNORM,
     BC7_UNORM,
-    BC7_UNORM_SRGB
+    BC7_UNORM_SRGB,
+    BC1_UNORM_SRGB,
+    BC3_UNORM_SRGB,
+    COUNT
 };
 
 class TextureImportSettings : public ImportSettings

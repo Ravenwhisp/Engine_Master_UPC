@@ -7,6 +7,7 @@
 #include "ImporterMesh.h"
 #include "ImporterMaterial.h"
 #include "ImporterTexture.h"
+#include "TextureImportSettings.h"
 #include "ImporterPrefab.h"
 #include "ImporterAnimation.h"
 #include "ImporterSkin.h"
@@ -175,6 +176,35 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
     if (!persistAsset(asset.get(), importer, reference, sourcePath))
     {
         if (!isReimport) reference = AssetReference();
+    }
+}
+
+
+void ModuleAssets::reimportAllTexturesWithAutoFormat()
+{
+    for (const auto& [uid, entry] : m_uidIndex)
+    {
+        if (entry.type != AssetType::TEXTURE || entry.sourcePath.empty())
+            continue;
+
+        std::filesystem::path metaPath = entry.sourcePath;
+        Metadata::getMetadataPath(metaPath);
+
+        Metadata meta;
+        if (!loadMetaFile(metaPath, meta))
+            continue;
+
+        auto* texSettings = meta.importSettings
+            ? static_cast<TextureImportSettings*>(meta.importSettings.get())
+            : nullptr;
+
+        if (!texSettings || texSettings->targetFormat != TextureImportFormat::AUTO)
+            continue;
+
+        DEBUG_LOG("[ModuleAssets] Reimporting texture '%s' with AUTO format...", entry.sourcePath.string().c_str());
+
+        AssetReference ref(uid, entry.contentHash, entry.type);
+        importAsset(entry.sourcePath, ref);
     }
 }
 

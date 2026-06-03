@@ -80,6 +80,7 @@ public:
 #pragma endregion
 
     void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
+    void reimportAllTexturesWithAutoFormat();
     bool save(Asset& asset, const std::filesystem::path& path = {});
     void refresh();
 

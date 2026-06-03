@@ -67,6 +67,7 @@ public:
 		BOOL		hasEmissiveTex;
 
 		Vector3      padding;
+		BOOL		hasBC5NormalTex;
 	};
 
 	explicit BasicMaterial(const UID uid, MaterialAsset& asset);

@@ -25,6 +25,8 @@ static const char* TextureImportFormatToString(TextureImportFormat fmt)
     case TextureImportFormat::BC5_UNORM:          return "BC5_UNORM (Normal)";
     case TextureImportFormat::BC7_UNORM:          return "BC7_UNORM";
     case TextureImportFormat::BC7_UNORM_SRGB:     return "BC7_UNORM_SRGB";
+    case TextureImportFormat::BC1_UNORM_SRGB:     return "BC1_UNORM_SRGB (DXT1)";
+    case TextureImportFormat::BC3_UNORM_SRGB:     return "BC3_UNORM_SRGB (DXT5)";
     default:                                      return "Unknown";
     }
 }
@@ -60,7 +62,7 @@ void TextureImportSettings::drawUI()
     const char* preview = TextureImportFormatToString(targetFormat);
     if (ImGui::BeginCombo("Format", preview))
     {
-        for (uint32_t i = 0; i <= static_cast<uint32_t>(TextureImportFormat::BC7_UNORM_SRGB); ++i)
+        for (uint32_t i = 0; i < static_cast<uint32_t>(TextureImportFormat::COUNT); ++i)
         {
             auto fmt = static_cast<TextureImportFormat>(i);
             bool isSelected = (targetFormat == fmt);
@@ -107,50 +109,50 @@ TextureImportFormat TextureImportSettings::DetectFromFilename(const std::filesys
     {
         if (iequals(*it, "N") || iequals(*it, "Normal") || iequals(*it, "norm"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC5_UNORM;
         }
 
         if (iequals(*it, "H") || iequals(*it, "Height") || iequals(*it, "height")
             || iequals(*it, "Displacement") || iequals(*it, "Disp"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC7_UNORM;
         }
 
         if (iequals(*it, "M") || iequals(*it, "Mask") || iequals(*it, "mask"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC7_UNORM;
         }
 
         if (iequals(*it, "AO") || iequals(*it, "Occlusion") || iequals(*it, "AmbientOcclusion"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC7_UNORM;
         }
 
         if (iequals(*it, "R") || iequals(*it, "Roughness") || iequals(*it, "rough"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC5_UNORM;
         }
 
         if (iequals(*it, "Metallic") || iequals(*it, "Metalness") || iequals(*it, "metal"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC5_UNORM;
         }
 
         if (iequals(*it, "S") || iequals(*it, "Specular") || iequals(*it, "Spec") || iequals(*it, "spec"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM;
+            return TextureImportFormat::BC7_UNORM;
         }
 
         if (iequals(*it, "D") || iequals(*it, "Diffuse") || iequals(*it, "diff")
             || iequals(*it, "Albedo") || iequals(*it, "BaseColor") || iequals(*it, "C")
             || iequals(*it, "Col") || iequals(*it, "Color"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM_SRGB;
+            return TextureImportFormat::BC1_UNORM_SRGB;
         }
 
         if (iequals(*it, "E") || iequals(*it, "Emissive") || iequals(*it, "Emission") || iequals(*it, "emis"))
         {
-            return TextureImportFormat::R8G8B8A8_UNORM_SRGB;
+            return TextureImportFormat::BC7_UNORM_SRGB;
         }
     }
 

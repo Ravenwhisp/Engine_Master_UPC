@@ -44,11 +44,13 @@ BasicMaterial::BasicMaterial(const UID uid, MaterialAsset& asset) : ICacheable(u
 
 		m_textureNormal = app->getModuleResources()->createTexture(*normalTexture);
 		m_materialData.hasNormalTex = true;
+		m_materialData.hasBC5NormalTex = (normalTexture->getFormat() == DXGI_FORMAT_BC5_UNORM);
 	}
 	else
 	{
 		m_textureNormal = app->getModuleResources()->createNullTexture2D();
 		m_materialData.hasNormalTex = false;
+		m_materialData.hasBC5NormalTex = false;
 	}
 
 	if (asset.getEmissive().isValid())

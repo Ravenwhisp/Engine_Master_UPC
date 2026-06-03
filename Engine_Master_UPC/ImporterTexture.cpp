@@ -74,6 +74,8 @@ static DXGI_FORMAT ResolveTargetFormat(const TextureImportSettings* settings)
     case TextureImportFormat::BC5_UNORM:           return DXGI_FORMAT_BC5_UNORM;
     case TextureImportFormat::BC7_UNORM:           return DXGI_FORMAT_BC7_UNORM;
     case TextureImportFormat::BC7_UNORM_SRGB:      return DXGI_FORMAT_BC7_UNORM_SRGB;
+    case TextureImportFormat::BC1_UNORM_SRGB:       return DXGI_FORMAT_BC1_UNORM_SRGB;
+    case TextureImportFormat::BC3_UNORM_SRGB:       return DXGI_FORMAT_BC3_UNORM_SRGB;
     default:                                       return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     }
 }
@@ -107,7 +109,6 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
 
     TextureImportSettings* settings = static_cast<TextureImportSettings*>(texture->getImportSettings());
     const bool shouldGenerateMips = settings ? settings->generateMips : true;
-    const DXGI_FORMAT targetFormat = ResolveTargetFormat(settings);
 
     // Step 1: decompress if the source is a block-compressed format
     ScratchImage decompressed;
@@ -132,6 +133,39 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
         working = &decompressed;
         meta = decompressed.GetMetadata();
     }
+
+    // Alpha detection: upgrade BC1 → BC3 if the source image has alpha
+    if (settings && settings->resolvedFormat == TextureImportFormat::BC1_UNORM_SRGB
+        && working->GetImageCount() > 0)
+    {
+        const DXGI_FORMAT srcFmt = meta.format;
+        if (srcFmt == DXGI_FORMAT_R8G8B8A8_UNORM
+            || srcFmt == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
+            || srcFmt == DXGI_FORMAT_R8G8B8A8_TYPELESS
+            || srcFmt == DXGI_FORMAT_B8G8R8A8_UNORM
+            || srcFmt == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB
+            || srcFmt == DXGI_FORMAT_B8G8R8X8_UNORM)
+        {
+            const Image* firstImage = working->GetImage(0, 0, 0);
+            if (firstImage && firstImage->pixels)
+            {
+                bool hasAlpha = false;
+                const uint8_t* pixels = firstImage->pixels;
+                for (size_t i = 3; i < firstImage->slicePitch; i += 4)
+                {
+                    if (pixels[i] < 255)
+                    {
+                        hasAlpha = true;
+                        break;
+                    }
+                }
+                if (hasAlpha)
+                    settings->resolvedFormat = TextureImportFormat::BC3_UNORM_SRGB;
+            }
+        }
+    }
+
+    const DXGI_FORMAT targetFormat = ResolveTargetFormat(settings);
 
     // Step 2: convert to the target intermediate format (uncompressed)
     const DXGI_FORMAT intermediateFormat = IsBlockCompressed(targetFormat) ? DXGI_FORMAT_R8G8B8A8_UNORM : targetFormat;
@@ -191,12 +225,17 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
     ScratchImage compressed;
     if (IsBlockCompressed(targetFormat) && !IsBlockCompressed(meta.format))
     {
+        const auto compressFlags =
+            (targetFormat == DXGI_FORMAT_BC7_UNORM || targetFormat == DXGI_FORMAT_BC7_UNORM_SRGB)
+            ? static_cast<TEX_COMPRESS_FLAGS>(TEX_COMPRESS_BC7_QUICK | TEX_COMPRESS_PARALLEL)
+            : TEX_COMPRESS_DEFAULT;
+
         HRESULT hr = Compress(
             final->GetImages(),
             final->GetImageCount(),
             meta,
             targetFormat,
-            TEX_COMPRESS_DEFAULT,
+            compressFlags,
             0.5f,
             compressed
         );

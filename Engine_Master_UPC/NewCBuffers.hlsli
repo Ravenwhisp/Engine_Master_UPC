@@ -23,6 +23,7 @@ cbuffer ModelData : register(b2)
     uint hasEmissiveTex;
     
     float3 padding;
+    uint hasBC5NormalTex;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4
