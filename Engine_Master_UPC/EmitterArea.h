@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ParticleModule.h"
+#include <cstring>
 
 class Transform;
 
@@ -12,6 +13,27 @@ enum class AreaType {
 	HEMISPHERE,
 	TOTAL_TYPES
 };
+
+inline const char* AreaTypeToString(uint32_t v)
+{
+    switch (static_cast<AreaType>(v))
+    {
+    case AreaType::CIRCLE:     return "CIRCLE";
+    case AreaType::CONE:       return "CONE";
+    case AreaType::SPHERE:     return "SPHERE";
+    case AreaType::HEMISPHERE: return "HEMISPHERE";
+    default: return "CIRCLE";
+    }
+}
+
+inline uint32_t StringToAreaType(const char* s)
+{
+    if (std::strcmp(s, "CIRCLE") == 0)     return 0;
+    if (std::strcmp(s, "CONE") == 0)       return 1;
+    if (std::strcmp(s, "SPHERE") == 0)     return 2;
+    if (std::strcmp(s, "HEMISPHERE") == 0) return 3;
+    return 0;
+}
 
 
 class EmitterArea : public ParticleModule

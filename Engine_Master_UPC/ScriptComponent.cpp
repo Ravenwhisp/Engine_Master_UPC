@@ -170,18 +170,7 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
 void ScriptComponent::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::SCRIPT);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     archive.serialize(m_scriptName, "ScriptName");
 

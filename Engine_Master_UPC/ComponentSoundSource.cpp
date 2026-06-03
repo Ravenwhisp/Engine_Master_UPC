@@ -213,16 +213,5 @@ void ComponentSoundSource::drawUi()
 
 void ComponentSoundSource::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output)
-	{
-		uint64_t uid = m_uuid;
-		archive.serialize(uid, "UID");
-		uint32_t type = static_cast<uint32_t>(ComponentType::SOUND_SOURCE);
-		archive.serialize(type, "ComponentType");
-	}
-
-	bool active = isActive();
-	archive.serialize(active, "Active");
-	if (archive.mode() == ArchiveMode::Input)
-		setActive(active);
+    Component::serialize(archive);
 }

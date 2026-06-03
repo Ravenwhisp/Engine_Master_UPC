@@ -11,23 +11,9 @@ Canvas::Canvas(UID id, GameObject* owner)
 
 void Canvas::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::CANVAS);
-        archive.serialize(type, "ComponentType");
-    }
+    Component::serialize(archive);
 
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
-
-    uint32_t rm = static_cast<uint32_t>(renderMode);
-    archive.serialize(rm, "RenderMode");
-    if (archive.mode() == ArchiveMode::Input)
-        renderMode = static_cast<CanvasRenderMode>(rm);
+    archive.serializeStringEnum(renderMode, "RenderMode", CanvasRenderModeToString, StringToCanvasRenderMode);
     archive.serialize(zTest, "ZTest");
 }
 

@@ -13,10 +13,7 @@ void AssetReference::serialize(IArchive& archive)
 {
     archive.serialize(m_uid, "uid");
     archive.serialize(m_libId, "libId");
-    uint32_t typeVal = static_cast<uint32_t>(m_type);
-    archive.serialize(typeVal, "type");
-    if (archive.mode() == ArchiveMode::Input)
-        m_type = static_cast<AssetType>(typeVal);
+    archive.serializeStringEnum(m_type, "type", AssetTypeToString, StringToAssetType);
 }
 
 bool AssetReference::deserializeJson(const rapidjson::Value& obj)

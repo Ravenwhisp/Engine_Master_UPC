@@ -174,18 +174,7 @@ void LightComponent::drawUi()
 
 void LightComponent::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::LIGHT);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     uint8_t lightType = static_cast<uint8_t>(m_data.type);
     archive.serialize(lightType, "LightType");

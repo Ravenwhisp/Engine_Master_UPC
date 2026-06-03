@@ -22,12 +22,7 @@ public:
 
     void serialize(IArchive& archive) override
     {
-        if (archive.mode() == ArchiveMode::Output)
-        {
-            archive.serialize(m_uuid, "UID");
-            uint32_t type = static_cast<uint32_t>(ComponentType::PREFAB_INSTANCE);
-            archive.serialize(type, "ComponentType");
-        }
+        Component::serialize(archive);
 
         std::string src = m_data.m_sourcePath.string();
         archive.serialize(src, "sourcePath");

@@ -83,12 +83,7 @@ public:
                 if (archive.mode() == ArchiveMode::Input)
                     clip.animationUID.m_libId = hash;
             }
-            {
-                uint32_t t = static_cast<uint32_t>(clip.animationUID.m_type);
-                archive.serialize(t, "type");
-                if (archive.mode() == ArchiveMode::Input)
-                    clip.animationUID.m_type = static_cast<AssetType>(t);
-            }
+            archive.serializeStringEnum(clip.animationUID.m_type, "type", AssetTypeToString, StringToAssetType);
             archive.serialize(clip.loop, "loop");
             archive.endObject();
         }

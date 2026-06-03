@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 #define COMPONENT_TYPE_LIST \
     X(TRANSFORM)            \
@@ -43,3 +44,14 @@ inline const char* ComponentTypeToString(ComponentType type)
         return "Unknown";
     }
 }
+
+inline ComponentType StringToComponentType(const char* s)
+{
+#define X(name) if (std::strcmp(s, #name) == 0) return ComponentType::name;
+    COMPONENT_TYPE_LIST
+#undef X
+    return ComponentType::TRANSFORM;
+}
+
+inline const char* ComponentTypeToStringU32(uint32_t v) { return ComponentTypeToString(static_cast<ComponentType>(v)); }
+inline uint32_t StringToComponentTypeU32(const char* s) { return static_cast<uint32_t>(StringToComponentType(s)); }

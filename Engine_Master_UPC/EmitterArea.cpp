@@ -121,10 +121,7 @@ void EmitterArea::serialize(IArchive& archive)
 {
     ParticleModule::serialize(archive);
 
-    uint32_t shapeType = static_cast<uint32_t>(m_shapeType);
-    archive.serialize(shapeType, "ShapeType");
-    if (archive.mode() == ArchiveMode::Input)
-        m_shapeType = static_cast<AreaType>(shapeType);
+    archive.serializeStringEnum(m_shapeType, "ShapeType", AreaTypeToString, StringToAreaType);
 
     archive.serialize(m_radius, "Radius");
     archive.serialize(m_radiusThickness, "RadiusThickness");

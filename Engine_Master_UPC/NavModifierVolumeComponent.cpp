@@ -47,18 +47,7 @@ void NavModifierVolumeComponent::onTransformChange()
 
 void NavModifierVolumeComponent::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output)
-	{
-		uint64_t uid = m_uuid;
-		archive.serialize(uid, "UID");
-		uint32_t type = static_cast<uint32_t>(ComponentType::NAVMODIFIER_VOLUME);
-		archive.serialize(type, "ComponentType");
-	}
-
-	bool active = isActive();
-	archive.serialize(active, "Active");
-	if (archive.mode() == ArchiveMode::Input)
-		setActive(active);
+	Component::serialize(archive);
 
 	archive.beginObject("HalfExtents");
 	archive.serialize(m_halfExtents.x, "x");
@@ -66,10 +55,7 @@ void NavModifierVolumeComponent::serialize(IArchive& archive)
 	archive.serialize(m_halfExtents.z, "z");
 	archive.endObject();
 
-	uint32_t areaType = static_cast<uint32_t>(m_areaType);
-	archive.serialize(areaType, "AreaType");
-	if (archive.mode() == ArchiveMode::Input)
-		m_areaType = static_cast<NavAreaType>(areaType);
+	archive.serializeStringEnum(m_areaType, "AreaType", NavAreaTypeToString, StringToNavAreaType);
 
 	archive.serialize(m_enabled, "Enabled");
 

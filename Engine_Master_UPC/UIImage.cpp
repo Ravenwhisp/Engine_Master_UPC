@@ -129,18 +129,7 @@ bool UIImage::consumeLoadRequest()
 
 void UIImage::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::UIIMAGE);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     archive.beginObject("TextureAssetId");
     m_textureAssetId.serialize(archive);
@@ -148,15 +137,9 @@ void UIImage::serialize(IArchive& archive)
 
     archive.serialize(m_fillAmount, "FillAmount");
 
-    uint32_t fillMethod = static_cast<uint32_t>(m_fillMethod);
-    archive.serialize(fillMethod, "FillMethod");
-    if (archive.mode() == ArchiveMode::Input)
-        m_fillMethod = static_cast<FillMethod>(fillMethod);
+    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
 
-    uint32_t fillOrigin = static_cast<uint32_t>(m_fillOrigin);
-    archive.serialize(fillOrigin, "FillOrigin");
-    if (archive.mode() == ArchiveMode::Input)
-        m_fillOrigin = static_cast<FillOrigin>(fillOrigin);
+    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
 
     uint32_t sheetColumns = static_cast<uint32_t>(m_sheetColumns);
     archive.serialize(sheetColumns, "SheetColumns");
@@ -176,10 +159,7 @@ void UIImage::serialize(IArchive& archive)
         m_sheetOffset.y = sheetOffset.y;
     }
 
-    uint32_t stretchDrawMode = static_cast<uint32_t>(m_stretchDrawMode);
-    archive.serialize(stretchDrawMode, "StretchDrawMode");
-    if (archive.mode() == ArchiveMode::Input)
-        m_stretchDrawMode = static_cast<StretchDrawMode>(stretchDrawMode);
+    archive.serializeStringEnum(m_stretchDrawMode, "StretchDrawMode", StretchDrawModeToString, StringToStretchDrawMode);
 }
 
 void UIImage::fixReferences(const SceneReferenceResolver& resolver)

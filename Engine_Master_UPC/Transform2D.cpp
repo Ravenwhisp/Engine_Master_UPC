@@ -314,18 +314,7 @@ void Transform2D::drawAnchorPresetsUI()
 
 void Transform2D::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::TRANSFORM2D);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     {
         DirectX::SimpleMath::Vector3 pos(position.x, position.y, 0.0f);
@@ -387,15 +376,9 @@ void Transform2D::serialize(IArchive& archive)
         }
     }
 
-    uint32_t stretchModeVal = static_cast<uint32_t>(stretchMode);
-    archive.serialize(stretchModeVal, "StretchMode");
-    if (archive.mode() == ArchiveMode::Input)
-        stretchMode = static_cast<StretchMode>(stretchModeVal);
+    archive.serializeStringEnum(stretchMode, "StretchMode", StretchModeToString, StringToStretchMode);
 
-    uint32_t sizingModeVal = static_cast<uint32_t>(sizingMode);
-    archive.serialize(sizingModeVal, "SizingMode");
-    if (archive.mode() == ArchiveMode::Input)
-        sizingMode = static_cast<SizingMode>(sizingModeVal);
+    archive.serializeStringEnum(sizingMode, "SizingMode", SizingModeToString, StringToSizingMode);
 
     archive.serialize(aspectRatio, "AspectRatio");
     archive.serialize(alpha, "Alpha");

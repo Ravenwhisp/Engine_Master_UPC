@@ -10,19 +10,7 @@ UIText::UIText(UID id, GameObject* owner)
 
 void UIText::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::UITEXT);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
-
+    Component::serialize(archive);
     archive.serialize(m_text, "Text");
     archive.serialize(m_scale, "Scale");
     archive.serialize(reinterpret_cast<DirectX::SimpleMath::Color&>(m_color), "Color");

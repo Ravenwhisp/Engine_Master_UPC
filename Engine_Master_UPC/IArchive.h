@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <type_traits>
 #include "SimpleMath.h"
 
 enum class ArchiveMode { Input, Output };
@@ -24,6 +25,33 @@ public:
     virtual void serialize(DirectX::SimpleMath::Quaternion& val, const char* name = "") = 0;
     virtual void serialize(DirectX::SimpleMath::Color& val, const char* name = "") = 0;
     virtual void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") = 0;
+
+    template<typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+    void serialize(T& val, const char* name = "")
+    {
+        uint32_t raw = static_cast<uint32_t>(val);
+        serialize(raw, name);
+        if (mode() == ArchiveMode::Input)
+            val = static_cast<T>(raw);
+    }
+
+    virtual void serializeStringEnum(uint32_t& val, const char* name,
+        const char* (*toString)(uint32_t),
+        uint32_t (*fromString)(const char*))
+    {
+        serialize(val, name);
+    }
+
+    template<typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+    void serializeStringEnum(T& val, const char* name,
+        const char* (*toString)(uint32_t),
+        uint32_t (*fromString)(const char*))
+    {
+        uint32_t raw = static_cast<uint32_t>(val);
+        serializeStringEnum(raw, name, toString, fromString);
+        if (mode() == ArchiveMode::Input)
+            val = static_cast<T>(raw);
+    }
 
     virtual void beginObject(const char* name) {}
     virtual void beginObject() {}

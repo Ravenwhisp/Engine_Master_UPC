@@ -33,6 +33,10 @@ public:
     void serialize(DirectX::SimpleMath::Color& val, const char* name = "") override;
     void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") override;
 
+    void serializeStringEnum(uint32_t& val, const char* name,
+        const char* (*toString)(uint32_t),
+        uint32_t (*fromString)(const char*)) override;
+
     // File I/O
     bool loadFile(const std::filesystem::path& path);
     bool saveFile(const std::filesystem::path& path) const;

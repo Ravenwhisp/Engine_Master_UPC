@@ -152,18 +152,7 @@ void ParticleSystemComponent::update()
 
 void ParticleSystemComponent::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::PARTICLE_SYSTEM);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     archive.beginObject("TextureAssetId");
     m_textureAsset.serialize(archive);

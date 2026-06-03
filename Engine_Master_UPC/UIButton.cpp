@@ -668,20 +668,9 @@ void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UI
 
 void UIButton::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output)
-	{
-		uint64_t uid = m_uuid;
-		archive.serialize(uid, "UID");
-		uint32_t type = static_cast<uint32_t>(ComponentType::UIBUTTON);
-		archive.serialize(type, "ComponentType");
-	}
+	Component::serialize(archive);
 
-	bool active = isActive();
-	archive.serialize(active, "Active");
-	if (archive.mode() == ArchiveMode::Input)
-		setActive(active);
-
-    archive.serialize(m_targetGraphicUid, "TargetGraphicUID");
+	archive.serialize(m_targetGraphicUid, "TargetGraphicUID");
 
 	archive.beginObject("DefaultTextureAssetId");
 	m_defaultTextureAssetId.serialize(archive);

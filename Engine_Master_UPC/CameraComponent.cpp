@@ -145,18 +145,7 @@ bool CameraComponent::cleanUp()
 
 void CameraComponent::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output)
-	{
-		uint64_t uid = m_uuid;
-		archive.serialize(uid, "UID");
-		uint32_t type = static_cast<uint32_t>(ComponentType::CAMERA);
-		archive.serialize(type, "ComponentType");
-	}
-
-	bool active = isActive();
-	archive.serialize(active, "Active");
-	if (archive.mode() == ArchiveMode::Input)
-		setActive(active);
+    Component::serialize(archive);
 
 	archive.serialize(m_horizontalFov, "HorizontalFOV");
 	archive.serialize(m_nearPlane, "NearPlane");

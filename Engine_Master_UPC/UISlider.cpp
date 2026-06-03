@@ -166,28 +166,11 @@ void UISlider::drawUi()
 
 void UISlider::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::UISLIDER);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     archive.serialize(m_fillAmount, "FillAmount");
 
-    uint32_t fillMethod = static_cast<uint32_t>(m_fillMethod);
-    archive.serialize(fillMethod, "FillMethod");
-    if (archive.mode() == ArchiveMode::Input)
-        m_fillMethod = static_cast<FillMethod>(fillMethod);
+    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
 
-    uint32_t fillOrigin = static_cast<uint32_t>(m_fillOrigin);
-    archive.serialize(fillOrigin, "FillOrigin");
-    if (archive.mode() == ArchiveMode::Input)
-        m_fillOrigin = static_cast<FillOrigin>(fillOrigin);
+    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
 }

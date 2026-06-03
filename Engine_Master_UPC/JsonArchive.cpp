@@ -515,6 +515,66 @@ void JsonArchive::serialize(DirectX::SimpleMath::Matrix& val, const char* name)
     }
 }
 
+void JsonArchive::serializeStringEnum(uint32_t& val, const char* name,
+    const char* (*toString)(uint32_t),
+    uint32_t (*fromString)(const char*))
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        if (m_valueStack.empty()) return;
+        if (toString)
+        {
+            if (m_typeStack.back() == Context::Object)
+            {
+                rapidjson::Value key(name, m_doc.GetAllocator());
+                rapidjson::Value strVal;
+                strVal.SetString(toString(val), m_doc.GetAllocator());
+                m_valueStack.back()->AddMember(key, strVal, m_doc.GetAllocator());
+            }
+            else if (m_typeStack.back() == Context::Array)
+            {
+                rapidjson::Value strVal;
+                strVal.SetString(toString(val), m_doc.GetAllocator());
+                m_valueStack.back()->PushBack(strVal, m_doc.GetAllocator());
+            }
+        }
+        else
+        {
+            serialize(val, name);
+        }
+    }
+    else
+    {
+        if (!m_currentInput) return;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            const auto& v = (*m_currentInput)[name];
+            if (v.IsString() && fromString)
+                val = fromString(v.GetString());
+            else if (v.IsUint64())
+                val = static_cast<uint32_t>(v.GetUint64());
+            else if (v.IsUint())
+                val = v.GetUint();
+            else if (v.IsInt())
+                val = static_cast<uint32_t>(v.GetInt());
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            const auto& v = (*m_currentInput)[m_currentArrayIndex++];
+            if (v.IsString() && fromString)
+                val = fromString(v.GetString());
+            else if (v.IsUint64())
+                val = static_cast<uint32_t>(v.GetUint64());
+            else if (v.IsUint())
+                val = v.GetUint();
+            else if (v.IsInt())
+                val = static_cast<uint32_t>(v.GetInt());
+        }
+    }
+}
+
 rapidjson::Value JsonArchive::extractValue(rapidjson::Document::AllocatorType& allocator) const
 {
     rapidjson::Value val;

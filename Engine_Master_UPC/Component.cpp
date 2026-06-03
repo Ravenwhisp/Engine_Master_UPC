@@ -14,5 +14,15 @@ Transform* Component::getTransform()
 
 void Component::serialize(IArchive& archive)
 {
-    // Subclasses override this - base just handles empty/no-op
+    if (archive.mode() == ArchiveMode::Output)
+    {
+        archive.serialize(m_uuid, "UID");
+        ComponentType type = getType();
+        archive.serializeStringEnum(type, "ComponentType", ComponentTypeToStringU32, StringToComponentTypeU32);
+    }
+
+    bool active = isActive();
+    archive.serialize(active, "Active");
+    if (archive.mode() == ArchiveMode::Input)
+        setActive(active);
 }

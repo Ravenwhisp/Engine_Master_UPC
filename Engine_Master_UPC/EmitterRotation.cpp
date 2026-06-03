@@ -73,10 +73,7 @@ void EmitterRotation::serialize(IArchive& archive)
 
 	archive.serialize(m_startRotation, "StartRotation");
 
-	uint32_t velocityType = static_cast<uint32_t>(m_angularVelocityType);
-	archive.serialize(velocityType, "VelocityType");
-	if (archive.mode() == ArchiveMode::Input)
-		m_angularVelocityType = static_cast<ParameterType>(velocityType);
+	archive.serializeStringEnum(m_angularVelocityType, "VelocityType", ParameterTypeToString, StringToParameterType);
 
 	archive.serialize(m_angularVelocity, "AngularVelocity");
 

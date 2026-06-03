@@ -14,11 +14,7 @@ void Metadata::serialize(IArchive& archive)
         if (archive.mode() == ArchiveMode::Input) contentHash = hash;
     }
 
-    {
-        uint32_t t = static_cast<uint32_t>(type);
-        archive.serialize(t, "type");
-        if (archive.mode() == ArchiveMode::Input) type = static_cast<AssetType>(t);
-    }
+    archive.serializeStringEnum(type, "type", AssetTypeToString, StringToAssetType);
 
     {
         std::string path = archive.mode() == ArchiveMode::Output ? sourcePath.string() : "";
@@ -44,9 +40,7 @@ void Metadata::serialize(IArchive& archive)
             archive.serialize(hash, "contentHash");
             if (archive.mode() == ArchiveMode::Input) dep.contentHash = hash;
 
-            uint32_t depType = static_cast<uint32_t>(dep.type);
-            archive.serialize(depType, "type");
-            dep.type = static_cast<AssetType>(depType);
+            archive.serializeStringEnum(dep.type, "type", AssetTypeToString, StringToAssetType);
 
             archive.serialize(dep.displayName, "displayName");
 

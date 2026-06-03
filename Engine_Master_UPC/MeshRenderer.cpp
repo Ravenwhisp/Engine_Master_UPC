@@ -185,17 +185,7 @@ void MeshRenderer::update()
 
 void MeshRenderer::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        archive.serialize(m_uuid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::MODEL);
-        archive.serialize(type, "ComponentType");
-    }
-
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
+    Component::serialize(archive);
 
     if (archive.mode() == ArchiveMode::Input)
     {

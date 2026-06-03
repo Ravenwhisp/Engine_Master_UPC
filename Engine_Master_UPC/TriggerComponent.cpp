@@ -347,23 +347,9 @@ std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
 
 void TriggerComponent::serialize(IArchive& archive)
 {
-    if (archive.mode() == ArchiveMode::Output)
-    {
-        uint64_t uid = m_uuid;
-        archive.serialize(uid, "UID");
-        uint32_t type = static_cast<uint32_t>(ComponentType::TRIGGER);
-        archive.serialize(type, "ComponentType");
-    }
+    Component::serialize(archive);
 
-    bool active = isActive();
-    archive.serialize(active, "Active");
-    if (archive.mode() == ArchiveMode::Input)
-        setActive(active);
-
-    uint32_t shape = static_cast<uint32_t>(m_shape);
-    archive.serialize(shape, "Shape");
-    if (archive.mode() == ArchiveMode::Input)
-        m_shape = static_cast<TriggerShape>(shape);
+    archive.serializeStringEnum(m_shape, "Shape", TriggerShapeToString, StringToTriggerShape);
 
     archive.serialize(m_center, "Center");
     archive.serialize(m_size, "Size");

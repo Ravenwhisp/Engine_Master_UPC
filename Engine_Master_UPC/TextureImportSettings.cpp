@@ -13,7 +13,7 @@
 #include <string>
 #include <string_view>
 
-static const char* TextureImportFormatToString(TextureImportFormat fmt)
+static const char* TextureImportFormatToDisplayString(TextureImportFormat fmt)
 {
     switch (fmt)
     {
@@ -31,10 +31,7 @@ static const char* TextureImportFormatToString(TextureImportFormat fmt)
 
 void TextureImportSettings::serialize(IArchive& archive)
 {
-    uint32_t fmt = static_cast<uint32_t>(targetFormat);
-    archive.serialize(fmt, "targetFormat");
-    if (archive.mode() == ArchiveMode::Input)
-        targetFormat = static_cast<TextureImportFormat>(fmt);
+    archive.serializeStringEnum(targetFormat, "targetFormat", TextureImportFormatToString, StringToTextureImportFormat);
 
     archive.serialize(generateMips, "generateMips");
     archive.serialize(srgb, "srgb");
@@ -51,14 +48,14 @@ std::unique_ptr<ImportSettings> TextureImportSettings::clone() const
 
 void TextureImportSettings::drawUI()
 {
-    const char* preview = TextureImportFormatToString(targetFormat);
+    const char* preview = TextureImportFormatToDisplayString(targetFormat);
     if (ImGui::BeginCombo("Format", preview))
     {
         for (uint32_t i = 0; i <= static_cast<uint32_t>(TextureImportFormat::BC7_UNORM_SRGB); ++i)
         {
             auto fmt = static_cast<TextureImportFormat>(i);
             bool isSelected = (targetFormat == fmt);
-            if (ImGui::Selectable(TextureImportFormatToString(fmt), isSelected))
+            if (ImGui::Selectable(TextureImportFormatToDisplayString(fmt), isSelected))
                 targetFormat = fmt;
             if (isSelected)
                 ImGui::SetItemDefaultFocus();

@@ -726,11 +726,11 @@ void GameObject::serialize(IArchive& archive)
             archive.beginObject();
 
             uint64_t uid = GenerateUID();
-            uint32_t compType = 0;
             archive.serialize(uid, "UID");
-            archive.serialize(compType, "ComponentType");
+            ComponentType compType = ComponentType::TRANSFORM;
+            archive.serializeStringEnum(compType, "ComponentType", ComponentTypeToStringU32, StringToComponentTypeU32);
 
-            Component* comp = AddComponentWithUID(static_cast<ComponentType>(compType), uid);
+            Component* comp = AddComponentWithUID(compType, uid);
             if (comp)
                 comp->serialize(archive);
 
