@@ -17,7 +17,7 @@ enum class ScriptFieldType
     List,
     GroupLabel,
     GroupCollapseBegin,
-    GroupCollapseEnd
+    GroupCollapseEnd,
     DataContainerRef,
 };
 

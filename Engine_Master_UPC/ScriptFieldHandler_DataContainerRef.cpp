@@ -14,7 +14,7 @@
 
 namespace
 {
-    void drawDataContainerRefFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawDataContainerRefFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent& owner)
     {
         ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
@@ -65,6 +65,55 @@ namespace
             ref->uid = INVALID_UID;
             ref->dataContainer = nullptr;
             script.onFieldEdited(field);
+        }
+
+        if (ref->dataContainer != nullptr)
+        {
+            ScriptFieldList dcFields = ref->dataContainer->getExposedFields();
+            if (!dcFields.fields.empty())
+            {
+                ImGui::Spacing();
+
+                std::string headerId = std::string(field.name) + " Settings###" + field.name + "_Settings";
+                if (ImGui::CollapsingHeader(headerId.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::Indent();
+
+                    char* dcBase = reinterpret_cast<char*>(ref->dataContainer.get());
+                    bool currentGroupOpen = true;
+
+                    for (const ScriptFieldInfo& dcField : dcFields.fields)
+                    {
+                        if (dcField.type == ScriptFieldType::GroupCollapseBegin)
+                        {
+                            ImGui::Spacing();
+                            currentGroupOpen = ImGui::CollapsingHeader(dcField.name, ImGuiTreeNodeFlags_DefaultOpen);
+                            continue;
+                        }
+
+                        if (dcField.type == ScriptFieldType::GroupCollapseEnd)
+                        {
+                            currentGroupOpen = true;
+                            continue;
+                        }
+
+                        if (!currentGroupOpen)
+                            continue;
+
+                        void* dcData = dcBase + dcField.offset;
+                        assert(dcField.handler != nullptr);
+                        dcField.handler->drawUi(dcField, dcData, script, owner);
+                    }
+
+                    ImGui::Spacing();
+                    if (ImGui::Button("Save"))
+                    {
+                        app->getModuleAssets()->save(*ref->dataContainer);
+                    }
+
+                    ImGui::Unindent();
+                }
+            }
         }
     }
 
