@@ -282,6 +282,7 @@
     <ClInclude Include="DeathBasicAttack.h" />
     <ClInclude Include="DeathCharacter.h" />
     <ClInclude Include="DeathChargedAttack.h" />
+    <ClInclude Include="DeathConfig.h" />
     <ClInclude Include="DeathDash.h" />
     <ClInclude Include="DeathSound.h" />
     <ClInclude Include="DeathTaunt.h" />
@@ -390,6 +391,7 @@
     <ClCompile Include="DeathCharacter.cpp" />
     <ClCompile Include="DeathChargedAttack.cpp" />
     <ClCompile Include="DeathDash.cpp" />
+    <ClCompile Include="DeathConfig.cpp" />
     <ClCompile Include="DeathSound.cpp" />
     <ClCompile Include="DeathTaunt.cpp" />
     <ClCompile Include="DebugDamageTrigger.cpp" />

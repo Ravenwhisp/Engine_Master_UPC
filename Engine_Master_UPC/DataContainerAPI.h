@@ -3,9 +3,9 @@
 // Include this header in your external project to create custom DataContainer assets
 // (similar to Unity ScriptableObjects)
 //
-// Usage (field-based, recommended, header-only):
+// Usage (field-based, header-only):
 //   class MyConfig : public DataContainer {
-//       DECLARE_DATACONTAINER(MyConfig)
+//       DECLARE_DATACONTAINER(MyConfig)   // handles auto-registration
 //   public:
 //       MyConfig() = default;
 //       explicit MyConfig(AssetReference& id) : DataContainer(id) {}
@@ -15,23 +15,23 @@
 //           SERIALIZED_FLOAT(m_value, "My Value", 0, 100, 1.0f)
 //       )
 //   };
-//   IMPLEMENT_DATACONTAINER(MyConfig)
 //
 // The class auto-registers and appears in the FileDialog "Create" menu and "Asset" top menu.
+// Note: The header must be included by at least one .cpp file for registration to take effect.
 
 #include "DataContainer.h"
 #include "FieldMacros.h"
 #include "EngineAPI.h"
 
-#define DECLARE_DATACONTAINER(TypeName)
-
-#define IMPLEMENT_DATACONTAINER(TypeName) \
-	namespace { \
-		static std::unique_ptr<DataContainer> s_create_##TypeName(AssetReference& uid) { \
+#define DECLARE_DATACONTAINER(TypeName) \
+	public: \
+		static std::unique_ptr<DataContainer> CreateInstance(AssetReference& uid) { \
 			return std::make_unique<TypeName>(uid); \
 		} \
-		static bool s_registered_##TypeName = ( \
-			::registerDataContainer(#TypeName, #TypeName, &s_create_##TypeName), \
-			true \
-		); \
-	}
+	private: \
+		static inline const bool s_registered_ = []() -> bool { \
+			::registerDataContainer(#TypeName, #TypeName, &TypeName::CreateInstance); \
+			return true; \
+		}();
+
+#define IMPLEMENT_DATACONTAINER(TypeName)

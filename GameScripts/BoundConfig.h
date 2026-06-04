@@ -30,4 +30,3 @@ public:
     )
 };
 
-IMPLEMENT_DATACONTAINER(BoundConfig)
