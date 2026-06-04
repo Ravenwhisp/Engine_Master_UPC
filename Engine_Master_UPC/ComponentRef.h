@@ -6,7 +6,7 @@
 #include <vector>
 
 template<typename T>
-struct ScriptComponentRef
+struct ComponentRef
 {
     UID uid = 0;
     Component* component = nullptr;
@@ -17,4 +17,7 @@ struct ScriptComponentRef
     }
 };
 
-using ScriptComponentRefList = std::vector<ScriptComponentRef<Component>>;
+using ComponentRefList = std::vector<ComponentRef<Component>>;
+
+// Backward compatibility alias
+using ScriptComponentRefList = ComponentRefList;

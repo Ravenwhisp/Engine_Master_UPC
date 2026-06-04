@@ -7,7 +7,7 @@
 #include "FieldHandlerRegistry.h"
 
 class Component;
-template<typename T> struct ScriptComponentRef;
+template<typename T> struct ComponentRef;
 
 template<typename T>
 constexpr FieldType fieldTypeOf()
@@ -17,7 +17,7 @@ constexpr FieldType fieldTypeOf()
     else if constexpr (std::is_same_v<T, bool>)                      return FieldType::Bool;
     else if constexpr (std::is_same_v<T, Vector3>)                   return FieldType::Vec3;
     else if constexpr (std::is_same_v<T, std::string>)               return FieldType::String;
-    else if constexpr (std::is_same_v<T, ScriptComponentRef<Component>>) return FieldType::ComponentRef;
+    else if constexpr (std::is_same_v<T, ComponentRef<Component>>) return FieldType::ComponentRef;
     else return FieldType::Float;
 }
 
@@ -29,7 +29,7 @@ const FieldHandler* fieldHandlerOf()
     else if constexpr (std::is_same_v<T, bool>)                      return getBoolFieldHandler();
     else if constexpr (std::is_same_v<T, Vector3>)                   return getVec3FieldHandler();
     else if constexpr (std::is_same_v<T, std::string>)               return getStringFieldHandler();
-    else if constexpr (std::is_same_v<T, ScriptComponentRef<Component>>) return getComponentRefFieldHandler();
+    else if constexpr (std::is_same_v<T, ComponentRef<Component>>) return getComponentRefFieldHandler();
     else return nullptr;
 }
 

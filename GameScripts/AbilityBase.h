@@ -56,9 +56,9 @@ protected:
 	virtual void updateUI();
     float m_cooldown = 0.0f;
     float m_cooldownTimer = 0.0f;
-    ScriptComponentRef<Transform> m_cdUI;
+    ComponentRef<Transform> m_cdUI;
     GameObject* m_cdGO = nullptr;
-    ScriptComponentRef<UISlider> m_cdBar;
+    ComponentRef<UISlider> m_cdBar;
 	UISlider* m_cdBarSlider = nullptr;
 
     float m_attackStateTimer = 0.0f;

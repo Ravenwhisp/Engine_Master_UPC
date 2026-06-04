@@ -18,7 +18,7 @@ public:
     void notifyLinkedDeath();
 
 public:
-    ScriptComponentRef<Transform> m_linkedPartner;
+    ComponentRef<Transform> m_linkedPartner;
     float m_graceWindow = 3.0f;
     float m_reviveHpPercent = 0.5f;
 

@@ -34,9 +34,9 @@ public:
     float m_gracePeriod      = 10.0f;
     float m_decayPerSecond   = 2.0f;
 
-    ScriptComponentRef<UISlider> m_reaperGaugeUI;
-	ScriptComponentRef<Transform2D> m_glowUI;
-    ScriptComponentRef<Transform2D> m_blinkAlphaUI;
+    ComponentRef<UISlider> m_reaperGaugeUI;
+	ComponentRef<Transform2D> m_glowUI;
+    ComponentRef<Transform2D> m_blinkAlphaUI;
 
 	float m_blinkSpeed = 5.0f;
     float m_blinkAlpha = 0.25f;

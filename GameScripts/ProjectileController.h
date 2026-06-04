@@ -19,7 +19,7 @@ public:
 
     float m_scale = 0; // determines the amount of speed that the projectile object will start with ([0,1], between minSpeed and maxSpeed)
 
-    ScriptComponentRef<Transform> m_target; // the object to hit (will ignore the rest)
+    ComponentRef<Transform> m_target; // the object to hit (will ignore the rest)
 
     std::string m_prefabToInstantiate = "";
 

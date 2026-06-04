@@ -131,9 +131,9 @@ public:
 	float m_healthBarDuration = 1.0f;
 
 private:
-	ScriptComponentRef<Transform> m_healthBarCanvas;
-	ScriptComponentRef<Transform2D> m_healthBarContainer;
-	ScriptComponentRef<Transform2D> m_healthBarPhase2;
+	ComponentRef<Transform> m_healthBarCanvas;
+	ComponentRef<Transform2D> m_healthBarContainer;
+	ComponentRef<Transform2D> m_healthBarPhase2;
 
 	Transform* m_healthBarCanvasTransform = nullptr;
 	Transform2D* m_healthBarContainerTransform2D = nullptr;

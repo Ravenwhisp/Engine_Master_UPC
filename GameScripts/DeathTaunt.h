@@ -16,7 +16,7 @@ public:
 
     FieldList getExposedFields() const override;
 
-    ScriptComponentRef<Transform> m_AbilityUI;
+    ComponentRef<Transform> m_AbilityUI;
 
     void drawGizmo() override;
     void onFieldEdited(const FieldInfo& field) override;

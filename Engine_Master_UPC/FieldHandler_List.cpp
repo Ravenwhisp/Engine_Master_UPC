@@ -2,7 +2,7 @@
 
 #include "FieldHandlerRegistry.h"
 #include "IFieldContainer.h"
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
 
 #include "Application.h"
@@ -53,7 +53,7 @@ namespace
     }
 
     template<>
-    rapidjson::Value elementToJson<ScriptComponentRef<Component>>(const ScriptComponentRef<Component>& element, rapidjson::Document&)
+    rapidjson::Value elementToJson<ComponentRef<Component>>(const ComponentRef<Component>& element, rapidjson::Document&)
     {
         return rapidjson::Value(static_cast<uint64_t>(element.uid));
     }
@@ -97,7 +97,7 @@ namespace
     }
 
     template<>
-    void elementFromJson<ScriptComponentRef<Component>>(ScriptComponentRef<Component>& element, const rapidjson::Value& json)
+    void elementFromJson<ComponentRef<Component>>(ComponentRef<Component>& element, const rapidjson::Value& json)
     {
         if (json.IsUint64())
         {
@@ -290,11 +290,11 @@ namespace
     };
 
     const FieldHandler componentRefListHandler = {
-        &drawListFieldUi<ScriptComponentRef<Component>>,
-        &serializeListField<ScriptComponentRef<Component>>,
-        &deserializeListField<ScriptComponentRef<Component>>,
-        &cloneListField<ScriptComponentRef<Component>>,
-        &fixReferencesListField<ScriptComponentRef<Component>>
+        &drawListFieldUi<ComponentRef<Component>>,
+        &serializeListField<ComponentRef<Component>>,
+        &deserializeListField<ComponentRef<Component>>,
+        &cloneListField<ComponentRef<Component>>,
+        &fixReferencesListField<ComponentRef<Component>>
     };
 }
 

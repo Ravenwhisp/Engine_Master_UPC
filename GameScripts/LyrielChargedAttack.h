@@ -16,7 +16,7 @@ public:
 
     FieldList getExposedFields() const override;
 
-    ScriptComponentRef<Transform> m_ChargedAttackUI;
+    ComponentRef<Transform> m_ChargedAttackUI;
 
 protected:
     void startAbility() override;

@@ -29,9 +29,19 @@
         return exposedFields;                                                 \
     }
 
+// Inline version — for placing inside the class body (header-only types like DataContainer)
+#define IMPLEMENT_FIELDS_INLINE(TypeName, ...)                                \
+    FieldList getExposedFields() const override                               \
+    {                                                                         \
+        using ThisType = TypeName;                                            \
+        static const FieldInfo ownFields[] = { __VA_ARGS__ };                \
+        return FieldList(ownFields, FIELD_COUNT(ownFields));                  \
+    }
+
 // Backward compatibility aliases
 #define IMPLEMENT_SCRIPT_FIELDS IMPLEMENT_FIELDS
 #define IMPLEMENT_SCRIPT_FIELDS_INHERITED IMPLEMENT_FIELDS_INHERITED
+#define IMPLEMENT_DATACONTAINER_FIELDS IMPLEMENT_FIELDS_INLINE
 #define SCRIPT_FIELD_COUNT FIELD_COUNT
 
 // Field helper macros

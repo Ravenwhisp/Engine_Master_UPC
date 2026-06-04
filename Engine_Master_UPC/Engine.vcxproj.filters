@@ -1031,7 +1031,10 @@
     <ClInclude Include="IFieldContainer.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptComponentRef.h">
+    <ClInclude Include="ComponentRef.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="DataContainerRef.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
@@ -1185,8 +1188,6 @@
     <ClInclude Include="FieldUtils.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="DataContainerFieldMacros.h">
-      <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="GenericTypeFactory.h">
       <Filter>Core</Filter>

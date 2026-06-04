@@ -20,7 +20,7 @@
 // The class auto-registers and appears in the FileDialog "Create" menu and "Asset" top menu.
 
 #include "DataContainer.h"
-#include "DataContainerFieldMacros.h"
+#include "FieldMacros.h"
 #include "EngineAPI.h"
 
 #define DECLARE_DATACONTAINER(TypeName)

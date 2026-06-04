@@ -6,7 +6,7 @@
 class DataContainer;
 
 template<typename T = DataContainer>
-struct ScriptDataContainerRef
+struct DataContainerRef
 {
     UID uid = INVALID_UID;
     std::shared_ptr<DataContainer> dataContainer;

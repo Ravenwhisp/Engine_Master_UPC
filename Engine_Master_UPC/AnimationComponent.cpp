@@ -14,7 +14,7 @@
 #include "StateMachineScript.h"
 #include "GenericTypeFactory.h"
 #include "Script.h"
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
 #include "FieldUtils.h"
 #include "ModuleScene.h"
 #include "Scene.h"

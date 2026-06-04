@@ -8,8 +8,8 @@
 #include "FieldInfo.h"
 #include "FieldMacros.h"
 
-#include "ScriptComponentRef.h"
-#include "ScriptDataContainerRef.h"
+#include "ComponentRef.h"
+#include "DataContainerRef.h"
 
 #define DECLARE_SCRIPT(ScriptType)
 

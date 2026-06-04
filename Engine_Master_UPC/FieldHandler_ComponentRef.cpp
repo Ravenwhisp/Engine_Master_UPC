@@ -4,7 +4,7 @@
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
 #include "IFieldContainer.h"
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
 
 #include "Application.h"
@@ -17,7 +17,7 @@ namespace
 {
     void drawComponentRefFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
 
         Component* component = componentReference->component;
 
@@ -78,7 +78,7 @@ namespace
 
     void serializeComponentRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
-        const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
+        const ComponentRef<Component>* componentReference = reinterpret_cast<const ComponentRef<Component>*>(data);
 
         rapidjson::Value key(field.name, domTree.GetAllocator());
         outFieldsJson.AddMember(key, static_cast<uint64_t>(componentReference->uid), domTree.GetAllocator());
@@ -91,7 +91,7 @@ namespace
             return;
         }
 
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
 
         componentReference->uid = static_cast<UID>(valueJson.GetUint64());
         componentReference->component = nullptr;
@@ -99,9 +99,9 @@ namespace
 
     void cloneComponentRefField(const FieldInfo&, const void* sourceData, void* targetData)
     {
-        const ScriptComponentRef<Component>* sourceRef = reinterpret_cast<const ScriptComponentRef<Component>*>(sourceData);
+        const ComponentRef<Component>* sourceRef = reinterpret_cast<const ComponentRef<Component>*>(sourceData);
 
-        ScriptComponentRef<Component>* targetRef = reinterpret_cast<ScriptComponentRef<Component>*>(targetData);
+        ComponentRef<Component>* targetRef = reinterpret_cast<ComponentRef<Component>*>(targetData);
 
         targetRef->uid = sourceRef->uid;
         targetRef->component = nullptr;
@@ -109,7 +109,7 @@ namespace
 
     void fixReferencesComponentRefField(const FieldInfo& field, void* data, const SceneReferenceResolver& resolver)
     {
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
 
         componentReference->component = nullptr;
 

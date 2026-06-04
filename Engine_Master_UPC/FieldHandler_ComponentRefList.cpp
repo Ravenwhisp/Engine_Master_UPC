@@ -2,7 +2,7 @@
 
 #include "FieldHandlerRegistry.h"
 #include "IFieldContainer.h"
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
 
 #include "Application.h"
@@ -15,7 +15,7 @@ namespace
 {
     void drawComponentRefListFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
-        ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+        ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
 
         const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
         const ImVec2 avail = ImGui::GetContentRegionAvail();
@@ -35,7 +35,7 @@ namespace
 
             for (size_t index = 0; index < componentList->size(); ++index)
             {
-                ScriptComponentRef<Component>& entry = (*componentList)[index];
+                ComponentRef<Component>& entry = (*componentList)[index];
                 Component* component = entry.component;
 
                 ImGui::PushID(static_cast<int>(index));
@@ -134,7 +134,7 @@ namespace
 
                         if (candidate != nullptr)
                         {
-                            ScriptComponentRef<Component> newEntry;
+                            ComponentRef<Component> newEntry;
                             newEntry.uid = candidate->getID();
                             newEntry.component = candidate;
 
@@ -152,12 +152,12 @@ namespace
 
     void serializeComponentRefListField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
-        const ScriptComponentRefList* componentList = reinterpret_cast<const ScriptComponentRefList*>(data);
+        const ComponentRefList* componentList = reinterpret_cast<const ComponentRefList*>(data);
 
         rapidjson::Value key(field.name, domTree.GetAllocator());
         rapidjson::Value array(rapidjson::kArrayType);
 
-        for (const ScriptComponentRef<Component>& entry : *componentList)
+        for (const ComponentRef<Component>& entry : *componentList)
         {
             array.PushBack(static_cast<uint64_t>(entry.uid), domTree.GetAllocator());
         }
@@ -172,7 +172,7 @@ namespace
             return;
         }
 
-        ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+        ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
         componentList->clear();
 
         for (rapidjson::SizeType i = 0; i < valueJson.Size(); ++i)
@@ -182,7 +182,7 @@ namespace
                 continue;
             }
 
-            ScriptComponentRef<Component> entry;
+            ComponentRef<Component> entry;
             entry.uid = static_cast<UID>(valueJson[i].GetUint64());
             entry.component = nullptr;
 
@@ -192,15 +192,15 @@ namespace
 
     void cloneComponentRefListField(const FieldInfo&, const void* sourceData, void* targetData)
     {
-        const ScriptComponentRefList* sourceList = reinterpret_cast<const ScriptComponentRefList*>(sourceData);
-        ScriptComponentRefList* targetList = reinterpret_cast<ScriptComponentRefList*>(targetData);
+        const ComponentRefList* sourceList = reinterpret_cast<const ComponentRefList*>(sourceData);
+        ComponentRefList* targetList = reinterpret_cast<ComponentRefList*>(targetData);
 
         targetList->clear();
         targetList->reserve(sourceList->size());
 
-        for (const ScriptComponentRef<Component>& sourceEntry : *sourceList)
+        for (const ComponentRef<Component>& sourceEntry : *sourceList)
         {
-            ScriptComponentRef<Component> targetEntry;
+            ComponentRef<Component> targetEntry;
             targetEntry.uid = sourceEntry.uid;
             targetEntry.component = nullptr;
             targetList->push_back(targetEntry);
@@ -209,9 +209,9 @@ namespace
 
     void fixReferencesComponentRefListField(const FieldInfo& field, void* data, const SceneReferenceResolver& resolver)
     {
-        ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+        ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
 
-        for (ScriptComponentRef<Component>& entry : *componentList)
+        for (ComponentRef<Component>& entry : *componentList)
         {
             entry.component = nullptr;
 

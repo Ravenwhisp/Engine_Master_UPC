@@ -20,7 +20,7 @@ public:
 
     void updateUI();
 
-    ScriptComponentRef<Transform> m_puzzleManager;
+    ComponentRef<Transform> m_puzzleManager;
 
 	int m_puzzleID = 0;
 

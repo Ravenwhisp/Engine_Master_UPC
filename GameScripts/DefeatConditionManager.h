@@ -26,8 +26,8 @@ private:
     void triggerDefeat();
 
 public:
-    ScriptComponentRef<Transform> m_player1Transform;
-    ScriptComponentRef<Transform> m_player2Transform;
+    ComponentRef<Transform> m_player1Transform;
+    ComponentRef<Transform> m_player2Transform;
 
 private:
     PlayerState* m_player1State = nullptr;

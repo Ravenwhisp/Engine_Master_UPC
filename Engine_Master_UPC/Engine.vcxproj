@@ -318,7 +318,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DataContainer.h" />
     <ClInclude Include="DataContainerExporter.h" />
     <ClInclude Include="GenericTypeFactory.h" />
-    <ClInclude Include="DataContainerFieldMacros.h" />
     <ClInclude Include="DataContainerAPI.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="DescriptorHeapBlock.h" />
@@ -401,8 +400,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
-    <ClInclude Include="ScriptComponentRef.h" />
-    <ClInclude Include="ScriptDataContainerRef.h" />
+    <ClInclude Include="ComponentRef.h" />
+    <ClInclude Include="DataContainerRef.h" />
     <ClInclude Include="FieldHandler.h" />
     <ClInclude Include="FieldHandlerRegistry.h" />
     <ClInclude Include="FieldInfo.h" />

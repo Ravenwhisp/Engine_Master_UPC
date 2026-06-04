@@ -47,7 +47,7 @@ private:
     Vector3 m_aimDirection           = { 0.0f, 0.0f, 0.0f };
 
 private:
-    ScriptComponentRef<Transform> m_ChargedAttackUI;
+    ComponentRef<Transform> m_ChargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;
 
     Transform* m_deathSlashUITransform = nullptr;
