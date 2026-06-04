@@ -412,6 +412,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SceneReferenceResolver.h" />
     <ClInclude Include="FieldMacros.h" />
     <ClInclude Include="FieldTypeTraits.h" />
+    <ClInclude Include="FieldUtils.h" />
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="Skin.h" />
@@ -790,6 +791,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="FieldHandler_List.cpp" />
     <ClCompile Include="FieldHandler_String.cpp" />
     <ClCompile Include="FieldHandler_Vec3.cpp" />
+    <ClCompile Include="FieldUtils.cpp" />
     <ClCompile Include="Skin.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="ParticleModule.cpp" />

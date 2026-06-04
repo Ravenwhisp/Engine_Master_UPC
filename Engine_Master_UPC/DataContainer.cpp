@@ -2,6 +2,7 @@
 #include "DataContainer.h"
 #include "Application.h"
 #include "ModuleAssets.h"
+#include "FieldUtils.h"
 
 #include <string>
 
@@ -14,11 +15,7 @@ rapidjson::Value DataContainer::getJson(rapidjson::Document::AllocatorType& allo
 		obj.AddMember("_typeName", rapidjson::Value(getTypeName(), allocator), allocator);
 
 		rapidjson::Document tempDoc(&allocator);
-		const char* base = reinterpret_cast<const char*>(this);
-		for (const auto& field : fields.fields)
-		{
-			field.handler->serialize(field, base + field.offset, obj, tempDoc);
-		}
+		FieldUtils::serialize(*this, reinterpret_cast<const char*>(this), obj, tempDoc);
 		return obj;
 	}
 
@@ -37,14 +34,7 @@ bool DataContainer::deserializeJson(const rapidjson::Value& obj)
 	FieldList fields = getExposedFields();
 	if (!fields.fields.empty())
 	{
-		char* base = reinterpret_cast<char*>(this);
-		for (const auto& field : fields.fields)
-		{
-			if (obj.HasMember(field.name))
-			{
-				field.handler->deserialize(field, base + field.offset, obj[field.name]);
-			}
-		}
+		FieldUtils::deserialize(*this, reinterpret_cast<char*>(this), obj);
 	}
 
 	return true;
@@ -73,12 +63,7 @@ void DataContainer::drawUI()
 	FieldList fields = getExposedFields();
 	if (!fields.fields.empty())
 	{
-		char* base = reinterpret_cast<char*>(this);
-		for (const FieldInfo& field : fields.fields)
-		{
-			void* data = base + field.offset;
-			field.handler->drawUi(field, data, *this);
-		}
+		FieldUtils::drawUi(*this, reinterpret_cast<char*>(this));
 		return;
 	}
 

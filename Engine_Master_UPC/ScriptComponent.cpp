@@ -3,6 +3,7 @@
 #include "Script.h"
 #include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
+#include "FieldUtils.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -112,37 +113,7 @@ void ScriptComponent::debugDraw()
 
 void ScriptComponent::drawScriptFieldsUi(Script& script)
 {
-    FieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    bool currentGroupOpen = true;
-
-    for (const FieldInfo& field : fieldList.fields)
-    {
-        if (field.type == FieldType::GroupCollapseBegin)
-        {
-            ImGui::Spacing();
-
-            currentGroupOpen = ImGui::CollapsingHeader(field.name, ImGuiTreeNodeFlags_DefaultOpen);
-            continue;
-        }
-
-        if (field.type == FieldType::GroupCollapseEnd)
-        {
-            currentGroupOpen = true;
-            continue;
-        }
-
-        if (!currentGroupOpen)
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-
-        assert(field.handler != nullptr);
-        field.handler->drawUi(field, data, script);
-    }
+    FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
 
 rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
@@ -169,21 +140,7 @@ rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
 
 void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
 {
-    FieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    for (const FieldInfo& field : fieldList.fields)
-    {
-        if (!field.isDataField())
-        {
-            continue;
-        }
-
-        const void* data = base + field.offset;
-
-        assert(field.handler != nullptr);
-        field.handler->serialize(field, data, outFieldsJson, domTree);
-    }
+    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), outFieldsJson, domTree);
 }
 
 bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
@@ -211,27 +168,7 @@ bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
 
 void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson)
 {
-    FieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    for (const FieldInfo& field : fieldList.fields)
-    {
-        if (!field.isDataField())
-        {
-            continue;
-        }
-
-        if (!fieldsJson.HasMember(field.name))
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-        const rapidjson::Value& valueJson = fieldsJson[field.name];
-
-        assert(field.handler != nullptr);
-        field.handler->deserialize(field, data, valueJson);
-    }
+    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), fieldsJson);
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
@@ -241,21 +178,7 @@ void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
         return;
     }
 
-    FieldList fieldList = m_script->getExposedFields();
-    char* base = reinterpret_cast<char*>(m_script.get());
-
-    for (const FieldInfo& field : fieldList.fields)
-    {
-        if (!field.isDataField())
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-
-        assert(field.handler != nullptr);
-        field.handler->fixReferences(field, data, resolver);
-    }
+    FieldUtils::fixReferences(*m_script, reinterpret_cast<char*>(m_script.get()), resolver);
 
     m_script->onAfterReferencesFixed();
 }
@@ -281,32 +204,5 @@ std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
 
 void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
 {
-    FieldList sourceFields = source.getExposedFields();
-    FieldList targetFields = target.getExposedFields();
-
-    const size_t count = std::min(sourceFields.fields.size(), targetFields.fields.size());
-
-    const char* sourceBase = reinterpret_cast<const char*>(&source);
-    char* targetBase = reinterpret_cast<char*>(&target);
-
-    for (size_t i = 0; i < count; ++i)
-    {
-        const FieldInfo& sourceField = sourceFields.fields[i];
-        const FieldInfo& targetField = targetFields.fields[i];
-
-        if (!sourceField.isDataField() || !targetField.isDataField())
-        {
-            continue;
-        }
-
-        assert(sourceField.handler == targetField.handler);
-
-        const void* sourceData = sourceBase + sourceField.offset;
-        void* targetData = targetBase + targetField.offset;
-
-        assert(sourceField.handler != nullptr);
-        assert(targetField.handler != nullptr);
-
-        sourceField.handler->clone(sourceField, sourceData, targetData);
-    }
+    FieldUtils::clone(source, reinterpret_cast<const char*>(&source), target, reinterpret_cast<char*>(&target));
 }

@@ -422,6 +422,9 @@
     <ClCompile Include="FieldHandler_Vec3.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="FieldUtils.cpp">
+      <Filter>Core\Scripting</Filter>
+    </ClCompile>
     <ClCompile Include="FieldHandler_String.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
@@ -1177,6 +1180,9 @@
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="FieldTypeTraits.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="FieldUtils.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="DataContainerFieldMacros.h">
