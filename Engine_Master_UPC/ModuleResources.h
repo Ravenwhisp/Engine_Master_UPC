@@ -55,6 +55,7 @@ public:
 
 
 	Texture* createDepthBuffer(float width, float height);
+	Texture* createShadowMap(uint32_t size);
 	Texture* createRenderTexture(float width, float height);
 	RenderSurface* createRenderSurface(float width, float height);
 	static constexpr const char* NULL_TEXTURE_HASH = "__NULL_TEXTURE__";
