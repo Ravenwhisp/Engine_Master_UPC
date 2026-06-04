@@ -932,6 +932,9 @@
     <ClInclude Include="ImporterMaterial.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
+    <ClInclude Include="ImporterDataContainer.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
     <ClInclude Include="MeshAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
@@ -1024,6 +1027,18 @@
       <Filter>Core</Filter>
     </ClInclude>
 
+    <ClInclude Include="DataContainer.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="DataContainerAPI.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="DataContainerExporter.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFactory.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
 
     <ClInclude Include="FieldInfo.h">
       <Filter>Core\Scripting</Filter>
@@ -1102,6 +1117,9 @@
     <ClInclude Include="CommandCreateFolder.h">
       <Filter>Core\Commands</Filter>
     </ClInclude>
+    <ClInclude Include="CommandCreateDataContainer.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
     <ClInclude Include="CommandCutItem.h">
       <Filter>Core\Commands</Filter>
     </ClInclude>
@@ -1157,6 +1175,9 @@
     <ClInclude Include="WindowAnimationStateMachine.h">
       <Filter>Editor\Views</Filter>
     </ClInclude>
+    <ClInclude Include="WindowDataContainerManager.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
     <ClInclude Include="OptickProfiler.h">
       <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
@@ -1187,7 +1208,6 @@
     </ClInclude>
     <ClInclude Include="FieldUtils.h">
       <Filter>Core\Scripting</Filter>
-    </ClInclude>
     </ClInclude>
     <ClInclude Include="GenericTypeFactory.h">
       <Filter>Core</Filter>
