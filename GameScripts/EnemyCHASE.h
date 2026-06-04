@@ -16,7 +16,7 @@ public:
 	void OnStateUpdate() override;
 	void OnStateExit() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 private:
 	EnemyController* m_enemyController = nullptr;

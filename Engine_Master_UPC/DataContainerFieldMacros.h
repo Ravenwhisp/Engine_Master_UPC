@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ScriptFieldMacros.h"
+#include "FieldMacros.h"
 
 #define IMPLEMENT_DATACONTAINER_FIELDS(TypeName, ...) \
-	ScriptFieldList getExposedFields() const override \
+	FieldList getExposedFields() const override \
 	{ \
-		using ThisScript = TypeName; \
-		static const ScriptFieldInfo ownFields[] = { __VA_ARGS__ }; \
-		return ScriptFieldList(ownFields, SCRIPT_FIELD_COUNT(ownFields)); \
+		using ThisType = TypeName; \
+		static const FieldInfo ownFields[] = { __VA_ARGS__ }; \
+		return FieldList(ownFields, FIELD_COUNT(ownFields)); \
 	}

@@ -17,7 +17,7 @@ public:
     void ChangeScene(const std::string& sceneName);
     void ToggleControls(bool isOpen);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
     ScriptMethodList getExposedMethods() const override;
 
 public:

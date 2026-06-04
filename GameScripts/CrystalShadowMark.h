@@ -35,6 +35,6 @@ private:
 	GameObject* managerObject = nullptr;
 	PuzzleManagerLVL1* managerScript = nullptr;
 
-ScriptFieldList getExposedFields() const override;
+FieldList getExposedFields() const override;
 };
 

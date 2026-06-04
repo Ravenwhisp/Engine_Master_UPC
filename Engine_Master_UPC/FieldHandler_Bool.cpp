@@ -1,11 +1,11 @@
 #include "Globals.h"
 
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 
 namespace
 {
-    void drawBoolFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawBoolFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
         bool* value = reinterpret_cast<bool*>(data);
 
@@ -15,7 +15,7 @@ namespace
         }
     }
 
-    void serializeBoolField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeBoolField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const bool* value = reinterpret_cast<const bool*>(data);
 
@@ -23,7 +23,7 @@ namespace
         outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
     }
 
-    void deserializeBoolField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeBoolField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsBool())
         {
@@ -34,19 +34,19 @@ namespace
         *value = valueJson.GetBool();
     }
 
-    void cloneBoolField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneBoolField(const FieldInfo&, const void* sourceData, void* targetData)
     {
         *reinterpret_cast<bool*>(targetData) = *reinterpret_cast<const bool*>(sourceData);
     }
 
-    void fixReferencesBoolField(const ScriptFieldInfo&, void*, const SceneReferenceResolver&)
+    void fixReferencesBoolField(const FieldInfo&, void*, const SceneReferenceResolver&)
     {
     }
 
-    const ScriptFieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &deserializeBoolField, &cloneBoolField, &fixReferencesBoolField};
+    const FieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &deserializeBoolField, &cloneBoolField, &fixReferencesBoolField};
 }
 
-const ScriptFieldHandler* getBoolFieldHandler()
+const FieldHandler* getBoolFieldHandler()
 {
     return &boolFieldHandler;
 }

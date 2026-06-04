@@ -12,7 +12,7 @@ public:
     explicit DeathDash(GameObject* owner);
 
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     float m_dashDistance = 5.0f;

@@ -15,7 +15,7 @@ public:
 
     void Start() override;
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     bool hasTriggeredDefeat() const { return m_hasTriggeredDefeat; }
 

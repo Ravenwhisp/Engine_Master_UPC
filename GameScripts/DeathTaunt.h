@@ -14,12 +14,12 @@ public:
     void Start()  override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     ScriptComponentRef<Transform> m_AbilityUI;
 
     void drawGizmo() override;
-    void onFieldEdited(const ScriptFieldInfo& field) override;
+    void onFieldEdited(const FieldInfo& field) override;
 
 public:
     float m_tauntDuration = 2.0f;

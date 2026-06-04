@@ -22,7 +22,7 @@ public:
 	void drawGizmo() override;
 	void Update() override; // for Debug-testing only
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	int m_enemyType = static_cast<int>(NavAgentProfile::EnemyGround);

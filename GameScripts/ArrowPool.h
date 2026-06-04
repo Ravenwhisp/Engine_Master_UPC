@@ -17,7 +17,7 @@ public:
     LyrielArrowProjectile* acquireArrow();
     void releaseArrow(LyrielArrowProjectile* arrow);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     bool createArrow();

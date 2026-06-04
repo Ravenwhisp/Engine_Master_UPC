@@ -19,7 +19,7 @@ public:
         ACTIVE
     };
     
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     float a_duration = 2.0;
 	float p_duration = 1.0;

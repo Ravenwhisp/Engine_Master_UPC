@@ -1,11 +1,11 @@
 #include "Globals.h"
 
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 
 namespace
 {
-    void drawIntFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawIntFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
         int* value = reinterpret_cast<int*>(data);
 
@@ -15,7 +15,7 @@ namespace
         }
     }
 
-    void serializeIntField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeIntField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const int* value = reinterpret_cast<const int*>(data);
 
@@ -23,7 +23,7 @@ namespace
         outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
     }
 
-    void deserializeIntField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeIntField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsInt())
         {
@@ -34,19 +34,19 @@ namespace
         *value = valueJson.GetInt();
     }
 
-    void cloneIntField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneIntField(const FieldInfo&, const void* sourceData, void* targetData)
     {
         *reinterpret_cast<int*>(targetData) = *reinterpret_cast<const int*>(sourceData);
     }
 
-    void fixReferencesIntField(const ScriptFieldInfo&, void*, const SceneReferenceResolver&)
+    void fixReferencesIntField(const FieldInfo&, void*, const SceneReferenceResolver&)
     {
     }
 
-    const ScriptFieldHandler intFieldHandler = {&drawIntFieldUi, &serializeIntField, &deserializeIntField, &cloneIntField, &fixReferencesIntField};
+    const FieldHandler intFieldHandler = {&drawIntFieldUi, &serializeIntField, &deserializeIntField, &cloneIntField, &fixReferencesIntField};
 }
 
-const ScriptFieldHandler* getIntFieldHandler()
+const FieldHandler* getIntFieldHandler()
 {
     return &intFieldHandler;
 }

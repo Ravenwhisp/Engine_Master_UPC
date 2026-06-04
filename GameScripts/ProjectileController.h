@@ -12,7 +12,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     float m_minSpeed = 1; //
     float m_maxSpeed = 5; // m_minSpeed <= m_maxSpeed!

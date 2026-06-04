@@ -20,7 +20,7 @@ public:
 
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     ScriptComponentRef<Transform> m_firstTarget;

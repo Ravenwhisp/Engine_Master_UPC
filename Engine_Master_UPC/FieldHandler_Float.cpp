@@ -1,15 +1,15 @@
 #include "Globals.h"
 
-#include "ScriptFieldInfo.h"
-#include "ScriptFieldHandler.h"
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldInfo.h"
+#include "FieldHandler.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 #include "ScriptComponent.h"
 #include "SceneReferenceResolver.h"
 
 namespace
 {
-    void drawFloatFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawFloatFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
         float* value = reinterpret_cast<float*>(data);
 
@@ -19,7 +19,7 @@ namespace
         }
     }
 
-    void serializeFloatField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeFloatField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const float* value = reinterpret_cast<const float*>(data);
 
@@ -27,7 +27,7 @@ namespace
         outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
     }
 
-    void deserializeFloatField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeFloatField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsNumber())
         {
@@ -38,19 +38,19 @@ namespace
         *value = valueJson.GetFloat();
     }
 
-    void cloneFloatField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneFloatField(const FieldInfo&, const void* sourceData, void* targetData)
     {
         *reinterpret_cast<float*>(targetData) = *reinterpret_cast<const float*>(sourceData);
     }
 
-    void fixReferencesFloatField(const ScriptFieldInfo&, void*, const SceneReferenceResolver&)
+    void fixReferencesFloatField(const FieldInfo&, void*, const SceneReferenceResolver&)
     {
     }
 
-    const ScriptFieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &deserializeFloatField, &cloneFloatField, &fixReferencesFloatField};
+    const FieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &deserializeFloatField, &cloneFloatField, &fixReferencesFloatField};
 }
 
-const ScriptFieldHandler* getFloatFieldHandler()
+const FieldHandler* getFloatFieldHandler()
 {
     return &floatFieldHandler;
 }

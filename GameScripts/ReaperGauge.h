@@ -18,7 +18,7 @@ public:
     void drawGizmo() override;
     void updateUI();
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void  onMarkExploited();
     void  consume();

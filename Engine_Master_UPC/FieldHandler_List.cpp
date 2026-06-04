@@ -1,6 +1,6 @@
 #include "Globals.h"
 
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 #include "ScriptComponentRef.h"
 #include "SceneReferenceResolver.h"
@@ -109,10 +109,10 @@ namespace
     // --- Generic list handler templates ---
 
     template<typename T>
-    void drawListFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent& owner)
+    void drawListFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent& owner)
     {
         auto* vec = reinterpret_cast<std::vector<T>*>(data);
-        const ScriptFieldHandler* elemHandler = field.listInfo.elementHandler;
+        const FieldHandler* elemHandler = field.listInfo.elementHandler;
 
         std::string headerLabel = std::string(field.name) + " (" + std::to_string(vec->size()) + ")";
         ImGui::Text("%s", headerLabel.c_str());
@@ -126,7 +126,7 @@ namespace
             char elementLabel[64];
             snprintf(elementLabel, sizeof(elementLabel), "[%zu]", i);
 
-            ScriptFieldInfo elementField = field;
+            FieldInfo elementField = field;
             elementField.name = elementLabel;
             elementField.type = field.listInfo.elementType;
             elementField.handler = elemHandler;
@@ -172,7 +172,7 @@ namespace
     }
 
     template<typename T>
-    void serializeListField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeListField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
 
@@ -188,7 +188,7 @@ namespace
     }
 
     template<typename T>
-    void deserializeListField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeListField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsArray())
         {
@@ -208,11 +208,11 @@ namespace
     }
 
     template<typename T>
-    void cloneListField(const ScriptFieldInfo& field, const void* sourceData, void* targetData)
+    void cloneListField(const FieldInfo& field, const void* sourceData, void* targetData)
     {
         const auto* sourceVec = reinterpret_cast<const std::vector<T>*>(sourceData);
         auto* targetVec = reinterpret_cast<std::vector<T>*>(targetData);
-        const ScriptFieldHandler* elemHandler = field.listInfo.elementHandler;
+        const FieldHandler* elemHandler = field.listInfo.elementHandler;
 
         targetVec->clear();
         targetVec->reserve(sourceVec->size());
@@ -226,10 +226,10 @@ namespace
     }
 
     template<typename T>
-    void fixReferencesListField(const ScriptFieldInfo& field, void* data, const SceneReferenceResolver& resolver)
+    void fixReferencesListField(const FieldInfo& field, void* data, const SceneReferenceResolver& resolver)
     {
         auto* vec = reinterpret_cast<std::vector<T>*>(data);
-        const ScriptFieldHandler* elemHandler = field.listInfo.elementHandler;
+        const FieldHandler* elemHandler = field.listInfo.elementHandler;
 
         for (size_t i = 0; i < vec->size(); ++i)
         {
@@ -241,7 +241,7 @@ namespace
 
     // --- Template instantiations for each supported element type ---
 
-    const ScriptFieldHandler floatListHandler = {
+    const FieldHandler floatListHandler = {
         &drawListFieldUi<float>,
         &serializeListField<float>,
         &deserializeListField<float>,
@@ -249,7 +249,7 @@ namespace
         &fixReferencesListField<float>
     };
 
-    const ScriptFieldHandler intListHandler = {
+    const FieldHandler intListHandler = {
         &drawListFieldUi<int>,
         &serializeListField<int>,
         &deserializeListField<int>,
@@ -257,7 +257,7 @@ namespace
         &fixReferencesListField<int>
     };
 
-    const ScriptFieldHandler boolListHandler = {
+    const FieldHandler boolListHandler = {
         &drawListFieldUi<bool>,
         &serializeListField<bool>,
         &deserializeListField<bool>,
@@ -265,7 +265,7 @@ namespace
         &fixReferencesListField<bool>
     };
 
-    const ScriptFieldHandler vec3ListHandler = {
+    const FieldHandler vec3ListHandler = {
         &drawListFieldUi<Vector3>,
         &serializeListField<Vector3>,
         &deserializeListField<Vector3>,
@@ -273,7 +273,7 @@ namespace
         &fixReferencesListField<Vector3>
     };
 
-    const ScriptFieldHandler stringListHandler = {
+    const FieldHandler stringListHandler = {
         &drawListFieldUi<std::string>,
         &serializeListField<std::string>,
         &deserializeListField<std::string>,
@@ -281,7 +281,7 @@ namespace
         &fixReferencesListField<std::string>
     };
 
-    const ScriptFieldHandler enumIntListHandler = {
+    const FieldHandler enumIntListHandler = {
         &drawListFieldUi<int>,
         &serializeListField<int>,
         &deserializeListField<int>,
@@ -289,7 +289,7 @@ namespace
         &fixReferencesListField<int>
     };
 
-    const ScriptFieldHandler componentRefListHandler = {
+    const FieldHandler componentRefListHandler = {
         &drawListFieldUi<ScriptComponentRef<Component>>,
         &serializeListField<ScriptComponentRef<Component>>,
         &deserializeListField<ScriptComponentRef<Component>>,
@@ -298,17 +298,17 @@ namespace
     };
 }
 
-const ScriptFieldHandler* getListFieldHandler(ScriptFieldType elementType)
+const FieldHandler* getListFieldHandler(FieldType elementType)
 {
     switch (elementType)
     {
-        case ScriptFieldType::Float:        return &floatListHandler;
-        case ScriptFieldType::Int:          return &intListHandler;
-        case ScriptFieldType::Bool:         return &boolListHandler;
-        case ScriptFieldType::Vec3:         return &vec3ListHandler;
-        case ScriptFieldType::String:       return &stringListHandler;
-        case ScriptFieldType::EnumInt:      return &enumIntListHandler;
-        case ScriptFieldType::ComponentRef: return &componentRefListHandler;
-        default:                            return nullptr;
+        case FieldType::Float:        return &floatListHandler;
+        case FieldType::Int:          return &intListHandler;
+        case FieldType::Bool:         return &boolListHandler;
+        case FieldType::Vec3:         return &vec3ListHandler;
+        case FieldType::String:       return &stringListHandler;
+        case FieldType::EnumInt:      return &enumIntListHandler;
+        case FieldType::ComponentRef: return &componentRefListHandler;
+        default:                      return nullptr;
     }
 }

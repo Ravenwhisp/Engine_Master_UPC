@@ -5,8 +5,8 @@
 #include "Transform.h"
 
 #include "GenericTypeFactory.h"
-#include "ScriptFieldInfo.h"
-#include "ScriptFieldMacros.h"
+#include "FieldInfo.h"
+#include "FieldMacros.h"
 
 #include "ScriptComponentRef.h"
 #include "ScriptDataContainerRef.h"

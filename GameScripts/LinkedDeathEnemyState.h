@@ -13,7 +13,7 @@ public:
     void OnStateUpdate() override;
     void OnStateExit() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void notifyLinkedDeath();
 

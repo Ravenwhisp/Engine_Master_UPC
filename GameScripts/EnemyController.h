@@ -14,7 +14,7 @@ public:
     void Start() override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     int m_enemyType = static_cast<int>(NavAgentProfile::EnemyGround);

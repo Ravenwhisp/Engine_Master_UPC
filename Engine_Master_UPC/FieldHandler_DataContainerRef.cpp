@@ -1,8 +1,8 @@
 #include "Globals.h"
 
-#include "ScriptFieldInfo.h"
-#include "ScriptFieldHandler.h"
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldInfo.h"
+#include "FieldHandler.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 #include "ScriptDataContainerRef.h"
 
@@ -14,7 +14,7 @@
 
 namespace
 {
-    void drawDataContainerRefFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent& owner)
+    void drawDataContainerRefFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent& owner)
     {
         ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
@@ -69,7 +69,7 @@ namespace
 
         if (ref->dataContainer != nullptr)
         {
-            ScriptFieldList dcFields = ref->dataContainer->getExposedFields();
+            FieldList dcFields = ref->dataContainer->getExposedFields();
             if (!dcFields.fields.empty())
             {
                 ImGui::Spacing();
@@ -82,16 +82,16 @@ namespace
                     char* dcBase = reinterpret_cast<char*>(ref->dataContainer.get());
                     bool currentGroupOpen = true;
 
-                    for (const ScriptFieldInfo& dcField : dcFields.fields)
+                    for (const FieldInfo& dcField : dcFields.fields)
                     {
-                        if (dcField.type == ScriptFieldType::GroupCollapseBegin)
+                        if (dcField.type == FieldType::GroupCollapseBegin)
                         {
                             ImGui::Spacing();
                             currentGroupOpen = ImGui::CollapsingHeader(dcField.name, ImGuiTreeNodeFlags_DefaultOpen);
                             continue;
                         }
 
-                        if (dcField.type == ScriptFieldType::GroupCollapseEnd)
+                        if (dcField.type == FieldType::GroupCollapseEnd)
                         {
                             currentGroupOpen = true;
                             continue;
@@ -117,7 +117,7 @@ namespace
         }
     }
 
-    void serializeDataContainerRefField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeDataContainerRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<const ScriptDataContainerRef<DataContainer>*>(data);
 
@@ -125,7 +125,7 @@ namespace
         outFieldsJson.AddMember(key, static_cast<uint64_t>(ref->uid), domTree.GetAllocator());
     }
 
-    void deserializeDataContainerRefField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeDataContainerRefField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsUint64())
         {
@@ -138,7 +138,7 @@ namespace
         ref->dataContainer = nullptr;
     }
 
-    void cloneDataContainerRefField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneDataContainerRefField(const FieldInfo&, const void* sourceData, void* targetData)
     {
         const ScriptDataContainerRef<DataContainer>* sourceRef = reinterpret_cast<const ScriptDataContainerRef<DataContainer>*>(sourceData);
 
@@ -148,7 +148,7 @@ namespace
         targetRef->dataContainer = nullptr;
     }
 
-    void fixReferencesDataContainerRefField(const ScriptFieldInfo&, void* data, const SceneReferenceResolver&)
+    void fixReferencesDataContainerRefField(const FieldInfo&, void* data, const SceneReferenceResolver&)
     {
         ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
@@ -170,7 +170,7 @@ namespace
         }
     }
 
-    const ScriptFieldHandler dataContainerRefFieldHandler = {
+    const FieldHandler dataContainerRefFieldHandler = {
         &drawDataContainerRefFieldUi,
         &serializeDataContainerRefField,
         &deserializeDataContainerRefField,
@@ -179,7 +179,7 @@ namespace
     };
 }
 
-const ScriptFieldHandler* getDataContainerRefFieldHandler()
+const FieldHandler* getDataContainerRefFieldHandler()
 {
     return &dataContainerRefFieldHandler;
 }

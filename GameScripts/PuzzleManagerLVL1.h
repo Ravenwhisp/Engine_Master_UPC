@@ -39,6 +39,6 @@ private:
 
 	std::unordered_map<int, PuzzleData> m_puzzles;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 };
 

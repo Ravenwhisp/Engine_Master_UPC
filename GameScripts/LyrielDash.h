@@ -13,7 +13,7 @@ public:
     explicit LyrielDash(GameObject* owner);
 
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void recoverCharge();
 

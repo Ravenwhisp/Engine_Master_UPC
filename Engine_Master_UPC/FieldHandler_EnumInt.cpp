@@ -1,11 +1,11 @@
 #include "Globals.h"
 
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 
 namespace
 {
-    void drawEnumIntFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawEnumIntFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
         int* value = reinterpret_cast<int*>(data);
 
@@ -35,7 +35,7 @@ namespace
         }
     }
 
-    void serializeEnumIntField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeEnumIntField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const int* value = reinterpret_cast<const int*>(data);
 
@@ -43,7 +43,7 @@ namespace
         outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
     }
 
-    void deserializeEnumIntField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeEnumIntField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsInt())
         {
@@ -54,19 +54,19 @@ namespace
         *value = valueJson.GetInt();
     }
 
-    void cloneEnumIntField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneEnumIntField(const FieldInfo&, const void* sourceData, void* targetData)
     {
         *reinterpret_cast<int*>(targetData) = *reinterpret_cast<const int*>(sourceData);
     }
 
-    void fixReferencesEnumIntField(const ScriptFieldInfo&, void*, const SceneReferenceResolver&)
+    void fixReferencesEnumIntField(const FieldInfo&, void*, const SceneReferenceResolver&)
     {
     }
 
-    const ScriptFieldHandler enumIntFieldHandler = {&drawEnumIntFieldUi, &serializeEnumIntField, &deserializeEnumIntField, &cloneEnumIntField, &fixReferencesEnumIntField};
+    const FieldHandler enumIntFieldHandler = {&drawEnumIntFieldUi, &serializeEnumIntField, &deserializeEnumIntField, &cloneEnumIntField, &fixReferencesEnumIntField};
 }
 
-const ScriptFieldHandler* getEnumIntFieldHandler()
+const FieldHandler* getEnumIntFieldHandler()
 {
     return &enumIntFieldHandler;
 }

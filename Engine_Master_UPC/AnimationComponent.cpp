@@ -791,45 +791,45 @@ void AnimationComponent::drawStateBehaviourFieldsUi(AnimationStateMachineState& 
 
 void AnimationComponent::drawScriptFieldsUi(Script& script)
 {
-    ScriptFieldList fieldList = script.getExposedFields();
+    FieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (const ScriptFieldInfo& field : fieldList.fields)
+    for (const FieldInfo& field : fieldList.fields)
     {
         void* data = base + field.offset;
         bool changed = false;
 
         switch (field.type)
         {
-        case ScriptFieldType::Float:
+        case FieldType::Float:
         {
             float* value = reinterpret_cast<float*>(data);
             changed = ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max);
             break;
         }
 
-        case ScriptFieldType::Int:
+        case FieldType::Int:
         {
             int* value = reinterpret_cast<int*>(data);
             changed = ImGui::DragInt(field.name, value);
             break;
         }
 
-        case ScriptFieldType::Bool:
+        case FieldType::Bool:
         {
             bool* value = reinterpret_cast<bool*>(data);
             changed = ImGui::Checkbox(field.name, value);
             break;
         }
 
-        case ScriptFieldType::Vec3:
+        case FieldType::Vec3:
         {
             Vector3* value = reinterpret_cast<Vector3*>(data);
             changed = ImGui::DragFloat3(field.name, &value->x, 0.1f);
             break;
         }
 
-        case ScriptFieldType::EnumInt:
+        case FieldType::EnumInt:
         {
             int* value = reinterpret_cast<int*>(data);
 
@@ -861,7 +861,7 @@ void AnimationComponent::drawScriptFieldsUi(Script& script)
             break;
         }
 
-        case ScriptFieldType::String:
+        case FieldType::String:
         {
             std::string* value = reinterpret_cast<std::string*>(data);
 
@@ -877,7 +877,7 @@ void AnimationComponent::drawScriptFieldsUi(Script& script)
             break;
         }
 
-        case ScriptFieldType::ComponentRef:
+        case FieldType::ComponentRef:
         {
             ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
@@ -1640,10 +1640,10 @@ std::string AnimationComponent::serializeScriptFields(const Script& script) cons
     document.SetObject();
     rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
-    ScriptFieldList fieldList = script.getExposedFields();
+    FieldList fieldList = script.getExposedFields();
     const char* base = reinterpret_cast<const char*>(&script);
 
-    for (const ScriptFieldInfo& field : fieldList.fields)
+    for (const FieldInfo& field : fieldList.fields)
     {
         const void* data = base + field.offset;
 
@@ -1651,20 +1651,20 @@ std::string AnimationComponent::serializeScriptFields(const Script& script) cons
 
         switch (field.type)
         {
-        case ScriptFieldType::Float:
+        case FieldType::Float:
             document.AddMember(key, *reinterpret_cast<const float*>(data), allocator);
             break;
 
-        case ScriptFieldType::Int:
-        case ScriptFieldType::EnumInt:
+        case FieldType::Int:
+        case FieldType::EnumInt:
             document.AddMember(key, *reinterpret_cast<const int*>(data), allocator);
             break;
 
-        case ScriptFieldType::Bool:
+        case FieldType::Bool:
             document.AddMember(key, *reinterpret_cast<const bool*>(data), allocator);
             break;
 
-        case ScriptFieldType::Vec3:
+        case FieldType::Vec3:
         {
             const Vector3* value = reinterpret_cast<const Vector3*>(data);
             rapidjson::Value array(rapidjson::kArrayType);
@@ -1675,14 +1675,14 @@ std::string AnimationComponent::serializeScriptFields(const Script& script) cons
             break;
         }
 
-        case ScriptFieldType::String:
+        case FieldType::String:
         {
             const std::string* value = reinterpret_cast<const std::string*>(data);
             document.AddMember(key, rapidjson::Value(value->c_str(), allocator), allocator);
             break;
         }
 
-        case ScriptFieldType::ComponentRef:
+        case FieldType::ComponentRef:
         {
             const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
             document.AddMember(key, static_cast<uint64_t>(componentReference->uid), allocator);
@@ -1713,10 +1713,10 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
         return;
     }
 
-    ScriptFieldList fieldList = script.getExposedFields();
+    FieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
-    for (const ScriptFieldInfo& field : fieldList.fields)
+    for (const FieldInfo& field : fieldList.fields)
     {
         if (!document.HasMember(field.name))
         {
@@ -1728,29 +1728,29 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
 
         switch (field.type)
         {
-        case ScriptFieldType::Float:
+        case FieldType::Float:
             if (valueJson.IsNumber())
             {
                 *reinterpret_cast<float*>(data) = valueJson.GetFloat();
             }
             break;
 
-        case ScriptFieldType::Int:
-        case ScriptFieldType::EnumInt:
+        case FieldType::Int:
+        case FieldType::EnumInt:
             if (valueJson.IsInt())
             {
                 *reinterpret_cast<int*>(data) = valueJson.GetInt();
             }
             break;
 
-        case ScriptFieldType::Bool:
+        case FieldType::Bool:
             if (valueJson.IsBool())
             {
                 *reinterpret_cast<bool*>(data) = valueJson.GetBool();
             }
             break;
 
-        case ScriptFieldType::Vec3:
+        case FieldType::Vec3:
             if (valueJson.IsArray() && valueJson.Size() == 3)
             {
                 Vector3* vector = reinterpret_cast<Vector3*>(data);
@@ -1760,14 +1760,14 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
             }
             break;
 
-        case ScriptFieldType::String:
+        case FieldType::String:
             if (valueJson.IsString())
             {
                 *reinterpret_cast<std::string*>(data) = valueJson.GetString();
             }
             break;
 
-        case ScriptFieldType::ComponentRef:
+        case FieldType::ComponentRef:
             if (valueJson.IsUint64())
             {
                 ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);

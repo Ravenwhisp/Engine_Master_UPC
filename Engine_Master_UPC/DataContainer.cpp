@@ -12,7 +12,7 @@ namespace
 	struct DataContainerScriptDummy : Script
 	{
 		DataContainerScriptDummy() : Script(nullptr) {}
-		void onFieldEdited(const ScriptFieldInfo&) override {}
+		void onFieldEdited(const FieldInfo&) override {}
 	};
 	static DataContainerScriptDummy s_dummyScript;
 
@@ -25,7 +25,7 @@ namespace
 
 rapidjson::Value DataContainer::getJson(rapidjson::Document::AllocatorType& allocator) const
 {
-	ScriptFieldList fields = getExposedFields();
+	FieldList fields = getExposedFields();
 	if (!fields.fields.empty())
 	{
 		rapidjson::Value obj(rapidjson::kObjectType);
@@ -52,7 +52,7 @@ bool DataContainer::deserializeJson(const rapidjson::Value& obj)
 
 	m_data.CopyFrom(obj, m_data.GetAllocator());
 
-	ScriptFieldList fields = getExposedFields();
+	FieldList fields = getExposedFields();
 	if (!fields.fields.empty())
 	{
 		char* base = reinterpret_cast<char*>(this);
@@ -88,11 +88,11 @@ void DataContainer::drawUI()
 	ImGui::Spacing();
 	ImGui::SeparatorText("Properties");
 
-	ScriptFieldList fields = getExposedFields();
+	FieldList fields = getExposedFields();
 	if (!fields.fields.empty())
 	{
 		char* base = reinterpret_cast<char*>(this);
-		for (const ScriptFieldInfo& field : fields.fields)
+		for (const FieldInfo& field : fields.fields)
 		{
 			void* data = base + field.offset;
 			field.handler->drawUi(field, data, s_dummyScript, s_dummyComponent);

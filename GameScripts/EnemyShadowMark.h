@@ -16,7 +16,7 @@ public:
     void Update()    override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void notifyDeathHit();
     bool isExploitable() const { return m_phase == 3; }

@@ -1,6 +1,6 @@
 #pragma once
 #include "Asset.h"
-#include "ScriptFieldInfo.h"
+#include "IFieldContainer.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4251)
@@ -11,7 +11,7 @@
 
 class ImporterDataContainer;
 
-class ENGINE_API DataContainer : public Asset
+class ENGINE_API DataContainer : public Asset, public IFieldContainer
 {
 public:
 	friend class ImporterDataContainer;
@@ -28,11 +28,6 @@ public:
 
 	virtual void syncFromData() {}
 	void drawUI() override;
-
-	virtual ScriptFieldList getExposedFields() const
-	{
-		return {};
-	}
 
 	const rapidjson::Document& getData() const { return m_data; }
 	rapidjson::Document& getDataMutable() { return m_data; }

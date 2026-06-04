@@ -1,11 +1,11 @@
 #include "Globals.h"
 
-#include "ScriptFieldHandlerRegistry.h"
+#include "FieldHandlerRegistry.h"
 #include "Script.h"
 
 namespace
 {
-    void drawVec3FieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawVec3FieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
     {
         Vector3* value = reinterpret_cast<Vector3*>(data);
 
@@ -15,7 +15,7 @@ namespace
         }
     }
 
-    void serializeVec3Field(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeVec3Field(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
         const Vector3* value = reinterpret_cast<const Vector3*>(data);
 
@@ -28,7 +28,7 @@ namespace
         outFieldsJson.AddMember(key, array, domTree.GetAllocator());
     }
 
-    void deserializeVec3Field(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeVec3Field(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsArray() || valueJson.Size() != 3)
         {
@@ -41,19 +41,19 @@ namespace
         value->z = valueJson[2].GetFloat();
     }
 
-    void cloneVec3Field(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneVec3Field(const FieldInfo&, const void* sourceData, void* targetData)
     {
         *reinterpret_cast<Vector3*>(targetData) = *reinterpret_cast<const Vector3*>(sourceData);
     }
 
-    void fixReferencesVec3Field(const ScriptFieldInfo&, void*, const SceneReferenceResolver&)
+    void fixReferencesVec3Field(const FieldInfo&, void*, const SceneReferenceResolver&)
     {
     }
 
-    const ScriptFieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &deserializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
+    const FieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &deserializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
 }
 
-const ScriptFieldHandler* getVec3FieldHandler()
+const FieldHandler* getVec3FieldHandler()
 {
     return &vec3FieldHandler;
 }

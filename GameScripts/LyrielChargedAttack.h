@@ -14,7 +14,7 @@ public:
     void Update() override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     ScriptComponentRef<Transform> m_ChargedAttackUI;
 

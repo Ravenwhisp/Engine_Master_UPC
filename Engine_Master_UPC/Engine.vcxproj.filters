@@ -401,31 +401,31 @@
     <ClCompile Include="TriggerSystem.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_Float.cpp">
+    <ClCompile Include="FieldHandler_Float.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp">
+    <ClCompile Include="FieldHandler_ComponentRef.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp">
+    <ClCompile Include="FieldHandler_ComponentRefList.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_Int.cpp">
+    <ClCompile Include="FieldHandler_Int.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_List.cpp">
+    <ClCompile Include="FieldHandler_List.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_Bool.cpp">
+    <ClCompile Include="FieldHandler_Bool.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_Vec3.cpp">
+    <ClCompile Include="FieldHandler_Vec3.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_String.cpp">
+    <ClCompile Include="FieldHandler_String.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
+    <ClCompile Include="FieldHandler_EnumInt.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
     <ClCompile Include="ModuleHaptics.cpp">
@@ -585,7 +585,7 @@
     </ClCompile>
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
-    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
+    <ClCompile Include="FieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1022,7 +1022,10 @@
     </ClInclude>
 
 
-    <ClInclude Include="ScriptFieldInfo.h">
+    <ClInclude Include="FieldInfo.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="IFieldContainer.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="ScriptComponentRef.h">
@@ -1170,7 +1173,10 @@
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="CanvasRenderMode.h" />
-    <ClInclude Include="ScriptFieldMacros.h">
+    <ClInclude Include="FieldMacros.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="FieldTypeTraits.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="DataContainerFieldMacros.h">
@@ -1236,10 +1242,10 @@
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
     <ClInclude Include="PrefabSerializer.h" />
-    <ClInclude Include="ScriptFieldHandler.h">
+    <ClInclude Include="FieldHandler.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptFieldHandlerRegistry.h">
+    <ClInclude Include="FieldHandlerRegistry.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
     <ClInclude Include="ModuleHaptics.h">
