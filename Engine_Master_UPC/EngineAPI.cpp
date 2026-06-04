@@ -13,7 +13,7 @@
 
 #include "Scene.h"
 #include "Keyboard.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -42,9 +42,14 @@
 
 #include <DetourNavMeshQuery.h>
 
-void registerScript(const char* scriptName, ScriptCreator creator)
+void registerScript(const char* scriptName, ScriptFactory::Creator creator)
 {
-    ScriptFactory::registerScript(scriptName, creator);
+	ScriptFactory::registerType(scriptName, scriptName, creator);
+}
+
+void registerDataContainer(const char* name, const char* displayName, DataContainerFactory::Creator creator)
+{
+	DataContainerFactory::registerType(name, displayName, creator);
 }
 
 namespace GameObjectAPI

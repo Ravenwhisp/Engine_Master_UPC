@@ -14,7 +14,7 @@ public:
 
     ScriptMethodList getExposedMethods() const override;
 
-    void onFieldEdited(const ScriptFieldInfo& field) override;
+    void onFieldEdited(const FieldInfo& field) override;
     void onAfterDeserialize() override;
 
 public:

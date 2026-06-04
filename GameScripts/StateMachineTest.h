@@ -14,7 +14,7 @@ public:
     void OnStateUpdate() override;
     void OnStateExit() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     float m_speed = 5.0f;

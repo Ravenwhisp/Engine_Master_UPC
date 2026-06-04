@@ -12,10 +12,10 @@ public:
 
     void Start() override;
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
-    ScriptComponentRef<UISlider> m_slider;
+    ComponentRef<UISlider> m_slider;
 
     float m_fillSpeed = 0.5f;
     float m_stepAmount = 0.1f;

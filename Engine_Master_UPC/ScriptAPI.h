@@ -4,8 +4,22 @@
 #include "GameObject.h"
 #include "Transform.h"
 
-#include "ScriptAutoRegister.h"
-#include "ScriptFieldInfo.h"
-#include "ScriptFieldMacros.h"
+#include "GenericTypeFactory.h"
+#include "FieldInfo.h"
+#include "FieldMacros.h"
 
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
+#include "DataContainerRef.h"
+
+#define DECLARE_SCRIPT(ScriptType)
+
+#define IMPLEMENT_SCRIPT(ScriptType) \
+	namespace { \
+		static std::unique_ptr<Script> s_create_##ScriptType(GameObject* owner) { \
+			return std::make_unique<ScriptType>(owner); \
+		} \
+		static bool s_registered_##ScriptType = ( \
+			::registerScript(#ScriptType, &s_create_##ScriptType), \
+			true \
+		); \
+	}

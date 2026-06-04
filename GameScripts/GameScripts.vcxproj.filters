@@ -214,6 +214,8 @@
     <ClInclude Include="EnemyChaseState.h" />
     <ClInclude Include="EnemyIdleState.h" />
     <ClInclude Include="EnemyAttackState.h" />
+    <ClInclude Include="BoundConfig.h" />
+    <ClInclude Include="DeathConfig.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

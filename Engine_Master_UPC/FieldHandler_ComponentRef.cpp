@@ -1,10 +1,10 @@
 #include "Globals.h"
 
-#include "ScriptFieldInfo.h"
-#include "ScriptFieldHandler.h"
-#include "ScriptFieldHandlerRegistry.h"
-#include "Script.h"
-#include "ScriptComponentRef.h"
+#include "FieldInfo.h"
+#include "FieldHandler.h"
+#include "FieldHandlerRegistry.h"
+#include "IFieldContainer.h"
+#include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
 
 #include "Application.h"
@@ -15,9 +15,9 @@
 
 namespace
 {
-    void drawComponentRefFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawComponentRefFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
 
         Component* component = componentReference->component;
 
@@ -57,7 +57,7 @@ namespace
                     {
                         componentReference->uid = candidate->getID();
                         componentReference->component = candidate;
-                        script.onFieldEdited(field);
+                        container.onFieldEdited(field);
                     }
                 }
             }
@@ -72,44 +72,44 @@ namespace
         {
             componentReference->uid = 0;
             componentReference->component = nullptr;
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 
-    void serializeComponentRefField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeComponentRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
-        const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
+        const ComponentRef<Component>* componentReference = reinterpret_cast<const ComponentRef<Component>*>(data);
 
         rapidjson::Value key(field.name, domTree.GetAllocator());
         outFieldsJson.AddMember(key, static_cast<uint64_t>(componentReference->uid), domTree.GetAllocator());
     }
 
-    void deserializeComponentRefField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeComponentRefField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
     {
         if (!valueJson.IsUint64())
         {
             return;
         }
 
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
 
         componentReference->uid = static_cast<UID>(valueJson.GetUint64());
         componentReference->component = nullptr;
     }
 
-    void cloneComponentRefField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
+    void cloneComponentRefField(const FieldInfo&, const void* sourceData, void* targetData)
     {
-        const ScriptComponentRef<Component>* sourceRef = reinterpret_cast<const ScriptComponentRef<Component>*>(sourceData);
+        const ComponentRef<Component>* sourceRef = reinterpret_cast<const ComponentRef<Component>*>(sourceData);
 
-        ScriptComponentRef<Component>* targetRef = reinterpret_cast<ScriptComponentRef<Component>*>(targetData);
+        ComponentRef<Component>* targetRef = reinterpret_cast<ComponentRef<Component>*>(targetData);
 
         targetRef->uid = sourceRef->uid;
         targetRef->component = nullptr;
     }
 
-    void fixReferencesComponentRefField(const ScriptFieldInfo& field, void* data, const SceneReferenceResolver& resolver)
+    void fixReferencesComponentRefField(const FieldInfo& field, void* data, const SceneReferenceResolver& resolver)
     {
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
 
         componentReference->component = nullptr;
 
@@ -130,10 +130,10 @@ namespace
         }
     }
 
-    const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &deserializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
+    const FieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &deserializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
 }
 
-const ScriptFieldHandler* getComponentRefFieldHandler()
+const FieldHandler* getComponentRefFieldHandler()
 {
     return &componentRefFieldHandler;
 }

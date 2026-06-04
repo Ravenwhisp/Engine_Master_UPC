@@ -14,6 +14,8 @@
 #include <AssetReference.h>
 #include "FileIO.h"
 #include "Importer.h"
+#include "DataContainer.h"
+#include "GenericTypeFactory.h"
 
 
 class AssetScanner;
@@ -34,6 +36,7 @@ class ImporterAnimationStateMachine;
 class ImporterGltf;
 class ImporterFont;
 class ImporterScene;
+class ImporterDataContainer;
 
 struct ScanFileResult;
 
@@ -191,6 +194,7 @@ public:
     bool createStateMachineFromGltf(const std::filesystem::path& gltfPath);
 
 private:
+    DataContainer* resolveDataContainerType(DataContainer* baseContainer) const;
     UID findUID(const std::filesystem::path& sourcePath) const;
     
     template<typename T>
@@ -238,6 +242,17 @@ private:
             asset->setImportSettings(asset->createDefaultImportSettings());
         }
 
+
+        if (ref.m_type == AssetType::DATA_CONTAINER)
+        {
+            DataContainer* baseDc = static_cast<DataContainer*>(asset.get());
+            DataContainer* derivedDc = resolveDataContainerType(baseDc);
+            if (derivedDc)
+            {
+                asset = std::shared_ptr<Asset>(derivedDc);
+            }
+        }
+
         m_assets.insert(ref.m_uid, asset);
 
         return std::static_pointer_cast<T>(asset);
@@ -263,6 +278,7 @@ private:
     ImporterFont* m_importerFont = nullptr;
     ImporterScene* m_importerScene = nullptr;
     ImporterAnimationStateMachine* m_importerAnimationStateMachine = nullptr;
+    ImporterDataContainer* m_importerDataContainer = nullptr;
 
     std::vector<Importer*> m_importers;
 #pragma endregion

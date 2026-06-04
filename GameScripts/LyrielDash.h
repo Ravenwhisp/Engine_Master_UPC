@@ -13,7 +13,7 @@ public:
     explicit LyrielDash(GameObject* owner);
 
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void recoverCharge();
 
@@ -39,9 +39,9 @@ private:
     int m_currentCharges = 0;
     float m_chargeRecoveryTimer = 0.0f;
     
-    ScriptComponentRef<Transform2D> m_charge1UI;
-    ScriptComponentRef<Transform2D> m_charge2UI;
-    ScriptComponentRef<Transform2D> m_charge3UI;
+    ComponentRef<Transform2D> m_charge1UI;
+    ComponentRef<Transform2D> m_charge2UI;
+    ComponentRef<Transform2D> m_charge3UI;
 
     Transform2D* m_charge1Transform2D = nullptr;
     Transform2D* m_charge2Transform2D = nullptr;

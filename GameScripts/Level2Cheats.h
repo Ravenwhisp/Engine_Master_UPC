@@ -13,7 +13,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void AutoWin();
     void AutoLose();

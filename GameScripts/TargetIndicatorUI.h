@@ -15,11 +15,11 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
-    ScriptComponentRef<Transform> m_playerTransform;
-    ScriptComponentRef<Transform> m_indicatorVisualTransform;
+    ComponentRef<Transform> m_playerTransform;
+    ComponentRef<Transform> m_indicatorVisualTransform;
 
     Vector3 m_positionOffset = Vector3(0.0f, 0.05f, 0.0f);
     float m_followSharpness = 20.0f;

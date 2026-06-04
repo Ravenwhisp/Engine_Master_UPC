@@ -126,7 +126,7 @@ void DeathTaunt::drawGizmo()
     }
 }
 
-void DeathTaunt::onFieldEdited(const ScriptFieldInfo& field)
+void DeathTaunt::onFieldEdited(const FieldInfo& field)
 {
     if (strcmp(field.name, "Cone Range") == 0 || strcmp(field.name, "Cone Angle") == 0)
     {

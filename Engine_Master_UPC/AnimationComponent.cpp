@@ -12,9 +12,10 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "StateMachineScript.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 #include "Script.h"
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
+#include "FieldUtils.h"
 #include "ModuleScene.h"
 #include "Scene.h"
 
@@ -791,163 +792,8 @@ void AnimationComponent::drawStateBehaviourFieldsUi(AnimationStateMachineState& 
 
 void AnimationComponent::drawScriptFieldsUi(Script& script)
 {
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        void* data = base + field.offset;
-        bool changed = false;
-
-        switch (field.type)
-        {
-        case ScriptFieldType::Float:
-        {
-            float* value = reinterpret_cast<float*>(data);
-            changed = ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max);
-            break;
-        }
-
-        case ScriptFieldType::Int:
-        {
-            int* value = reinterpret_cast<int*>(data);
-            changed = ImGui::DragInt(field.name, value);
-            break;
-        }
-
-        case ScriptFieldType::Bool:
-        {
-            bool* value = reinterpret_cast<bool*>(data);
-            changed = ImGui::Checkbox(field.name, value);
-            break;
-        }
-
-        case ScriptFieldType::Vec3:
-        {
-            Vector3* value = reinterpret_cast<Vector3*>(data);
-            changed = ImGui::DragFloat3(field.name, &value->x, 0.1f);
-            break;
-        }
-
-        case ScriptFieldType::EnumInt:
-        {
-            int* value = reinterpret_cast<int*>(data);
-
-            const char* preview = "";
-            if (*value >= 0 && *value < field.enumInfo.count)
-            {
-                preview = field.enumInfo.names[*value];
-            }
-
-            if (ImGui::BeginCombo(field.name, preview))
-            {
-                for (int enumIndex = 0; enumIndex < field.enumInfo.count; ++enumIndex)
-                {
-                    bool selected = (*value == enumIndex);
-                    if (ImGui::Selectable(field.enumInfo.names[enumIndex], selected))
-                    {
-                        *value = enumIndex;
-                        changed = true;
-                    }
-
-                    if (selected)
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-
-                ImGui::EndCombo();
-            }
-            break;
-        }
-
-        case ScriptFieldType::String:
-        {
-            std::string* value = reinterpret_cast<std::string*>(data);
-
-            char buffer[256];
-            std::strncpy(buffer, value->c_str(), sizeof(buffer));
-            buffer[sizeof(buffer) - 1] = '\0';
-
-            if (ImGui::InputText(field.name, buffer, sizeof(buffer)))
-            {
-                *value = buffer;
-                changed = true;
-            }
-            break;
-        }
-
-        case ScriptFieldType::ComponentRef:
-        {
-            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
-
-            Component* component = componentReference->component;
-
-            ImGui::Text("%s", field.name);
-            ImGui::SameLine();
-
-            if (component != nullptr)
-            {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str());
-            }
-            else
-            {
-                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
-            }
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
-                {
-                    GameObject* droppedObject = *(GameObject**)payload->Data;
-                    GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
-
-                    if (sceneObject != nullptr)
-                    {
-                        Component* candidate = nullptr;
-
-                        if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
-                        {
-                            candidate = sceneObject->GetTransform();
-                        }
-                        else
-                        {
-                            candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
-                        }
-
-                        if (candidate != nullptr)
-                        {
-                            componentReference->uid = candidate->getID();
-                            componentReference->component = candidate;
-                            script.onFieldEdited(field);
-                            changed = true;
-                        }
-                    }
-                }
-
-                ImGui::EndDragDropTarget();
-            }
-
-            ImGui::SameLine();
-
-            std::string clearLabel = std::string("Clear###") + field.name;
-            if (ImGui::Button(clearLabel.c_str()))
-            {
-                componentReference->uid = 0;
-                componentReference->component = nullptr;
-                script.onFieldEdited(field);
-                changed = true;
-            }
-            break;
-        }
-        }
-
-        if (changed)
-        {
-            script.onFieldEdited(field);
-            m_stateMachineDirty = true;
-        }
-    }
+    FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
+    m_stateMachineDirty = true;
 }
 void AnimationComponent::debugDrawRecursive(GameObject* go)
 {
@@ -1533,7 +1379,7 @@ StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const Anima
         return existing;
     }
 
-    std::unique_ptr<Script> newScript = ScriptFactory::createScript(state.behaviourScriptName, getOwner());
+    std::unique_ptr<Script> newScript = ScriptFactory::create(state.behaviourScriptName, getOwner());
     if (!newScript)
     {
         return nullptr;
@@ -1638,58 +1484,8 @@ std::string AnimationComponent::serializeScriptFields(const Script& script) cons
 {
     rapidjson::Document document;
     document.SetObject();
-    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
-    ScriptFieldList fieldList = script.getExposedFields();
-    const char* base = reinterpret_cast<const char*>(&script);
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        const void* data = base + field.offset;
-
-        rapidjson::Value key(field.name, allocator);
-
-        switch (field.type)
-        {
-        case ScriptFieldType::Float:
-            document.AddMember(key, *reinterpret_cast<const float*>(data), allocator);
-            break;
-
-        case ScriptFieldType::Int:
-        case ScriptFieldType::EnumInt:
-            document.AddMember(key, *reinterpret_cast<const int*>(data), allocator);
-            break;
-
-        case ScriptFieldType::Bool:
-            document.AddMember(key, *reinterpret_cast<const bool*>(data), allocator);
-            break;
-
-        case ScriptFieldType::Vec3:
-        {
-            const Vector3* value = reinterpret_cast<const Vector3*>(data);
-            rapidjson::Value array(rapidjson::kArrayType);
-            array.PushBack(value->x, allocator);
-            array.PushBack(value->y, allocator);
-            array.PushBack(value->z, allocator);
-            document.AddMember(key, array, allocator);
-            break;
-        }
-
-        case ScriptFieldType::String:
-        {
-            const std::string* value = reinterpret_cast<const std::string*>(data);
-            document.AddMember(key, rapidjson::Value(value->c_str(), allocator), allocator);
-            break;
-        }
-
-        case ScriptFieldType::ComponentRef:
-        {
-            const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
-            document.AddMember(key, static_cast<uint64_t>(componentReference->uid), allocator);
-            break;
-        }
-        }
-    }
+    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), document, document);
 
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -1713,71 +1509,7 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
         return;
     }
 
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        if (!document.HasMember(field.name))
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-        const rapidjson::Value& valueJson = document[field.name];
-
-        switch (field.type)
-        {
-        case ScriptFieldType::Float:
-            if (valueJson.IsNumber())
-            {
-                *reinterpret_cast<float*>(data) = valueJson.GetFloat();
-            }
-            break;
-
-        case ScriptFieldType::Int:
-        case ScriptFieldType::EnumInt:
-            if (valueJson.IsInt())
-            {
-                *reinterpret_cast<int*>(data) = valueJson.GetInt();
-            }
-            break;
-
-        case ScriptFieldType::Bool:
-            if (valueJson.IsBool())
-            {
-                *reinterpret_cast<bool*>(data) = valueJson.GetBool();
-            }
-            break;
-
-        case ScriptFieldType::Vec3:
-            if (valueJson.IsArray() && valueJson.Size() == 3)
-            {
-                Vector3* vector = reinterpret_cast<Vector3*>(data);
-                vector->x = valueJson[0].GetFloat();
-                vector->y = valueJson[1].GetFloat();
-                vector->z = valueJson[2].GetFloat();
-            }
-            break;
-
-        case ScriptFieldType::String:
-            if (valueJson.IsString())
-            {
-                *reinterpret_cast<std::string*>(data) = valueJson.GetString();
-            }
-            break;
-
-        case ScriptFieldType::ComponentRef:
-            if (valueJson.IsUint64())
-            {
-                ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
-                componentReference->uid = static_cast<UID>(valueJson.GetUint64());
-                componentReference->component = nullptr;
-            }
-            break;
-        }
-    }
-
+    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), document);
     script.onAfterDeserialize();
 }
 

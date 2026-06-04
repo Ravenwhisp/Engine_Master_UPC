@@ -6,7 +6,7 @@
 #define ENGINE_API __declspec(dllimport)
 #endif
 
-#include "ScriptCreator.h"
+#include "GenericTypeFactory.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
@@ -37,7 +37,8 @@ enum class QuadtreeTarget : uint8_t
     Both = Dynamic | Static
 };
 
-ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
+ENGINE_API void registerScript(const char* scriptName, ScriptFactory::Creator creator);
+ENGINE_API void registerDataContainer(const char* name, const char* displayName, DataContainerFactory::Creator creator);
 
 namespace GameObjectAPI 
 {

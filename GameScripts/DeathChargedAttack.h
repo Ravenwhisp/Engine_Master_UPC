@@ -13,7 +13,7 @@ public:
     void Update()    override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     float m_chargedAttackDamage   = 40.0f;
@@ -47,7 +47,7 @@ private:
     Vector3 m_aimDirection           = { 0.0f, 0.0f, 0.0f };
 
 private:
-    ScriptComponentRef<Transform> m_ChargedAttackUI;
+    ComponentRef<Transform> m_ChargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;
 
     Transform* m_deathSlashUITransform = nullptr;

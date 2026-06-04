@@ -16,7 +16,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     Transform* getTarget() const { return m_target; }
     bool hasTarget() const { return m_target != nullptr; }
