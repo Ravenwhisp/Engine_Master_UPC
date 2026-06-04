@@ -1,7 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 #include "ScriptComponentRef.h"
 #include "SceneReferenceResolver.h"
 
@@ -13,7 +13,7 @@
 
 namespace
 {
-    void drawComponentRefListFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawComponentRefListFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         ScriptComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
 
@@ -86,7 +86,7 @@ namespace
             if (removeIndex >= 0)
             {
                 componentList->erase(componentList->begin() + removeIndex);
-                script.onFieldEdited(field);
+                container.onFieldEdited(field);
             }
         }
         ImGui::EndChild();
@@ -97,7 +97,7 @@ namespace
             if (!componentList->empty())
             {
                 componentList->clear();
-                script.onFieldEdited(field);
+                container.onFieldEdited(field);
             }
         }
 
@@ -139,7 +139,7 @@ namespace
                             newEntry.component = candidate;
 
                             componentList->push_back(newEntry);
-                            script.onFieldEdited(field);
+                            container.onFieldEdited(field);
                         }
                     }
                 }

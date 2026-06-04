@@ -3,7 +3,7 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 #include "ScriptComponentRef.h"
 #include "SceneReferenceResolver.h"
 
@@ -15,7 +15,7 @@
 
 namespace
 {
-    void drawComponentRefFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawComponentRefFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
 
@@ -57,7 +57,7 @@ namespace
                     {
                         componentReference->uid = candidate->getID();
                         componentReference->component = candidate;
-                        script.onFieldEdited(field);
+                        container.onFieldEdited(field);
                     }
                 }
             }
@@ -72,7 +72,7 @@ namespace
         {
             componentReference->uid = 0;
             componentReference->component = nullptr;
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 

@@ -3,7 +3,7 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 #include "ScriptDataContainerRef.h"
 
 #include "Application.h"
@@ -14,7 +14,7 @@
 
 namespace
 {
-    void drawDataContainerRefFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent& owner)
+    void drawDataContainerRefFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         ScriptDataContainerRef<DataContainer>* ref = reinterpret_cast<ScriptDataContainerRef<DataContainer>*>(data);
 
@@ -44,7 +44,7 @@ namespace
                     {
                         ref->uid = droppedUid;
                         ref->dataContainer = asset;
-                        script.onFieldEdited(field);
+                        container.onFieldEdited(field);
                     }
                     delete assetRef;
                 }
@@ -64,7 +64,7 @@ namespace
         {
             ref->uid = INVALID_UID;
             ref->dataContainer = nullptr;
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
 
         if (ref->dataContainer != nullptr)
@@ -102,7 +102,7 @@ namespace
 
                         void* dcData = dcBase + dcField.offset;
                         assert(dcField.handler != nullptr);
-                        dcField.handler->drawUi(dcField, dcData, script, owner);
+                        dcField.handler->drawUi(dcField, dcData, container);
                     }
 
                     ImGui::Spacing();

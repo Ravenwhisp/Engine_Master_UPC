@@ -1,11 +1,11 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 
 namespace
 {
-    void drawEnumIntFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawEnumIntFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         int* value = reinterpret_cast<int*>(data);
 
@@ -23,7 +23,7 @@ namespace
                 if (ImGui::Selectable(field.enumInfo.names[enumIndex], selected))
                 {
                     *value = enumIndex;
-                    script.onFieldEdited(field);
+                    container.onFieldEdited(field);
                 }
 
                 if (selected)

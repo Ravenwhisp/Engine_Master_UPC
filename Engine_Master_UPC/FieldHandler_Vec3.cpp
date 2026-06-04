@@ -1,17 +1,17 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 
 namespace
 {
-    void drawVec3FieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawVec3FieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         Vector3* value = reinterpret_cast<Vector3*>(data);
 
         if (ImGui::DragFloat3(field.name, &value->x, 0.1f))
         {
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 

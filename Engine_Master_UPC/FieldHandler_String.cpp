@@ -1,11 +1,11 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 
 namespace
 {
-    void drawStringFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawStringFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         std::string* value = reinterpret_cast<std::string*>(data);
 
@@ -16,7 +16,7 @@ namespace
         if (ImGui::InputText(field.name, buffer, sizeof(buffer)))
         {
             *value = buffer;
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 

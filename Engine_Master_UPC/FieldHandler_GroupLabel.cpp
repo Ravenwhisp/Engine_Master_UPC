@@ -1,11 +1,11 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 
 namespace
 {
-    void drawGroupLabelUi(const FieldInfo& field, void*, Script&, ScriptComponent&)
+    void drawGroupLabelUi(const FieldInfo& field, void*, IFieldContainer&)
     {
         ImGui::Spacing();
         ImGui::SeparatorText(field.name);

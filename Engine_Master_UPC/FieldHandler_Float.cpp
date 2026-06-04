@@ -3,19 +3,18 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
-#include "ScriptComponent.h"
+#include "IFieldContainer.h"
 #include "SceneReferenceResolver.h"
 
 namespace
 {
-    void drawFloatFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawFloatFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         float* value = reinterpret_cast<float*>(data);
 
         if (ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max))
         {
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 

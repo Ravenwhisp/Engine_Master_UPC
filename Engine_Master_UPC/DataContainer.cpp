@@ -2,26 +2,8 @@
 #include "DataContainer.h"
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "Script.h"
-#include "ScriptComponent.h"
 
 #include <string>
-
-namespace
-{
-	struct DataContainerScriptDummy : Script
-	{
-		DataContainerScriptDummy() : Script(nullptr) {}
-		void onFieldEdited(const FieldInfo&) override {}
-	};
-	static DataContainerScriptDummy s_dummyScript;
-
-	struct DataContainerComponentDummy : ScriptComponent
-	{
-		DataContainerComponentDummy() : ScriptComponent(0, nullptr) {}
-	};
-	static DataContainerComponentDummy s_dummyComponent;
-}
 
 rapidjson::Value DataContainer::getJson(rapidjson::Document::AllocatorType& allocator) const
 {
@@ -95,7 +77,7 @@ void DataContainer::drawUI()
 		for (const FieldInfo& field : fields.fields)
 		{
 			void* data = base + field.offset;
-			field.handler->drawUi(field, data, s_dummyScript, s_dummyComponent);
+			field.handler->drawUi(field, data, *this);
 		}
 		return;
 	}

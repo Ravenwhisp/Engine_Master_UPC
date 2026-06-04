@@ -141,7 +141,7 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
         void* data = base + field.offset;
 
         assert(field.handler != nullptr);
-        field.handler->drawUi(field, data, script, *this);
+        field.handler->drawUi(field, data, script);
     }
 }
 

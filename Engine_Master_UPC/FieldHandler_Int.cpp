@@ -1,17 +1,17 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 
 namespace
 {
-    void drawIntFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawIntFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         int* value = reinterpret_cast<int*>(data);
 
         if (ImGui::DragInt(field.name, value))
         {
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 

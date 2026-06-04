@@ -1,7 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 #include "ScriptComponentRef.h"
 #include "SceneReferenceResolver.h"
 
@@ -109,7 +109,7 @@ namespace
     // --- Generic list handler templates ---
 
     template<typename T>
-    void drawListFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent& owner)
+    void drawListFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         auto* vec = reinterpret_cast<std::vector<T>*>(data);
         const FieldHandler* elemHandler = field.listInfo.elementHandler;
@@ -132,7 +132,7 @@ namespace
             elementField.handler = elemHandler;
 
             T elemCopy = (*vec)[i];
-            elemHandler->drawUi(elementField, &elemCopy, script, owner);
+            elemHandler->drawUi(elementField, &elemCopy, container);
             (*vec)[i] = elemCopy;
 
             ImGui::SameLine();
@@ -148,14 +148,14 @@ namespace
         if (removeIndex >= 0)
         {
             vec->erase(vec->begin() + removeIndex);
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
 
         std::string addLabel = std::string("+ Add Element##") + field.name;
         if (ImGui::Button(addLabel.c_str()))
         {
             vec->push_back(T{});
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
 
         ImGui::SameLine();
@@ -166,7 +166,7 @@ namespace
             if (!vec->empty())
             {
                 vec->clear();
-                script.onFieldEdited(field);
+                container.onFieldEdited(field);
             }
         }
     }

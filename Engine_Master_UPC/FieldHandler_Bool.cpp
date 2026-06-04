@@ -1,17 +1,17 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "Script.h"
+#include "IFieldContainer.h"
 
 namespace
 {
-    void drawBoolFieldUi(const FieldInfo& field, void* data, Script& script, ScriptComponent&)
+    void drawBoolFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
         bool* value = reinterpret_cast<bool*>(data);
 
         if (ImGui::Checkbox(field.name, value))
         {
-            script.onFieldEdited(field);
+            container.onFieldEdited(field);
         }
     }
 
