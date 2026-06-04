@@ -585,6 +585,8 @@
     <ClCompile Include="EmitterRotation.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
+    <ClCompile Include="TextureImportSettings.cpp" />
+    <ClCompile Include="ImportSettings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1357,6 +1359,11 @@
     <ClInclude Include="UISheet.h" />
     <ClInclude Include="EmitterRotation.h">
       <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="TextureImportSettings.h" />
+    <ClInclude Include="ShadowTypes.h">
+      <Filter>D3D12\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
