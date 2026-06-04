@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "JsonArchive.h"
 
 #include "NavigationAgentComponent.h"
 #include "WaypointPathComponent.h"
@@ -14,6 +15,17 @@ bool NavigationAgentComponent::init()
 {
 	m_running = m_autoStart;
 	return true;
+}
+
+void NavigationAgentComponent::serialize(IArchive& archive)
+{
+    Component::serialize(archive);
+
+	archive.serialize(m_drawPath, "DrawPath");
+	archive.serialize(m_autoStart, "AutoStart");
+	archive.serialize(m_speed, "Speed");
+	archive.serialize(m_turnSpeed, "TurnSpeed");
+	archive.serialize(m_faceMovement, "FaceMovement");
 }
 
 std::unique_ptr<Component> NavigationAgentComponent::clone(GameObject* newOwner) const
@@ -243,53 +255,3 @@ void NavigationAgentComponent::reset()
 	m_path.clear();
 }
 
-rapidjson::Value NavigationAgentComponent::getJSON(rapidjson::Document& domTree)
-{
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVIGATION_AGENT), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-	componentInfo.AddMember("DrawPath", m_drawPath, domTree.GetAllocator());
-	componentInfo.AddMember("AutoStart", m_autoStart, domTree.GetAllocator());
-
-	componentInfo.AddMember("Speed", m_speed, domTree.GetAllocator());
-	componentInfo.AddMember("TurnSpeed", m_turnSpeed, domTree.GetAllocator());
-	componentInfo.AddMember("FaceMovement", m_faceMovement, domTree.GetAllocator());
-
-	return componentInfo;
-}
-
-bool NavigationAgentComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-	if (componentInfo.HasMember("DrawPath")) 
-	{
-		m_drawPath = componentInfo["DrawPath"].GetBool();
-	}
-		
-	if (componentInfo.HasMember("AutoStart")) 
-	{
-		m_autoStart = componentInfo["AutoStart"].GetBool();
-	}
-		
-	m_running = m_autoStart;
-
-	if (componentInfo.HasMember("Speed")) 
-	{
-		m_speed = componentInfo["Speed"].GetFloat();
-	}
-		
-	if (componentInfo.HasMember("TurnSpeed")) 
-	{
-		m_turnSpeed = componentInfo["TurnSpeed"].GetFloat();
-	}
-		
-	if (componentInfo.HasMember("FaceMovement")) 
-	{
-		m_faceMovement = componentInfo["FaceMovement"].GetBool();
-	}
-
-		
-
-	return true;
-}

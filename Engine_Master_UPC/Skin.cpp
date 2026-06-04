@@ -116,15 +116,25 @@ std::unique_ptr<Skin> Skin::clone() const
 void Skin::lateUpdate(GameObject* owner, MeshRenderer& renderer)
 {
     if (!m_skinAsset.isValid())
+    {
+        DEBUG_LOG("[Skin] lateUpdate: m_skinAsset invalid (uid=%llu, libId='%s')",
+            m_skinAsset.m_uid, m_skinAsset.m_libId.c_str());
         return;
+    }
 
     if (!ensureSkinLoaded())
+    {
+        DEBUG_LOG("[Skin] lateUpdate: ensureSkinLoaded failed");
         return;
+    }
 
     if (!m_skinBindingsResolved)
     {
         if (!resolveSkinBindings(owner))
+        {
+            DEBUG_LOG("[Skin] lateUpdate: resolveSkinBindings returned false");
             return;
+        }
     }
 
     rebuildMatrixPalette();
@@ -180,14 +190,24 @@ void Skin::drawUi()
 bool Skin::ensureSkinLoaded()
 {
     if (!m_skinAsset.isValid())
+    {
+        DEBUG_LOG("[Skin] ensureSkinLoaded: m_skinAsset invalid (uid=%llu, libId='%s')",
+            m_skinAsset.m_uid, m_skinAsset.m_libId.c_str());
         return false;
+    }
 
     if (m_skin)
+    {
+        DEBUG_LOG("[Skin] ensureSkinLoaded: already loaded (%zu joints)", m_skin->getJoints().size());
         return true;
+    }
 
     ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
     if (!moduleAssets)
+    {
+        DEBUG_LOG("[Skin] ensureSkinLoaded: no ModuleAssets");
         return false;
+    }
 
     std::shared_ptr<SkinAsset> skinAsset = moduleAssets->load<SkinAsset>(m_skinAsset);
     if (!skinAsset)
@@ -199,19 +219,38 @@ bool Skin::ensureSkinLoaded()
     m_skin = skinAsset;
     m_skinBindingsResolved = false;
 
+    DEBUG_LOG("[Skin] ensureSkinLoaded: loaded '%s' with %zu joints",
+        m_skin->getName().c_str(), m_skin->getJoints().size());
     return true;
 }
 
 bool Skin::resolveSkinBindings(GameObject* owner)
 {
     if (!owner || !m_skin)
+    {
+        DEBUG_LOG("[Skin] resolveSkinBindings: owner=%p m_skin=%p", (void*)owner, (void*)m_skin.get());
         return false;
+    }
 
     GameObject* root = FindHierarchyRoot(owner);
     if (!root)
+    {
+        DEBUG_LOG("[Skin] resolveSkinBindings: FindHierarchyRoot returned null for '%s'", owner->GetName().c_str());
+        // Walk up manually for debug
+        GameObject* cur = owner;
+        while (cur)
+        {
+            DEBUG_LOG("  -> parent: '%s'", cur->GetName().c_str());
+            auto* t = cur->GetTransform();
+            auto* r = t ? t->getRoot() : nullptr;
+            cur = r ? r->getOwner() : nullptr;
+        }
         return false;
+    }
 
     const auto& joints = m_skin->getJoints();
+    DEBUG_LOG("[Skin] resolveSkinBindings: root='%s', %zu joints to resolve",
+        root->GetName().c_str(), joints.size());
 
     m_jointTransforms.clear();
     m_jointTransforms.reserve(joints.size());
@@ -221,9 +260,10 @@ bool Skin::resolveSkinBindings(GameObject* owner)
         GameObject* jointGo = FindByNameRecursive(root, joint.nodeName);
         if (!jointGo || !jointGo->GetTransform())
         {
-            DEBUG_WARN("[Skin] Joint '%s' not found while resolving skin '%s'.",
+            DEBUG_WARN("[Skin] Joint '%s' not found while resolving skin '%s' (root='%s').",
                 joint.nodeName.c_str(),
-                m_skin->getName().c_str());
+                m_skin->getName().c_str(),
+                root->GetName().c_str());
 
             m_jointTransforms.clear();
             m_skinBindingsResolved = false;
@@ -234,6 +274,7 @@ bool Skin::resolveSkinBindings(GameObject* owner)
     }
 
     m_skinBindingsResolved = true;
+    DEBUG_LOG("[Skin] resolveSkinBindings: success, %zu joints resolved", m_jointTransforms.size());
     return true;
 }
 

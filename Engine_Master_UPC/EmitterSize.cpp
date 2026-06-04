@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "EmitterSize.h"
+#include "JsonArchive.h"
 
 //#include "GameObject.h"
 //#include "Transform.h"
@@ -72,46 +73,23 @@ bool EmitterSize::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterSize::getJSON(rapidjson::Document& domTree)
+void EmitterSize::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+    ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::SIZE), domTree.GetAllocator());
+    DirectX::SimpleMath::Vector3 startScale(m_startScale.x, m_startScale.y, 0.0f);
+    archive.serialize(startScale, "StartScale");
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_startScale.x = startScale.x;
+        m_startScale.y = startScale.y;
+    }
 
-	{
-		rapidjson::Value scaleData(rapidjson::kArrayType);
-
-		scaleData.PushBack(m_startScale.x, domTree.GetAllocator());
-		scaleData.PushBack(m_startScale.y, domTree.GetAllocator());
-
-		moduleInfo.AddMember("StartScale", scaleData, domTree.GetAllocator());
-	}
-
-	{
-		rapidjson::Value scaleData(rapidjson::kArrayType);
-
-		scaleData.PushBack(m_endScale.x, domTree.GetAllocator());
-		scaleData.PushBack(m_endScale.y, domTree.GetAllocator());
-
-		moduleInfo.AddMember("EndScale", scaleData, domTree.GetAllocator());
-	}
-
-	return moduleInfo;
-}
-
-bool EmitterSize::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartScale"))
-	{
-		const auto& scale = moduleInfo["StartScale"].GetArray();
-		m_startScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-	}
-
-	if (moduleInfo.HasMember("EndScale"))
-	{
-		const auto& scale = moduleInfo["EndScale"].GetArray();
-		m_endScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-	}
-
-	return true;
+    DirectX::SimpleMath::Vector3 endScale(m_endScale.x, m_endScale.y, 0.0f);
+    archive.serialize(endScale, "EndScale");
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_endScale.x = endScale.x;
+        m_endScale.y = endScale.y;
+    }
 }

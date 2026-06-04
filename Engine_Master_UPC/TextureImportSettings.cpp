@@ -13,7 +13,7 @@
 #include <string>
 #include <string_view>
 
-static const char* TextureImportFormatToString(TextureImportFormat fmt)
+static const char* TextureImportFormatToDisplayString(TextureImportFormat fmt)
 {
     switch (fmt)
     {
@@ -29,21 +29,12 @@ static const char* TextureImportFormatToString(TextureImportFormat fmt)
     }
 }
 
-void TextureImportSettings::save(rapidjson::Value& obj, rapidjson::Document::AllocatorType& allocator) const
+void TextureImportSettings::serialize(IArchive& archive)
 {
-    obj.AddMember("targetFormat", static_cast<uint32_t>(targetFormat), allocator);
-    obj.AddMember("generateMips", generateMips, allocator);
-    obj.AddMember("srgb", srgb, allocator);
-}
+    archive.serializeStringEnum(targetFormat, "targetFormat", TextureImportFormatToString, StringToTextureImportFormat);
 
-void TextureImportSettings::load(const rapidjson::Value& obj)
-{
-    if (obj.HasMember("targetFormat") && obj["targetFormat"].IsUint())
-        targetFormat = static_cast<TextureImportFormat>(obj["targetFormat"].GetUint());
-    if (obj.HasMember("generateMips") && obj["generateMips"].IsBool())
-        generateMips = obj["generateMips"].GetBool();
-    if (obj.HasMember("srgb") && obj["srgb"].IsBool())
-        srgb = obj["srgb"].GetBool();
+    archive.serialize(generateMips, "generateMips");
+    archive.serialize(srgb, "srgb");
 }
 
 std::unique_ptr<ImportSettings> TextureImportSettings::clone() const
@@ -57,14 +48,14 @@ std::unique_ptr<ImportSettings> TextureImportSettings::clone() const
 
 void TextureImportSettings::drawUI()
 {
-    const char* preview = TextureImportFormatToString(targetFormat);
+    const char* preview = TextureImportFormatToDisplayString(targetFormat);
     if (ImGui::BeginCombo("Format", preview))
     {
         for (uint32_t i = 0; i <= static_cast<uint32_t>(TextureImportFormat::BC7_UNORM_SRGB); ++i)
         {
             auto fmt = static_cast<TextureImportFormat>(i);
             bool isSelected = (targetFormat == fmt);
-            if (ImGui::Selectable(TextureImportFormatToString(fmt), isSelected))
+            if (ImGui::Selectable(TextureImportFormatToDisplayString(fmt), isSelected))
                 targetFormat = fmt;
             if (isSelected)
                 ImGui::SetItemDefaultFocus();

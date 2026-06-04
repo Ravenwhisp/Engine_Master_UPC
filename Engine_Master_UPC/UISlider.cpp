@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "UISlider.h"
+#include "JsonArchive.h"
 
 #include <imgui.h>
 #include "UIImage.h"
@@ -163,45 +164,13 @@ void UISlider::drawUi()
     }
 }
 
-rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
+void UISlider::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::UISLIDER), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    archive.serialize(m_fillAmount, "FillAmount");
 
-    componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
-    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
-    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
+    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
 
-    return componentInfo;
-}
-
-bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("FillAmount"))
-        m_fillAmount = componentInfo["FillAmount"].GetFloat();
-
-    if (componentInfo.HasMember("FillMethod"))
-        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
-
-    if (componentInfo.HasMember("FillOrigin"))
-    {
-        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
-    }
-    else if (componentInfo.HasMember("Clockwise"))
-    {
-        const auto& clockwiseValue = componentInfo["Clockwise"];
-        if (clockwiseValue.IsBool())
-        {
-            m_fillOrigin = clockwiseValue.GetBool() ? FillOrigin::Radial360Clockwise : FillOrigin::Radial360CounterClockwise;
-        }
-        else if (clockwiseValue.IsInt())
-        {
-            m_fillOrigin = static_cast<FillOrigin>(clockwiseValue.GetInt());
-        }
-    }
-
-    return true;
+    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
 }

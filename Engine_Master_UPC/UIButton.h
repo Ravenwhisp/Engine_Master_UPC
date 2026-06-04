@@ -79,9 +79,8 @@ public:
 
 #pragma region Serialization
 	void SerializeBindings(const std::vector<UIButton::ButtonEventBinding>& bindings, rapidjson::Value& array, rapidjson::Document& doc);
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
 	void DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings);
-	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+	void serialize(IArchive& archive) override;
 	void ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver);
 	void fixReferences(const SceneReferenceResolver& resolver) override;
 #pragma endregion

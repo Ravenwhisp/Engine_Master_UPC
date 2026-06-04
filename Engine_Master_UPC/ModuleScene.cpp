@@ -10,7 +10,7 @@
 
 #include "Scene.h"
 #include "Quadtree.h"
-#include "SceneSerializer.h"
+#include "JsonArchive.h"
 #include "SceneSnapshot.h"
 
 #include "GameObject.h"
@@ -23,7 +23,6 @@
 
 ModuleScene::ModuleScene()
 {
-    m_sceneSerializer = std::make_unique<SceneSerializer>();
     AssetReference defaultSceneRef;
     m_scene = std::make_unique<Scene>(defaultSceneRef);
     m_staticQuadtree = std::make_unique<Quadtree>();
@@ -81,8 +80,6 @@ bool ModuleScene::cleanUp()
     m_scene.reset();
     m_staticQuadtree.reset();
     m_dynamicQuadtree.reset();
-    m_sceneSerializer.reset();
-
     return true;
 }
 #pragma endregion
@@ -132,6 +129,12 @@ void ModuleScene::rebuildComponentCaches()
     }
 
     m_scene->clearDirty();
+
+    DEBUG_LOG("[ModuleScene] Cache rebuild: %zu GOs, %zu MeshRenderers, %zu Lights, %zu Scripts",
+              m_scene->getAllGameObjects().size(),
+              m_meshRenderers.size(),
+              m_lightComponents.size(),
+              m_scriptComponents.size());
 }
 
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
@@ -213,18 +216,23 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     clearComponentCaches();
     m_scene->unloadSoundBanks();
 
-    auto newScene = m_sceneSerializer->LoadScene(sceneName);
+    std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
-    if (!newScene)
+    JsonArchive archive(ArchiveMode::Input);
+    if (!archive.loadFile(path))
     {
-        DEBUG_ERROR("[ModuleScene] Failed to load scene: %s", sceneName.c_str());
+        DEBUG_ERROR("[ModuleScene] Failed to load scene file: %s", path.c_str());
         return false;
     }
 
-    m_scene = std::move(newScene);
-    m_scene->setName(sceneName.c_str());
-    m_scene->initLoadedObjects();
+    AssetReference ref(GenerateUID());
+    auto newScene = std::make_unique<Scene>(ref);
+    newScene->serialize(archive);
+    newScene->setName(sceneName.c_str());
+    newScene->FixReferences();
+    newScene->initLoadedObjects();
 
+    m_scene = std::move(newScene);
     m_scene->markDirty();
 
     m_staticQuadtree = std::make_unique<Quadtree>();

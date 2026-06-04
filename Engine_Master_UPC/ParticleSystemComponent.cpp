@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ParticleSystemComponent.h"
+#include "JsonArchive.h"
 
 #include <imgui.h>
 
@@ -149,55 +150,35 @@ void ParticleSystemComponent::update()
     m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position
 }
 
-rapidjson::Value ParticleSystemComponent::getJSON(rapidjson::Document& domTree)
+void ParticleSystemComponent::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::PARTICLE_SYSTEM), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    archive.beginObject("TextureAssetId");
+    m_textureAsset.serialize(archive);
+    archive.endObject();
 
-    // Should go on the Emitter class? (or at least have an array of texture assets, one per emitter, in the future)
-    componentInfo.AddMember("TextureAssetId", m_textureAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-
-
-    rapidjson::Value emitterData(rapidjson::kArrayType);
-    for (auto& emitter : m_particleSystem->getEmitters())
+    uint32_t emitterCount = m_particleSystem ? static_cast<uint32_t>(m_particleSystem->getEmitters().size()) : 0;
+    archive.beginArray(emitterCount, "Emitters");
+    if (archive.mode() == ArchiveMode::Input && emitterCount > 0)
     {
-        emitterData.PushBack(emitter.getJSON(domTree), domTree.GetAllocator());
+        m_particleSystem.reset(new ParticleSystem(emitterCount));
+        m_particlesState.clear();
+        m_particlesState.reserve(emitterCount);
     }
 
-    componentInfo.AddMember("ParticleEmitters", emitterData, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool ParticleSystemComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("TextureAssetId"))
+    for (uint32_t i = 0; i < emitterCount; ++i)
     {
-        m_textureAsset.deserializeJson(componentInfo["TextureAssetId"]);
+        archive.beginObject();
+        m_particleSystem->getEmitters()[i].serialize(archive);
+        archive.endObject();
+
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            m_particlesState.push_back(EmitterInstance(&m_particleSystem->getEmitters()[i], this));
+        }
     }
-
-    // Emitters and instances set up //
-    if (!componentInfo.HasMember("ParticleEmitters")) return false;
-
-    const rapidjson::Value& emittersInfo = componentInfo["ParticleEmitters"];
-
-    m_particleSystem.reset(new ParticleSystem(emittersInfo.Size()));
-
-    auto& emitters = m_particleSystem->getEmitters();
-    m_particlesState.clear();
-    m_particlesState.reserve(emitters.size());
-
-    for (unsigned int i = 0; i < emitters.size(); ++i)
-    {
-        emitters[i].deserializeJSON(emittersInfo[i]);
-
-        m_particlesState.push_back(EmitterInstance(&emitters[i], this));
-    }
-
-    return true;
+    archive.endArray();
 }
 
 void ParticleSystemComponent::debugDraw()

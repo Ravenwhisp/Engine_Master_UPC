@@ -1,4 +1,8 @@
 #pragma once
+#include <cstring>
+
+#include "IArchive.h"
+#include "JsonArchive.h"
 
 class EmitterInstance;
 class Transform;
@@ -24,6 +28,25 @@ enum class ParameterType {
 	TOTAL_TYPES
 };
 
+inline const char* ParameterTypeToString(uint32_t v)
+{
+    switch (static_cast<ParameterType>(v))
+    {
+    case ParameterType::CONSTANT:           return "CONSTANT";
+    case ParameterType::RANDOM_BETWEEN_TWO: return "RANDOM_BETWEEN_TWO";
+    case ParameterType::CURVE:              return "CURVE";
+    default: return "CONSTANT";
+    }
+}
+
+inline uint32_t StringToParameterType(const char* s)
+{
+    if (std::strcmp(s, "CONSTANT") == 0)            return 0;
+    if (std::strcmp(s, "RANDOM_BETWEEN_TWO") == 0)  return 1;
+    if (std::strcmp(s, "CURVE") == 0)               return 2;
+    return 0;
+}
+
 class ParticleModule
 {
 
@@ -40,8 +63,7 @@ public:
 	// Interface and saving/loading functions
 	virtual bool drawUi() { return false; }
 	virtual void debugDraw(Transform* parent)  {}
-	virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
-	virtual bool deserializeJSON(const rapidjson::Value& moduleInfo) { return true; }
+	virtual void serialize(IArchive& archive);
 
 private:
 

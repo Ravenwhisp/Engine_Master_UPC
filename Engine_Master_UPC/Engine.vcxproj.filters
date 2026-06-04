@@ -153,7 +153,6 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
@@ -187,7 +186,22 @@
     <ClCompile Include="UIButton.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="SceneSerializer.cpp">
+    <ClCompile Include="AssetCache.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryArchive.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Metadata.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetFileDialog.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetIndex.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="ModuleAssets.cpp">
@@ -481,7 +495,7 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp" />
+
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -529,9 +543,7 @@
     <ClCompile Include="EquirectangularPass.cpp">
       <Filter>D3D12\Rendering\IBL</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp">
-      <Filter>Prefabs</Filter>
-    </ClCompile>
+
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>
@@ -817,10 +829,34 @@
     <ClInclude Include="UIButton.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h">
+    <ClInclude Include="AssetCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="IArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetFileDialog.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetIndex.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ModuleAssets.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleAssets.inl">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">
@@ -943,7 +979,7 @@
     <ClInclude Include="ImporterPrefab.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabAsset.h">
+    <ClInclude Include="Prefab.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="Script.h">

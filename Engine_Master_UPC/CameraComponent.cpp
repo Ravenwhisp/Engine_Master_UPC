@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "CameraComponent.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -142,45 +143,12 @@ bool CameraComponent::cleanUp()
 	return true;
 }
 
-rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
+void CameraComponent::serialize(IArchive& archive)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
-	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
-	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
-
-	return componentInfo;
-}
-
-bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-	if (componentInfo.HasMember("HorizontalFOV")) 
-	{
-		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
-	}
-
-	if (componentInfo.HasMember("NearPlane")) 
-	{
-		m_nearPlane = componentInfo["NearPlane"].GetFloat();
-	}
-
-	if (componentInfo.HasMember("FarPlane")) 
-	{
-		m_farPlane = componentInfo["FarPlane"].GetFloat();
-	}
-
-	if (componentInfo.HasMember("AspectRatio")) 
-	{
-		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
-	}
-
-	recalculateFrustum();
-
-	return true;
+	archive.serialize(m_horizontalFov, "HorizontalFOV");
+	archive.serialize(m_nearPlane, "NearPlane");
+	archive.serialize(m_farPlane, "FarPlane");
+	archive.serialize(m_aspectRatio, "AspectRatio");
 }

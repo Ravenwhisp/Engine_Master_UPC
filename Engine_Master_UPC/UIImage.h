@@ -15,6 +15,16 @@ public:
         Stretch = 0,
         Tile = 1
     };
+
+    static const char* StretchDrawModeToString(uint32_t v)
+    {
+        return v == 0 ? "Stretch" : "Tile";
+    }
+
+    static uint32_t StringToStretchDrawMode(const char* s)
+    {
+        return std::strcmp(s, "Tile") == 0 ? 1 : 0;
+    }
     UIImage(UID id, GameObject* owner);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
@@ -60,8 +70,8 @@ public:
 
     void drawUi() override;
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+    void serialize(IArchive& archive) override;
+    void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
     AssetReference m_textureAssetId{};
