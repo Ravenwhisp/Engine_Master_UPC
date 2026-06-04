@@ -20,6 +20,8 @@ struct Particle {
     float rotationVelocity;
     bool flippedRotation;
     Vector3 movementDirection; // should be normalized
+    
+    Vector2 startScale; // for interpolation calculations
 
     float lifeTime = 0.f;
 };
