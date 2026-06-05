@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -35,23 +36,16 @@ namespace
         }
     }
 
-    void serializeEnumIntField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeEnumIntField(const FieldInfo& field, const void* data, IArchive& archive)
     {
-        const int* value = reinterpret_cast<const int*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
+        uint32_t value = static_cast<uint32_t>(*reinterpret_cast<const int*>(data));
+        archive.serialize(value, field.name);
     }
 
-    void deserializeEnumIntField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeEnumIntField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsInt())
-        {
-            return;
-        }
-
-        int* value = reinterpret_cast<int*>(data);
-        *value = valueJson.GetInt();
+        uint32_t raw = *reinterpret_cast<uint32_t*>(data);
+        archive.serialize(raw, field.name);
     }
 
     void cloneEnumIntField(const FieldInfo&, const void* sourceData, void* targetData)

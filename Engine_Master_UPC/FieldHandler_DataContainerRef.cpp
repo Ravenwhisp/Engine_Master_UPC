@@ -3,6 +3,7 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "DataContainerRef.h"
 
@@ -117,24 +118,19 @@ namespace
         }
     }
 
-    void serializeDataContainerRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeDataContainerRefField(const FieldInfo& field, const void* data, IArchive& archive)
     {
         const DataContainerRef<DataContainer>* ref = reinterpret_cast<const DataContainerRef<DataContainer>*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, static_cast<uint64_t>(ref->uid), domTree.GetAllocator());
+        uint64_t uid = static_cast<uint64_t>(ref->uid);
+        archive.serialize(uid, field.name);
     }
 
-    void deserializeDataContainerRefField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeDataContainerRefField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsUint64())
-        {
-            return;
-        }
-
         DataContainerRef<DataContainer>* ref = reinterpret_cast<DataContainerRef<DataContainer>*>(data);
-
-        ref->uid = static_cast<UID>(valueJson.GetUint64());
+        uint64_t uid = static_cast<uint64_t>(ref->uid);
+        archive.serialize(uid, field.name);
+        ref->uid = static_cast<UID>(uid);
         ref->dataContainer = nullptr;
     }
 

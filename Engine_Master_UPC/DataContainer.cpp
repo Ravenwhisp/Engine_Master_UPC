@@ -6,38 +6,13 @@
 
 #include <string>
 
-rapidjson::Value DataContainer::getJson(rapidjson::Document::AllocatorType& allocator) const
+void DataContainer::serialize(IArchive& archive)
 {
 	FieldList fields = getExposedFields();
 	if (!fields.fields.empty())
 	{
-		rapidjson::Value obj(rapidjson::kObjectType);
-		obj.AddMember("_typeName", rapidjson::Value(getTypeName(), allocator), allocator);
-
-		rapidjson::Document tempDoc(&allocator);
-		FieldUtils::serialize(*this, reinterpret_cast<const char*>(this), obj, tempDoc);
-		return obj;
+		FieldUtils::serialize(*this, reinterpret_cast<const char*>(this), archive);
 	}
-
-	return rapidjson::Value(m_data, allocator);
-}
-
-bool DataContainer::deserializeJson(const rapidjson::Value& obj)
-{
-	if (!obj.IsObject())
-	{
-		return false;
-	}
-
-	m_data.CopyFrom(obj, m_data.GetAllocator());
-
-	FieldList fields = getExposedFields();
-	if (!fields.fields.empty())
-	{
-		FieldUtils::deserialize(*this, reinterpret_cast<char*>(this), obj);
-	}
-
-	return true;
 }
 
 void DataContainer::drawUI()

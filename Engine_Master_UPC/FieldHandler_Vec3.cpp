@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -15,30 +16,15 @@ namespace
         }
     }
 
-    void serializeVec3Field(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeVec3Field(const FieldInfo& field, const void* data, IArchive& archive)
     {
-        const Vector3* value = reinterpret_cast<const Vector3*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        rapidjson::Value array(rapidjson::kArrayType);
-        array.PushBack(value->x, domTree.GetAllocator());
-        array.PushBack(value->y, domTree.GetAllocator());
-        array.PushBack(value->z, domTree.GetAllocator());
-
-        outFieldsJson.AddMember(key, array, domTree.GetAllocator());
+        Vector3 value = *reinterpret_cast<const Vector3*>(data);
+        archive.serialize(value, field.name);
     }
 
-    void deserializeVec3Field(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeVec3Field(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsArray() || valueJson.Size() != 3)
-        {
-            return;
-        }
-
-        Vector3* value = reinterpret_cast<Vector3*>(data);
-        value->x = valueJson[0].GetFloat();
-        value->y = valueJson[1].GetFloat();
-        value->z = valueJson[2].GetFloat();
+        archive.serialize(*reinterpret_cast<Vector3*>(data), field.name);
     }
 
     void cloneVec3Field(const FieldInfo&, const void* sourceData, void* targetData)

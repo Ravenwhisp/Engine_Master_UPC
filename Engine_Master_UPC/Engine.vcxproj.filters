@@ -267,12 +267,6 @@
     <ClCompile Include="ImporterFont.cpp">
       <Filter>Persistence\Importers\External</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterMesh.cpp">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterMaterial.cpp">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClCompile>
     <ClCompile Include="ImporterGltf.cpp">
       <Filter>Persistence\Importers\External\Gltf</Filter>
     </ClCompile>
@@ -282,7 +276,6 @@
     <ClCompile Include="ScriptComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
-
     <ClCompile Include="ComponentFactory.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
@@ -325,9 +318,6 @@
     <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterAnimation.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
     <ClCompile Include="AnimationComponent.cpp">
       <Filter>Animations</Filter>
     </ClCompile>
@@ -336,12 +326,6 @@
     </ClCompile>
     <ClCompile Include="SkinningComputePass.cpp">
       <Filter>Animations</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterAnimationStateMachine.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterSkin.cpp">
-      <Filter>Persistence\Importers</Filter>
     </ClCompile>
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
       <Filter>Core\Commands</Filter>
@@ -460,9 +444,6 @@
     <ClCompile Include="FileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterScene.cpp">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClCompile>
     <ClCompile Include="AssetReference.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
@@ -496,7 +477,6 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -544,7 +524,6 @@
     <ClCompile Include="EquirectangularPass.cpp">
       <Filter>D3D12\Rendering\IBL</Filter>
     </ClCompile>
-
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>
@@ -603,6 +582,12 @@
     <ClCompile Include="FieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="DataContainerExporter.cpp" />
+    <ClCompile Include="CommandCreateDataContainer.cpp" />
+    <ClCompile Include="DataContainer.cpp" />
+    <ClCompile Include="FieldHandler_DataContainerRef.cpp" />
+    <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="WindowDataContainerManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -781,7 +766,6 @@
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="ModuleNavigation.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -962,15 +946,6 @@
     <ClInclude Include="ImporterFont.h">
       <Filter>Persistence\Importers\External</Filter>
     </ClInclude>
-    <ClInclude Include="ImporterMesh.h">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterMaterial.h">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterDataContainer.h">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClInclude>
     <ClInclude Include="MeshAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
@@ -989,7 +964,6 @@
     <ClInclude Include="Script.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity</Filter>
     </ClInclude>
@@ -1062,7 +1036,6 @@
     <ClInclude Include="ScriptAPI.h">
       <Filter>Core</Filter>
     </ClInclude>
-
     <ClInclude Include="DataContainer.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
@@ -1075,7 +1048,6 @@
     <ClInclude Include="ScriptFactory.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-
     <ClInclude Include="FieldInfo.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
@@ -1091,7 +1063,6 @@
     <ClInclude Include="Scene.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
-
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClInclude>
@@ -1114,9 +1085,6 @@
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="ImporterAnimation.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
     <ClInclude Include="AnimationComponent.h">
       <Filter>Animations</Filter>
     </ClInclude>
@@ -1137,12 +1105,6 @@
     </ClInclude>
     <ClInclude Include="SkinAsset.h">
       <Filter>Animations</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterAnimationStateMachine.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterSkin.h">
-      <Filter>Persistence\Importers</Filter>
     </ClInclude>
     <ClInclude Include="CommandAddChildToPrefabRoot.h">
       <Filter>Core\Commands</Filter>
@@ -1304,7 +1266,6 @@
     <ClInclude Include="EmitterSpawn.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="FieldHandler.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
@@ -1331,9 +1292,6 @@
     </ClInclude>
     <ClInclude Include="FileDialog.h">
       <Filter>Editor\Views</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterScene.h">
-      <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
     <ClInclude Include="AssetReference.h">
       <Filter>Persistence\Assets</Filter>

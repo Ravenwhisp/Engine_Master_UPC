@@ -348,7 +348,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
-    <ClInclude Include="ImporterDataContainer.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterNative.h" />
@@ -385,7 +384,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="CommandReparent.h" />
@@ -525,7 +523,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="WindowMusicDebug.h" />
     <ClInclude Include="WindowDataContainerManager.h" />
     <ClInclude Include="WindowSceneEditor.h" />
-
     <ClInclude Include="SceneSnapshot.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -757,9 +754,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
     <ClCompile Include="DataContainer.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
-    <ClCompile Include="ImporterDataContainer.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
@@ -802,7 +796,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandPasteFile.cpp" />
     <ClCompile Include="CommandRemoveGameObject.cpp" />
     <ClCompile Include="CommandRenameGameObject.cpp" />
-
     <ClCompile Include="RenderSurface.cpp" />
     <ClCompile Include="CommandReparent.cpp" />
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />

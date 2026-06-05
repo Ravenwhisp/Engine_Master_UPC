@@ -1,13 +1,9 @@
 #include "Globals.h"
 #include "ScriptComponent.h"
-#include "JsonArchive.h"
 #include "Script.h"
 #include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
 #include "FieldUtils.h"
-
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -120,30 +116,18 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
 
-void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
-{
-    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), outFieldsJson, domTree);
-}
-
 void ScriptComponent::serialize(IArchive& archive)
 {
     Component::serialize(archive);
 
     archive.serialize(m_scriptName, "ScriptName");
 
-    std::string fieldsJson;
     if (archive.mode() == ArchiveMode::Output && m_script)
     {
-        rapidjson::Document doc;
-        doc.SetObject();
-        serializeScriptFields(*m_script, doc, doc);
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        doc.Accept(writer);
-        fieldsJson = buffer.GetString();
+        archive.beginObject("ScriptFields");
+        FieldUtils::serialize(*m_script, reinterpret_cast<const char*>(m_script.get()), archive);
+        archive.endObject();
     }
-
-    archive.serialize(fieldsJson, "ScriptFields");
 
     if (archive.mode() == ArchiveMode::Input)
     {
@@ -153,22 +137,14 @@ void ScriptComponent::serialize(IArchive& archive)
             createScriptInstance();
         }
 
-        if (m_script && !fieldsJson.empty())
+        if (m_script)
         {
-            rapidjson::Document doc;
-            doc.Parse(fieldsJson.c_str());
-            if (!doc.HasParseError() && doc.IsObject())
-            {
-                deserializeScriptFields(*m_script, doc);
-                m_script->onAfterDeserialize();
-            }
+            archive.beginObject("ScriptFields");
+            FieldUtils::deserialize(*m_script, reinterpret_cast<char*>(m_script.get()), archive);
+            archive.endObject();
+            m_script->onAfterDeserialize();
         }
     }
-}
-
-void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson)
-{
-    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), fieldsJson);
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)

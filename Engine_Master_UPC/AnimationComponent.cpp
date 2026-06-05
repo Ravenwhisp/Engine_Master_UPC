@@ -1446,14 +1446,16 @@ void AnimationComponent::invalidateAllStateBehaviours()
 
 std::string AnimationComponent::serializeScriptFields(const Script& script) const
 {
-    rapidjson::Document document;
-    document.SetObject();
+    JsonArchive archive(ArchiveMode::Output);
+    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), archive);
 
-    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), document, document);
+    rapidjson::Document doc;
+    rapidjson::Value value = archive.extractValue(doc.GetAllocator());
+    doc.Swap(value);
 
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    document.Accept(writer);
+    doc.Accept(writer);
 
     return buffer.GetString();
 }
@@ -1473,7 +1475,9 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
         return;
     }
 
-    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), document);
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(document);
+    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), archive);
     script.onAfterDeserialize();
 }
 

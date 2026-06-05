@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -11,11 +12,11 @@ namespace
         ImGui::SeparatorText(field.name);
     }
 
-    void serializeGroupLabel(const FieldInfo&, const void*, rapidjson::Value&, rapidjson::Document&)
+    void serializeGroupLabel(const FieldInfo&, const void*, IArchive&)
     {
     }
 
-    void deserializeGroupLabel(const FieldInfo&, void*, const rapidjson::Value&)
+    void deserializeGroupLabel(const FieldInfo&, void*, IArchive&)
     {
     }
 

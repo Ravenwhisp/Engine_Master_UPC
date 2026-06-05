@@ -5,10 +5,11 @@
 #include "MD5Fwd.h"
 #include "ImportSettings.h"
 #include <memory>
+#include "EngineAPI.h"
 
 class IArchive;
 
-class Asset : public ISerializable
+class ENGINE_API Asset : public ISerializable
 {
 public:
     Asset() = default;

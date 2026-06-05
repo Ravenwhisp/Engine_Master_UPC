@@ -3,6 +3,7 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "SceneReferenceResolver.h"
 
@@ -18,23 +19,15 @@ namespace
         }
     }
 
-    void serializeFloatField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeFloatField(const FieldInfo& field, const void* data, IArchive& archive)
     {
-        const float* value = reinterpret_cast<const float*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
+        float value = *reinterpret_cast<const float*>(data);
+        archive.serialize(value, field.name);
     }
 
-    void deserializeFloatField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeFloatField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsNumber())
-        {
-            return;
-        }
-
-        float* value = reinterpret_cast<float*>(data);
-        *value = valueJson.GetFloat();
+        archive.serialize(*reinterpret_cast<float*>(data), field.name);
     }
 
     void cloneFloatField(const FieldInfo&, const void* sourceData, void* targetData)

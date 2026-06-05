@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -20,23 +21,16 @@ namespace
         }
     }
 
-    void serializeStringField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeStringField(const FieldInfo& field, const void* data, IArchive& archive)
     {
         const std::string* value = reinterpret_cast<const std::string*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, rapidjson::Value(value->c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+        std::string copy = *value;
+        archive.serialize(copy, field.name);
     }
 
-    void deserializeStringField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeStringField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsString())
-        {
-            return;
-        }
-
-        std::string* value = reinterpret_cast<std::string*>(data);
-        *value = valueJson.GetString();
+        archive.serialize(*reinterpret_cast<std::string*>(data), field.name);
     }
 
     void cloneStringField(const FieldInfo&, const void* sourceData, void* targetData)

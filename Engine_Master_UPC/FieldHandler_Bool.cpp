@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -15,23 +16,15 @@ namespace
         }
     }
 
-    void serializeBoolField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeBoolField(const FieldInfo& field, const void* data, IArchive& archive)
     {
-        const bool* value = reinterpret_cast<const bool*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
+        bool value = *reinterpret_cast<const bool*>(data);
+        archive.serialize(value, field.name);
     }
 
-    void deserializeBoolField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeBoolField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsBool())
-        {
-            return;
-        }
-
-        bool* value = reinterpret_cast<bool*>(data);
-        *value = valueJson.GetBool();
+        archive.serialize(*reinterpret_cast<bool*>(data), field.name);
     }
 
     void cloneBoolField(const FieldInfo&, const void* sourceData, void* targetData)

@@ -32,8 +32,6 @@ public:
 
 private:
     void drawScriptFieldsUi(Script& script);
-    void serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree);
-    void deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson);
     void cloneScriptFields(const Script& source, Script& target);
 
     std::unique_ptr<Script> m_script;

@@ -22,6 +22,7 @@
 #include "JsonArchive.h"
 #include "Metadata.h"
 #include "UID.h"
+#include "DataContainer.h"
 
 #include <filesystem>
 #include <FileIO.h>
@@ -442,6 +443,8 @@ DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContain
         return nullptr;
     }
 
-    derived->deserializeJson(data);
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(data);
+    derived->serialize(archive);
     return derived.release();
 }

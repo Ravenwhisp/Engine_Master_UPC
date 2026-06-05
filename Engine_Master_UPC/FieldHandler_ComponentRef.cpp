@@ -3,6 +3,7 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
@@ -76,24 +77,19 @@ namespace
         }
     }
 
-    void serializeComponentRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeComponentRefField(const FieldInfo& field, const void* data, IArchive& archive)
     {
         const ComponentRef<Component>* componentReference = reinterpret_cast<const ComponentRef<Component>*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, static_cast<uint64_t>(componentReference->uid), domTree.GetAllocator());
+        uint64_t uid = static_cast<uint64_t>(componentReference->uid);
+        archive.serialize(uid, field.name);
     }
 
-    void deserializeComponentRefField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeComponentRefField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsUint64())
-        {
-            return;
-        }
-
         ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
-
-        componentReference->uid = static_cast<UID>(valueJson.GetUint64());
+        uint64_t uid = static_cast<uint64_t>(componentReference->uid);
+        archive.serialize(uid, field.name);
+        componentReference->uid = static_cast<UID>(uid);
         componentReference->component = nullptr;
     }
 

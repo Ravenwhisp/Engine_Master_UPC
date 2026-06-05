@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
@@ -150,44 +151,42 @@ namespace
         ImGui::EndChild();
     }
 
-    void serializeComponentRefListField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeComponentRefListField(const FieldInfo& field, const void* data, IArchive& archive)
     {
         const ComponentRefList* componentList = reinterpret_cast<const ComponentRefList*>(data);
 
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        rapidjson::Value array(rapidjson::kArrayType);
+        uint32_t count = static_cast<uint32_t>(componentList->size());
+        archive.beginArray(count, field.name);
 
         for (const ComponentRef<Component>& entry : *componentList)
         {
-            array.PushBack(static_cast<uint64_t>(entry.uid), domTree.GetAllocator());
+            uint64_t uid = static_cast<uint64_t>(entry.uid);
+            archive.serialize(uid);
         }
 
-        outFieldsJson.AddMember(key, array, domTree.GetAllocator());
+        archive.endArray();
     }
 
-    void deserializeComponentRefListField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeComponentRefListField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsArray())
-        {
-            return;
-        }
-
         ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
         componentList->clear();
 
-        for (rapidjson::SizeType i = 0; i < valueJson.Size(); ++i)
+        uint32_t count = 0;
+        archive.beginArray(count, field.name);
+        componentList->reserve(count);
+
+        for (uint32_t i = 0; i < count; ++i)
         {
-            if (!valueJson[i].IsUint64())
-            {
-                continue;
-            }
-
+            uint64_t uid = 0;
+            archive.serialize(uid);
             ComponentRef<Component> entry;
-            entry.uid = static_cast<UID>(valueJson[i].GetUint64());
+            entry.uid = static_cast<UID>(uid);
             entry.component = nullptr;
-
             componentList->push_back(entry);
         }
+
+        archive.endArray();
     }
 
     void cloneComponentRefListField(const FieldInfo&, const void* sourceData, void* targetData)

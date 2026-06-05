@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "FieldUtils.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "FieldInfo.h"
 #include "SceneReferenceResolver.h"
@@ -35,7 +36,7 @@ namespace FieldUtils
         }
     }
 
-    void serialize(const IFieldContainer& container, const char* base, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serialize(const IFieldContainer& container, const char* base, IArchive& archive)
     {
         FieldList fieldList = container.getExposedFields();
 
@@ -46,11 +47,11 @@ namespace FieldUtils
 
             const void* data = base + field.offset;
             assert(field.handler != nullptr);
-            field.handler->serialize(field, data, outFieldsJson, domTree);
+            field.handler->serialize(field, data, archive);
         }
     }
 
-    void deserialize(IFieldContainer& container, char* base, const rapidjson::Value& fieldsJson)
+    void deserialize(IFieldContainer& container, char* base, IArchive& archive)
     {
         FieldList fieldList = container.getExposedFields();
 
@@ -59,13 +60,9 @@ namespace FieldUtils
             if (!field.isDataField())
                 continue;
 
-            if (!fieldsJson.HasMember(field.name))
-                continue;
-
             void* data = base + field.offset;
-            const rapidjson::Value& valueJson = fieldsJson[field.name];
             assert(field.handler != nullptr);
-            field.handler->deserialize(field, data, valueJson);
+            field.handler->deserialize(field, data, archive);
         }
     }
 

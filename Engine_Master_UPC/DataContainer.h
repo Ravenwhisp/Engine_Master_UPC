@@ -23,11 +23,10 @@ public:
 		m_data.SetObject();
 	}
 
-	virtual rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const;
-	virtual bool deserializeJson(const rapidjson::Value& obj);
-
 	virtual void syncFromData() {}
 	void drawUI() override;
+
+	void serialize(IArchive& archive) override;
 
 	const rapidjson::Document& getData() const { return m_data; }
 	rapidjson::Document& getDataMutable() { return m_data; }

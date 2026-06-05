@@ -7,6 +7,8 @@
 #include "DataContainer.h"
 #include "Extensions.h"
 #include "UID.h"
+#include "JsonArchive.h"
+#include "FieldUtils.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
@@ -53,7 +55,10 @@ void CommandCreateDataContainer::run()
     auto instance = DataContainerFactory::create(m_typeName, tempRef);
     if (instance)
     {
-        rapidjson::Value instanceJson = instance->getJson(allocator);
+        JsonArchive archive(ArchiveMode::Output);
+        instance->serialize(archive);
+        rapidjson::Value instanceJson = archive.extractValue(allocator);
+
         if (instanceJson.IsObject())
         {
             for (auto it = instanceJson.MemberBegin(); it != instanceJson.MemberEnd(); ++it)

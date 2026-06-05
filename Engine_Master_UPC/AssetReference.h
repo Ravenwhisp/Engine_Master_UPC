@@ -30,9 +30,6 @@ struct AssetReference {
 
     bool operator!=(const AssetReference& o) const { return !(*this == o); }
 
-    rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const;
-    bool deserializeJson(const rapidjson::Value& obj);
-
     void serialize(IArchive& archive);
 
 };

@@ -45,6 +45,7 @@ struct FieldListInfo
     const FieldHandler* elementHandler;
 };
 
+
 struct FieldInfo
 {
     const char* name;

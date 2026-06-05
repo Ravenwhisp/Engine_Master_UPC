@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
@@ -13,96 +14,93 @@
 
 namespace
 {
-    // --- Element-to-JSON / JSON-to-Element helpers ---
+    // --- Element-to-archive / archive-to-Element helpers ---
 
     template<typename T>
-    rapidjson::Value elementToJson(const T& element, rapidjson::Document& domTree);
+    void elementSerialize(const T& element, IArchive& archive);
 
     template<>
-    rapidjson::Value elementToJson<float>(const float& element, rapidjson::Document&)
+    void elementSerialize<float>(const float& element, IArchive& archive)
     {
-        return rapidjson::Value(element);
+        float val = element;
+        archive.serialize(val);
     }
 
     template<>
-    rapidjson::Value elementToJson<int>(const int& element, rapidjson::Document&)
+    void elementSerialize<int>(const int& element, IArchive& archive)
     {
-        return rapidjson::Value(element);
+        uint32_t val = static_cast<uint32_t>(element);
+        archive.serialize(val);
     }
 
     template<>
-    rapidjson::Value elementToJson<bool>(const bool& element, rapidjson::Document&)
+    void elementSerialize<bool>(const bool& element, IArchive& archive)
     {
-        return rapidjson::Value(element);
+        bool val = element;
+        archive.serialize(val);
     }
 
     template<>
-    rapidjson::Value elementToJson<Vector3>(const Vector3& element, rapidjson::Document& domTree)
+    void elementSerialize<Vector3>(const Vector3& element, IArchive& archive)
     {
-        rapidjson::Value array(rapidjson::kArrayType);
-        array.PushBack(element.x, domTree.GetAllocator());
-        array.PushBack(element.y, domTree.GetAllocator());
-        array.PushBack(element.z, domTree.GetAllocator());
-        return array;
+        Vector3 val = element;
+        archive.serialize(val);
     }
 
     template<>
-    rapidjson::Value elementToJson<std::string>(const std::string& element, rapidjson::Document& domTree)
+    void elementSerialize<std::string>(const std::string& element, IArchive& archive)
     {
-        return rapidjson::Value(element.c_str(), domTree.GetAllocator());
+        std::string val = element;
+        archive.serialize(val);
     }
 
     template<>
-    rapidjson::Value elementToJson<ComponentRef<Component>>(const ComponentRef<Component>& element, rapidjson::Document&)
+    void elementSerialize<ComponentRef<Component>>(const ComponentRef<Component>& element, IArchive& archive)
     {
-        return rapidjson::Value(static_cast<uint64_t>(element.uid));
+        uint64_t val = static_cast<uint64_t>(element.uid);
+        archive.serialize(val);
     }
 
     template<typename T>
-    void elementFromJson(T& element, const rapidjson::Value& json);
+    void elementDeserialize(T& element, IArchive& archive);
 
     template<>
-    void elementFromJson<float>(float& element, const rapidjson::Value& json)
+    void elementDeserialize<float>(float& element, IArchive& archive)
     {
-        if (json.IsNumber()) element = json.GetFloat();
+        archive.serialize(element);
     }
 
     template<>
-    void elementFromJson<int>(int& element, const rapidjson::Value& json)
+    void elementDeserialize<int>(int& element, IArchive& archive)
     {
-        if (json.IsInt()) element = json.GetInt();
+        uint32_t raw = static_cast<uint32_t>(element);
+        archive.serialize(raw);
     }
 
     template<>
-    void elementFromJson<bool>(bool& element, const rapidjson::Value& json)
+    void elementDeserialize<bool>(bool& element, IArchive& archive)
     {
-        if (json.IsBool()) element = json.GetBool();
+        archive.serialize(element);
     }
 
     template<>
-    void elementFromJson<Vector3>(Vector3& element, const rapidjson::Value& json)
+    void elementDeserialize<Vector3>(Vector3& element, IArchive& archive)
     {
-        if (json.IsArray() && json.Size() == 3)
-        {
-            element.x = json[0].GetFloat();
-            element.y = json[1].GetFloat();
-            element.z = json[2].GetFloat();
-        }
+        archive.serialize(element);
     }
 
     template<>
-    void elementFromJson<std::string>(std::string& element, const rapidjson::Value& json)
+    void elementDeserialize<std::string>(std::string& element, IArchive& archive)
     {
-        if (json.IsString()) element = json.GetString();
+        archive.serialize(element);
     }
 
     template<>
-    void elementFromJson<ComponentRef<Component>>(ComponentRef<Component>& element, const rapidjson::Value& json)
+    void elementDeserialize<ComponentRef<Component>>(ComponentRef<Component>& element, IArchive& archive)
     {
-        if (json.IsUint64())
-        {
-            element.uid = static_cast<UID>(json.GetUint64());
-        }
+        uint64_t val = static_cast<uint64_t>(element.uid);
+        archive.serialize(val);
+        element.uid = static_cast<UID>(val);
         element.component = nullptr;
     }
 
@@ -172,39 +170,39 @@ namespace
     }
 
     template<typename T>
-    void serializeListField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeListField(const FieldInfo& field, const void* data, IArchive& archive)
     {
         const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
 
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        rapidjson::Value array(rapidjson::kArrayType);
+        uint32_t count = static_cast<uint32_t>(vec->size());
+        archive.beginArray(count, field.name);
 
         for (const T& elem : *vec)
         {
-            array.PushBack(elementToJson(elem, domTree), domTree.GetAllocator());
+            elementSerialize(elem, archive);
         }
 
-        outFieldsJson.AddMember(key, array, domTree.GetAllocator());
+        archive.endArray();
     }
 
     template<typename T>
-    void deserializeListField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
+    void deserializeListField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        if (!valueJson.IsArray())
-        {
-            return;
-        }
-
         auto* vec = reinterpret_cast<std::vector<T>*>(data);
         vec->clear();
-        vec->reserve(valueJson.Size());
 
-        for (rapidjson::SizeType i = 0; i < valueJson.Size(); ++i)
+        uint32_t count = 0;
+        archive.beginArray(count, field.name);
+        vec->reserve(count);
+
+        for (uint32_t i = 0; i < count; ++i)
         {
             T elem{};
-            elementFromJson(elem, valueJson[i]);
+            elementDeserialize(elem, archive);
             vec->push_back(std::move(elem));
         }
+
+        archive.endArray();
     }
 
     template<typename T>
