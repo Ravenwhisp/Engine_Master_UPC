@@ -69,17 +69,29 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
 
 void RingBuffer::free(uint64_t lastCompletedFrame)
 {
-    while (!m_allocationQueue.empty() && m_allocationQueue.front().frameIndex < lastCompletedFrame)
+    while (!m_allocationQueue.empty() &&
+        m_allocationQueue.front().frameIndex < lastCompletedFrame)
     {
+        const AllocationInfo& frontAlloc = m_allocationQueue.front();
+
+        // Only move head if this allocation is exactly at the current head.
+        // This prevents jumping head into memory that may still be used by the GPU.
+        if (frontAlloc.offset == m_head)
+        {
+            m_head += frontAlloc.size;
+
+            if (m_head >= m_totalMemorySize)
+            {
+                m_head = 0;
+            }
+        }
+
         m_allocationQueue.pop_front();
     }
 
-    if (m_allocationQueue.empty()) {
-        m_head = 0;
-        m_tail = 0;
-    }
-    else {
-        m_head = m_allocationQueue.front().offset;
+    if (m_allocationQueue.empty())
+    {
+        m_head = m_tail;
     }
 }
 
