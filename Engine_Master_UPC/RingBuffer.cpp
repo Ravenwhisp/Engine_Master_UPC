@@ -74,8 +74,6 @@ void RingBuffer::free(uint64_t lastCompletedFrame)
     {
         const AllocationInfo& frontAlloc = m_allocationQueue.front();
 
-        // Only move head if this allocation is exactly at the current head.
-        // This prevents jumping head into memory that may still be used by the GPU.
         if (frontAlloc.offset == m_head)
         {
             m_head += frontAlloc.size;
