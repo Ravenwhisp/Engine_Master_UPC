@@ -35,3 +35,5 @@ protected:
     AssetType m_type = AssetType::UNKNOWN;
     std::unique_ptr<ImportSettings> m_importSettings;
 };
+
+#pragma warning(pop)

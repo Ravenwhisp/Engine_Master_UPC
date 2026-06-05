@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "Bound.h"
+#include "BoundConfig.h"
 #include "Damageable.h"
 #include "HeartbeatHaptic.h"
 
@@ -7,13 +8,7 @@ IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_BoundUI, "Bound UI", ComponentType::TRANSFORM),
-    SERIALIZED_FLOAT(m_minDistance, "Min Distance", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_distanceDamage, "Damage Distance", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_radiusThreshold, "Radius Threshold", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(baseDamage, "Base Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_separationHapticHpGate, "Separation Haptic HP Gate", 0.5f, 0.25f, 0.01f)
+    SERIALIZED_DATACONTAINER_REF(m_config, "Config"),
 )
 
 Bound::Bound(GameObject* owner) : Script(owner)
@@ -23,6 +18,17 @@ Bound::Bound(GameObject* owner) : Script(owner)
 
 void Bound::Start()
 {
+    if (m_config.dataContainer)
+    {
+        BoundConfig* cfg = m_config.get();
+        m_minDistance = cfg->m_minDistance;
+        m_distanceDamage = cfg->m_distanceDamage;
+        m_distanceInstaKill = cfg->m_distanceInstaKill;
+        m_radiusThreshold = cfg->m_radiusThreshold;
+        baseDamage = cfg->m_baseDamage;
+        maxDamage = cfg->m_maxDamage;
+    }
+
     GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.getReferencedComponent());
     GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.getReferencedComponent());
 

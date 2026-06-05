@@ -14,7 +14,7 @@ public:
 
 	void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     float m_radius = 5.0f;

@@ -19,11 +19,11 @@ public:
     void Start() override;
     void Update() override;
 
-	ScriptComponentRef<Transform> m_door1;
-	ScriptComponentRef<Transform> m_bridge1;
-	ScriptComponentRef<Transform> m_bridge2;
-	ScriptComponentRef<Transform> m_door2;
-	ScriptComponentRef<Transform> m_door3;
+	ComponentRef<Transform> m_door1;
+	ComponentRef<Transform> m_bridge1;
+	ComponentRef<Transform> m_bridge2;
+	ComponentRef<Transform> m_door2;
+	ComponentRef<Transform> m_door3;
 
 	void puzzle1Solved();
 	void puzzle2Solved();
@@ -39,6 +39,6 @@ private:
 
 	std::unordered_map<int, PuzzleData> m_puzzles;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 };
 

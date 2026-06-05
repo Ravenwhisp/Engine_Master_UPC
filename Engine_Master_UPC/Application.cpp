@@ -19,7 +19,7 @@
 #include "ModuleHaptics.h"
 #include "ModuleMusic.h"
 
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 
 #include "Settings.h"
 #include "ThreadPool.h"

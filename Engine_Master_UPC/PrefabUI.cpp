@@ -15,6 +15,7 @@
 
 #include "Prefab.h"
 #include "PrefabEditSession.h"
+#include "AssetsDictionary.h"
 #include <FileIO.h>
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
@@ -494,6 +495,7 @@ static bool beginModal(const char* id, bool& triggerFlag, const ImVec2& screenCe
 void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     bool& showSavePrefabModal,
     bool& renamingPrefab,
+    bool& renamingAsset,
     FileDialogBuffers& buffers)
 {
     const ImVec2 screenCenter = ImGui::GetMainViewport()->GetCenter();

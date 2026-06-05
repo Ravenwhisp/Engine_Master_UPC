@@ -13,7 +13,7 @@ public:
     void Update()     override;
     void drawGizmo()  override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 protected:
     void onAttackWindowUpdate()   override;

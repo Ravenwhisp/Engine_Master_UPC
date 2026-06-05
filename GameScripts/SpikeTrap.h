@@ -19,7 +19,7 @@ public:
         ACTIVE
     };
     
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     float a_duration = 2.0;
 	float p_duration = 1.0;
@@ -30,8 +30,8 @@ public:
 
 	bool alternativeMode = false;
 
-    /*ScriptComponentRef<Transform> m_normalSpike;
-    ScriptComponentRef<Transform> m_spectralSpike;*/
+    /*ComponentRef<Transform> m_normalSpike;
+    ComponentRef<Transform> m_spectralSpike;*/
 
 	Vector3 normalSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
 	Vector3 spectralSpikePosition = Vector3(0.0f, -1.0f, 0.0f);

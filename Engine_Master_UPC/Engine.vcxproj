@@ -313,7 +313,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ComponentSoundSource.h" />
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="CommandCreateFolder.h" />
+    <ClInclude Include="CommandCreateDataContainer.h" />
     <ClInclude Include="CommandCutItem.h" />
+    <ClInclude Include="DataContainer.h" />
+    <ClInclude Include="DataContainerExporter.h" />
+    <ClInclude Include="GenericTypeFactory.h" />
+    <ClInclude Include="DataContainerAPI.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="DescriptorHeapBlock.h" />
     <ClInclude Include="DescriptorHandle.h" />
@@ -343,6 +348,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
+    <ClInclude Include="ImporterDataContainer.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterNative.h" />
@@ -388,19 +394,20 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
-    <ClInclude Include="ScriptAutoRegister.h" />
-    <ClInclude Include="ScriptComponentRef.h" />
-    <ClInclude Include="ScriptFieldHandler.h" />
-    <ClInclude Include="ScriptFieldHandlerRegistry.h" />
-    <ClInclude Include="ScriptFieldInfo.h" />
-    <ClInclude Include="ScriptCreator.h" />
+    <ClInclude Include="ComponentRef.h" />
+    <ClInclude Include="DataContainerRef.h" />
+    <ClInclude Include="FieldHandler.h" />
+    <ClInclude Include="FieldHandlerRegistry.h" />
+    <ClInclude Include="FieldInfo.h" />
+    <ClInclude Include="IFieldContainer.h" />
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
-    <ClInclude Include="ScriptFieldMacros.h" />
+    <ClInclude Include="FieldMacros.h" />
+    <ClInclude Include="FieldTypeTraits.h" />
+    <ClInclude Include="FieldUtils.h" />
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
-    <ClInclude Include="ScriptRegistry.h" />
     <ClInclude Include="Skin.h" />
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
@@ -516,6 +523,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="WindowMusicDebug.h" />
+    <ClInclude Include="WindowDataContainerManager.h" />
     <ClInclude Include="WindowSceneEditor.h" />
 
     <ClInclude Include="SceneSnapshot.h" />
@@ -725,8 +733,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ComponentSoundSource.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
+    <ClCompile Include="DataContainerExporter.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />
     <ClCompile Include="CommandCreateFolder.cpp" />
+    <ClCompile Include="CommandCreateDataContainer.cpp" />
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
@@ -746,6 +756,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
+    <ClCompile Include="DataContainer.cpp" />
+    <ClCompile Include="ImporterAnimation.cpp" />
+    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
+    <ClCompile Include="ImporterDataContainer.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
@@ -757,7 +771,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
-    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
+    <ClCompile Include="FieldHandler_GroupLabel.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
@@ -765,15 +779,17 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
-    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
-    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
-    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Float.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Int.cpp" />
-    <ClCompile Include="ScriptFieldHandler_List.cpp" />
-    <ClCompile Include="ScriptFieldHandler_String.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
+    <ClCompile Include="FieldHandler_Bool.cpp" />
+    <ClCompile Include="FieldHandler_ComponentRef.cpp" />
+    <ClCompile Include="FieldHandler_ComponentRefList.cpp" />
+    <ClCompile Include="FieldHandler_DataContainerRef.cpp" />
+    <ClCompile Include="FieldHandler_EnumInt.cpp" />
+    <ClCompile Include="FieldHandler_Float.cpp" />
+    <ClCompile Include="FieldHandler_Int.cpp" />
+    <ClCompile Include="FieldHandler_List.cpp" />
+    <ClCompile Include="FieldHandler_String.cpp" />
+    <ClCompile Include="FieldHandler_Vec3.cpp" />
+    <ClCompile Include="FieldUtils.cpp" />
     <ClCompile Include="Skin.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="ParticleModule.cpp" />
@@ -883,9 +899,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowMusicDebug.cpp" />
+    <ClCompile Include="WindowDataContainerManager.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>

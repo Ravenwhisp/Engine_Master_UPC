@@ -12,7 +12,7 @@ public:
     explicit LyrielArrowProjectile(GameObject* owner);
 
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void launch(const Vector3& start_position, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
     void resetProjectile();
