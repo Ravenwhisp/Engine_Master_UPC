@@ -345,7 +345,7 @@ void Texture::releaseViews()
     {
         if (m_contiguousRTV)
         {
-            descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).freeBlock(m_contiguousRTV);
+            descriptors->defferBlockRelease(m_contiguousRTV, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
             m_contiguousRTV = nullptr;
         }
         else
@@ -354,7 +354,7 @@ void Texture::releaseViews()
             {
                 if (m_rtv[mip].IsValid())
                 {
-                    descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
+                    descriptors->defferDescriptorRelease((Handle)m_rtv[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
                     m_rtv[mip] = {};
                 }
             }
@@ -363,8 +363,7 @@ void Texture::releaseViews()
 
     if (hasDSV() && m_dsv.IsValid())
     {
-        descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)
-            .free(m_dsv.handle);
+        descriptors->defferDescriptorRelease((Handle)m_dsv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
         m_dsv = {};
     }
 

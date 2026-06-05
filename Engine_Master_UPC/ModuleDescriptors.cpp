@@ -24,8 +24,9 @@ ModuleDescriptors::~ModuleDescriptors()
         delete pair.second;
         pair.second = nullptr;
     }
-    delete m_stagingSRVHeap;
+	delete m_stagingSRVHeap;
     m_defferedDescriptors.clear();
+    m_defferedBlocks.clear();
 }
 
 bool ModuleDescriptors::init()
@@ -36,17 +37,36 @@ bool ModuleDescriptors::init()
 
 void ModuleDescriptors::preRender()
 {
-    // For now only the SRV heap is having deferred releases since it's the only one used for textures
-	UINT lastCompletedFrame = (UINT)app->getModuleD3D12()->getLastCompletedFrame();
-	for (int i = 0; i < m_defferedDescriptors.size(); ++i) {
+    const uint64_t lastCompletedFrame = app->getModuleD3D12()->getLastCompletedFrame();
 
-        if (lastCompletedFrame > m_defferedDescriptors[i].frame)
+    int i = 0;
+    while (i < static_cast<int>(m_defferedDescriptors.size()))
+    {
+        if (lastCompletedFrame >= m_defferedDescriptors[i].frame)
         {
-            m_DescriptorHeapMap[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV]->free(m_defferedDescriptors[i].handle);
+            m_DescriptorHeapMap[m_defferedDescriptors[i].heapType]->free(m_defferedDescriptors[i].handle);
             m_defferedDescriptors[i] = m_defferedDescriptors.back();
             m_defferedDescriptors.pop_back();
         }
-        else ++i;
+        else
+        {
+            ++i;
+        }
+    }
+
+    i = 0;
+    while (i < static_cast<int>(m_defferedBlocks.size()))
+    {
+        if (lastCompletedFrame >= m_defferedBlocks[i].frame)
+        {
+            m_DescriptorHeapMap[m_defferedBlocks[i].heapType]->freeBlock(m_defferedBlocks[i].block);
+            m_defferedBlocks[i] = m_defferedBlocks.back();
+            m_defferedBlocks.pop_back();
+        }
+        else
+        {
+            ++i;
+        }
     }
 }
 
@@ -107,11 +127,21 @@ void ModuleDescriptors::createDefaultSamplers()
     }
 }
 
-void ModuleDescriptors::defferDescriptorRelease(Handle handle)
+void ModuleDescriptors::defferDescriptorRelease(Handle handle, D3D12_DESCRIPTOR_HEAP_TYPE heapType)
 {
 	DefferedDescriptor defferedDescriptor;
 	defferedDescriptor.frame = app->getModuleD3D12()->getCurrentFrame();
 	defferedDescriptor.handle = handle;
+	defferedDescriptor.heapType = heapType;
 	m_defferedDescriptors.push_back(defferedDescriptor);
+}
+
+void ModuleDescriptors::defferBlockRelease(DescriptorHeapBlock* block, D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+{
+	DefferedBlock defferedBlock;
+	defferedBlock.frame = app->getModuleD3D12()->getCurrentFrame();
+	defferedBlock.block = block;
+	defferedBlock.heapType = heapType;
+	m_defferedBlocks.push_back(defferedBlock);
 }
 

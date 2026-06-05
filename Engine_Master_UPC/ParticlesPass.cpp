@@ -178,7 +178,8 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             continue;
         }
 
-        shaderParticleData* particleData = new shaderParticleData[command.particles.size()];
+        m_particleDataBuffer.resize(command.particles.size());
+        shaderParticleData* particleData = m_particleDataBuffer.data();
 
         const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
         for (unsigned int i = 0; i < command.particles.size(); ++i) 
@@ -193,8 +194,6 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             1,
             app->getModuleRender()->allocateInRingBuffer(particleData, command.particles.size() * sizeof(shaderParticleData) )
         );
-
-        delete[] particleData;
 
         commandList->SetGraphicsRootDescriptorTable(2, srv.gpu);
 
