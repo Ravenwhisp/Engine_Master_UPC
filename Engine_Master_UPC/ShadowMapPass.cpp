@@ -3,10 +3,21 @@
 
 #include "Application.h"
 #include "ModuleResources.h"
+#include "ModuleScene.h"
+#include "ModuleD3D12.h"
+#include "RenderContext.h"
+
+#include "LightComponent.h"
+#include "Lights.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "RingBuffer.h"
 
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
+
+#include <cmath>
 
 ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
@@ -103,11 +114,140 @@ void ShadowMapPass::createPipelineState()
         IID_PPV_ARGS(&m_pipelineState)));
 }
 
+const LightComponent* ShadowMapPass::findMainDirectionalLight() const
+{
+    const std::vector<LightComponent*>& lights = app->getModuleScene()->getLightComponents();
+
+    for (const LightComponent* light : lights)
+    {
+        if (light == nullptr)
+        {
+            continue;
+        }
+
+        if (!light->isActive())
+        {
+            continue;
+        }
+
+        const GameObject* owner = light->getOwner();
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        const LightData& data = light->getData();
+        if (data.type != LightType::DIRECTIONAL)
+        {
+            continue;
+        }
+
+        return light;
+    }
+
+    return nullptr;
+}
+
+void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
+{
+    m_frameData = {};
+    m_frameData.enabled = false;
+
+    if (m_shadowMap != nullptr && m_shadowMap->hasSRV())
+    {
+        m_frameData.shadowMapSRV = m_shadowMap->getSRV().gpu;
+    }
+
+    ShadowDataCB shadowCB{};
+    shadowCB.lightViewProjection = Matrix::Identity.Transpose();
+    shadowCB.shadowBias = SHADOW_BIAS;
+    shadowCB.shadowStrength = SHADOW_STRENGTH;
+    shadowCB.shadowsEnabled = 0;
+
+    if (ctx.ringBuffer != nullptr)
+    {
+        m_frameData.shadowCBAddress = ctx.ringBuffer->allocate(
+            &shadowCB,
+            sizeof(ShadowDataCB),
+            app->getModuleD3D12()->getCurrentFrame());
+    }
+}
+
+void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light)
+{
+    m_frameData = {};
+    m_frameData.enabled = true;
+
+    if (m_shadowMap != nullptr && m_shadowMap->hasSRV())
+    {
+        m_frameData.shadowMapSRV = m_shadowMap->getSRV().gpu;
+    }
+
+    const GameObject* lightOwner = light.getOwner();
+    const Transform* lightTransform = lightOwner != nullptr ? lightOwner->GetTransform() : nullptr;
+
+    if (lightTransform == nullptr)
+    {
+        prepareDisabledShadowData(ctx);
+        return;
+    }
+
+    Vector3 lightDirection = lightTransform->getForward();
+    lightDirection.Normalize();
+
+    const Vector3 target = ctx.cameraPosition;
+    const Vector3 eye = target - lightDirection * SHADOW_LIGHT_DISTANCE;
+
+    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+
+    if (std::abs(lightDirection.y) > 0.95f)
+    {
+        up = Vector3(0.0f, 0.0f, 1.0f);
+    }
+
+    m_frameData.lightView = Matrix::CreateLookAt(
+        eye,
+        target,
+        up);
+
+    m_frameData.lightProjection = Matrix::CreateOrthographic(
+        SHADOW_ORTHO_SIZE,
+        SHADOW_ORTHO_SIZE,
+        SHADOW_NEAR_PLANE,
+        SHADOW_FAR_PLANE);
+
+    m_frameData.lightViewProjection =
+        m_frameData.lightView * m_frameData.lightProjection;
+
+    ShadowDataCB shadowCB{};
+    shadowCB.lightViewProjection = m_frameData.lightViewProjection.Transpose();
+    shadowCB.shadowBias = SHADOW_BIAS;
+    shadowCB.shadowStrength = SHADOW_STRENGTH;
+    shadowCB.shadowsEnabled = 1;
+
+    if (ctx.ringBuffer != nullptr)
+    {
+        m_frameData.shadowCBAddress = ctx.ringBuffer->allocate(
+            &shadowCB,
+            sizeof(ShadowDataCB),
+            app->getModuleD3D12()->getCurrentFrame());
+    }
+}
+
+
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
-    // - Find active directional light.
-    // - Compute light view/projection.
-    // - Upload ShadowDataCB.
+    m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
+
+    const LightComponent* mainDirectionalLight = findMainDirectionalLight();
+
+    if (mainDirectionalLight == nullptr)
+    {
+        prepareDisabledShadowData(ctx);
+        return;
+    }
+
+    prepareDirectionalShadowData(ctx, *mainDirectionalLight);
 }
 
 void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
