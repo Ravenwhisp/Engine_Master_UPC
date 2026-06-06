@@ -587,6 +587,7 @@
     </ClCompile>
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
+    <ClCompile Include="ShadowMapPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1365,6 +1366,7 @@
     <ClInclude Include="ShadowTypes.h">
       <Filter>D3D12\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowMapPass.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1655,5 +1657,8 @@
       <Filter>D3D12\Rendering\IBL</Filter>
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
+    <FxCompile Include="ShadowMapVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

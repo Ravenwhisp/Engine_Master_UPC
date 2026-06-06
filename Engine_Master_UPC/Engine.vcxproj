@@ -302,6 +302,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="ShadowMapPass.h" />
     <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
@@ -761,6 +762,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="ShadowMapPass.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
@@ -993,6 +995,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-Qembed_debug %(AdditionalOptions)</AdditionalOptions>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ShadowMapVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="SkyboxEnvironmentPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
