@@ -1685,6 +1685,48 @@ namespace Debug
     }
 }
 
+namespace CameraAPI
+{
+    float getFov(const CameraComponent* camera)
+    {
+        return camera ? camera->getFov() : 0.0f;
+    }
+
+    void setFov(CameraComponent* camera, float fov)
+    {
+        if (camera)
+        {
+            camera->setFov(fov);
+        }
+    }
+
+    float getNearPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getNearPlane() : 0.0f;
+    }
+
+    void setNearPlane(CameraComponent* camera, float nearPlane)
+    {
+        if (camera)
+        {
+            camera->setNearPlane(nearPlane);
+        }
+    }
+
+    float getFarPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getFarPlane() : 0.0f;
+    }
+
+    void setFarPlane(CameraComponent* camera, float farPlane)
+    {
+        if (camera)
+        {
+            camera->setFarPlane(farPlane);
+        }
+    }
+}
+
 namespace NavigationAPI
 {
     bool hasNavMesh()

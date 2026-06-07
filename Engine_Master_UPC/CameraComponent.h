@@ -12,14 +12,14 @@ public:
 
 	void lateUpdate() override;
 
-	const float getFov() const { return m_horizontalFov; }
-	void setFov(float fov) { m_horizontalFov = fov; }
+	float getFov() const { return m_horizontalFov; }
+	void setFov(float fov) { m_horizontalFov = fov; updateCameraMatrices(); }
 
-	const float getNearPlane() const { return m_nearPlane; }
-	void setNearPlane(float nearPlane) { m_nearPlane = nearPlane; }
+	float getNearPlane() const { return m_nearPlane; }
+	void setNearPlane(float nearPlane) { m_nearPlane = nearPlane; updateCameraMatrices(); }
 
-	const float getFarPlane() const { return m_farPlane; }
-	void setFarPlane(float farPlane) { m_farPlane = farPlane; }
+	float getFarPlane() const { return m_farPlane; }
+	void setFarPlane(float farPlane) { m_farPlane = farPlane; updateCameraMatrices(); }
 
 	const Matrix& getWorldMatrix() const { return m_world; }
 
