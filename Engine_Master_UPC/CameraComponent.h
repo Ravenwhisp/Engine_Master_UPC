@@ -42,6 +42,9 @@ public:
 	bool deserializeJSON(const rapidjson::Value& componentValue) override;
 
 private:
+	void updateCameraMatrices();
+
+private:
 	float m_horizontalFov = 90.0f;
 	float m_nearPlane = 0.5f;
 	float m_farPlane = 25.0f;
