@@ -213,8 +213,6 @@ void Scene::removeGameObject(UID uuid)
 
 void Scene::markGameObjectForRemoval(UID uuid)
 {
-    if (!findGameObjectByUID(uuid)) return;
-
     for (const UID& objectUid : m_objectsToRemove)
     {
         if (objectUid == uuid) return;

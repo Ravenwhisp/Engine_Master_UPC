@@ -113,6 +113,7 @@ public:
     GameObject* getSelectedGameObject() const { return m_selectedGameObject; }
     void setSelectedAsset(std::shared_ptr<Asset> asset) { m_selectedAsset = asset; m_selectedGameObject = nullptr; }
     std::shared_ptr<Asset> getSelectedAsset() const { return m_selectedAsset; }
+    void revealGameObjectInHierarchy(GameObject* gameObject);
 
     bool isInPrefabEditMode() const { return m_prefabSession.m_active && m_prefabSession.m_rootObject != nullptr; }
     GameObject* getPrefabEditRoot() const { return isInPrefabEditMode() ? m_prefabSession.m_rootObject : nullptr; }

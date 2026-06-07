@@ -27,10 +27,20 @@ public:
         bool isDragging = false;
     };
 
+    void setGameObjectToReveal(GameObject* gameObject) { m_gameObjectToReveal = gameObject; }
+    void clearGameObjectToReveal() { m_gameObjectToReveal = nullptr; }
+    bool hasGameObjectToReveal() const { return m_gameObjectToReveal != nullptr; }
+
     void renderNode(GameObject* gameObject, bool prefabMode, SelectionState& state) const;
 
 private:
+    bool shouldOpenNodeToRevealGameObject(GameObject* currentNode) const;
+
     void drawContextMenu(GameObject* go, bool prefabMode, bool isEditRoot) const;
     void handleDragDropSource(GameObject* go, bool isEditRoot, SelectionState& state) const;
     void handleDragDropTarget(GameObject* go) const;
+
+private:
+    GameObject* m_gameObjectToReveal = nullptr;
+
 };

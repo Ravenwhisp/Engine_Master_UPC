@@ -47,7 +47,7 @@ bool ModuleRender::init()
     auto  d3d12 = app->getModuleD3D12();
     auto* device = d3d12->getDevice();
 
-    m_ringBuffer = app->getModuleResources()->createRingBuffer(static_cast<size_t>(30) * 30); // we assume that we need 30 for a single particle system emitter at full emission
+    m_ringBuffer = app->getModuleResources()->createRingBuffer(30);
 
     // Build the one time render-passes.
     auto staticTexturesPass = new StaticTexturesPass(device);
