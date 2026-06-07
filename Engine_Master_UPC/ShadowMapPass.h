@@ -45,6 +45,9 @@ private:
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
+    void renderCasters(ID3D12GraphicsCommandList4* commandList);
+    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
+
 private:
     static constexpr float SHADOW_ORTHO_SIZE = 80.0f;
     static constexpr float SHADOW_LIGHT_DISTANCE = 100.0f;
