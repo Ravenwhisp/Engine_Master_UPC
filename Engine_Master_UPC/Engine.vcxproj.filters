@@ -590,6 +590,18 @@
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="PdbPatcher.cpp">
+      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptLibraryLoader.cpp">
+      <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleScripting.cpp">
+      <Filter>Core\Scripting\HotReloading</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptBuildSystem.cpp">
+      <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1365,6 +1377,18 @@
     </ClInclude>
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="TextureImportSettings.h" />
+    <ClInclude Include="PdbPatcher.h">
+      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptLibraryLoader.h">
+      <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleScripting.h">
+      <Filter>Core\Scripting\HotReloading</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptBuildSystem.h">
+      <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1572,6 +1596,18 @@
     </Filter>
     <Filter Include="MusicSystem\Wwise">
       <UniqueIdentifier>{7083597f-1f92-4b00-adf0-d697556897e3}</UniqueIdentifier>
+    </Filter>
+     <Filter Include="Core\Scripting\HotReloading">
+      <UniqueIdentifier>{ab6dbf3b-91a1-415b-9a07-3146b44b801c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\Pdb">
+      <UniqueIdentifier>{057841f3-2051-4b71-8ab3-e4c77b810307}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\ScriptLibraryLoader">
+      <UniqueIdentifier>{e92c5be0-2d2f-46d2-96d0-f44b96cef676}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\ScriptBuildSystem">
+      <UniqueIdentifier>{688e39d2-81bd-4743-9315-93a1b760678e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

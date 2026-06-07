@@ -43,3 +43,8 @@ bool ScriptFactory::isScriptRegistered(const std::string& scriptName)
 
     return false;
 }
+
+void ScriptFactory::clear()
+{
+    m_registry.clear();
+}
