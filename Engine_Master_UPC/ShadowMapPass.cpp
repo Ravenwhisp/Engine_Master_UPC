@@ -13,6 +13,12 @@
 #include "Transform.h"
 #include "RingBuffer.h"
 
+#include "MeshRenderer.h"
+#include "BasicMesh.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
+#include "Skin.h"
+
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
@@ -234,6 +240,111 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     }
 }
 
+void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList)
+{
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer == nullptr)
+        {
+            continue;
+        }
+
+        renderMeshRenderer(commandList, *renderer);
+    }
+}
+
+void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer)
+{
+    GameObject* owner = renderer.getOwner();
+
+    if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+    {
+        return;
+    }
+
+    if (!renderer.isActive())
+    {
+        return;
+    }
+
+    Transform* transform = renderer.getTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    const std::shared_ptr<BasicMesh>& mesh = renderer.getMesh();
+
+    if (mesh == nullptr)
+    {
+        return;
+    }
+
+    const Skin* skin = renderer.getSkin();
+
+    const VertexBuffer* gpuSkinnedVB =
+        skin != nullptr ? skin->getCurrentGpuSkinnedVertexBuffer() : nullptr;
+
+    const VertexBuffer* cpuSkinnedVB =
+        skin != nullptr && skin->isCpuSkinningFallbackEnabled()
+        ? skin->getCpuSkinnedVertexBuffer()
+        : nullptr;
+
+    const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
+
+    const bool useGpuSkinnedVB = gpuSkinnedVB != nullptr;
+    const bool useCpuSkinnedVB = !useGpuSkinnedVB && cpuSkinnedVB != nullptr;
+    const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
+
+    const VertexBuffer* activeVB =
+        useGpuSkinnedVB ? gpuSkinnedVB :
+        useCpuSkinnedVB ? cpuSkinnedVB :
+        staticVB;
+
+    if (activeVB == nullptr)
+    {
+        return;
+    }
+
+    Matrix global = transform->getGlobalMatrix();
+
+    Matrix mvp = useWorldSpaceSkinnedVB
+        ? m_frameData.lightViewProjection
+        : global * m_frameData.lightViewProjection;
+
+    ShadowDrawConstants constants{};
+    constants.mvp = mvp.Transpose();
+
+    commandList->SetGraphicsRoot32BitConstants(
+        0,
+        sizeof(ShadowDrawConstants) / sizeof(UINT32),
+        &constants,
+        0);
+
+    D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
+    commandList->IASetVertexBuffers(0, 1, &vbv);
+
+    if (!mesh->hasIndexBuffer())
+    {
+        return;
+    }
+
+    D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
+    commandList->IASetIndexBuffer(&ibv);
+
+    const std::vector<Submesh>& submeshes = mesh->getSubmeshes();
+
+    for (const Submesh& submesh : submeshes)
+    {
+        commandList->DrawIndexedInstanced(
+            submesh.indexCount,
+            1,
+            submesh.indexStart,
+            0,
+            0);
+    }
+}
 
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
@@ -252,9 +363,62 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 
 void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    // - Transition shadow map to DEPTH_WRITE.
-    // - Bind shadow DSV.
-    // - Clear depth.
-    // - Render shadow casters.
-    // - Transition shadow map back to PIXEL_SHADER_RESOURCE.
+    if (commandList == nullptr)
+    {
+        return;
+    }
+
+    if (m_shadowMap == nullptr || !m_shadowMap->hasDSV())
+    {
+        return;
+    }
+
+    if (!m_frameData.enabled)
+    {
+        return;
+    }
+
+    ComPtr<ID3D12Resource> shadowResource = m_shadowMap->getD3D12Resource();
+
+    CD3DX12_RESOURCE_BARRIER toDepthWrite =
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            shadowResource.Get(),
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+    commandList->ResourceBarrier(1, &toDepthWrite);
+
+    commandList->RSSetViewports(1, &m_viewport);
+    commandList->RSSetScissorRects(1, &m_scissorRect);
+
+    D3D12_CPU_DESCRIPTOR_HANDLE shadowDSV = m_shadowMap->getDSV().cpu;
+
+    commandList->OMSetRenderTargets(
+        0,
+        nullptr,
+        false,
+        &shadowDSV);
+
+    commandList->ClearDepthStencilView(
+        shadowDSV,
+        D3D12_CLEAR_FLAG_DEPTH,
+        1.0f,
+        0,
+        0,
+        nullptr);
+
+    commandList->SetPipelineState(m_pipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    renderCasters(commandList);
+
+    CD3DX12_RESOURCE_BARRIER toShaderResource =
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            shadowResource.Get(),
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    commandList->ResourceBarrier(1, &toShaderResource);
 }
