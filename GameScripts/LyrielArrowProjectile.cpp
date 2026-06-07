@@ -5,6 +5,11 @@
 #include "BreakableDamageable.h"
 #include "EnemyShadowMark.h"
 #include "LyrielCharacter.h"
+#include "LyrielSound.h"
+
+IMPLEMENT_SCRIPT_FIELDS(LyrielArrowProjectile,
+    SERIALIZED_STRING(m_particlePrefabPath, "Particle Prefab Path")
+)
 
 LyrielArrowProjectile::LyrielArrowProjectile(GameObject* owner)
     : Script(owner)
@@ -25,6 +30,8 @@ void LyrielArrowProjectile::Update()
     {
         TransformAPI::translateGlobal(transform, m_direction * m_speed * Time::getDeltaTime());
     }
+
+    syncParticleTransform();
 
     if (m_lifeTimer >= m_currentLifetime)
     {
@@ -66,6 +73,15 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
         TransformAPI::lookAt(transform, start_position + m_direction);
     }
 
+    if (!m_particlePrefabPath.empty())
+    {
+        m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefabPath.c_str(), start_position, Vector3::Zero, nullptr);
+        if (m_particleGO != nullptr)
+        {
+            syncParticleTransform();
+        }
+    }
+
     GameObjectAPI::setActive(getOwner(), true);
 }
 
@@ -78,6 +94,12 @@ void LyrielArrowProjectile::resetProjectile()
     m_currentLifetime = 0.0f;
     m_target = nullptr;
     m_damage = 0.0f;
+
+    if (m_particleGO != nullptr)
+    {
+        GameObjectAPI::removeGameObject(m_particleGO);
+        m_particleGO = nullptr;
+    }
 
     GameObjectAPI::setActive(getOwner(), false);
 }
@@ -100,16 +122,43 @@ void LyrielArrowProjectile::applyImpactDamage()
         return;
     }
 
+    // Resolve LyrielSound on the shooter once for both impact + mark exploit feedback.
+    LyrielSound* sound = nullptr;
+    if (m_arrowOwner != nullptr)
+    {
+        GameObject* shooter = m_arrowOwner->getOwner();
+        if (shooter != nullptr)
+        {
+            sound = GameObjectAPI::findScript<LyrielSound>(shooter);
+        }
+    }
+
+    if (sound != nullptr)
+    {
+        sound->playArrowImpact();
+    }
+
     EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(m_target);
 
     if (damageable != nullptr)
     {
-        damageable->takeDamageEnemy(m_damage, m_arrowOwner);
+        {
+            EnemyHitContext ctx;
+            ctx.damage = m_damage;
+            ctx.attacker = m_arrowOwner;
+            ctx.attackType = EnemyAttackType::LyrielArrow;
+            damageable->takeDamage(ctx);
+        }
 
         EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(m_target);
         if (mark != nullptr && mark->isExploitable())
         {
             mark->exploit();
+
+            if (sound != nullptr)
+            {
+                sound->playMarkExploit();
+            }
 
             if (m_arrowOwner != nullptr)
             {
@@ -130,6 +179,23 @@ void LyrielArrowProjectile::applyImpactDamage()
     {
         breakableDamageable->takeDamage(m_damage);
         return;
+    }
+}
+
+void LyrielArrowProjectile::syncParticleTransform()
+{
+    if (m_particleGO == nullptr)
+    {
+        return;
+    }
+
+    Transform* arrowTransform = GameObjectAPI::getTransform(getOwner());
+    Transform* particleTransform = GameObjectAPI::getTransform(m_particleGO);
+
+    if (arrowTransform != nullptr && particleTransform != nullptr)
+    {
+        TransformAPI::setGlobalPosition(particleTransform, TransformAPI::getGlobalPosition(arrowTransform));
+        TransformAPI::setGlobalRotationEuler(particleTransform, TransformAPI::getGlobalEulerDegrees(arrowTransform));
     }
 }
 

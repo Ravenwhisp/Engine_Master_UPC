@@ -4,6 +4,8 @@
 #include "StateMachineScript.h"
 
 class ArthurBossController;
+class AnimationComponent;
+
 
 class ArthurIdle : public StateMachineScript
 {
@@ -18,4 +20,5 @@ public:
 
 private:
 	ArthurBossController* m_arthurController = nullptr;
+	AnimationComponent* m_animation = nullptr;
 };

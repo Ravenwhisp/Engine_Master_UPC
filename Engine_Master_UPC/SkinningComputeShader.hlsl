@@ -24,13 +24,14 @@ cbuffer SkinningParams : register(b0)
 uint GetJointIndex(uint2 packedJoints, uint jointSlot)
 {
     uint packed = (jointSlot < 2) ? packedJoints.x : packedJoints.y;
-    return (jointSlot & 1) == 0 ? (packed & 0xFFFFu) : (packed >> 16);
+    return ((jointSlot & 1) == 0) ? (packed & 0xFFFFu) : (packed >> 16);
 }
 
 [numthreads(64, 1, 1)]
 void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     uint vertexIndex = dispatchThreadID.x;
+
     if (vertexIndex >= gVertexCount)
         return;
 
@@ -44,10 +45,10 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     for (uint j = 0; j < 4; ++j)
     {
         uint jointIndex = GetJointIndex(inputVertex.packedJoints, j);
-        
+
         if (jointIndex >= gPaletteCount)
             continue;
-        
+
         float weight = inputVertex.weights[j];
 
         if (weight <= 0.0f)

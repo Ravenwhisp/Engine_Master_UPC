@@ -6,6 +6,7 @@
 class ReaperGauge;
 class DeathCharacter;
 class LyrielCharacter;
+class CooperativeSound;
 
 class ShadowExecution : public Script
 {
@@ -37,9 +38,10 @@ private:
     void applyAoEDamage();
     void lockPlayers(bool locked);
 
-    ReaperGauge*     m_reaperGauge     = nullptr;
-    DeathCharacter*  m_deathCharacter  = nullptr;
-    LyrielCharacter* m_lyrielCharacter = nullptr;
+    ReaperGauge*      m_reaperGauge     = nullptr;
+    DeathCharacter*   m_deathCharacter  = nullptr;
+    LyrielCharacter*  m_lyrielCharacter = nullptr;
+    CooperativeSound* m_sound           = nullptr;
 
     float m_p0Timer = 0.0f;
     float m_p1Timer = 0.0f;

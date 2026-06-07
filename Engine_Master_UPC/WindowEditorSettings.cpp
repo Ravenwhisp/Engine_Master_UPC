@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
+#include "ModuleScripting.h"
 
 #include "Settings.h"
 #include "Scene.h"
@@ -23,6 +24,10 @@ void WindowEditorSettings::drawInternal()
     drawSceneSettings();
     ImGui::Separator();
     drawFrustumCullingSettings();
+    ImGui::Separator();
+    drawScriptsSettings();
+
+    drawScriptReloadModal();
 }
 
 void WindowEditorSettings::drawEngineInformation()
@@ -107,5 +112,146 @@ void WindowEditorSettings::drawFrustumCullingSettings()
             m_settings->frustumCulling.enabled = false;
             DEBUG_WARN("Cannot enable frustum culling because there is no default camera set in the scene.");
         }
+    }
+}
+
+void WindowEditorSettings::drawScriptsSettings()
+{
+    if (!ImGui::CollapsingHeader("Scripts Reloading"))
+    {
+        return;
+    }
+
+    ModuleScripting* moduleScripting = app->getModuleScripting();
+
+    ScriptBuildSettings& buildSettings = moduleScripting->getScriptBuildSettings();
+
+    if (!m_scriptBuildSettingsSynced)
+    {
+        std::strncpy(m_scriptProjectPathBuffer.data(), buildSettings.projectPath.c_str(), m_scriptProjectPathBuffer.size());
+        m_scriptProjectPathBuffer[m_scriptProjectPathBuffer.size() - 1] = '\0';
+
+        std::strncpy(m_scriptSolutionDirBuffer.data(), buildSettings.solutionDir.c_str(), m_scriptSolutionDirBuffer.size());
+        m_scriptSolutionDirBuffer[m_scriptSolutionDirBuffer.size() - 1] = '\0';
+
+        std::strncpy(m_scriptConfigurationBuffer.data(), buildSettings.configuration.c_str(), m_scriptConfigurationBuffer.size());
+        m_scriptConfigurationBuffer[m_scriptConfigurationBuffer.size() - 1] = '\0';
+
+        std::strncpy(m_scriptPlatformBuffer.data(), buildSettings.platform.c_str(), m_scriptPlatformBuffer.size());
+        m_scriptPlatformBuffer[m_scriptPlatformBuffer.size() - 1] = '\0';
+
+        m_scriptBuildSettingsSynced = true;
+    }
+
+    ImGui::TextUnformatted("Script Build Settings");
+
+    ImGui::InputText("Project Path", m_scriptProjectPathBuffer.data(), m_scriptProjectPathBuffer.size());
+    ImGui::InputText("Solution Dir", m_scriptSolutionDirBuffer.data(), m_scriptSolutionDirBuffer.size());
+    ImGui::InputText("Configuration", m_scriptConfigurationBuffer.data(), m_scriptConfigurationBuffer.size());
+    ImGui::InputText("Platform", m_scriptPlatformBuffer.data(), m_scriptPlatformBuffer.size());
+
+    if (ImGui::Button("Save Script Build Settings"))
+    {
+        buildSettings.projectPath = m_scriptProjectPathBuffer.data();
+        buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
+        buildSettings.configuration = m_scriptConfigurationBuffer.data();
+        buildSettings.platform = m_scriptPlatformBuffer.data();
+
+        moduleScripting->saveScriptBuildSettings();
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Build & Reload Game Scripts"))
+    {
+        buildSettings.projectPath = m_scriptProjectPathBuffer.data();
+        buildSettings.solutionDir = m_scriptSolutionDirBuffer.data();
+        buildSettings.configuration = m_scriptConfigurationBuffer.data();
+        buildSettings.platform = m_scriptPlatformBuffer.data();
+
+        moduleScripting->requestBuildAndReloadGameScriptsDll();
+    }
+}
+
+void WindowEditorSettings::drawScriptReloadModal()
+{
+    ModuleScripting* moduleScripting = app->getModuleScripting();
+
+    const ScriptReloadState reloadState = moduleScripting->getScriptReloadState();
+
+    const bool shouldShowModal =
+        reloadState == ScriptReloadState::Building ||
+        reloadState == ScriptReloadState::Reloading ||
+        reloadState == ScriptReloadState::BuildFailed ||
+        reloadState == ScriptReloadState::ReloadFailed ||
+        reloadState == ScriptReloadState::Completed;
+
+    if (!shouldShowModal)
+    {
+        return;
+    }
+
+    static constexpr const char* MODAL_NAME = "GameScripts Reload";
+
+    ImGui::OpenPopup(MODAL_NAME);
+
+    if (ImGui::BeginPopupModal(MODAL_NAME, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+    {
+        switch (reloadState)
+        {
+        case ScriptReloadState::Building:
+            ImGui::TextUnformatted("Building GameScripts...");
+            ImGui::Spacing();
+            ImGui::TextDisabled("The editor is temporarily blocked while scripts are compiling.");
+            break;
+
+        case ScriptReloadState::Reloading:
+            ImGui::TextUnformatted("Reloading GameScripts...");
+            ImGui::Spacing();
+            ImGui::TextDisabled("Restoring script instances and scene references.");
+            break;
+
+        case ScriptReloadState::Completed:
+            ImGui::TextUnformatted("GameScripts reloaded successfully.");
+            ImGui::Spacing();
+
+            if (ImGui::Button("OK"))
+            {
+                moduleScripting->clearScriptReloadResult();
+                ImGui::CloseCurrentPopup();
+            }
+            break;
+
+        case ScriptReloadState::BuildFailed:
+            ImGui::TextUnformatted("GameScripts build failed.");
+            ImGui::Spacing();
+            ImGui::TextDisabled("Current scripts remain loaded.");
+            ImGui::TextDisabled("Check ScriptsBuild.log for the full build output.");
+
+            if (ImGui::Button("OK"))
+            {
+                moduleScripting->clearScriptReloadResult();
+                ImGui::CloseCurrentPopup();
+            }
+            break;
+
+        case ScriptReloadState::ReloadFailed:
+            ImGui::TextUnformatted("GameScripts reload failed.");
+            ImGui::Spacing();
+            ImGui::TextDisabled("Check the console for details.");
+
+            if (ImGui::Button("OK"))
+            {
+                moduleScripting->clearScriptReloadResult();
+                ImGui::CloseCurrentPopup();
+            }
+            break;
+
+        case ScriptReloadState::Idle:
+        default:
+            break;
+        }
+
+        ImGui::EndPopup();
     }
 }

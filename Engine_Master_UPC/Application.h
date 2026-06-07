@@ -23,6 +23,7 @@ class ModuleAssets;
 class ModuleEventSystem;
 class ModuleHaptics;
 class ModuleMusic;
+class ModuleScripting;
 
 class CameraComponent;
 class Settings;
@@ -62,6 +63,7 @@ public:
     ModuleHaptics*              getModuleHaptics() { return m_moduleHaptics; }
     ModuleParticleSystem*       getModuleParticleSystem() { return m_moduleParticleSystem; }
     ModuleMusic*                getModuleMusic() { return m_moduleMusic; }
+    ModuleScripting*            getModuleScripting() { return m_moduleScripting; }
 
     Settings*                   getSettings() { return m_settings; }
     ThreadPool*                 getThreadPool() { return m_threadPool; }
@@ -104,11 +106,10 @@ private:
     ModuleHaptics*          m_moduleHaptics = nullptr;
     ModuleParticleSystem*   m_moduleParticleSystem = nullptr;
     ModuleMusic*            m_moduleMusic = nullptr;
+    ModuleScripting*        m_moduleScripting = nullptr;
 
     Settings*               m_settings = nullptr;
     ThreadPool*             m_threadPool = nullptr;
-
-    HMODULE m_gameScriptsModule = nullptr;
 
     bool m_paused = false;
     bool m_quit = false;

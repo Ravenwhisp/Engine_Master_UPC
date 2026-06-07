@@ -2,6 +2,7 @@
 #include "LyrielDash.h"
 
 #include "LyrielCharacter.h"
+#include "LyrielSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielDash, AbilityDash,
     SERIALIZED_FLOAT(m_chargeRechargeTime, "Charge Recharge Time", 0.1f, 10.0f, 0.1f),
@@ -34,6 +35,8 @@ void LyrielDash::Start()
 	m_charge2Transform2D = m_charge2UI.getReferencedComponent();
 	m_charge3Transform2D = m_charge3UI.getReferencedComponent();
 
+    m_sound = GameObjectAPI::findScript<LyrielSound>(getOwner());
+
     AbilityDash::Start();
 }
 
@@ -58,6 +61,11 @@ bool LyrielDash::canDash() const
 void LyrielDash::onDashStarted()
 {
     --m_currentCharges;
+
+    if (m_sound != nullptr)
+    {
+        m_sound->playDashWhoosh();
+    }
 }
 
 void LyrielDash::onDashUpdate(float dt)

@@ -88,3 +88,20 @@
 
 #define SERIALIZED_COMPONENT_REF_VECTOR(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::List, offsetof(ThisScript, MemberName), getListFieldHandler(ScriptFieldType::ComponentRef), {}, {}, { ComponentTypeValue }, { ScriptFieldType::ComponentRef, getComponentRefFieldHandler() } }
+
+// Non serializable fields macros
+
+#define FIELD_GROUP_LABEL(DisplayName) \
+    { DisplayName, ScriptFieldType::GroupLabel, 0, getGroupLabelFieldHandler(), {}, {}, {}, {}, true }
+
+// These fields are internal, only meant to be used inside the FIEL_GROUP_COLLAPSE macro
+#define INTERNAL_FIELD_GROUP_COLLAPSE_BEGIN(DisplayName) \
+    { DisplayName, ScriptFieldType::GroupCollapseBegin, 0, nullptr, {}, {}, {}, {}, true }
+
+#define INTERNAL_FIELD_GROUP_COLLAPSE_END() \
+    { "", ScriptFieldType::GroupCollapseEnd, 0, nullptr, {}, {}, {}, {}, true }
+
+#define FIELD_GROUP_COLLAPSE(DisplayName, ...) \
+    INTERNAL_FIELD_GROUP_COLLAPSE_BEGIN(DisplayName), \
+    __VA_ARGS__, \
+    INTERNAL_FIELD_GROUP_COLLAPSE_END()

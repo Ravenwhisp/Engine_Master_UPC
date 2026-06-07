@@ -24,6 +24,8 @@ public:
     void startRename(GameObject* target);
     void addChildToPrefabRoot(GameObject* parent);
 
+    void revealGameObject(GameObject* gameObject);
+
 private:
     void drawSceneHeader();
     void drawPrefabHeader(struct PrefabEditSession* session);

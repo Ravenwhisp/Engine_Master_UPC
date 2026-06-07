@@ -2,6 +2,8 @@
 
 #include "AbilityDash.h"
 
+class DeathSound;
+
 class DeathDash : public AbilityDash
 {
     DECLARE_SCRIPT(DeathDash)
@@ -24,8 +26,12 @@ protected:
 
 private:
     Vector3 m_dashStartPosition = Vector3::Zero;
-    bool    m_dashDamageDealt = false;   // guard: damage fires only once per dash
+    bool    m_dashDamageDealt = false;        // guard: damage fires only once per dash
+    bool    m_dashImpactSoundPlayed = false;  // guard: impact sound fires once per dash, at first contact
+
+    DeathSound* m_sound = nullptr;
 
     void applyDashDamage();
     bool isInsideDashRectangle(const Vector3& point) const;
+    bool anyEnemyInsideDashRectangle() const;
 };

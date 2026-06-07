@@ -3,6 +3,8 @@
 
 #include "CharacterBase.h"
 #include "Damageable.h"
+#include "DeathSound.h"
+#include "LyrielSound.h"
 #include "EnemyDamageable.h"
 #include "BreakableDamageable.h"
 
@@ -23,6 +25,9 @@ void PlayerTargetController::Start()
     {
         Debug::warn("PlayerTargetController on '%s' could not find CharacterBase-derived script on the same GameObject.", GameObjectAPI::getName(getOwner()));
     }
+
+    m_deathSound  = GameObjectAPI::findScript<DeathSound>(getOwner());
+    m_lyrielSound = GameObjectAPI::findScript<LyrielSound>(getOwner());
 }
 
 void PlayerTargetController::Update()
@@ -143,6 +148,8 @@ void PlayerTargetController::cycleTarget()
         return;
     }
 
+    GameObject* previousTarget = m_currentTarget;
+
     const int currentIndex = findTargetIndex(m_currentTarget);
 
     if (currentIndex == -1)
@@ -153,6 +160,21 @@ void PlayerTargetController::cycleTarget()
     {
         const int nextIndex = (currentIndex + 1) % static_cast<int>(m_targetsInRange.size());
         m_currentTarget = m_targetsInRange[nextIndex];
+    }
+
+    if (m_currentTarget != nullptr && m_currentTarget != previousTarget)
+    {
+        const bool isLock = (previousTarget == nullptr);
+        if (m_deathSound != nullptr)
+        {
+            if (isLock) m_deathSound->playLockTarget();
+            else        m_deathSound->playSwitchTarget();
+        }
+        if (m_lyrielSound != nullptr)
+        {
+            if (isLock) m_lyrielSound->playLockTarget();
+            else        m_lyrielSound->playSwitchTarget();
+        }
     }
 
     Debug::log("Cycled target: %s", GameObjectAPI::getName(m_currentTarget));
@@ -191,23 +213,7 @@ bool PlayerTargetController::isTargetAlive(GameObject* target) const
         return false;
     }
 
-    Script* enemyDamageableScript = GameObjectAPI::getScript(target, "EnemyDamageable");
-    EnemyDamageable* enemyDamageable = dynamic_cast<EnemyDamageable*>(enemyDamageableScript);
-
-    if (enemyDamageable != nullptr)
-    {
-        return !enemyDamageable->isDead() && enemyDamageable->getCurrentHp() > 0.0f;
-    }
-
-    Script* breakableDamageableScript = GameObjectAPI::getScript(target, "BreakableDamageable");
-    BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(breakableDamageableScript);
-
-    if (breakableDamageable != nullptr)
-    {
-        return !breakableDamageable->isDead() && breakableDamageable->getCurrentHp() > 0.0f;
-    }
-
-    Script* damageableScript = GameObjectAPI::getScript(target, "Damageable");
+    Script* damageableScript = GameObjectAPI::findScript<Damageable>(target);
     Damageable* damageable = dynamic_cast<Damageable*>(damageableScript);
 
     if (damageable != nullptr)

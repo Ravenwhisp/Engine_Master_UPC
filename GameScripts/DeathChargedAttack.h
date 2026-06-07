@@ -15,8 +15,6 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
-    ScriptComponentRef<Transform> m_ChargedAttackUI;
-
 public:
     float m_chargedAttackDamage   = 40.0f;
     float m_arcRange              = 2.5f;
@@ -39,12 +37,22 @@ protected:
 private:
     void startCharging();
     void fireAttack();
-    void dealDamageInArc(float damage) const;
-    void dealDamageInArc(float damage, float range, float angle) const;
+    void dealDamageInArc(float damage, bool isChargedShot) const;
+    void dealDamageInArc(float damage, float range, float angle, bool isChargedShot) const;
     void updateAimDirection();
     void snapFaceAimDirection();
 
     float   m_chargeTime             = 0.0f;
     bool    m_isCharging             = false;
     Vector3 m_aimDirection           = { 0.0f, 0.0f, 0.0f };
+
+private:
+    ScriptComponentRef<Transform> m_ChargedAttackUI;
+	Transform* m_chargedAttackUITransform = nullptr;
+
+    Transform* m_deathSlashUITransform = nullptr;
+    UISlider* m_deathSlashUISlider = nullptr;
+
+    void setupUI();
+    void updateUI() override;
 };

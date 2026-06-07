@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "ModuleD3D12.h"
 #include "ModuleScene.h"
+#include "ModuleMusic.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -16,6 +17,7 @@
 #include "Quadtree.h"
 #include "SceneSnapshot.h"
 #include "Transform.h"
+#include "SceneReferenceResolver.h"
 
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
@@ -211,8 +213,6 @@ void Scene::removeGameObject(UID uuid)
 
 void Scene::markGameObjectForRemoval(UID uuid)
 {
-    if (!findGameObjectByUID(uuid)) return;
-
     for (const UID& objectUid : m_objectsToRemove)
     {
         if (objectUid == uuid) return;
@@ -477,6 +477,29 @@ bool Scene::containsGameObject(const GameObject* go) const
     return false;
 }
 
+void Scene::fixSceneReferences()
+{
+    SceneReferenceResolver resolver;
+
+    for (GameObject* obj : getAllGameObjects())
+    {
+        resolver.registerGameObject(obj, obj);
+
+        for (Component* component : obj->GetAllComponents())
+        {
+            resolver.registerComponent(component->getID(), component);
+        }
+    }
+
+    for (GameObject* obj : getAllGameObjects())
+    {
+        for (Component* component : obj->GetAllComponents())
+        {
+            component->fixReferences(resolver);
+        }
+    }
+}
+
 void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
@@ -567,5 +590,10 @@ void Scene::removeLoadedBank(const std::string& bank)
         m_loadedBanks.erase(it);
         return;
     }
+}
+
+void Scene::unloadSoundBanks()
+{
+    app->getModuleMusic()->unloadAllBanks();
 }
 #pragma endregion
