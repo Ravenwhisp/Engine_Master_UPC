@@ -177,11 +177,11 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         {
             continue;
         }
-
-        shaderParticleData* particleData = new shaderParticleData[command.particles.size()];
+        const size_t size = command.particles.size();
+        shaderParticleData* particleData = new shaderParticleData[size];
 
         const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
-        for (unsigned int i = 0; i < command.particles.size(); ++i) 
+        for (unsigned int i = 0; i < size; ++i)
         {
             XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
@@ -191,7 +191,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         commandList->SetGraphicsRootShaderResourceView(
             1,
-            app->getModuleRender()->allocateInRingBuffer(particleData, command.particles.size() * sizeof(shaderParticleData) )
+            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(shaderParticleData) )
         );
 
         delete[] particleData;
