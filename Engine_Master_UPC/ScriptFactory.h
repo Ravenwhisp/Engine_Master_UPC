@@ -10,6 +10,8 @@ public:
     static std::unique_ptr<Script> createScript(const std::string& scriptName, GameObject* owner);
     static bool isScriptRegistered(const std::string& scriptName);
 
+    static void clear();
+
 private:
     static std::vector<ScriptRegistry> m_registry;
 };

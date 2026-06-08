@@ -4,6 +4,7 @@
 #include "ReaperGauge.h"
 #include "DeathCharacter.h"
 #include "LyrielCharacter.h"
+#include "CooperativeSound.h"
 #include "PlayerState.h"
 #include "PlayerAnimationController.h"
 #include "EnemyDamageable.h"
@@ -27,6 +28,8 @@ void ShadowExecution::Start()
     {
         Debug::warn("[ShadowExecution] ReaperGauge not found on GameController. Add it as a sibling script.");
     }
+
+    m_sound = GameObjectAPI::findScript<CooperativeSound>(getOwner());
 
     cachePlayers();
 }
@@ -130,6 +133,11 @@ void ShadowExecution::beginExecution()
 
     m_reaperGauge->consume();
 
+    if (m_sound != nullptr)
+    {
+        m_sound->playShadowExecution();
+    }
+
     lockPlayers(true);
 
     m_isActive = true;
@@ -194,14 +202,26 @@ void ShadowExecution::applyAoEDamage()
 
         if (hpPercent <= m_instaKillThreshold)
         {
-            damageable->kill();
+            {
+                EnemyHitContext ctx;
+                ctx.damage = damageable->getCurrentHp();
+                ctx.attacker = nullptr;
+                ctx.attackType = EnemyAttackType::ShadowExecution;
+                damageable->takeDamage(ctx);
+            }
             Debug::log("[ShadowExecution] Enemy '%s' below %.0f%% HP -> instant kill.",
                 GameObjectAPI::getName(enemy), m_instaKillThreshold * 100.0f);
         }
         else
         {
             const float damage = maxHp * m_standardDamage;
-            damageable->takeDamage(damage);
+            {
+                EnemyHitContext ctx;
+                ctx.damage = damage;
+                ctx.attacker = nullptr;
+                ctx.attackType = EnemyAttackType::ShadowExecution;
+                damageable->takeDamage(ctx);
+            }
             Debug::log("[ShadowExecution] Enemy '%s' took %.1f damage (%.0f%% of max HP).",
                 GameObjectAPI::getName(enemy), damage, m_standardDamage * 100.0f);
         }

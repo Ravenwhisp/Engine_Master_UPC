@@ -13,6 +13,7 @@ void ArthurChase::OnStateEnter()
 {
 	m_arthurController = GameObjectAPI::findScript<ArthurBossController>(getOwner());
 	m_arthurAttackConfig = GameObjectAPI::findScript<ArthurAttackConfig>(getOwner());
+	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_arthurController)
 	{
@@ -23,6 +24,12 @@ void ArthurChase::OnStateEnter()
 	if (!m_arthurAttackConfig)
 	{
 		Debug::error("[ArthurChase] ArthurAttackConfig not found.");
+		return;
+	}
+
+	if (!m_animation)
+	{
+		Debug::error("[ArthurChase] AnimationComponent not found.");
 		return;
 	}
 
@@ -40,30 +47,13 @@ void ArthurChase::OnStateEnter()
 
 void ArthurChase::OnStateUpdate()
 {
-
-	if (!m_arthurController)
+	if (!m_arthurController || !m_arthurAttackConfig || !m_animation)
 	{
-		Debug::error("[ArthurChase] ArthurBossController not found.");
 		return;
 	}
 
-	if (!m_arthurAttackConfig)
+	if (m_arthurController->trySendDeathTrigger(m_animation))
 	{
-		Debug::error("[ArthurChase] ArthurAttackConfig not found.");
-		return;
-	}
-
-	AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
-	if (!animation)
-	{
-		Debug::error("[ArthurChase] Animation Component not found.");
-		return;
-	}
-
-	if (m_arthurController->isDead())
-	{
-		m_arthurController->clearPath();
-		AnimationAPI::sendTrigger(animation, "ToDeath");
 		return;
 	}
 
@@ -74,7 +64,7 @@ void ArthurChase::OnStateUpdate()
 	if (!m_arthurController->hasValidTarget())
 	{
 		m_arthurController->clearPath();
-		AnimationAPI::sendTrigger(animation, "ToIdle");
+		AnimationAPI::sendTrigger(m_animation, "ToIdle");
 		return;
 	}
 
@@ -85,7 +75,7 @@ void ArthurChase::OnStateUpdate()
 	{
 		m_arthurController->consumeEarthHammerCooldown();
 		m_arthurController->clearPath();
-		AnimationAPI::sendTrigger(animation, "ToEarthHammer");
+		AnimationAPI::sendTrigger(m_animation, "ToEarthHammer");
 		return;
 	}
 
@@ -94,7 +84,17 @@ void ArthurChase::OnStateUpdate()
 	{
 		m_arthurController->clearPath();
 		m_arthurController->consumeSideSweepCooldown();
-		AnimationAPI::sendTrigger(animation, "ToSideSweep");
+
+		const int selectedSide = m_arthurController->getSelectedSideSweepSide();
+
+		if (selectedSide == -1)
+		{
+			AnimationAPI::sendTrigger(m_animation, "ToRightSideSweep");
+		}
+		else
+		{
+			AnimationAPI::sendTrigger(m_animation, "ToLeftSideSweep");
+		}
 		return;
 	}
 
@@ -104,7 +104,7 @@ void ArthurChase::OnStateUpdate()
 		m_arthurController->consumeChargingSlamCooldown();
 		m_arthurController->clearPath();
 		m_arthurController->faceCurrentTarget();
-		AnimationAPI::sendTrigger(animation, "ToChargingSlam");
+		AnimationAPI::sendTrigger(m_animation, "ToChargingSlam");
 		return;
 	}
 
@@ -117,7 +117,7 @@ void ArthurChase::OnStateUpdate()
 		{
 			m_arthurController->clearPath();
 			m_arthurController->faceCurrentTarget();
-			AnimationAPI::sendTrigger(animation, "ToHeavySwipe");
+			AnimationAPI::sendTrigger(m_animation, "ToHeavySwipe");
 			return;
 		}
 

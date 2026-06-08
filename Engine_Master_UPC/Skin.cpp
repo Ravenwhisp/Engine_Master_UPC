@@ -132,17 +132,16 @@ void Skin::lateUpdate(GameObject* owner, MeshRenderer& renderer)
     if (!ensureSourceVerticesCached(renderer))
         return;
 
-    updateGpuPaletteBuffers(renderer);
-
     if (m_enableCpuSkinningFallback)
     {
         rebuildCpuSkinnedVertexBuffer();
+        return;
     }
-    else
-    {
-        m_skinnedVertices.clear();
-        m_skinnedVertexBuffer.reset();
-    }
+
+    updateGpuPaletteBuffers(renderer);
+
+    m_skinnedVertices.clear();
+    m_skinnedVertexBuffer.reset();
 }
 
 void Skin::cleanUp()
@@ -439,11 +438,17 @@ ID3D12Resource* Skin::getCurrentGpuPaletteNormalResource() const
 
 bool Skin::hasGpuSkinningResources() const
 {
-    const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+    for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
+    {
+        if (!m_gpuSkinnedVertexBuffers[i] ||
+            !m_gpuPaletteModelBuffers[i] ||
+            !m_gpuPaletteNormalBuffers[i])
+        {
+            return false;
+        }
+    }
 
-    return m_gpuSkinnedVertexBuffers[frameIndex] != nullptr
-        && m_gpuPaletteModelBuffers[frameIndex] != nullptr
-        && m_gpuPaletteNormalBuffers[frameIndex] != nullptr;
+    return true;
 }
 
 bool Skin::ensureGpuSkinningResources()
@@ -507,13 +512,37 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
         return;
 
     const uint32_t frameIndex = GetCurrentSkinningFrameIndex();
+
+    if (frameIndex >= FRAMES_IN_FLIGHT)
+    {
+        DEBUG_ERROR("[Skin] Invalid frame index %u. FRAMES_IN_FLIGHT = %u", frameIndex, FRAMES_IN_FLIGHT);
+        return;
+    }
+
     const size_t paletteBytes = m_matrixPalette.size() * sizeof(Matrix);
+
+    if (!m_gpuPaletteModelBuffers[frameIndex] || !m_gpuPaletteNormalBuffers[frameIndex])
+    {
+        DEBUG_ERROR("[Skin] Missing GPU palette buffer. frame=%u modelBuffer=%p normalBuffer=%p", frameIndex, m_gpuPaletteModelBuffers[frameIndex].Get(), m_gpuPaletteNormalBuffers[frameIndex].Get());
+        return;
+    }
 
     {
         void* mapped = nullptr;
         CD3DX12_RANGE readRange(0, 0);
 
-        m_gpuPaletteModelBuffers[frameIndex]->Map(0, &readRange, &mapped);
+        HRESULT hr = m_gpuPaletteModelBuffers[frameIndex]->Map(0, &readRange, &mapped);
+
+        if (FAILED(hr) || mapped == nullptr)
+        {
+            HRESULT reason = app->getModuleD3D12()->getDevice()->GetDeviceRemovedReason();
+
+            DEBUG_ERROR("[Skin] Failed to map GPU model palette buffer. HRESULT: 0x%08X. DeviceRemovedReason: 0x%08X",
+                hr,
+                reason);
+            return;
+        }
+
         std::memcpy(mapped, m_matrixPalette.data(), paletteBytes);
         m_gpuPaletteModelBuffers[frameIndex]->Unmap(0, nullptr);
     }
@@ -522,7 +551,14 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
         void* mapped = nullptr;
         CD3DX12_RANGE readRange(0, 0);
 
-        m_gpuPaletteNormalBuffers[frameIndex]->Map(0, &readRange, &mapped);
+        HRESULT hr = m_gpuPaletteNormalBuffers[frameIndex]->Map(0, &readRange, &mapped);
+
+        if (FAILED(hr) || mapped == nullptr)
+        {
+            DEBUG_ERROR("[Skin] Failed to map GPU normal palette buffer. HRESULT: 0x%08X", hr);
+            return;
+        }
+
         std::memcpy(mapped, m_normalPalette.data(), paletteBytes);
         m_gpuPaletteNormalBuffers[frameIndex]->Unmap(0, nullptr);
     }

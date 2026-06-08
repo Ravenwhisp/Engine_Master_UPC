@@ -77,6 +77,7 @@ private:
 	void startTargetLock();
 	void updateTargetLockTimer();
 	void updateTauntTimer();
+	void findPlayerTransforms();
 
 	Transform* selectClosestDetectedPlayer() const;
 	Transform* selectReevaluatedTarget() const;
@@ -97,4 +98,7 @@ private:
 
 	AggroEntry* getAggroEntry(Transform* target);
 	const AggroEntry* getAggroEntry(Transform* target) const;
+
+	Transform* m_lyrielCachedTransform = nullptr;
+	Transform* m_deathCachedTransform = nullptr;
 };

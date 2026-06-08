@@ -19,7 +19,7 @@ void HapticTester::Start()
 
     for (const HapticEffectDefinition& def : defineEffects())
     {
-        HapticAPI::registerEffect(def);    
+        HapticAPI::registerEffect(def);
         Debug::log("[HapticTester] Registered effect '%s'.", def.id.c_str());
     }
 

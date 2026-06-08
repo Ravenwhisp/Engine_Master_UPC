@@ -96,6 +96,17 @@
     <ClCompile Include="ShadowExecution.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="PlayerStunState.cpp" />
+    <ClCompile Include="CooperativeSound.cpp" />
+    <ClCompile Include="DeathSound.cpp" />
+    <ClCompile Include="LyrielSound.cpp" />
+    <ClCompile Include="ArcherArrowBarrageState.cpp" />
+    <ClCompile Include="ArcherAttackConfig.cpp" />
+    <ClCompile Include="ArcherSomersaultState.cpp" />
+    <ClCompile Include="RangedEnemyController.cpp" />
+    <ClCompile Include="EnemyAttackExecutor.cpp" />
+    <ClCompile Include="EnemyChaseState.cpp" />
+    <ClCompile Include="EnemyIdleState.cpp" />
+    <ClCompile Include="EnemyAttackState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -192,6 +203,17 @@
     <ClInclude Include="ShadowExecution.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="PlayerStunState.h" />
+    <ClInclude Include="CooperativeSound.h" />
+    <ClInclude Include="DeathSound.h" />
+    <ClInclude Include="LyrielSound.h" />
+    <ClInclude Include="ArcherArrowBarrageState.h" />
+    <ClInclude Include="ArcherAttackConfig.h" />
+    <ClInclude Include="ArcherSomersaultState.h" />
+    <ClInclude Include="RangedEnemyController.h" />
+    <ClInclude Include="EnemyAttackExecutor.h" />
+    <ClInclude Include="EnemyChaseState.h" />
+    <ClInclude Include="EnemyIdleState.h" />
+    <ClInclude Include="EnemyAttackState.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

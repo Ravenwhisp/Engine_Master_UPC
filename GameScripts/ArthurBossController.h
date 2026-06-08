@@ -49,6 +49,8 @@ private:
 	Vector3 m_searchExtents = Vector3(5.0f, 5.0f, 5.0f);
 	const float RADIANS_TO_DEGREES = 180.0f / 3.14159265f;
 
+	bool m_deathTriggerSent = false;
+
 	float m_recoveryDuration = 0.75f;
 
 	int m_selectedSideSweepSide = 1;
@@ -65,6 +67,7 @@ public:
 	float getDistanceToCurrentTarget() const; // Get the distance between target and boss and compare with the different attack ranges
 	Transform* getCurrentTarget() const { return m_currentTarget; }
 	bool isDead() const;
+	bool trySendDeathTrigger(AnimationComponent* animation);
 
 	// Phase helpers
 	void setPhase(ArthurBossPhase phase);
@@ -88,6 +91,7 @@ public:
 	Transform* getNonFocusTarget() const;
 
 	void faceCurrentTarget();
+	void facePosition(const Vector3& worldPosition);
 
 	void setRecoveryDuration(float recoveryDuration);
 	float getRecoveryDuration() const { return m_recoveryDuration; }
@@ -117,4 +121,26 @@ private:
 
 	// Needed to detect if a player is on the area to use Side Sweep
 	Vector3 rotateAroundY(const Vector3& vector, float radians) const;
+
+public:
+	void updateHealthUI();
+	void setupHealthUI();
+	void showHealthUI(bool show);
+	void updateHealthUIPhase();
+
+	float m_healthBarDuration = 1.0f;
+
+private:
+	ScriptComponentRef<Transform> m_healthBarCanvas;
+	ScriptComponentRef<Transform2D> m_healthBarContainer;
+	ScriptComponentRef<Transform2D> m_healthBarPhase2;
+
+	Transform* m_healthBarCanvasTransform = nullptr;
+	Transform2D* m_healthBarContainerTransform2D = nullptr;
+	Transform2D* m_healthBarPhase2Transform2D = nullptr;
+
+	float m_healthBarTimer = 0.0f;
+	bool m_healthBarVisible = false;
+	float m_healthBarPhase2Timer = 0.0f;
+	bool m_healthBarPhase2Visible = false;
 };

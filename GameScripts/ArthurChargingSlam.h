@@ -5,7 +5,9 @@
 
 class ArthurBossController;
 class ArthurAttackConfig;
-class ArthurAttackExecutor;
+class EnemyAttackExecutor;
+class AnimationComponent;
+
 
 class ArthurChargingSlam : public StateMachineScript
 {
@@ -17,6 +19,8 @@ public:
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
+
+    ScriptFieldList getExposedFields() const override;
 
 private:
     void lockTargetPosition();
@@ -30,10 +34,23 @@ private:
 
     void goToRecover();
 
+    void setupUI();
+    void updateUI();
+
+    // Animations
+    void setupAnimationPrepSection();
+    void setupAnimationDashSection();
+    void setupAnimationImpactSection();
+
+    float getChargingDuration() const;
+    float getDashSpeed() const;
+    float getSafeSectionSpeed(float animationSectionDuration, float gameplayDuration) const;
+
 private:
     ArthurBossController* m_arthurController = nullptr;
     ArthurAttackConfig* m_attackConfig = nullptr;
-    ArthurAttackExecutor* m_attackExecutor = nullptr;
+    EnemyAttackExecutor* m_attackExecutor = nullptr;
+    AnimationComponent* m_animation = nullptr;
 
     float m_stateTimer = 0.0f;
 
@@ -47,4 +64,21 @@ private:
 
     bool m_hasDamagedFocusDuringDash = false;
     bool m_hasDamagedNonFocusDuringDash = false;
+
+    float m_uiFadeOutTimer = 0.0f;
+    bool m_isFadingUI = false;
+
+    bool m_isPlayingImpactUI = false;
+    float m_impactUITimer = 0.0f;
+
+    bool m_isFadingImpactUI = false;
+    float m_impactUIFadeTimer = 0.0f;
+
+    // Animation Timings
+    float m_animPrepStartTime = 0.0f;
+    float m_animDashStartTime = 2.0f;
+    float m_animImpactStartTime = 3.0f;
+    float m_animEndTime = 4.0f;
+
+    float m_previousAnimationSpeed = 1.0f;
 };

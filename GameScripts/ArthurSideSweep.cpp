@@ -3,7 +3,11 @@
 
 #include "ArthurBossController.h"
 #include "ArthurAttackConfig.h"
-#include "ArthurAttackExecutor.h"
+#include "EnemyAttackExecutor.h"
+
+IMPLEMENT_SCRIPT_FIELDS(ArthurSideSweep,
+    SERIALIZED_INT(m_sweepSide, "Sweep Side")
+)
 
 ArthurSideSweep::ArthurSideSweep(GameObject* owner)
     : StateMachineScript(owner)
@@ -14,7 +18,8 @@ void ArthurSideSweep::OnStateEnter()
 {
     m_arthurController = GameObjectAPI::findScript<ArthurBossController>(getOwner());
     m_attackConfig = GameObjectAPI::findScript<ArthurAttackConfig>(getOwner());
-    m_attackExecutor = GameObjectAPI::findScript<ArthurAttackExecutor>(getOwner());
+    m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
+    m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
     m_stateTimer = 0.0f;
     m_hasAppliedHit = false;
@@ -33,39 +38,39 @@ void ArthurSideSweep::OnStateEnter()
 
     if (!m_attackExecutor)
     {
-        Debug::error("[ArthurSideSweep] ArthurAttackExecutor not found.");
+        Debug::error("[ArthurSideSweep] EnemyAttackExecutor not found.");
+        return;
+    }
+
+    if (!m_animation)
+    {
+        Debug::error("[ArthurSideSweep] AnimationComponent not found.");
         return;
     }
 
     m_arthurController->clearPath();
     m_arthurController->updateCurrentTarget();
 
-    m_sweepSide = m_arthurController->getSelectedSideSweepSide();
+	setupUI();
 
     Debug::log("[ArthurSideSweep] ENTER");
 }
 
 void ArthurSideSweep::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackConfig || !m_attackExecutor)
+    if (!m_arthurController || !m_attackConfig || !m_attackExecutor || !m_animation)
     {
         return;
     }
 
-    AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
-    if (!animation)
+    if (m_arthurController->trySendDeathTrigger(m_animation))
     {
-        return;
-    }
-
-    if (m_arthurController->isDead())
-    {
-        m_arthurController->clearPath();
-        AnimationAPI::sendTrigger(animation, "ToDeath");
         return;
     }
 
     m_stateTimer += Time::getDeltaTime();
+
+    updateUI();
 
     float hitTime = m_attackConfig->m_sideSweepHitTime;
     float totalDuration = m_attackConfig->m_sideSweepTotalDuration;
@@ -91,6 +96,10 @@ void ArthurSideSweep::OnStateUpdate()
 
 void ArthurSideSweep::OnStateExit()
 {
+    if (m_attackConfig && m_attackConfig->m_sideSweepUICanvasTransform)
+    {
+		GameObjectAPI::setActive(m_attackConfig->m_sideSweepUICanvasTransform->getOwner(), false);
+	}
     Debug::log("[ArthurSideSweep] EXIT");
 }
 
@@ -117,13 +126,7 @@ void ArthurSideSweep::applyHit()
 
 void ArthurSideSweep::goToRecover()
 {
-    if (!m_attackConfig)
-    {
-        return;
-    }
-
-    AnimationComponent* animation = AnimationAPI::getAnimationComponent(getOwner());
-    if (!animation)
+    if (!m_attackConfig || !m_animation)
     {
         return;
     }
@@ -142,7 +145,78 @@ void ArthurSideSweep::goToRecover()
 
     Debug::log("[ArthurSideSweep] Going to Recover.");
 
-    AnimationAPI::sendTrigger(animation, "ToRecover");
+    AnimationAPI::sendTrigger(m_animation, "ToRecover");
+}
+
+void ArthurSideSweep::setupUI()
+{
+    if (!m_attackConfig)
+    {
+        return;
+    }
+
+    Transform* canvasTransform = m_attackConfig->m_sideSweepUICanvasTransform;
+	Transform2D* container = m_attackConfig->m_sideSweepUIContainerTransform2D;
+    Transform2D* background = m_attackConfig->m_sideSweepUIBackgroundTransform2D;
+    Transform2D* shadow = m_attackConfig->m_sideSweepUIShadowTransform2D;
+
+    if (!canvasTransform || !container || !background || !shadow)
+    {
+        return;
+    }
+
+    GameObjectAPI::setActive(canvasTransform->getOwner(), true);
+    if (m_sweepSide == -1)
+    {
+        TransformAPI::setRotationEuler(canvasTransform, Vector3(90.0f, 0.0f, -90.0f));
+    }
+    else
+    {
+        TransformAPI::setRotationEuler(canvasTransform, Vector3(90.0f, 0.0f, 90.0f));
+	}
+    Transform2DAPI::setAlpha(background, 0.0f);
+    Transform2DAPI::setAlpha(shadow, 0.0f);
+    Transform2DAPI::setAlpha(container, 1.0f);
+}
+
+void ArthurSideSweep::updateUI()
+{
+    if (!m_attackConfig)
+    {
+        return;
+    }
+
+    Transform* canvasTransform = m_attackConfig->m_sideSweepUICanvasTransform;
+    Transform2D* container = m_attackConfig->m_sideSweepUIContainerTransform2D;
+    Transform2D* background = m_attackConfig->m_sideSweepUIBackgroundTransform2D;
+    Transform2D* shadow = m_attackConfig->m_sideSweepUIShadowTransform2D;
+
+    if (!canvasTransform || !container || !background || !shadow)
+    {
+        return;
+    }
+
+    float hitTime = m_attackConfig->m_sideSweepHitTime;
+    float totalDuration = m_attackConfig->m_sideSweepTotalDuration;
+    if (m_arthurController->isPhase2())
+    {
+        hitTime = m_attackConfig->m_sideSweepPhase2HitTime;
+        totalDuration = m_attackConfig->m_sideSweepPhase2TotalDuration;
+	}
+
+    if (m_stateTimer < hitTime)
+    {
+		const float t = std::clamp(m_stateTimer / hitTime, 0.0f, 1.0f);
+        Transform2DAPI::setAlpha(background, t);
+    }
+    else
+    {
+        Transform2DAPI::setAlpha(background, 1.0f);
+		const float t = std::clamp((m_stateTimer - hitTime) / (totalDuration - hitTime), 0.0f, 1.0f);
+		const float easedT = MathAPI::evaluateEasing(MathAPI::EasingType::EaseOutCubic, t);
+        Transform2DAPI::setAlpha(shadow, easedT);
+		Transform2DAPI::setAlpha(container, 1.0f - easedT);
+	}
 }
 
 IMPLEMENT_SCRIPT(ArthurSideSweep)

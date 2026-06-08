@@ -108,8 +108,8 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     };
     
 
-
-    /* // SpriteRender quad
+    /*
+     // SpriteRender quad
     const Vertex quadVertices[6] =
     {
         { Vector2(-0.5f, -0.5f), Vector2(0.0f, 1.0f) },
@@ -121,6 +121,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
         { Vector2(-0.5f,  0.5f), Vector2(0.0f, 0.0f) }
     };
     */
+    
 
     m_quadVertexBuffer.reset(app->getModuleResources()->createVertexBuffer(quadVertices, 6, sizeof(Vertex)));
 }
@@ -212,9 +213,17 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command) cons
 
     Matrix rotInv = rot.Transpose();
 
+    /*
+    Vector3 cameraUp(view._12, view._22, view._32);
+    Vector3 cameraForward(-view._13, -view._23, -view._33);
+
+    Matrix billboardMatrix = Matrix::CreateBillboard(command.position, *m_cameraPosition, cameraUp, &cameraForward); // adds translation as well!
+    */
+
     Vector3 scale = Vector3(command.scale.x, command.scale.y, 1.0f);
 
     return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * rotInv * Matrix::CreateTranslation(command.position);
+    //return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * billboardMatrix;
 }
 
 Matrix ParticlesPass::buildImageVP()

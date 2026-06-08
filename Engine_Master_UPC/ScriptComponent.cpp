@@ -115,8 +115,29 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     ScriptFieldList fieldList = script.getExposedFields();
     char* base = reinterpret_cast<char*>(&script);
 
+    bool currentGroupOpen = true;
+
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
+        if (field.type == ScriptFieldType::GroupCollapseBegin)
+        {
+            ImGui::Spacing();
+
+            currentGroupOpen = ImGui::CollapsingHeader(field.name, ImGuiTreeNodeFlags_DefaultOpen);
+            continue;
+        }
+
+        if (field.type == ScriptFieldType::GroupCollapseEnd)
+        {
+            currentGroupOpen = true;
+            continue;
+        }
+
+        if (!currentGroupOpen)
+        {
+            continue;
+        }
+
         void* data = base + field.offset;
 
         assert(field.handler != nullptr);
@@ -153,11 +174,28 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
 
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
+        if (!field.isDataField())
+        {
+            continue;
+        }
+
         const void* data = base + field.offset;
 
         assert(field.handler != nullptr);
         field.handler->serialize(field, data, outFieldsJson, domTree);
     }
+}
+
+rapidjson::Value ScriptComponent::serializeScriptFieldsForReload(rapidjson::Document& domTree)
+{
+    rapidjson::Value fieldsJson(rapidjson::kObjectType);
+
+    if (m_script)
+    {
+        serializeScriptFields(*m_script, fieldsJson, domTree);
+    }
+
+    return fieldsJson;
 }
 
 bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
@@ -190,6 +228,11 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
 
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
+        if (!field.isDataField())
+        {
+            continue;
+        }
+
         if (!fieldsJson.HasMember(field.name))
         {
             continue;
@@ -201,6 +244,17 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
         assert(field.handler != nullptr);
         field.handler->deserialize(field, data, valueJson);
     }
+}
+
+void ScriptComponent::deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson)
+{
+    if (!m_script)
+    {
+        return;
+    }
+
+    deserializeScriptFields(*m_script, fieldsJson);
+    m_script->onAfterDeserialize();
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
@@ -215,6 +269,11 @@ void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
 
     for (const ScriptFieldInfo& field : fieldList.fields)
     {
+        if (!field.isDataField())
+        {
+            continue;
+        }
+
         void* data = base + field.offset;
 
         assert(field.handler != nullptr);
@@ -257,6 +316,11 @@ void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
     {
         const ScriptFieldInfo& sourceField = sourceFields.fields[i];
         const ScriptFieldInfo& targetField = targetFields.fields[i];
+
+        if (!sourceField.isDataField() || !targetField.isDataField())
+        {
+            continue;
+        }
 
         assert(sourceField.handler == targetField.handler);
 

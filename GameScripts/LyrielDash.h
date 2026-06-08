@@ -3,6 +3,8 @@
 #include "AbilityDash.h"
 #include "Transform2D.h"
 
+class LyrielSound;
+
 class LyrielDash : public AbilityDash
 {
     DECLARE_SCRIPT(LyrielDash)
@@ -59,4 +61,6 @@ private:
     Vector3 m_debugDashCandidateEnd = Vector3::Zero;
     Vector3 m_debugDashSampleEnd = Vector3::Zero;
     bool m_debugLastDashValid = false;
+
+    LyrielSound* m_sound = nullptr;
 };
