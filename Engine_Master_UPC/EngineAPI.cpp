@@ -2298,6 +2298,15 @@ namespace UISheetAPI
         }
         sheet->setOffset(offset);
     }
+
+    void reset(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+		sheet->reset();
+	}
 }
 
 namespace DebugDrawAPI

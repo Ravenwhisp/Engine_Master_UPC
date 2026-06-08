@@ -327,6 +327,7 @@ namespace UISheetAPI
     ENGINE_API bool isPlaying(UISheet* sheet);
     ENGINE_API Vector2 getOffset(UISheet* sheet);
     ENGINE_API void setOffset(UISheet* sheet, const Vector2& offset);
+    ENGINE_API void reset(UISheet* sheet);
 }
 
 namespace DebugDrawAPI
