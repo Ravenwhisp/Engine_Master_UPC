@@ -24,8 +24,8 @@ struct UIImageCommand
     Rect2D  rect;
 
     float alpha = 1.0f;
-    
-    float fillAmount = 1.0f;
+
+    Vector2 fillAmount = { 0.0f, 1.0f };
     FillMethod fillMethod = FillMethod::Horizontal;
     FillOrigin fillOrigin = FillOrigin::HorizontalLeft;
     CanvasRenderMode renderMode = CanvasRenderMode::SCREEN_SPACE;
