@@ -349,6 +349,36 @@ bool NavMeshBuilder::BuildTiledMesh(
     NavMeshBuildResult& outResult,
     const std::vector<NavModifierVolumeData>& modifierVolumes)
 {
+    outResult = {};
+
+    if (verts.empty() || tris.empty())
+    {
+        return false;
+    }
+
+    if ((verts.size() % 3) != 0)
+    {
+        return false;
+    }
+
+    if ((tris.size() % 3) != 0)
+    {
+        return false;
+    }
+
+    const int nverts = (int)verts.size() / 3;
+    const int ntris = (int)tris.size() / 3;
+
+    // Recast expects vertex indices in [0, nverts)
+    for (int i = 0; i < (int)tris.size(); ++i)
+    {
+        if (tris[i] < 0 || tris[i] >= nverts)
+        {
+            return false;
+        }
+    }
+
+    // CHANGE THAT WHEN IMPLEMENTATION IS DONE
     return BuildSoloMesh(
         verts,
         tris,
