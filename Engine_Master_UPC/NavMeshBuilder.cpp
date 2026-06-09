@@ -335,7 +335,8 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
-    outResult.tileRef = outRef;
+    //outResult.tileRef = outRef; -- old
+    outResult.tileRefs.push_back(outRef);
 
     DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
 

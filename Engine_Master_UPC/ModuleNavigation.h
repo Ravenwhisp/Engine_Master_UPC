@@ -15,6 +15,7 @@ struct NavMeshSettings
 {
     float cellSize = 0.2f;
     float cellHeight = 0.2f;
+    int tileSize = 64;
 
     float agentHeight = 1.8f;
     float agentRadius = 0.4f;

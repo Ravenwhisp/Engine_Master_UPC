@@ -12,6 +12,7 @@ struct NavMeshBuildSettings
 {
     float cellSize = 0.2f;
     float cellHeight = 0.2f;
+    int tileSize = 64;
 
     float agentHeight = 1.8f;
     float agentRadius = 0.4f;
@@ -34,7 +35,8 @@ struct NavMeshBuildResult
 {
     dtNavMesh* navMesh = nullptr;
     dtNavMeshQuery* navQuery = nullptr;
-    dtTileRef tileRef = 0;
+    //dtTileRef tileRef = 0; -- old
+    std::vector<dtTileRef> tileRefs;
 };
 
 class NavMeshBuilder

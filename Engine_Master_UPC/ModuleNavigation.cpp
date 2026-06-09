@@ -205,6 +205,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     NavMeshBuildSettings settings;
     settings.cellSize = m_settings.cellSize;
     settings.cellHeight = m_settings.cellHeight;
+    settings.tileSize = m_settings.tileSize;
     settings.agentHeight = m_settings.agentHeight;
     settings.agentRadius = m_settings.agentRadius;
     settings.agentMaxClimb = m_settings.agentMaxClimb;
@@ -225,8 +226,9 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     unloadNavMesh();
     m_navMesh = result.navMesh;
     m_navQuery = result.navQuery;
-    m_tileRefs.clear();
-    m_tileRefs.push_back(result.tileRef);
+    //m_tileRefs.clear(); -- old
+    //m_tileRefs.push_back(result.tileRef); -- old
+    m_tileRefs = result.tileRefs;
 
     const char* sceneName = app->getModuleScene()->getScene()->getName();
     const bool saved = saveNavMeshForScene(sceneName);
