@@ -335,12 +335,27 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
-    //outResult.tileRef = outRef; -- old
     outResult.tileRefs.push_back(outRef);
 
     DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
 
     return true;
+}
+
+bool NavMeshBuilder::BuildTiledMesh(
+    const std::vector<float>& verts,
+    const std::vector<int>& tris,
+    const NavMeshBuildSettings& s,
+    NavMeshBuildResult& outResult,
+    const std::vector<NavModifierVolumeData>& modifierVolumes)
+{
+    return BuildSoloMesh(
+        verts,
+        tris,
+        s,
+        outResult,
+        modifierVolumes
+    );
 }
 
 NavAreaType NavMeshBuilder::resolveAreaForPoint(

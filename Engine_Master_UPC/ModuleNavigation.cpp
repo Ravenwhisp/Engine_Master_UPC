@@ -216,7 +216,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     // get modifier volumes from the scene
     m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
-    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result, m_modifierVolumes))
+    if (!NavMeshBuilder::BuildTiledMesh(verts, tris, settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;
@@ -226,8 +226,6 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     unloadNavMesh();
     m_navMesh = result.navMesh;
     m_navQuery = result.navQuery;
-    //m_tileRefs.clear(); -- old
-    //m_tileRefs.push_back(result.tileRef); -- old
     m_tileRefs = result.tileRefs;
 
     const char* sceneName = app->getModuleScene()->getScene()->getName();

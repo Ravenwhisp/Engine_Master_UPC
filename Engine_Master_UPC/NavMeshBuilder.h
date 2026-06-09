@@ -35,7 +35,6 @@ struct NavMeshBuildResult
 {
     dtNavMesh* navMesh = nullptr;
     dtNavMeshQuery* navQuery = nullptr;
-    //dtTileRef tileRef = 0; -- old
     std::vector<dtTileRef> tileRefs;
 };
 
@@ -44,6 +43,13 @@ class NavMeshBuilder
 public:
     // verts: [x,y,z,x,y,z...], tris: [i0,i1,i2,i0,i1,i2...]
     static bool BuildSoloMesh(
+        const std::vector<float>& verts,
+        const std::vector<int>& tris,
+        const NavMeshBuildSettings& settings,
+        NavMeshBuildResult& outResult,
+        const std::vector<NavModifierVolumeData>& modifierVolumes);
+
+    static bool BuildTiledMesh(
         const std::vector<float>& verts,
         const std::vector<int>& tris,
         const NavMeshBuildSettings& settings,
