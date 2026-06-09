@@ -401,6 +401,21 @@ bool NavMeshBuilder::BuildTiledMesh(
     cfg.detailSampleDist = (s.detailSampleDist < 0.9f) ? 0 : cfg.cs * s.detailSampleDist;
     cfg.detailSampleMaxError = cfg.ch * s.detailSampleMaxError;
 
+    // Compute bounds
+    rcVcopy(cfg.bmin, &verts[0]);
+    rcVcopy(cfg.bmax, &verts[0]);
+    for (int i = 1; i < nverts; ++i)
+    {
+        const float* v = &verts[i * 3];
+        rcVmin(cfg.bmin, v);
+        rcVmax(cfg.bmax, v);
+    }
+
+    rcCalcGridSize(cfg.bmin, cfg.bmax, cfg.cs, &cfg.width, &cfg.height);
+
+    // 1) Heightfield
+
+
     // CHANGE THAT WHEN IMPLEMENTATION IS DONE
     return BuildSoloMesh(
         verts,
