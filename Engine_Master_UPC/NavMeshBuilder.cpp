@@ -378,6 +378,29 @@ bool NavMeshBuilder::BuildTiledMesh(
         }
     }
 
+    rcContext ctx;
+
+    rcConfig cfg{};
+    cfg.cs = s.cellSize;
+    cfg.ch = s.cellHeight;
+    // add tilesize later
+
+    cfg.walkableSlopeAngle = s.agentMaxSlope;
+    cfg.walkableHeight = (int)std::ceil(s.agentHeight / cfg.ch);
+    cfg.walkableClimb = (int)std::floor(s.agentMaxClimb / cfg.ch);
+    cfg.walkableRadius = (int)std::ceil(s.agentRadius / cfg.cs);
+
+    cfg.maxEdgeLen = (int)(s.edgeMaxLen / cfg.cs);
+    cfg.maxSimplificationError = s.edgeMaxError;
+
+    cfg.minRegionArea = (int)rcSqr((int)s.regionMinSize);
+    cfg.mergeRegionArea = (int)rcSqr((int)s.regionMergeSize);
+
+    cfg.maxVertsPerPoly = ClampInt(s.vertsPerPoly, 3, 12);
+
+    cfg.detailSampleDist = (s.detailSampleDist < 0.9f) ? 0 : cfg.cs * s.detailSampleDist;
+    cfg.detailSampleMaxError = cfg.ch * s.detailSampleMaxError;
+
     // CHANGE THAT WHEN IMPLEMENTATION IS DONE
     return BuildSoloMesh(
         verts,
