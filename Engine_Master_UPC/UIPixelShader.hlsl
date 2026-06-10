@@ -29,6 +29,38 @@ float3 LinearToSRGB(float3 color)
     return pow(color, INV_GAMMA);
 }
 
+static const float2 RAD90_CENTERS[4] =
+{
+    float2(0.0f, 1.0f),
+    float2(0.0f, 0.0f),
+    float2(1.0f, 0.0f),
+    float2(1.0f, 1.0f)
+};
+
+static const float RAD90_OFFSETS[4] =
+{
+    0.75f,
+    0.0f,
+    0.25f,
+    0.5f
+};
+
+static const float2 RAD180_CENTERS[4] =
+{
+    float2(0.5f, 1.0f),
+    float2(0.0f, 0.5f),
+    float2(0.5f, 0.0f),
+    float2(1.0f, 0.5f)
+};
+
+static const float RAD180_OFFSETS[4] =
+{
+    0.5f,
+    0.75f,
+    0.0f,
+    0.25f
+};
+
 float ComputeRadialMask(float2 uv, float clockwise, float range, float offset, float2 center, float aspectRatio, float start, float end)
 {
     if (end <= start)
@@ -81,68 +113,58 @@ float4 main(PSInput input) : SV_TARGET
 
     float mask = 1.0f;
     
-    if (method == FILL_HORIZONTAL)
+    if (method < FILL_RADIAL90)
     {
-        float softness = max(fwidth(fillUV.x) * 1.5f, 0.001f);
-        if (origin == 0)
+        float uv = (method == FILL_HORIZONTAL) ? fillUV.x : fillUV.y;
+
+        bool flip =
+            (method == FILL_HORIZONTAL && origin != 0) ||
+            (method == FILL_VERTICAL && origin == 0);
+
+        if (flip)
         {
-            mask = ComputeLinearMask(fillStart, fillEnd, softness, fillUV.x);
+            uv = 1.0f - uv;
         }
-        else
-        {
-            float x = 1.0f - fillUV.x;
-            mask = ComputeLinearMask(fillStart, fillEnd, softness, x);
-        }
+
+        float softness = max(fwidth(uv) * 1.5f, 0.001f);
+        mask = ComputeLinearMask(fillStart, fillEnd, softness, uv);
     }
-    else if (method == FILL_VERTICAL)
-    {
-        float softness = max(fwidth(fillUV.y) * 1.5f, 0.001f);
-        if (origin == 0)
-        {
-            float t = 1.0f - fillUV.y;
-            mask = ComputeLinearMask(fillStart, fillEnd, softness, t);
-        }
-        else
-        {
-            float t = fillUV.y;
-            mask = ComputeLinearMask(fillStart, fillEnd, softness, t);
-        }
-    }
-    else if (method == FILL_RADIAL90)
+    else if (method == FILL_RADIAL90 || method == FILL_RADIAL180)
     {
         float clockwise = ((origin & 4) == 0) ? 1.0f : 0.0f;
-        origin &= 3;
-        float2 center = float2(0.0f, 1.0f);
-        float offset = 0.75f;
-        if (origin == 0) { center = float2(0.0f, 1.0f); offset = 0.75f; }
-        else if (origin == 1) { center = float2(0.0f, 0.0f); offset = 0.0f; }
-        else if (origin == 2) { center = float2(1.0f, 0.0f); offset = 0.25f; }
-        else { center = float2(1.0f, 1.0f); offset = 0.5f; }
-        if (clockwise < 0.5f)
+        int o = origin & 3;
+
+        float2 center;
+        float offset;
+        float range;
+
+        if (method == FILL_RADIAL90)
         {
-            offset = 1.0f - offset - 0.25f;
+
+            center = RAD90_CENTERS[o];
+            offset = RAD90_OFFSETS[o];
+            range = 0.25f;
+
+            if (clockwise < 0.5f)
+                offset = 1.0f - offset - range;
         }
-        mask = ComputeRadialMask(fillUV, clockwise, 0.25f, offset, center, aspectRatio, fillStart, fillEnd);
-    }
-    else if (method == FILL_RADIAL180)
-    {
-        float clockwise = ((origin & 4) == 0) ? 1.0f : 0.0f;
-        origin &= 3;
-        float2 center = float2(0.5f, 1.0f);
-        float offset = 0.5f;
-        if (origin == 0) { center = float2(0.5f, 1.0f); offset = 0.5f; }
-        else if (origin == 1) { center = float2(0.0f, 0.5f); offset = 0.75f; }
-        else if (origin == 2) { center = float2(0.5f, 0.0f); offset = 0.0f; }
-        else { center = float2(1.0f, 0.5f); offset = 0.25f; }
-        if (clockwise < 0.5f)
+        else // FILL_RADIAL180
         {
-            offset = 1.0f - offset - 0.5f;
+
+            center = RAD180_CENTERS[o];
+            offset = RAD180_OFFSETS[o];
+            range = 0.5f;
+
+            if (clockwise < 0.5f)
+                offset = 1.0f - offset - range;
         }
-        mask = ComputeRadialMask(fillUV, clockwise, 0.5f, offset, center, aspectRatio, fillStart, fillEnd);
+
+        mask = ComputeRadialMask(fillUV, clockwise, range, offset, center, aspectRatio, fillStart, fillEnd);
     }
-    else
+    else if (method == FILL_RADIAL360)
     {
         float clockwise = (origin == 0) ? 1.0f : 0.0f;
+
         mask = ComputeRadialMask(fillUV, clockwise, 1.0f, 0.0f, float2(0.5f, 0.5f), aspectRatio, fillStart, fillEnd);
     }
     
