@@ -154,7 +154,7 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	desc.width = size;
 	desc.height = size;
 	desc.views = TextureView::DSV | TextureView::SRV;
-	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
 	desc.shaderVisibleSRV = true;

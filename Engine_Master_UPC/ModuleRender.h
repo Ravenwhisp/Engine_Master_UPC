@@ -76,6 +76,9 @@ private:
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
 
+    bool m_shadowMapRenderedThisFrame = false;
+    const ShadowFrameData* m_currentShadowData = nullptr;
+
 public:
     bool init()     override;
     void preRender() override;
