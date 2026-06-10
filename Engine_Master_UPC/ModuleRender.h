@@ -9,6 +9,8 @@
 #include "ModuleDescriptors.h"
 #include "ImGuiPass.h"
 #include "RenderViewType.h"
+#include "SkinningComputePass.h"
+#include "ShadowMapPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -70,6 +72,9 @@ private:
     MeshRendererPass* m_meshRenderPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
+
+    std::unique_ptr<SkinningComputePass> m_skinningComputePass;
+    std::unique_ptr<ShadowMapPass> m_shadowMapPass;
 
 public:
     bool init()     override;
