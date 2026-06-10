@@ -418,6 +418,43 @@ bool NavMeshBuilder::BuildTiledMesh(
     const int tileW = (cfg.width + tileSize - 1) / tileSize;
     const int tileH = (cfg.height + tileSize - 1) / tileSize;
 
+    for (int y = 0; y < tileH; ++y)
+    {
+        for (int x = 0; x < tileW; ++x)
+        {
+            float tileBmin[3];
+            float tileBmax[3];
+
+            tileBmin[0] = cfg.bmin[0] + x * s.tileSize * cfg.cs;
+            tileBmin[1] = cfg.bmin[1];
+            tileBmin[2] = cfg.bmin[2] + y * s.tileSize * cfg.cs;
+
+            tileBmax[0] = cfg.bmin[0] + (x + 1) * s.tileSize * cfg.cs;
+            tileBmax[1] = cfg.bmax[1];
+            tileBmax[2] = cfg.bmin[2] + (y + 1) * s.tileSize * cfg.cs;
+
+            rcConfig tileCfg = cfg;
+
+            rcVcopy(tileCfg.bmin, tileBmin);
+            rcVcopy(tileCfg.bmax, tileBmax);
+
+            rcCalcGridSize(
+                tileCfg.bmin,
+                tileCfg.bmax,
+                tileCfg.cs,
+                &tileCfg.width,
+                &tileCfg.height
+            );
+
+            DEBUG_LOG(
+                "Tile (%d,%d) grid: %d x %d",
+                x, y,
+                tileCfg.width,
+                tileCfg.height
+            );
+        }
+    }
+
     // 1) Heightfield
     rcHeightfield* solid = rcAllocHeightfield();
     if (!solid)
@@ -629,6 +666,11 @@ bool NavMeshBuilder::BuildTiledMesh(
     params.ch = cfg.ch;
     params.buildBvTree = true;
 
+    // tile coordinates
+    params.tileX = 0;
+    params.tileY = 0;
+    params.tileLayer = 0;
+
     unsigned char* navData = nullptr;
     int navDataSize = 0;
     if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
@@ -654,17 +696,22 @@ bool NavMeshBuilder::BuildTiledMesh(
     dtNavMeshParams navParams{};
     rcVcopy(navParams.orig, params.bmin);
 
-    // Configure dtNavMesh for tiled navigation
-    const float tileWorldSize = s.tileSize * s.cellSize;
+    // REMOVE THIS
+    navParams.tileWidth = params.bmax[0] - params.bmin[0];
+    navParams.tileHeight = params.bmax[2] - params.bmin[2];
+    navParams.maxTiles = 1;
+    navParams.maxPolys = params.polyCount;
+    //// Configure dtNavMesh for tiled navigation
+    //const float tileWorldSize = s.tileSize * s.cellSize;
 
-    navParams.tileWidth = tileWorldSize;
-    navParams.tileHeight = tileWorldSize;
+    //navParams.tileWidth = tileWorldSize;
+    //navParams.tileHeight = tileWorldSize;
 
-    const int gridWidth = (int)ceilf((params.bmax[0] - params.bmin[0]) / tileWorldSize);
-    const int gridHeight = (int)ceilf((params.bmax[2] - params.bmin[2]) / tileWorldSize);
+    //const int gridWidth = (int)ceilf((params.bmax[0] - params.bmin[0]) / tileWorldSize);
+    //const int gridHeight = (int)ceilf((params.bmax[2] - params.bmin[2]) / tileWorldSize);
 
-    navParams.maxTiles = gridWidth * gridHeight;
-    navParams.maxPolys = 32768; // how many polys we can have in 1 tile
+    //navParams.maxTiles = gridWidth * gridHeight;
+    //navParams.maxPolys = 32768; // how many polys we can have in 1 tile
 
     if (dtStatusFailed(navMesh->init(&navParams)))
     {
