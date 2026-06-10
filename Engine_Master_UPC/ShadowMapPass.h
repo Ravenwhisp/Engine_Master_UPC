@@ -47,6 +47,7 @@ private:
 
     void renderCasters(ID3D12GraphicsCommandList4* commandList);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
+    void transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
 private:
     static constexpr float SHADOW_ORTHO_SIZE = 80.0f;
@@ -60,6 +61,7 @@ private:
     ComPtr<ID3D12Device4> m_device;
 
     std::unique_ptr<Texture> m_shadowMap;
+    D3D12_RESOURCE_STATES m_shadowMapState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;

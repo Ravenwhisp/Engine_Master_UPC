@@ -346,6 +346,36 @@ void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, 
     }
 }
 
+void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
+{
+    if (commandList == nullptr || m_shadowMap == nullptr)
+    {
+        return;
+    }
+
+    if (m_shadowMapState == newState)
+    {
+        return;
+    }
+
+    ComPtr<ID3D12Resource> shadowResource = m_shadowMap->getD3D12Resource();
+
+    if (shadowResource == nullptr)
+    {
+        return;
+    }
+
+    CD3DX12_RESOURCE_BARRIER barrier =
+        CD3DX12_RESOURCE_BARRIER::Transition(
+            shadowResource.Get(),
+            m_shadowMapState,
+            newState);
+
+    commandList->ResourceBarrier(1, &barrier);
+
+    m_shadowMapState = newState;
+}
+
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
     m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
@@ -378,15 +408,7 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
         return;
     }
 
-    ComPtr<ID3D12Resource> shadowResource = m_shadowMap->getD3D12Resource();
-
-    CD3DX12_RESOURCE_BARRIER toDepthWrite =
-        CD3DX12_RESOURCE_BARRIER::Transition(
-            shadowResource.Get(),
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-            D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-    commandList->ResourceBarrier(1, &toDepthWrite);
+    transitionShadowMap(commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
@@ -414,11 +436,5 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     renderCasters(commandList);
 
-    CD3DX12_RESOURCE_BARRIER toShaderResource =
-        CD3DX12_RESOURCE_BARRIER::Transition(
-            shadowResource.Get(),
-            D3D12_RESOURCE_STATE_DEPTH_WRITE,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-    commandList->ResourceBarrier(1, &toShaderResource);
+    transitionShadowMap(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }

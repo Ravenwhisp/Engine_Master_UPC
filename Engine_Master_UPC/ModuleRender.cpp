@@ -32,6 +32,7 @@
 #include "FontPass.h"
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
+#include "ShadowMapPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -63,12 +64,14 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleNavigation());
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
+    m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
+    m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
+
     m_meshRenderPass = new MeshRendererPass (device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_skyBoxPass = skyBoxPass.get();
-    m_renderPasses.push_back(std::move(skyBoxPass));
 
-    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
+    m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
@@ -266,11 +269,6 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
 
-    {
-        PERF_RENDER("ModuleRender::renderScene::Background");
-        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
-    }
-
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,
@@ -284,7 +282,36 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .uiImageCommands = &app->getModuleUI()->getImageCommands(),
         .particleCommands = &app->getModuleParticleSystem()->getParticleCommands(),
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
+        .shadowData = nullptr,
     };
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SkinningComputePass");
+
+        if (m_skinningComputePass)
+        {
+            m_skinningComputePass->prepare(ctx);
+            m_skinningComputePass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::ShadowMapPass");
+
+        if (m_shadowMapPass)
+        {
+            m_shadowMapPass->prepare(ctx);
+            m_shadowMapPass->apply(commandList);
+
+            ctx.shadowData = &m_shadowMapPass->getFrameData();
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::Background");
+        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+    }
+
 
     {
         PERF_RENDER("ModuleRender::renderScene::PreparePasses");
