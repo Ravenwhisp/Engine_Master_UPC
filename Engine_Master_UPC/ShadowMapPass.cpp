@@ -44,6 +44,11 @@ ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device)
     m_scissorRect.right = static_cast<LONG>(SHADOW_MAP_SIZE);
     m_scissorRect.bottom = static_cast<LONG>(SHADOW_MAP_SIZE);
 
+    if (m_shadowMap != nullptr)
+    {
+        m_shadowMapState = m_shadowMap->getDesc().initialState;
+    }
+
     createRootSignature();
     createPipelineState();
 }
@@ -358,6 +363,13 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
         return;
     }
 
+    OutputDebugStringA(
+        ("[ShadowMapPass] transitionShadowMap: " +
+            std::to_string(m_shadowMapState) +
+            " -> " +
+            std::to_string(newState) +
+            "\n").c_str());
+
     ComPtr<ID3D12Resource> shadowResource = m_shadowMap->getD3D12Resource();
 
     if (shadowResource == nullptr)
@@ -405,6 +417,7 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     if (!m_frameData.enabled)
     {
+        transitionShadowMap(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         return;
     }
 
