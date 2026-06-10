@@ -153,11 +153,9 @@ void UIImagePass::renderImages(ID3D12GraphicsCommandList4* commandList)
         UIParams params{};
         params.mvp = buildImageMVP(command).Transpose();
 
-        params.fillData = Vector4(
-            command.fillAmount.x,
-            command.fillAmount.y,
-            static_cast<float>(command.fillMethod),
-            static_cast<float>(command.fillOrigin));
+        params.fillData = Vector2(command.fillAmount.x, command.fillAmount.y);
+		params.fillMethod = static_cast<int>(command.fillMethod);
+		params.fillOrigin = static_cast<int>(command.fillOrigin);
 
         const float aspectRatio = (command.rect.h > 0.0f)
             ? (command.rect.w / command.rect.h)

@@ -15,9 +15,11 @@ struct PSInput
 {
     float2 texCoord : TEXCOORD0;
     float2 fillUV : TEXCOORD1;
-    float4 fillData : COLOR0;
-    float aspectRatio :TEXCOORD2;
-    float alpha : TEXCOORD3;
+    float2 fillData : TEXCOORD2;
+    nointerpolation int method : TEXCOORD3;
+    nointerpolation int origin : TEXCOORD4;
+    float aspectRatio : TEXCOORD5;
+    float alpha : TEXCOORD6;
     float4 position : SV_POSITION;
 };
 
@@ -58,12 +60,20 @@ float ComputeRadialMask(float2 uv, float clockwise, float range, float offset, f
     return saturate(a - b);
 }
 
+float ComputeLinearMask(float start, float end, float softness, float fillUV)
+{
+    float a = smoothstep(end + softness, end - softness, fillUV);
+    float b = smoothstep(start + softness, start - softness, fillUV);
+    return saturate(a - b);
+}
+
 float4 main(PSInput input) : SV_TARGET
 {
-    float fillStart = saturate(input.fillData.r);
-    float fillEnd = saturate(input.fillData.g);
-    float method = input.fillData.b;
-    float origin = input.fillData.a;
+    float fillStart = saturate(input.fillData.x);
+    float fillEnd = saturate(input.fillData.y);
+    float2 fillUV = input.fillUV;
+    int method = input.method;
+    int origin = input.origin;
     float aspectRatio = max(input.aspectRatio, 0.0001f);
     
     if (fillEnd <= 0.0f || fillStart >= fillEnd)
@@ -71,82 +81,69 @@ float4 main(PSInput input) : SV_TARGET
 
     float mask = 1.0f;
     
-    if (method < (FILL_HORIZONTAL + 0.5f))
+    if (method == FILL_HORIZONTAL)
     {
-        float softness = max(fwidth(input.fillUV.x) * 1.5f, 0.001f);
-        int o = (int)(origin + 0.5f);
-        if (o == 0)
+        float softness = max(fwidth(fillUV.x) * 1.5f, 0.001f);
+        if (origin == 0)
         {
-            float a = smoothstep(fillEnd + softness, fillEnd - softness, input.fillUV.x);
-            float b = smoothstep(fillStart + softness, fillStart - softness, input.fillUV.x);
-            mask = saturate(a - b);
+            mask = ComputeLinearMask(fillStart, fillEnd, softness, fillUV.x);
         }
         else
         {
-            float x = 1.0f - input.fillUV.x;
-            float a = smoothstep(fillEnd + softness, fillEnd - softness, x);
-            float b = smoothstep(fillStart + softness, fillStart - softness, x);
-            mask = saturate(a - b);
+            float x = 1.0f - fillUV.x;
+            mask = ComputeLinearMask(fillStart, fillEnd, softness, x);
         }
     }
-    else if (method < (FILL_VERTICAL + 0.5f))
+    else if (method == FILL_VERTICAL)
     {
-        float softness = max(fwidth(input.fillUV.y) * 1.5f, 0.001f);
-        int o = (int)(origin + 0.5f);
-        if (o == 0)
+        float softness = max(fwidth(fillUV.y) * 1.5f, 0.001f);
+        if (origin == 0)
         {
-            float t = 1.0f - input.fillUV.y;
-            float a = smoothstep(fillEnd + softness, fillEnd - softness, t);
-            float b = smoothstep(fillStart + softness, fillStart - softness, t);
-            mask = saturate(a - b);
+            float t = 1.0f - fillUV.y;
+            mask = ComputeLinearMask(fillStart, fillEnd, softness, t);
         }
         else
         {
-            float t = input.fillUV.y;
-            float a = smoothstep(fillEnd + softness, fillEnd - softness, t);
-            float b = smoothstep(fillStart + softness, fillStart - softness, t);
-            mask = saturate(a - b);
+            float t = fillUV.y;
+            mask = ComputeLinearMask(fillStart, fillEnd, softness, t);
         }
     }
-    else if (method < (FILL_RADIAL90 + 0.5f))
+    else if (method == FILL_RADIAL90)
     {
-        int o = (int)(origin + 0.5f);
-        float clockwise = ((o & 4) == 0) ? 1.0f : 0.0f;
-        o &= 3;
+        float clockwise = ((origin & 4) == 0) ? 1.0f : 0.0f;
+        origin &= 3;
         float2 center = float2(0.0f, 1.0f);
         float offset = 0.75f;
-        if (o == 0) { center = float2(0.0f, 1.0f); offset = 0.75f; }
-        else if (o == 1) { center = float2(0.0f, 0.0f); offset = 0.0f; }
-        else if (o == 2) { center = float2(1.0f, 0.0f); offset = 0.25f; }
+        if (origin == 0) { center = float2(0.0f, 1.0f); offset = 0.75f; }
+        else if (origin == 1) { center = float2(0.0f, 0.0f); offset = 0.0f; }
+        else if (origin == 2) { center = float2(1.0f, 0.0f); offset = 0.25f; }
         else { center = float2(1.0f, 1.0f); offset = 0.5f; }
         if (clockwise < 0.5f)
         {
             offset = 1.0f - offset - 0.25f;
         }
-        mask = ComputeRadialMask(input.fillUV, clockwise, 0.25f, offset, center, aspectRatio, fillStart, fillEnd);
+        mask = ComputeRadialMask(fillUV, clockwise, 0.25f, offset, center, aspectRatio, fillStart, fillEnd);
     }
-    else if (method < (FILL_RADIAL180 + 0.5f))
+    else if (method == FILL_RADIAL180)
     {
-        int o = (int)(origin + 0.5f);
-        float clockwise = ((o & 4) == 0) ? 1.0f : 0.0f;
-        o &= 3;
+        float clockwise = ((origin & 4) == 0) ? 1.0f : 0.0f;
+        origin &= 3;
         float2 center = float2(0.5f, 1.0f);
         float offset = 0.5f;
-        if (o == 0) { center = float2(0.5f, 1.0f); offset = 0.5f; }
-        else if (o == 1) { center = float2(0.0f, 0.5f); offset = 0.75f; }
-        else if (o == 2) { center = float2(0.5f, 0.0f); offset = 0.0f; }
+        if (origin == 0) { center = float2(0.5f, 1.0f); offset = 0.5f; }
+        else if (origin == 1) { center = float2(0.0f, 0.5f); offset = 0.75f; }
+        else if (origin == 2) { center = float2(0.5f, 0.0f); offset = 0.0f; }
         else { center = float2(1.0f, 0.5f); offset = 0.25f; }
         if (clockwise < 0.5f)
         {
             offset = 1.0f - offset - 0.5f;
         }
-        mask = ComputeRadialMask(input.fillUV, clockwise, 0.5f, offset, center, aspectRatio, fillStart, fillEnd);
+        mask = ComputeRadialMask(fillUV, clockwise, 0.5f, offset, center, aspectRatio, fillStart, fillEnd);
     }
     else
     {
-        int o = (int)(origin + 0.5f);
-        float clockwise = (o == 0) ? 1.0f : 0.0f;
-        mask = ComputeRadialMask(input.fillUV, clockwise, 1.0f, 0.0f, float2(0.5f, 0.5f), aspectRatio, fillStart, fillEnd);
+        float clockwise = (origin == 0) ? 1.0f : 0.0f;
+        mask = ComputeRadialMask(fillUV, clockwise, 1.0f, 0.0f, float2(0.5f, 0.5f), aspectRatio, fillStart, fillEnd);
     }
     
     float4 texColor = uiTexture.Sample(uiSampler, input.texCoord);
