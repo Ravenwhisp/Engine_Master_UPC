@@ -1685,6 +1685,74 @@ namespace Debug
     }
 }
 
+namespace CameraAPI
+{
+    CameraComponent* getCameraComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    const CameraComponent* getCameraComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    float getFov(const CameraComponent* camera)
+    {
+        return camera ? camera->getFov() : 0.0f;
+    }
+
+    void setFov(CameraComponent* camera, float fov)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setFov(fov);
+    }
+
+    float getNearPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getNearPlane() : 0.0f;
+    }
+
+    void setNearPlane(CameraComponent* camera, float nearPlane)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setNearPlane(nearPlane);
+    }
+
+    float getFarPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getFarPlane() : 0.0f;
+    }
+
+    void setFarPlane(CameraComponent* camera, float farPlane)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setFarPlane(farPlane);
+    }
+}
+
 namespace NavigationAPI
 {
     bool hasNavMesh()

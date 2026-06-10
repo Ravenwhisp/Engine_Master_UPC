@@ -27,6 +27,7 @@ class UISheet;
 class Transform2D;
 class ParticleSystemComponent;
 class ComponentSoundSource;
+class CameraComponent;
 
 struct HapticEffectDefinition;
 
@@ -234,6 +235,21 @@ namespace Debug
     ENGINE_API void log(const char* message, ...);
     ENGINE_API void warn(const char* message, ...);
     ENGINE_API void error(const char* message, ...);
+}
+
+namespace CameraAPI
+{
+    ENGINE_API CameraComponent* getCameraComponent(GameObject* gameObject);
+    ENGINE_API const CameraComponent* getCameraComponent(const GameObject* gameObject);
+
+    ENGINE_API float getFov(const CameraComponent* camera);
+    ENGINE_API void setFov(CameraComponent* camera, float fov);
+
+    ENGINE_API float getNearPlane(const CameraComponent* camera);
+    ENGINE_API void setNearPlane(CameraComponent* camera, float nearPlane);
+
+    ENGINE_API float getFarPlane(const CameraComponent* camera);
+    ENGINE_API void setFarPlane(CameraComponent* camera, float farPlane);
 }
 
 namespace NavigationAPI
