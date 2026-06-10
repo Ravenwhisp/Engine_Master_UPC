@@ -170,7 +170,22 @@ void ModuleRender::render()
 
 bool ModuleRender::cleanUp()
 {
+    if (app != nullptr &&
+        app->getModuleD3D12() != nullptr &&
+        app->getModuleD3D12()->getCommandQueue() != nullptr)
+    {
+        app->getModuleD3D12()->getCommandQueue()->flush();
+    }
+
+    m_shadowMapPass.reset();
+    m_skinningComputePass.reset();
+
     m_renderPasses.clear();
+
+    m_meshRenderPass = nullptr;
+    m_debugDrawPass = nullptr;
+    m_skyBoxPass = nullptr;
+
     m_imGuiPass.reset();
 
     delete m_ringBuffer;
