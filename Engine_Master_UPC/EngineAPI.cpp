@@ -1687,6 +1687,26 @@ namespace Debug
 
 namespace CameraAPI
 {
+    CameraComponent* getCameraComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    const CameraComponent* getCameraComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
     float getFov(const CameraComponent* camera)
     {
         return camera ? camera->getFov() : 0.0f;
@@ -1694,10 +1714,12 @@ namespace CameraAPI
 
     void setFov(CameraComponent* camera, float fov)
     {
-        if (camera)
+        if (!camera)
         {
-            camera->setFov(fov);
+            return;
         }
+
+        camera->setFov(fov);
     }
 
     float getNearPlane(const CameraComponent* camera)
@@ -1707,10 +1729,12 @@ namespace CameraAPI
 
     void setNearPlane(CameraComponent* camera, float nearPlane)
     {
-        if (camera)
+        if (!camera)
         {
-            camera->setNearPlane(nearPlane);
+            return;
         }
+
+        camera->setNearPlane(nearPlane);
     }
 
     float getFarPlane(const CameraComponent* camera)
@@ -1720,10 +1744,12 @@ namespace CameraAPI
 
     void setFarPlane(CameraComponent* camera, float farPlane)
     {
-        if (camera)
+        if (!camera)
         {
-            camera->setFarPlane(farPlane);
+            return;
         }
+
+        camera->setFarPlane(farPlane);
     }
 }
 

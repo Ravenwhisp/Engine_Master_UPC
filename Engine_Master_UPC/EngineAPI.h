@@ -239,6 +239,9 @@ namespace Debug
 
 namespace CameraAPI
 {
+    ENGINE_API CameraComponent* getCameraComponent(GameObject* gameObject);
+    ENGINE_API const CameraComponent* getCameraComponent(const GameObject* gameObject);
+
     ENGINE_API float getFov(const CameraComponent* camera);
     ENGINE_API void setFov(CameraComponent* camera, float fov);
 
