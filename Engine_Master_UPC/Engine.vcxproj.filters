@@ -1389,6 +1389,9 @@
     <ClInclude Include="ScriptBuildSystem.h">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
+    <ClInclude Include="NavMeshBuildSettings.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1597,7 +1600,7 @@
     <Filter Include="MusicSystem\Wwise">
       <UniqueIdentifier>{7083597f-1f92-4b00-adf0-d697556897e3}</UniqueIdentifier>
     </Filter>
-     <Filter Include="Core\Scripting\HotReloading">
+    <Filter Include="Core\Scripting\HotReloading">
       <UniqueIdentifier>{ab6dbf3b-91a1-415b-9a07-3146b44b801c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Scripting\HotReloading\Pdb">

@@ -481,6 +481,7 @@ bool NavMeshBuilder::BuildTiledMesh(
 
             if (!rcCreateHeightfield(&ctx, *solid, tileCfg.width, tileCfg.height, tileCfg.bmin, tileCfg.bmax, tileCfg.cs, tileCfg.ch))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcCreateHeightfield", x, y);
                 rcFreeHeightField(solid);
                 return false;
             }
@@ -489,6 +490,7 @@ bool NavMeshBuilder::BuildTiledMesh(
             unsigned char* triAreas = (unsigned char*)dtAlloc(sizeof(unsigned char) * ntris, DT_ALLOC_TEMP);
             if (!triAreas)
             {
+                DEBUG_LOG("Tile (%d,%d) failed at triAreas", x, y);
                 rcFreeHeightField(solid);
                 return false;
             }
@@ -545,6 +547,7 @@ bool NavMeshBuilder::BuildTiledMesh(
             // 4) Rasterize triangles
             if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triAreas, ntris, *solid, tileCfg.walkableClimb))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at RasterizeTriangels", x, y);
                 dtFree(triAreas);
                 rcFreeHeightField(solid);
                 return false;
@@ -567,6 +570,7 @@ bool NavMeshBuilder::BuildTiledMesh(
 
             if (!rcBuildCompactHeightfield(&ctx, tileCfg.walkableHeight, tileCfg.walkableClimb, *solid, *chf))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcBuildCompactHeightfield", x, y);
                 rcFreeCompactHeightfield(chf);
                 rcFreeHeightField(solid);
                 return false;
@@ -578,6 +582,7 @@ bool NavMeshBuilder::BuildTiledMesh(
             // 7) Erode by agent radius
             if (!rcErodeWalkableArea(&ctx, tileCfg.walkableRadius, *chf))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcErodeWalkableArea", x, y);
                 rcFreeCompactHeightfield(chf);
                 return false;
             }
@@ -585,12 +590,14 @@ bool NavMeshBuilder::BuildTiledMesh(
             // 8) Regions
             if (!rcBuildDistanceField(&ctx, *chf))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcBuildDistanceField", x, y);
                 rcFreeCompactHeightfield(chf);
                 return false;
             }
 
             if (!rcBuildRegions(&ctx, *chf, tileCfg.borderSize, tileCfg.minRegionArea, tileCfg.mergeRegionArea))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcBuildRegions", x, y);
                 rcFreeCompactHeightfield(chf);
                 return false;
             }
@@ -605,6 +612,7 @@ bool NavMeshBuilder::BuildTiledMesh(
 
             if (!rcBuildContours(&ctx, *chf, tileCfg.maxSimplificationError, tileCfg.maxEdgeLen, *cset))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcBuildContours", x, y);
                 rcFreeContourSet(cset);
                 rcFreeCompactHeightfield(chf);
                 return false;
@@ -621,10 +629,20 @@ bool NavMeshBuilder::BuildTiledMesh(
 
             if (!rcBuildPolyMesh(&ctx, *cset, tileCfg.maxVertsPerPoly, *pmesh))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcBuildPolyMesh", x, y);
                 rcFreePolyMesh(pmesh);
                 rcFreeContourSet(cset);
                 rcFreeCompactHeightfield(chf);
                 return false;
+            }
+
+            // if mesh has 0 polygons or invalid poly/detail data
+            if (pmesh->nverts == 0 || pmesh->npolys == 0)
+            {
+                rcFreePolyMesh(pmesh);
+                rcFreeContourSet(cset);
+                rcFreeCompactHeightfield(chf);
+                continue;
             }
 
             // 11) Detail mesh
@@ -639,6 +657,7 @@ bool NavMeshBuilder::BuildTiledMesh(
 
             if (!rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, tileCfg.detailSampleDist, tileCfg.detailSampleMaxError, *dmesh))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at rcBuildPolyMeshDetail", x, y);
                 rcFreePolyMeshDetail(dmesh);
                 rcFreePolyMesh(pmesh);
                 rcFreeContourSet(cset);
@@ -691,10 +710,19 @@ bool NavMeshBuilder::BuildTiledMesh(
             params.tileY = y;
             params.tileLayer = 0;
 
+            // if tile has 0 polygons or invalid poly/detail data
+            if (pmesh->npolys == 0)
+            {
+                rcFreePolyMeshDetail(dmesh);
+                rcFreePolyMesh(pmesh);
+                continue;
+            }
+
             unsigned char* navData = nullptr;
             int navDataSize = 0;
             if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
             {
+                DEBUG_LOG("Tile (%d,%d) failed at dtCreateNavMeshData", x, y);
                 rcFreePolyMeshDetail(dmesh);
                 rcFreePolyMesh(pmesh);
                 return false;

@@ -302,6 +302,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />

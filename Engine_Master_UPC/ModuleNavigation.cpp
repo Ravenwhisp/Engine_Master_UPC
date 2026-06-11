@@ -18,6 +18,7 @@
 #include <DetourAlloc.h>
 #include <DetourTileCache.h>
 #include <DetourTileCacheBuilder.h>
+#include <DetourNavMeshBuilder.h>
 #include <WindowLogger.h>
 #include <NavMeshBuilder.h>
 
@@ -124,6 +125,34 @@ struct FastLZCompressor : public dtTileCacheCompressor
         *bufferSize = compressedSize;
 
         return DT_SUCCESS;
+    }
+};
+
+// Tile cache uses this when rebuilding tiles
+struct MeshProcess : public dtTileCacheMeshProcess
+{
+    // flags logic inside
+    void process(
+        dtNavMeshCreateParams* params,
+        unsigned char* polyAreas,
+        unsigned short* polyFlags
+    ) override
+    {
+        for (int i = 0; i < params->polyCount; ++i)
+        {
+            if (polyAreas[i] == static_cast<unsigned char>(NavAreaId::NAV_AREA_DEFAULT))
+            {
+                polyFlags[i] = static_cast<unsigned short>(NavPolyFlags::Default);
+            }
+            else if (polyAreas[i] == static_cast<unsigned char>(NavAreaId::NAV_AREA_SPECTRAL))
+            {
+                polyFlags[i] = static_cast<unsigned short>(NavPolyFlags::Spectral);
+            }
+            else
+            {
+                polyFlags[i] = 0;
+            }
+        }
     }
 };
 
@@ -302,21 +331,12 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
         return false;
     }
 
-    NavMeshBuildSettings settings;
-    settings.cellSize = m_settings.cellSize;
-    settings.cellHeight = m_settings.cellHeight;
-    settings.tileSize = m_settings.tileSize;
-    settings.agentHeight = m_settings.agentHeight;
-    settings.agentRadius = m_settings.agentRadius;
-    settings.agentMaxClimb = m_settings.agentMaxClimb;
-    settings.agentMaxSlope = m_settings.agentMaxSlope;
-
     NavMeshBuildResult result;
 
     // get modifier volumes from the scene
     m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
-    if (!NavMeshBuilder::BuildTiledMesh(verts, tris, settings, result, m_modifierVolumes))
+    if (!NavMeshBuilder::BuildTiledMesh(verts, tris, m_settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;

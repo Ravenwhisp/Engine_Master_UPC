@@ -2,6 +2,7 @@
 #include "Module.h"
 #include "IDebugDrawable.h"
 #include "NavMeshTypes.h"
+#include "NavMeshBuilder.h"
 
 #include <vector>
 #include <string>
@@ -11,19 +12,6 @@ class dtNavMesh;
 class dtNavMeshQuery;
 class dtTileCache;
 class Scene;
-
-struct NavMeshSettings
-{
-    float cellSize = 0.2f;
-    float cellHeight = 0.2f;
-    int tileSize = 64;
-
-    float agentHeight = 1.8f;
-    float agentRadius = 0.4f;
-
-    float agentMaxClimb = 0.6f;
-    float agentMaxSlope = 45.0f;
-};
 
 class ModuleNavigation : public Module, public IDebugDrawable
 {
@@ -56,7 +44,7 @@ public:
     void setDrawNavMesh(bool v) { m_drawNavMesh = v; }
     bool getDrawNavMesh() const { return m_drawNavMesh; }
 
-    NavMeshSettings& getSettings() { return m_settings; }
+    NavMeshBuildSettings& getSettings() { return m_settings; }
     bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
 
     void setPathStart(const Vector3& p, NavAgentProfile profile);
@@ -70,7 +58,7 @@ public:
     IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 
 private:
-    NavMeshSettings m_settings;
+    NavMeshBuildSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
     dtTileCache* m_tileCache = nullptr;
