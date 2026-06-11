@@ -17,7 +17,7 @@ cbuffer ModelData : register(b2)
     uint hasMetallicRoughnessTex;
     
     float normalFactor;
-    uint hasNormal;
+    uint hasNormalTex;
     
     float3 emissiveColor;
     uint hasEmissiveTex;
