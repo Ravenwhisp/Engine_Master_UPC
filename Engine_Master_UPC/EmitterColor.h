@@ -32,9 +32,9 @@ private:
 	Vector4 m_endColor = Vector4(1.f, 1.f, 1.f, 1.f);
 
 	// TEST WITH GRADIENT
-	/*ImGradient m_colorsOverTime;
+	ImGradient m_colorsOverTime;
 
 	ImGradientMark* m_draggingMark = nullptr;
-	ImGradientMark* m_selectedMark = nullptr;*/
+	ImGradientMark* m_selectedMark = nullptr;
 };
 

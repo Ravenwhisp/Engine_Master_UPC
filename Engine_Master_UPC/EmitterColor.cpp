@@ -11,11 +11,11 @@
 
 EmitterColor::EmitterColor() : ParticleModule(ParticleModuleType::COLOR) {
 
-	/*
+	
 	m_colorsOverTime.getMarks().clear(); // because it has default values that we don't want
 
 	m_colorsOverTime.addMark(0.f, ImColor(1.f, 1.f, 1.f, 1.f));
-	m_colorsOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));*/
+	m_colorsOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));
 }
 
 
@@ -72,7 +72,7 @@ bool EmitterColor::drawUi()
 			parameterChanged = true;
 		}
 
-		/*
+		
 		// Color gradient editor
 		if (ImGui::GradientButton(&m_colorsOverTime)) {
 
@@ -94,7 +94,7 @@ bool EmitterColor::drawUi()
 			//ImGui::PopID(); // (same, corresponding)
 
 			ImGui::EndPopup();
-		}*/
+		}
 
 	}
 
