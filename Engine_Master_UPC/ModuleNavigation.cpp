@@ -335,46 +335,29 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
         return false;
     }
 
-    NavMeshBuildResult result;
-
     // get modifier volumes from the scene
     m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
-    // do cache helpers cleanup before building tiled mesh for safety
-    if (m_tileCacheAlloc)
-    {
-        delete m_tileCacheAlloc;
-        m_tileCacheAlloc = nullptr;
-    }
-
-    if (m_tileCacheCompressor)
-    {
-        delete m_tileCacheCompressor;
-        m_tileCacheCompressor = nullptr;
-    }
-
-    if (m_tileCacheMeshProcess)
-    {
-        delete m_tileCacheMeshProcess;
-        m_tileCacheMeshProcess = nullptr;
-    }
+    // cleanup before creating new navmesh
+    unloadNavMesh();
 
     // initialize cache helpers
     m_tileCacheAlloc = new LinearAllocator(32000);
     m_tileCacheCompressor = new FastLZCompressor();
     m_tileCacheMeshProcess = new MeshProcess();
 
+    NavMeshBuildResult result;
+
     // build tiled mesh
-    if (!NavMeshBuilder::BuildTiledMesh(verts, tris, m_settings, result, m_modifierVolumes))
+    if (!NavMeshBuilder::BuildTiledMesh(verts, tris, m_settings, result, m_modifierVolumes, m_tileCacheAlloc, m_tileCacheCompressor, m_tileCacheMeshProcess))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;
     }
 
-
-    unloadNavMesh();
     m_navMesh = result.navMesh;
     m_navQuery = result.navQuery;
+    m_tileCache = result.tileCache;
     m_tileRefs = result.tileRefs;
 
     const char* sceneName = app->getModuleScene()->getScene()->getName();

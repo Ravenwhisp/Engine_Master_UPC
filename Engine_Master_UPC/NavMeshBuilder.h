@@ -9,6 +9,12 @@
 class dtNavMesh;
 class dtNavMeshQuery;
 class dtTileCache;
+class dtTileCacheAlloc;
+class dtTileCacheCompressor;
+class dtTileCacheMeshProcess;
+class rcContext;
+class rcConfig;
+class rcCompactHeightfield;
 
 struct NavMeshBuildResult
 {
@@ -34,7 +40,21 @@ public:
         const std::vector<int>& tris,
         const NavMeshBuildSettings& settings,
         NavMeshBuildResult& outResult,
-        const std::vector<NavModifierVolumeData>& modifierVolumes);
+        const std::vector<NavModifierVolumeData>& modifierVolumes,
+        dtTileCacheAlloc* tileCacheAlloc,
+        dtTileCacheCompressor* tileCacheCompressor,
+        dtTileCacheMeshProcess* tileCacheMeshProcess);
+
+    static bool BuildTileCacheLayer(
+        rcContext& ctx,
+        rcConfig& cfg,
+        rcCompactHeightfield& chf,
+        int tx,
+        int ty,
+        int tlayer,
+        dtTileCacheCompressor* compressor,
+        unsigned char** outData,
+        int* outDataSize);
 
 private:
     static NavAreaType resolveAreaForPoint(

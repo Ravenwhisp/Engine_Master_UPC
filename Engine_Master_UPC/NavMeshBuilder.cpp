@@ -13,6 +13,7 @@
 #include <DetourNavMeshBuilder.h>
 #include <DetourAlloc.h>
 #include <DetourTileCache.h>
+#include <DetourTileCacheBuilder.h>
 
 static int ClampInt(int v, int mn, int mx) { return v < mn ? mn : (v > mx ? mx : v); }
 
@@ -348,7 +349,10 @@ bool NavMeshBuilder::BuildTiledMesh(
     const std::vector<int>& tris,
     const NavMeshBuildSettings& s,
     NavMeshBuildResult& outResult,
-    const std::vector<NavModifierVolumeData>& modifierVolumes)
+    const std::vector<NavModifierVolumeData>& modifierVolumes,
+    dtTileCacheAlloc* tileCacheAlloc,
+    dtTileCacheCompressor* tileCacheCompressor,
+    dtTileCacheMeshProcess* tileCacheMeshProcess)
 {
     outResult = {};
 
@@ -438,6 +442,22 @@ bool NavMeshBuilder::BuildTiledMesh(
 
     tcParams.maxTiles = tileW * tileH;
     tcParams.maxObstacles = 128;
+
+    dtTileCache* tileCache = dtAllocTileCache();
+    if (!tileCache)
+    {
+        return false;
+    }
+
+    if (dtStatusFailed(tileCache->init(
+        &tcParams,
+        tileCacheAlloc,
+        tileCacheCompressor,
+        tileCacheMeshProcess)))
+    {
+        dtFreeTileCache(tileCache);
+        return false;
+    }
 
     // Create dtNavMesh and add tiles (so we get a tileRef for your Save())
     dtNavMesh* navMesh = dtAllocNavMesh();
@@ -597,6 +617,48 @@ bool NavMeshBuilder::BuildTiledMesh(
 
             rcFreeHeightField(solid);
             solid = nullptr;
+
+            // 7) Heightfield layers
+            unsigned char* cacheData = nullptr;
+            int cacheDataSize = 0;
+
+            const bool cacheLayerOk = BuildTileCacheLayer(
+                ctx,
+                tileCfg,
+                *chf,
+                x,
+                y,
+                0,
+                tileCacheCompressor,
+                &cacheData,
+                &cacheDataSize
+            );
+
+            if (cacheLayerOk && cacheData && cacheDataSize > 0)
+            {
+                dtCompressedTileRef compressedRef = 0;
+
+                const dtStatus addCacheStatus = tileCache->addTile(
+                    cacheData,
+                    cacheDataSize,
+                    DT_COMPRESSEDTILE_FREE_DATA,
+                    &compressedRef
+                );
+
+                if (dtStatusFailed(addCacheStatus))
+                {
+                    dtFree(cacheData);
+                }
+                else
+                {
+                    const dtStatus buildStatus = tileCache->buildNavMeshTile(compressedRef, navMesh);
+
+                    if (dtStatusFailed(buildStatus))
+                    {
+                        DEBUG_LOG("TileCache buildNavMeshTile failed at tile (%d,%d)", x, y);
+                    }
+                }                
+            }
 
             // 7) Erode by agent radius
             if (!rcErodeWalkableArea(&ctx, tileCfg.walkableRadius, *chf))
@@ -764,13 +826,6 @@ bool NavMeshBuilder::BuildTiledMesh(
             }
 
             outResult.tileRefs.push_back(outRef);
-
-            DEBUG_LOG(
-                "Tile (%d,%d) grid: %d x %d",
-                x, y,
-                tileCfg.width,
-                tileCfg.height
-            );
         }
     }    
 
@@ -784,10 +839,85 @@ bool NavMeshBuilder::BuildTiledMesh(
 
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
+    outResult.tileCache = tileCache;
 
     //DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
 
     return true;
+}
+
+bool NavMeshBuilder::BuildTileCacheLayer(
+    rcContext& ctx,
+    rcConfig& cfg,
+    rcCompactHeightfield& chf,
+    int tx,
+    int ty,
+    int tlayer,
+    dtTileCacheCompressor* compressor,
+    unsigned char** outData,
+    int* outDataSize)
+{
+    *outData = nullptr;
+    *outDataSize = 0;
+
+    rcHeightfieldLayerSet* lset = rcAllocHeightfieldLayerSet();
+    if (!lset)
+    {
+        return false;
+    }
+
+    if (!rcBuildHeightfieldLayers(
+        &ctx,
+        chf,
+        cfg.borderSize,
+        cfg.walkableHeight,
+        *lset))
+    {
+        rcFreeHeightfieldLayerSet(lset);
+        return false;
+    }
+
+    if (lset->nlayers == 0)
+    {
+        rcFreeHeightfieldLayerSet(lset);
+        return false;
+    }
+
+    const rcHeightfieldLayer& layer = lset->layers[0];
+
+    dtTileCacheLayerHeader header{};
+    header.magic = DT_TILECACHE_MAGIC;
+    header.version = DT_TILECACHE_VERSION;
+
+    header.tx = tx;
+    header.ty = ty;
+    header.tlayer = tlayer;
+
+    rcVcopy(header.bmin, layer.bmin);
+    rcVcopy(header.bmax, layer.bmax);
+
+    header.width = (unsigned char)layer.width;
+    header.height = (unsigned char)layer.height;
+    header.minx = (unsigned char)layer.minx;
+    header.maxx = (unsigned char)layer.maxx;
+    header.miny = (unsigned char)layer.miny;
+    header.maxy = (unsigned char)layer.maxy;
+    header.hmin = (unsigned short)layer.hmin;
+    header.hmax = (unsigned short)layer.hmax;
+
+    dtStatus status = dtBuildTileCacheLayer(
+        compressor,
+        &header,
+        layer.heights,
+        layer.areas,
+        layer.cons,
+        outData,
+        outDataSize
+    );
+
+    rcFreeHeightfieldLayerSet(lset);
+
+    return dtStatusSucceed(status);
 }
 
 NavAreaType NavMeshBuilder::resolveAreaForPoint(
