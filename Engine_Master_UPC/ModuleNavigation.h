@@ -9,6 +9,7 @@
 
 class dtNavMesh;
 class dtNavMeshQuery;
+class dtTileCache;
 class Scene;
 
 struct NavMeshSettings
@@ -72,6 +73,7 @@ private:
     NavMeshSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
+    dtTileCache* m_tileCache = nullptr;
     std::vector<dtTileRef> m_tileRefs;
 
     std::string m_loadedScene;

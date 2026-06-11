@@ -16,12 +16,12 @@
 
 #include <DetourNavMeshQuery.h>
 #include <DetourAlloc.h>
+#include <DetourTileCache.h>
 #include <WindowLogger.h>
 #include <NavMeshBuilder.h>
 
 #include "NavMeshGeometryExtractor.h"
 #include "NavModifierVolumeComponent.h"
-#include "Transform.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
@@ -141,6 +141,7 @@ bool ModuleNavigation::unloadNavMesh()
 {
     if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery); m_navQuery = nullptr; }
     if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }
+    if (m_tileCache) { dtFreeTileCache(m_tileCache); m_tileCache = nullptr; }
     m_tileRefs.clear();
     m_loadedScene.clear();
     return true;
