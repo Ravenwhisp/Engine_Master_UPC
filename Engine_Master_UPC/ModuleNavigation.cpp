@@ -80,6 +80,53 @@ struct LinearAllocator : public dtTileCacheAlloc
     }
 };
 
+// Compresses tile data
+struct FastLZCompressor : public dtTileCacheCompressor
+{
+    int maxCompressedSize(const int bufferSize) override
+    {
+        return bufferSize; // not compressing currently - just for testing
+    }
+
+    dtStatus compress(
+        const unsigned char* buffer,
+        const int bufferSize,
+        unsigned char* compressed,
+        const int maxCompressedSize,
+        int* compressedSize
+    ) override
+    {
+        if (maxCompressedSize < bufferSize)
+        {
+            return DT_FAILURE;
+        }
+
+        memcpy(compressed, buffer, bufferSize);
+        *compressedSize = bufferSize;
+
+        return DT_SUCCESS;
+    }
+
+    dtStatus decompress(
+        const unsigned char* compressed,
+        const int compressedSize,
+        unsigned char* buffer,
+        const int maxBufferSize,
+        int* bufferSize
+    ) override
+    {
+        if (maxBufferSize < compressedSize)
+        {
+            return DT_FAILURE;
+        }
+
+        memcpy(buffer, compressed, compressedSize);
+        *bufferSize = compressedSize;
+
+        return DT_SUCCESS;
+    }
+};
+
 bool ModuleNavigation::init()
 {
     const char* sceneName = app->getModuleScene()->getScene()->getName();
