@@ -1,19 +1,21 @@
 #include "Globals.h"
 #include "EmitterRotation.h"
 
+#include "Application.h"
+#include "imgui_bezier.h"
+
+#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 #include "ParticleEmitter.h"
 #include "EmitterLifetime.h"
 
-#include "imgui_bezier.h"
 
 void EmitterRotation::update(EmitterInstance* particleData)
 {
-	Particle* particlePool;
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	{
-		std::vector<std::pair<float, unsigned int>>* aliveParticles;
-		particleData->getPoolAndAlives(particlePool, aliveParticles);
+		std::vector<std::pair<float, unsigned int>>& aliveParticles = particleData->getAliveParticles();
 
 		// Dealing with already existing particles //
 
@@ -119,6 +121,12 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 
 		switch (velocityType) {
 
+		case ParameterType::CONSTANT:
+
+			m_angularVelocityType = ParameterType::CONSTANT;
+
+			break;
+
 		case ParameterType::RANDOM_BETWEEN_TWO:
 
 			m_angularVelocityType = ParameterType::RANDOM_BETWEEN_TWO;
@@ -148,7 +156,9 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 				m_angularVelocityCurve[3] = curveArray[3].GetFloat();
 			}
 		}
-	}
+
+	}else m_angularVelocityType = ParameterType::CONSTANT; // we recreate state corresponding to previous version
+
 
 	if (moduleInfo.HasMember("FlipRotation"))
 	{
@@ -273,10 +283,10 @@ bool EmitterRotation::drawAngularVelocityUI()
 	return parameterChanged;
 }
 
-void EmitterRotation::updateAlivesRotationFixed(Particle* particlePool, const std::vector<std::pair<float, unsigned int>>* aliveParticles, float deltaTime)
+void EmitterRotation::updateAlivesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime)
 {
 
-	for (auto& aliveParticle : *aliveParticles)
+	for (auto& aliveParticle : aliveParticles)
 	{
 		unsigned int poolIndex = aliveParticle.second;
 
@@ -287,9 +297,9 @@ void EmitterRotation::updateAlivesRotationFixed(Particle* particlePool, const st
 	}
 }
 
-void EmitterRotation::updateAlivesRotationWithCurve(Particle* particlePool, const std::vector<std::pair<float, unsigned int>>* aliveParticles, float deltaTime, float startLifeTime)
+void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifeTime)
 {
-	for (auto& aliveParticle : *aliveParticles)
+	for (auto& aliveParticle : aliveParticles)
 	{
 		unsigned int poolIndex = aliveParticle.second;
 
@@ -309,7 +319,7 @@ void EmitterRotation::updateAlivesRotationWithCurve(Particle* particlePool, cons
 	}
 }
 
-void EmitterRotation::setNewParticlesRotationFixed(Particle* particlePool, const std::vector<unsigned int>& newParticles)
+void EmitterRotation::setNewParticlesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
 	for (auto& particleIndex : newParticles)
 	{
@@ -328,7 +338,7 @@ void EmitterRotation::setNewParticlesRotationFixed(Particle* particlePool, const
 	}
 }
 
-void EmitterRotation::setNewParticlesRotationWithRange(Particle* particlePool, const std::vector<unsigned int>& newParticles)
+void EmitterRotation::setNewParticlesRotationWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
 	for (auto& particleIndex : newParticles)
 	{

@@ -1,8 +1,10 @@
 #include "Globals.h"
 #include "EmitterArea.h"
 
+#include "Application.h"
 #include "Transform.h"
 #include "EmitterInstance.h"
+#include "ModuleParticleSystem.h"
 #include "ParticleSystemComponent.h"
 #include "GameObject.h"
 
@@ -211,7 +213,7 @@ bool EmitterArea::deserializeJSON(const rapidjson::Value& moduleInfo)
 
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -271,7 +273,7 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 
 void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -333,7 +335,7 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 
 void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -395,7 +397,7 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 
 void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
