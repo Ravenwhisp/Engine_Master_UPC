@@ -371,6 +371,11 @@ bool NavMeshBuilder::BuildTiledMesh(
         return false;
     }
 
+    if (!tileCacheAlloc || !tileCacheCompressor || !tileCacheMeshProcess)
+    {
+        return false;
+    }
+
     const int nverts = (int)verts.size() / 3;
     const int ntris = (int)tris.size() / 3;
 
@@ -406,11 +411,13 @@ bool NavMeshBuilder::BuildTiledMesh(
     cfg.maxVertsPerPoly = ClampInt(s.vertsPerPoly, 3, 12);
 
     cfg.detailSampleDist = (s.detailSampleDist < 0.9f) ? 0 : cfg.cs * s.detailSampleDist;
+
     cfg.detailSampleMaxError = cfg.ch * s.detailSampleMaxError;
 
     // Compute bounds
     rcVcopy(cfg.bmin, &verts[0]);
     rcVcopy(cfg.bmax, &verts[0]);
+
     for (int i = 1; i < nverts; ++i)
     {
         const float* v = &verts[i * 3];
@@ -420,46 +427,12 @@ bool NavMeshBuilder::BuildTiledMesh(
 
     rcCalcGridSize(cfg.bmin, cfg.bmax, cfg.cs, &cfg.width, &cfg.height);
 
-    const int tileSize = s.tileSize;
+    const int tileW = (cfg.width + cfg.tileSize - 1) / cfg.tileSize;
+    const int tileH = (cfg.height + cfg.tileSize - 1) / cfg.tileSize;
 
-    const int tileW = (cfg.width + tileSize - 1) / tileSize;
-    const int tileH = (cfg.height + tileSize - 1) / tileSize;
+    DEBUG_LOG("TileCache Grid: %d x %d", tileW, tileH);
 
-    // Tile cache params
-    dtTileCacheParams tcParams{};
-
-    rcVcopy(tcParams.orig, cfg.bmin);
-
-    tcParams.cs = cfg.cs;
-    tcParams.ch = cfg.ch;
-
-    tcParams.width = s.tileSize;
-    tcParams.height = s.tileSize;
-
-    tcParams.walkableHeight = s.agentHeight;
-    tcParams.walkableRadius = s.agentRadius;
-    tcParams.walkableClimb = s.agentMaxClimb;
-
-    tcParams.maxTiles = tileW * tileH;
-    tcParams.maxObstacles = 128;
-
-    dtTileCache* tileCache = dtAllocTileCache();
-    if (!tileCache)
-    {
-        return false;
-    }
-
-    if (dtStatusFailed(tileCache->init(
-        &tcParams,
-        tileCacheAlloc,
-        tileCacheCompressor,
-        tileCacheMeshProcess)))
-    {
-        dtFreeTileCache(tileCache);
-        return false;
-    }
-
-    // Create dtNavMesh and add tiles (so we get a tileRef for your Save())
+    // Create dtNavMesh
     dtNavMesh* navMesh = dtAllocNavMesh();
     if (!navMesh)
     {
@@ -469,10 +442,10 @@ bool NavMeshBuilder::BuildTiledMesh(
     dtNavMeshParams navParams{};
     rcVcopy(navParams.orig, cfg.bmin);
 
-    navParams.tileWidth = s.tileSize * cfg.cs;
-    navParams.tileHeight = s.tileSize * cfg.cs;
+    navParams.tileWidth = cfg.tileSize * cfg.cs;
+    navParams.tileHeight = cfg.tileSize * cfg.cs;
     navParams.maxTiles = tileW * tileH;
-    navParams.maxPolys = 32768; // how many polys we can have in 1 tile
+    navParams.maxPolys = 32768;
 
     if (dtStatusFailed(navMesh->init(&navParams)))
     {
@@ -480,8 +453,48 @@ bool NavMeshBuilder::BuildTiledMesh(
         return false;
     }
 
-    DEBUG_LOG("Tile Grid: %d x %d", tileW, tileH);
+    // Initialize tileCache
+    dtTileCacheParams tcparams{};
+    rcVcopy(tcparams.orig, cfg.bmin);
 
+    tcparams.cs = cfg.cs;
+    tcparams.ch = cfg.ch;
+
+    tcparams.width = cfg.tileSize;
+    tcparams.height = cfg.tileSize;
+
+    tcparams.walkableHeight = s.agentHeight;
+    tcparams.walkableRadius = s.agentRadius;
+    tcparams.walkableClimb = s.agentMaxClimb;
+
+    tcparams.maxSimplificationError = s.edgeMaxError;
+    
+    tcparams.maxTiles = tileW * tileH;
+
+    tcparams.maxObstacles = 128;
+
+    dtTileCache* tileCache = dtAllocTileCache();
+    if (!tileCache)
+    {
+        dtFreeNavMesh(navMesh);
+        return false;
+    }
+
+    const dtStatus tcStatus = tileCache->init(
+        &tcparams,
+        tileCacheAlloc,
+        tileCacheCompressor,
+        tileCacheMeshProcess
+    );
+
+    if (dtStatusFailed(tcStatus))
+    {
+        dtFreeTileCache(tileCache);
+        dtFreeNavMesh(navMesh);
+        return false;
+    }
+
+    // Tile loop
     for (int y = 0; y < tileH; ++y)
     {
         for (int x = 0; x < tileW; ++x)
@@ -489,13 +502,13 @@ bool NavMeshBuilder::BuildTiledMesh(
             float tileBmin[3];
             float tileBmax[3];
 
-            tileBmin[0] = cfg.bmin[0] + x * s.tileSize * cfg.cs;
+            tileBmin[0] = cfg.bmin[0] + x * cfg.tileSize * cfg.cs;
             tileBmin[1] = cfg.bmin[1];
-            tileBmin[2] = cfg.bmin[2] + y * s.tileSize * cfg.cs;
+            tileBmin[2] = cfg.bmin[2] + y * cfg.tileSize * cfg.cs;
 
-            tileBmax[0] = cfg.bmin[0] + (x + 1) * s.tileSize * cfg.cs;
+            tileBmax[0] = cfg.bmin[0] + (x + 1) * cfg.tileSize * cfg.cs;
             tileBmax[1] = cfg.bmax[1];
-            tileBmax[2] = cfg.bmin[2] + (y + 1) * s.tileSize * cfg.cs;
+            tileBmax[2] = cfg.bmin[2] + (y + 1) * cfg.tileSize * cfg.cs;
 
             rcConfig tileCfg = cfg;
 
@@ -515,35 +528,51 @@ bool NavMeshBuilder::BuildTiledMesh(
             rcHeightfield* solid = rcAllocHeightfield();
             if (!solid)
             {
-                return false;
+                continue;
             }
 
-            if (!rcCreateHeightfield(&ctx, *solid, tileCfg.width, tileCfg.height, tileCfg.bmin, tileCfg.bmax, tileCfg.cs, tileCfg.ch))
+            if (!rcCreateHeightfield(
+                &ctx,
+                *solid,
+                tileCfg.width,
+                tileCfg.height,
+                tileCfg.bmin,
+                tileCfg.bmax,
+                tileCfg.cs,
+                tileCfg.ch))
             {
-                DEBUG_LOG("Tile (%d,%d) failed at rcCreateHeightfield", x, y);
                 rcFreeHeightField(solid);
-                return false;
+                continue;
             }
 
-            // 2) Mark walkable triangles by slope
+            // 2) Triangle areas
             unsigned char* triAreas = (unsigned char*)dtAlloc(sizeof(unsigned char) * ntris, DT_ALLOC_TEMP);
             if (!triAreas)
             {
-                DEBUG_LOG("Tile (%d,%d) failed at triAreas", x, y);
                 rcFreeHeightField(solid);
-                return false;
+                continue;
             }
-            std::memset(triAreas, 0, sizeof(unsigned char) * ntris);
 
-            rcMarkWalkableTriangles(&ctx, tileCfg.walkableSlopeAngle, verts.data(), nverts, tris.data(), ntris, triAreas);
+            memset(triAreas, 0, sizeof(unsigned char) * ntris);
 
-            // 3) Resolve area for point
-            unsigned int defaultTriangles = 0;
-            unsigned int spectralTriangles = 0;
-            unsigned int blockedTriangles = 0;
+            // 3) Walkable triangles
+            rcMarkWalkableTriangles(
+                &ctx,
+                tileCfg.walkableSlopeAngle,
+                verts.data(),
+                nverts,
+                tris.data(),
+                ntris,
+                triAreas);
 
+            // 4) Modifier Volumes
             for (int i = 0; i < ntris; ++i)
             {
+                if (triAreas[i] == RC_NULL_AREA)
+                {
+                    continue;
+                }
+
                 const int i0 = tris[i * 3 + 0];
                 const int i1 = tris[i * 3 + 1];
                 const int i2 = tris[i * 3 + 2];
@@ -570,278 +599,170 @@ bool NavMeshBuilder::BuildTiledMesh(
 
                 NavAreaType area = resolveAreaForPoint(center, modifierVolumes);
 
-                if (area == NavAreaType::Default)
-                    defaultTriangles++;
-                if (area == NavAreaType::Spectral)
-                    spectralTriangles++;
-                if (area == NavAreaType::Blocked)
-                    blockedTriangles++;
-
-                if (triAreas[i] != RC_NULL_AREA)
-                {
-                    triAreas[i] = toRecastAreaId(area);
-                }
+                triAreas[i] = toRecastAreaId(area);
             }
 
-            // 4) Rasterize triangles
-            if (!rcRasterizeTriangles(&ctx, verts.data(), nverts, tris.data(), triAreas, ntris, *solid, tileCfg.walkableClimb))
+            // 5) Rasterize
+            if (!rcRasterizeTriangles(
+                &ctx,
+                verts.data(),
+                nverts,
+                tris.data(),
+                triAreas,
+                ntris,
+                *solid,
+                tileCfg.walkableClimb))
             {
-                DEBUG_LOG("Tile (%d,%d) failed at RasterizeTriangels", x, y);
                 dtFree(triAreas);
                 rcFreeHeightField(solid);
-                return false;
+                continue;
             }
 
             dtFree(triAreas);
 
-            // 5) Filters
-            rcFilterLowHangingWalkableObstacles(&ctx, tileCfg.walkableClimb, *solid);
-            rcFilterLedgeSpans(&ctx, tileCfg.walkableHeight, tileCfg.walkableClimb, *solid);
-            rcFilterWalkableLowHeightSpans(&ctx, tileCfg.walkableHeight, *solid);
+            // 6) Filters
+            rcFilterLowHangingWalkableObstacles(
+                &ctx,
+                tileCfg.walkableClimb,
+                *solid);
 
-            // 6) Compact heightfield
+            rcFilterLedgeSpans(
+                &ctx,
+                tileCfg.walkableHeight,
+                tileCfg.walkableClimb,
+                *solid);
+
+            rcFilterWalkableLowHeightSpans(
+                &ctx,
+                tileCfg.walkableHeight,
+                *solid);
+
+            // 7) Compact heightfield
             rcCompactHeightfield* chf = rcAllocCompactHeightfield();
             if (!chf)
             {
                 rcFreeHeightField(solid);
-                return false;
+                continue;
             }
 
-            if (!rcBuildCompactHeightfield(&ctx, tileCfg.walkableHeight, tileCfg.walkableClimb, *solid, *chf))
+            if (!rcBuildCompactHeightfield(
+                &ctx,
+                tileCfg.walkableHeight,
+                tileCfg.walkableClimb,
+                *solid,
+                *chf))
             {
-                DEBUG_LOG("Tile (%d,%d) failed at rcBuildCompactHeightfield", x, y);
                 rcFreeCompactHeightfield(chf);
                 rcFreeHeightField(solid);
-                return false;
+                continue;
             }
 
+            // 8) Free solid
             rcFreeHeightField(solid);
             solid = nullptr;
 
-            // 7) Heightfield layers
-            unsigned char* cacheData = nullptr;
-            int cacheDataSize = 0;
+            // 9) Erode
+            if (!rcErodeWalkableArea(
+                &ctx,
+                tileCfg.walkableRadius,
+                *chf))
+            {
+                rcFreeCompactHeightfield(chf);
+                continue;
+            }
 
-            const bool cacheLayerOk = BuildTileCacheLayer(
-                ctx,
-                tileCfg,
+            // 10) Heightfield layer
+            rcHeightfieldLayerSet* lset = rcAllocHeightfieldLayerSet();
+            if (!lset)
+            {
+                rcFreeCompactHeightfield(chf);
+                continue;
+            }
+
+            if (!rcBuildHeightfieldLayers(
+                &ctx,
                 *chf,
-                x,
-                y,
-                0,
-                tileCacheCompressor,
-                &cacheData,
-                &cacheDataSize
-            );
-
-            if (cacheLayerOk && cacheData && cacheDataSize > 0)
+                tileCfg.borderSize,
+                tileCfg.walkableHeight,
+                *lset))
             {
-                dtCompressedTileRef compressedRef = 0;
+                rcFreeHeightfieldLayerSet(lset);
+                rcFreeCompactHeightfield(chf);
+                continue;
+            }
 
-                const dtStatus addCacheStatus = tileCache->addTile(
-                    cacheData,
-                    cacheDataSize,
-                    DT_COMPRESSEDTILE_FREE_DATA,
-                    &compressedRef
-                );
+            // 11) Build TileCache layer data
 
-                if (dtStatusFailed(addCacheStatus))
+            for (int layerIndex = 0; layerIndex < lset->nlayers; ++layerIndex)
+            {
+                unsigned char* tileData = nullptr;
+                int tileDataSize = 0;
+
+                if (!BuildTileCacheLayer(
+                    ctx,
+                    tileCfg,
+                    *chf,
+                    x,
+                    y,
+                    layerIndex,
+                    tileCacheCompressor,
+                    &tileData,
+                    &tileDataSize))
                 {
-                    dtFree(cacheData);
+                    continue;
                 }
-                else
+
+                dtCompressedTileRef tileRef = 0;
+
+                const dtStatus addStatus =
+                    tileCache->addTile(
+                        tileData,
+                        tileDataSize,
+                        DT_COMPRESSEDTILE_FREE_DATA,
+                        &tileRef);
+
+                if (dtStatusFailed(addStatus))
                 {
-                    const dtStatus buildStatus = tileCache->buildNavMeshTile(compressedRef, navMesh);
+                    dtFree(tileData);
+                    continue;
+                }
 
-                    if (dtStatusFailed(buildStatus))
-                    {
-                        DEBUG_LOG("TileCache buildNavMeshTile failed at tile (%d,%d)", x, y);
-                    }
-                }                
+                const dtStatus buildStatus =
+                    tileCache->buildNavMeshTile(
+                        tileRef,
+                        navMesh);
+
+                if (dtStatusFailed(buildStatus))
+                {
+                    continue;
+                }
             }
 
-            // 7) Erode by agent radius
-            if (!rcErodeWalkableArea(&ctx, tileCfg.walkableRadius, *chf))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at rcErodeWalkableArea", x, y);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
+            rcFreeHeightfieldLayerSet(lset);
+            lset = nullptr;
 
-            // 8) Regions
-            if (!rcBuildDistanceField(&ctx, *chf))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at rcBuildDistanceField", x, y);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            if (!rcBuildRegions(&ctx, *chf, tileCfg.borderSize, tileCfg.minRegionArea, tileCfg.mergeRegionArea))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at rcBuildRegions", x, y);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            // 9) Contours
-            rcContourSet* cset = rcAllocContourSet();
-            if (!cset)
-            {
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            if (!rcBuildContours(&ctx, *chf, tileCfg.maxSimplificationError, tileCfg.maxEdgeLen, *cset))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at rcBuildContours", x, y);
-                rcFreeContourSet(cset);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            // 10) Poly mesh
-            rcPolyMesh* pmesh = rcAllocPolyMesh();
-            if (!pmesh)
-            {
-                rcFreeContourSet(cset);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            if (!rcBuildPolyMesh(&ctx, *cset, tileCfg.maxVertsPerPoly, *pmesh))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at rcBuildPolyMesh", x, y);
-                rcFreePolyMesh(pmesh);
-                rcFreeContourSet(cset);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            // if mesh has 0 polygons or invalid poly/detail data
-            if (pmesh->nverts == 0 || pmesh->npolys == 0)
-            {
-                rcFreePolyMesh(pmesh);
-                rcFreeContourSet(cset);
-                rcFreeCompactHeightfield(chf);
-                continue;
-            }
-
-            // 11) Detail mesh
-            rcPolyMeshDetail* dmesh = rcAllocPolyMeshDetail();
-            if (!dmesh)
-            {
-                rcFreePolyMesh(pmesh);
-                rcFreeContourSet(cset);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            if (!rcBuildPolyMeshDetail(&ctx, *pmesh, *chf, tileCfg.detailSampleDist, tileCfg.detailSampleMaxError, *dmesh))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at rcBuildPolyMeshDetail", x, y);
-                rcFreePolyMeshDetail(dmesh);
-                rcFreePolyMesh(pmesh);
-                rcFreeContourSet(cset);
-                rcFreeCompactHeightfield(chf);
-                return false;
-            }
-
-            rcFreeContourSet(cset);
             rcFreeCompactHeightfield(chf);
-            cset = nullptr;
             chf = nullptr;
-
-            // 12) Set Detour flags (simple: everything walkable => flag 1)
-            for (int i = 0; i < pmesh->npolys; ++i)
-            {
-                // pmesh->flags[i] = 1;   --- old way
-                pmesh->flags[i] = toPolyFlags(
-                    static_cast<NavAreaId>(pmesh->areas[i])
-                );
-            }
-
-            // 13) Create Detour navmesh data
-            dtNavMeshCreateParams params{};
-            params.verts = pmesh->verts;
-            params.vertCount = pmesh->nverts;
-            params.polys = pmesh->polys;
-            params.polyAreas = pmesh->areas;
-            params.polyFlags = pmesh->flags;
-            params.polyCount = pmesh->npolys;
-            params.nvp = pmesh->nvp;
-
-            params.detailMeshes = dmesh->meshes;
-            params.detailVerts = dmesh->verts;
-            params.detailVertsCount = dmesh->nverts;
-            params.detailTris = dmesh->tris;
-            params.detailTriCount = dmesh->ntris;
-
-            params.walkableHeight = s.agentHeight;
-            params.walkableRadius = s.agentRadius;
-            params.walkableClimb = s.agentMaxClimb;
-
-            rcVcopy(params.bmin, pmesh->bmin);
-            rcVcopy(params.bmax, pmesh->bmax);
-            params.cs = tileCfg.cs;
-            params.ch = tileCfg.ch;
-            params.buildBvTree = true;
-
-            // tile coordinates
-            params.tileX = x;
-            params.tileY = y;
-            params.tileLayer = 0;
-
-            // if tile has 0 polygons or invalid poly/detail data
-            if (pmesh->npolys == 0)
-            {
-                rcFreePolyMeshDetail(dmesh);
-                rcFreePolyMesh(pmesh);
-                continue;
-            }
-
-            unsigned char* navData = nullptr;
-            int navDataSize = 0;
-            if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
-            {
-                DEBUG_LOG("Tile (%d,%d) failed at dtCreateNavMeshData", x, y);
-                rcFreePolyMeshDetail(dmesh);
-                rcFreePolyMesh(pmesh);
-                return false;
-            }
-
-            rcFreePolyMeshDetail(dmesh);
-            rcFreePolyMesh(pmesh);
-            dmesh = nullptr;
-            pmesh = nullptr;
-
-            // Add tile
-            dtTileRef outRef = 0;
-            const dtStatus addSt = navMesh->addTile(navData, navDataSize, DT_TILE_FREE_DATA, 0, &outRef);
-            if (dtStatusFailed(addSt) || !outRef)
-            {
-                // If addTile fails, Detour will not own navData. Free it.
-                dtFree(navData);
-                dtFreeNavMesh(navMesh);
-                return false;
-            }
-
-            outResult.tileRefs.push_back(outRef);
         }
-    }    
+    }
 
     dtNavMeshQuery* navQuery = dtAllocNavMeshQuery();
+
     if (!navQuery || dtStatusFailed(navQuery->init(navMesh, 2048)))
     {
-        if (navQuery) dtFreeNavMeshQuery(navQuery);
-        dtFreeNavMesh(navMesh); // this will free tile data due to DT_TILE_FREE_DATA
+        if (navQuery)
+        {
+            dtFreeNavMeshQuery(navQuery);
+        }
+
+        dtFreeTileCache(tileCache);
+        dtFreeNavMesh(navMesh);
         return false;
     }
 
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
     outResult.tileCache = tileCache;
-
-    //DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
 
     return true;
 }
