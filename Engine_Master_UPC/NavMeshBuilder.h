@@ -8,11 +8,13 @@
 
 class dtNavMesh;
 class dtNavMeshQuery;
+class dtTileCache;
 
 struct NavMeshBuildResult
 {
     dtNavMesh* navMesh = nullptr;
     dtNavMeshQuery* navQuery = nullptr;
+    dtTileCache* tileCache = nullptr;
     std::vector<dtTileRef> tileRefs;
 };
 

@@ -3,12 +3,12 @@
 struct NavMeshBuildSettings
 {
     float cellSize = 0.2f;
-    float cellHeight = 0.2f;
+    float cellHeight = 0.1f;
     int tileSize = 64;
 
     float agentHeight = 1.8f;
     float agentRadius = 0.4f;
-    float agentMaxClimb = 0.9f;
+    float agentMaxClimb = 0.6f;
     float agentMaxSlope = 45.0f;
 
     float regionMinSize = 8.0f;

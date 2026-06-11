@@ -12,6 +12,7 @@
 #include <DetourNavMeshQuery.h>
 #include <DetourNavMeshBuilder.h>
 #include <DetourAlloc.h>
+#include <DetourTileCache.h>
 
 static int ClampInt(int v, int mn, int mx) { return v < mn ? mn : (v > mx ? mx : v); }
 
@@ -419,6 +420,24 @@ bool NavMeshBuilder::BuildTiledMesh(
 
     const int tileW = (cfg.width + tileSize - 1) / tileSize;
     const int tileH = (cfg.height + tileSize - 1) / tileSize;
+
+    // Tile cache params
+    dtTileCacheParams tcParams{};
+
+    rcVcopy(tcParams.orig, cfg.bmin);
+
+    tcParams.cs = cfg.cs;
+    tcParams.ch = cfg.ch;
+
+    tcParams.width = s.tileSize;
+    tcParams.height = s.tileSize;
+
+    tcParams.walkableHeight = s.agentHeight;
+    tcParams.walkableRadius = s.agentRadius;
+    tcParams.walkableClimb = s.agentMaxClimb;
+
+    tcParams.maxTiles = tileW * tileH;
+    tcParams.maxObstacles = 128;
 
     // Create dtNavMesh and add tiles (so we get a tileRef for your Save())
     dtNavMesh* navMesh = dtAllocNavMesh();

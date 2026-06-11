@@ -270,6 +270,10 @@ bool ModuleNavigation::unloadNavMesh()
     if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery); m_navQuery = nullptr; }
     if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }
     if (m_tileCache) { dtFreeTileCache(m_tileCache); m_tileCache = nullptr; }
+    if (m_tileCacheMeshProcess) { delete m_tileCacheMeshProcess; m_tileCacheMeshProcess = nullptr; }
+    if (m_tileCacheCompressor) { delete m_tileCacheCompressor; m_tileCacheCompressor = nullptr; }
+    if (m_tileCacheAlloc) { delete m_tileCacheAlloc; m_tileCacheAlloc = nullptr; }    
+
     m_tileRefs.clear();
     m_loadedScene.clear();
     return true;
@@ -336,6 +340,31 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     // get modifier volumes from the scene
     m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
+    // do cache helpers cleanup before building tiled mesh for safety
+    if (m_tileCacheAlloc)
+    {
+        delete m_tileCacheAlloc;
+        m_tileCacheAlloc = nullptr;
+    }
+
+    if (m_tileCacheCompressor)
+    {
+        delete m_tileCacheCompressor;
+        m_tileCacheCompressor = nullptr;
+    }
+
+    if (m_tileCacheMeshProcess)
+    {
+        delete m_tileCacheMeshProcess;
+        m_tileCacheMeshProcess = nullptr;
+    }
+
+    // initialize cache helpers
+    m_tileCacheAlloc = new LinearAllocator(32000);
+    m_tileCacheCompressor = new FastLZCompressor();
+    m_tileCacheMeshProcess = new MeshProcess();
+
+    // build tiled mesh
     if (!NavMeshBuilder::BuildTiledMesh(verts, tris, m_settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
