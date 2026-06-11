@@ -17,6 +17,7 @@
 #include <DetourNavMeshQuery.h>
 #include <DetourAlloc.h>
 #include <DetourTileCache.h>
+#include <DetourTileCacheBuilder.h>
 #include <WindowLogger.h>
 #include <NavMeshBuilder.h>
 
@@ -27,6 +28,57 @@ static std::string MakeNavMeshPath(const char* sceneName)
 {
     return std::string("Assets/NavMeshes/") + sceneName + ".navmesh";
 }
+
+// Detour needs custom allocator for dtTileCache to work (linear allocator is used in the recast demo)
+struct LinearAllocator : public dtTileCacheAlloc
+{
+    unsigned char* buffer = nullptr; // memory block [..............]
+    size_t capacity = 0; // memory size
+    size_t top = 0; // current memory [###............]
+
+    LinearAllocator(const size_t cap)
+    {
+        capacity = cap;
+
+        // allocate one big chunk of memory
+        buffer = (unsigned char*)dtAlloc(capacity, DT_ALLOC_PERM);
+    }
+
+    ~LinearAllocator() override
+    {
+        dtFree(buffer);
+    }
+
+    void reset() override
+    {
+        top = 0; // not deleting memory just reusing slots
+    }
+
+    void* alloc(const size_t size) override
+    {
+        if (!buffer)
+        {
+            return nullptr;
+        }
+
+        if (top + size > capacity)
+        {
+            return nullptr;
+        }
+
+        unsigned char* mem = buffer + top;
+        top += size;
+
+        return mem;
+    }
+
+    void free(void*) override
+    {
+        // we don't free individual allocations
+        // memory is reused when reset() is called
+        // interface requires overriding this func
+    }
+};
 
 bool ModuleNavigation::init()
 {
