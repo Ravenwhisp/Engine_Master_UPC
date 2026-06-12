@@ -1,4 +1,4 @@
-#include "NewCBuffers.hlsli"
+#include "LightingCBuffers.hlsli"
 #include "General.hlsli"
 #include "PBRGeneral.hlsli"
 

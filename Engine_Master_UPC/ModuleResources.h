@@ -75,6 +75,7 @@ public:
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createIrradiance(const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createEnvironment(const IndexBuffer* indexBuffer, SkyBox* skybox);
+	Texture* createGBuffer(float width, float height, const DXGI_FORMAT format);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial>	createMaterial(MaterialAsset& materialAsset);

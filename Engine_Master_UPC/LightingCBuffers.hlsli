@@ -1,28 +1,7 @@
-cbuffer SceneData : register(b1)
+cbuffer SceneData : register(b0)
 {
     float3 viewPos;
     float pad0;
-};
-
-cbuffer ModelData : register(b2)
-{
-    float4x4 model;
-    float4x4 normalMat;
-
-    float3 baseColor;
-    uint hasBaseColorTex;
-
-    float metallicFactor;
-    float roughnessFactor;
-    uint hasMetallicRoughnessTex;
-    
-    float normalFactor;
-    uint hasNormalTex;
-    
-    float3 emissiveColor;
-    uint hasEmissiveTex;
-    
-    float3 padding;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4
@@ -61,7 +40,7 @@ struct SpotLight
     float2 pad1;
 };
 
-cbuffer LightsCB : register(b3)
+cbuffer LightsCB : register(b1)
 {
     float3 ambientColor;
     float ambientIntensity;
