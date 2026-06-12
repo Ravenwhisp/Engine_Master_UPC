@@ -37,6 +37,7 @@ public:
 
     void instantiateSceneScripts();
     void destroySceneScripts();
+    void destroySceneStateMachineBehaviours();
 
     ScriptReloadState getScriptReloadState() const { return m_scriptReloadState; }
     bool isScriptReloadBusy() const;

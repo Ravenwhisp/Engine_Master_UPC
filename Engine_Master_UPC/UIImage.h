@@ -34,8 +34,8 @@ public:
 
     bool hasTexture() const { return m_texture != nullptr; }
 
-    float getFillAmount() const { return m_fillAmount; }
-    void setFillAmount(float amount) { m_fillAmount = amount; }
+    Vector2 getFillAmount() const { return m_fillAmount; }
+    void setFillAmount(const Vector2& amount) { m_fillAmount = amount; }
 
     FillMethod getFillMethod() const { return m_fillMethod; }
     void setFillMethod(FillMethod method) { m_fillMethod = method; }
@@ -69,7 +69,7 @@ private:
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
 
-    float m_fillAmount = 1.0f;
+    Vector2 m_fillAmount = { 0.0f, 1.0f };
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
 
