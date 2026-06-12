@@ -2,6 +2,7 @@
 
 #include "IRenderPass.h"
 #include "Lights.h"
+#include "ShadowTypes.h"
 
 #include <vector>
 #include <d3d12.h>
@@ -64,4 +65,10 @@ private:
     
     int m_trianglesCount = 0;
 	int m_meshCount = 0;
+
+    // ShadowMap
+    D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_shadowMapSRV{};
+    bool m_hasShadowData = false;
+
 };
