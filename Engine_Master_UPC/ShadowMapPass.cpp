@@ -24,6 +24,8 @@
 #include "PlatformHelpers.h"
 
 #include <cmath>
+#include <algorithm>
+#include <limits>
 
 ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
@@ -206,29 +208,39 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     Vector3 lightDirection = lightTransform->getForward();
     lightDirection.Normalize();
 
-    const Vector3 target = ctx.cameraPosition;
-    const Vector3 eye = target - lightDirection * SHADOW_LIGHT_DISTANCE;
+    Vector3 boundsMin;
+    Vector3 boundsMax;
 
-    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
-
-    if (std::abs(lightDirection.y) > 0.95f)
+    if (computeVisibleWorldBounds(boundsMin, boundsMax))
     {
-        up = Vector3(0.0f, 0.0f, 1.0f);
+        computeLightMatricesFromBounds(lightDirection, boundsMin, boundsMax);
     }
+    else
+    {
+        const Vector3 target = ctx.cameraPosition;
+        const Vector3 eye = target - lightDirection * SHADOW_LIGHT_DISTANCE_PADDING;
 
-    m_frameData.lightView = Matrix::CreateLookAt(
-        eye,
-        target,
-        up);
+        Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
 
-    m_frameData.lightProjection = Matrix::CreateOrthographic(
-        SHADOW_ORTHO_SIZE,
-        SHADOW_ORTHO_SIZE,
-        SHADOW_NEAR_PLANE,
-        SHADOW_FAR_PLANE);
+        if (std::abs(lightDirection.y) > 0.95f)
+        {
+            up = Vector3(0.0f, 0.0f, 1.0f);
+        }
 
-    m_frameData.lightViewProjection =
-        m_frameData.lightView * m_frameData.lightProjection;
+        m_frameData.lightView = Matrix::CreateLookAt(
+            eye,
+            target,
+            up);
+
+        m_frameData.lightProjection = Matrix::CreateOrthographic(
+            SHADOW_MIN_ORTHO_SIZE,
+            SHADOW_MIN_ORTHO_SIZE,
+            SHADOW_MIN_NEAR_PLANE,
+            SHADOW_LIGHT_DISTANCE_PADDING * 2.0f);
+
+        m_frameData.lightViewProjection =
+            m_frameData.lightView * m_frameData.lightProjection;
+    }
 
     ShadowDataCB shadowCB{};
     shadowCB.lightViewProjection = m_frameData.lightViewProjection.Transpose();
@@ -243,6 +255,177 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
             sizeof(ShadowDataCB),
             app->getModuleD3D12()->getCurrentFrame());
     }
+}
+
+bool ShadowMapPass::computeVisibleWorldBounds(Vector3& outMin, Vector3& outMax) const
+{
+    bool hasBounds = false;
+
+    outMin = Vector3(
+        std::numeric_limits<float>::max(),
+        std::numeric_limits<float>::max(),
+        std::numeric_limits<float>::max());
+
+    outMax = Vector3(
+        std::numeric_limits<float>::lowest(),
+        std::numeric_limits<float>::lowest(),
+        std::numeric_limits<float>::lowest());
+
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer == nullptr)
+        {
+            continue;
+        }
+
+        GameObject* owner = renderer->getOwner();
+
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        if (!renderer->isActive())
+        {
+            continue;
+        }
+
+        if (!renderer->hasMesh())
+        {
+            continue;
+        }
+
+        Transform* transform = renderer->getTransform();
+
+        if (transform == nullptr)
+        {
+            continue;
+        }
+
+        Engine::BoundingBox& boundingBox = renderer->getBoundingBox();
+        boundingBox.update(transform->getGlobalMatrix());
+
+        const Vector3* points = boundingBox.getPoints();
+
+        for (int i = 0; i < 8; ++i)
+        {
+            outMin.x = std::min(outMin.x, points[i].x);
+            outMin.y = std::min(outMin.y, points[i].y);
+            outMin.z = std::min(outMin.z, points[i].z);
+
+            outMax.x = std::max(outMax.x, points[i].x);
+            outMax.y = std::max(outMax.y, points[i].y);
+            outMax.z = std::max(outMax.z, points[i].z);
+        }
+
+        hasBounds = true;
+    }
+
+    return hasBounds;
+}
+
+void ShadowMapPass::computeLightMatricesFromBounds(
+    const Vector3& lightDirection,
+    const Vector3& boundsMin,
+    const Vector3& boundsMax)
+{
+    Vector3 boundsCenter = (boundsMin + boundsMax) * 0.5f;
+    Vector3 boundsExtents = (boundsMax - boundsMin) * 0.5f;
+
+    float boundsRadius = boundsExtents.Length();
+
+    if (boundsRadius < SHADOW_MIN_ORTHO_SIZE * 0.5f)
+    {
+        boundsRadius = SHADOW_MIN_ORTHO_SIZE * 0.5f;
+    }
+
+    const float lightDistance = boundsRadius + SHADOW_LIGHT_DISTANCE_PADDING;
+
+    const Vector3 eye = boundsCenter - lightDirection * lightDistance;
+    const Vector3 target = boundsCenter;
+
+    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+
+    if (std::abs(lightDirection.y) > 0.95f)
+    {
+        up = Vector3(0.0f, 0.0f, 1.0f);
+    }
+
+    m_frameData.lightView = Matrix::CreateLookAt(
+        eye,
+        target,
+        up);
+
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+
+    float maxX = std::numeric_limits<float>::lowest();
+    float maxY = std::numeric_limits<float>::lowest();
+    float maxZ = std::numeric_limits<float>::lowest();
+
+    Vector3 corners[8] =
+    {
+        Vector3(boundsMin.x, boundsMin.y, boundsMin.z),
+        Vector3(boundsMax.x, boundsMin.y, boundsMin.z),
+        Vector3(boundsMax.x, boundsMax.y, boundsMin.z),
+        Vector3(boundsMin.x, boundsMax.y, boundsMin.z),
+
+        Vector3(boundsMin.x, boundsMin.y, boundsMax.z),
+        Vector3(boundsMax.x, boundsMin.y, boundsMax.z),
+        Vector3(boundsMax.x, boundsMax.y, boundsMax.z),
+        Vector3(boundsMin.x, boundsMax.y, boundsMax.z),
+    };
+
+    for (const Vector3& corner : corners)
+    {
+        Vector3 lightSpacePoint = Vector3::Transform(corner, m_frameData.lightView);
+
+        minX = std::min(minX, lightSpacePoint.x);
+        minY = std::min(minY, lightSpacePoint.y);
+
+        maxX = std::max(maxX, lightSpacePoint.x);
+        maxY = std::max(maxY, lightSpacePoint.y);
+
+        // In our view convention, points in front of the camera/light are at negative Z.
+        // Convert view-space Z to a positive distance from the light.
+        const float depth = -lightSpacePoint.z;
+
+        minZ = std::min(minZ, depth);
+        maxZ = std::max(maxZ, depth);
+        
+    }
+
+    minX -= SHADOW_BOUNDS_PADDING;
+    minY -= SHADOW_BOUNDS_PADDING;
+    minZ -= SHADOW_BOUNDS_PADDING;
+
+    maxX += SHADOW_BOUNDS_PADDING;
+    maxY += SHADOW_BOUNDS_PADDING;
+    maxZ += SHADOW_BOUNDS_PADDING;
+
+    const float width = std::max(maxX - minX, SHADOW_MIN_ORTHO_SIZE);
+    const float height = std::max(maxY - minY, SHADOW_MIN_ORTHO_SIZE);
+
+    const float centerX = (minX + maxX) * 0.5f;
+    const float centerY = (minY + maxY) * 0.5f;
+
+    const float halfWidth = width * 0.5f;
+    const float halfHeight = height * 0.5f;
+
+    const float nearPlane = std::max(SHADOW_MIN_NEAR_PLANE, minZ);
+    const float farPlane = std::max(nearPlane + 1.0f, maxZ);
+
+    m_frameData.lightProjection = Matrix::CreateOrthographicOffCenter(
+        centerX - halfWidth,
+        centerX + halfWidth,
+        centerY - halfHeight,
+        centerY + halfHeight,
+        nearPlane,
+        farPlane);
+
+    m_frameData.lightViewProjection =
+        m_frameData.lightView * m_frameData.lightProjection;
 }
 
 void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList)
