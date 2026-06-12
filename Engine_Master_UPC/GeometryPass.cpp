@@ -41,7 +41,7 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void GeometryPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER   rootParams[4] = {};
+    CD3DX12_ROOT_PARAMETER   rootParams[5] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);

@@ -7,7 +7,8 @@
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
-Texture2D emissiveTex : register(t3);
+Texture2D positionTex : register(t3);
+Texture2D emissiveTex : register(t4);
 
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
@@ -143,10 +144,10 @@ float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in floa
 
 
 
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET 
+float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 {
     //Initialize material values
-    
+    float3 worldPos = positionTex.Sample(linearWrapSample, coord);
     
     
     

@@ -26,6 +26,7 @@ struct PSOutput
     float4 metalRoughness : SV_Target1;   // specular.rgb + smoothness.a
     float4 normal         : SV_Target2;   // world normal
     float4 position       : SV_Target3;   // world position
+    float4 emissive       : SV_Target4;   // emissive
 };
 
 PSOutput main(VSOutput IN)
@@ -91,6 +92,7 @@ PSOutput main(VSOutput IN)
         
         emissive = emissiveSample.rgb * gMaterial.emissiveColor;
     }
+    OUT.emissive     = float4(emissive, 0.0f);
     
     
     
