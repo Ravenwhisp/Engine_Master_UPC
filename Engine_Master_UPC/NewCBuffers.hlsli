@@ -75,3 +75,12 @@ cbuffer LightsCB : register(b3)
     PointLight pointLights[MAX_POINT_LIGHTS];
     SpotLight spotLights[MAX_SPOT_LIGHTS];
 };
+
+cbuffer ShadowData : register(b4)
+{
+    float4x4 lightViewProjection;
+    float shadowBias;
+    float shadowStrength;
+    uint shadowsEnabled;
+    float paddingShadow;
+};

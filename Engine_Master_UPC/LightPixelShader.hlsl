@@ -4,6 +4,7 @@ Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
 Texture2D emissiveTex : register(t3);
+Texture2D shadowMap : register(t11);
 
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
@@ -230,6 +231,43 @@ float3 computeLighting(in float3 R, in float3 V, in float3 N, in float3 baseColo
     return lerp(diffuse + dielectricSpecular, metalSpecular, metallic);
 }
 
+float ComputeShadow(float3 worldPos)
+{
+    if (shadowsEnabled == 0)
+    {
+        return 1.0f;
+    }
+
+    float4 shadowPos = mul(float4(worldPos, 1.0f), lightViewProjection);
+
+    if (shadowPos.w == 0.0f)
+    {
+        return 1.0f;
+    }
+
+    shadowPos.xyz /= shadowPos.w;
+
+    float2 shadowUV;
+    shadowUV.x = shadowPos.x * 0.5f + 0.5f;
+    shadowUV.y = -shadowPos.y * 0.5f + 0.5f;
+
+    float currentDepth = shadowPos.z;
+
+    if (shadowUV.x < 0.0f || shadowUV.x > 1.0f ||
+        shadowUV.y < 0.0f || shadowUV.y > 1.0f ||
+        currentDepth < 0.0f || currentDepth > 1.0f)
+    {
+        return 1.0f;
+    }
+
+    float closestDepth = shadowMap.Sample(linearClampSample, shadowUV).r;
+
+    return currentDepth - shadowBias > closestDepth
+        ? 1.0f - shadowStrength
+        : 1.0f;
+}
+
+
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET 
 {
     //Load texture & material data
@@ -292,8 +330,11 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     float NdotV = abs(dot(finalWorldNormal, viewDirection)) + 0.001;
     
-    float3 colorMetallic = 0.0;
-    float3 colorNonMetallic = 0.0;
+    float3 directionalMetallic = 0.0f;
+    float3 directionalNonMetallic = 0.0f;
+
+    float3 otherMetallic = 0.0f;
+    float3 otherNonMetallic = 0.0f;
     
     float specularAO = computeSpecularAO(NdotV, ao, alphaRoughness);
     float horizon = min(1.0 + dot(reflection, finalWorldNormal), 1.0);
@@ -302,30 +343,35 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     // Directional lights
     for (uint i = 0; i < directionalCount; ++i)
     {
-        colorMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
     // Point lights
     for (uint i = 0; i < pointCount; ++i)
     {
-        colorMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        otherMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
     // Spot lights
     for (uint i = 0; i < spotCount; ++i)
     {
-        colorMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        otherMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
+
         
-    // Ambient
-    float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
-    
-    //IBL 
+    float shadow = ComputeShadow(worldPos);
+
+    float3 directionalLighting = lerp(directionalNonMetallic, directionalMetallic, metallic);
+    float3 otherLighting = lerp(otherNonMetallic, otherMetallic, metallic);
+
+    float3 directLighting = directionalLighting * shadow + otherLighting;
+
+    // IBL
     float3 indirectLighting = computeLighting(reflection, viewDirection, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
-    
+
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
     float3 finalColor = LinearToSRGB(colorMapped);
 
