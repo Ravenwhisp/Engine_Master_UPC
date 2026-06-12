@@ -5,6 +5,8 @@
 #include "ModuleScene.h"
 #include "Scene.h"
 #include "ScriptComponent.h"
+#include "AnimationComponent.h"
+#include "GameObject.h"
 
 #include <fstream>
 #include <vector>
@@ -328,6 +330,7 @@ bool ModuleScripting::reloadGameScriptsDllAfterSuccessfulBuild()
     std::vector<ScriptReloadInfo> reloadInfos = saveSceneScriptReloadInfo();
 
     destroySceneScripts();
+    destroySceneStateMachineBehaviours();
 
     if (!m_scriptLibraryLoader.unload())
     {
@@ -394,5 +397,38 @@ void ModuleScripting::restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>
         }
 
         info.component->deserializeScriptFieldsForReload(info.fields);
+    }
+}
+
+void ModuleScripting::destroySceneStateMachineBehaviours()
+{
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+    {
+        return;
+    }
+
+    const std::vector<GameObject*>& gameObjects = scene->getAllGameObjects();
+
+    for (GameObject* gameObject : gameObjects)
+    {
+        if (!gameObject)
+        {
+            continue;
+        }
+
+        Component* component = gameObject->GetComponent(ComponentType::ANIMATION);
+        if (!component)
+        {
+            continue;
+        }
+
+        AnimationComponent* animation = static_cast<AnimationComponent*>(component);
+        if (!animation)
+        {
+            continue;
+        }
+
+        animation->clearStateBehaviours();
     }
 }
