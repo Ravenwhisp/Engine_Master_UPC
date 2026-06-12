@@ -23,8 +23,14 @@ struct MaterialData
     float metallicFactor;
     float roughnessFactor;
     bool hasMetallicRoughnessTex;
+    
+    float normalFactor;
+    uint hasNormalTex;
+    
+    float3 emissiveColor;
+    uint hasEmissiveTex;
 
-    float padding;
+    float3 padding;
 };
 
 cbuffer ModelDataCB : register(b2)

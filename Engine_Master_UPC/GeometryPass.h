@@ -7,7 +7,7 @@ struct RenderContext;
 
 class GeometryPass : public IRenderPass {
 public:
-    static constexpr UINT GBUFFER_COUNT = 4;
+    static constexpr UINT GBUFFER_COUNT = 5;
 
     static constexpr DXGI_FORMAT GBUFFER_FORMATS[GBUFFER_COUNT] =
     {
@@ -15,12 +15,14 @@ public:
         DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT1 metallic + roughness --> (R = "metallic"), (G = "perceptualRoughness")
         DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT2 normal
         DXGI_FORMAT_R32G32B32A32_FLOAT,     // RT3 position
+        DXGI_FORMAT_R32G32B32A32_FLOAT      // RT4 emissive
     };
 
     static constexpr RenderSurface::AttachmentPoint kSlots[GBUFFER_COUNT] =
     {
         RenderSurface::GBUFFER_DIFFUSE, RenderSurface::GBUFFER_SPECULAR,
         RenderSurface::GBUFFER_NORMAL, RenderSurface::GBUFFER_POSITION,
+        RenderSurface::GBUFFER_EMISSIVE
     };
 
     GeometryPass(ComPtr<ID3D12Device4> device);

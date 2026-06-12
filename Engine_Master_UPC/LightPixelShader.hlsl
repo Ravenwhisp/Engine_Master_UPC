@@ -146,64 +146,32 @@ float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in floa
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET 
 {
     //Initialize material values
-    float metallic = metallicFactor;
-    float alphaRoughness = roughnessFactor;
-    float minRoughness = 0.04;
-    float ao = 1;
-    float3 emissive = 0;
-    float3 finalWorldNormal = normalize(normal);
     
     
     
-    //Load base color texture
-    float3 albedo = baseColor;
-    if (hasBaseColorTex != 0)
-    {
-        float4 texSample = baseColorTex.Sample(linearWrapSample, coord);
+    
+    //Read base color
+    float3 albedo = baseColorTex.Sample(linearWrapSample, coord);
+    
+    
+    
+    //Read metalic roughness AO
+    float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
+    float metallic = metallicRoughnessAOSample.b;
+    float alphaRoughness = metallicRoughnessAOSample.g;
+    float ao = metallicRoughnessAOSample.r;
+    
+    
+    
+    //Read emissive
+    float3 emissive = emissiveTex.Sample(linearWrapSample, coord);
+    
+    
+    
+    //Read normal
+    float3 finalWorldNormal = normalTex.Sample(linearWrapSample, coord).rgb;
+    
         
-        if (texSample.a < 0.5f) discard;
-
-        albedo *= texSample.rgb;
-    }
-    
-    
-    
-    //Load metalic roughness AO texture
-    if (hasMetallicRoughnessTex != 0)
-    {
-        float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
-    
-        metallic = saturate((1 - metallicRoughnessAOSample.r) * metallicFactor);
-        ao = metallicRoughnessAOSample.r;
-        alphaRoughness = 1 - clamp(metallicRoughnessAOSample.g, minRoughness, 1.0);
-    }
-
-    
-    
-    //Load emissive texture
-    if(hasEmissiveTex != 0)
-    {
-        float3 emissiveSample = emissiveTex.Sample(linearWrapSample, coord);
-        
-        emissive = emissiveSample.rgb * emissiveColor;
-    }
-    
-    
-    
-    //Load normal texture
-    if (hasNormalTex != 0)
-    {
-        float3 tangentNormal = normalTex.Sample(linearWrapSample, coord).rgb;
-        tangentNormal = normalize(tangentNormal * 2.0 - 1.0);
-        
-        float3 tangentVector = normalize(tangent.xyz);
-        float3 bitangentVector = cross(finalWorldNormal, tangentVector);
-        float3x3 TBN = float3x3(tangentVector, bitangentVector, finalWorldNormal);
-    
-        finalWorldNormal = mul(tangentNormal, TBN);
-    }
-    
-    
     
     //Prepare data for render equation
     float3 F0Metallic = albedo;
