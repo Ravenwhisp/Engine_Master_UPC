@@ -2226,7 +2226,7 @@ namespace SliderAPI
             return 0.0f;
         }
 
-        return slider->getFillAmount();
+        return slider->getFillAmount().y;
     }
 
     void setFillAmount(UISlider* slider, const float amount)
@@ -2236,6 +2236,23 @@ namespace SliderAPI
             return;
         }
 
+        Vector2 v = slider->getFillAmount();
+        v.y = amount;
+        slider->setFillAmount(v);
+    }
+
+    Vector2 getFillAmountVec(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+        return slider->getFillAmount();
+    }
+
+    void setFillAmountVec(UISlider* slider, const Vector2& amount)
+    {
+        if (!slider) return;
         slider->setFillAmount(amount);
     }
 
@@ -2349,6 +2366,15 @@ namespace UISheetAPI
         }
         sheet->setOffset(offset);
     }
+
+    void reset(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+		sheet->reset();
+	}
 }
 
 namespace DebugDrawAPI

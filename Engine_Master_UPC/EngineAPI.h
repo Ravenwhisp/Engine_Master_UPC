@@ -325,10 +325,12 @@ namespace SliderAPI
 {
     ENGINE_API float getFillAmount(const UISlider* slider);
     ENGINE_API void setFillAmount(UISlider* slider, const float amount);
-	ENGINE_API FillMethod getFillMethod(const UISlider* slider);
+    ENGINE_API Vector2 getFillAmountVec(const UISlider* slider);
+    ENGINE_API void setFillAmountVec(UISlider* slider, const Vector2& amount);
+    ENGINE_API FillMethod getFillMethod(const UISlider* slider);
     ENGINE_API void setFillMethod(UISlider* slider, FillMethod method);
     ENGINE_API FillOrigin getFillOrigin(const UISlider* slider);
-	ENGINE_API void setFillOrigin(UISlider* slider, FillOrigin origin);
+    ENGINE_API void setFillOrigin(UISlider* slider, FillOrigin origin);
 }
 
 namespace UISheetAPI
@@ -341,6 +343,7 @@ namespace UISheetAPI
     ENGINE_API bool isPlaying(UISheet* sheet);
     ENGINE_API Vector2 getOffset(UISheet* sheet);
     ENGINE_API void setOffset(UISheet* sheet, const Vector2& offset);
+    ENGINE_API void reset(UISheet* sheet);
 }
 
 namespace DebugDrawAPI
