@@ -529,7 +529,7 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
 
     for (GameObject* obj : scene.getAllGameObjects())
     {
-        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAVMODIFIER_VOLUME);
+        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAV_MODIFIER_VOLUME);
         if (navComp)
         {
             Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);

@@ -26,6 +26,6 @@ public:
 
 private:
 	Vector3 m_halfExtents = Vector3::One; // Box half-size
-	bool m_blocked = false;
-	bool m_applied = false;
+	bool m_blocked = false; // if navmesh is blocked
+	bool m_applied = false; // runtime only
 };

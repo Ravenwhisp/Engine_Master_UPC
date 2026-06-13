@@ -38,11 +38,6 @@ void NavModifierVolumeComponent::drawUi()
 	ImGui::DragInt("Priority", &m_priority, 1.0f, 0, 100);
 }
 
-void NavModifierVolumeComponent::onTransformChange()
-{
-	// useful for dynamic navmesh if we do it
-}
-
 rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTree)
 {
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
