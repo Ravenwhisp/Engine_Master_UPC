@@ -732,6 +732,22 @@ bool NavMeshBuilder::BuildTiledMesh(
                         tileRef,
                         navMesh);
 
+                const dtCompressedTile* compressedTile = tileCache->getTileByRef(tileRef);
+
+                if (compressedTile && compressedTile->header)
+                {
+                    dtTileRef navTileRef =
+                        navMesh->getTileRefAt(
+                            compressedTile->header->tx,
+                            compressedTile->header->ty,
+                            compressedTile->header->tlayer);
+
+                    if (navTileRef)
+                    {
+                        outResult.tileRefs.push_back(navTileRef);
+                    }
+                }
+
                 if (dtStatusFailed(buildStatus))
                 {
                     continue;
@@ -798,13 +814,13 @@ bool NavMeshBuilder::BuildTileCacheLayer(
         return false;
     }
 
-    if (lset->nlayers == 0)
+    if (tlayer < 0 || tlayer >= lset->nlayers)
     {
         rcFreeHeightfieldLayerSet(lset);
         return false;
     }
 
-    const rcHeightfieldLayer& layer = lset->layers[0];
+    const rcHeightfieldLayer& layer = lset->layers[tlayer];
 
     dtTileCacheLayerHeader header{};
     header.magic = DT_TILECACHE_MAGIC;

@@ -269,10 +269,10 @@ bool ModuleNavigation::unloadNavMesh()
 {
     if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery); m_navQuery = nullptr; }
     if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }
-    if (m_tileCache) { dtFreeTileCache(m_tileCache); m_tileCache = nullptr; }
-    if (m_tileCacheMeshProcess) { delete m_tileCacheMeshProcess; m_tileCacheMeshProcess = nullptr; }
-    if (m_tileCacheCompressor) { delete m_tileCacheCompressor; m_tileCacheCompressor = nullptr; }
-    if (m_tileCacheAlloc) { delete m_tileCacheAlloc; m_tileCacheAlloc = nullptr; }    
+    //if (m_tileCache) { dtFreeTileCache(m_tileCache); m_tileCache = nullptr; }
+    //if (m_tileCacheMeshProcess) { delete m_tileCacheMeshProcess; m_tileCacheMeshProcess = nullptr; }
+    //if (m_tileCacheCompressor) { delete m_tileCacheCompressor; m_tileCacheCompressor = nullptr; }
+    //if (m_tileCacheAlloc) { delete m_tileCacheAlloc; m_tileCacheAlloc = nullptr; }    
 
     m_tileRefs.clear();
     m_loadedScene.clear();
@@ -342,14 +342,14 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     unloadNavMesh();
 
     // initialize cache helpers
-    m_tileCacheAlloc = new LinearAllocator(32000);
+    /*m_tileCacheAlloc = new LinearAllocator(32000);
     m_tileCacheCompressor = new FastLZCompressor();
-    m_tileCacheMeshProcess = new MeshProcess();
+    m_tileCacheMeshProcess = new MeshProcess();*/
 
     NavMeshBuildResult result;
 
-    // build tiled mesh
-    if (!NavMeshBuilder::BuildTiledMesh(verts, tris, m_settings, result, m_modifierVolumes, m_tileCacheAlloc, m_tileCacheCompressor, m_tileCacheMeshProcess))
+    // build solo mesh
+    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, m_settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;
@@ -357,7 +357,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
 
     m_navMesh = result.navMesh;
     m_navQuery = result.navQuery;
-    m_tileCache = result.tileCache;
+    m_tileCache = nullptr; // nullptr for solo -> result.tileCache for tiled
     m_tileRefs = result.tileRefs;
 
     const char* sceneName = app->getModuleScene()->getScene()->getName();
