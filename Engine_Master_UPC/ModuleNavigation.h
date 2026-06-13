@@ -55,6 +55,7 @@ public:
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
+    bool setPolysInBoxBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked);
 
     void debugDraw() override;
 

@@ -367,6 +367,10 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
 
     rebuildNavMeshDebugLines();
 
+    setPolysInBoxBlocked(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f, 20.0f, 20.0f), true);
+    rebuildNavMeshDebugLines();
+
+
     return saved;
 }
 
@@ -495,6 +499,69 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
             straight[i * 3 + 2]
         );
     }
+
+    return true;
+}
+
+bool ModuleNavigation::setPolysInBoxBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked)
+{
+    if (!m_navQuery || !m_navMesh)
+    {
+        return false;
+    }
+
+    float c[3] =
+    {
+        center.x,
+        center.y,
+        center.z
+    };
+
+    float e[3] =
+    {
+        halfExtents.x,
+        halfExtents.y,
+        halfExtents.z
+    };
+
+    dtPolyRef polys[256];
+    int polyCount = 0;
+
+    dtQueryFilter filter;
+    filter.setIncludeFlags(0xFFFF);
+    filter.setExcludeFlags(0);
+
+   dtStatus status = m_navQuery->queryPolygons(
+        c,
+        e,
+        &filter,
+        polys,
+        &polyCount,
+        256);
+
+   if (dtStatusFailed(status))
+   {
+       return false;
+   }
+
+    for (int i = 0; i < polyCount; ++i)
+    {
+        dtMeshTile* tile = nullptr;
+        dtPoly* poly = nullptr;
+
+        if (blocked)
+        {
+            m_navMesh->setPolyFlags(polys[i], 0);
+        }
+        else
+        {
+            m_navMesh->setPolyFlags(
+                polys[i],
+                static_cast<unsigned short>(NavPolyFlags::Default));
+        }
+    }
+
+    DEBUG_LOG("Runtime blocker affected polys: %d", polyCount);
 
     return true;
 }
