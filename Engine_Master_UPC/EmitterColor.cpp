@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleInput.h"
+#include "imgui_bezier.h"
 
 #include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
@@ -12,10 +13,10 @@
 EmitterColor::EmitterColor() : ParticleModule(ParticleModuleType::COLOR) {
 
 	
-	m_colorsOverTime.getMarks().clear(); // because it has default values that we don't want
+	m_colorOverTime.getMarks().clear(); // because it has default values that we don't want
 
-	m_colorsOverTime.addMark(0.f, ImColor(1.f, 1.f, 1.f, 1.f));
-	m_colorsOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));
+	m_colorOverTime.addMark(0.f, ImColor(1.f, 1.f, 1.f, 1.f));
+	m_colorOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));
 }
 
 
@@ -33,9 +34,10 @@ void EmitterColor::update(EmitterInstance* particleData)
 		{
 			unsigned int poolIndex = aliveParticle.second;
 
-			float scale = particlePool[poolIndex].lifeTime / startLifetime;
+			float scale = 1.f - particlePool[poolIndex].lifeTime / startLifetime; // to start with 0
+			float bezierScale = ImGui::BezierValue(scale, m_colorCurve);
 
-			particlePool[poolIndex].colorAndAlpha = m_startColor*scale + m_endColor*(1.f-scale); // We need to use Bezier curves instead of this
+			m_colorOverTime.getColorAt(bezierScale, &particlePool[poolIndex].colorAndAlpha.x);
 		}
 	}
 
@@ -43,7 +45,7 @@ void EmitterColor::update(EmitterInstance* particleData)
 
 	for (auto& particleIndex : particleData->getNewParticles())
 	{
-		particlePool[particleIndex].colorAndAlpha = m_startColor;
+		m_colorOverTime.getColorAt(0.f, &particlePool[particleIndex].colorAndAlpha.x);
 	}
 }
 
@@ -52,43 +54,26 @@ bool EmitterColor::drawUi()
 	bool parameterChanged = false;
 
 	if (ImGui::CollapsingHeader("Color")) 
-	{
-
-		// 2 colors to interpolate
-
-		float color[4] = { m_startColor.x, m_startColor.y, m_startColor.z, m_startColor.w };
-		if (ImGui::ColorEdit4("Starting color", color))
-		{
-			Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
-			m_startColor = newColor;
-			parameterChanged = true;
-		}
-
-		color[0] = m_endColor.x; color[1] = m_endColor.y; color[2] = m_endColor.z; color[3] = m_endColor.w;
-		if (ImGui::ColorEdit4("End color", color))
-		{
-			Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
-			m_endColor = newColor;
-			parameterChanged = true;
-		}
-
-		
+	{	
 		// Color gradient editor
-		if (ImGui::GradientButton(&m_colorsOverTime)) {
+		if (ImGui::GradientButton(&m_colorOverTime)) {
 
 			ImGui::OpenPopup("GradientEditorPopup");
 		}
+
+		ImGui::SameLine(); ImGui::Text("Color over time");
+
 
 		if (ImGui::BeginPopup("GradientEditorPopup")) {
 			
 			//ImGui::PushID("GradientID"); // to avoid conflicting index error
 			//size_t beforeMarkers = m_colorsOverTime.getMarks().size();
 
-			parameterChanged |= ImGui::GradientEditor(&m_colorsOverTime, m_draggingMark, m_selectedMark);
+			parameterChanged |= ImGui::GradientEditor(&m_colorOverTime, m_draggingMark, m_selectedMark);
 
 			if (app->getModuleInput()->isKeyJustPressed(Keyboard::Keys::Delete) && m_selectedMark != nullptr)
 			{
-				m_colorsOverTime.removeMark(m_selectedMark);
+				m_colorOverTime.removeMark(m_selectedMark);
 			}
 
 			//ImGui::PopID(); // (same, corresponding)
@@ -96,6 +81,8 @@ bool EmitterColor::drawUi()
 			ImGui::EndPopup();
 		}
 
+
+		parameterChanged |= drawBezierCurveUI(m_colorCurve);
 	}
 
 	return parameterChanged;
@@ -107,26 +94,52 @@ rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
 
 	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::COLOR), domTree.GetAllocator());
 
+	// Get color gradient data (marks)
+
+	rapidjson::Value gradientData(rapidjson::kArrayType);
+
+	for (const auto& mark : m_colorOverTime.getMarks()) 
 	{
-		rapidjson::Value colorData(rapidjson::kArrayType);
+		rapidjson::Value markData(rapidjson::kObjectType);
 
-		colorData.PushBack(m_startColor.x, domTree.GetAllocator());
-		colorData.PushBack(m_startColor.y, domTree.GetAllocator());
-		colorData.PushBack(m_startColor.z, domTree.GetAllocator());
-		colorData.PushBack(m_startColor.w, domTree.GetAllocator());
+		// Mark parameters //
 
-		moduleInfo.AddMember("StartColor", colorData, domTree.GetAllocator());
+		markData.AddMember("IsAlphaMark", mark->alpha, domTree.GetAllocator());
+
+		if (mark->alpha) 
+		{
+			markData.AddMember("Alpha", mark->color[0], domTree.GetAllocator());
+		}
+		else // => is a color marker 
+		{
+			rapidjson::Value colorData(rapidjson::kArrayType);
+
+			colorData.PushBack(mark->color[0], domTree.GetAllocator());
+			colorData.PushBack(mark->color[1], domTree.GetAllocator());
+			colorData.PushBack(mark->color[2], domTree.GetAllocator());
+
+			markData.AddMember("Color", colorData, domTree.GetAllocator());
+		}
+
+		markData.AddMember("Position", mark->position, domTree.GetAllocator());
+
+
+		gradientData.PushBack(markData, domTree.GetAllocator());
 	}
 
+	moduleInfo.AddMember("ColorOverTime", gradientData, domTree.GetAllocator());
+
+
+	// Get bezier curve data
 	{
-		rapidjson::Value colorData(rapidjson::kArrayType);
+		rapidjson::Value curveData(rapidjson::kArrayType);
 
-		colorData.PushBack(m_endColor.x, domTree.GetAllocator());
-		colorData.PushBack(m_endColor.y, domTree.GetAllocator());
-		colorData.PushBack(m_endColor.z, domTree.GetAllocator());
-		colorData.PushBack(m_endColor.w, domTree.GetAllocator());
+		curveData.PushBack(m_colorCurve[0], domTree.GetAllocator());
+		curveData.PushBack(m_colorCurve[1], domTree.GetAllocator());
+		curveData.PushBack(m_colorCurve[2], domTree.GetAllocator());
+		curveData.PushBack(m_colorCurve[3], domTree.GetAllocator());
 
-		moduleInfo.AddMember("EndColor", colorData, domTree.GetAllocator());
+		moduleInfo.AddMember("ColorCurve", curveData, domTree.GetAllocator());
 	}
 
 	return moduleInfo;
@@ -134,17 +147,102 @@ rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
 
 bool EmitterColor::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	if (moduleInfo.HasMember("StartColor"))
+	// For retrocompatibility //
+
+	if (moduleInfo.HasMember("StartColor") && moduleInfo.HasMember("EndColor"))
 	{
+		m_colorOverTime.getMarks().clear();
+
 		const auto& color = moduleInfo["StartColor"].GetArray();
-		m_startColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
+		ImColor startColor = ImColor(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
+
+		m_colorOverTime.addMark(0.f, startColor);
+		m_colorOverTime.addAlphaMark(0.f, startColor.Value.w);
+
+		const auto& color2 = moduleInfo["EndColor"].GetArray();
+		ImColor endColor = ImColor(color2[0].GetFloat(), color2[1].GetFloat(), color2[2].GetFloat(), color2[3].GetFloat());
+
+		m_colorOverTime.addMark(1.f, endColor);
+		m_colorOverTime.addAlphaMark(1.f, endColor.Value.w);
+
+	}
+	else if (moduleInfo.HasMember("ColorOverTime"))
+	{
+		// Get gradient colors //
+
+		m_colorOverTime.getMarks().clear();
+
+		const auto& marks = moduleInfo["ColorOverTime"].GetArray();
+
+		for (const auto& mark : marks)
+		{
+			float position = mark["Position"].GetFloat();
+
+			if (mark["IsAlphaMark"].GetBool())
+			{
+				float alpha = mark["Alpha"].GetFloat();
+
+				m_colorOverTime.addAlphaMark(position, alpha);
+			}
+			else
+			{
+				const auto& color = mark["Color"].GetArray();
+				ImColor markColor = ImColor(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
+
+				m_colorOverTime.addMark(position, markColor);
+			}
+		}
 	}
 
-	if (moduleInfo.HasMember("EndColor"))
+	if (moduleInfo.HasMember("ColorCurve"))
 	{
-		const auto& color = moduleInfo["EndColor"].GetArray();
-		m_endColor = Vector4(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
+		const auto& curveArray = moduleInfo["ColorCurve"].GetArray();
+		m_colorCurve[0] = curveArray[0].GetFloat();
+		m_colorCurve[1] = curveArray[1].GetFloat();
+		m_colorCurve[2] = curveArray[2].GetFloat();
+		m_colorCurve[3] = curveArray[3].GetFloat();
 	}
 
 	return true;
+}
+
+bool EmitterColor::drawBezierCurveUI(float* curveData)
+{
+	bool parameterChanged = false;
+
+	// (Values between 0 and 1)
+	if (ImGui::Bezier("Curve", curveData))
+	{
+		parameterChanged = true;
+	}
+
+	// We add some buttons to quickly change to predefined setups
+	if (ImGui::Button("Linear"))
+	{
+		curveData[0] = 0.000f; curveData[1] = 0.000f; curveData[2] = 1.000f; curveData[3] = 1.000f;
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("EaseIn"))
+	{
+		curveData[0] = 0.470f; curveData[1] = 0.000f; curveData[2] = 0.745f; curveData[3] = 0.715f;
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("EaseOut"))
+	{
+		curveData[0] = 0.390f; curveData[1] = 0.575f; curveData[2] = 0.565f; curveData[3] = 1.000f;
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("EaseInOut"))
+	{
+		curveData[0] = 0.445f; curveData[1] = 0.050f; curveData[2] = 0.550f; curveData[3] = 0.950f;
+		parameterChanged = true;
+	}
+
+	return parameterChanged;
 }
