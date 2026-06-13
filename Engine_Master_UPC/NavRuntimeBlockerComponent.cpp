@@ -39,13 +39,13 @@ void NavRuntimeBlockerComponent::drawUi()
 
 void NavRuntimeBlockerComponent::onTransformChange()
 {
-	if (!m_applied)
+	if (!m_blocked)
 	{
 		return;
 	}
 
-	setBlocked(false);
-	setBlocked(true);
+	unapply();
+	apply();
 }
 
 rapidjson::Value NavRuntimeBlockerComponent::getJSON(rapidjson::Document& domTree)
@@ -101,12 +101,41 @@ bool NavRuntimeBlockerComponent::deserializeJSON(const rapidjson::Value& compone
 
 void NavRuntimeBlockerComponent::debugDraw()
 {
-	//
+	Transform* transform = getOwner()->GetTransform();
+	if (!transform)
+	{
+		return;
+	}
+
+	const Vector3 center = transform->getPosition();
+
+	const float* color = m_blocked ? dd::colors::Red : dd::colors::Green;
+
+	dd::aabb(ddConvert(center - m_halfExtents), ddConvert(center + m_halfExtents), color);
 }
 
 void NavRuntimeBlockerComponent::setBlocked(bool blocked)
 {
-	if (m_blocked == blocked && m_applied == blocked)
+	if (m_blocked == blocked)
+	{
+		return;
+	}
+
+	if (blocked)
+	{
+		m_blocked = true;
+		apply();
+	}
+	else
+	{
+		unapply();
+		m_blocked = false;
+	}
+}
+
+void NavRuntimeBlockerComponent::apply()
+{
+	if (!m_blocked || m_applied)
 	{
 		return;
 	}
@@ -119,9 +148,29 @@ void NavRuntimeBlockerComponent::setBlocked(bool blocked)
 
 	const Vector3 center = transform->getPosition();
 
-	if (app->getModuleNavigation()->setRuntimeAreaBlocked(center, m_halfExtents, blocked))
+	if (app->getModuleNavigation()->setRuntimeAreaBlocked(center, m_halfExtents, true))
 	{
-		m_blocked = blocked;
-		m_applied = blocked;
+		m_applied = true;
+	}
+}
+
+void NavRuntimeBlockerComponent::unapply()
+{
+	if (!m_applied)
+	{
+		return;
+	}
+
+	Transform* transform = getOwner()->GetTransform();
+	if (!transform || !app || !app->getModuleNavigation())
+	{
+		return;
+	}
+
+	const Vector3 center = transform->getPosition();
+
+	if (app->getModuleNavigation()->setRuntimeAreaBlocked(center, m_halfExtents, false))
+	{
+		m_applied = false;
 	}
 }
