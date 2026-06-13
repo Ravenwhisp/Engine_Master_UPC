@@ -2,8 +2,6 @@
 #include "General.hlsli"
 #include "PBRGeneral.hlsli"
 
-
-
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
@@ -12,6 +10,7 @@ Texture2D emissiveTex : register(t3);
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
+Texture2D shadowMap : register(t11);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -46,7 +45,8 @@ float3 ComputeDirectionalLight(uint lightIndex, float3 viewDirection, float3 nor
 
 float EpicAttenuation(float distanceValue, float radiusValue)
 {
-    if (radiusValue <= EPS) return 0.0f;
+    if (radiusValue <= EPS)
+        return 0.0f;
 
     float normalizedDistance = distanceValue / radiusValue;
     float normalizedDistance2 = normalizedDistance * normalizedDistance;
@@ -64,7 +64,8 @@ float3 ComputePointLight(uint lightIndex, float3 worldPos, float3 viewDirection,
     float3 toSurface = worldPos - pointLights[lightIndex].position;
     
     float distanceToSurface = length(toSurface);
-    if (distanceToSurface <= EPS) return 0.0f;
+    if (distanceToSurface <= EPS)
+        return 0.0f;
 
     float attenuation = EpicAttenuation(distanceToSurface, pointLights[lightIndex].radius);
     
@@ -86,13 +87,14 @@ float3 ComputeSpotLight(uint lightIndex, float3 worldPos, float3 viewDirection, 
     float3 toSurface = worldPos - spotLights[lightIndex].position;
     
     float distanceProjected = dot(toSurface, spotDirection);
-    if (distanceProjected <= 0.0f) return 0.0f;
+    if (distanceProjected <= 0.0f)
+        return 0.0f;
 
     float3 lightDirection = normalize(toSurface);
     
     float attenuation = EpicAttenuation(distanceProjected, spotLights[lightIndex].radius);
     float cosineAngle = dot(lightDirection, spotDirection);
-    float coneAttenuation = SpotConeAttenuation( cosineAngle, spotLights[lightIndex].cosineInnerAngle, spotLights[lightIndex].cosineOuterAngle );
+    float coneAttenuation = SpotConeAttenuation(cosineAngle, spotLights[lightIndex].cosineInnerAngle, spotLights[lightIndex].cosineOuterAngle);
 
     float3 lightColor = spotLights[lightIndex].color * spotLights[lightIndex].intensity * attenuation * coneAttenuation;
     
@@ -115,20 +117,21 @@ float3 getDiffuseAmbientLight(in float3 normal, in float3 baseColour)
     return baseColour * irradiance;
 }
 
-void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm) {
-
+void getSpecularAmbientLightNoFresnel(in float3 R, float NdotV, float roughness, in uint numLevels, out float3 firstTerm, out float3 secondTerm)
+{
     float3 radiance = environmentTexture.SampleLevel(linearWrapSample, R, roughness * (numLevels - 1)).rgb;
     
     float2 fab = brdfTexture.Sample(linearClampSample, float2(NdotV, roughness)).rg;
     
-     firstTerm = radiance * fab.x;
-     secondTerm = radiance * fab.y;
+    firstTerm = radiance * fab.x;
+    secondTerm = radiance * fab.y;
 }
 
 float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in float3 baseColour, in float roughness, in float roughnessLevels, in float metallic, in float ao, in float specularAO)
 {
     float3 diffuse = getDiffuseAmbientLight(N, baseColour);
     diffuse *= ao;
+
     float3 firstTerm, secondTerm;
     getSpecularAmbientLightNoFresnel(R, NdotV, roughness, roughnessLevels, firstTerm, secondTerm);
 
@@ -137,13 +140,54 @@ float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in floa
 
     float3 dielectricSpecular = DIELECTRIC_FRESNEL * firstTerm + secondTerm;
     dielectricSpecular *= specularAO;
+
     return lerp(diffuse + dielectricSpecular, metalSpecular, metallic);
 }
 //--------------------//
 
 
 
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET 
+//----------SHADOW MAPPING----------//
+float ComputeShadow(float3 worldPos)
+{
+    if (shadowsEnabled == 0)
+    {
+        return 1.0f;
+    }
+
+    float4 shadowPos = mul(float4(worldPos, 1.0f), lightViewProjection);
+
+    if (shadowPos.w == 0.0f)
+    {
+        return 1.0f;
+    }
+
+    shadowPos.xyz /= shadowPos.w;
+
+    float2 shadowUV;
+    shadowUV.x = shadowPos.x * 0.5f + 0.5f;
+    shadowUV.y = -shadowPos.y * 0.5f + 0.5f;
+
+    float currentDepth = shadowPos.z;
+
+    if (shadowUV.x < 0.0f || shadowUV.x > 1.0f ||
+        shadowUV.y < 0.0f || shadowUV.y > 1.0f ||
+        currentDepth < 0.0f || currentDepth > 1.0f)
+    {
+        return 1.0f;
+    }
+
+    float closestDepth = shadowMap.Sample(linearClampSample, shadowUV).r;
+
+    return currentDepth - shadowBias > closestDepth
+        ? 1.0f - shadowStrength
+        : 1.0f;
+}
+//--------------------//
+
+
+
+float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET
 {
     //Initialize material values
     float metallic = metallicFactor;
@@ -161,14 +205,15 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     {
         float4 texSample = baseColorTex.Sample(linearWrapSample, coord);
         
-        if (texSample.a < 0.5f) discard;
+        if (texSample.a < 0.5f)
+            discard;
 
         albedo *= texSample.rgb;
     }
     
     
     
-    //Load metalic roughness AO texture
+    //Load metallic roughness AO texture
     if (hasMetallicRoughnessTex != 0)
     {
         float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
@@ -181,7 +226,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     
     //Load emissive texture
-    if(hasEmissiveTex != 0)
+    if (hasEmissiveTex != 0)
     {
         float3 emissiveSample = emissiveTex.Sample(linearWrapSample, coord);
         
@@ -221,29 +266,43 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     
     
-    //Calculate direct lighting
-    float3 colorMetallic = 0.0;
-    float3 colorNonMetallic = 0.0;
+    //Calculate directional direct lighting
+    float3 directionalMetallic = 0.0f;
+    float3 directionalNonMetallic = 0.0f;
+
+    for (uint i = 0; i < directionalCount; ++i)
+    {
+        directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+    }
+
     
-    for (uint i = 0; i < directionalCount; ++i) // Directional lights
+    
+    //Calculate point and spot direct lighting
+    float3 otherMetallic = 0.0f;
+    float3 otherNonMetallic = 0.0f;
+
+    for (uint i = 0; i < pointCount; ++i)
     {
-        colorMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        otherMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
-    for (uint i = 0; i < pointCount; ++i) // Point lights
+    for (uint i = 0; i < spotCount; ++i)
     {
-        colorMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        otherMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
-    for (uint i = 0; i < spotCount; ++i) // Spot lights
-    {
-        colorMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        colorNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
-    }
-        
-    float3 directLighting = lerp(colorNonMetallic, colorMetallic, metallic);
+    
+    
+    //Apply shadow only to directional direct lighting
+    float shadow = ComputeShadow(worldPos);
+
+    float3 directionalLighting = lerp(directionalNonMetallic, directionalMetallic, metallic);
+    float3 otherLighting = lerp(otherNonMetallic, otherMetallic, metallic);
+
+    float3 directLighting = directionalLighting * shadow + otherLighting;
 
 
     

@@ -302,6 +302,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="ScriptBuildSystem.h" />
+    <ClInclude Include="ScriptLibraryLoader.h" />
     <ClInclude Include="ShadowMapPass.h" />
     <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="TextureImportSettings.h" />
@@ -760,8 +763,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleMusic.cpp" />
+    <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
+    <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="ScriptBuildSystem.cpp" />
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
+    <ClCompile Include="ScriptLibraryLoader.cpp" />
     <ClCompile Include="ShadowMapPass.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
