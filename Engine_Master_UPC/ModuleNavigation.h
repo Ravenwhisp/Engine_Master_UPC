@@ -67,10 +67,6 @@ private:
     NavMeshBuildSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
-    dtTileCache* m_tileCache = nullptr;
-    dtTileCacheAlloc* m_tileCacheAlloc = nullptr;
-    dtTileCacheCompressor* m_tileCacheCompressor = nullptr;
-    dtTileCacheMeshProcess* m_tileCacheMeshProcess = nullptr;
     std::vector<dtTileRef> m_tileRefs;
 
     std::string m_loadedScene;

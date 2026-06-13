@@ -31,132 +31,6 @@ static std::string MakeNavMeshPath(const char* sceneName)
     return std::string("Assets/NavMeshes/") + sceneName + ".navmesh";
 }
 
-// Detour needs custom allocator for dtTileCache to work (linear allocator is used in the recast demo)
-struct LinearAllocator : public dtTileCacheAlloc
-{
-    unsigned char* buffer = nullptr; // memory block [..............]
-    size_t capacity = 0; // memory size
-    size_t top = 0; // current memory [###............]
-
-    LinearAllocator(const size_t cap)
-    {
-        capacity = cap;
-
-        // allocate one big chunk of memory
-        buffer = (unsigned char*)dtAlloc(capacity, DT_ALLOC_PERM);
-    }
-
-    ~LinearAllocator() override
-    {
-        dtFree(buffer);
-    }
-
-    void reset() override
-    {
-        top = 0; // not deleting memory just reusing slots
-    }
-
-    void* alloc(const size_t size) override
-    {
-        if (!buffer)
-        {
-            return nullptr;
-        }
-
-        if (top + size > capacity)
-        {
-            return nullptr;
-        }
-
-        unsigned char* mem = buffer + top;
-        top += size;
-
-        return mem;
-    }
-
-    void free(void*) override
-    {
-        // we don't free individual allocations
-        // memory is reused when reset() is called
-        // interface requires overriding this func
-    }
-};
-
-// Compresses tile data
-struct FastLZCompressor : public dtTileCacheCompressor
-{
-    int maxCompressedSize(const int bufferSize) override
-    {
-        return bufferSize; // not compressing currently - just for testing
-    }
-
-    dtStatus compress(
-        const unsigned char* buffer,
-        const int bufferSize,
-        unsigned char* compressed,
-        const int maxCompressedSize,
-        int* compressedSize
-    ) override
-    {
-        if (maxCompressedSize < bufferSize)
-        {
-            return DT_FAILURE;
-        }
-
-        memcpy(compressed, buffer, bufferSize);
-        *compressedSize = bufferSize;
-
-        return DT_SUCCESS;
-    }
-
-    dtStatus decompress(
-        const unsigned char* compressed,
-        const int compressedSize,
-        unsigned char* buffer,
-        const int maxBufferSize,
-        int* bufferSize
-    ) override
-    {
-        if (maxBufferSize < compressedSize)
-        {
-            return DT_FAILURE;
-        }
-
-        memcpy(buffer, compressed, compressedSize);
-        *bufferSize = compressedSize;
-
-        return DT_SUCCESS;
-    }
-};
-
-// Tile cache uses this when rebuilding tiles
-struct MeshProcess : public dtTileCacheMeshProcess
-{
-    // flags logic inside
-    void process(
-        dtNavMeshCreateParams* params,
-        unsigned char* polyAreas,
-        unsigned short* polyFlags
-    ) override
-    {
-        for (int i = 0; i < params->polyCount; ++i)
-        {
-            if (polyAreas[i] == static_cast<unsigned char>(NavAreaId::NAV_AREA_DEFAULT))
-            {
-                polyFlags[i] = static_cast<unsigned short>(NavPolyFlags::Default);
-            }
-            else if (polyAreas[i] == static_cast<unsigned char>(NavAreaId::NAV_AREA_SPECTRAL))
-            {
-                polyFlags[i] = static_cast<unsigned short>(NavPolyFlags::Spectral);
-            }
-            else
-            {
-                polyFlags[i] = 0;
-            }
-        }
-    }
-};
-
 bool ModuleNavigation::init()
 {
     const char* sceneName = app->getModuleScene()->getScene()->getName();
@@ -356,14 +230,6 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     // get modifier volumes from the scene
     m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
-    // cleanup before creating new navmesh
-    unloadNavMesh();
-
-    // initialize cache helpers
-    /*m_tileCacheAlloc = new LinearAllocator(32000);
-    m_tileCacheCompressor = new FastLZCompressor();
-    m_tileCacheMeshProcess = new MeshProcess();*/
-
     NavMeshBuildResult result;
 
     // build solo mesh
@@ -373,9 +239,10 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
         return false;
     }
 
+    unloadNavMesh();
+
     m_navMesh = result.navMesh;
     m_navQuery = result.navQuery;
-    m_tileCache = nullptr; // nullptr for solo -> result.tileCache for tiled
     m_tileRefs = result.tileRefs;
 
     const char* sceneName = app->getModuleScene()->getScene()->getName();
