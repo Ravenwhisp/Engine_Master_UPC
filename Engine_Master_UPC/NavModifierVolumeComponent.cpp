@@ -4,7 +4,7 @@
 #include "Transform.h"
 
 NavModifierVolumeComponent::NavModifierVolumeComponent(UID id, GameObject* owner)
-	: Component(id, ComponentType::NAVMODIFIER_VOLUME, owner)
+	: Component(id, ComponentType::NAV_MODIFIER_VOLUME, owner)
 {
 }
 
@@ -48,7 +48,7 @@ rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTre
 	rapidjson::Value componentInfo(rapidjson::kObjectType);
 
 	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVMODIFIER_VOLUME), domTree.GetAllocator());
+	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAV_MODIFIER_VOLUME), domTree.GetAllocator());
 	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
 	rapidjson::Value halfExtentsObj(rapidjson::kObjectType);

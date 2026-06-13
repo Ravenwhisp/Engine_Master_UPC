@@ -11,10 +11,6 @@
 
 class dtNavMesh;
 class dtNavMeshQuery;
-class dtTileCache;
-class dtTileCacheAlloc;
-class dtTileCacheCompressor;
-class dtTileCacheMeshProcess;
 class Scene;
 
 class ModuleNavigation : public Module, public IDebugDrawable
@@ -22,7 +18,6 @@ class ModuleNavigation : public Module, public IDebugDrawable
 public:
     bool init() override;
     bool cleanUp() override;
-    void update() override; // temporary for testing
 
     // Access
     dtNavMesh* getNavMesh() const { return m_navMesh; }
@@ -57,7 +52,7 @@ public:
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
-    bool setPolysInBoxBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked);
+    bool setRuntimeAreaBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked);
 
     void debugDraw() override;
 

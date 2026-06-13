@@ -15,16 +15,11 @@
 #include <vector>
 
 #include <DetourNavMeshQuery.h>
-#include <DetourAlloc.h>
-#include <DetourTileCache.h>
-#include <DetourTileCacheBuilder.h>
-#include <DetourNavMeshBuilder.h>
 #include <WindowLogger.h>
 #include <NavMeshBuilder.h>
 
 #include "NavMeshGeometryExtractor.h"
 #include "NavModifierVolumeComponent.h"
-#include "ModuleInput.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
@@ -58,20 +53,6 @@ bool ModuleNavigation::cleanUp()
 {
     unloadNavMesh();
     return true;
-}
-
-void ModuleNavigation::update()
-{
-    if (app->getModuleInput()->isKeyDown(Keyboard::NumPad1))
-    {
-        setPolysInBoxBlocked(Vector3(0.0f, 0.0f, 0.0f), Vector3(2.0f, 2.0f, 2.0f), true);
-    }
-
-    if (app->getModuleInput()->isKeyDown(Keyboard::NumPad2))
-    {
-        setPolysInBoxBlocked(Vector3(0.0f, 0.0f, 0.0f), Vector3(2.0f, 2.0f, 2.0f), false);
-    }
-
 }
 
 bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
@@ -384,7 +365,7 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     return true;
 }
 
-bool ModuleNavigation::setPolysInBoxBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked)
+bool ModuleNavigation::setRuntimeAreaBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked)
 {
     if (!m_navQuery || !m_navMesh)
     {
