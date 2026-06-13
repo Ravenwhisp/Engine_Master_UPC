@@ -17,7 +17,6 @@ std::unique_ptr<Component> NavRuntimeBlockerComponent::clone(GameObject* newOwne
 
 	newComponent->m_halfExtents = m_halfExtents;
 	newComponent->m_blocked = m_blocked;
-	newComponent->m_applied = false;
 
 	return newComponent;
 }
@@ -33,19 +32,10 @@ void NavRuntimeBlockerComponent::drawUi()
 	{
 		setBlocked(blocked);
 	}
-
-	ImGui::Text("Applied: %s", m_applied ? "true" : "false");
 }
 
 void NavRuntimeBlockerComponent::onTransformChange()
 {
-	if (!m_blocked)
-	{
-		return;
-	}
-
-	unapply();
-	apply();
 }
 
 rapidjson::Value NavRuntimeBlockerComponent::getJSON(rapidjson::Document& domTree)
@@ -94,8 +84,6 @@ bool NavRuntimeBlockerComponent::deserializeJSON(const rapidjson::Value& compone
 		m_blocked = componentInfo["Blocked"].GetBool();
 	}
 
-	m_applied = false;
-
 	return true;
 }
 
@@ -116,61 +104,5 @@ void NavRuntimeBlockerComponent::debugDraw()
 
 void NavRuntimeBlockerComponent::setBlocked(bool blocked)
 {
-	if (m_blocked == blocked)
-	{
-		return;
-	}
-
-	if (blocked)
-	{
-		m_blocked = true;
-		apply();
-	}
-	else
-	{
-		unapply();
-		m_blocked = false;
-	}
-}
-
-void NavRuntimeBlockerComponent::apply()
-{
-	if (!m_blocked || m_applied)
-	{
-		return;
-	}
-
-	Transform* transform = getOwner()->GetTransform();
-	if (!transform || !app || !app->getModuleNavigation())
-	{
-		return;
-	}
-
-	const Vector3 center = transform->getPosition();
-
-	if (app->getModuleNavigation()->setRuntimeAreaBlocked(center, m_halfExtents, true))
-	{
-		m_applied = true;
-	}
-}
-
-void NavRuntimeBlockerComponent::unapply()
-{
-	if (!m_applied)
-	{
-		return;
-	}
-
-	Transform* transform = getOwner()->GetTransform();
-	if (!transform || !app || !app->getModuleNavigation())
-	{
-		return;
-	}
-
-	const Vector3 center = transform->getPosition();
-
-	if (app->getModuleNavigation()->setRuntimeAreaBlocked(center, m_halfExtents, false))
-	{
-		m_applied = false;
-	}
+	m_blocked = blocked;
 }

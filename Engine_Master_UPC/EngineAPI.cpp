@@ -1777,6 +1777,12 @@ namespace NavigationAPI
         int visitedCount = 0;
         float result[3] = {};
 
+        if (navigation->isSegmentBlockedByRuntimeBlockers(startPosition, targetPosition))
+        {
+            outResultPosition = startPosition;
+            return false;
+        }
+
         const dtStatus moveStatus = query->moveAlongSurface(startRef, startNearest, end, &filter, result, visited, &visitedCount, 64);
 
         if (dtStatusFailed(moveStatus))

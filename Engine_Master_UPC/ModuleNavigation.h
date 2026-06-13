@@ -52,7 +52,7 @@ public:
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
-    bool setRuntimeAreaBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked);
+    bool isSegmentBlockedByRuntimeBlockers(const Vector3& from, const Vector3& to) const;
 
     void debugDraw() override;
 
@@ -79,12 +79,10 @@ private:
     std::vector<NavModifierVolumeData> m_modifierVolumes;
     NavAgentProfile m_debugPathProfile = NavAgentProfile::PlayerNormal;
 
-    std::unordered_map<dtPolyRef, unsigned short> m_runtimeBlockedPolys;
-    unsigned int m_navMeshRuntimeVersion = 0;
-
 private:
     bool computeDebugPath(NavAgentProfile profile);
     std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
+    bool isPathBlockedByRuntimeBlockers(const std::vector<Vector3>& path) const;
 
 public:
     unsigned short getIncludeFlagsForProfile(NavAgentProfile profile) const; // Helper

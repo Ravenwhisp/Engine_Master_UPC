@@ -20,10 +20,60 @@
 
 #include "NavMeshGeometryExtractor.h"
 #include "NavModifierVolumeComponent.h"
+#include "NavRuntimeBlockerComponent.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
     return std::string("Assets/NavMeshes/") + sceneName + ".navmesh";
+}
+
+static bool SegmentIntersectsAABB(const Vector3& a, const Vector3& b, const Vector3& center, const Vector3& halfExtents)
+{
+    const Vector3 min = center - halfExtents;
+    const Vector3 max = center + halfExtents;
+
+    float tmin = 0.0f;
+    float tmax = 1.0f;
+
+    const Vector3 d = b - a;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        float start = (&a.x)[i];
+        float dir = (&d.x)[i];
+        float minB = (&min.x)[i];
+        float maxB = (&max.x)[i];
+
+        if (fabs(dir) < 0.0001f)
+        {
+            if (start < minB || start > maxB)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            float ood = 1.0f / dir;
+
+            float t1 = (minB - start) * ood;
+            float t2 = (maxB - start) * ood;
+
+            if (t1 > t2)
+            {
+                std::swap(t1, t2);
+            }
+
+            tmin = std::max(tmin, t1);
+            tmax = std::min(tmax, t2);
+
+            if (tmin > tmax)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool ModuleNavigation::init()
@@ -138,16 +188,10 @@ bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
 bool ModuleNavigation::unloadNavMesh()
 {
     if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery); m_navQuery = nullptr; }
-    if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }
-    //if (m_tileCache) { dtFreeTileCache(m_tileCache); m_tileCache = nullptr; }
-    //if (m_tileCacheMeshProcess) { delete m_tileCacheMeshProcess; m_tileCacheMeshProcess = nullptr; }
-    //if (m_tileCacheCompressor) { delete m_tileCacheCompressor; m_tileCacheCompressor = nullptr; }
-    //if (m_tileCacheAlloc) { delete m_tileCacheAlloc; m_tileCacheAlloc = nullptr; }    
+    if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }  
 
     m_tileRefs.clear();
     m_loadedScene.clear();
-    m_runtimeBlockedPolys.clear();
-    m_navMeshRuntimeVersion = 0;
 
     return true;
 }
@@ -342,11 +386,14 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     dtPolyRef refs[128];
     int straightCount = 0;
 
-    m_navQuery->findStraightPath(
+    if (dtStatusFailed(m_navQuery->findStraightPath(
         nearestStart, nearestEnd,
         pathPolys, pathCount,
         straight, flags, refs,
-        &straightCount, 128);
+        &straightCount, 128)))
+    {
+        return false;
+    }
 
     if (straightCount < 2)
         return false;
@@ -362,92 +409,53 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
         );
     }
 
+    if (isPathBlockedByRuntimeBlockers(outPath))
+    {
+        outPath.clear();
+        return false;
+    }
+
     return true;
 }
 
-bool ModuleNavigation::setRuntimeAreaBlocked(const Vector3& center, const Vector3& halfExtents, bool blocked)
+bool ModuleNavigation::isSegmentBlockedByRuntimeBlockers(const Vector3& from, const Vector3& to) const
 {
-    if (!m_navQuery || !m_navMesh)
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
     {
         return false;
     }
 
-    float c[3] =
+    for (GameObject* obj : scene->getAllGameObjects())
     {
-        center.x,
-        center.y,
-        center.z
-    };
-
-    float e[3] =
-    {
-        halfExtents.x,
-        halfExtents.y,
-        halfExtents.z
-    };
-
-    dtPolyRef polys[256];
-    int polyCount = 0;
-
-    dtQueryFilter filter;
-    filter.setIncludeFlags(0xFFFF);
-    filter.setExcludeFlags(0);
-
-    if (!blocked)
-    {
-        for (auto& pair : m_runtimeBlockedPolys)
-        {
-            m_navMesh->setPolyFlags(pair.first, pair.second);
-        }
-
-        m_runtimeBlockedPolys.clear();
-
-        ++m_navMeshRuntimeVersion;
-        rebuildNavMeshDebugLines();
-
-        return true;
-    }
-
-   dtStatus status = m_navQuery->queryPolygons(
-        c,
-        e,
-        &filter,
-        polys,
-        &polyCount,
-        256);
-
-   if (dtStatusFailed(status))
-   {
-       return false;
-   }
-
-    for (int i = 0; i < polyCount; ++i)
-    {
-        unsigned short currentFlags = 0;
-
-        if (dtStatusFailed(m_navMesh->getPolyFlags(polys[i], &currentFlags)))
+        if (!obj || !obj->IsActiveInWindowHierarchy())
         {
             continue;
         }
 
-        if (blocked)
-        {
-            if (m_runtimeBlockedPolys.find(polys[i]) == m_runtimeBlockedPolys.end())
-            {
-                m_runtimeBlockedPolys[polys[i]] = currentFlags;
-            }
+        auto* blocker = obj->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
 
-            m_navMesh->setPolyFlags(polys[i], 0);
+        if (!blocker || !blocker->isActive() || !blocker->isBlocked())
+        {
+            continue;
         }
-        
+
+        Transform* transform = obj->GetTransform();
+        if (!transform)
+        {
+            continue;
+        }
+
+        const Vector3 center = transform->getPosition();
+        const Vector3 halfExtents = blocker->getHalfExtents();
+
+        if (SegmentIntersectsAABB(from, to, center, halfExtents))
+        {
+            return true;
+        }
     }
 
-    ++m_navMeshRuntimeVersion;
-    rebuildNavMeshDebugLines();
-
-    DEBUG_LOG("Runtime blocker affected polys: %d", polyCount);
-
-    return true;
+    return false;
 }
 
 void ModuleNavigation::debugDraw()
@@ -551,6 +559,19 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
     }
 
     return data;
+}
+
+bool ModuleNavigation::isPathBlockedByRuntimeBlockers(const std::vector<Vector3>& path) const
+{
+    for (size_t i = 1; i < path.size(); ++i)
+    {
+        if (isSegmentBlockedByRuntimeBlockers(path[i - 1], path[i]))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 unsigned short ModuleNavigation::getIncludeFlagsForProfile(NavAgentProfile profile) const
