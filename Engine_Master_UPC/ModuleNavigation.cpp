@@ -24,6 +24,7 @@
 
 #include "NavMeshGeometryExtractor.h"
 #include "NavModifierVolumeComponent.h"
+#include "ModuleInput.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
@@ -185,6 +186,20 @@ bool ModuleNavigation::cleanUp()
     return true;
 }
 
+void ModuleNavigation::update()
+{
+    if (app->getModuleInput()->isKeyDown(Keyboard::NumPad1))
+    {
+        setPolysInBoxBlocked(Vector3(0.0f, 0.0f, 0.0f), Vector3(2.0f, 2.0f, 2.0f), true);
+    }
+
+    if (app->getModuleInput()->isKeyDown(Keyboard::NumPad2))
+    {
+        setPolysInBoxBlocked(Vector3(0.0f, 0.0f, 0.0f), Vector3(2.0f, 2.0f, 2.0f), false);
+    }
+
+}
+
 bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
 {
     unloadNavMesh();
@@ -276,6 +291,9 @@ bool ModuleNavigation::unloadNavMesh()
 
     m_tileRefs.clear();
     m_loadedScene.clear();
+    m_runtimeBlockedPolys.clear();
+    m_navMeshRuntimeVersion = 0;
+
     return true;
 }
 
@@ -366,10 +384,6 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");
 
     rebuildNavMeshDebugLines();
-
-    setPolysInBoxBlocked(Vector3(0.0f, 0.0f, 0.0f), Vector3(20.0f, 20.0f, 20.0f), true);
-    rebuildNavMeshDebugLines();
-
 
     return saved;
 }
@@ -531,6 +545,21 @@ bool ModuleNavigation::setPolysInBoxBlocked(const Vector3& center, const Vector3
     filter.setIncludeFlags(0xFFFF);
     filter.setExcludeFlags(0);
 
+    if (!blocked)
+    {
+        for (auto& pair : m_runtimeBlockedPolys)
+        {
+            m_navMesh->setPolyFlags(pair.first, pair.second);
+        }
+
+        m_runtimeBlockedPolys.clear();
+
+        ++m_navMeshRuntimeVersion;
+        rebuildNavMeshDebugLines();
+
+        return true;
+    }
+
    dtStatus status = m_navQuery->queryPolygons(
         c,
         e,
@@ -546,20 +575,27 @@ bool ModuleNavigation::setPolysInBoxBlocked(const Vector3& center, const Vector3
 
     for (int i = 0; i < polyCount; ++i)
     {
-        dtMeshTile* tile = nullptr;
-        dtPoly* poly = nullptr;
+        unsigned short currentFlags = 0;
+
+        if (dtStatusFailed(m_navMesh->getPolyFlags(polys[i], &currentFlags)))
+        {
+            continue;
+        }
 
         if (blocked)
         {
+            if (m_runtimeBlockedPolys.find(polys[i]) == m_runtimeBlockedPolys.end())
+            {
+                m_runtimeBlockedPolys[polys[i]] = currentFlags;
+            }
+
             m_navMesh->setPolyFlags(polys[i], 0);
         }
-        else
-        {
-            m_navMesh->setPolyFlags(
-                polys[i],
-                static_cast<unsigned short>(NavPolyFlags::Default));
-        }
+        
     }
+
+    ++m_navMeshRuntimeVersion;
+    rebuildNavMeshDebugLines();
 
     DEBUG_LOG("Runtime blocker affected polys: %d", polyCount);
 

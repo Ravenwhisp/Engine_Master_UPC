@@ -5,6 +5,7 @@
 #include "NavMeshBuilder.h"
 
 #include <vector>
+#include <unordered_map>
 #include <string>
 #include <DetourNavMesh.h>
 
@@ -21,6 +22,7 @@ class ModuleNavigation : public Module, public IDebugDrawable
 public:
     bool init() override;
     bool cleanUp() override;
+    void update() override; // temporary for testing
 
     // Access
     dtNavMesh* getNavMesh() const { return m_navMesh; }
@@ -85,6 +87,9 @@ private:
 
     std::vector<NavModifierVolumeData> m_modifierVolumes;
     NavAgentProfile m_debugPathProfile = NavAgentProfile::PlayerNormal;
+
+    std::unordered_map<dtPolyRef, unsigned short> m_runtimeBlockedPolys;
+    unsigned int m_navMeshRuntimeVersion = 0;
 
 private:
     bool computeDebugPath(NavAgentProfile profile);
