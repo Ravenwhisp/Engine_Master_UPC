@@ -297,7 +297,7 @@ void EmitterRotation::updateAlivesRotationFixed(std::array<Particle, MAX_PARTICL
 	}
 }
 
-void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifeTime)
+void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifetime)
 {
 	for (auto& aliveParticle : aliveParticles)
 	{
@@ -310,7 +310,7 @@ void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PAR
 
 		// Get new rotation velocity from curve (based on current lifetime)
 
-		float scale = 1.f - particlePool[poolIndex].lifeTime/startLifeTime; // to start with 0
+		float scale = 1.f - particlePool[poolIndex].lifeTime/ startLifetime; // to start with 0
 		float bezierScale = ImGui::BezierValue(scale, m_angularVelocityCurve);
 
 		particlePool[poolIndex].rotationVelocity = particlePool[poolIndex].flippedRotation ? 
