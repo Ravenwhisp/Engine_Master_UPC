@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleCamera.h"
+#include "ModuleParticleSystem.h"
 #include "ParticleEmitter.h"
 #include "ParticleSystemComponent.h"
 
@@ -10,7 +11,11 @@
 
 EmitterInstance::EmitterInstance(ParticleEmitter* emitter, ParticleSystemComponent* owner) : m_emitter(emitter), m_owner(owner)
 {
-	initSlotManagement();
+}
+
+EmitterInstance::~EmitterInstance()
+{
+	freeParticleSlots();
 }
 
 void EmitterInstance::updateModules()
@@ -36,7 +41,7 @@ void EmitterInstance::updateModules()
 
 void EmitterInstance::reset() {
 
-	initSlotManagement();
+	freeParticleSlots();
 
 	m_aliveParticles.clear();
 	m_newParticles.clear();
@@ -45,45 +50,30 @@ void EmitterInstance::reset() {
 	m_currentTime = 0.f;
 }
 
-int EmitterInstance::requestPoolSlot()
+void EmitterInstance::freeParticleSlots()
 {
-	if (m_firstFree == m_slots[m_firstFree]) return -1; // because the slot points to itself, which indicates used
+	ModuleParticleSystem* moduleParticleSystem = app->getModuleParticleSystem();
 
-	int slot = m_firstFree;
-
-	m_firstFree = m_slots[slot]; // update first free, to point to the next one
-
-	m_slots[slot] = slot; // mark as used
-
-	return slot;
-}
-
-void EmitterInstance::freePoolSlot(unsigned int index)
-{
-	m_slots[index] = m_firstFree; // Set next free (because we are adding the index slot as the new first)
-
-	m_firstFree = index; // Update first
-}
-
-void EmitterInstance::initSlotManagement()
-{
-	m_slots[MAX_PARTICLES - 1] = 0;
-
-	for (unsigned int i = 0; i < MAX_PARTICLES - 1; ++i)
+	for (std::pair<float, unsigned int>& particleData : m_aliveParticles) 
 	{
-		m_slots[i] = i + 1;
+		moduleParticleSystem->freePoolSlot(particleData.second);
 	}
 
-	m_firstFree = 0;
+	for (unsigned int index : m_newParticles)
+	{
+		moduleParticleSystem->freePoolSlot(index);
+	}
+
 }
 
 void EmitterInstance::manageNewParticles()
 {
+	auto& pool = app->getModuleParticleSystem()->getPool();
 	Vector3 cameraPosition = app->getModuleCamera()->getPosition();
 
 	for (auto particleIndex : m_newParticles) 
 	{
-		float distanceSqrToCamera = Vector3::DistanceSquared(m_pool[particleIndex].position, cameraPosition);
+		float distanceSqrToCamera = Vector3::DistanceSquared(pool[particleIndex].position, cameraPosition);
 		m_aliveParticles.push_back(std::make_pair(distanceSqrToCamera, particleIndex));
 	}
 

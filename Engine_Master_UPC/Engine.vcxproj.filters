@@ -161,6 +161,9 @@
     <ClCompile Include="NavMeshBuilder.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="NavigationAgentComponent.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
@@ -207,6 +210,9 @@
     </ClCompile>
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
+    </ClCompile>
+    <ClCompile Include="WaypointPathComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="WindowGameDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
@@ -581,23 +587,17 @@
     </ClCompile>
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
-    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
-      <Filter>Core\Scripting\FieldTypeHandler</Filter>
-    </ClCompile>
-    <ClCompile Include="PdbPatcher.cpp">
-      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
-    </ClCompile>
+    <ClCompile Include="ShadowMapPass.cpp" />
+    <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="ScriptLibraryLoader.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleScripting.cpp">
-      <Filter>Core\Scripting\HotReloading</Filter>
     </ClCompile>
     <ClCompile Include="ScriptBuildSystem.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClCompile>
-    <ClCompile Include="NavRuntimeBlockerComponent.cpp">
-      <Filter>NavMesh</Filter>
+    <ClCompile Include="PdbPatcher.cpp" />
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -787,6 +787,9 @@
     <ClInclude Include="NavMeshBuilder.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
+    <ClInclude Include="NavigationAgentComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -864,6 +867,9 @@
     </ClInclude>
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
+    </ClInclude>
+    <ClInclude Include="WaypointPathComponent.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
@@ -1368,24 +1374,15 @@
     </ClInclude>
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="TextureImportSettings.h" />
-    <ClInclude Include="PdbPatcher.h">
-      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
-    </ClInclude>
+    <ClInclude Include="ShadowMapPass.h" />
+    <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="ScriptLibraryLoader.h">
       <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleScripting.h">
-      <Filter>Core\Scripting\HotReloading</Filter>
     </ClInclude>
     <ClInclude Include="ScriptBuildSystem.h">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshBuildSettings.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
-    <ClInclude Include="NavRuntimeBlockerComponent.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
+    <ClInclude Include="PdbPatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1688,5 +1685,6 @@
       <Filter>D3D12\Rendering\IBL</Filter>
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
+    <FxCompile Include="ShadowMapVertexShader.hlsl" />
   </ItemGroup>
 </Project>

@@ -134,7 +134,13 @@ rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     componentInfo.AddMember("TextureAssetId", m_textureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("FillAmount", m_fillAmount, domTree.GetAllocator());
+
+    {
+        rapidjson::Value fillAmountData(rapidjson::kArrayType);
+        fillAmountData.PushBack(m_fillAmount.x, domTree.GetAllocator());
+        fillAmountData.PushBack(m_fillAmount.y, domTree.GetAllocator());
+        componentInfo.AddMember("FillAmount", fillAmountData, domTree.GetAllocator());
+    }
     componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
     componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
 
@@ -168,7 +174,19 @@ bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
     }
 
     if (componentInfo.HasMember("FillAmount"))
-        m_fillAmount = componentInfo["FillAmount"].GetFloat();
+    {
+        const auto& fillAmount = componentInfo["FillAmount"];
+        if (fillAmount.IsArray() && fillAmount.Size() == 2)
+        {
+            m_fillAmount.x = fillAmount[0].GetFloat();
+            m_fillAmount.y = fillAmount[1].GetFloat();
+        }
+        else if (fillAmount.IsFloat() || fillAmount.IsDouble() || fillAmount.IsInt())
+        {
+            float f = fillAmount.GetFloat();
+            m_fillAmount.y = f;
+        }
+    }
 
     if (componentInfo.HasMember("FillMethod"))
         m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());

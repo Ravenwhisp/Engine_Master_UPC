@@ -27,6 +27,7 @@ class UISheet;
 class Transform2D;
 class ParticleSystemComponent;
 class ComponentSoundSource;
+class CameraComponent;
 
 struct HapticEffectDefinition;
 
@@ -236,6 +237,21 @@ namespace Debug
     ENGINE_API void error(const char* message, ...);
 }
 
+namespace CameraAPI
+{
+    ENGINE_API CameraComponent* getCameraComponent(GameObject* gameObject);
+    ENGINE_API const CameraComponent* getCameraComponent(const GameObject* gameObject);
+
+    ENGINE_API float getFov(const CameraComponent* camera);
+    ENGINE_API void setFov(CameraComponent* camera, float fov);
+
+    ENGINE_API float getNearPlane(const CameraComponent* camera);
+    ENGINE_API void setNearPlane(CameraComponent* camera, float nearPlane);
+
+    ENGINE_API float getFarPlane(const CameraComponent* camera);
+    ENGINE_API void setFarPlane(CameraComponent* camera, float farPlane);
+}
+
 namespace NavigationAPI
 {
     ENGINE_API bool hasNavMesh();
@@ -311,10 +327,12 @@ namespace SliderAPI
 {
     ENGINE_API float getFillAmount(const UISlider* slider);
     ENGINE_API void setFillAmount(UISlider* slider, const float amount);
-	ENGINE_API FillMethod getFillMethod(const UISlider* slider);
+    ENGINE_API Vector2 getFillAmountVec(const UISlider* slider);
+    ENGINE_API void setFillAmountVec(UISlider* slider, const Vector2& amount);
+    ENGINE_API FillMethod getFillMethod(const UISlider* slider);
     ENGINE_API void setFillMethod(UISlider* slider, FillMethod method);
     ENGINE_API FillOrigin getFillOrigin(const UISlider* slider);
-	ENGINE_API void setFillOrigin(UISlider* slider, FillOrigin origin);
+    ENGINE_API void setFillOrigin(UISlider* slider, FillOrigin origin);
 }
 
 namespace UISheetAPI
@@ -327,6 +345,7 @@ namespace UISheetAPI
     ENGINE_API bool isPlaying(UISheet* sheet);
     ENGINE_API Vector2 getOffset(UISheet* sheet);
     ENGINE_API void setOffset(UISheet* sheet, const Vector2& offset);
+    ENGINE_API void reset(UISheet* sheet);
 }
 
 namespace DebugDrawAPI
