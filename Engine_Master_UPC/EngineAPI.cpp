@@ -1737,6 +1737,12 @@ namespace NavigationAPI
         }
 
         outSampledPosition = Vector3(nearest[0], height, nearest[2]);
+
+        if (navigation->isPointBlockedBtRuntimeBlockers(outSampledPosition))
+        {
+            return false;
+        }
+
         return true;
     }
 

@@ -53,6 +53,7 @@ public:
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
     bool isSegmentBlockedByRuntimeBlockers(const Vector3& from, const Vector3& to) const;
+    bool isPointBlockedBtRuntimeBlockers(const Vector3& point) const;
 
     void debugDraw() override;
 

@@ -458,6 +458,51 @@ bool ModuleNavigation::isSegmentBlockedByRuntimeBlockers(const Vector3& from, co
     return false;
 }
 
+bool ModuleNavigation::isPointBlockedBtRuntimeBlockers(const Vector3& point) const
+{
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+    {
+        return false;
+    }
+
+    for (GameObject* obj : scene->getAllGameObjects())
+    {
+        if (!obj || !obj->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        auto* blocker = obj->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+
+        if (!blocker || !blocker->isActive() || !blocker->isBlocked())
+        {
+            continue;
+        }
+
+        Transform* transform = obj->GetTransform();
+        if (!transform)
+        {
+            continue;
+        }
+
+        const Vector3 center = transform->getPosition();
+        const Vector3 halfExtents = blocker->getHalfExtents();
+
+        const Vector3 min = center - halfExtents;
+        const Vector3 max = center + halfExtents;
+
+        if (point.x >= min.x && point.x <= max.x &&
+            point.y >= min.y && point.y <= max.y &&
+            point.z >= min.z && point.z <= max.z)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void ModuleNavigation::debugDraw()
 {
     if (getDrawNavMesh() && getNavMesh())
