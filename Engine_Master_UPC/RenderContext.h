@@ -2,6 +2,7 @@
 #include <d3d12.h>
 #include "SimpleMath.h"
 #include "RenderViewType.h"
+#include "ShadowTypes.h"
 
 class RingBuffer;
 struct UITextCommand;
@@ -25,5 +26,7 @@ struct RenderContext
     const std::vector<ParticleEmitterCommand>* particleCommands = nullptr;
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
+
+    const ShadowFrameData* shadowData = nullptr;
 
 };
