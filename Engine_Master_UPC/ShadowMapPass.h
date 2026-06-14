@@ -18,7 +18,7 @@ class MeshRenderer;
 class ShadowMapPass : public IRenderPass
 {
 public:
-    static constexpr uint32_t SHADOW_MAP_SIZE = 2048;
+    static constexpr uint32_t SHADOW_MAP_SIZE = 4096;
 
     struct ShadowDrawConstants
     {

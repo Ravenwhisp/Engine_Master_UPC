@@ -83,4 +83,9 @@ cbuffer ShadowData : register(b4)
     float shadowStrength;
     uint shadowsEnabled;
     float paddingShadow;
+    
+    //PCF
+    float2 shadowMapTexelSize;
+    uint pcfEnabled;
+    uint pcfRadius;
 };

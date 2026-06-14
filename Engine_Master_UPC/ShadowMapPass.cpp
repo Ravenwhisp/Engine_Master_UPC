@@ -176,6 +176,9 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
     shadowCB.shadowBias = SHADOW_BIAS;
     shadowCB.shadowStrength = SHADOW_STRENGTH;
     shadowCB.shadowsEnabled = 0;
+    shadowCB.shadowMapTexelSize = Vector2(1.0f / static_cast<float>(SHADOW_MAP_SIZE), 1.0f / static_cast<float>(SHADOW_MAP_SIZE));
+    shadowCB.pcfEnabled = 0;
+    shadowCB.pcfRadius = 1;
 
     if (ctx.ringBuffer != nullptr)
     {
@@ -247,6 +250,9 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     shadowCB.shadowBias = SHADOW_BIAS;
     shadowCB.shadowStrength = SHADOW_STRENGTH;
     shadowCB.shadowsEnabled = 1;
+    shadowCB.shadowMapTexelSize = Vector2(1.0f / static_cast<float>(SHADOW_MAP_SIZE), 1.0f / static_cast<float>(SHADOW_MAP_SIZE));
+    shadowCB.pcfEnabled = 1;
+    shadowCB.pcfRadius = 1;
 
     if (ctx.ringBuffer != nullptr)
     {
