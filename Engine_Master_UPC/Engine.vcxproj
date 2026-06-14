@@ -302,6 +302,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="NavMeshBuildSettings.h" />
+    <ClInclude Include="NavRuntimeBlockerComponent.h" />
     <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="ScriptBuildSystem.h" />
     <ClInclude Include="ScriptLibraryLoader.h" />
@@ -471,7 +473,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Lights.h" />
-    <ClInclude Include="NavigationAgentComponent.h" />
     <ClInclude Include="ModuleNavigation.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -550,7 +551,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UID.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexBuffer.h" />
-    <ClInclude Include="WaypointPathComponent.h" />
     <ClInclude Include="WindowGameDebug.h" />
     <ClInclude Include="WeakCache.h" />
     <ClInclude Include="WwiseBank.h" />
@@ -765,6 +765,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
+    <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="ScriptBuildSystem.cpp" />
@@ -840,7 +841,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -918,7 +918,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UIText.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="WaypointPathComponent.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
     <ClCompile Include="WwiseBank.cpp" />
     <ClCompile Include="WwiseManager.cpp" />
