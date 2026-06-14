@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "UISlider.h"
-#include "JsonArchive.h"
 
 #include <imgui.h>
 #include "UIImage.h"
@@ -43,9 +42,21 @@ void UISlider::applyToImage()
     img->setFillOrigin(m_fillOrigin);
 }
 
-void UISlider::setFillAmount(float amount)
+void UISlider::setFillAmount(const Vector2& amount)
 {
     m_fillAmount = amount;
+    applyToImage();
+}
+
+void UISlider::setFillStart(float start)
+{
+    m_fillAmount.x = start;
+    applyToImage();
+}
+
+void UISlider::setFillEnd(float end)
+{
+    m_fillAmount.y = end;
     applyToImage();
 }
 
@@ -86,7 +97,19 @@ void UISlider::drawUi()
     ImGui::Separator();
 
     bool changed = false;
-    changed |= ImGui::SliderFloat("Fill Amount", &m_fillAmount, 0.0f, 1.0f);
+    // Allow editing start and end separately
+    float start = m_fillAmount.x;
+    float end = m_fillAmount.y;
+    if (ImGui::SliderFloat("Fill Start", &start, 0.0f, 1.0f))
+    {
+        m_fillAmount.x = start;
+        changed = true;
+    }
+    if (ImGui::SliderFloat("Fill End", &end, 0.0f, 1.0f))
+    {
+        m_fillAmount.y = end;
+        changed = true;
+    }
 
     const char* fillMethods[] = { "Horizontal", "Vertical", "Radial 90", "Radial 180", "Radial 360" };
     int currentMethod = static_cast<int>(m_fillMethod);
@@ -164,13 +187,62 @@ void UISlider::drawUi()
     }
 }
 
-void UISlider::serialize(IArchive& archive)
+rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
 {
-    Component::serialize(archive);
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
 
-    archive.serialize(m_fillAmount, "FillAmount");
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::UISLIDER), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
+    {
+		rapidjson::Value fillAmountData(rapidjson::kArrayType);
+        fillAmountData.PushBack(m_fillAmount.x, domTree.GetAllocator());
+		fillAmountData.PushBack(m_fillAmount.y, domTree.GetAllocator());
+        componentInfo.AddMember("FillAmount", fillAmountData, domTree.GetAllocator());
+	}
+    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
+    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
 
-    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
+    return componentInfo;
+}
+
+bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("FillAmount"))
+    {
+        const auto& fillAmount = componentInfo["FillAmount"];
+        if (fillAmount.IsArray() && fillAmount.Size() == 2)
+        {
+            m_fillAmount.x = fillAmount[0].GetFloat();
+            m_fillAmount.y = fillAmount[1].GetFloat();
+        }
+        else if (fillAmount.IsFloat())
+        {
+            m_fillAmount.y = fillAmount.GetFloat();
+		}
+        
+    }
+
+    if (componentInfo.HasMember("FillMethod"))
+        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
+
+    if (componentInfo.HasMember("FillOrigin"))
+    {
+        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
+    }
+    else if (componentInfo.HasMember("Clockwise"))
+    {
+        const auto& clockwiseValue = componentInfo["Clockwise"];
+        if (clockwiseValue.IsBool())
+        {
+            m_fillOrigin = clockwiseValue.GetBool() ? FillOrigin::Radial360Clockwise : FillOrigin::Radial360CounterClockwise;
+        }
+        else if (clockwiseValue.IsInt())
+        {
+            m_fillOrigin = static_cast<FillOrigin>(clockwiseValue.GetInt());
+        }
+    }
+
+    return true;
 }

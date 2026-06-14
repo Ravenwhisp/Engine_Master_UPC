@@ -60,6 +60,8 @@ public:
     float getSpeedMultiplier() const;
     void setSpeedMultiplier(float speedMultiplier);
 
+    void clearStateBehaviours();
+
 private:
 
     struct FadingPlayback

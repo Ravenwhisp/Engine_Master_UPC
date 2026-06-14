@@ -1,12 +1,8 @@
 #include "Globals.h"
 #include "ScriptComponent.h"
-#include "JsonArchive.h"
 #include "Script.h"
 #include "ScriptFactory.h"
 #include "SceneReferenceResolver.h"
-
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -149,6 +145,28 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     }
 }
 
+rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::SCRIPT), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    componentInfo.AddMember("ScriptName", rapidjson::Value(m_scriptName.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+
+    rapidjson::Value fieldsJson(rapidjson::kObjectType);
+
+    if (m_script)
+    {
+        serializeScriptFields(*m_script, fieldsJson, domTree);
+    }
+
+    componentInfo.AddMember("ScriptFields", fieldsJson, domTree.GetAllocator());
+
+    return componentInfo;
+}
+
 void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
 {
     ScriptFieldList fieldList = script.getExposedFields();
@@ -168,45 +186,39 @@ void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& ou
     }
 }
 
-void ScriptComponent::serialize(IArchive& archive)
+rapidjson::Value ScriptComponent::serializeScriptFieldsForReload(rapidjson::Document& domTree)
 {
-    Component::serialize(archive);
+    rapidjson::Value fieldsJson(rapidjson::kObjectType);
 
-    archive.serialize(m_scriptName, "ScriptName");
-
-    std::string fieldsJson;
-    if (archive.mode() == ArchiveMode::Output && m_script)
+    if (m_script)
     {
-        rapidjson::Document doc;
-        doc.SetObject();
-        serializeScriptFields(*m_script, doc, doc);
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        doc.Accept(writer);
-        fieldsJson = buffer.GetString();
+        serializeScriptFields(*m_script, fieldsJson, domTree);
     }
 
-    archive.serialize(fieldsJson, "ScriptFields");
+    return fieldsJson;
+}
 
-    if (archive.mode() == ArchiveMode::Input)
+bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    if (componentInfo.HasMember("ScriptName"))
     {
-        destroyScriptInstance();
-        if (!m_scriptName.empty())
-        {
-            createScriptInstance();
-        }
-
-        if (m_script && !fieldsJson.empty())
-        {
-            rapidjson::Document doc;
-            doc.Parse(fieldsJson.c_str());
-            if (!doc.HasParseError() && doc.IsObject())
-            {
-                deserializeScriptFields(*m_script, doc);
-                m_script->onAfterDeserialize();
-            }
-        }
+        m_scriptName = componentInfo["ScriptName"].GetString();
     }
+
+    destroyScriptInstance();
+
+    if (!m_scriptName.empty())
+    {
+        createScriptInstance();
+    }
+
+    if (m_script && componentInfo.HasMember("ScriptFields"))
+    {
+        deserializeScriptFields(*m_script, componentInfo["ScriptFields"]);
+        m_script->onAfterDeserialize();
+    }
+
+    return true;
 }
 
 void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson)
@@ -232,6 +244,17 @@ void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::V
         assert(field.handler != nullptr);
         field.handler->deserialize(field, data, valueJson);
     }
+}
+
+void ScriptComponent::deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson)
+{
+    if (!m_script)
+    {
+        return;
+    }
+
+    deserializeScriptFields(*m_script, fieldsJson);
+    m_script->onAfterDeserialize();
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)

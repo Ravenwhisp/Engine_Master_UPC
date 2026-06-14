@@ -19,7 +19,7 @@ struct ParticleEmitterCommand
     std::vector <ParticleCommand> particles;
 };
 
-struct alignas(16) shaderParticleData { // align to 16 bytes!
+struct alignas(16) shaderParticleData { // align to 16 bytes! <- THIS IS NOT NECESSARY; XMFLOAT is probably unnecessary too
     
     XMFLOAT4X4 worldPosition;
     XMFLOAT4 colorAndAlpha;

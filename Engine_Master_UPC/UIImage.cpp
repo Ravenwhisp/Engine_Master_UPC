@@ -1,11 +1,9 @@
 #include "Globals.h"
 #include "UIImage.h"
-#include "JsonArchive.h"
 #include <imgui.h>
 
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "SceneReferenceResolver.h"
 #include <UIRect.h>
 #include <Transform2D.h>
 #include <GameObject.h>
@@ -127,47 +125,105 @@ bool UIImage::consumeLoadRequest()
     return was;
 }
 
-void UIImage::serialize(IArchive& archive)
+rapidjson::Value UIImage::getJSON(rapidjson::Document& domTree)
 {
-    Component::serialize(archive);
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
 
-    archive.beginObject("TextureAssetId");
-    m_textureAssetId.serialize(archive);
-    archive.endObject();
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::UIIMAGE), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
-    archive.serialize(m_fillAmount, "FillAmount");
+    componentInfo.AddMember("TextureAssetId", m_textureAssetId.getJson(domTree.GetAllocator()), domTree.GetAllocator());
 
-    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
-
-    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
-
-    uint32_t sheetColumns = static_cast<uint32_t>(m_sheetColumns);
-    archive.serialize(sheetColumns, "SheetColumns");
-    if (archive.mode() == ArchiveMode::Input)
-        m_sheetColumns = static_cast<int>(sheetColumns);
-
-    uint32_t sheetRows = static_cast<uint32_t>(m_sheetRows);
-    archive.serialize(sheetRows, "SheetRows");
-    if (archive.mode() == ArchiveMode::Input)
-        m_sheetRows = static_cast<int>(sheetRows);
-
-    DirectX::SimpleMath::Vector3 sheetOffset(m_sheetOffset.x, m_sheetOffset.y, 0.0f);
-    archive.serialize(sheetOffset, "SheetOffset");
-    if (archive.mode() == ArchiveMode::Input)
     {
-        m_sheetOffset.x = sheetOffset.x;
-        m_sheetOffset.y = sheetOffset.y;
+        rapidjson::Value fillAmountData(rapidjson::kArrayType);
+        fillAmountData.PushBack(m_fillAmount.x, domTree.GetAllocator());
+        fillAmountData.PushBack(m_fillAmount.y, domTree.GetAllocator());
+        componentInfo.AddMember("FillAmount", fillAmountData, domTree.GetAllocator());
+    }
+    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
+    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
+
+    componentInfo.AddMember("SheetColumns", m_sheetColumns, domTree.GetAllocator());
+    componentInfo.AddMember("SheetRows", m_sheetRows, domTree.GetAllocator());
+    {
+        rapidjson::Value offset(rapidjson::kArrayType);
+        offset.PushBack(m_sheetOffset.x, domTree.GetAllocator());
+        offset.PushBack(m_sheetOffset.y, domTree.GetAllocator());
+        componentInfo.AddMember("SheetOffset", offset, domTree.GetAllocator());
     }
 
-    archive.serializeStringEnum(m_stretchDrawMode, "StretchDrawMode", StretchDrawModeToString, StringToStretchDrawMode);
+    componentInfo.AddMember("StretchDrawMode", static_cast<int>(m_stretchDrawMode), domTree.GetAllocator());
+
+    return componentInfo;
 }
 
-void UIImage::fixReferences(const SceneReferenceResolver& resolver)
+bool UIImage::deserializeJSON(const rapidjson::Value& componentInfo)
 {
-    if (m_textureAssetId.isValid())
+    if (componentInfo.HasMember("TextureAssetId"))
     {
+        m_textureAssetId.deserializeJson(componentInfo["TextureAssetId"]);
+
+        m_texture = nullptr;
         m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+
         if (m_textureAsset)
+        {
             m_loadRequested = true;
+        }
     }
+
+    if (componentInfo.HasMember("FillAmount"))
+    {
+        const auto& fillAmount = componentInfo["FillAmount"];
+        if (fillAmount.IsArray() && fillAmount.Size() == 2)
+        {
+            m_fillAmount.x = fillAmount[0].GetFloat();
+            m_fillAmount.y = fillAmount[1].GetFloat();
+        }
+        else if (fillAmount.IsFloat() || fillAmount.IsDouble() || fillAmount.IsInt())
+        {
+            float f = fillAmount.GetFloat();
+            m_fillAmount.y = f;
+        }
+    }
+
+    if (componentInfo.HasMember("FillMethod"))
+        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
+
+    if (componentInfo.HasMember("FillOrigin"))
+    {
+        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
+    }
+
+    if (componentInfo.HasMember("SheetColumns"))
+        m_sheetColumns = std::max(1, componentInfo["SheetColumns"].GetInt());
+    else
+        m_sheetColumns = 1;
+
+    if (componentInfo.HasMember("SheetRows"))
+        m_sheetRows = std::max(1, componentInfo["SheetRows"].GetInt());
+    else
+        m_sheetRows = 1;
+
+    if (componentInfo.HasMember("SheetOffset"))
+    {
+        m_sheetOffset.x = componentInfo["SheetOffset"][0].GetFloat();
+        m_sheetOffset.y = componentInfo["SheetOffset"][1].GetFloat();
+    }
+    else
+    {
+        m_sheetOffset = { 0.0f, 0.0f };
+    }
+
+    if (componentInfo.HasMember("StretchDrawMode"))
+    {
+        m_stretchDrawMode = static_cast<StretchDrawMode>(componentInfo["StretchDrawMode"].GetInt());
+    }
+    else
+    {
+        m_stretchDrawMode = StretchDrawMode::Stretch;
+    }
+
+    return true;
 }

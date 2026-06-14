@@ -18,6 +18,7 @@
 #include "ModuleTime.h"
 #include "ModuleHaptics.h"
 #include "ModuleMusic.h"
+#include "ModuleScripting.h"
 
 #include "ScriptFactory.h"
 
@@ -43,6 +44,8 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     //Needed to create the LOGs
     modules.push_back(m_moduleEditor = new ModuleEditor());
     modules.push_back(m_moduleHaptics = new ModuleHaptics());
+
+    modules.push_back(m_moduleScripting = new ModuleScripting());
 
     modules.push_back(m_moduleAssets = new ModuleAssets());
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
@@ -74,9 +77,6 @@ Application::~Application()
 bool Application::init()
 {
 	bool ret = true;
-
-    m_gameScriptsModule = LoadLibraryA("GameScripts.dll");
-    assert(m_gameScriptsModule != nullptr);
 
     for (auto it = modules.begin(); it != modules.end() && ret; ++it)
     {

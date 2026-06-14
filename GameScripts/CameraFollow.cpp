@@ -12,7 +12,8 @@ IMPLEMENT_SCRIPT_FIELDS(CameraFollow,
     SERIALIZED_FLOAT(m_zoomSharpness, "Zoom Sharpness", 0.0f, 50.0f, 0.1f),
     SERIALIZED_FLOAT(m_zoomStartDistance, "Zoom Start Distance", 0.0f, 1000.0f, 0.05f),
     SERIALIZED_FLOAT(m_zoomEndDistance, "Zoom End Distance", 0.0f, 1000.0f, 0.05f),
-    SERIALIZED_FLOAT(m_maxExtraHeight, "Max Extra Height", 0.0f, 1000.0f, 0.05f)
+    SERIALIZED_FLOAT(m_maxExtraHeight, "Max Extra Height", 0.0f, 1000.0f, 0.05f)//,
+    //SERIALIZED_INT(test, "Test")
 )
 
 CameraFollow::CameraFollow(GameObject* owner)

@@ -30,6 +30,10 @@ public:
     void fixReferences(const SceneReferenceResolver& resolver) override;
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+    // Wrappers for dll reloading
+    rapidjson::Value serializeScriptFieldsForReload(rapidjson::Document& domTree);
+    void deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson);
+
 private:
     void drawScriptFieldsUi(Script& script);
     void serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree);

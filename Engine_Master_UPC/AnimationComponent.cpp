@@ -1389,6 +1389,11 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
     }
 }
 
+void AnimationComponent::clearStateBehaviours()
+{
+    m_stateBehaviours.clear();
+}
+
 bool AnimationComponent::ensureStateMachineLoaded()
 {
     if (!m_stateMachine.isValid())
@@ -1415,6 +1420,11 @@ bool AnimationComponent::ensureStateMachineLoaded()
 
 void AnimationComponent::startStateMachineIfNeeded()
 {
+    if (!(app && app->getCurrentEngineState() == ENGINE_STATE::PLAYING))
+    {
+        return;
+    }
+
     if (!m_playOnStart)
         return;
 
@@ -1525,6 +1535,11 @@ StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const Anima
 
 void AnimationComponent::dispatchStateEnter(const std::string& stateName)
 {
+    if (!(app && app->getCurrentEngineState() == ENGINE_STATE::PLAYING))
+    {
+        return;
+    }
+
     if (stateName.empty())
     {
         return;
@@ -1547,6 +1562,11 @@ void AnimationComponent::dispatchStateEnter(const std::string& stateName)
 
 void AnimationComponent::dispatchStateUpdate()
 {
+    if (!(app && app->getCurrentEngineState() == ENGINE_STATE::PLAYING))
+    {
+        return;
+    }
+
     if (m_activeStateName.empty())
     {
         return;
@@ -1569,6 +1589,11 @@ void AnimationComponent::dispatchStateUpdate()
 
 void AnimationComponent::dispatchStateExit(const std::string& stateName)
 {
+    if (!(app && app->getCurrentEngineState() == ENGINE_STATE::PLAYING))
+    {
+        return;
+    }
+
     if (stateName.empty())
     {
         return;

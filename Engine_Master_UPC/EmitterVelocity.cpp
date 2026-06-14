@@ -1,24 +1,26 @@
 #include "Globals.h"
 #include "EmitterVelocity.h"
+
 #include "Application.h"
-#include "JsonArchive.h"
+#include "ModuleCamera.h"
+
+#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
-#include "ModuleCamera.h"
+
 
 void EmitterVelocity::update(EmitterInstance* particleData)
 {
-	Particle* particlePool;
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	{
-		std::vector<std::pair<float, unsigned int>>* aliveParticles; // saves distance to camera + index to pool
-		particleData->getPoolAndAlives(particlePool, aliveParticles);
+		std::vector<std::pair<float, unsigned int>>& aliveParticles = particleData->getAliveParticles();
 
 		// Dealing with already existing particles //
 
 		float deltaTime = particleData->getParticleSystemComponent()->deltaTime();
 		Vector3 cameraPosition = app->getModuleCamera()->getPosition();
 
-		for (auto& aliveParticle : *aliveParticles)
+		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
 			Vector3 position = particlePool[poolIndex].position;
@@ -53,8 +55,22 @@ bool EmitterVelocity::drawUi()
 	return parameterChanged;
 }
 
-void EmitterVelocity::serialize(IArchive& archive)
+rapidjson::Value EmitterVelocity::getJSON(rapidjson::Document& domTree)
 {
-    ParticleModule::serialize(archive);
-    archive.serialize(m_initialVelocity, "InitialVelocity");
+	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
+	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::VELOCITY), domTree.GetAllocator());
+
+	moduleInfo.AddMember("InitialVelocity", m_initialVelocity, domTree.GetAllocator());
+
+	return moduleInfo;
+}
+
+bool EmitterVelocity::deserializeJSON(const rapidjson::Value& moduleInfo)
+{
+	if (moduleInfo.HasMember("InitialVelocity")) {
+		m_initialVelocity = moduleInfo["InitialVelocity"].GetFloat();
+	}
+
+	return true;
 }
