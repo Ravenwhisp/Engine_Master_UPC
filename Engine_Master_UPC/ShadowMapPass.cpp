@@ -252,7 +252,7 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     shadowCB.shadowsEnabled = 1;
     shadowCB.shadowMapTexelSize = Vector2(1.0f / static_cast<float>(SHADOW_MAP_SIZE), 1.0f / static_cast<float>(SHADOW_MAP_SIZE));
     shadowCB.pcfEnabled = 1;
-    shadowCB.pcfRadius = 1;
+    shadowCB.pcfRadius = 2;  // change to 2 to have a 5x5 kernel (25 samples - more expensive) 
 
     if (ctx.ringBuffer != nullptr)
     {
@@ -552,13 +552,6 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
         return;
     }
 
-    OutputDebugStringA(
-        ("[ShadowMapPass] transitionShadowMap: " +
-            std::to_string(m_shadowMapState) +
-            " -> " +
-            std::to_string(newState) +
-            "\n").c_str());
-
     ComPtr<ID3D12Resource> shadowResource = m_shadowMap->getD3D12Resource();
 
     if (shadowResource == nullptr)
@@ -566,11 +559,7 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
         return;
     }
 
-    CD3DX12_RESOURCE_BARRIER barrier =
-        CD3DX12_RESOURCE_BARRIER::Transition(
-            shadowResource.Get(),
-            m_shadowMapState,
-            newState);
+    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(shadowResource.Get(), m_shadowMapState, newState);
 
     commandList->ResourceBarrier(1, &barrier);
 
