@@ -245,6 +245,8 @@ namespace NavigationAPI
     ENGINE_API bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents, NavAgentProfile profile = NavAgentProfile::PlayerNormal);
     ENGINE_API float getPathLength(const Vector3* pathPoints, int pointCount);
     ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts, NavAgentProfile profile = NavAgentProfile::PlayerNormal);
+    ENGINE_API bool isSegmentBlocked(const Vector3& from, const Vector3& to);
+    ENGINE_API bool canMoveSegment(const Vector3& from, const Vector3& to);
 }
 
 namespace MathAPI

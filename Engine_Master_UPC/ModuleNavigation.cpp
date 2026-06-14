@@ -446,7 +446,7 @@ bool ModuleNavigation::isSegmentBlockedByRuntimeBlockers(const Vector3& from, co
             continue;
         }
 
-        const Vector3 center = transform->getPosition();
+        const Vector3 center = transform->getGlobalMatrix().Translation();
         const Vector3 halfExtents = blocker->getHalfExtents();
 
         if (SegmentIntersectsAABB(from, to, center, halfExtents))
@@ -458,7 +458,7 @@ bool ModuleNavigation::isSegmentBlockedByRuntimeBlockers(const Vector3& from, co
     return false;
 }
 
-bool ModuleNavigation::isPointBlockedBtRuntimeBlockers(const Vector3& point) const
+bool ModuleNavigation::isPointBlockedByRuntimeBlockers(const Vector3& point) const
 {
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene)
@@ -486,7 +486,7 @@ bool ModuleNavigation::isPointBlockedBtRuntimeBlockers(const Vector3& point) con
             continue;
         }
 
-        const Vector3 center = transform->getPosition();
+        const Vector3 center = transform->getGlobalMatrix().Translation();
         const Vector3 halfExtents = blocker->getHalfExtents();
 
         const Vector3 min = center - halfExtents;
@@ -535,7 +535,6 @@ bool ModuleNavigation::computeDebugPath(NavAgentProfile profile)
     if (!m_hasPathStart || !m_hasPathEnd) return false;
 
     dtQueryFilter filter;
-    //filter.setIncludeFlags(0xFFFF);
     filter.setIncludeFlags(getIncludeFlagsForProfile(profile));
     filter.setExcludeFlags(0);
 
@@ -571,7 +570,12 @@ bool ModuleNavigation::computeDebugPath(NavAgentProfile profile)
     {
         m_debugPathPoints.emplace_back(straight[i * 3 + 0], straight[i * 3 + 1], straight[i * 3 + 2]);
     }
-        
+    
+    if (isPathBlockedByRuntimeBlockers(m_debugPathPoints))
+    {
+        m_debugPathPoints.clear();
+        return false;
+    }
 
     return (m_debugPathPoints.size() >= 2);
 }

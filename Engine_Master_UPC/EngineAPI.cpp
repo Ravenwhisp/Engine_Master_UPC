@@ -1738,7 +1738,7 @@ namespace NavigationAPI
 
         outSampledPosition = Vector3(nearest[0], height, nearest[2]);
 
-        if (navigation->isPointBlockedBtRuntimeBlockers(outSampledPosition))
+        if (navigation->isPointBlockedByRuntimeBlockers(outSampledPosition))
         {
             return false;
         }
@@ -1909,6 +1909,23 @@ namespace NavigationAPI
         }
 
         return false;
+    }
+
+    bool isSegmentBlocked(const Vector3& from, const Vector3& to)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        return navigation->isSegmentBlockedByRuntimeBlockers(from, to);
+    }
+
+    bool canMoveSegment(const Vector3& from, const Vector3& to)
+    {
+        return !isSegmentBlocked(from, to);
     }
 }
 
