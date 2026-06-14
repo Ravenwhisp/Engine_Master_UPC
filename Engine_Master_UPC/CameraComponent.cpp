@@ -131,7 +131,7 @@ void CameraComponent::serialize(IArchive& archive)
 	archive.serialize(m_farPlane, "FarPlane");
 	archive.serialize(m_aspectRatio, "AspectRatio");
 
-	updateCameraMatrces();
+	updateCameraMatrices();
 }
 
 void CameraComponent::updateCameraMatrices()

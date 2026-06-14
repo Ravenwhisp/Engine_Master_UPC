@@ -187,62 +187,20 @@ void UISlider::drawUi()
     }
 }
 
-rapidjson::Value UISlider::getJSON(rapidjson::Document& domTree)
+void UISlider::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+	Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::UISLIDER), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    {
-		rapidjson::Value fillAmountData(rapidjson::kArrayType);
-        fillAmountData.PushBack(m_fillAmount.x, domTree.GetAllocator());
-		fillAmountData.PushBack(m_fillAmount.y, domTree.GetAllocator());
-        componentInfo.AddMember("FillAmount", fillAmountData, domTree.GetAllocator());
-	}
-    componentInfo.AddMember("FillMethod", static_cast<int>(m_fillMethod), domTree.GetAllocator());
-    componentInfo.AddMember("FillOrigin", static_cast<int>(m_fillOrigin), domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool UISlider::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("FillAmount"))
-    {
-        const auto& fillAmount = componentInfo["FillAmount"];
-        if (fillAmount.IsArray() && fillAmount.Size() == 2)
-        {
-            m_fillAmount.x = fillAmount[0].GetFloat();
-            m_fillAmount.y = fillAmount[1].GetFloat();
-        }
-        else if (fillAmount.IsFloat())
-        {
-            m_fillAmount.y = fillAmount.GetFloat();
+	{
+		DirectX::SimpleMath::Vector3 v(m_fillAmount.x, m_fillAmount.y, 0.0f);
+		archive.serialize(v, "FillAmount");
+		if (archive.mode() == ArchiveMode::Input)
+		{
+			m_fillAmount.x = v.x;
+			m_fillAmount.y = v.y;
 		}
-        
-    }
+	}
 
-    if (componentInfo.HasMember("FillMethod"))
-        m_fillMethod = static_cast<FillMethod>(componentInfo["FillMethod"].GetInt());
-
-    if (componentInfo.HasMember("FillOrigin"))
-    {
-        m_fillOrigin = static_cast<FillOrigin>(componentInfo["FillOrigin"].GetInt());
-    }
-    else if (componentInfo.HasMember("Clockwise"))
-    {
-        const auto& clockwiseValue = componentInfo["Clockwise"];
-        if (clockwiseValue.IsBool())
-        {
-            m_fillOrigin = clockwiseValue.GetBool() ? FillOrigin::Radial360Clockwise : FillOrigin::Radial360CounterClockwise;
-        }
-        else if (clockwiseValue.IsInt())
-        {
-            m_fillOrigin = static_cast<FillOrigin>(clockwiseValue.GetInt());
-        }
-    }
-
-    return true;
+	archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
+	archive.serialize(m_fillOrigin, "FillOrigin");
 }

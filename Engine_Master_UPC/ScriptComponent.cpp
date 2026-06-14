@@ -4,6 +4,9 @@
 #include "ScriptFactory.h"
 #include "SceneReferenceResolver.h"
 
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
 {
@@ -145,116 +148,110 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     }
 }
 
-rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
+void ScriptComponent::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+	Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::SCRIPT), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+	archive.serialize(m_scriptName, "ScriptName");
 
-    componentInfo.AddMember("ScriptName", rapidjson::Value(m_scriptName.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+	if (archive.mode() == ArchiveMode::Input && !m_scriptName.empty())
+	{
+		destroyScriptInstance();
+		createScriptInstance();
+	}
 
-    rapidjson::Value fieldsJson(rapidjson::kObjectType);
+	std::string fieldsJson;
+	if (archive.mode() == ArchiveMode::Output && m_script)
+	{
+		rapidjson::Document doc;
+		rapidjson::Value fieldsVal(rapidjson::kObjectType);
+		serializeScriptFields(*m_script, fieldsVal, doc);
 
-    if (m_script)
-    {
-        serializeScriptFields(*m_script, fieldsJson, domTree);
-    }
+		rapidjson::StringBuffer buffer;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		fieldsVal.Accept(writer);
+		fieldsJson = buffer.GetString();
+	}
 
-    componentInfo.AddMember("ScriptFields", fieldsJson, domTree.GetAllocator());
+	archive.serialize(fieldsJson, "ScriptFields");
 
-    return componentInfo;
+	if (archive.mode() == ArchiveMode::Input && m_script && !fieldsJson.empty())
+	{
+		rapidjson::Document doc;
+		doc.Parse(fieldsJson.c_str());
+		if (!doc.HasParseError())
+		{
+			deserializeScriptFields(*m_script, doc);
+			m_script->onAfterDeserialize();
+		}
+	}
 }
 
 void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
 {
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
+	ScriptFieldList fieldList = script.getExposedFields();
+	char* base = reinterpret_cast<char*>(&script);
 
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        if (!field.isDataField())
-        {
-            continue;
-        }
+	for (const ScriptFieldInfo& field : fieldList.fields)
+	{
+		if (!field.isDataField())
+		{
+			continue;
+		}
 
-        const void* data = base + field.offset;
+		const void* data = base + field.offset;
 
-        assert(field.handler != nullptr);
-        field.handler->serialize(field, data, outFieldsJson, domTree);
-    }
+		assert(field.handler != nullptr);
+		field.handler->serialize(field, data, outFieldsJson, domTree);
+	}
 }
 
 rapidjson::Value ScriptComponent::serializeScriptFieldsForReload(rapidjson::Document& domTree)
 {
-    rapidjson::Value fieldsJson(rapidjson::kObjectType);
+	rapidjson::Value fieldsJson(rapidjson::kObjectType);
 
-    if (m_script)
-    {
-        serializeScriptFields(*m_script, fieldsJson, domTree);
-    }
+	if (m_script)
+	{
+		serializeScriptFields(*m_script, fieldsJson, domTree);
+	}
 
-    return fieldsJson;
-}
-
-bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("ScriptName"))
-    {
-        m_scriptName = componentInfo["ScriptName"].GetString();
-    }
-
-    destroyScriptInstance();
-
-    if (!m_scriptName.empty())
-    {
-        createScriptInstance();
-    }
-
-    if (m_script && componentInfo.HasMember("ScriptFields"))
-    {
-        deserializeScriptFields(*m_script, componentInfo["ScriptFields"]);
-        m_script->onAfterDeserialize();
-    }
-
-    return true;
+	return fieldsJson;
 }
 
 void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson)
 {
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
+	ScriptFieldList fieldList = script.getExposedFields();
+	char* base = reinterpret_cast<char*>(&script);
 
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        if (!field.isDataField())
-        {
-            continue;
-        }
+	for (const ScriptFieldInfo& field : fieldList.fields)
+	{
+		if (!field.isDataField())
+		{
+			continue;
+		}
 
-        if (!fieldsJson.HasMember(field.name))
-        {
-            continue;
-        }
+		if (!fieldsJson.HasMember(field.name))
+		{
+			continue;
+		}
 
-        void* data = base + field.offset;
-        const rapidjson::Value& valueJson = fieldsJson[field.name];
+		void* data = base + field.offset;
+		const rapidjson::Value& valueJson = fieldsJson[field.name];
 
-        assert(field.handler != nullptr);
-        field.handler->deserialize(field, data, valueJson);
-    }
+		assert(field.handler != nullptr);
+		field.handler->deserialize(field, data, valueJson);
+	}
 }
 
 void ScriptComponent::deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson)
 {
-    if (!m_script)
-    {
-        return;
-    }
+	if (!m_script)
+	{
+		return;
+	}
 
-    deserializeScriptFields(*m_script, fieldsJson);
-    m_script->onAfterDeserialize();
+	deserializeScriptFields(*m_script, fieldsJson);
+	m_script->onAfterDeserialize();
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
