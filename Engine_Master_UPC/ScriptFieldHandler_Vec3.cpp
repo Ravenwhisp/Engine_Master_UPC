@@ -15,30 +15,15 @@ namespace
         }
     }
 
-    void serializeVec3Field(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeVec3Field(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const Vector3* value = reinterpret_cast<const Vector3*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        rapidjson::Value array(rapidjson::kArrayType);
-        array.PushBack(value->x, domTree.GetAllocator());
-        array.PushBack(value->y, domTree.GetAllocator());
-        array.PushBack(value->z, domTree.GetAllocator());
-
-        outFieldsJson.AddMember(key, array, domTree.GetAllocator());
-    }
-
-    void deserializeVec3Field(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsArray() || valueJson.Size() != 3)
-        {
-            return;
-        }
-
         Vector3* value = reinterpret_cast<Vector3*>(data);
-        value->x = valueJson[0].GetFloat();
-        value->y = valueJson[1].GetFloat();
-        value->z = valueJson[2].GetFloat();
+        DirectX::SimpleMath::Vector3 v(value->x, value->y, value->z);
+        archive.serialize(v, field.name);
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            value->x = v.x; value->y = v.y; value->z = v.z;
+        }
     }
 
     void cloneVec3Field(const ScriptFieldInfo&, const void* sourceData, void* targetData)
@@ -50,7 +35,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &deserializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
+    const ScriptFieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
 }
 
 const ScriptFieldHandler* getVec3FieldHandler()

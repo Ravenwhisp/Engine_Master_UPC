@@ -150,12 +150,17 @@ void UIImage::serialize(IArchive& archive)
 	}
 
 	{
-		DirectX::SimpleMath::Vector3 v(m_fillAmount.x, m_fillAmount.y, 0.0f);
-		archive.serialize(v, "FillAmount");
+		uint32_t count = 2;
+		archive.beginArray(count, "FillAmount");
+		float start = m_fillAmount.x;
+		float end = m_fillAmount.y;
+		archive.serialize(start, "");
+		archive.serialize(end, "");
+		archive.endArray();
 		if (archive.mode() == ArchiveMode::Input)
 		{
-			m_fillAmount.x = v.x;
-			m_fillAmount.y = v.y;
+			m_fillAmount.x = start;
+			m_fillAmount.y = end;
 		}
 	}
 

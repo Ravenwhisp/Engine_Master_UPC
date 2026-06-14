@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rapidjson/document.h>
+#include "IArchive.h"
 
 class Script;
 class ScriptComponent;
@@ -11,8 +11,7 @@ struct ScriptFieldInfo;
 struct ScriptFieldHandler
 {
     void (*drawUi)(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent& owner);
-    void (*serialize)(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree);
-    void (*deserialize)(const ScriptFieldInfo& field, void* data, const rapidjson::Value& valueJson);
+    void (*serialize)(const ScriptFieldInfo& field, void* data, IArchive& archive);
     void (*clone)(const ScriptFieldInfo& field, const void* sourceData, void* targetData);
     void (*fixReferences)(const ScriptFieldInfo& field, void* data, const SceneReferenceResolver& resolver);
 };
