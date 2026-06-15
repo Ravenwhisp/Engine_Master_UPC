@@ -38,7 +38,7 @@ public:
     void preRender()  override;
     void update()     override;
     //void render()   override;
-    //bool cleanUp()  override;
+    bool cleanUp()  override;
 
     //ParticleSystem* addSystem(Transform* parent);
     //bool removeSystem(ParticleSystem* system);

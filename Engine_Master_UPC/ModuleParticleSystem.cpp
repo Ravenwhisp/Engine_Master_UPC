@@ -96,6 +96,15 @@ void ModuleParticleSystem::update()
     }
 }
 
+bool ModuleParticleSystem::cleanUp()
+{
+    m_particleCommands.clear();
+
+    m_particleTextures.clear(); // needed so that textures are freed at the right time everywhere else
+
+    return true;
+}
+
 /*
 ParticleSystem* ModuleParticleSystem::addSystem(Transform* parent)
 {
