@@ -251,14 +251,16 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
             m_frameData.lightView * m_frameData.lightProjection;
     }
 
+    const LightShadowSettings& shadowSettings = light.getData().shadow;
+
     ShadowDataCB shadowCB{};
     shadowCB.lightViewProjection = m_frameData.lightViewProjection.Transpose();
-    shadowCB.shadowBias = SHADOW_BIAS;
-    shadowCB.shadowStrength = SHADOW_STRENGTH;
+    shadowCB.shadowBias = shadowSettings.shadowBias;
+    shadowCB.shadowStrength = shadowSettings.shadowStrength;
     shadowCB.shadowsEnabled = 1;
     shadowCB.shadowMapTexelSize = Vector2(1.0f / static_cast<float>(SHADOW_MAP_SIZE), 1.0f / static_cast<float>(SHADOW_MAP_SIZE));
-    shadowCB.pcfEnabled = 1;
-    shadowCB.pcfRadius = 2;  // change to 2 to have a 5x5 kernel (25 samples - more expensive) 
+    shadowCB.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
+    shadowCB.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
 
     if (ctx.ringBuffer != nullptr)
     {
