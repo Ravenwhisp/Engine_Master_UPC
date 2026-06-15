@@ -15,6 +15,7 @@ struct Particle {
     Vector4 colorAndAlpha;
     float rotationZ = 0.f; // since they are billboards, other rotations don't make sense
     Vector2 scale;
+    float textureFrame = 0.f; // for animation, the current frame in the texture
 
     float velocity;
     float rotationVelocity;

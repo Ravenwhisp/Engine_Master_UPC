@@ -13,7 +13,8 @@ enum class ParticleModuleType {
 	LIFETIME,
 	VELOCITY,
 	SIZE,
-	ROTATION
+	ROTATION,
+	ANIMATION
 };
 
 enum class ParameterType {

@@ -22,7 +22,7 @@
 ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange;
     CD3DX12_DESCRIPTOR_RANGE samplerRange;
 
@@ -30,12 +30,14 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
     rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
+    rootParameters[4].InitAsConstants(sizeof(Vector2) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b1 <- emitter u, v scaling (for tile animation)
+    
     rootParameters[1].InitAsShaderResourceView(1); // t1 <- particle data (could we join it with the srvRange?)
     rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
     rootParameters[3].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init(4, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(5, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -188,6 +190,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
+            particleData[i].sheetOffset = command.particles[i].sheetOffset;
         }
 
         commandList->SetGraphicsRootShaderResourceView(
@@ -198,6 +201,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         delete[] particleData;
 
         commandList->SetGraphicsRootDescriptorTable(2, srv.gpu);
+        commandList->SetGraphicsRoot32BitConstants(4, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
     }

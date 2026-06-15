@@ -8,6 +8,7 @@
 #include "EmitterVelocity.h"
 #include "EmitterSize.h"
 #include "EmitterRotation.h"
+#include "EmitterAnimation.h"
 
 ParticleEmitter::ParticleEmitter()
 {
@@ -18,16 +19,18 @@ ParticleEmitter::ParticleEmitter()
 	m_particleModules.push_back(std::make_unique<EmitterSpawn>());
 
 	auto emitterLifeTime = std::make_unique<EmitterLifetime>();
-	m_lifeTimeModule = emitterLifeTime.get();
+	m_lifetimeModule = emitterLifeTime.get();
 	m_particleModules.push_back(std::move(emitterLifeTime));
-
-
 
 	m_particleModules.push_back(std::make_unique<EmitterArea>());
 	m_particleModules.push_back(std::make_unique<EmitterColor>());
 	m_particleModules.push_back(std::make_unique<EmitterVelocity>());
 	m_particleModules.push_back(std::make_unique<EmitterSize>());
 	m_particleModules.push_back(std::make_unique<EmitterRotation>());
+
+	auto emitterAnimation = std::make_unique<EmitterAnimation>();
+	m_animationModule = emitterAnimation.get();
+	m_particleModules.push_back(std::move(emitterAnimation));
 }
 
 ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
@@ -39,15 +42,19 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 
 	m_particleModules.push_back(particleEmitter.m_particleModules[0]->clone());
 
-	auto emitterLifeTime = particleEmitter.m_particleModules[1]->clone();
-	m_lifeTimeModule = static_cast<EmitterLifetime*>(emitterLifeTime.get());
-	m_particleModules.push_back(std::move(emitterLifeTime));
+	auto emitterLifetime = particleEmitter.m_particleModules[1]->clone();
+	m_lifetimeModule = static_cast<EmitterLifetime*>(emitterLifetime.get());
+	m_particleModules.push_back(std::move(emitterLifetime));
 
 	m_particleModules.push_back(particleEmitter.m_particleModules[2]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[3]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[4]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[5]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[6]->clone());
+
+	auto emitterAnimation = particleEmitter.m_particleModules[7]->clone();
+	m_animationModule = static_cast<EmitterAnimation*>(emitterAnimation.get());
+	m_particleModules.push_back(std::move(emitterAnimation));
 }
 
 ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
@@ -131,6 +138,11 @@ bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
 		case ParticleModuleType::ROTATION:
 
 			m_particleModules[6]->deserializeJSON(moduleData);
+			break;
+
+		case ParticleModuleType::ANIMATION:
+
+			m_particleModules[7]->deserializeJSON(moduleData);
 		}
 	}
 	return true;

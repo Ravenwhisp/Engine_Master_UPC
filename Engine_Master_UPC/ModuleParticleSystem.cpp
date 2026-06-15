@@ -7,7 +7,9 @@
 #include "GameObject.h"
 #include "ModuleResources.h"
 #include "ModuleTime.h"
+
 #include "ParticleSystemComponent.h"
+#include "EmitterAnimation.h"
 
 
 void ModuleParticleSystem::resetAllParticles()
@@ -165,8 +167,12 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
             continue;
         }
 
+        EmitterAnimation* animationConfig = emitterInstance.getParticleEmitter()->getAnimationModule();
+
         ParticleEmitterCommand command;
 		command.texture = texture;
+        command.uvScale = animationConfig->getUVScale();
+
 		command.particles.reserve(aliveParticles.size());
 
 		for (const auto& aliveParticle : aliveParticles)
@@ -176,6 +182,8 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 			particleData.colorAndAlpha = m_pool[aliveParticle.second].colorAndAlpha;
 			particleData.rotationZ = m_pool[aliveParticle.second].rotationZ;
 			particleData.scale = m_pool[aliveParticle.second].scale;
+            
+            particleData.sheetOffset = animationConfig->getUVOffset(aliveParticle.second);
 
 			command.particles.push_back(particleData);
 		}

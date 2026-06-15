@@ -602,6 +602,7 @@
     <ClCompile Include="ScriptBuildSystem.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClCompile>
+    <ClCompile Include="EmitterAnimation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1389,6 +1390,7 @@
     <ClInclude Include="ScriptBuildSystem.h">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
+    <ClInclude Include="EmitterAnimation.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
