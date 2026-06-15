@@ -4,6 +4,7 @@
 #include "Application.h"
 #include "ModuleInput.h"
 
+#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleEmitter.h"
 #include "EmitterLifetime.h"
@@ -20,16 +21,15 @@ EmitterColor::EmitterColor() : ParticleModule(ParticleModuleType::COLOR) {
 
 void EmitterColor::update(EmitterInstance* particleData)
 {
-	Particle* particlePool;
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	{
-		std::vector<std::pair<float, unsigned int>>* aliveParticles;
-		particleData->getPoolAndAlives(particlePool, aliveParticles);
+		std::vector<std::pair<float, unsigned int>>& aliveParticles = particleData->getAliveParticles();
 
 		// Dealing with already existing particles //
 
 		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
 
-		for (auto& aliveParticle : *aliveParticles)
+		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
 
