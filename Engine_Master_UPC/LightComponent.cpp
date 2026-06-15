@@ -26,6 +26,44 @@ namespace
             outerAngleDegrees = std::min(SPOT_MAX_ANGLE_DEGREES, innerAngleDegrees + SPOT_MIN_ANGLE_DELTA_DEGREES);
         }
     }
+
+    static uint32_t sanitizeShadowMapSize(uint32_t size)
+    {
+        if (size <= 1024)
+        {
+            return 1024;
+        }
+
+        if (size <= 2048)
+        {
+            return 2048;
+        }
+
+        if (size <= 4096)
+        {
+            return 4096;
+        }
+
+        return 8192;
+    }
+
+    static void sanitizeShadowSettings(LightShadowSettings& shadow)
+    {
+        shadow.shadowMapSize = sanitizeShadowMapSize(shadow.shadowMapSize);
+
+        shadow.pcfRadius = std::clamp(
+            shadow.pcfRadius,
+            1u,
+            2u);
+
+        shadow.shadowBias = std::max(0.0f, shadow.shadowBias);
+
+        shadow.shadowStrength = std::clamp(
+            shadow.shadowStrength,
+            0.0f,
+            1.0f);
+    }
+
 }
 
 LightComponent::LightComponent(UID id, GameObject* owner)
@@ -66,6 +104,7 @@ void LightComponent::setTypeSpot(float radius, float innerAngleDegrees, float ou
 void LightComponent::sanitize()
 {
     m_data.common.intensity = std::max(0.0f, m_data.common.intensity);
+    sanitizeShadowSettings(m_data.shadow);
 
     if (m_data.type == LightType::POINT)
     {
