@@ -184,11 +184,14 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
     m_meshCount = 0;
 
     PERF_RENDER("MeshRendererPass::renderMesh");
+    int i = 0;
+
 
     for (const auto& renderer : m_meshRenderers)
     {
+       // DEBUG_LOG("Se va a pintar la malla %d", i);
         {
-            PERF_RENDER("MeshRendererPass::renderMesh::RendererValidation");
+            //PERF_RENDER("MeshRendererPass::renderMesh::RendererValidation");
 
             GameObject* owner = renderer->getOwner();
             if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
@@ -214,8 +217,9 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
         if (materials.size() != submeshes.size())
             continue;
 
+#if 1
         {
-            PERF_RENDER("MeshRendererPass::renderMesh::VertexBufferSelection");
+            //PERF_RENDER("MeshRendererPass::renderMesh::VertexBufferSelection");
 
             const Skin* skin = renderer->getSkin();
 
@@ -239,7 +243,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
             commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
             {
-                PERF_RENDER("MeshRendererPass::renderMesh::SubmeshLoop");
+                //PERF_RENDER("MeshRendererPass::renderMesh::SubmeshLoop");
 
                 for (int i = 0; i < submeshes.size(); i++)
                 {
@@ -249,18 +253,17 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
                     const auto& material = materials.at(i).get();
 
                     {
-                        PERF_RENDER("MeshRendererPass::renderMesh::ModelDataUpload");
+                        //PERF_RENDER("MeshRendererPass::renderMesh::ModelDataUpload");
                         ModelData modelData{};
                         modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
                         modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
                         modelData.material = material->getMaterial();
 
-                        commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData))
-                        );
+                        commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
                     }
 
                     {
-                        PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
+                        //PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
                         commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
 
                         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -271,14 +274,17 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
                     if (mesh->hasIndexBuffer())
                     {
-                        PERF_RENDER("MeshRendererPass::renderMesh::DrawIndexed");
+                        //PERF_RENDER("MeshRendererPass::renderMesh::DrawIndexed");
                         D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
                         commandList->IASetIndexBuffer(&ibv);
+
                         commandList->DrawIndexedInstanced(submeshes.at(i).indexCount, 1, submeshes.at(i).indexStart, 0, 0);
                     }
                 }
             }
         }
+        i++;
+#endif
     }
 }
 

@@ -31,7 +31,10 @@ struct PSOutput
 
 PSOutput main(VSOutput IN)
 {
+    discard;
+    
     PSOutput OUT;
+    
     
     float metallic = gMaterial.metallicFactor;
     float alphaRoughness = gMaterial.roughnessFactor;
@@ -68,7 +71,6 @@ PSOutput main(VSOutput IN)
     OUT.metalRoughness = float4(ao, alphaRoughness, metallic, 0);
     
     
-    
     //Load normal texture
     if (gMaterial.hasNormalTex != 0)
     {
@@ -93,11 +95,12 @@ PSOutput main(VSOutput IN)
         emissive = emissiveSample.rgb * gMaterial.emissiveColor;
     }
     OUT.emissive     = float4(emissive, 0.0f);
-    
+  
     
     
     // Position
     OUT.position     = float4(IN.worldPos, 0.0f);
 
+    
     return OUT;
 }

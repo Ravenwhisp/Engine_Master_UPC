@@ -77,9 +77,9 @@ void RenderSurface::resize(Vector2 size)
 					&srvDesc,
 					getDescriptorTableCPUHandle(i)
 				);
+				i++;
 			}
 		}
-		i++;
 	}
 }
 

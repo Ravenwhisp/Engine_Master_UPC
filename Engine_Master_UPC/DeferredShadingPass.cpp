@@ -151,6 +151,8 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
 
 void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    return;
+
     // No need to transition from/to any states since all resources are already and will end up in the states we want them to
     //if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
     BEGIN_EVENT(commandList, "Deferred");
