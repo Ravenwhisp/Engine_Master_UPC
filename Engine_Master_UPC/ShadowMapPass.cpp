@@ -127,7 +127,7 @@ void ShadowMapPass::createPipelineState()
         IID_PPV_ARGS(&m_pipelineState)));
 }
 
-const LightComponent* ShadowMapPass::findMainDirectionalLight() const
+const LightComponent* ShadowMapPass::findMainShadowCastingDirectionalLight() const
 {
     const std::vector<LightComponent*>& lights = app->getModuleScene()->getLightComponents();
 
@@ -150,7 +150,13 @@ const LightComponent* ShadowMapPass::findMainDirectionalLight() const
         }
 
         const LightData& data = light->getData();
+
         if (data.type != LightType::DIRECTIONAL)
+        {
+            continue;
+        }
+
+        if (!data.shadow.castShadows)
         {
             continue;
         }
@@ -570,7 +576,7 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 {
     m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
 
-    const LightComponent* mainDirectionalLight = findMainDirectionalLight();
+    const LightComponent* mainDirectionalLight = findMainShadowCastingDirectionalLight();
 
     if (mainDirectionalLight == nullptr)
     {

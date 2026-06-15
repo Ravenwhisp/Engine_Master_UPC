@@ -41,7 +41,7 @@ private:
     void createRootSignature();
     void createPipelineState();
 
-    const LightComponent* findMainDirectionalLight() const;
+    const LightComponent* findMainShadowCastingDirectionalLight() const;
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
