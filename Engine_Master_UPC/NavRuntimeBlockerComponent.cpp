@@ -95,7 +95,7 @@ void NavRuntimeBlockerComponent::debugDraw()
 		return;
 	}
 
-	const Vector3 center = transform->getPosition();
+	const Vector3 center = transform->getGlobalMatrix().Translation();
 
 	const float* color = m_blocked ? dd::colors::Red : dd::colors::Green;
 
