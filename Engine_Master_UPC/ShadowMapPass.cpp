@@ -30,29 +30,60 @@
 ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
-    m_shadowMap.reset(app->getModuleResources()->createShadowMap(SHADOW_MAP_SIZE));
+    createShadowMap(DEFAULT_SHADOW_MAP_SIZE);
 
+    createRootSignature();
+    createPipelineState();
+}
+
+void ShadowMapPass::createShadowMap(uint32_t size)
+{
+    m_currentShadowMapSize = size;
+
+    m_shadowMap.reset(app->getModuleResources()->createShadowMap(size));
+
+    updateShadowViewportAndScissor(size);
+
+    if (m_shadowMap != nullptr)
+    {
+        m_shadowMapState = m_shadowMap->getDesc().initialState;
+    }
+    else
+    {
+        m_shadowMapState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    }
+}
+
+void ShadowMapPass::resizeShadowMapIfNeeded(uint32_t size)
+{
+    if (size == 0)
+    {
+        size = DEFAULT_SHADOW_MAP_SIZE;
+    }
+
+    if (size == m_currentShadowMapSize && m_shadowMap != nullptr)
+    {
+        return;
+    }
+
+    createShadowMap(size);
+}
+
+void ShadowMapPass::updateShadowViewportAndScissor(uint32_t size)
+{
     m_viewport = {};
     m_viewport.TopLeftX = 0.0f;
     m_viewport.TopLeftY = 0.0f;
-    m_viewport.Width = static_cast<float>(SHADOW_MAP_SIZE);
-    m_viewport.Height = static_cast<float>(SHADOW_MAP_SIZE);
+    m_viewport.Width = static_cast<float>(size);
+    m_viewport.Height = static_cast<float>(size);
     m_viewport.MinDepth = 0.0f;
     m_viewport.MaxDepth = 1.0f;
 
     m_scissorRect = {};
     m_scissorRect.left = 0;
     m_scissorRect.top = 0;
-    m_scissorRect.right = static_cast<LONG>(SHADOW_MAP_SIZE);
-    m_scissorRect.bottom = static_cast<LONG>(SHADOW_MAP_SIZE);
-
-    if (m_shadowMap != nullptr)
-    {
-        m_shadowMapState = m_shadowMap->getDesc().initialState;
-    }
-
-    createRootSignature();
-    createPipelineState();
+    m_scissorRect.right = static_cast<LONG>(size);
+    m_scissorRect.bottom = static_cast<LONG>(size);
 }
 
 void ShadowMapPass::createRootSignature()
@@ -182,7 +213,9 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
     shadowCB.shadowBias = SHADOW_BIAS;
     shadowCB.shadowStrength = SHADOW_STRENGTH;
     shadowCB.shadowsEnabled = 0;
-    shadowCB.shadowMapTexelSize = Vector2(1.0f / static_cast<float>(SHADOW_MAP_SIZE), 1.0f / static_cast<float>(SHADOW_MAP_SIZE));
+    shadowCB.shadowMapTexelSize = Vector2(
+        1.0f / static_cast<float>(m_currentShadowMapSize),
+        1.0f / static_cast<float>(m_currentShadowMapSize));
     shadowCB.pcfEnabled = 0;
     shadowCB.pcfRadius = 1;
 
@@ -199,6 +232,10 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
 {
     m_frameData = {};
     m_frameData.enabled = true;
+
+    const LightShadowSettings& shadowSettings = light.getData().shadow;
+
+    resizeShadowMapIfNeeded(shadowSettings.shadowMapSize);
 
     if (m_shadowMap != nullptr && m_shadowMap->hasSRV())
     {
@@ -251,14 +288,14 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
             m_frameData.lightView * m_frameData.lightProjection;
     }
 
-    const LightShadowSettings& shadowSettings = light.getData().shadow;
-
     ShadowDataCB shadowCB{};
     shadowCB.lightViewProjection = m_frameData.lightViewProjection.Transpose();
     shadowCB.shadowBias = shadowSettings.shadowBias;
     shadowCB.shadowStrength = shadowSettings.shadowStrength;
     shadowCB.shadowsEnabled = 1;
-    shadowCB.shadowMapTexelSize = Vector2(1.0f / static_cast<float>(SHADOW_MAP_SIZE), 1.0f / static_cast<float>(SHADOW_MAP_SIZE));
+    shadowCB.shadowMapTexelSize = Vector2(
+        1.0f / static_cast<float>(m_currentShadowMapSize),
+        1.0f / static_cast<float>(m_currentShadowMapSize));
     shadowCB.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
     shadowCB.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
 
@@ -270,6 +307,7 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
             app->getModuleD3D12()->getCurrentFrame());
     }
 }
+
 
 bool ShadowMapPass::computeVisibleWorldBounds(Vector3& outMin, Vector3& outMax) const
 {
