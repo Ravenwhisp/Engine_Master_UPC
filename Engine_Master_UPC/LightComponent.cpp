@@ -205,7 +205,88 @@ void LightComponent::drawUi()
         break;
     }
 
-    if (lightChanged) {
+    ImGui::Separator();
+
+    if (ImGui::CollapsingHeader("Shadow Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::Checkbox("Cast Shadows", &m_data.shadow.castShadows))
+        {
+            lightChanged = true;
+        }
+
+        static const char* SHADOW_SIZE_NAMES[] =
+        {
+            "1024",
+            "2048",
+            "4096",
+            "8192"
+        };
+
+        static constexpr uint32_t SHADOW_SIZES[] =
+        {
+            1024u,
+            2048u,
+            4096u,
+            8192u
+        };
+
+        int shadowSizeIndex = 2; // Default 4096
+
+        for (int i = 0; i < IM_ARRAYSIZE(SHADOW_SIZES); ++i)
+        {
+            if (m_data.shadow.shadowMapSize == SHADOW_SIZES[i])
+            {
+                shadowSizeIndex = i;
+                break;
+            }
+        }
+
+        if (ImGui::Combo("Shadow Map Size", &shadowSizeIndex, SHADOW_SIZE_NAMES, IM_ARRAYSIZE(SHADOW_SIZE_NAMES)))
+        {
+            m_data.shadow.shadowMapSize = SHADOW_SIZES[shadowSizeIndex];
+            lightChanged = true;
+        }
+
+        if (ImGui::Checkbox("PCF Enabled", &m_data.shadow.pcfEnabled))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.shadow.pcfEnabled)
+        {
+            static const char* PCF_KERNEL_NAMES[] =
+            {
+                "3x3",
+                "5x5"
+            };
+
+            int pcfKernelIndex = m_data.shadow.pcfRadius == 2 ? 1 : 0;
+
+            if (ImGui::Combo("PCF Kernel", &pcfKernelIndex, PCF_KERNEL_NAMES, IM_ARRAYSIZE(PCF_KERNEL_NAMES)))
+            {
+                m_data.shadow.pcfRadius = pcfKernelIndex == 0 ? 1u : 2u;
+                lightChanged = true;
+            }
+        }
+
+        if (ImGui::DragFloat("Shadow Bias", &m_data.shadow.shadowBias, 0.0001f, 0.0f, 0.02f, "%.6f"))
+        {
+            lightChanged = true;
+        }
+
+        if (ImGui::DragFloat("Shadow Strength", &m_data.shadow.shadowStrength, 0.01f, 0.0f, 1.0f))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.type != LightType::DIRECTIONAL)
+        {
+            ImGui::TextDisabled("Shadow rendering for this light type is not implemented yet.");
+        }
+    }
+
+    if (lightChanged) 
+    {
         sanitize();
     }
 }
