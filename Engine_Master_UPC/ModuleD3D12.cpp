@@ -44,8 +44,14 @@ void ModuleD3D12::preRender()
 
 void ModuleD3D12::executeCurrentCommandList()
 {
+    if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+    BEGIN_EVENT(m_commandList.Get(), "D3D12");
+
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
     m_commandList = m_commandQueue->getCommandList();
+
+    END_EVENT(m_commandList.Get());
+    if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 }
 
 void ModuleD3D12::postRender()

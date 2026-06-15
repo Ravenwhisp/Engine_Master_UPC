@@ -105,6 +105,8 @@ void SkyBoxPass::prepare(const RenderContext& ctx)
 
 void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    BEGIN_EVENT(commandList, "SkyBox");
+
     if (!m_skyBox) return;
     if (!m_skyBox->getHdrTexture()) return;
     if (!m_view || !m_projection) return;
@@ -146,6 +148,8 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetIndexBuffer(&indexBufferView);
 
     commandList->DrawIndexedInstanced(static_cast<UINT>(m_skyBox->getIndexBuffer()->getNumIndices()), 1, 0, 0, 0);
+    
+    END_EVENT(commandList);
 }
 
 void SkyBoxPass::setSettings(const SkyBoxSettings& settings)

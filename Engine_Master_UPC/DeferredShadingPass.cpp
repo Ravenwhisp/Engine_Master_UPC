@@ -152,6 +152,8 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
 void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     // No need to transition from/to any states since all resources are already and will end up in the states we want them to
+    //if (PIXIsAttachedForGpuCapture()) PIXBeginCapture(PIX_CAPTURE_GPU, nullptr);
+    BEGIN_EVENT(commandList, "Deferred");
 
 
     auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
@@ -181,6 +183,9 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     commandList->DrawInstanced(3, 1, 0, 0);
+
+    END_EVENT(commandList);
+    //if (PIXIsAttachedForGpuCapture()) PIXEndCapture(TRUE);
 }
 
 GPULightsConstantBuffer DeferredShadingPass::packLightsForGPU(
