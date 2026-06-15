@@ -150,10 +150,8 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     float3 worldPos = positionTex.Sample(linearWrapSample, coord);
     
     
-    
     //Read base color
     float3 albedo = baseColorTex.Sample(linearWrapSample, coord);
-    
     
     
     //Read metalic roughness AO
@@ -165,14 +163,15 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     
     
     //Read emissive
-    float3 emissive = emissiveTex.Sample(linearWrapSample, coord);
+    //float3 emissive = emissiveTex.Sample(linearWrapSample, coord);
+    float3 emissive = 0;
     
     
     
     //Read normal
     float3 finalWorldNormal = normalTex.Sample(linearWrapSample, coord).rgb;
     
-        
+
     
     //Prepare data for render equation
     float3 F0Metallic = albedo;
@@ -221,7 +220,6 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     specularAO *= horizon;
     
     float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
-    
     
     
     //Calculate final color

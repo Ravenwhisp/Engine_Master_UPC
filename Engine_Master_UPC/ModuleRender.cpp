@@ -239,10 +239,13 @@ void ModuleRender::initViewportGBuffers(RenderSurface& surface, float width, flo
     ID3D12Device* device = app->getModuleD3D12()->getDevice();
     DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+    std::wstring bufferNames[] = { L"difusse", L"MRA", L"normal", L"position", L"emissive" };
+
     for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
     {
         auto tex = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
-        tex->setName(L"GBuffer_" + std::to_wstring(i));
+        //tex->setName(L"GBuffer_" + std::to_wstring(i));
+        tex->setName(L"GBuffer_" + bufferNames[i]);
         surface.attachTexture(GeometryPass::kSlots[i], tex);
     }
 }

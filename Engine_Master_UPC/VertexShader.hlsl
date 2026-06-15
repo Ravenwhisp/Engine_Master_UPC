@@ -1,5 +1,3 @@
-#include "LightingCBuffers.hlsli"
-
 struct VSOut
 {
     float4 position : SV_Position;
