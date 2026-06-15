@@ -310,6 +310,12 @@ rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
         componentInfo.AddMember("Color", colorData, domTree.GetAllocator());
     }
     componentInfo.AddMember("Intensity", m_data.common.intensity, domTree.GetAllocator());
+    componentInfo.AddMember("CastShadows", m_data.shadow.castShadows, domTree.GetAllocator());
+    componentInfo.AddMember("ShadowMapSize", static_cast<unsigned int>(m_data.shadow.shadowMapSize), domTree.GetAllocator());
+    componentInfo.AddMember("ShadowPcfEnabled", m_data.shadow.pcfEnabled, domTree.GetAllocator());
+    componentInfo.AddMember("ShadowPcfRadius", static_cast<unsigned int>(m_data.shadow.pcfRadius), domTree.GetAllocator());
+    componentInfo.AddMember("ShadowBias", m_data.shadow.shadowBias, domTree.GetAllocator());
+    componentInfo.AddMember("ShadowStrength", m_data.shadow.shadowStrength, domTree.GetAllocator());
     
     // Not common parameters (depending on light type)
     switch (m_data.type)
@@ -344,6 +350,36 @@ bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
     {
         const auto& color = componentInfo["Color"].GetArray();
         m_data.common.color = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
+    }
+
+    if (componentInfo.HasMember("CastShadows"))
+    {
+        m_data.shadow.castShadows = componentInfo["CastShadows"].GetBool();
+    }
+
+    if (componentInfo.HasMember("ShadowMapSize"))
+    {
+        m_data.shadow.shadowMapSize = componentInfo["ShadowMapSize"].GetUint();
+    }
+
+    if (componentInfo.HasMember("ShadowPcfEnabled"))
+    {
+        m_data.shadow.pcfEnabled = componentInfo["ShadowPcfEnabled"].GetBool();
+    }
+
+    if (componentInfo.HasMember("ShadowPcfRadius"))
+    {
+        m_data.shadow.pcfRadius = componentInfo["ShadowPcfRadius"].GetUint();
+    }
+
+    if (componentInfo.HasMember("ShadowBias"))
+    {
+        m_data.shadow.shadowBias = componentInfo["ShadowBias"].GetFloat();
+    }
+
+    if (componentInfo.HasMember("ShadowStrength"))
+    {
+        m_data.shadow.shadowStrength = componentInfo["ShadowStrength"].GetFloat();
     }
 
     if (componentInfo.HasMember("LightType"))
