@@ -28,6 +28,7 @@ class Transform2D;
 class ParticleSystemComponent;
 class ComponentSoundSource;
 class CameraComponent;
+class NavRuntimeBlockerComponent;
 
 struct HapticEffectDefinition;
 
@@ -263,6 +264,12 @@ namespace NavigationAPI
     ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts, NavAgentProfile profile = NavAgentProfile::PlayerNormal);
     ENGINE_API bool isSegmentBlocked(const Vector3& from, const Vector3& to);
     ENGINE_API bool canMoveSegment(const Vector3& from, const Vector3& to);
+
+    ENGINE_API NavRuntimeBlockerComponent* getRuntimeBlockerComponent(GameObject* gameObject);
+    ENGINE_API const NavRuntimeBlockerComponent* getRuntimeBlockerComponent(const GameObject* gameObject);
+
+    ENGINE_API bool isBlocked(const NavRuntimeBlockerComponent* blocker);
+    ENGINE_API void setBlocked(NavRuntimeBlockerComponent* blocker, bool blocked);
 }
 
 namespace MathAPI

@@ -28,6 +28,7 @@
 #include "BoundingBox.h"
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
+#include "NavRuntimeBlockerComponent.h"
 
 #include "CameraComponent.h"
 
@@ -1994,6 +1995,46 @@ namespace NavigationAPI
     bool canMoveSegment(const Vector3& from, const Vector3& to)
     {
         return !isSegmentBlocked(from, to);
+    }
+
+    NavRuntimeBlockerComponent* getRuntimeBlockerComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    const NavRuntimeBlockerComponent* getRuntimeBlockerComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    bool isBlocked(const NavRuntimeBlockerComponent* blocker)
+    {
+        if (blocker->isBlocked())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void setBlocked(NavRuntimeBlockerComponent* blocker, bool blocked)
+    {
+        if (!blocker)
+        {
+            return;
+        }
+
+        blocker->setBlocked(blocked);
     }
 }
 

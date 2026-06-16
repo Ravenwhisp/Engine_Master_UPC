@@ -107,6 +107,7 @@
     <ClCompile Include="EnemyChaseState.cpp" />
     <ClCompile Include="EnemyIdleState.cpp" />
     <ClCompile Include="EnemyAttackState.cpp" />
+    <ClCompile Include="NavBlockerTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -214,6 +215,7 @@
     <ClInclude Include="EnemyChaseState.h" />
     <ClInclude Include="EnemyIdleState.h" />
     <ClInclude Include="EnemyAttackState.h" />
+    <ClInclude Include="NavBlockerTest.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

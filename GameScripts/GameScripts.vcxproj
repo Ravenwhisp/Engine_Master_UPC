@@ -324,6 +324,7 @@
     <ClInclude Include="LyrielDash.h" />
     <ClInclude Include="LyrielSound.h" />
     <ClInclude Include="MusicSystemTester.h" />
+    <ClInclude Include="NavBlockerTest.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="PlayerAnimationController.h" />
@@ -431,6 +432,7 @@
     <ClCompile Include="LyrielDash.cpp" />
     <ClCompile Include="LyrielSound.cpp" />
     <ClCompile Include="MusicSystemTester.cpp" />
+    <ClCompile Include="NavBlockerTest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
