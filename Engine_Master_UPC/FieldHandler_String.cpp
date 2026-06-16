@@ -20,23 +20,10 @@ namespace
         }
     }
 
-    void serializeStringField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeStringField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const std::string* value = reinterpret_cast<const std::string*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, rapidjson::Value(value->c_str(), domTree.GetAllocator()), domTree.GetAllocator());
-    }
-
-    void deserializeStringField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsString())
-        {
-            return;
-        }
-
         std::string* value = reinterpret_cast<std::string*>(data);
-        *value = valueJson.GetString();
+        archive.serialize(*value, field.name);
     }
 
     void cloneStringField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -48,7 +35,7 @@ namespace
     {
     }
 
-    const FieldHandler stringFieldHandler = {&drawStringFieldUi, &serializeStringField, &deserializeStringField, &cloneStringField, &fixReferencesStringField};
+    const ScriptFieldHandler stringFieldHandler = {&drawStringFieldUi, &serializeStringField, &cloneStringField, &fixReferencesStringField};
 }
 
 const FieldHandler* getStringFieldHandler()

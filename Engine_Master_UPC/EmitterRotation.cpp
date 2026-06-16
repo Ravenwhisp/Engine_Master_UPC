@@ -1,19 +1,21 @@
 #include "Globals.h"
 #include "EmitterRotation.h"
 
+#include "Application.h"
+#include "imgui_bezier.h"
+
+#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 #include "ParticleEmitter.h"
 #include "EmitterLifetime.h"
 
-#include "imgui_bezier.h"
 
 void EmitterRotation::update(EmitterInstance* particleData)
 {
-	Particle* particlePool;
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	{
-		std::vector<std::pair<float, unsigned int>>* aliveParticles;
-		particleData->getPoolAndAlives(particlePool, aliveParticles);
+		std::vector<std::pair<float, unsigned int>>& aliveParticles = particleData->getAliveParticles();
 
 		// Dealing with already existing particles //
 
@@ -67,95 +69,31 @@ bool EmitterRotation::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterRotation::getJSON(rapidjson::Document& domTree)
+void EmitterRotation::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+	ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::ROTATION), domTree.GetAllocator());
+	archive.serialize(m_startRotation, "StartRotation");
 
-	moduleInfo.AddMember("StartRotation", m_startRotation, domTree.GetAllocator());
+	archive.serializeStringEnum(m_angularVelocityType, "VelocityType", ParameterTypeToString, StringToParameterType);
 
-	moduleInfo.AddMember("VelocityType", unsigned int(m_angularVelocityType), domTree.GetAllocator());
-	moduleInfo.AddMember("AngularVelocity", m_angularVelocity, domTree.GetAllocator());
+	archive.serialize(m_angularVelocity, "AngularVelocity");
 
 	if (m_angularVelocityType != ParameterType::CONSTANT)
 	{
-		moduleInfo.AddMember("AngularVelocity2", m_angularVelocity2, domTree.GetAllocator());
+		archive.serialize(m_angularVelocity2, "AngularVelocity2");
 
-		if (m_angularVelocityType == ParameterType::CURVE) 
+		if (m_angularVelocityType == ParameterType::CURVE)
 		{
-			rapidjson::Value curveData(rapidjson::kArrayType);
-
-			curveData.PushBack(m_angularVelocityCurve[0], domTree.GetAllocator());
-			curveData.PushBack(m_angularVelocityCurve[1], domTree.GetAllocator());
-			curveData.PushBack(m_angularVelocityCurve[2], domTree.GetAllocator());
-			curveData.PushBack(m_angularVelocityCurve[3], domTree.GetAllocator());
-
-			moduleInfo.AddMember("VelocityCurve", curveData, domTree.GetAllocator());
-		}
-	}
-
-	moduleInfo.AddMember("FlipRotation", m_flipRotationLikelihood, domTree.GetAllocator());
-
-	return moduleInfo;
-}
-
-bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartRotation"))
-	{
-		m_startRotation = moduleInfo["StartRotation"].GetFloat();
-	}
-
-	if (moduleInfo.HasMember("AngularVelocity"))
-	{
-		m_angularVelocity = moduleInfo["AngularVelocity"].GetFloat();
-	}
-
-	if (moduleInfo.HasMember("VelocityType")) // for versions that support curves, choose random between 2 values angular velocities 
-	{
-		unsigned int velocityTypeUInt = moduleInfo["VelocityType"].GetUint();
-		ParameterType velocityType = static_cast<ParameterType>(velocityTypeUInt);
-
-		switch (velocityType) {
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_angularVelocityType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("AngularVelocity2"))
+			for (int i = 0; i < 4; ++i)
 			{
-				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
-			}
-
-			break;
-
-		case ParameterType::CURVE:
-
-			m_angularVelocityType = ParameterType::CURVE;
-
-			if (moduleInfo.HasMember("AngularVelocity2"))
-			{
-				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
-			}
-
-			if (moduleInfo.HasMember("VelocityCurve"))
-			{
-				const auto& curveArray = moduleInfo["VelocityCurve"].GetArray();
-				m_angularVelocityCurve[0] = curveArray[0].GetFloat();
-				m_angularVelocityCurve[1] = curveArray[1].GetFloat();
-				m_angularVelocityCurve[2] = curveArray[2].GetFloat();
-				m_angularVelocityCurve[3] = curveArray[3].GetFloat();
+				std::string key = "VelocityCurve_" + std::to_string(i);
+				archive.serialize(m_angularVelocityCurve[i], key.c_str());
 			}
 		}
 	}
 
-	if (moduleInfo.HasMember("FlipRotation"))
-	{
-		m_flipRotationLikelihood = moduleInfo["FlipRotation"].GetFloat();
-	}
-
-	return true;
+	archive.serialize(m_flipRotationLikelihood, "FlipRotation");
 }
 
 bool EmitterRotation::drawAngularVelocityUI()
@@ -273,10 +211,10 @@ bool EmitterRotation::drawAngularVelocityUI()
 	return parameterChanged;
 }
 
-void EmitterRotation::updateAlivesRotationFixed(Particle* particlePool, const std::vector<std::pair<float, unsigned int>>* aliveParticles, float deltaTime)
+void EmitterRotation::updateAlivesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime)
 {
 
-	for (auto& aliveParticle : *aliveParticles)
+	for (auto& aliveParticle : aliveParticles)
 	{
 		unsigned int poolIndex = aliveParticle.second;
 
@@ -287,9 +225,9 @@ void EmitterRotation::updateAlivesRotationFixed(Particle* particlePool, const st
 	}
 }
 
-void EmitterRotation::updateAlivesRotationWithCurve(Particle* particlePool, const std::vector<std::pair<float, unsigned int>>* aliveParticles, float deltaTime, float startLifeTime)
+void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifeTime)
 {
-	for (auto& aliveParticle : *aliveParticles)
+	for (auto& aliveParticle : aliveParticles)
 	{
 		unsigned int poolIndex = aliveParticle.second;
 
@@ -309,7 +247,7 @@ void EmitterRotation::updateAlivesRotationWithCurve(Particle* particlePool, cons
 	}
 }
 
-void EmitterRotation::setNewParticlesRotationFixed(Particle* particlePool, const std::vector<unsigned int>& newParticles)
+void EmitterRotation::setNewParticlesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
 	for (auto& particleIndex : newParticles)
 	{
@@ -328,7 +266,7 @@ void EmitterRotation::setNewParticlesRotationFixed(Particle* particlePool, const
 	}
 }
 
-void EmitterRotation::setNewParticlesRotationWithRange(Particle* particlePool, const std::vector<unsigned int>& newParticles)
+void EmitterRotation::setNewParticlesRotationWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
 	for (auto& particleIndex : newParticles)
 	{

@@ -32,6 +32,7 @@
 #include "FontPass.h"
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
+#include "ShadowMapPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -47,7 +48,7 @@ bool ModuleRender::init()
     auto  d3d12 = app->getModuleD3D12();
     auto* device = d3d12->getDevice();
 
-    m_ringBuffer = app->getModuleResources()->createRingBuffer(static_cast<size_t>(30) * 30); // we assume that we need 30 for a single particle system emitter at full emission
+    m_ringBuffer = app->getModuleResources()->createRingBuffer(30);
 
     // Build the one time render-passes.
     auto staticTexturesPass = new StaticTexturesPass(device);
@@ -63,12 +64,14 @@ bool ModuleRender::init()
     debugDrawPass->registerStatic(app->getModuleNavigation());
     debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
+    m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
+    m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
+
     m_meshRenderPass = new MeshRendererPass (device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_skyBoxPass = skyBoxPass.get();
-    m_renderPasses.push_back(std::move(skyBoxPass));
 
-    m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
+    m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
@@ -86,6 +89,9 @@ void ModuleRender::preRender()
 {
     PERF_RENDER("ModuleRender::preRender");
 
+    m_shadowMapRenderedThisFrame = false;
+    m_currentShadowData = nullptr;
+
     if (m_pendingStopSimulation)
     {
         app->getModuleD3D12()->getCommandQueue()->flush();
@@ -100,6 +106,11 @@ void ModuleRender::preRender()
 
 #ifndef GAME_RELEASE
     {
+        m_shadowMapRenderedThisFrame = false;
+        m_currentShadowData = nullptr;
+
+        auto* commandList = app->getModuleD3D12()->getCommandList();
+
         PERF_RENDER("ModuleRender::RenderViewports");
         for (const ViewportEntry& entry : m_viewports)
         {
@@ -159,7 +170,22 @@ void ModuleRender::render()
 
 bool ModuleRender::cleanUp()
 {
+    if (app != nullptr &&
+        app->getModuleD3D12() != nullptr &&
+        app->getModuleD3D12()->getCommandQueue() != nullptr)
+    {
+        app->getModuleD3D12()->getCommandQueue()->flush();
+    }
+
+    m_shadowMapPass.reset();
+    m_skinningComputePass.reset();
+
     m_renderPasses.clear();
+
+    m_meshRenderPass = nullptr;
+    m_debugDrawPass = nullptr;
+    m_skyBoxPass = nullptr;
+
     m_imGuiPass.reset();
 
     delete m_ringBuffer;
@@ -266,11 +292,6 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
 
-    {
-        PERF_RENDER("ModuleRender::renderScene::Background");
-        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
-    }
-
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,
@@ -284,7 +305,42 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .uiImageCommands = &app->getModuleUI()->getImageCommands(),
         .particleCommands = &app->getModuleParticleSystem()->getParticleCommands(),
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
+        .shadowData = nullptr,
     };
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SkinningComputePass");
+
+        if (m_skinningComputePass)
+        {
+            m_skinningComputePass->prepare(ctx);
+            m_skinningComputePass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::ShadowMapPass");
+
+        if (m_shadowMapPass)
+        {
+            if (!m_shadowMapRenderedThisFrame)
+            {
+                m_shadowMapPass->prepare(ctx);
+                m_shadowMapPass->apply(commandList);
+
+                m_currentShadowData = &m_shadowMapPass->getFrameData();
+                m_shadowMapRenderedThisFrame = true;
+            }
+
+            ctx.shadowData = m_currentShadowData;
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::Background");
+        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+    }
+
 
     {
         PERF_RENDER("ModuleRender::renderScene::PreparePasses");

@@ -26,6 +26,9 @@ public:
     static void drawPrefabSubMenu(GameObject* go, Scene* scene);
 
     static void drawExitOverlay(ImVec2 viewportPos, ImVec2 viewportSize);
+    static bool hasPrefabOverrides(GameObject* go);
+    static void drawApplyRevertButtons(GameObject* go, Scene* scene, bool useSmallButton,
+                                       bool& outApply, bool& outRevert);
     static void markTransformOverride(GameObject* go);
 
     static std::vector<PrefabFileInfo> listPrefabsInfo(const std::filesystem::path& searchRoot);

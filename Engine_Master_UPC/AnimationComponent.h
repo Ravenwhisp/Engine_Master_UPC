@@ -28,8 +28,7 @@ public:
 
     void drawUi() override;
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentValue) override;
+    void serialize(IArchive& archive) override;
 
     void setStateMachineUID(AssetReference& uid);
     AssetReference& getStateMachineUID()  { return m_stateMachine; }
@@ -60,6 +59,8 @@ public:
 
     float getSpeedMultiplier() const;
     void setSpeedMultiplier(float speedMultiplier);
+
+    void clearStateBehaviours();
 
 private:
 

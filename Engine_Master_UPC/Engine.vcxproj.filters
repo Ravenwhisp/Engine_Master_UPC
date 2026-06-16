@@ -153,7 +153,6 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
@@ -187,7 +186,22 @@
     <ClCompile Include="UIButton.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="SceneSerializer.cpp">
+    <ClCompile Include="AssetCache.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryArchive.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Metadata.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetFileDialog.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetIndex.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="ModuleAssets.cpp">
@@ -482,7 +496,7 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp" />
+
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -530,9 +544,7 @@
     <ClCompile Include="EquirectangularPass.cpp">
       <Filter>D3D12\Rendering\IBL</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp">
-      <Filter>Prefabs</Filter>
-    </ClCompile>
+
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>
@@ -588,6 +600,15 @@
     </ClCompile>
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
+    <ClCompile Include="ShadowMapPass.cpp" />
+    <ClCompile Include="ModuleScripting.cpp" />
+    <ClCompile Include="ScriptLibraryLoader.cpp">
+      <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptBuildSystem.cpp">
+      <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="FieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
@@ -818,10 +839,34 @@
     <ClInclude Include="UIButton.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h">
+    <ClInclude Include="AssetCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="IArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetFileDialog.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetIndex.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ModuleAssets.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleAssets.inl">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">
@@ -947,7 +992,7 @@
     <ClInclude Include="ImporterPrefab.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabAsset.h">
+    <ClInclude Include="Prefab.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="Script.h">
@@ -1394,6 +1439,15 @@
     </ClInclude>
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="TextureImportSettings.h" />
+    <ClInclude Include="ShadowMapPass.h" />
+    <ClInclude Include="ShadowTypes.h" />
+    <ClInclude Include="ScriptLibraryLoader.h">
+      <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptBuildSystem.h">
+      <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="PdbPatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1602,6 +1656,18 @@
     <Filter Include="MusicSystem\Wwise">
       <UniqueIdentifier>{7083597f-1f92-4b00-adf0-d697556897e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Scripting\HotReloading">
+      <UniqueIdentifier>{ab6dbf3b-91a1-415b-9a07-3146b44b801c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\Pdb">
+      <UniqueIdentifier>{057841f3-2051-4b71-8ab3-e4c77b810307}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\ScriptLibraryLoader">
+      <UniqueIdentifier>{e92c5be0-2d2f-46d2-96d0-f44b96cef676}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Scripting\HotReloading\ScriptBuildSystem">
+      <UniqueIdentifier>{688e39d2-81bd-4743-9315-93a1b760678e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1684,5 +1750,6 @@
       <Filter>D3D12\Rendering\IBL</Filter>
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
+    <FxCompile Include="ShadowMapVertexShader.hlsl" />
   </ItemGroup>
 </Project>

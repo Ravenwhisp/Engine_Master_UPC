@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ComponentSoundListener.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleMusic.h"
@@ -70,13 +71,7 @@ std::unique_ptr<Component> ComponentSoundListener::clone(GameObject* newOwner) c
 	return cloned;
 }
 
-rapidjson::Value ComponentSoundListener::getJSON(rapidjson::Document& domTree)
+void ComponentSoundListener::serialize(IArchive& archive)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", int(ComponentType::SOUND_LISTENER), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-	return componentInfo;
+    Component::serialize(archive);
 }

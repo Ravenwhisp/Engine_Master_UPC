@@ -10,13 +10,7 @@
 
 CameraComponent::CameraComponent(UID id, GameObject* gameObject) : Component(id, ComponentType::CAMERA, gameObject)
 {
-	Transform* t = m_owner->GetTransform();
-	Vector3 position = t->getPosition();
-	Quaternion rotation = t->getRotation();
-	m_world = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
-	recalculateFrustum();
-	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
+	updateCameraMatrices();
 }
 
 std::unique_ptr<Component> CameraComponent::clone(GameObject* newOwner) const
@@ -34,11 +28,6 @@ std::unique_ptr<Component> CameraComponent::clone(GameObject* newOwner) const
 
 void CameraComponent::recalculateFrustum() 
 {
-	Transform* t = m_owner->GetTransform();
-	Vector3 position = t->getPosition();
-	Quaternion rotation = t->getRotation();
-	m_world = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
-
 	m_frustum.calculateFrustumVerticesFromFrustum(m_world, m_horizontalFov, m_nearPlane, m_farPlane, m_aspectRatio, m_frustum.m_points);
 
 	Matrix vp = m_view * m_projection;
@@ -71,13 +60,7 @@ void CameraComponent::lateUpdate()
 
 void CameraComponent::onTransformChange()
 {
-	Transform* t = m_owner->GetTransform();
-	Vector3 position = t->getPosition();
-	Quaternion rotation = t->getRotation();
-	m_world = Matrix::CreateFromQuaternion(rotation) * Matrix::CreateTranslation(position);
-	recalculateFrustum();
-	m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-	m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
+	updateCameraMatrices();
 }
 
 void CameraComponent::drawUi() 
@@ -100,11 +83,8 @@ void CameraComponent::drawUi()
 		m_nearPlane = nearPlane;
 		m_farPlane = farPlane;
 		m_aspectRatio = aspectRatio;
-		recalculateFrustum();
-		Transform* t = m_owner->GetTransform();
-		Vector3 position = t->getPosition();
-		m_view = Matrix::CreateLookAt(position, position + t->getForward(), t->getUp());
-		m_projection = Matrix::CreatePerspectiveFieldOfView(m_horizontalFov * (IM_PI / 180.0f) / m_aspectRatio, m_aspectRatio, m_nearPlane, m_farPlane);
+
+		updateCameraMatrices();
 	}
 	
 	if (ImGui::Button("Set as Default Camera"))
@@ -142,45 +122,35 @@ bool CameraComponent::cleanUp()
 	return true;
 }
 
-rapidjson::Value CameraComponent::getJSON(rapidjson::Document& domTree)
+void CameraComponent::serialize(IArchive& archive)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::CAMERA), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+	archive.serialize(m_horizontalFov, "HorizontalFOV");
+	archive.serialize(m_nearPlane, "NearPlane");
+	archive.serialize(m_farPlane, "FarPlane");
+	archive.serialize(m_aspectRatio, "AspectRatio");
 
-	componentInfo.AddMember("HorizontalFOV", m_horizontalFov, domTree.GetAllocator());
-	componentInfo.AddMember("NearPlane", m_nearPlane, domTree.GetAllocator());
-	componentInfo.AddMember("FarPlane", m_farPlane, domTree.GetAllocator());
-	componentInfo.AddMember("AspectRatio", m_aspectRatio, domTree.GetAllocator());
-
-	return componentInfo;
+	updateCameraMatrices();
 }
 
-bool CameraComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+void CameraComponent::updateCameraMatrices()
 {
-	if (componentInfo.HasMember("HorizontalFOV")) 
-	{
-		m_horizontalFov = componentInfo["HorizontalFOV"].GetFloat();
-	}
+	Transform* t = m_owner->GetTransform();
 
-	if (componentInfo.HasMember("NearPlane")) 
-	{
-		m_nearPlane = componentInfo["NearPlane"].GetFloat();
-	}
+	m_world = t->getGlobalMatrix();
 
-	if (componentInfo.HasMember("FarPlane")) 
-	{
-		m_farPlane = componentInfo["FarPlane"].GetFloat();
-	}
+	const Vector3 position = m_world.Translation();
 
-	if (componentInfo.HasMember("AspectRatio")) 
-	{
-		m_aspectRatio = componentInfo["AspectRatio"].GetFloat();
-	}
+	const Vector3 forward = t->getForward();
+	const Vector3 up = t->getUp();
+
+	m_view = Matrix::CreateLookAt(position, position + forward, up);
+
+	const float halfHorizontalFovRad = m_horizontalFov * 0.5f * IM_PI / 180.0f;
+	const float verticalFovRad = 2.0f * atan(tan(halfHorizontalFovRad) / m_aspectRatio);
+
+	m_projection = Matrix::CreatePerspectiveFieldOfView(verticalFovRad, m_aspectRatio, m_nearPlane, m_farPlane);
 
 	recalculateFrustum();
-
-	return true;
 }

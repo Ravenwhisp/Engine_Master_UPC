@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ParticleModule.h"
+#include <array>
 
 class Particle;
 
@@ -25,8 +26,7 @@ public:
 	float getFlipRotationLikelihood() const { return m_flipRotationLikelihood; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 
@@ -44,11 +44,11 @@ private:
 
 	bool drawAngularVelocityUI();
 
-	void updateAlivesRotationFixed(Particle* particlePool, const std::vector<std::pair<float, unsigned int>>* aliveParticles, float deltaTime);
-	void updateAlivesRotationWithCurve(Particle* particlePool, const std::vector<std::pair<float, unsigned int>>* aliveParticles, float deltaTime, float startLifeTime);
+	void updateAlivesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime);
+	void updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifeTime);
 
-	void setNewParticlesRotationFixed(Particle* particlePool, const std::vector<unsigned int>& newParticles);
-	void setNewParticlesRotationWithRange(Particle* particlePool, const std::vector<unsigned int>& newParticles);
+	void setNewParticlesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
+	void setNewParticlesRotationWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
 
 
 	float getNormalizedAngle(float angle);

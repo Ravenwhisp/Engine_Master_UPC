@@ -4,6 +4,7 @@
 #include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
 #include "FieldUtils.h"
+#include "JsonArchive.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -116,59 +117,85 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
 
-rapidjson::Value ScriptComponent::getJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+        if (field.type == ScriptFieldType::GroupCollapseEnd)
+        {
+            currentGroupOpen = true;
+            continue;
+        }
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::SCRIPT), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+        if (!currentGroupOpen)
+        {
+            continue;
+        }
 
-    componentInfo.AddMember("ScriptName", rapidjson::Value(m_scriptName.c_str(), domTree.GetAllocator()), domTree.GetAllocator());
+        void* data = base + field.offset;
 
-    rapidjson::Value fieldsJson(rapidjson::kObjectType);
-
-    if (m_script)
-    {
-        serializeScriptFields(*m_script, fieldsJson, domTree);
+        assert(field.handler != nullptr);
+        field.handler->drawUi(field, data, script, *this);
     }
-
-    componentInfo.AddMember("ScriptFields", fieldsJson, domTree.GetAllocator());
-
-    return componentInfo;
 }
 
-void ScriptComponent::serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+void ScriptComponent::serialize(IArchive& archive)
 {
-    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), outFieldsJson, domTree);
+	Component::serialize(archive);
+
+	archive.serialize(m_scriptName, "ScriptName");
+
+	if (archive.mode() == ArchiveMode::Input && !m_scriptName.empty())
+	{
+		destroyScriptInstance();
+		createScriptInstance();
+	}
+
+	if (m_script)
+	{
+		archive.beginObject("ScriptFields");
+		serializeScriptFields(*m_script, archive);
+		archive.endObject();
+
+		if (archive.mode() == ArchiveMode::Input)
+			m_script->onAfterDeserialize();
+	}
 }
 
-bool ScriptComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+void ScriptComponent::serializeScriptFields(Script& script, IArchive& archive)
 {
-    if (componentInfo.HasMember("ScriptName"))
-    {
-        m_scriptName = componentInfo["ScriptName"].GetString();
-    }
+	ScriptFieldList fieldList = script.getExposedFields();
+	char* base = reinterpret_cast<char*>(&script);
 
-    destroyScriptInstance();
+	for (const ScriptFieldInfo& field : fieldList.fields)
+	{
+		if (!field.isDataField())
+			continue;
 
-    if (!m_scriptName.empty())
-    {
-        createScriptInstance();
-    }
+		void* data = base + field.offset;
 
-    if (m_script && componentInfo.HasMember("ScriptFields"))
-    {
-        deserializeScriptFields(*m_script, componentInfo["ScriptFields"]);
-        m_script->onAfterDeserialize();
-    }
-
-    return true;
+		assert(field.handler != nullptr);
+		field.handler->serialize(field, data, archive);
+	}
 }
 
-void ScriptComponent::deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson)
+rapidjson::Value ScriptComponent::serializeScriptFieldsForReload(rapidjson::Document& domTree)
 {
-    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), fieldsJson);
+	if (m_script)
+	{
+		JsonArchive archive(ArchiveMode::Output);
+		serializeScriptFields(*m_script, archive);
+		return archive.extractValue(domTree.GetAllocator());
+	}
+
+	return rapidjson::Value(rapidjson::kObjectType);
+}
+
+void ScriptComponent::deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson)
+{
+	if (!m_script)
+		return;
+
+	JsonArchive archive(ArchiveMode::Input);
+	archive.setValue(fieldsJson);
+	serializeScriptFields(*m_script, archive);
+	m_script->onAfterDeserialize();
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)

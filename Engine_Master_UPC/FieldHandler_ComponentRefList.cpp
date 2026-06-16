@@ -150,44 +150,35 @@ namespace
         ImGui::EndChild();
     }
 
-    void serializeComponentRefListField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeComponentRefListField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const ComponentRefList* componentList = reinterpret_cast<const ComponentRefList*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        rapidjson::Value array(rapidjson::kArrayType);
-
-        for (const ComponentRef<Component>& entry : *componentList)
-        {
-            array.PushBack(static_cast<uint64_t>(entry.uid), domTree.GetAllocator());
-        }
-
-        outFieldsJson.AddMember(key, array, domTree.GetAllocator());
-    }
-
-    void deserializeComponentRefListField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsArray())
-        {
-            return;
-        }
-
         ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
-        componentList->clear();
+        uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(componentList->size()) : 0;
+        archive.beginArray(count, field.name);
 
-        for (rapidjson::SizeType i = 0; i < valueJson.Size(); ++i)
+        if (archive.mode() == ArchiveMode::Input)
         {
-            if (!valueJson[i].IsUint64())
-            {
-                continue;
-            }
-
-            ComponentRef<Component> entry;
-            entry.uid = static_cast<UID>(valueJson[i].GetUint64());
-            entry.component = nullptr;
-
-            componentList->push_back(entry);
+            componentList->clear();
+            componentList->reserve(count);
         }
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            if (archive.mode() == ArchiveMode::Output)
+            {
+                uint64_t uid = static_cast<uint64_t>((*componentList)[i].uid);
+                archive.serialize(uid, "");
+            }
+            else
+            {
+                ScriptComponentRef<Component> entry;
+                archive.serialize(entry.uid, "");
+                entry.component = nullptr;
+                componentList->push_back(std::move(entry));
+            }
+        }
+
+        archive.endArray();
     }
 
     void cloneComponentRefListField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -233,7 +224,7 @@ namespace
         }
     }
 
-    const FieldHandler componentRefListFieldHandler = {&drawComponentRefListFieldUi, &serializeComponentRefListField, &deserializeComponentRefListField, &cloneComponentRefListField, &fixReferencesComponentRefListField};
+    const ScriptFieldHandler componentRefListFieldHandler = {&drawComponentRefListFieldUi, &serializeComponentRefListField, &cloneComponentRefListField, &fixReferencesComponentRefListField};
 }
 
 const FieldHandler* getComponentRefListFieldHandler()

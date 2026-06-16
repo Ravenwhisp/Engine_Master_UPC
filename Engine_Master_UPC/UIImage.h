@@ -15,6 +15,16 @@ public:
         Stretch = 0,
         Tile = 1
     };
+
+    static const char* StretchDrawModeToString(uint32_t v)
+    {
+        return v == 0 ? "Stretch" : "Tile";
+    }
+
+    static uint32_t StringToStretchDrawMode(const char* s)
+    {
+        return std::strcmp(s, "Tile") == 0 ? 1 : 0;
+    }
     UIImage(UID id, GameObject* owner);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
@@ -34,8 +44,8 @@ public:
 
     bool hasTexture() const { return m_texture != nullptr; }
 
-    float getFillAmount() const { return m_fillAmount; }
-    void setFillAmount(float amount) { m_fillAmount = amount; }
+    Vector2 getFillAmount() const { return m_fillAmount; }
+    void setFillAmount(const Vector2& amount) { m_fillAmount = amount; }
 
     FillMethod getFillMethod() const { return m_fillMethod; }
     void setFillMethod(FillMethod method) { m_fillMethod = method; }
@@ -60,8 +70,8 @@ public:
 
     void drawUi() override;
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+    void serialize(IArchive& archive) override;
+    void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
     AssetReference m_textureAssetId{};
@@ -69,7 +79,7 @@ private:
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;
 
-    float m_fillAmount = 1.0f;
+    Vector2 m_fillAmount = { 0.0f, 1.0f };
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
 

@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "NavModifierVolumeComponent.h"
+#include "JsonArchive.h"
 #include "GameObject.h"
 #include "Transform.h"
 
@@ -43,65 +44,25 @@ void NavModifierVolumeComponent::onTransformChange()
 	// useful for dynamic navmesh if we do it
 }
 
-rapidjson::Value NavModifierVolumeComponent::getJSON(rapidjson::Document& domTree)
+
+void NavModifierVolumeComponent::serialize(IArchive& archive)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
+	Component::serialize(archive);
 
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned int(ComponentType::NAVMODIFIER_VOLUME), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+	archive.beginObject("HalfExtents");
+	archive.serialize(m_halfExtents.x, "x");
+	archive.serialize(m_halfExtents.y, "y");
+	archive.serialize(m_halfExtents.z, "z");
+	archive.endObject();
 
-	rapidjson::Value halfExtentsObj(rapidjson::kObjectType);
-	halfExtentsObj.AddMember("x", m_halfExtents.x, domTree.GetAllocator());
-	halfExtentsObj.AddMember("y", m_halfExtents.y, domTree.GetAllocator());
-	halfExtentsObj.AddMember("z", m_halfExtents.z, domTree.GetAllocator());
+	archive.serializeStringEnum(m_areaType, "AreaType", NavAreaTypeToString, StringToNavAreaType);
 
-	componentInfo.AddMember("HalfExtents", halfExtentsObj, domTree.GetAllocator());
-	componentInfo.AddMember("AreaType", unsigned int(m_areaType), domTree.GetAllocator());
-	componentInfo.AddMember("Enabled", m_enabled, domTree.GetAllocator());
-	componentInfo.AddMember("Priority", m_priority, domTree.GetAllocator());
+	archive.serialize(m_enabled, "Enabled");
 
-	return componentInfo;
-}
-
-bool NavModifierVolumeComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-	if (componentInfo.HasMember("HalfExtents") && componentInfo["HalfExtents"].IsObject())
-	{
-		const auto& halfExtents = componentInfo["HalfExtents"];
-
-		if (halfExtents.HasMember("x"))
-		{
-			m_halfExtents.x = halfExtents["x"].GetFloat();
-		}
-
-		if (halfExtents.HasMember("y"))
-		{
-			m_halfExtents.y = halfExtents["y"].GetFloat();
-		}
-
-		if (halfExtents.HasMember("z"))
-		{
-			m_halfExtents.z = halfExtents["z"].GetFloat();
-		}
-	}
-
-	if (componentInfo.HasMember("AreaType"))
-	{
-		m_areaType = static_cast<NavAreaType>(componentInfo["AreaType"].GetUint());
-	}
-
-	if (componentInfo.HasMember("Enabled"))
-	{
-		m_enabled = componentInfo["Enabled"].GetBool();
-	}
-
-	if (componentInfo.HasMember("Priority"))
-	{
-		m_priority = componentInfo["Priority"].GetInt();
-	}
-
-	return true;
+	uint32_t priority = static_cast<uint32_t>(m_priority);
+	archive.serialize(priority, "Priority");
+	if (archive.mode() == ArchiveMode::Input)
+		m_priority = static_cast<int>(priority);
 }
 
 void NavModifierVolumeComponent::debugDraw()

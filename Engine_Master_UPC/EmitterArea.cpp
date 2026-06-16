@@ -1,8 +1,11 @@
 #include "Globals.h"
 #include "EmitterArea.h"
+#include "JsonArchive.h"
 
+#include "Application.h"
 #include "Transform.h"
 #include "EmitterInstance.h"
+#include "ModuleParticleSystem.h"
 #include "ParticleSystemComponent.h"
 #include "GameObject.h"
 
@@ -116,102 +119,20 @@ void EmitterArea::debugDraw(Transform* parent)
 	}
 }
 
-rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
+void EmitterArea::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+    ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::AREA), domTree.GetAllocator());
+    archive.serializeStringEnum(m_shapeType, "ShapeType", AreaTypeToString, StringToAreaType);
 
-	moduleInfo.AddMember("ShapeType", unsigned int(m_shapeType), domTree.GetAllocator());
-
-	moduleInfo.AddMember("Radius", m_radius, domTree.GetAllocator());
-	moduleInfo.AddMember("RadiusThickness", m_radiusThickness, domTree.GetAllocator());
-
-	if (m_shapeType == AreaType::CONE) moduleInfo.AddMember("RadiusScale", m_radiusScale, domTree.GetAllocator());
-
-	return moduleInfo;
-}
-
-bool EmitterArea::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("ShapeType"))
-	{
-		unsigned int shapeUInt = moduleInfo["ShapeType"].GetUint();
-		AreaType shapeType = static_cast<AreaType>(shapeUInt);
-
-		switch (shapeType) {
-		
-		case AreaType::CIRCLE:
-
-			m_shapeType = AreaType::CIRCLE;
-
-			if (moduleInfo.HasMember("Radius")) 
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-
-			break;
-
-		case AreaType::CONE:
-
-			m_shapeType = AreaType::CONE;
-
-			if (moduleInfo.HasMember("Radius"))
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusScale")) // only this one has it
-			{
-				m_radiusScale = moduleInfo["RadiusScale"].GetFloat();
-			}
-
-			break;
-		
-		case AreaType::HEMISPHERE:
-
-			m_shapeType = AreaType::HEMISPHERE;
-
-			if (moduleInfo.HasMember("Radius"))
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-
-			break;
-
-		case AreaType::SPHERE:
-
-			m_shapeType = AreaType::SPHERE;
-
-			if (moduleInfo.HasMember("Radius"))
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-
-		}
-	}
-
-	return true;
+    archive.serialize(m_radius, "Radius");
+    archive.serialize(m_radiusThickness, "RadiusThickness");
+    archive.serialize(m_radiusScale, "RadiusScale");
 }
 
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -271,7 +192,7 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 
 void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -333,7 +254,7 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 
 void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -395,7 +316,7 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 
 void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();

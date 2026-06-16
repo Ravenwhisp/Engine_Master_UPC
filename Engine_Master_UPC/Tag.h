@@ -1,6 +1,6 @@
 #pragma once
 
-#define TAG_LIST \
+#define TAG_LIST(X) \
     X(DEFAULT)   \
     X(PLAYER)    \
     X(ENEMY)     \
@@ -8,10 +8,12 @@
     X(NAVIGATION)\
     X(BREAKABLE)
 
+#define TAG_ENUM(name) name,
+#define TAG_SWITCH(name) case Tag::name: return #name;
+#define TAG_IF(name) if (std::strcmp(s, #name) == 0) return Tag::name;
+
 enum class Tag {
-#define X(name) name,
-    TAG_LIST
-#undef X
+    TAG_LIST(TAG_ENUM)
     COUNT
 };
 
@@ -19,9 +21,7 @@ inline const char* TagToString(Tag tag)
 {
     switch (tag)
     {
-#define X(name) case Tag::name: return #name;
-        TAG_LIST
-#undef X
+        TAG_LIST(TAG_SWITCH)
     default:
         return "Unknown";
     }
@@ -29,8 +29,6 @@ inline const char* TagToString(Tag tag)
 
 inline Tag StringToTag(const char* s)
 {
-#define X(name) if (strcmp(s, #name) == 0) return Tag::name;
-    TAG_LIST
-#undef X
-        return Tag::DEFAULT;
+    TAG_LIST(TAG_IF)
+    return Tag::DEFAULT;
 }

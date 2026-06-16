@@ -1690,6 +1690,74 @@ namespace Debug
     }
 }
 
+namespace CameraAPI
+{
+    CameraComponent* getCameraComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    const CameraComponent* getCameraComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    float getFov(const CameraComponent* camera)
+    {
+        return camera ? camera->getFov() : 0.0f;
+    }
+
+    void setFov(CameraComponent* camera, float fov)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setFov(fov);
+    }
+
+    float getNearPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getNearPlane() : 0.0f;
+    }
+
+    void setNearPlane(CameraComponent* camera, float nearPlane)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setNearPlane(nearPlane);
+    }
+
+    float getFarPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getFarPlane() : 0.0f;
+    }
+
+    void setFarPlane(CameraComponent* camera, float farPlane)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setFarPlane(farPlane);
+    }
+}
+
 namespace NavigationAPI
 {
     bool hasNavMesh()
@@ -2163,7 +2231,7 @@ namespace SliderAPI
             return 0.0f;
         }
 
-        return slider->getFillAmount();
+        return slider->getFillAmount().y;
     }
 
     void setFillAmount(UISlider* slider, const float amount)
@@ -2173,6 +2241,23 @@ namespace SliderAPI
             return;
         }
 
+        Vector2 v = slider->getFillAmount();
+        v.y = amount;
+        slider->setFillAmount(v);
+    }
+
+    Vector2 getFillAmountVec(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+        return slider->getFillAmount();
+    }
+
+    void setFillAmountVec(UISlider* slider, const Vector2& amount)
+    {
+        if (!slider) return;
         slider->setFillAmount(amount);
     }
 
@@ -2286,6 +2371,15 @@ namespace UISheetAPI
         }
         sheet->setOffset(offset);
     }
+
+    void reset(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+		sheet->reset();
+	}
 }
 
 namespace DebugDrawAPI

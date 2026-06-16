@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 #include "UIRect.h"
+#include <cstring>
 
 struct Float2
 {
@@ -16,11 +17,49 @@ enum class StretchMode
     BOTH = 3
 };
 
+inline const char* StretchModeToString(uint32_t v)
+{
+    switch (static_cast<StretchMode>(v))
+    {
+    case StretchMode::NONE:       return "NONE";
+    case StretchMode::HORIZONTAL: return "HORIZONTAL";
+    case StretchMode::VERTICAL:   return "VERTICAL";
+    case StretchMode::BOTH:       return "BOTH";
+    default: return "NONE";
+    }
+}
+
+inline uint32_t StringToStretchMode(const char* s)
+{
+    if (std::strcmp(s, "NONE") == 0)       return 0;
+    if (std::strcmp(s, "HORIZONTAL") == 0) return 1;
+    if (std::strcmp(s, "VERTICAL") == 0)   return 2;
+    if (std::strcmp(s, "BOTH") == 0)       return 3;
+    return 0;
+}
+
 enum class SizingMode
 {
     KEEP_ASPECT_RATIO = 0,
     FIXED_SIZE = 1
 };
+
+inline const char* SizingModeToString(uint32_t v)
+{
+    switch (static_cast<SizingMode>(v))
+    {
+    case SizingMode::KEEP_ASPECT_RATIO: return "KEEP_ASPECT_RATIO";
+    case SizingMode::FIXED_SIZE:        return "FIXED_SIZE";
+    default: return "KEEP_ASPECT_RATIO";
+    }
+}
+
+inline uint32_t StringToSizingMode(const char* s)
+{
+    if (std::strcmp(s, "KEEP_ASPECT_RATIO") == 0) return 0;
+    if (std::strcmp(s, "FIXED_SIZE") == 0)         return 1;
+    return 0;
+}
 
 class Transform2D : public Component
 {
@@ -55,8 +94,7 @@ public:
 
     void drawUi() override;
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentValue) override;
+    void serialize(IArchive& archive) override;
 
 public:
     Float2 position{ 0.0f, 0.0f };

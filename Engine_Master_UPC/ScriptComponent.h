@@ -3,9 +3,11 @@
 #include "Component.h"
 #include <memory>
 #include <string>
+#include <rapidjson/document.h>
 
 class Script;
 class SceneReferenceResolver;
+class IArchive;
 
 class ScriptComponent : public Component
 {
@@ -26,15 +28,16 @@ public:
     void drawUi() override;
     void debugDraw() override;
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+    void serialize(IArchive& archive) override;
     void fixReferences(const SceneReferenceResolver& resolver) override;
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
+    rapidjson::Value serializeScriptFieldsForReload(rapidjson::Document& domTree);
+    void deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson);
+
 private:
     void drawScriptFieldsUi(Script& script);
-    void serializeScriptFields(Script& script, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree);
-    void deserializeScriptFields(Script& script, const rapidjson::Value& fieldsJson);
+    void serializeScriptFields(Script& script, IArchive& archive);
     void cloneScriptFields(const Script& source, Script& target);
 
     std::unique_ptr<Script> m_script;

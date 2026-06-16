@@ -7,6 +7,8 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+#include "SoundBanksData.h"
+#include "SceneReferenceResolver.h"
 #include "UID.h"
 
 struct ID3D12GraphicsCommandList;
@@ -60,6 +62,8 @@ private:
 
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();
+
+    void fixReferencesFor(const std::vector<GameObject*>& gos);
     //
 
 public:
@@ -67,6 +71,9 @@ public:
 
     Scene(AssetReference& uid);
     ~Scene();
+
+    void serialize(IArchive& archive) override;
+    void FixReferences();
 
 #pragma region GameLoop
 
@@ -116,6 +123,8 @@ public:
 
     const std::vector<GameObject*> getAllGameObjects() const;
     bool containsGameObject(const GameObject* go) const;
+
+    void fixSceneReferences();
 
     void clearScene();
 
