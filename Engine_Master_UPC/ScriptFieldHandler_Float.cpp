@@ -6,7 +6,7 @@
 #include "Script.h"
 #include "ScriptComponent.h"
 #include "SceneReferenceResolver.h"
-
+#include "IArchive.h"
 namespace
 {
     void drawFloatFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
