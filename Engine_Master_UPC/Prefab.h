@@ -111,9 +111,11 @@ private:
 
     void serializeChildren(IArchive& archive, GameObject* parent)
     {
+        uint32_t childCount = 0;
+
         if (archive.mode() == ArchiveMode::Output)
         {
-            uint32_t childCount = static_cast<uint32_t>(parent->GetTransform()->getAllChildren().size());
+            childCount = static_cast<uint32_t>(parent->GetTransform()->getAllChildren().size());
             archive.beginArray(childCount, "Children");
             for (uint32_t i = 0; i < childCount; ++i)
             {
@@ -127,19 +129,21 @@ private:
         }
         else
         {
-            uint32_t childCount = 0;
             archive.beginArray(childCount, "Children");
-            for (uint32_t i = 0; i < childCount; ++i)
+            if (childCount > 0)
             {
-                archive.beginObject();
-                auto childGo = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
-                GameObject* rawChild = childGo.get();
-                rawChild->GetTransform()->setRoot(parent->GetTransform());
-                parent->GetTransform()->addChild(rawChild);
-                m_ownedChildren.push_back(std::move(childGo));
-                rawChild->serialize(archive);
-                serializeChildren(archive, rawChild);
-                archive.endObject();
+                for (uint32_t i = 0; i < childCount; ++i)
+                {
+                    archive.beginObject();
+                    auto childGo = std::make_unique<GameObject>(GenerateUID(), GenerateUID());
+                    GameObject* rawChild = childGo.get();
+                    rawChild->GetTransform()->setRoot(parent->GetTransform());
+                    parent->GetTransform()->addChild(rawChild);
+                    m_ownedChildren.push_back(std::move(childGo));
+                    rawChild->serialize(archive);
+                    serializeChildren(archive, rawChild);
+                    archive.endObject();
+                }
             }
             archive.endArray();
         }

@@ -130,11 +130,6 @@ void ModuleScene::rebuildComponentCaches()
 
     m_scene->clearDirty();
 
-    DEBUG_LOG("[ModuleScene] Cache rebuild: %zu GOs, %zu MeshRenderers, %zu Lights, %zu Scripts",
-              m_scene->getAllGameObjects().size(),
-              m_meshRenderers.size(),
-              m_lightComponents.size(),
-              m_scriptComponents.size());
 }
 
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()

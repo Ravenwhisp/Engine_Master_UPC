@@ -40,9 +40,13 @@ bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst
         return false;
     }
 
-    archive.beginObject("GameObject");
+    uint32_t version = 0;
+    archive.serialize(version, "Version");
+
+    std::string variantOf;
+    archive.serialize(variantOf, "VariantOf");
+
     dst->serialize(archive);
-    archive.endObject();
     dst->m_sourcePath = path;
 
     dst->init();
