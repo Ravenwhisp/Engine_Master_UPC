@@ -2,6 +2,7 @@
 #include <d3d12.h>
 #include "SimpleMath.h"
 #include "RenderViewType.h"
+#include "ShadowTypes.h"
 
 class RingBuffer;
 struct UITextCommand;
@@ -27,5 +28,7 @@ struct RenderContext
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
 
-    RenderSurface& renderSurface;
+    RenderSurface& renderSurface = nullptr;
+    const ShadowFrameData* shadowData = nullptr;
+
 };

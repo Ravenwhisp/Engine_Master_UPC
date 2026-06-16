@@ -10,7 +10,6 @@
 
 class Scene;
 class Quadtree;
-class SceneSerializer;
 class SceneSnapshot;
 
 class GameObject;
@@ -32,7 +31,6 @@ private:
     std::unique_ptr<Quadtree> m_staticQuadtree;
     std::unique_ptr<Quadtree> m_dynamicQuadtree;
 
-    std::unique_ptr<SceneSerializer> m_sceneSerializer;
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
 

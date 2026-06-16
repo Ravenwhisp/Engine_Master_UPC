@@ -145,6 +145,26 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
+Texture* ModuleResources::createShadowMap(uint32_t size)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R32_TYPELESS;
+	desc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
+	desc.width = size;
+	desc.height = size;
+	desc.views = TextureView::DSV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true;
+
+	Texture* shadowMap = new Texture(GenerateUID(), *m_device.Get(), desc);
+	shadowMap->setName(L"ShadowMap");
+
+	return shadowMap;
+}
+
 Texture* ModuleResources::createRenderTexture(float width, float height)
 {
 	TextureDesc desc{};
@@ -689,11 +709,9 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 
 	if (auto cached = m_resources.getAs<Texture>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Texture libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Texture libId=%s", libId.c_str());
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, shaderVisible));
 	m_resources.insert(libId, texture);
 	return texture;
@@ -729,11 +747,9 @@ std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsse
 
 	if (auto cached = m_resources.getAs<BasicMesh>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Mesh libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Mesh libId=%s", libId.c_str());
 	auto mesh = std::make_shared<BasicMesh>(meshAsset.getUID(), meshAsset);
 	m_resources.insert(libId, mesh);
 	return mesh;
@@ -745,11 +761,9 @@ std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(MaterialAsset& ma
 
 	if (auto cached = m_resources.getAs<BasicMaterial>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Material libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Material libId=%s", libId.c_str());
 	auto material = std::make_shared<BasicMaterial>(materialAsset.getUID(), materialAsset);
 	m_resources.insert(libId, material);
 	return material;

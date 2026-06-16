@@ -26,8 +26,7 @@ public:
 	float getFlipRotationLikelihood() const { return m_flipRotationLikelihood; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 

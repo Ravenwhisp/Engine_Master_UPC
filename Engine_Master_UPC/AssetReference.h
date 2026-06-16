@@ -2,6 +2,9 @@
 #include "UID.h"
 #include <MD5.h>
 #include "AssetType.h"
+#include "IArchive.h"
+
+class ISerializable;
 
 struct AssetReference {
 
@@ -29,5 +32,7 @@ struct AssetReference {
 
     rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const;
     bool deserializeJson(const rapidjson::Value& obj);
+
+    void serialize(IArchive& archive);
 
 };

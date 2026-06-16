@@ -6,7 +6,7 @@
 class BinaryWriter 
 {
 public:
-    BinaryWriter(uint8_t* buffer) : cursor(buffer) {}
+    BinaryWriter(uint8_t* buffer) : start(buffer), cursor(buffer) {}
 
     void u8(uint8_t v) 
     {
@@ -38,6 +38,12 @@ public:
         bytes(s.data(), s.size());
     }
 
+    size_t offset() const
+    {
+        return cursor - start;
+    }
+
 private:
+    uint8_t* start;
     uint8_t* cursor;
 };

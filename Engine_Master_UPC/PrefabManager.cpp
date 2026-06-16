@@ -5,22 +5,39 @@
 #include "ModuleAssets.h"
 #include "ModuleScene.h"
 
-#include "PrefabAsset.h"
+#include "Prefab.h"
 #include "AssetReference.h"
-#include "PrefabSerializer.h"
 
 #include "UID.h"
 #include "Scene.h"
 #include "GameObject.h"
+#include "PrefabInstanceComponent.h"
 #include "Component.h"
 #include "Transform.h"
+#include "JsonArchive.h"
 
 #include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include <FileIO.h>
 #include <filesystem>
 #include <string>
 
 using namespace rapidjson;
 namespace fs = std::filesystem;
+
+namespace {
+
+PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
+{
+    auto* comp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!comp)
+        comp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+    return comp;
+}
+
+} // anonymous namespace
 
 PrefabManager::PrefabManager(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
 {
@@ -28,83 +45,63 @@ PrefabManager::PrefabManager(ModuleAssets* moduleAssets) : m_moduleAssets(module
 
 PrefabManager::~PrefabManager() = default;
 
-bool PrefabManager::savePrefab(GameObject* go, const fs::path& savePath)
-{
-    if (!go || savePath.empty()) return false;
-
-    Document doc;
-    const std::string json = PrefabSerializer::buildPrefabJSON(go, savePath);
-    doc.Parse(json.c_str());
-    if (!PrefabSerializer::writeDocument(doc, savePath)) return false;
-
-    go->GetPrefabInfo().m_sourcePath = savePath;
-
-    // Evict stale cached version, then reimport.
-    const UID existingUID = m_moduleAssets->findUID(savePath);
-    if (isValidUID(existingUID))
-    {
-        m_moduleAssets->unload(AssetReference(existingUID));
-    }
-
-    AssetReference ref(existingUID);
-    m_moduleAssets->importAsset(savePath, ref);
-
-    if (auto asset = m_moduleAssets->load<PrefabAsset>(ref))
-    {
-        asset->getData().m_json = json;
-    }
-
-    return true;
-}
-
 bool PrefabManager::applyPrefab(const GameObject* go)
 {
-    const PrefabInstanceInfo& info = go->GetPrefabInfo();
-    if (!info.isInstance()) return false;
+    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!preComp || !preComp->isInstance()) return false;
 
-    if (!savePrefab(const_cast<GameObject*>(go), info.m_sourcePath))
+    const fs::path& prefabPath = preComp->getData().m_sourcePath;
+
+    const UID existingUID = m_moduleAssets->getIndex().findUID(prefabPath);
+    AssetReference ref;
+    Prefab tempPrefab(ref);
+    tempPrefab.setUID(isValidUID(existingUID) ? existingUID : GenerateUID());
+    tempPrefab.buildFrom(const_cast<GameObject*>(go));
+    tempPrefab.m_sourcePath = prefabPath;
+
+    if (!m_moduleAssets->save(tempPrefab, prefabPath))
         return false;
+
+    auto* goPreComp = const_cast<GameObject*>(go)->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (goPreComp)
+    {
+        goPreComp->getData().m_sourcePath = prefabPath;
+        const UID assetUID = m_moduleAssets->getIndex().findUID(prefabPath);
+        if (isValidUID(assetUID))
+            goPreComp->getData().m_assetUID = assetUID;
+    }
+
+    if (isValidUID(existingUID))
+        m_moduleAssets->unload(AssetReference(existingUID));
 
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene) return true;
 
-    const fs::path& prefabPath = info.m_sourcePath;
     for (GameObject* instance : scene->getAllGameObjects())
     {
-        if (!instance)                                              continue;
-        if (!instance->GetPrefabInfo().isInstance())               continue;
-        if (instance->GetPrefabInfo().m_sourcePath != prefabPath)  continue;
-        if (instance == go)                                         continue;
-        revertPrefab(instance, scene);
+        if (!instance || instance == go) continue;
+        auto* instComp = instance->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+        if (instComp && instComp->getData().m_sourcePath == prefabPath)
+            revertPrefab(instance, scene);
     }
 
+    scene->FixReferences();
     scene->markDirty();
     return true;
 }
 
 bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
 {
-    PrefabInstanceInfo& info = go->GetPrefabInfo();
-    if (!info.isInstance()) return false;
+    auto* preComp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (!preComp || !preComp->isInstance()) return false;
 
+    const PrefabInstanceInfo& info = preComp->getData();
+
+    auto raw = FileIO::read(info.m_sourcePath);
     Document doc;
-    bool loaded = false;
-
-    if (isValidUID(info.m_assetUID))
-    {
-        AssetReference ref(info.m_assetUID);
-        auto asset = m_moduleAssets->load<PrefabAsset>(ref);
-        if (asset && !asset->getJSON().empty())
-        {
-            doc.Parse(asset->getJSON().c_str());
-            loaded = !doc.HasParseError() && doc.HasMember("GameObject");
-        }
-    }
-    if (!loaded)
-    {
-        loaded = PrefabSerializer::loadDocument(info.m_sourcePath, doc);
-    }
-    if (!loaded) return false;
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (raw.empty() || doc.HasParseError() || !doc.HasMember("GameObject"))
+        return false;
 
     const Value& goNode = doc["GameObject"];
     const PrefabOverrideRecord savedOverrides = info.m_overrides;
@@ -121,43 +118,92 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
         auto isOverridden = [&](const char* prop)
             { return overrideSet && overrideSet->count(prop) > 0; };
 
-        if (!isOverridden("position") && tfNode.HasMember("position") && tfNode["position"].IsArray())
+        auto readMember = [&](const char* lower, const char* upper) -> const Value*
         {
-            const auto& p = tfNode["position"];
-            tf->setPosition(Vector3(p[0].GetFloat(), p[1].GetFloat(), p[2].GetFloat()));
+            if (tfNode.HasMember(upper)) return &tfNode[upper];
+            if (tfNode.HasMember(lower)) return &tfNode[lower];
+            return nullptr;
+        };
+        if (!isOverridden("position"))
+        {
+            if (const Value* v = readMember("position", "Position"))
+            {
+                if (v->IsArray() && v->Size() >= 3)
+                    tf->setPosition(Vector3((*v)[0].GetFloat(), (*v)[1].GetFloat(), (*v)[2].GetFloat()));
+            }
         }
-        if (!isOverridden("rotation") && tfNode.HasMember("rotation") && tfNode["rotation"].IsArray())
+        if (!isOverridden("rotation"))
         {
-            const auto& r = tfNode["rotation"];
-            tf->setRotation(Quaternion(r[0].GetFloat(), r[1].GetFloat(), r[2].GetFloat(), r[3].GetFloat()));
+            if (const Value* v = readMember("rotation", "Rotation"))
+            {
+                if (v->IsArray() && v->Size() >= 4)
+                    tf->setRotation(Quaternion((*v)[0].GetFloat(), (*v)[1].GetFloat(), (*v)[2].GetFloat(), (*v)[3].GetFloat()));
+            }
         }
-        if (!isOverridden("scale") && tfNode.HasMember("scale") && tfNode["scale"].IsArray())
+        if (!isOverridden("scale"))
         {
-            const auto& s = tfNode["scale"];
-            tf->setScale(Vector3(s[0].GetFloat(), s[1].GetFloat(), s[2].GetFloat()));
+            if (const Value* v = readMember("scale", "Scale"))
+            {
+                if (v->IsArray() && v->Size() >= 3)
+                    tf->setScale(Vector3((*v)[0].GetFloat(), (*v)[1].GetFloat(), (*v)[2].GetFloat()));
+            }
         }
         tf->markDirty();
     }
 
-    if (goNode.HasMember("Components") && goNode["Components"].IsArray())
     {
-        for (SizeType i = 0; i < goNode["Components"].Size(); ++i)
-        {
-            const Value& cn = goNode["Components"][i];
-            if (!cn.HasMember("Type") || !cn.HasMember("Data")) continue;
+        uint32_t componentCount = goNode.HasMember("ComponentCount") ? goNode["ComponentCount"].GetUint() : 0;
+        std::vector<ComponentType> fileTypes;
+        fileTypes.reserve(componentCount);
 
-            const int ct = cn["Type"].GetInt();
-            auto oit = savedOverrides.m_modifiedProperties.find(ct);
+        for (uint32_t i = 0; i < componentCount; ++i)
+        {
+            std::string key = "Component_" + std::to_string(i);
+            if (!goNode.HasMember(key.c_str())) continue;
+
+            const Value& cn = goNode[key.c_str()];
+            if (!cn.HasMember("ComponentType")) continue;
+
+            ComponentType ct = static_cast<ComponentType>(cn["ComponentType"].GetInt());
+            fileTypes.push_back(ct);
+
+            auto oit = savedOverrides.m_modifiedProperties.find(static_cast<int>(ct));
             if (oit != savedOverrides.m_modifiedProperties.end()
                 && oit->second.count("properties") > 0)
                 continue;
 
-            Component* comp = go->GetComponent(static_cast<ComponentType>(ct));
-            if (comp) comp->deserializeJSON(cn["Data"]);
+            Component* comp = go->GetComponent(ct);
+            if (!comp && ct != ComponentType::PREFAB_INSTANCE && ct != ComponentType::TRANSFORM)
+                comp = go->AddComponentWithUID(ct, GenerateUID());
+
+            if (comp)
+            {
+                JsonArchive compArchive(ArchiveMode::Input);
+                compArchive.setValue(cn);
+                comp->serialize(compArchive);
+            }
         }
+
+        // Remove components that exist on the GO but are no longer in the prefab file
+        // (skipping Transform, PrefabInstance, and explicitly added overrides)
+        std::vector<Component*> toRemove;
+        for (Component* comp : go->GetAllComponents())
+        {
+            ComponentType ct = comp->getType();
+            if (ct == ComponentType::TRANSFORM || ct == ComponentType::PREFAB_INSTANCE)
+                continue;
+            if (std::find(fileTypes.begin(), fileTypes.end(), ct) == fileTypes.end())
+            {
+                auto oit = savedOverrides.m_modifiedProperties.find(static_cast<int>(ct));
+                if (oit == savedOverrides.m_modifiedProperties.end())
+                    toRemove.push_back(comp);
+            }
+        }
+        for (Component* comp : toRemove)
+            go->RemoveComponent(comp);
     }
 
-    info.m_overrides = savedOverrides;
+    preComp->getData().m_overrides = savedOverrides;
     return true;
 }
 
@@ -165,10 +211,12 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
 {
     if (src.empty() || dst.empty()) return false;
 
+    auto raw = FileIO::read(src);
     Document doc;
-    if (!PrefabSerializer::readDocument(src, doc)) return false;
-    auto& alloc = doc.GetAllocator();
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (raw.empty() || doc.HasParseError()) return false;
 
+    auto& alloc = doc.GetAllocator();
     auto setOrAdd = [&](const char* key, const std::string& value)
         {
             if (doc.HasMember(key))
@@ -180,28 +228,40 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
     setOrAdd("Name", dst.stem().string());
     setOrAdd("VariantOf", src.string());
 
-    return PrefabSerializer::writeDocument(doc, dst);
+    StringBuffer sb;
+    PrettyWriter<StringBuffer> writer(sb);
+    writer.SetIndent(' ', 2);
+    doc.Accept(writer);
+
+    std::error_code ec;
+    fs::create_directories(dst.parent_path(), ec);
+    if (ec) return false;
+
+    FILE* file = fopen(dst.string().c_str(), "wb");
+    if (!file) return false;
+    fwrite(sb.GetString(), 1, sb.GetSize(), file);
+    fclose(file);
+    return true;
 }
 
-GameObject* PrefabManager::spawnPrefab(const PrefabAsset& asset, Scene* scene)
+GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
 {
-    if (!scene || asset.getJSON().empty()) return nullptr;
+    auto clone = prefab.spawnClone();
+    if (!clone) return nullptr;
+    GameObject* go = clone.get();
 
-    Document doc;
-    doc.Parse(asset.getJSON().c_str());
-    if (doc.HasParseError() || !doc.HasMember("GameObject") || !doc["GameObject"].IsObject())
+    auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+    if (preComp)
     {
-        DEBUG_ERROR("[ModuleAssets] Malformed JSON in prefab asset '%s'.", std::to_string(asset.getUID()).c_str());
-        return nullptr;
+        preComp->getData().m_sourcePath = prefab.m_sourcePath;
+        preComp->getData().m_assetUID = prefab.getUID();
     }
 
-    GameObject* go = PrefabSerializer::deserialiseNode(doc["GameObject"], scene, nullptr);
-    if (!go) return nullptr;
-
-    const auto& data = asset.getData();
-    PrefabInstanceInfo& info = go->GetPrefabInfo();
-    info.m_sourcePath = data.m_sourcePath;
-    info.m_assetUID = data.m_assetUID;
+    if (scene)
+    {
+        scene->addGameObject(std::move(clone));
+        go->init();
+    }
 
     return go;
 }
@@ -210,15 +270,46 @@ GameObject* PrefabManager::spawnPrefab(const fs::path& sourcePath, Scene* scene)
 {
     if (!scene || sourcePath.empty()) return nullptr;
 
-    auto asset = m_moduleAssets->loadAtPath<PrefabAsset>(sourcePath);
+    auto asset = m_moduleAssets->loadAtPath<Prefab>(sourcePath);
     if (asset) return spawnPrefab(*asset, scene);
 
+    auto raw = FileIO::read(sourcePath);
     Document doc;
-    if (!PrefabSerializer::loadDocument(sourcePath, doc)) return nullptr;
+    doc.Parse(reinterpret_cast<const char*>(raw.data()));
+    if (raw.empty() || doc.HasParseError() || !doc.HasMember("GameObject")) return nullptr;
 
-    GameObject* go = PrefabSerializer::deserialiseNode(doc["GameObject"], scene, nullptr);
+    const Value& goNode = doc["GameObject"];
+    const UID savedGoUID = GenerateUID();
+    const UID savedTransformUID = GenerateUID();
+    GameObject* go = scene->createGameObjectWithUID(savedGoUID, savedTransformUID);
     if (!go) return nullptr;
 
-    go->GetPrefabInfo().m_sourcePath = sourcePath;
+    JsonArchive goArchive(ArchiveMode::Input);
+    goArchive.setValue(goNode);
+    go->serialize(goArchive);
+
+    go->SetUID(savedGoUID);
+    go->GetTransform()->setUID(savedTransformUID);
+
+    if (goNode.HasMember("PrefabLink") && goNode["PrefabLink"].IsObject())
+    {
+        const Value& pl = goNode["PrefabLink"];
+        auto* preComp = static_cast<PrefabInstanceComponent*>(
+            go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        if (preComp)
+        {
+            auto& data = preComp->getData();
+            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                data.m_sourcePath = pl["SourcePath"].GetString();
+            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                data.m_assetUID = pl["AssetUID"].GetUint64();
+        }
+    }
+
+    auto* preComp = getOrCreatePrefabComponent(go);
+    if (preComp)
+        preComp->getData().m_sourcePath = sourcePath;
+
+    go->init();
     return go;
 }

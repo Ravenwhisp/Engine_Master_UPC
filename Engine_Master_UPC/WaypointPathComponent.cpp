@@ -1,6 +1,8 @@
 #include "Globals.h"
 
 #include "WaypointPathComponent.h"
+#include "JsonArchive.h"
+
 #include "GameObject.h"
 #include "Transform.h"
 #include "Application.h"
@@ -83,48 +85,19 @@ void WaypointPathComponent::drawWaypoints()
 	}
 }
 
-rapidjson::Value WaypointPathComponent::getJSON(rapidjson::Document& domTree)
+void WaypointPathComponent::serialize(IArchive& archive)
 {
-	rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-	componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-	componentInfo.AddMember("ComponentType", unsigned(ComponentType::WAYPOINT_PATH), domTree.GetAllocator());
-	componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    uint32_t count = static_cast<uint32_t>(m_waypoints.size());
+    archive.beginArray(count, "Waypoints");
+    if (archive.mode() == ArchiveMode::Input)
+        m_waypoints.resize(count);
 
-	rapidjson::Value arr(rapidjson::kArrayType);
+    for (auto& wp : m_waypoints)
+    {
+        archive.serialize(wp);
+    }
 
-	for (auto& p : m_waypoints)
-	{
-		rapidjson::Value v(rapidjson::kArrayType);
-
-		v.PushBack(p.x, domTree.GetAllocator());
-		v.PushBack(p.y, domTree.GetAllocator());
-		v.PushBack(p.z, domTree.GetAllocator());
-
-		arr.PushBack(v, domTree.GetAllocator());
-	}
-
-	componentInfo.AddMember("Waypoints", arr, domTree.GetAllocator());
-
-	return componentInfo;
-}
-
-bool WaypointPathComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-	if (componentInfo.HasMember("Waypoints"))
-	{
-		const auto& arr = componentInfo["Waypoints"];
-
-		for (auto& v : arr.GetArray())
-		{
-			Vector3 p(
-				v[0].GetFloat(),
-				v[1].GetFloat(),
-				v[2].GetFloat());
-
-			addWaypoint(p);
-		}
-	}
-
-	return true;
+    archive.endArray();
 }

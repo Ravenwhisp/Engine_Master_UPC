@@ -9,6 +9,13 @@ rapidjson::Value AssetReference::getJson(rapidjson::Document::AllocatorType& all
     return obj;
 }
 
+void AssetReference::serialize(IArchive& archive)
+{
+    archive.serialize(m_uid, "uid");
+    archive.serialize(m_libId, "libId");
+    archive.serializeStringEnum(m_type, "type", AssetTypeToString, StringToAssetType);
+}
+
 bool AssetReference::deserializeJson(const rapidjson::Value& obj)
 {
     if (!obj.IsObject())

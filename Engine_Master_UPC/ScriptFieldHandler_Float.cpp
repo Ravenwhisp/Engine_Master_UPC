@@ -6,7 +6,7 @@
 #include "Script.h"
 #include "ScriptComponent.h"
 #include "SceneReferenceResolver.h"
-
+#include "IArchive.h"
 namespace
 {
     void drawFloatFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)
@@ -19,23 +19,10 @@ namespace
         }
     }
 
-    void serializeFloatField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeFloatField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const float* value = reinterpret_cast<const float*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
-    }
-
-    void deserializeFloatField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsNumber())
-        {
-            return;
-        }
-
         float* value = reinterpret_cast<float*>(data);
-        *value = valueJson.GetFloat();
+        archive.serialize(*value, field.name);
     }
 
     void cloneFloatField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
@@ -47,7 +34,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &deserializeFloatField, &cloneFloatField, &fixReferencesFloatField};
+    const ScriptFieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &cloneFloatField, &fixReferencesFloatField};
 }
 
 const ScriptFieldHandler* getFloatFieldHandler()

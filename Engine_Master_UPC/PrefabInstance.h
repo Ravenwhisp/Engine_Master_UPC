@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "MD5Fwd.h"
+#include "UID.h"
 
 struct PrefabOverrideRecord
 {

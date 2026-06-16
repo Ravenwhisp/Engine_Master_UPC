@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "Transform2D.h"
+#include "JsonArchive.h"
 
 #include <imgui.h> 
 
@@ -311,135 +312,74 @@ void Transform2D::drawAnchorPresetsUI()
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Bottom Right");
 }
 
-rapidjson::Value Transform2D::getJSON(rapidjson::Document& domTree)
+void Transform2D::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::TRANSFORM2D), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    Component::serialize(archive);
 
     {
-        rapidjson::Value positionData(rapidjson::kArrayType);
-        positionData.PushBack(position.x, domTree.GetAllocator());
-        positionData.PushBack(position.y, domTree.GetAllocator());
-        componentInfo.AddMember("Position", positionData, domTree.GetAllocator());
-    }
-
-    {
-        rapidjson::Value scaleData(rapidjson::kArrayType);
-        scaleData.PushBack(scale.x, domTree.GetAllocator());
-        scaleData.PushBack(scale.y, domTree.GetAllocator());
-        componentInfo.AddMember("Scale", scaleData, domTree.GetAllocator());
+        DirectX::SimpleMath::Vector3 pos(position.x, position.y, 0.0f);
+        archive.serialize(pos, "Position");
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            position.x = pos.x;
+            position.y = pos.y;
+        }
     }
 
     {
-        rapidjson::Value pivotData(rapidjson::kArrayType);
-        pivotData.PushBack(pivot.x, domTree.GetAllocator());
-        pivotData.PushBack(pivot.y, domTree.GetAllocator());
-        componentInfo.AddMember("Pivot", pivotData, domTree.GetAllocator());
+        DirectX::SimpleMath::Vector3 s(scale.x, scale.y, 0.0f);
+        archive.serialize(s, "Scale");
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            scale.x = s.x;
+            scale.y = s.y;
+        }
     }
 
     {
-        rapidjson::Value anchorMinData(rapidjson::kArrayType);
-        anchorMinData.PushBack(anchorMin.x, domTree.GetAllocator());
-        anchorMinData.PushBack(anchorMin.y, domTree.GetAllocator());
-        componentInfo.AddMember("AnchorMin", anchorMinData, domTree.GetAllocator());
+        DirectX::SimpleMath::Vector3 piv(pivot.x, pivot.y, 0.0f);
+        archive.serialize(piv, "Pivot");
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            pivot.x = piv.x;
+            pivot.y = piv.y;
+        }
     }
 
     {
-        rapidjson::Value anchorMaxData(rapidjson::kArrayType);
-        anchorMaxData.PushBack(anchorMax.x, domTree.GetAllocator());
-        anchorMaxData.PushBack(anchorMax.y, domTree.GetAllocator());
-        componentInfo.AddMember("AnchorMax", anchorMaxData, domTree.GetAllocator());
-    }
-    
-    {
-        rapidjson::Value baseSizeData(rapidjson::kArrayType);
-        baseSizeData.PushBack(baseSize.x, domTree.GetAllocator());
-        baseSizeData.PushBack(baseSize.y, domTree.GetAllocator());
-        componentInfo.AddMember("BaseSize", baseSizeData, domTree.GetAllocator());
-    }
-    
-    componentInfo.AddMember("StretchMode", static_cast<int>(stretchMode), domTree.GetAllocator());
-    componentInfo.AddMember("SizingMode", static_cast<int>(sizingMode), domTree.GetAllocator());
-    componentInfo.AddMember("AspectRatio", aspectRatio, domTree.GetAllocator());
-    componentInfo.AddMember("Alpha", alpha, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool Transform2D::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("Position"))
-    {
-        position.x = componentInfo["Position"][0].GetFloat();
-        position.y = componentInfo["Position"][1].GetFloat();     
+        DirectX::SimpleMath::Vector3 aMin(anchorMin.x, anchorMin.y, 0.0f);
+        archive.serialize(aMin, "AnchorMin");
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            anchorMin.x = aMin.x;
+            anchorMin.y = aMin.y;
+        }
     }
 
-    if (componentInfo.HasMember("Scale"))
     {
-        scale.x = componentInfo["Scale"][0].GetFloat();
-        scale.y = componentInfo["Scale"][1].GetFloat();
-    }
-    else if (componentInfo.HasMember("Size"))
-    {
-        scale.x = componentInfo["Size"][0].GetFloat() / baseSize.x;
-        scale.y = componentInfo["Size"][1].GetFloat() / baseSize.y;
-    }
-
-    if (componentInfo.HasMember("Pivot"))
-    {
-        pivot.x = componentInfo["Pivot"][0].GetFloat();
-        pivot.y = componentInfo["Pivot"][1].GetFloat();
+        DirectX::SimpleMath::Vector3 aMax(anchorMax.x, anchorMax.y, 0.0f);
+        archive.serialize(aMax, "AnchorMax");
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            anchorMax.x = aMax.x;
+            anchorMax.y = aMax.y;
+        }
     }
 
-    if (componentInfo.HasMember("AnchorMin"))
     {
-        anchorMin.x = componentInfo["AnchorMin"][0].GetFloat();
-        anchorMin.y = componentInfo["AnchorMin"][1].GetFloat();
+        DirectX::SimpleMath::Vector3 bSize(baseSize.x, baseSize.y, 0.0f);
+        archive.serialize(bSize, "BaseSize");
+        if (archive.mode() == ArchiveMode::Input)
+        {
+            baseSize.x = bSize.x;
+            baseSize.y = bSize.y;
+        }
     }
 
-    if (componentInfo.HasMember("AnchorMax"))
-    {
-        anchorMax.x = componentInfo["AnchorMax"][0].GetFloat();
-        anchorMax.y = componentInfo["AnchorMax"][1].GetFloat();
-    }
-    
-    if (componentInfo.HasMember("BaseSize"))
-    {
-        baseSize.x = componentInfo["BaseSize"][0].GetFloat();
-        baseSize.y = componentInfo["BaseSize"][1].GetFloat();
-    }
-    
-    if (componentInfo.HasMember("StretchMode"))
-    {
-        stretchMode = static_cast<StretchMode>(componentInfo["StretchMode"].GetInt());
-    }
-    
-    if (componentInfo.HasMember("SizingMode"))
-    {
-        int loadedMode = componentInfo["SizingMode"].GetInt();
-        sizingMode = static_cast<SizingMode>(loadedMode);
-    }
-    else
-    {
-        sizingMode = SizingMode::KEEP_ASPECT_RATIO;
-    }
-    
-    if (componentInfo.HasMember("AspectRatio"))
-    {
-        aspectRatio = componentInfo["AspectRatio"].GetFloat();
-    }
+    archive.serializeStringEnum(stretchMode, "StretchMode", StretchModeToString, StringToStretchMode);
 
-    if (componentInfo.HasMember("Alpha"))
-    {
-        alpha = componentInfo["Alpha"].GetFloat();
-    }
-    else
-    {
-        alpha = 1.0f;
-    }
+    archive.serializeStringEnum(sizingMode, "SizingMode", SizingModeToString, StringToSizingMode);
 
-    return true;
+    archive.serialize(aspectRatio, "AspectRatio");
+    archive.serialize(alpha, "Alpha");
 }
