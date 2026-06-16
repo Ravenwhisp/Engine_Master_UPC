@@ -1,10 +1,9 @@
 #pragma once
 
-#include "IArchive.h"
-
 class Script;
 class ScriptComponent;
 class SceneReferenceResolver;
+class IArchive;
 
 struct ScriptFieldInfo;
 

@@ -5,7 +5,6 @@
 #include "Layer.h"
 #include "ComponentType.h"
 #include "ISerializable.h"
-#include "IArchive.h"
 
 #include <filesystem>
 #include <vector>
@@ -17,6 +16,7 @@ class Component;
 class ModelComponent;
 class Transform;
 class SceneSnapshot;
+class IArchive;
 
 class GameObject : public ISerializable
 {

@@ -2,7 +2,7 @@
 
 #include "ScriptFieldHandlerRegistry.h"
 #include "Script.h"
-
+#include "IArchive.h"
 namespace
 {
     void drawStringFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent&)

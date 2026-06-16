@@ -2,6 +2,7 @@
 
 #include "ScriptFieldHandlerRegistry.h"
 #include "Script.h"
+#include "IArchive.h"
 
 namespace
 {
