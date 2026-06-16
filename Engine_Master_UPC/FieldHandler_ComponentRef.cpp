@@ -76,7 +76,7 @@ namespace
         }
     }
 
-    void serializeComponentRefField(const FieldHandler& field, void* data, IArchive& archive)
+    void serializeComponentRefField(const FieldInfo& field, void* data, IArchive& archive)
     {
         ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
         archive.serialize(componentReference->uid, field.name);

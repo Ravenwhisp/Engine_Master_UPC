@@ -9,13 +9,9 @@
 #include <typeinfo>
 #include <cstring>
 
-class ImporterDataContainer;
-
 class ENGINE_API DataContainer : public Asset, public IFieldContainer
 {
 public:
-	friend class ImporterDataContainer;
-
 	DataContainer() = default;
 	explicit DataContainer(AssetReference& id)
 		: Asset(id, AssetType::DATA_CONTAINER)
@@ -23,8 +19,7 @@ public:
 		m_data.SetObject();
 	}
 
-	virtual rapidjson::Value getJson(rapidjson::Document::AllocatorType& allocator) const;
-	virtual bool deserializeJson(const rapidjson::Value& obj);
+	void serialize(IArchive& archive) override;
 
 	virtual void syncFromData() {}
 	void drawUI() override;

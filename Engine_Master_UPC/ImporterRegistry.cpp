@@ -14,6 +14,8 @@
 #include "AnimationAsset.h"
 #include "SkinAsset.h"
 #include "AnimationStateMachineAsset.h"
+#include "DataContainer.h"
+#include "Extensions.h"
 
 ImporterRegistry::ImporterRegistry()
 {
@@ -38,6 +40,7 @@ ImporterRegistry::ImporterRegistry()
 
     m_importers.push_back(std::make_unique<ImporterFont>());
     m_importers.push_back(std::make_unique<ImporterNative<Scene, AssetType::SCENE>>(std::initializer_list<const char*>{SCENE_EXTENSION}));
+    m_importers.push_back(std::make_unique<ImporterNative<DataContainer, AssetType::DATA_CONTAINER>>(std::initializer_list<const char*>{DATA_CONTAINER_EXTENSION}));
 }
 
 ImporterRegistry::~ImporterRegistry() = default;

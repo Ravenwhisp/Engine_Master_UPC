@@ -59,6 +59,11 @@ public:
 		return m_registry;
 	}
 
+	static void clear()
+	{
+		m_registry.clear();
+	}
+
 private:
 	static inline std::vector<Entry> m_registry;
 };

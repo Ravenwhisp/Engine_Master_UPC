@@ -18,23 +18,10 @@ namespace
         }
     }
 
-    void serializeFloatField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeFloatField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        const float* value = reinterpret_cast<const float*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
-    }
-
-    void deserializeFloatField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsNumber())
-        {
-            return;
-        }
-
         float* value = reinterpret_cast<float*>(data);
-        *value = valueJson.GetFloat();
+        archive.serialize(*value, field.name);
     }
 
     void cloneFloatField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -46,7 +33,7 @@ namespace
     {
     }
 
-    const FieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &deserializeFloatField, &cloneFloatField, &fixReferencesFloatField};
+    const FieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &cloneFloatField, &fixReferencesFloatField};
 }
 
 const FieldHandler* getFloatFieldHandler()

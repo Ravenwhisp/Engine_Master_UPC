@@ -2,7 +2,7 @@
 
 #include "FieldHandlerRegistry.h"
 #include "IFieldContainer.h"
-
+#include "IArchive.h"
 namespace
 {
     void drawGroupLabelUi(const FieldInfo& field, void*, IFieldContainer&)
@@ -11,7 +11,7 @@ namespace
         ImGui::SeparatorText(field.name);
     }
 
-    void serializeGroupLabel(const FieldInfo&, const void*, rapidjson::Value&, rapidjson::Document&)
+    void serializeGroupLabel(const FieldInfo&, const void*, IArchive& archive)
     {
     }
 
@@ -27,7 +27,7 @@ namespace
     {
     }
 
-    const FieldHandler groupLabelFieldHandler = {&drawGroupLabelUi, &serializeGroupLabel, &deserializeGroupLabel, &cloneGroupLabel, &fixReferencesGroupLabel};
+    const FieldHandler groupLabelFieldHandler = {&drawGroupLabelUi, &serializeGroupLabel, &cloneGroupLabel, &fixReferencesGroupLabel};
 }
 
 const FieldHandler* getGroupLabelFieldHandler()

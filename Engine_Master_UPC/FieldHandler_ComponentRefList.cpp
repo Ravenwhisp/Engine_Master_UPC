@@ -150,7 +150,7 @@ namespace
         ImGui::EndChild();
     }
 
-    void serializeComponentRefListField(const FieldHandler& field, void* data, IArchive& archive)
+    void serializeComponentRefListField(const FieldInfo& field, void* data, IArchive& archive)
     {
         ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
         uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(componentList->size()) : 0;

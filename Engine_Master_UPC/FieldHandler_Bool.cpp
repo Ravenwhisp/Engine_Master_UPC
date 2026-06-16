@@ -15,23 +15,10 @@ namespace
         }
     }
 
-    void serializeBoolField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeBoolField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        const bool* value = reinterpret_cast<const bool*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
-    }
-
-    void deserializeBoolField(const FieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsBool())
-        {
-            return;
-        }
-
         bool* value = reinterpret_cast<bool*>(data);
-        *value = valueJson.GetBool();
+        archive.serialize(*value, field.name);
     }
 
     void cloneBoolField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -43,7 +30,7 @@ namespace
     {
     }
 
-    const FieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &deserializeBoolField, &cloneBoolField, &fixReferencesBoolField};
+    const FieldHandler boolFieldHandler = { &drawBoolFieldUi, &serializeBoolField, &cloneBoolField, &fixReferencesBoolField};
 }
 
 const FieldHandler* getBoolFieldHandler()

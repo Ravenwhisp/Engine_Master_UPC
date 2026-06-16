@@ -35,7 +35,7 @@ namespace FieldUtils
         }
     }
 
-    void serialize(const IFieldContainer& container, const char* base, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serialize(const IFieldContainer& container, const char* base, IArchive& archive)
     {
         FieldList fieldList = container.getExposedFields();
 
@@ -46,26 +46,7 @@ namespace FieldUtils
 
             const void* data = base + field.offset;
             assert(field.handler != nullptr);
-            field.handler->serialize(field, data, outFieldsJson, domTree);
-        }
-    }
-
-    void deserialize(IFieldContainer& container, char* base, const rapidjson::Value& fieldsJson)
-    {
-        FieldList fieldList = container.getExposedFields();
-
-        for (const FieldInfo& field : fieldList.fields)
-        {
-            if (!field.isDataField())
-                continue;
-
-            if (!fieldsJson.HasMember(field.name))
-                continue;
-
-            void* data = base + field.offset;
-            const rapidjson::Value& valueJson = fieldsJson[field.name];
-            assert(field.handler != nullptr);
-            field.handler->deserialize(field, data, valueJson);
+            field.handler->serialize(field, data, archive);
         }
     }
 

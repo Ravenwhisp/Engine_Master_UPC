@@ -444,6 +444,9 @@ DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContain
         return nullptr;
     }
 
-    derived->deserializeJson(data);
+    derived->getDataMutable().CopyFrom(data, derived->getDataMutable().GetAllocator());
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(data);
+    derived->serialize(archive);
     return derived.release();
 }

@@ -977,9 +977,6 @@
     <ClInclude Include="ImporterMaterial.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
-    <ClInclude Include="ImporterDataContainer.h">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClInclude>
     <ClInclude Include="MeshAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
