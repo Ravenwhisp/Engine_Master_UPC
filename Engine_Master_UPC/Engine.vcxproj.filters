@@ -249,9 +249,6 @@
     <ClCompile Include="FontPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="MeshRendererPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClCompile>
     <ClCompile Include="SkyBoxPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -266,12 +263,6 @@
     </ClCompile>
     <ClCompile Include="ImporterFont.cpp">
       <Filter>Persistence\Importers\External</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterMesh.cpp">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterMaterial.cpp">
-      <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
     <ClCompile Include="ImporterGltf.cpp">
       <Filter>Persistence\Importers\External\Gltf</Filter>
@@ -327,9 +318,6 @@
     <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterAnimation.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
     <ClCompile Include="AnimationComponent.cpp">
       <Filter>Animations</Filter>
     </ClCompile>
@@ -338,12 +326,6 @@
     </ClCompile>
     <ClCompile Include="SkinningComputePass.cpp">
       <Filter>Animations</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterAnimationStateMachine.cpp">
-      <Filter>Persistence\Importers</Filter>
-    </ClCompile>
-    <ClCompile Include="ImporterSkin.cpp">
-      <Filter>Persistence\Importers</Filter>
     </ClCompile>
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
       <Filter>Core\Commands</Filter>
@@ -459,9 +441,6 @@
     <ClCompile Include="FileDialog.cpp">
       <Filter>Editor\Views</Filter>
     </ClCompile>
-    <ClCompile Include="ImporterScene.cpp">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClCompile>
     <ClCompile Include="AssetReference.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
@@ -495,7 +474,6 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -543,7 +521,6 @@
     <ClCompile Include="EquirectangularPass.cpp">
       <Filter>D3D12\Rendering\IBL</Filter>
     </ClCompile>
-
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>
@@ -611,6 +588,7 @@
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="JsonArchive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -687,7 +665,6 @@
     <ClCompile Include="CommandPasteFile.cpp" />
     <ClCompile Include="CommandRemoveGameObject.cpp" />
     <ClCompile Include="CommandRenameGameObject.cpp" />
-    <ClCompile Include="PrefabSerializer.cpp" />
     <ClCompile Include="RenderSurface.cpp" />
     <ClCompile Include="CommandReparent.cpp" />
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
@@ -753,7 +730,6 @@
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
     <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
@@ -832,16 +808,10 @@
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
-    <ClInclude Include="ImporterAnimation.h" />
-    <ClInclude Include="ImporterAnimationStateMachine.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
-    <ClInclude Include="ImporterMaterial.h" />
-    <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
-    <ClInclude Include="ImporterScene.h" />
-    <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="LightingPass.h" />
@@ -864,7 +834,6 @@
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="CommandReparent.h" />
@@ -890,7 +859,6 @@
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="SkyBoxSettings.h" />
-    <ClInclude Include="PrefabAsset.h" />
     <ClInclude Include="StagingDescriptorheap.h" />
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="StaticTexturesPass.h" />
@@ -969,7 +937,6 @@
     <ClInclude Include="SceneConfig.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h" />
     <ClInclude Include="ModuleNavigation.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -1112,9 +1079,6 @@
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="IRenderPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshRendererPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="SkyBoxPass.h">
@@ -1599,6 +1563,44 @@
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
     <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="CommandCreateGameObject.h" />
+    <ClInclude Include="ModuleD3D12.h" />
+    <ClInclude Include="debug_draw.hpp" />
+    <ClInclude Include="DescriptorHeap.h" />
+    <ClInclude Include="ModuleDescriptors.h" />
+    <ClInclude Include="ModuleEditor.h" />
+    <ClInclude Include="EditorWindow.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="DeferredShadingPass.h" />
+    <ClInclude Include="GamePad.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="WindowHierarchy.h" />
+    <ClInclude Include="ImGuiPass.h" />
+    <ClInclude Include="IndexBuffer.h" />
+    <ClInclude Include="WindowInspector.h" />
+    <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="BasicMaterial.h" />
+    <ClInclude Include="BasicMesh.h" />
+    <ClInclude Include="Module.h" />
+    <ClInclude Include="ModuleInput.h" />
+    <ClInclude Include="Mouse.h" />
+    <ClInclude Include="PlatformHelpers.h" />
+    <ClInclude Include="ReadData.h" />
+    <ClInclude Include="ModuleRender.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Resources.h" />
+    <ClInclude Include="ModuleResources.h" />
+    <ClInclude Include="RingBuffer.h" />
+    <ClInclude Include="WindowSceneEditor.h" />
+    <ClInclude Include="ScriptComponent.h" />
+    <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="ModuleTime.h" />
+    <ClInclude Include="UtilityGLFT.h" />
+    <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Timer.h" />
+    <ClInclude Include="VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
@@ -1833,6 +1835,9 @@
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
     <None Include="EngineAPI.inl" />
+    <None Include="PBRGeneral.hlsli" />
+    <None Include="GeometryCBuffers.hlsli" />
+    <None Include="SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1892,5 +1897,11 @@
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="GBufferPS.hlsl" />
+    <FxCompile Include="GBufferVS.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Engine.ico" />
+    <Image Include="small.ico" />
   </ItemGroup>
 </Project>

@@ -28,7 +28,7 @@ struct RenderContext
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
 
-    RenderSurface& renderSurface = nullptr;
+    RenderSurface& renderSurface;
     const ShadowFrameData* shadowData = nullptr;
 
 };

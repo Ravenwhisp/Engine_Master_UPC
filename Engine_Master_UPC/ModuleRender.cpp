@@ -380,7 +380,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
     {
         PERF_RENDER("ModuleRender::renderScene::Background");
-        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+        renderBackground(commandList, outputSurface);
     }
 
 
