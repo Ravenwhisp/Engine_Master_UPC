@@ -24,18 +24,18 @@ VSOutput main(VSInput IN)
     
 
     // World position (gModel is pre-transposed: pos * M == mul(pos, M) in HLSL)
-    OUT.worldPos = 0.0;/*mul(float4(IN.position, 1.0f), gModel).xyz;*/
+    OUT.worldPos = mul(float4(IN.position, 1.0f), gModel).xyz;
 
     // Clip position via pre-transposed MVP
-    OUT.clipPos      = 0.0;/*mul(float4(IN.position, 1.0f), gMVP);*/
+    OUT.clipPos      = mul(float4(IN.position, 1.0f), gMVP);
 
     // World normal (gNormalMat = inverse-transpose world, pre-transposed)
-    OUT.normal = 0.0;/*normalize(mul(IN.normal, (float3x3) gNormalMat));*/
+    OUT.normal = normalize(mul(IN.normal, (float3x3) gNormalMat));
     
     // World tangent (gNormalMat = inverse-transpose world, pre-transposed)
-    OUT.tangent = 0.0;/*normalize(mul(IN.tangent, (float3x3) gNormalMat));*/
+    OUT.tangent = normalize(mul(IN.tangent, (float3x3) gNormalMat));
     
-    OUT.texCoord     = 0.0;/*IN.texCoord;*/
+    OUT.texCoord     = IN.texCoord;
     
     return OUT;
 }

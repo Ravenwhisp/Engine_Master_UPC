@@ -31,8 +31,6 @@ struct PSOutput
 
 PSOutput main(VSOutput IN)
 {
-    discard;
-    
     PSOutput OUT;
     
     
@@ -64,7 +62,7 @@ PSOutput main(VSOutput IN)
     {
         float4 texSampleM = metallicRoughnessTex.Sample(linearWrapSample, IN.texCoord);
     
-        metallic = saturate((1 - texSampleM.b) * gMaterial.metallicFactor);
+        metallic = saturate((texSampleM.b) * gMaterial.metallicFactor);
         ao = texSampleM.r;
         alphaRoughness = 1 - clamp(texSampleM.g, minRoughness, 1.0);
     }

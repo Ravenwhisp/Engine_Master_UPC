@@ -183,7 +183,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
     m_trianglesCount = 0;
     m_meshCount = 0;
 
-    PERF_RENDER("MeshRendererPass::renderMesh");
+    //PERF_RENDER("MeshRendererPass::renderMesh");
 
     // DEBUG_LOG("Se va a pintar la malla %d", i);
     {

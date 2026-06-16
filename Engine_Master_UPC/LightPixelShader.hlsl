@@ -163,8 +163,8 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     
     
     //Read emissive
-    //float3 emissive = emissiveTex.Sample(linearWrapSample, coord);
-    float3 emissive = 0;
+    float3 emissive = emissiveTex.Sample(linearWrapSample, coord);
+    //float3 emissive = 0;
     
     
     
