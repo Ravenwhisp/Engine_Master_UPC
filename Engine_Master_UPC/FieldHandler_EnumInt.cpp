@@ -35,7 +35,7 @@ namespace
         }
     }
 
-    void serializeEnumIntField(const ScriptFieldInfo& field, void* data, IArchive& archive)
+    void serializeEnumIntField(const FieldInfo& field, void* data, IArchive& archive)
     {
         int* value = reinterpret_cast<int*>(data);
         uint32_t v = static_cast<uint32_t>(*value);
@@ -53,7 +53,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler enumIntFieldHandler = {&drawEnumIntFieldUi, &serializeEnumIntField, &cloneEnumIntField, &fixReferencesEnumIntField};
+    const FieldHandler enumIntFieldHandler = {&drawEnumIntFieldUi, &serializeEnumIntField, &cloneEnumIntField, &fixReferencesEnumIntField};
 }
 
 const FieldHandler* getEnumIntFieldHandler()

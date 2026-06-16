@@ -16,6 +16,7 @@ class PrefabManager;
 struct DependencyRecord;
 struct ScanFileResult;
 struct Metadata;
+class DataContainer;
 
 class ModuleAssets : public Module
 {
@@ -67,6 +68,7 @@ public:
     void refresh();
 
 private:
+    DataContainer* resolveDataContainerType(DataContainer* baseContainer) const;
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
 
     AssetIndex                           m_index;

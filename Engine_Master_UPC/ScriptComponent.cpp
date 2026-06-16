@@ -117,23 +117,6 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
 
-        if (field.type == ScriptFieldType::GroupCollapseEnd)
-        {
-            currentGroupOpen = true;
-            continue;
-        }
-
-        if (!currentGroupOpen)
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-
-        assert(field.handler != nullptr);
-        field.handler->drawUi(field, data, script, *this);
-    }
-}
 
 void ScriptComponent::serialize(IArchive& archive)
 {
@@ -160,10 +143,10 @@ void ScriptComponent::serialize(IArchive& archive)
 
 void ScriptComponent::serializeScriptFields(Script& script, IArchive& archive)
 {
-	ScriptFieldList fieldList = script.getExposedFields();
+	FieldList fieldList = script.getExposedFields();
 	char* base = reinterpret_cast<char*>(&script);
 
-	for (const ScriptFieldInfo& field : fieldList.fields)
+	for (const FieldInfo& field : fieldList.fields)
 	{
 		if (!field.isDataField())
 			continue;

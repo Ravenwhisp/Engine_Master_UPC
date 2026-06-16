@@ -15,7 +15,7 @@ namespace
         }
     }
 
-    void serializeVec3Field(const ScriptFieldInfo& field, void* data, IArchive& archive)
+    void serializeVec3Field(const FieldInfo& field, void* data, IArchive& archive)
     {
         Vector3* value = reinterpret_cast<Vector3*>(data);
         DirectX::SimpleMath::Vector3 v(value->x, value->y, value->z);
@@ -35,7 +35,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
+    const FieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
 }
 
 const FieldHandler* getVec3FieldHandler()

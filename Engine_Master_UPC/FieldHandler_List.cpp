@@ -46,7 +46,7 @@ namespace
     }
 
     template<>
-    void elementSerialize<ScriptComponentRef<Component>>(ScriptComponentRef<Component>& elem, IArchive& archive)
+    void elementSerialize<ComponentRef<Component>>(ComponentRef<Component>& elem, IArchive& archive)
     {
         archive.serialize(elem.uid, "");
         if (archive.mode() == ArchiveMode::Input)
@@ -117,7 +117,7 @@ namespace
     }
 
     template<typename T>
-    void serializeListField(const ScriptFieldInfo& field, void* data, IArchive& archive)
+    void serializeListField(const FieldInfo& field, void* data, IArchive& archive)
     {
         auto* vec = reinterpret_cast<std::vector<T>*>(data);
         uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(vec->size()) : 0;
@@ -223,7 +223,7 @@ namespace
         &fixReferencesListField<int>
     };
 
-    const ScriptFieldHandler componentRefListHandler = {
+    const FieldHandler componentRefListHandler = {
         &drawListFieldUi<ComponentRef<Component>>,
         &serializeListField<ComponentRef<Component>>,
         &cloneListField<ComponentRef<Component>>,

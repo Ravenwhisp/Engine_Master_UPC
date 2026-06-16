@@ -2,7 +2,7 @@
 #include "ScriptLibraryLoader.h"
 
 #include "PdbPatcher.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 
 #include <cstdio>
 #include <filesystem>

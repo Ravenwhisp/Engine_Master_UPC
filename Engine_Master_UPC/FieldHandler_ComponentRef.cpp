@@ -76,7 +76,7 @@ namespace
         }
     }
 
-    void serializeComponentRefField(const ScriptFieldInfo& field, void* data, IArchive& archive)
+    void serializeComponentRefField(const FieldHandler& field, void* data, IArchive& archive)
     {
         ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
         archive.serialize(componentReference->uid, field.name);
@@ -117,7 +117,7 @@ namespace
         }
     }
 
-    const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
+    const FieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
 }
 
 const FieldHandler* getComponentRefFieldHandler()

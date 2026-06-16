@@ -9,10 +9,9 @@
 #pragma warning(push)
 #pragma warning(disable: 4251)
 
-class ENGINE_API Asset
 class IArchive;
 
-class Asset : public ISerializable
+class ENGINE_API Asset : public ISerializable
 {
 public:
     Asset() = default;

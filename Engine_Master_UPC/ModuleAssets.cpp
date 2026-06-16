@@ -20,11 +20,13 @@
 #include "Asset.h"
 #include "AnimationStateMachineAsset.h"
 #include "JsonArchive.h"
+#include "DataContainer.h"
 #include "Metadata.h"
 #include "UID.h"
 
 #include <filesystem>
 #include <FileIO.h>
+
 
 namespace fs = std::filesystem;
 

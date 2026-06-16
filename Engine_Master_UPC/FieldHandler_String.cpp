@@ -20,7 +20,7 @@ namespace
         }
     }
 
-    void serializeStringField(const ScriptFieldInfo& field, void* data, IArchive& archive)
+    void serializeStringField(const FieldInfo& field, void* data, IArchive& archive)
     {
         std::string* value = reinterpret_cast<std::string*>(data);
         archive.serialize(*value, field.name);
@@ -35,7 +35,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler stringFieldHandler = {&drawStringFieldUi, &serializeStringField, &cloneStringField, &fixReferencesStringField};
+    const FieldHandler stringFieldHandler = {&drawStringFieldUi, &serializeStringField, &cloneStringField, &fixReferencesStringField};
 }
 
 const FieldHandler* getStringFieldHandler()
