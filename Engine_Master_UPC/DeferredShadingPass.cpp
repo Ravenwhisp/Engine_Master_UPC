@@ -43,14 +43,15 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[7] = {};
-    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
+    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
+    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange;
 
     gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GeometryPass::GBUFFER_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
     prefilteredRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
     brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+    shadowMapRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
 
     rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL); // camera pos
     rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // lights
@@ -59,6 +60,9 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     rootParameters[4].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[5].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[6].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+    rootParameters[7].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[8].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
@@ -181,6 +185,12 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(5, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
 
     commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_shadowMapSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootConstantBufferView(7, m_shadowCBAddress);
+        commandList->SetGraphicsRootDescriptorTable(8, m_shadowMapSRV);
+    }
 
     commandList->DrawInstanced(3, 1, 0, 0);
 
