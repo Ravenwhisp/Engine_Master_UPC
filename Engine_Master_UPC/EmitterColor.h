@@ -22,8 +22,7 @@ public:
 	const Vector4& getEndColor() const { return m_endColor; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 

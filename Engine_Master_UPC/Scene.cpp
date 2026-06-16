@@ -19,6 +19,8 @@
 #include "Transform.h"
 #include "SceneReferenceResolver.h"
 
+#include "IArchive.h"
+
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
 
@@ -279,8 +281,25 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
-    m_allObjects.push_back(std::move(gameObject));
+    std::vector<std::unique_ptr<GameObject>> all;
+    all.push_back(std::move(gameObject));
+
+    for (size_t i = 0; i < all.size(); ++i)
+        for (auto& child : all[i]->releaseChildren())
+            all.push_back(std::move(child));
+
+    for (auto& go : all)
+    {
+        GameObject* raw = go.get();
+        m_allObjects.push_back(std::move(go));
+        if (raw->GetTransform()->getRoot() == nullptr)
+            m_rootObjects.push_back(raw);
+    }
+
     markDirty();
+
+    auto allGOs = getAllGameObjects();
+    fixReferencesFor(allGOs);
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
@@ -421,7 +440,16 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
     for (const auto& obj : m_allObjects)
     {
+        if (obj->GetTransform()->getRoot() != nullptr)
+            continue;
+
         result.push_back(obj.get());
+
+        for (size_t j = result.size() - 1; j < result.size(); ++j)
+        {
+            for (GameObject* child : result[j]->GetTransform()->getAllChildren())
+                result.push_back(child);
+        }
     }
 
     return result;
@@ -597,3 +625,139 @@ void Scene::unloadSoundBanks()
     app->getModuleMusic()->unloadAllBanks();
 }
 #pragma endregion
+
+void Scene::serialize(IArchive& archive)
+{
+    archive.serialize(m_name, "name");
+
+    archive.beginObject("Lighting");
+    m_lighting.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("SkyBox");
+    m_skybox.serialize(archive);
+    archive.endObject();
+
+    {
+        SoundBanksData soundData;
+        if (archive.mode() == ArchiveMode::Output)
+            soundData.banks = m_loadedBanks;
+        archive.beginObject("SoundBanks");
+        soundData.serialize(archive);
+        archive.endObject();
+        if (archive.mode() == ArchiveMode::Input)
+            m_loadedBanks = std::move(soundData.banks);
+    }
+
+    uint64_t defaultCameraUid = 0;
+    if (archive.mode() == ArchiveMode::Output && m_defaultCamera)
+    {
+        GameObject* owner = m_defaultCamera->getOwner();
+        defaultCameraUid = (uint64_t)owner->GetID();
+    }
+    archive.serialize(defaultCameraUid, "defaultCameraUid");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        uint32_t goCount = 0;
+        archive.beginArray(goCount, "GameObjects");
+
+        struct GoMeta { uint64_t uid; uint64_t transformUid; uint64_t parentUid; };
+        std::vector<GoMeta> goMeta;
+        goMeta.reserve(goCount);
+        std::vector<GameObject*> gos;
+        gos.reserve(goCount);
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            archive.beginObject();
+
+            uint64_t uid = 0, transformUid = 0, parentUid = 0;
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+            archive.serialize(parentUid, "parentUid");
+
+            GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid);
+            go->serialize(archive);
+
+            goMeta.push_back({uid, transformUid, parentUid});
+            gos.push_back(go);
+
+            archive.endObject();
+        }
+        archive.endArray();
+
+        for (size_t i = 0; i < gos.size(); ++i)
+        {
+            if (goMeta[i].parentUid == 0) continue;
+
+            GameObject* child = gos[i];
+            GameObject* parent = findGameObjectByUID((UID)goMeta[i].parentUid);
+            if (parent)
+            {
+                child->GetTransform()->setRoot(parent->GetTransform());
+                parent->GetTransform()->addChild(child);
+                removeFromRootList(child);
+            }
+        }
+
+        if (defaultCameraUid != 0)
+        {
+            GameObject* go = findGameObjectByUID((UID)defaultCameraUid);
+            if (go)
+            {
+                auto* cam = go->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+                setDefaultCamera(cam);
+            }
+        }
+    }
+    else
+    {
+        auto allGOs = getAllGameObjects();
+        uint32_t goCount = static_cast<uint32_t>(allGOs.size());
+        archive.beginArray(goCount, "GameObjects");
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            GameObject* go = allGOs[i];
+            archive.beginObject();
+
+            uint64_t uid = go->GetID();
+            uint64_t transformUid = go->GetTransform()->getID();
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+
+            Transform* parentTransform = go->GetTransform()->getRoot();
+            uint64_t parentUid = parentTransform ? (uint64_t)parentTransform->getOwner()->GetID() : 0;
+            archive.serialize(parentUid, "parentUid");
+
+            go->serialize(archive);
+
+            archive.endObject();
+        }
+        archive.endArray();
+    }
+}
+
+void Scene::FixReferences()
+{
+    fixReferencesFor(getAllGameObjects());
+}
+
+void Scene::fixReferencesFor(const std::vector<GameObject*>& gos)
+{
+    SceneReferenceResolver resolver;
+
+    for (GameObject* obj : gos)
+    {
+        resolver.registerGameObject(obj, obj);
+        for (Component* c : obj->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+    }
+
+    for (GameObject* obj : gos)
+    {
+        for (Component* c : obj->GetAllComponents())
+            c->fixReferences(resolver);
+    }
+}

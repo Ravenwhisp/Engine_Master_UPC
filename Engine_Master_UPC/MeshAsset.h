@@ -15,7 +15,6 @@ struct Submesh
 class MeshAsset : public Asset
 {
 public:
-    friend class ImporterMesh;
     friend class ImporterGltf;
 
 	MeshAsset() {}
@@ -41,6 +40,8 @@ public:
     Vector3 getBoundsExtents() const { return boundsExtents; }
 
     void drawUI() override;
+
+    void serialize(IArchive& archive) override;
 
 protected:
     std::vector<Vertex> vertices;

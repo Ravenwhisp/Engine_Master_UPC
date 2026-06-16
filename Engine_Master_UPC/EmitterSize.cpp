@@ -82,108 +82,49 @@ bool EmitterSize::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterSize::getJSON(rapidjson::Document& domTree)
+void EmitterSize::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+	ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::SIZE), domTree.GetAllocator());
-
-	moduleInfo.AddMember("StartScaleType", unsigned int(m_startScaleType), domTree.GetAllocator());
+	archive.serializeStringEnum(m_startScaleType, "StartScaleType", ParameterTypeToString, StringToParameterType);
 
 	{
-		rapidjson::Value scaleData(rapidjson::kArrayType);
-
-		scaleData.PushBack(m_startScale.x, domTree.GetAllocator());
-		scaleData.PushBack(m_startScale.y, domTree.GetAllocator());
-
-		moduleInfo.AddMember("StartScale", scaleData, domTree.GetAllocator());
+		DirectX::SimpleMath::Vector3 v(m_startScale.x, m_startScale.y, 0.0f);
+		archive.serialize(v, "StartScale");
+		if (archive.mode() == ArchiveMode::Input)
+		{
+			m_startScale.x = v.x;
+			m_startScale.y = v.y;
+		}
 	}
 
-	if (m_startScaleType != ParameterType::CONSTANT) 
+	if (m_startScaleType != ParameterType::CONSTANT)
 	{
 		{
-			rapidjson::Value scaleData(rapidjson::kArrayType);
-
-			scaleData.PushBack(m_startScale2.x, domTree.GetAllocator());
-			scaleData.PushBack(m_startScale2.y, domTree.GetAllocator());
-
-			moduleInfo.AddMember("StartScale2", scaleData, domTree.GetAllocator());
+			DirectX::SimpleMath::Vector3 v(m_startScale2.x, m_startScale2.y, 0.0f);
+			archive.serialize(v, "StartScale2");
+			if (archive.mode() == ArchiveMode::Input)
+			{
+				m_startScale2.x = v.x;
+				m_startScale2.y = v.y;
+			}
 		}
-
-		// Curve parameters when we enable curve type will go here...
 	}
 
-	moduleInfo.AddMember("ChangeSizeOverTime", m_changeSizeOverTime, domTree.GetAllocator());
+	archive.serialize(m_changeSizeOverTime, "ChangeSizeOverTime");
 
 	if (m_changeSizeOverTime)
 	{
-		rapidjson::Value scaleData(rapidjson::kArrayType);
-
-		scaleData.PushBack(m_endScale.x, domTree.GetAllocator());
-		scaleData.PushBack(m_endScale.y, domTree.GetAllocator());
-
-		moduleInfo.AddMember("EndScale", scaleData, domTree.GetAllocator());
-	}
-
-	return moduleInfo;
-}
-
-bool EmitterSize::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartScale"))
-	{
-		const auto& scale = moduleInfo["StartScale"].GetArray();
-		m_startScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-	}
-
-	if (moduleInfo.HasMember("StartScaleType")) // for versions that support choose random between 2 values start scale (curves later)
-	{
-		unsigned int scaleTypeUInt = moduleInfo["StartScaleType"].GetUint();
-		ParameterType scaleType = static_cast<ParameterType>(scaleTypeUInt);
-
-		switch (scaleType) {
-
-		case ParameterType::CONSTANT:
-
-			m_startScaleType = ParameterType::CONSTANT;
-
-			break;
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_startScaleType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("StartScale2"))
-			{
-				const auto& scale = moduleInfo["StartScale2"].GetArray();
-				m_startScale2 = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-			}
-
-			break;
-
-			// (We would add curve case here)
-		
-		}
-	}
-
-	if (moduleInfo.HasMember("ChangeSizeOverTime")) 
-	{
-		m_changeSizeOverTime = moduleInfo["ChangeSizeOverTime"].GetBool();
-
-		if (m_changeSizeOverTime && moduleInfo.HasMember("EndScale")) 
 		{
-			const auto& scale = moduleInfo["EndScale"].GetArray();
-			m_endScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
+			DirectX::SimpleMath::Vector3 v(m_endScale.x, m_endScale.y, 0.0f);
+			archive.serialize(v, "EndScale");
+			if (archive.mode() == ArchiveMode::Input)
+			{
+				m_endScale.x = v.x;
+				m_endScale.y = v.y;
+			}
 		}
-
-	} 
-	else if (moduleInfo.HasMember("EndScale")) // compatibility case
-	{
-		const auto& scale = moduleInfo["EndScale"].GetArray();
-		m_endScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
 	}
-
-	return true;
 }
 
 bool EmitterSize::drawStartScaleUI()

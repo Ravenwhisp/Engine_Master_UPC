@@ -11,11 +11,7 @@ namespace
         ImGui::SeparatorText(field.name);
     }
 
-    void serializeGroupLabel(const ScriptFieldInfo&, const void*, rapidjson::Value&, rapidjson::Document&)
-    {
-    }
-
-    void deserializeGroupLabel(const ScriptFieldInfo&, void*, const rapidjson::Value&)
+    void serializeGroupLabel(const ScriptFieldInfo&, void*, IArchive&)
     {
     }
 
@@ -27,7 +23,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler groupLabelFieldHandler = {&drawGroupLabelUi, &serializeGroupLabel, &deserializeGroupLabel, &cloneGroupLabel, &fixReferencesGroupLabel};
+    const ScriptFieldHandler groupLabelFieldHandler = {&drawGroupLabelUi, &serializeGroupLabel, &cloneGroupLabel, &fixReferencesGroupLabel};
 }
 
 const ScriptFieldHandler* getGroupLabelFieldHandler()

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-class ModuleAssets;
+class AssetIndex;
 
 struct AssetEntry
 {
@@ -32,16 +32,11 @@ struct DirectoryEntry
 
 class ContentRegistry
 {
-
-private:
-    ModuleAssets* m_moduleAssets = nullptr;
-    std::unique_ptr<DirectoryEntry> m_root;
-
 public:
-    ContentRegistry(ModuleAssets* m_moduleAssets);
+    ContentRegistry();
 
-    void rebuild(const std::filesystem::path& rootPath);
-    void registerAsset(const std::filesystem::path& sourcePath);
+    void rebuild(const std::filesystem::path& rootPath, const AssetIndex* index);
+    void registerAsset(const std::filesystem::path& sourcePath, const AssetIndex* index);
 
     void unregisterAsset(const std::filesystem::path& sourcePath);
 
@@ -49,9 +44,16 @@ public:
     DirectoryEntry* getDirectory(const std::filesystem::path& path) const;
 
 private:
-    std::unique_ptr<DirectoryEntry> buildDirectory(const std::filesystem::path& path, DirectoryEntry* parent) const;
+    std::unique_ptr<DirectoryEntry> buildDirectory(const std::filesystem::path& path,
+                                                    DirectoryEntry* parent,
+                                                    const AssetIndex* index) const;
 
-    void addAsset(DirectoryEntry& directory, const std::filesystem::path& metaPath) const;
+    void addAsset(DirectoryEntry& directory, const std::filesystem::path& metaPath,
+                  const AssetIndex* index) const;
 
-    DirectoryEntry* findDirectoryRecursive(DirectoryEntry* directory, const std::filesystem::path& path) const;
+    DirectoryEntry* findDirectoryRecursive(DirectoryEntry* directory,
+                                            const std::filesystem::path& path) const;
+
+private:
+    std::unique_ptr<DirectoryEntry> m_root;
 };
