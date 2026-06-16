@@ -148,6 +148,19 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
             app->getModuleD3D12()->getCurrentFrame());
     }
 
+    m_hasShadowData = ctx.shadowData != nullptr;
+
+    if (m_hasShadowData)
+    {
+        m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
+        m_shadowMapSRV = ctx.shadowData->shadowMapSRV;
+    }
+    else
+    {
+        m_shadowCBAddress = 0;
+        m_shadowMapSRV = {};
+    }
+
     m_renderSurface = &ctx.renderSurface;
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
