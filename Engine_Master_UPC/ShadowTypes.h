@@ -5,6 +5,7 @@
 #include "SimpleMath.h"
 
 using Matrix = DirectX::SimpleMath::Matrix;
+using Vector2 = DirectX::SimpleMath::Vector2;
 
 struct ShadowDataCB
 {
@@ -14,6 +15,11 @@ struct ShadowDataCB
     float shadowStrength = 1.0f;
     uint32_t shadowsEnabled = 0;
     float padding = 0.0f;
+
+    //PCF
+    Vector2 shadowMapTexelSize = Vector2::Zero;
+    uint32_t pcfEnabled = 0;
+    uint32_t pcfRadius = 1;
 };
 
 struct ShadowFrameData
