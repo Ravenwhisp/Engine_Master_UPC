@@ -24,7 +24,8 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(BarrierEnemyDamageable, EnemyDamageable,
     SERIALIZED_BOOL(m_shadowExecutionBreaksBarriers, "Shadow Execution Breaks Barriers"),
     SERIALIZED_STRING(m_barrierPrefabPath, "Barrier UI Prefab Path"),
     SERIALIZED_FLOAT(m_minPos, "Barrier Min Pos (0% HP)", -1000.0f, 1000.0f, 1.0f),
-    SERIALIZED_FLOAT(m_maxPos, "Barrier Max Pos (100% HP)", -1000.0f, 1000.0f, 1.0f)
+    SERIALIZED_FLOAT(m_maxPos, "Barrier Max Pos (100% HP)", -1000.0f, 1000.0f, 1.0f),
+    SERIALIZED_FLOAT(m_barrierUIHeight, "Barrier UI Height", -1000.0f, 1000.0f, 1.0f)
 )
 
 BarrierEnemyDamageable::BarrierEnemyDamageable(GameObject* owner)
@@ -97,7 +98,7 @@ void BarrierEnemyDamageable::instantiateBarrierUIs()
         if (transform2D)
         {
             float x = m_maxPos + (1.0f - barrier.hpPercent) * (m_minPos - m_maxPos);
-            Transform2DAPI::setPosition(transform2D, { x, 0.0f });
+            Transform2DAPI::setPosition(transform2D, { x, m_barrierUIHeight });
         }
 
         BarrierUI ui;

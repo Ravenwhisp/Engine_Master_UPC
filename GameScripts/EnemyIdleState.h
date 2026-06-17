@@ -3,7 +3,7 @@
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
 
-class RangedEnemyController;
+class EnemyBaseController;
 class AnimationComponent;
 
 class EnemyIdleState : public StateMachineScript
@@ -18,6 +18,6 @@ public:
     void OnStateExit() override;
 
 private:
-    RangedEnemyController* m_archerController = nullptr;
+    EnemyBaseController* m_controller = nullptr;
     AnimationComponent* m_animation = nullptr;
 };
