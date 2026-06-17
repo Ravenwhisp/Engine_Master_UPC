@@ -7,7 +7,7 @@ class ArthurBossController;
 class ArthurAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
-
+class ArthurUI;
 
 class ArthurChargingSlam : public StateMachineScript
 {
@@ -34,9 +34,6 @@ private:
 
     void goToRecover();
 
-    void setupUI();
-    void updateUI();
-
     // Animations
     void setupAnimationPrepSection();
     void setupAnimationDashSection();
@@ -51,6 +48,7 @@ private:
     ArthurAttackConfig* m_attackConfig = nullptr;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
+    ArthurUI* m_arthurUI = nullptr;
 
     float m_stateTimer = 0.0f;
 
@@ -64,15 +62,6 @@ private:
 
     bool m_hasDamagedFocusDuringDash = false;
     bool m_hasDamagedNonFocusDuringDash = false;
-
-    float m_uiFadeOutTimer = 0.0f;
-    bool m_isFadingUI = false;
-
-    bool m_isPlayingImpactUI = false;
-    float m_impactUITimer = 0.0f;
-
-    bool m_isFadingImpactUI = false;
-    float m_impactUIFadeTimer = 0.0f;
 
     // Animation Timings
     float m_animPrepStartTime = 0.0f;

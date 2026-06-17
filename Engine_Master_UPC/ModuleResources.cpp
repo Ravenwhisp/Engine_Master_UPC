@@ -674,11 +674,9 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 
 	if (auto cached = m_resources.getAs<Texture>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Texture libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Texture libId=%s", libId.c_str());
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, shaderVisible));
 	m_resources.insert(libId, texture);
 	return texture;
@@ -714,11 +712,9 @@ std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsse
 
 	if (auto cached = m_resources.getAs<BasicMesh>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Mesh libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Mesh libId=%s", libId.c_str());
 	auto mesh = std::make_shared<BasicMesh>(meshAsset.getUID(), meshAsset);
 	m_resources.insert(libId, mesh);
 	return mesh;
@@ -730,11 +726,9 @@ std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(MaterialAsset& ma
 
 	if (auto cached = m_resources.getAs<BasicMaterial>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Material libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Material libId=%s", libId.c_str());
 	auto material = std::make_shared<BasicMaterial>(materialAsset.getUID(), materialAsset);
 	m_resources.insert(libId, material);
 	return material;

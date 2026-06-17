@@ -4,20 +4,21 @@
 #include "Tag.h"
 #include "Layer.h"
 #include "ComponentType.h"
-#include "PrefabInstance.h"
+#include "ISerializable.h"
 
+#include <filesystem>
 #include <vector>
 #include <memory>
 #include <string>
 
-#include <rapidjson/document.h>
 
 class Component;
 class ModelComponent;
 class Transform;
 class SceneSnapshot;
+class IArchive;
 
-class GameObject 
+class GameObject : public ISerializable
 {
 public:
 	GameObject(UID newUuid);
@@ -27,6 +28,7 @@ public:
 	
 #pragma region Properties
 	UID GetID() const { return m_uuid; }
+	void SetUID(UID uid) { m_uuid = uid; }
 	const std::string& GetName() const { return m_name; }
 	bool GetActive() const { return m_active; }
 	bool IsActiveInWindowHierarchy() const;
@@ -41,14 +43,6 @@ public:
 	void SetTag(Tag newTag) { m_tag = newTag; }
 #pragma endregion
 
-#pragma region Prefab
-	PrefabInstanceInfo& GetPrefabInfo() { return m_prefabInfo; }
-	const PrefabInstanceInfo& GetPrefabInfo() const { return m_prefabInfo; }
-
-	bool IsPrefabInstance() const { return m_prefabInfo.isInstance(); }
-	void markGameObjectPropertyOverride(const char* propertyName);
-#pragma endregion
-
 #pragma region Components
 	Transform* GetTransform() { return m_transform; }
 	const Transform* GetTransform() const { return m_transform; }
@@ -59,6 +53,10 @@ public:
 	Component* GetComponent(ComponentType type) const;
 	std::vector<Component*> GetAllComponents() const;
 
+	void adoptComponentsFrom(GameObject* source);
+	void adoptChildrenFrom(GameObject* source);
+	std::vector<std::unique_ptr<GameObject>> releaseChildren();
+
 	template<typename T>
 	T* GetComponentAs(ComponentType type) const
 	{
@@ -67,8 +65,7 @@ public:
 #pragma endregion
 
 #pragma region Persistence
-	rapidjson::Value getJSON(rapidjson::Document& domTree);
-	bool deserializeJSON(const rapidjson::Value& gameObjectJson, uint64_t& outParentUid);
+	void serialize(IArchive& archive) override;
 #pragma endregion
 
 #pragma region GameLoop
@@ -84,6 +81,9 @@ public:
 
 	void onTransformChange();
 
+protected:
+	std::vector<std::unique_ptr<GameObject>> m_ownedChildren;
+
 private:
 	UID m_uuid;
 
@@ -92,8 +92,6 @@ private:
 	bool m_isStatic = false;
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
-
-	PrefabInstanceInfo m_prefabInfo;
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;

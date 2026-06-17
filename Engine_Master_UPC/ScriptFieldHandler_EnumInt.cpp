@@ -2,6 +2,7 @@
 
 #include "ScriptFieldHandlerRegistry.h"
 #include "Script.h"
+#include "IArchive.h"
 
 namespace
 {
@@ -35,23 +36,13 @@ namespace
         }
     }
 
-    void serializeEnumIntField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeEnumIntField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const int* value = reinterpret_cast<const int*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
-    }
-
-    void deserializeEnumIntField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsInt())
-        {
-            return;
-        }
-
         int* value = reinterpret_cast<int*>(data);
-        *value = valueJson.GetInt();
+        uint32_t v = static_cast<uint32_t>(*value);
+        archive.serialize(v, field.name);
+        if (archive.mode() == ArchiveMode::Input)
+            *value = static_cast<int>(v);
     }
 
     void cloneEnumIntField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
@@ -63,7 +54,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler enumIntFieldHandler = {&drawEnumIntFieldUi, &serializeEnumIntField, &deserializeEnumIntField, &cloneEnumIntField, &fixReferencesEnumIntField};
+    const ScriptFieldHandler enumIntFieldHandler = {&drawEnumIntFieldUi, &serializeEnumIntField, &cloneEnumIntField, &fixReferencesEnumIntField};
 }
 
 const ScriptFieldHandler* getEnumIntFieldHandler()

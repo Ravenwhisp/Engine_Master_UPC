@@ -2,26 +2,16 @@
 #include "Module.h"
 #include "IDebugDrawable.h"
 #include "NavMeshTypes.h"
+#include "NavMeshBuilder.h"
 
 #include <vector>
+#include <unordered_map>
 #include <string>
 #include <DetourNavMesh.h>
 
 class dtNavMesh;
 class dtNavMeshQuery;
 class Scene;
-
-struct NavMeshSettings
-{
-    float cellSize = 0.2f;
-    float cellHeight = 0.2f;
-
-    float agentHeight = 1.8f;
-    float agentRadius = 0.4f;
-
-    float agentMaxClimb = 0.6f;
-    float agentMaxSlope = 45.0f;
-};
 
 class ModuleNavigation : public Module, public IDebugDrawable
 {
@@ -54,7 +44,7 @@ public:
     void setDrawNavMesh(bool v) { m_drawNavMesh = v; }
     bool getDrawNavMesh() const { return m_drawNavMesh; }
 
-    NavMeshSettings& getSettings() { return m_settings; }
+    NavMeshBuildSettings& getSettings() { return m_settings; }
     bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
 
     void setPathStart(const Vector3& p, NavAgentProfile profile);
@@ -62,13 +52,15 @@ public:
     const std::vector<Vector3>& getDebugPathPoints() const { return m_debugPathPoints; }
     bool hasDebugPath() const { return m_debugPathPoints.size() >= 2; }
     bool findStraightPath(const Vector3& start, const Vector3& end, std::vector<Vector3>& outPath, const Vector3& extents, NavAgentProfile profile) const;
+    bool isSegmentBlockedByRuntimeBlockers(const Vector3& from, const Vector3& to) const;
+    bool isPointBlockedByRuntimeBlockers(const Vector3& point) const;
 
     void debugDraw() override;
 
     IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 
 private:
-    NavMeshSettings m_settings;
+    NavMeshBuildSettings m_settings;
     dtNavMesh* m_navMesh = nullptr;
     dtNavMeshQuery* m_navQuery = nullptr;
     std::vector<dtTileRef> m_tileRefs;
@@ -91,6 +83,7 @@ private:
 private:
     bool computeDebugPath(NavAgentProfile profile);
     std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
+    bool isPathBlockedByRuntimeBlockers(const std::vector<Vector3>& path) const;
 
 public:
     unsigned short getIncludeFlagsForProfile(NavAgentProfile profile) const; // Helper

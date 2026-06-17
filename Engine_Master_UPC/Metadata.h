@@ -4,9 +4,12 @@
 #include "AssetType.h"
 #include "AssetsDictionary.h"
 #include "ImportSettings.h"
+#include "ISerializable.h"
+#include "IArchive.h"
 
 #include <filesystem>
 #include <vector>
+#include <memory>
 
 struct DependencyRecord
 {
@@ -21,7 +24,7 @@ struct DependencyRecord
 	}
 };
 
-struct Metadata
+struct Metadata : public ISerializable
 {
 	UID			uid = INVALID_UID;
 	MD5Hash		contentHash = INVALID_ASSET_ID;
@@ -83,4 +86,6 @@ struct Metadata
 	{
 		assetPath += METADATA_EXTENSION;
 	}
+
+	void serialize(IArchive& archive) override;
 };

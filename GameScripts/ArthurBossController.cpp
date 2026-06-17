@@ -1,34 +1,19 @@
 #include "pch.h"
 #include "ArthurBossController.h"
+
 #include "ArthurDetectionAggro.h"
 #include "ArthurAttackConfig.h"
+#include "ArthurUI.h"
+
 #include "Damageable.h"
+
 #include <cmath>
 
-static const char* navAgentProfileNames[] =
-{
-	"PlayerNormal",
-	"PlayerSpectral",
-	"EnemyGround"
-};
-
-constexpr int navAgentProfileCount = 3;
-
-IMPLEMENT_SCRIPT_FIELDS(ArthurBossController,
-	SERIALIZED_ENUM_INT(m_enemyType, "Enemy Type", navAgentProfileNames, navAgentProfileCount),
-	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f),
-	SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.1f),
-	SERIALIZED_FLOAT(m_turnSpeed, "Turn Speed", 0.0f, 5.0f, 0.1f),
-	SERIALIZED_FLOAT(m_intervalRepath, "Interval", 0.0f, 50.0f, 0.1f),
-	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled"),
-	SERIALIZED_COMPONENT_REF(m_healthBarCanvas, "Health Bar Canvas", ComponentType::TRANSFORM),
-	SERIALIZED_COMPONENT_REF(m_healthBarContainer, "Health Bar Container", ComponentType::TRANSFORM2D),
-	SERIALIZED_COMPONENT_REF(m_healthBarPhase2, "Health Bar Phase 2", ComponentType::TRANSFORM2D),
-	SERIALIZED_FLOAT(m_healthBarDuration, "Health Bar Duration", 0.0f, 10.0f, 0.1f)
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(ArthurBossController, EnemyBaseController,
+	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f)
 )
 
-ArthurBossController::ArthurBossController(GameObject* owner)
-	: Script(owner)
+ArthurBossController::ArthurBossController(GameObject* owner) : EnemyBaseController(owner)
 {
 }
 
@@ -48,16 +33,22 @@ void ArthurBossController::Start()
 		Debug::error("ArthurAttackConfig script not found!");
 	}
 
-	setupHealthUI();
+	m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
+
+	if (!m_arthurUI)
+	{
+		Debug::error("ArthurUI script not found.");
+	}
+
+	m_currentTarget = nullptr;
+	m_deathTriggerSent = false;
+
+	resetRepathTimer();
+	clearPath();
 }
 
 void ArthurBossController::drawGizmo()
 {
-	if (!m_debugEnabled)
-	{
-		return;
-	}
-
 	if (m_path.size() < 2)
 	{
 		return;
@@ -77,38 +68,18 @@ void ArthurBossController::Update()
 	{
 		m_arthurDetectionAggro->startEncounter();
 		m_hasStartedEncounter = true;
-		showHealthUI(true);
+		if (m_arthurUI)
+		{
+			m_arthurUI->showHealthUI(true);
+		}
 	}
 
 	updateAttackCooldowns(Time::getDeltaTime());
 
 	updateBossPhase();
-
-	updateHealthUI();
 }
 
-bool ArthurBossController::hasValidTarget() const
-{
-	if (!m_arthurDetectionAggro)
-	{
-		return false;
-	}
-
-	Transform* targetTransform = m_arthurDetectionAggro->getCurrentTarget();
-	if (!targetTransform)
-	{
-		return false;
-	}
-
-	if (m_arthurDetectionAggro->isDowned(targetTransform))
-	{
-		return false;
-	}
-
-	return true;
-}
-
-void ArthurBossController::updateCurrentTarget()
+Transform* ArthurBossController::acquireCurrentTarget()
 {
 	if (!m_arthurDetectionAggro)
 	{
@@ -117,88 +88,20 @@ void ArthurBossController::updateCurrentTarget()
 
 	if (!m_arthurDetectionAggro)
 	{
-		m_currentTarget = nullptr;
-		return;
+		return nullptr;
 	}
 
-	m_currentTarget = m_arthurDetectionAggro->getCurrentTarget();
+	return m_arthurDetectionAggro->getCurrentTarget();
 }
 
-bool ArthurBossController::isTargetInCombatRange() const
+bool ArthurBossController::isTargetDowned(Transform* target) const
 {
-	if (!m_currentTarget)
+	if (!m_arthurDetectionAggro || !target)
 	{
-		return false;
+		return true;
 	}
 
-	Vector3 ownerPosition = getOwner()->GetTransform()->getPosition();
-	Vector3 targetPosition = m_currentTarget->getPosition();
-
-	Vector3 difference = ownerPosition - targetPosition;
-	difference.y = 0.0f;
-
-	return difference.Length() <= m_combatRange;
-}
-
-float ArthurBossController::getDistanceToCurrentTarget() const
-{
-	if (!m_currentTarget)
-	{
-		return FLT_MAX; // max value
-	}
-
-	Vector3 ownerPosition = getOwner()->GetTransform()->getPosition();
-	Vector3 targetPosition = m_currentTarget->getPosition();
-
-	Vector3 difference = ownerPosition - targetPosition;
-	difference.y = 0.0f;
-
-	return difference.Length();
-}
-  
-bool ArthurBossController::isDead() const
-{
-  Damageable* damageable = GameObjectAPI::findScript<Damageable>(getOwner());
-
-    if (damageable && damageable->isDead())
-    {
-      return true;
-    }
-
-    return false;
-  }
-
-bool ArthurBossController::trySendDeathTrigger(AnimationComponent* animation)
-{
-	if (m_deathTriggerSent)
-	{
-		return false;
-	}
-
-	if (!isDead())
-	{
-		return false;
-	}
-
-	if (!animation)
-	{
-		return false;
-	}
-
-	clearPath();
-
-	const bool sent = AnimationAPI::sendTrigger(animation, "ToDeath");
-
-	if (!sent)
-	{
-		return false;
-	}
-
-	m_deathTriggerSent = true;
-
-	Debug::log("[ArthurBossController] ToDeath trigger sent.");
-
-	return true;
+	return m_arthurDetectionAggro->isDowned(target);
 }
 
 void ArthurBossController::setPhase(ArthurBossPhase phase)
@@ -229,12 +132,15 @@ void ArthurBossController::updateBossPhase()
       return;
     }
 
-    if (damageable->getCurrentHp() <= damageable->getMaxHp() * 0.5f)
-    {
-      setPhase(ArthurBossPhase::Phase2);
-    }
-	
-	updateHealthUIPhase();
+	if (damageable->getCurrentHp() <= damageable->getMaxHp() * 0.5f)
+	{
+		setPhase(ArthurBossPhase::Phase2);
+
+		if (m_arthurUI)
+		{
+			m_arthurUI->updateHealthUIPhase();
+		}
+	}
 }
 
 void ArthurBossController::updateAttackCooldowns(float dt)
@@ -281,162 +187,6 @@ void ArthurBossController::consumeEarthHammerCooldown()
 	m_earthHammerCooldownTimer = m_attackConfig->m_earthHammerCooldown;
 }
 
-void ArthurBossController::clearPath()
-{
-	m_path.clear();
-	m_hasPath = false;
-	m_currentIndex = 0;
-}
-
-bool ArthurBossController::buildPathToTarget()
-{
-	if (!m_currentTarget)
-	{
-		return false;
-	}
-
-	Vector3 start = getOwner()->GetTransform()->getPosition();
-	Vector3 end = getChasePosition();
-
-	std::vector<Vector3> tempPath;
-	tempPath.resize(m_maxPathPoints);
-
-	int pointCount = NavigationAPI::findStraightPath(start, end, tempPath.data(), m_maxPathPoints, m_searchExtents, static_cast<NavAgentProfile>(m_enemyType));
-
-	if (pointCount > 0)
-	{
-		clearPath();
-
-		for (int i = 0; i < pointCount; ++i)
-		{
-			m_path.push_back(tempPath[i]);
-		}
-
-		m_currentIndex = 0;
-		m_hasPath = true;
-		return true;
-	}
-
-	clearPath();
-
-	return false;
-}
-
-void ArthurBossController::followPath()
-{
-	if (!m_hasPath)
-	{
-		return;
-	}
-
-	if (m_currentIndex >= m_path.size())
-	{
-		clearPath();
-		return;
-	}
-
-	Vector3 currentPosition = getOwner()->GetTransform()->getPosition();
-	Vector3 targetPoint = m_path[m_currentIndex];
-	Vector3 direction = targetPoint - currentPosition;
-
-	float distance = direction.Length();
-
-	if (distance < 0.1f)
-	{
-		m_currentIndex++;
-		if (m_currentIndex >= m_path.size())
-		{
-			clearPath();
-			return;
-		}
-		return;
-	}
-
-	direction.Normalize();
-	rotateTowardsDirection(direction);
-	float dt = Time::getDeltaTime();
-
-	currentPosition += direction * m_moveSpeed * dt;
-
-	TransformAPI::setPosition(getOwner()->GetTransform(), currentPosition);
-}
-
-Vector3 ArthurBossController::getChasePosition() const
-{
-	if (!m_currentTarget)
-	{
-		return getOwner()->GetTransform()->getPosition();
-	}
-
-	Vector3 ownerPos = getOwner()->GetTransform()->getPosition();
-	Vector3 targetPos = m_currentTarget->getPosition();
-	Vector3 direction = targetPos - ownerPos;
-
-	float distance = direction.Length();
-
-	if (distance < 0.001f)
-	{
-		return targetPos;
-	}
-
-	direction.Normalize();
-
-	Vector3 chasePosition = targetPos - direction * (m_combatRange - 0.1f);
-
-	return chasePosition;
-}
-
-void ArthurBossController::rotateTowardsDirection(const Vector3& direction)
-{
-	Vector3 desiredDirection = direction;
-	desiredDirection.y = 0.0f;
-
-	if (desiredDirection.LengthSquared() < 0.0001f)
-	{
-		return;
-	}
-
-	Vector3 currentForward = TransformAPI::getForward(getOwner()->GetTransform());
-	currentForward.y = 0.0f;
-
-	if (currentForward.LengthSquared() < 0.0001f)
-	{
-		return;
-	}
-
-	desiredDirection.Normalize();
-	currentForward.Normalize();
-
-	float dot = currentForward.Dot(desiredDirection);
-
-	if (dot > 1.0f) dot = 1.0f;
-	if (dot < -1.0f) dot = -1.0f;
-
-	float angle = std::acos(dot);
-
-	Vector3 cross = currentForward.Cross(desiredDirection);
-
-	float sign = (cross.y > 0) ? 1.0f : -1.0f;
-
-	Vector3 currentEulerRotation = TransformAPI::getEulerDegrees(getOwner()->GetTransform());
-	float maxStep = (m_turnSpeed * 100) * Time::getDeltaTime();
-
-	float step = 0.0f;
-	float angleDeg = angle * RADIANS_TO_DEGREES;
-
-	if (angleDeg > maxStep)
-	{
-		step = maxStep * sign;
-	}
-	else
-	{
-		step = angleDeg * sign;
-	}
-
-	currentEulerRotation.y += step;
-	TransformAPI::setRotationEuler(getOwner()->GetTransform(), currentEulerRotation);
-}
-
 Transform* ArthurBossController::getNonFocusTarget() const
 {
 	if (!m_arthurDetectionAggro)
@@ -463,41 +213,6 @@ Transform* ArthurBossController::getNonFocusTarget() const
 	}
 
 	return nullptr;
-}
-
-void ArthurBossController::faceCurrentTarget()
-{
-	if (!m_currentTarget)
-	{
-		return;
-	}
-
-	Vector3 ownerPos = getOwner()->GetTransform()->getPosition();
-	Vector3 targetPos = m_currentTarget->getPosition();
-	Vector3 direction = targetPos - ownerPos;
-
-	rotateTowardsDirection(direction);
-}
-
-void ArthurBossController::facePosition(const Vector3& worldPosition)
-{
-	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-	Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
-
-	Vector3 direction = worldPosition - ownerPosition;
-	direction.y = 0.0f;
-
-	if (direction.LengthSquared() < 0.0001f)
-	{
-		return;
-	}
-
-	rotateTowardsDirection(direction);
-}
-
-void ArthurBossController::setRecoveryDuration(float recoveryDuration)
-{
-	m_recoveryDuration = recoveryDuration;
 }
 
 bool ArthurBossController::areBothPlayersInEarthHammerRange() const
@@ -737,127 +452,6 @@ bool ArthurBossController::trySelectSideSweepSide()
 	}
 
 	return false;
-}
-
-void ArthurBossController::resetRepathTimer()
-{
-	m_repathTimer = 0.0f;
-}
-
-void ArthurBossController::addToRepathTimer(float dt)
-{
-	m_repathTimer += dt;
-}
-
-bool ArthurBossController::shouldRepath() const
-{
-	return m_repathTimer >= m_intervalRepath;
-}
-
-void ArthurBossController::updateHealthUI()
-{
-	if (!m_healthBarCanvasTransform || !m_healthBarContainerTransform2D)
-	{
-		return;
-	}
-
-	GameObject* canvasOwner = m_healthBarCanvasTransform->getOwner();
-	if (!canvasOwner)
-	{
-		return;
-	}
-
-	if (m_healthBarTimer > 0.0f)
-	{
-		m_healthBarTimer -= Time::getDeltaTime();
-
-		const float duration = m_healthBarDuration > 0.0f ? m_healthBarDuration : 0.0001f;
-		const float t = std::clamp(m_healthBarTimer / duration, 0.0f, 1.0f);
-
-		const float size = -Transform2DAPI::getBaseSize(m_healthBarContainerTransform2D).y * 0.5f;
-		const float position = (m_healthBarVisible ? t : 1.0f - t) * size;
-		const float alpha = m_healthBarVisible ? 1.0f - t : t;
-
-		Transform2DAPI::setPosition(m_healthBarContainerTransform2D, Vector2(0.0f, position));
-		Transform2DAPI::setAlpha(m_healthBarContainerTransform2D, alpha);
-	}
-
-	if (m_healthBarTimer <= 0.0f)
-	{
-		GameObjectAPI::setActive(canvasOwner, m_healthBarVisible);
-		Transform2DAPI::setAlpha(m_healthBarContainerTransform2D, m_healthBarVisible ? 1.0f : 0.0f);
-	}
-
-	if (m_healthBarPhase2Transform2D && m_healthBarPhase2Timer > 0.0f)
-	{
-		m_healthBarPhase2Timer -= Time::getDeltaTime();
-
-		const float duration = m_healthBarDuration > 0.0f ? m_healthBarDuration : 0.0001f;
-		const float t = 1.0f - std::clamp(m_healthBarPhase2Timer / duration, 0.0f, 1.0f);
-
-		Transform2DAPI::setAlpha(m_healthBarPhase2Transform2D, t);
-	}
-}
-
-void ArthurBossController::setupHealthUI()
-{
-	m_healthBarCanvasTransform = m_healthBarCanvas.getReferencedComponent();
-	m_healthBarContainerTransform2D = m_healthBarContainer.getReferencedComponent();
-	m_healthBarPhase2Transform2D = m_healthBarPhase2.getReferencedComponent();
-
-	if (!m_healthBarCanvasTransform)
-	{
-		Debug::warn("[ArthurBossController] Health Bar Canvas reference is missing.");
-		return;
-	}
-
-	GameObject* canvasOwner = m_healthBarCanvasTransform->getOwner();
-	if (!canvasOwner)
-	{
-		Debug::warn("[ArthurBossController] Health Bar Canvas owner is null.");
-		return;
-	}
-
-	GameObjectAPI::setActive(canvasOwner, false);
-
-	if (m_healthBarContainerTransform2D)
-	{
-		Transform2DAPI::setAlpha(m_healthBarContainerTransform2D, 0.0f);
-	}
-
-	if (m_healthBarPhase2Transform2D)
-	{
-		Transform2DAPI::setAlpha(m_healthBarPhase2Transform2D, 0.0f);
-	}
-}
-
-void ArthurBossController::showHealthUI(bool show)
-{
-	if (!m_healthBarCanvasTransform)
-	{
-		return;
-	}
-
-	GameObject* canvasOwner = m_healthBarCanvasTransform->getOwner();
-	if (!canvasOwner)
-	{
-		return;
-	}
-
-	m_healthBarVisible = show;
-	m_healthBarTimer = m_healthBarDuration;
-	GameObjectAPI::setActive(m_healthBarCanvasTransform->getOwner(), true);
-}
-
-void ArthurBossController::updateHealthUIPhase()
-{
-	if (!m_healthBarPhase2Transform2D)
-	{
-		return;
-	}
-
-	m_healthBarPhase2Visible = true;
-	m_healthBarPhase2Timer = m_healthBarDuration;
 }
 
 IMPLEMENT_SCRIPT(ArthurBossController)

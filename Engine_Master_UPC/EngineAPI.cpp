@@ -28,6 +28,7 @@
 #include "BoundingBox.h"
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
+#include "NavRuntimeBlockerComponent.h"
 
 #include "CameraComponent.h"
 
@@ -1805,6 +1806,12 @@ namespace NavigationAPI
         }
 
         outSampledPosition = Vector3(nearest[0], height, nearest[2]);
+
+        if (navigation->isPointBlockedByRuntimeBlockers(outSampledPosition))
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -1844,6 +1851,12 @@ namespace NavigationAPI
         dtPolyRef visited[64];
         int visitedCount = 0;
         float result[3] = {};
+
+        if (navigation->isSegmentBlockedByRuntimeBlockers(startPosition, targetPosition))
+        {
+            outResultPosition = startPosition;
+            return false;
+        }
 
         const dtStatus moveStatus = query->moveAlongSurface(startRef, startNearest, end, &filter, result, visited, &visitedCount, 64);
 
@@ -1965,6 +1978,63 @@ namespace NavigationAPI
         }
 
         return false;
+    }
+
+    bool isSegmentBlocked(const Vector3& from, const Vector3& to)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        return navigation->isSegmentBlockedByRuntimeBlockers(from, to);
+    }
+
+    bool canMoveSegment(const Vector3& from, const Vector3& to)
+    {
+        return !isSegmentBlocked(from, to);
+    }
+
+    NavRuntimeBlockerComponent* getRuntimeBlockerComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    const NavRuntimeBlockerComponent* getRuntimeBlockerComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    bool isBlocked(const NavRuntimeBlockerComponent* blocker)
+    {
+        if (blocker->isBlocked())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void setBlocked(NavRuntimeBlockerComponent* blocker, bool blocked)
+    {
+        if (!blocker)
+        {
+            return;
+        }
+
+        blocker->setBlocked(blocked);
     }
 }
 

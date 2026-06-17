@@ -1,0 +1,33 @@
+#pragma once
+
+#include "ScriptAPI.h"
+#include "StateMachineScript.h"
+
+class MeleeEnemyController;
+class PaladinAttackConfig;
+class AnimationComponent;
+
+class PaladinChargeState : public StateMachineScript
+{
+	DECLARE_SCRIPT(PaladinChargeState)
+
+public:
+	explicit PaladinChargeState(GameObject* owner);
+
+	void OnStateEnter() override;
+	void OnStateUpdate() override;
+	void OnStateExit() override;
+
+private:
+	void moveCharge();
+	void finishCharge();
+
+private:
+	MeleeEnemyController* m_paladinController = nullptr;
+	PaladinAttackConfig* m_attackConfig = nullptr;
+	AnimationComponent* m_animation = nullptr;
+
+	Vector3 m_chargeDirection = Vector3::Zero;
+
+	float m_stateTimer = 0.0f;
+};

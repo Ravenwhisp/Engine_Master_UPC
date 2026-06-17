@@ -4,9 +4,6 @@
 
 #include <WindowLogger.h>
 
-#include "BinaryReader.h"
-#include "BinaryWriter.h"
-
 using namespace DirectX;
 
 bool ImporterTexture::import(const std::filesystem::path& path, Asset* outAsset)
@@ -247,68 +244,4 @@ void ImporterTexture::importTyped(const ScratchImage& source, TextureAsset* text
     texture->arraySize = arraySize;
     texture->imageCount = mipCount * arraySize;
     texture->format = meta.format;
-}
-
-
-uint64_t ImporterTexture::saveTyped(const TextureAsset* source, uint8_t** outBuffer)
-{
-    uint64_t size = 0;
-
-    size += sizeof(uint64_t);    // uid string (NOT sizeof(uint64_t))
-    size += 6 * sizeof(uint32_t);                        // width, height, mipCount, arraySize, imageCount, format
-
-    for (const TextureImage& img : source->images)
-    {
-        size += 3 * sizeof(uint32_t);                    // rowPitch, slicePitch, dataSize
-        size += img.pixels.size();
-    }
-
-    uint8_t* buffer = new uint8_t[size];
-    BinaryWriter writer(buffer);
-
-    writer.u32(source->width);
-    writer.u32(source->height);
-    writer.u32(source->mipCount);
-    writer.u32(source->arraySize);
-    writer.u32(source->imageCount);
-    writer.u32(static_cast<uint32_t>(source->format));
-
-    for (const TextureImage& img : source->images)
-    {
-        writer.u32(img.rowPitch);
-        writer.u32(img.slicePitch);
-        writer.u32(static_cast<uint32_t>(img.pixels.size()));
-        writer.bytes(img.pixels.data(), img.pixels.size());
-    }
-
-    *outBuffer = buffer;
-    return size;
-}
-
-void ImporterTexture::loadTyped(const uint8_t* buffer, TextureAsset* texture)
-{
-    BinaryReader reader(buffer);
-
-    texture->width = reader.u32();
-    texture->height = reader.u32();
-    texture->mipCount = reader.u32();
-    texture->arraySize = reader.u32();
-    texture->imageCount = reader.u32();
-    texture->format = static_cast<DXGI_FORMAT>(reader.u32());
-
-    texture->images.clear();
-    texture->images.reserve(texture->imageCount);
-
-    for (uint32_t i = 0; i < texture->imageCount; ++i)
-    {
-        TextureImage img;
-        img.rowPitch = reader.u32();
-        img.slicePitch = reader.u32();
-
-        const uint32_t dataSize = reader.u32();
-        img.pixels.resize(dataSize);
-        reader.bytes(img.pixels.data(), dataSize);
-
-        texture->images.push_back(std::move(img));
-    }
 }

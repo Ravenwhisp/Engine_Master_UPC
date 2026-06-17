@@ -13,100 +13,45 @@
 
 namespace
 {
-    // --- Element-to-JSON / JSON-to-Element helpers ---
-
     template<typename T>
-    rapidjson::Value elementToJson(const T& element, rapidjson::Document& domTree);
-
-    template<>
-    rapidjson::Value elementToJson<float>(const float& element, rapidjson::Document&)
+    void elementSerialize(T& elem, IArchive& archive)
     {
-        return rapidjson::Value(element);
+        archive.serialize(elem, "");
     }
 
     template<>
-    rapidjson::Value elementToJson<int>(const int& element, rapidjson::Document&)
+    void elementSerialize<int>(int& elem, IArchive& archive)
     {
-        return rapidjson::Value(element);
+        uint32_t v = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(elem) : 0;
+        archive.serialize(v, "");
+        if (archive.mode() == ArchiveMode::Input)
+            elem = static_cast<int>(v);
     }
 
     template<>
-    rapidjson::Value elementToJson<bool>(const bool& element, rapidjson::Document&)
+    void elementSerialize<Vector3>(Vector3& elem, IArchive& archive)
     {
-        return rapidjson::Value(element);
-    }
-
-    template<>
-    rapidjson::Value elementToJson<Vector3>(const Vector3& element, rapidjson::Document& domTree)
-    {
-        rapidjson::Value array(rapidjson::kArrayType);
-        array.PushBack(element.x, domTree.GetAllocator());
-        array.PushBack(element.y, domTree.GetAllocator());
-        array.PushBack(element.z, domTree.GetAllocator());
-        return array;
-    }
-
-    template<>
-    rapidjson::Value elementToJson<std::string>(const std::string& element, rapidjson::Document& domTree)
-    {
-        return rapidjson::Value(element.c_str(), domTree.GetAllocator());
-    }
-
-    template<>
-    rapidjson::Value elementToJson<ScriptComponentRef<Component>>(const ScriptComponentRef<Component>& element, rapidjson::Document&)
-    {
-        return rapidjson::Value(static_cast<uint64_t>(element.uid));
-    }
-
-    template<typename T>
-    void elementFromJson(T& element, const rapidjson::Value& json);
-
-    template<>
-    void elementFromJson<float>(float& element, const rapidjson::Value& json)
-    {
-        if (json.IsNumber()) element = json.GetFloat();
-    }
-
-    template<>
-    void elementFromJson<int>(int& element, const rapidjson::Value& json)
-    {
-        if (json.IsInt()) element = json.GetInt();
-    }
-
-    template<>
-    void elementFromJson<bool>(bool& element, const rapidjson::Value& json)
-    {
-        if (json.IsBool()) element = json.GetBool();
-    }
-
-    template<>
-    void elementFromJson<Vector3>(Vector3& element, const rapidjson::Value& json)
-    {
-        if (json.IsArray() && json.Size() == 3)
+        DirectX::SimpleMath::Vector3 v(elem.x, elem.y, elem.z);
+        archive.serialize(v, "");
+        if (archive.mode() == ArchiveMode::Input)
         {
-            element.x = json[0].GetFloat();
-            element.y = json[1].GetFloat();
-            element.z = json[2].GetFloat();
+            elem.x = v.x; elem.y = v.y; elem.z = v.z;
         }
     }
 
     template<>
-    void elementFromJson<std::string>(std::string& element, const rapidjson::Value& json)
+    void elementSerialize<std::string>(std::string& elem, IArchive& archive)
     {
-        if (json.IsString()) element = json.GetString();
+        archive.serialize(elem, "");
     }
 
     template<>
-    void elementFromJson<ScriptComponentRef<Component>>(ScriptComponentRef<Component>& element, const rapidjson::Value& json)
+    void elementSerialize<ScriptComponentRef<Component>>(ScriptComponentRef<Component>& elem, IArchive& archive)
     {
-        if (json.IsUint64())
-        {
-            element.uid = static_cast<UID>(json.GetUint64());
-        }
-        element.component = nullptr;
+        archive.serialize(elem.uid, "");
+        if (archive.mode() == ArchiveMode::Input)
+            elem.component = nullptr;
     }
-
-    // --- Generic list handler templates ---
 
     template<typename T>
     void drawListFieldUi(const ScriptFieldInfo& field, void* data, Script& script, ScriptComponent& owner)
@@ -172,39 +117,34 @@ namespace
     }
 
     template<typename T>
-    void serializeListField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeListField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        rapidjson::Value array(rapidjson::kArrayType);
-
-        for (const T& elem : *vec)
-        {
-            array.PushBack(elementToJson(elem, domTree), domTree.GetAllocator());
-        }
-
-        outFieldsJson.AddMember(key, array, domTree.GetAllocator());
-    }
-
-    template<typename T>
-    void deserializeListField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsArray())
-        {
-            return;
-        }
-
         auto* vec = reinterpret_cast<std::vector<T>*>(data);
-        vec->clear();
-        vec->reserve(valueJson.Size());
+        uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(vec->size()) : 0;
+        archive.beginArray(count, field.name);
 
-        for (rapidjson::SizeType i = 0; i < valueJson.Size(); ++i)
+        if (archive.mode() == ArchiveMode::Input)
         {
-            T elem{};
-            elementFromJson(elem, valueJson[i]);
-            vec->push_back(std::move(elem));
+            vec->clear();
+            vec->reserve(count);
         }
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            if (archive.mode() == ArchiveMode::Output)
+            {
+                T elem = (*vec)[i];
+                elementSerialize(elem, archive);
+            }
+            else
+            {
+                T elem{};
+                elementSerialize(elem, archive);
+                vec->push_back(std::move(elem));
+            }
+        }
+
+        archive.endArray();
     }
 
     template<typename T>
@@ -244,7 +184,6 @@ namespace
     const ScriptFieldHandler floatListHandler = {
         &drawListFieldUi<float>,
         &serializeListField<float>,
-        &deserializeListField<float>,
         &cloneListField<float>,
         &fixReferencesListField<float>
     };
@@ -252,7 +191,6 @@ namespace
     const ScriptFieldHandler intListHandler = {
         &drawListFieldUi<int>,
         &serializeListField<int>,
-        &deserializeListField<int>,
         &cloneListField<int>,
         &fixReferencesListField<int>
     };
@@ -260,7 +198,6 @@ namespace
     const ScriptFieldHandler boolListHandler = {
         &drawListFieldUi<bool>,
         &serializeListField<bool>,
-        &deserializeListField<bool>,
         &cloneListField<bool>,
         &fixReferencesListField<bool>
     };
@@ -268,7 +205,6 @@ namespace
     const ScriptFieldHandler vec3ListHandler = {
         &drawListFieldUi<Vector3>,
         &serializeListField<Vector3>,
-        &deserializeListField<Vector3>,
         &cloneListField<Vector3>,
         &fixReferencesListField<Vector3>
     };
@@ -276,7 +212,6 @@ namespace
     const ScriptFieldHandler stringListHandler = {
         &drawListFieldUi<std::string>,
         &serializeListField<std::string>,
-        &deserializeListField<std::string>,
         &cloneListField<std::string>,
         &fixReferencesListField<std::string>
     };
@@ -284,7 +219,6 @@ namespace
     const ScriptFieldHandler enumIntListHandler = {
         &drawListFieldUi<int>,
         &serializeListField<int>,
-        &deserializeListField<int>,
         &cloneListField<int>,
         &fixReferencesListField<int>
     };
@@ -292,7 +226,6 @@ namespace
     const ScriptFieldHandler componentRefListHandler = {
         &drawListFieldUi<ScriptComponentRef<Component>>,
         &serializeListField<ScriptComponentRef<Component>>,
-        &deserializeListField<ScriptComponentRef<Component>>,
         &cloneListField<ScriptComponentRef<Component>>,
         &fixReferencesListField<ScriptComponentRef<Component>>
     };

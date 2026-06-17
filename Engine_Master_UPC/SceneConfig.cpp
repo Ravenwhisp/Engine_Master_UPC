@@ -128,6 +128,13 @@ void SceneConfig::drawNavmeshSettings()
         ImGui::DragFloat("Agent Radius", &nav->getSettings().agentRadius, 0.01f, 0.1f, 2.0f);
         ImGui::DragFloat("Max Climb", &nav->getSettings().agentMaxClimb, 0.01f, 0.0f, 2.0f);
         ImGui::DragFloat("Max Slope", &nav->getSettings().agentMaxSlope, 1.0f, 0.0f, 60.0f);
+        ImGui::DragFloat("Region Min Size", &nav->getSettings().regionMinSize, 0.5f, 0.0f, 150.0f);
+        ImGui::DragFloat("Region Merge Size", &nav->getSettings().regionMergeSize, 0.5f, 0.0f, 200.0f);
+        ImGui::DragFloat("Edge Max Len", &nav->getSettings().edgeMaxLen, 0.5f, 0.0f, 64.0f);
+        ImGui::DragFloat("Edge Max Error", &nav->getSettings().edgeMaxError, 0.1f, 0.1f, 10.0f);
+        ImGui::DragInt("Verts Per Poly", &nav->getSettings().vertsPerPoly, 1, 3, 12);
+        ImGui::DragFloat("Detail Sample Dist", &nav->getSettings().detailSampleDist, 0.1f, 0.0f, 16.0f);
+        ImGui::DragFloat("Detail Sample Max Error", &nav->getSettings().detailSampleMaxError, 0.1f, 0.0f, 16.0f);
     }
 }
 
