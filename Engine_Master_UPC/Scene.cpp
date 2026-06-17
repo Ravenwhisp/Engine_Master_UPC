@@ -263,6 +263,24 @@ void Scene::releasePendingDestroyedGameObjects()
 {
     CommandQueue* commandQueue = app->getModuleD3D12()->getCommandQueue();
 
+    // ponytail: signal fence once per frame for all newly-destroyed objects
+    // instead of per-object (which flooded the GPU queue causing multi-second freezes)
+    {
+        bool needsSignal = false;
+        for (const auto& p : m_pendingDestroyedObjects)
+        {
+            if (p.fenceValue == 0) { needsSignal = true; break; }
+        }
+        if (needsSignal)
+        {
+            const uint64_t fenceValue = commandQueue->signal();
+            for (auto& p : m_pendingDestroyedObjects)
+            {
+                if (p.fenceValue == 0) p.fenceValue = fenceValue;
+            }
+        }
+    }
+
     auto it = m_pendingDestroyedObjects.begin();
 
     while (it != m_pendingDestroyedObjects.end())
@@ -316,14 +334,13 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     if (it != m_allObjects.end())
     {
-        const uint64_t fenceValue = app->getModuleD3D12()->getCommandQueue()->signal();
+        app->getModuleScene()->removeGameObjectFromQuadtree(*it->get());
 
-		app->getModuleScene()->removeGameObjectFromQuadtree(*it->get());
-
+        // ponytail: fenceValue=0 means "needs batch signal"; signaled once in releasePendingDestroyedGameObjects
         m_pendingDestroyedObjects.push_back(
             PendingDestroyedGameObject{
                 std::move(*it),
-                fenceValue
+                0
             });
         m_allObjects.erase(it);
     }
@@ -553,6 +570,10 @@ void Scene::clearScene()
     m_allObjects.clear();
 
     m_defaultCamera = nullptr;
+    m_isUpdating = false;                    // ponytail: prevent stale state on next Play
+    m_objectsToRemove.clear();               // ponytail: prevent zombie UIDs from nuking restored objects
+    m_pendingObjectsToAdd.clear();            // ponytail: prevent doubled objects on next Play
+    m_pendingRootObjectsToAdd.clear();
     markDirty();
 }
 
