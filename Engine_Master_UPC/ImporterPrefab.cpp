@@ -1,84 +1,54 @@
 ﻿#include "Globals.h"
 #include "ImporterPrefab.h"
 
-#include "Application.h"
-#include "BinaryReader.h"
-#include "BinaryWriter.h"
+#include "Prefab.h"
+#include "PrefabInstanceComponent.h"
+#include "JsonArchive.h"
 
-#include <rapidjson/document.h>
-#include <FileIO.h>
 
-Asset* ImporterPrefab::createAssetInstance(AssetReference& uid) const
+bool ImporterPrefab::saveNativeFile(const Prefab* asset, const std::filesystem::path& path)
 {
-    return new PrefabAsset(uid);
-}
+    JsonArchive archive(ArchiveMode::Output);
+    archive.setPrettyPrint(true);
 
-bool ImporterPrefab::saveNative(const PrefabAsset* asset, const std::filesystem::path& path)
-{
-    return false;
-}
+    uint32_t version = 2;
+    archive.serialize(version, "Version");
 
-bool ImporterPrefab::importNative(const std::filesystem::path& path, PrefabAsset* dst)
-{
-    const std::vector<uint8_t> raw = FileIO::read(path);
-    if (raw.empty())
+    auto* preComp = const_cast<Prefab*>(asset)->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+    if (preComp && preComp->isInstance() && preComp->getData().m_sourcePath != path)
     {
-        DEBUG_ERROR("[ImporterPrefab] Could not read '%s'.", path.string().c_str());
+        std::string variantOf = preComp->getData().m_sourcePath.string();
+        archive.serialize(variantOf, "VariantOf");
+    }
+
+    const_cast<Prefab*>(asset)->serialize(archive);
+
+    const std::filesystem::path dir = path.parent_path();
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    if (ec) return false;
+
+    return archive.saveFile(path);
+}
+
+bool ImporterPrefab::importNative(const std::filesystem::path& path, Prefab* dst)
+{
+    JsonArchive archive(ArchiveMode::Input);
+    if (!archive.loadFile(path))
+    {
+        DEBUG_ERROR("[ImporterPrefab] Failed to load '%s'.", path.string().c_str());
         return false;
     }
 
-    PrefabData& data = dst->getData();
-    data.m_json.assign(reinterpret_cast<const char*>(raw.data()), raw.size());
-    data.m_assetUID = dst->m_reference.m_uid;
-    data.m_sourcePath = path;
-    data.m_name = path.stem().string();
+    uint32_t version = 0;
+    archive.serialize(version, "Version");
 
-    // Extract PrefabUID (uint64_t GO UID) from the top-level JSON key.
-    rapidjson::Document doc;
-    doc.Parse(data.m_json.c_str());
-    if (!doc.HasParseError())
-    {
-        // Allow the JSON to override the display name.
-        if (doc.HasMember("Name") && doc["Name"].IsString())
-        {
-            data.m_name = doc["Name"].GetString();
-        }
+    std::string variantOf;
+    archive.serialize(variantOf, "VariantOf");
 
-    }
+    dst->serialize(archive);
+    dst->m_sourcePath = path;
 
+    dst->init();
     return true;
-}
-
-uint64_t ImporterPrefab::saveTyped(const PrefabAsset* src, uint8_t** outBuffer)
-{
-    const PrefabData& data = src->getData();
-    const std::string  pathStr = data.m_sourcePath.string();
-
-    uint64_t size = 0;
-    size += sizeof(uint32_t) + pathStr.size();
-    size += sizeof(uint32_t) + data.m_name.size();
-    size += sizeof(uint64_t);
-    size += sizeof(uint64_t);
-    size += sizeof(uint32_t) + data.m_json.size();
-
-    uint8_t* buffer = new uint8_t[size];
-    BinaryWriter writer(buffer);
-    writer.string(pathStr);
-    writer.string(data.m_name);
-    writer.u64(data.m_assetUID);
-    writer.string(data.m_json);
-
-    *outBuffer = buffer;
-    return size;
-}
-
-void ImporterPrefab::loadTyped(const uint8_t* buffer, PrefabAsset* dst)
-{
-    PrefabData& data = dst->getData();
-    BinaryReader reader(buffer);
-
-    data.m_sourcePath = reader.string();
-    data.m_name = reader.string();
-    data.m_assetUID = reader.u64();
-    data.m_json = reader.string();
 }

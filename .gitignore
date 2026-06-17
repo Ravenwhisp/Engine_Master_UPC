@@ -434,3 +434,4 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /Engine_Master_UPC/3rdParty/DirectXTK12/x64/Debug/DirectXTK12.vcxproj.FileListAbsolute.txt
+/Engine_Master_UPC/migrate_assets

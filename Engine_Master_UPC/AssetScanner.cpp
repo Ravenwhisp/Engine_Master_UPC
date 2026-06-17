@@ -8,6 +8,7 @@
 #include "Metadata.h"
 #include "UID.h"
 #include "MD5.h"
+#include "JsonArchive.h"
 #include "ThreadPool.h"
 
 #include <FileIO.h>
@@ -218,11 +219,13 @@ void AssetScanner::loadMetadata(const std::filesystem::path& metadataPath, ScanF
 
     auto tLoadMeta0 = std::chrono::high_resolution_clock::now();
 
-    if (!app->getModuleAssets()->loadMetaFile(metadataPath, meta))
+    JsonArchive archive(ArchiveMode::Input);
+    if (!archive.loadFile(metadataPath))
     {
         DEBUG_ERROR("[AssetScanner] Failed to load metadata '%s'.", metadataPath.string().c_str());
         return;
     }
+    meta.serialize(archive);
 
     auto tLoadMeta1 = std::chrono::high_resolution_clock::now();
     const double loadMetaMs = elapsedMs(tLoadMeta0, tLoadMeta1);
@@ -303,7 +306,7 @@ void AssetScanner::handleMissingMetadata(const std::filesystem::path& sourcePath
 {
     auto tFindImporter0 = std::chrono::high_resolution_clock::now();
 
-    const bool hasImporter = app->getModuleAssets()->findImporter(sourcePath) != nullptr;
+    const bool hasImporter = app->getModuleAssets()->canImport(sourcePath);
 
     auto tFindImporter1 = std::chrono::high_resolution_clock::now();
 

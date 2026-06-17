@@ -1,5 +1,7 @@
 #pragma once
 #include "Importer.h"
+#include "BinaryArchive.h"
+#include <cstring>
 
 template<typename ExternalFormat, typename AssetFormat, AssetType TType>
 class ImporterSource : public Importer
@@ -26,12 +28,19 @@ public:
 
     uint64_t save(const Asset* asset, uint8_t** outBuffer) final
     {
-        return saveTyped(static_cast<const AssetFormat*>(asset),outBuffer);
+        BinaryArchive archive(ArchiveMode::Output);
+        const_cast<AssetFormat*>(static_cast<const AssetFormat*>(asset))->serialize(archive);
+        const size_t sz = archive.size();
+        uint8_t* buf = new uint8_t[sz];
+        std::memcpy(buf, archive.data(), sz);
+        *outBuffer = buf;
+        return sz;
     }
 
     void load(const uint8_t* buffer, Asset* outAsset) final
     {
-        loadTyped(buffer, static_cast<AssetFormat*>(outAsset));
+        BinaryArchive archive(buffer, ArchiveMode::Input);
+        static_cast<AssetFormat*>(outAsset)->serialize(archive);
     }
 
     bool saveNative(const Asset* asset, const std::filesystem::path& path) final
@@ -43,8 +52,4 @@ protected:
     virtual bool loadExternal(const std::filesystem::path& path,ExternalFormat& out) = 0;
 
     virtual void importTyped(const ExternalFormat& source, AssetFormat* dst) = 0;
-
-    virtual uint64_t saveTyped(const AssetFormat* source, uint8_t** buffer) = 0;
-
-    virtual void loadTyped( const uint8_t* buffer, AssetFormat* dst) = 0;
 };

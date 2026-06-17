@@ -2,6 +2,7 @@
 
 #include "ScriptFieldHandlerRegistry.h"
 #include "Script.h"
+#include "IArchive.h"
 
 namespace
 {
@@ -15,23 +16,10 @@ namespace
         }
     }
 
-    void serializeBoolField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeBoolField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const bool* value = reinterpret_cast<const bool*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, *value, domTree.GetAllocator());
-    }
-
-    void deserializeBoolField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsBool())
-        {
-            return;
-        }
-
         bool* value = reinterpret_cast<bool*>(data);
-        *value = valueJson.GetBool();
+        archive.serialize(*value, field.name);
     }
 
     void cloneBoolField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
@@ -43,7 +31,7 @@ namespace
     {
     }
 
-    const ScriptFieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &deserializeBoolField, &cloneBoolField, &fixReferencesBoolField};
+    const ScriptFieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &cloneBoolField, &fixReferencesBoolField};
 }
 
 const ScriptFieldHandler* getBoolFieldHandler()

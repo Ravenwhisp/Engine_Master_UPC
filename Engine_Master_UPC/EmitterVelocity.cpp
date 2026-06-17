@@ -55,22 +55,8 @@ bool EmitterVelocity::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterVelocity::getJSON(rapidjson::Document& domTree)
+void EmitterVelocity::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
-
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::VELOCITY), domTree.GetAllocator());
-
-	moduleInfo.AddMember("InitialVelocity", m_initialVelocity, domTree.GetAllocator());
-
-	return moduleInfo;
-}
-
-bool EmitterVelocity::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("InitialVelocity")) {
-		m_initialVelocity = moduleInfo["InitialVelocity"].GetFloat();
-	}
-
-	return true;
+	ParticleModule::serialize(archive);
+	archive.serialize(m_initialVelocity, "InitialVelocity");
 }

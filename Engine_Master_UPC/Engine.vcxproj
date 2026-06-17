@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -350,16 +350,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
-    <ClInclude Include="ImporterAnimation.h" />
-    <ClInclude Include="ImporterAnimationStateMachine.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
-    <ClInclude Include="ImporterMaterial.h" />
-    <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
-    <ClInclude Include="ImporterScene.h" />
-    <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="MaterialAsset.h" />
@@ -392,7 +386,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="PrefabSerializer.h" />
+
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="CommandReparent.h" />
@@ -418,7 +412,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="SkyBoxSettings.h" />
-    <ClInclude Include="PrefabAsset.h" />
+    <ClInclude Include="Prefab.h" />
     <ClInclude Include="StagingDescriptorheap.h" />
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="StaticTexturesPass.h" />
@@ -440,7 +434,16 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="WindowFileDialog.h" />
+    <ClInclude Include="AssetCache.h" />
+    <ClInclude Include="BinaryArchive.h" />
+    <ClInclude Include="IArchive.h" />
+    <ClInclude Include="ISerializable.h" />
+    <ClInclude Include="JsonArchive.h" />
+    <ClInclude Include="AssetFileDialog.h" />
+    <ClInclude Include="AssetIndex.h" />
+    <ClInclude Include="ImporterRegistry.h" />
     <ClInclude Include="ModuleAssets.h" />
+    <ClInclude Include="ModuleAssets.inl" />
     <ClInclude Include="BinaryReader.h" />
     <ClInclude Include="BinaryWriter.h" />
     <ClInclude Include="BoundingBox.h" />
@@ -520,7 +523,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="WindowMusicDebug.h" />
     <ClInclude Include="WindowSceneEditor.h" />
-    <ClInclude Include="SceneSerializer.h" />
+
     <ClInclude Include="SceneSnapshot.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -748,16 +751,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
-    <ClCompile Include="ImporterMaterial.cpp" />
-    <ClCompile Include="ImporterMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
-    <ClCompile Include="ImporterScene.cpp" />
-    <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
@@ -800,7 +797,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandPasteFile.cpp" />
     <ClCompile Include="CommandRemoveGameObject.cpp" />
     <ClCompile Include="CommandRenameGameObject.cpp" />
-    <ClCompile Include="PrefabSerializer.cpp" />
+
     <ClCompile Include="RenderSurface.cpp" />
     <ClCompile Include="CommandReparent.cpp" />
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
@@ -818,6 +815,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="WindowFileDialog.cpp" />
+    <ClCompile Include="AssetCache.cpp" />
+    <ClCompile Include="BinaryArchive.cpp" />
+    <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="Metadata.cpp" />
+    <ClCompile Include="AssetFileDialog.cpp" />
+    <ClCompile Include="AssetIndex.cpp" />
+    <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="ModuleAssets.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
@@ -890,7 +894,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowMusicDebug.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
     <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">

@@ -61,9 +61,9 @@ public:
     bool hasGpuSkinningResources() const;
 
     void drawUi();
+    bool ensureSkinLoaded();
 
 private:
-    bool ensureSkinLoaded();
     bool resolveSkinBindings(GameObject* owner);
     void invalidateSkinningRuntime();
 

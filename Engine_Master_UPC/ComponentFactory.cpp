@@ -17,6 +17,9 @@
 #include "ComponentSoundListener.h"
 #include "ComponentSoundSource.h"
 
+// Prefab
+#include "PrefabInstanceComponent.h"
+
 // UI components
 #include "Canvas.h"
 #include "Transform2D.h"
@@ -89,6 +92,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::SOUND_SOURCE:
         return std::make_unique<ComponentSoundSource>(id, owner);
+
+    case ComponentType::PREFAB_INSTANCE:
+        return std::make_unique<PrefabInstanceComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:
