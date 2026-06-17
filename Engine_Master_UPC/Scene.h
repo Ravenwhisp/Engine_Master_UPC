@@ -53,7 +53,6 @@ private:
     bool m_isUpdating = false;
 
     std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
-    std::vector<GameObject*> m_pendingRootObjectsToAdd;
 
     void flushPendingGameObjects();
 
@@ -68,6 +67,13 @@ private:
     void releasePendingDestroyedGameObjects();
 
     void fixReferencesFor(const std::vector<GameObject*>& gos);
+
+    GameObject* findInChildrenRecursive(GameObject* current, UID uuid);
+    void destroyGameObjectRecursive(GameObject* obj);
+    bool isDescendant(GameObject* root, GameObject* candidate) const;
+
+    void registerGameObjectInternal(std::unique_ptr<GameObject> gameObject, bool addToRoot);
+    void commitGameObject(std::unique_ptr<GameObject> gameObject, bool addToRoot);
     //
 
 public:
@@ -114,9 +120,6 @@ public:
 
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);
-    bool isInHierarchy(GameObject* root, GameObject* candidate) const;
-    GameObject* findInWindowHierarchy(GameObject* current, UID uuid);
-    void destroyWindowHierarchy(GameObject* obj);
 
     void addToRootList(GameObject* gameObject);
     void removeFromRootList(GameObject* gameObject);
@@ -127,8 +130,6 @@ public:
 
     const std::vector<GameObject*> getAllGameObjects() const;
     bool containsGameObject(const GameObject* go) const;
-
-    void fixSceneReferences();
 
     void clearScene();
 

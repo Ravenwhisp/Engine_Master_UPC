@@ -43,7 +43,6 @@ bool Scene::init()
     m_lighting.ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
-    GameObject* rawPtr = gameCamera.get();
 
     gameCamera->GetTransform()->setPosition(Vector3(5.0f, 10.0f, 5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(-IM_PI / 4, -IM_PI / 4, 0.0f));
@@ -52,9 +51,7 @@ bool Scene::init()
     gameCamera->SetName("Camera");
     setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
-    m_allObjects.push_back(std::move(gameCamera));
-    m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
-    m_rootObjects.push_back(rawPtr);
+    commitGameObject(std::move(gameCamera), true);
 
     for (const auto& go : m_allObjects)
     {
@@ -69,11 +66,10 @@ bool Scene::init()
 void Scene::update()
 {
     releasePendingDestroyedGameObjects();
+    removePendingGameObjects();
 
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        removePendingGameObjects();
-
         m_isUpdating = true;
 
         for (const auto& go : m_allObjects)
@@ -122,18 +118,7 @@ GameObject* Scene::createGameObject()
 
     rawPtr->onTransformChange();
 
-    if (m_isUpdating)
-    {
-        m_pendingObjectsToAdd.push_back(std::move(newGameObject));
-        m_pendingRootObjectsToAdd.push_back(rawPtr);
-    }
-    else
-    {
-        m_allObjects.push_back(std::move(newGameObject));
-        m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
-        m_rootObjects.push_back(rawPtr);
-        markDirty();
-    }
+    registerGameObjectInternal(std::move(newGameObject), true);
 
     return rawPtr;
 }
@@ -145,20 +130,32 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
 
     raw->onTransformChange();
 
-    if (m_isUpdating)
-    {
-        m_pendingObjectsToAdd.push_back(std::move(newGameObject));
-        m_pendingRootObjectsToAdd.push_back(raw);
-    }
-    else
-    {
-        m_allObjects.push_back(std::move(newGameObject));
-        m_objectIndexMap[raw] = m_allObjects.size() - 1;
-        m_rootObjects.push_back(raw);
-        markDirty();
-    }
+    registerGameObjectInternal(std::move(newGameObject), true);
 
     return raw;
+}
+
+void Scene::registerGameObjectInternal(std::unique_ptr<GameObject> gameObject, bool addToRoot)
+{
+    if (m_isUpdating)
+    {
+        m_pendingObjectsToAdd.push_back(std::move(gameObject));
+        return;
+    }
+
+    commitGameObject(std::move(gameObject), addToRoot);
+    markDirty();
+}
+
+void Scene::commitGameObject(std::unique_ptr<GameObject> gameObject, bool addToRoot)
+{
+    GameObject* raw = gameObject.get();
+    m_allObjects.push_back(std::move(gameObject));
+    m_objectIndexMap[raw] = m_allObjects.size() - 1;
+    if (addToRoot && raw->GetTransform()->getRoot() == nullptr)
+    {
+        m_rootObjects.push_back(raw);
+    }
 }
 
 void Scene::initLoadedObjects()
@@ -181,7 +178,7 @@ GameObject* Scene::findGameObjectByUID(UID uuid)
             return root.get();
         }
 
-        if (GameObject* found = findInWindowHierarchy(root.get(), uuid))
+        if (GameObject* found = findInChildrenRecursive(root.get(), uuid))
         {
             return found;
         }
@@ -191,29 +188,13 @@ GameObject* Scene::findGameObjectByUID(UID uuid)
 
 void Scene::removeGameObject(UID uuid)
 {
-    GameObject* target = nullptr;
-
-    for (const auto& root : m_allObjects)
-    {
-        if (root->GetID() == uuid)
-        {
-            target = root.get();
-            break;
-        }
-
-        target = findInWindowHierarchy(root.get(), uuid);
-        if (target)
-        {
-            break;
-        }
-    }
-
+    GameObject* target = findGameObjectByUID(uuid);
     if (!target)
     {
         return;
     }
 
-    destroyWindowHierarchy(target);
+    destroyGameObjectRecursive(target);
 }
 
 void Scene::markGameObjectForRemoval(UID uuid)
@@ -243,22 +224,18 @@ void Scene::flushPendingGameObjects()
         return;
     }
 
-    for (GameObject* rootObject : m_pendingRootObjectsToAdd)
-    {
-        if (rootObject)
-        {
-            m_rootObjects.push_back(rootObject);
-        }
-    }
-
     for (auto& pendingObject : m_pendingObjectsToAdd)
     {
-        m_objectIndexMap[pendingObject.get()] = m_allObjects.size();
+        GameObject* raw = pendingObject.get();
+        m_objectIndexMap[raw] = m_allObjects.size();
+        if (raw->GetTransform()->getRoot() == nullptr)
+        {
+            m_rootObjects.push_back(raw);
+        }
         m_allObjects.push_back(std::move(pendingObject));
     }
 
     m_pendingObjectsToAdd.clear();
-    m_pendingRootObjectsToAdd.clear();
 
     markDirty();
 }
@@ -305,8 +282,12 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     all.push_back(std::move(gameObject));
 
     for (size_t i = 0; i < all.size(); ++i)
+    {
         for (auto& child : all[i]->releaseChildren())
+        {
             all.push_back(std::move(child));
+        }
+    }
 
     std::vector<GameObject*> newGOs;
     newGOs.reserve(all.size());
@@ -315,10 +296,7 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     {
         GameObject* raw = go.get();
         newGOs.push_back(raw);
-        m_allObjects.push_back(std::move(go));
-        m_objectIndexMap[raw] = m_allObjects.size() - 1;
-        if (raw->GetTransform()->getRoot() == nullptr)
-            m_rootObjects.push_back(raw);
+        commitGameObject(std::move(go), true);
     }
 
     markDirty();
@@ -328,13 +306,17 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     {
         resolver.registerGameObject(obj, obj);
         for (Component* c : obj->GetAllComponents())
+        {
             resolver.registerComponent(c->getID(), c);
+        }
     }
 
     for (GameObject* obj : newGOs)
     {
         for (Component* c : obj->GetAllComponents())
+        {
             c->fixReferences(resolver);
+        }
     }
 }
 
@@ -367,7 +349,7 @@ void Scene::destroyGameObject(GameObject* gameObject)
     markDirty();
 }
 
-bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
+bool Scene::isDescendant(GameObject* root, GameObject* candidate) const
 {
     if (!root || !candidate)
     {
@@ -381,7 +363,7 @@ bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
 
     for (GameObject* child : root->GetTransform()->getAllChildren())
     {
-        if (isInHierarchy(child, candidate))
+        if (isDescendant(child, candidate))
         {
             return true;
         }
@@ -390,7 +372,7 @@ bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
     return false;
 }
 
-GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
+GameObject* Scene::findInChildrenRecursive(GameObject* current, UID uuid)
 {
     for (GameObject* child : current->GetTransform()->getAllChildren())
     {
@@ -399,7 +381,7 @@ GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
             return child;
         }
 
-        GameObject* found = findInWindowHierarchy(child, uuid);
+        GameObject* found = findInChildrenRecursive(child, uuid);
         if (found)
         {
             return found;
@@ -409,7 +391,7 @@ GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
     return nullptr;
 }
 
-void Scene::destroyWindowHierarchy(GameObject* obj)
+void Scene::destroyGameObjectRecursive(GameObject* obj)
 {
     if (!obj)
     {
@@ -418,7 +400,7 @@ void Scene::destroyWindowHierarchy(GameObject* obj)
 
     ModuleEditor* editor = app->getModuleEditor();
 
-    if (isInHierarchy(obj, editor->getSelectedGameObject()))
+    if (isDescendant(obj, editor->getSelectedGameObject()))
     {
         editor->setSelectedGameObject(nullptr);
     }
@@ -427,7 +409,7 @@ void Scene::destroyWindowHierarchy(GameObject* obj)
 
     for (GameObject* child : children)
     {
-        destroyWindowHierarchy(child);
+        destroyGameObjectRecursive(child);
     }
 
     Transform* parent = obj->GetTransform()->getRoot();
@@ -461,9 +443,7 @@ GameObject* Scene::createDirectionalLightOnInit()
     raw->GetTransform()->setRotationEuler({ 180.f, 0.f, 0.f });
     raw->init();
 
-    m_allObjects.push_back(std::move(go));
-    m_objectIndexMap[raw] = m_allObjects.size() - 1;
-    m_rootObjects.push_back(raw);
+    commitGameObject(std::move(go), true);
     markDirty();
 
     return raw;
@@ -501,13 +481,6 @@ void Scene::removeFromRootList(GameObject* obj)
         obj);
 
     m_rootObjects.erase(it, m_rootObjects.end());
-
-    auto pendingIt = std::remove(
-        m_pendingRootObjectsToAdd.begin(),
-        m_pendingRootObjectsToAdd.end(),
-        obj);
-
-    m_pendingRootObjectsToAdd.erase(pendingIt, m_pendingRootObjectsToAdd.end());
 }
 
 void Scene::addToRootList(GameObject* gameObject)
@@ -532,38 +505,7 @@ bool Scene::containsGameObject(const GameObject* go) const
         return false;
     }
 
-    for (const auto& obj : m_allObjects)
-    {
-        if (obj.get() == go)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void Scene::fixSceneReferences()
-{
-    SceneReferenceResolver resolver;
-
-    for (GameObject* obj : getAllGameObjects())
-    {
-        resolver.registerGameObject(obj, obj);
-
-        for (Component* component : obj->GetAllComponents())
-        {
-            resolver.registerComponent(component->getID(), component);
-        }
-    }
-
-    for (GameObject* obj : getAllGameObjects())
-    {
-        for (Component* component : obj->GetAllComponents())
-        {
-            component->fixReferences(resolver);
-        }
-    }
+    return m_objectIndexMap.find(const_cast<GameObject*>(go)) != m_objectIndexMap.end();
 }
 
 void Scene::clearScene()
@@ -595,7 +537,6 @@ void Scene::clearScene()
     m_isUpdating = false;
     m_objectsToRemove.clear(); 
     m_pendingObjectsToAdd.clear();
-    m_pendingRootObjectsToAdd.clear();
     markDirty();
 }
 
@@ -651,16 +592,8 @@ void Scene::addLoadedBank(const std::string& bank)
 
 void Scene::removeLoadedBank(const std::string& bank)
 {
-    for (auto it = m_loadedBanks.begin(); it != m_loadedBanks.end(); ++it)
-    {
-        if (*it != bank)
-        {
-            continue;
-        }
-
-        m_loadedBanks.erase(it);
-        return;
-    }
+    auto it = std::remove(m_loadedBanks.begin(), m_loadedBanks.end(), bank);
+    m_loadedBanks.erase(it, m_loadedBanks.end());
 }
 
 void Scene::unloadSoundBanks()
@@ -684,12 +617,16 @@ void Scene::serialize(IArchive& archive)
     {
         SoundBanksData soundData;
         if (archive.mode() == ArchiveMode::Output)
+        {
             soundData.banks = m_loadedBanks;
+        }
         archive.beginObject("SoundBanks");
         soundData.serialize(archive);
         archive.endObject();
         if (archive.mode() == ArchiveMode::Input)
+        {
             m_loadedBanks = std::move(soundData.banks);
+        }
     }
 
     uint64_t defaultCameraUid = 0;
@@ -795,12 +732,16 @@ void Scene::fixReferencesFor(const std::vector<GameObject*>& gos)
     {
         resolver.registerGameObject(obj, obj);
         for (Component* c : obj->GetAllComponents())
+        {
             resolver.registerComponent(c->getID(), c);
+        }
     }
 
     for (GameObject* obj : gos)
     {
         for (Component* c : obj->GetAllComponents())
+        {
             c->fixReferences(resolver);
+        }
     }
 }
