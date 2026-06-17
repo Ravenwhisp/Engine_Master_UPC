@@ -8,6 +8,17 @@
 #include "JsonArchive.h"
 
 template<typename T>
+std::shared_ptr<T> ModuleAssets::loadFromLibraryResolved(AssetReference& ref)
+{
+    auto loaded = m_cache.loadFromLibrary<T>(ref, m_importers, m_index);
+    if (!loaded) return nullptr;
+    auto resolved = resolveAfterBinaryLoad(std::static_pointer_cast<Asset>(loaded));
+    if (resolved.get() != loaded.get())
+        m_cache.insert(ref.m_uid, resolved);
+    return std::static_pointer_cast<T>(resolved);
+}
+
+template<typename T>
 std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
 {
     if (!isValidUID(ref.m_uid))
@@ -42,13 +53,9 @@ std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
             }
         }
 
-        if (auto loaded = m_cache.loadFromLibrary<T>(ref, m_importers, m_index))
+        if (auto loaded = loadFromLibraryResolved<T>(ref))
         {
-            // ponytail: binary deserialization loses derived DataContainer type — re-resolve
-            auto resolved = resolveAfterBinaryLoad(std::static_pointer_cast<Asset>(loaded));
-            if (resolved.get() != loaded.get())
-                m_cache.insert(ref.m_uid, resolved);
-            return std::static_pointer_cast<T>(resolved);
+            return loaded;
         }
     }
 
@@ -66,13 +73,7 @@ std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
         return nullptr;
     }
 
-    auto loaded = m_cache.loadFromLibrary<T>(ref, m_importers, m_index);
-    if (!loaded) return nullptr;
-    // ponytail: binary deserialization loses derived DataContainer type — re-resolve
-    auto resolved = resolveAfterBinaryLoad(std::static_pointer_cast<Asset>(loaded));
-    if (resolved.get() != loaded.get())
-        m_cache.insert(ref.m_uid, resolved);
-    return std::static_pointer_cast<T>(resolved);
+    return loadFromLibraryResolved<T>(ref);
 }
 
 template<typename T>
@@ -110,11 +111,5 @@ std::shared_ptr<T> ModuleAssets::loadAtPath(const std::filesystem::path& sourceP
         return nullptr;
     }
 
-    auto loaded3 = m_cache.loadFromLibrary<T>(ref, m_importers, m_index);
-    if (!loaded3) return nullptr;
-    // ponytail: binary deserialization loses derived DataContainer type — re-resolve
-    auto resolved3 = resolveAfterBinaryLoad(std::static_pointer_cast<Asset>(loaded3));
-    if (resolved3.get() != loaded3.get())
-        m_cache.insert(ref.m_uid, resolved3);
-    return std::static_pointer_cast<T>(resolved3);
+    return loadFromLibraryResolved<T>(ref);
 }

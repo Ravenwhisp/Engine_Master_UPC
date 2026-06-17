@@ -16,8 +16,6 @@ public:
 	}
 
 	void serialize(IArchive& archive) override;
-
-	virtual void syncFromData() {}
 	void drawUI() override;
 
 	const std::string& getStoredTypeName() const { return m_typeName; }
