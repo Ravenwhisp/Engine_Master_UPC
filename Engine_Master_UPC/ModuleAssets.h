@@ -69,6 +69,7 @@ public:
 
 private:
     DataContainer* resolveDataContainerType(DataContainer* baseContainer, const std::filesystem::path& sourcePath) const;
+    std::shared_ptr<Asset> resolveAfterBinaryLoad(std::shared_ptr<Asset> asset) const;
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
 
     AssetIndex                           m_index;

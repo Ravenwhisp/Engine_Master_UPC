@@ -450,3 +450,28 @@ DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContain
 
 	return derived.release();
 }
+
+// ponytail: re-resolve DataContainer type after binary deserialization loses derived type info
+std::shared_ptr<Asset> ModuleAssets::resolveAfterBinaryLoad(std::shared_ptr<Asset> asset) const
+{
+	auto dc = std::dynamic_pointer_cast<DataContainer>(asset);
+	if (!dc) return asset;
+
+	const std::string& typeName = dc->getStoredTypeName();
+	if (typeName.empty()) return asset;
+	if (!dc->getExposedFields().fields.empty()) return asset;
+
+	const UID uid = dc->getUID();
+	const AssetIndexEntry* entry = m_index.findEntry(uid);
+	if (!entry || entry->sourcePath.empty()) return asset;
+
+	AssetReference ref = dc->getReference();
+	auto derived = DataContainerFactory::create(typeName.c_str(), ref);
+	if (!derived) return asset;
+
+	JsonArchive archive(ArchiveMode::Input);
+	if (archive.loadFile(entry->sourcePath))
+		derived->serialize(archive);
+
+	return std::shared_ptr<Asset>(derived.release());
+}
