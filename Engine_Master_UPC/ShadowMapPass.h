@@ -18,7 +18,6 @@ class MeshRenderer;
 class ShadowMapPass : public IRenderPass
 {
 public:
-    static constexpr uint32_t SHADOW_MAP_SIZE = 2048;
 
     struct ShadowDrawConstants
     {
@@ -41,7 +40,7 @@ private:
     void createRootSignature();
     void createPipelineState();
 
-    const LightComponent* findMainDirectionalLight() const;
+    const LightComponent* findMainShadowCastingDirectionalLight() const;
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
@@ -56,7 +55,13 @@ private:
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
     void transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
+    void createShadowMap(uint32_t size);
+    void resizeShadowMapIfNeeded(uint32_t size);
+    void updateShadowViewportAndScissor(uint32_t size);
+    uint32_t getCurrentShadowMapSize() const { return m_currentShadowMapSize; }
+
 private:
+    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
     static constexpr float SHADOW_MIN_ORTHO_SIZE = 10.0f;
     static constexpr float SHADOW_BOUNDS_PADDING = 10.0f;
     static constexpr float SHADOW_LIGHT_DISTANCE_PADDING = 20.0f;
@@ -70,6 +75,7 @@ private:
 
     std::unique_ptr<Texture> m_shadowMap;
     D3D12_RESOURCE_STATES m_shadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    uint32_t m_currentShadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
 
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;

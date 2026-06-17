@@ -8,9 +8,8 @@
 #include "MeshRenderer.h"
 #include "LightComponent.h"
 #include "CameraComponent.h"
-#include "NavigationAgentComponent.h"
 #include "NavModifierVolumeComponent.h"
-#include "WaypointPathComponent.h"
+#include "NavRuntimeBlockerComponent.h"
 #include "ScriptComponent.h"
 #include "AnimationComponent.h"
 #include "TriggerComponent.h"
@@ -66,15 +65,12 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::UIBUTTON:
         return std::make_unique<UIButton>(id, owner);
-
-    case ComponentType::NAVIGATION_AGENT:
-        return std::make_unique<NavigationAgentComponent>(id, owner);
     
-    case ComponentType::NAVMODIFIER_VOLUME:
+    case ComponentType::NAV_MODIFIER_VOLUME:
         return std::make_unique<NavModifierVolumeComponent>(id, owner);
 
-    case ComponentType::WAYPOINT_PATH:
-        return std::make_unique<WaypointPathComponent>(id, owner);
+    case ComponentType::NAV_RUNTIME_BLOCKER:
+        return std::make_unique<NavRuntimeBlockerComponent>(id, owner);
 
     case ComponentType::ANIMATION:
         return std::make_unique<AnimationComponent>(id, owner);

@@ -148,6 +148,15 @@ float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in floa
 
 
 //----------SHADOW MAPPING----------//
+float EvaluateShadowSample(float2 shadowUV, float currentDepth)
+{
+    float closestDepth = shadowMap.Sample(linearClampSample, shadowUV).r;
+
+    return currentDepth - shadowBias > closestDepth
+        ? 1.0f - shadowStrength
+        : 1.0f;
+}
+
 float ComputeShadow(float3 worldPos)
 {
     if (shadowsEnabled == 0)
@@ -177,11 +186,38 @@ float ComputeShadow(float3 worldPos)
         return 1.0f;
     }
 
-    float closestDepth = shadowMap.Sample(linearClampSample, shadowUV).r;
+    if (pcfEnabled == 0 || pcfRadius == 0)
+    {
+        return EvaluateShadowSample(shadowUV, currentDepth);
+    }
 
-    return currentDepth - shadowBias > closestDepth
-        ? 1.0f - shadowStrength
-        : 1.0f;
+    float shadowSum = 0.0f;
+    float sampleCount = 0.0f;
+
+    int radius = int(pcfRadius);
+
+    for (int y = -radius; y <= radius; ++y)
+    {
+        for (int x = -radius; x <= radius; ++x)
+        {
+            float2 offset = float2(x, y) * shadowMapTexelSize;
+            float2 sampleUV = shadowUV + offset;
+
+            if (sampleUV.x < 0.0f || sampleUV.x > 1.0f ||
+                sampleUV.y < 0.0f || sampleUV.y > 1.0f)
+            {
+                shadowSum += 1.0f;
+            }
+            else
+            {
+                shadowSum += EvaluateShadowSample(sampleUV, currentDepth);
+            }
+
+            sampleCount += 1.0f;
+        }
+    }
+
+    return shadowSum / sampleCount;
 }
 //--------------------//
 

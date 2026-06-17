@@ -1,9 +1,11 @@
 #pragma once
 
 #include "AbilityDash.h"
-#include "Transform2D.h"
 
 class LyrielSound;
+class LyrielUI;
+class LyrielCharacter;
+class LyrielConfig;
 
 class LyrielDash : public AbilityDash
 {
@@ -13,47 +15,27 @@ public:
     explicit LyrielDash(GameObject* owner);
 
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
 
     void recoverCharge();
 
 protected:
+    float getCooldown() const override;
+    float getDashDuration() const override;
+    float getDashDistance() const override;
+
     bool canDash() const override;
     void onDashStarted() override;
     void onDashUpdate(float dt) override;
     bool validateDashTarget() override;
     void drawGizmo() override;
-    
-    void updateUI() override;
-    void updateChargeVisual(Transform2D* transform, float& currentScale, float targetScale, float dt);
-
 
 private:
-    // Will be implemented to MathAPI
-    float moveTowards(float current, float target, float maxDelta);
+    LyrielCharacter* m_lyrielCharacter = nullptr;
+    LyrielConfig* m_config = nullptr;
+    LyrielUI* m_lyrielUI = nullptr;
 
-private:
-
-    float m_chargeRechargeTime = 3.0f;
-    int m_maxCharges = 3;
     int m_currentCharges = 0;
     float m_chargeRecoveryTimer = 0.0f;
-    
-    ScriptComponentRef<Transform2D> m_charge1UI;
-    ScriptComponentRef<Transform2D> m_charge2UI;
-    ScriptComponentRef<Transform2D> m_charge3UI;
-
-    Transform2D* m_charge1Transform2D = nullptr;
-    Transform2D* m_charge2Transform2D = nullptr;
-    Transform2D* m_charge3Transform2D = nullptr;
-    
-    float chargedScale = 1.0f;
-    float emptyScale = 0.5f;
-    float uiScaleSpeed = 3.0f;
-
-    float m_charge1Scale = chargedScale;
-    float m_charge2Scale = chargedScale;
-    float m_charge3Scale = chargedScale;
 
 private:
     // For debugging only
