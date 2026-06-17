@@ -3,6 +3,7 @@
 #include "AbilityBase.h"
 
 class DeathCharacter;
+class DeathConfig;
 
 class DeathAbilityBase : public AbilityBase
 {
@@ -16,5 +17,7 @@ protected:
 
 protected:
     DeathCharacter* m_deathCharacter = nullptr;
+    DeathConfig* m_config = nullptr;
+
     bool m_movementLockedForCombo = false;
 };

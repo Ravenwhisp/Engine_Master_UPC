@@ -7,7 +7,7 @@ class ArthurBossController;
 class ArthurAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
-
+class ArthurUI;
 
 class ArthurHeavySwipe : public StateMachineScript
 {
@@ -24,15 +24,12 @@ private:
     void tryApplyHit(int hitIndex);
     void goToRecover();
 
-    void setupUI();
-    void updateUI();
-	void applyHitEffects(float t, Transform2D* glow, Transform2D* border, Transform2D* claw);
-
 private:
     ArthurBossController* m_arthurController = nullptr;
     ArthurAttackConfig* m_attackConfig = nullptr;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
+    ArthurUI* m_arthurUI = nullptr;
 
     float m_stateTimer = 0.0f;
 

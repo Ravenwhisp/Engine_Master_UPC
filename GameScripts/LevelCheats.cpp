@@ -27,6 +27,8 @@ void LevelCheats::Update()
     if (KeyComboPressed(KeyCode::T)) ToggleInvincibility();
     if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
     if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
+	if (KeyComboPressed(KeyCode::Up)) SpawnEnemy(2);
+	if (KeyComboPressed(KeyCode::Down)) SpawnEnemy(3);
     if (KeyComboPressed(KeyCode::D)) restartLevel();
 	if (KeyComboPressed(KeyCode::F)) killEnemies();
     if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::A))
@@ -68,13 +70,13 @@ bool LevelCheats::KeyComboPressed(KeyCode mainKey)
 void LevelCheats::AutoWin()
 {
     Debug::warn("AutoWin activated!");
-	SceneAPI::requestSceneChange("WinScene");
+	SceneAPI::requestSceneChange("Win_Scene");
 }
 
 void LevelCheats::AutoLose()
 {
     Debug::log("AutoLose activated!");
-    SceneAPI::requestSceneChange("LoseScene");
+    SceneAPI::requestSceneChange("Lose_Scene");
 }
 
 void LevelCheats::Teleport()

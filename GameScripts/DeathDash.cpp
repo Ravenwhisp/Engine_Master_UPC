@@ -5,11 +5,7 @@
 #include "DeathSound.h"
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
-
-IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathDash, AbilityDash,
-    SERIALIZED_FLOAT(m_dashHitWidth, "Dash Hit Width", 0.1f, 5.0f, 0.05f),
-    SERIALIZED_FLOAT(m_dashDamage, "Dash Damage", 0.0f, 100.0f, 1.0f)
-)
+#include "DeathConfig.h"
 
 DeathDash::DeathDash(GameObject* owner): AbilityDash(owner)
 {
@@ -19,12 +15,38 @@ void DeathDash::Start()
 {
     AbilityDash::Start();
 
-    if (m_character == nullptr)
+    m_deathCharacter = dynamic_cast<DeathCharacter*>(m_character);
+
+    if (!m_deathCharacter)
     {
-        Debug::log("[DeathDash] DeathCharacter not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+        Debug::error("[DeathDash] DeathCharacter not found.");
+        return;
+    }
+
+    m_config = GameObjectAPI::findScript<DeathConfig>(getOwner());
+
+    if (!m_config)
+    {
+        Debug::error("[DeathDash] DeathConfig not found.");
+        return;
     }
 
     m_sound = GameObjectAPI::findScript<DeathSound>(getOwner());
+}
+
+float DeathDash::getCooldown() const
+{
+    return m_config->m_dashCooldown;
+}
+
+float DeathDash::getDashDuration() const
+{
+    return m_config->m_dashDuration;
+}
+
+float DeathDash::getDashDistance() const
+{
+    return m_config->m_dashDistance;
 }
 
 void DeathDash::onDashStarted()
@@ -109,11 +131,17 @@ bool DeathDash::isInsideDashRectangle(const Vector3& point) const
     float   longitudinal = toPoint.Dot(fwd);
     float   lateral = toPoint.Dot(side);
 
-    return (longitudinal >= 0.0f && longitudinal <= length) && (lateral >= -m_dashHitWidth && lateral <= m_dashHitWidth);
+    return (longitudinal >= 0.0f && longitudinal <= length) && (lateral >= -m_config->m_dashHitWidth && lateral <= m_config->m_dashHitWidth);
 }
 
 void DeathDash::applyDashDamage()
 {
+    if (m_dashDamageDealt)
+    {
+        return;
+    }
+
+    m_dashDamageDealt = true;
 
     std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
 
@@ -145,7 +173,7 @@ void DeathDash::applyDashDamage()
         {
             {
                 EnemyHitContext ctx;
-                ctx.damage = m_dashDamage;
+                ctx.damage = m_config->m_dashDamage;
                 ctx.attacker = GameObjectAPI::getTransform(getOwner());
                 ctx.attackType = EnemyAttackType::DeathDash;
                 damageable->takeDamage(ctx);
