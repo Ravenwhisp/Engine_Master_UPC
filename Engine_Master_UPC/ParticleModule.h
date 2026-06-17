@@ -4,6 +4,12 @@ class EmitterInstance;
 class Transform;
 
 // Update when needed
+enum class ParticleRenderMode {
+	BILLBOARD = 0,
+	HORIZONTAL = 1,
+	VERTICAL = 2
+};
+
 enum class ParticleModuleType {
 
 	BASE,
@@ -14,7 +20,8 @@ enum class ParticleModuleType {
 	VELOCITY,
 	SIZE,
 	ROTATION,
-	ANIMATION
+	ANIMATION,
+	RENDER
 };
 
 enum class ParameterType {
@@ -48,4 +55,28 @@ private:
 
 	const ParticleModuleType m_moduleType;
 };
+
+class EmitterRender : public ParticleModule
+{
+public:
+
+	enum class RenderMode {
+		BILLBOARD = 0,
+		HORIZONTAL = 1,
+		VERTICAL = 2
+	};
+
+	EmitterRender() : ParticleModule(ParticleModuleType::RENDER) {}
+	std::unique_ptr<ParticleModule> clone() const override { return std::make_unique<EmitterRender>(*this); }
+
+	bool drawUi() override;
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+
+	RenderMode getRenderMode() const { return m_renderMode; }
+
+private:
+	RenderMode m_renderMode = RenderMode::BILLBOARD;
+};
+
 
