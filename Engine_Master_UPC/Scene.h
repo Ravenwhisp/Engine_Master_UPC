@@ -39,7 +39,6 @@ private:
 
     std::vector<UID> m_objectsToRemove;
 
-    // ponytail: O(1) lookup for destroyGameObject swap-pop, avoids O(n) find_if per destruction
     std::unordered_map<GameObject*, size_t> m_objectIndexMap;
 
     bool m_componentCacheDirty = true;

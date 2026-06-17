@@ -68,9 +68,8 @@ void TriggerSystem::detectOverlaps()
     m_previousOverlaps = m_currentOverlaps;
     m_currentOverlaps.clear();
 
-    // ponytail: sort-and-sweep on X axis instead of O(t^2) brute force.
-    // For scattered triggers this is O(t log t + k) where k = X-overlapping pairs.
     struct SweepEntry { float minX; float maxX; TriggerComponent* trigger; };
+
     std::vector<SweepEntry> sweep;
     sweep.reserve(m_triggers.size());
     for (auto* t : m_triggers)
@@ -88,7 +87,7 @@ void TriggerSystem::detectOverlaps()
 
         for (size_t j = i + 1; j < sweep.size(); ++j)
         {
-            if (sweep[j].minX > sweep[i].maxX) break; // ponytail: early out, no more X overlaps
+            if (sweep[j].minX > sweep[i].maxX) break;
 
             TriggerComponent* triggerB = sweep[j].trigger;
 

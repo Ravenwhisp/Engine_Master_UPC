@@ -267,8 +267,6 @@ void Scene::releasePendingDestroyedGameObjects()
 {
     CommandQueue* commandQueue = app->getModuleD3D12()->getCommandQueue();
 
-    // ponytail: signal fence once per frame for all newly-destroyed objects
-    // instead of per-object (which flooded the GPU queue causing multi-second freezes)
     {
         bool needsSignal = false;
         for (const auto& p : m_pendingDestroyedObjects)
@@ -329,7 +327,6 @@ void Scene::destroyGameObject(GameObject* gameObject)
 {
     removeFromRootList(gameObject);
 
-    // ponytail: O(1) map lookup + swap-pop instead of O(n) find_if + erase
     auto mapIt = m_objectIndexMap.find(gameObject);
     if (mapIt == m_objectIndexMap.end()) return;
 
@@ -580,9 +577,9 @@ void Scene::clearScene()
 
     m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
-    m_isUpdating = false;                    // ponytail: prevent stale state on next Play
-    m_objectsToRemove.clear();               // ponytail: prevent zombie UIDs from nuking restored objects
-    m_pendingObjectsToAdd.clear();            // ponytail: prevent doubled objects on next Play
+    m_isUpdating = false;
+    m_objectsToRemove.clear(); 
+    m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
     markDirty();
 }
