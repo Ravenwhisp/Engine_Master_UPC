@@ -9,6 +9,8 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 
+#include <algorithm>
+
 void TriggerSystem::update()
 {
     detectOverlaps();
@@ -66,33 +68,34 @@ void TriggerSystem::detectOverlaps()
     m_previousOverlaps = m_currentOverlaps;
     m_currentOverlaps.clear();
 
-    for (size_t i = 0; i < m_triggers.size(); ++i)
+    // ponytail: sort-and-sweep on X axis instead of O(t^2) brute force.
+    // For scattered triggers this is O(t log t + k) where k = X-overlapping pairs.
+    struct SweepEntry { float minX; float maxX; TriggerComponent* trigger; };
+    std::vector<SweepEntry> sweep;
+    sweep.reserve(m_triggers.size());
+    for (auto* t : m_triggers)
     {
-        TriggerComponent* triggerA = m_triggers[i];
+        if (!isValidTrigger(t)) continue;
+        const auto& aabb = t->getWorldAABB();
+        sweep.push_back({ aabb.getMin().x, aabb.getMax().x, t });
+    }
+    std::sort(sweep.begin(), sweep.end(),
+        [](const auto& a, const auto& b) { return a.minX < b.minX; });
 
-        if (!isValidTrigger(triggerA))
+    for (size_t i = 0; i < sweep.size(); ++i)
+    {
+        TriggerComponent* triggerA = sweep[i].trigger;
+
+        for (size_t j = i + 1; j < sweep.size(); ++j)
         {
-            continue;
-        }
+            if (sweep[j].minX > sweep[i].maxX) break; // ponytail: early out, no more X overlaps
 
-        for (size_t j = i + 1; j < m_triggers.size(); ++j)
-        {
-            TriggerComponent* triggerB = m_triggers[j];
+            TriggerComponent* triggerB = sweep[j].trigger;
 
-            if (!isValidTrigger(triggerB))
-            {
-                continue;
-            }
-
-            if (triggerA->getOwner() == triggerB->getOwner())
-            {
-                continue;
-            }
+            if (triggerA->getOwner() == triggerB->getOwner()) continue;
 
             if (intersectsAABB(triggerA, triggerB))
-            {
                 m_currentOverlaps.push_back(TriggerOverlap(triggerA->getID(), triggerB->getID()));
-            }
         }
     }
 }

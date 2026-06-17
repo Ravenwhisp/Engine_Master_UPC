@@ -53,6 +53,7 @@ bool Scene::init()
     setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
     m_allObjects.push_back(std::move(gameCamera));
+    m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
     m_rootObjects.push_back(rawPtr);
 
     for (const auto& go : m_allObjects)
@@ -129,6 +130,7 @@ GameObject* Scene::createGameObject()
     else
     {
         m_allObjects.push_back(std::move(newGameObject));
+        m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
         m_rootObjects.push_back(rawPtr);
         markDirty();
     }
@@ -151,6 +153,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     else
     {
         m_allObjects.push_back(std::move(newGameObject));
+        m_objectIndexMap[raw] = m_allObjects.size() - 1;
         m_rootObjects.push_back(raw);
         markDirty();
     }
@@ -250,6 +253,7 @@ void Scene::flushPendingGameObjects()
 
     for (auto& pendingObject : m_pendingObjectsToAdd)
     {
+        m_objectIndexMap[pendingObject.get()] = m_allObjects.size();
         m_allObjects.push_back(std::move(pendingObject));
     }
 
@@ -310,6 +314,7 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     {
         GameObject* raw = go.get();
         m_allObjects.push_back(std::move(go));
+        m_objectIndexMap[raw] = m_allObjects.size() - 1;
         if (raw->GetTransform()->getRoot() == nullptr)
             m_rootObjects.push_back(raw);
     }
@@ -324,26 +329,29 @@ void Scene::destroyGameObject(GameObject* gameObject)
 {
     removeFromRootList(gameObject);
 
-    auto it = std::find_if(
-        m_allObjects.begin(),
-        m_allObjects.end(),
-        [gameObject](const std::unique_ptr<GameObject>& ptr)
-        {
-            return ptr.get() == gameObject;
+    // ponytail: O(1) map lookup + swap-pop instead of O(n) find_if + erase
+    auto mapIt = m_objectIndexMap.find(gameObject);
+    if (mapIt == m_objectIndexMap.end()) return;
+
+    const size_t idx = mapIt->second;
+    const size_t lastIdx = m_allObjects.size() - 1;
+
+    app->getModuleScene()->removeGameObjectFromQuadtree(*m_allObjects[idx].get());
+
+    m_pendingDestroyedObjects.push_back(
+        PendingDestroyedGameObject{
+            std::move(m_allObjects[idx]),
+            0
         });
 
-    if (it != m_allObjects.end())
+    if (idx != lastIdx)
     {
-        app->getModuleScene()->removeGameObjectFromQuadtree(*it->get());
-
-        // ponytail: fenceValue=0 means "needs batch signal"; signaled once in releasePendingDestroyedGameObjects
-        m_pendingDestroyedObjects.push_back(
-            PendingDestroyedGameObject{
-                std::move(*it),
-                0
-            });
-        m_allObjects.erase(it);
+        m_allObjects[idx] = std::move(m_allObjects[lastIdx]);
+        m_objectIndexMap[m_allObjects[idx].get()] = idx;
     }
+
+    m_allObjects.pop_back();
+    m_objectIndexMap.erase(mapIt);
     markDirty();
 }
 
@@ -442,6 +450,7 @@ GameObject* Scene::createDirectionalLightOnInit()
     raw->init();
 
     m_allObjects.push_back(std::move(go));
+    m_objectIndexMap[raw] = m_allObjects.size() - 1;
     m_rootObjects.push_back(raw);
     markDirty();
 
@@ -569,6 +578,7 @@ void Scene::clearScene()
     m_rootObjects.clear();
     m_allObjects.clear();
 
+    m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
     m_isUpdating = false;                    // ponytail: prevent stale state on next Play
     m_objectsToRemove.clear();               // ponytail: prevent zombie UIDs from nuking restored objects
