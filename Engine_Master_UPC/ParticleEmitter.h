@@ -3,6 +3,7 @@
 #include "ParticleModule.h"
 #include "Transform.h"
 #include "Texture.h"
+#include "EmitterRender.h"
 #include <vector>
 #include <utility>
 
@@ -24,6 +25,7 @@ public:
 
 	EmitterLifetime* getLifetimeModule() { return m_lifetimeModule; }
 	EmitterAnimation* getAnimationModule() { return m_animationModule;  }
+	EmitterRender* getRenderModule() { return m_renderModule; }
 
 	rapidjson::Value getJSON(rapidjson::Document& domTree);
 	bool deserializeJSON(const rapidjson::Value& emitterInfo);
@@ -35,5 +37,6 @@ private:
 	std::vector<std::unique_ptr<ParticleModule>> m_particleModules;
 	EmitterLifetime* m_lifetimeModule;
 	EmitterAnimation* m_animationModule;
+	EmitterRender* m_renderModule;
 };
 

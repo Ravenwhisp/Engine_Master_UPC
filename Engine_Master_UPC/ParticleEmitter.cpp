@@ -9,6 +9,7 @@
 #include "EmitterSize.h"
 #include "EmitterRotation.h"
 #include "EmitterAnimation.h"
+#include "EmitterRender.h"
 
 ParticleEmitter::ParticleEmitter()
 {
@@ -31,6 +32,10 @@ ParticleEmitter::ParticleEmitter()
 	auto emitterAnimation = std::make_unique<EmitterAnimation>();
 	m_animationModule = emitterAnimation.get();
 	m_particleModules.push_back(std::move(emitterAnimation));
+
+	auto emitterRender = std::make_unique<EmitterRender>();
+	m_renderModule = emitterRender.get();
+	m_particleModules.push_back(std::move(emitterRender));
 }
 
 ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
@@ -55,6 +60,10 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 	auto emitterAnimation = particleEmitter.m_particleModules[7]->clone();
 	m_animationModule = static_cast<EmitterAnimation*>(emitterAnimation.get());
 	m_particleModules.push_back(std::move(emitterAnimation));
+
+	auto emitterRender = particleEmitter.m_particleModules[8]->clone();
+	m_renderModule = static_cast<EmitterRender*>(emitterRender.get());
+	m_particleModules.push_back(std::move(emitterRender));
 }
 
 ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
@@ -143,6 +152,12 @@ bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
 		case ParticleModuleType::ANIMATION:
 
 			m_particleModules[7]->deserializeJSON(moduleData);
+			break;
+		
+		case ParticleModuleType::RENDER:
+
+			m_particleModules[8]->deserializeJSON(moduleData);
+			break;
 		}
 	}
 	return true;

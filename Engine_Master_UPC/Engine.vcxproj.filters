@@ -603,6 +603,9 @@
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClCompile>
     <ClCompile Include="EmitterAnimation.cpp" />
+    <ClCompile Include="EmitterRender.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1391,6 +1394,9 @@
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
     <ClInclude Include="EmitterAnimation.h" />
+    <ClInclude Include="EmitterRender.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
