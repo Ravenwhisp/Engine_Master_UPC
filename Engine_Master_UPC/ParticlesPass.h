@@ -41,7 +41,7 @@ private:
 
     // TEMPORARY
     
-    std::vector<ParticleEmitterCommand> test = { {nullptr, Vector2 (1.f, 1.f),
+    std::vector<ParticleEmitterCommand> test = { {nullptr, 0, Vector2 (1.f, 1.f),
            {
                {
                    Vector3(0.f, 0.f, 0.f),
@@ -64,7 +64,7 @@ private:
 
 
 /*
-std::vector<ParticleEmitterCommand> test = { {nullptr, Vector2 (1.f, 1.f),
+std::vector<ParticleEmitterCommand> test = { {nullptr, 0, Vector2 (1.f, 1.f),
           {
               {
                   Vector3(5.f, 1.f, 1.f),

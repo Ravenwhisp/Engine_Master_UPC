@@ -84,6 +84,12 @@ void ModuleParticleSystem::preRender()
 	{
 		buildParticleCommands(currentParticleSystemComponent);
 	}
+
+    // sort m_particleCommands per layer value (so that overlapped emitters with higher layer are rendered on top)
+    std::sort(m_particleCommands.begin(), m_particleCommands.end(), [](const ParticleEmitterCommand& a, const ParticleEmitterCommand& b)
+    {
+        return a.layer < b.layer;
+    });
 }
 
 void ModuleParticleSystem::update()
@@ -180,6 +186,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 
         ParticleEmitterCommand command;
 		command.texture = texture;
+        command.layer = animationConfig->getLayer();
         command.uvScale = animationConfig->getUVScale();
 
 		command.particles.reserve(aliveParticles.size());

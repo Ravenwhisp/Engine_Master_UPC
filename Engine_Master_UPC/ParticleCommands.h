@@ -18,6 +18,8 @@ struct ParticleCommand
 struct ParticleEmitterCommand
 {
     Texture* texture = nullptr;
+    int layer; // to indicate the order which particles between overlapped emitters will be drawn in
+
     Vector2 uvScale; // to determine size of a texture tile
     std::vector <ParticleCommand> particles;
 };
