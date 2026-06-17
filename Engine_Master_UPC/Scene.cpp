@@ -308,9 +308,13 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
         for (auto& child : all[i]->releaseChildren())
             all.push_back(std::move(child));
 
+    std::vector<GameObject*> newGOs;
+    newGOs.reserve(all.size());
+
     for (auto& go : all)
     {
         GameObject* raw = go.get();
+        newGOs.push_back(raw);
         m_allObjects.push_back(std::move(go));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
         if (raw->GetTransform()->getRoot() == nullptr)
@@ -319,8 +323,19 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 
     markDirty();
 
-    auto allGOs = getAllGameObjects();
-    fixReferencesFor(allGOs);
+    SceneReferenceResolver resolver;
+    for (GameObject* obj : newGOs)
+    {
+        resolver.registerGameObject(obj, obj);
+        for (Component* c : obj->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+    }
+
+    for (GameObject* obj : newGOs)
+    {
+        for (Component* c : obj->GetAllComponents())
+            c->fixReferences(resolver);
+    }
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)

@@ -445,8 +445,6 @@ void DeathBasicAttack::updateUI()
         return;
     }
 
-	Debug::log("[UI] attack window timer: %.2f / %.2f", m_attackStateTimer, m_attackLockDuration);
-
     const bool showUI = m_attackStateTimer > 0.0f;
     GameObjectAPI::setActive(m_deathSlashUITransform->getOwner(), showUI);
     if (showUI)
