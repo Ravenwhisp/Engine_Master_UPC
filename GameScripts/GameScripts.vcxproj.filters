@@ -107,6 +107,7 @@
     <ClCompile Include="PaladinChargeState.cpp" />
     <ClCompile Include="PaladinChaseState.cpp" />
     <ClCompile Include="UISplashScreen.cpp" />
+    <ClCompile Include="NavBlockerTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -214,6 +215,7 @@
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="UISplashScreen.h" />
+    <ClInclude Include="NavBlockerTest.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

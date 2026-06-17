@@ -329,6 +329,8 @@
     <ClInclude Include="PaladinAttackConfig.h" />
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
+    <ClInclude Include="NavBlockerTest.h" />
+
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="PlayerAnimationController.h" />
@@ -436,6 +438,7 @@
     <ClCompile Include="PaladinAttackConfig.cpp" />
     <ClCompile Include="PaladinChargeState.cpp" />
     <ClCompile Include="PaladinChaseState.cpp" />
+    <ClCompile Include="NavBlockerTest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
