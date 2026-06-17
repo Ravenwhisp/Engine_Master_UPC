@@ -128,7 +128,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
     if (reference.m_type == AssetType::DATA_CONTAINER)
     {
         DataContainer* baseDc = static_cast<DataContainer*>(asset.release());
-        DataContainer* derivedDc = resolveDataContainerType(baseDc);
+        DataContainer* derivedDc = resolveDataContainerType(baseDc, sourcePath);
         if (derivedDc)
         {
             delete baseDc;
@@ -422,31 +422,31 @@ PrefabManager* ModuleAssets::getPrefabManager() const
     return m_prefabManager.get();
 }
 
-DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer) const
+DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer, const std::filesystem::path& sourcePath) const
 {
-    if (!baseContainer)
-    {
-        return nullptr;
-    }
+	if (!baseContainer)
+	{
+		return nullptr;
+	}
 
-    const rapidjson::Document& data = baseContainer->getData();
-    if (!data.HasMember("_typeName") || !data["_typeName"].IsString())
-    {
-        return nullptr;
-    }
+	const std::string& typeName = baseContainer->getStoredTypeName();
+	if (typeName.empty())
+	{
+		return nullptr;
+	}
 
-    const char* typeName = data["_typeName"].GetString();
-    AssetReference ref = baseContainer->getReference();
+	AssetReference ref = baseContainer->getReference();
+	auto derived = DataContainerFactory::create(typeName.c_str(), ref);
+	if (!derived)
+	{
+		return nullptr;
+	}
 
-    auto derived = DataContainerFactory::create(typeName, ref);
-    if (!derived)
-    {
-        return nullptr;
-    }
+	JsonArchive archive(ArchiveMode::Input);
+	if (archive.loadFile(sourcePath))
+	{
+		derived->serialize(archive);
+	}
 
-    derived->getDataMutable().CopyFrom(data, derived->getDataMutable().GetAllocator());
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(data);
-    derived->serialize(archive);
-    return derived.release();
+	return derived.release();
 }

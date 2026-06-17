@@ -1472,7 +1472,7 @@ void AnimationComponent::invalidateAllStateBehaviours()
 std::string AnimationComponent::serializeScriptFields(const Script& script) const
 {
     JsonArchive archive(ArchiveMode::Output);
-    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), archive);
+    FieldUtils::serialize(const_cast<Script&>(script), reinterpret_cast<char*>(const_cast<Script*>(&script)), archive);
 
     rapidjson::Document temp;
     temp.SetObject();

@@ -35,7 +35,7 @@ namespace FieldUtils
         }
     }
 
-    void serialize(const IFieldContainer& container, const char* base, IArchive& archive)
+    void serialize(IFieldContainer& container, char* base, IArchive& archive)
     {
         FieldList fieldList = container.getExposedFields();
 
@@ -44,7 +44,7 @@ namespace FieldUtils
             if (!field.isDataField())
                 continue;
 
-            const void* data = base + field.offset;
+            void* data = base + field.offset;
             assert(field.handler != nullptr);
             field.handler->serialize(field, data, archive);
         }

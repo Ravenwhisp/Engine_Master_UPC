@@ -68,7 +68,7 @@ public:
     void refresh();
 
 private:
-    DataContainer* resolveDataContainerType(DataContainer* baseContainer) const;
+    DataContainer* resolveDataContainerType(DataContainer* baseContainer, const std::filesystem::path& sourcePath) const;
     bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
 
     AssetIndex                           m_index;

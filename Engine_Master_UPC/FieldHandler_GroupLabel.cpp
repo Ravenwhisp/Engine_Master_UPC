@@ -11,7 +11,7 @@ namespace
         ImGui::SeparatorText(field.name);
     }
 
-    void serializeGroupLabel(const FieldInfo&, const void*, IArchive& archive)
+    void serializeGroupLabel(const FieldInfo&, void*, IArchive& archive)
     {
     }
 

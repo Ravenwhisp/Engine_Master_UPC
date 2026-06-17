@@ -16,6 +16,13 @@
 
 #include <fstream>
 
+CommandCreateDataContainer::CommandCreateDataContainer(const std::filesystem::path& targetDir, const std::string& typeName, const std::string& assetName)
+{
+	m_targetDir = targetDir;
+	m_typeName = typeName;
+	m_assetName = assetName;
+}
+
 void CommandCreateDataContainer::run()
 {
 	std::filesystem::path filePath = m_targetDir / (m_assetName + DATA_CONTAINER_EXTENSION);

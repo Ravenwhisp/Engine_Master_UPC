@@ -2,12 +2,9 @@
 #include "Asset.h"
 #include "IFieldContainer.h"
 
-#pragma warning(push)
-#pragma warning(disable: 4251)
-
-#include <rapidjson/document.h>
 #include <typeinfo>
 #include <cstring>
+#include <string>
 
 class ENGINE_API DataContainer : public Asset, public IFieldContainer
 {
@@ -16,7 +13,6 @@ public:
 	explicit DataContainer(AssetReference& id)
 		: Asset(id, AssetType::DATA_CONTAINER)
 	{
-		m_data.SetObject();
 	}
 
 	void serialize(IArchive& archive) override;
@@ -24,8 +20,7 @@ public:
 	virtual void syncFromData() {}
 	void drawUI() override;
 
-	const rapidjson::Document& getData() const { return m_data; }
-	rapidjson::Document& getDataMutable() { return m_data; }
+	const std::string& getStoredTypeName() const { return m_typeName; }
 
 	virtual const char* getTypeName() const
 	{
@@ -43,7 +38,5 @@ public:
 	}
 
 protected:
-	rapidjson::Document m_data;
+	std::string m_typeName;
 };
-
-#pragma warning(pop)
