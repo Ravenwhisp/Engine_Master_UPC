@@ -21,6 +21,13 @@ struct ModelData
 	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
+enum class RenderMode : uint8_t
+{
+	DEFERRED = 0,
+	FORWARD = 1,
+	COUNT = 2
+};
+
 
 class MeshRenderer : public Component
 {
@@ -89,4 +96,6 @@ private:
 	int m_triangles = 0;
 
 	bool m_isCulled = false;
+
+	RenderMode m_renderMode = RenderMode::DEFERRED;
 };
