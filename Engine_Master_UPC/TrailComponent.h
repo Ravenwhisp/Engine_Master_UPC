@@ -18,6 +18,8 @@ public:
 
 	std::vector<TrailPoint*>& getTrailPoints() { return m_points; }
 
+	ImGradient& getColorGradient() { return m_colorOverTime; }
+
 
 private:
 
@@ -28,8 +30,10 @@ private:
 	float	m_endWidth;
 	float	m_spawnDistance;
 	float	m_pointLifetime;
-	Vector4 m_startColor;
-	Vector4 m_endColor;
 	
+
+	ImGradient m_colorOverTime;
+	ImGradientMark* m_draggingMark = nullptr;
+	ImGradientMark* m_selectedMark = nullptr;
 };
 

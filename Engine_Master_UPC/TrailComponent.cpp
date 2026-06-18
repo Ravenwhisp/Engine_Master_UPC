@@ -32,20 +32,30 @@ void TrailComponent::drawUi()
     ImGui::DragFloat("Min Vertex Distance", &m_spawnDistance, 0.1f, 0.05f, 5.0f);
     ImGui::DragFloat("Vertex Lifetime", &m_pointLifetime, 0.1f, 0.05f, 5.0f);
 
-    float color[4] = { m_startColor.x, m_startColor.y, m_startColor.z, m_startColor.w };
-    if (ImGui::ColorEdit4("Starting color", color))
-    {
-        Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
-        m_startColor = newColor;
-       
+    // Color gradient editor
+    if (ImGui::GradientButton(&m_colorOverTime)) {
+
+        ImGui::OpenPopup("GradientEditorPopup");
     }
 
-    color[0] = m_endColor.x; color[1] = m_endColor.y; color[2] = m_endColor.z; color[3] = m_endColor.w;
-    if (ImGui::ColorEdit4("End color", color))
-    {
-        Vector4 newColor = Vector4(color[0], color[1], color[2], color[3]);
-        m_endColor = newColor;
-      
+    ImGui::SameLine(); ImGui::Text("Color Gradient");
+
+
+    if (ImGui::BeginPopup("GradientEditorPopup")) {
+
+        //ImGui::PushID("GradientID"); // to avoid conflicting index error
+        //size_t beforeMarkers = m_colorsOverTime.getMarks().size();
+
+        ImGui::GradientEditor(&m_colorOverTime, m_draggingMark, m_selectedMark);
+
+        if (app->getModuleInput()->isKeyJustPressed(Keyboard::Keys::Delete) && m_selectedMark != nullptr)
+        {
+            m_colorOverTime.removeMark(m_selectedMark);
+        }
+
+        //ImGui::PopID(); // (same, corresponding)
+
+        ImGui::EndPopup();
     }
 
 }
