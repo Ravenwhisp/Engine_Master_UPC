@@ -79,6 +79,8 @@ public:
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
+	RenderMode getRenderMode() { return m_renderMode; }
+
 private:
 	void recompute();
 
