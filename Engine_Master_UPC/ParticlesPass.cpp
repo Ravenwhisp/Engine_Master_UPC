@@ -231,7 +231,7 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, Emit
     case EmitterRender::RenderMode::HORIZONTAL:
     {
         // Rotamos el quad 90 grados en X para alinearlo con el suelo
-        Matrix rotX = Matrix::CreateRotationX(1.57079633f);
+        Matrix rotX = Matrix::CreateRotationX(-1.57079633f);
 
         return scaleMat * rotZMat * rotX * transMat;
     }
@@ -243,7 +243,7 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, Emit
         Vector3 camPos = Vector3(invView._41, invView._42, invView._43);
 
         // Dirección hacia la cámara (ignorando la altura para que sea cilíndrico)
-        Vector3 lookAt = camPos - command.position;
+        Vector3 lookAt = command.position - camPos;
         lookAt.y = 0.0f;
 
         if (lookAt.LengthSquared() < 0.001f) {
@@ -253,8 +253,7 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, Emit
             lookAt.Normalize();
         }
 
-        Matrix billboardMat = Matrix::CreateLookAt(command.position, command.position + lookAt, Vector3::Up);
-        billboardMat._41 = billboardMat._42 = billboardMat._43 = 0.0f;
+        Matrix billboardMat = Matrix::CreateLookAt(Vector3::Zero, lookAt, Vector3::Up);
         Matrix rotInv = billboardMat.Transpose();
 
         return scaleMat * rotZMat * rotInv * transMat;
