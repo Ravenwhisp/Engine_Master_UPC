@@ -12,6 +12,7 @@
 #include "UID.h"
 
 #include <unordered_map>
+#include <unordered_set>
 
 struct ID3D12GraphicsCommandList;
 
@@ -26,36 +27,28 @@ class Scene: public Asset
     friend class SceneSnapshot;
 private:
     std::string m_name = "SampleScene";
-    std::string m_rawJson;
 
-    std::vector<std::unique_ptr<GameObject>> m_allObjects;
+    std::vector<std::unique_ptr<GameObject>>        m_allObjects;
 
-    SceneLightingSettings m_lighting;
-    SceneDataCB m_sceneDataCB;
-    SkyBoxSettings m_skybox;
+    SceneLightingSettings                           m_lighting;
+    SceneDataCB                                     m_sceneDataCB;
+    SkyBoxSettings                                  m_skybox;
 
-    CameraComponent* m_defaultCamera;
-    std::vector<GameObject*> m_rootObjects;
+    CameraComponent*                                m_defaultCamera = nullptr;
 
-    std::vector<UID> m_objectsToRemove;
+    std::unordered_set<UID>                         m_objectsToRemove;
 
-    std::unordered_map<GameObject*, size_t> m_objectIndexMap;
+    std::unordered_map<GameObject*, size_t>         m_objectIndexMap;
+    mutable std::unordered_map<UID, GameObject*>    m_uidIndex;
 
-    bool m_componentCacheDirty = true;
+    bool                                            m_componentCacheDirty = true;
+    mutable bool                                    m_hierarchyCacheDirty = true;
+    mutable std::vector<GameObject*>                m_allGameObjectsCache;
+    mutable std::vector<GameObject*>                m_rootObjectsCache;
 
-    std::unique_ptr<TriggerSystem> m_triggerSystem;
+    std::unique_ptr<TriggerSystem>                  m_triggerSystem;
 
-    void removePendingGameObjects();
-
-    std::vector<std::string> m_loadedBanks;
-
-    //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
-    bool m_isUpdating = false;
-
-    std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
-
-    void flushPendingGameObjects();
-
+    std::vector<std::string>                        m_loadedBanks;
 
     struct PendingDestroyedGameObject
     {
@@ -63,18 +56,17 @@ private:
         uint64_t fenceValue = 0;
     };
 
-    std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
-    void releasePendingDestroyedGameObjects();
+    std::vector<PendingDestroyedGameObject>         m_pendingDestroyedObjects;
 
+    void releasePendingDestroyedGameObjects();
+    void removePendingGameObjects();
     void fixReferencesFor(const std::vector<GameObject*>& gos);
 
-    GameObject* findInChildrenRecursive(GameObject* current, UID uuid);
     void destroyGameObjectRecursive(GameObject* obj);
     bool isDescendant(GameObject* root, GameObject* candidate) const;
 
-    void registerGameObjectInternal(std::unique_ptr<GameObject> gameObject, bool addToRoot);
-    void commitGameObject(std::unique_ptr<GameObject> gameObject, bool addToRoot);
-    //
+    void commitGameObject(std::unique_ptr<GameObject> gameObject);
+    void ensureIndicesFresh() const;
 
 public:
     friend class ModuleScene;
@@ -83,7 +75,7 @@ public:
     ~Scene();
 
     void serialize(IArchive& archive) override;
-    void FixReferences();
+    void fixReferences();
 
 #pragma region GameLoop
 
@@ -93,22 +85,18 @@ public:
 
 #pragma endregion
 
-    const char* getName() const { return m_name.c_str(); }
-    void setName(const char* newName) { m_name = newName; }
+    const char* getName() const                                 { return m_name.c_str(); }
+    void setName(const char* newName)                           { m_name = newName; }
 
-    const std::string& getRawJson() const { return m_rawJson; }
-    void setRawJson(const std::string& json) { m_rawJson = json; }
+    SceneLightingSettings& getLightingSettings()                { return m_lighting; }
+    const SceneLightingSettings& getLightingSettings() const    { return m_lighting; }
+    SceneDataCB& getCBData()                                    { return m_sceneDataCB; }
+    const SceneDataCB& getCBData() const                        { return m_sceneDataCB; }
+    SkyBoxSettings& getSkyBoxSettings()                         { return m_skybox; }
+    const SkyBoxSettings& getSkyBoxSettings() const             { return m_skybox; }
 
-    SceneLightingSettings& getLightingSettings() { return m_lighting; }
-    const SceneLightingSettings& getLightingSettings() const { return m_lighting; }
-    SceneDataCB& getCBData() { return m_sceneDataCB; }
-    const SceneDataCB& getCBData() const { return m_sceneDataCB; }
-    SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
-    const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
-
-
-    CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
-    void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
+    CameraComponent* getDefaultCamera() const                   { return m_defaultCamera; }
+    void setDefaultCamera(CameraComponent* camera)              { m_defaultCamera = camera; }
 
     GameObject* createGameObject();
     GameObject* createGameObjectWithUID(UID id, UID transformUID);
@@ -121,21 +109,18 @@ public:
     void addGameObject(std::unique_ptr<GameObject> gameObject);
     void destroyGameObject(GameObject* gameObject);
 
-    void addToRootList(GameObject* gameObject);
-    void removeFromRootList(GameObject* gameObject);
-
     const std::vector<GameObject*>& getRootObjects() const;
 
     GameObject* createDirectionalLightOnInit();
 
-    const std::vector<GameObject*> getAllGameObjects() const;
+    const std::vector<GameObject*>& getAllGameObjects() const;
     bool containsGameObject(const GameObject* go) const;
 
     void clearScene();
 
-    void  markDirty();
-    bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
-    void  clearDirty() { m_componentCacheDirty = false; }
+    void markDirty();
+    bool isComponentCacheDirty() const { return m_componentCacheDirty; }
+    void clearDirty() { m_componentCacheDirty = false; }
 
 #pragma region Triggers
     void registerTrigger(TriggerComponent* trigger);

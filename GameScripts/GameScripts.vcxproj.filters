@@ -10,7 +10,6 @@
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="Damageable.cpp" />
     <ClCompile Include="DeathAbilityBase.cpp" />
-    <ClCompile Include="DeathBasicAttack.cpp" />
     <ClCompile Include="DeathCharacter.cpp" />
     <ClCompile Include="DeathChargedAttack.cpp" />
     <ClCompile Include="DeathDash.cpp" />
@@ -108,6 +107,7 @@
     <ClCompile Include="PaladinChaseState.cpp" />
     <ClCompile Include="UISplashScreen.cpp" />
     <ClCompile Include="NavBlockerTest.cpp" />
+    <ClCompile Include="DeathBasicAttack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -119,7 +119,6 @@
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="Damageable.h" />
     <ClInclude Include="DeathAbilityBase.h" />
-    <ClInclude Include="DeathBasicAttack.h" />
     <ClInclude Include="DeathCharacter.h" />
     <ClInclude Include="DeathChargedAttack.h" />
     <ClInclude Include="DeathDash.h" />
@@ -216,6 +215,7 @@
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="UISplashScreen.h" />
     <ClInclude Include="NavBlockerTest.h" />
+    <ClInclude Include="DeathBasicAttack.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

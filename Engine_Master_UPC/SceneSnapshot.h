@@ -18,7 +18,6 @@ private:
     SceneReferenceResolver m_resolver;
 
     std::vector<std::unique_ptr<GameObject>> m_allObjects;
-    std::vector<GameObject*> m_rootObjects;
     CameraComponent* m_defaultCamera = nullptr;
 
 public:

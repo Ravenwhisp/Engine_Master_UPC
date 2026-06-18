@@ -11,7 +11,6 @@
 
 #include "GameObject.h"
 #include "Component.h"
-#include "MeshRenderer.h"
 #include "CameraComponent.h"
 #include "LightComponent.h"
 #include "Quadtree.h"
@@ -23,10 +22,6 @@
 
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
-
-#include <limits>
-#include <algorithm>
-
 
 Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
 {
@@ -51,12 +46,9 @@ bool Scene::init()
     gameCamera->SetName("Camera");
     setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
-    commitGameObject(std::move(gameCamera), true);
+    commitGameObject(std::move(gameCamera));
 
-    for (const auto& go : m_allObjects)
-    {
-        go->init();
-    }
+    initLoadedObjects();
 
     createDirectionalLightOnInit();
     markDirty();
@@ -70,21 +62,20 @@ void Scene::update()
 
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
-        m_isUpdating = true;
-
-        for (const auto& go : m_allObjects)
+        const size_t count = m_allObjects.size();
+        for (size_t i = 0; i < count; ++i)
         {
-            if (go->GetActive())
+            if (m_allObjects[i]->GetActive())
             {
-                go->update();
+                m_allObjects[i]->update();
             }
         }
 
-        for (const auto& go : m_allObjects)
+        for (size_t i = 0; i < count; ++i)
         {
-            if (go->GetActive())
+            if (m_allObjects[i]->GetActive())
             {
-                go->lateUpdate();
+                m_allObjects[i]->lateUpdate();
             }
         }
 
@@ -92,10 +83,6 @@ void Scene::update()
         {
             m_triggerSystem->update();
         }
-
-        m_isUpdating = false;
-
-        flushPendingGameObjects();
     }
 }
 
@@ -118,7 +105,8 @@ GameObject* Scene::createGameObject()
 
     rawPtr->onTransformChange();
 
-    registerGameObjectInternal(std::move(newGameObject), true);
+    commitGameObject(std::move(newGameObject));
+    markDirty();
 
     return rawPtr;
 }
@@ -130,37 +118,22 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
 
     raw->onTransformChange();
 
-    registerGameObjectInternal(std::move(newGameObject), true);
+    commitGameObject(std::move(newGameObject));
+    markDirty();
 
     return raw;
 }
 
-void Scene::registerGameObjectInternal(std::unique_ptr<GameObject> gameObject, bool addToRoot)
-{
-    if (m_isUpdating)
-    {
-        m_pendingObjectsToAdd.push_back(std::move(gameObject));
-        return;
-    }
-
-    commitGameObject(std::move(gameObject), addToRoot);
-    markDirty();
-}
-
-void Scene::commitGameObject(std::unique_ptr<GameObject> gameObject, bool addToRoot)
+void Scene::commitGameObject(std::unique_ptr<GameObject> gameObject)
 {
     GameObject* raw = gameObject.get();
     m_allObjects.push_back(std::move(gameObject));
     m_objectIndexMap[raw] = m_allObjects.size() - 1;
-    if (addToRoot && raw->GetTransform()->getRoot() == nullptr)
-    {
-        m_rootObjects.push_back(raw);
-    }
 }
 
 void Scene::initLoadedObjects()
 {
-    for (GameObject* root : m_rootObjects)
+    for (GameObject* root : getRootObjects())
     {
         if (root)
         {
@@ -171,19 +144,9 @@ void Scene::initLoadedObjects()
 
 GameObject* Scene::findGameObjectByUID(UID uuid)
 {
-    for (const auto& root : m_allObjects)
-    {
-        if (root->GetID() == uuid)
-        {
-            return root.get();
-        }
-
-        if (GameObject* found = findInChildrenRecursive(root.get(), uuid))
-        {
-            return found;
-        }
-    }
-    return nullptr;
+    ensureIndicesFresh();
+    auto it = m_uidIndex.find(uuid);
+    return it != m_uidIndex.end() ? it->second : nullptr;
 }
 
 void Scene::removeGameObject(UID uuid)
@@ -199,12 +162,7 @@ void Scene::removeGameObject(UID uuid)
 
 void Scene::markGameObjectForRemoval(UID uuid)
 {
-    for (const UID& objectUid : m_objectsToRemove)
-    {
-        if (objectUid == uuid) return;
-    }
-
-    m_objectsToRemove.push_back(uuid);
+    m_objectsToRemove.insert(uuid);
 }
 
 void Scene::removePendingGameObjects()
@@ -215,29 +173,6 @@ void Scene::removePendingGameObjects()
     }
 
     m_objectsToRemove.clear();
-}
-
-void Scene::flushPendingGameObjects()
-{
-    if (m_pendingObjectsToAdd.empty())
-    {
-        return;
-    }
-
-    for (auto& pendingObject : m_pendingObjectsToAdd)
-    {
-        GameObject* raw = pendingObject.get();
-        m_objectIndexMap[raw] = m_allObjects.size();
-        if (raw->GetTransform()->getRoot() == nullptr)
-        {
-            m_rootObjects.push_back(raw);
-        }
-        m_allObjects.push_back(std::move(pendingObject));
-    }
-
-    m_pendingObjectsToAdd.clear();
-
-    markDirty();
 }
 
 void Scene::releasePendingDestroyedGameObjects()
@@ -296,7 +231,7 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     {
         GameObject* raw = go.get();
         newGOs.push_back(raw);
-        commitGameObject(std::move(go), true);
+        commitGameObject(std::move(go));
     }
 
     markDirty();
@@ -322,8 +257,6 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 
 void Scene::destroyGameObject(GameObject* gameObject)
 {
-    removeFromRootList(gameObject);
-
     auto mapIt = m_objectIndexMap.find(gameObject);
     if (mapIt == m_objectIndexMap.end()) return;
 
@@ -370,25 +303,6 @@ bool Scene::isDescendant(GameObject* root, GameObject* candidate) const
     }
 
     return false;
-}
-
-GameObject* Scene::findInChildrenRecursive(GameObject* current, UID uuid)
-{
-    for (GameObject* child : current->GetTransform()->getAllChildren())
-    {
-        if (child->GetID() == uuid)
-        {
-            return child;
-        }
-
-        GameObject* found = findInChildrenRecursive(child, uuid);
-        if (found)
-        {
-            return found;
-        }
-    }
-
-    return nullptr;
 }
 
 void Scene::destroyGameObjectRecursive(GameObject* obj)
@@ -443,7 +357,7 @@ GameObject* Scene::createDirectionalLightOnInit()
     raw->GetTransform()->setRotationEuler({ 180.f, 0.f, 0.f });
     raw->init();
 
-    commitGameObject(std::move(go), true);
+    commitGameObject(std::move(go));
     markDirty();
 
     return raw;
@@ -451,51 +365,53 @@ GameObject* Scene::createDirectionalLightOnInit()
 
 #pragma endregion
 
-const std::vector<GameObject*> Scene::getAllGameObjects() const
+const std::vector<GameObject*>& Scene::getAllGameObjects() const
 {
-    std::vector<GameObject*> result;
-    result.reserve(m_allObjects.size());
+    ensureIndicesFresh();
+    return m_allGameObjectsCache;
+}
+
+void Scene::ensureIndicesFresh() const
+{
+    if (!m_hierarchyCacheDirty)
+    {
+        return;
+    }
+
+    m_allGameObjectsCache.clear();
+    m_allGameObjectsCache.reserve(m_allObjects.size());
+
+    m_rootObjectsCache.clear();
+    m_rootObjectsCache.reserve(m_allObjects.size());
+
+    m_uidIndex.clear();
+    m_uidIndex.reserve(m_allObjects.size());
 
     for (const auto& obj : m_allObjects)
     {
+        m_uidIndex[obj->GetID()] = obj.get();
+
         if (obj->GetTransform()->getRoot() != nullptr)
             continue;
 
-        result.push_back(obj.get());
+        m_rootObjectsCache.push_back(obj.get());
 
-        for (size_t j = result.size() - 1; j < result.size(); ++j)
+        m_allGameObjectsCache.push_back(obj.get());
+
+        for (size_t j = m_allGameObjectsCache.size() - 1; j < m_allGameObjectsCache.size(); ++j)
         {
-            for (GameObject* child : result[j]->GetTransform()->getAllChildren())
-                result.push_back(child);
+            for (GameObject* child : m_allGameObjectsCache[j]->GetTransform()->getAllChildren())
+                m_allGameObjectsCache.push_back(child);
         }
     }
 
-    return result;
-}
-
-void Scene::removeFromRootList(GameObject* obj)
-{
-    auto it = std::remove(
-        m_rootObjects.begin(),
-        m_rootObjects.end(),
-        obj);
-
-    m_rootObjects.erase(it, m_rootObjects.end());
-}
-
-void Scene::addToRootList(GameObject* gameObject)
-{
-    if (!gameObject) return;
-
-    if (std::find(m_rootObjects.begin(), m_rootObjects.end(), gameObject) == m_rootObjects.end())
-    {
-        m_rootObjects.push_back(gameObject);
-    }
+    m_hierarchyCacheDirty = false;
 }
 
 const std::vector<GameObject*>& Scene::getRootObjects() const
 {
-    return m_rootObjects;
+    ensureIndicesFresh();
+    return m_rootObjectsCache;
 }
 
 bool Scene::containsGameObject(const GameObject* go) const
@@ -529,20 +445,22 @@ void Scene::clearScene()
         go->cleanUp();
     }
 
-    m_rootObjects.clear();
+    m_rootObjectsCache.clear();
     m_allObjects.clear();
 
     m_objectIndexMap.clear();
+    m_uidIndex.clear();
+    m_allGameObjectsCache.clear();
+    m_hierarchyCacheDirty = true;
     m_defaultCamera = nullptr;
-    m_isUpdating = false;
-    m_objectsToRemove.clear(); 
-    m_pendingObjectsToAdd.clear();
+    m_objectsToRemove.clear();
     markDirty();
 }
 
 void Scene::markDirty()
 {
     m_componentCacheDirty = true;
+    m_hierarchyCacheDirty = true;
 
     if (app && app->getModuleRender())
     {
@@ -677,7 +595,6 @@ void Scene::serialize(IArchive& archive)
             {
                 child->GetTransform()->setRoot(parent->GetTransform());
                 parent->GetTransform()->addChild(child);
-                removeFromRootList(child);
             }
         }
 
@@ -719,7 +636,7 @@ void Scene::serialize(IArchive& archive)
     }
 }
 
-void Scene::FixReferences()
+void Scene::fixReferences()
 {
     fixReferencesFor(getAllGameObjects());
 }

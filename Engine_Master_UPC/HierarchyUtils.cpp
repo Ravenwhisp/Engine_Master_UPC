@@ -49,11 +49,6 @@ namespace HierarchyUtils
         if (oldParent)
         {
             oldParent->GetTransform()->removeChild(child->GetID());
-
-        }
-        else
-        {
-            scene->removeFromRootList(child);
         }
 
         // Attach to new parent
@@ -62,15 +57,15 @@ namespace HierarchyUtils
         if (newParent)
         {
             newParentTransform->addChild(child);
-
-        }
-        else
-        {
-            scene->addToRootList(child);
         }
 
         // Preserve world-space position/rotation/scale
         childTransform->setFromGlobalMatrix(worldMatrix);
+
+        if (scene)
+        {
+            scene->markDirty();
+        }
     }
 
     Scene* resolveTargetScene()

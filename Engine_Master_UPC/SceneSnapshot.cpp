@@ -25,9 +25,6 @@ void SceneSnapshot::init(const Scene& scene)
 
         for (auto& go : all)
         {
-            GameObject* raw = go.get();
-            if (raw->GetTransform()->getRoot() == nullptr)
-                m_rootObjects.push_back(raw);
             m_allObjects.push_back(std::move(go));
         }
     }
@@ -82,19 +79,10 @@ void SceneSnapshot::registerDescendants(GameObject* origParent, GameObject* clon
 
 void SceneSnapshot::fixReferences()
 {
-    for (GameObject* root : m_rootObjects)
+    for (const auto& obj : m_allObjects)
     {
-        std::vector<GameObject*> stack;
-        stack.push_back(root);
-        while (!stack.empty())
-        {
-            GameObject* obj = stack.back();
-            stack.pop_back();
-            for (Component* component : obj->GetAllComponents())
-                component->fixReferences(m_resolver);
-            for (GameObject* child : obj->GetTransform()->getAllChildren())
-                stack.push_back(child);
-        }
+        for (Component* component : obj->GetAllComponents())
+            component->fixReferences(m_resolver);
     }
 }
 
@@ -103,7 +91,6 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.clearScene();
 
     scene.m_allObjects = std::move(m_allObjects);
-    scene.m_rootObjects = std::move(m_rootObjects);
     scene.setDefaultCamera(m_defaultCamera);
 
     for (size_t i = 0; i < scene.m_allObjects.size(); ++i)

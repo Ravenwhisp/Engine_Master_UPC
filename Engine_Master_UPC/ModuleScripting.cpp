@@ -346,7 +346,7 @@ bool ModuleScripting::reloadGameScriptsDllAfterSuccessfulBuild()
 
     instantiateSceneScripts();
     restoreSceneScriptReloadInfo(reloadInfos);
-    app->getModuleScene()->getScene()->FixReferences();
+    app->getModuleScene()->getScene()->fixReferences();
 
     return true;
 }

@@ -85,7 +85,7 @@ bool PrefabManager::applyPrefab(const GameObject* go)
             revertPrefab(instance, scene);
     }
 
-    scene->FixReferences();
+    scene->fixReferences();
     scene->markDirty();
     return true;
 }
