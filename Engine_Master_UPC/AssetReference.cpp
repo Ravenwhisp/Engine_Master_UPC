@@ -6,6 +6,7 @@ rapidjson::Value AssetReference::getJson(rapidjson::Document::AllocatorType& all
     rapidjson::Value obj(rapidjson::kObjectType);
     obj.AddMember("uid", m_uid, allocator);
     obj.AddMember("libId", rapidjson::Value(m_libId.c_str(), allocator), allocator);
+    obj.AddMember("type", rapidjson::Value(AssetTypeToString(m_type), allocator), allocator);
     return obj;
 }
 
@@ -32,6 +33,11 @@ bool AssetReference::deserializeJson(const rapidjson::Value& obj)
 
     m_uid = obj["uid"].GetUint64();
     m_libId = obj.HasMember("libId") && obj["libId"].IsString() ? obj["libId"].GetString() : INVALID_ASSET_ID;
+
+    if (obj.HasMember("type") && obj["type"].IsString())
+    {
+        m_type = StringToAssetType(obj["type"].GetString());
+    }
 
     return true;
 }

@@ -48,6 +48,7 @@ std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
         }
     }
 
+#ifndef GAME_RELEASE
     const AssetIndexEntry* entry = m_index.findEntry(ref.m_uid);
     if (!entry || entry->sourcePath.empty())
     {
@@ -63,11 +64,15 @@ std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
     }
 
     return m_cache.loadFromLibrary<T>(ref, m_importers, m_index);
+#else
+    return nullptr;
+#endif
 }
 
 template<typename T>
 std::shared_ptr<T> ModuleAssets::loadAtPath(const std::filesystem::path& sourcePath)
 {
+#ifndef GAME_RELEASE
     const UID uid = m_index.findUID(sourcePath);
     if (isValidUID(uid))
     {
@@ -101,4 +106,7 @@ std::shared_ptr<T> ModuleAssets::loadAtPath(const std::filesystem::path& sourceP
     }
 
     return m_cache.loadFromLibrary<T>(ref, m_importers, m_index);
+#else
+    return nullptr;
+#endif
 }

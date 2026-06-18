@@ -3,18 +3,24 @@
 #include "AssetIndex.h"
 #include "ImporterRegistry.h"
 #include "AssetCache.h"
+#ifndef GAME_RELEASE
 #include "AssetFileDialog.h"
+#endif
 #include "AssetReference.h"
 #include <filesystem>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+#ifndef GAME_RELEASE
 class AssetScanner;
 class ContentRegistry;
+#endif
 class PrefabManager;
 struct DependencyRecord;
+#ifndef GAME_RELEASE
 struct ScanFileResult;
+#endif
 struct Metadata;
 
 class ModuleAssets : public Module
@@ -72,10 +78,12 @@ private:
     AssetIndex                           m_index;
     ImporterRegistry                     m_importers;
     AssetCache                           m_cache;
+#ifndef GAME_RELEASE
     AssetFileDialog                      m_dialog;
 
     std::unique_ptr<AssetScanner>        m_scanner;
     std::unique_ptr<ContentRegistry>     m_contentRegistry;
+#endif
     std::unique_ptr<PrefabManager>       m_prefabManager;
 
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;

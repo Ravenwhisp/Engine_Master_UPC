@@ -6,8 +6,10 @@
 #include "ImporterGltf.h"
 #include "MD5.h"
 
+#ifndef GAME_RELEASE
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
+#endif
 #include "PrefabManager.h"
 
 
@@ -43,17 +45,23 @@ ModuleAssets::~ModuleAssets() = default;
 
 bool ModuleAssets::init()
 {
+#ifndef GAME_RELEASE
     m_scanner = std::make_unique<AssetScanner>();
     m_contentRegistry = std::make_unique<ContentRegistry>();
+#endif
     m_prefabManager = std::make_unique<PrefabManager>(this);
 
+#ifndef GAME_RELEASE
     refresh();
+#endif
     return true;
 }
 
 void ModuleAssets::postRender()
 {
+#ifndef GAME_RELEASE
     m_dialog.flush(*this);
+#endif
 }
 
 bool ModuleAssets::cleanUp()
@@ -144,7 +152,9 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
 
     if (targetPath.empty())
     {
+#ifndef GAME_RELEASE
         m_dialog.requestSave(asset);
+#endif
         return false;
     }
 
@@ -223,13 +233,16 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
 
     reference.m_libId = meta.contentHash;
 
+#ifndef GAME_RELEASE
     m_contentRegistry->registerAsset(sourcePath, &m_index);
+#endif
 
     return true;
 }
 
 void ModuleAssets::refresh()
 {
+#ifndef GAME_RELEASE
     std::string rootStr = ASSETS_FOLDER;
     if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
     {
@@ -274,13 +287,16 @@ void ModuleAssets::refresh()
     m_contentRegistry->rebuild(root, &m_index);
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[ModuleAssets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
+#endif
 }
 
 void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
 {
     const fs::path normPath = sourcePath.lexically_normal();
     m_index.unregisterByPath(normPath);
+#ifndef GAME_RELEASE
     m_contentRegistry->unregisterAsset(normPath);
+#endif
 }
 
 bool ModuleAssets::isLoaded(const AssetReference& ref)
@@ -397,7 +413,11 @@ bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfP
 
 ContentRegistry* ModuleAssets::getContentRegistry() const
 {
+#ifndef GAME_RELEASE
     return m_contentRegistry.get();
+#else
+    return nullptr;
+#endif
 }
 
 PrefabManager* ModuleAssets::getPrefabManager() const
