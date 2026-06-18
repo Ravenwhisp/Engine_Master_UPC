@@ -157,7 +157,7 @@ void Scene::removeGameObject(UID uuid)
         return;
     }
 
-    destroyGameObjectRecursive(target);
+    destroyGameObject(target);
 }
 
 void Scene::markGameObjectForRemoval(UID uuid)
@@ -236,28 +236,35 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 
     markDirty();
 
-    SceneReferenceResolver resolver;
-    for (GameObject* obj : newGOs)
-    {
-        resolver.registerGameObject(obj, obj);
-        for (Component* c : obj->GetAllComponents())
-        {
-            resolver.registerComponent(c->getID(), c);
-        }
-    }
-
-    for (GameObject* obj : newGOs)
-    {
-        for (Component* c : obj->GetAllComponents())
-        {
-            c->fixReferences(resolver);
-        }
-    }
+    fixReferencesFor(newGOs);
 }
 
-void Scene::destroyGameObject(GameObject* gameObject)
+void Scene::destroyGameObject(GameObject* obj)
 {
-    auto mapIt = m_objectIndexMap.find(gameObject);
+    if (!obj) return;
+
+    ModuleEditor* editor = app->getModuleEditor();
+
+    if (isDescendant(obj, editor->getSelectedGameObject()))
+    {
+        editor->setSelectedGameObject(nullptr);
+    }
+
+    auto children = obj->GetTransform()->getAllChildren();
+
+    for (GameObject* child : children)
+    {
+        destroyGameObject(child);
+    }
+
+    Transform* parent = obj->GetTransform()->getRoot();
+
+    if (parent)
+    {
+        parent->removeChild(obj->GetID());
+    }
+
+    auto mapIt = m_objectIndexMap.find(obj);
     if (mapIt == m_objectIndexMap.end()) return;
 
     const size_t idx = mapIt->second;
@@ -303,37 +310,6 @@ bool Scene::isDescendant(GameObject* root, GameObject* candidate) const
     }
 
     return false;
-}
-
-void Scene::destroyGameObjectRecursive(GameObject* obj)
-{
-    if (!obj)
-    {
-        return;
-    }
-
-    ModuleEditor* editor = app->getModuleEditor();
-
-    if (isDescendant(obj, editor->getSelectedGameObject()))
-    {
-        editor->setSelectedGameObject(nullptr);
-    }
-
-    auto children = obj->GetTransform()->getAllChildren();
-
-    for (GameObject* child : children)
-    {
-        destroyGameObjectRecursive(child);
-    }
-
-    Transform* parent = obj->GetTransform()->getRoot();
-
-    if (parent)
-    {
-        parent->removeChild(obj->GetID());
-    }
-
-    destroyGameObject(obj);
 }
 
 GameObject* Scene::createDirectionalLightOnInit()
@@ -401,7 +377,9 @@ void Scene::ensureIndicesFresh() const
         for (size_t j = m_allGameObjectsCache.size() - 1; j < m_allGameObjectsCache.size(); ++j)
         {
             for (GameObject* child : m_allGameObjectsCache[j]->GetTransform()->getAllChildren())
+            {
                 m_allGameObjectsCache.push_back(child);
+            }
         }
     }
 

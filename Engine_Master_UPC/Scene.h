@@ -62,7 +62,6 @@ private:
     void removePendingGameObjects();
     void fixReferencesFor(const std::vector<GameObject*>& gos);
 
-    void destroyGameObjectRecursive(GameObject* obj);
     bool isDescendant(GameObject* root, GameObject* candidate) const;
 
     void commitGameObject(std::unique_ptr<GameObject> gameObject);
