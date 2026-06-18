@@ -29,10 +29,10 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 
 	m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
 
-	m_spriteFont = std::make_unique<SpriteFont>(m_device.Get(), *m_upload,
+	/*m_spriteFont = std::make_unique<SpriteFont>(m_device.Get(), *m_upload,
 		L"Assets/Fonts/arial.spritefont",
 		m_fontHeap->getCPUHandle(0),
-		m_fontHeap->getGPUHandle(0));
+		m_fontHeap->getGPUHandle(0));*/
 
 	auto uploadResourcesFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 

@@ -12,15 +12,12 @@
 #include <unordered_map>
 #include <vector>
 
-#ifndef GAME_RELEASE
 class AssetScanner;
 class ContentRegistry;
-#endif
 class PrefabManager;
 struct DependencyRecord;
-#ifndef GAME_RELEASE
 struct ScanFileResult;
-#endif
+
 struct Metadata;
 
 class ModuleAssets : public Module

@@ -300,6 +300,22 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     return true;
 }
 
+bool ModuleScene::loadScene(const AssetReference& ref)
+{
+    AssetReference mutableRef = ref;
+    auto scene = app->getModuleAssets()->load<Scene>(mutableRef);
+    if (!scene)
+    {
+        DEBUG_ERROR("[ModuleScene] Failed to load scene from Library.");
+        return false;
+    }
+
+    scene->FixReferences();
+    scene->initLoadedObjects();
+
+    return loadScene(scene);
+}
+
 #pragma endregion
 
 #pragma region Snapshot

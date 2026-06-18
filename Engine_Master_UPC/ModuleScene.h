@@ -11,6 +11,7 @@
 class Scene;
 class Quadtree;
 class SceneSnapshot;
+struct AssetReference;
 
 class GameObject;
 class Component;
@@ -59,6 +60,7 @@ public:
     void saveScene();
     bool loadScene(const std::string& sceneName);
     bool loadScene(std::shared_ptr<Scene> scene);
+    bool loadScene(const AssetReference& ref);
 
     void requestSceneChange(const std::string& sceneName);
     void requestSceneChange(std::shared_ptr<Scene> scene);
