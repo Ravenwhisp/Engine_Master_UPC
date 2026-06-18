@@ -160,9 +160,6 @@
     <ClCompile Include="NavMeshBuilder.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="NavigationAgentComponent.cpp">
-      <Filter>NavMesh</Filter>
-    </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
@@ -224,9 +221,6 @@
     </ClCompile>
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
-    </ClCompile>
-    <ClCompile Include="WaypointPathComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="WindowGameDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
@@ -589,6 +583,9 @@
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
     <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="NavRuntimeBlockerComponent.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -946,9 +943,6 @@
     <ClInclude Include="NavMeshBuilder.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="NavigationAgentComponent.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -1050,9 +1044,6 @@
     </ClInclude>
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
-    </ClInclude>
-    <ClInclude Include="WaypointPathComponent.h">
-      <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
@@ -1601,6 +1592,12 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="VertexBuffer.h" />
+    <ClInclude Include="NavMeshBuildSettings.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavRuntimeBlockerComponent.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

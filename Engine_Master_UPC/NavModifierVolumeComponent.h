@@ -13,7 +13,6 @@ public:
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void drawUi() override;
-	void onTransformChange() override;
 
 	void serialize(IArchive& archive) override;
 

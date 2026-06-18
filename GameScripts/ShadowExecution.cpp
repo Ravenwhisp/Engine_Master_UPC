@@ -13,7 +13,10 @@ IMPLEMENT_SCRIPT_FIELDS(ShadowExecution,
     SERIALIZED_FLOAT(m_timeWindow,         "Co-op Window (s)",      0.1f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_executionDuration,  "Execution Duration (s)", 0.1f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_instaKillThreshold, "Insta Kill HP %",        0.0f,  1.0f, 0.01f),
-    SERIALIZED_FLOAT(m_standardDamage,     "Standard Damage (max HP %)", 0.0f, 1.0f, 0.01f)
+    SERIALIZED_FLOAT(m_standardDamage,     "Standard Damage (max HP %)", 0.0f, 1.0f, 0.01f),
+    SERIALIZED_COMPONENT_REF(m_reaperGaugeBar, "Reaper Gauge UI", ComponentType::UISLIDER),
+    SERIALIZED_COMPONENT_REF(m_executionCanvas, "Execution Canvas", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_executionSprite, "Execution Sprite", ComponentType::TRANSFORM2D),
 )
 
 ShadowExecution::ShadowExecution(GameObject* owner)
@@ -23,6 +26,14 @@ ShadowExecution::ShadowExecution(GameObject* owner)
 
 void ShadowExecution::Start()
 {
+    m_reaperGaugeSlider = m_reaperGaugeBar.getReferencedComponent();
+    m_executionTransform = m_executionCanvas.getReferencedComponent();
+    m_executionTransform2D = m_executionSprite.getReferencedComponent();
+    if (m_executionTransform)
+    {
+        GameObjectAPI::setActive(m_executionTransform->getOwner(), false);
+	}
+
     m_reaperGauge = GameObjectAPI::findScript<ReaperGauge>(getOwner());
     if (m_reaperGauge == nullptr)
     {
@@ -41,6 +52,7 @@ void ShadowExecution::Update()
     if (m_isActive)
     {
         updateExecution(dt);
+        updateUI();
         return;
     }
 
@@ -142,6 +154,11 @@ void ShadowExecution::beginExecution()
 
     m_isActive = true;
 
+    if (m_executionTransform)
+    {
+        GameObjectAPI::setActive(m_executionTransform->getOwner(), true);
+    }
+
     Debug::log("[ShadowExecution] *** TRIGGERED *** Center (%.2f, %.2f, %.2f), max radius %.2f, duration %.1fs.",
         m_center.x, m_center.y, m_center.z, m_maxRadius, m_executionDuration);
 }
@@ -239,6 +256,11 @@ void ShadowExecution::endExecution()
     m_currentRadius  = 0.0f;
     m_hitEnemies.clear();
 
+    if (m_executionTransform)
+    {
+		GameObjectAPI::setActive(m_executionTransform->getOwner(), false);
+    }
+
     Debug::log("[ShadowExecution] Execution finished.");
 }
 
@@ -288,6 +310,19 @@ void ShadowExecution::drawGizmo()
     DebugDrawAPI::drawCircle(m_center, up, expandingColor, m_currentRadius, 48.0f);
     DebugDrawAPI::drawCircle(m_center, up, maxColor,       m_maxRadius,     48.0f);
     DebugDrawAPI::drawPoint(m_center, Vector3(1.0f, 1.0f, 0.0f), 5.0f);
+}
+
+void ShadowExecution::updateUI()
+{
+    if (!m_executionTransform || !m_executionTransform2D || !m_reaperGaugeSlider)
+    {
+        return;
+    }
+
+    const float t = m_executionTimer / m_executionDuration;
+	SliderAPI::setFillAmount(m_reaperGaugeSlider, 1.0f - t);
+	Transform2DAPI::setAlpha(m_executionTransform2D, t);
+	Transform2DAPI::setScale(m_executionTransform2D, Vector2(m_currentRadius, m_currentRadius));
 }
 
 IMPLEMENT_SCRIPT(ShadowExecution)

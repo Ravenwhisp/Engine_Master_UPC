@@ -36,6 +36,7 @@ void ArcherSomersaultState::OnStateEnter()
     }
 
     m_archerController->clearPath();
+    m_archerController->resetRepathTimer();
 
     m_escapeDirection = m_archerController->getDirectionAwayFromClosestPlayer();
 
@@ -50,6 +51,11 @@ void ArcherSomersaultState::OnStateUpdate()
     }
 
     if (m_archerController->trySendDeathTrigger(m_animation))
+    {
+        return;
+    }
+
+    if (m_archerController->trySendStunTrigger(m_animation))
     {
         return;
     }

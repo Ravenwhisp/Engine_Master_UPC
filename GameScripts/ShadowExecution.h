@@ -53,4 +53,16 @@ private:
     float   m_currentRadius   = 0.0f;
 
     std::vector<GameObject*> m_hitEnemies;
+
+public:
+    ScriptComponentRef<UISlider> m_reaperGaugeBar;
+    ScriptComponentRef<Transform> m_executionCanvas;
+    ScriptComponentRef<Transform2D> m_executionSprite;
+
+private:
+    UISlider* m_reaperGaugeSlider = nullptr;
+    Transform* m_executionTransform = nullptr;
+    Transform2D* m_executionTransform2D = nullptr;
+
+    void updateUI();
 };

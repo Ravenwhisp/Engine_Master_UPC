@@ -60,6 +60,7 @@ void HierarchyTreeRenderer::renderNode(GameObject* gameObject, bool prefabMode, 
     if (gameObject == m_gameObjectToReveal)
     {
         ImGui::SetScrollHereY(0.5f);
+        const_cast<HierarchyTreeRenderer*>(this)->clearGameObjectToReveal();
     }
 
     if (isEditRoot || isPrefabInst) {

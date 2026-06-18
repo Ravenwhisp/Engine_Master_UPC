@@ -5,7 +5,7 @@
 #include "Transform.h"
 
 NavModifierVolumeComponent::NavModifierVolumeComponent(UID id, GameObject* owner)
-	: Component(id, ComponentType::NAVMODIFIER_VOLUME, owner)
+	: Component(id, ComponentType::NAV_MODIFIER_VOLUME, owner)
 {
 }
 
@@ -39,10 +39,6 @@ void NavModifierVolumeComponent::drawUi()
 	ImGui::DragInt("Priority", &m_priority, 1.0f, 0, 100);
 }
 
-void NavModifierVolumeComponent::onTransformChange()
-{
-	// useful for dynamic navmesh if we do it
-}
 
 
 void NavModifierVolumeComponent::serialize(IArchive& archive)

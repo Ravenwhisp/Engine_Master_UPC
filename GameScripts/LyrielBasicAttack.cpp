@@ -9,12 +9,7 @@
 #include "PlayerRotation.h"
 #include "ArrowPool.h"
 #include "LyrielArrowProjectile.h"
-
-IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielBasicAttack, LyrielAbilityBase,
-    SERIALIZED_FLOAT(m_attackDamage, "Attack Damage", 0.0f, 100.0f, 0.5f),
-    SERIALIZED_FLOAT(m_arrowSpeed, "Arrow Speed", 0.0f, 100.0f, 0.5f),
-    SERIALIZED_FLOAT(m_attackLockDuration, "Attack Lock Duration", 0.0f, 2.0f, 0.01f)
-)
+#include "LyrielConfig.h"
 
 LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
     : LyrielAbilityBase(owner)
@@ -79,7 +74,7 @@ void LyrielBasicAttack::startAbility()
 
     beginAttackPresentation();
 
-    beginAttackWindow(m_attackLockDuration);
+    beginAttackWindow(m_config->m_basicAttackLockDuration);
     startCooldown();
 
     Debug::log("[LyrielBasicAttack] Shot arrow to target '%s'.", GameObjectAPI::getName(target));
@@ -127,8 +122,8 @@ bool LyrielBasicAttack::spawnArrowToTarget(GameObject* target)
         direction.Normalize();
     }
 
-    const float arrowLifetime = distance / m_arrowSpeed;
-    arrow->launch(startPosition, direction, m_arrowSpeed, arrowLifetime, target, m_attackDamage);
+    const float arrowLifetime = distance / m_config->m_basicArrowSpeed;
+    arrow->launch(startPosition, direction, m_config->m_basicArrowSpeed, arrowLifetime, target, m_config->m_basicAttackDamage);
 
     return true;
 }
@@ -167,6 +162,11 @@ void LyrielBasicAttack::faceTarget(GameObject* target)
 
     direction.Normalize();
     playerRotation->applyFacingFromDirection(getOwner(), direction, Time::getDeltaTime());
+}
+
+float LyrielBasicAttack::getCooldown() const
+{
+    return m_config->m_basicCooldown;
 }
 
 IMPLEMENT_SCRIPT(LyrielBasicAttack)

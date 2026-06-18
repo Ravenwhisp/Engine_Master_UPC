@@ -3,6 +3,7 @@
 
 class EnemyDetectionAggro;
 class PlayerRotation;
+class DeathUI;
 
 class DeathTaunt : public DeathAbilityBase
 {
@@ -14,23 +15,14 @@ public:
     void Start()  override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
-
-    ScriptComponentRef<Transform> m_AbilityUI;
-
     void drawGizmo() override;
-    void onFieldEdited(const ScriptFieldInfo& field) override;
-
-public:
-    float m_tauntDuration = 2.0f;
-    float m_TauntDurationSeconds = 3.0f;
-    float m_TauntRange = 2.5f;
-    float m_TauntHalfAngleDegrees = 35.0f;
 
 protected:
 	void startAbility() override;
 
 	bool canStartSpecificAbility() const override;
+
+    float getCooldown() const override;
 
 private:
     void beginAim();
@@ -44,7 +36,9 @@ private:
     void faceDirection(const Vector3& direction);
     bool isAimStickValid(const Vector3& direction) const;
 
+private:
     PlayerRotation* m_playerRotation = nullptr;
+    DeathUI* m_deathUI = nullptr;
 
     float m_debugConeTimer = 0.0f;
     bool m_isAiming = false;
