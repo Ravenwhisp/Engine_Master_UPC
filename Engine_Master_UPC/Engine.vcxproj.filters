@@ -586,6 +586,9 @@
     <ClCompile Include="NavRuntimeBlockerComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="ForwardPrepass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -627,16 +630,10 @@
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
-    <ClCompile Include="ImporterMaterial.cpp" />
-    <ClCompile Include="ImporterMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
-    <ClCompile Include="ImporterScene.cpp" />
-    <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
@@ -697,7 +694,6 @@
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="ModuleNavigation.cpp" />
     <ClCompile Include="NavMeshBuilder.cpp" />
     <ClCompile Include="NavMeshGeometryExtractor.cpp" />
@@ -747,7 +743,6 @@
     <ClCompile Include="UIText.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="WaypointPathComponent.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
     <ClCompile Include="CommandCreateGameObject.cpp" />
   </ItemGroup>
@@ -1105,12 +1100,6 @@
     <ClInclude Include="ImporterFont.h">
       <Filter>Persistence\Importers\External</Filter>
     </ClInclude>
-    <ClInclude Include="ImporterMesh.h">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterMaterial.h">
-      <Filter>Persistence\Importers\Native</Filter>
-    </ClInclude>
     <ClInclude Include="MeshAsset.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
@@ -1244,9 +1233,6 @@
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="ImporterAnimation.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
     <ClInclude Include="AnimationComponent.h">
       <Filter>Animations</Filter>
     </ClInclude>
@@ -1267,12 +1253,6 @@
     </ClInclude>
     <ClInclude Include="SkinAsset.h">
       <Filter>Animations</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterAnimationStateMachine.h">
-      <Filter>Persistence\Importers</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterSkin.h">
-      <Filter>Persistence\Importers</Filter>
     </ClInclude>
     <ClInclude Include="CommandAddChildToPrefabRoot.h">
       <Filter>Core\Commands</Filter>
@@ -1419,7 +1399,6 @@
     <ClInclude Include="EmitterSpawn.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h" />
     <ClInclude Include="ScriptFieldHandler.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
@@ -1446,9 +1425,6 @@
     </ClInclude>
     <ClInclude Include="FileDialog.h">
       <Filter>Editor\Views</Filter>
-    </ClInclude>
-    <ClInclude Include="ImporterScene.h">
-      <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
     <ClInclude Include="AssetReference.h">
       <Filter>Persistence\Assets</Filter>
@@ -1597,6 +1573,9 @@
     </ClInclude>
     <ClInclude Include="NavRuntimeBlockerComponent.h">
       <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="ForwardPrepass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

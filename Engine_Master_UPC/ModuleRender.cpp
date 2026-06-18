@@ -26,6 +26,7 @@
 #include "ImGuiPass.h"
 #include "SkyBoxPass.h"
 #include "ParticlesPass.h"
+#include "ForwardPrepass.h"
 #include "GeometryPass.h"
 #include "DeferredShadingPass.h"
 #include "DebugDrawPass.h"
@@ -66,6 +67,9 @@ bool ModuleRender::init()
     //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
+
+    m_forwardPrepass = new ForwardPrepass(device);
+    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));

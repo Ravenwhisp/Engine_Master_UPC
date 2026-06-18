@@ -301,6 +301,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
@@ -747,6 +748,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="EmitterVelocity.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="EquirectangularPass.cpp" />
+    <ClCompile Include="ForwardPrepass.cpp" />
     <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="HapticEffectDefinition.cpp" />
     <ClCompile Include="HapticEffectLibrary.cpp" />
