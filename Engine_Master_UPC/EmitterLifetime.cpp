@@ -43,7 +43,15 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 
 	for (auto& particleIndex : particleData->getNewParticles()) 
 	{
-		particlePool[particleIndex].lifeTime = m_startLifeTime;
+		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		{
+			float scale = uniform_rand();
+			particlePool[particleIndex].lifeTime = (1.f - scale) * m_startLifeTime + scale * m_startLifeTime2;
+		}
+		else
+		{
+			particlePool[particleIndex].lifeTime = m_startLifeTime;
+		}
 	}
 }
 
@@ -53,7 +61,23 @@ bool EmitterLifetime::drawUi()
 
 	if (ImGui::CollapsingHeader("Lifetime"))
 	{
-		parameterChanged = ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		int parameterType = static_cast<int>(m_lifeTimeType);
+		// Solo mostramos Constant y Random para Lifetime
+		if (ImGui::Combo("Lifetime type", &parameterType, "Constant\0Random value between two\0"))
+		{
+			m_lifeTimeType = static_cast<ParameterType>(parameterType);
+			parameterChanged = true;
+		}
+
+		if (m_lifeTimeType == ParameterType::CONSTANT)
+		{
+			parameterChanged |= ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		}
+		else if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		{
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 1", &m_startLifeTime, 0.1f, 0.0f);
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 2", &m_startLifeTime2, 0.1f, 0.0f);
+		}
 	}
 
 	return parameterChanged;
@@ -66,6 +90,10 @@ rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
 	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::LIFETIME), domTree.GetAllocator());
 
 	moduleInfo.AddMember("StartLifeTime", m_startLifeTime, domTree.GetAllocator());
+	if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+	{
+		moduleInfo.AddMember("StartLifeTime2", m_startLifeTime2, domTree.GetAllocator());
+	}
 
 	return moduleInfo;
 }
@@ -74,6 +102,17 @@ bool EmitterLifetime::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
 	if (moduleInfo.HasMember("StartLifeTime")) {
 		m_startLifeTime = moduleInfo["StartLifeTime"].GetFloat();
+	}
+
+	if(moduleInfo.HasMember("LifeTimeType")) {
+		m_lifeTimeType = static_cast<ParameterType>(moduleInfo["LifeTimeType"].GetUint());
+
+		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO && moduleInfo.HasMember("StartLifeTime2")) {
+			m_startLifeTime2 = moduleInfo["StartLifeTime2"].GetFloat();
+		}
+	}
+	else {
+		m_lifeTimeType = ParameterType::CONSTANT; // Fallback para versiones anteriores
 	}
 
 	return true;

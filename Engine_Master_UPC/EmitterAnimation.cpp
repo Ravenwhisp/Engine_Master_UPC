@@ -65,7 +65,7 @@ bool EmitterAnimation::drawUi()
 {
 	bool parameterChanged = false;
 
-	if (ImGui::CollapsingHeader("Render & Animation")) {
+	if (ImGui::CollapsingHeader("Animation")) {
 
 		parameterChanged = ImGui::DragInt("Render layer", &m_layer, 1.f);
 		
