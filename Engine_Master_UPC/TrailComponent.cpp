@@ -3,7 +3,11 @@
 #include "GameObject.h"
 #include "Transform.h"
 
+#include "Application.h"
+#include "ModuleInput.h"
+#include "imgui_bezier.h"
 #include "imgui_color_gradient.h"
+
 
 
 TrailComponent::TrailComponent(UID id, GameObject* owner) : Component(id, ComponentType::TRAIL, owner)
