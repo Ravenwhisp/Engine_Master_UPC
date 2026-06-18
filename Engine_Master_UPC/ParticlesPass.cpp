@@ -186,7 +186,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
         for (unsigned int i = 0; i < size; ++i)
         {
-            XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
+            XMMATRIX m = buildImageWorldMatrix(command.particles[i], command.renderMode).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
@@ -208,26 +208,60 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 }
 
 
-Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command) const
+Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, EmitterRender::RenderMode mode) const
 {
     Matrix view = *m_view;
 
-    Matrix rot = view;
-    rot._41 = rot._42 = rot._43 = 0.0f;
-
-    Matrix rotInv = rot.Transpose();
-
-    /*
-    Vector3 cameraUp(view._12, view._22, view._32);
-    Vector3 cameraForward(-view._13, -view._23, -view._33);
-
-    Matrix billboardMatrix = Matrix::CreateBillboard(command.position, *m_cameraPosition, cameraUp, &cameraForward); // adds translation as well!
-    */
-
     Vector3 scale = Vector3(command.scale.x, command.scale.y, 1.0f);
+    Matrix scaleMat = Matrix::CreateScale(scale);
+    Matrix rotZMat = Matrix::CreateRotationZ(command.rotationZ);
+    Matrix transMat = Matrix::CreateTranslation(command.position);
 
-    return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * rotInv * Matrix::CreateTranslation(command.position);
-    //return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * billboardMatrix;
+    switch (mode)
+    {
+    case EmitterRender::RenderMode::BILLBOARD:
+    {
+        Matrix rot = view;
+        rot._41 = rot._42 = rot._43 = 0.0f;
+        Matrix rotInv = rot.Transpose();
+
+        return scaleMat * rotZMat * rotInv * transMat;
+    }
+
+    case EmitterRender::RenderMode::HORIZONTAL:
+    {
+        // Rotamos el quad 90 grados en X para alinearlo con el suelo
+        Matrix rotX = Matrix::CreateRotationX(1.57079633f);
+
+        return scaleMat * rotZMat * rotX * transMat;
+    }
+
+    case EmitterRender::RenderMode::VERTICAL:
+    {
+        // Extraer la posición de la cámara
+        Matrix invView = view.Invert();
+        Vector3 camPos = Vector3(invView._41, invView._42, invView._43);
+
+        // Dirección hacia la cámara (ignorando la altura para que sea cilíndrico)
+        Vector3 lookAt = camPos - command.position;
+        lookAt.y = 0.0f;
+
+        if (lookAt.LengthSquared() < 0.001f) {
+            lookAt = Vector3::Forward;
+        }
+        else {
+            lookAt.Normalize();
+        }
+
+        Matrix billboardMat = Matrix::CreateLookAt(command.position, command.position + lookAt, Vector3::Up);
+        billboardMat._41 = billboardMat._42 = billboardMat._43 = 0.0f;
+        Matrix rotInv = billboardMat.Transpose();
+
+        return scaleMat * rotZMat * rotInv * transMat;
+    }
+    }
+
+    return scaleMat * rotZMat * transMat;
 }
 
 Matrix ParticlesPass::buildImageVP()

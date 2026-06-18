@@ -11,6 +11,9 @@
 #include "ParticleSystemComponent.h"
 #include "EmitterAnimation.h"
 
+#include "ParticleEmitter.h"
+#include "EmitterRender.h"
+
 
 void ModuleParticleSystem::resetAllParticles()
 {
@@ -183,6 +186,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
         }
 
         EmitterAnimation* animationConfig = emitterInstance.getParticleEmitter()->getAnimationModule();
+        EmitterRender* renderConfig = emitterInstance.getParticleEmitter()->getRenderModule();
 
         ParticleEmitterCommand command;
 		command.texture = texture;
@@ -190,6 +194,8 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
         command.uvScale = animationConfig->getUVScale();
 
 		command.particles.reserve(aliveParticles.size());
+        command.renderMode = renderConfig->getRenderMode();
+        command.particles.reserve(aliveParticles.size());
 
 		for (const auto& aliveParticle : aliveParticles)
 		{

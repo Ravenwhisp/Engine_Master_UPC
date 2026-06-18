@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Globals.h"
+#include "EmitterRender.h"
 
 class Texture;
 
@@ -19,6 +20,8 @@ struct ParticleEmitterCommand
 {
     Texture* texture = nullptr;
     int layer; // to indicate the order which particles between overlapped emitters will be drawn in
+
+    EmitterRender::RenderMode renderMode = EmitterRender::RenderMode::BILLBOARD;
 
     Vector2 uvScale; // to determine size of a texture tile
     std::vector <ParticleCommand> particles;
