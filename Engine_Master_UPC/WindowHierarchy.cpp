@@ -6,6 +6,7 @@
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "ModuleScene.h"
+#include "ModuleAssets.h"
 
 #include "Scene.h"
 #include "GameObject.h"
@@ -22,6 +23,7 @@
 #include <HierarchyUtils.h>
 
 #include "UID.h"
+#include "AssetReference.h"
 
 WindowHierarchy::WindowHierarchy()
 {
@@ -249,7 +251,14 @@ void WindowHierarchy::onReparent(GameObject* child, GameObject* newParent)
 void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath, GameObject* parent)
 {
     Scene* scene = HierarchyUtils::resolveTargetScene();
-    CommandInstantiatePrefab(scene, sourcePath, parent).run();
+
+    const UID uid = app->getModuleAssets()->getIndex().findUID(sourcePath);
+    AssetReference* ref = app->getModuleAssets()->findReference(uid);
+    if (ref)
+    {
+        CommandInstantiatePrefab(scene, *ref, parent).run();
+        delete ref;
+    }
 }
 
 void WindowHierarchy::onDeleteRequested(GameObject* go)

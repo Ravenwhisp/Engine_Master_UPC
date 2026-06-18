@@ -95,7 +95,7 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
     {
         Transform* t = GameObjectAPI::getTransform(getOwner());
         Vector3 spawnPosition = t != nullptr ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
-        GameObjectAPI::instantiatePrefab(m_collectParticlePrefabPath.c_str(), spawnPosition, Vector3::Zero, nullptr);
+        GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(m_collectParticlePrefabPath.c_str()), spawnPosition, Vector3::Zero, nullptr);
     }
 
     Pickup::OnTriggerEnter(player);

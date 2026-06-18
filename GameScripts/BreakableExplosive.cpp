@@ -63,7 +63,7 @@ void BreakableExplosive::onBreak()
 		damageableScript->takeDamage(m_explosionDamage);
 	}
 
-    GameObject* dustEffect = GameObjectAPI::instantiatePrefab("Assets/Prefabs/Particles/Explosion_1.prefab", TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+    GameObject* dustEffect = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference("Assets/Prefabs/Particles/Explosion_1.prefab"), TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
 
     Debug::log("[BreakableExplosive] '%s' exploded dealing %.1f damage in radius %.1f.", GameObjectAPI::getName(getOwner()), m_explosionDamage, m_explosionRadius);
 

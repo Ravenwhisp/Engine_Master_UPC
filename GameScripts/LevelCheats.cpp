@@ -149,7 +149,7 @@ void LevelCheats::SpawnEnemy(int enemyPrefabIndex)
 
     Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.c_str());
 
-    GameObjectAPI::instantiatePrefab(prefabPath.c_str(), enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
+    GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(prefabPath.c_str()), enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
 }
 
 void LevelCheats::RestoreHealth()

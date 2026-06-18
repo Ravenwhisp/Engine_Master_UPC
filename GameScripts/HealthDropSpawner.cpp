@@ -27,7 +27,7 @@ GameObject* HealthDropSpawner::drop(const char* prefabPath, const Vector3& origi
 
     const Vector3 arcOrigin = Vector3(originPosition.x, originPosition.y + dropHeight, originPosition.z);
 
-    GameObject* pickup = GameObjectAPI::instantiatePrefab(prefabPath, arcOrigin, Vector3::Zero);
+    GameObject* pickup = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(prefabPath), arcOrigin, Vector3::Zero);
 
     if (pickup == nullptr)
     {

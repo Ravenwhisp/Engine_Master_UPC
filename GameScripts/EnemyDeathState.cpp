@@ -111,7 +111,7 @@ void EnemyDeathState::dropRewards()
 
         // Instantiate at the arc origin (enemy center) so the pickup is never
         // visible at the floor position before Start() runs.
-        GameObject* pickup = GameObjectAPI::instantiatePrefab(m_healthPrefabPath.c_str(), arcOrigin, Vector3::Zero);
+        GameObject* pickup = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(m_healthPrefabPath.c_str()), arcOrigin, Vector3::Zero);
 
         if (pickup == nullptr)
         {

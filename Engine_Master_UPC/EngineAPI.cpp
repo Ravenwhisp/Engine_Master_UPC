@@ -283,11 +283,11 @@ namespace GameObjectAPI
     }
     */
 
-    ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(prefabRef, currentScene);
 
         if (!prefabInstance) return nullptr;
 
@@ -301,6 +301,21 @@ namespace GameObjectAPI
         }
 
         return prefabInstance;
+    }
+
+    ENGINE_API AssetReference GetPrefabAssetReference(const char* path)
+    {
+        if (!path || path[0] == '\0') return AssetReference();
+
+        const UID uid = app->getModuleAssets()->getIndex().findUID(std::filesystem::path(path));
+        if (!isValidUID(uid)) return AssetReference();
+
+        AssetReference* ref = app->getModuleAssets()->findReference(uid);
+        if (!ref) return AssetReference();
+
+        AssetReference result = *ref;
+        delete ref;
+        return result;
     }
 }
 

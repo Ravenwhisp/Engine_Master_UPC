@@ -33,7 +33,7 @@ bool ArrowPool::createArrow()
         return false;
     }
 
-    GameObject* arrowObject = GameObjectAPI::instantiatePrefab(m_arrowPrefabPath.c_str(), Vector3::Zero, Vector3::Zero, nullptr);   
+    GameObject* arrowObject = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(m_arrowPrefabPath.c_str()), Vector3::Zero, Vector3::Zero, nullptr);   
     if (arrowObject == nullptr)
     {
         return false;

@@ -426,11 +426,16 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         Scene* scene = app->getModuleScene()->getScene();
         if (scene)
         {
-
-            GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(realPath, scene);
-            if (go)
+            const UID uid = app->getModuleAssets()->getIndex().findUID(realPath);
+            AssetReference* ref = app->getModuleAssets()->findReference(uid);
+            if (ref)
             {
-                app->getModuleEditor()->setSelectedGameObject(go);
+                GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(*ref, scene);
+                delete ref;
+                if (go)
+                {
+                    app->getModuleEditor()->setSelectedGameObject(go);
+                }
             }
         }
     }

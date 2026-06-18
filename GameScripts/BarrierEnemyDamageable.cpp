@@ -81,7 +81,7 @@ void BarrierEnemyDamageable::instantiateBarrierUIs()
     for (const Barrier& barrier : m_barriers)
     {
         GameObject* uiObject = GameObjectAPI::instantiatePrefab(
-            m_barrierPrefabPath.c_str(),
+            GameObjectAPI::GetPrefabAssetReference(m_barrierPrefabPath.c_str()),
             Vector3::Zero,
             Vector3::Zero,
             healthBarObject);
