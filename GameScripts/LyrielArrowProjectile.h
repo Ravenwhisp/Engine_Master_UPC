@@ -27,7 +27,7 @@ private:
     void syncParticleTransform();
 
 public:
-    std::string m_particlePrefabPath = "";
+    AssetRef<Prefab> m_particlePrefab;
 
 private:
     ArrowPool* m_pool = nullptr;

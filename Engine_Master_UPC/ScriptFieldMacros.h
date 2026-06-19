@@ -53,6 +53,9 @@
 #define SERIALIZED_COMPONENT_REF(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRef, offsetof(ThisScript, MemberName), getComponentRefFieldHandler(), {}, {}, { ComponentTypeValue } }
 
+#define SERIALIZED_ASSET_REF(MemberName, DisplayName, AssetTypeValue) \
+    { DisplayName, ScriptFieldType::AssetRef, offsetof(ThisScript, MemberName), getAssetRefFieldHandler(), {}, {}, {}, {}, { AssetTypeValue } }
+
 #define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, ScriptFieldType::ComponentRefList, offsetof(ThisScript, MemberName), getComponentRefListFieldHandler(), {}, {}, { ComponentTypeValue } }
 
@@ -92,14 +95,13 @@
 // Non serializable fields macros
 
 #define FIELD_GROUP_LABEL(DisplayName) \
-    { DisplayName, ScriptFieldType::GroupLabel, 0, getGroupLabelFieldHandler(), {}, {}, {}, {}, true }
+    { DisplayName, ScriptFieldType::GroupLabel, 0, getGroupLabelFieldHandler(), {}, {}, {}, {}, {}, true }
 
-// These fields are internal, only meant to be used inside the FIEL_GROUP_COLLAPSE macro
 #define INTERNAL_FIELD_GROUP_COLLAPSE_BEGIN(DisplayName) \
-    { DisplayName, ScriptFieldType::GroupCollapseBegin, 0, nullptr, {}, {}, {}, {}, true }
+    { DisplayName, ScriptFieldType::GroupCollapseBegin, 0, nullptr, {}, {}, {}, {}, {}, true }
 
 #define INTERNAL_FIELD_GROUP_COLLAPSE_END() \
-    { "", ScriptFieldType::GroupCollapseEnd, 0, nullptr, {}, {}, {}, {}, true }
+    { "", ScriptFieldType::GroupCollapseEnd, 0, nullptr, {}, {}, {}, {}, {}, true }
 
 #define FIELD_GROUP_COLLAPSE(DisplayName, ...) \
     INTERNAL_FIELD_GROUP_COLLAPSE_BEGIN(DisplayName), \

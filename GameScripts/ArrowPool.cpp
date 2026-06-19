@@ -4,7 +4,7 @@
 
 IMPLEMENT_SCRIPT_FIELDS(ArrowPool,
     SERIALIZED_INT(m_maxArrows, "Max Arrows"),
-    SERIALIZED_STRING(m_arrowPrefabPath, "Arrow Prefab path")
+    SERIALIZED_ASSET_REF(m_arrowPrefab, "Arrow Prefab", AssetType::PREFAB)
 )
 
 ArrowPool::ArrowPool(GameObject* owner)
@@ -28,12 +28,12 @@ void ArrowPool::Start()
 
 bool ArrowPool::createArrow()
 {
-    if (m_arrowPrefabPath.empty())
+    if (m_arrowPrefab.m_ref.isValid())
     {
         return false;
     }
 
-    GameObject* arrowObject = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(m_arrowPrefabPath.c_str()), Vector3::Zero, Vector3::Zero, nullptr);   
+    GameObject* arrowObject = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_ref, Vector3::Zero, Vector3::Zero, nullptr);   
     if (arrowObject == nullptr)
     {
         return false;

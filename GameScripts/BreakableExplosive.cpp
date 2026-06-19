@@ -4,7 +4,8 @@
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BreakableExplosive, BreakableObject,
     SERIALIZED_FLOAT(m_explosionRadius, "Explosion Radius", 0.0f, 20.0f, 0.1f),
-    SERIALIZED_FLOAT(m_explosionDamage, "Explosion Damage", 0.0f, 100.0f, 1.0f)
+    SERIALIZED_FLOAT(m_explosionDamage, "Explosion Damage", 0.0f, 100.0f, 1.0f),
+    SERIALIZED_ASSET_REF(m_explosionPrefab, "Explosion Prefab", AssetType::PREFAB)
 )
 
 BreakableExplosive::BreakableExplosive(GameObject* owner)
@@ -63,7 +64,10 @@ void BreakableExplosive::onBreak()
 		damageableScript->takeDamage(m_explosionDamage);
 	}
 
-    GameObject* dustEffect = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference("Assets/Prefabs/Particles/Explosion_1.prefab"), TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+    if (m_explosionPrefab.m_ref.isValid())
+    {
+        GameObjectAPI::instantiatePrefab(m_explosionPrefab.m_ref, TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+    }
 
     Debug::log("[BreakableExplosive] '%s' exploded dealing %.1f damage in radius %.1f.", GameObjectAPI::getName(getOwner()), m_explosionDamage, m_explosionRadius);
 

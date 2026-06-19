@@ -60,7 +60,6 @@ namespace GameObjectAPI
     ENGINE_API void removeGameObject(GameObject* gameObject);
 
     ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
-    ENGINE_API AssetReference GetPrefabAssetReference(const char* path);
 
     ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
     ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);

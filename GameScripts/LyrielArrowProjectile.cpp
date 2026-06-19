@@ -8,7 +8,7 @@
 #include "LyrielSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielArrowProjectile,
-    SERIALIZED_STRING(m_particlePrefabPath, "Particle Prefab Path")
+    SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB)
 )
 
 LyrielArrowProjectile::LyrielArrowProjectile(GameObject* owner)
@@ -73,9 +73,9 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
         TransformAPI::lookAt(transform, start_position + m_direction);
     }
 
-    if (!m_particlePrefabPath.empty())
+    if (m_particlePrefab.m_ref.isValid())
     {
-        m_particleGO = GameObjectAPI::instantiatePrefab(GameObjectAPI::GetPrefabAssetReference(m_particlePrefabPath.c_str()), start_position, Vector3::Zero, nullptr);
+        m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_ref, start_position, Vector3::Zero, nullptr);
         if (m_particleGO != nullptr)
         {
             syncParticleTransform();

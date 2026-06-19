@@ -296,6 +296,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AnimationStateMachineAsset.h" />
     <ClInclude Include="AssetDialogFilter.h" />
     <ClInclude Include="AssetReference.h" />
+    <ClInclude Include="AssetRef.h" />
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
     <ClInclude Include="CommandAddGameObject.h" />
@@ -773,6 +774,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
+    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
