@@ -553,6 +553,7 @@ void Scene::clearScene()
     m_allObjects.clear();
 
     m_defaultCamera = nullptr;
+    m_navMesh = AssetReference{};
     markDirty();
 }
 
@@ -636,6 +637,10 @@ void Scene::serialize(IArchive& archive)
 
     archive.beginObject("SkyBox");
     m_skybox.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("NavMesh");
+    m_navMesh.serialize(archive);
     archive.endObject();
 
     {

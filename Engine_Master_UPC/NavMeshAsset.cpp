@@ -1,14 +1,10 @@
+#include "Globals.h"
 #include "NavMeshAsset.h"
 #include "IArchive.h"
 
 void NavMeshAsset::serialize(IArchive& archive)
 {
-    archive.serialize(m_settings.cellSize, "cellSize");
-    archive.serialize(m_settings.cellHeight, "cellHeight");
-    archive.serialize(m_settings.agentHeight, "agentHeight");
-    archive.serialize(m_settings.agentRadius, "agentRadius");
-    archive.serialize(m_settings.agentMaxClimb, "agentMaxClimb");
-    archive.serialize(m_settings.agentMaxSlope, "agentMaxSlope");
+    getSettings().serialize(archive);
 
     archive.serializeRaw(&m_params, sizeof(m_params), "params");
 

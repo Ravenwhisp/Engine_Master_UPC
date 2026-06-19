@@ -31,6 +31,7 @@ private:
     SceneLightingSettings m_lighting;
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
+    AssetReference m_navMesh;
 
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
@@ -96,6 +97,9 @@ public:
     SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
 
+    AssetReference& getNavMesh() { return m_navMesh; }
+    const AssetReference& getNavMesh() const { return m_navMesh; }
+    void setNavMesh(const AssetReference& ref) { m_navMesh = ref; }
 
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }

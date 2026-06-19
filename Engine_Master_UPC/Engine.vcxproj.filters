@@ -456,6 +456,9 @@
     <ClCompile Include="NavMeshAsset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="NavMeshBuildSettings.cpp">
+      <Filter>NavMesh</Filter>
+    </ClCompile>
     <ClCompile Include="AssetScanner.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>

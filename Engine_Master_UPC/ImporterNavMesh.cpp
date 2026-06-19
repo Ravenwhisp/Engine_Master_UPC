@@ -1,7 +1,9 @@
+#include "Globals.h"
 #include "ImporterNavMesh.h"
 #include "NavMeshAsset.h"
 #include "BinaryArchive.h"
 #include <cstring>
+#include <fstream>
 
 bool ImporterNavMesh::canImport(const std::filesystem::path& path) const
 {
@@ -20,7 +22,15 @@ AssetType ImporterNavMesh::getAssetType() const
 
 bool ImporterNavMesh::saveNative(const Asset* asset, const std::filesystem::path& path)
 {
-    return false;
+    uint8_t* buffer = nullptr;
+    const uint64_t size = save(asset, &buffer);
+    if (!buffer || size == 0) return false;
+
+    std::ofstream file(path, std::ios::binary);
+    if (!file.is_open()) { delete[] buffer; return false; }
+    file.write(reinterpret_cast<const char*>(buffer), static_cast<std::streamsize>(size));
+    delete[] buffer;
+    return file.good();
 }
 
 bool ImporterNavMesh::import(const std::filesystem::path& sourcePath, Asset* outAsset)

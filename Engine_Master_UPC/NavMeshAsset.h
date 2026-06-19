@@ -1,6 +1,6 @@
 #pragma once
 #include "Asset.h"
-#include "NavMeshResource.h"
+#include "NavMeshBuildSettings.h"
 #include <DetourNavMesh.h>
 #include <vector>
 #include <cstdint>
@@ -11,8 +11,27 @@ public:
     NavMeshAsset() = default;
     NavMeshAsset(AssetReference& id) : Asset(id, AssetType::NAVMESH) {}
 
-    const NavMeshSettings& getSettings() const { return m_settings; }
-    void setSettings(const NavMeshSettings& s) { m_settings = s; }
+    NavMeshBuildSettings& getSettings()
+    {
+        auto* s = static_cast<NavMeshBuildSettings*>(getImportSettings());
+        if (!s)
+        {
+            setImportSettings(createDefaultImportSettings());
+            s = static_cast<NavMeshBuildSettings*>(getImportSettings());
+        }
+        return *s;
+    }
+
+    const NavMeshBuildSettings& getSettings() const
+    {
+        return *static_cast<const NavMeshBuildSettings*>(getImportSettings());
+    }
+
+    void setSettings(const NavMeshBuildSettings& s)
+    {
+        auto copy = std::make_unique<NavMeshBuildSettings>(s);
+        setImportSettings(std::move(copy));
+    }
 
     const dtNavMeshParams& getParams() const { return m_params; }
     void setParams(const dtNavMeshParams& p) { m_params = p; }
@@ -30,7 +49,7 @@ public:
     {
         m_tileRefs.clear();
         m_tileData.clear();
-        m_settings = NavMeshSettings{};
+        setImportSettings(createDefaultImportSettings());
         m_params = dtNavMeshParams{};
     }
 
@@ -39,8 +58,12 @@ public:
 
     void serialize(IArchive& archive) override;
 
+    std::unique_ptr<ImportSettings> createDefaultImportSettings() const override
+    {
+        return std::make_unique<NavMeshBuildSettings>();
+    }
+
 private:
-    NavMeshSettings m_settings;
     dtNavMeshParams m_params{};
     std::vector<dtTileRef> m_tileRefs;
     std::vector<std::vector<uint8_t>> m_tileData;
