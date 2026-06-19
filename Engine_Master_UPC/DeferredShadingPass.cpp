@@ -26,6 +26,7 @@
 #include "RenderSurface.h"
 
 #include "SimpleMath.h"
+#include <d3dx12.h>
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
 #include "OptickProfiler.h"
@@ -104,7 +105,7 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT; // HDR scene target
     psoDesc.SampleDesc.Count = 1;
     psoDesc.SampleDesc.Quality = 0;
 
@@ -173,7 +174,11 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     BEGIN_EVENT(commandList, "Deferred");
 
 
-    auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
+    // Write the lit scene into the HDR target; post-processing resolves it to COMPOSITE.
+    auto colorTex = m_renderSurface->getTexture(RenderSurface::SCENE_HDR);
+    CD3DX12_RESOURCE_BARRIER toRT = CD3DX12_RESOURCE_BARRIER::Transition(colorTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    commandList->ResourceBarrier(1, &toRT);
+
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
     commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
     commandList->RSSetViewports(1, &m_viewport);
