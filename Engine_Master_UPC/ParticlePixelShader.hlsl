@@ -39,7 +39,7 @@ float4 main(PSInput input) : SV_TARGET
     clip(texColor.a - 0.001f);
     
     float4 particleColorInfo = instanceDataBuffer[input.instanceID].colorAndAlpha;
-    float3 resultingColor = LinearToSRGB(Tint(texColor.rgb, particleColorInfo.rgb) );
-    
+    float3 resultingColor = Tint(texColor.rgb, particleColorInfo.rgb);
+
     return float4(resultingColor, texColor.a * particleColorInfo.a);
 }

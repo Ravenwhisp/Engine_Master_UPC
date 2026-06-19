@@ -11,6 +11,8 @@
 #include "RenderViewType.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "PostProcessPass.h"
+#include "BloomPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -57,8 +59,10 @@ private:
 
     RingBuffer* m_ringBuffer = nullptr;
 
-    // Ordered list of passes that are called every frame.
-    std::vector<std::unique_ptr<IRenderPass>> m_renderPasses;
+    std::vector<std::unique_ptr<IRenderPass>> m_scenePasses;
+    std::vector<std::unique_ptr<IRenderPass>> m_overlayPasses;
+    std::unique_ptr<BloomPass> m_bloomPass;
+    std::unique_ptr<PostProcessPass> m_postProcessPass;
 
     // ImGui straddles the frame (startFrame / apply), so it lives separately.
     std::unique_ptr<ImGuiPass> m_imGuiPass;
@@ -99,14 +103,14 @@ public:
     void markDebugDrawCacheDirty();
 
 private:
-    void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)> renderFunc);
+    void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(const RenderSurface& surface)> renderFunc);
 
     // Scene rendering
-    void renderScene( ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug, RenderViewType viewType);
+    void renderScene( ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, const RenderSurface& surface, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug, RenderViewType viewType);
     void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
-    void renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
-    void renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,float width, float height);
-    void renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,  D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
+    void renderEditorScene(ID3D12GraphicsCommandList4* commandList, const RenderSurface& surface, float width, float height);
+    void renderPlayScene(ID3D12GraphicsCommandList4* commandList, const RenderSurface& surface, float width, float height);
+    void renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandList, const RenderSurface& surface, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
 
     // Camera helpers
     RenderCamera getEditorCamera();

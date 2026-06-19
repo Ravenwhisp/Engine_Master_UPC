@@ -350,11 +350,11 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     
     
-    //Calculate final color
-    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
-    float3 finalColor = LinearToSRGB(colorMapped);
+    //Output linear HDR colour. Exposure, tone mapping and gamma correction are
+    //applied later by the post-process pass.
+    float3 finalColor = directLighting + indirectLighting + emissive;
 
-    
-    
+
+
     return float4(finalColor, 1.0f);
 }

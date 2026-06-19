@@ -28,6 +28,8 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawLightSettings();
     ImGui::Separator();
+    drawPostProcessSettings();
+    ImGui::Separator();
     drawMusicBanksSettings();
     ImGui::Separator();
 }
@@ -181,6 +183,37 @@ void SceneConfig::drawLightSettings()
     {
         ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
+    }
+}
+
+void SceneConfig::drawPostProcessSettings()
+{
+    PostProcessSettings& pp = m_moduleScene->getScene()->getPostProcessSettings();
+
+    if (ImGui::CollapsingHeader("Post Process"))
+    {
+        ImGui::DragFloat("Exposure (EV)###PPExposure", &pp.exposure, 0.05f, -10.0f, 10.0f);
+        ImGui::TextDisabled("One stop (EV +1) doubles luminance.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Bloom###PPBloomEnabled", &pp.bloomEnabled);
+        ImGui::DragFloat("Bloom Threshold###PPBloomThreshold", &pp.bloomThreshold, 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Bloom Intensity###PPBloomIntensity", &pp.bloomIntensity, 0.01f, 0.0f, 5.0f);
+
+        ImGui::Separator();
+        ImGui::Checkbox("Colour Grading (LUT)###PPLutEnabled", &pp.lutEnabled);
+
+        char lutBuffer[260];
+        strcpy_s(lutBuffer, pp.lutPath.c_str());
+        if (ImGui::InputText(".CUBE Path###PPLutPath", lutBuffer, IM_ARRAYSIZE(lutBuffer)))
+        {
+            pp.lutPath = lutBuffer;
+        }
+        ImGui::TextDisabled("Path to a .CUBE LUT (relative to the working directory).");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Chromatic Aberration###PPCAEnabled", &pp.chromaticAberrationEnabled);
+        ImGui::DragFloat("CA Strength###PPCAStrength", &pp.chromaticAberrationStrength, 0.05f, 0.0f, 10.0f);
     }
 }
 
