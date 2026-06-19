@@ -190,7 +190,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 
         ParticleEmitterCommand command;
 		command.texture = texture;
-        command.layer = animationConfig->getLayer();
+        command.layer = renderConfig->getLayer();
         command.uvScale = animationConfig->getUVScale();
 
 		command.particles.reserve(aliveParticles.size());

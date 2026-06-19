@@ -15,6 +15,9 @@ bool EmitterRender::drawUi()
             m_renderMode = static_cast<RenderMode>(currentIndex);
             parameterChanged = true;
         }
+
+
+        parameterChanged |= ImGui::DragInt("Render layer", &m_layer, 1.f);
     }
 
     return parameterChanged;
@@ -23,8 +26,13 @@ bool EmitterRender::drawUi()
 rapidjson::Value EmitterRender::getJSON(rapidjson::Document& domTree)
 {
     rapidjson::Value moduleInfo(rapidjson::kObjectType);
+
     moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::RENDER), domTree.GetAllocator());
+
     moduleInfo.AddMember("RenderMode", unsigned int(m_renderMode), domTree.GetAllocator());
+
+    moduleInfo.AddMember("RenderLayer", m_layer, domTree.GetAllocator());
+
     return moduleInfo;
 }
 
@@ -34,5 +42,10 @@ bool EmitterRender::deserializeJSON(const rapidjson::Value& moduleInfo)
     {
         m_renderMode = static_cast<RenderMode>(moduleInfo["RenderMode"].GetUint());
     }
+
+    if (moduleInfo.HasMember("RenderLayer")) {
+        m_layer = moduleInfo["RenderLayer"].GetInt();
+    }
+
     return true;
 }

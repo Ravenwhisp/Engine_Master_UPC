@@ -13,7 +13,6 @@ public:
 
 	void update(EmitterInstance* particleData) override;
 
-	int getLayer() const { return m_layer; }
 	int getSheetRows() const { return m_rows; }
 	int getSheetColumns() const { return m_columns; }
 	Vector2 getUVScale() const;
@@ -24,8 +23,6 @@ public:
 	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
 private:
-
-	int m_layer = 0; // to indicate the order which particles between overlapped emitters will be drawn in (higher => more on top)
 
 	int m_rows = 1;
 	int m_columns = 1;

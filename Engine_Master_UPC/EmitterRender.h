@@ -19,7 +19,10 @@ public:
     bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
     RenderMode getRenderMode() const { return m_renderMode; }
+    int getLayer() const { return m_layer; }
 
 private:
     RenderMode m_renderMode = RenderMode::BILLBOARD;
+
+    int m_layer = 0; // to indicate the order which particles between overlapped emitters will be drawn in (higher => more on top)
 };

@@ -67,10 +67,6 @@ bool EmitterAnimation::drawUi()
 
 	if (ImGui::CollapsingHeader("Animation")) {
 
-		parameterChanged = ImGui::DragInt("Render layer", &m_layer, 1.f);
-		
-		ImGui::Spacing(); ImGui::Spacing();
-
 		if (ImGui::DragInt("Tile rows", &m_rows, 1.f, 1))
 		{
 			m_totalFrames = static_cast<float>(m_rows * m_columns);
@@ -97,8 +93,6 @@ rapidjson::Value EmitterAnimation::getJSON(rapidjson::Document& domTree)
 
 	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::ANIMATION), domTree.GetAllocator());
 
-	moduleInfo.AddMember("RenderLayer", m_layer, domTree.GetAllocator());
-
 	moduleInfo.AddMember("TileRows", m_rows, domTree.GetAllocator());
 	moduleInfo.AddMember("TileColumns", m_columns, domTree.GetAllocator());
 
@@ -109,10 +103,6 @@ rapidjson::Value EmitterAnimation::getJSON(rapidjson::Document& domTree)
 
 bool EmitterAnimation::deserializeJSON(const rapidjson::Value& moduleInfo)
 {
-	if (moduleInfo.HasMember("RenderLayer")) {
-		m_layer = moduleInfo["RenderLayer"].GetInt();
-	}
-
 	if (moduleInfo.HasMember("TileRows")) {
 		m_rows = moduleInfo["TileRows"].GetInt();
 	}
