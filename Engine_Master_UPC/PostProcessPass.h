@@ -1,6 +1,4 @@
 #pragma once
-#include "IRenderPass.h"
-
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <memory>
@@ -9,18 +7,22 @@
 using Microsoft::WRL::ComPtr;
 
 struct RenderContext;
-class RenderSurface;
 class Texture;
-class BloomPass;
 
-class PostProcessPass : public IRenderPass
+class PostProcessPass
 {
 public:
     explicit PostProcessPass(ComPtr<ID3D12Device4> device);
-    ~PostProcessPass() override;
 
-    void prepare(const RenderContext& ctx) override;
-    void apply(ID3D12GraphicsCommandList4* commandList) override;
+    void prepare(const RenderContext& ctx);
+
+    void setBloomSource(D3D12_GPU_DESCRIPTOR_HANDLE bloomSrv, bool valid);
+
+    void apply(ID3D12GraphicsCommandList4* commandList,
+               D3D12_GPU_DESCRIPTOR_HANDLE sceneHDRSrv,
+               D3D12_CPU_DESCRIPTOR_HANDLE targetRTV,
+               const D3D12_VIEWPORT& viewport,
+               const D3D12_RECT& scissorRect);
 
 private:
     struct PostProcessParams
@@ -42,20 +44,13 @@ private:
 
     PostProcessParams m_params;
 
-    std::unique_ptr<BloomPass> m_bloomPass;
-
-    // Colour-grading LUT and a neutral identity LUT fallback.
     std::shared_ptr<Texture> m_lutTexture;
     std::shared_ptr<Texture> m_identityLut;
     std::string              m_loadedLutPath;
     int                      m_lutSize = 2;
 
-    // 1x1 placeholder bound to the bloom slot when bloom is inactive.
     std::shared_ptr<Texture> m_dummyTexture;
 
-    // Per-frame state captured in prepare().
-    RenderSurface* m_surface = nullptr;
-    D3D12_VIEWPORT m_viewport{};
-    D3D12_RECT     m_scissorRect{};
-    bool           m_runBloom = false;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_bloomSrv{};
+    bool                        m_bloomValid = false;
 };

@@ -124,7 +124,7 @@ void SkyBoxPass::apply(ID3D12GraphicsCommandList4* commandList)
     params.flipX = 0;
     params.flipZ = 0;
 
-    auto colorTex = m_renderSurface->getTexture(RenderSurface::SCENE_HDR);
+    auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
     auto dsTex = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
     D3D12_CPU_DESCRIPTOR_HANDLE dsv = dsTex->getDSV().cpu;

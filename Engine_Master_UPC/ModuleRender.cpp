@@ -34,7 +34,6 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
-#include "PostProcessPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -82,11 +81,6 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
-
-    // Resolve HDR scene fors bloom, exposure, tone mapping, LUT, gamma
-    // before the overlay passes draw on top.
-    m_renderPasses.push_back(std::make_unique<PostProcessPass>(device));
-
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));

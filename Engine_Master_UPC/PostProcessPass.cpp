@@ -2,7 +2,6 @@
 #include "PostProcessPass.h"
 
 #include "RenderContext.h"
-#include "RenderSurface.h"
 
 #include "Application.h"
 #include "ModuleDescriptors.h"
@@ -12,7 +11,6 @@
 #include "PostProcessSettings.h"
 #include "Texture.h"
 #include "CubeLut.h"
-#include "BloomPass.h"
 #include "UID.h"
 
 #include <d3dx12.h>
@@ -22,10 +20,9 @@
 PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
     // Root signature: b0 (params) + t0 (HDR scene) + t1 (bloom) + t2 (LUT 3D),
-    // with a static bilinear-clamp sampler at s0.
     CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange;
     sceneRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0); 
-    bloomRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    bloomRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0); 
     lutRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0); 
 
     CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
@@ -78,13 +75,8 @@ PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device
 
     DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
 
-    // Bloom is produced internally and fed into the resolve.
-    m_bloomPass = std::make_unique<BloomPass>(m_device);
-
-    // Neutral identity LUT used whenever colour grading is disabled.
     m_identityLut = CubeLut::createIdentity(*m_device.Get(), 2);
 
-    // 1x1 placeholder for the bloom slot when bloom is inactive.
     TextureDesc dummyDesc{};
     dummyDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     dummyDesc.width = 1;
@@ -97,13 +89,15 @@ PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device
     m_dummyTexture->setName(L"PostProcess_DummyBloom");
 }
 
-PostProcessPass::~PostProcessPass() = default;
+void PostProcessPass::setBloomSource(D3D12_GPU_DESCRIPTOR_HANDLE bloomSrv, bool valid)
+{
+    m_bloomSrv = bloomSrv;
+    m_bloomValid = valid;
+}
 
 void PostProcessPass::prepare(const RenderContext& ctx)
 {
-    m_surface = &ctx.renderSurface;
-    m_viewport = ctx.viewport;
-    m_scissorRect = ctx.scissorRect;
+    (void)ctx;
 
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene)
@@ -113,7 +107,6 @@ void PostProcessPass::prepare(const RenderContext& ctx)
 
     m_params.exposure = settings.exposure;
 
-    // Colour-grading LUT
     if (settings.lutEnabled && !settings.lutPath.empty())
     {
         if (settings.lutPath != m_loadedLutPath)
@@ -132,51 +125,31 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.enableCA = settings.chromaticAberrationEnabled ? 1u : 0u;
     m_params.caStrength = settings.chromaticAberrationStrength;
 
-    m_runBloom = settings.bloomEnabled;
-    m_params.enableBloom = settings.bloomEnabled ? 1u : 0u;
+    m_params.enableBloom = (settings.bloomEnabled && m_bloomValid) ? 1u : 0u;
     m_params.bloomIntensity = settings.bloomIntensity;
-
-    if (m_runBloom)
-        m_bloomPass->prepare(ctx);
 }
 
-void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
+void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList,
+                            D3D12_GPU_DESCRIPTOR_HANDLE sceneHDRSrv,
+                            D3D12_CPU_DESCRIPTOR_HANDLE targetRTV,
+                            const D3D12_VIEWPORT& viewport,
+                            const D3D12_RECT& scissorRect)
 {
-    if (!m_surface)
-        return;
-
-    auto sceneHDR = m_surface->getTexture(RenderSurface::SCENE_HDR);
-    auto composite = m_surface->getTexture(RenderSurface::COMPOSITE);
-    if (!sceneHDR || !composite)
-        return;
-
-    // The scene passes left SCENE_HDR as a render target; make it readable.
-    CD3DX12_RESOURCE_BARRIER toSRV = CD3DX12_RESOURCE_BARRIER::Transition(sceneHDR->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    commandList->ResourceBarrier(1, &toSRV);
-
-    // Bloom reads SCENE_HDR and produces its own blurred texture.
-    D3D12_GPU_DESCRIPTOR_HANDLE bloomHandle = m_dummyTexture->getSRV().gpu;
-    if (m_runBloom)
-    {
-        m_bloomPass->apply(commandList, sceneHDR->getSRV().gpu);
-        bloomHandle = m_bloomPass->getBloomSRV();
-    }
-
-    const std::shared_ptr<Texture>& lut = m_lutTexture ? m_lutTexture : m_identityLut;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE targetRTV = composite->getRTV(0).cpu;
-    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, nullptr);
-    commandList->RSSetViewports(1, &m_viewport);
-    commandList->RSSetScissorRects(1, &m_scissorRect);
-
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, nullptr);
+    commandList->RSSetViewports(1, &viewport);
+    commandList->RSSetScissorRects(1, &scissorRect);
+
+    const D3D12_GPU_DESCRIPTOR_HANDLE bloomHandle = m_bloomValid ? m_bloomSrv : m_dummyTexture->getSRV().gpu;
+    const std::shared_ptr<Texture>& lut = m_lutTexture ? m_lutTexture : m_identityLut;
+
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(PostProcessParams) / sizeof(UINT32), &m_params, 0);
-    commandList->SetGraphicsRootDescriptorTable(1, sceneHDR->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(1, sceneHDRSrv);
     commandList->SetGraphicsRootDescriptorTable(2, bloomHandle);
     commandList->SetGraphicsRootDescriptorTable(3, lut->getSRV().gpu);
 
@@ -184,6 +157,5 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->DrawInstanced(3, 1, 0, 0);
 
-    // Leave SCENE_HDR in PIXEL_SHADER_RESOURCE for the next frame's scene pass,
-    // which will transition it back to RENDER_TARGET.
+    m_bloomValid = false;
 }
