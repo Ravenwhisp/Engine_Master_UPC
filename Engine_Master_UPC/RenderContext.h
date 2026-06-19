@@ -6,6 +6,7 @@
 #include "SSAOTypes.h"
 
 class RingBuffer;
+class Texture;
 struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
@@ -28,6 +29,12 @@ struct RenderContext
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
     const ShadowFrameData* shadowData = nullptr;
+
+    Texture* ssaoDepthTexture = nullptr;
+    Texture* ssaoNormalTexture = nullptr;
+    Texture* ssaoRawTexture = nullptr;
+    Texture* ssaoBlurTexture = nullptr;
+
     const SSAOFrameData* ssaoData = nullptr;
 
 };
