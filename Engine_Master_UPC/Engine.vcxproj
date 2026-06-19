@@ -354,6 +354,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterNative.h" />
+    <ClInclude Include="ImporterNavMesh.h" />
     <ClInclude Include="ImporterPrefab.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
@@ -490,6 +491,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="NavMeshAsset.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MeshRendererPass.h" />
     <ClInclude Include="PlayToolbar.h" />
@@ -751,6 +753,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandImportAsset.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
+    <ClCompile Include="ImporterNavMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="MD5.cpp" />
@@ -760,6 +763,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
+    <ClCompile Include="NavMeshAsset.cpp" />
     <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="PrefabManager.cpp" />

@@ -6,6 +6,7 @@
 #include "ImporterTexture.h"
 #include "ImporterGltf.h"
 #include "ImporterFont.h"
+#include "ImporterNavMesh.h"
 
 #include "Scene.h"
 #include "Prefab.h"
@@ -38,6 +39,7 @@ ImporterRegistry::ImporterRegistry()
 
     m_importers.push_back(std::make_unique<ImporterFont>());
     m_importers.push_back(std::make_unique<ImporterNative<Scene, AssetType::SCENE>>(std::initializer_list<const char*>{SCENE_EXTENSION}));
+    m_importers.push_back(std::make_unique<ImporterNavMesh>());
 }
 
 ImporterRegistry::~ImporterRegistry() = default;

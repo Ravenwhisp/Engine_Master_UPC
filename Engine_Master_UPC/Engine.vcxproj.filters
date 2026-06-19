@@ -264,6 +264,9 @@
     <ClCompile Include="ImporterGltf.cpp">
       <Filter>Persistence\Importers\External\Gltf</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterNavMesh.cpp">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClCompile>
     <ClCompile Include="ImporterPrefab.cpp">
       <Filter>Persistence\Importers\Native</Filter>
     </ClCompile>
@@ -448,6 +451,9 @@
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="TextureAsset.cpp">
+      <Filter>Persistence\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshAsset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="AssetScanner.cpp">
@@ -947,8 +953,14 @@
     <ClInclude Include="ImporterGltf.h">
       <Filter>Persistence\Importers\External\Gltf</Filter>
     </ClInclude>
+    <ClInclude Include="ImporterNavMesh.h">
+      <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
     <ClInclude Include="ImporterPrefab.h">
       <Filter>Persistence\Importers\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshAsset.h">
+      <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="Prefab.h">
       <Filter>Persistence\Assets</Filter>

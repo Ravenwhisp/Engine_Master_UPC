@@ -13,6 +13,7 @@
     X(SKIN)                    \
     X(ANIMATION_STATE_MACHINE) \
     X(SCENE)                   \
+    X(NAVMESH)                 \
     X(UNKNOWN)
 
 #define ASSET_ENUM(name) name,

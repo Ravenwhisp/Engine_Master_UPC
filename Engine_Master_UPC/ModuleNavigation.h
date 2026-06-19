@@ -5,38 +5,12 @@
 #include "NavMeshBuilder.h"
 
 #include <vector>
-#include <unordered_map>
 #include <string>
 #include <DetourNavMesh.h>
+#include "NavMeshResource.h"
 
 class dtNavMesh;
 class dtNavMeshQuery;
-class Scene;
-
-class ModuleNavigation : public Module, public IDebugDrawable
-{
-public:
-    bool init() override;
-    bool cleanUp() override;
-
-    // Access
-    dtNavMesh* getNavMesh() const { return m_navMesh; }
-    dtNavMeshQuery* getNavQuery() const { return m_navQuery; }
-    const std::string& getLoadedScene() const { return m_loadedScene; }
-
-    // Scene resource API
-    bool loadNavMeshForScene(const char* sceneName);
-    bool unloadNavMesh();
-    bool saveNavMeshForScene(const char* sceneName) const;
-    bool buildNavMeshForCurrentScene();
-
-    // Debug
-    struct NavDebugLine
-    {
-        Vector3 a;
-        Vector3 b;
-        const float* color;
-    };
 
     const std::vector<NavDebugLine>& getNavMeshDebugLines() const { return m_navDebugLines; }
     void rebuildNavMeshDebugLines();

@@ -18,3 +18,15 @@ struct NavMeshTileHeader
     dtTileRef tileRef;
     int dataSize;
 };
+
+struct NavMeshSettings
+{
+    float cellSize = 0.3f;
+    float cellHeight = 0.2f;
+
+    float agentHeight = 1.8f;
+    float agentRadius = 0.4f;
+
+    float agentMaxClimb = 0.6f;
+    float agentMaxSlope = 45.0f;
+};
