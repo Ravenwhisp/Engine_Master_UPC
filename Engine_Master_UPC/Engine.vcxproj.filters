@@ -589,6 +589,7 @@
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="SSAOGeometryPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1378,6 +1379,7 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="SSAOTypes.h" />
+    <ClInclude Include="SSAOGeometryPass.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
