@@ -62,8 +62,8 @@ bool ModuleRender::init()
     auto debugDrawPass = std::make_unique<DebugDrawPass>(device, d3d12->getCommandQueue()->getD3D12CommandQueue().Get(),/*useMSAA=*/false);
 
     m_debugDrawPass = debugDrawPass.get();
-    //debugDrawPass->registerStatic(app->getModuleNavigation());
-    //debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
+    debugDrawPass->registerStatic(app->getModuleNavigation());
+    debugDrawPass->registerStatic(app->getModuleEditor()->getWindowSceneEditor());
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
@@ -88,6 +88,14 @@ bool ModuleRender::init()
     // ImGui lives outside the pass list because startFrame() / apply() must
     // bracket the entire editor render, not just the scene render.
     m_imGuiPass = std::make_unique<ImGuiPass>(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
+
+
+
+    #ifdef GAME_RELEASE
+        initViewportGBuffers(d3d12->getSwapChain()->getRenderSurface(), 1920, 1080);
+    #endif
+
+
 
     return true;
 }

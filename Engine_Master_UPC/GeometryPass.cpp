@@ -146,8 +146,8 @@ void GeometryPass::transitionAndClearTargets(ID3D12GraphicsCommandList4* command
 {
     transitionGBuffer(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    const float clearColour[GBUFFER_COUNT] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
+    //const float clearColour[GBUFFER_COUNT] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    const float clearColour[GBUFFER_COUNT] = { 0.0f, 0.2f, 0.4f, 1.0f };
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
     {
         rtvHandles[i] = m_gbufferSurface->getTexture(kSlots[i])->getRTV(0).cpu;

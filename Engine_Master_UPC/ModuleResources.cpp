@@ -184,7 +184,9 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 
 Texture* ModuleResources::createGBuffer(float width, float height, const DXGI_FORMAT format)
 {
-	const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	const float clearColor[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	
 
 	TextureDesc desc{};
 	desc.format = format;
