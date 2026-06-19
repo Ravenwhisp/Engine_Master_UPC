@@ -135,7 +135,7 @@ void ModuleD3D12::loadPipeline() {
         NewFilter.DenyList.NumIDs = _countof(DenyIds);
         NewFilter.DenyList.pIDList = DenyIds;
 
-        info_queue->PushStorageFilter(&NewFilter);
+        //info_queue->PushStorageFilter(&NewFilter);
     }
 #endif
 
