@@ -70,6 +70,7 @@ PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device
     desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     desc.DepthStencilState.DepthEnable = FALSE;
     desc.DepthStencilState.StencilEnable = FALSE;
+    desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     desc.SampleMask = UINT_MAX;
     desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     desc.NumRenderTargets = 1;
@@ -164,8 +165,10 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     const std::shared_ptr<Texture>& lut = m_lutTexture ? m_lutTexture : m_identityLut;
 
+    auto depthTex = m_surface->getTexture(RenderSurface::DEPTH_STENCIL);
     D3D12_CPU_DESCRIPTOR_HANDLE targetRTV = composite->getRTV(0).cpu;
-    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, nullptr);
+    D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthTex->getDSV().cpu;
+    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, &dsv);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
 
