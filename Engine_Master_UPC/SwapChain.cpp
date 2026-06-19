@@ -160,7 +160,7 @@ void SwapChain::updateCurrentBackBuffer()
     UINT index = m_swapChain->GetCurrentBackBufferIndex();
     m_renderSurface.attachTexture(RenderSurface::COMPOSITE, m_backBufferTextures[index]);
 }
-const RenderSurface& SwapChain::getRenderSurface() const
+RenderSurface& SwapChain::getRenderSurface() const
 {
     return m_renderSurface;
 }
