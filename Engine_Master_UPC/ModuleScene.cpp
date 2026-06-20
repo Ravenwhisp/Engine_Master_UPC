@@ -252,9 +252,9 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     rebuildComponentCaches();
 
-    for (std::string bank : m_scene->getLoadedBanks())
+    for (const auto& ref : m_scene->getLoadedBankRefs())
     {
-        app->getModuleMusic()->loadBank(bank);
+        app->getModuleMusic()->loadBank(ref);
     }
 
     return true;
@@ -297,6 +297,12 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #endif
 
     rebuildComponentCaches();
+
+    for (const auto& ref : m_scene->getLoadedBankRefs())
+    {
+        app->getModuleMusic()->loadBank(ref);
+    }
+
     return true;
 }
 

@@ -6,6 +6,9 @@
 #include <filesystem>
 #include <string>
 
+#include "ModuleAssets.h"
+#include "SoundBankAsset.h"
+
 constexpr bool DEBUG_MODULE_MUSIC = false;
 #define WWISE_BANK_LOG(...) do { if constexpr (DEBUG_MODULE_MUSIC) { DEBUG_LOG(__VA_ARGS__); } } while (false)
 #define WWISE_BANK_ERROR(...) do { if constexpr (DEBUG_MODULE_MUSIC) { DEBUG_ERROR(__VA_ARGS__); } } while (false)
@@ -303,6 +306,19 @@ bool ModuleMusic::loadBank(const std::string& bankName)
 
 	WWISE_BANK_ERROR("[Module Music] Bank not found: %s", bankName.c_str());
 	return false;
+}
+
+bool ModuleMusic::loadBank(const AssetReference& ref)
+{
+	AssetReference mutableRef = ref;
+	auto asset = app->getModuleAssets()->load<SoundBankAsset>(mutableRef);
+	if (!asset)
+	{
+		WWISE_BANK_ERROR("[Module Music] Failed to load SoundBankAsset.");
+		return false;
+	}
+
+	return loadBank(asset->getBankName());
 }
 
 bool ModuleMusic::unloadBank(const std::string& bankName)

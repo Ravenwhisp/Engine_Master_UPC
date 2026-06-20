@@ -8,6 +8,7 @@
 #include "ModuleD3D12.h"
 #include "ModuleScene.h"
 #include "ModuleMusic.h"
+#include "ModuleAssets.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -18,6 +19,7 @@
 #include "SceneSnapshot.h"
 #include "Transform.h"
 #include "SceneReferenceResolver.h"
+#include "SoundBankAsset.h"
 
 #include "IArchive.h"
 
@@ -554,6 +556,7 @@ void Scene::clearScene()
 
     m_defaultCamera = nullptr;
     m_navMesh = AssetReference{};
+    m_loadedBankRefs.clear();
     markDirty();
 }
 
@@ -592,33 +595,49 @@ void Scene::clearTriggers()
 }
 
 #pragma region MusicBanks
-const std::vector<std::string>& Scene::getLoadedBanks() const
+void Scene::addLoadedBank(const std::string& bankName)
 {
-    return m_loadedBanks;
-}
-
-void Scene::addLoadedBank(const std::string& bank)
-{
-    if (std::find(m_loadedBanks.begin(), m_loadedBanks.end(), bank) != m_loadedBanks.end())
+    for (const auto& ref : m_loadedBankRefs)
     {
-        return;
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
+        if (asset && asset->getBankName() == bankName)
+            return;
     }
 
-    m_loadedBanks.push_back(bank);
+    AssetReference ref;
+    std::string sourcePath = std::string(ASSETS_FOLDER) + "Audio/" + bankName;
+    app->getModuleAssets()->importAsset(sourcePath, ref);
+    if (!ref.isValid())
+    {
+        UID uid = GenerateUID();
+        ref = AssetReference(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
+    }
+    m_loadedBankRefs.push_back(ref);
 }
 
-void Scene::removeLoadedBank(const std::string& bank)
+void Scene::removeLoadedBank(const std::string& bankName)
 {
-    for (auto it = m_loadedBanks.begin(); it != m_loadedBanks.end(); ++it)
+    for (auto it = m_loadedBankRefs.begin(); it != m_loadedBankRefs.end(); ++it)
     {
-        if (*it != bank)
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(*it));
+        if (asset && asset->getBankName() == bankName)
         {
-            continue;
+            m_loadedBankRefs.erase(it);
+            return;
         }
-
-        m_loadedBanks.erase(it);
-        return;
     }
+}
+
+std::vector<std::string> Scene::getLoadedBankNames() const
+{
+    std::vector<std::string> names;
+    for (const auto& ref : m_loadedBankRefs)
+    {
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
+        if (asset)
+            names.push_back(asset->getBankName());
+    }
+    return names;
 }
 
 void Scene::unloadSoundBanks()
@@ -644,14 +663,16 @@ void Scene::serialize(IArchive& archive)
     archive.endObject();
 
     {
-        SoundBanksData soundData;
-        if (archive.mode() == ArchiveMode::Output)
-            soundData.banks = m_loadedBanks;
+        uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
-        soundData.serialize(archive);
+        archive.beginArray(bankCount, "banks");
+        m_loadedBankRefs.resize(bankCount);
+        for (uint32_t i = 0; i < bankCount; ++i)
+        {
+            m_loadedBankRefs[i].serialize(archive);
+        }
+        archive.endArray();
         archive.endObject();
-        if (archive.mode() == ArchiveMode::Input)
-            m_loadedBanks = std::move(soundData.banks);
     }
 
     uint64_t defaultCameraUid = 0;

@@ -7,8 +7,8 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
-#include "SoundBanksData.h"
 #include "SceneReferenceResolver.h"
+#include "AssetReference.h"
 #include "UID.h"
 
 struct ID3D12GraphicsCommandList;
@@ -44,7 +44,7 @@ private:
 
     void removePendingGameObjects();
 
-    std::vector<std::string> m_loadedBanks;
+    std::vector<AssetReference> m_loadedBankRefs;
 
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
@@ -143,9 +143,10 @@ public:
 #pragma endregion
 
 #pragma region MusicBanks
-    const std::vector<std::string>& getLoadedBanks() const;
-    void addLoadedBank(const std::string& bank);
-    void removeLoadedBank(const std::string& bank);
-	void unloadSoundBanks();
+    const std::vector<AssetReference>& getLoadedBankRefs() const { return m_loadedBankRefs; }
+    void addLoadedBank(const std::string& bankName);
+    void removeLoadedBank(const std::string& bankName);
+    std::vector<std::string> getLoadedBankNames() const;
+    void unloadSoundBanks();
 #pragma endregion
 };

@@ -186,7 +186,7 @@ void SceneConfig::drawLightSettings()
 
 void SceneConfig::drawMusicBanksSettings()
 {
-    const std::vector<std::string> loadedBanks = m_moduleScene->getScene()->getLoadedBanks();
+    const std::vector<std::string> loadedBanks = m_moduleScene->getScene()->getLoadedBankNames();
     std::vector<WwiseBank>& existingBanks = m_moduleMusic->getBankList();
 
     if (!ImGui::CollapsingHeader("Music Banks"))
