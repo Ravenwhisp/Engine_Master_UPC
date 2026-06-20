@@ -1,35 +1,20 @@
 #include "ForwardCommon.hlsli"
 
-struct VertexOutput
+struct VSInput
 {
-    float3 worldPos : POSITION;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float2 texCoord : TEXCOORD;
+    float3 position : POSITION;
+};
+
+struct VSOutput
+{
     float4 position : SV_POSITION;
 };
 
-cbuffer Transforms : register(b0)
+VSOutput main(VSInput input)
 {
-    float4x4 mvp;
-    float4x4 nm;
-};
- 
-VertexOutput main(float3 position : POSITION, float2 texCoord : TEXCOORD, float3 normal : NORMAL, float3 tangent : TANGENT)
-{
-    VertexOutput output;
-    output.worldPos = mul(float4(position, 1.0), model).xyz;
-    
-    //output.normal = normalize(mul(normal, (float3x3) normalMat));
-    output.normal = normalize(mul(normal, (float3x3) normalMat));
-    //output.normal = mul(float4(normalVec, 1), nm);
-    
-    //output.tangent = normalize(tangent);
-    output.tangent = normalize(mul(tangent, (float3x3) normalMat));
-    //output.tangent = mul(float4(tangentVec, 1), nm);
-    
-    output.texCoord = texCoord;
-    output.position = mul(float4(position, 1.0f), mvp);
- 
+    VSOutput output;
+
+    output.position = mul(float4(input.position, 1.0f), mvp);
+
     return output;
 }

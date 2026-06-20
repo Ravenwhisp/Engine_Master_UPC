@@ -5,6 +5,7 @@
 
 
 class MeshRenderer;
+class RenderSurface;
 
 
 
@@ -16,10 +17,13 @@ public:
 	virtual void prepare(const RenderContext& ctx) override;
 	void apply(ID3D12GraphicsCommandList4* commandList) override;
 
+
 private:
 	void createRootSignature();
 	void createPipelineState();
 
+	void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer);
+	
 	ComPtr<ID3D12Device4>		m_device;
 	ComPtr<ID3D12RootSignature>	m_rootSignature;
 	ComPtr<ID3D12PipelineState>	m_pipelineState;

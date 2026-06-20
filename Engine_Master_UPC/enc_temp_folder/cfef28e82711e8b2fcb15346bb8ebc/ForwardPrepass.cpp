@@ -31,6 +31,9 @@ void ForwardPrepass::createRootSignature()
 	CD3DX12_ROOT_PARAMETER		rootParams[1] = {};
 	CD3DX12_DESCRIPTOR_RANGE	srvRange, sampRange;
 
+	srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
+	sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+
 	rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	CD3DX12_ROOT_SIGNATURE_DESC rsDesc;

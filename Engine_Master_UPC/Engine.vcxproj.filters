@@ -1463,9 +1463,6 @@
     <ClInclude Include="PrefabInstance.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h">
-      <Filter>Prefabs</Filter>
-    </ClInclude>
     <ClInclude Include="PrefabUI.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
@@ -1814,6 +1811,9 @@
     <None Include="PBRGeneral.hlsli" />
     <None Include="GeometryCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
+    <None Include="ForwardCommon.hlsli">
+      <Filter>D3D12\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1875,6 +1875,9 @@
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
     <FxCompile Include="GBufferPS.hlsl" />
     <FxCompile Include="GBufferVS.hlsl" />
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico" />
