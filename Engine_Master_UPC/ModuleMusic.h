@@ -52,8 +52,12 @@ public:
 	bool loadBank(const std::string& bankName);
 	bool loadBank(const AssetReference& ref);
 	bool unloadBank(const std::string& bankName);
+	AssetReference findBankRef(const std::string& bankName) const;
 #pragma endregion
 
 private:
+#ifndef GAME_RELEASE
 	bool loadBanksFromFolder();
+#endif
+	bool loadBanksFromLibrary();
 };

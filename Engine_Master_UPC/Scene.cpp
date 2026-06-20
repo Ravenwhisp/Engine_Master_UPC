@@ -604,9 +604,7 @@ void Scene::addLoadedBank(const std::string& bankName)
             return;
     }
 
-    AssetReference ref;
-    std::string sourcePath = std::string(ASSETS_FOLDER) + "Audio/" + bankName;
-    app->getModuleAssets()->importAsset(sourcePath, ref);
+    AssetReference ref = app->getModuleMusic()->findBankRef(bankName);
     if (!ref.isValid())
     {
         UID uid = GenerateUID();

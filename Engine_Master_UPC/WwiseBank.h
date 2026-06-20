@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "WwiseEvent.h"
+#include "AssetReference.h"
 
 using AkBankID = unsigned int;
 using AkGameObjectID = unsigned long long;
@@ -18,6 +19,7 @@ private:
 	std::vector<WwiseEvent> m_events;
 
 	bool m_loaded;
+	AssetReference m_assetRef;
 
 public:
 	WwiseBank() = default;
@@ -34,6 +36,11 @@ public:
 	const std::string& getName() const { return m_bankName; }
 
 	bool postEvent(const char* eventName, AkGameObjectID gameObjectID) const;
+
+	void setName(const std::string& name) { m_bankName = name; }
+	void addEvent(const WwiseEvent& e) { m_events.push_back(e); }
+	void setAssetRef(const AssetReference& ref) { m_assetRef = ref; }
+	const AssetReference& getAssetRef() const { return m_assetRef; }
 
 private:
 	bool loadEventsFromJson();
