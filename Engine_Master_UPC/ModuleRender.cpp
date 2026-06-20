@@ -35,6 +35,7 @@
 #include "ShadowMapPass.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
+#include "SSAOBlurPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -70,6 +71,7 @@ bool ModuleRender::init()
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
+    m_ssaoBlurPass = std::make_unique<SSAOBlurPass>(device);
 
     m_meshRenderPass = new MeshRendererPass (device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
@@ -182,6 +184,7 @@ bool ModuleRender::cleanUp()
         app->getModuleD3D12()->getCommandQueue()->flush();
     }
 
+    m_ssaoBlurPass.reset();
     m_ssaoPass.reset();
     m_ssaoGeometryPass.reset();
     m_shadowMapPass.reset();
@@ -373,11 +376,23 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         }
     }
 
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOBlurPass");
+
+        if (m_ssaoBlurPass)
+        {
+            m_ssaoBlurPass->prepare(ctx);
+            m_ssaoBlurPass->apply(commandList);
+        }
+    }
+
     m_currentSSAOData = {};
 
-    if (ctx.ssaoRawTexture)
+    Texture* finalSSAOTexture = ctx.ssaoBlurTexture ? ctx.ssaoBlurTexture : ctx.ssaoRawTexture;
+
+    if (finalSSAOTexture)
     {
-        m_currentSSAOData.ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
+        m_currentSSAOData.ssaoSRV = finalSSAOTexture->getSRV().gpu;
         m_currentSSAOData.width = static_cast<uint32_t>(viewport.Width);
         m_currentSSAOData.height = static_cast<uint32_t>(viewport.Height);
         m_currentSSAOData.enabled = true;

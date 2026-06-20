@@ -14,6 +14,7 @@
 #include "SSAOTypes.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
+#include "SSAOBlurPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -80,6 +81,7 @@ private:
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
     std::unique_ptr<SSAOPass> m_ssaoPass;
+    std::unique_ptr<SSAOBlurPass> m_ssaoBlurPass;
 
     bool m_shadowMapRenderedThisFrame = false;
     const ShadowFrameData* m_currentShadowData = nullptr;
