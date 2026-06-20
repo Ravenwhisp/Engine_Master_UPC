@@ -373,6 +373,18 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         }
     }
 
+    m_currentSSAOData = {};
+
+    if (ctx.ssaoRawTexture)
+    {
+        m_currentSSAOData.ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
+        m_currentSSAOData.width = static_cast<uint32_t>(viewport.Width);
+        m_currentSSAOData.height = static_cast<uint32_t>(viewport.Height);
+        m_currentSSAOData.enabled = true;
+
+        ctx.ssaoData = &m_currentSSAOData;
+    }
+
 
     {
         PERF_RENDER("ModuleRender::renderScene::Background");

@@ -2,6 +2,9 @@ cbuffer SceneData : register(b1)
 {
     float3 viewPos;
     float pad0;
+
+    float2 screenSize;
+    float2 invScreenSize;
 };
 
 cbuffer ModelData : register(b2)
