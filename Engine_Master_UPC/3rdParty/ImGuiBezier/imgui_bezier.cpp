@@ -32,11 +32,42 @@ namespace ImGui
     }
 
     float BezierValue(float dt01, float P[4]) {
+
+        /* 
+        //ORIGINAL 
         enum { STEPS = 256 };
         ImVec2 Q[4] = { { 0, 0 }, { P[0], P[1] }, { P[2], P[3] }, { 1, 1 } };
         ImVec2 results[STEPS + 1];
         bezier_table<STEPS>(Q, results);
-        return results[(int)((dt01 < 0 ? 0 : dt01 > 1 ? 1 : dt01) * STEPS)].y;
+        return results[(int)((dt01 < 0 ? 0 : dt01 > 1 ? 1 : dt01) * STEPS)].y; 
+        
+        */
+
+        enum { STEPS = 256 };
+        ImVec2 Q[4] = { { 0, 0 }, { P[0], P[1] }, { P[2], P[3] }, { 1, 1 } };
+        ImVec2 results[STEPS + 1];
+        bezier_table<STEPS>(Q, results);
+
+        //Clamp the input time just in case
+        dt01 = dt01 < 0.0f ? 0.0f : (dt01 > 1.0f ? 1.0f : dt01);
+
+        // We search for the correct segment on the X axis, 
+
+        for (int i = 0; i < STEPS; ++i) {
+            if (dt01 >= results[i].x && dt01 <= results[i + 1].x) {
+                float rangeX = results[i + 1].x - results[i].x;
+
+                // Safety check to prevent division by zero
+                if (rangeX <= 0.0f) return results[i].y;
+
+                //Lerp between the two closest Y values based on exactly where we are
+                float lerpFactor = (dt01 - results[i].x) / rangeX;
+                return (1.0f - lerpFactor) * results[i].y + lerpFactor * results[i + 1].y;
+            }
+        }
+
+        // Fallback if loop finishes (particle is at end of life)
+        return results[STEPS].y;
     }
 
     int Bezier(const char* label, float P[4]) {
