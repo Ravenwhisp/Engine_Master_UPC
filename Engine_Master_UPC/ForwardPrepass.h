@@ -24,6 +24,15 @@ private:
 	ComPtr<ID3D12RootSignature>	m_rootSignature;
 	ComPtr<ID3D12PipelineState>	m_pipelineState;
 
-	std::vector<MeshRenderer*>	m_meshRenderer;
+	std::vector<MeshRenderer*>	m_meshRenderers;
+
+	D3D12_VIEWPORT              m_viewport = {};
+	D3D12_RECT                  m_scissorRect = {};
+
+	const Matrix*				m_view = nullptr;
+	const Matrix*				m_projection = nullptr;
+
+	D3D12_GPU_VIRTUAL_ADDRESS   m_sceneDataCBAddress = 0;
+	RenderSurface*				m_gbufferSurface = nullptr;
 };
 

@@ -1,8 +1,14 @@
 #include "Globals.h"
 #include "ForwardPrepass.h"
 
+#include "Application.h"
+#include "ModuleScene.h"
+#include "SceneDataCB.h"
+#include "RingBuffer.h"
+#include "ModuleD3D12.h"
 #include "BasicMaterial.h"
 #include "ModuleDescriptors.h"
+#include "RenderContext.h"
 
 #include "PlatformHelpers.h"
 
@@ -65,6 +71,10 @@ void ForwardPrepass::createPipelineState()
 	psoDesc.DepthStencilState.StencilReadMask = 0xFF;
 	psoDesc.DepthStencilState.StencilWriteMask = 0xFF;
 	psoDesc.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	psoDesc.DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_REPLACE;
+	psoDesc.DepthStencilState.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+	psoDesc.DepthStencilState.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+	psoDesc.DepthStencilState.BackFace = psoDesc.DepthStencilState.FrontFace;
 
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -77,10 +87,42 @@ void ForwardPrepass::createPipelineState()
 
 void ForwardPrepass::prepare(const RenderContext& ctx)
 {
+	m_view = &ctx.view;
+	m_projection = &ctx.projection;
 
+	m_viewport = ctx.viewport;
+	m_scissorRect = ctx.scissorRect;
+
+	// Collect visible mesh renderers
+	m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers(RenderMode::DEFERRED);
+
+	// Upload SceneDataCB (camera position) to the ring buffer
+	SceneDataCB sceneData{};
+	sceneData.viewPos = ctx.cameraPosition;
+
+	m_sceneDataCBAddress = ctx.ringBuffer->allocate(&sceneData, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+
+	m_renderSurface = &ctx.renderSurface;
 }
 
 void ForwardPrepass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+	BEGIN_EVENT(commandList, "Deferred");
 
+
+	auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;
+	commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+
+	// Bind root signature (must be set before any draw calls)
+	commandList->SetPipelineState(m_pipelineState.Get());
+	commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+	//Set input assembler
+	ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+	commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+	commandList->OMSetStencilRef(1);
 }
