@@ -33,9 +33,13 @@ void EmitterAnimation::update(EmitterInstance* particleData)
 
 	// Initialization for new ones //
 
-	for (auto& particleIndex : particleData->getNewParticles())
+	if (m_startFrameType == ParameterType::CONSTANT) 
 	{
-		particlePool[particleIndex].textureFrame = 0.f; // until we have other options
+		setNewParticlesFrameConstant(particlePool, particleData->getNewParticles());
+	}
+	else 
+	{
+		setNewParticlesFrameRandom(particlePool, particleData->getNewParticles());
 	}
 
 }
@@ -82,6 +86,10 @@ bool EmitterAnimation::drawUi()
 		ImGui::Spacing();
 
 		parameterChanged |= ImGui::DragFloat("FPS", &m_fps, 0.1f, 0.f);
+
+		ImGui::Spacing();
+
+		parameterChanged |= drawStartFrameUI();
 	}
 
 	return parameterChanged;
@@ -97,6 +105,13 @@ rapidjson::Value EmitterAnimation::getJSON(rapidjson::Document& domTree)
 	moduleInfo.AddMember("TileColumns", m_columns, domTree.GetAllocator());
 
 	moduleInfo.AddMember("FPS", m_fps, domTree.GetAllocator());
+
+	moduleInfo.AddMember("StartFrameType", unsigned int(m_startFrameType), domTree.GetAllocator());
+	moduleInfo.AddMember("StartFrame", m_startFrame, domTree.GetAllocator());
+	if (m_startFrameType == ParameterType::RANDOM_BETWEEN_TWO) 
+	{
+		moduleInfo.AddMember("StartFrame2", m_startFrame2, domTree.GetAllocator());
+	}
 
 	return moduleInfo;
 }
@@ -114,7 +129,100 @@ bool EmitterAnimation::deserializeJSON(const rapidjson::Value& moduleInfo)
 		m_fps = moduleInfo["FPS"].GetFloat();
 	}
 
+	if (moduleInfo.HasMember("StartFrameType")) 
+	{
+		unsigned int frameTypeUInt = moduleInfo["StartFrameType"].GetUint();
+		ParameterType frameType = static_cast<ParameterType>(frameTypeUInt);
+
+		switch (frameType) {
+
+		case ParameterType::CONSTANT:
+
+			m_startFrameType = ParameterType::CONSTANT;
+
+			if (moduleInfo.HasMember("StartFrame")) 
+			{
+				m_startFrame = moduleInfo["StartFrame"].GetFloat();
+			}
+			
+			break;
+
+		case ParameterType::RANDOM_BETWEEN_TWO:
+
+			m_startFrameType = ParameterType::RANDOM_BETWEEN_TWO;
+
+			if (moduleInfo.HasMember("StartFrame"))
+			{
+				m_startFrame = moduleInfo["StartFrame"].GetFloat();
+			}
+
+			if (moduleInfo.HasMember("StartFrame2"))
+			{
+				m_startFrame2 = moduleInfo["StartFrame2"].GetFloat();
+			}
+
+		}
+	
+	}
+
 	m_totalFrames = static_cast<float>(m_rows * m_columns);
 
 	return true;
+}
+
+bool EmitterAnimation::drawStartFrameUI()
+{
+	bool parameterChanged = false;
+
+	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
+	{
+		int parameterType = static_cast<int>(m_startFrameType);
+		if (ImGui::Combo("Starting frame type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (curve only if needed)
+		{
+			m_startFrameType = static_cast<ParameterType>(parameterType);
+			parameterChanged = true;
+		}
+	}
+
+	switch (m_startFrameType) {
+
+	case ParameterType::CONSTANT:
+
+	{
+		parameterChanged |= ImGui::DragFloat("Starting frame", &m_startFrame, 0.1f, 0.f, 0.999);
+	}
+	
+	break;
+
+	case ParameterType::RANDOM_BETWEEN_TWO:
+
+	{
+		parameterChanged |= ImGui::DragFloat("Starting frame", &m_startFrame, 0.1f, 0.f, 0.999);
+		parameterChanged |= ImGui::DragFloat("Starting frame 2", &m_startFrame2, 0.1f, 0.f, 0.999);
+	}
+
+	}
+
+	return parameterChanged;
+}
+
+void EmitterAnimation::setNewParticlesFrameConstant(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
+{
+	float frame = m_startFrame * m_totalFrames;
+
+	for (auto& particleIndex : newParticles)
+	{
+		particlePool[particleIndex].textureFrame = frame;
+	}
+}
+
+void EmitterAnimation::setNewParticlesFrameRandom(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
+{
+	for (auto& particleIndex : newParticles)
+	{
+		float scale = uniform_rand();
+		float randomFrameNorm = (1.f - scale) * m_startFrame + scale * m_startFrame2; // value should be [0, 1)
+
+		particlePool[particleIndex].textureFrame = randomFrameNorm * m_totalFrames;
+	}
 }
