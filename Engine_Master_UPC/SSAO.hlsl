@@ -1,4 +1,5 @@
 #define SSAO_KERNEL_SIZE 32
+#define PI 3.14159265359f
 
 Texture2D depthTexture : register(t0);
 Texture2D normalTexture : register(t1);
@@ -60,13 +61,21 @@ float2 NdcToUV(float2 ndc)
     );
 }
 
-float3x3 ComputeTangentSpace(float3 normal)
+float SampleIGN(float2 pixelXY, float frameIndex)
 {
-    float3 helper = abs(normal.z) < 0.999f
-        ? float3(0.0f, 0.0f, 1.0f)
-        : float3(1.0f, 0.0f, 0.0f);
+    pixelXY += frameIndex * 5.588238f;
+    return frac(52.9829189f * frac(0.06711056f * pixelXY.x + 0.00583715f * pixelXY.y));
+}
 
-    float3 tangent = normalize(cross(helper, normal));
+float3 GetRandomTangent(float2 pixelXY, float frameIndex)
+{
+    float randomAngle = SampleIGN(pixelXY, frameIndex) * 2.0f * PI;
+    return float3(cos(randomAngle), sin(randomAngle), 0.0f);
+}
+
+float3x3 ComputeTangentSpace(float3 normal, float3 randomTangent)
+{
+    float3 tangent = normalize(randomTangent - normal * dot(randomTangent, normal));
     float3 bitangent = cross(normal, tangent);
 
     return float3x3(tangent, bitangent, normal);
@@ -84,17 +93,18 @@ float4 main(PixelInput input) : SV_TARGET
     float3 normal = DecodeNormal(normalTexture.SampleLevel(pointClampSampler, input.uv, 0).rgb);
     float3 viewPos = ReconstructViewPosition(input.uv, depth);
 
-    float3x3 tangentSpace = ComputeTangentSpace(normal);
-
     float radius = ssaoParams.x;
     float bias = ssaoParams.y;
     float strength = ssaoParams.z;
-    uint sampleCount = min((uint) ssaoParams.w, SSAO_KERNEL_SIZE);
+    int sampleCount = min((int) ssaoParams.w, SSAO_KERNEL_SIZE);
+
+    float3 randomTangent = GetRandomTangent(input.position.xy, frameParams.x);
+    float3x3 tangentSpace = ComputeTangentSpace(normal, randomTangent);
 
     float occlusion = 0.0f;
     float validSamples = 0.0f;
 
-    for (uint i = 0; i < sampleCount; ++i)
+    for (int i = 0; i < sampleCount; ++i)
     {
         float3 sampleOffset = mul(samples[i].xyz, tangentSpace);
         float3 sampleViewPos = viewPos + sampleOffset;
@@ -113,7 +123,19 @@ float4 main(PixelInput input) : SV_TARGET
 
         float sampleDepth = depthTexture.SampleLevel(pointClampSampler, sampleUV, 0).r;
 
-        occlusion += sampleDepth < sampleClipPos.z - bias ? 1.0f : 0.0f;
+        if (sampleDepth >= 0.999999f)
+        {
+            continue;
+        }
+
+        float3 sampleSceneViewPos = ReconstructViewPosition(sampleUV, sampleDepth);
+
+        float depthDistance = abs(viewPos.z - sampleSceneViewPos.z);
+        float rangeCheck = smoothstep(0.0f, 1.0f, radius / max(depthDistance, 0.0001f));
+
+        float isOccluded = sampleDepth < sampleClipPos.z - bias ? 1.0f : 0.0f;
+
+        occlusion += isOccluded * rangeCheck;
         validSamples += 1.0f;
     }
 
