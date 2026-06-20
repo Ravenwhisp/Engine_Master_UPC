@@ -11,6 +11,7 @@ TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
 Texture2D shadowMap : register(t11);
+Texture2D ssaoTexture : register(t12);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -221,9 +222,14 @@ float ComputeShadow(float3 worldPos)
 }
 //--------------------//
 
+float SampleSSAO(float4 screenPosition)
+{
+    float2 ssaoUV = screenPosition.xy * invScreenSize;
+    return ssaoTexture.Sample(pointClampSample, ssaoUV).r;
+}
 
 
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET
+float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD, float4 screenPosition : SV_POSITION) : SV_TARGET
 {
     //Initialize material values
     float metallic = metallicFactor;
@@ -343,10 +349,13 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
 
     
     //Calculate indirect lighting
-    float specularAO = computeSpecularAO(NdotV, ao, alphaRoughness);
+    float ssao = SampleSSAO(screenPosition);
+    float diffuseAO = saturate(ao * ssao);
+
+    float specularAO = computeSpecularAO(NdotV, diffuseAO, alphaRoughness);
     specularAO *= horizon;
-    
-    float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
+
+    float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, diffuseAO, specularAO);
     
     
     

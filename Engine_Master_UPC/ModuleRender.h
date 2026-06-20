@@ -11,6 +11,7 @@
 #include "RenderViewType.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "SSAOTypes.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 
@@ -82,6 +83,7 @@ private:
 
     bool m_shadowMapRenderedThisFrame = false;
     const ShadowFrameData* m_currentShadowData = nullptr;
+    SSAOFrameData m_currentSSAOData{};
 
 public:
     bool init()     override;

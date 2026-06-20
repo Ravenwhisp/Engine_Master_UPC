@@ -71,4 +71,8 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowMapSRV{};
     bool m_hasShadowData = false;
 
+    // SSAO
+    D3D12_GPU_DESCRIPTOR_HANDLE m_ssaoSRV{};
+    bool m_hasSSAOData = false;
+
 };
