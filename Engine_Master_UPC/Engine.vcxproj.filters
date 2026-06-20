@@ -595,6 +595,8 @@
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
+    <ClCompile Include="SoundBankAsset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -968,6 +970,9 @@
     <ClInclude Include="Prefab.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="SoundBankAsset.h">
+      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
     <ClInclude Include="Script.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
@@ -1316,9 +1321,6 @@
     <ClInclude Include="PrefabInstance.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h">
-      <Filter>Prefabs</Filter>
-    </ClInclude>
     <ClInclude Include="PrefabUI.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
@@ -1389,6 +1391,8 @@
     <ClInclude Include="NavRuntimeBlockerComponent.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
+    <ClInclude Include="AssetRef.h" />
+    <ClInclude Include="SoundBankAsset.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
