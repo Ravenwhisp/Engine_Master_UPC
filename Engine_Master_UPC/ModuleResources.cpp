@@ -191,7 +191,7 @@ Texture* ModuleResources::createSSAODepthBuffer(float width, float height)
 	desc.width = static_cast<uint32_t>(width);
 	desc.height = static_cast<uint32_t>(height);
 	desc.views = TextureView::DSV | TextureView::SRV;
-	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
 	desc.shaderVisibleSRV = true;
@@ -215,7 +215,7 @@ Texture* ModuleResources::createSSAONormalBuffer(float width, float height)
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
-		Color(0.0f, 0.0f, 1.0f, 1.0f)
+		Color(0.5f, 0.5f, 1.0f, 1.0f)
 	);
 	desc.shaderVisibleSRV = true;
 
