@@ -92,6 +92,7 @@ void BinaryArchive::serializeRaw(void* data, size_t size, const char* /*name*/)
     else
         m_reader.bytes(data, size);
 
+
 }
 
 void BinaryArchive::beginArray(uint32_t& count, const char* /*name*/)

@@ -23,25 +23,23 @@ std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
         }
     }
 
-    if (isValidAsset(ref.m_libId))
     {
-        if (ref.m_type == AssetType::UNKNOWN)
+        const AssetIndexEntry* entry = m_index.findEntry(ref.m_uid);
+        if (entry)
         {
-            const AssetIndexEntry* entry = m_index.findEntry(ref.m_uid);
-            if (entry)
+            if (ref.m_type == AssetType::UNKNOWN)
             {
                 ref.m_type = entry->type;
             }
-        }
-
-        {
-            const AssetIndexEntry* entry = m_index.findEntry(ref.m_uid);
-            if (entry && isValidAsset(entry->contentHash))
+            if (isValidAsset(entry->contentHash))
             {
                 ref.m_libId = entry->contentHash;
             }
         }
+    }
 
+    if (isValidAsset(ref.m_libId))
+    {
         if (auto loaded = m_cache.loadFromLibrary<T>(ref, m_importers, m_index))
         {
             return loaded;

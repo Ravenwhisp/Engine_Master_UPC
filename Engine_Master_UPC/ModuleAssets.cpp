@@ -173,7 +173,13 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
 
     const UID uid = isValidUID(asset.getUID()) ? asset.getUID() : GenerateUID();
     AssetReference ref(uid, INVALID_ASSET_ID, asset.getType());
-    return persistAsset(&asset, importer, ref, targetPath);
+    if (persistAsset(&asset, importer, ref, targetPath))
+    {
+        asset.setUID(ref.m_uid);
+        asset.setLibId(ref.m_libId);
+        return true;
+    }
+    return false;
 }
 
 bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference& reference,

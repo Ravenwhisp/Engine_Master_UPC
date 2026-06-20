@@ -253,7 +253,10 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     navRef = navAsset->getReference();
     navRef.m_type = AssetType::NAVMESH;
 
-    app->getModuleAssets()->save(*scene);
+    {
+        const std::string scenePath = std::string("Assets/Scenes/") + scene->getName() + ".scene";
+        app->getModuleAssets()->save(*scene, scenePath);
+    }
 
     LOG_INFO(__FILE__, __LINE__, "NavMesh built and saved as asset.");
 

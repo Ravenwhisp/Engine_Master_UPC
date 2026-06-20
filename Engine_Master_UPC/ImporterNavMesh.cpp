@@ -2,12 +2,13 @@
 #include "ImporterNavMesh.h"
 #include "NavMeshAsset.h"
 #include "BinaryArchive.h"
+#include "Extensions.h"
 #include <cstring>
 #include <fstream>
 
 bool ImporterNavMesh::canImport(const std::filesystem::path& path) const
 {
-    return false;
+    return path.extension() == NAVMESH_EXTENSION;
 }
 
 Asset* ImporterNavMesh::createAssetInstance(AssetReference& uid) const
@@ -35,7 +36,24 @@ bool ImporterNavMesh::saveNative(const Asset* asset, const std::filesystem::path
 
 bool ImporterNavMesh::import(const std::filesystem::path& sourcePath, Asset* outAsset)
 {
-    return false;
+    std::ifstream file(sourcePath, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) return false;
+
+    const uint64_t size = static_cast<uint64_t>(file.tellg());
+    if (size == 0) return false;
+    file.seekg(0, std::ios::beg);
+
+    uint8_t* buffer = new uint8_t[size];
+    file.read(reinterpret_cast<char*>(buffer), static_cast<std::streamsize>(size));
+    if (!file)
+    {
+        delete[] buffer;
+        return false;
+    }
+
+    load(buffer, outAsset);
+    delete[] buffer;
+    return true;
 }
 
 uint64_t ImporterNavMesh::save(const Asset* asset, uint8_t** outBuffer)
