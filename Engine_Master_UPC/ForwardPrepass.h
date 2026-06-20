@@ -33,6 +33,6 @@ private:
 	const Matrix*				m_projection = nullptr;
 
 	D3D12_GPU_VIRTUAL_ADDRESS   m_sceneDataCBAddress = 0;
-	RenderSurface*				m_gbufferSurface = nullptr;
+	RenderSurface*				m_renderSurface = nullptr;
 };
 
