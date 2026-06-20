@@ -374,6 +374,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="SoundReference.h" />
     <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="TrailComponent.h" />
     <ClInclude Include="TrailPass.h" />
     <ClInclude Include="TriggerSystem.h" />
     <ClInclude Include="NavMeshTypes.h" />
@@ -776,6 +777,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="TrailComponent.cpp" />
     <ClCompile Include="TrailPass.cpp" />
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />

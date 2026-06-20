@@ -7,18 +7,14 @@
 #include "ModuleInput.h"
 #include "imgui_bezier.h"
 #include "imgui_color_gradient.h"
+#include "ModuleTime.h"
+
 
 
 
 TrailComponent::TrailComponent(UID id, GameObject* owner) : Component(id, ComponentType::TRAIL, owner)
 {
-
-    TrailPoint* firstPoint;
-
-    m_points.push_back(firstPoint);
-
-    firstPoint->position = m_owner->GetTransform()->getPosition();
-    firstPoint->rotation = m_owner->GetTransform()->getRotation();
+    CreatePoint();
 }
 
 void TrailComponent::drawUi()
@@ -62,4 +58,49 @@ void TrailComponent::drawUi()
         ImGui::EndPopup();
     }
 
+}
+
+void TrailComponent::update()
+{
+    Vector3 begining = m_points.front()->position;
+    Vector3 end = m_owner->GetTransform()->getPosition();
+
+    float dist_x = begining.x - end.x;
+    float dist_y = begining.y - end.y;
+    float dist_z = begining.z - end.z;
+
+    float distance_sqr = dist_x * dist_x + dist_y * dist_y + dist_z * dist_z;
+    
+    if (distance_sqr >= (m_spawnDistance * m_spawnDistance)) 
+    {
+        CreatePoint();
+    }
+
+    for (auto trailPoint = m_points.begin(); trailPoint != m_points.end(); )
+    {
+        trailPoint->get()->lifeTime -= app->getModuleTime()->deltaTime();
+
+        if (trailPoint->get()->lifeTime <= 0.0f)
+        {
+            trailPoint = m_points.erase(trailPoint);
+        }  
+        else
+        {
+            ++trailPoint;
+            continue;
+        }
+
+        trailPoint->get()->width = std::lerp(m_endWidth, m_startWidth, trailPoint->get()->lifeTime / m_pointLifetime);
+    }
+
+}
+
+void TrailComponent::CreatePoint()
+{
+    std::shared_ptr<TrailPoint> newPoint = std::shared_ptr<TrailPoint>();
+    m_points.push_back(newPoint);
+
+    newPoint->position = m_owner->GetTransform()->getPosition();
+    newPoint->rotation = m_owner->GetTransform()->getRotation();
+    newPoint->lifeTime = m_pointLifetime;
 }

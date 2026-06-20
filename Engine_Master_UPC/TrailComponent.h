@@ -8,22 +8,29 @@ class TrailComponent : public Component
 	{
 		Vector3 position;
 		Quaternion rotation;
-		float lifeTime = 0.f;
+		float lifeTime;
+		float width;
+
 	};
 
 public:
 
 	TrailComponent(UID id, GameObject* owner);
+
 	void drawUi() override;
 
-	std::vector<TrailPoint*>& getTrailPoints() { return m_points; }
+	void update() override;
+
+	void CreatePoint();
+
+	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
 
 	ImGradient& getColorGradient() { return m_colorOverTime; }
 
 
 private:
 
-	std::vector<TrailPoint*> m_points;
+	std::vector<std::shared_ptr<TrailPoint>> m_points;
 	
 	//Editable parameters
 	float	m_startWidth;
@@ -35,5 +42,7 @@ private:
 	ImGradient m_colorOverTime;
 	ImGradientMark* m_draggingMark = nullptr;
 	ImGradientMark* m_selectedMark = nullptr;
+
 };
+
 
