@@ -595,6 +595,7 @@
     </ClCompile>
     <ClCompile Include="JsonArchive.cpp" />
     <ClCompile Include="SSAOGeometryPass.cpp" />
+    <ClCompile Include="SSAOPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1390,6 +1391,7 @@
     </ClInclude>
     <ClInclude Include="SSAOTypes.h" />
     <ClInclude Include="SSAOGeometryPass.h" />
+    <ClInclude Include="SSAOPass.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1697,6 +1699,12 @@
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="SSAONormalPS.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="FullscreenTriangleVS.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SSAO.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
