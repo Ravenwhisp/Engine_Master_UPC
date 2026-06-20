@@ -34,6 +34,7 @@
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
 #include "SSAOGeometryPass.h"
+#include "SSAOPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -68,6 +69,7 @@ bool ModuleRender::init()
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
+    m_ssaoPass = std::make_unique<SSAOPass>(device);
 
     m_meshRenderPass = new MeshRendererPass (device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
@@ -180,6 +182,7 @@ bool ModuleRender::cleanUp()
         app->getModuleD3D12()->getCommandQueue()->flush();
     }
 
+    m_ssaoPass.reset();
     m_ssaoGeometryPass.reset();
     m_shadowMapPass.reset();
     m_skinningComputePass.reset();
@@ -357,6 +360,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         {
             m_ssaoGeometryPass->prepare(ctx);
             m_ssaoGeometryPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOPass");
+
+        if (m_ssaoPass)
+        {
+            m_ssaoPass->prepare(ctx);
+            m_ssaoPass->apply(commandList);
         }
     }
 
