@@ -54,10 +54,14 @@ void ModuleGameView::startGameSimulation()
 	m_moduleParticleSystem->resetAllParticles();
 
 	app->getModuleScripting()->instantiateSceneScripts();
+
+	m_moduleScene->initializeRuntimeSceneSystems();
 }
 
 void ModuleGameView::stopGameSimulation()
 {
+	m_moduleScene->clearRuntimeSceneSystems();
+
 	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
 	m_sceneCloned.reset();
 }
