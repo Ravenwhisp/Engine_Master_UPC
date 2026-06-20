@@ -23,6 +23,7 @@ struct Particle {
     Vector3 movementDirection; // should be normalized
     
     Vector2 startScale; // for interpolation calculations
+    Vector2 endScale;   //
 
     float lifeTime = 0.f;
 };
