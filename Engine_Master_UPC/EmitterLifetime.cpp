@@ -46,7 +46,7 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
 		{
 			float scale = uniform_rand();
-			particlePool[particleIndex].lifeTime = (1.f - scale) * m_startLifeTime + scale * m_startLifeTime2;
+			particlePool[particleIndex].lifeTime = m_startLifeTime + (m_startLifeTime2 - m_startLifeTime) * scale;
 		}
 		else
 		{

@@ -33,7 +33,7 @@ void EmitterSize::update(EmitterInstance* particleData)
 
 			float scale = particlePool[poolIndex].lifeTime / startLifetime;
 
-			particlePool[poolIndex].scale = particlePool[poolIndex].startScale * scale + particlePool[poolIndex].endScale * (1.f - scale); // We need to use Bezier curves instead of this
+			particlePool[poolIndex].scale = Vector2::Lerp(particlePool[poolIndex].endScale, particlePool[poolIndex].startScale, scale); // We need to use Bezier curves instead of this
 		}
 	}
 
@@ -487,7 +487,7 @@ void EmitterSize::setNewParticlesScaleConstant(std::array<Particle, MAX_PARTICLE
 			particlePool[particleIndex].startScale = m_startScale; // for later
 
 			float scale = uniform_rand();
-			Vector2 randomEndScale = (1.f - scale) * m_endScale + scale * m_endScale2;
+			Vector2 randomEndScale = Vector2::Lerp(m_endScale, m_endScale2, scale);
 			particlePool[particleIndex].endScale = randomEndScale; // for later as well
 		}
 		break;
@@ -502,7 +502,7 @@ void EmitterSize::setNewParticlesScaleRandom(std::array<Particle, MAX_PARTICLES>
 		for (auto& particleIndex : newParticles)
 		{
 			float scale = uniform_rand();
-			Vector2 randomStartScale = (1.f - scale) * m_startScale + scale * m_startScale2;
+			Vector2 randomStartScale = Vector2::Lerp(m_startScale, m_startScale2, scale);
 			particlePool[particleIndex].scale = randomStartScale;
 		}
 
@@ -518,7 +518,7 @@ void EmitterSize::setNewParticlesScaleRandom(std::array<Particle, MAX_PARTICLES>
 		for (auto& particleIndex : newParticles)
 		{
 			float scale = uniform_rand();
-			Vector2 randomStartScale = (1.f - scale) * m_startScale + scale * m_startScale2;
+			Vector2 randomStartScale = Vector2::Lerp(m_startScale, m_startScale2, scale);
 
 			particlePool[particleIndex].scale = randomStartScale;
 			particlePool[particleIndex].startScale = randomStartScale; // for later
@@ -531,14 +531,14 @@ void EmitterSize::setNewParticlesScaleRandom(std::array<Particle, MAX_PARTICLES>
 		for (auto& particleIndex : newParticles)
 		{
 			float scale = uniform_rand();
-			Vector2 randomStartScale = (1.f - scale) * m_startScale + scale * m_startScale2;
+			Vector2 randomStartScale = Vector2::Lerp(m_startScale, m_startScale2, scale);
 
 			particlePool[particleIndex].scale = randomStartScale;
 			particlePool[particleIndex].startScale = randomStartScale; // for later
 
 			// now the same process, but for endScale
 			scale = uniform_rand();
-			Vector2 randomEndScale = (1.f - scale) * m_endScale + scale * m_endScale2;
+			Vector2 randomEndScale = Vector2::Lerp(m_endScale, m_endScale2, scale);
 			particlePool[particleIndex].endScale = randomEndScale; // for later as well
 		}
 		break;

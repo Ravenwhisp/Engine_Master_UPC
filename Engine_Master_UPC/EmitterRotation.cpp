@@ -314,8 +314,8 @@ void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PAR
 		float bezierScale = ImGui::BezierValue(scale, m_angularVelocityCurve);
 
 		particlePool[poolIndex].rotationVelocity = particlePool[poolIndex].flippedRotation ? 
-			-((1.f - bezierScale) * m_angularVelocity + bezierScale * m_angularVelocity2) :
-			  (1.f - bezierScale) * m_angularVelocity + bezierScale * m_angularVelocity2;
+			-(m_angularVelocity + (m_angularVelocity2 - m_angularVelocity) * bezierScale) :
+			  m_angularVelocity + (m_angularVelocity2 - m_angularVelocity) * bezierScale;
 	}
 }
 
@@ -345,7 +345,7 @@ void EmitterRotation::setNewParticlesRotationWithRange(std::array<Particle, MAX_
 		particlePool[particleIndex].rotationZ = m_startRotation;
 
 		float scale = uniform_rand();
-		float randomAngularVelocity = (1.f - scale) * m_angularVelocity + scale * m_angularVelocity2;
+		float randomAngularVelocity = m_angularVelocity + (m_angularVelocity2 - m_angularVelocity) * scale;
 
 		if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
 		{

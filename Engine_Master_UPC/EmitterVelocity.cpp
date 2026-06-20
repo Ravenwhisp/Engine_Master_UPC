@@ -37,7 +37,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 			{
 				float scale = 1.f - (particlePool[poolIndex].lifeTime / startLifetime); // 0 al nacer, 1 al morir
 				float bezierScale = ImGui::BezierValue(scale, m_velocityCurve);
-				particlePool[poolIndex].velocity = (1.f - bezierScale) * m_initialVelocity + bezierScale * m_initialVelocity2;
+				particlePool[poolIndex].velocity = m_initialVelocity + (m_initialVelocity2 - m_initialVelocity) * bezierScale;
 			}
 
 			position += (deltaTime * particlePool[poolIndex].velocity) * particlePool[poolIndex].movementDirection; // update position
@@ -54,7 +54,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		if (m_velocityType == ParameterType::RANDOM_BETWEEN_TWO)
 		{
 			float scale = uniform_rand();
-			particlePool[particleIndex].velocity = (1.f - scale) * m_initialVelocity + scale * m_initialVelocity2;
+			particlePool[particleIndex].velocity = m_initialVelocity + (m_initialVelocity2 - m_initialVelocity) * scale;
 		}
 		else
 		{
