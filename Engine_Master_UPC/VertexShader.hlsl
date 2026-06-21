@@ -1,25 +1,35 @@
-struct VSOut
+#include "NewCBuffers.hlsli"
+
+struct VertexOutput
 {
-    float4 position : SV_Position;
-    float2 uv : TEXCOORD0;
+    float3 worldPos : POSITION;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float2 texCoord : TEXCOORD;
+    float4 position : SV_POSITION;
+};
+
+cbuffer Transforms : register(b0)
+{
+    float4x4 mvp;
+    float4x4 nm;
 };
  
-VSOut main(uint vertexID : SV_VertexID)
+VertexOutput main(float3 position : POSITION, float2 texCoord : TEXCOORD, float3 normal : NORMAL, float3 tangent : TANGENT)
 {
-    VSOut output;
-    float2 positions[3] =
-    {
-        float2(-1, -1),
-        float2(-1, 3),
-        float2(3, -1)
-    };
-    float2 uvs[3] =
-    {
-        float2(0, 1),
-        float2(0, -1),
-        float2(2, 1)
-    };
-    output.position = float4(positions[vertexID], 0.0, 1.0);
-    output.uv = uvs[vertexID];
+    VertexOutput output;
+    output.worldPos = mul(float4(position, 1.0), model).xyz;
+    
+    //output.normal = normalize(mul(normal, (float3x3) normalMat));
+    output.normal = normalize(mul(normal, (float3x3) normalMat));
+    //output.normal = mul(float4(normalVec, 1), nm);
+    
+    //output.tangent = normalize(tangent);
+    output.tangent = normalize(mul(tangent, (float3x3) normalMat));
+    //output.tangent = mul(float4(tangentVec, 1), nm);
+    
+    output.texCoord = texCoord;
+    output.position = mul(float4(position, 1.0f), mvp);
+ 
     return output;
 }

@@ -15,7 +15,6 @@ class RingBuffer;
 class MeshRenderer;
 class GameObject;
 class LightComponent;
-class RenderSurface;
 
 struct SceneLightingSettings;
 struct SceneDataCB;
@@ -25,7 +24,7 @@ namespace DirectX { namespace SimpleMath { struct Vector3; struct Matrix; } }
 using Vector3 = DirectX::SimpleMath::Vector3;
 using Matrix = DirectX::SimpleMath::Matrix;
 
-class DeferredShadingPass : public IRenderPass {
+class MeshRendererPass : public IRenderPass {
 public:
 
     struct Transforms 
@@ -36,17 +35,21 @@ public:
 
     constexpr static uint32_t BLOCK_SIZE{ 8 };
 
-    DeferredShadingPass(ComPtr<ID3D12Device4> device);
+    MeshRendererPass(ComPtr<ID3D12Device4> device);
 
     virtual void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
     GPULightsConstantBuffer packLightsForGPU( const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const;
 
+    void renderMesh(ID3D12GraphicsCommandList* commandList);
+
 	int getTriangleCount() const { return m_trianglesCount; }
 	int getMeshCount() const { return m_meshCount; }
 
 private:
+    std::vector<MeshRenderer*> m_meshRenderers;
+
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
     ComPtr<ID3D12PipelineState>		m_pipelineState;
@@ -59,10 +62,6 @@ private:
 
     const Matrix* m_projection = nullptr;
     const Matrix* m_view = nullptr;
-
-    RenderSurface* m_renderSurface = nullptr;
-    D3D12_VIEWPORT m_viewport = {};
-    D3D12_RECT     m_scissorRect = {};
     
     int m_trianglesCount = 0;
 	int m_meshCount = 0;

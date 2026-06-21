@@ -35,25 +35,12 @@ WindowSceneEditor::WindowSceneEditor()
     m_playToolbar = new PlayToolbar();
     auto d3d12Module = app->getModuleD3D12();
     m_surface.reset(app->getModuleResources()->createRenderSurface(m_size.x, m_size.y));
-    app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::EDITOR, m_size.x, m_size.y);
 }
 
 WindowSceneEditor::~WindowSceneEditor()
 {
-    app->getModuleRender()->unregisterViewport(m_surface.get());
-
     delete m_editorToolbar;
     delete m_playToolbar;
-}
-
-void WindowSceneEditor::onBecameHidden()
-{
-    app->getModuleRender()->setViewportVisible(m_surface.get(), false);
-}
-
-void WindowSceneEditor::onBecameVisible()
-{
-    app->getModuleRender()->setViewportVisible(m_surface.get(), true);
 }
 
 void WindowSceneEditor::drawInternal()
@@ -70,23 +57,26 @@ void WindowSceneEditor::drawInternal()
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
     ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-    if (viewportSize.x > 0 && viewportSize.y > 0)
+
+    if (viewportSize.x < 1.0f || viewportSize.y < 1.0f)
     {
-        // Resize the render surface and register the viewport
-        if (abs(viewportSize.x - m_size.x) > 1.0f || abs(viewportSize.y - m_size.y) > 1.0f)
-        {
-            resize(viewportSize);
-        }
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
+        return;
     }
+
+    resize(viewportSize);
+
+    app->getModuleRender()->registerViewport(m_surface.get(), ModuleRender::ViewportType::EDITOR, viewportSize.x, viewportSize.y);
 
     ImVec2 imagePos = ImGui::GetCursorScreenPos();
     m_viewportX = imagePos.x;
     m_viewportY = imagePos.y;
     m_size = viewportSize;
-    
-    ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COMPOSITE)->getSRV().gpu.ptr;
+
+    ImTextureID textureID = (ImTextureID)m_surface->getTexture(RenderSurface::COLOR_0)->getSRV().gpu.ptr;
     ImGui::Image(textureID, viewportSize);
-    
+
     m_isViewportHovered = ImGui::IsItemHovered();
     m_isViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
@@ -158,9 +148,13 @@ void WindowSceneEditor::drawGizmo()
 
 bool WindowSceneEditor::resize(ImVec2 contentRegion)
 {
-    setSize(contentRegion);
-    app->getModuleRender()->setViewportPendingResize(m_surface.get(), ModuleRender::ViewportType::EDITOR, contentRegion.x, contentRegion.y);
-    return true;
+    if (abs(contentRegion.x - m_size.x) > 1.0f || abs(contentRegion.y - m_size.y) > 1.0f)
+    {
+        setSize(contentRegion);
+        return true;
+    }
+
+    return false;
 }
 
 void WindowSceneEditor::debugDraw()

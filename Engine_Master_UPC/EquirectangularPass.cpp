@@ -98,12 +98,6 @@ Texture* EquirectangularPass::renderCubemap(SkyBox* skybox)
     desc.mipLevels = 8;
     desc.views = TextureView::RTV;
     desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    desc.hasClearValue = true;
-    desc.clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    desc.clearValue.Color[0] = 0;
-    desc.clearValue.Color[1] = 0;
-    desc.clearValue.Color[2] = 0;
-    desc.clearValue.Color[3] = 1;
     
     Texture* skyboxTextureRtv = new Texture(hashToUID("SkyboxTextureRtv"), *m_device.Get(), desc);
 
