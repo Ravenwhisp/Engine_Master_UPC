@@ -601,6 +601,11 @@
     <ClCompile Include="ScriptBuildSystem.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClCompile>
+    <ClCompile Include="EmitterRender.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterAnimation.cpp">
+      <Filter>ParticleSystem\Properties</Filter>
     <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
@@ -1409,6 +1414,11 @@
     <ClInclude Include="ScriptBuildSystem.h">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
+    <ClInclude Include="EmitterRender.h">
+      <Filter>ParticleSystem\Properties</Filter>
+    </ClInclude>
+    <ClInclude Include="EmitterAnimation.h">
+      <Filter>ParticleSystem\Properties</Filter>
     <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="NavMeshBuildSettings.h">
       <Filter>NavMesh</Filter>
