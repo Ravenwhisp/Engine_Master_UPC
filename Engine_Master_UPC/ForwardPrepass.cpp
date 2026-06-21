@@ -101,8 +101,6 @@ void ForwardPrepass::prepare(const RenderContext& ctx)
 	SceneDataCB sceneData{};
 	sceneData.viewPos = ctx.cameraPosition;
 
-	m_sceneDataCBAddress = ctx.ringBuffer->allocate(&sceneData, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
-
 	m_renderSurface = &ctx.renderSurface;
 }
 

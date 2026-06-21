@@ -589,6 +589,9 @@
     <ClCompile Include="ForwardPrepass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
+    <ClCompile Include="PlayerPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -1572,6 +1575,9 @@
       <Filter>NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="ForwardPrepass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
   </ItemGroup>

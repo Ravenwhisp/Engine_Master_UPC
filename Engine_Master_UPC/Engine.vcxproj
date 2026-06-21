@@ -306,6 +306,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
     <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="PlayerPass.h" />
     <ClInclude Include="ScriptBuildSystem.h" />
     <ClInclude Include="ScriptLibraryLoader.h" />
     <ClInclude Include="ShadowMapPass.h" />
@@ -770,6 +771,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
+    <ClCompile Include="PlayerPass.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
     <ClCompile Include="ScriptBuildSystem.cpp" />
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
