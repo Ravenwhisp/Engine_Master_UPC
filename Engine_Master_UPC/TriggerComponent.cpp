@@ -334,4 +334,10 @@ void TriggerComponent::serialize(IArchive& archive)
 
     archive.serialize(m_center, "Center");
     archive.serialize(m_size, "Size");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_setDefaultBoundsOnInit = false;
+        m_boundsDirty = true;
+    }
 }
