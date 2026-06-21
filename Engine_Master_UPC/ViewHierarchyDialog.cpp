@@ -9,6 +9,7 @@
 
 #include "GameObject.h"
 #include "Transform.h"
+#include "PrefabInstanceComponent.h"
 #include "Scene.h"
 #include "UIButton.h"
 #include "UISlider.h"
@@ -16,6 +17,7 @@
 #include "UIImage.h"
 #include "Quadtree.h"
 #include "WindowHierarchy.h"
+#include "JsonArchive.h"
 #include <LightComponent.h>
 
 #include <CommandAddGameObject.h>
@@ -41,6 +43,32 @@ static GameObject* createGO(Scene* scene, GameObject* parent = nullptr)
     CommandAddGameObject cmd(scene, parent);
     cmd.run();
     return cmd.getResult();
+}
+
+static bool hasCanvas(GameObject* gameObject)
+{
+    while (gameObject)
+    {
+        if (gameObject->GetComponent(ComponentType::CANVAS))
+            return true;
+        Transform* transform = gameObject->GetTransform();
+        Transform* parent = transform ? transform->getRoot() : nullptr;
+        gameObject = parent ? parent->getOwner() : nullptr;
+    }
+    return false;
+}
+
+static void ensureCanvas(Scene* scene, GameObject* parent, GameObject* uiElement, WindowHierarchy* hierarchy)
+{
+    if (!hasCanvas(parent))
+    {
+        if (GameObject* canvas = createGO(scene, parent))
+        {
+            canvas->SetName("New Canvas");
+            canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
+            hierarchy->reparent(uiElement, canvas);
+        }
+    }
 }
 
 void ViewHierarchyDialog::renderHierarchyMenu(GameObject* gameObject)
@@ -178,16 +206,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
             {
                 container->SetName("New Container");
                 container->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
-
-                if (!hasCanvas(parent))
-                {
-                    if (GameObject* canvas = createGO(scene, parent))
-                    {
-                        canvas->SetName("New Canvas");
-                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
-                        m_hierarchy->reparent(container, canvas);
-                    }
-                }
+                ensureCanvas(scene, parent, container, m_hierarchy);
             }
         }
 
@@ -200,16 +219,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 auto* bc = static_cast<UIButton*>(button->AddComponentWithUID(ComponentType::UIBUTTON, GenerateUID()));
                 auto* ic = static_cast<UIImage*>(button->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID()));
                 bc->setTargetGraphic(ic);
-
-                if (!hasCanvas(parent))
-                {
-                    if (GameObject* canvas = createGO(scene, parent))
-                    {
-                        canvas->SetName("New Canvas");
-                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
-                        m_hierarchy->reparent(button, canvas);
-                    }
-                }
+                ensureCanvas(scene, parent, button, m_hierarchy);
             }
         }
 
@@ -221,37 +231,19 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 slider->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
                 auto* sc = static_cast<UISlider*>(slider->AddComponentWithUID(ComponentType::UISLIDER, GenerateUID()));
                 auto* ic = static_cast<UIImage*>(slider->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID()));
-
-                if (!hasCanvas(parent))
-                {
-                    if (GameObject* canvas = createGO(scene, parent))
-                    {
-                        canvas->SetName("New Canvas");
-                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
-                        m_hierarchy->reparent(slider, canvas);
-                    }
-                }
+                ensureCanvas(scene, parent, slider, m_hierarchy);
             }
         }
 
         if (ImGui::MenuItem("Sprite Sheet"))
         {
-            if (GameObject* slider = createGO(scene, parent))
+            if (GameObject* sprite = createGO(scene, parent))
             {
-                slider->SetName("New Sprite Sheet");
-                slider->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
-                slider->AddComponentWithUID(ComponentType::UISHEET, GenerateUID());
-                slider->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
-
-                if (!hasCanvas(parent))
-                {
-                    if (GameObject* canvas = createGO(scene, parent))
-                    {
-                        canvas->SetName("New Canvas");
-                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
-                        m_hierarchy->reparent(slider, canvas);
-                    }
-                }
+                sprite->SetName("New Sprite Sheet");
+                sprite->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
+                sprite->AddComponentWithUID(ComponentType::UISHEET, GenerateUID());
+                sprite->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
+                ensureCanvas(scene, parent, sprite, m_hierarchy);
             }
         }
 
@@ -262,16 +254,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 text->SetName("New Text");
                 text->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
                 text->AddComponentWithUID(ComponentType::UITEXT, GenerateUID());
-
-                if (!hasCanvas(parent))
-                {
-                    if (GameObject* canvas = createGO(scene, parent))
-                    {
-                        canvas->SetName("New Canvas");
-                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
-                        m_hierarchy->reparent(text, canvas);
-                    }
-                }
+                ensureCanvas(scene, parent, text, m_hierarchy);
             }
         }
 
@@ -282,16 +265,7 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
                 image->SetName("New Image");
                 image->AddComponentWithUID(ComponentType::TRANSFORM2D, GenerateUID());
                 image->AddComponentWithUID(ComponentType::UIIMAGE, GenerateUID());
-
-                if (!hasCanvas(parent))
-                {
-                    if (GameObject* canvas = createGO(scene, parent))
-                    {
-                        canvas->SetName("New Canvas");
-                        canvas->AddComponentWithUID(ComponentType::CANVAS, GenerateUID());
-                        m_hierarchy->reparent(image, canvas);
-                    }
-                }
+                ensureCanvas(scene, parent, image, m_hierarchy);
             }
         }
 
@@ -338,7 +312,24 @@ GameObject* ViewHierarchyDialog::rebuildGameObject(const rapidjson::Value& objec
         GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid, rootObjects);
 
         uint64_t parentUid = 0;
-        go->deserializeJSON(goJson, parentUid);
+        JsonArchive goArchive(ArchiveMode::Input);
+        goArchive.setValue(goJson);
+        go->serialize(goArchive);
+        parentUid = goJson.HasMember("ParentUID") ? goJson["ParentUID"].GetUint64() : 0;
+
+        if (goJson.HasMember("PrefabLink") && goJson["PrefabLink"].IsObject())
+        {
+            const auto& pl = goJson["PrefabLink"];
+            auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+            if (preComp)
+            {
+                auto& data = preComp->getData();
+                if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
+                    data.m_sourcePath = pl["SourcePath"].GetString();
+                if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
+                    data.m_assetUID = pl["AssetUID"].GetUint64();
+            }
+        }
 
         uidToGo[uid] = go;
         childToParent[uid] = parentUid;
@@ -393,19 +384,3 @@ GameObject* ViewHierarchyDialog::createGameObjectWithUID(UID id, UID transformUI
     return raw;
 }
 
-bool ViewHierarchyDialog::hasCanvas(GameObject* gameObject)
-{
-    while (gameObject)
-    {
-        if (gameObject->GetComponent(ComponentType::CANVAS))
-        {
-            return true;
-        }
-
-        Transform* transform = gameObject->GetTransform();
-        Transform* parent = transform ? transform->getRoot() : nullptr;
-        gameObject = parent ? parent->getOwner() : nullptr;
-    }
-
-    return false;
-}

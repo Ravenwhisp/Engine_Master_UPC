@@ -3,23 +3,24 @@
 
 #include "FileIO.h"
 #include "AssetsDictionary.h"
-#include "ModuleAssets.h"
+#include "AssetIndex.h"
+#include "JsonArchive.h"
 
 #include <algorithm>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
-ContentRegistry::ContentRegistry(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
+ContentRegistry::ContentRegistry()
 {
 }
 
-void ContentRegistry::rebuild(const fs::path& rootPath)
+void ContentRegistry::rebuild(const fs::path& rootPath, const AssetIndex* index)
 {
-    m_root = buildDirectory(rootPath.lexically_normal(), nullptr);
+    m_root = buildDirectory(rootPath.lexically_normal(), nullptr, index);
 }
 
-void ContentRegistry::registerAsset(const fs::path& sourcePath)
+void ContentRegistry::registerAsset(const fs::path& sourcePath, const AssetIndex* index)
 {
     if (!m_root)
         return;
@@ -30,7 +31,6 @@ void ContentRegistry::registerAsset(const fs::path& sourcePath)
     DirectoryEntry* dir = getDirectory(parentPath);
     if (!dir)
     {
-
         return;
     }
 
@@ -40,14 +40,14 @@ void ContentRegistry::registerAsset(const fs::path& sourcePath)
     {
         if (existing.displayName == displayName)
         {
-            existing.uid = m_moduleAssets->findUID(normSource);
+            existing.uid = index ? index->findUID(normSource) : INVALID_UID;
             return;
         }
     }
 
     fs::path metaPath = normSource;
     Metadata::getMetadataPath(metaPath);
-    addAsset(*dir, metaPath);
+    addAsset(*dir, metaPath, index);
 }
 
 void ContentRegistry::unregisterAsset(const fs::path& sourcePath)
@@ -83,7 +83,9 @@ DirectoryEntry* ContentRegistry::getDirectory(const fs::path& path) const
     return findDirectoryRecursive(m_root.get(), path.lexically_normal());
 }
 
-std::unique_ptr<DirectoryEntry> ContentRegistry::buildDirectory(const fs::path& path, DirectoryEntry* parent) const
+std::unique_ptr<DirectoryEntry> ContentRegistry::buildDirectory(const fs::path& path,
+                                                                 DirectoryEntry* parent,
+                                                                 const AssetIndex* index) const
 {
     auto directory = std::make_unique<DirectoryEntry>();
 
@@ -97,29 +99,32 @@ std::unique_ptr<DirectoryEntry> ContentRegistry::buildDirectory(const fs::path& 
 
         if (FileIO::isDirectory(entryPath))
         {
-            directory->directories.push_back(buildDirectory(entryPath, directory.get()));
+            directory->directories.push_back(buildDirectory(entryPath, directory.get(), index));
         }
         else if (entryPath.extension() == METADATA_EXTENSION)
         {
-            addAsset(*directory, entryPath);
+            addAsset(*directory, entryPath, index);
         }
     }
 
     return directory;
 }
 
-void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPath) const
+void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPath,
+                                const AssetIndex* index) const
 {
     fs::path sourcePath = metaPath;
     sourcePath.replace_extension();
 
     AssetEntry asset;
     asset.displayName = sourcePath.filename().string();
-    asset.uid = m_moduleAssets->findUID(sourcePath.lexically_normal().string());
+    asset.uid = index ? index->findUID(sourcePath.lexically_normal().string()) : INVALID_UID;
 
     Metadata meta;
-    if (m_moduleAssets->loadMetaFile(metaPath, meta))
+    JsonArchive archive(ArchiveMode::Input);
+    if (archive.loadFile(metaPath))
     {
+        meta.serialize(archive);
         asset.metadata = meta;
         for (const DependencyRecord& dep : meta.m_dependencies)
         {
@@ -136,7 +141,8 @@ void ContentRegistry::addAsset(DirectoryEntry& directory, const fs::path& metaPa
     directory.assets.push_back(std::move(asset));
 }
 
-DirectoryEntry* ContentRegistry::findDirectoryRecursive(DirectoryEntry* directory, const fs::path& path) const
+DirectoryEntry* ContentRegistry::findDirectoryRecursive(DirectoryEntry* directory,
+                                                          const fs::path& path) const
 {
     if (!directory)
     {

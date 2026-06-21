@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "EmitterLifetime.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 
@@ -83,7 +84,7 @@ bool EmitterLifetime::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
+void EmitterLifetime::serialize(IArchive& archive)
 {
 	rapidjson::Value moduleInfo(rapidjson::kObjectType);
 

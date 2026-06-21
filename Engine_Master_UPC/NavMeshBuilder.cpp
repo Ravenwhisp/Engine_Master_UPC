@@ -11,7 +11,6 @@
 #include <DetourNavMesh.h>
 #include <DetourNavMeshQuery.h>
 #include <DetourNavMeshBuilder.h>
-#include <DetourAlloc.h>
 
 static int ClampInt(int v, int mn, int mx) { return v < mn ? mn : (v > mx ? mx : v); }
 
@@ -335,7 +334,7 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
-    outResult.tileRef = outRef;
+    outResult.tileRefs.push_back(outRef);
 
     DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
 

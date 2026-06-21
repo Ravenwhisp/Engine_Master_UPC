@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "TriggerComponent.h"
+#include "JsonArchive.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -22,25 +23,6 @@ bool TriggerComponent::init()
     {
         setDefaultBoundsFromModel();
         m_setDefaultBoundsOnInit = false;
-    }
-
-    Scene* scene = app->getModuleScene()->getScene();
-
-    if (scene)
-    {
-        scene->registerTrigger(this);
-    }
-
-    return true;
-}
-
-bool TriggerComponent::cleanUp()
-{
-    Scene* scene = app->getModuleScene()->getScene();
-
-    if (scene)
-    {
-        scene->unregisterTrigger(this);
     }
 
     return true;
@@ -329,86 +311,6 @@ void TriggerComponent::includeMeshRendererBounds(MeshRenderer* meshRenderer, con
     }
 }
 
-rapidjson::Value TriggerComponent::getJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
-    rapidjson::Document::AllocatorType& allocator = domTree.GetAllocator();
-
-    componentInfo.AddMember("UID", m_uuid, allocator);
-    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::TRIGGER), allocator);
-    componentInfo.AddMember("Active", isActive(), allocator);
-    componentInfo.AddMember("Shape", static_cast<int>(m_shape), allocator);
-
-    {
-        rapidjson::Value centerData(rapidjson::kArrayType);
-
-        centerData.PushBack(m_center.x, allocator);
-        centerData.PushBack(m_center.y, allocator);
-        centerData.PushBack(m_center.z, allocator);
-
-        componentInfo.AddMember("Center", centerData, allocator);
-    }
-
-    {
-        rapidjson::Value sizeData(rapidjson::kArrayType);
-
-        sizeData.PushBack(m_size.x, allocator);
-        sizeData.PushBack(m_size.y, allocator);
-        sizeData.PushBack(m_size.z, allocator);
-
-        componentInfo.AddMember("Size", sizeData, allocator);
-    }
-
-    return componentInfo;
-}
-
-bool TriggerComponent::deserializeJSON(const rapidjson::Value& componentValue)
-{
-    if (componentValue.HasMember("Active") && componentValue["Active"].IsBool())
-    {
-        setActive(componentValue["Active"].GetBool());
-    }
-
-    if (componentValue.HasMember("Shape") && componentValue["Shape"].IsInt())
-    {
-        m_shape = static_cast<TriggerShape>(componentValue["Shape"].GetInt());
-    }
-
-    if (componentValue.HasMember("Center") && componentValue["Center"].IsArray())
-    {
-        const rapidjson::Value& centerData = componentValue["Center"];
-
-        if (centerData.Size() == 3 &&
-            centerData[0].IsNumber() &&
-            centerData[1].IsNumber() &&
-            centerData[2].IsNumber())
-        {
-            m_center.x = centerData[0].GetFloat();
-            m_center.y = centerData[1].GetFloat();
-            m_center.z = centerData[2].GetFloat();
-        }
-    }
-
-    if (componentValue.HasMember("Size") && componentValue["Size"].IsArray())
-    {
-        const rapidjson::Value& sizeData = componentValue["Size"];
-
-        if (sizeData.Size() == 3 &&
-            sizeData[0].IsNumber() &&
-            sizeData[1].IsNumber() &&
-            sizeData[2].IsNumber())
-        {
-            m_size.x = std::max(0.0f, sizeData[0].GetFloat());
-            m_size.y = std::max(0.0f, sizeData[1].GetFloat());
-            m_size.z = std::max(0.0f, sizeData[2].GetFloat());
-        }
-    }
-
-    m_setDefaultBoundsOnInit = false;
-    m_boundsDirty = true;
-    return true;
-}
-
 std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
 {
     std::unique_ptr<TriggerComponent> clonedComponent = std::make_unique<TriggerComponent>(m_uuid, newOwner);
@@ -422,4 +324,20 @@ std::unique_ptr<Component> TriggerComponent::clone(GameObject* newOwner) const
     clonedComponent->m_boundsDirty = true;
 
     return clonedComponent;
+}
+
+void TriggerComponent::serialize(IArchive& archive)
+{
+    Component::serialize(archive);
+
+    archive.serializeStringEnum(m_shape, "Shape", TriggerShapeToString, StringToTriggerShape);
+
+    archive.serialize(m_center, "Center");
+    archive.serialize(m_size, "Size");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_setDefaultBoundsOnInit = false;
+        m_boundsDirty = true;
+    }
 }

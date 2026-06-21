@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -304,6 +304,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="EmitterAnimation.h" />
     <ClInclude Include="EmitterRender.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="NavMeshBuildSettings.h" />
+    <ClInclude Include="NavRuntimeBlockerComponent.h" />
+    <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="ScriptBuildSystem.h" />
+    <ClInclude Include="ScriptLibraryLoader.h" />
+    <ClInclude Include="ShadowMapPass.h" />
+    <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
@@ -345,16 +352,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="IDebugDrawable.h" />
     <ClInclude Include="CommandImportAsset.h" />
-    <ClInclude Include="ImporterAnimation.h" />
-    <ClInclude Include="ImporterAnimationStateMachine.h" />
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
-    <ClInclude Include="ImporterMaterial.h" />
-    <ClInclude Include="ImporterMesh.h" />
     <ClInclude Include="ImporterNative.h" />
     <ClInclude Include="ImporterPrefab.h" />
-    <ClInclude Include="ImporterScene.h" />
-    <ClInclude Include="ImporterSkin.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
     <ClInclude Include="MaterialAsset.h" />
@@ -374,7 +375,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="TriggerSystem.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
-    <ClInclude Include="ModuleScripting.h" />
     <ClInclude Include="OptickProfiler.h" />
     <ClInclude Include="ParticleCommands.h" />
     <ClInclude Include="ParticleEmitter.h" />
@@ -383,13 +383,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="ParticleSystemComponent.h" />
     <ClInclude Include="ModuleParticleSystem.h" />
-    <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="PlayerBinding.h" />
     <ClInclude Include="CommandMoveFile.h" />
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-    <ClInclude Include="PrefabSerializer.h" />
+
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="CommandReparent.h" />
@@ -399,7 +398,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ScriptAutoRegister.h" />
-    <ClInclude Include="ScriptBuildSystem.h" />
     <ClInclude Include="ScriptComponentRef.h" />
     <ClInclude Include="ScriptFieldHandler.h" />
     <ClInclude Include="ScriptFieldHandlerRegistry.h" />
@@ -409,7 +407,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
     <ClInclude Include="ScriptFieldMacros.h" />
-    <ClInclude Include="ScriptLibraryLoader.h" />
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
     <ClInclude Include="ScriptRegistry.h" />
@@ -417,7 +414,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
     <ClInclude Include="SkyBoxSettings.h" />
-    <ClInclude Include="PrefabAsset.h" />
+    <ClInclude Include="Prefab.h" />
     <ClInclude Include="StagingDescriptorheap.h" />
     <ClInclude Include="SkyboxParams.h" />
     <ClInclude Include="StaticTexturesPass.h" />
@@ -439,7 +436,16 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ICacheable.h" />
     <ClInclude Include="ModuleEventSystem.h" />
     <ClInclude Include="WindowFileDialog.h" />
+    <ClInclude Include="AssetCache.h" />
+    <ClInclude Include="BinaryArchive.h" />
+    <ClInclude Include="IArchive.h" />
+    <ClInclude Include="ISerializable.h" />
+    <ClInclude Include="JsonArchive.h" />
+    <ClInclude Include="AssetFileDialog.h" />
+    <ClInclude Include="AssetIndex.h" />
+    <ClInclude Include="ImporterRegistry.h" />
     <ClInclude Include="ModuleAssets.h" />
+    <ClInclude Include="ModuleAssets.inl" />
     <ClInclude Include="BinaryReader.h" />
     <ClInclude Include="BinaryWriter.h" />
     <ClInclude Include="BoundingBox.h" />
@@ -472,7 +478,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Layer.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Lights.h" />
-    <ClInclude Include="NavigationAgentComponent.h" />
     <ClInclude Include="ModuleNavigation.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -520,7 +525,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="WindowMusicDebug.h" />
     <ClInclude Include="WindowSceneEditor.h" />
-    <ClInclude Include="SceneSerializer.h" />
+
     <ClInclude Include="SceneSnapshot.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -551,7 +556,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UID.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexBuffer.h" />
-    <ClInclude Include="WaypointPathComponent.h" />
     <ClInclude Include="WindowGameDebug.h" />
     <ClInclude Include="WeakCache.h" />
     <ClInclude Include="WwiseBank.h" />
@@ -751,24 +755,24 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
-    <ClCompile Include="ImporterAnimation.cpp" />
-    <ClCompile Include="ImporterAnimationStateMachine.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
-    <ClCompile Include="ImporterMaterial.cpp" />
-    <ClCompile Include="ImporterMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
-    <ClCompile Include="ImporterScene.cpp" />
-    <ClCompile Include="ImporterSkin.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleMusic.cpp" />
+    <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
+    <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
+    <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="ScriptBuildSystem.cpp" />
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
+    <ClCompile Include="ScriptLibraryLoader.cpp" />
+    <ClCompile Include="ShadowMapPass.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
@@ -776,9 +780,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
-    <ClCompile Include="ModuleScripting.cpp" />
-    <ClCompile Include="PdbPatcher.cpp" />
-    <ClCompile Include="ScriptBuildSystem.cpp" />
     <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
     <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
@@ -795,13 +796,12 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="ParticleSystemComponent.cpp" />
     <ClCompile Include="ModuleParticleSystem.cpp" />
-    <ClCompile Include="ScriptLibraryLoader.cpp" />
     <ClCompile Include="StagingDescriptorHeap.cpp" />
     <ClCompile Include="CommandMoveFile.cpp" />
     <ClCompile Include="CommandPasteFile.cpp" />
     <ClCompile Include="CommandRemoveGameObject.cpp" />
     <ClCompile Include="CommandRenameGameObject.cpp" />
-    <ClCompile Include="PrefabSerializer.cpp" />
+
     <ClCompile Include="RenderSurface.cpp" />
     <ClCompile Include="CommandReparent.cpp" />
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
@@ -819,6 +819,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="WindowGame.cpp" />
     <ClCompile Include="ModuleEventSystem.cpp" />
     <ClCompile Include="WindowFileDialog.cpp" />
+    <ClCompile Include="AssetCache.cpp" />
+    <ClCompile Include="BinaryArchive.cpp" />
+    <ClCompile Include="JsonArchive.cpp" />
+    <ClCompile Include="Metadata.cpp" />
+    <ClCompile Include="AssetFileDialog.cpp" />
+    <ClCompile Include="AssetIndex.cpp" />
+    <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="ModuleAssets.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Buffer.cpp" />
@@ -842,7 +849,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="NavigationAgentComponent.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -892,7 +898,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowMusicDebug.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
     <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">
@@ -920,7 +925,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UIText.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="WaypointPathComponent.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
     <ClCompile Include="WwiseBank.cpp" />
     <ClCompile Include="WwiseManager.cpp" />
@@ -937,10 +941,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
     <None Include="EngineAPI.inl" />
-    <None Include="General.hlsli" />
     <None Include="MakeSpriteFont.exe" />
     <None Include="NewCBuffers.hlsli" />
-    <None Include="PBRGeneral.hlsli" />
     <None Include="SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
@@ -1007,6 +1009,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-Qembed_debug %(AdditionalOptions)</AdditionalOptions>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ShadowMapVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="SkyboxEnvironmentPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

@@ -19,8 +19,7 @@ public:
 	float getStartLifetime() const { return m_startLifeTime; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 	ParameterType m_lifeTimeType = ParameterType::CONSTANT;

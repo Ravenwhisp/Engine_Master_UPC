@@ -29,6 +29,7 @@ public:
 
     float m_minPos = 80.0f;
     float m_maxPos = -90.0f;
+    float m_barrierUIHeight = 0.0f;
 
 private:
     struct Barrier

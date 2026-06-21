@@ -153,15 +153,11 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="3rdParty\pcg\pcg_basic.c" />
-    <ClCompile Include="SceneSerializer.cpp" />
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshBuilder.cpp">
-      <Filter>NavMesh</Filter>
-    </ClCompile>
-    <ClCompile Include="NavigationAgentComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
@@ -187,7 +183,22 @@
     <ClCompile Include="UIButton.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="SceneSerializer.cpp">
+    <ClCompile Include="AssetCache.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryArchive.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Metadata.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetFileDialog.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetIndex.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
       <Filter>Persistence</Filter>
     </ClCompile>
     <ClCompile Include="ModuleAssets.cpp">
@@ -210,9 +221,6 @@
     </ClCompile>
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
-    </ClCompile>
-    <ClCompile Include="WaypointPathComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
     </ClCompile>
     <ClCompile Include="WindowGameDebug.cpp">
       <Filter>Editor\Views\Debugging</Filter>
@@ -481,7 +489,7 @@
     <ClCompile Include="NavModifierVolumeComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp" />
+
     <ClCompile Include="ParticleSystemComponent.cpp">
       <Filter>GameEntity\Components</Filter>
     </ClCompile>
@@ -529,9 +537,7 @@
     <ClCompile Include="EquirectangularPass.cpp">
       <Filter>D3D12\Rendering\IBL</Filter>
     </ClCompile>
-    <ClCompile Include="PrefabSerializer.cpp">
-      <Filter>Prefabs</Filter>
-    </ClCompile>
+
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>
@@ -587,17 +593,10 @@
     </ClCompile>
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
-    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
-      <Filter>Core\Scripting\FieldTypeHandler</Filter>
-    </ClCompile>
-    <ClCompile Include="PdbPatcher.cpp">
-      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
-    </ClCompile>
+    <ClCompile Include="ShadowMapPass.cpp" />
+    <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="ScriptLibraryLoader.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleScripting.cpp">
-      <Filter>Core\Scripting\HotReloading</Filter>
     </ClCompile>
     <ClCompile Include="ScriptBuildSystem.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
@@ -607,6 +606,12 @@
     </ClCompile>
     <ClCompile Include="EmitterAnimation.cpp">
       <Filter>ParticleSystem\Properties</Filter>
+    <ClCompile Include="PdbPatcher.cpp" />
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="NavRuntimeBlockerComponent.cpp">
+      <Filter>NavMesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -796,9 +801,6 @@
     <ClInclude Include="NavMeshBuilder.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
-    <ClInclude Include="NavigationAgentComponent.h">
-      <Filter>NavMesh</Filter>
-    </ClInclude>
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -835,10 +837,34 @@
     <ClInclude Include="UIButton.h">
       <Filter>UI</Filter>
     </ClInclude>
-    <ClInclude Include="SceneSerializer.h">
+    <ClInclude Include="AssetCache.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="IArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializable.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonArchive.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetFileDialog.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetIndex.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterRegistry.h">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="ModuleAssets.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleAssets.inl">
       <Filter>Persistence</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">
@@ -876,9 +902,6 @@
     </ClInclude>
     <ClInclude Include="ModuleGameView.h">
       <Filter>GameEntity</Filter>
-    </ClInclude>
-    <ClInclude Include="WaypointPathComponent.h">
-      <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Editor\Views\Debugging</Filter>
@@ -961,7 +984,7 @@
     <ClInclude Include="ImporterPrefab.h">
       <Filter>Persistence\Importers\Native</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabAsset.h">
+    <ClInclude Include="Prefab.h">
       <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="Script.h">
@@ -1383,14 +1406,10 @@
     </ClInclude>
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="TextureImportSettings.h" />
-    <ClInclude Include="PdbPatcher.h">
-      <Filter>Core\Scripting\HotReloading\Pdb</Filter>
-    </ClInclude>
+    <ClInclude Include="ShadowMapPass.h" />
+    <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="ScriptLibraryLoader.h">
       <Filter>Core\Scripting\HotReloading\ScriptLibraryLoader</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleScripting.h">
-      <Filter>Core\Scripting\HotReloading</Filter>
     </ClInclude>
     <ClInclude Include="ScriptBuildSystem.h">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
@@ -1400,6 +1419,12 @@
     </ClInclude>
     <ClInclude Include="EmitterAnimation.h">
       <Filter>ParticleSystem\Properties</Filter>
+    <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="NavMeshBuildSettings.h">
+      <Filter>NavMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="NavRuntimeBlockerComponent.h">
+      <Filter>NavMesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1645,12 +1670,6 @@
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
     <None Include="EngineAPI.inl" />
-    <None Include="General.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
-    <None Include="PBRGeneral.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1709,5 +1728,6 @@
       <Filter>D3D12\Rendering\IBL</Filter>
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
+    <FxCompile Include="ShadowMapVertexShader.hlsl" />
   </ItemGroup>
 </Project>

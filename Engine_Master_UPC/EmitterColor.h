@@ -22,8 +22,7 @@ public:
 	ImGradient& getColorGradient() { return m_colorOverTime; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 

@@ -41,8 +41,10 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[11] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
+    CD3DX12_DESCRIPTOR_RANGE shadowMapRange;
+    shadowMapRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
@@ -59,9 +61,13 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     rootParameters[6].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[7].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[8].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+    // Shadows
+    rootParameters[9].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[10].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
     
 
-    rootSignatureDesc.Init(9, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(11, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -155,6 +161,19 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
             sizeof(GPULightsConstantBuffer),
             app->getModuleD3D12()->getCurrentFrame());
     }
+
+    m_hasShadowData = ctx.shadowData != nullptr;
+
+    if (m_hasShadowData)
+    {
+        m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
+        m_shadowMapSRV = ctx.shadowData->shadowMapSRV;
+    }
+    else
+    {
+        m_shadowCBAddress = 0;
+        m_shadowMapSRV = {};
+    }
 }
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -173,6 +192,12 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
     commandList->SetGraphicsRootDescriptorTable(8, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_shadowMapSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootConstantBufferView(9, m_shadowCBAddress);
+        commandList->SetGraphicsRootDescriptorTable(10, m_shadowMapSRV);
+    }
 
     renderMesh(commandList);
 }

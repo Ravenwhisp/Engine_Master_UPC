@@ -24,7 +24,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		float deltaTime = particleData->getParticleSystemComponent()->deltaTime();
 		Vector3 cameraPosition = app->getModuleCamera()->getPosition();
 
-		// Necesitamos el startLifetime para calcular en qué punto de la curva estamos
+		// Necesitamos el startLifetime para calcular en quï¿½ punto de la curva estamos
 		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
 
 		for (auto& aliveParticle : aliveParticles)

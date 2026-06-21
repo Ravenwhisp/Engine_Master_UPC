@@ -35,6 +35,7 @@ cp .\Engine_Master_UPC\ScriptFieldMacros.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ScriptFieldHandler.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ScriptFieldHandlerRegistry.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\NavMeshTypes.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\ISerializable.h .\export\EngineDependencies\
 
 cp .\Engine_Master_UPC\PrefabInstance.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\MD5Fwd.h .\export\EngineDependencies\

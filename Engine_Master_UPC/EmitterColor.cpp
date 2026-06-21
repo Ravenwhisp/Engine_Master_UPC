@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "EmitterColor.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleInput.h"
@@ -88,11 +89,19 @@ bool EmitterColor::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterColor::getJSON(rapidjson::Document& domTree)
+void EmitterColor::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+    ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::COLOR), domTree.GetAllocator());
+    DirectX::SimpleMath::Color startColor(m_startColor.x, m_startColor.y, m_startColor.z, m_startColor.w);
+    archive.serialize(startColor, "StartColor");
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_startColor.x = startColor.x;
+        m_startColor.y = startColor.y;
+        m_startColor.z = startColor.z;
+        m_startColor.w = startColor.w;
+    }
 
 	// Get color gradient data (marks)
 

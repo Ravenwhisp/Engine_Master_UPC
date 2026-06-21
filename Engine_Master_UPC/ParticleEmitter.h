@@ -27,8 +27,7 @@ public:
 	EmitterAnimation* getAnimationModule() { return m_animationModule;  }
 	EmitterRender* getRenderModule() { return m_renderModule; }
 
-	rapidjson::Value getJSON(rapidjson::Document& domTree);
-	bool deserializeJSON(const rapidjson::Value& emitterInfo);
+	void serialize(IArchive& archive);
 
 private:
 

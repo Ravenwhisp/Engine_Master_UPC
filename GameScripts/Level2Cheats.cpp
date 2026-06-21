@@ -40,13 +40,13 @@ bool Level2Cheats::KeyComboPressed(KeyCode mainKey)
 void Level2Cheats::AutoWin()
 {
     Debug::warn("AutoWin activated!");
-    SceneAPI::requestSceneChange("WinScene");
+    SceneAPI::requestSceneChange("Win_Scene");
 }
 
 void Level2Cheats::AutoLose()
 {
     Debug::log("AutoLose activated!");
-    SceneAPI::requestSceneChange("LoseScene");
+    SceneAPI::requestSceneChange("Lose_Scene");
 }
 
 void Level2Cheats::Teleport()

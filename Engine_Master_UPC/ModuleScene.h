@@ -10,7 +10,6 @@
 
 class Scene;
 class Quadtree;
-class SceneSerializer;
 class SceneSnapshot;
 
 class GameObject;
@@ -32,7 +31,6 @@ private:
     std::unique_ptr<Quadtree> m_staticQuadtree;
     std::unique_ptr<Quadtree> m_dynamicQuadtree;
 
-    std::unique_ptr<SceneSerializer> m_sceneSerializer;
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
 
@@ -84,6 +82,11 @@ public:
 #pragma region ObjectPicking
     std::vector<GameObjectPickHit> collectAABBHits(const Ray& worldRay);
     bool pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit);
+#pragma endregion
+
+#pragma region Systems
+    void initializeRuntimeSceneSystems();
+    void clearRuntimeSceneSystems();
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }

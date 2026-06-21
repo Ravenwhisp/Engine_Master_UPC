@@ -24,10 +24,6 @@ protected:
 
     void  importTyped(const std::vector<uint8_t>& source, FontAsset* dst) override;
 
-    uint64_t saveTyped(const FontAsset* source, uint8_t** buffer) override;
-
-    void  loadTyped(const uint8_t* buffer, FontAsset* dst) override;
-
 private:
     std::string m_lastFontFamilyName;
 

@@ -1,8 +1,10 @@
 #include "Globals.h"
 #include "MeshRenderer.h"
+#include "JsonArchive.h"
 
 #include "Transform.h"
 #include "GameObject.h"
+#include <string>
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -10,6 +12,7 @@
 
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
+#include "SceneReferenceResolver.h"
 
 MeshRenderer::~MeshRenderer() = default;
 
@@ -19,8 +22,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
     newMeshRenderer->setActive(this->isActive());
 
-    newMeshRenderer->m_mesh = m_mesh;
-    newMeshRenderer->m_materials = m_materials;
 
     newMeshRenderer->m_meshAsset = m_meshAsset;
     newMeshRenderer->m_materialAssets = m_materialAssets;
@@ -31,11 +32,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     {
         newMeshRenderer->m_skin = m_skin->clone();
     }
-    
-    newMeshRenderer->m_triangles = m_triangles;
-
-    newMeshRenderer->m_boundingBox = m_boundingBox;
-    newMeshRenderer->m_boundingBox.update(newOwner->GetTransform()->getGlobalMatrix());
 
     return newMeshRenderer;
 }
@@ -45,19 +41,23 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
     auto mesh = app->getModuleResources()->createMesh(meshAsset);
     if (mesh)
     {
-        m_triangles = 0;
+        m_mesh = mesh;
+        recompute();
 
-        for (const auto& submesh : mesh->getSubmeshes())
-        {
+        Vector3 boundsMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
+        Vector3 boundsMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
+        m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
+        m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+    }
+}
+
+void MeshRenderer::recompute()
+{
+    m_triangles = 0;
+    if (m_mesh)
+    {
+        for (const auto& submesh : m_mesh->getSubmeshes())
             m_triangles += submesh.indexCount / 3;
-        }
-
-         Vector3 boundsMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
-         Vector3 boundsMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
-         m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
-         m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
-
-         m_mesh = mesh;
     }
 }
 
@@ -176,82 +176,56 @@ void MeshRenderer::update()
     }
 }
 
-rapidjson::Value MeshRenderer::getJSON(rapidjson::Document& domTree)
+void MeshRenderer::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::MODEL), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("MeshAssetId",m_meshAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("SkinAssetId",m_skinAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-
+    if (archive.mode() == ArchiveMode::Input)
     {
-        rapidjson::Value materialsData(rapidjson::kArrayType);
+        AssetReference ref;
+        archive.beginObject("MeshAssetId");
+        ref.serialize(archive);
+        archive.endObject();
+        setMeshReference(ref);
 
-        for (const auto& materials : m_materialAssets)
+        archive.beginObject("SkinAssetId");
+        ref.serialize(archive);
+        archive.endObject();
+        setSkinReference(ref);
+        ensureSkin().setSkinReference(ref);
+
+        uint32_t materialCount = 0;
+        archive.beginArray(materialCount, "Materials");
+        for (uint32_t i = 0; i < materialCount; ++i)
         {
-            materialsData.PushBack(materials.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+            archive.beginObject();
+            ref.serialize(archive);
+            addMaterialReference(ref);
+            archive.endObject();
         }
-
-        componentInfo.AddMember("MaterialAssetId", materialsData, domTree.GetAllocator());
+        archive.endArray();
     }
-
-    return componentInfo;
-}
-
-bool MeshRenderer::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("MeshAssetId"))
+    else
     {
-        AssetReference meshId;
-        if (!meshId.deserializeJson(componentInfo["MeshAssetId"]))
-		{
-			DEBUG_WARN("[MeshRenderer] Failed to deserialize MeshAssetId.");
-			return false;
-		}
+        archive.beginObject("MeshAssetId");
+        m_meshAsset.serialize(archive);
+        archive.endObject();
 
-        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(meshId);
-        m_meshAsset = meshId;
+        archive.beginObject("SkinAssetId");
+        m_skinAsset.serialize(archive);
+        archive.endObject();
 
-        if (meshAsset)
+        uint32_t materialCount = static_cast<uint32_t>(m_materialAssets.size());
+        archive.beginArray(materialCount, "Materials");
+
+        for (uint32_t i = 0; i < materialCount; ++i)
         {
-            addMesh(*meshAsset);
+            archive.beginObject();
+            m_materialAssets[i].serialize(archive);
+            archive.endObject();
         }
+        archive.endArray();
     }
-
-    if (componentInfo.HasMember("MaterialAssetId"))
-    {
-        const auto& arr = componentInfo["MaterialAssetId"];
-
-        for (auto& arrayStrings : arr.GetArray())
-        {
-            AssetReference materialId;
-            if (!materialId.deserializeJson(arrayStrings))
-			{
-				DEBUG_WARN("[MeshRenderer] Failed to deserialize a MaterialAssetId.");
-				continue;
-			}
-
-            m_materialAssets.push_back(materialId);
-
-            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(materialId);
-            if (materialAsset)
-            {
-                addMaterial(*materialAsset);
-            }
-        }
-    }
-
-    if (componentInfo.HasMember("SkinAssetId"))
-    {
-        m_skinAsset.deserializeJson(componentInfo["SkinAssetId"]);
-
-        ensureSkin().setSkinReference(m_skinAsset);
-    }
-
-    return true;
 }
 
 void MeshRenderer::setMeshReference(AssetReference& meshRef)
@@ -284,4 +258,33 @@ void MeshRenderer::clearSkin()
     }
 
     m_skin.reset();
+}
+
+void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
+{
+
+    m_mesh = nullptr;
+    m_materials.clear();
+
+
+    if (m_meshAsset.isValid())
+    {
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+            addMesh(*meshAsset);
+    }
+
+    for (auto& matRef : m_materialAssets)
+    {
+        if (matRef.isValid())
+        {
+            matRef.m_type = AssetType::MATERIAL;
+            auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+            if (matAsset)
+                addMaterial(*matAsset);
+        }
+    }
+
+    recompute();
 }

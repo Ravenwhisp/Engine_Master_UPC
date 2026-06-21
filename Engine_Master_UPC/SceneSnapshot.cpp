@@ -17,8 +17,19 @@ void SceneSnapshot::init(const Scene& scene)
     {
         auto clonedRoot = cloneRecursive(root);
 
-        m_rootObjects.push_back(clonedRoot.get());
-        m_allObjects.push_back(std::move(clonedRoot));
+        std::vector<std::unique_ptr<GameObject>> all;
+        all.push_back(std::move(clonedRoot));
+        for (size_t i = 0; i < all.size(); ++i)
+            for (auto& child : all[i]->releaseChildren())
+                all.push_back(std::move(child));
+
+        for (auto& go : all)
+        {
+            GameObject* raw = go.get();
+            if (raw->GetTransform()->getRoot() == nullptr)
+                m_rootObjects.push_back(raw);
+            m_allObjects.push_back(std::move(go));
+        }
     }
 
     fixReferences();
@@ -44,26 +55,45 @@ std::unique_ptr<GameObject> SceneSnapshot::cloneRecursive(GameObject* original)
         m_resolver.registerComponent(originalComponents[i]->getID(), clonedComponents[i]);
     }
 
-    for (GameObject* child : original->GetTransform()->getAllChildren())
-    {
-        auto clonedChild = cloneRecursive(child);
-
-        clonedChild->GetTransform()->setRoot(clone->GetTransform());
-        clone->GetTransform()->addChild(clonedChild.get());
-
-        m_allObjects.push_back(std::move(clonedChild));
-    }
+    registerDescendants(original, clone.get());
 
     return clone;
 }
 
+void SceneSnapshot::registerDescendants(GameObject* origParent, GameObject* cloneParent)
+{
+    const auto& origKids = origParent->GetTransform()->getAllChildren();
+    const auto& cloneKids = cloneParent->GetTransform()->getAllChildren();
+
+    for (size_t i = 0; i < origKids.size() && i < cloneKids.size(); ++i)
+    {
+        m_resolver.registerGameObject(origKids[i], cloneKids[i]);
+
+        const auto& origComps = origKids[i]->GetAllComponents();
+        const auto& cloneComps = cloneKids[i]->GetAllComponents();
+        for (size_t j = 0; j < origComps.size() && j < cloneComps.size(); ++j)
+        {
+            m_resolver.registerComponent(origComps[j]->getID(), cloneComps[j]);
+        }
+
+        registerDescendants(origKids[i], cloneKids[i]);
+    }
+}
+
 void SceneSnapshot::fixReferences()
 {
-    for (const auto& obj : m_allObjects)
+    for (GameObject* root : m_rootObjects)
     {
-        for (Component* component : obj->GetAllComponents())
+        std::vector<GameObject*> stack;
+        stack.push_back(root);
+        while (!stack.empty())
         {
-            component->fixReferences(m_resolver);
+            GameObject* obj = stack.back();
+            stack.pop_back();
+            for (Component* component : obj->GetAllComponents())
+                component->fixReferences(m_resolver);
+            for (GameObject* child : obj->GetTransform()->getAllChildren())
+                stack.push_back(child);
         }
     }
 }
@@ -75,6 +105,9 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.m_allObjects = std::move(m_allObjects);
     scene.m_rootObjects = std::move(m_rootObjects);
     scene.setDefaultCamera(m_defaultCamera);
+
+    for (size_t i = 0; i < scene.m_allObjects.size(); ++i)
+        scene.m_objectIndexMap[scene.m_allObjects[i].get()] = i;
 
     for (const auto& go : scene.m_allObjects)
     {

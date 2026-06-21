@@ -61,11 +61,11 @@ bool EmitterRotation::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterRotation::getJSON(rapidjson::Document& domTree)
+void EmitterRotation::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+	ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::ROTATION), domTree.GetAllocator());
+	archive.serialize(m_startRotation, "StartRotation");
 
 	moduleInfo.AddMember("RotationType", unsigned int(m_startRotationType), domTree.GetAllocator());
 	moduleInfo.AddMember("StartRotation", m_startRotation, domTree.GetAllocator());
@@ -81,9 +81,9 @@ rapidjson::Value EmitterRotation::getJSON(rapidjson::Document& domTree)
 
 	if (m_angularVelocityType != ParameterType::CONSTANT)
 	{
-		moduleInfo.AddMember("AngularVelocity2", m_angularVelocity2, domTree.GetAllocator());
+		archive.serialize(m_angularVelocity2, "AngularVelocity2");
 
-		if (m_angularVelocityType == ParameterType::CURVE) 
+		if (m_angularVelocityType == ParameterType::CURVE)
 		{
 			rapidjson::Value curveData(rapidjson::kArrayType);
 
@@ -160,39 +160,13 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 
 			if (moduleInfo.HasMember("AngularVelocity2"))
 			{
-				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
-			}
-
-			break;
-
-		case ParameterType::CURVE:
-
-			m_angularVelocityType = ParameterType::CURVE;
-
-			if (moduleInfo.HasMember("AngularVelocity2"))
-			{
-				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
-			}
-
-			if (moduleInfo.HasMember("VelocityCurve"))
-			{
-				const auto& curveArray = moduleInfo["VelocityCurve"].GetArray();
-				m_angularVelocityCurve[0] = curveArray[0].GetFloat();
-				m_angularVelocityCurve[1] = curveArray[1].GetFloat();
-				m_angularVelocityCurve[2] = curveArray[2].GetFloat();
-				m_angularVelocityCurve[3] = curveArray[3].GetFloat();
+				std::string key = "VelocityCurve_" + std::to_string(i);
+				archive.serialize(m_angularVelocityCurve[i], key.c_str());
 			}
 		}
-
-	}else m_angularVelocityType = ParameterType::CONSTANT; // we recreate state corresponding to previous version
-
-
-	if (moduleInfo.HasMember("FlipRotation"))
-	{
-		m_flipRotationLikelihood = moduleInfo["FlipRotation"].GetFloat();
 	}
 
-	return true;
+	archive.serialize(m_flipRotationLikelihood, "FlipRotation");
 }
 
 bool EmitterRotation::drawStartRotationUI()

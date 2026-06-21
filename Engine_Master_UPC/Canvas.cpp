@@ -1,11 +1,20 @@
 #include "Globals.h"
 #include "Canvas.h"
+#include "JsonArchive.h"
 
 #include <imgui.h>
 
 Canvas::Canvas(UID id, GameObject* owner)
     : Component(id, ComponentType::CANVAS, owner)
 {
+}
+
+void Canvas::serialize(IArchive& archive)
+{
+    Component::serialize(archive);
+
+    archive.serializeStringEnum(renderMode, "RenderMode", CanvasRenderModeToString, StringToCanvasRenderMode);
+    archive.serialize(zTest, "ZTest");
 }
 
 std::unique_ptr<Component> Canvas::clone(GameObject* newOwner) const
@@ -35,38 +44,5 @@ void Canvas::drawUi()
     }
 }
 
-rapidjson::Value Canvas::getJSON(rapidjson::Document& domTree)
-{
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::CANVAS), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
-
-    componentInfo.AddMember("RenderMode", static_cast<int>(renderMode), domTree.GetAllocator());
-    componentInfo.AddMember("ZTest", zTest, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool Canvas::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("RenderMode"))
-    {
-        renderMode = static_cast<CanvasRenderMode>(componentInfo["RenderMode"].GetInt());
-    }
-    else if (componentInfo.HasMember("ScreenSpace"))
-    {
-        renderMode = componentInfo["ScreenSpace"].GetBool()
-            ? CanvasRenderMode::SCREEN_SPACE
-            : CanvasRenderMode::WORLD_SPACE;
-    }
-
-    if (componentInfo.HasMember("ZTest"))
-    {
-        zTest = componentInfo["ZTest"].GetBool();
-    }
-
-    return true;
-}
 

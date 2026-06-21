@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "ParticleEmitter.h"
+#include "JsonArchive.h"
 
 #include "EmitterSpawn.h"
 #include "EmitterLifetime.h"
@@ -77,26 +78,25 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 }
 
 
-rapidjson::Value ParticleEmitter::getJSON(rapidjson::Document& domTree) {
+void ParticleEmitter::serialize(IArchive& archive)
+{
+    uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
+    archive.beginArray(moduleCount, "Modules");
 
-	rapidjson::Value emitterInfo(rapidjson::kObjectType);
+    if (moduleCount > m_particleModules.size())
+        moduleCount = static_cast<uint32_t>(m_particleModules.size());
 
-	// --- We will probably want to have the textureAssetID here in the future; for now it will be like this
+    for (uint32_t i = 0; i < moduleCount; ++i)
+    {
+        archive.beginObject();
+        m_particleModules[i]->serialize(archive);
+        archive.endObject();
+    }
 
-	rapidjson::Value moduleData(rapidjson::kArrayType);
-	for (auto& module : m_particleModules)
-	{
-		moduleData.PushBack(module->getJSON(domTree), domTree.GetAllocator());
-	}
-
-	emitterInfo.AddMember("Modules", moduleData, domTree.GetAllocator());
-
-	return emitterInfo;
+    archive.endArray();
 }
 
-bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo) {
 
-	if (!emitterInfo.HasMember("Modules")) return false;
 
 	const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
 

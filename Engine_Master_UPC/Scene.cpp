@@ -19,6 +19,8 @@
 #include "Transform.h"
 #include "SceneReferenceResolver.h"
 
+#include "IArchive.h"
+
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
 
@@ -51,6 +53,7 @@ bool Scene::init()
     setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
     m_allObjects.push_back(std::move(gameCamera));
+    m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
     m_rootObjects.push_back(rawPtr);
 
     for (const auto& go : m_allObjects)
@@ -127,6 +130,7 @@ GameObject* Scene::createGameObject()
     else
     {
         m_allObjects.push_back(std::move(newGameObject));
+        m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
         m_rootObjects.push_back(rawPtr);
         markDirty();
     }
@@ -149,6 +153,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     else
     {
         m_allObjects.push_back(std::move(newGameObject));
+        m_objectIndexMap[raw] = m_allObjects.size() - 1;
         m_rootObjects.push_back(raw);
         markDirty();
     }
@@ -248,6 +253,7 @@ void Scene::flushPendingGameObjects()
 
     for (auto& pendingObject : m_pendingObjectsToAdd)
     {
+        m_objectIndexMap[pendingObject.get()] = m_allObjects.size();
         m_allObjects.push_back(std::move(pendingObject));
     }
 
@@ -260,6 +266,22 @@ void Scene::flushPendingGameObjects()
 void Scene::releasePendingDestroyedGameObjects()
 {
     CommandQueue* commandQueue = app->getModuleD3D12()->getCommandQueue();
+
+    {
+        bool needsSignal = false;
+        for (const auto& p : m_pendingDestroyedObjects)
+        {
+            if (p.fenceValue == 0) { needsSignal = true; break; }
+        }
+        if (needsSignal)
+        {
+            const uint64_t fenceValue = commandQueue->signal();
+            for (auto& p : m_pendingDestroyedObjects)
+            {
+                if (p.fenceValue == 0) p.fenceValue = fenceValue;
+            }
+        }
+    }
 
     auto it = m_pendingDestroyedObjects.begin();
 
@@ -279,35 +301,91 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
 {
-    m_allObjects.push_back(std::move(gameObject));
+    std::vector<std::unique_ptr<GameObject>> all;
+    all.push_back(std::move(gameObject));
+
+    for (size_t i = 0; i < all.size(); ++i)
+        for (auto& child : all[i]->releaseChildren())
+            all.push_back(std::move(child));
+
+    std::vector<GameObject*> newGOs;
+    newGOs.reserve(all.size());
+
+    for (auto& go : all)
+    {
+        GameObject* raw = go.get();
+        newGOs.push_back(raw);
+        m_allObjects.push_back(std::move(go));
+        m_objectIndexMap[raw] = m_allObjects.size() - 1;
+        if (raw->GetTransform()->getRoot() == nullptr)
+            m_rootObjects.push_back(raw);
+    }
+
     markDirty();
+
+    SceneReferenceResolver resolver;
+    for (GameObject* obj : newGOs)
+    {
+        resolver.registerGameObject(obj, obj);
+        for (Component* c : obj->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+    }
+
+    for (GameObject* obj : newGOs)
+    {
+        for (Component* c : obj->GetAllComponents())
+            c->fixReferences(resolver);
+    }
+
+    for (GameObject* obj : newGOs)
+    {
+        TriggerComponent* trigger = obj->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+        if (trigger != nullptr)
+        {
+            registerTrigger(trigger);
+        }
+    }
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
 {
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        unregisterTrigger(trigger);
+    }
+
     removeFromRootList(gameObject);
 
-    auto it = std::find_if(
-        m_allObjects.begin(),
-        m_allObjects.end(),
-        [gameObject](const std::unique_ptr<GameObject>& ptr)
-        {
-            return ptr.get() == gameObject;
+    auto mapIt = m_objectIndexMap.find(gameObject);
+    if (mapIt == m_objectIndexMap.end()) return;
+
+    const size_t idx = mapIt->second;
+    const size_t lastIdx = m_allObjects.size() - 1;
+
+    app->getModuleScene()->removeGameObjectFromQuadtree(*m_allObjects[idx].get());
+
+    m_pendingDestroyedObjects.push_back(
+        PendingDestroyedGameObject{
+            std::move(m_allObjects[idx]),
+            0
         });
 
-    if (it != m_allObjects.end())
+    if (idx != lastIdx)
     {
-        const uint64_t fenceValue = app->getModuleD3D12()->getCommandQueue()->signal();
-
-		app->getModuleScene()->removeGameObjectFromQuadtree(*it->get());
-
-        m_pendingDestroyedObjects.push_back(
-            PendingDestroyedGameObject{
-                std::move(*it),
-                fenceValue
-            });
-        m_allObjects.erase(it);
+        m_allObjects[idx] = std::move(m_allObjects[lastIdx]);
+        m_objectIndexMap[m_allObjects[idx].get()] = idx;
     }
+
+    m_allObjects.pop_back();
+    m_objectIndexMap.erase(mapIt);
     markDirty();
 }
 
@@ -406,6 +484,7 @@ GameObject* Scene::createDirectionalLightOnInit()
     raw->init();
 
     m_allObjects.push_back(std::move(go));
+    m_objectIndexMap[raw] = m_allObjects.size() - 1;
     m_rootObjects.push_back(raw);
     markDirty();
 
@@ -421,7 +500,16 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
     for (const auto& obj : m_allObjects)
     {
+        if (obj->GetTransform()->getRoot() != nullptr)
+            continue;
+
         result.push_back(obj.get());
+
+        for (size_t j = result.size() - 1; j < result.size(); ++j)
+        {
+            for (GameObject* child : result[j]->GetTransform()->getAllChildren())
+                result.push_back(child);
+        }
     }
 
     return result;
@@ -524,7 +612,12 @@ void Scene::clearScene()
     m_rootObjects.clear();
     m_allObjects.clear();
 
+    m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
+    m_isUpdating = false;
+    m_objectsToRemove.clear(); 
+    m_pendingObjectsToAdd.clear();
+    m_pendingRootObjectsToAdd.clear();
     markDirty();
 }
 
@@ -538,29 +631,124 @@ void Scene::markDirty()
     }
 }
 
+#pragma region Triggers
 void Scene::registerTrigger(TriggerComponent* trigger)
 {
-    if (m_triggerSystem)
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
     {
-        m_triggerSystem->registerTrigger(trigger);
+        return;
     }
-}
 
+    if (m_triggerSystem == nullptr || trigger == nullptr)
+    {
+        return;
+    }
+
+    if (!trigger->isActive())
+    {
+        return;
+    }
+
+    m_triggerSystem->registerTrigger(trigger);
+}
 void Scene::unregisterTrigger(TriggerComponent* trigger)
 {
-    if (m_triggerSystem)
+    if (m_triggerSystem == nullptr || trigger == nullptr)
     {
-        m_triggerSystem->unregisterTrigger(trigger);
+        return;
     }
+
+    m_triggerSystem->unregisterTrigger(trigger);
 }
 
 void Scene::clearTriggers()
 {
-    if (m_triggerSystem)
+    if (m_triggerSystem == nullptr)
     {
-        m_triggerSystem->clear();
+        return;
+    }
+
+    m_triggerSystem->clear();
+}
+
+void Scene::registerAllTriggersInScene()
+{
+    clearTriggers();
+
+    for (const std::unique_ptr<GameObject>& gameObjectPtr : m_allObjects)
+    {
+        GameObject* gameObject = gameObjectPtr.get();
+
+        if (gameObject == nullptr)
+        {
+            continue;
+        }
+
+        TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+        if (trigger == nullptr)
+        {
+            continue;
+        }
+
+        registerTrigger(trigger);
     }
 }
+
+void Scene::registerTriggersInGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        registerTrigger(trigger);
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        registerTriggersInGameObject(child);
+    }
+}
+
+void Scene::unregisterTriggersInGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        unregisterTrigger(trigger);
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        unregisterTriggersInGameObject(child);
+    }
+}
+#pragma endregion
 
 #pragma region MusicBanks
 const std::vector<std::string>& Scene::getLoadedBanks() const
@@ -597,3 +785,139 @@ void Scene::unloadSoundBanks()
     app->getModuleMusic()->unloadAllBanks();
 }
 #pragma endregion
+
+void Scene::serialize(IArchive& archive)
+{
+    archive.serialize(m_name, "name");
+
+    archive.beginObject("Lighting");
+    m_lighting.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("SkyBox");
+    m_skybox.serialize(archive);
+    archive.endObject();
+
+    {
+        SoundBanksData soundData;
+        if (archive.mode() == ArchiveMode::Output)
+            soundData.banks = m_loadedBanks;
+        archive.beginObject("SoundBanks");
+        soundData.serialize(archive);
+        archive.endObject();
+        if (archive.mode() == ArchiveMode::Input)
+            m_loadedBanks = std::move(soundData.banks);
+    }
+
+    uint64_t defaultCameraUid = 0;
+    if (archive.mode() == ArchiveMode::Output && m_defaultCamera)
+    {
+        GameObject* owner = m_defaultCamera->getOwner();
+        defaultCameraUid = (uint64_t)owner->GetID();
+    }
+    archive.serialize(defaultCameraUid, "defaultCameraUid");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        uint32_t goCount = 0;
+        archive.beginArray(goCount, "GameObjects");
+
+        struct GoMeta { uint64_t uid; uint64_t transformUid; uint64_t parentUid; };
+        std::vector<GoMeta> goMeta;
+        goMeta.reserve(goCount);
+        std::vector<GameObject*> gos;
+        gos.reserve(goCount);
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            archive.beginObject();
+
+            uint64_t uid = 0, transformUid = 0, parentUid = 0;
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+            archive.serialize(parentUid, "parentUid");
+
+            GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid);
+            go->serialize(archive);
+
+            goMeta.push_back({uid, transformUid, parentUid});
+            gos.push_back(go);
+
+            archive.endObject();
+        }
+        archive.endArray();
+
+        for (size_t i = 0; i < gos.size(); ++i)
+        {
+            if (goMeta[i].parentUid == 0) continue;
+
+            GameObject* child = gos[i];
+            GameObject* parent = findGameObjectByUID((UID)goMeta[i].parentUid);
+            if (parent)
+            {
+                child->GetTransform()->setRoot(parent->GetTransform());
+                parent->GetTransform()->addChild(child);
+                removeFromRootList(child);
+            }
+        }
+
+        if (defaultCameraUid != 0)
+        {
+            GameObject* go = findGameObjectByUID((UID)defaultCameraUid);
+            if (go)
+            {
+                auto* cam = go->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+                setDefaultCamera(cam);
+            }
+        }
+    }
+    else
+    {
+        auto allGOs = getAllGameObjects();
+        uint32_t goCount = static_cast<uint32_t>(allGOs.size());
+        archive.beginArray(goCount, "GameObjects");
+
+        for (uint32_t i = 0; i < goCount; ++i)
+        {
+            GameObject* go = allGOs[i];
+            archive.beginObject();
+
+            uint64_t uid = go->GetID();
+            uint64_t transformUid = go->GetTransform()->getID();
+            archive.serialize(uid, "uid");
+            archive.serialize(transformUid, "transformUid");
+
+            Transform* parentTransform = go->GetTransform()->getRoot();
+            uint64_t parentUid = parentTransform ? (uint64_t)parentTransform->getOwner()->GetID() : 0;
+            archive.serialize(parentUid, "parentUid");
+
+            go->serialize(archive);
+
+            archive.endObject();
+        }
+        archive.endArray();
+    }
+}
+
+void Scene::FixReferences()
+{
+    fixReferencesFor(getAllGameObjects());
+}
+
+void Scene::fixReferencesFor(const std::vector<GameObject*>& gos)
+{
+    SceneReferenceResolver resolver;
+
+    for (GameObject* obj : gos)
+    {
+        resolver.registerGameObject(obj, obj);
+        for (Component* c : obj->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+    }
+
+    for (GameObject* obj : gos)
+    {
+        for (Component* c : obj->GetAllComponents())
+            c->fixReferences(resolver);
+    }
+}

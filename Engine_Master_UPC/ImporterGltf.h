@@ -7,27 +7,20 @@
 class AnimationAsset;
 class SkinAsset;
 class AnimationStateMachineAsset;
-class PrefabAsset;
+class Prefab;
 class MaterialAsset;
 class MeshAsset;
 class GameObject;
-class ImporterMesh;
-class ImporterMaterial;
 class ImporterPrefab;
-class ImporterAnimation;
-class ImporterSkin;
-class ImporterAnimationStateMachine;
 
-// Handles the full import pipeline for .gltf source files.
-// Mesh and material details are delegated to MeshImporter and MaterialImporter.
-class ImporterGltf : public ImporterSource<tinygltf::Model, PrefabAsset, AssetType::PREFAB>
+class ImporterGltf : public ImporterSource<tinygltf::Model, Prefab, AssetType::PREFAB>
 {
 public:
 
-    ImporterGltf(ImporterMesh* importerMesh, ImporterMaterial* importerMaterial, ImporterPrefab* importerPrefab,
-        ImporterAnimation* importerAnimation,
-        ImporterSkin* importerSkin,
-        ImporterAnimationStateMachine* importerAnimationStateMachine);
+    ImporterGltf(Importer* importerMesh, Importer* importerMaterial, ImporterPrefab* importerPrefab,
+        Importer* importerAnimation,
+        Importer* importerSkin,
+        Importer* importerAnimationStateMachine);
 
     bool   canImport(const std::filesystem::path& path) const override;
     Asset* createAssetInstance(AssetReference& ref) const override;
@@ -36,9 +29,7 @@ public:
 
 protected:
     bool     loadExternal(const std::filesystem::path& path, tinygltf::Model& out) override;
-    void     importTyped(const tinygltf::Model& source, PrefabAsset* model)        override;
-    uint64_t saveTyped(const PrefabAsset* model, uint8_t** outBuffer)              override;
-    void     loadTyped(const uint8_t* buffer, PrefabAsset* model)                  override;
+    void     importTyped(const tinygltf::Model& source, Prefab* model)        override;
 
 private:
     void loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* materialAsset);
@@ -72,10 +63,10 @@ private:
 
     const std::filesystem::path* m_currentFilePath = nullptr;
 
-    ImporterMesh* m_importerMesh;
-    ImporterMaterial* m_importerMaterial;
+    Importer* m_importerMesh;
+    Importer* m_importerMaterial;
     ImporterPrefab* m_importerPrefab;
-    ImporterAnimation* m_importerAnimation;
-    ImporterSkin* m_importerSkin;
-    ImporterAnimationStateMachine* m_importerAnimationStateMachine;
+    Importer* m_importerAnimation;
+    Importer* m_importerSkin;
+    Importer* m_importerAnimationStateMachine;
 };

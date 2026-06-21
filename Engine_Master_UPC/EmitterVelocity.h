@@ -15,8 +15,7 @@ public:
 	void update(EmitterInstance* particleData) override;
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 

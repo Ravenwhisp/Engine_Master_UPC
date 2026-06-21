@@ -21,8 +21,7 @@ public:
 	const Vector2& getEndScale() const { return m_endScale; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 
