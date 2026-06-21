@@ -71,13 +71,13 @@ bool EmitterAnimation::drawUi()
 
 	if (ImGui::CollapsingHeader("Animation")) {
 
-		if (ImGui::DragInt("Tile rows", &m_rows, 1.f, 1))
+		if (ImGui::DragInt("Tile rows##Animation", &m_rows, 1.f, 1))
 		{
 			m_totalFrames = static_cast<float>(m_rows * m_columns);
 			parameterChanged = true;
 		}
 
-		if (ImGui::DragInt("Tile columns", &m_columns, 1.f, 1))
+		if (ImGui::DragInt("Tile columns##Animation", &m_columns, 1.f, 1))
 		{
 			m_totalFrames = static_cast<float>(m_rows * m_columns);
 			parameterChanged = true;
@@ -85,7 +85,7 @@ bool EmitterAnimation::drawUi()
 
 		ImGui::Spacing();
 
-		parameterChanged |= ImGui::DragFloat("FPS", &m_fps, 0.1f, 0.f);
+		parameterChanged |= ImGui::DragFloat("FPS##Animation", &m_fps, 0.1f, 0.f);
 
 		ImGui::Spacing();
 
@@ -177,7 +177,7 @@ bool EmitterAnimation::drawStartFrameUI()
 	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
 	{
 		int parameterType = static_cast<int>(m_startFrameType);
-		if (ImGui::Combo("Starting frame type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (curve only if needed)
+		if (ImGui::Combo("Starting frame type##Animation", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (curve only if needed)
 		{
 			m_startFrameType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -189,7 +189,7 @@ bool EmitterAnimation::drawStartFrameUI()
 	case ParameterType::CONSTANT:
 
 	{
-		parameterChanged |= ImGui::DragFloat("Starting frame", &m_startFrame, 0.1f, 0.f, 0.999);
+		parameterChanged |= ImGui::DragFloat("Starting frame##Animation", &m_startFrame, 0.1f, 0.f, 0.999);
 	}
 	
 	break;
@@ -197,8 +197,8 @@ bool EmitterAnimation::drawStartFrameUI()
 	case ParameterType::RANDOM_BETWEEN_TWO:
 
 	{
-		parameterChanged |= ImGui::DragFloat("Starting frame", &m_startFrame, 0.1f, 0.f, 0.999);
-		parameterChanged |= ImGui::DragFloat("Starting frame 2", &m_startFrame2, 0.1f, 0.f, 0.999);
+		parameterChanged |= ImGui::DragFloat("Starting frame 1##Animation", &m_startFrame, 0.1f, 0.f, 0.999);
+		parameterChanged |= ImGui::DragFloat("Starting frame 2##Animation", &m_startFrame2, 0.1f, 0.f, 0.999);
 	}
 
 	}

@@ -229,7 +229,7 @@ bool EmitterRotation::drawStartRotationUI()
 
 	{
 		float rotationDegrees = XMConvertToDegrees(m_startRotation);
-		if (ImGui::DragFloat("Start rotation##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Start rotation 1##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_startRotation = XMConvertToRadians(rotationDegrees);
 
