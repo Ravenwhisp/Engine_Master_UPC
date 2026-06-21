@@ -62,6 +62,12 @@ void TrailComponent::drawUi()
 
 void TrailComponent::update()
 {
+
+    if(m_points.size() <= 0)
+    {
+        CreatePoint();
+    }
+
     Vector3 begining = m_points.front()->position;
     Vector3 end = m_owner->GetTransform()->getPosition();
 
@@ -83,14 +89,11 @@ void TrailComponent::update()
         if (trailPoint->get()->lifeTime <= 0.0f)
         {
             trailPoint = m_points.erase(trailPoint);
-        }  
-        else
-        {
-            ++trailPoint;
             continue;
-        }
+        }  
 
         trailPoint->get()->width = std::lerp(m_endWidth, m_startWidth, trailPoint->get()->lifeTime / m_pointLifetime);
+        ++trailPoint;
     }
 
 }
@@ -103,4 +106,48 @@ void TrailComponent::CreatePoint()
     newPoint->position = m_owner->GetTransform()->getPosition();
     newPoint->rotation = m_owner->GetTransform()->getRotation();
     newPoint->lifeTime = m_pointLifetime;
+}
+
+std::unique_ptr<Component> TrailComponent::clone(GameObject* newOwner) const
+{
+    std::unique_ptr<TrailComponent> cloned = std::make_unique<TrailComponent>(m_uuid, newOwner);
+
+   cloned->m_startWidth    = m_startWidth;
+   cloned->m_endWidth      = m_endWidth;
+   cloned->m_spawnDistance = m_spawnDistance;
+   cloned->m_pointLifetime = m_pointLifetime;
+   cloned->m_colorOverTime = m_colorOverTime;
+
+    return cloned;
+}
+
+rapidjson::Value TrailComponent::getJSON(rapidjson::Document& domTree)
+{
+    rapidjson::Value componentInfo(rapidjson::kObjectType);
+
+    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::PARTICLE_SYSTEM), domTree.GetAllocator());
+    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+
+    //componentInfo.AddMember("TextureAssetId", m_textureAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
+
+    return componentInfo;
+}
+
+bool TrailComponent::deserializeJSON(const rapidjson::Value& componentInfo)
+{
+    /*if (componentInfo.HasMember("TextureAssetId"))
+    {
+        m_textureAsset.deserializeJson(componentInfo["TextureAssetId"]);
+    }*/
+
+    return true;
+}
+
+void TrailComponent::debugDraw()
+{
+    if (!isActive() || !m_owner->GetActive() ) //|| !m_textureAsset.isValid()
+    {
+        return;
+    }
 }

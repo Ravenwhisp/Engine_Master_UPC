@@ -1,12 +1,12 @@
 #pragma once
 #include "IRenderPass.h"
 #include "Vertex.h"
+#include "IndexBuffer.h"
+#include "VertexBuffer.h"
 
 #include <vector>
 #include <d3d12.h>
 
-class VertexBuffer;
-class IndexBuffer;
 class RingBuffer;
 
 using Microsoft::WRL::ComPtr;

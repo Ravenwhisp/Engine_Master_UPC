@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "imgui_color_gradient.h"
 #include <vector>
 
 class TrailComponent : public Component
@@ -26,6 +27,13 @@ public:
 	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
 
 	ImGradient& getColorGradient() { return m_colorOverTime; }
+
+	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+
+	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
+	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+
+	void debugDraw() override;
 
 
 private:

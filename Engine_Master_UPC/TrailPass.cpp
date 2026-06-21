@@ -16,6 +16,8 @@
 
 TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 {
+    m_device = device;
+
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
@@ -128,41 +130,44 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             continue;
         }
 
-        if (trailComponent->getTrailPoints().size() > 1) 
+        if (trailComponent->getTrailPoints().size() <= 1)
         {
-            for (auto point = trailComponent->getTrailPoints().begin(); point != trailComponent->getTrailPoints().end(); )
-            {
-                Vector3 position = point->get()->position;
-                Vector3 perpendicularVector = Vector3::Transform(Vector3::UnitX, point->get()->rotation);
-                float halfWidth = point->get()->width * 0.5f;
-
-                Vector3 prevPos = (point == trailComponent->getTrailPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
-                Vector3 nextPos = (point == trailComponent->getTrailPoints().end()) ? owner->GetTransform()->getPosition() : std::next(point)->get()->position;
-
-                Vector3 tangent = nextPos - prevPos;
-                Vector3 right = tangent;
-                right.Cross(Vector3::Up).Normalize();
-                Vector3 normal = right;
-                normal.Cross(tangent).Normalize();
+            continue;
+        }
 
 
-                VertexTrails leftVertex{};
-                leftVertex.position = position - perpendicularVector * halfWidth;
-                leftVertex.tangent = tangent;
-                leftVertex.normal = normal;
-                leftVertex.texCoord0 = Vector2::Zero;
-                leftVertex.color = Vector4(1, 1, 1, 0.5f);
+        for (auto point = trailComponent->getTrailPoints().begin(); point != trailComponent->getTrailPoints().end(); point++)
+        {
+            Vector3 position = point->get()->position;
+            Vector3 perpendicularVector = Vector3::Transform(Vector3::UnitX, point->get()->rotation);
+            float halfWidth = point->get()->width * 0.5f;
 
-                VertexTrails rightVertex{};
-                rightVertex.position = position + perpendicularVector * halfWidth;
-                rightVertex.tangent = tangent;
-                rightVertex.normal = normal;
-                rightVertex.texCoord0 = Vector2::Zero;
-                rightVertex.color = Vector4(1, 1, 1, 0.5f);
+            Vector3 prevPos = (point == trailComponent->getTrailPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
+            Vector3 nextPos = (point == std::prev(trailComponent->getTrailPoints().end())) ? owner->GetTransform()->getPosition() : std::next(point)->get()->position;
 
-                vertices.push_back(leftVertex);
-                vertices.push_back(rightVertex);
-            }
+            Vector3 tangent = nextPos - prevPos;
+            Vector3 right = tangent;
+            right.Cross(Vector3::Up).Normalize();
+            Vector3 normal = right;
+            normal.Cross(tangent).Normalize();
+
+
+            VertexTrails leftVertex{};
+            leftVertex.position = position - perpendicularVector * halfWidth;
+            leftVertex.tangent = tangent;
+            leftVertex.normal = normal;
+            leftVertex.texCoord0 = Vector2::Zero;
+            leftVertex.color = Vector4(1, 1, 1, 0.5f);
+
+            VertexTrails rightVertex{};
+            rightVertex.position = position + perpendicularVector * halfWidth;
+            rightVertex.tangent = tangent;
+            rightVertex.normal = normal;
+            rightVertex.texCoord0 = Vector2::Zero;
+            rightVertex.color = Vector4(1, 1, 1, 0.5f);
+
+            vertices.push_back(leftVertex);
+            vertices.push_back(rightVertex);
         }
 
         for (uint32_t i = firstVertex; i < vertices.size() - 2; i += 2)
