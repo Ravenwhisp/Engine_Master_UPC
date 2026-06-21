@@ -35,11 +35,11 @@ void EmitterRotation::update(EmitterInstance* particleData)
 
 	if (m_angularVelocityType == ParameterType::RANDOM_BETWEEN_TWO) 
 	{
-		setNewParticlesRotationWithRange(particlePool, particleData->getNewParticles());
+		setNewParticlesVelocityWithRange(particlePool, particleData->getNewParticles());
 	}
 	else
 	{
-		setNewParticlesRotationFixed(particlePool, particleData->getNewParticles());
+		setNewParticlesVelocityFixed(particlePool, particleData->getNewParticles());
 	}
 }
 
@@ -49,17 +49,9 @@ bool EmitterRotation::drawUi()
 
 	if (ImGui::CollapsingHeader("Rotation"))
 	{
-		// Maybe we are better off having separate variables in degrees, and just copying the conversion to the radians ones...
+		// Maybe we are better off having separate variables in degrees for the UI, and just copying the conversion to the radians ones...
 
-		{
-			float rotationDegrees = XMConvertToDegrees(m_startRotation);
-			if (ImGui::DragFloat("Start rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f)) 
-			{
-				m_startRotation = XMConvertToRadians(rotationDegrees);
-
-				parameterChanged = true;
-			}
-		}
+		parameterChanged = drawStartRotationUI();
 
 		parameterChanged |= drawAngularVelocityUI();
 
@@ -75,7 +67,14 @@ rapidjson::Value EmitterRotation::getJSON(rapidjson::Document& domTree)
 
 	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::ROTATION), domTree.GetAllocator());
 
+	moduleInfo.AddMember("RotationType", unsigned int(m_startRotationType), domTree.GetAllocator());
 	moduleInfo.AddMember("StartRotation", m_startRotation, domTree.GetAllocator());
+
+	if (m_startRotationType != ParameterType::CONSTANT)
+	{
+		moduleInfo.AddMember("StartRotation2", m_startRotation2, domTree.GetAllocator());
+	}
+
 
 	moduleInfo.AddMember("VelocityType", unsigned int(m_angularVelocityType), domTree.GetAllocator());
 	moduleInfo.AddMember("AngularVelocity", m_angularVelocity, domTree.GetAllocator());
@@ -108,6 +107,34 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 	{
 		m_startRotation = moduleInfo["StartRotation"].GetFloat();
 	}
+
+	if (moduleInfo.HasMember("RotationType")) // for versions that support choose random between 2 values start rotations
+	{
+		unsigned int rotationTypeUInt = moduleInfo["RotationType"].GetUint();
+		ParameterType rotationType = static_cast<ParameterType>(rotationTypeUInt);
+
+		switch (rotationType) {
+
+		case ParameterType::CONSTANT:
+
+			m_startRotationType = ParameterType::CONSTANT;
+
+			break;
+
+		case ParameterType::RANDOM_BETWEEN_TWO:
+
+			m_startRotationType = ParameterType::RANDOM_BETWEEN_TWO;
+
+			if (moduleInfo.HasMember("StartRotation2"))
+			{
+				m_startRotation2 = moduleInfo["StartRotation2"].GetFloat();
+			}
+
+			// (curve case would go here)
+		}
+
+	}
+	else m_startRotationType = ParameterType::CONSTANT; // we recreate state corresponding to previous version (PROBABLY UNNEEDED, SINCE THE MODULE IS FRESHLY INSTANTIATED)
 
 	if (moduleInfo.HasMember("AngularVelocity"))
 	{
@@ -166,6 +193,64 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 	}
 
 	return true;
+}
+
+bool EmitterRotation::drawStartRotationUI()
+{
+	bool parameterChanged = false;
+
+	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
+	{
+		int parameterType = static_cast<int>(m_startRotationType);
+		if (ImGui::Combo("Start rotation type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
+		{
+			m_startRotationType = static_cast<ParameterType>(parameterType);
+			parameterChanged = true;
+		}
+	}
+
+	switch (m_startRotationType) {
+
+	case ParameterType::CONSTANT:
+
+	{
+		float rotationDegrees = XMConvertToDegrees(m_startRotation);
+		if (ImGui::DragFloat("Start rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		{
+			m_startRotation = XMConvertToRadians(rotationDegrees);
+
+			parameterChanged = true;
+		}
+	}
+	break;
+
+
+	case ParameterType::RANDOM_BETWEEN_TWO:
+
+	{
+		float rotationDegrees = XMConvertToDegrees(m_startRotation);
+		if (ImGui::DragFloat("Start rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		{
+			m_startRotation = XMConvertToRadians(rotationDegrees);
+
+			parameterChanged = true;
+		}
+
+		rotationDegrees = XMConvertToDegrees(m_startRotation2);
+		if (ImGui::DragFloat("Start rotation 2", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		{
+			m_startRotation2 = XMConvertToRadians(rotationDegrees);
+
+			parameterChanged = true;
+		}
+	}
+
+	// (Curve case will be added if needed) 
+	}
+
+	ImGui::Spacing();
+
+	return parameterChanged;
 }
 
 bool EmitterRotation::drawAngularVelocityUI()
@@ -319,43 +404,97 @@ void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PAR
 	}
 }
 
-void EmitterRotation::setNewParticlesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
+void EmitterRotation::setNewParticlesVelocityFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
-	for (auto& particleIndex : newParticles)
+	if (m_startRotationType == ParameterType::CONSTANT) // we just assign the fixed start rotation value, alongside the velocity 
 	{
-		particlePool[particleIndex].rotationZ = m_startRotation;
 
-		if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
+		for (auto& particleIndex : newParticles)
 		{
-			particlePool[particleIndex].rotationVelocity = -m_angularVelocity;
-			particlePool[particleIndex].flippedRotation = true;
+			particlePool[particleIndex].rotationZ = m_startRotation;
+
+			if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
+			{
+				particlePool[particleIndex].rotationVelocity = -m_angularVelocity;
+				particlePool[particleIndex].flippedRotation = true;
+			}
+			else
+			{
+				particlePool[particleIndex].rotationVelocity = m_angularVelocity;
+				particlePool[particleIndex].flippedRotation = false;
+			}
 		}
-		else
+
+	}
+	else 
+	{ // => generate random start rotation
+
+		for (auto& particleIndex : newParticles)
 		{
-			particlePool[particleIndex].rotationVelocity = m_angularVelocity;
-			particlePool[particleIndex].flippedRotation = false;
+			float scale = uniform_rand();
+			float randomStartRotation = m_startRotation + (m_startRotation2 - m_startRotation) * scale;
+			particlePool[particleIndex].rotationZ = randomStartRotation;
+
+			if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
+			{
+				particlePool[particleIndex].rotationVelocity = -m_angularVelocity;
+				particlePool[particleIndex].flippedRotation = true;
+			}
+			else
+			{
+				particlePool[particleIndex].rotationVelocity = m_angularVelocity;
+				particlePool[particleIndex].flippedRotation = false;
+			}
 		}
 	}
 }
 
-void EmitterRotation::setNewParticlesRotationWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
+void EmitterRotation::setNewParticlesVelocityWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
-	for (auto& particleIndex : newParticles)
+	if (m_startRotationType == ParameterType::CONSTANT) // we just assign the fixed start rotation value, alongside the velocity
 	{
-		particlePool[particleIndex].rotationZ = m_startRotation;
-
-		float scale = uniform_rand();
-		float randomAngularVelocity = m_angularVelocity + (m_angularVelocity2 - m_angularVelocity) * scale;
-
-		if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
+		for (auto& particleIndex : newParticles)
 		{
-			particlePool[particleIndex].rotationVelocity = -randomAngularVelocity;
-			particlePool[particleIndex].flippedRotation = true;
+			particlePool[particleIndex].rotationZ = m_startRotation;
+
+			float scale = uniform_rand();
+			float randomAngularVelocity = m_angularVelocity + (m_angularVelocity2 - m_angularVelocity) * scale;
+
+			if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
+			{
+				particlePool[particleIndex].rotationVelocity = -randomAngularVelocity;
+				particlePool[particleIndex].flippedRotation = true;
+			}
+			else
+			{
+				particlePool[particleIndex].rotationVelocity = randomAngularVelocity;
+				particlePool[particleIndex].flippedRotation = false;
+			}
 		}
-		else
+
+	}
+	else 
+	{ // => generate random start rotation
+
+		for (auto& particleIndex : newParticles)
 		{
-			particlePool[particleIndex].rotationVelocity = randomAngularVelocity;
-			particlePool[particleIndex].flippedRotation = false;
+			float scale = uniform_rand();
+			float randomStartRotation = m_startRotation + (m_startRotation2 - m_startRotation) * scale;
+			particlePool[particleIndex].rotationZ = randomStartRotation;
+
+			scale = uniform_rand(); // we reuse for angular velocity
+			float randomAngularVelocity = m_angularVelocity + (m_angularVelocity2 - m_angularVelocity) * scale;
+
+			if (uniform_rand() + 0.001f <= m_flipRotationLikelihood) // + 0.001f so that m_flipRotationLikelihood == 0 can be used as no flip case  
+			{
+				particlePool[particleIndex].rotationVelocity = -randomAngularVelocity;
+				particlePool[particleIndex].flippedRotation = true;
+			}
+			else
+			{
+				particlePool[particleIndex].rotationVelocity = randomAngularVelocity;
+				particlePool[particleIndex].flippedRotation = false;
+			}
 		}
 	}
 }

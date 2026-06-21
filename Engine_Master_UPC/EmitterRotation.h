@@ -33,8 +33,12 @@ private:
 
 	// We will want Bezier curves to tweak these better (size, speed?)
 	// (Rotations in radians)
+	ParameterType m_startRotationType = ParameterType::CONSTANT;
 	float m_startRotation = 0.f;
-	
+	float m_startRotation2 = 0.f; // if type != constant
+	// (Maybe in the future we will add curve, as another option)
+
+	bool drawStartRotationUI();
 
 	ParameterType m_angularVelocityType = ParameterType::CONSTANT;
 	float m_angularVelocity = 0.f;
@@ -48,8 +52,8 @@ private:
 	void updateAlivesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime);
 	void updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifetime);
 
-	void setNewParticlesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
-	void setNewParticlesRotationWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
+	void setNewParticlesVelocityFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
+	void setNewParticlesVelocityWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
 
 
 	float getNormalizedAngle(float angle);
