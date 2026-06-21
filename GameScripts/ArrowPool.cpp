@@ -28,7 +28,7 @@ void ArrowPool::Start()
 
 bool ArrowPool::createArrow()
 {
-    if (m_arrowPrefab.m_ref.isValid())
+    if (!m_arrowPrefab.m_ref.isValid())
     {
         return false;
     }
