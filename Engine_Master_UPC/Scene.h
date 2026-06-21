@@ -11,6 +11,8 @@
 #include "AssetReference.h"
 #include "UID.h"
 
+#include <unordered_map>
+
 struct ID3D12GraphicsCommandList;
 
 class GameObject;
@@ -37,6 +39,8 @@ private:
     std::vector<GameObject*> m_rootObjects;
 
     std::vector<UID> m_objectsToRemove;
+
+    std::unordered_map<GameObject*, size_t> m_objectIndexMap;
 
     bool m_componentCacheDirty = true;
 
@@ -141,6 +145,11 @@ public:
     void registerTrigger(TriggerComponent* trigger);
     void unregisterTrigger(TriggerComponent* trigger);
     void clearTriggers();
+
+    void registerAllTriggersInScene();
+
+    void registerTriggersInGameObject(GameObject* gameObject);
+    void unregisterTriggersInGameObject(GameObject* gameObject);
 #pragma endregion
 
 #pragma region MusicBanks

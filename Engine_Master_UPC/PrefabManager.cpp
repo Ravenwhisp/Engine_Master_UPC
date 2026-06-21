@@ -37,6 +37,48 @@ PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
     return comp;
 }
 
+void regeneratePrefabInstanceUIDs(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    gameObject->SetUID(GenerateUID());
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform != nullptr)
+    {
+        transform->setUID(GenerateUID());
+    }
+
+    for (Component* component : gameObject->GetAllComponents())
+    {
+        if (component == nullptr)
+        {
+            continue;
+        }
+
+        if (component->getType() == ComponentType::TRANSFORM)
+        {
+            continue;
+        }
+
+        component->setUID(GenerateUID());
+    }
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        regeneratePrefabInstanceUIDs(child);
+    }
+}
+
 } // anonymous namespace
 
 PrefabManager::PrefabManager(ModuleAssets* moduleAssets) : m_moduleAssets(moduleAssets)
@@ -248,6 +290,9 @@ GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
 {
     auto clone = prefab.spawnClone();
     if (!clone) return nullptr;
+
+    regeneratePrefabInstanceUIDs(clone.get());
+
     GameObject* go = clone.get();
 
     auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));

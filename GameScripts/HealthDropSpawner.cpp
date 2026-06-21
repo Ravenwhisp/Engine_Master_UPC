@@ -35,15 +35,14 @@ GameObject* HealthDropSpawner::drop(const AssetReference& prefabRef, const Vecto
         return nullptr;
     }
 
-    Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
-    if (script == nullptr)
+    HealthPickup* healthPickup = GameObjectAPI::findScript<HealthPickup>(pickup);
+    if (healthPickup == nullptr)
     {
         Debug::warn("[HealthDropSpawner] Spawned prefab (UID %llu) but it has no HealthPickup script.", prefabRef.m_uid);
 
         return pickup;
     }
 
-    HealthPickup* healthPickup = static_cast<HealthPickup*>(script);
     healthPickup->setupDrop(healAmount, landingPosition);
 
     return pickup;
