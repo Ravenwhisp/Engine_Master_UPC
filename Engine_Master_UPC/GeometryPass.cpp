@@ -109,7 +109,7 @@ void GeometryPass::prepare(const RenderContext& ctx)
     m_scissorRect = ctx.scissorRect;
 
     // Collect visible mesh renderers
-    m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers(RenderMode::DEFERRED);
+    m_meshRenderers = app->getModuleScene()->getVisibleDeferredMeshRenderers();
 
     // Upload SceneDataCB (camera position) to the ring buffer
     SceneDataCB sceneData{};
@@ -155,7 +155,7 @@ void GeometryPass::transitionAndClearTargets(ID3D12GraphicsCommandList4* command
     }
 
     *dsvHandle = m_gbufferSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
-    commandList->ClearDepthStencilView(*dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+    //commandList->ClearDepthStencilView(*dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     commandList->OMSetRenderTargets(GBUFFER_COUNT, rtvHandles,FALSE, dsvHandle);
     commandList->RSSetViewports(1, &m_viewport);

@@ -7,6 +7,8 @@
 #include "ModuleDescriptors.h"
 #include "ModuleRender.h"
 
+#include "GeometryPass.h"
+
 #include "SceneDataCB.h"
 #include "RingBuffer.h"
 #include "BasicMaterial.h"
@@ -22,6 +24,8 @@
 
 ForwardPrepass::ForwardPrepass(ComPtr<ID3D12Device4> device)
 {
+	m_device = device;
+
 	createRootSignature();
 	createPipelineState();
 }
@@ -91,7 +95,7 @@ void ForwardPrepass::prepare(const RenderContext& ctx)
 	m_scissorRect = ctx.scissorRect;
 
 	// Collect visible mesh renderers
-	m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers(RenderMode::DEFERRED);
+	m_meshRenderers = app->getModuleScene()->getVisibleForwardMeshRenderers();
 
 	// Upload SceneDataCB (camera position) to the ring buffer
 	SceneDataCB sceneData{};
@@ -106,9 +110,12 @@ void ForwardPrepass::apply(ID3D12GraphicsCommandList4* commandList)
 {
 	BEGIN_EVENT(commandList, "ForwardPrepass");
 
-	auto depthStencilTex = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
-	D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthStencilTex->getDSV().cpu;
-	commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsv);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[GeometryPass::GBUFFER_COUNT];
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+
+	dsvHandle = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
 
 	commandList->RSSetViewports(1, &m_viewport);
 	commandList->RSSetScissorRects(1, &m_scissorRect);
@@ -116,10 +123,8 @@ void ForwardPrepass::apply(ID3D12GraphicsCommandList4* commandList)
 	commandList->SetPipelineState(m_pipelineState.Get());
 	commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-	commandList->OMSetStencilRef(1);
-
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	
 	for (auto* renderer : m_meshRenderers)
 	{
 		renderMeshRenderer(commandList, renderer);
@@ -178,13 +183,13 @@ void ForwardPrepass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList,
 	Matrix global = transform->getGlobalMatrix();
 	Matrix mvp = useWorldSpaceSkinnedVB ? (*m_view * *m_projection).Transpose() : (global * *m_view * *m_projection).Transpose();
 
-	commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
+	commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&mvp, sizeof(Matrix)));
+	commandList->OMSetStencilRef(static_cast<UINT>(renderer->getRenderMode()));
 
 	for (int i = 0; i < submeshes.size(); i++)
 	{
 		const auto& material = materials.at(i).get();
 
-		commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&mvp, sizeof(Matrix)));
 
 		D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
 		commandList->IASetVertexBuffers(0, 1, &vbv);

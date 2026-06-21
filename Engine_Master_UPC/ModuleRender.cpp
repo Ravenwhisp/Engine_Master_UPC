@@ -143,10 +143,14 @@ void ModuleRender::preRender()
                 continue;
             }
 
+            BEGIN_EVENT(commandList, "Prepare Render Target");
+            
             auto colorTex = entry.surface->getTexture(RenderSurface::COMPOSITE);
             transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
             renderBackground(commandList, *entry.surface);
+
+            END_EVENT(commandList);
 
             if (entry.type == ViewportType::EDITOR)
             {
@@ -382,10 +386,10 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         }
     }
 
-    {
+    /*{
         PERF_RENDER("ModuleRender::renderScene::Background");
         renderBackground(commandList, outputSurface);
-    }
+    }*/
 
 
     {

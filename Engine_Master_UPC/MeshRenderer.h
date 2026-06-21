@@ -21,10 +21,10 @@ struct ModelData
 	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
-enum class RenderMode : uint8_t
+enum class RenderMode : UINT
 {
-	DEFERRED = 0,
-	FORWARD = 1,
+	DEFAULT = 0,
+	PLAYER = 1,
 	COUNT = 2
 };
 
@@ -99,5 +99,5 @@ private:
 
 	bool m_isCulled = false;
 
-	RenderMode m_renderMode = RenderMode::DEFERRED;
+	RenderMode m_renderMode = RenderMode::DEFAULT;
 };
