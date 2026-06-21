@@ -10,14 +10,14 @@ bool EmitterRender::drawUi()
     {
         const char* options[] = { "Billboard", "Horizontal", "Vertical" };
         int currentIndex = static_cast<int>(m_renderMode);
-        if (ImGui::Combo("Orientation", &currentIndex, options, IM_ARRAYSIZE(options)))
+        if (ImGui::Combo("Orientation##Render", &currentIndex, options, IM_ARRAYSIZE(options)))
         {
             m_renderMode = static_cast<RenderMode>(currentIndex);
             parameterChanged = true;
         }
 
 
-        parameterChanged |= ImGui::DragInt("Render layer", &m_layer, 1.f);
+        parameterChanged |= ImGui::DragInt("Render layer##Render", &m_layer, 1.f);
     }
 
     return parameterChanged;

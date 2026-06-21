@@ -211,34 +211,34 @@ bool EmitterColor::drawBezierCurveUI(float* curveData)
 	bool parameterChanged = false;
 
 	// (Values between 0 and 1)
-	if (ImGui::Bezier("Curve", curveData))
+	if (ImGui::Bezier("Curve##Color", curveData))
 	{
 		parameterChanged = true;
 	}
 
 	// We add some buttons to quickly change to predefined setups
-	if (ImGui::Button("Linear"))
+	if (ImGui::Button("Linear##Color"))
 	{
 		curveData[0] = 0.000f; curveData[1] = 0.000f; curveData[2] = 1.000f; curveData[3] = 1.000f;
 		parameterChanged = true;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("EaseIn"))
+	if (ImGui::Button("EaseIn##Color"))
 	{
 		curveData[0] = 0.470f; curveData[1] = 0.000f; curveData[2] = 0.745f; curveData[3] = 0.715f;
 		parameterChanged = true;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("EaseOut"))
+	if (ImGui::Button("EaseOut##Color"))
 	{
 		curveData[0] = 0.390f; curveData[1] = 0.575f; curveData[2] = 0.565f; curveData[3] = 1.000f;
 		parameterChanged = true;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("EaseInOut"))
+	if (ImGui::Button("EaseInOut##Color"))
 	{
 		curveData[0] = 0.445f; curveData[1] = 0.050f; curveData[2] = 0.550f; curveData[3] = 0.950f;
 		parameterChanged = true;

@@ -55,7 +55,7 @@ bool EmitterRotation::drawUi()
 
 		parameterChanged |= drawAngularVelocityUI();
 
-		parameterChanged |= ImGui::DragFloat("Flip rotation", &m_flipRotationLikelihood, 0.1f, 0.0f, 1.0f);
+		parameterChanged |= ImGui::DragFloat("Flip rotation##Rotation", &m_flipRotationLikelihood, 0.1f, 0.0f, 1.0f);
 	}
 
 	return parameterChanged;
@@ -202,7 +202,7 @@ bool EmitterRotation::drawStartRotationUI()
 	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
 	{
 		int parameterType = static_cast<int>(m_startRotationType);
-		if (ImGui::Combo("Start rotation type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
+		if (ImGui::Combo("Start rotation type##Rotation", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
 		{
 			m_startRotationType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -215,7 +215,7 @@ bool EmitterRotation::drawStartRotationUI()
 
 	{
 		float rotationDegrees = XMConvertToDegrees(m_startRotation);
-		if (ImGui::DragFloat("Start rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Start rotation##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_startRotation = XMConvertToRadians(rotationDegrees);
 
@@ -229,7 +229,7 @@ bool EmitterRotation::drawStartRotationUI()
 
 	{
 		float rotationDegrees = XMConvertToDegrees(m_startRotation);
-		if (ImGui::DragFloat("Start rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Start rotation##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_startRotation = XMConvertToRadians(rotationDegrees);
 
@@ -237,7 +237,7 @@ bool EmitterRotation::drawStartRotationUI()
 		}
 
 		rotationDegrees = XMConvertToDegrees(m_startRotation2);
-		if (ImGui::DragFloat("Start rotation 2", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Start rotation 2##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_startRotation2 = XMConvertToRadians(rotationDegrees);
 
@@ -260,7 +260,7 @@ bool EmitterRotation::drawAngularVelocityUI()
 	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
 	{
 		int parameterType = static_cast<int>(m_angularVelocityType);
-		if (ImGui::Combo("Velocity type", &parameterType, "Constant\0Random value between two\0Curve\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
+		if (ImGui::Combo("Velocity type##Rotation", &parameterType, "Constant\0Random value between two\0Curve\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
 		{
 			m_angularVelocityType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -273,7 +273,7 @@ bool EmitterRotation::drawAngularVelocityUI()
 
 	{
 		float rotationDegrees = XMConvertToDegrees(m_angularVelocity);
-		if (ImGui::DragFloat("Angular velocity", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Angular velocity##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_angularVelocity = XMConvertToRadians(rotationDegrees);
 
@@ -287,7 +287,7 @@ bool EmitterRotation::drawAngularVelocityUI()
 
 	{
 		float rotationDegrees = XMConvertToDegrees(m_angularVelocity);
-		if (ImGui::DragFloat("Angular velocity 1", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Angular velocity 1##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_angularVelocity = XMConvertToRadians(rotationDegrees);
 
@@ -295,7 +295,7 @@ bool EmitterRotation::drawAngularVelocityUI()
 		}
 
 		rotationDegrees = XMConvertToDegrees(m_angularVelocity2);
-		if (ImGui::DragFloat("Angular velocity 2", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Angular velocity 2##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_angularVelocity2 = XMConvertToRadians(rotationDegrees);
 
@@ -310,7 +310,7 @@ bool EmitterRotation::drawAngularVelocityUI()
 		// 1. Range of values (for that, we use the 2 constants)
 	{
 		float rotationDegrees = XMConvertToDegrees(m_angularVelocity);
-		if (ImGui::DragFloat("Angular velocity 1", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Angular velocity 1##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_angularVelocity = XMConvertToRadians(rotationDegrees);
 
@@ -318,7 +318,7 @@ bool EmitterRotation::drawAngularVelocityUI()
 		}
 
 		rotationDegrees = XMConvertToDegrees(m_angularVelocity2);
-		if (ImGui::DragFloat("Angular velocity 2", &rotationDegrees, 0.1f, -360.0f, 360.0f))
+		if (ImGui::DragFloat("Angular velocity 2##Rotation", &rotationDegrees, 0.1f, -360.0f, 360.0f))
 		{
 			m_angularVelocity2 = XMConvertToRadians(rotationDegrees);
 
@@ -328,34 +328,34 @@ bool EmitterRotation::drawAngularVelocityUI()
 
 		// 2. Curve (between 0 and 1)
 
-		if (ImGui::Bezier("Curve", m_angularVelocityCurve))
+		if (ImGui::Bezier("Curve##Rotation", m_angularVelocityCurve))
 		{
 			parameterChanged = true;
 		}
 
 		// We add some buttons to quickly change to predefined setups
-		if (ImGui::Button("Linear"))
+		if (ImGui::Button("Linear##Rotation"))
 		{ 
 			m_angularVelocityCurve[0] = 0.000f; m_angularVelocityCurve[1] = 0.000f; m_angularVelocityCurve[2] = 1.000f; m_angularVelocityCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseIn"))
+		if (ImGui::Button("EaseIn##Rotation"))
 		{
 			m_angularVelocityCurve[0] = 0.470f; m_angularVelocityCurve[1] = 0.000f; m_angularVelocityCurve[2] = 0.745f; m_angularVelocityCurve[3] = 0.715f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseOut"))
+		if (ImGui::Button("EaseOut##Rotation"))
 		{
 			m_angularVelocityCurve[0] = 0.390f; m_angularVelocityCurve[1] = 0.575f; m_angularVelocityCurve[2] = 0.565f; m_angularVelocityCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseInOut"))
+		if (ImGui::Button("EaseInOut##Rotation"))
 		{
 			m_angularVelocityCurve[0] = 0.445f; m_angularVelocityCurve[1] = 0.050f; m_angularVelocityCurve[2] = 0.550f; m_angularVelocityCurve[3] = 0.950f;
 			parameterChanged = true;

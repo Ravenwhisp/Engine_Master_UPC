@@ -63,7 +63,7 @@ bool EmitterLifetime::drawUi()
 	{
 		int parameterType = static_cast<int>(m_lifeTimeType);
 		// Solo mostramos Constant y Random para Lifetime
-		if (ImGui::Combo("Lifetime type", &parameterType, "Constant\0Random value between two\0"))
+		if (ImGui::Combo("Lifetime type##Lifetime", &parameterType, "Constant\0Random value between two\0"))
 		{
 			m_lifeTimeType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -71,12 +71,12 @@ bool EmitterLifetime::drawUi()
 
 		if (m_lifeTimeType == ParameterType::CONSTANT)
 		{
-			parameterChanged |= ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+			parameterChanged |= ImGui::DragFloat("Initial lifetime##Lifetime", &m_startLifeTime, 0.1f, 0.0f);
 		}
 		else if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
 		{
-			parameterChanged |= ImGui::DragFloat("Initial lifetime 1", &m_startLifeTime, 0.1f, 0.0f);
-			parameterChanged |= ImGui::DragFloat("Initial lifetime 2", &m_startLifeTime2, 0.1f, 0.0f);
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 1##Lifetime", &m_startLifeTime, 0.1f, 0.0f);
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 2##Lifetime", &m_startLifeTime2, 0.1f, 0.0f);
 		}
 	}
 

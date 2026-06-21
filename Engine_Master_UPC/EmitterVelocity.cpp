@@ -79,7 +79,7 @@ bool EmitterVelocity::drawVelocityUI()
 	bool parameterChanged = false;
 
 	int parameterType = static_cast<int>(m_velocityType);
-	if (ImGui::Combo("Velocity type", &parameterType, "Constant\0Random value between two\0Curve\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
+	if (ImGui::Combo("Velocity type##Velocity", &parameterType, "Constant\0Random value between two\0Curve\0", static_cast<int>(ParameterType::TOTAL_TYPES)))
 	{
 		m_velocityType = static_cast<ParameterType>(parameterType);
 		parameterChanged = true;
@@ -89,43 +89,43 @@ bool EmitterVelocity::drawVelocityUI()
 	{
 	case ParameterType::CONSTANT:
 	{
-		parameterChanged |= ImGui::DragFloat("Initial velocity", &m_initialVelocity, 0.1f);
+		parameterChanged |= ImGui::DragFloat("Initial velocity##Velocity", &m_initialVelocity, 0.1f);
 		break;
 	}
 	case ParameterType::RANDOM_BETWEEN_TWO:
 	{
-		parameterChanged |= ImGui::DragFloat("Velocity 1", &m_initialVelocity, 0.1f);
-		parameterChanged |= ImGui::DragFloat("Velocity 2", &m_initialVelocity2, 0.1f);
+		parameterChanged |= ImGui::DragFloat("Velocity 1##Velocity", &m_initialVelocity, 0.1f);
+		parameterChanged |= ImGui::DragFloat("Velocity 2##Velocity", &m_initialVelocity2, 0.1f);
 		break;
 	}
 	case ParameterType::CURVE:
 	{
-		parameterChanged |= ImGui::DragFloat("Velocity 1", &m_initialVelocity, 0.1f);
-		parameterChanged |= ImGui::DragFloat("Velocity 2", &m_initialVelocity2, 0.1f);
+		parameterChanged |= ImGui::DragFloat("Velocity 1##Velocity", &m_initialVelocity, 0.1f);
+		parameterChanged |= ImGui::DragFloat("Velocity 2##Velocity", &m_initialVelocity2, 0.1f);
 
 		
 
-		if (ImGui::Bezier("Curve", m_velocityCurve)) { parameterChanged = true; }
+		if (ImGui::Bezier("Curve##Velocity", m_velocityCurve)) { parameterChanged = true; }
 
-		if (ImGui::Button("Linear"))
+		if (ImGui::Button("Linear##Velocity"))
 		{
 			m_velocityCurve[0] = 0.000f; m_velocityCurve[1] = 0.000f; m_velocityCurve[2] = 1.000f; m_velocityCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("EaseIn"))
+		if (ImGui::Button("EaseIn##Velocity"))
 		{
 			m_velocityCurve[0] = 0.470f; m_velocityCurve[1] = 0.000f; m_velocityCurve[2] = 0.745f; m_velocityCurve[3] = 0.715f;
 			parameterChanged = true;
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("EaseOut"))
+		if (ImGui::Button("EaseOut##Velocity"))
 		{
 			m_velocityCurve[0] = 0.390f; m_velocityCurve[1] = 0.575f; m_velocityCurve[2] = 0.565f; m_velocityCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("EaseInOut"))
+		if (ImGui::Button("EaseInOut##Velocity"))
 		{
 			m_velocityCurve[0] = 0.445f; m_velocityCurve[1] = 0.050f; m_velocityCurve[2] = 0.550f; m_velocityCurve[3] = 0.950f;
 			parameterChanged = true;

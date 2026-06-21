@@ -65,7 +65,7 @@ bool EmitterSize::drawUi()
 
 		parameterChanged = drawStartScaleUI();
 
-		parameterChanged |= ImGui::Checkbox("Change size over time", &m_changeSizeOverTime);
+		parameterChanged |= ImGui::Checkbox("Change size over time##Size", &m_changeSizeOverTime);
 		if (!m_changeSizeOverTime) return parameterChanged;
 
 		parameterChanged |= drawEndScaleUI();
@@ -232,7 +232,7 @@ bool EmitterSize::drawStartScaleUI()
 	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
 	{
 		int parameterType = static_cast<int>(m_startScaleType);
-		if (ImGui::Combo("Starting scale type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
+		if (ImGui::Combo("Starting scale type##Size", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
 		{
 			m_startScaleType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -245,7 +245,7 @@ bool EmitterSize::drawStartScaleUI()
 
 		{
 			float scale[2] = { m_startScale.x, m_startScale.y };
-			if (ImGui::DragFloat2("Starting scale", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale = newScale;
@@ -259,7 +259,7 @@ bool EmitterSize::drawStartScaleUI()
 
 		{
 			float scale[2] = { m_startScale.x, m_startScale.y };
-			if (ImGui::DragFloat2("Starting scale 1", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 1##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale = newScale;
@@ -267,7 +267,7 @@ bool EmitterSize::drawStartScaleUI()
 			}
 
 			scale[0] = m_startScale2.x; scale[1] = m_startScale2.y;
-			if (ImGui::DragFloat2("Starting scale 2", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 2##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale2 = newScale;
@@ -282,7 +282,7 @@ bool EmitterSize::drawStartScaleUI()
 		// 1. Range of values (for that, we use the 2 constants)
 		{
 			float scale[2] = { m_startScale.x, m_startScale.y };
-			if (ImGui::DragFloat2("Starting scale 1", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 1##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale = newScale;
@@ -290,7 +290,7 @@ bool EmitterSize::drawStartScaleUI()
 			}
 
 			scale[0] = m_startScale2.x; scale[1] = m_startScale2.y;
-			if (ImGui::DragFloat2("Starting scale 2", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 2##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale2 = newScale;
@@ -300,34 +300,34 @@ bool EmitterSize::drawStartScaleUI()
 
 		// 2. Curve (between 0 and 1)
 
-		if (ImGui::Bezier("Curve", m_startScaleCurve))
+		if (ImGui::Bezier("Curve##Size", m_startScaleCurve))
 		{
 			parameterChanged = true;
 		}
 
 		// We add some buttons to quickly change to predefined setups (if we have these in multiple modules, maybe we want them declared in a single file, instead of duplicating)
-		if (ImGui::Button("Linear"))
+		if (ImGui::Button("Linear##Size"))
 		{
 			m_startScaleCurve[0] = 0.000f; m_startScaleCurve[1] = 0.000f; m_startScaleCurve[2] = 1.000f; m_startScaleCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseIn"))
+		if (ImGui::Button("EaseIn##Size"))
 		{
 			m_startScaleCurve[0] = 0.470f; m_startScaleCurve[1] = 0.000f; m_startScaleCurve[2] = 0.745f; m_startScaleCurve[3] = 0.715f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseOut"))
+		if (ImGui::Button("EaseOut##Size"))
 		{
 			m_startScaleCurve[0] = 0.390f; m_startScaleCurve[1] = 0.575f; m_startScaleCurve[2] = 0.565f; m_startScaleCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseInOut"))
+		if (ImGui::Button("EaseInOut##Size"))
 		{
 			m_startScaleCurve[0] = 0.445f; m_startScaleCurve[1] = 0.050f; m_startScaleCurve[2] = 0.550f; m_startScaleCurve[3] = 0.950f;
 			parameterChanged = true;
@@ -347,7 +347,7 @@ bool EmitterSize::drawEndScaleUI()
 	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
 	{
 		int parameterType = static_cast<int>(m_endScaleType);
-		if (ImGui::Combo("End scale type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
+		if (ImGui::Combo("End scale type##Size", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
 		{
 			m_endScaleType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -360,7 +360,7 @@ bool EmitterSize::drawEndScaleUI()
 
 	{
 		float scale[2] = { m_endScale.x, m_endScale.y };
-		if (ImGui::DragFloat2("End scale", scale, 0.1f, 0.f))
+		if (ImGui::DragFloat2("End scale##Size", scale, 0.1f, 0.f))
 		{
 			Vector2 newScale = Vector2(scale[0], scale[1]);
 			m_endScale = newScale;
@@ -374,7 +374,7 @@ bool EmitterSize::drawEndScaleUI()
 
 	{
 		float scale[2] = { m_endScale.x, m_endScale.y };
-		if (ImGui::DragFloat2("End scale", scale, 0.1f, 0.f))
+		if (ImGui::DragFloat2("End scale 1##Size", scale, 0.1f, 0.f))
 		{
 			Vector2 newScale = Vector2(scale[0], scale[1]);
 			m_endScale = newScale;
@@ -382,7 +382,7 @@ bool EmitterSize::drawEndScaleUI()
 		}
 
 		scale[0] = m_endScale2.x; scale[1] = m_endScale2.y;
-		if (ImGui::DragFloat2("End scale 2", scale, 0.1f, 0.f))
+		if (ImGui::DragFloat2("End scale 2##Size", scale, 0.1f, 0.f))
 		{
 			Vector2 newScale = Vector2(scale[0], scale[1]);
 			m_endScale2 = newScale;
@@ -397,7 +397,7 @@ bool EmitterSize::drawEndScaleUI()
 		// 1. Range of values (for that, we use the 2 constants)
 	{
 		float scale[2] = { m_endScale.x, m_endScale.y };
-		if (ImGui::DragFloat2("End scale", scale, 0.1f, 0.f))
+		if (ImGui::DragFloat2("End scale 1##Size", scale, 0.1f, 0.f))
 		{
 			Vector2 newScale = Vector2(scale[0], scale[1]);
 			m_endScale = newScale;
@@ -405,7 +405,7 @@ bool EmitterSize::drawEndScaleUI()
 		}
 
 		scale[0] = m_endScale2.x; scale[1] = m_endScale2.y;
-		if (ImGui::DragFloat2("End scale 2", scale, 0.1f, 0.f))
+		if (ImGui::DragFloat2("End scale 2##Size", scale, 0.1f, 0.f))
 		{
 			Vector2 newScale = Vector2(scale[0], scale[1]);
 			m_endScale2 = newScale;
@@ -415,34 +415,34 @@ bool EmitterSize::drawEndScaleUI()
 
 	// 2. Curve (between 0 and 1)
 
-	if (ImGui::Bezier("Curve", m_endScaleCurve))
+	if (ImGui::Bezier("Curve##Size", m_endScaleCurve))
 	{
 		parameterChanged = true;
 	}
 
 	// We add some buttons to quickly change to predefined setups (if we have these in multiple modules, maybe we want them declared in a single file, instead of duplicating)
-	if (ImGui::Button("Linear"))
+	if (ImGui::Button("Linear##Size"))
 	{
 		m_endScaleCurve[0] = 0.000f; m_endScaleCurve[1] = 0.000f; m_endScaleCurve[2] = 1.000f; m_endScaleCurve[3] = 1.000f;
 		parameterChanged = true;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("EaseIn"))
+	if (ImGui::Button("EaseIn##Size"))
 	{
 		m_endScaleCurve[0] = 0.470f; m_endScaleCurve[1] = 0.000f; m_endScaleCurve[2] = 0.745f; m_endScaleCurve[3] = 0.715f;
 		parameterChanged = true;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("EaseOut"))
+	if (ImGui::Button("EaseOut##Size"))
 	{
 		m_endScaleCurve[0] = 0.390f; m_endScaleCurve[1] = 0.575f; m_endScaleCurve[2] = 0.565f; m_endScaleCurve[3] = 1.000f;
 		parameterChanged = true;
 	}
 
 	ImGui::SameLine();
-	if (ImGui::Button("EaseInOut"))
+	if (ImGui::Button("EaseInOut##Size"))
 	{
 		m_endScaleCurve[0] = 0.445f; m_endScaleCurve[1] = 0.050f; m_endScaleCurve[2] = 0.550f; m_endScaleCurve[3] = 0.950f;
 		parameterChanged = true;
