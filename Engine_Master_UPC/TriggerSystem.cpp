@@ -9,8 +9,6 @@
 #include "ScriptComponent.h"
 #include "Script.h"
 
-#include <algorithm>
-
 void TriggerSystem::update()
 {
     detectOverlaps();
@@ -68,33 +66,33 @@ void TriggerSystem::detectOverlaps()
     m_previousOverlaps = m_currentOverlaps;
     m_currentOverlaps.clear();
 
-    struct SweepEntry { float minX; float maxX; TriggerComponent* trigger; };
-
-    std::vector<SweepEntry> sweep;
-    sweep.reserve(m_triggers.size());
-    for (auto* t : m_triggers)
+    for (size_t i = 0; i < m_triggers.size(); ++i)
     {
-        if (!isValidTrigger(t)) continue;
-        const auto& aabb = t->getWorldAABB();
-        sweep.push_back({ aabb.getMin().x, aabb.getMax().x, t });
-    }
-    std::sort(sweep.begin(), sweep.end(),
-        [](const auto& a, const auto& b) { return a.minX < b.minX; });
+        TriggerComponent* triggerA = m_triggers[i];
 
-    for (size_t i = 0; i < sweep.size(); ++i)
-    {
-        TriggerComponent* triggerA = sweep[i].trigger;
-
-        for (size_t j = i + 1; j < sweep.size(); ++j)
+        if (!isValidTrigger(triggerA))
         {
-            if (sweep[j].minX > sweep[i].maxX) break;
+            continue;
+        }
 
-            TriggerComponent* triggerB = sweep[j].trigger;
+        for (size_t j = i + 1; j < m_triggers.size(); ++j)
+        {
+            TriggerComponent* triggerB = m_triggers[j];
 
-            if (triggerA->getOwner() == triggerB->getOwner()) continue;
+            if (!isValidTrigger(triggerB))
+            {
+                continue;
+            }
+
+            if (triggerA->getOwner() == triggerB->getOwner())
+            {
+                continue;
+            }
 
             if (intersectsAABB(triggerA, triggerB))
+            {
                 m_currentOverlaps.push_back(TriggerOverlap(triggerA->getID(), triggerB->getID()));
+            }
         }
     }
 }

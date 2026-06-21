@@ -4,15 +4,21 @@
 #include <dxgiformat.h>
 
 class Texture;
+class DescriptorHeapBlock;
 
 class RenderSurface 
 {
 public:
-	enum AttachmentPoint {
-		COLOR_0,
-		COLOR_1,
-		DEPTH_STENCIL,
-		NUM_ATTACHMENT_POINTS
+	enum AttachmentPoint: UINT {
+		GBUFFER_DIFFUSE = 0,
+		GBUFFER_SPECULAR = 1,
+		GBUFFER_NORMAL = 2,
+		GBUFFER_POSITION = 3,
+		GBUFFER_EMISSIVE = 4,
+		DEPTH_STENCIL = 5,
+		COMPOSITE = 6,
+
+		NUM_ATTACHMENT_POINTS = 7
 	};
 
 
@@ -43,9 +49,16 @@ public:
 		m_textures = RenderTargetList(AttachmentPoint::NUM_ATTACHMENT_POINTS);
 	}
 
+	void createDescriptorTable();
+	void releaseDescriptorTable();
+	D3D12_GPU_DESCRIPTOR_HANDLE getDescriptorTableGPUHandle() const;
+	D3D12_CPU_DESCRIPTOR_HANDLE getDescriptorTableCPUHandle(uint32_t slot) const;
+
 private:
 	using RenderTargetList = std::vector<std::shared_ptr<Texture>>;
 	RenderTargetList m_textures;
+
+	DescriptorHeapBlock* m_block{};
 
 	Vector2 m_size;
 };

@@ -211,7 +211,7 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 	colorTex->setName(L"RenderSurface_Color");
 	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
-	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+	surface->attachTexture(RenderSurface::COMPOSITE, colorTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
 
 	return surface;
@@ -274,7 +274,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-	
+
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -284,6 +284,14 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto irradianceTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
@@ -461,6 +469,14 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	desc.mipLevels = 11; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto environmentTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 

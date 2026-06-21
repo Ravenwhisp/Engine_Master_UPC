@@ -41,7 +41,9 @@ bool ModuleCamera::init() {
 void ModuleCamera::update() {
     if (!app->getModuleEditor()->getWindowSceneEditor()->isFocused() || !app->getModuleEditor()->getWindowSceneEditor()->isHovered()) {
         m_lastWheel = Mouse::Get().GetState().scrollWheelValue;
-        return;
+        //return;
+        // We need to figure this scrollwheel thing out because having this return makes the entire camera not update unless you click on it (for example after window resize),
+        // but removing it reintroduces the scrollwheel being affected outside of the window, so when you click on it the camera sometimes moves randomly
     }
     ImVec2 sceneSize = m_moduleEditor->getWindowSceneEditor()->getSize();
     if (sceneSize.x <= 1.0f || sceneSize.y <= 1.0f)
