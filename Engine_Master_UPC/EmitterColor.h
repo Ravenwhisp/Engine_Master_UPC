@@ -23,7 +23,8 @@ public:
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
-
+	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	
 private:
 
 	// For now, we will have gradient + Bezier curve (we may want more options, like in Unity)

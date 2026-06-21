@@ -27,6 +27,7 @@ public:
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
+	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
 private:
 

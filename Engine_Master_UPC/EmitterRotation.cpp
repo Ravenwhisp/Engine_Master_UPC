@@ -65,40 +65,23 @@ void EmitterRotation::serialize(IArchive& archive)
 {
 	ParticleModule::serialize(archive);
 
+	archive.serializeStringEnum(m_startRotationType, "RotationType", ParameterTypeToString, StringToParameterType);
 	archive.serialize(m_startRotation, "StartRotation");
-
-	moduleInfo.AddMember("RotationType", unsigned int(m_startRotationType), domTree.GetAllocator());
-	moduleInfo.AddMember("StartRotation", m_startRotation, domTree.GetAllocator());
-
 	if (m_startRotationType != ParameterType::CONSTANT)
-	{
-		moduleInfo.AddMember("StartRotation2", m_startRotation2, domTree.GetAllocator());
-	}
+		archive.serialize(m_startRotation2, "StartRotation2");
 
-
-	moduleInfo.AddMember("VelocityType", unsigned int(m_angularVelocityType), domTree.GetAllocator());
-	moduleInfo.AddMember("AngularVelocity", m_angularVelocity, domTree.GetAllocator());
+	archive.serializeStringEnum(m_angularVelocityType, "VelocityType", ParameterTypeToString, StringToParameterType);
+	archive.serialize(m_angularVelocity, "AngularVelocity");
 
 	if (m_angularVelocityType != ParameterType::CONSTANT)
 	{
 		archive.serialize(m_angularVelocity2, "AngularVelocity2");
 
 		if (m_angularVelocityType == ParameterType::CURVE)
-		{
-			rapidjson::Value curveData(rapidjson::kArrayType);
-
-			curveData.PushBack(m_angularVelocityCurve[0], domTree.GetAllocator());
-			curveData.PushBack(m_angularVelocityCurve[1], domTree.GetAllocator());
-			curveData.PushBack(m_angularVelocityCurve[2], domTree.GetAllocator());
-			curveData.PushBack(m_angularVelocityCurve[3], domTree.GetAllocator());
-
-			moduleInfo.AddMember("VelocityCurve", curveData, domTree.GetAllocator());
-		}
+			archive.serializeRaw(m_angularVelocityCurve, sizeof(m_angularVelocityCurve), "VelocityCurve");
 	}
 
-	moduleInfo.AddMember("FlipRotation", m_flipRotationLikelihood, domTree.GetAllocator());
-
-	return moduleInfo;
+	archive.serialize(m_flipRotationLikelihood, "FlipRotation");
 }
 
 bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
@@ -159,14 +142,33 @@ bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
 			m_angularVelocityType = ParameterType::RANDOM_BETWEEN_TWO;
 
 			if (moduleInfo.HasMember("AngularVelocity2"))
+				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
+
+			break;
+
+		case ParameterType::CURVE:
+
+			m_angularVelocityType = ParameterType::CURVE;
+
+			if (moduleInfo.HasMember("AngularVelocity2"))
+				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
+
+			if (moduleInfo.HasMember("VelocityCurve"))
 			{
-				std::string key = "VelocityCurve_" + std::to_string(i);
-				archive.serialize(m_angularVelocityCurve[i], key.c_str());
+				const auto& curveArray = moduleInfo["VelocityCurve"].GetArray();
+				m_angularVelocityCurve[0] = curveArray[0].GetFloat();
+				m_angularVelocityCurve[1] = curveArray[1].GetFloat();
+				m_angularVelocityCurve[2] = curveArray[2].GetFloat();
+				m_angularVelocityCurve[3] = curveArray[3].GetFloat();
 			}
+			break;
 		}
 	}
 
-	archive.serialize(m_flipRotationLikelihood, "FlipRotation");
+	if (moduleInfo.HasMember("FlipRotation"))
+		m_flipRotationLikelihood = moduleInfo["FlipRotation"].GetFloat();
+
+	return true;
 }
 
 bool EmitterRotation::drawStartRotationUI()

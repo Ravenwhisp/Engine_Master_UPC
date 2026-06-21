@@ -69,7 +69,7 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 
 ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 {
-	for (auto& module : m_particleModules) 
+	for (auto& module : m_particleModules)
 	{
 		if (module->getType() == type) return module.get();
 	}
@@ -77,88 +77,54 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 	return nullptr;
 }
 
-
 void ParticleEmitter::serialize(IArchive& archive)
 {
-    uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
-    archive.beginArray(moduleCount, "Modules");
+	if (archive.mode() == ArchiveMode::Output)
+	{
+		uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
+		archive.beginArray(moduleCount, "Modules");
 
-    if (moduleCount > m_particleModules.size())
-        moduleCount = static_cast<uint32_t>(m_particleModules.size());
+		for (uint32_t i = 0; i < moduleCount; ++i)
+		{
+			archive.beginObject();
+			m_particleModules[i]->serialize(archive);
+			archive.endObject();
+		}
 
-    for (uint32_t i = 0; i < moduleCount; ++i)
-    {
-        archive.beginObject();
-        m_particleModules[i]->serialize(archive);
-        archive.endObject();
-    }
+		archive.endArray();
+	}
+	else // Input: cargar con deserializeJSON
+	{
+		JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
+		if (!jsonArchive)
+			return;
 
-    archive.endArray();
+		const rapidjson::Value* emitterInfo = jsonArchive->currentInput();
+		if (emitterInfo)
+			deserializeJSON(*emitterInfo);
+	}
 }
 
-
+bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo)
+{
+	if (!emitterInfo.HasMember("Modules"))
+		return false;
 
 	const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
 
-	for (auto& moduleData : modulesInfo.GetArray()) 
+	for (auto& moduleData : modulesInfo.GetArray())
 	{
 		if (!moduleData.HasMember("ModuleType")) continue;
 
 		unsigned int typeUInt = moduleData["ModuleType"].GetUint();
 		ParticleModuleType moduleType = static_cast<ParticleModuleType>(typeUInt);
 
-		switch (moduleType) { // WE SHOULD SERIOUSLY CONSIDER HAVING THE MODULES SEPARATED...
+		ParticleModule* module = getModule(moduleType);
+		if (!module)
+			continue;
 
-		case ParticleModuleType::BASE:
-
-			// Not implemented yet
-			break;
-
-		case ParticleModuleType::AREA:
-
-			m_particleModules[2]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::SPAWN:
-
-			m_particleModules[0]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::COLOR:
-
-			m_particleModules[3]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::LIFETIME:
-
-			m_particleModules[1]->deserializeJSON(moduleData);
-			break;
-		
-		case ParticleModuleType::VELOCITY:
-
-			m_particleModules[4]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::SIZE:
-
-			m_particleModules[5]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::ROTATION:
-
-			m_particleModules[6]->deserializeJSON(moduleData);
-			break;
-
-		case ParticleModuleType::ANIMATION:
-
-			m_particleModules[7]->deserializeJSON(moduleData);
-			break;
-		
-		case ParticleModuleType::RENDER:
-
-			m_particleModules[8]->deserializeJSON(moduleData);
-			break;
-		}
+		module->deserializeJSON(moduleData);
 	}
+
 	return true;
 }

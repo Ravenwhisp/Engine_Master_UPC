@@ -107,33 +107,29 @@ void EmitterSize::serialize(IArchive& archive)
 
 	if (m_changeSizeOverTime)
 	{
-		moduleInfo.AddMember("EndScaleType", unsigned int(m_endScaleType), domTree.GetAllocator());
+		archive.serializeStringEnum(m_endScaleType, "EndScaleType", ParameterTypeToString, StringToParameterType);
 
 		{
-			rapidjson::Value scaleData(rapidjson::kArrayType);
-
-			scaleData.PushBack(m_endScale.x, domTree.GetAllocator());
-			scaleData.PushBack(m_endScale.y, domTree.GetAllocator());
-
-			moduleInfo.AddMember("EndScale", scaleData, domTree.GetAllocator());
+			DirectX::SimpleMath::Vector3 v(m_endScale.x, m_endScale.y, 0.0f);
+			archive.serialize(v, "EndScale");
+			if (archive.mode() == ArchiveMode::Input)
+			{
+				m_endScale.x = v.x;
+				m_endScale.y = v.y;
+			}
 		}
 
 		if (m_endScaleType != ParameterType::CONSTANT)
 		{
+			DirectX::SimpleMath::Vector3 v(m_endScale2.x, m_endScale2.y, 0.0f);
+			archive.serialize(v, "EndScale2");
+			if (archive.mode() == ArchiveMode::Input)
 			{
-				rapidjson::Value scaleData(rapidjson::kArrayType);
-
-				scaleData.PushBack(m_endScale2.x, domTree.GetAllocator());
-				scaleData.PushBack(m_endScale2.y, domTree.GetAllocator());
-
-				moduleInfo.AddMember("EndScale2", scaleData, domTree.GetAllocator());
+				m_endScale2.x = v.x;
+				m_endScale2.y = v.y;
 			}
-
-			// Curve parameters when we enable curve type will go here...
 		}
 	}
-
-	return moduleInfo;
 }
 
 bool EmitterSize::deserializeJSON(const rapidjson::Value& moduleInfo)
@@ -213,6 +209,8 @@ bool EmitterSize::deserializeJSON(const rapidjson::Value& moduleInfo)
 			}
 		}
 	}
+
+	return true;
 }
 
 bool EmitterSize::drawStartScaleUI()

@@ -86,17 +86,11 @@ bool EmitterLifetime::drawUi()
 
 void EmitterLifetime::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
-
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::LIFETIME), domTree.GetAllocator());
-
-	moduleInfo.AddMember("StartLifeTime", m_startLifeTime, domTree.GetAllocator());
+	ParticleModule::serialize(archive);
+	archive.serializeStringEnum(m_lifeTimeType, "LifeTimeType", ParameterTypeToString, StringToParameterType);
+	archive.serialize(m_startLifeTime, "StartLifeTime");
 	if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
-	{
-		moduleInfo.AddMember("StartLifeTime2", m_startLifeTime2, domTree.GetAllocator());
-	}
-
-	return moduleInfo;
+		archive.serialize(m_startLifeTime2, "StartLifeTime2");
 }
 
 bool EmitterLifetime::deserializeJSON(const rapidjson::Value& moduleInfo)

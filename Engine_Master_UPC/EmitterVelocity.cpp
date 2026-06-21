@@ -138,31 +138,19 @@ bool EmitterVelocity::drawVelocityUI()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterVelocity::getJSON(rapidjson::Document& domTree)
+void EmitterVelocity::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
-
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::VELOCITY), domTree.GetAllocator());
-	moduleInfo.AddMember("VelocityType", unsigned int(m_velocityType), domTree.GetAllocator());
-
-	moduleInfo.AddMember("InitialVelocity", m_initialVelocity, domTree.GetAllocator());
+	ParticleModule::serialize(archive);
+	archive.serializeStringEnum(m_velocityType, "VelocityType", ParameterTypeToString, StringToParameterType);
+	archive.serialize(m_initialVelocity, "InitialVelocity");
 
 	if (m_velocityType != ParameterType::CONSTANT)
 	{
-		moduleInfo.AddMember("InitialVelocity2", m_initialVelocity2, domTree.GetAllocator());
+		archive.serialize(m_initialVelocity2, "InitialVelocity2");
 
 		if (m_velocityType == ParameterType::CURVE)
-		{
-			rapidjson::Value curveData(rapidjson::kArrayType);
-			curveData.PushBack(m_velocityCurve[0], domTree.GetAllocator());
-			curveData.PushBack(m_velocityCurve[1], domTree.GetAllocator());
-			curveData.PushBack(m_velocityCurve[2], domTree.GetAllocator());
-			curveData.PushBack(m_velocityCurve[3], domTree.GetAllocator());
-			moduleInfo.AddMember("VelocityCurve", curveData, domTree.GetAllocator());
-		}
+			archive.serializeRaw(m_velocityCurve, sizeof(m_velocityCurve), "VelocityCurve");
 	}
-
-	return moduleInfo;
 }
 
 bool EmitterVelocity::deserializeJSON(const rapidjson::Value& moduleInfo)

@@ -91,67 +91,91 @@ bool EmitterColor::drawUi()
 
 void EmitterColor::serialize(IArchive& archive)
 {
-    ParticleModule::serialize(archive);
+	ParticleModule::serialize(archive);
 
-    DirectX::SimpleMath::Color startColor(m_startColor.x, m_startColor.y, m_startColor.z, m_startColor.w);
-    archive.serialize(startColor, "StartColor");
-    if (archive.mode() == ArchiveMode::Input)
-    {
-        m_startColor.x = startColor.x;
-        m_startColor.y = startColor.y;
-        m_startColor.z = startColor.z;
-        m_startColor.w = startColor.w;
-    }
-
-	// Get color gradient data (marks)
-
-	rapidjson::Value gradientData(rapidjson::kArrayType);
-
-	for (const auto& mark : m_colorOverTime.getMarks()) 
+	if (archive.mode() == ArchiveMode::Output)
 	{
-		rapidjson::Value markData(rapidjson::kObjectType);
+		const auto& marks = m_colorOverTime.getMarks();
+		uint32_t markCount = static_cast<uint32_t>(marks.size());
+		archive.beginArray(markCount, "ColorOverTime");
 
-		// Mark parameters //
-
-		markData.AddMember("IsAlphaMark", mark->alpha, domTree.GetAllocator());
-
-		if (mark->alpha) 
+		for (const ImGradientMark* mark : marks)
 		{
-			markData.AddMember("Alpha", mark->color[0], domTree.GetAllocator());
-		}
-		else // => is a color marker 
-		{
-			rapidjson::Value colorData(rapidjson::kArrayType);
+			archive.beginObject();
+			bool isAlphaMark = mark->alpha;
+			float position = mark->position;
+			archive.serialize(isAlphaMark, "IsAlphaMark");
+			archive.serialize(position, "Position");
 
-			colorData.PushBack(mark->color[0], domTree.GetAllocator());
-			colorData.PushBack(mark->color[1], domTree.GetAllocator());
-			colorData.PushBack(mark->color[2], domTree.GetAllocator());
+			if (mark->alpha)
+			{
+				float alpha = mark->color[0];
+				archive.serialize(alpha, "Alpha");
+			}
+			else
+			{
+				uint32_t colorCount = 3;
+				archive.beginArray(colorCount, "Color");
+				float r = mark->color[0];
+				float g = mark->color[1];
+				float b = mark->color[2];
+				archive.serialize(r, "");
+				archive.serialize(g, "");
+				archive.serialize(b, "");
+				archive.endArray();
+			}
 
-			markData.AddMember("Color", colorData, domTree.GetAllocator());
+			archive.endObject();
 		}
 
-		markData.AddMember("Position", mark->position, domTree.GetAllocator());
-
-
-		gradientData.PushBack(markData, domTree.GetAllocator());
+		archive.endArray();
 	}
-
-	moduleInfo.AddMember("ColorOverTime", gradientData, domTree.GetAllocator());
-
-
-	// Get bezier curve data
+	else
 	{
-		rapidjson::Value curveData(rapidjson::kArrayType);
+		uint32_t markCount = 0;
+		archive.beginArray(markCount, "ColorOverTime");
+		m_colorOverTime.clearMarks();
 
-		curveData.PushBack(m_colorCurve[0], domTree.GetAllocator());
-		curveData.PushBack(m_colorCurve[1], domTree.GetAllocator());
-		curveData.PushBack(m_colorCurve[2], domTree.GetAllocator());
-		curveData.PushBack(m_colorCurve[3], domTree.GetAllocator());
+		for (uint32_t i = 0; i < markCount; ++i)
+		{
+			archive.beginObject();
 
-		moduleInfo.AddMember("ColorCurve", curveData, domTree.GetAllocator());
+			bool isAlphaMark = false;
+			float position = 0.f;
+			archive.serialize(isAlphaMark, "IsAlphaMark");
+			archive.serialize(position, "Position");
+
+			if (isAlphaMark)
+			{
+				float alpha = 0.f;
+				archive.serialize(alpha, "Alpha");
+				m_colorOverTime.addAlphaMark(position, alpha);
+			}
+			else
+			{
+				uint32_t colorCount = 3;
+				archive.beginArray(colorCount, "Color");
+				float r = 0.f, g = 0.f, b = 0.f;
+				archive.serialize(r, "");
+				archive.serialize(g, "");
+				archive.serialize(b, "");
+				archive.endArray();
+				m_colorOverTime.addMark(position, ImColor(r, g, b));
+			}
+
+			archive.endObject();
+		}
+
+		archive.endArray();
 	}
 
-	return moduleInfo;
+	{
+		uint32_t curveCount = 4;
+		archive.beginArray(curveCount, "ColorCurve");
+		for (int i = 0; i < 4; ++i)
+			archive.serialize(m_colorCurve[i], "");
+		archive.endArray();
+	}
 }
 
 bool EmitterColor::deserializeJSON(const rapidjson::Value& moduleInfo)
