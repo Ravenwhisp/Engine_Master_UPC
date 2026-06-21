@@ -11,6 +11,7 @@
 #include "MeshRenderer.h"
 #include "MeshAsset.h"
 #include "SkinAsset.h"
+#include "AnimationComponent.h"
 
 #include <imgui.h>
 #include <algorithm>
@@ -18,7 +19,7 @@
 
 namespace
 {
-    GameObject* FindHierarchyRoot(GameObject* go)
+    GameObject* FindSkinSearchRoot(GameObject* go)
     {
         if (!go)
             return nullptr;
@@ -27,6 +28,11 @@ namespace
 
         while (current)
         {
+            if (current->GetComponent(ComponentType::ANIMATION))
+            {
+                return current;
+            }
+
             Transform* transform = current->GetTransform();
             if (!transform)
                 break;
@@ -38,7 +44,7 @@ namespace
             current = parentTransform->getOwner();
         }
 
-        return current;
+        return go;
     }
 
     GameObject* FindByNameRecursive(GameObject* go, const std::string& name)
@@ -220,7 +226,7 @@ bool Skin::resolveSkinBindings(GameObject* owner)
         return false;
     }
 
-    GameObject* root = FindHierarchyRoot(owner);
+    GameObject* root = FindSkinSearchRoot(owner);
     if (!root)
     {
         // Walk up manually for debug
