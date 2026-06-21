@@ -17,7 +17,7 @@
 TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 {
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[2] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -25,6 +25,7 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 
     rootParameters[0].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[2].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -42,11 +43,11 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 
     // Load the vertex shader.
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"TrailVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"LightPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"TrailPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -199,5 +200,8 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetIndexBuffer(&ibv);
 
     commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
+
+    Matrix vp = (*m_view) * (*m_projection);
+    commandList->SetGraphicsRoot32BitConstants(2, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
     
 }

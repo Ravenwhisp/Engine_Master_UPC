@@ -602,6 +602,7 @@
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
+    <ClCompile Include="TrailComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1389,6 +1390,7 @@
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="TrailComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
@@ -1692,5 +1694,11 @@
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="TrailPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TrailVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
