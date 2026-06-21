@@ -18,6 +18,7 @@
 #include "LightComponent.h"
 #include "ScriptComponent.h"
 #include "ParticleSystemComponent.h"
+#include "TrailComponent.h"
 
 #include "ScenePicking.h"
 
@@ -101,6 +102,7 @@ void ModuleScene::rebuildComponentCaches()
     m_lightComponents.clear();
     m_scriptComponents.clear();
     m_particleSystemComponents.clear();
+    m_trailComponents.clear();
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -128,6 +130,11 @@ void ModuleScene::rebuildComponentCaches()
         if (auto* particleSystem = go->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM))
         {
             m_particleSystemComponents.push_back(particleSystem);
+        }
+
+        if (auto* particleSystem = go->GetComponentAs<TrailComponent>(ComponentType::TRAIL))
+        {
+            m_trailComponents.push_back(particleSystem);
         }
     }
 
@@ -198,7 +205,15 @@ const std::vector<ParticleSystemComponent*>& ModuleScene::getParticleSystemCompo
 
     return m_particleSystemComponents;
 }
+const std::vector<TrailComponent*>& ModuleScene::getTrailComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
 
+    return m_trailComponents;
+}
 
 #pragma endregion
 

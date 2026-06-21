@@ -7,8 +7,11 @@
 
 class VertexBuffer;
 class IndexBuffer;
+class RingBuffer;
 
 using Microsoft::WRL::ComPtr;
+
+class TrailComponent;
 
 class TrailPass : public IRenderPass
 {
@@ -26,11 +29,19 @@ private:
 	ComPtr<ID3D12RootSignature>		m_rootSignature;
 	ComPtr<ID3D12PipelineState>		m_pipelineState;
 
+	RingBuffer* m_ringBuffer;
+
 	std::unique_ptr<VertexBuffer>	m_vertexBuffer;
 	std::unique_ptr<IndexBuffer>	m_indexBuffer;
 
+	std::vector<TrailComponent*> m_trailComponent;
 	std::vector<VertexTrails> m_vertices;
 	std::vector<uint8_t> m_indices;
+
+	const D3D12_VIEWPORT* m_viewport = nullptr;
+	const Matrix* m_view = nullptr;
+	const Matrix* m_projection = nullptr;
+	const Vector3* m_cameraPosition = nullptr;
 
 };
 

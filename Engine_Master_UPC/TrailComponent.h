@@ -4,6 +4,8 @@
 
 class TrailComponent : public Component
 {
+public:
+
 	struct TrailPoint
 	{
 		Vector3 position;
@@ -12,8 +14,6 @@ class TrailComponent : public Component
 		float width;
 
 	};
-
-public:
 
 	TrailComponent(UID id, GameObject* owner);
 

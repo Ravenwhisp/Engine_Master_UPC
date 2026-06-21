@@ -97,7 +97,7 @@ void TrailComponent::update()
 
 void TrailComponent::CreatePoint()
 {
-    std::shared_ptr<TrailPoint> newPoint = std::shared_ptr<TrailPoint>();
+    std::shared_ptr<TrailPoint> newPoint = std::make_shared<TrailPoint>();
     m_points.push_back(newPoint);
 
     newPoint->position = m_owner->GetTransform()->getPosition();

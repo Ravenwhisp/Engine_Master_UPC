@@ -2,6 +2,14 @@
 #include "TrailPass.h"
 #include "BasicMaterial.h"
 #include "ModuleDescriptors.h"
+#include "Application.h"
+#include "ModuleScene.h"
+#include "RenderContext.h"
+#include "TrailComponent.h"
+#include "GameObject.h"
+#include "Transform.h"
+#include "RingBuffer.h"
+#include "ModuleRender.h"
 
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
@@ -18,7 +26,7 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
     rootParameters[0].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -86,8 +94,110 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 
 void TrailPass::prepare(const RenderContext& ctx)
 {
+    if (m_ringBuffer == nullptr) m_ringBuffer = ctx.ringBuffer;
+    
+    m_viewport = &ctx.viewport;
+
+    m_view = &ctx.view;
+    m_projection = &ctx.projection;
+    m_cameraPosition = &ctx.cameraPosition;
+
+    m_trailComponent = app->getModuleScene()->getTrailComponents();
 }
 
 void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+
+    std::vector<VertexTrails> indices;
+    std::vector<VertexTrails> vertices;
+
+    uint32_t firstVertex = 0;
+
+    for (auto& trailComponent : m_trailComponent) 
+    {
+
+        GameObject* owner = trailComponent->getOwner();
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        if (!trailComponent->isActive())
+        {
+            continue;
+        }
+
+        if (trailComponent->getTrailPoints().size() > 1) 
+        {
+            for (auto point = trailComponent->getTrailPoints().begin(); point != trailComponent->getTrailPoints().end(); )
+            {
+                Vector3 position = point->get()->position;
+                Vector3 perpendicularVector = Vector3::Transform(Vector3::UnitX, point->get()->rotation);
+                float halfWidth = point->get()->width * 0.5f;
+
+                Vector3 prevPos = (point == trailComponent->getTrailPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
+                Vector3 nextPos = (point == trailComponent->getTrailPoints().end()) ? owner->GetTransform()->getPosition() : std::next(point)->get()->position;
+
+                Vector3 tangent = nextPos - prevPos;
+                Vector3 right = tangent;
+                right.Cross(Vector3::Up).Normalize();
+                Vector3 normal = right;
+                normal.Cross(tangent).Normalize();
+
+
+                VertexTrails leftVertex{};
+                leftVertex.position = position - perpendicularVector * halfWidth;
+                leftVertex.tangent = tangent;
+                leftVertex.normal = normal;
+                leftVertex.texCoord0 = Vector2::Zero;
+                leftVertex.color = Vector4(1, 1, 1, 0.5f);
+
+                VertexTrails rightVertex{};
+                rightVertex.position = position + perpendicularVector * halfWidth;
+                rightVertex.tangent = tangent;
+                rightVertex.normal = normal;
+                rightVertex.texCoord0 = Vector2::Zero;
+                rightVertex.color = Vector4(1, 1, 1, 0.5f);
+
+                vertices.push_back(leftVertex);
+                vertices.push_back(rightVertex);
+            }
+        }
+
+        for (uint32_t i = firstVertex; i < vertices.size() - 2; i += 2)
+        {
+
+            indices.push_back(vertices[i]);
+            indices.push_back(vertices[i + 3]);
+            indices.push_back(vertices[i + 1]);
+
+            indices.push_back(vertices[i]);
+            indices.push_back(vertices[i + 2]);
+            indices.push_back(vertices[i + 3]);
+        }
+
+        firstVertex = vertices.size();
+
+    }
+
+    D3D12_VERTEX_BUFFER_VIEW vbv;
+    vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(VertexTrails));
+    vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(VertexTrails));
+    vbv.StrideInBytes = sizeof(VertexTrails);
+
+    D3D12_INDEX_BUFFER_VIEW ibv;
+    ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(VertexTrails));
+    ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
+    ibv.Format = DXGI_FORMAT_R32_UINT;
+
+    commandList->SetPipelineState(m_pipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    commandList->IASetVertexBuffers(0, 1, &vbv);
+    commandList->IASetIndexBuffer(&ibv);
+
+    commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
+    
 }
