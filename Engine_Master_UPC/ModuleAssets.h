@@ -34,10 +34,6 @@ public:
     template<typename T>
     std::shared_ptr<T> load(AssetReference& ref);
 
-
-    template<typename T>
-    std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath);
-
     bool isLoaded(const AssetReference& id);
     void unload(const AssetReference& id);
 #pragma endregion

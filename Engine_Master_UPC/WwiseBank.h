@@ -13,7 +13,6 @@ class WwiseBank
 {
 private:
 	std::string m_bankName;
-	std::string m_jsonPath;
 
 	AkBankID m_bankID = 0;
 
@@ -28,7 +27,6 @@ public:
 	WwiseBank() = default;
 	~WwiseBank() = default;
 
-	bool init(const char* bankName, const char* jsonPath);
 	void cleanUp();
 
 	const bool isLoaded() const { return m_loaded; }
@@ -45,7 +43,4 @@ public:
 	void setAssetRef(const AssetReference& ref) { m_assetRef = ref; }
 	const AssetReference& getAssetRef() const { return m_assetRef; }
 	void setBankData(const std::vector<uint8_t>& d) { m_bankData = d; }
-
-private:
-	bool loadEventsFromJson();
 };
