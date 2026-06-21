@@ -11,6 +11,20 @@ bool ImporterSoundBank::loadExternal(const std::filesystem::path& path, SoundBan
 {
     out.bankName = path.filename().string();
 
+    {
+        std::ifstream bnkFile(path, std::ios::binary);
+        if (!bnkFile.is_open())
+        {
+            DEBUG_ERROR("[ImporterSoundBank] Failed to open .bnk: %s", path.string().c_str());
+            return false;
+        }
+        bnkFile.seekg(0, std::ios::end);
+        const std::streampos sz = bnkFile.tellg();
+        bnkFile.seekg(0, std::ios::beg);
+        out.bankData.resize(static_cast<size_t>(sz));
+        bnkFile.read(reinterpret_cast<char*>(out.bankData.data()), sz);
+    }
+
     std::filesystem::path jsonPath = path;
     jsonPath.replace_extension(".json");
 
@@ -71,6 +85,7 @@ bool ImporterSoundBank::loadExternal(const std::filesystem::path& path, SoundBan
 void ImporterSoundBank::importTyped(const SoundBankSourceData& source, SoundBankAsset* dst)
 {
     dst->setBankName(source.bankName);
+    dst->setBankData(source.bankData);
     for (const auto& e : source.events)
         dst->addEvent(e);
 }

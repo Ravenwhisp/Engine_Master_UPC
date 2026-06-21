@@ -18,4 +18,9 @@ void SoundBankAsset::serialize(IArchive& archive)
     }
 
     archive.endArray();
+
+    uint32_t dataSize = static_cast<uint32_t>(m_bankData.size());
+    archive.serialize(dataSize, "bankDataSize");
+    m_bankData.resize(dataSize);
+    archive.serializeRaw(m_bankData.data(), dataSize, "bankData");
 }

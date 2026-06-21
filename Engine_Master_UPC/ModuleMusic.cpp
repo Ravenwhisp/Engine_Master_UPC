@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <string>
 
+#include "Application.h"
 #include "ModuleAssets.h"
 #include "SoundBankAsset.h"
 
@@ -24,19 +25,11 @@ bool ModuleMusic::init()
 		return false;
 	}
 
-#ifndef GAME_RELEASE
-	if (!loadBanksFromFolder())
-	{
-		m_wwiseManager.cleanUp();
-		return false;
-	}
-#else
 	if (!loadBanksFromLibrary())
 	{
 		m_wwiseManager.cleanUp();
 		return false;
 	}
-#endif
 
 	WWISE_BANK_LOG("[Module Music] Initialized");
 
@@ -68,74 +61,6 @@ bool ModuleMusic::cleanUp()
 	return true;
 }
 #pragma endregion
-
-#ifndef GAME_RELEASE
-bool ModuleMusic::loadBanksFromFolder()
-{
-	const std::string audioPath = std::string(ASSETS_FOLDER) + "Audio/";
-
-	if (!std::filesystem::exists(audioPath))
-	{
-		WWISE_BANK_ERROR("[Module Music] Audio folder not found: %s", audioPath.c_str());
-		return false;
-	}
-
-	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(audioPath))
-	{
-		if (!entry.is_regular_file())
-		{
-			continue;
-		}
-
-		if (entry.path().extension() != ".json")
-		{
-			continue;
-		}
-
-		const std::string stem = entry.path().stem().string();
-
-		if (stem == "PlatformInfo" || stem == "PluginInfo")
-		{
-			continue;
-		}
-
-		const std::string bankName = stem + ".bnk";
-		const std::string jsonPath = entry.path().string();
-		const std::string bankPath = audioPath + bankName;
-
-		if (!std::filesystem::exists(bankPath))
-		{
-			WWISE_BANK_ERROR("[Module Music] Missing bank file for json: %s", jsonPath.c_str());
-			continue;
-		}
-
-		WwiseBank bank;
-
-		if (!bank.init(bankName.c_str(), jsonPath.c_str()))
-		{
-			WWISE_BANK_ERROR("[Module Music] Failed loading bank: %s", bankName.c_str());
-			return false;
-		}
-
-		if (bank.getName() == "Init.bnk")
-		{
-			m_initBnk = bank;
-			m_initBnk.load();
-			WWISE_BANK_LOG("Detected and loaded bank: %s", bank.getName().c_str());
-		}
-		else 
-		{
-			WWISE_BANK_LOG("Detected bank: %s", bank.getName().c_str());
-			m_banks.push_back(bank);
-		}
-
-	}
-
-	WWISE_BANK_LOG("[Module Music] Detected banks: %zu", m_banks.size());
-
-	return true;
-}
-#endif
 
 #pragma region API
 uint32_t ModuleMusic::postGlobalEvent(const char* bankName, const char* eventName)
@@ -350,6 +275,35 @@ bool ModuleMusic::unloadBank(const std::string& bankName)
 
 bool ModuleMusic::loadBanksFromLibrary()
 {
+	{
+		bool hasEntries = false;
+		for (const auto& pair : app->getModuleAssets()->getIndex().allEntries())
+		{
+			if (pair.second.type == AssetType::SOUND_BANK)
+			{
+				hasEntries = true;
+				break;
+			}
+		}
+
+#ifndef GAME_RELEASE
+		if (!hasEntries)
+		{
+			const std::string audioPath = std::string(ASSETS_FOLDER) + "Audio/";
+			if (std::filesystem::exists(audioPath))
+			{
+				for (const auto& entry : std::filesystem::directory_iterator(audioPath))
+				{
+					if (entry.path().extension() != ".bnk")
+						continue;
+					AssetReference ref;
+					app->getModuleAssets()->importAsset(entry.path().string(), ref);
+				}
+			}
+		}
+#endif
+	}
+
 	for (const auto& pair : app->getModuleAssets()->getIndex().allEntries())
 	{
 		const UID& uid = pair.first;
@@ -366,6 +320,7 @@ bool ModuleMusic::loadBanksFromLibrary()
 		WwiseBank bank;
 		bank.setName(asset->getBankName());
 		bank.setAssetRef(ref);
+		bank.setBankData(asset->getBankData());
 		for (const auto& e : asset->getEvents())
 			bank.addEvent(e);
 

@@ -557,6 +557,7 @@ void Scene::clearScene()
     m_defaultCamera = nullptr;
     m_navMesh = AssetReference{};
     m_loadedBankRefs.clear();
+    m_loadedBankNameCache.clear();
     markDirty();
 }
 
@@ -597,12 +598,12 @@ void Scene::clearTriggers()
 #pragma region MusicBanks
 void Scene::addLoadedBank(const std::string& bankName)
 {
-    for (const auto& ref : m_loadedBankRefs)
-    {
-        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
-        if (asset && asset->getBankName() == bankName)
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+
+    for (const auto& name : m_loadedBankNameCache)
+        if (name == bankName)
             return;
-    }
 
     AssetReference ref = app->getModuleMusic()->findBankRef(bankName);
     if (!ref.isValid())
@@ -611,16 +612,20 @@ void Scene::addLoadedBank(const std::string& bankName)
         ref = AssetReference(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
     }
     m_loadedBankRefs.push_back(ref);
+    m_loadedBankNameCache.push_back(bankName);
 }
 
 void Scene::removeLoadedBank(const std::string& bankName)
 {
-    for (auto it = m_loadedBankRefs.begin(); it != m_loadedBankRefs.end(); ++it)
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+
+    for (size_t i = 0; i < m_loadedBankNameCache.size(); ++i)
     {
-        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(*it));
-        if (asset && asset->getBankName() == bankName)
+        if (m_loadedBankNameCache[i] == bankName)
         {
-            m_loadedBankRefs.erase(it);
+            m_loadedBankRefs.erase(m_loadedBankRefs.begin() + i);
+            m_loadedBankNameCache.erase(m_loadedBankNameCache.begin() + i);
             return;
         }
     }
@@ -628,14 +633,19 @@ void Scene::removeLoadedBank(const std::string& bankName)
 
 std::vector<std::string> Scene::getLoadedBankNames() const
 {
-    std::vector<std::string> names;
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+    return m_loadedBankNameCache;
+}
+
+void Scene::resolveLoadedBankNames() const
+{
+    m_loadedBankNameCache.clear();
     for (const auto& ref : m_loadedBankRefs)
     {
         auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
-        if (asset)
-            names.push_back(asset->getBankName());
+        m_loadedBankNameCache.push_back(asset ? asset->getBankName() : "");
     }
-    return names;
 }
 
 void Scene::unloadSoundBanks()

@@ -34,11 +34,27 @@ bool WwiseBank::load()
 		return true;
 	}
 
-	if (AK::SoundEngine::LoadBank(m_bankName.c_str(), m_bankID) != AK_Success)
+	if (!m_bankData.empty())
 	{
-		DEBUG_ERROR("[WwiseBank] Failed loading bank: %s", m_bankName.c_str());
-		return false;
+		const AKRESULT result = AK::SoundEngine::LoadBankMemoryCopy(m_bankData.data(),
+			static_cast<AkUInt32>(m_bankData.size()), m_bankID);
+		if (result != AK_Success)
+		{
+			DEBUG_ERROR("[WwiseBank] Failed loading bank '%s' from memory (error %d)", m_bankName.c_str(), static_cast<int>(result));
+			return false;
+		}
 	}
+	else
+	{
+		const AKRESULT result = AK::SoundEngine::LoadBank(m_bankName.c_str(), m_bankID);
+		if (result != AK_Success)
+		{
+			DEBUG_ERROR("[WwiseBank] Failed loading bank '%s' from file (error %d)",
+				m_bankName.c_str(), static_cast<int>(result));
+			return false;
+		}
+	}
+
 	WWISE_BANK_LOG("[WwiseBank] Loaded bank: %s", m_bankName.c_str());
 
 	m_loaded = true;

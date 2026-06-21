@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "WwiseEvent.h"
 #include "AssetReference.h"
@@ -20,6 +21,8 @@ private:
 
 	bool m_loaded;
 	AssetReference m_assetRef;
+
+	std::vector<uint8_t> m_bankData;
 
 public:
 	WwiseBank() = default;
@@ -41,6 +44,7 @@ public:
 	void addEvent(const WwiseEvent& e) { m_events.push_back(e); }
 	void setAssetRef(const AssetReference& ref) { m_assetRef = ref; }
 	const AssetReference& getAssetRef() const { return m_assetRef; }
+	void setBankData(const std::vector<uint8_t>& d) { m_bankData = d; }
 
 private:
 	bool loadEventsFromJson();

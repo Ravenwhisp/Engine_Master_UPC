@@ -257,6 +257,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         app->getModuleMusic()->loadBank(ref);
     }
 
+    m_scene->resolveLoadedBankNames();
+
     return true;
 }
 
@@ -302,6 +304,8 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     {
         app->getModuleMusic()->loadBank(ref);
     }
+
+    m_scene->resolveLoadedBankNames();
 
     return true;
 }

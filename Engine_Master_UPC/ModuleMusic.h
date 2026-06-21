@@ -56,8 +56,5 @@ public:
 #pragma endregion
 
 private:
-#ifndef GAME_RELEASE
-	bool loadBanksFromFolder();
-#endif
 	bool loadBanksFromLibrary();
 };

@@ -45,6 +45,7 @@ private:
     void removePendingGameObjects();
 
     std::vector<AssetReference> m_loadedBankRefs;
+    mutable std::vector<std::string> m_loadedBankNameCache;
 
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
@@ -147,6 +148,7 @@ public:
     void addLoadedBank(const std::string& bankName);
     void removeLoadedBank(const std::string& bankName);
     std::vector<std::string> getLoadedBankNames() const;
+    void resolveLoadedBankNames() const;
     void unloadSoundBanks();
 #pragma endregion
 };
