@@ -39,7 +39,7 @@ public:
 	constexpr const D3D12_RECT&		getScissorRect() { return m_scissorRect; }
 	constexpr uint32_t				getCurrentBackBufferIndex() const { return m_swapChain.Get()->GetCurrentBackBufferIndex(); }
 
-	RenderSurface&			getRenderSurface() const;
+	const RenderSurface&			getRenderSurface() const;
 	const std::shared_ptr<Texture>& getCurrentRenderTarget() const { return m_backBufferTextures[getCurrentBackBufferIndex()]; }
 private:
 

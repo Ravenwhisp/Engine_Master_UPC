@@ -20,8 +20,7 @@ class RingBuffer;
 class IRenderPass;
 class RenderSurface;
 class SkyBoxPass;
-class DeferredShadingPass;
-class GeometryPass;
+class MeshRendererPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -51,10 +50,6 @@ public:
         ViewportType   type = ViewportType::EDITOR;
         float          width = 0.0f;
         float          height = 0.0f;
-        float          pendingResizeWidth = 0.0f;
-        float          pendingResizeHeight = 0.0f;
-        bool           pendingResize = false;
-        bool           isVisible = false;
     };
 private:
     Settings* m_settings = nullptr;
@@ -74,8 +69,7 @@ private:
     bool m_pendingStopSimulation = false;
 
     DebugDrawPass* m_debugDrawPass = nullptr;
-    GeometryPass* m_geometryPass = nullptr;
-    DeferredShadingPass* m_meshRenderPass = nullptr;
+    MeshRendererPass* m_meshRenderPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
 
@@ -86,17 +80,13 @@ private:
     const ShadowFrameData* m_currentShadowData = nullptr;
 
 public:
-    bool init()      override;
+    bool init()     override;
     void preRender() override;
-    void render()    override;
-    bool cleanUp()   override;
+    void render()   override;
+    bool cleanUp()  override;
 
     void registerViewport(RenderSurface* surface, ViewportType type, float width, float height);
-    void setViewportPendingResize(RenderSurface* surface, ViewportType type, float width, float height);
-    void setViewportVisible(RenderSurface* surface, bool isVisible);
-    void unregisterViewport(RenderSurface* surface);
 
-    GeometryPass* getGeometryPass() { return m_geometryPass; }
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
@@ -109,20 +99,14 @@ public:
     void markDebugDrawCacheDirty();
 
 private:
-    void initViewportGBuffers(RenderSurface& surface, float width, float height);
+    void renderToSurface( ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)> renderFunc);
 
-    // Surface helpers
-    void renderScene(ID3D12GraphicsCommandList4* commandList,const RenderCamera& camera,RenderSurface& outputSurface,bool renderDebug,RenderViewType viewType);
-
-    void renderBackground(ID3D12GraphicsCommandList4* commandList,const RenderSurface& surface);
-
-    // Wrappers called from preRender per registered viewport
-    void renderEditorScene(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
-
-    void renderPlayScene(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
-
-    // GAME_RELEASE path — render directly to the swap-chain back-buffer
-    void renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
+    // Scene rendering
+    void renderScene( ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug, RenderViewType viewType);
+    void renderBackground(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
+    void renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height);
+    void renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle,float width, float height);
+    void renderGameToBackbuffer( ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle,  D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT     scissorRect);
 
     // Camera helpers
     RenderCamera getEditorCamera();

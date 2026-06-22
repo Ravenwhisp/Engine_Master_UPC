@@ -182,27 +182,6 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createGBuffer(float width, float height, const DXGI_FORMAT format)
-{
-	//const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	const float clearColor[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	
-
-	TextureDesc desc{};
-	desc.format = format;
-	desc.srvFormat = format;
-	desc.rtvFormat = format;
-	desc.width = static_cast<uint32_t>(width);
-	desc.height = static_cast<uint32_t>(height);
-	desc.views = TextureView::SRV | TextureView::RTV;
-	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	desc.hasClearValue = true;
-	desc.clearValue = CD3DX12_CLEAR_VALUE(format, clearColor);
-	desc.shaderVisibleSRV = true;
-
-	return new Texture(GenerateUID(), *m_device.Get(), desc);
-}
-
 RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
@@ -211,7 +190,7 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 	colorTex->setName(L"RenderSurface_Color");
 	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
-	surface->attachTexture(RenderSurface::COMPOSITE, colorTex);
+	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
 
 	return surface;
@@ -274,7 +253,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-
+	
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -284,14 +263,6 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	D3D12_CLEAR_VALUE clearValue = {};
-	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	clearValue.Color[0] = 0.0f;
-	clearValue.Color[1] = 0.0f;
-	clearValue.Color[2] = 0.0f;
-	clearValue.Color[3] = 1.0f;
-	desc.clearValue = clearValue;
-	desc.hasClearValue = true;
 
 	auto irradianceTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
@@ -469,14 +440,6 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	desc.mipLevels = 11; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	D3D12_CLEAR_VALUE clearValue = {};
-	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	clearValue.Color[0] = 0.0f;
-	clearValue.Color[1] = 0.0f;
-	clearValue.Color[2] = 0.0f;
-	clearValue.Color[3] = 1.0f;
-	desc.clearValue = clearValue;
-	desc.hasClearValue = true;
 
 	auto environmentTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 

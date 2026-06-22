@@ -11,7 +11,6 @@
 using Microsoft::WRL::ComPtr;
 
 class SkyBox;
-class RenderSurface;
 
 namespace DirectX { namespace SimpleMath { struct Matrix; } }
 
@@ -33,8 +32,6 @@ private:
     ComPtr<ID3D12PipelineState>		m_pipelineState;
 
     std::unique_ptr<SkyBox>         m_skyBox;
-
-    RenderSurface* m_renderSurface = nullptr;
 
     //Not sure if this belongs here
     const Matrix*         m_projection = nullptr;

@@ -106,6 +106,9 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.m_rootObjects = std::move(m_rootObjects);
     scene.setDefaultCamera(m_defaultCamera);
 
+    for (size_t i = 0; i < scene.m_allObjects.size(); ++i)
+        scene.m_objectIndexMap[scene.m_allObjects[i].get()] = i;
+
     for (const auto& go : scene.m_allObjects)
     {
         go->init();
