@@ -94,7 +94,7 @@ void PaladinChargeState::moveCharge()
 		return;
 	}
 
-	Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+	Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 	Vector3 desiredPosition = ownerPosition;
 
 	desiredPosition += m_chargeDirection * m_attackConfig->m_chargeSpeed * Time::getDeltaTime();
@@ -102,7 +102,7 @@ void PaladinChargeState::moveCharge()
 	Vector3 nextPosition;
 	if (NavigationAPI::moveAlongSurface(ownerPosition, desiredPosition, nextPosition, Vector3(5.0f, 5.0f, 5.0f)))
 	{
-		TransformAPI::setPosition(ownerTransform, nextPosition);
+		TransformAPI::setGlobalPosition(ownerTransform, nextPosition);
 	}
 }
 
