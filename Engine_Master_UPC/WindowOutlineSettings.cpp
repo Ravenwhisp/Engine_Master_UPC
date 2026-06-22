@@ -28,12 +28,24 @@ void WindowOutlineSettings::drawInternal()
 			settings.enabled = enabled;
 		}
 
-		ImGui::ColorEdit4("Outline Color", &settings.outlineColor.x);
+		ImGui::ColorEdit4("Color", &settings.outlineColor.x);
 
-		float thickness = settings.outlineThickness;
-		if (ImGui::DragFloat("Thickness", &thickness, 0.1f, 0.5f, 10.0f, "%.1f"))
-		{
-			settings.outlineThickness = thickness;
-		}
+		ImGui::Separator();
+		ImGui::Text("Radius");
+		ImGui::DragFloat("Near##radius", &settings.maxSeparation, 0.5f, 0.5f, 15.0f, "%.1f");
+		ImGui::DragFloat("Far##radius",  &settings.minSeparation, 0.5f, 0.0f, 10.0f, "%.1f");
+
+		ImGui::Separator();
+		ImGui::Text("Sensitivity");
+		ImGui::DragFloat("Min##sens", &settings.minDistance, 0.001f, 0.0f, 0.2f, "%.3f");
+		ImGui::DragFloat("Max##sens", &settings.maxDistance, 0.001f, 0.0f, 0.5f, "%.3f");
+
+		ImGui::Separator();
+		ImGui::Text("Search");
+		ImGui::SliderInt("Window Size", &settings.searchSize, 1, 4);
+
+		ImGui::Separator();
+		ImGui::Text("Sketchy");
+		ImGui::DragFloat("Noise", &settings.noiseScale, 0.5f, 0.0f, 20.0f, "%.1f");
 	}
 }

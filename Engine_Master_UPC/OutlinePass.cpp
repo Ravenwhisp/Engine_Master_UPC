@@ -18,6 +18,22 @@ OutlinePass::OutlinePass(ComPtr<ID3D12Device4> device)
 	createPipelineState();
 }
 
+OutlinePass::~OutlinePass()
+{
+	releaseManualSRV();
+}
+
+void OutlinePass::releaseManualSRV()
+{
+	if (m_hasManualSRV && m_manualSRV.IsValid())
+	{
+		auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		heap.free(m_manualSRV.handle);
+		m_manualSRV = {};
+		m_hasManualSRV = false;
+	}
+}
+
 void OutlinePass::createRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE srvRange;
@@ -27,7 +43,7 @@ void OutlinePass::createRootSignature()
 	samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
-	rootParameters[0].InitAsConstants(8, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[0].InitAsConstants(12, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[2].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -116,16 +132,46 @@ void OutlinePass::prepare(const RenderContext& ctx)
 	m_viewportWidth = ctx.viewport.Width;
 	m_viewportHeight = ctx.viewport.Height;
 
-	if (ctx.depthTexture)
+	if (!ctx.depthTexture)
 	{
-		m_depthTexture = ctx.depthTexture;
-		m_depthSRV = ctx.depthTexture->getSRV().gpu;
+		m_enabled = false;
+		return;
+	}
+
+	m_depthTexture = ctx.depthTexture;
+
+	DescriptorHandle srv = ctx.depthTexture->getSRV();
+
+	if (srv.IsShaderVisible())
+	{
+		m_depthSRV = srv.gpu;
+	}
+	else
+	{
+		releaseManualSRV();
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.Texture2D.MipLevels = 1;
+
+		auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		m_manualSRV = heap.allocate();
+
+		m_device->CreateShaderResourceView(
+			m_depthTexture->getD3D12Resource().Get(),
+			&srvDesc,
+			m_manualSRV.cpu);
+
+		m_depthSRV = m_manualSRV.gpu;
+		m_hasManualSRV = true;
 	}
 }
 
 void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-	if (!m_enabled || m_depthSRV.ptr == 0 || !m_depthTexture)
+	if (!m_enabled || !m_depthTexture || m_depthSRV.ptr == 0)
 	{
 		return;
 	}
@@ -148,17 +194,21 @@ void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
 	float texelSizeX = 1.0f / m_viewportWidth;
 	float texelSizeY = 1.0f / m_viewportHeight;
 
-	float constants[8] = {
+	float constants[12] = {
 		m_cachedSettings.outlineColor.x,
 		m_cachedSettings.outlineColor.y,
 		m_cachedSettings.outlineColor.z,
 		m_cachedSettings.outlineColor.w,
 		texelSizeX,
 		texelSizeY,
-		m_cachedSettings.outlineThickness,
-		0.0f
+		m_cachedSettings.minSeparation,
+		m_cachedSettings.maxSeparation,
+		m_cachedSettings.minDistance,
+		m_cachedSettings.maxDistance,
+		*(float*)&m_cachedSettings.searchSize,
+		m_cachedSettings.noiseScale
 	};
-	commandList->SetGraphicsRoot32BitConstants(0, 8, constants, 0);
+	commandList->SetGraphicsRoot32BitConstants(0, 12, constants, 0);
 
 	commandList->SetGraphicsRootDescriptorTable(1, m_depthSRV);
 

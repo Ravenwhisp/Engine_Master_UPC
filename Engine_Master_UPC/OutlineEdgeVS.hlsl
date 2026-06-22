@@ -12,8 +12,16 @@ static const float2 uvs[3] =
 	float2(0.0, 2.0)
 };
 
-void main(uint vertexID : SV_VertexID, out float2 texcoord : TEXCOORD, out float4 position : SV_Position)
+struct VSOut
 {
-	texcoord = uvs[vertexID];
-	position = float4(positions[vertexID], 0.0, 1.0);
+	float2 texcoord : TEXCOORD;
+	float4 position : SV_Position;
+};
+
+VSOut main(uint vertexID : SV_VertexID)
+{
+	VSOut output;
+	output.texcoord = uvs[vertexID];
+	output.position = float4(positions[vertexID], 0.0, 1.0);
+	return output;
 }
