@@ -146,8 +146,8 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     if (!m_surface)
         return;
 
-    auto sceneHDR = m_surface->getTexture(RenderSurface::SCENE_HDR);
-    auto composite = m_surface->getTexture(RenderSurface::COMPOSITE);
+    auto sceneHDR = m_surface->getTexture(RenderSurface::COLOR_1);
+    auto composite = m_surface->getTexture(RenderSurface::COLOR_0);
     if (!sceneHDR || !composite)
         return;
 

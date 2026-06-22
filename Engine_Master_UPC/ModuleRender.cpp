@@ -120,17 +120,17 @@ void ModuleRender::preRender()
         PERF_RENDER("ModuleRender::RenderViewports");
         for (const ViewportEntry& entry : m_viewports)
         {
-            renderToSurface(commandList, *entry.surface, [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+            renderToSurface(commandList, *entry.surface, [&](RenderSurface& surface)
                 {
                     if (entry.type == ViewportType::EDITOR)
                     {
                         PERF_RENDER("ModuleRender::RenderEditorScene");
-                        renderEditorScene(commandList, rtv, dsv, entry.width, entry.height);
+                        renderEditorScene(commandList, surface, entry.width, entry.height);
                     }
                     else
                     {
                         PERF_RENDER("ModuleRender::RenderPlayScene");
-                        renderPlayScene(commandList, rtv, dsv, entry.width, entry.height);
+                        renderPlayScene(commandList, surface, entry.width, entry.height);
                     }
                 });
         }
@@ -162,8 +162,7 @@ void ModuleRender::render()
 #else
 
     renderGameToBackbuffer(commandList,
-        swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
-        swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
+        const_cast<RenderSurface&>(swapChain->getRenderSurface()),
         swapChain->getViewport(),
         swapChain->getScissorRect());
 
@@ -238,14 +237,15 @@ D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
 }
 
-void ModuleRender::renderToSurface(ID3D12GraphicsCommandList4* commandList,RenderSurface& surface,std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE)> renderFunc)
+void ModuleRender::renderToSurface(ID3D12GraphicsCommandList4* commandList,RenderSurface& surface,std::function<void(RenderSurface&)> renderFunc)
 {
+    // COLOR_0 is the LDR display target (sampled afterwards by ImGui). It is the
+    // final destination of post-processing + overlays.
     auto colorTex = surface.getTexture(RenderSurface::COLOR_0);
-    auto depthTex = surface.getTexture(RenderSurface::DEPTH_STENCIL);
 
     transitionResource(commandList,colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    renderFunc(colorTex->getRTV(0).cpu, depthTex->getDSV().cpu);
+    renderFunc(surface);
 
     transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
@@ -294,9 +294,15 @@ void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> command
     commandList->ResourceBarrier(1, &barrier);
 }
 
-void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType)
+void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, RenderSurface& surface, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType)
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
+
+    // The scene is rendered into the HDR target (COLOR_1); the PostProcessPass
+    // resolves it into the LDR display target (COLOR_0) and the overlay passes
+    // draw on top of that.
+    auto hdrTex = surface.getTexture(RenderSurface::COLOR_1);
+    auto depthTex = surface.getTexture(RenderSurface::DEPTH_STENCIL);
 
     RenderContext ctx{
         .view = camera.view,
@@ -311,6 +317,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .uiImageCommands = &app->getModuleUI()->getImageCommands(),
         .particleCommands = &app->getModuleParticleSystem()->getParticleCommands(),
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
+        .renderSurface = surface,
         .shadowData = nullptr,
     };
 
@@ -342,9 +349,12 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         }
     }
 
+    // Make the HDR target writable and clear it (the scene passes render here).
+    transitionResource(commandList, hdrTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
     {
         PERF_RENDER("ModuleRender::renderScene::Background");
-        renderBackground(commandList, rtvHandle, dsvHandle, viewport, scissorRect);
+        renderBackground(commandList, hdrTex->getRTV(0).cpu, depthTex->getDSV().cpu, viewport, scissorRect);
     }
 
 
@@ -377,15 +387,15 @@ void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
 }
 
 #pragma region Wrappers
-void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, float width, float height)
 {
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
+    renderScene(commandList, getEditorCamera(), surface, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
 }
 
-void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, float width, float height)
 {
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
@@ -393,15 +403,15 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
+    renderScene(commandList, camera, surface, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 
-void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
+void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
 {
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
+    renderScene(commandList, camera, surface, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 #pragma endregion
 
