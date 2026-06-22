@@ -142,7 +142,6 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
-	desc.shaderVisibleSRV = true;
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 

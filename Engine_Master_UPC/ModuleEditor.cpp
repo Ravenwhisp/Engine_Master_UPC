@@ -24,7 +24,6 @@
 #include "WindowAnimationStateMachine.h"
 #include "PrefabManager.h"
 #include "WindowMusicDebug.h"
-#include "WindowOutlineSettings.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -149,7 +148,6 @@ bool ModuleEditor::init()
     registerWindowType<WindowGame>("Game");
     registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
     registerWindowType<WindowMusicDebug>("Music Library");
-    registerWindowType<WindowOutlineSettings>("Outline Settings");
 
     // ---- Spawn the default set of windows (one each) ----
     openWindow("Console");
@@ -163,7 +161,6 @@ bool ModuleEditor::init()
     openWindow("WindowInspector");
     openWindow("Game");
     openWindow("Animation State Machine");
-    openWindow("Outline Settings");
 
     m_viewGameDebug = std::make_unique<WindowGameDebug>();
 
@@ -335,7 +332,7 @@ void ModuleEditor::mainMenuBar()
 
     if (ImGui::BeginMenu("Window"))
     {
-        // ---- New Window submenu ï¿½ spawn additional instances ----
+        // ---- New Window submenu — spawn additional instances ----
         if (!m_windowFactories.empty())
         {
             ImGui::Separator();
@@ -438,7 +435,6 @@ void ModuleEditor::setupDockLayout(ImGuiID dockspace_id)
     dockFirstOfType("Scene Configuration", dock_inspector);
     dockFirstOfType("Hierarchy", dock_hierarchy);
     dockFirstOfType("Editor Settings", dock_hierarchy);
-    dockFirstOfType("Outline Settings", dock_hierarchy);
     dockFirstOfType("Scene Editor", dock_scene);
     dockFirstOfType("Game", dock_scene);
     dockFirstOfType("FileDialog", dock_bottom);

@@ -310,8 +310,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptBuildSystem.h" />
     <ClInclude Include="ScriptLibraryLoader.h" />
     <ClInclude Include="ShadowMapPass.h" />
-    <ClInclude Include="OutlinePass.h" />
-    <ClInclude Include="OutlineSettings.h" />
     <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
@@ -466,7 +464,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleDescriptors.h" />
     <ClInclude Include="ModuleEditor.h" />
     <ClInclude Include="WindowEditorSettings.h" />
-    <ClInclude Include="WindowOutlineSettings.h" />
     <ClInclude Include="EditorToolbar.h" />
     <ClInclude Include="EditorWindow.h" />
     <ClInclude Include="Engine.h" />
@@ -776,8 +773,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
     <ClCompile Include="ScriptLibraryLoader.cpp" />
     <ClCompile Include="ShadowMapPass.cpp" />
-    <ClCompile Include="OutlinePass.cpp" />
-    <ClCompile Include="WindowOutlineSettings.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
@@ -1120,28 +1115,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-Qembed_debug %(AdditionalOptions)</AdditionalOptions>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
-    </FxCompile>
-    <FxCompile Include="OutlineEdgeVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
-    </FxCompile>
-    <FxCompile Include="OutlineEdgePS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
