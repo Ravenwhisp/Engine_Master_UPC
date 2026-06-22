@@ -43,7 +43,7 @@ void OutlinePass::createRootSignature()
 	samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
-	rootParameters[0].InitAsConstants(12, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[0].InitAsConstants(28, 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[2].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -132,6 +132,8 @@ void OutlinePass::prepare(const RenderContext& ctx)
 	m_viewportWidth = ctx.viewport.Width;
 	m_viewportHeight = ctx.viewport.Height;
 
+	m_invProjection = ctx.projection.Invert().Transpose();
+
 	if (!ctx.depthTexture)
 	{
 		m_enabled = false;
@@ -194,7 +196,7 @@ void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
 	float texelSizeX = 1.0f / m_viewportWidth;
 	float texelSizeY = 1.0f / m_viewportHeight;
 
-	float constants[12] = {
+	float constants[28] = {
 		m_cachedSettings.outlineColor.x,
 		m_cachedSettings.outlineColor.y,
 		m_cachedSettings.outlineColor.z,
@@ -208,7 +210,8 @@ void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
 		*(float*)&m_cachedSettings.searchSize,
 		m_cachedSettings.noiseScale
 	};
-	commandList->SetGraphicsRoot32BitConstants(0, 12, constants, 0);
+	memcpy(&constants[12], &m_invProjection, sizeof(Matrix));
+	commandList->SetGraphicsRoot32BitConstants(0, 28, constants, 0);
 
 	commandList->SetGraphicsRootDescriptorTable(1, m_depthSRV);
 

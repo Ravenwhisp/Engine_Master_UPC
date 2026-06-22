@@ -3,11 +3,15 @@
 #include "IRenderPass.h"
 #include "OutlineSettings.h"
 #include "DescriptorHandle.h"
+#include "SimpleMath.h"
 
 #include <d3d12.h>
 #include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
+
+namespace DirectX { namespace SimpleMath { struct Matrix; } }
+using Matrix = DirectX::SimpleMath::Matrix;
 
 class Texture;
 
@@ -32,6 +36,7 @@ private:
 	const Texture*              m_depthTexture = nullptr;
 	D3D12_GPU_DESCRIPTOR_HANDLE m_depthSRV = {};
 	OutlineSettings             m_cachedSettings;
+	Matrix                      m_invProjection = Matrix::Identity;
 
 	DescriptorHandle            m_manualSRV = {};
 	bool                        m_hasManualSRV = false;

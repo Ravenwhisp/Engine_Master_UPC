@@ -9,8 +9,8 @@ struct OutlineSettings : public ISerializable
 	DirectX::SimpleMath::Color outlineColor = DirectX::SimpleMath::Color(1.0f, 1.0f, 0.0f, 1.0f);
 	float minSeparation = 1.0f;
 	float maxSeparation = 3.0f;
-	float minDistance = 0.001f;
-	float maxDistance = 0.03f;
+	float minDistance = 0.01f;
+	float maxDistance = 0.50f;
 	int   searchSize = 1;
 	float noiseScale = 0.0f;
 
