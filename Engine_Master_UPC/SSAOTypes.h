@@ -4,19 +4,7 @@
 #include <d3d12.h>
 
 #include "SimpleMath.h"
-
-static constexpr uint32_t SSAO_KERNEL_SIZE = 32;
-
-struct SSAOSettings
-{
-    bool enabled = true;
-
-    float radius = 0.5f;
-    float bias = 0.025f;
-    float strength = 1.0f;
-
-    uint32_t sampleCount = SSAO_KERNEL_SIZE;
-};
+#include "SSAOSettings.h"
 
 struct SSAODataCB
 {

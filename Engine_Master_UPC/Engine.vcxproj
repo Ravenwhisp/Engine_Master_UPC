@@ -312,6 +312,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="SSAOBlurPass.h" />
     <ClInclude Include="SSAOGeometryPass.h" />
     <ClInclude Include="SSAOPass.h" />
+    <ClInclude Include="SSAOSettings.h" />
     <ClInclude Include="SSAOTypes.h" />
     <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
