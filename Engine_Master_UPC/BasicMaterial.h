@@ -72,6 +72,8 @@ public:
 	explicit BasicMaterial(const UID uid, MaterialAsset& asset);
 	~BasicMaterial();
 
+	Texture* getTexture() const noexcept;
+
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
 	PbrMetallicRoughnessData&	getMaterial() { return m_materialData; }
 	D3D12_GPU_DESCRIPTOR_HANDLE getTableGPUHandle() const;

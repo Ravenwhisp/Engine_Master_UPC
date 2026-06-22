@@ -128,8 +128,8 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
     releaseViews();
 
     // 2. Defer the old underlying resource — GPU may still be reading it
-    app->getModuleResources()->deferResourceRelease(m_Resource);
     app->getModuleD3D12()->getCommandQueue()->flush();
+    app->getModuleResources()->deferResourceRelease(m_Resource);
     m_Resource.Reset();
 
     // 3. Patch the desc and rebuild
@@ -331,7 +331,7 @@ void Texture::releaseViews()
         if (m_desc.shaderVisibleSRV)
         {
             // Shader-visible block — defer release (GPU may still be reading it)
-            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
         }
         else
         {
@@ -352,17 +352,19 @@ void Texture::releaseViews()
         {
             for (uint32_t mip = 0; mip < m_mipCount; ++mip)
             {
-                app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_rtv[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-                //descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
-                m_rtv[mip] = {};
+                if (m_rtv[mip].IsValid())
+                {
+                    descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
+                    m_rtv[mip] = {};
+                }
             }
         }
     }
 
     if (hasDSV() && m_dsv.IsValid())
     {
-        //descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).free(m_dsv.handle);
-        app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_dsv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)
+            .free(m_dsv.handle);
         m_dsv = {};
     }
 
@@ -372,7 +374,7 @@ void Texture::releaseViews()
         {
             if (m_uav[mip].IsValid())
             {
-                descriptors->defferDescriptorRelease((Handle)m_uav[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                descriptors->defferDescriptorRelease((Handle)m_uav[mip].handle);
                 m_uav[mip] = {};
             }
         }

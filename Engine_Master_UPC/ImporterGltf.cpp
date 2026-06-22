@@ -787,6 +787,7 @@ void ImporterGltf::loadSkin(const tinygltf::Model& model,
 void ImporterGltf::loadMaterial(const tinygltf::Model& model, const tinygltf::Material& material, MaterialAsset* mat)
 {
     const tinygltf::PbrMetallicRoughness& pbr = material.pbrMetallicRoughness;
+
     mat->baseColour = Color(
         float(pbr.baseColorFactor[0]),
         float(pbr.baseColorFactor[1]),

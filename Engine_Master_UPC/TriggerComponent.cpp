@@ -25,25 +25,6 @@ bool TriggerComponent::init()
         m_setDefaultBoundsOnInit = false;
     }
 
-    Scene* scene = app->getModuleScene()->getScene();
-
-    if (scene)
-    {
-        scene->registerTrigger(this);
-    }
-
-    return true;
-}
-
-bool TriggerComponent::cleanUp()
-{
-    Scene* scene = app->getModuleScene()->getScene();
-
-    if (scene)
-    {
-        scene->unregisterTrigger(this);
-    }
-
     return true;
 }
 
