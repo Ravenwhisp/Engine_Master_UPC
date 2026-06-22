@@ -798,6 +798,10 @@ void Scene::serialize(IArchive& archive)
     m_skybox.serialize(archive);
     archive.endObject();
 
+    archive.beginObject("Outline");
+    m_outline.serialize(archive);
+    archive.endObject();
+
     {
         SoundBanksData soundData;
         if (archive.mode() == ArchiveMode::Output)
