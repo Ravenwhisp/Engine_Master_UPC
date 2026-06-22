@@ -74,7 +74,7 @@ float ParticleSystemComponent::deltaTime() const
 
 void ParticleSystemComponent::drawUi()
 {
-    ImGui::Text("Particle system");
+    ImGui::Text("Particle System");
 
     ImGui::Button("Drop Here the Texture");
 

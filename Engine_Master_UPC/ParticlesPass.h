@@ -16,7 +16,7 @@ public:
 
 private:
     void renderImages(ID3D12GraphicsCommandList4* commandList);
-    Matrix buildImageWorldMatrix(const ParticleCommand& command) const;
+    Matrix buildImageWorldMatrix(const ParticleCommand& command, EmitterRender::RenderMode mode) const;
     Matrix buildImageVP();
 
 private:
@@ -41,19 +41,21 @@ private:
 
     // TEMPORARY
     
-    std::vector<ParticleEmitterCommand> test = { {nullptr,
+    std::vector<ParticleEmitterCommand> test = { {nullptr, 0, EmitterRender::RenderMode::BILLBOARD, Vector2 (1.f, 1.f),
            {
                {
                    Vector3(0.f, 0.f, 0.f),
                    Vector2(1.f, 1.f),
                    3.14159272F,
-                   Vector4(1.f, 1.f, 1.f, 1.f)
+                   Vector4(1.f, 1.f, 1.f, 1.f),
+                   Vector2(0.f, 0.f)
                },
                {
                    Vector3(0.f, 5.f, 0.f),
                    Vector2(2.f, 2.f),
                    0.f,
-                   Vector4(0.f, 1.f, 0.f, 1.f)
+                   Vector4(0.f, 1.f, 0.f, 1.f),
+                   Vector2(0.f, 0.f)
                }
            }
        }
@@ -62,13 +64,14 @@ private:
 
 
 /*
-std::vector<ParticleEmitterCommand> test = { {nullptr,
+std::vector<ParticleEmitterCommand> test = { {nullptr, 0, Vector2 (1.f, 1.f),
           {
               {
                   Vector3(5.f, 1.f, 1.f),
                   Vector2(1.f, 1.f),
                   0.f,
-                  Vector4(1.f, 1.f, 1.f, 1.f)
+                  Vector4(1.f, 1.f, 1.f, 1.f),
+                  Vector2(0.f, 0.f)
               }
           }
       }

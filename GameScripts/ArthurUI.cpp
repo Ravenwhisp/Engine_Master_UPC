@@ -325,11 +325,11 @@ void ArthurUI::setupSideSweepUI(int sweepSide)
 
 	if (sweepSide == -1)
 	{
-		TransformAPI::setRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, -90.0f));
+		TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, -90.0f));
 	}
 	else
 	{
-		TransformAPI::setRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, 90.0f));
+		TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, 90.0f));
 	}
 
 	Transform2DAPI::setAlpha(m_sideSweepUIBackgroundTransform2D, 0.0f);
@@ -414,8 +414,8 @@ void ArthurUI::setupChargingSlamUI(const Vector3& startPosition, const Vector3& 
 	}
 
 	GameObjectAPI::setActive(m_chargingSlamImpactUICanvasTransform->getOwner(), true);
-	TransformAPI::setPosition(m_chargingSlamImpactUICanvasTransform, Vector3(lockedTargetPosition.x, lockedTargetPosition.y, lockedTargetPosition.z));
-	TransformAPI::setRotationEuler(m_chargingSlamImpactUICanvasTransform, Vector3(90.0f, 0.0f, atan2(dashDirection.z, dashDirection.x) * 180.0f / 3.14159265f - 90.0f));
+	TransformAPI::setGlobalPosition(m_chargingSlamImpactUICanvasTransform, lockedTargetPosition);
+	TransformAPI::setGlobalRotationEuler(m_chargingSlamImpactUICanvasTransform, Vector3(90.0f, 0.0f, atan2(dashDirection.z, dashDirection.x) * 180.0f / 3.14159265f - 90.0f));
 
 	Transform2DAPI::setAlpha(m_chargingSlamImpactUIContainerTransform2D, 0.0f);
 	Transform2DAPI::setAlpha(m_chargingSlamImpactUICenterTransform2D, 0.0f);

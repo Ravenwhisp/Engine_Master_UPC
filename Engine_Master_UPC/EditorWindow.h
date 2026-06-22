@@ -86,28 +86,10 @@ public:
     {
         if (!m_isOpen)
         {
-            if (m_isVisible) // was visible last frame, now closed via X
-            {
-                m_isVisible = false;
-                onBecameHidden();
-            }
             return;
         }
 
-        bool isVisible = ImGui::Begin(getImGuiId(), &m_isOpen);
-
-        if (isVisible && !m_isVisible) // became visible (tab switched back, or first open)
-        {
-            m_isVisible = true;
-            onBecameVisible();
-        }
-        else if (!isVisible && m_isVisible) // became hidden (tab switched away, collapsed)
-        {
-            m_isVisible = false;
-            onBecameHidden();
-        }
-
-        if (isVisible)
+        if (ImGui::Begin(getImGuiId(), &m_isOpen))
         {
             drawInternal();
         }
@@ -116,14 +98,12 @@ public:
     }
 
 protected:
-    virtual void onBecameVisible() { }
-    virtual void onBecameHidden() { }
+
     virtual void drawInternal() = 0;
 
     float m_windowX = 0;
     float m_windowY = 0;
     bool m_isOpen = true;
-    bool m_isVisible = false;
     ImVec2 m_size = { 400, 300 };
     bool m_isViewportHovered = false;
     bool m_isViewportFocused = false;

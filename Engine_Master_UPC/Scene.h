@@ -144,6 +144,11 @@ public:
     void registerTrigger(TriggerComponent* trigger);
     void unregisterTrigger(TriggerComponent* trigger);
     void clearTriggers();
+
+    void registerAllTriggersInScene();
+
+    void registerTriggersInGameObject(GameObject* gameObject);
+    void unregisterTriggersInGameObject(GameObject* gameObject);
 #pragma endregion
 
 #pragma region MusicBanks

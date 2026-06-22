@@ -9,7 +9,6 @@ struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
 struct ParticleEmitterCommand;
-class RenderSurface;
 
 struct RenderContext
 {
@@ -28,7 +27,6 @@ struct RenderContext
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
 
-    RenderSurface& renderSurface;
     const ShadowFrameData* shadowData = nullptr;
 
 };

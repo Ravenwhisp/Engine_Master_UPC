@@ -31,10 +31,6 @@
 Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
-    m_skybox = {};
-    m_skybox.cubemapAssetId.m_uid = 11970188361064272780;
-    m_skybox.cubemapAssetId.m_type = AssetType::TEXTURE;
-    m_skybox.cubemapAssetId.m_libId = "51513e627d3296012beac59084735eaa";
 }
 
 Scene::~Scene() = default;
@@ -340,10 +336,32 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
         for (Component* c : obj->GetAllComponents())
             c->fixReferences(resolver);
     }
+
+    for (GameObject* obj : newGOs)
+    {
+        TriggerComponent* trigger = obj->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+        if (trigger != nullptr)
+        {
+            registerTrigger(trigger);
+        }
+    }
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
 {
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        unregisterTrigger(trigger);
+    }
+
     removeFromRootList(gameObject);
 
     auto mapIt = m_objectIndexMap.find(gameObject);
@@ -613,29 +631,124 @@ void Scene::markDirty()
     }
 }
 
+#pragma region Triggers
 void Scene::registerTrigger(TriggerComponent* trigger)
 {
-    if (m_triggerSystem)
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
     {
-        m_triggerSystem->registerTrigger(trigger);
+        return;
     }
-}
 
+    if (m_triggerSystem == nullptr || trigger == nullptr)
+    {
+        return;
+    }
+
+    if (!trigger->isActive())
+    {
+        return;
+    }
+
+    m_triggerSystem->registerTrigger(trigger);
+}
 void Scene::unregisterTrigger(TriggerComponent* trigger)
 {
-    if (m_triggerSystem)
+    if (m_triggerSystem == nullptr || trigger == nullptr)
     {
-        m_triggerSystem->unregisterTrigger(trigger);
+        return;
     }
+
+    m_triggerSystem->unregisterTrigger(trigger);
 }
 
 void Scene::clearTriggers()
 {
-    if (m_triggerSystem)
+    if (m_triggerSystem == nullptr)
     {
-        m_triggerSystem->clear();
+        return;
+    }
+
+    m_triggerSystem->clear();
+}
+
+void Scene::registerAllTriggersInScene()
+{
+    clearTriggers();
+
+    for (const std::unique_ptr<GameObject>& gameObjectPtr : m_allObjects)
+    {
+        GameObject* gameObject = gameObjectPtr.get();
+
+        if (gameObject == nullptr)
+        {
+            continue;
+        }
+
+        TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+        if (trigger == nullptr)
+        {
+            continue;
+        }
+
+        registerTrigger(trigger);
     }
 }
+
+void Scene::registerTriggersInGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        registerTrigger(trigger);
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        registerTriggersInGameObject(child);
+    }
+}
+
+void Scene::unregisterTriggersInGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        unregisterTrigger(trigger);
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        unregisterTriggersInGameObject(child);
+    }
+}
+#pragma endregion
 
 #pragma region MusicBanks
 const std::vector<std::string>& Scene::getLoadedBanks() const

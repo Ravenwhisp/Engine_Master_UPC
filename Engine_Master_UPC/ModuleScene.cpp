@@ -208,6 +208,7 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
 
@@ -257,11 +258,14 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         app->getModuleMusic()->loadBank(bank);
     }
 
+    initializeRuntimeSceneSystems();
+
     return true;
 }
 
 bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 {
+    clearRuntimeSceneSystems();
     clearComponentCaches();
 
     auto sceneName = scene->getName();
@@ -297,6 +301,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #endif
 
     rebuildComponentCaches();
+    initializeRuntimeSceneSystems();
     return true;
 }
 
@@ -481,5 +486,32 @@ bool ModuleScene::pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit)
 
     outHit = closestTriangleHit;
     return true;
+}
+#pragma endregion
+
+#pragma region Systems
+void ModuleScene::initializeRuntimeSceneSystems()
+{
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
+        return;
+    }
+
+    if (m_scene == nullptr)
+    {
+        return;
+    }
+
+    m_scene->registerAllTriggersInScene();
+}
+
+void ModuleScene::clearRuntimeSceneSystems()
+{
+    if (m_scene == nullptr)
+    {
+        return;
+    }
+
+    m_scene->clearTriggers();
 }
 #pragma endregion

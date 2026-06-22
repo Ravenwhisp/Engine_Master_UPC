@@ -15,6 +15,7 @@ struct Particle {
     Vector4 colorAndAlpha;
     float rotationZ = 0.f; // since they are billboards, other rotations don't make sense
     Vector2 scale;
+    float textureFrame = 0.f; // for animation, the current frame in the texture
 
     float velocity;
     float rotationVelocity;
@@ -22,6 +23,7 @@ struct Particle {
     Vector3 movementDirection; // should be normalized
     
     Vector2 startScale; // for interpolation calculations
+    Vector2 endScale;   //
 
     float lifeTime = 0.f;
 };
@@ -37,7 +39,7 @@ public:
     void preRender()  override;
     void update()     override;
     //void render()   override;
-    //bool cleanUp()  override;
+    bool cleanUp()  override;
 
     //ParticleSystem* addSystem(Transform* parent);
     //bool removeSystem(ParticleSystem* system);
