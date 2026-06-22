@@ -209,14 +209,19 @@ void SSAOPass::uploadConstants(const RenderContext& ctx)
     const SSAOSettings defaultSettings{};
     const SSAOSettings& settings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSettings;
 
-    const uint32_t sampleCount = std::min<uint32_t>(
-        std::max<uint32_t>(settings.sampleCount, 1u),
+    const float radius = std::clamp(settings.radius, 0.01f, 5.0f);
+    const float bias = std::clamp(settings.bias, 0.0f, 0.1f);
+    const float strength = std::clamp(settings.strength, 0.0f, 8.0f);
+
+    const uint32_t sampleCount = std::clamp<uint32_t>(
+        settings.sampleCount,
+        1u,
         SSAO_KERNEL_SIZE);
 
     m_ssaoData.params = DirectX::SimpleMath::Vector4(
-        settings.radius,
-        settings.bias,
-        settings.strength,
+        radius,
+        bias,
+        strength,
         static_cast<float>(sampleCount));
 
     m_ssaoData.screenParams = DirectX::SimpleMath::Vector4(

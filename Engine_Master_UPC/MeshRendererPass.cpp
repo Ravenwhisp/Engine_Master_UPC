@@ -148,7 +148,7 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
 
     m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(
         ssaoSettings.enabled ? 1.0f : 0.0f,
-        ssaoSettings.debugView ? 1.0f : 0.0f,
+        ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f,
         0.0f,
         0.0f);
 
