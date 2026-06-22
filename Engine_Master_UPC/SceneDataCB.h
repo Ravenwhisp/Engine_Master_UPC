@@ -8,4 +8,9 @@ struct SceneDataCB
 
     DirectX::SimpleMath::Vector2 screenSize;
     DirectX::SimpleMath::Vector2 invScreenSize;
+
+    // x = ssaoEnabled
+    // y = ssaoDebugView
+    // zw = unused
+    DirectX::SimpleMath::Vector4 renderFlags;
 };

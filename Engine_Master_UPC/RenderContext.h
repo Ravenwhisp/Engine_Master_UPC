@@ -35,6 +35,7 @@ struct RenderContext
     Texture* ssaoRawTexture = nullptr;
     Texture* ssaoBlurTexture = nullptr;
 
+    const SSAOSettings* ssaoSettings = nullptr;
     const SSAOFrameData* ssaoData = nullptr;
 
 };

@@ -7,6 +7,7 @@
 #include "RingBuffer.h"
 #include "RenderContext.h"
 #include "Texture.h"
+#include "SSAOSettings.h"
 
 #include "PlatformHelpers.h"
 #include "OptickProfiler.h"
@@ -166,8 +167,6 @@ void SSAOPass::createKernel()
     std::uniform_real_distribution<float> randoms(0.0f, 1.0f);
     std::default_random_engine generator(0);
 
-    constexpr float radius = 0.5f;
-
     for (uint32_t i = 0; i < SSAO_KERNEL_SIZE; ++i)
     {
         DirectX::SimpleMath::Vector3 sample(
@@ -182,7 +181,7 @@ void SSAOPass::createKernel()
         float scale = static_cast<float>(i) / static_cast<float>(SSAO_KERNEL_SIZE);
         scale = 0.1f + scale * scale * (1.0f - 0.1f);
 
-        sample *= scale * radius;
+        sample *= scale;
 
         m_kernel[i] = DirectX::SimpleMath::Vector4(sample.x, sample.y, sample.z, 0.0f);
     }
@@ -207,11 +206,18 @@ void SSAOPass::uploadConstants(const RenderContext& ctx)
     const float width = std::max(1.0f, ctx.viewport.Width);
     const float height = std::max(1.0f, ctx.viewport.Height);
 
+    const SSAOSettings defaultSettings{};
+    const SSAOSettings& settings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSettings;
+
+    const uint32_t sampleCount = std::min<uint32_t>(
+        std::max<uint32_t>(settings.sampleCount, 1u),
+        SSAO_KERNEL_SIZE);
+
     m_ssaoData.params = DirectX::SimpleMath::Vector4(
-        0.5f,                               // radius
-        0.025f,                             // bias
-        1.0f,                               // strength
-        static_cast<float>(SSAO_KERNEL_SIZE));
+        settings.radius,
+        settings.bias,
+        settings.strength,
+        static_cast<float>(sampleCount));
 
     m_ssaoData.screenParams = DirectX::SimpleMath::Vector4(
         width,

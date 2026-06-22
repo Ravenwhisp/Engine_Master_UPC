@@ -106,7 +106,7 @@ float4 main(PixelInput input) : SV_TARGET
 
     for (int i = 0; i < sampleCount; ++i)
     {
-        float3 sampleOffset = mul(samples[i].xyz, tangentSpace);
+        float3 sampleOffset = mul(samples[i].xyz, tangentSpace) * radius;
         float3 sampleViewPos = viewPos + sampleOffset;
 
         float4 sampleClipPos = mul(float4(sampleViewPos, 1.0f), projection);
