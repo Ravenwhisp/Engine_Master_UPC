@@ -25,6 +25,25 @@ bool TriggerComponent::init()
         m_setDefaultBoundsOnInit = false;
     }
 
+    Scene* scene = app->getModuleScene()->getScene();
+
+    if (scene)
+    {
+        scene->registerTrigger(this);
+    }
+
+    return true;
+}
+
+bool TriggerComponent::cleanUp()
+{
+    Scene* scene = app->getModuleScene()->getScene();
+
+    if (scene)
+    {
+        scene->unregisterTrigger(this);
+    }
+
     return true;
 }
 
@@ -334,10 +353,4 @@ void TriggerComponent::serialize(IArchive& archive)
 
     archive.serialize(m_center, "Center");
     archive.serialize(m_size, "Size");
-
-    if (archive.mode() == ArchiveMode::Input)
-    {
-        m_setDefaultBoundsOnInit = false;
-        m_boundsDirty = true;
-    }
 }
