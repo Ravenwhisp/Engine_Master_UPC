@@ -224,6 +224,11 @@ float ComputeShadow(float3 worldPos)
 
 float SampleSSAO(float4 screenPosition)
 {
+    if (renderFlags.x < 0.5f)
+    {
+        return 1.0f;
+    }
+
     float2 ssaoUV = screenPosition.xy * invScreenSize;
     return ssaoTexture.Sample(pointClampSample, ssaoUV).r;
 }
@@ -350,6 +355,12 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     //Calculate indirect lighting
     float ssao = SampleSSAO(screenPosition);
+
+    if (renderFlags.y > 0.5f)
+    {
+        return float4(ssao.xxx, 1.0f);
+    }
+
     float diffuseAO = saturate(ao * ssao);
 
     float specularAO = computeSpecularAO(NdotV, diffuseAO, alphaRoughness);

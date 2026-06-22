@@ -143,6 +143,15 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
     m_sceneDataCB->screenSize = DirectX::SimpleMath::Vector2(width, height);
     m_sceneDataCB->invScreenSize = DirectX::SimpleMath::Vector2(1.0f / width, 1.0f / height);
 
+    const SSAOSettings defaultSSAOSettings{};
+    const SSAOSettings& ssaoSettings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSSAOSettings;
+
+    m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(
+        ssaoSettings.enabled ? 1.0f : 0.0f,
+        ssaoSettings.debugView ? 1.0f : 0.0f,
+        0.0f,
+        0.0f);
+
     {
         PERF_RENDER("MeshRendererPass::prepare::GetVisibleMeshRenderers");
         m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
@@ -186,20 +195,18 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
         m_shadowMapSRV = {};
     }
 
-    m_hasSSAOData = ctx.ssaoData != nullptr && ctx.ssaoData->enabled && ctx.ssaoData->ssaoSRV.ptr != 0;
+    m_hasSSAOData = false;
+    m_ssaoSRV = {};
 
-    if (m_hasSSAOData)
+    if (ctx.ssaoData && ctx.ssaoData->ssaoSRV.ptr != 0)
     {
         m_ssaoSRV = ctx.ssaoData->ssaoSRV;
+        m_hasSSAOData = true;
     }
-    else if (ctx.ssaoRawTexture)
+    else if (ctx.ssaoRawTexture && ctx.ssaoRawTexture->getSRV().gpu.ptr != 0)
     {
         m_ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
-        m_hasSSAOData = m_ssaoSRV.ptr != 0;
-    }
-    else
-    {
-        m_ssaoSRV = {};
+        m_hasSSAOData = true;
     }
 
 }

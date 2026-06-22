@@ -307,6 +307,10 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     Texture* ssaoRawTexture = surface ? surface->getTexture(RenderSurface::SSAO_RAW).get() : nullptr;
     Texture* ssaoBlurTexture = surface ? surface->getTexture(RenderSurface::SSAO_BLUR).get() : nullptr;
 
+    const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
+    const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
+    const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
+
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,
@@ -325,6 +329,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .ssaoNormalTexture = ssaoNormalTexture,
         .ssaoRawTexture = ssaoRawTexture,
         .ssaoBlurTexture = ssaoBlurTexture,
+        .ssaoSettings = ssaoSettings,
         .ssaoData = nullptr,
     };
 
@@ -359,7 +364,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
 
-        if (m_ssaoGeometryPass)
+        if (m_ssaoGeometryPass && ssaoEnabled)
         {
             m_ssaoGeometryPass->prepare(ctx);
             m_ssaoGeometryPass->apply(commandList);
@@ -369,7 +374,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOPass");
 
-        if (m_ssaoPass)
+        if (m_ssaoPass && ssaoEnabled)
         {
             m_ssaoPass->prepare(ctx);
             m_ssaoPass->apply(commandList);
@@ -379,7 +384,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOBlurPass");
 
-        if (m_ssaoBlurPass)
+        if (m_ssaoBlurPass && ssaoEnabled && ssaoBlurEnabled)
         {
             m_ssaoBlurPass->prepare(ctx);
             m_ssaoBlurPass->apply(commandList);
@@ -388,14 +393,21 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
     m_currentSSAOData = {};
 
-    Texture* finalSSAOTexture = ctx.ssaoBlurTexture ? ctx.ssaoBlurTexture : ctx.ssaoRawTexture;
+    Texture* finalSSAOTexture = nullptr;
+
+    if (ssaoEnabled)
+    {
+        finalSSAOTexture = ssaoBlurEnabled && ctx.ssaoBlurTexture
+            ? ctx.ssaoBlurTexture
+            : ctx.ssaoRawTexture;
+    }
 
     if (finalSSAOTexture)
     {
         m_currentSSAOData.ssaoSRV = finalSSAOTexture->getSRV().gpu;
         m_currentSSAOData.width = static_cast<uint32_t>(viewport.Width);
         m_currentSSAOData.height = static_cast<uint32_t>(viewport.Height);
-        m_currentSSAOData.enabled = true;
+        m_currentSSAOData.enabled = ssaoEnabled;
 
         ctx.ssaoData = &m_currentSSAOData;
     }
