@@ -22,7 +22,7 @@ public:
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
-
+	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 private:
 
 	ParameterType m_startScaleType = ParameterType::CONSTANT;
@@ -35,8 +35,13 @@ private:
 
 	bool m_changeSizeOverTime = false;
 
-	// We will want Bezier curves to tweak this better
+	ParameterType m_endScaleType = ParameterType::CONSTANT;
 	Vector2 m_endScale = Vector2(1.f, 1.f);
+	Vector2 m_endScale2 = Vector2(1.f, 1.f); // if type != CONSTANT
+	float m_endScaleCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f }; // if type = CURVE
+
+	bool drawEndScaleUI();
+
 
 	void setNewParticlesScaleConstant(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
 	void setNewParticlesScaleRandom(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);

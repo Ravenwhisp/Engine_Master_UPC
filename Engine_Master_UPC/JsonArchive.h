@@ -58,6 +58,7 @@ public:
     bool hasKey(const char* name) const;
     bool read(const char* key, uint64_t& val) const;
     bool read(const char* key, std::string& val) const;
+    const rapidjson::Value* currentInput() const { return m_currentInput; }
 
 private:
     struct Context
