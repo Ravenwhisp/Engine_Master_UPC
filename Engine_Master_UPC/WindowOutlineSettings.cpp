@@ -2,6 +2,7 @@
 #include "WindowOutlineSettings.h"
 #include "Application.h"
 #include "ModuleScene.h"
+#include "ModuleAssets.h"
 #include "Scene.h"
 #include "OutlineSettings.h"
 
@@ -28,7 +29,7 @@ void WindowOutlineSettings::drawInternal()
 			settings.enabled = enabled;
 		}
 
-		ImGui::ColorEdit4("Color", &settings.outlineColor.x);
+		ImGui::ColorEdit4("Color Modifier", &settings.colorModifier.x);
 
 		ImGui::Separator();
 		ImGui::Text("Radius");
@@ -46,6 +47,25 @@ void WindowOutlineSettings::drawInternal()
 
 		ImGui::Separator();
 		ImGui::Text("Sketchy");
-		ImGui::DragFloat("Noise", &settings.noiseScale, 0.5f, 0.0f, 20.0f, "%.1f");
+		ImGui::DragFloat("Noise Scale", &settings.noiseScale, 0.5f, 0.0f, 20.0f, "%.1f");
+
+		const char* dropLabel = settings.noiseTextureAssetId.isValid()
+			? "Drop Noise Texture (Assigned)"
+			: "Drop Noise Texture Here";
+		ImGui::Button(dropLabel);
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+			{
+				AssetReference* data = static_cast<AssetReference*>(payload->Data);
+				if (auto ref = app->getModuleAssets()->findReference(data->m_uid))
+				{
+					settings.noiseTextureAssetId = *ref;
+				}
+			}
+
+			ImGui::EndDragDropTarget();
+		}
 	}
 }

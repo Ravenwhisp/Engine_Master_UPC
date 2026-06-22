@@ -121,15 +121,16 @@ void ModuleRender::preRender()
             renderToSurface(commandList, *entry.surface, [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
                 {
                     auto* depthTexture = entry.surface->getTexture(RenderSurface::DEPTH_STENCIL).get();
+                    auto* colorTexture = entry.surface->getTexture(RenderSurface::COLOR_0).get();
                     if (entry.type == ViewportType::EDITOR)
                     {
                         PERF_RENDER("ModuleRender::RenderEditorScene");
-                        renderEditorScene(commandList, rtv, dsv, entry.width, entry.height, depthTexture);
+                        renderEditorScene(commandList, rtv, dsv, entry.width, entry.height, depthTexture, colorTexture);
                     }
                     else
                     {
                         PERF_RENDER("ModuleRender::RenderPlayScene");
-                        renderPlayScene(commandList, rtv, dsv, entry.width, entry.height, depthTexture);
+                        renderPlayScene(commandList, rtv, dsv, entry.width, entry.height, depthTexture, colorTexture);
                     }
                 });
         }
@@ -165,7 +166,8 @@ void ModuleRender::render()
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
         swapChain->getScissorRect(),
-        swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL).get());
+        swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL).get(),
+        nullptr);
 
 #endif
 
@@ -294,7 +296,7 @@ void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> command
     commandList->ResourceBarrier(1, &barrier);
 }
 
-void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType, const Texture* depthTexture)
+void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType, const Texture* depthTexture, const Texture* colorTexture)
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
 
@@ -313,6 +315,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
         .outlineSettings = &app->getModuleScene()->getScene()->getOutlineSettings(),
         .depthTexture = depthTexture,
+        .colorTexture = colorTexture,
         .shadowData = nullptr,
     };
 
@@ -379,15 +382,15 @@ void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
 }
 
 #pragma region Wrappers
-void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height, const Texture* depthTexture)
+void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height, const Texture* depthTexture, const Texture* colorTexture)
 {
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor, depthTexture);
+    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor, depthTexture, colorTexture);
 }
 
-void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height, const Texture* depthTexture)
+void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height, const Texture* depthTexture, const Texture* colorTexture)
 {
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
@@ -395,15 +398,15 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game, depthTexture);
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game, depthTexture, colorTexture);
 }
 
-void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, const Texture* depthTexture)
+void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, const Texture* depthTexture, const Texture* colorTexture)
 {
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game, depthTexture);
+    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game, depthTexture, colorTexture);
 }
 #pragma endregion
 

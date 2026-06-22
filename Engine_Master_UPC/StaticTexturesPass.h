@@ -22,4 +22,3 @@ private:
 
 	void renderBrdf(ModuleResources* moduleResources);
 };
-

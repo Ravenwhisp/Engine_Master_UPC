@@ -1,9 +1,12 @@
 Texture2D depthTexture : register(t0);
+Texture2D colorTexture : register(t1);
+Texture2D noiseTexture : register(t2);
 SamplerState pointClampSampler : register(s0);
+SamplerState linearClampSampler : register(s1);
 
 cbuffer OutlineParams : register(b0)
 {
-	float4   outlineColor;
+	float4   colorModifier;
 	float2   texelSize;
 	float    minSeparation;
 	float    maxSeparation;
@@ -13,11 +16,6 @@ cbuffer OutlineParams : register(b0)
 	float    noiseScale;
 	float4x4 invProjection;
 };
-
-float random(float2 uv)
-{
-	return frac(sin(dot(uv, float2(12.9898f, 78.233f))) * 43758.5453f);
-}
 
 float4 ViewPos(float2 uv, float d, float4x4 invProj)
 {
@@ -40,11 +38,12 @@ float4 main(PSInput input) : SV_Target
 	float2 noise = float2(0.0f, 0.0f);
 	if (noiseScale > 0.0f)
 	{
-		noise.x = random(floor(fragCoord * 0.1f));
-		noise.y = random(floor(fragCoord * 0.1f + float2(1.0f, 1.0f)));
-		noise   = (noise * 2.0f - 1.0f) * noiseScale;
+		float2 noiseUV = fragCoord / 128.0f;
+		float3 noiseSample = noiseTexture.Sample(linearClampSampler, noiseUV).rgb;
+		noise = noiseSample.rb * 2.0f - 1.0f;
+		noise *= noiseScale;
 	}
-	float2 noiseOffset = float2(noise.x * texelSize.x, noise.y * texelSize.y * 0.5f);
+	float2 noiseOffset = float2(noise.x * texelSize.x, noise.y * texelSize.y);
 
 	float2 centerUV = uv + noiseOffset;
 	float  depth    = depthTexture.Sample(pointClampSampler, centerUV).r;
@@ -68,5 +67,6 @@ float4 main(PSInput input) : SV_Target
 	}
 
 	float edge = smoothstep(minDistance, maxDistance, mx);
-	return float4(outlineColor.rgb, outlineColor.a * edge);
+	float3 sceneColor = colorTexture.Sample(linearClampSampler, centerUV).rgb;
+	return float4(sceneColor * colorModifier.rgb, colorModifier.a * edge);
 }

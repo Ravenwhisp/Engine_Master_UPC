@@ -30,6 +30,7 @@ struct RenderContext
     const SkyBoxSettings* skyBoxSettings = nullptr;
     const OutlineSettings* outlineSettings = nullptr;
     const Texture* depthTexture = nullptr;
+    const Texture* colorTexture = nullptr;
 
     const ShadowFrameData* shadowData = nullptr;
 
