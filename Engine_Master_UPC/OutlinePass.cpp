@@ -54,30 +54,42 @@ void OutlinePass::releaseManualSRV()
 
 void OutlinePass::releaseCopyResources()
 {
-	if (m_sceneColorCopySRV.IsValid())
+	auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	for (auto& pair : m_colorCopyCache)
 	{
-		auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		heap.free(m_sceneColorCopySRV.handle);
-		m_sceneColorCopySRV = {};
+		if (pair.second.srv.IsValid())
+			heap.free(pair.second.srv.handle);
 	}
-	if (m_contiguousSRVBlock)
+	m_colorCopyCache.clear();
+	m_activeCopyKey = 0;
+
+	for (auto& pair : m_srvBlockCache)
 	{
-		auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		heap.freeBlock(m_contiguousSRVBlock);
-		m_contiguousSRVBlock = nullptr;
-		m_srvTableGpu = {};
+		if (pair.second)
+			heap.freeBlock(pair.second);
 	}
-	m_sceneColorCopy.Reset();
-	m_copyWidth = 0;
-	m_copyHeight = 0;
+	m_srvBlockCache.clear();
+	m_srvTableGpu = {};
 }
 
 void OutlinePass::ensureColorCopy(uint32_t width, uint32_t height, DXGI_FORMAT format)
 {
-	if (m_sceneColorCopy && m_copyWidth == width && m_copyHeight == height)
+	if (width == 0 || height == 0)
 		return;
 
-	releaseCopyResources();
+	uint64_t key = makeCopyKey(width, height);
+
+	if (m_activeCopyKey == key)
+		return;
+
+	auto it = m_colorCopyCache.find(key);
+	if (it != m_colorCopyCache.end())
+	{
+		m_activeCopyKey = key;
+		return;
+	}
+
+	CachedColorCopy entry;
 
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height, 1, 1);
 	desc.Flags = D3D12_RESOURCE_FLAG_NONE;
@@ -90,9 +102,9 @@ void OutlinePass::ensureColorCopy(uint32_t width, uint32_t height, DXGI_FORMAT f
 		&desc,
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
-		IID_PPV_ARGS(&m_sceneColorCopy)));
+		IID_PPV_ARGS(entry.resource.ReleaseAndGetAddressOf())));
 
-	m_sceneColorCopy->SetName(L"OutlineSceneColorCopy");
+	entry.resource->SetName(L"OutlineSceneColorCopy");
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = format;
@@ -101,12 +113,12 @@ void OutlinePass::ensureColorCopy(uint32_t width, uint32_t height, DXGI_FORMAT f
 	srvDesc.Texture2D.MipLevels = 1;
 
 	auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	m_sceneColorCopySRV = heap.allocate();
+	entry.srv = heap.allocate();
 
-	m_device->CreateShaderResourceView(m_sceneColorCopy.Get(), &srvDesc, m_sceneColorCopySRV.cpu);
+	m_device->CreateShaderResourceView(entry.resource.Get(), &srvDesc, entry.srv.cpu);
 
-	m_copyWidth = width;
-	m_copyHeight = height;
+	m_colorCopyCache[key] = std::move(entry);
+	m_activeCopyKey = key;
 }
 
 void OutlinePass::ensureFallbackTexture()
@@ -123,7 +135,7 @@ void OutlinePass::ensureFallbackTexture()
 		&desc,
 		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
-		IID_PPV_ARGS(&m_fallbackTexture)));
+		IID_PPV_ARGS(m_fallbackTexture.ReleaseAndGetAddressOf())));
 
 	m_fallbackTexture->SetName(L"OutlineFallbackWhite");
 
@@ -357,7 +369,7 @@ void OutlinePass::prepare(const RenderContext& ctx)
 		m_hasManualSRV = true;
 	}
 
-	if (m_colorTexture)
+	if (m_colorTexture && m_viewportWidth > 0.0f && m_viewportHeight > 0.0f)
 	{
 		ensureColorCopy(
 			static_cast<uint32_t>(m_viewportWidth),
@@ -367,7 +379,16 @@ void OutlinePass::prepare(const RenderContext& ctx)
 
 	ensureFallbackTexture();
 
-	D3D12_CPU_DESCRIPTOR_HANDLE colorSrcCpu = m_colorTexture ? m_sceneColorCopySRV.cpu : m_fallbackSRV.cpu;
+	D3D12_CPU_DESCRIPTOR_HANDLE colorSrcCpu;
+	if (m_colorTexture && m_activeCopyKey != 0)
+	{
+		auto it = m_colorCopyCache.find(m_activeCopyKey);
+		colorSrcCpu = (it != m_colorCopyCache.end()) ? it->second.srv.cpu : m_fallbackSRV.cpu;
+	}
+	else
+	{
+		colorSrcCpu = m_fallbackSRV.cpu;
+	}
 
 	loadNoiseTexture(m_cachedSettings.noiseTextureAssetId);
 
@@ -408,19 +429,26 @@ void OutlinePass::prepare(const RenderContext& ctx)
 		noiseSrcCpu = m_fallbackSRV.cpu;
 	}
 
-	if (!m_contiguousSRVBlock)
+	uint64_t blockKey = makeCopyKey(
+		static_cast<uint32_t>(m_viewportWidth),
+		static_cast<uint32_t>(m_viewportHeight));
+	auto blockIt = m_srvBlockCache.find(blockKey);
+	if (blockIt == m_srvBlockCache.end())
 	{
 		auto& heap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		m_contiguousSRVBlock = heap.allocateBlock(3);
+		DescriptorHeapBlock* newBlock = heap.allocateBlock(3);
+		m_srvBlockCache[blockKey] = newBlock;
+		blockIt = m_srvBlockCache.find(blockKey);
 	}
+	DescriptorHeapBlock* activeBlock = blockIt->second;
 
 	m_device->CopyDescriptorsSimple(1,
-		m_contiguousSRVBlock->getCPUHandle(0),
+		activeBlock->getCPUHandle(0),
 		depthSrcCpu,
 		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	UINT descriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_CPU_DESCRIPTOR_HANDLE colorDest = m_contiguousSRVBlock->getCPUHandle(0);
+	D3D12_CPU_DESCRIPTOR_HANDLE colorDest = activeBlock->getCPUHandle(0);
 	colorDest.ptr += descriptorSize;
 	m_device->CopyDescriptorsSimple(1, colorDest, colorSrcCpu, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
@@ -428,7 +456,7 @@ void OutlinePass::prepare(const RenderContext& ctx)
 	noiseDest.ptr += descriptorSize;
 	m_device->CopyDescriptorsSimple(1, noiseDest, noiseSrcCpu, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	m_srvTableGpu = m_contiguousSRVBlock->getGPUHandle(0);
+	m_srvTableGpu = activeBlock->getGPUHandle(0);
 }
 
 void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -444,21 +472,25 @@ void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
 		D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	commandList->ResourceBarrier(1, &barrierDepthIn);
 
-	if (m_colorTexture && m_sceneColorCopy)
+	if (m_colorTexture && m_activeCopyKey != 0)
 	{
-		CD3DX12_RESOURCE_BARRIER barrierColorToCopy = CD3DX12_RESOURCE_BARRIER::Transition(
-			m_colorTexture->getD3D12Resource().Get(),
-			D3D12_RESOURCE_STATE_RENDER_TARGET,
-			D3D12_RESOURCE_STATE_COPY_SOURCE);
-		commandList->ResourceBarrier(1, &barrierColorToCopy);
+		auto it = m_colorCopyCache.find(m_activeCopyKey);
+		if (it != m_colorCopyCache.end())
+		{
+			CD3DX12_RESOURCE_BARRIER barrierColorToCopy = CD3DX12_RESOURCE_BARRIER::Transition(
+				m_colorTexture->getD3D12Resource().Get(),
+				D3D12_RESOURCE_STATE_RENDER_TARGET,
+				D3D12_RESOURCE_STATE_COPY_SOURCE);
+			commandList->ResourceBarrier(1, &barrierColorToCopy);
 
-		commandList->CopyResource(m_sceneColorCopy.Get(), m_colorTexture->getD3D12Resource().Get());
+			commandList->CopyResource(it->second.resource.Get(), m_colorTexture->getD3D12Resource().Get());
 
-		CD3DX12_RESOURCE_BARRIER barrierColorToRTV = CD3DX12_RESOURCE_BARRIER::Transition(
-			m_colorTexture->getD3D12Resource().Get(),
-			D3D12_RESOURCE_STATE_COPY_SOURCE,
-			D3D12_RESOURCE_STATE_RENDER_TARGET);
-		commandList->ResourceBarrier(1, &barrierColorToRTV);
+			CD3DX12_RESOURCE_BARRIER barrierColorToRTV = CD3DX12_RESOURCE_BARRIER::Transition(
+				m_colorTexture->getD3D12Resource().Get(),
+				D3D12_RESOURCE_STATE_COPY_SOURCE,
+				D3D12_RESOURCE_STATE_RENDER_TARGET);
+			commandList->ResourceBarrier(1, &barrierColorToRTV);
+		}
 	}
 
 	commandList->SetPipelineState(m_pipelineState.Get());
