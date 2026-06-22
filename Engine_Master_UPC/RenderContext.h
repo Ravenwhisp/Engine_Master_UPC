@@ -5,9 +5,11 @@
 #include "ShadowTypes.h"
 
 class RingBuffer;
+class Texture;
 struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
+struct OutlineSettings;
 struct ParticleEmitterCommand;
 
 struct RenderContext
@@ -26,6 +28,8 @@ struct RenderContext
     const std::vector<ParticleEmitterCommand>* particleCommands = nullptr;
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
+    const OutlineSettings* outlineSettings = nullptr;
+    const Texture* depthTexture = nullptr;
 
     const ShadowFrameData* shadowData = nullptr;
 
