@@ -1312,9 +1312,6 @@
     <ClInclude Include="PrefabInstance.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h">
-      <Filter>Prefabs</Filter>
-    </ClInclude>
     <ClInclude Include="PrefabUI.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
@@ -1394,6 +1391,9 @@
     <ClInclude Include="SSAOGeometryPass.h" />
     <ClInclude Include="SSAOPass.h" />
     <ClInclude Include="SSAOBlurPass.h" />
+    <ClInclude Include="SSAOSettings.h">
+      <Filter>GameEntity\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico">
