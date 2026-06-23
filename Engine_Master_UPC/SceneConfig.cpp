@@ -214,6 +214,19 @@ void SceneConfig::drawPostProcessSettings()
         ImGui::Separator();
         ImGui::Checkbox("Chromatic Aberration###PPCAEnabled", &pp.chromaticAberrationEnabled);
         ImGui::DragFloat("CA Strength###PPCAStrength", &pp.chromaticAberrationStrength, 0.05f, 0.0f, 10.0f);
+
+        ImGui::Separator();
+        ImGui::Checkbox("Heartbeat (Damage FX)###PPHeartbeat", &pp.heartbeatEnabled);
+        ImGui::DragFloat("Health Threshold###PPHealthThreshold", &pp.healthThreshold, 0.01f, 0.0f, 1.0f);
+        ImGui::SliderFloat("Health (test)###PPHealth", &pp.health, 0.0f, 1.0f);
+        ImGui::SliderFloat("Separation (test)###PPSeparation", &pp.separation, 0.0f, 1.0f);
+        ImGui::TextDisabled("Health/Separation are normally driven by gameplay.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Death Fade (test)###PPDeath", &pp.deathFadeActive);
+        ImGui::DragFloat("Grey Duration (s)###PPDeathGrey", &pp.deathGreyDuration, 0.05f, 0.1f, 10.0f);
+        ImGui::DragFloat("Black Duration (s)###PPDeathBlack", &pp.deathBlackDuration, 0.05f, 0.1f, 10.0f);
+        ImGui::TextDisabled("Triggered by gameplay when all players are down.");
     }
 }
 

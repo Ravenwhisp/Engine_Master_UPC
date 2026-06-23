@@ -7,6 +7,7 @@
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"
+#include "ModuleTime.h"
 
 #include "Scene.h"
 #include "PostProcessSettings.h"
@@ -19,6 +20,8 @@
 #include <d3dx12.h>
 #include <d3dcompiler.h>
 #include <PlatformHelpers.h>
+#include <algorithm>
+#include <cmath>
 
 PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
@@ -109,6 +112,115 @@ void PostProcessPass::prepare(const RenderContext& ctx)
 
     if (m_runBloom)
         m_bloomPass->prepare(ctx);
+
+    // Advance time-based effects once per frame (even with several viewports).
+    // Unscaled time keeps them animating in the editor / when the game is paused.
+    const uint32_t frame = app->getModuleTime()->frameCount();
+    const float dt = (frame != m_lastFrame) ? std::min(app->getModuleTime()->unscaledDeltaTime(), 0.05f) : 0.0f;
+    m_lastFrame = frame;
+
+    // Heartbeat / low-health damage screen effect.
+    m_params.enableHeartbeat = settings.heartbeatEnabled ? 1u : 0u;
+    if (settings.heartbeatEnabled)
+        updateHeartbeat(settings, ctx, dt);
+
+    // Death fade (grey then black) — independent of the heartbeat.
+    updateDeathFade(settings, dt);
+}
+
+void PostProcessPass::updateDeathFade(const PostProcessSettings& settings, float dt)
+{
+    if (settings.deathFadeActive)
+        m_deathTime += dt;
+    else
+        m_deathTime = 0.0f;
+
+    const float grey = std::max(0.01f, settings.deathGreyDuration);
+    const float black = std::max(0.01f, settings.deathBlackDuration);
+
+    // First desaturate to full grey (and blur out of focus), then fade from
+    // grey to black.
+    m_params.deathDesat = std::min(1.0f, m_deathTime / grey);
+    m_params.deathBlur = m_params.deathDesat;
+    m_params.deathFade = std::min(1.0f, std::max(0.0f, (m_deathTime - grey) / black));
+}
+
+void PostProcessPass::updateHeartbeat(const PostProcessSettings& settings, const RenderContext& ctx, float dt)
+{
+    auto saturate01 = [](float v) { return std::max(0.0f, std::min(1.0f, v)); };
+
+    const float health = saturate01(settings.health);
+    const float sep = saturate01(settings.separation);
+
+    const float hpDanger = std::max(0.0f, 1.0f - health);
+    const float sepDanger = sep;
+    const bool  healthActive = health < settings.healthThreshold;
+    const bool  sepActive = sepDanger > 0.05f;
+
+    // Faster heart + sharper diastole as danger rises (ported from the preview).
+    const float danger = healthActive ? hpDanger : (sepActive ? sepDanger * 0.8f : 0.0f);
+    auto interBeatSeconds = [](float t) { return 0.12f + (1.0f - t) * 0.55f; };
+    auto diastoleSeconds = [](float t) { return 0.18f + (1.0f - t) * 0.80f; };
+    auto fireLub = [&](float t)
+    {
+        m_hbDubTimer = interBeatSeconds(t);
+        m_hbLubTimer = -1.0f;
+        m_hbPulseAnim = 1.0f;
+        m_hbPulseType = 0;
+    };
+
+    // Screen sway (only when critically low health).
+    m_hbSwayAngle += dt * 0.4f;
+    const float critT = healthActive ? std::max(0.0f, (hpDanger - 0.5f) / 0.5f) : 0.0f;
+    const float swayAmt = critT * 4.0f; // pixels
+    const float swayXpx = std::sin(m_hbSwayAngle) * swayAmt;
+    const float swayYpx = std::cos(m_hbSwayAngle * 0.7f) * swayAmt * 0.5f;
+
+    // Lub-dub state machine.
+    if (healthActive)
+    {
+        if (m_hbDubTimer < 0.0f && m_hbLubTimer < 0.0f)
+            fireLub(hpDanger);
+
+        if (m_hbDubTimer >= 0.0f)
+        {
+            m_hbDubTimer -= dt;
+            if (m_hbDubTimer < 0.0f)
+            {
+                m_hbPulseAnim = 0.6f;
+                m_hbPulseType = 1;
+                m_hbLubTimer = diastoleSeconds(hpDanger);
+            }
+        }
+        if (m_hbLubTimer >= 0.0f)
+        {
+            m_hbLubTimer -= dt;
+            if (m_hbLubTimer < 0.0f)
+                fireLub(hpDanger);
+        }
+    }
+    else
+    {
+        m_hbDubTimer = -1.0f;
+        m_hbLubTimer = -1.0f;
+        m_hbPulseAnim = std::max(0.0f, m_hbPulseAnim - dt * 4.0f);
+    }
+
+    if (sepActive && m_hbDubTimer < 0.0f && m_hbLubTimer < 0.0f && !healthActive)
+        fireLub(sepDanger * 0.8f);
+
+    m_hbPulseAnim = std::max(0.0f, m_hbPulseAnim - dt * 3.5f);
+    (void)danger;
+
+    // Derived per-frame outputs fed to the shader.
+    m_params.hbHealthVignette = healthActive ? std::pow(hpDanger, 1.4f) * 0.7f : 0.0f;
+    m_params.hbSepVignette = sepActive ? std::pow(sepDanger, 1.3f) * 0.55f : 0.0f;
+    m_params.hbPulse = m_hbPulseAnim * (m_hbPulseType == 0 ? 1.0f : 0.55f) * std::max(hpDanger, sepDanger * 0.7f);
+    m_params.hbPulseIsLub = (m_hbPulseType == 0) ? 1u : 0u;
+    m_params.hbCrit = critT * 0.75f;
+    m_params.hbDesat = hpDanger * 0.6f + sepDanger * 0.25f;
+    m_params.hbSwayX = (ctx.viewport.Width > 0.0f) ? swayXpx / ctx.viewport.Width : 0.0f;
+    m_params.hbSwayY = (ctx.viewport.Height > 0.0f) ? swayYpx / ctx.viewport.Height : 0.0f;
 }
 
 void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
