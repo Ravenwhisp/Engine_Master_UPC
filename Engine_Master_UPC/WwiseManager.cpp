@@ -176,6 +176,36 @@ void WwiseManager::setListeners(AkGameObjectID emitterID, const AkGameObjectID* 
 	AK::SoundEngine::SetListeners(emitterID, listenerIDs, listenerCount);
 }
 
+void WwiseManager::setState(const char* stateGroup, const char* stateValue)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	AK::SoundEngine::SetState(stateGroup, stateValue);
+}
+
+void WwiseManager::setSwitch(const char* switchGroup, const char* switchValue, AkGameObjectID emitterID)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	AK::SoundEngine::SetSwitch(switchGroup, switchValue, emitterID);
+}
+
+void WwiseManager::setRTPC(const char* rtpcName, float value)
+{
+	if (!m_soundEngineCreated)
+	{
+		return;
+	}
+
+	AK::SoundEngine::SetRTPCValue(rtpcName, value);
+}
+
 bool WwiseManager::initMemory()
 {
 	AkMemSettings memSettings;

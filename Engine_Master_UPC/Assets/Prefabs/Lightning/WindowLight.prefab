@@ -1,0 +1,48 @@
+{
+  "SourcePath": "Assets\\Prefabs\\WindowLight.prefab",
+  "Name": "WindowLight",
+  "Version": 2,
+  "GameObject": {
+    "Name": "WindowLight",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        -0.003566741943359375,
+        0.20583009719848633,
+        1.4255650043487549
+      ],
+      "rotation": [
+        -0.331577330827713,
+        -0.6245450377464294,
+        0.3315783143043518,
+        0.6245444416999817
+      ],
+      "scale": [
+        1.1376057863235474,
+        1.137602686882019,
+        1.1376042366027832
+      ]
+    },
+    "Components": [
+      {
+        "Type": 2,
+        "Data": {
+          "UID": 6209381690253355204,
+          "ComponentType": 2,
+          "Active": true,
+          "LightType": 1,
+          "Color": [
+            0.5036448836326599,
+            0.8996139168739319,
+            0.8491621613502502
+          ],
+          "Intensity": 6.400000095367432,
+          "Radius": 2.4000000953674316
+        }
+      }
+    ],
+    "Children": []
+  }
+}

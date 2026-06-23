@@ -1,0 +1,13 @@
+{
+    "uid": 8628205877581391465,
+    "contentHash": "b56062e26de76d87d61dfe7289acfe4a",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\screen_credits_ver_r.png",
+    "sourceFileSize": 3105743,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,264 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Breakables\\Breakable Box (HealthDrop)P.prefab",
+  "Name": "Breakable Box (HealthDrop)P",
+  "Version": 2,
+  "VariantOf": "Assets\\Prefabs\\Breakables\\Breakable Box (HealthDrop).prefab",
+  "GameObject": {
+    "Name": "Breakable Box (HealthDrop)P",
+    "Active": true,
+    "Tag": "BREAKABLE",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Prefabs\\Breakables\\Breakable Box (HealthDrop).prefab",
+      "AssetUID": 16085557793199204131
+    },
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 10542032392621974284,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "BreakableHealingDrop",
+          "ScriptFields": {
+            "Health Pickup Prefab Path": "Assets/Prefabs/HealthPlaceholder.prefab",
+            "Health Drop Amount": 10.0,
+            "Drop Radius": 1.0,
+            "Drop Height": 1.0,
+            "Health Drop Quantity": 2
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 8177232130819869396,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "BreakableDamageable",
+          "ScriptFields": {
+            "Max HP": 1.0,
+            "Health Slider": 0,
+            "Health Slider 2": 0,
+            "UI Update Time (Slider 2)": 1.0
+          }
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Normal",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 16643735502336123870,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 14829200032389246696,
+                "libId": "9f4868fb6638bd6a23e7594d34967fa4"
+              },
+              "SkinAssetId": {
+                "uid": 0,
+                "libId": ""
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 11456131738561966568,
+                  "libId": "a813bf686b7836e1488f7659cf9f13e9"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "StarsHeal",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "PrefabLink": {
+              "SourcePath": "Assets\\Prefabs\\Particles\\StarsHeal.prefab",
+              "AssetUID": 14946495065170964328
+            },
+            "Transform": {
+              "position": [
+                0.0,
+                0.4000000059604645,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 17,
+                "Data": {
+                  "UID": 310918437156261424,
+                  "ComponentType": 17,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 18397412372386409293,
+                    "libId": "daec75fabdc85d041af40097e2ac1b24"
+                  },
+                  "ParticleEmitters": [
+                    {
+                      "Modules": [
+                        {
+                          "ModuleType": 2,
+                          "Looping": true,
+                          "Duration": 7.800000190734863,
+                          "RateOverTime": 10.0,
+                          "RateOverDistance": 0.0
+                        },
+                        {
+                          "ModuleType": 4,
+                          "StartLifeTime": 1.0
+                        },
+                        {
+                          "ModuleType": 1,
+                          "ShapeType": 2,
+                          "Radius": 0.5,
+                          "RadiusThickness": 1.0
+                        },
+                        {
+                          "ModuleType": 3,
+                          "StartColor": [
+                            0.030888080596923828,
+                            1.0,
+                            0.0,
+                            1.0
+                          ],
+                          "EndColor": [
+                            0.2625483274459839,
+                            1.0,
+                            0.0,
+                            0.0
+                          ]
+                        },
+                        {
+                          "ModuleType": 5,
+                          "InitialVelocity": 1.100000023841858
+                        },
+                        {
+                          "ModuleType": 6,
+                          "StartScale": [
+                            0.5,
+                            0.5
+                          ],
+                          "EndScale": [
+                            1.0,
+                            1.0
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Broken",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 15560020212847909810,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 6299683042699325039,
+                "libId": "4f7c175ea56089a23aeac258d85358a6"
+              },
+              "SkinAssetId": {
+                "uid": 0,
+                "libId": ""
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 1348871275559094111,
+                  "libId": "f0c0200c65a1c6c7050e05d2d7d6f5b3"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": []
+      }
+    ]
+  }
+}

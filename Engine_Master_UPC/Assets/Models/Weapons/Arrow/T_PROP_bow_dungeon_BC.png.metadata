@@ -1,0 +1,13 @@
+{
+    "uid": 9610627803643588232,
+    "contentHash": "7f268d0e50a7931d29195971c1da4833",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Weapons\\Arrow\\T_PROP_bow_dungeon_BC.png",
+    "sourceFileSize": 1463186,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

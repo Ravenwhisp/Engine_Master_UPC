@@ -1,0 +1,13 @@
+{
+    "uid": 11735453542086541066,
+    "contentHash": "e39e9dd18f25a7e863ac1294ae795620",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_PROP_bed_interior_BC.jpg",
+    "sourceFileSize": 151824,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

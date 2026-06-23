@@ -1,0 +1,13 @@
+{
+    "uid": 3568902479390948765,
+    "contentHash": "9cf5f98f609022eab932d3fa15449bb5",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level2B\\T_ENV_MOD_Wall_01_v3_MTSM.jpg",
+    "sourceFileSize": 209113,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,45 @@
+{
+ "SoundBanksInfo": {
+  "Platform": "Windows",
+  "BasePlatform": "Windows",
+  "SchemaVersion": "16",
+  "SoundBankVersion": "172",
+  "SoundBanks": [
+   {
+    "Id": "152105657",
+    "Type": "User",
+    "GUID": "{07705734-03EE-4E80-9148-F6EED9871B45}",
+    "Language": "SFX",
+    "Hash": "{60AF80A0-4F85-229C-C2D1-E6AE0CF1F536}",
+    "ObjectPath": "\\SoundBanks\\Default Work Unit\\TitleScreen",
+    "ShortName": "TitleScreen",
+    "Path": "TitleScreen.bnk",
+    "Media": [
+     {
+      "Id": "255190731",
+      "Language": "SFX",
+      "Streaming": "false",
+      "Location": "Memory",
+      "ShortName": "BbD_VC_Hero_v2.wav",
+      "CachePath": "67/{67B866BB-2EEF-6810-F42C-7738B70DF54F}.wem"
+     }
+    ],
+    "Events": [
+     {
+      "Id": "1532327793",
+      "Name": "Music_TitleScreen",
+      "ObjectPath": "\\Events\\Default Work Unit\\Music_TitleScreen",
+      "GUID": "{C2B5A247-BCF1-44E5-B646-6D0E912477B2}",
+      "DurationType": "Infinite",
+      "MediaRefs": [
+       {
+        "Id": "255190731"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "FileHash": "{FDEF598F-9950-0958-A896-A50DCFBA72C9}"
+ }
+}

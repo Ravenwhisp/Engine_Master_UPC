@@ -1,0 +1,21 @@
+{
+    "uid": 4183392563392591564,
+    "contentHash": "b4b54b989ebafa94b9d426c5003e4bf8",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Characters\\Ghost.gltf",
+    "sourceFileSize": 1392,
+    "dependencies": [
+        {
+            "uid": 8316471371454881927,
+            "contentHash": "7546546c6847733e5182d55e17a983be",
+            "type": 2,
+            "displayName": "Ghost"
+        },
+        {
+            "uid": 5270568884783773385,
+            "contentHash": "c3ba05e25f1f6dffc80b97d74e6116b7",
+            "type": 3,
+            "displayName": "Ghost"
+        }
+    ]
+}

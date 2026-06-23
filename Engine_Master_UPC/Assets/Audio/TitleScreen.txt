@@ -1,0 +1,6 @@
+Event	ID	Name			Wwise Object Path	Notes
+	1532327793	Music_TitleScreen			\Default Work Unit\Music_TitleScreen	
+
+In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
+	255190731	BbD_VC_Hero_v2	.cache\67\{67B866BB-2EEF-6810-F42C-7738B70DF54F}.wem		\Containers\Music (Migrated)\Default Work Unit\TitleScreen\INTRO_Hero_Theme\BbD_VC_Hero_v2		15680776
+

@@ -415,6 +415,9 @@ namespace AudioAPI
     ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);
+    ENGINE_API void setState(const char* stateGroup, const char* stateValue);
+    ENGINE_API void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component);
+    ENGINE_API void setRTPC(const char* rtpcName, float value);
 }
 
 #include "EngineAPI.inl"

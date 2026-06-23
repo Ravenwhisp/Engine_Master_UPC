@@ -1,0 +1,13 @@
+{
+    "uid": 7925832454246126844,
+    "contentHash": "c987b14e1f49f4d675832d537fda4086",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_cslam_bg.png",
+    "sourceFileSize": 21450,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

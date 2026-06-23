@@ -1,0 +1,13 @@
+{
+    "uid": 4361778465519367995,
+    "contentHash": "7cb74d55a5809345de4ac5420def72d3",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\World UI\\world_shadow_mark_1.png",
+    "sourceFileSize": 92037,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "uid": 8095447979758527170,
+    "contentHash": "db1c7b2ed0576a2bcf303ba85b956544",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Breakables\\Vase\\Vase_Normal_GLTF\\Vase_Normalgltf.gltf",
+    "sourceFileSize": 2425,
+    "dependencies": [
+        {
+            "uid": 3669557967766827765,
+            "contentHash": "aa0605c15f91e03f4bd5f585271f24bd",
+            "type": 2,
+            "displayName": "Material.004"
+        },
+        {
+            "uid": 8827485997632395468,
+            "contentHash": "fb1e6c937f1b0f15cc0b17e0afbac37e",
+            "type": 3,
+            "displayName": "Cylinder.018"
+        }
+    ]
+}

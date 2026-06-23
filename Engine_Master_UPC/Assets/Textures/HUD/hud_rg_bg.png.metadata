@@ -1,0 +1,13 @@
+{
+    "uid": 7162509879045314717,
+    "contentHash": "1740354c2d8da5a2007398c4e9b6436a",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_rg_bg.png",
+    "sourceFileSize": 2785,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

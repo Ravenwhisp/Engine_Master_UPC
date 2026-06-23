@@ -1,0 +1,13 @@
+{
+    "uid": 11639887441759865385,
+    "contentHash": "7bfef8b244e7aa2f47ffa439f1ae5132",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_giveup_default.png",
+    "sourceFileSize": 3255,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

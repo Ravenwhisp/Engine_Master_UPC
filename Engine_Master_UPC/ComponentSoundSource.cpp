@@ -96,6 +96,15 @@ void ComponentSoundSource::resumeEvent(uint32_t playingID)
 	}
 }
 
+
+void ComponentSoundSource::setSwitch(const char* switchGroup, const char* switchValue)
+{
+	if (m_moduleMusic)
+	{
+		m_moduleMusic->setSwitch(switchGroup, switchValue, m_audioGameObjectID);
+	}
+}
+
 std::unique_ptr<Component> ComponentSoundSource::clone(GameObject* newOwner) const
 {
 	auto cloned = std::make_unique<ComponentSoundSource>(m_uuid, newOwner);

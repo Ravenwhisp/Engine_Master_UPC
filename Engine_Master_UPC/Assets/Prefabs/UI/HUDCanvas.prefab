@@ -1,0 +1,3473 @@
+{
+  "SourcePath": "Assets\\Prefabs\\UI\\HUDCanvas.prefab",
+  "Name": "HUDCanvas",
+  "Version": 2,
+  "GameObject": {
+    "Name": "HUDCanvas",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 6,
+        "Data": {
+          "UID": 1819953084459990895,
+          "ComponentType": 6,
+          "Active": true,
+          "RenderMode": 0,
+          "ZTest": false
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Left Container",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 5,
+            "Data": {
+              "UID": 8586103256411579567,
+              "ComponentType": 5,
+              "Active": true,
+              "Position": [
+                48.0,
+                -36.0
+              ],
+              "Scale": [
+                1.0,
+                1.0
+              ],
+              "Pivot": [
+                0.0,
+                0.5
+              ],
+              "AnchorMin": [
+                0.0,
+                0.7300000190734863
+              ],
+              "AnchorMax": [
+                0.0,
+                1.0
+              ],
+              "BaseSize": [
+                140.0,
+                100.0
+              ],
+              "StretchMode": 2,
+              "SizingMode": 0,
+              "AspectRatio": 1.0,
+              "Alpha": 1.0
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Lyriel Health",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 3168256425257577125,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.0,
+                    0.5
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    196.0,
+                    196.0
+                  ],
+                  "StretchMode": 2,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 13841776575685743720,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 8255388540452820052,
+                    "libId": "7c64d75aa8474d06bcc23249fa7401b4"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "Fill 2",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 12583582025733371715,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 1943414508384728310,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 17554678466669469122,
+                        "libId": "d0c65f22a49eb7a57bb148a8d75869f6"
+                      },
+                      "FillAmount": 0.8059999942779541,
+                      "FillMethod": 4,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 7895558529445857389,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 0.8059999942779541,
+                      "FillMethod": 4,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Fill",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 9974301936145865549,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 10038162687682860340,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 9177254249137816244,
+                        "libId": "adc30d4a389b2cc2915dbf6622fddebf"
+                      },
+                      "FillAmount": 0.6489999890327454,
+                      "FillMethod": 4,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 6527909881616869809,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 0.6489999890327454,
+                      "FillMethod": 4,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Lyriel",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 5079077522563708310,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 12096530098289739875,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 2395877385319401422,
+                        "libId": "292a80fc3db0473ef7676213547f0a9c"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Lyriel Down",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 3097953769604290839,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.10000000149011612
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 1664224755171948862,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 16625189270706252859,
+                        "libId": "97575f2371d813a92c799df3f32c242d"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              }
+            ]
+          },
+          {
+            "Name": "CD Volley",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 8507660612267956988,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.7200000286102295,
+                    0.9399999976158142
+                  ],
+                  "AnchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    76.0,
+                    89.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 9813543512536859993,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 1353613093006714201,
+                    "libId": "3f6f463d548ea8898c47af70f3942791"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "CD Volley Grey",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 53517269160507590,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.15000000596046448
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.8500000238418579
+                      ],
+                      "BaseSize": [
+                        52.0,
+                        61.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 4481405601495232934,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 13403395174744292505,
+                        "libId": "04f2a30c848c683f633c5219cc260078"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": [
+                  {
+                    "Name": "CD Fill",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [
+                      {
+                        "Type": 5,
+                        "Data": {
+                          "UID": 8433124918497373730,
+                          "ComponentType": 5,
+                          "Active": true,
+                          "Position": [
+                            0.0,
+                            0.0
+                          ],
+                          "Scale": [
+                            1.0,
+                            1.0
+                          ],
+                          "Pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "AnchorMin": [
+                            0.0,
+                            0.0
+                          ],
+                          "AnchorMax": [
+                            1.0,
+                            1.0
+                          ],
+                          "BaseSize": [
+                            100.0,
+                            100.0
+                          ],
+                          "StretchMode": 3,
+                          "SizingMode": 0,
+                          "AspectRatio": 1.0,
+                          "Alpha": 1.0
+                        }
+                      },
+                      {
+                        "Type": 7,
+                        "Data": {
+                          "UID": 8877476850059024195,
+                          "ComponentType": 7,
+                          "Active": true,
+                          "TextureAssetId": {
+                            "uid": 9228379629028290392,
+                            "libId": "6c0929c24aceb3b6badd2b7cf9cc7df7"
+                          },
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0,
+                          "SheetColumns": 1,
+                          "SheetRows": 1,
+                          "SheetOffset": [
+                            0.0,
+                            0.0
+                          ],
+                          "StretchDrawMode": 0
+                        }
+                      },
+                      {
+                        "Type": 14,
+                        "Data": {
+                          "UID": 13045853897269238359,
+                          "ComponentType": 14,
+                          "Active": true,
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0
+                        }
+                      }
+                    ],
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "Dash Charges",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 11602709640949875862,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.0,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.6700000166893005,
+                    0.5830000042915344
+                  ],
+                  "AnchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    92.0,
+                    108.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "Dash Charge 1",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 7798986377981838323,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.0
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        1.0
+                      ],
+                      "BaseSize": [
+                        92.0,
+                        108.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 18345339603489850339,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 18051495773690277928,
+                        "libId": "f91b2bb83a434ac0947bf3b4ec7c2d6b"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Dash Charge 2",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 12008099568670318011,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.0,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.0,
+                        0.0
+                      ],
+                      "AnchorMax": [
+                        0.0,
+                        1.0
+                      ],
+                      "BaseSize": [
+                        92.0,
+                        108.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 7340745034983534436,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 621121604147751782,
+                        "libId": "8e530f7fd449f20695ab16d45eba417c"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Dash Charge 3",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 9601012186614094754,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        1.0,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        1.0,
+                        0.0
+                      ],
+                      "AnchorMax": [
+                        1.0,
+                        1.0
+                      ],
+                      "BaseSize": [
+                        92.0,
+                        108.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 1284433485489374739,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 17924630921603953311,
+                        "libId": "b649ac89ceef98ad179d409610650f0a"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              }
+            ]
+          },
+          {
+            "Name": "CD Dash",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 15935226670203461013,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.0,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.7200000286102295,
+                    0.5400000214576721
+                  ],
+                  "AnchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    76.0,
+                    89.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 10111761539374094563,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 4905034950386564855,
+                    "libId": "7075e68a4a6ca9a04d07f46da3b514ba"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "CD Dash Grey",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 12136791546891318001,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.15000000596046448
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.8500000238418579
+                      ],
+                      "BaseSize": [
+                        52.0,
+                        61.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 2012234675715867504,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 14009233316878496650,
+                        "libId": "6ada4ee99411e5573519a74a91bd2f7c"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": [
+                  {
+                    "Name": "CD Fill",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [
+                      {
+                        "Type": 5,
+                        "Data": {
+                          "UID": 14330751969182915406,
+                          "ComponentType": 5,
+                          "Active": true,
+                          "Position": [
+                            0.0,
+                            0.0
+                          ],
+                          "Scale": [
+                            1.0,
+                            1.0
+                          ],
+                          "Pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "AnchorMin": [
+                            0.0,
+                            0.0
+                          ],
+                          "AnchorMax": [
+                            1.0,
+                            1.0
+                          ],
+                          "BaseSize": [
+                            100.0,
+                            100.0
+                          ],
+                          "StretchMode": 3,
+                          "SizingMode": 0,
+                          "AspectRatio": 1.0,
+                          "Alpha": 1.0
+                        }
+                      },
+                      {
+                        "Type": 7,
+                        "Data": {
+                          "UID": 1937056504298951936,
+                          "ComponentType": 7,
+                          "Active": true,
+                          "TextureAssetId": {
+                            "uid": 9228379629028290392,
+                            "libId": "6c0929c24aceb3b6badd2b7cf9cc7df7"
+                          },
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0,
+                          "SheetColumns": 1,
+                          "SheetRows": 1,
+                          "SheetOffset": [
+                            0.0,
+                            0.0
+                          ],
+                          "StretchDrawMode": 0
+                        }
+                      },
+                      {
+                        "Type": 14,
+                        "Data": {
+                          "UID": 10252251940165976791,
+                          "ComponentType": 14,
+                          "Active": true,
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0
+                        }
+                      }
+                    ],
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CD Charged Attack",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 6312393551538697487,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.800000011920929,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.7200000286102295,
+                    0.20000000298023224
+                  ],
+                  "AnchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    76.0,
+                    89.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 6872534476443971407,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 14271377191041948705,
+                    "libId": "50ef5de1272fb99915a2e13fe060c4fd"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "CD Charged Grey",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 584163618154278470,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.15000000596046448
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.8500000238418579
+                      ],
+                      "BaseSize": [
+                        52.0,
+                        61.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 5454189290414951283,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 13474890805531736090,
+                        "libId": "3208819ba8053fccfc4a25fe070d2faf"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": [
+                  {
+                    "Name": "CD Fill",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [
+                      {
+                        "Type": 5,
+                        "Data": {
+                          "UID": 17851207882773465034,
+                          "ComponentType": 5,
+                          "Active": true,
+                          "Position": [
+                            0.0,
+                            0.0
+                          ],
+                          "Scale": [
+                            1.0,
+                            1.0
+                          ],
+                          "Pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "AnchorMin": [
+                            0.0,
+                            0.0
+                          ],
+                          "AnchorMax": [
+                            1.0,
+                            1.0
+                          ],
+                          "BaseSize": [
+                            100.0,
+                            100.0
+                          ],
+                          "StretchMode": 3,
+                          "SizingMode": 0,
+                          "AspectRatio": 1.0,
+                          "Alpha": 1.0
+                        }
+                      },
+                      {
+                        "Type": 7,
+                        "Data": {
+                          "UID": 7428707349406431174,
+                          "ComponentType": 7,
+                          "Active": true,
+                          "TextureAssetId": {
+                            "uid": 9228379629028290392,
+                            "libId": "6c0929c24aceb3b6badd2b7cf9cc7df7"
+                          },
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0,
+                          "SheetColumns": 1,
+                          "SheetRows": 1,
+                          "SheetOffset": [
+                            0.0,
+                            0.0
+                          ],
+                          "StretchDrawMode": 0
+                        }
+                      },
+                      {
+                        "Type": 14,
+                        "Data": {
+                          "UID": 2959302794950267343,
+                          "ComponentType": 14,
+                          "Active": true,
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0
+                        }
+                      }
+                    ],
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "Right Container",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 5,
+            "Data": {
+              "UID": 10908590322480754108,
+              "ComponentType": 5,
+              "Active": true,
+              "Position": [
+                -48.0,
+                -36.0
+              ],
+              "Scale": [
+                1.0,
+                1.0
+              ],
+              "Pivot": [
+                1.0,
+                0.5
+              ],
+              "AnchorMin": [
+                1.0,
+                0.7300000190734863
+              ],
+              "AnchorMax": [
+                1.0,
+                1.0
+              ],
+              "BaseSize": [
+                140.0,
+                100.0
+              ],
+              "StretchMode": 2,
+              "SizingMode": 0,
+              "AspectRatio": 1.0,
+              "Alpha": 1.0
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Death Health",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 12370776688580700721,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    1.0,
+                    0.5
+                  ],
+                  "AnchorMin": [
+                    1.0,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    196.0,
+                    196.0
+                  ],
+                  "StretchMode": 2,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 15519507366112081070,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 8255388540452820052,
+                    "libId": "7c64d75aa8474d06bcc23249fa7401b4"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "Fill 2",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 17004785682968162644,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 16753851152531710421,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 3717654597023993332,
+                        "libId": "794a2809d26d8046742eb6cf858ad84c"
+                      },
+                      "FillAmount": 0.7870000004768372,
+                      "FillMethod": 4,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 14896308832574669717,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 0.7870000004768372,
+                      "FillMethod": 4,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Fill",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 3396225890083050525,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 13729256607439705836,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 2629303645689545409,
+                        "libId": "98e3de9aa96e7d0cfa00bc9b33a9721b"
+                      },
+                      "FillAmount": 0.6010000109672546,
+                      "FillMethod": 4,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 6679750627658096526,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 0.6010000109672546,
+                      "FillMethod": 4,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Death",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 328458045815955911,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 11961821943410102642,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 2650282795555679527,
+                        "libId": "e44672af1ed1681e65efc839de8b39db"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Death Down",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 7095296742081363366,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.009999999776482582
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.9300000071525574
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 4044169658364568944,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 10755496564589199768,
+                        "libId": "7e47831ea97ec3007eedd56ee5e106a5"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              }
+            ]
+          },
+          {
+            "Name": "CD Taunt",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 16335647218505606304,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.9399999976158142
+                  ],
+                  "AnchorMax": [
+                    0.2800000011920929,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    76.0,
+                    89.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 10876101126593405256,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 2762562172916437367,
+                    "libId": "2ffdcc85831ea3f71866ef04a0b41f8d"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "CD Taunt Grey",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 9466916439664918812,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.15000000596046448
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.8500000238418579
+                      ],
+                      "BaseSize": [
+                        52.0,
+                        61.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 587210430857580326,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 6262281857752214037,
+                        "libId": "57cd16211ac5d7f1b991135ef737d6ce"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": [
+                  {
+                    "Name": "CD Fill",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [
+                      {
+                        "Type": 5,
+                        "Data": {
+                          "UID": 7861682420381983357,
+                          "ComponentType": 5,
+                          "Active": true,
+                          "Position": [
+                            0.0,
+                            0.0
+                          ],
+                          "Scale": [
+                            1.0,
+                            1.0
+                          ],
+                          "Pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "AnchorMin": [
+                            0.0,
+                            0.0
+                          ],
+                          "AnchorMax": [
+                            1.0,
+                            1.0
+                          ],
+                          "BaseSize": [
+                            100.0,
+                            100.0
+                          ],
+                          "StretchMode": 3,
+                          "SizingMode": 0,
+                          "AspectRatio": 1.0,
+                          "Alpha": 1.0
+                        }
+                      },
+                      {
+                        "Type": 7,
+                        "Data": {
+                          "UID": 13682963497507165044,
+                          "ComponentType": 7,
+                          "Active": true,
+                          "TextureAssetId": {
+                            "uid": 9228379629028290392,
+                            "libId": "6c0929c24aceb3b6badd2b7cf9cc7df7"
+                          },
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0,
+                          "SheetColumns": 1,
+                          "SheetRows": 1,
+                          "SheetOffset": [
+                            0.0,
+                            0.0
+                          ],
+                          "StretchDrawMode": 0
+                        }
+                      },
+                      {
+                        "Type": 14,
+                        "Data": {
+                          "UID": 333980436226934825,
+                          "ComponentType": 14,
+                          "Active": true,
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0
+                        }
+                      }
+                    ],
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CD Dash",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 9213661714219863588,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    1.0,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.5400000214576721
+                  ],
+                  "AnchorMax": [
+                    0.2800000011920929,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    76.0,
+                    89.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 8247040461223502038,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 9101372658630119601,
+                    "libId": "93ff61cf6c9fdf341832ecf91d1a0b6d"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "CD Dash Grey",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 9302047501898670972,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.15000000596046448
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.8500000238418579
+                      ],
+                      "BaseSize": [
+                        52.0,
+                        61.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 14302171741150497705,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 14009233316878496650,
+                        "libId": "6ada4ee99411e5573519a74a91bd2f7c"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": [
+                  {
+                    "Name": "CD Fill",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [
+                      {
+                        "Type": 5,
+                        "Data": {
+                          "UID": 18432470993654895296,
+                          "ComponentType": 5,
+                          "Active": true,
+                          "Position": [
+                            0.0,
+                            0.0
+                          ],
+                          "Scale": [
+                            1.0,
+                            1.0
+                          ],
+                          "Pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "AnchorMin": [
+                            0.0,
+                            0.0
+                          ],
+                          "AnchorMax": [
+                            1.0,
+                            1.0
+                          ],
+                          "BaseSize": [
+                            100.0,
+                            100.0
+                          ],
+                          "StretchMode": 3,
+                          "SizingMode": 0,
+                          "AspectRatio": 1.0,
+                          "Alpha": 1.0
+                        }
+                      },
+                      {
+                        "Type": 7,
+                        "Data": {
+                          "UID": 10935349667121998812,
+                          "ComponentType": 7,
+                          "Active": true,
+                          "TextureAssetId": {
+                            "uid": 9228379629028290392,
+                            "libId": "6c0929c24aceb3b6badd2b7cf9cc7df7"
+                          },
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0,
+                          "SheetColumns": 1,
+                          "SheetRows": 1,
+                          "SheetOffset": [
+                            0.0,
+                            0.0
+                          ],
+                          "StretchDrawMode": 0
+                        }
+                      },
+                      {
+                        "Type": 14,
+                        "Data": {
+                          "UID": 407951767724243217,
+                          "ComponentType": 14,
+                          "Active": true,
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0
+                        }
+                      }
+                    ],
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CD Charged Attack",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 11193697476613108336,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.20000000298023224,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.20000000298023224
+                  ],
+                  "AnchorMax": [
+                    0.2800000011920929,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    76.0,
+                    89.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 4182522138345459632,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 18365803716561692494,
+                    "libId": "d09422f935e0c2fb68070557ffbd3c50"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "CD Charged Grey",
+                "Active": false,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 2173991642495601986,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.15000000596046448
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.8500000238418579
+                      ],
+                      "BaseSize": [
+                        52.0,
+                        61.0
+                      ],
+                      "StretchMode": 2,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 11461148513571156514,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 9576336050159672911,
+                        "libId": "fe1107f55f25f08525702eda264ee6a4"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": [
+                  {
+                    "Name": "CD Fill",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        0.0,
+                        0.0,
+                        0.0
+                      ],
+                      "rotation": [
+                        -0.0,
+                        0.0,
+                        -0.0,
+                        1.0
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [
+                      {
+                        "Type": 5,
+                        "Data": {
+                          "UID": 13720110844555490420,
+                          "ComponentType": 5,
+                          "Active": true,
+                          "Position": [
+                            0.0,
+                            0.0
+                          ],
+                          "Scale": [
+                            1.0,
+                            1.0
+                          ],
+                          "Pivot": [
+                            0.5,
+                            0.5
+                          ],
+                          "AnchorMin": [
+                            0.0,
+                            0.0
+                          ],
+                          "AnchorMax": [
+                            1.0,
+                            1.0
+                          ],
+                          "BaseSize": [
+                            100.0,
+                            100.0
+                          ],
+                          "StretchMode": 3,
+                          "SizingMode": 0,
+                          "AspectRatio": 1.0,
+                          "Alpha": 1.0
+                        }
+                      },
+                      {
+                        "Type": 7,
+                        "Data": {
+                          "UID": 4204273260577902676,
+                          "ComponentType": 7,
+                          "Active": true,
+                          "TextureAssetId": {
+                            "uid": 9228379629028290392,
+                            "libId": "6c0929c24aceb3b6badd2b7cf9cc7df7"
+                          },
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0,
+                          "SheetColumns": 1,
+                          "SheetRows": 1,
+                          "SheetOffset": [
+                            0.0,
+                            0.0
+                          ],
+                          "StretchDrawMode": 0
+                        }
+                      },
+                      {
+                        "Type": 14,
+                        "Data": {
+                          "UID": 17882336134968090091,
+                          "ComponentType": 14,
+                          "Active": true,
+                          "FillAmount": 1.0,
+                          "FillMethod": 1,
+                          "FillOrigin": 0
+                        }
+                      }
+                    ],
+                    "Children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "Center Container",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 5,
+            "Data": {
+              "UID": 4013604877314564291,
+              "ComponentType": 5,
+              "Active": true,
+              "Position": [
+                0.0,
+                -36.0
+              ],
+              "Scale": [
+                1.0,
+                1.0
+              ],
+              "Pivot": [
+                0.5,
+                0.5
+              ],
+              "AnchorMin": [
+                0.5,
+                0.3499999940395355
+              ],
+              "AnchorMax": [
+                0.5,
+                0.9800000190734864
+              ],
+              "BaseSize": [
+                100.0,
+                100.0
+              ],
+              "StretchMode": 2,
+              "SizingMode": 0,
+              "AspectRatio": 1.0,
+              "Alpha": 1.0
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Reaper Gauge Glow",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 7240935622456110351,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    0.3499999940395355
+                  ],
+                  "AnchorMin": [
+                    0.5,
+                    0.8899999856948853
+                  ],
+                  "AnchorMax": [
+                    0.5,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    743.0,
+                    80.0
+                  ],
+                  "StretchMode": 2,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 6367407553315519508,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 13849709241318515636,
+                    "libId": "068741a0832536d21e5b0274450c113d"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Reaper Gauge",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 6014717535678247661,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    1.0
+                  ],
+                  "AnchorMax": [
+                    1.0,
+                    1.0
+                  ],
+                  "BaseSize": [
+                    743.0,
+                    55.0
+                  ],
+                  "StretchMode": 1,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "Reaper Gauge Background",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 5638067140223108891,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.0,
+                        0.0
+                      ],
+                      "AnchorMax": [
+                        1.0,
+                        1.0
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 3,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 16132343686653333437,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 7162509879045314717,
+                        "libId": "1740354c2d8da5a2007398c4e9b6436a"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Reaper Gauge Fill",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 14095724698060300842,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.0,
+                        0.0
+                      ],
+                      "AnchorMax": [
+                        1.0,
+                        1.0
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 3,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 4677602163392994681,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 3130868864071486039,
+                        "libId": "96f51fceeb0a3856a48edb65514ed224"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 16960345918125077156,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Reaper Gauge Frame",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 10389535536812961695,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.0,
+                        0.0
+                      ],
+                      "AnchorMax": [
+                        1.0,
+                        1.0
+                      ],
+                      "BaseSize": [
+                        100.0,
+                        100.0
+                      ],
+                      "StretchMode": 3,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 16931631453792747836,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 307726062585631891,
+                        "libId": "c45aded8d79a5d9628df2a72a0ce4fe8"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  }
+                ],
+                "Children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

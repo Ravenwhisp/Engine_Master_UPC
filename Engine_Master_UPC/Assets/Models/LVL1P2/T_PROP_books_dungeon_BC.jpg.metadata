@@ -1,0 +1,13 @@
+{
+    "uid": 3180546639003162977,
+    "contentHash": "fdb270f9610f8b8d23f37a0a8082bd8d",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_PROP_books_dungeon_BC.jpg",
+    "sourceFileSize": 396156,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

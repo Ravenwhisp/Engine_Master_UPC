@@ -1,0 +1,13 @@
+{
+    "uid": 16978375663087602954,
+    "contentHash": "036b0db3e2012933001b8dd3f28d87e7",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_2gpd_hover.png",
+    "sourceFileSize": 27666,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}
