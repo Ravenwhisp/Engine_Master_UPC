@@ -330,7 +330,6 @@
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="NavBlockerTest.h" />
-
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="PlayerAnimationController.h" />
