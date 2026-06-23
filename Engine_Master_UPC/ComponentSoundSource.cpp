@@ -218,6 +218,21 @@ void ComponentSoundSource::drawUi()
 	{
 		postEvent(selectedBank.getName().c_str(), selectedEvent.name.c_str());
 	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Switch Tester");
+
+	static char switchGroup[128] = "";
+	static char switchValue[128] = "";
+
+	ImGui::InputText("Switch Group", switchGroup, IM_ARRAYSIZE(switchGroup));
+	ImGui::InputText("Switch Value", switchValue, IM_ARRAYSIZE(switchValue));
+
+	if (ImGui::Button("Set Switch", ImVec2(-1.0f, 0.0f)))
+	{
+		setSwitch(switchGroup, switchValue);
+	}
 }
 
 void ComponentSoundSource::serialize(IArchive& archive)
