@@ -25,18 +25,18 @@
 
 PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
-    // Root signature: b0 (params) + t0 (HDR scene) + t1 (bloom) + t2 (LUT 3D),
-    // with a static bilinear-clamp sampler at s0.
-    CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange;
-    sceneRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0); 
+    CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange, depthRange;
+    sceneRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     bloomRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
-    lutRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0); 
+    lutRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
+    depthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
     rootParameters[0].InitAsConstants(sizeof(PostProcessParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sceneRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsDescriptorTable(1, &bloomRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[3].InitAsDescriptorTable(1, &lutRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[4].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     D3D12_STATIC_SAMPLER_DESC sampler = PostProcess::bilinearClampSampler();
 
@@ -48,14 +48,10 @@ PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device
     DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
-    // Resolve into the LDR display target (COLOR_0); keep a matching depth
-    // format so the depth view can stay bound for the overlay passes.
-    m_pipelineState = PostProcess::createFullscreenPSO(m_device.Get(), m_rootSignature.Get(), L"PostProcessPixelShader.cso", DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);
+    m_pipelineState = PostProcess::createFullscreenPSO(m_device.Get(), m_rootSignature.Get(), L"PostProcessPixelShader.cso", DXGI_FORMAT_R8G8B8A8_UNORM);
 
-    // Bloom is produced internally and fed into the resolve.
     m_bloomPass = std::make_unique<BloomPass>(m_device);
 
-    // Neutral identity LUT used whenever colour grading is disabled.
     m_identityLut = CubeLut::createIdentity(*m_device.Get(), 2);
 
     // 1x1 placeholder for the bloom slot when bloom is inactive.
@@ -106,6 +102,18 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.enableCA = settings.chromaticAberrationEnabled ? 1u : 0u;
     m_params.caStrength = settings.chromaticAberrationStrength;
 
+    // Ink outline.
+    m_params.enableOutline = settings.outlineEnabled ? 1u : 0u;
+    m_params.outlineThickness = settings.outlineThickness;
+    m_params.outlineThreshold = settings.outlineThreshold;
+    m_params.outlineIntensity = settings.outlineIntensity;
+    m_params.outlineColorR = settings.outlineColorR;
+    m_params.outlineColorG = settings.outlineColorG;
+    m_params.outlineColorB = settings.outlineColorB;
+    m_params.outlineWobble = settings.outlineWobble;
+    m_params.outlineNoiseScale = settings.outlineNoiseScale;
+    m_params.outlineBreakup = settings.outlineBreakup;
+
     m_runBloom = settings.bloomEnabled;
     m_params.enableBloom = settings.bloomEnabled ? 1u : 0u;
     m_params.bloomIntensity = settings.bloomIntensity;
@@ -113,8 +121,8 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     if (m_runBloom)
         m_bloomPass->prepare(ctx);
 
-    // Advance time-based effects once per frame (even with several viewports).
-    // Unscaled time keeps them animating in the editor / when the game is paused.
+    //time-based effects once per frame.
+    // Unscaled time keeps them animating in the editor 
     const uint32_t frame = app->getModuleTime()->frameCount();
     const float dt = (frame != m_lastFrame) ? std::min(app->getModuleTime()->unscaledDeltaTime(), 0.05f) : 0.0f;
     m_lastFrame = frame;
@@ -138,8 +146,7 @@ void PostProcessPass::updateDeathFade(const PostProcessSettings& settings, float
     const float grey = std::max(0.01f, settings.deathGreyDuration);
     const float black = std::max(0.01f, settings.deathBlackDuration);
 
-    // First desaturate to full grey (and blur out of focus), then fade from
-    // grey to black.
+    // First desaturate to full grey (and blur out of focus), then fade from grey to black.
     m_params.deathDesat = std::min(1.0f, m_deathTime / grey);
     m_params.deathBlur = m_params.deathDesat;
     m_params.deathFade = std::min(1.0f, std::max(0.0f, (m_deathTime - grey) / black));
@@ -157,7 +164,7 @@ void PostProcessPass::updateHeartbeat(const PostProcessSettings& settings, const
     const bool  healthActive = health < settings.healthThreshold;
     const bool  sepActive = sepDanger > 0.05f;
 
-    // Faster heart + sharper diastole as danger rises (ported from the preview).
+    // Faster heart + sharper diastole as danger rises 
     const float danger = healthActive ? hpDanger : (sepActive ? sepDanger * 0.8f : 0.0f);
     auto interBeatSeconds = [](float t) { return 0.12f + (1.0f - t) * 0.55f; };
     auto diastoleSeconds = [](float t) { return 0.18f + (1.0f - t) * 0.80f; };
@@ -169,14 +176,13 @@ void PostProcessPass::updateHeartbeat(const PostProcessSettings& settings, const
         m_hbPulseType = 0;
     };
 
-    // Screen sway (only when critically low health).
+    // Screen sway 
     m_hbSwayAngle += dt * 0.4f;
     const float critT = healthActive ? std::max(0.0f, (hpDanger - 0.5f) / 0.5f) : 0.0f;
     const float swayAmt = critT * 4.0f; // pixels
     const float swayXpx = std::sin(m_hbSwayAngle) * swayAmt;
     const float swayYpx = std::cos(m_hbSwayAngle * 0.7f) * swayAmt * 0.5f;
 
-    // Lub-dub state machine.
     if (healthActive)
     {
         if (m_hbDubTimer < 0.0f && m_hbLubTimer < 0.0f)
@@ -212,7 +218,6 @@ void PostProcessPass::updateHeartbeat(const PostProcessSettings& settings, const
     m_hbPulseAnim = std::max(0.0f, m_hbPulseAnim - dt * 3.5f);
     (void)danger;
 
-    // Derived per-frame outputs fed to the shader.
     m_params.hbHealthVignette = healthActive ? std::pow(hpDanger, 1.4f) * 0.7f : 0.0f;
     m_params.hbSepVignette = sepActive ? std::pow(sepDanger, 1.3f) * 0.55f : 0.0f;
     m_params.hbPulse = m_hbPulseAnim * (m_hbPulseType == 0 ? 1.0f : 0.55f) * std::max(hpDanger, sepDanger * 0.7f);
@@ -230,12 +235,16 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     auto sceneHDR = m_surface->getTexture(RenderSurface::COLOR_1);
     auto composite = m_surface->getTexture(RenderSurface::COLOR_0);
-    if (!sceneHDR || !composite)
+    auto depthTex = m_surface->getTexture(RenderSurface::DEPTH_STENCIL);
+    if (!sceneHDR || !composite || !depthTex)
         return;
 
-    // The scene passes left the HDR target (COLOR_1) as a render target; make it readable.
-    CD3DX12_RESOURCE_BARRIER toSRV = CD3DX12_RESOURCE_BARRIER::Transition(sceneHDR->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    commandList->ResourceBarrier(1, &toSRV);
+    // Make the HDR scene and the depth buffer readable in the shader (the depth buffer feeds the outline edge detection).
+    CD3DX12_RESOURCE_BARRIER toRead[2] = {
+        CD3DX12_RESOURCE_BARRIER::Transition(sceneHDR->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+        CD3DX12_RESOURCE_BARRIER::Transition(depthTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+    };
+    commandList->ResourceBarrier(2, toRead);
 
     // Bloom reads the HDR scene and produces its own blurred texture.
     D3D12_GPU_DESCRIPTOR_HANDLE bloomHandle = m_dummyTexture->getSRV().gpu;
@@ -247,10 +256,8 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     const std::shared_ptr<Texture>& lut = m_lutTexture ? m_lutTexture : m_identityLut;
 
-    auto depthTex = m_surface->getTexture(RenderSurface::DEPTH_STENCIL);
     D3D12_CPU_DESCRIPTOR_HANDLE targetRTV = composite->getRTV(0).cpu;
-    D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthTex->getDSV().cpu;
-    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, &dsv);
+    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, nullptr);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
 
@@ -264,8 +271,17 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(1, sceneHDR->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(2, bloomHandle);
     commandList->SetGraphicsRootDescriptorTable(3, lut->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(4, depthTex->getSRV().gpu);
 
     PostProcess::drawFullscreenTriangle(commandList);
+
+    // Restore the depth buffer to a writable state and re-bind COLOR_0 + depth
+    // so the overlay passes (debug draw / UI / fonts) inherit a valid target.
+    CD3DX12_RESOURCE_BARRIER depthBack = CD3DX12_RESOURCE_BARRIER::Transition(depthTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    commandList->ResourceBarrier(1, &depthBack);
+
+    D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthTex->getDSV().cpu;
+    commandList->OMSetRenderTargets(1, &targetRTV, FALSE, &dsv);
 
     // Leave COLOR_1 (HDR) in PIXEL_SHADER_RESOURCE for the next frame's scene
     // pass, which will transition it back to RENDER_TARGET.
