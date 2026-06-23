@@ -10,6 +10,7 @@
 
 #include "Scene.h"
 #include "PostProcessSettings.h"
+#include "PostProcessCommon.h"
 #include "Texture.h"
 #include "CubeLut.h"
 #include "BloomPass.h"
@@ -34,15 +35,7 @@ PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device
     rootParameters[2].InitAsDescriptorTable(1, &bloomRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[3].InitAsDescriptorTable(1, &lutRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    D3D12_STATIC_SAMPLER_DESC sampler = {};
-    sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-    sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-    sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-    sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-    sampler.MaxLOD = D3D12_FLOAT32_MAX;
-    sampler.ShaderRegister = 0;
-    sampler.RegisterSpace = 0;
-    sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+    D3D12_STATIC_SAMPLER_DESC sampler = PostProcess::bilinearClampSampler();
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -52,32 +45,9 @@ PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device
     DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
-    // Reuse the shared fullscreen-triangle vertex shader.
-    ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"BRDFVertexShader.cso", &vertexShaderBlob));
-
-    ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"PostProcessPixelShader.cso", &pixelShaderBlob));
-
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
-    desc.InputLayout = { nullptr, 0 };
-    desc.pRootSignature = m_rootSignature.Get();
-    desc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
-    desc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
-    desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-    desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-    desc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-    desc.DepthStencilState.DepthEnable = FALSE;
-    desc.DepthStencilState.StencilEnable = FALSE;
-    desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-    desc.SampleMask = UINT_MAX;
-    desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    desc.NumRenderTargets = 1;
-    desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc = { 1, 0 };
-
-    DXCall(m_device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&m_pipelineState)));
+    // Resolve into the LDR display target (COLOR_0); keep a matching depth
+    // format so the depth view can stay bound for the overlay passes.
+    m_pipelineState = PostProcess::createFullscreenPSO(m_device.Get(), m_rootSignature.Get(), L"PostProcessPixelShader.cso", DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D32_FLOAT);
 
     // Bloom is produced internally and fed into the resolve.
     m_bloomPass = std::make_unique<BloomPass>(m_device);
@@ -151,11 +121,11 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     if (!sceneHDR || !composite)
         return;
 
-    // The scene passes left SCENE_HDR as a render target; make it readable.
+    // The scene passes left the HDR target (COLOR_1) as a render target; make it readable.
     CD3DX12_RESOURCE_BARRIER toSRV = CD3DX12_RESOURCE_BARRIER::Transition(sceneHDR->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     commandList->ResourceBarrier(1, &toSRV);
 
-    // Bloom reads SCENE_HDR and produces its own blurred texture.
+    // Bloom reads the HDR scene and produces its own blurred texture.
     D3D12_GPU_DESCRIPTOR_HANDLE bloomHandle = m_dummyTexture->getSRV().gpu;
     if (m_runBloom)
     {
@@ -183,10 +153,8 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(2, bloomHandle);
     commandList->SetGraphicsRootDescriptorTable(3, lut->getSRV().gpu);
 
-    commandList->IASetVertexBuffers(0, 0, nullptr);
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    commandList->DrawInstanced(3, 1, 0, 0);
+    PostProcess::drawFullscreenTriangle(commandList);
 
-    // Leave SCENE_HDR in PIXEL_SHADER_RESOURCE for the next frame's scene pass,
-    // which will transition it back to RENDER_TARGET.
+    // Leave COLOR_1 (HDR) in PIXEL_SHADER_RESOURCE for the next frame's scene
+    // pass, which will transition it back to RENDER_TARGET.
 }

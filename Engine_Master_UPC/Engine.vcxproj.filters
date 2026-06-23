@@ -1745,6 +1745,9 @@
     <ClCompile Include="CubeLut.cpp">
       <Filter>D3D12\Rendering\PostProcessing</Filter>
     </ClCompile>
+    <ClCompile Include="PostProcessCommon.cpp">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PostProcessPass.h">
@@ -1757,6 +1760,9 @@
       <Filter>D3D12\Rendering\PostProcessing</Filter>
     </ClInclude>
     <ClInclude Include="CubeLut.h">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessCommon.h">
       <Filter>D3D12\Rendering\PostProcessing</Filter>
     </ClInclude>
   </ItemGroup>
