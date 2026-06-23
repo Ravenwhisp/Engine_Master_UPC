@@ -419,22 +419,58 @@ namespace AudioAPI
 
 namespace PostProcessAPI
 {
-    // Heartbeat / low-health "damage screen" effect.
-    ENGINE_API void setHeartbeatEnabled(bool enabled);
-    ENGINE_API bool isHeartbeatEnabled();
-    ENGINE_API void setHealth(float health01);          // 0..1, drives the heartbeat
-    ENGINE_API void setSeparation(float separation01);  // 0..1, drives the heartbeat
+    ENGINE_API void  setExposure(float ev);
+    ENGINE_API float getExposure();
 
-    // Death fade (desaturate to grey, then fade to black). Set active when all
-    // players are down; clear it to restore the normal image.
-    ENGINE_API void setDeathFadeActive(bool active);
-    ENGINE_API bool isDeathFadeActive();
+    ENGINE_API void  setBloomEnabled(bool enabled);
+    ENGINE_API bool  isBloomEnabled();
+    ENGINE_API void  setBloomThreshold(float threshold);
+    ENGINE_API float getBloomThreshold();
+    ENGINE_API void  setBloomIntensity(float intensity);
+    ENGINE_API float getBloomIntensity();
 
-    // General toggles a script might drive for scripted moments.
-    ENGINE_API void setExposure(float ev);
-    ENGINE_API void setBloomEnabled(bool enabled);
-    ENGINE_API void setOutlineEnabled(bool enabled);
-    ENGINE_API void setChromaticAberrationEnabled(bool enabled);
+    ENGINE_API void        setLutEnabled(bool enabled);
+    ENGINE_API bool        isLutEnabled();
+    ENGINE_API void        setLutPath(const char* path);
+    ENGINE_API const char* getLutPath();
+
+    ENGINE_API void  setChromaticAberrationEnabled(bool enabled);
+    ENGINE_API bool  isChromaticAberrationEnabled();
+    ENGINE_API void  setChromaticAberrationStrength(float strength);
+    ENGINE_API float getChromaticAberrationStrength();
+
+    ENGINE_API void  setHeartbeatEnabled(bool enabled);
+    ENGINE_API bool  isHeartbeatEnabled();
+    ENGINE_API void  setHealth(float health01);   
+    ENGINE_API float getHealth();
+    ENGINE_API void  setSeparation(float separation01); 
+    ENGINE_API float getSeparation();
+    ENGINE_API void  setHealthThreshold(float threshold);
+    ENGINE_API float getHealthThreshold();
+
+    ENGINE_API void  setDeathFadeActive(bool active);
+    ENGINE_API bool  isDeathFadeActive();
+    ENGINE_API void  setDeathGreyDuration(float seconds);
+    ENGINE_API float getDeathGreyDuration();
+    ENGINE_API void  setDeathBlackDuration(float seconds);
+    ENGINE_API float getDeathBlackDuration();
+
+    ENGINE_API void    setOutlineEnabled(bool enabled);
+    ENGINE_API bool    isOutlineEnabled();
+    ENGINE_API void    setOutlineThickness(float pixels);
+    ENGINE_API float   getOutlineThickness();
+    ENGINE_API void    setOutlineThreshold(float threshold);
+    ENGINE_API float   getOutlineThreshold();
+    ENGINE_API void    setOutlineIntensity(float intensity);
+    ENGINE_API float   getOutlineIntensity();
+    ENGINE_API void    setOutlineColor(const Vector3& rgb);
+    ENGINE_API Vector3 getOutlineColor();
+    ENGINE_API void    setOutlineWobble(float wobble);
+    ENGINE_API float   getOutlineWobble();
+    ENGINE_API void    setOutlineNoiseScale(float scale);
+    ENGINE_API float   getOutlineNoiseScale();
+    ENGINE_API void    setOutlineBreakup(float breakup);
+    ENGINE_API float   getOutlineBreakup();
 }
 
 #include "EngineAPI.inl"
