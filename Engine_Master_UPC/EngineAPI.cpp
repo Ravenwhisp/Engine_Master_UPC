@@ -2817,3 +2817,75 @@ namespace AudioAPI
         }
     }
 }
+
+namespace PostProcessAPI
+{
+    static PostProcessSettings* getSettings()
+    {
+        if (!app || !app->getModuleScene() || !app->getModuleScene()->getScene())
+        {
+            return nullptr;
+        }
+        return &app->getModuleScene()->getScene()->getPostProcessSettings();
+    }
+
+    void setHeartbeatEnabled(bool enabled)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->heartbeatEnabled = enabled;
+    }
+
+    bool isHeartbeatEnabled()
+    {
+        const PostProcessSettings* pp = getSettings();
+        return pp ? pp->heartbeatEnabled : false;
+    }
+
+    void setHealth(float health01)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->health = health01;
+    }
+
+    void setSeparation(float separation01)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->separation = separation01;
+    }
+
+    void setDeathFadeActive(bool active)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->deathFadeActive = active;
+    }
+
+    bool isDeathFadeActive()
+    {
+        const PostProcessSettings* pp = getSettings();
+        return pp ? pp->deathFadeActive : false;
+    }
+
+    void setExposure(float ev)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->exposure = ev;
+    }
+
+    void setBloomEnabled(bool enabled)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->bloomEnabled = enabled;
+    }
+
+    void setOutlineEnabled(bool enabled)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->outlineEnabled = enabled;
+    }
+
+    void setChromaticAberrationEnabled(bool enabled)
+    {
+        if (PostProcessSettings* pp = getSettings())
+            pp->chromaticAberrationEnabled = enabled;
+    }
+}

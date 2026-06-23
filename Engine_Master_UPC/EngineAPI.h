@@ -417,4 +417,24 @@ namespace AudioAPI
     ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);
 }
 
+namespace PostProcessAPI
+{
+    // Heartbeat / low-health "damage screen" effect.
+    ENGINE_API void setHeartbeatEnabled(bool enabled);
+    ENGINE_API bool isHeartbeatEnabled();
+    ENGINE_API void setHealth(float health01);          // 0..1, drives the heartbeat
+    ENGINE_API void setSeparation(float separation01);  // 0..1, drives the heartbeat
+
+    // Death fade (desaturate to grey, then fade to black). Set active when all
+    // players are down; clear it to restore the normal image.
+    ENGINE_API void setDeathFadeActive(bool active);
+    ENGINE_API bool isDeathFadeActive();
+
+    // General toggles a script might drive for scripted moments.
+    ENGINE_API void setExposure(float ev);
+    ENGINE_API void setBloomEnabled(bool enabled);
+    ENGINE_API void setOutlineEnabled(bool enabled);
+    ENGINE_API void setChromaticAberrationEnabled(bool enabled);
+}
+
 #include "EngineAPI.inl"
