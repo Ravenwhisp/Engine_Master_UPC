@@ -163,6 +163,7 @@ void ModuleRender::render()
 #else
 
     renderGameToBackbuffer(commandList,
+        &swapChain->getRenderSurface(),
         swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
