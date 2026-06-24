@@ -173,26 +173,37 @@ float3 applyHeartbeat(float3 color, float2 uv)
 
 float4 main(float2 uv : TEXCOORD) : SV_TARGET
 {
-    // Heartbeat sway shifts the scene sampling 
+    // Heartbeat sway shifts the scene sampling
     float2 suv = uv + float2(hbSwayX, hbSwayY);
 
-    // Scene sample, blurred out of focus during the death fade.
-    float3 hdr = sampleSceneBlurred(suv, deathBlur);
+    float sceneDepth = depthTexture.Sample(bilinearClamp, uv).r;
+    bool isBackground = sceneDepth >= 0.9999;
 
-    if (enableBloom != 0)
+    float3 outColor;
+    if (isBackground)
     {
-        float3 bloom = bloomTexture.Sample(bilinearClamp, suv).rgb;
-        hdr += bloom * bloomIntensity;
+        outColor = saturate(sampleScene(suv));
     }
+    else
+    {
+        // Scene sample, blurred out of focus during the death fade.
+        float3 hdr = sampleSceneBlurred(suv, deathBlur);
 
-    hdr *= 1.2 * pow(2.0, exposure);
+        if (enableBloom != 0)
+        {
+            float3 bloom = bloomTexture.Sample(bilinearClamp, suv).rgb;
+            hdr += bloom * bloomIntensity;
+        }
 
-    float3 mapped = PBRNeutralToneMapping(hdr);
+        hdr *= 1.2 * pow(2.0, exposure);
 
-    if (enableLUT != 0)
-        mapped = applyLUT(mapped);
+        float3 mapped = PBRNeutralToneMapping(hdr);
 
-    float3 outColor = LinearToSRGB(mapped);
+        if (enableLUT != 0)
+            mapped = applyLUT(mapped);
+
+        outColor = LinearToSRGB(mapped);
+    }
 
     // Ink outline sits on the lit scene, under the full-screen state effects.
     if (enableOutline != 0)
