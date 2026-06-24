@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "EmitterColor.h"
-#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleInput.h"
@@ -176,67 +175,6 @@ void EmitterColor::serialize(IArchive& archive)
 			archive.serialize(m_colorCurve[i], "");
 		archive.endArray();
 	}
-}
-
-bool EmitterColor::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	// For retrocompatibility //
-
-	if (moduleInfo.HasMember("StartColor") && moduleInfo.HasMember("EndColor"))
-	{
-		m_colorOverTime.getMarks().clear();
-
-		const auto& color = moduleInfo["StartColor"].GetArray();
-		ImColor startColor = ImColor(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat(), color[3].GetFloat());
-
-		m_colorOverTime.addMark(0.f, startColor);
-		m_colorOverTime.addAlphaMark(0.f, startColor.Value.w);
-
-		const auto& color2 = moduleInfo["EndColor"].GetArray();
-		ImColor endColor = ImColor(color2[0].GetFloat(), color2[1].GetFloat(), color2[2].GetFloat(), color2[3].GetFloat());
-
-		m_colorOverTime.addMark(1.f, endColor);
-		m_colorOverTime.addAlphaMark(1.f, endColor.Value.w);
-
-	}
-	else if (moduleInfo.HasMember("ColorOverTime"))
-	{
-		// Get gradient colors //
-
-		m_colorOverTime.getMarks().clear();
-
-		const auto& marks = moduleInfo["ColorOverTime"].GetArray();
-
-		for (const auto& mark : marks)
-		{
-			float position = mark["Position"].GetFloat();
-
-			if (mark["IsAlphaMark"].GetBool())
-			{
-				float alpha = mark["Alpha"].GetFloat();
-
-				m_colorOverTime.addAlphaMark(position, alpha);
-			}
-			else
-			{
-				const auto& color = mark["Color"].GetArray();
-				ImColor markColor = ImColor(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
-
-				m_colorOverTime.addMark(position, markColor);
-			}
-		}
-	}
-
-	if (moduleInfo.HasMember("ColorCurve"))
-	{
-		const auto& curveArray = moduleInfo["ColorCurve"].GetArray();
-		m_colorCurve[0] = curveArray[0].GetFloat();
-		m_colorCurve[1] = curveArray[1].GetFloat();
-		m_colorCurve[2] = curveArray[2].GetFloat();
-		m_colorCurve[3] = curveArray[3].GetFloat();
-	}
-
-	return true;
 }
 
 bool EmitterColor::drawBezierCurveUI(float* curveData)
