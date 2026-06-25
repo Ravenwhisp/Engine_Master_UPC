@@ -72,7 +72,10 @@ void BloomPass::prepare(const RenderContext& ctx)
 
     if (Scene* scene = app->getModuleScene()->getScene())
     {
-        m_params.threshold = scene->getPostProcessSettings().bloomThreshold;
+        const PostProcessSettings& pp = scene->getPostProcessSettings();
+        m_params.threshold = pp.bloomThreshold;
+        // Keep a hard ceiling so the fp16 bloom chain can never reach Inf.
+        m_params.maxBrightness = std::min(std::max(pp.bloomClamp, 0.0f), 8192.0f);
     }
 }
 

@@ -191,7 +191,8 @@ float4 main(float2 uv : TEXCOORD) : SV_TARGET
 
         if (enableBloom != 0)
         {
-            float3 bloom = bloomTexture.Sample(bilinearClamp, suv).rgb;
+            // min() also sanitises any residual Inf to a finite value.
+            float3 bloom = min(bloomTexture.Sample(bilinearClamp, suv).rgb, 65000.0);
             hdr += bloom * bloomIntensity;
         }
 

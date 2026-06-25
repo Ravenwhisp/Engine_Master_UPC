@@ -11,6 +11,7 @@ struct PostProcessSettings : public ISerializable
     bool  bloomEnabled = false;
     float bloomThreshold = 1.0f;
     float bloomIntensity = 0.5f;
+    float bloomClamp = 0.1f;   // max brightness a pixel may contribute to bloom
 
     // Colour grading 
     bool        lutEnabled = false;
@@ -49,6 +50,7 @@ struct PostProcessSettings : public ISerializable
         archive.serialize(bloomEnabled, "bloomEnabled");
         archive.serialize(bloomThreshold, "bloomThreshold");
         archive.serialize(bloomIntensity, "bloomIntensity");
+        archive.serialize(bloomClamp, "bloomClamp");
 
         archive.serialize(lutEnabled, "lutEnabled");
         archive.serialize(lutPath, "lutPath");

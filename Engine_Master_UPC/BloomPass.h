@@ -26,7 +26,7 @@ private:
     struct BloomParams
     {
         float threshold = 1.0f;
-        float pad0 = 0.0f;
+        float maxBrightness = 0.1f; // clamp so very bright pixels can't overflow the chain
         float pad1 = 0.0f;
         float pad2 = 0.0f;
     };

@@ -199,6 +199,8 @@ void SceneConfig::drawPostProcessSettings()
         ImGui::Checkbox("Bloom###PPBloomEnabled", &pp.bloomEnabled);
         ImGui::DragFloat("Bloom Threshold###PPBloomThreshold", &pp.bloomThreshold, 0.01f, 0.0f, 10.0f);
         ImGui::DragFloat("Bloom Intensity###PPBloomIntensity", &pp.bloomIntensity, 0.01f, 0.0f, 5.0f);
+        ImGui::DragFloat("Bloom Clamp###PPBloomClamp", &pp.bloomClamp, 0.1f, 0.5f, 8192.0f);
+        ImGui::TextDisabled("Lower = tame blown-out discs from very bright lights.");
 
         ImGui::Separator();
         ImGui::Checkbox("Colour Grading (LUT)###PPLutEnabled", &pp.lutEnabled);
