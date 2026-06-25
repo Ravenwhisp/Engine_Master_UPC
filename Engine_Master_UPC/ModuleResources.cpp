@@ -182,16 +182,101 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
+Texture* ModuleResources::createSSAODepthBuffer(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R32_TYPELESS;
+	desc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::DSV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"SSAO_Depth");
+
+	return texture;
+}
+
+Texture* ModuleResources::createSSAONormalBuffer(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::RTV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		Color(0.5f, 0.5f, 1.0f, 1.0f)
+	);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"SSAO_Normal");
+
+	return texture;
+}
+
+Texture* ModuleResources::createSSAOTexture(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R8_UNORM;
+	desc.srvFormat = DXGI_FORMAT_R8_UNORM;
+	desc.rtvFormat = DXGI_FORMAT_R8_UNORM;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::RTV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(
+		DXGI_FORMAT_R8_UNORM,
+		Color(1.0f, 1.0f, 1.0f, 1.0f)
+	);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"SSAO_Texture");
+
+	return texture;
+}
+
 RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
 
 	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
 	colorTex->setName(L"RenderSurface_Color");
+
 	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
+
+	auto ssaoDepthTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
+	ssaoDepthTex->setName(L"RenderSurface_SSAO_Depth");
+
+	auto ssaoNormalTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
+	ssaoNormalTex->setName(L"RenderSurface_SSAO_Normal");
+
+	auto ssaoRawTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+	ssaoRawTex->setName(L"RenderSurface_SSAO_Raw");
+
+	auto ssaoBlurTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+	ssaoBlurTex->setName(L"RenderSurface_SSAO_Blur");
+
 	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
+
+	surface->attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTex);
+	surface->attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTex);
+	surface->attachTexture(RenderSurface::SSAO_RAW, ssaoRawTex);
+	surface->attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTex);
 
 	return surface;
 }
