@@ -73,15 +73,20 @@ public:
 
 #pragma region Quadtree
     void syncQuadtreeWithSettings();
-	Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
-	Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
-	void moveGameObjectInQuadtrees(GameObject& gameObject);
-	void removeGameObjectFromQuadtree(GameObject& gameObject);
+    Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
+    Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
+    void moveGameObjectInQuadtrees(GameObject& gameObject);
+    void removeGameObjectFromQuadtree(GameObject& gameObject);
 #pragma endregion
 
 #pragma region ObjectPicking
     std::vector<GameObjectPickHit> collectAABBHits(const Ray& worldRay);
     bool pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit);
+#pragma endregion
+
+#pragma region Systems
+    void initializeRuntimeSceneSystems();
+    void clearRuntimeSceneSystems();
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }

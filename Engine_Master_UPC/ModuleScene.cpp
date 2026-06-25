@@ -48,7 +48,7 @@ bool ModuleScene::init()
     m_scene->init();
     m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
-    
+
     return true;
 }
 
@@ -58,14 +58,14 @@ void ModuleScene::update()
     {
         loadScene(m_pendingSceneLoad);
         m_pendingSceneLoad.clear();
-    }  
+    }
 
-    if(m_pendingScene)
+    if (m_pendingScene)
     {
-		loadScene(m_pendingScene);
-		m_pendingScene.reset();
-	}
-  
+        loadScene(m_pendingScene);
+        m_pendingScene.reset();
+    }
+
     m_scene->update();
 
     syncQuadtreeWithSettings();
@@ -208,6 +208,7 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
 
@@ -257,11 +258,14 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         app->getModuleMusic()->loadBank(bank);
     }
 
+    initializeRuntimeSceneSystems();
+
     return true;
 }
 
 bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 {
+    clearRuntimeSceneSystems();
     clearComponentCaches();
 
     auto sceneName = scene->getName();
@@ -297,6 +301,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #endif
 
     rebuildComponentCaches();
+    initializeRuntimeSceneSystems();
     return true;
 }
 
@@ -305,7 +310,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #pragma region Snapshot
 SceneSnapshot* ModuleScene::takeSnapshot() const
 {
-    SceneSnapshot * sceneSnapshot = new SceneSnapshot();
+    SceneSnapshot* sceneSnapshot = new SceneSnapshot();
     sceneSnapshot->init(*m_scene.get());
 
     return sceneSnapshot;
@@ -366,13 +371,13 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
-	const Layer layer = gameObject.GetLayer();
+    const Layer layer = gameObject.GetLayer();
 
     if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
     {
         m_dynamicQuadtree->move(gameObject);
     }
-	else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
     {
         m_staticQuadtree->move(gameObject);
     }
@@ -389,7 +394,7 @@ void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
     else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
     {
         m_staticQuadtree->remove(gameObject);
-	}
+    }
 }
 #pragma endregion
 
@@ -481,5 +486,32 @@ bool ModuleScene::pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit)
 
     outHit = closestTriangleHit;
     return true;
+}
+#pragma endregion
+
+#pragma region Systems
+void ModuleScene::initializeRuntimeSceneSystems()
+{
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
+        return;
+    }
+
+    if (m_scene == nullptr)
+    {
+        return;
+    }
+
+    m_scene->registerAllTriggersInScene();
+}
+
+void ModuleScene::clearRuntimeSceneSystems()
+{
+    if (m_scene == nullptr)
+    {
+        return;
+    }
+
+    m_scene->clearTriggers();
 }
 #pragma endregion

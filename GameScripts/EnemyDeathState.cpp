@@ -79,54 +79,51 @@ void EnemyDeathState::destroyEnemyNow()
 
 void EnemyDeathState::dropRewards()
 {
-    if (m_healthPrefabPath.empty())
-    {
-        return;
-    }
+	if (m_healthPrefabPath.empty())
+	{
+		return;
+	}
 
-    const Transform* myTransform = GameObjectAPI::getTransform(getOwner());
-    if (myTransform == nullptr)
-    {
-        return;
-    }
+	const Transform* myTransform = GameObjectAPI::getTransform(getOwner());
+	if (myTransform == nullptr)
+	{
+		return;
+	}
 
-    const Vector3 spawnPosition = TransformAPI::getGlobalPosition(myTransform);
+	const Vector3 spawnPosition = TransformAPI::getGlobalPosition(myTransform);
 
-    for (int i = 0; i < m_healthDropQuantity; ++i)
-    {
+	for (int i = 0; i < m_healthDropQuantity; ++i)
+	{
 
-        float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
-
-
-        float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
+		float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
 
 
-        Vector3 offset;
-        offset.x = std::cos(angle) * distance;
-        offset.z = std::sin(angle) * distance;
-        offset.y = 0.0f;
+		float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
 
-        Vector3 finalPos = spawnPosition + offset;
-        Vector3 arcOrigin = Vector3(spawnPosition.x, spawnPosition.y + m_dropHeight, spawnPosition.z);
 
-        // Instantiate at the arc origin (enemy center) so the pickup is never
-        // visible at the floor position before Start() runs.
-        GameObject* pickup = GameObjectAPI::instantiatePrefab(m_healthPrefabPath.c_str(), arcOrigin, Vector3::Zero);
+		Vector3 offset;
+		offset.x = std::cos(angle) * distance;
+		offset.z = std::sin(angle) * distance;
+		offset.y = 0.0f;
 
-        if (pickup == nullptr)
-        {
-            continue;
-        }
+		Vector3 finalPos = spawnPosition + offset;
+		Vector3 arcOrigin = Vector3(spawnPosition.x, spawnPosition.y + m_dropHeight, spawnPosition.z);
 
-        Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
-        if (script != nullptr)
-        {
-            HealthPickup* healthPickup = static_cast<HealthPickup*>(script);
-            healthPickup->m_healAmount = m_dropHealAmount;
-            healthPickup->m_landingPosition = finalPos;
-            healthPickup->m_hasCustomSpawnFrom = true;
-        }
-    }
+		// Instantiate at the arc origin (enemy center) so the pickup is never
+		// visible at the floor position before Start() runs.
+		GameObject* pickup = GameObjectAPI::instantiatePrefab(m_healthPrefabPath.c_str(), arcOrigin, Vector3::Zero);
+
+		if (pickup == nullptr)
+		{
+			continue;
+		}
+
+		HealthPickup* healthPickup = GameObjectAPI::findScript<HealthPickup>(pickup);
+		if (healthPickup != nullptr)
+		{
+			healthPickup->setupDrop(m_dropHealAmount, finalPos);
+		}
+	}
 }
 
 IMPLEMENT_SCRIPT(EnemyDeathState)
