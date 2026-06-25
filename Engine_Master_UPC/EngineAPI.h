@@ -141,6 +141,10 @@ namespace AnimationAPI
 
     ENGINE_API float getSpeedMultiplier(const AnimationComponent* animation);
     ENGINE_API void setSpeedMultiplier(AnimationComponent* animation, float speedMultiplier);
+
+    ENGINE_API bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds = 0.0f, bool loop = true);
+    ENGINE_API void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds = 0.0f);
+    ENGINE_API bool hasOverrideClip(const AnimationComponent* animation);
 }
 
 namespace ApplicationAPI
