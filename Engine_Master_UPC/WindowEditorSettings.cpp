@@ -2,9 +2,11 @@
 #include "WindowEditorSettings.h"
 
 #include "Application.h"
+#include "ModuleAssets.h"
 #include "ModuleScene.h"
 #include "ModuleScripting.h"
 
+#include "AssetReference.h"
 #include "Settings.h"
 #include "Scene.h"
 #include "Quadtree.h"
@@ -26,6 +28,8 @@ void WindowEditorSettings::drawInternal()
     drawFrustumCullingSettings();
     ImGui::Separator();
     drawScriptsSettings();
+    ImGui::Separator();
+    drawRimErosionSettings();
 
     drawScriptReloadModal();
 }
@@ -170,6 +174,66 @@ void WindowEditorSettings::drawScriptsSettings()
         buildSettings.platform = m_scriptPlatformBuffer.data();
 
         moduleScripting->requestBuildAndReloadGameScriptsDll();
+    }
+}
+
+void WindowEditorSettings::drawRimErosionSettings()
+{
+    auto& settings = m_settings->rimErosion;
+    if (ImGui::CollapsingHeader("Rim Erosion"))
+    {
+        ImGui::Checkbox("Enabled", &settings.enabled);
+
+        ImGui::Text("Brush Texture: %s",
+            settings.brushTextureAssetId.isValid()
+            ? std::to_string(settings.brushTextureAssetId.m_uid).c_str()
+            : "None");
+        ImGui::Button("Drop Brush Texture Here");
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_TEXTURE"))
+            {
+                UID* ref = static_cast<UID*>(payload->Data);
+                AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+                if (assetRef)
+                {
+                    settings.brushTextureAssetId = *assetRef;
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        if (ImGui::CollapsingHeader("Paint Colors"))
+        {
+            ImGui::ColorEdit3("Paint Color 1", &settings.paintColor1[0]);
+            ImGui::ColorEdit3("Paint Color 2", &settings.paintColor2[0]);
+        }
+
+        if (ImGui::CollapsingHeader("Brush Normal"))
+        {
+            ImGui::DragFloat("Normal Strength", &settings.brushNormalStrength, 0.1f, 0.0f, 3.0f);
+            ImGui::DragFloat("Brush Scale", &settings.brushScale, 0.1f, 0.1f, 20.0f);
+            ImGui::DragFloat("Brush Offset X", &settings.brushOffsetX, 0.01f, -1.0f, 1.0f);
+            ImGui::DragFloat("Brush Offset Y", &settings.brushOffsetY, 0.01f, -1.0f, 1.0f);
+        }
+
+        if (ImGui::CollapsingHeader("Rim Erosion"))
+        {
+            ImGui::DragFloat("Rim Threshold", &settings.rimThreshold, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Rim Softness", &settings.rimSoftness, 0.01f, 0.0f, 0.5f);
+            ImGui::DragFloat("Erosion Intensity", &settings.erosionIntensity, 0.01f, 0.0f, 2.0f);
+            ImGui::DragFloat("Displacement Amount", &settings.displacementAmount, 0.001f, 0.0f, 0.2f);
+            ImGui::ColorEdit3("Erosion Color", &settings.erosionColor[0]);
+            ImGui::DragFloat("Preserve Silhouette", &settings.preserveSilhouette, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Curvature Scale", &settings.curvatureScale, 1.0f, 0.0f, 500.0f);
+        }
+
+        if (ImGui::CollapsingHeader("Lighting"))
+        {
+            ImGui::DragFloat("Toon Sharpness", &settings.toonSharpness, 0.001f, 0.0f, 0.5f);
+        }
+
+        ImGui::Checkbox("Debug Rim Mask", &settings.debugRimMask);
     }
 }
 

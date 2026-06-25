@@ -246,6 +246,9 @@
     <ClCompile Include="MeshRendererPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
+    <ClCompile Include="RimErosionPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
     <ClCompile Include="SkyBoxPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -932,6 +935,9 @@
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="MeshRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="RimErosionPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="SkyBoxPass.h">
@@ -1731,5 +1737,11 @@
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="RimErosionVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="RimErosionPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

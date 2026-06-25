@@ -27,6 +27,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     newMeshRenderer->m_materialAssets = m_materialAssets;
 
     newMeshRenderer->m_skinAsset = m_skinAsset;
+    newMeshRenderer->m_shaderFlags = m_shaderFlags;
 
     if (m_skin)
     {
@@ -141,6 +142,17 @@ void MeshRenderer::drawUi()
 
     ImGui::Separator();
 
+    bool hasRimErosion = (m_shaderFlags & ShaderType::SHADER_RIM_EROSION) != 0;
+    if (ImGui::Checkbox("Rim Erosion", &hasRimErosion))
+    {
+        if (hasRimErosion)
+            m_shaderFlags |= ShaderType::SHADER_RIM_EROSION;
+        else
+            m_shaderFlags &= ~ShaderType::SHADER_RIM_EROSION;
+    }
+
+    ImGui::Separator();
+
     ImGui::Text("Triangles: %d", (int)m_triangles);
 
     auto min = m_boundingBox.getMin();
@@ -204,6 +216,8 @@ void MeshRenderer::serialize(IArchive& archive)
             archive.endObject();
         }
         archive.endArray();
+
+        archive.serialize(m_shaderFlags, "ShaderFlags");
     }
     else
     {
@@ -225,6 +239,8 @@ void MeshRenderer::serialize(IArchive& archive)
             archive.endObject();
         }
         archive.endArray();
+
+        archive.serialize(m_shaderFlags, "ShaderFlags");
     }
 }
 

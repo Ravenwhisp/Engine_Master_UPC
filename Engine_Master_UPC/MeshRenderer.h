@@ -25,8 +25,14 @@ struct ModelData
 class MeshRenderer : public Component
 {
 public:
-	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
-	~MeshRenderer() override;
+    enum ShaderType : uint32_t
+    {
+        SHADER_STANDARD_PBR = 0x1,
+        SHADER_RIM_EROSION  = 0x2,
+    };
+
+    MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
+    ~MeshRenderer() override;
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
@@ -69,8 +75,12 @@ public:
 	Skin& ensureSkin();
 	void clearSkin();
 
-	const bool isCulled() { return m_isCulled; }
-	void setIsCulled(bool culled) { m_isCulled = culled; }
+    const bool isCulled() { return m_isCulled; }
+    void setIsCulled(bool culled) { m_isCulled = culled; }
+
+    uint32_t getShaderFlags() const { return m_shaderFlags; }
+    void setShaderFlags(uint32_t flags) { m_shaderFlags = flags; }
+    bool hasShaderFlag(uint32_t flag) const { return (m_shaderFlags & flag) != 0; }
 
 private:
 	void recompute();
@@ -86,7 +96,9 @@ private:
 
 	mutable Engine::BoundingBox				m_boundingBox;
 
-	int m_triangles = 0;
+    int m_triangles = 0;
 
-	bool m_isCulled = false;
+    bool m_isCulled = false;
+
+    uint32_t m_shaderFlags = ShaderType::SHADER_STANDARD_PBR;
 };

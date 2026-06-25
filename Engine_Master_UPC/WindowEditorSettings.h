@@ -26,6 +26,7 @@ private:
     void drawSceneSettings();
     void drawFrustumCullingSettings();
     void drawScriptsSettings();
+    void drawRimErosionSettings();
     void drawScriptReloadModal();
 
 private:

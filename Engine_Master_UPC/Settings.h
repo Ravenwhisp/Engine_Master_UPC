@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AssetReference.h"
+
 #ifdef GAME_RELEASE
 constexpr bool DEFAULT_DEBUG = false;
 #else
@@ -63,6 +65,27 @@ struct DebugGame
     bool showScriptDebug = false;
 };
 
+struct RimErosionSettings
+{
+    bool enabled = false;
+    AssetReference brushTextureAssetId{};
+    float rimThreshold = 0.3f;
+    float rimSoftness = 0.2f;
+    float erosionIntensity = 1.0f;
+    float brushScale = 10.0f;
+    float brushOffsetX = 0.0f;
+    float brushOffsetY = 0.0f;
+    float displacementAmount = 0.08f;
+    float erosionColor[3] = { 0.0f, 0.0f, 0.0f };
+    float preserveSilhouette = 0.3f;
+    bool debugRimMask = false;
+    float paintColor1[3] = { 0.3f, 0.5f, 0.8f };
+    float paintColor2[3] = { 0.9f, 0.7f, 0.3f };
+    float brushNormalStrength = 1.5f;
+    float curvatureScale = 100.0f;
+    float toonSharpness = 0.02f;
+};
+
 class Settings
 {
 public:
@@ -71,6 +94,7 @@ public:
     WindowSceneEditorSettings sceneEditor;
     FrustumCullingSettings frustumCulling;
     DebugGame debugGame;
+    RimErosionSettings rimErosion;
 
 public:
     void loadSettings()
