@@ -27,6 +27,17 @@ namespace
             flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
         }
 
+        if (desc.depth > 1)
+        {
+            return CD3DX12_RESOURCE_DESC::Tex3D(
+                desc.format,
+                static_cast<UINT64>(desc.width),
+                static_cast<UINT>(desc.height),
+                static_cast<UINT16>(desc.depth),
+                desc.mipLevels,
+                flags);
+        }
+
         return CD3DX12_RESOURCE_DESC::Tex2D(
             desc.format,
             static_cast<UINT64>(desc.width),
@@ -198,7 +209,14 @@ void Texture::createSRV()
     srvDesc.Format = resolvedSRVFormat();
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    if (m_desc.arraySize == 6)
+    if (m_desc.depth > 1)
+    {
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+        srvDesc.Texture3D.MostDetailedMip = 0;
+        srvDesc.Texture3D.MipLevels = m_mipCount;
+        srvDesc.Texture3D.ResourceMinLODClamp = 0.0f;
+    }
+    else if (m_desc.arraySize == 6)
     {
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
         srvDesc.TextureCube.MostDetailedMip = 0;

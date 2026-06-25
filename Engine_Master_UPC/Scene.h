@@ -7,6 +7,7 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+#include "PostProcessSettings.h"
 #include "SoundBanksData.h"
 #include "SceneReferenceResolver.h"
 #include "UID.h"
@@ -33,6 +34,7 @@ private:
     SceneLightingSettings m_lighting;
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
+    PostProcessSettings m_postProcess;
 
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
@@ -99,6 +101,8 @@ public:
     const SceneDataCB& getCBData() const { return m_sceneDataCB; }
     SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
+    PostProcessSettings& getPostProcessSettings() { return m_postProcess; }
+    const PostProcessSettings& getPostProcessSettings() const { return m_postProcess; }
 
 
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }

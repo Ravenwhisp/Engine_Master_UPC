@@ -28,6 +28,8 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawLightSettings();
     ImGui::Separator();
+    drawPostProcessSettings();
+    ImGui::Separator();
     drawMusicBanksSettings();
     ImGui::Separator();
 }
@@ -181,6 +183,69 @@ void SceneConfig::drawLightSettings()
     {
         ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
+    }
+}
+
+void SceneConfig::drawPostProcessSettings()
+{
+    PostProcessSettings& pp = m_moduleScene->getScene()->getPostProcessSettings();
+
+    if (ImGui::CollapsingHeader("Post Process"))
+    {
+        ImGui::DragFloat("Exposure (EV)###PPExposure", &pp.exposure, 0.05f, -10.0f, 10.0f);
+        ImGui::TextDisabled("One stop (EV +1) doubles luminance.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Bloom###PPBloomEnabled", &pp.bloomEnabled);
+        ImGui::DragFloat("Bloom Threshold###PPBloomThreshold", &pp.bloomThreshold, 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Bloom Intensity###PPBloomIntensity", &pp.bloomIntensity, 0.01f, 0.0f, 5.0f);
+        ImGui::DragFloat("Bloom Clamp###PPBloomClamp", &pp.bloomClamp, 0.1f, 0.5f, 8192.0f);
+        ImGui::TextDisabled("Lower = tame blown-out discs from very bright lights.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Colour Grading (LUT)###PPLutEnabled", &pp.lutEnabled);
+
+        char lutBuffer[260];
+        strcpy_s(lutBuffer, pp.lutPath.c_str());
+        if (ImGui::InputText(".CUBE Path###PPLutPath", lutBuffer, IM_ARRAYSIZE(lutBuffer)))
+        {
+            pp.lutPath = lutBuffer;
+        }
+        ImGui::TextDisabled("Path to a .CUBE LUT (relative to the working directory).");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Chromatic Aberration###PPCAEnabled", &pp.chromaticAberrationEnabled);
+        ImGui::DragFloat("CA Strength###PPCAStrength", &pp.chromaticAberrationStrength, 0.05f, 0.0f, 10.0f);
+
+        ImGui::Separator();
+        ImGui::Checkbox("Heartbeat (Damage FX)###PPHeartbeat", &pp.heartbeatEnabled);
+        ImGui::DragFloat("Health Threshold###PPHealthThreshold", &pp.healthThreshold, 0.01f, 0.0f, 1.0f);
+        ImGui::SliderFloat("Health (test)###PPHealth", &pp.health, 0.0f, 1.0f);
+        ImGui::SliderFloat("Separation (test)###PPSeparation", &pp.separation, 0.0f, 1.0f);
+        ImGui::TextDisabled("Health/Separation are normally driven by gameplay.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Death Fade (test)###PPDeath", &pp.deathFadeActive);
+        ImGui::DragFloat("Grey Duration (s)###PPDeathGrey", &pp.deathGreyDuration, 0.05f, 0.1f, 10.0f);
+        ImGui::DragFloat("Black Duration (s)###PPDeathBlack", &pp.deathBlackDuration, 0.05f, 0.1f, 10.0f);
+        ImGui::TextDisabled("Triggered by gameplay when all players are down.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Outline (Ink)###PPOutline", &pp.outlineEnabled);
+        ImGui::DragFloat("Thickness (px)###PPOutThick", &pp.outlineThickness, 0.05f, 0.5f, 6.0f);
+        ImGui::DragFloat("Threshold###PPOutThresh", &pp.outlineThreshold, 0.001f, 0.001f, 0.5f, "%.3f");
+        ImGui::DragFloat("Intensity###PPOutIntensity", &pp.outlineIntensity, 0.01f, 0.0f, 1.0f);
+        float ink[3] = { pp.outlineColorR, pp.outlineColorG, pp.outlineColorB };
+        if (ImGui::ColorEdit3("Ink Colour###PPOutColor", ink))
+        {
+            pp.outlineColorR = ink[0];
+            pp.outlineColorG = ink[1];
+            pp.outlineColorB = ink[2];
+        }
+        ImGui::DragFloat("Wobble###PPOutWobble", &pp.outlineWobble, 0.05f, 0.0f, 5.0f);
+        ImGui::DragFloat("Noise Scale###PPOutNoise", &pp.outlineNoiseScale, 1.0f, 1.0f, 400.0f);
+        ImGui::DragFloat("Break-up###PPOutBreakup", &pp.outlineBreakup, 0.01f, 0.0f, 1.0f);
+        ImGui::TextDisabled("Depth-based; threshold is scene-dependent - tune to taste.");
     }
 }
 

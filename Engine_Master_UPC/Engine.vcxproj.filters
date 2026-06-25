@@ -1732,4 +1732,54 @@
     <FxCompile Include="SpritePixelShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="D3D12\Rendering\PostProcessing">
+      <UniqueIdentifier>{b7e2f1a4-9c3d-4f8a-b6e1-5a2c8d0f3e91}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PostProcessPass.cpp">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="BloomPass.cpp">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeLut.cpp">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessCommon.cpp">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PostProcessPass.h">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessSettings.h">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomPass.h">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeLut.h">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessCommon.h">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PostProcessPixelShader.hlsl">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomThresholdPixelShader.hlsl">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomDownsamplePixelShader.hlsl">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
+      <Filter>D3D12\Rendering\PostProcessing</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

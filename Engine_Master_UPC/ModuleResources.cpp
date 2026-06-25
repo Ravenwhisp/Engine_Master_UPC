@@ -142,6 +142,7 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true; // sampleable by the post-process outline pass
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
@@ -182,15 +183,37 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
+Texture* ModuleResources::createHDRRenderTexture(float width, float height)
+{
+	// Floating-point colour target so the lit scene can be stored in HDR
+	// (unclamped) and tone-mapped later as a post-process step.
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::SRV | TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R16G16B16A16_FLOAT, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
 RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
 
 	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
 	colorTex->setName(L"RenderSurface_Color");
+	auto hdrTex = std::shared_ptr<Texture>(app->getModuleResources()->createHDRRenderTexture(width, height));
+	hdrTex->setName(L"RenderSurface_SceneHDR");
 	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
 	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+	surface->attachTexture(RenderSurface::COLOR_1, hdrTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
 
 	return surface;
