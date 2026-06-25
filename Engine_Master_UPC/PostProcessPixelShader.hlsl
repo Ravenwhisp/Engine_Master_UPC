@@ -127,23 +127,33 @@ float3 sampleSceneBlurred(float2 uv, float blur)
     if (blur <= 0.001)
         return sampleScene(uv);
 
-    const float2 dirs[8] =
-    {
-        float2( 1.0, 0.0), float2(-1.0, 0.0), float2(0.0, 1.0), float2(0.0, -1.0),
-        float2( 0.707, 0.707), float2(-0.707, 0.707), float2(0.707, -0.707), float2(-0.707, -0.707)
-    };
+    const int   N = 64;
+    const float goldenAngle = 2.39996323;
+    const float maxRadius = blur * 0.006;
 
-    float2 radius = blur * 0.02; 
-    float3 sum = sceneTexture.Sample(bilinearClamp, uv).rgb;
+    float2 texSize;
+    sceneTexture.GetDimensions(texSize.x, texSize.y);
+    float aspect = texSize.y / texSize.x; 
+
+    float3 sum = 0.0;
+    float  totalWeight = 0.0;
 
     [unroll]
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < N; ++i)
     {
-        sum += sceneTexture.Sample(bilinearClamp, uv + dirs[i] * radius).rgb;
-        sum += sceneTexture.Sample(bilinearClamp, uv + dirs[i] * radius * 0.5).rgb;
+        float t = (float(i) + 0.5) / float(N);
+        float r = sqrt(t) * maxRadius;         
+        float a = float(i) * goldenAngle;
+        float2 offset = float2(cos(a) * aspect, sin(a)) * r;
+        float  w = exp(-1.5 * t);                 
+
+        // Clamp so one very bright pixel can't ghost into bright copies.
+        float3 s = min(sceneTexture.Sample(bilinearClamp, uv + offset).rgb, 8.0);
+        sum += s * w;
+        totalWeight += w;
     }
 
-    return sum / 17.0;
+    return sum / totalWeight;
 }
 
 // Layered low-health "damage screen": desaturation, red/blue vignettes,
@@ -191,7 +201,6 @@ float4 main(float2 uv : TEXCOORD) : SV_TARGET
 
         if (enableBloom != 0)
         {
-            // min() also sanitises any residual Inf to a finite value.
             float3 bloom = min(bloomTexture.Sample(bilinearClamp, suv).rgb, 65000.0);
             hdr += bloom * bloomIntensity;
         }
@@ -205,8 +214,7 @@ float4 main(float2 uv : TEXCOORD) : SV_TARGET
 
         outColor = LinearToSRGB(mapped);
     }
-
-    // Ink outline sits on the lit scene, under the full-screen state effects.
+    
     if (enableOutline != 0)
         outColor = applyOutline(outColor, uv);
 
