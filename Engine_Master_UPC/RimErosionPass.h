@@ -80,6 +80,7 @@ private:
 
     D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_lightsAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_erosionCBAddress = 0;
 
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
     D3D12_GPU_DESCRIPTOR_HANDLE m_shadowMapSRV{};

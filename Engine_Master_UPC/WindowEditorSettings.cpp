@@ -180,18 +180,18 @@ void WindowEditorSettings::drawScriptsSettings()
 void WindowEditorSettings::drawRimErosionSettings()
 {
     auto& settings = m_settings->rimErosion;
-    if (ImGui::CollapsingHeader("Rim Erosion"))
+    if (ImGui::CollapsingHeader("Rim Erosion###1"))
     {
         ImGui::Checkbox("Enabled", &settings.enabled);
 
-        ImGui::Text("Brush Texture: %s",
-            settings.brushTextureAssetId.isValid()
-            ? std::to_string(settings.brushTextureAssetId.m_uid).c_str()
-            : "None");
+        std::string brushLabel = settings.brushTextureAssetId.isValid()
+            ? std::to_string(settings.brushTextureAssetId.m_uid)
+            : "None";
+        ImGui::Text("Brush Texture: %s", brushLabel.c_str());
         ImGui::Button("Drop Brush Texture Here");
         if (ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_TEXTURE"))
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
                 UID* ref = static_cast<UID*>(payload->Data);
                 AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
@@ -217,7 +217,7 @@ void WindowEditorSettings::drawRimErosionSettings()
             ImGui::DragFloat("Brush Offset Y", &settings.brushOffsetY, 0.01f, -1.0f, 1.0f);
         }
 
-        if (ImGui::CollapsingHeader("Rim Erosion"))
+        if (ImGui::CollapsingHeader("Rim Erosion###2"))
         {
             ImGui::DragFloat("Rim Threshold", &settings.rimThreshold, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Rim Softness", &settings.rimSoftness, 0.01f, 0.0f, 0.5f);

@@ -74,8 +74,8 @@ RimErosionPass::RimErosionPass(ComPtr<ID3D12Device4> device) : m_device(device)
 	// Brush texture (t12)
 	rootParameters[11].InitAsDescriptorTable(1, &brushRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-	// Erosion data root constants (b5) — visible to ALL because vertex shader needs brushScale/brushOffset/displacementAmount
-	rootParameters[12].InitAsConstants(sizeof(ErosionGPUData) / sizeof(UINT32), 5, 0, D3D12_SHADER_VISIBILITY_ALL);
+	// Erosion data CBV (b5) — use CBV instead of root constants to stay within 64-DWORD root signature budget
+	rootParameters[12].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_ALL);
 
 	rootSignatureDesc.Init(13, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -245,6 +245,11 @@ void RimErosionPass::prepare(const RenderContext& ctx)
 		m_erosionData.curvatureScale = erosionSettings.curvatureScale;
 		m_erosionData.toonSharpness = erosionSettings.toonSharpness;
 		m_erosionData.pad3 = 0.0f;
+
+		m_erosionCBAddress = ctx.ringBuffer->allocate(
+			&m_erosionData,
+			sizeof(ErosionGPUData),
+			app->getModuleD3D12()->getCurrentFrame());
 	}
 
 	// Load brush texture if needed
@@ -300,8 +305,8 @@ void RimErosionPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 	commandList->SetGraphicsRootDescriptorTable(8, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
-	// Bind erosion data as root constants
-	commandList->SetGraphicsRoot32BitConstants(12, sizeof(ErosionGPUData) / sizeof(UINT32), &m_erosionData, 0);
+	// Bind erosion data as CBV
+	commandList->SetGraphicsRootConstantBufferView(12, m_erosionCBAddress);
 
 	// Bind brush texture (always bound, null SRV when no texture)
 	commandList->SetGraphicsRootDescriptorTable(11, m_brushTextureSRV);
