@@ -1409,6 +1409,7 @@ bool AnimationComponent::ensureStateMachineLoaded()
     m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(m_stateMachine);
     if (!m_stateMachineAsset)
     {
+        DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", std::to_string(m_stateMachine.m_uid).c_str());
         return false;
     }
 

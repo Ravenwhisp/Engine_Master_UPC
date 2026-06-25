@@ -1,5 +1,5 @@
 #pragma once
-#include<unordered_map>
+#include<vector>
 
 #include "UID.h"
 
@@ -9,14 +9,15 @@ class Component;
 class SceneReferenceResolver
 {
 private:
-    std::unordered_map<UID, Component*> m_componentMap;
+    std::vector<UID> m_componentIDs;
+    std::vector<Component*> m_components;
 
-    std::unordered_map<const GameObject*, GameObject*> m_clonedByPtr;
-    std::unordered_map<UID, GameObject*> m_clonedByUID;
+    std::vector<const GameObject*> m_originalGOs;
+    std::vector<GameObject*> m_clonedGOs;
 
 public:
-    SceneReferenceResolver() = default;
-    ~SceneReferenceResolver() = default;
+    SceneReferenceResolver();
+    ~SceneReferenceResolver();
 
     void registerComponent(UID id, Component* comp);
     void registerGameObject(const GameObject* original, GameObject* clone);

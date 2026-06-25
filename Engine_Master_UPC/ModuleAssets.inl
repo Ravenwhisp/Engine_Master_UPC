@@ -51,6 +51,8 @@ std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
     const AssetIndexEntry* entry = m_index.findEntry(ref.m_uid);
     if (!entry || entry->sourcePath.empty())
     {
+        DEBUG_ERROR("[ModuleAssets] Cannot load UID '%s': no source path available for re-import.",
+            std::to_string(ref.m_uid).c_str());
         return nullptr;
     }
 
