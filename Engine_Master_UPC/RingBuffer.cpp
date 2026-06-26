@@ -74,22 +74,15 @@ void RingBuffer::free(uint64_t lastCompletedFrame)
     {
         const AllocationInfo& frontAlloc = m_allocationQueue.front();
 
-        if (frontAlloc.offset == m_head)
-        {
-            m_head += frontAlloc.size;
-
-            if (m_head >= m_totalMemorySize)
-            {
-                m_head = 0;
-            }
-        }
+        m_head = (m_head + frontAlloc.size) % m_totalMemorySize;
 
         m_allocationQueue.pop_front();
     }
 
     if (m_allocationQueue.empty())
     {
-        m_head = m_tail;
+        m_head = 0;
+        m_tail = 0;
     }
 }
 
