@@ -25,7 +25,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		Vector3 cameraPosition = app->getModuleCamera()->getPosition();
 
 		// Necesitamos el startLifetime para calcular en qu� punto de la curva estamos
-		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
+		// float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime(); <- SAME ISSUE AS IN OTHER MODULES
 
 		for (auto& aliveParticle : aliveParticles)
 		{
@@ -35,7 +35,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 			
 			if (m_velocityType == ParameterType::CURVE)
 			{
-				float scale = 1.f - (particlePool[poolIndex].lifeTime / startLifetime); // 0 al nacer, 1 al morir
+				float scale = 1.f - (particlePool[poolIndex].lifeTime / particlePool[poolIndex].startLifeTime); // 0 al nacer, 1 al morir
 				float bezierScale = ImGui::BezierValue(scale, m_velocityCurve);
 				particlePool[poolIndex].velocity = m_initialVelocity + (m_initialVelocity2 - m_initialVelocity) * bezierScale;
 			}

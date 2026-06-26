@@ -28,13 +28,13 @@ void EmitterColor::update(EmitterInstance* particleData)
 
 		// Dealing with already existing particles //
 
-		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
+		//float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime(); <- WE WILL NEED A SEPARATE CASE IF WE STILL WANT TO DO THIS
 
 		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
 
-			float scale = 1.f - particlePool[poolIndex].lifeTime / startLifetime; // to start with 0
+			float scale = 1.f - particlePool[poolIndex].lifeTime / particlePool[poolIndex].startLifeTime; // to start with 0
 			float bezierScale = ImGui::BezierValue(scale, m_colorCurve);
 
 			m_colorOverTime.getColorAt(bezierScale, &particlePool[poolIndex].colorAndAlpha.x);
