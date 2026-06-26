@@ -501,6 +501,62 @@ namespace TransformAPI
         return transform->getRoot();
     }
 
+    int TransformAPI::getChildCount(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return 0;
+        }
+
+        return static_cast<int>(transform->getAllChildren().size());
+    }
+
+    Transform* TransformAPI::getChild(Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
+    const Transform* TransformAPI::getChild(const Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        const GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
     Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
     {
         if (transform == nullptr || childName == nullptr)
