@@ -716,6 +716,32 @@ namespace AnimationAPI
 
         animation->setSpeedMultiplier(speedMultiplier);
     }
+
+    bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds, bool loop)
+    {
+        if (!animation || !clipName)
+        {
+            return false;
+        }
+
+        return animation->playOverrideClip(clipName, transitionTimeSeconds, loop);
+    }
+
+    void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->clearOverrideClip(transitionTimeSeconds);
+    }
+
+    bool hasOverrideClip(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasOverrideClip() : false;
+    }
+
 }
 
 namespace ApplicationAPI
