@@ -104,6 +104,10 @@ namespace TransformAPI
     ENGINE_API Transform* getParent(Transform* transform);
     ENGINE_API const Transform* getParent(const Transform* transform);
 
+    ENGINE_API int getChildCount(const Transform* transform);
+    ENGINE_API Transform* getChild(Transform* transform, int index);
+    ENGINE_API const Transform* getChild(const Transform* transform, int index);
+
     ENGINE_API Transform* findChildByName(Transform* transform, const char* childName);
     ENGINE_API const Transform* findChildByName(const Transform* transform, const char* childName);
 }
@@ -283,6 +287,7 @@ namespace MathAPI
     ENGINE_API float lerp(float a, float b, float t);
     ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
     ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
+    ENGINE_API Vector3 catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
     ENGINE_API float smoothStep(float edge0, float edge1, float x);
     ENGINE_API float pingPong(float t);
 
