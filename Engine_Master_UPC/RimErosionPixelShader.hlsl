@@ -68,7 +68,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     // Camera-relative UVs for erosion mask (from article)
     float2 cameraUV = (worldPos.xy - viewPos.xy) * brushScale;
-    float erosionTex = brushTexture.Sample(linearWrapSample, cameraUV).a;
+    float erosionTex = brushTexture.Sample(linearWrapSample, cameraUV).a * 0.2;
 
     // ===== Build brush normal from RG channels =====
     float2 brushN2D = brushObj.rg * 2.0 - 1.0;
@@ -129,11 +129,11 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float NdotV = abs(dot(blendedNormal, viewDir)) + 0.001;
     float fresnel = 1.0 - NdotV;
 
-    // Curvature filter — exclude flat faces from erosion mask
+    // Curvature filter — exclude flat faces from erosion
     float curvature = abs(ddx(blendedNormal.x)) + abs(ddy(blendedNormal.x))
                     + abs(ddx(blendedNormal.y)) + abs(ddy(blendedNormal.y));
     float notFlat = saturate(curvature * curvatureScale);
-    fresnel = max(fresnel, notFlat * 0.01);
+    fresnel = max(fresnel, notFlat * 0.1);
 
     // Step erosion texture against fresnel
     float erosionMask = step(erosionTex, fresnel);
@@ -144,8 +144,9 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
         return float4(fresnel, 0.0, 0.0, 1.0);
     }
 
-    // ===== Final alpha from erosion =====
-    float finalAlpha = erosionMask > 0.5 ? 0.0 : 1.0;
+    // ===== Final color with erosion =====
+    float3 erodedColor = finalColor * erosionColor.rgb;
+    float3 resultColor = lerp(finalColor, erodedColor, erosionMask);
 
-    return float4(saturate(finalColor), finalAlpha);
+    return float4(saturate(resultColor), 1.0);
 }

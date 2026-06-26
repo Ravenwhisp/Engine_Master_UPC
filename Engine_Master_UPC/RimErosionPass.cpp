@@ -128,6 +128,7 @@ RimErosionPass::RimErosionPass(ComPtr<ID3D12Device4> device) : m_device(device)
 
 	// Read depth but don't write (render on top of PBR pass)
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	psoDesc.DepthStencilState = depthStencilDesc;
 
