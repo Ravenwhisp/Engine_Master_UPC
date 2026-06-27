@@ -1,0 +1,13 @@
+{
+    "uid": 8724524209926354513,
+    "contentHash": "7e14dcd02af64b3c8df0505c94f099fe",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_sack_dungeon_BC.jpg",
+    "sourceFileSize": 105942,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

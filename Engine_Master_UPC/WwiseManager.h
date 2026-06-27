@@ -54,6 +54,10 @@ public:
 
 	void setListeners(AkGameObjectID emitterID, const AkGameObjectID* listenerIDs, AkUInt32 listenerCount);
 
+	bool setState(const char* stateGroup, const char* stateValue);
+	bool setSwitch(const char* switchGroup, const char* switchValue, AkGameObjectID component);
+	bool setRTPC(const char* rtpcName, float value);
+
 private:
 	bool initMemory();
 	bool initStream();

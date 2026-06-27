@@ -1,0 +1,13 @@
+{
+    "uid": 18051495773690277928,
+    "contentHash": "f91b2bb83a434ac0947bf3b4ec7c2d6b",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_cd_lyriel_dash_c1.png",
+    "sourceFileSize": 3562,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

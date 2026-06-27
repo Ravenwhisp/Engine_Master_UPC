@@ -1,0 +1,95 @@
+{
+  "SourcePath": "Assets\\Prefabs\\HealthPlaceholder.prefab",
+  "Name": "HealthPlaceholder",
+  "Version": 2,
+  "GameObject": {
+    "Name": "HealthPlaceholder",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Prefabs\\HealthPlaceholder.prefab",
+      "AssetUID": 11584889274909007939
+    },
+    "Transform": {
+      "position": [
+        -44.439998626708984,
+        2.881999969482422,
+        1.9079999923706057
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.2928979694843292,
+        0.2928979694843292,
+        0.2928979694843292
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 17284316049402714986,
+          "ComponentType": 1,
+          "Active": true,
+          "MeshAssetId": {
+            "uid": 7216509819157143983,
+            "libId": "68dccb0c527b73c4a9907f70298dfb48"
+          },
+          "SkinAssetId": {
+            "uid": 0,
+            "libId": ""
+          },
+          "MaterialAssetId": [
+            {
+              "uid": 5515184839933692502,
+              "libId": "d558ea3acc98aa9599e52151509bf9ed"
+            }
+          ]
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 8100406804761680030,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "HealthPickup",
+          "ScriptFields": {
+            "Heal Amount": 10.0,
+            "Collect Particle Prefab Path": "Assets/Prefabs/Particles/Health_2.prefab",
+            "Spawn Height": 1.5,
+            "Fall Gravity": 8.0,
+            "Idle Speed": 0.20000000298023224,
+            "Horizontal Amplitude": 0.10000000149011612,
+            "Vertical Amplitude": 0.20000000298023224
+          }
+        }
+      },
+      {
+        "Type": 15,
+        "Data": {
+          "UID": 15649613748945817043,
+          "ComponentType": 15,
+          "Active": true,
+          "Shape": 0,
+          "Center": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "Size": [
+            1.100000023841858,
+            1.100000023841858,
+            1.100000023841858
+          ]
+        }
+      }
+    ],
+    "Children": []
+  }
+}

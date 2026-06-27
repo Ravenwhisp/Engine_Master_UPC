@@ -1,0 +1,13 @@
+{
+    "uid": 9160179784569070611,
+    "contentHash": "367b763dca1635ad9d8c2c17b96cfd9d",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\Paladin.jpg",
+    "sourceFileSize": 31609,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

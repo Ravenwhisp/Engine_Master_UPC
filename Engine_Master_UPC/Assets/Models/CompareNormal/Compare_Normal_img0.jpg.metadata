@@ -1,0 +1,13 @@
+{
+    "uid": 8890940219067776913,
+    "contentHash": "f76d297b95a07e94f2f0b6bac14ffaf1",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\CompareNormal\\Compare_Normal_img0.jpg",
+    "sourceFileSize": 37140,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

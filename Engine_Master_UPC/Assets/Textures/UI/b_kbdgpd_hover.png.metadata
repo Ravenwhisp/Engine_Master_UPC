@@ -1,0 +1,13 @@
+{
+    "uid": 14019866081612366504,
+    "contentHash": "aa177396600d72c3950b250150f7c854",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_kbdgpd_hover.png",
+    "sourceFileSize": 27571,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

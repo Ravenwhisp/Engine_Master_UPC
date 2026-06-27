@@ -1,0 +1,13 @@
+{
+    "uid": 7611148720247208274,
+    "contentHash": "4884b8a1cfa64797efd163969c8f5cce",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_start_hover.png",
+    "sourceFileSize": 24260,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

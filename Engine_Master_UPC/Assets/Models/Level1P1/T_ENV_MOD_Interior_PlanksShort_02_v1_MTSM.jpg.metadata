@@ -1,0 +1,13 @@
+{
+    "uid": 9550448357489977883,
+    "contentHash": "8ba396aeacc45fe602d3395f065abcb9",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_ENV_MOD_Interior_PlanksShort_02_v1_MTSM.jpg",
+    "sourceFileSize": 160120,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

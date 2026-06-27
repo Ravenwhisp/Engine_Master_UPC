@@ -577,6 +577,7 @@
     <ClCompile Include="EmitterAnimation.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
+    <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
@@ -1398,6 +1399,7 @@
     <ClInclude Include="EmitterAnimation.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="NavMeshBuildSettings.h">
       <Filter>NavMesh</Filter>
     </ClInclude>

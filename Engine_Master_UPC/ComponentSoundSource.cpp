@@ -96,6 +96,15 @@ void ComponentSoundSource::resumeEvent(uint32_t playingID)
 	}
 }
 
+
+void ComponentSoundSource::setSwitch(const char* switchGroup, const char* switchValue)
+{
+	if (m_moduleMusic)
+	{
+		m_moduleMusic->setSwitch(switchGroup, switchValue, m_audioGameObjectID);
+	}
+}
+
 std::unique_ptr<Component> ComponentSoundSource::clone(GameObject* newOwner) const
 {
 	auto cloned = std::make_unique<ComponentSoundSource>(m_uuid, newOwner);
@@ -208,6 +217,21 @@ void ComponentSoundSource::drawUi()
 	if (ImGui::Button("Test Event", ImVec2(-1.0f, 0.0f)))
 	{
 		postEvent(selectedBank.getName().c_str(), selectedEvent.name.c_str());
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Text("Switch Tester");
+
+	static char switchGroup[128] = "";
+	static char switchValue[128] = "";
+
+	ImGui::InputText("Switch Group", switchGroup, IM_ARRAYSIZE(switchGroup));
+	ImGui::InputText("Switch Value", switchValue, IM_ARRAYSIZE(switchValue));
+
+	if (ImGui::Button("Set Switch", ImVec2(-1.0f, 0.0f)))
+	{
+		setSwitch(switchGroup, switchValue);
 	}
 }
 

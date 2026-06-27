@@ -1,0 +1,13 @@
+{
+    "uid": 14396579565765305895,
+    "contentHash": "70aadb8965833291f2fe022cef363dc9",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_PROP_bow_dungeon_BC.jpg",
+    "sourceFileSize": 175689,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

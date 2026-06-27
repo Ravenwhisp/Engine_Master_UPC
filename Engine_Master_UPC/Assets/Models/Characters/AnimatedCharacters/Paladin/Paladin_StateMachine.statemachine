@@ -1,0 +1,174 @@
+{
+    "name": "Paladin_StateMachine",
+    "defaultState": "Idle",
+    "clips": [
+        {
+            "name": "Paladin_Tpose",
+            "animationUID": {
+                "uid": 6224306434569583523,
+                "libId": "8279efef877e1b934e416a4560fd9a27"
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Idle",
+            "animationUID": {
+                "uid": 13936198873803214410,
+                "libId": "c5906e4817f31ce424da635071551a8c"
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Idle_long",
+            "animationUID": {
+                "uid": 1951200403422010510,
+                "libId": "fba952b11eec2c69ca64a1b62b6ae4d9"
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Attack",
+            "animationUID": {
+                "uid": 18304661590114385102,
+                "libId": "93a8ff89eb1ec8584f00d2f243f02909"
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Damage",
+            "animationUID": {
+                "uid": 17940032360315005719,
+                "libId": "84b4fb11972f76cd16fc7012a6eabfc0"
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Death",
+            "animationUID": {
+                "uid": 5989146008918415217,
+                "libId": "86e9b49141bc886f314a589bc7f53a94"
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Walk",
+            "animationUID": {
+                "uid": 2078821954997019339,
+                "libId": "6acef906e31c63e4747cad28c974edc4"
+            },
+            "loop": true
+        }
+    ],
+    "states": [
+        {
+            "name": "Paladin_Tpose",
+            "clipName": "Paladin_Tpose",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Idle",
+            "clipName": "Paladin_Idle",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyIDLE",
+            "behaviourFieldsJson": "{\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Recover",
+            "clipName": "Paladin_Idle_long",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyRECOVER",
+            "behaviourFieldsJson": "{\"Recover Duration\":0.6000000238418579,\"Go To Stun After Recover\":false,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Attack",
+            "clipName": "Paladin_Attack",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyATTACK",
+            "behaviourFieldsJson": "{\"Attack Damage\":10.0,\"Attack Cooldown\":1.7000000476837158,\"Attack Total Duration\":1.649999976158142,\"Damage Trigger Time\":0.25,\"Attack Commit Duration\":0.3499999940395355,\"Debug Enabled\":true}",
+            "overrideLoop": true,
+            "loop": false
+        },
+        {
+            "name": "Stun",
+            "clipName": "Paladin_Damage",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemySTUN",
+            "behaviourFieldsJson": "{\"Stun Duration\":1.0,\"Debug Enabled\":true}",
+            "overrideLoop": true,
+            "loop": false
+        },
+        {
+            "name": "Paladin_Death",
+            "clipName": "Paladin_Death",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyDeathState",
+            "behaviourFieldsJson": "{\"Destroy Delay\":2.0,\"Should Drop Health\":true,\"Health Prefab Path\":\"Assets/Prefabs/HealthPlaceholder.prefab\",\"Health Drop Quantity\":1,\"Drop Heal Amount\":10.0,\"Drop Radius\":2.0,\"Drop Height\":1.0}",
+            "overrideLoop": true,
+            "loop": false
+        },
+        {
+            "name": "Charge",
+            "clipName": "Paladin_Walk",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyCHARGE",
+            "behaviourFieldsJson": "{\"Charge Duration\":0.5,\"Charge Speed\":6.0,\"Charge Cooldown\":3.0,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Chase",
+            "clipName": "Paladin_Walk",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyCHASE",
+            "behaviourFieldsJson": "{\"Use Charge\":true,\"Charge Trigger Range\":4.0,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        }
+    ],
+    "transitions": [
+        {
+            "sourceStateName": "Idle",
+            "targetStateName": "Paladin_Death",
+            "triggerName": "ToDeath",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Recover",
+            "targetStateName": "Paladin_Death",
+            "triggerName": "ToDeath",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Stun",
+            "targetStateName": "Paladin_Death",
+            "triggerName": "ToDeath",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Chase",
+            "targetStateName": "Paladin_Death",
+            "triggerName": "ToDeath",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Charge",
+            "targetStateName": "Paladin_Death",
+            "triggerName": "ToDeath",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Attack",
+            "targetStateName": "Paladin_Death",
+            "triggerName": "ToDeath",
+            "blendTimeSeconds": 0.25
+        }
+    ]
+}

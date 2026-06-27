@@ -1,0 +1,13 @@
+{
+    "uid": 644738293312807295,
+    "contentHash": "252aae088699790efa7f7c28c2485c41",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_metal_dungeon_MTSM_nometal.jpg",
+    "sourceFileSize": 78554,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

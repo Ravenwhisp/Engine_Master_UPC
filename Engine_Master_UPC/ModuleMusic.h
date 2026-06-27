@@ -41,6 +41,10 @@ public:
 	void unregisterListener(uint64_t id);
 
 	void setAudioGameObjectTransform(uint64_t gameObjectID, const Vector3& position, const Vector3& forward, const Vector3& up);
+
+	void setState(const char* stateGroup, const char* stateValue);
+	void setSwitch(const char* switchGroup, const char* switchValue, uint64_t emitterID);
+	void setRTPC(const char* rtpcName, float value);
 #pragma endregion
 
 #pragma region Extra

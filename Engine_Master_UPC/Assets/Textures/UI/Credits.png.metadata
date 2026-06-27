@@ -1,0 +1,13 @@
+{
+    "uid": 768379095183732203,
+    "contentHash": "08cc478b22d007d7f91f6ca053881e32",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\Credits.png",
+    "sourceFileSize": 167495,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

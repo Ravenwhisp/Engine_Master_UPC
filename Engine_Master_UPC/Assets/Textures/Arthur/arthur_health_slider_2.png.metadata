@@ -1,0 +1,13 @@
+{
+    "uid": 3820535561689001313,
+    "contentHash": "bb9a5e466b250e3c607eea3e99cf3e86",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_health_slider_2.png",
+    "sourceFileSize": 4293,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

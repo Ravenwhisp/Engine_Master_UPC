@@ -1,0 +1,13 @@
+{
+    "uid": 9417909080804787857,
+    "contentHash": "c3e76b1600727c7e2b9bcf7f380edbb0",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_orevein_dungeon_MTSM.jpg",
+    "sourceFileSize": 155298,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

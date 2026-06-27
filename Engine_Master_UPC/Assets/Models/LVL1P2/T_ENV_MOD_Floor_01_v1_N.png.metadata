@@ -1,0 +1,13 @@
+{
+    "uid": 6981876458742793447,
+    "contentHash": "e11837023f6cfec07afd366622a88c47",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_ENV_MOD_Floor_01_v1_N.png",
+    "sourceFileSize": 5993481,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

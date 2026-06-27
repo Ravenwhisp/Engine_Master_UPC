@@ -1,0 +1,13 @@
+{
+    "uid": 1353613093006714201,
+    "contentHash": "3f6f463d548ea8898c47af70f3942791",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_cd_lyriel_volley.png",
+    "sourceFileSize": 8678,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -176,6 +176,78 @@ void WwiseManager::setListeners(AkGameObjectID emitterID, const AkGameObjectID* 
 	AK::SoundEngine::SetListeners(emitterID, listenerIDs, listenerCount);
 }
 
+bool WwiseManager::setState(const char* stateGroup, const char* stateValue)
+{
+	if (!m_soundEngineCreated)
+	{
+		DEBUG_ERROR("[Wwise Manager] Cannot set State. SoundEngine is not initialized");
+		return false;
+	}
+
+	const AKRESULT result = AK::SoundEngine::SetState(stateGroup, stateValue);
+
+	if (result != AK_Success)
+	{
+		DEBUG_ERROR("[Wwise Manager] Failed setting State: %s -> %s", stateGroup, stateValue);
+		return false;
+	}
+
+	DEBUG_LOG("[Wwise Manager] State set: %s -> %s", stateGroup, stateValue);
+	return true;
+}
+
+bool WwiseManager::setSwitch(const char* switchGroup, const char* switchValue, AkGameObjectID emitterID)
+{
+	if (!m_soundEngineCreated)
+	{
+		DEBUG_ERROR("[Wwise Manager] Cannot set Switch. SoundEngine is not initialized");
+		return false;
+	}
+
+	const AKRESULT result = AK::SoundEngine::SetSwitch(switchGroup, switchValue, emitterID);
+
+	if (result != AK_Success)
+	{
+		DEBUG_ERROR(
+			"[Wwise Manager] Failed setting Switch: %s -> %s | GameObject: %llu",
+			switchGroup,
+			switchValue,
+			emitterID
+		);
+
+		return false;
+	}
+
+	DEBUG_LOG(
+		"[Wwise Manager] Switch set: %s -> %s | GameObject: %llu",
+		switchGroup,
+		switchValue,
+		emitterID
+	);
+
+	return true;
+}
+
+bool WwiseManager::setRTPC(const char* rtpcName, float value)
+{
+	if (!m_soundEngineCreated)
+	{
+		DEBUG_ERROR("[Wwise Manager] Cannot set RTPC. SoundEngine is not initialized");
+		return false;
+	}
+
+	const AKRESULT result = AK::SoundEngine::SetRTPCValue(rtpcName, value);
+
+	if (result != AK_Success)
+	{
+		DEBUG_ERROR("[Wwise Manager] Failed setting RTPC: %s = %.3f", rtpcName, value);
+		return false;
+	}
+
+	DEBUG_LOG("[Wwise Manager] RTPC set: %s = %.3f", rtpcName, value);
+	return true;
+}
+
 bool WwiseManager::initMemory()
 {
 	AkMemSettings memSettings;
