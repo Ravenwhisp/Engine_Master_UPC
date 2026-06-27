@@ -10,7 +10,7 @@
     "Type": "User",
     "GUID": "{88876434-1E26-42B6-8C36-04C045645F34}",
     "Language": "SFX",
-    "Hash": "{068124A6-7516-32B2-DC64-D5CA95C55C74}",
+    "Hash": "{A54966D0-4C89-A01F-7392-A8B1B38070F9}",
     "ObjectPath": "\\SoundBanks\\Default Work Unit\\BoundByDeath",
     "ShortName": "BoundByDeath",
     "Path": "BoundByDeath.bnk",
@@ -1664,7 +1664,8 @@
          "GroupType": "Switch",
          "GroupId": "2471758783",
          "Id": "2108779966",
-         "GUID": "{E512CF1A-F49F-4CFA-9F45-B8894F11279B}"
+         "GUID": "{E512CF1A-F49F-4CFA-9F45-B8894F11279B}",
+         "Default": "true"
         },
         "Children": [
          {
@@ -1672,8 +1673,7 @@
            "GroupType": "Switch",
            "GroupId": "4064446173",
            "Id": "1216965916",
-           "GUID": "{EF6F4E33-2FC5-42D9-ACE3-F3A6E236ED22}",
-           "Default": "true"
+           "GUID": "{EF6F4E33-2FC5-42D9-ACE3-F3A6E236ED22}"
           },
           "MediaRefs": [
            {
@@ -1731,8 +1731,7 @@
          "GroupType": "Switch",
          "GroupId": "2471758783",
          "Id": "712161704",
-         "GUID": "{5B73F4CC-4BBB-47E9-B5E7-28D341EE21AF}",
-         "Default": "true"
+         "GUID": "{5B73F4CC-4BBB-47E9-B5E7-28D341EE21AF}"
         },
         "Children": [
          {
@@ -1740,8 +1739,7 @@
            "GroupType": "Switch",
            "GroupId": "4064446173",
            "Id": "1216965916",
-           "GUID": "{EF6F4E33-2FC5-42D9-ACE3-F3A6E236ED22}",
-           "Default": "true"
+           "GUID": "{EF6F4E33-2FC5-42D9-ACE3-F3A6E236ED22}"
           },
           "MediaRefs": [
            {
@@ -2050,6 +2048,6 @@
     ]
    }
   ],
-  "FileHash": "{2135EBD4-D2CA-AF03-A88C-DA1DC824CABB}"
+  "FileHash": "{3A234C16-7DEB-0BD2-04E0-B7746AB8E7A8}"
  }
 }

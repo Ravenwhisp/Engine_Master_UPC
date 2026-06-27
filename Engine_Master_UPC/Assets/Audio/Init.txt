@@ -9,13 +9,17 @@ Switch	ID	Name	Switch Group			Notes
 	2764240573	COMBAT	COMBATLEVEL			
 
 State Group	ID	Name			Wwise Object Path	Notes
-	2106907484	Music_Regions			\Default Work Unit\Music_Regions	
+	1021618141	MusicState			\Default Work Unit\MusicState	
 
 State	ID	Name	State Group			Notes
-	748895195	None	Music_Regions			
-	2678230382	Level1	Music_Regions			
-	3160623154	Silent	Music_Regions			
-	3424056949	Nowhere	Music_Regions			
+	441421484	Level2_Upper	MusicState			
+	748895195	None	MusicState			
+	975124050	Level1_Boss	MusicState			
+	2147352708	FinalBoss	MusicState			
+	2425108878	Level2_Elevator	MusicState			
+	3377093860	Level1_Chapel	MusicState			
+	3400764851	Level1_Upper	MusicState			
+	3604647259	MainMenu	MusicState			
 
 Game Parameter	ID	Name			Wwise Object Path	Notes
 	1333239961	MenuSlider_Master_Volume			\Default Work Unit\MenuSlider_Master_Volume	

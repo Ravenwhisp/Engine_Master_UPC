@@ -10,7 +10,7 @@
     "Type": "User",
     "GUID": "{701ECBBD-9C7B-4030-8CDB-749EE5D1C7B9}",
     "Language": "SFX",
-    "Hash": "{C014089B-CB70-FD7D-9277-B84C3D31566B}",
+    "Hash": "{688BE10B-454A-C48F-ADA6-EA4CCEF2F8F1}",
     "ObjectPath": "Init",
     "ShortName": "Init",
     "Path": "Init.bnk",
@@ -113,34 +113,58 @@
     ],
     "StateGroups": [
      {
-      "Id": "2106907484",
-      "Name": "Music_Regions",
-      "ObjectPath": "\\States\\Default Work Unit\\Music_Regions",
-      "GUID": "{CD9AF267-53FA-4408-8F58-A3F7BECA8B8A}",
+      "Id": "1021618141",
+      "Name": "MusicState",
+      "ObjectPath": "\\States\\Default Work Unit\\MusicState",
+      "GUID": "{A3070809-61E2-4EC2-A2BD-9C725FFBC1B7}",
       "States": [
+       {
+        "Id": "441421484",
+        "Name": "Level2_Upper",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level2_Upper",
+        "GUID": "{E5FE2097-76B9-401C-9DAC-7D5F784DC441}"
+       },
        {
         "Id": "748895195",
         "Name": "None",
-        "ObjectPath": "\\States\\Default Work Unit\\Music_Regions\\None",
-        "GUID": "{D4550AA4-232F-420E-92B9-E5247A007F37}"
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\None",
+        "GUID": "{AF7D6232-6D6E-432C-8BB9-B379BB5A6679}"
        },
        {
-        "Id": "2678230382",
-        "Name": "Level1",
-        "ObjectPath": "\\States\\Default Work Unit\\Music_Regions\\Level1",
-        "GUID": "{3D8FAE90-8B72-4ADC-9E6F-7829EAF25BA9}"
+        "Id": "975124050",
+        "Name": "Level1_Boss",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level1_Boss",
+        "GUID": "{42ADADDD-9121-43D5-8634-459CA4D76BC5}"
        },
        {
-        "Id": "3160623154",
-        "Name": "Silent",
-        "ObjectPath": "\\States\\Default Work Unit\\Music_Regions\\Silent",
-        "GUID": "{2B13F334-03CB-4F9D-BF10-8D437AECCC6D}"
+        "Id": "2147352708",
+        "Name": "FinalBoss",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\FinalBoss",
+        "GUID": "{BABF10D5-E023-41B4-B3B4-7C6A964A4C6B}"
        },
        {
-        "Id": "3424056949",
-        "Name": "Nowhere",
-        "ObjectPath": "\\States\\Default Work Unit\\Music_Regions\\Nowhere",
-        "GUID": "{408BA49C-1370-4FB0-8164-DEE1A3A09EA8}"
+        "Id": "2425108878",
+        "Name": "Level2_Elevator",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level2_Elevator",
+        "GUID": "{75B8CED4-30A3-4D7A-A931-1A9736F334F9}"
+       },
+       {
+        "Id": "3377093860",
+        "Name": "Level1_Chapel",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level1_Chapel",
+        "GUID": "{6C366108-6075-4476-BF6F-1B99BDFE11B2}"
+       },
+       {
+        "Id": "3400764851",
+        "Name": "Level1_Upper",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level1_Upper",
+        "GUID": "{0211EB35-5B61-4149-A815-8A9BB138BA9D}"
+       },
+       {
+        "Id": "3604647259",
+        "Name": "MainMenu",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\MainMenu",
+        "GUID": "{C19F55FD-4BCA-459D-9D87-356DA15819B2}"
        }
       ]
      }
@@ -319,6 +343,6 @@
     ]
    }
   ],
-  "FileHash": "{60E3A689-BCF6-307D-095C-0B7FFD3467C6}"
+  "FileHash": "{6222E5EB-791E-F19D-ACC9-B00528BBD5F6}"
  }
 }
