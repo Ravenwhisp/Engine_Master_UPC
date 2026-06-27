@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "JsonArchive.h"
 #include "TrailComponent.h"
 #include "GameObject.h"
 #include "Transform.h"
@@ -15,6 +16,14 @@
 TrailComponent::TrailComponent(UID id, GameObject* owner) : Component(id, ComponentType::TRAIL, owner)
 {
     CreatePoint();
+
+    m_colorOverTime.getMarks().clear(); // because it has default values that we don't want
+
+    m_colorOverTime.addMark(0.f, ImColor(1.f, 1.f, 1.f, 1.f));
+    m_colorOverTime.addAlphaMark(0.f, true);
+    m_colorOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));
+    m_colorOverTime.addAlphaMark(1.f, true);
+    m_colorOverTime.setEditAlpha(true);
 }
 
 void TrailComponent::drawUi()
@@ -58,6 +67,7 @@ void TrailComponent::drawUi()
         ImGui::EndPopup();
     }
 
+    drawBezierCurveUI(m_colorCurve);
 }
 
 void TrailComponent::update()
@@ -93,6 +103,12 @@ void TrailComponent::update()
         }  
 
         trailPoint->get()->width = std::lerp(m_endWidth, m_startWidth, trailPoint->get()->lifeTime / m_pointLifetime);
+
+        float colorScale = 1.f - trailPoint->get()->lifeTime / m_pointLifetime; // to start with 0
+        float bezierScale = ImGui::BezierValue(colorScale, m_colorCurve);
+
+        m_colorOverTime.getColorAt(bezierScale, &trailPoint->get()->color.x);
+
         ++trailPoint;
     }
 
@@ -106,6 +122,8 @@ void TrailComponent::CreatePoint()
     newPoint->position = m_owner->GetTransform()->getPosition();
     newPoint->rotation = m_owner->GetTransform()->getRotation();
     newPoint->lifeTime = m_pointLifetime;
+
+    m_colorOverTime.getColorAt(0.f, &newPoint->color.x);
 }
 
 std::unique_ptr<Component> TrailComponent::clone(GameObject* newOwner) const
@@ -121,27 +139,90 @@ std::unique_ptr<Component> TrailComponent::clone(GameObject* newOwner) const
     return cloned;
 }
 
-rapidjson::Value TrailComponent::getJSON(rapidjson::Document& domTree)
+void TrailComponent::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::TRAIL), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    archive.serialize(m_startWidth, "StartWidth");
+    archive.serialize(m_endWidth, "EndWidth");
+    archive.serialize(m_spawnDistance, "SpawnDistance");
+    archive.serialize(m_pointLifetime, "PointLifetime");
 
-    //componentInfo.AddMember("TextureAssetId", m_textureAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool TrailComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    /*if (componentInfo.HasMember("TextureAssetId"))
+    if (archive.mode() == ArchiveMode::Output)
     {
-        m_textureAsset.deserializeJson(componentInfo["TextureAssetId"]);
-    }*/
+        const auto& marks = m_colorOverTime.getMarks();
+        uint32_t markCount = static_cast<uint32_t>(marks.size());
+        archive.beginArray(markCount, "ColorOverTime");
 
-    return true;
+        for (const ImGradientMark* mark : marks)
+        {
+            archive.beginObject();
+            bool isAlphaMark = mark->alpha;
+            float position = mark->position;
+            archive.serialize(isAlphaMark, "IsAlphaMark");
+            archive.serialize(position, "Position");
+
+            if (mark->alpha)
+            {
+                float alpha = mark->color[0];
+                archive.serialize(alpha, "Alpha");
+            }
+            else
+            {
+                uint32_t colorCount = 3;
+                archive.beginArray(colorCount, "Color");
+                float r = mark->color[0];
+                float g = mark->color[1];
+                float b = mark->color[2];
+                archive.serialize(r, "");
+                archive.serialize(g, "");
+                archive.serialize(b, "");
+                archive.endArray();
+            }
+
+            archive.endObject();
+        }
+
+        archive.endArray();
+    }
+    else
+    {
+        uint32_t markCount = 0;
+        archive.beginArray(markCount, "ColorOverTime");
+        m_colorOverTime.clearMarks();
+
+        for (uint32_t i = 0; i < markCount; ++i)
+        {
+            archive.beginObject();
+
+            bool isAlphaMark = false;
+            float position = 0.f;
+            archive.serialize(isAlphaMark, "IsAlphaMark");
+            archive.serialize(position, "Position");
+
+            if (isAlphaMark)
+            {
+                float alpha = 0.f;
+                archive.serialize(alpha, "Alpha");
+                m_colorOverTime.addAlphaMark(position, alpha);
+            }
+            else
+            {
+                uint32_t colorCount = 3;
+                archive.beginArray(colorCount, "Color");
+                float r = 0.f, g = 0.f, b = 0.f;
+                archive.serialize(r, "");
+                archive.serialize(g, "");
+                archive.serialize(b, "");
+                archive.endArray();
+                m_colorOverTime.addMark(position, ImColor(r, g, b));
+            }
+
+            archive.endObject();
+        }
+
+        archive.endArray();
+    }
 }
 
 void TrailComponent::debugDraw()
@@ -150,4 +231,45 @@ void TrailComponent::debugDraw()
     {
         return;
     }
+}
+
+bool TrailComponent::drawBezierCurveUI(float* curveData)
+{
+    bool parameterChanged = false;
+
+    // (Values between 0 and 1)
+    if (ImGui::Bezier("Curve##Color", curveData))
+    {
+        parameterChanged = true;
+    }
+
+    // We add some buttons to quickly change to predefined setups
+    if (ImGui::Button("Linear##Color"))
+    {
+        curveData[0] = 0.000f; curveData[1] = 0.000f; curveData[2] = 1.000f; curveData[3] = 1.000f;
+        parameterChanged = true;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("EaseIn##Color"))
+    {
+        curveData[0] = 0.470f; curveData[1] = 0.000f; curveData[2] = 0.745f; curveData[3] = 0.715f;
+        parameterChanged = true;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("EaseOut##Color"))
+    {
+        curveData[0] = 0.390f; curveData[1] = 0.575f; curveData[2] = 0.565f; curveData[3] = 1.000f;
+        parameterChanged = true;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("EaseInOut##Color"))
+    {
+        curveData[0] = 0.445f; curveData[1] = 0.050f; curveData[2] = 0.550f; curveData[3] = 0.950f;
+        parameterChanged = true;
+    }
+
+    return parameterChanged;
 }

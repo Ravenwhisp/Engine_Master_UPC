@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "imgui_color_gradient.h"
 #include <vector>
+#include "AssetReference.h"
 
 class TrailComponent : public Component
 {
@@ -13,7 +14,7 @@ public:
 		Quaternion rotation;
 		float lifeTime;
 		float width;
-
+		Vector4 color;
 	};
 
 	TrailComponent(UID id, GameObject* owner);
@@ -24,14 +25,15 @@ public:
 
 	void CreatePoint();
 
+	AssetReference& getTextureAssetReference() { return m_textureAsset; }
+
 	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
 
 	ImGradient& getColorGradient() { return m_colorOverTime; }
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+	void serialize(IArchive& archive) override;
 
 	void debugDraw() override;
 
@@ -46,11 +48,14 @@ private:
 	float	m_spawnDistance;
 	float	m_pointLifetime;
 	
+	AssetReference m_textureAsset{};
 
 	ImGradient m_colorOverTime;
 	ImGradientMark* m_draggingMark = nullptr;
 	ImGradientMark* m_selectedMark = nullptr;
 
+	bool drawBezierCurveUI(float* curveData);
+	float m_colorCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f };
 };
 
 

@@ -157,14 +157,14 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             leftVertex.tangent = tangent;
             leftVertex.normal = normal;
             leftVertex.texCoord0 = Vector2::Zero;
-            leftVertex.color = Vector4(1, 1, 1, 0.5f);
+            leftVertex.color = point->get()->color;
 
             VertexTrails rightVertex{};
             rightVertex.position = position + perpendicularVector * halfWidth;
             rightVertex.tangent = tangent;
             rightVertex.normal = normal;
             rightVertex.texCoord0 = Vector2::Zero;
-            rightVertex.color = Vector4(1, 1, 1, 0.5f);
+            rightVertex.color = point->get()->color;
 
             vertices.push_back(leftVertex);
             vertices.push_back(rightVertex);
