@@ -111,7 +111,7 @@ void TrailPass::prepare(const RenderContext& ctx)
 void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
 
-    std::vector<VertexTrails> indices;
+    std::vector<UINT> indices;
     std::vector<VertexTrails> vertices;
 
     uint32_t firstVertex = 0;
@@ -173,13 +173,13 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
         for (uint32_t i = firstVertex; i < vertices.size() - 2; i += 2)
         {
 
-            indices.push_back(vertices[i]);
-            indices.push_back(vertices[i + 3]);
-            indices.push_back(vertices[i + 1]);
+            indices.push_back(i);
+            indices.push_back(i + 3);
+            indices.push_back(i + 1);
 
-            indices.push_back(vertices[i]);
-            indices.push_back(vertices[i + 2]);
-            indices.push_back(vertices[i + 3]);
+            indices.push_back(i);
+            indices.push_back(i + 2);
+            indices.push_back(i + 3);
         }
 
         firstVertex = vertices.size();
@@ -192,7 +192,7 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
     vbv.StrideInBytes = sizeof(VertexTrails);
 
     D3D12_INDEX_BUFFER_VIEW ibv;
-    ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(VertexTrails));
+    ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(uint32_t));
     ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
     ibv.Format = DXGI_FORMAT_R32_UINT;
 
