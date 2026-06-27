@@ -34,6 +34,9 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "SSAOGeometryPass.h"
+#include "SSAOPass.h"
+#include "SSAOBlurPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -75,6 +78,9 @@ bool ModuleRender::init()
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
+    m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
+    m_ssaoPass = std::make_unique<SSAOPass>(device);
+    m_ssaoBlurPass = std::make_unique<SSAOBlurPass>(device);
 
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
     m_skyBoxPass = skyBoxPass.get();
@@ -197,6 +203,9 @@ bool ModuleRender::cleanUp()
         app->getModuleD3D12()->getCommandQueue()->flush();
     }
 
+    m_ssaoBlurPass.reset();
+    m_ssaoPass.reset();
+    m_ssaoGeometryPass.reset();
     m_shadowMapPass.reset();
     m_skinningComputePass.reset();
 
@@ -341,6 +350,15 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     D3D12_VIEWPORT viewport = { 0.0f, 0.0f, w, h, 0.0f, 1.0f };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
 
+    Texture* ssaoDepthTexture = surface ? surface->getTexture(RenderSurface::SSAO_DEPTH).get() : nullptr;
+    Texture* ssaoNormalTexture = surface ? surface->getTexture(RenderSurface::SSAO_NORMAL).get() : nullptr;
+    Texture* ssaoRawTexture = surface ? surface->getTexture(RenderSurface::SSAO_RAW).get() : nullptr;
+    Texture* ssaoBlurTexture = surface ? surface->getTexture(RenderSurface::SSAO_BLUR).get() : nullptr;
+
+    const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
+    const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
+    const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
+
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,
@@ -356,6 +374,12 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
         .renderSurface = outputSurface,
         .shadowData = nullptr,
+        .ssaoDepthTexture = ssaoDepthTexture,
+        .ssaoNormalTexture = ssaoNormalTexture,
+        .ssaoRawTexture = ssaoRawTexture,
+        .ssaoBlurTexture = ssaoBlurTexture,
+        .ssaoSettings = ssaoSettings,
+        .ssaoData = nullptr,
     };
 
     {
@@ -385,6 +409,58 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
             ctx.shadowData = m_currentShadowData;
         }
     }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
+
+        if (m_ssaoGeometryPass && ssaoEnabled)
+        {
+            m_ssaoGeometryPass->prepare(ctx);
+            m_ssaoGeometryPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOPass");
+
+        if (m_ssaoPass && ssaoEnabled)
+        {
+            m_ssaoPass->prepare(ctx);
+            m_ssaoPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOBlurPass");
+
+        if (m_ssaoBlurPass && ssaoEnabled && ssaoBlurEnabled)
+        {
+            m_ssaoBlurPass->prepare(ctx);
+            m_ssaoBlurPass->apply(commandList);
+        }
+    }
+
+    m_currentSSAOData = {};
+
+    Texture* finalSSAOTexture = nullptr;
+
+    if (ssaoEnabled)
+    {
+        finalSSAOTexture = ssaoBlurEnabled && ctx.ssaoBlurTexture
+            ? ctx.ssaoBlurTexture
+            : ctx.ssaoRawTexture;
+    }
+
+    if (finalSSAOTexture)
+    {
+        m_currentSSAOData.ssaoSRV = finalSSAOTexture->getSRV().gpu;
+        m_currentSSAOData.width = static_cast<uint32_t>(viewport.Width);
+        m_currentSSAOData.height = static_cast<uint32_t>(viewport.Height);
+        m_currentSSAOData.enabled = ssaoEnabled;
+
+        ctx.ssaoData = &m_currentSSAOData;
+    }
+
 
     {
         PERF_RENDER("ModuleRender::renderScene::Background");

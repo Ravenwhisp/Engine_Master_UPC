@@ -46,5 +46,7 @@ private:
 
     void drawLightSettings();
 
+    void drawSSAOSettings();
+
     void drawMusicBanksSettings();
 };

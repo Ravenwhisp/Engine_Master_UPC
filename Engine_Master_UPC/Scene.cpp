@@ -802,6 +802,10 @@ void Scene::serialize(IArchive& archive)
     m_skybox.serialize(archive);
     archive.endObject();
 
+    archive.beginObject("SSAO");
+    m_ssao.serialize(archive);
+    archive.endObject();
+
     {
         SoundBanksData soundData;
         if (archive.mode() == ArchiveMode::Output)

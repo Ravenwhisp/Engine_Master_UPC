@@ -25,15 +25,16 @@ void EmitterSize::update(EmitterInstance* particleData)
 
 		// Dealing with already existing particles //
 
-		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
+		//float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime(); <- IF WE WANT THIS AGAIN WE WILL HAVE TO DO IT AS A SEPARATE CASE 
 
 		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
-
-			float scale = particlePool[poolIndex].lifeTime / startLifetime;
+			
+			float scale = particlePool[poolIndex].lifeTime / particlePool[poolIndex].startLifeTime;
 
 			particlePool[poolIndex].scale = Vector2::Lerp(particlePool[poolIndex].endScale, particlePool[poolIndex].startScale, scale); // We need to use Bezier curves instead of this
+			//particlePool[poolIndex].scale = particlePool[poolIndex].startScale * scale + particlePool[poolIndex].endScale * (1.f - scale);
 		}
 	}
 

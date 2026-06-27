@@ -250,6 +250,7 @@
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
     <ClInclude Include="AbilityDash.h" />
+    <ClInclude Include="AnimationOverrideTester.h" />
     <ClInclude Include="ArcherArrowBarrageState.h" />
     <ClInclude Include="ArcherAttackConfig.h" />
     <ClInclude Include="ArcherChaseState.h" />
@@ -330,7 +331,6 @@
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="NavBlockerTest.h" />
-
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="PlayerAnimationController.h" />
@@ -359,6 +359,7 @@
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
     <ClCompile Include="AbilityDash.cpp" />
+    <ClCompile Include="AnimationOverrideTester.cpp" />
     <ClCompile Include="ArcherArrowBarrageState.cpp" />
     <ClCompile Include="ArcherAttackConfig.cpp" />
     <ClCompile Include="ArcherChaseState.cpp" />
