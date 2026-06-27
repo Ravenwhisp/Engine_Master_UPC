@@ -126,7 +126,7 @@ rapidjson::Value TrailComponent::getJSON(rapidjson::Document& domTree)
     rapidjson::Value componentInfo(rapidjson::kObjectType);
 
     componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::PARTICLE_SYSTEM), domTree.GetAllocator());
+    componentInfo.AddMember("ComponentType", int(ComponentType::TRAIL), domTree.GetAllocator());
     componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
 
     //componentInfo.AddMember("TextureAssetId", m_textureAsset.getJson(domTree.GetAllocator()), domTree.GetAllocator());
