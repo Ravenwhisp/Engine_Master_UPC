@@ -350,10 +350,10 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     D3D12_VIEWPORT viewport = { 0.0f, 0.0f, w, h, 0.0f, 1.0f };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
 
-    Texture* ssaoDepthTexture = surface ? surface->getTexture(RenderSurface::SSAO_DEPTH).get() : nullptr;
-    Texture* ssaoNormalTexture = surface ? surface->getTexture(RenderSurface::SSAO_NORMAL).get() : nullptr;
-    Texture* ssaoRawTexture = surface ? surface->getTexture(RenderSurface::SSAO_RAW).get() : nullptr;
-    Texture* ssaoBlurTexture = surface ? surface->getTexture(RenderSurface::SSAO_BLUR).get() : nullptr;
+    Texture* ssaoDepthTexture = outputSurface.getTexture(RenderSurface::SSAO_DEPTH).get();
+    Texture* ssaoNormalTexture = outputSurface.getTexture(RenderSurface::SSAO_NORMAL).get();
+    Texture* ssaoRawTexture = outputSurface.getTexture(RenderSurface::SSAO_RAW).get();
+    Texture* ssaoBlurTexture = outputSurface.getTexture(RenderSurface::SSAO_BLUR).get();
 
     const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;

@@ -320,7 +320,7 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 
     
     //Calculate indirect lighting
-    float ssao = SampleSSAO(screenPosition);
+    float ssao = SampleSSAO(position);
 
     if (renderFlags.y > 0.5f)
     {
