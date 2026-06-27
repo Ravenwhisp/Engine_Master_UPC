@@ -27,6 +27,7 @@
 #include "SkyBoxPass.h"
 #include "MeshRendererPass.h"
 #include "ParticlesPass.h"
+#include "TrailPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
@@ -80,6 +81,7 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::unique_ptr<MeshRendererPass>(m_meshRenderPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
+    m_renderPasses.push_back(std::make_unique<TrailPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));
