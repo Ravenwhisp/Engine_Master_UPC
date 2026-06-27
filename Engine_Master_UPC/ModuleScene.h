@@ -91,9 +91,11 @@ public:
     const std::vector<MeshRenderer*>& getMeshRenderers();
     const std::vector<MeshRenderer*> getDeferredMeshRenderers();
     const std::vector<MeshRenderer*> getForwardMeshRenderers();
+    const std::vector<MeshRenderer*> getForwardMeshRenderers(RenderMode mode);
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleDeferredMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers(RenderMode mode);
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();

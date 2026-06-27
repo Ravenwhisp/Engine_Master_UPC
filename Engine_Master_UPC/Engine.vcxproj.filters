@@ -1820,6 +1820,9 @@
     <None Include="ForwardCommon.hlsli">
       <Filter>D3D12\Shaders</Filter>
     </None>
+    <None Include="General.hlsli">
+      <Filter>D3D12\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1882,6 +1885,12 @@
     <FxCompile Include="GBufferPS.hlsl" />
     <FxCompile Include="GBufferVS.hlsl" />
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PlayerPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PlayerVertexShader.hlsl">
       <Filter>D3D12\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

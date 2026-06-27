@@ -29,6 +29,7 @@
 #include "ForwardPrepass.h"
 #include "GeometryPass.h"
 #include "DeferredShadingPass.h"
+#include "PlayerPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
@@ -76,6 +77,8 @@ bool ModuleRender::init()
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
+
+    m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);

@@ -179,6 +179,25 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers()
     return meshRenderers;
 }
 
+const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers(RenderMode mode)
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers = {};
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer->getRenderMode() == mode)
+        {
+            meshRenderers.push_back(renderer);
+        }
+    }
+
+    return meshRenderers;
+}
+
 const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.enabled)
@@ -258,6 +277,33 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
         return visibleMeshRenderers;
     }
     return app->getModuleScene()->getForwardMeshRenderers();
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(RenderMode mode)
+{
+    if (app->getSettings()->frustumCulling.enabled)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : m_staticQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() == mode)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+
+        for (GameObject* gO : m_dynamicQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() == mode)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getForwardMeshRenderers(mode);
 }
 
 

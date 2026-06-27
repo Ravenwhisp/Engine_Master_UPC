@@ -9,7 +9,7 @@ cbuffer SceneData : register(b1)
     float pad0;
 };
 
-cbuffer ModelData : register(b2)
+cbuffer ModelData : register(b4)
 {
     float4x4 model;
     float4x4 normalMat;
