@@ -34,6 +34,9 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "SSAOGeometryPass.h"
+#include "SSAOPass.h"
+#include "SSAOBlurPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -67,6 +70,9 @@ bool ModuleRender::init()
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
+    m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
+    m_ssaoPass = std::make_unique<SSAOPass>(device);
+    m_ssaoBlurPass = std::make_unique<SSAOBlurPass>(device);
 
     m_meshRenderPass = new MeshRendererPass (device);
     auto skyBoxPass = std::make_unique<SkyBoxPass>(device, app->getModuleScene()->getScene()->getSkyBoxSettings());
@@ -116,17 +122,17 @@ void ModuleRender::preRender()
         PERF_RENDER("ModuleRender::RenderViewports");
         for (const ViewportEntry& entry : m_viewports)
         {
-            renderToSurface(commandList, *entry.surface, [&](D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
+            renderToSurface(commandList, *entry.surface, [&](RenderSurface& surface, D3D12_CPU_DESCRIPTOR_HANDLE rtv, D3D12_CPU_DESCRIPTOR_HANDLE dsv)
                 {
                     if (entry.type == ViewportType::EDITOR)
                     {
                         PERF_RENDER("ModuleRender::RenderEditorScene");
-                        renderEditorScene(commandList, rtv, dsv, entry.width, entry.height);
+                        renderEditorScene(commandList, &surface, rtv, dsv, entry.width, entry.height);
                     }
                     else
                     {
                         PERF_RENDER("ModuleRender::RenderPlayScene");
-                        renderPlayScene(commandList, rtv, dsv, entry.width, entry.height);
+                        renderPlayScene(commandList, &surface, rtv, dsv, entry.width, entry.height);
                     }
                 });
         }
@@ -149,7 +155,8 @@ void ModuleRender::render()
 
 #ifndef GAME_RELEASE
 
-    renderBackground(commandList,
+    renderGameToBackbuffer(commandList,
+        &swapChain->getRenderSurface(),
         swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
@@ -158,6 +165,7 @@ void ModuleRender::render()
 #else
 
     renderGameToBackbuffer(commandList,
+        &swapChain->getRenderSurface(),
         swapChain->getRenderSurface().getTexture(RenderSurface::COLOR_0)->getRTV().cpu,
         swapChain->getRenderSurface().getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu,
         swapChain->getViewport(),
@@ -179,6 +187,9 @@ bool ModuleRender::cleanUp()
         app->getModuleD3D12()->getCommandQueue()->flush();
     }
 
+    m_ssaoBlurPass.reset();
+    m_ssaoPass.reset();
+    m_ssaoGeometryPass.reset();
     m_shadowMapPass.reset();
     m_skinningComputePass.reset();
 
@@ -234,14 +245,14 @@ D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
 }
 
-void ModuleRender::renderToSurface(ID3D12GraphicsCommandList4* commandList,RenderSurface& surface,std::function<void(D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE)> renderFunc)
+void ModuleRender::renderToSurface(ID3D12GraphicsCommandList4* commandList, RenderSurface& surface, std::function<void(RenderSurface&, D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE)> renderFunc)
 {
     auto colorTex = surface.getTexture(RenderSurface::COLOR_0);
     auto depthTex = surface.getTexture(RenderSurface::DEPTH_STENCIL);
 
     transitionResource(commandList,colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    renderFunc(colorTex->getRTV(0).cpu, depthTex->getDSV().cpu);
+    renderFunc(surface, colorTex->getRTV(0).cpu, depthTex->getDSV().cpu);
 
     transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
@@ -290,9 +301,18 @@ void ModuleRender::transitionResource( ComPtr<ID3D12GraphicsCommandList> command
     commandList->ResourceBarrier(1, &barrier);
 }
 
-void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT  scissorRect, bool renderDebug, RenderViewType viewType)
+void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderSurface* surface, const RenderCamera& camera, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect, bool renderDebug, RenderViewType viewType)
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
+
+    Texture* ssaoDepthTexture = surface ? surface->getTexture(RenderSurface::SSAO_DEPTH).get() : nullptr;
+    Texture* ssaoNormalTexture = surface ? surface->getTexture(RenderSurface::SSAO_NORMAL).get() : nullptr;
+    Texture* ssaoRawTexture = surface ? surface->getTexture(RenderSurface::SSAO_RAW).get() : nullptr;
+    Texture* ssaoBlurTexture = surface ? surface->getTexture(RenderSurface::SSAO_BLUR).get() : nullptr;
+
+    const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
+    const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
+    const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
 
     RenderContext ctx{
         .view = camera.view,
@@ -308,6 +328,12 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .particleCommands = &app->getModuleParticleSystem()->getParticleCommands(),
         .skyBoxSettings = &app->getModuleScene()->getScene()->getSkyBoxSettings(),
         .shadowData = nullptr,
+        .ssaoDepthTexture = ssaoDepthTexture,
+        .ssaoNormalTexture = ssaoNormalTexture,
+        .ssaoRawTexture = ssaoRawTexture,
+        .ssaoBlurTexture = ssaoBlurTexture,
+        .ssaoSettings = ssaoSettings,
+        .ssaoData = nullptr,
     };
 
     {
@@ -337,6 +363,58 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
             ctx.shadowData = m_currentShadowData;
         }
     }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
+
+        if (m_ssaoGeometryPass && ssaoEnabled)
+        {
+            m_ssaoGeometryPass->prepare(ctx);
+            m_ssaoGeometryPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOPass");
+
+        if (m_ssaoPass && ssaoEnabled)
+        {
+            m_ssaoPass->prepare(ctx);
+            m_ssaoPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::SSAOBlurPass");
+
+        if (m_ssaoBlurPass && ssaoEnabled && ssaoBlurEnabled)
+        {
+            m_ssaoBlurPass->prepare(ctx);
+            m_ssaoBlurPass->apply(commandList);
+        }
+    }
+
+    m_currentSSAOData = {};
+
+    Texture* finalSSAOTexture = nullptr;
+
+    if (ssaoEnabled)
+    {
+        finalSSAOTexture = ssaoBlurEnabled && ctx.ssaoBlurTexture
+            ? ctx.ssaoBlurTexture
+            : ctx.ssaoRawTexture;
+    }
+
+    if (finalSSAOTexture)
+    {
+        m_currentSSAOData.ssaoSRV = finalSSAOTexture->getSRV().gpu;
+        m_currentSSAOData.width = static_cast<uint32_t>(viewport.Width);
+        m_currentSSAOData.height = static_cast<uint32_t>(viewport.Height);
+        m_currentSSAOData.enabled = ssaoEnabled;
+
+        ctx.ssaoData = &m_currentSSAOData;
+    }
+
 
     {
         PERF_RENDER("ModuleRender::renderScene::Background");
@@ -373,15 +451,15 @@ void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, D3D
 }
 
 #pragma region Wrappers
-void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList, const RenderSurface* surface, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
 {
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
+    renderScene(commandList, surface, getEditorCamera(), rtvHandle, dsvHandle, viewport, scissorRect, /*debug=*/true, RenderViewType::Editor);
 }
 
-void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
+void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, const RenderSurface* surface, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, float width, float height)
 {
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
@@ -389,15 +467,15 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, D3D1
     D3D12_VIEWPORT viewport = { 0, 0, width, height, 0, 1 };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
+    renderScene(commandList, surface, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 
-void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
+void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, const RenderSurface* surface, D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle, D3D12_VIEWPORT viewport, D3D12_RECT scissorRect)
 {
     const RenderCamera camera = getGameCamera();
     if (!camera.valid) return;
 
-    renderScene(commandList, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
+    renderScene(commandList, surface, camera, rtvHandle, dsvHandle, viewport, scissorRect, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 #pragma endregion
 

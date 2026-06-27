@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "EmitterArea.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "Transform.h"
@@ -43,21 +44,21 @@ bool EmitterArea::drawUi()
 	{
 		{
 			int shapeType = static_cast<int>(m_shapeType);
-			if (ImGui::Combo("Shape", &shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES)))
+			if (ImGui::Combo("Shape##Area", &shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES)))
 			{
 				m_shapeType = static_cast<AreaType>(shapeType);
 				parameterChanged |= true;
 			}
 		}
 
-		parameterChanged |= ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.0f);
+		parameterChanged |= ImGui::DragFloat("Radius##Area", &m_radius, 0.1f, 0.0f);
 
-		parameterChanged |= ImGui::DragFloat("Radius thickness", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
+		parameterChanged |= ImGui::DragFloat("Radius thickness##Area", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
 
 
 		if (m_shapeType == AreaType::CONE) 
 		{
-			parameterChanged |= ImGui::DragFloat("Radius scale", &m_radiusScale, 0.1f, 1.0f, 100.f);
+			parameterChanged |= ImGui::DragFloat("Radius scale##Area", &m_radiusScale, 0.1f, 1.0f, 100.f);
 		}
 	}
 
@@ -118,97 +119,15 @@ void EmitterArea::debugDraw(Transform* parent)
 	}
 }
 
-rapidjson::Value EmitterArea::getJSON(rapidjson::Document& domTree)
+void EmitterArea::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+    ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::AREA), domTree.GetAllocator());
+    archive.serializeStringEnum(m_shapeType, "ShapeType", AreaTypeToString, StringToAreaType);
 
-	moduleInfo.AddMember("ShapeType", unsigned int(m_shapeType), domTree.GetAllocator());
-
-	moduleInfo.AddMember("Radius", m_radius, domTree.GetAllocator());
-	moduleInfo.AddMember("RadiusThickness", m_radiusThickness, domTree.GetAllocator());
-
-	if (m_shapeType == AreaType::CONE) moduleInfo.AddMember("RadiusScale", m_radiusScale, domTree.GetAllocator());
-
-	return moduleInfo;
-}
-
-bool EmitterArea::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("ShapeType"))
-	{
-		unsigned int shapeUInt = moduleInfo["ShapeType"].GetUint();
-		AreaType shapeType = static_cast<AreaType>(shapeUInt);
-
-		switch (shapeType) {
-		
-		case AreaType::CIRCLE:
-
-			m_shapeType = AreaType::CIRCLE;
-
-			if (moduleInfo.HasMember("Radius")) 
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-
-			break;
-
-		case AreaType::CONE:
-
-			m_shapeType = AreaType::CONE;
-
-			if (moduleInfo.HasMember("Radius"))
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusScale")) // only this one has it
-			{
-				m_radiusScale = moduleInfo["RadiusScale"].GetFloat();
-			}
-
-			break;
-		
-		case AreaType::HEMISPHERE:
-
-			m_shapeType = AreaType::HEMISPHERE;
-
-			if (moduleInfo.HasMember("Radius"))
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-
-			break;
-
-		case AreaType::SPHERE:
-
-			m_shapeType = AreaType::SPHERE;
-
-			if (moduleInfo.HasMember("Radius"))
-			{
-				m_radius = moduleInfo["Radius"].GetFloat();
-			}
-			if (moduleInfo.HasMember("RadiusThickness"))
-			{
-				m_radiusThickness = moduleInfo["RadiusThickness"].GetFloat();
-			}
-
-		}
-	}
-
-	return true;
+    archive.serialize(m_radius, "Radius");
+    archive.serialize(m_radiusThickness, "RadiusThickness");
+    archive.serialize(m_radiusScale, "RadiusScale");
 }
 
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)

@@ -4,16 +4,10 @@
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
 #include "PlayerMovement.h"
+#include "DeathConfig.h"
 
 #include <cmath>
 #include <vector>
-
-IMPLEMENT_SCRIPT_FIELDS(DeathCharacter,
-    SERIALIZED_FLOAT(m_comboWindow, "Combo Window R1", 0.1f, 5.0f, 0.05f),
-    SERIALIZED_FLOAT(m_comboWindowR2, "Combo Window R2", 0.1f, 5.0f, 0.05f),
-    SERIALIZED_FLOAT(m_comboWindowMaxCharge, "Combo Window Max Charge", 0.1f, 5.0f, 0.05f),
-    SERIALIZED_FLOAT(m_comboCooldown, "Combo Cooldown", 0.0f, 5.0f, 0.1f)
-)
 
 DeathCharacter::DeathCharacter(GameObject* owner)
     : CharacterBase(owner)
@@ -26,21 +20,26 @@ void DeathCharacter::Start()
 
     m_sound    = GameObjectAPI::findScript<DeathSound>(getOwner());
     m_movement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
+    m_config = GameObjectAPI::findScript<DeathConfig>(getOwner());
 
     if (m_sound == nullptr)
     {
         Debug::log("[DeathCharacter] DeathSound not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
+
     if (m_movement == nullptr)
     {
         Debug::log("[DeathCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+
+    if (m_config == nullptr)
+    {
+        Debug::error("[DeathCharacter] DeathConfig not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
 }
 
 void DeathCharacter::Update()
 {
-    CharacterBase::Update();
-
     if (isDowned())
     {
         if (m_sound != nullptr)
@@ -57,6 +56,16 @@ void DeathCharacter::Update()
     {
         m_sound->setHoverActive(m_movement->isMoving());
     }
+}
+
+float DeathCharacter::getComboWindowR2() const
+{
+    return m_config->m_comboWindowR2;
+}
+
+float DeathCharacter::getComboWindowMaxCharge() const
+{
+    return m_config->m_comboWindowMaxCharge;
 }
 
 void DeathCharacter::tickCombo(float dt)
@@ -90,7 +99,7 @@ void DeathCharacter::tickCombo(float dt)
 void DeathCharacter::advanceCombo(bool isR2, float comboWindowOverride)
 {
     m_comboTimer        = 0.0f;
-    m_activeComboWindow = (comboWindowOverride > 0.0f) ? comboWindowOverride : m_comboWindow;
+    m_activeComboWindow = (comboWindowOverride > 0.0f) ? comboWindowOverride : m_config->m_comboWindow;
 
     if (isR2)
     {
@@ -106,7 +115,7 @@ void DeathCharacter::advanceCombo(bool isR2, float comboWindowOverride)
     if (m_comboStep >= 3)
     {
         resetCombo();
-        m_comboCooldownTimer = m_comboCooldown;
+        m_comboCooldownTimer = m_config->m_comboCooldown;
     }
 }
 

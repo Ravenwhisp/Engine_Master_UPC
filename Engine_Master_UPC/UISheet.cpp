@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "UISheet.h"
+#include "JsonArchive.h"
 
 #include <imgui.h>
 
@@ -245,59 +246,41 @@ void UISheet::drawUi()
     applyToImage();
 }
 
-rapidjson::Value UISheet::getJSON(rapidjson::Document& domTree)
+void UISheet::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", int(ComponentType::UISHEET), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    uint32_t columns = static_cast<uint32_t>(m_columns);
+    archive.serialize(columns, "Columns");
+    if (archive.mode() == ArchiveMode::Input)
+        m_columns = static_cast<int>(columns);
 
-    componentInfo.AddMember("Columns", m_columns, domTree.GetAllocator());
-    componentInfo.AddMember("Rows", m_rows, domTree.GetAllocator());
-
+    uint32_t rows = static_cast<uint32_t>(m_rows);
+    archive.serialize(rows, "Rows");
+    if (archive.mode() == ArchiveMode::Input)
+        m_rows = static_cast<int>(rows);
+    DirectX::SimpleMath::Vector3 offset(m_offset.x, m_offset.y, 0.0f);
+    archive.serialize(offset, "Offset");
+    if (archive.mode() == ArchiveMode::Input)
     {
-        rapidjson::Value offset(rapidjson::kArrayType);
-        offset.PushBack(m_offset.x, domTree.GetAllocator());
-        offset.PushBack(m_offset.y, domTree.GetAllocator());
-        componentInfo.AddMember("Offset", offset, domTree.GetAllocator());
+        m_offset.x = offset.x;
+        m_offset.y = offset.y;
     }
+    archive.serialize(m_fps, "FPS");
+    archive.serialize(m_loop, "Loop");
+    archive.serialize(m_playing, "Playing");
+    uint32_t startFrame = static_cast<uint32_t>(m_startFrame);
+    archive.serialize(startFrame, "StartFrame");
+    if (archive.mode() == ArchiveMode::Input)
+        m_startFrame = static_cast<int>(startFrame);
 
-    componentInfo.AddMember("FPS", m_fps, domTree.GetAllocator());
-    componentInfo.AddMember("Loop", m_loop, domTree.GetAllocator());
-    componentInfo.AddMember("Playing", m_playing, domTree.GetAllocator());
+    uint32_t endFrame = static_cast<uint32_t>(m_endFrame);
+    archive.serialize(endFrame, "EndFrame");
+    if (archive.mode() == ArchiveMode::Input)
+        m_endFrame = static_cast<int>(endFrame);
 
-    componentInfo.AddMember("StartFrame", m_startFrame, domTree.GetAllocator());
-    componentInfo.AddMember("EndFrame", m_endFrame, domTree.GetAllocator());
-    componentInfo.AddMember("CurrentFrame", m_currentFrame, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool UISheet::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("Columns")) m_columns = std::max(1, componentInfo["Columns"].GetInt());
-    if (componentInfo.HasMember("Rows")) m_rows = std::max(1, componentInfo["Rows"].GetInt());
-
-    if (componentInfo.HasMember("Offset"))
-    {
-        m_offset.x = componentInfo["Offset"][0].GetFloat();
-        m_offset.y = componentInfo["Offset"][1].GetFloat();
-    }
-
-    if (componentInfo.HasMember("FPS")) m_fps = componentInfo["FPS"].GetFloat();
-    if (componentInfo.HasMember("Loop")) m_loop = componentInfo["Loop"].GetBool();
-    if (componentInfo.HasMember("Playing")) m_playing = componentInfo["Playing"].GetBool();
-
-    m_startFrame = componentInfo.HasMember("StartFrame") ? componentInfo["StartFrame"].GetInt() : 0;
-    m_endFrame = componentInfo.HasMember("EndFrame") ? componentInfo["EndFrame"].GetInt() : (frameCount() - 1);
-    m_currentFrame = componentInfo.HasMember("CurrentFrame") ? componentInfo["CurrentFrame"].GetInt() : m_startFrame;
-
-    m_endFrame = std::clamp(m_endFrame, 0, frameCount() - 1);
-    m_startFrame = std::clamp(m_startFrame, 0, m_endFrame);
-    m_currentFrame = std::clamp(m_currentFrame, m_startFrame, m_endFrame);
-
-    applyToImage();
-
-    return true;
+    uint32_t currentFrame = static_cast<uint32_t>(m_currentFrame);
+    archive.serialize(currentFrame, "CurrentFrame");
+    if (archive.mode() == ArchiveMode::Input)
+        m_currentFrame = static_cast<int>(currentFrame);
 }

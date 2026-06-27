@@ -14,7 +14,7 @@
  ::BUTTON::
  if(ImGui::GradientButton(&gradient))
  {
-    //set show editor flag to true/false
+ //set show editor flag to true/false
  }
  
  ::EDITOR::
@@ -53,8 +53,9 @@
 
 struct ImGradientMark
 {
-    float color[4];
-    float position; //0 to 1
+    float color[3] = {0.0f, 0.0f, 0.0f};
+    float position = 0.0f; //0 to 1
+    bool alpha     = false;
 };
 
 class ImGradient
@@ -64,14 +65,22 @@ public:
     ~ImGradient();
     
     void getColorAt(float position, float* color) const;
-    void addMark(float position, ImColor const color);
+    ImGradientMark* addMark(float position, ImColor const color);
+    ImGradientMark* addAlphaMark(float position, float alpha);
     void removeMark(ImGradientMark* mark);
+    void clearMarks();
     void refreshCache();
     std::list<ImGradientMark*> & getMarks(){ return m_marks; }
-private:
+	const std::list<ImGradientMark*> & getMarks() const { return m_marks; }
+
     void computeColorAt(float position, float* color) const;
+    void setEditAlpha(bool edit) { edit_alpha = edit;  }
+    bool getEditAlpha() const { return edit_alpha;  }
+private:
+
     std::list<ImGradientMark*> m_marks;
-    float m_cachedValues[256 * 3];
+    float m_cachedValues[256 * 4];
+    bool edit_alpha = true;
 };
 
 namespace ImGui

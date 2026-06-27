@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "AnimationComponent.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -128,6 +129,29 @@ void AnimationComponent::update()
     }
 
     updateFadingPlaybackRecursive(m_previousPlayback.get(), deltaTimeSeconds);
+
+    if (m_hasOverrideClip)
+    {
+        m_overrideController.Update(deltaTimeSeconds);
+
+        if (m_overrideTransitionTime > 0.0f)
+        {
+            m_overrideFadeTime = std::min(m_overrideFadeTime + deltaTimeSeconds, m_overrideTransitionTime);
+
+            if (m_isClearingOverrideClip && m_overrideFadeTime >= m_overrideTransitionTime)
+            {
+                m_overrideController.Stop();
+                m_overrideController.SetAnimation(std::shared_ptr<AnimationAsset>{});
+                m_overrideAnimationAsset.reset();
+
+                m_overrideFadeTime = 0.0f;
+                m_overrideTransitionTime = 0.0f;
+
+                m_hasOverrideClip = false;
+                m_isClearingOverrideClip = false;
+            }
+        }
+    }
 
     if (m_currentTransitionTime > 0.0f &&
         m_previousPlayback &&
@@ -338,7 +362,7 @@ void AnimationComponent::updateFadingPlaybackRecursive(FadingPlayback* playback,
     }
 }
 
-bool AnimationComponent::samplePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const
+bool AnimationComponent::sampleBasePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const
 {
     AnimationSample currentSample;
     const bool hasCurrent = m_controller.GetTransform(channelName, currentSample);
@@ -371,6 +395,64 @@ bool AnimationComponent::samplePlaybackRecursive(const std::string& channelName,
 
     const float weight = std::clamp(m_currentFadeTime / m_currentTransitionTime, 0.0f, 1.0f);
     blendSamples(previousSample, currentSample, weight, outSample);
+    return true;
+}
+
+bool AnimationComponent::samplePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const
+{
+    AnimationSample baseSample;
+    const bool hasBaseSample = sampleBasePlaybackRecursive(channelName, baseSample);
+
+    if (!m_hasOverrideClip)
+    {
+        if (hasBaseSample)
+        {
+            outSample = baseSample;
+            return true;
+        }
+
+        return false;
+    }
+
+    AnimationSample overrideSample;
+    const bool hasOverrideSample = m_overrideController.GetTransform(channelName, overrideSample);
+
+    if (!hasOverrideSample)
+    {
+        if (hasBaseSample)
+        {
+            outSample = baseSample;
+            return true;
+        }
+
+        return false;
+    }
+
+    if (!hasBaseSample)
+    {
+        outSample = overrideSample;
+        return true;
+    }
+
+    if (m_overrideTransitionTime <= 0.0f)
+    {
+        if (m_isClearingOverrideClip)
+        {
+            outSample = baseSample;
+        }
+        else
+        {
+            outSample = overrideSample;
+        }
+
+        return true;
+    }
+
+    const float transitionAlpha = std::clamp(m_overrideFadeTime / m_overrideTransitionTime, 0.0f, 1.0f);
+
+    const float overrideWeight = m_isClearingOverrideClip ? 1.0f - transitionAlpha : transitionAlpha;
+
+    blendSamples(baseSample, overrideSample, overrideWeight, outSample);
     return true;
 }
 
@@ -1205,58 +1287,21 @@ void AnimationComponent::drawUi()
     }
 }
 
-rapidjson::Value AnimationComponent::getJSON(rapidjson::Document& domTree)
+void AnimationComponent::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", static_cast<int>(getType()), domTree.GetAllocator());
-    componentInfo.AddMember("Active", isActive(), domTree.GetAllocator());
+    archive.beginObject("StateMachineUID");
+    m_stateMachine.serialize(archive);
+    archive.endObject();
 
-    rapidjson::Value stateMachineUIDValue(m_stateMachine.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("StateMachineUID", stateMachineUIDValue, domTree.GetAllocator());
-    rapidjson::Value animationSourceUIDValue(m_animationSource.getJson(domTree.GetAllocator()), domTree.GetAllocator());
-    componentInfo.AddMember("AnimationSourceUID", animationSourceUIDValue, domTree.GetAllocator());
+    archive.beginObject("AnimationSourceUID");
+    m_animationSource.serialize(archive);
+    archive.endObject();
 
-    componentInfo.AddMember("PlayOnStart", m_playOnStart, domTree.GetAllocator());
-    componentInfo.AddMember("ApplyScale", m_applyScale, domTree.GetAllocator());
-    componentInfo.AddMember("ForceWorldAfterApply", m_forceWorldAfterApply, domTree.GetAllocator());
-
-    return componentInfo;
-}
-
-bool AnimationComponent::deserializeJSON(const rapidjson::Value& componentValue)
-{
-    if (componentValue.HasMember("StateMachineUID"))
-        m_stateMachine.deserializeJson(componentValue["StateMachineUID"]);
-
-
-    if (componentValue.HasMember("AnimationSourceUID") && componentValue["AnimationSourceUID"].IsString())
-        m_animationSource.deserializeJson(componentValue["AnimationSourceUID"]);
- 
-
-    if (componentValue.HasMember("PlayOnStart") && componentValue["PlayOnStart"].IsBool())
-        m_playOnStart = componentValue["PlayOnStart"].GetBool();
-    else
-        m_playOnStart = true;
-
-    if (componentValue.HasMember("ApplyScale") && componentValue["ApplyScale"].IsBool())
-        m_applyScale = componentValue["ApplyScale"].GetBool();
-    else
-        m_applyScale = false;
-
-    if (componentValue.HasMember("ForceWorldAfterApply") && componentValue["ForceWorldAfterApply"].IsBool())
-        m_forceWorldAfterApply = componentValue["ForceWorldAfterApply"].GetBool();
-    else
-        m_forceWorldAfterApply = true;
-
-    m_stateMachineAsset.reset();
-    resetRuntime();
-    m_triggerInput.clear();
-
-    m_stateMachineDirty = false;
-
-    return true;
+    archive.serialize(m_playOnStart, "PlayOnStart");
+    archive.serialize(m_applyScale, "ApplyScale");
+    archive.serialize(m_forceWorldAfterApply, "ForceWorldAfterApply");
 }
 
 void AnimationComponent::setStateMachineUID(AssetReference& uid)
@@ -1423,6 +1468,98 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
     {
         applyActiveStatePlaybackSpeed();
     }
+
+    if (m_hasOverrideClip)
+    {
+        m_overrideController.SetSpeed(m_runtimeSpeedMultiplier);
+    }
+}
+
+bool AnimationComponent::playOverrideClip(const std::string& clipName, float transitionTimeSeconds, bool loop)
+{
+    if (clipName.empty())
+    {
+        return false;
+    }
+
+    if (!ensureStateMachineLoaded())
+    {
+        return false;
+    }
+
+    const AnimationStateMachineClip* clip = findClipByName(clipName);
+    if (!clip)
+    {
+        DEBUG_WARN("[AnimationComponent] Override clip '%s' not found.", clipName.c_str());
+        return false;
+    }
+
+    if (!clip->animationUID.isValid())
+    {
+        DEBUG_WARN("[AnimationComponent] Override clip '%s' has invalid animation UID.", clip->name.c_str());
+        return false;
+    }
+
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+    {
+        return false;
+    }
+
+    auto clipRef = clip->animationUID;
+    std::shared_ptr<AnimationAsset> animation = moduleAssets->load<AnimationAsset>(clipRef);
+    if (!animation)
+    {
+        DEBUG_WARN("[AnimationComponent] Could not load override clip animation '%s'.", std::to_string(clip->animationUID.m_uid).c_str());
+        return false;
+    }
+
+    m_overrideAnimationAsset = animation;
+
+    m_overrideController.Stop();
+    m_overrideController.SetAnimation(m_overrideAnimationAsset);
+    m_overrideController.SetLoop(loop);
+    m_overrideController.SetSpeed(std::max(0.0f, m_runtimeSpeedMultiplier));
+    m_overrideController.Play(loop);
+
+    m_overrideFadeTime = 0.0f;
+    m_overrideTransitionTime = std::max(0.0f, transitionTimeSeconds);
+
+    m_hasOverrideClip = true;
+    m_isClearingOverrideClip = false;
+
+    return true;
+}
+
+void AnimationComponent::clearOverrideClip(float transitionTimeSeconds)
+{
+    if (!m_hasOverrideClip)
+    {
+        return;
+    }
+
+    if (transitionTimeSeconds <= 0.0f)
+    {
+        m_overrideController.Stop();
+        m_overrideController.SetAnimation(std::shared_ptr<AnimationAsset>{});
+        m_overrideAnimationAsset.reset();
+
+        m_overrideFadeTime = 0.0f;
+        m_overrideTransitionTime = 0.0f;
+
+        m_hasOverrideClip = false;
+        m_isClearingOverrideClip = false;
+        return;
+    }
+
+    m_overrideFadeTime = 0.0f;
+    m_overrideTransitionTime = transitionTimeSeconds;
+    m_isClearingOverrideClip = true;
+}
+
+bool AnimationComponent::hasOverrideClip() const
+{
+    return m_hasOverrideClip;
 }
 
 void AnimationComponent::clearStateBehaviours()
@@ -1445,7 +1582,6 @@ bool AnimationComponent::ensureStateMachineLoaded()
     m_stateMachineAsset = moduleAssets->load<AnimationStateMachineAsset>(m_stateMachine);
     if (!m_stateMachineAsset)
     {
-        DEBUG_WARN("[AnimationComponent] Could not load AnimationStateMachineAsset '%s'.", std::to_string(m_stateMachine.m_uid).c_str());
         return false;
     }
 
@@ -1488,6 +1624,16 @@ void AnimationComponent::resetRuntime()
     m_previousPlayback.reset();
     m_stateBehaviours.clear();
     m_hasStartedPlayback = false;
+
+    m_overrideController.Stop();
+    m_overrideController.SetAnimation(std::shared_ptr<AnimationAsset>{});
+    m_overrideAnimationAsset.reset();
+
+    m_overrideFadeTime = 0.0f;
+    m_overrideTransitionTime = 0.0f;
+
+    m_hasOverrideClip = false;
+    m_isClearingOverrideClip = false;
 }
 
 bool AnimationComponent::saveStateMachineAsset()

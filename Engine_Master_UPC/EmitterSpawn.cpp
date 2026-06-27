@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "EmitterSpawn.h"
+#include "JsonArchive.h"
 
 #include "Application.h"
 
@@ -44,50 +45,21 @@ bool EmitterSpawn::drawUi()
 
 	if (ImGui::CollapsingHeader("Spawn"))
 	{
-		parameterChanged |= ImGui::Checkbox("Looping", &m_looping);
-		parameterChanged |= ImGui::DragFloat("Duration", &m_duration, 0.1f, 0.0f);
+		parameterChanged |= ImGui::Checkbox("Looping##Spawn", &m_looping);
+		parameterChanged |= ImGui::DragFloat("Duration##Spawn", &m_duration, 0.1f, 0.0f);
 
-		parameterChanged |= ImGui::DragFloat("Rate over time", &m_rateOverTime, 0.1f, 0.0f);
-		parameterChanged |= ImGui::DragFloat("Rate over distance", &m_rateOverDistance, 0.1f, 0.0f);
+		parameterChanged |= ImGui::DragFloat("Rate over time##Spawn", &m_rateOverTime, 0.1f, 0.0f);
+		parameterChanged |= ImGui::DragFloat("Rate over distance##Spawn", &m_rateOverDistance, 0.1f, 0.0f);
 	}
 
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterSpawn::getJSON(rapidjson::Document& domTree)
+void EmitterSpawn::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
-
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::SPAWN), domTree.GetAllocator());
-
-	moduleInfo.AddMember("Looping", m_looping, domTree.GetAllocator());
-	moduleInfo.AddMember("Duration", m_duration, domTree.GetAllocator());
-
-	moduleInfo.AddMember("RateOverTime", m_rateOverTime, domTree.GetAllocator());
-	moduleInfo.AddMember("RateOverDistance", m_rateOverDistance, domTree.GetAllocator());
-
-	return moduleInfo;
-
-}
-
-bool EmitterSpawn::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("Looping")) {
-		m_looping = moduleInfo["Looping"].GetBool();
-	}
-
-	if (moduleInfo.HasMember("Duration")) {
-		m_duration = moduleInfo["Duration"].GetFloat();
-	}
-
-
-	if (moduleInfo.HasMember("RateOverTime")) {
-		m_rateOverTime = moduleInfo["RateOverTime"].GetFloat();
-	}
-
-	if (moduleInfo.HasMember("RateOverDistance")) {
-		m_rateOverDistance = moduleInfo["RateOverDistance"].GetFloat();
-	}
-
-	return true;
+    ParticleModule::serialize(archive);
+    archive.serialize(m_looping, "Looping");
+    archive.serialize(m_duration, "Duration");
+    archive.serialize(m_rateOverTime, "RateOverTime");
+    archive.serialize(m_rateOverDistance, "RateOverDistance");
 }

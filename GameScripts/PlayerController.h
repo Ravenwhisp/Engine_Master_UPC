@@ -19,6 +19,9 @@ public:
 
     ScriptFieldList getExposedFields() const override;
 
+    void setGameplayInputLocked(bool locked) { m_gameplayInputLocked = locked; }
+    bool isGameplayInputLocked() const { return m_gameplayInputLocked; }
+
     bool getGodMode() const { return m_godMode; }
     int getPlayerIndex() const { return m_playerIndex; }
     Vector3 getMoveDirection() const;
@@ -38,6 +41,8 @@ private:
 	AbilityBase* m_specialAbility = nullptr; //Taunt or Arrow Volley
 
     Transform* m_cameraTransform = nullptr;
+
+    bool m_gameplayInputLocked = false;
 
 private:
     Vector3 readMoveDirection(const Vector2& moveAxis) const;

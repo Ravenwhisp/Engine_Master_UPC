@@ -128,7 +128,7 @@ void DefeatConditionManager::triggerDefeat()
 {
     m_hasTriggeredDefeat = true;
 
-    SceneAPI::requestSceneChange("LoseScene");
+    SceneAPI::requestSceneChange("Lose_Scene");
 }
 
 IMPLEMENT_SCRIPT(DefeatConditionManager)

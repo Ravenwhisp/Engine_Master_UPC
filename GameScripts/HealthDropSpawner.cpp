@@ -35,15 +35,13 @@ GameObject* HealthDropSpawner::drop(const char* prefabPath, const Vector3& origi
         return nullptr;
     }
 
-    Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
-    if (script == nullptr)
+    HealthPickup* healthPickup = GameObjectAPI::findScript<HealthPickup>(pickup);
+    if (healthPickup == nullptr)
     {
         Debug::warn("[HealthDropSpawner] Spawned prefab '%s' but it has no HealthPickup script.", prefabPath);
-
         return pickup;
     }
 
-    HealthPickup* healthPickup = static_cast<HealthPickup*>(script);
     healthPickup->setupDrop(healAmount, landingPosition);
 
     return pickup;

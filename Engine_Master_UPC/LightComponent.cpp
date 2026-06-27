@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "LightComponent.h"
+#include "JsonArchive.h"
 #include "GameObject.h"
 #include "Transform.h"
 
@@ -26,6 +27,44 @@ namespace
             outerAngleDegrees = std::min(SPOT_MAX_ANGLE_DEGREES, innerAngleDegrees + SPOT_MIN_ANGLE_DELTA_DEGREES);
         }
     }
+
+    static uint32_t sanitizeShadowMapSize(uint32_t size)
+    {
+        if (size <= 1024)
+        {
+            return 1024;
+        }
+
+        if (size <= 2048)
+        {
+            return 2048;
+        }
+
+        if (size <= 4096)
+        {
+            return 4096;
+        }
+
+        return 8192;
+    }
+
+    static void sanitizeShadowSettings(LightShadowSettings& shadow)
+    {
+        shadow.shadowMapSize = sanitizeShadowMapSize(shadow.shadowMapSize);
+
+        shadow.pcfRadius = std::clamp(
+            shadow.pcfRadius,
+            1u,
+            2u);
+
+        shadow.shadowBias = std::max(0.0f, shadow.shadowBias);
+
+        shadow.shadowStrength = std::clamp(
+            shadow.shadowStrength,
+            0.0f,
+            1.0f);
+    }
+
 }
 
 LightComponent::LightComponent(UID id, GameObject* owner)
@@ -66,6 +105,7 @@ void LightComponent::setTypeSpot(float radius, float innerAngleDegrees, float ou
 void LightComponent::sanitize()
 {
     m_data.common.intensity = std::max(0.0f, m_data.common.intensity);
+    sanitizeShadowSettings(m_data.shadow);
 
     if (m_data.type == LightType::POINT)
     {
@@ -166,107 +206,168 @@ void LightComponent::drawUi()
         break;
     }
 
-    if (lightChanged) {
+    ImGui::Separator();
+
+    if (ImGui::CollapsingHeader("Shadow Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::Checkbox("Cast Shadows", &m_data.shadow.castShadows))
+        {
+            lightChanged = true;
+        }
+
+        static const char* SHADOW_SIZE_NAMES[] =
+        {
+            "1024",
+            "2048",
+            "4096",
+            "8192"
+        };
+
+        static constexpr uint32_t SHADOW_SIZES[] =
+        {
+            1024u,
+            2048u,
+            4096u,
+            8192u
+        };
+
+        int shadowSizeIndex = 2; // Default 4096
+
+        for (int i = 0; i < IM_ARRAYSIZE(SHADOW_SIZES); ++i)
+        {
+            if (m_data.shadow.shadowMapSize == SHADOW_SIZES[i])
+            {
+                shadowSizeIndex = i;
+                break;
+            }
+        }
+
+        if (ImGui::Combo("Shadow Map Size", &shadowSizeIndex, SHADOW_SIZE_NAMES, IM_ARRAYSIZE(SHADOW_SIZE_NAMES)))
+        {
+            m_data.shadow.shadowMapSize = SHADOW_SIZES[shadowSizeIndex];
+            lightChanged = true;
+        }
+
+        if (ImGui::Checkbox("PCF Enabled", &m_data.shadow.pcfEnabled))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.shadow.pcfEnabled)
+        {
+            static const char* PCF_KERNEL_NAMES[] =
+            {
+                "3x3",
+                "5x5"
+            };
+
+            int pcfKernelIndex = m_data.shadow.pcfRadius == 2 ? 1 : 0;
+
+            if (ImGui::Combo("PCF Kernel", &pcfKernelIndex, PCF_KERNEL_NAMES, IM_ARRAYSIZE(PCF_KERNEL_NAMES)))
+            {
+                m_data.shadow.pcfRadius = pcfKernelIndex == 0 ? 1u : 2u;
+                lightChanged = true;
+            }
+        }
+
+        if (ImGui::DragFloat("Shadow Bias", &m_data.shadow.shadowBias, 0.0001f, 0.0f, 0.02f, "%.6f"))
+        {
+            lightChanged = true;
+        }
+
+        if (ImGui::DragFloat("Shadow Strength", &m_data.shadow.shadowStrength, 0.01f, 0.0f, 1.0f))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.type != LightType::DIRECTIONAL)
+        {
+            ImGui::TextDisabled("Shadow rendering for this light type is not implemented yet.");
+        }
+    }
+
+    if (lightChanged) 
+    {
         sanitize();
     }
 }
 
-rapidjson::Value LightComponent::getJSON(rapidjson::Document& domTree)
+void LightComponent::serialize(IArchive& archive)
 {
-    rapidjson::Value componentInfo(rapidjson::kObjectType);
+    Component::serialize(archive);
 
-    componentInfo.AddMember("UID", m_uuid, domTree.GetAllocator());
-    componentInfo.AddMember("ComponentType", unsigned int(ComponentType::LIGHT), domTree.GetAllocator());
-    componentInfo.AddMember("Active", this->isActive(), domTree.GetAllocator());
+    uint8_t lightType = static_cast<uint8_t>(m_data.type);
+    archive.serialize(lightType, "LightType");
+    if (archive.mode() == ArchiveMode::Input)
+        m_data.type = static_cast<LightType>(lightType);
 
-    componentInfo.AddMember("LightType", unsigned int(m_data.type), domTree.GetAllocator());
+    archive.serialize(m_data.common.color, "Color");
+    archive.serialize(m_data.common.intensity, "Intensity");
+
+    archive.serialize(m_data.shadow.castShadows, "CastShadows");
+
+    uint32_t shadowMapSize = static_cast<uint32_t>(m_data.shadow.shadowMapSize);
+    archive.serialize(shadowMapSize, "ShadowMapSize");
+    if (archive.mode() == ArchiveMode::Input)
+        m_data.shadow.shadowMapSize = shadowMapSize;
+
+    archive.serialize(m_data.shadow.pcfEnabled, "ShadowPcfEnabled");
+
+    uint32_t shadowPcfRadius = static_cast<uint32_t>(m_data.shadow.pcfRadius);
+    archive.serialize(shadowPcfRadius, "ShadowPcfRadius");
+    if (archive.mode() == ArchiveMode::Input)
+        m_data.shadow.pcfRadius = shadowPcfRadius;
+
+    archive.serialize(m_data.shadow.shadowBias, "ShadowBias");
+    archive.serialize(m_data.shadow.shadowStrength, "ShadowStrength");
+
+    float radius = 0.0f;
+    float innerAngle = 0.0f;
+    float outerAngle = 0.0f;
+
+    if (archive.mode() == ArchiveMode::Output)
     {
-        rapidjson::Value colorData(rapidjson::kArrayType);
-
-        colorData.PushBack(m_data.common.color.x, domTree.GetAllocator());
-        colorData.PushBack(m_data.common.color.y, domTree.GetAllocator());
-        colorData.PushBack(m_data.common.color.z, domTree.GetAllocator());
-
-        componentInfo.AddMember("Color", colorData, domTree.GetAllocator());
-    }
-    componentInfo.AddMember("Intensity", m_data.common.intensity, domTree.GetAllocator());
-    
-    // Not common parameters (depending on light type)
-    switch (m_data.type)
-    {
-
-    case LightType::DIRECTIONAL : 
-
-        break;
-
-    case LightType::POINT:
-        
-        componentInfo.AddMember("Radius", m_data.parameters.point.radius, domTree.GetAllocator());
-        break;
-    
-    case LightType::SPOT:
-
-        componentInfo.AddMember("Radius", m_data.parameters.spot.radius, domTree.GetAllocator());
-        componentInfo.AddMember("InnerAngleDegrees", m_data.parameters.spot.innerAngleDegrees, domTree.GetAllocator());
-        componentInfo.AddMember("OuterAngleDegrees", m_data.parameters.spot.outerAngleDegrees, domTree.GetAllocator());
-    }
-
-    return componentInfo;
-}
-    
-bool LightComponent::deserializeJSON(const rapidjson::Value& componentInfo)
-{
-    if (componentInfo.HasMember("Intensity")) {
-        m_data.common.intensity = componentInfo["Intensity"].GetFloat();
-    }
-
-    if (componentInfo.HasMember("Color"))
-    {
-        const auto& color = componentInfo["Color"].GetArray();
-        m_data.common.color = Vector3(color[0].GetFloat(), color[1].GetFloat(), color[2].GetFloat());
-    }
-
-    if (componentInfo.HasMember("LightType"))
-    {
-        int typeInt = componentInfo["LightType"].GetInt();
-        LightType type = static_cast<LightType>(typeInt);
-
-        if (type == LightType::DIRECTIONAL)
+        switch (m_data.type)
         {
+        case LightType::POINT:
+            radius = m_data.parameters.point.radius;
+            break;
+
+        case LightType::SPOT:
+            radius = m_data.parameters.spot.radius;
+            innerAngle = m_data.parameters.spot.innerAngleDegrees;
+            outerAngle = m_data.parameters.spot.outerAngleDegrees;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    archive.serialize(radius, "Radius");
+    archive.serialize(innerAngle, "InnerAngleDegrees");
+    archive.serialize(outerAngle, "OuterAngleDegrees");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        switch (m_data.type)
+        {
+        case LightType::DIRECTIONAL:
             setTypeDirectional();
-        }
-        else if (type == LightType::POINT)
-        {
-            float radius = m_data.parameters.point.radius;
-            if (componentInfo.HasMember("Radius"))
-                radius = componentInfo["Radius"].GetFloat();
+            break;
 
+        case LightType::POINT:
             setTypePoint(radius);
+            break;
+
+        case LightType::SPOT:
+            setTypeSpot(radius, innerAngle, outerAngle);
+            break;
         }
-        else if (type == LightType::SPOT)
-        {
-            float radius = m_data.parameters.spot.radius;
-            float innerA = m_data.parameters.spot.innerAngleDegrees;
-            float outerA = m_data.parameters.spot.outerAngleDegrees;
 
-            if (componentInfo.HasMember("Radius"))
-                radius = componentInfo["Radius"].GetFloat();
-
-            if (componentInfo.HasMember("InnerAngleDegrees"))
-                innerA = componentInfo["InnerAngleDegrees"].GetFloat();
-
-            if (componentInfo.HasMember("OuterAngleDegrees"))
-                outerA = componentInfo["OuterAngleDegrees"].GetFloat();
-
-            setTypeSpot(radius, innerA, outerA);
-        }
+        sanitize();
     }
-
-    sanitize();
-    return true;
 }
-
-
 void LightComponent::debugDraw()
 {
     if ( !isActive() || !m_owner->GetActive())

@@ -45,7 +45,7 @@ private:
 
     std::vector<std::string> m_enemyPrefabPaths = {
     "Assets/Prefabs/Paladin.prefab",
-    "Assets/Prefabs/Archer.prefab"
+    "Assets/Prefabs/Archer.prefab",
     };
 };
 

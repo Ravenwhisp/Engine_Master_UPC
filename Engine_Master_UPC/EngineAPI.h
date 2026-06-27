@@ -28,6 +28,7 @@ class Transform2D;
 class ParticleSystemComponent;
 class ComponentSoundSource;
 class CameraComponent;
+class NavRuntimeBlockerComponent;
 
 struct HapticEffectDefinition;
 
@@ -103,6 +104,10 @@ namespace TransformAPI
     ENGINE_API Transform* getParent(Transform* transform);
     ENGINE_API const Transform* getParent(const Transform* transform);
 
+    ENGINE_API int getChildCount(const Transform* transform);
+    ENGINE_API Transform* getChild(Transform* transform, int index);
+    ENGINE_API const Transform* getChild(const Transform* transform, int index);
+
     ENGINE_API Transform* findChildByName(Transform* transform, const char* childName);
     ENGINE_API const Transform* findChildByName(const Transform* transform, const char* childName);
 }
@@ -140,6 +145,10 @@ namespace AnimationAPI
 
     ENGINE_API float getSpeedMultiplier(const AnimationComponent* animation);
     ENGINE_API void setSpeedMultiplier(AnimationComponent* animation, float speedMultiplier);
+
+    ENGINE_API bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds = 0.0f, bool loop = true);
+    ENGINE_API void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds = 0.0f);
+    ENGINE_API bool hasOverrideClip(const AnimationComponent* animation);
 }
 
 namespace ApplicationAPI
@@ -261,6 +270,14 @@ namespace NavigationAPI
     ENGINE_API bool canReachTarget(const Vector3& startPosition, const Vector3& endPosition, const Vector3& searchExtents, NavAgentProfile profile = NavAgentProfile::PlayerNormal);
     ENGINE_API float getPathLength(const Vector3* pathPoints, int pointCount);
     ENGINE_API bool findRandomReachablePointAround(const Vector3& centerPosition, float radius, Vector3& outPoint, const Vector3& searchExtents, int maxAttempts, NavAgentProfile profile = NavAgentProfile::PlayerNormal);
+    ENGINE_API bool isSegmentBlocked(const Vector3& from, const Vector3& to);
+    ENGINE_API bool canMoveSegment(const Vector3& from, const Vector3& to);
+
+    ENGINE_API NavRuntimeBlockerComponent* getRuntimeBlockerComponent(GameObject* gameObject);
+    ENGINE_API const NavRuntimeBlockerComponent* getRuntimeBlockerComponent(const GameObject* gameObject);
+
+    ENGINE_API bool isBlocked(const NavRuntimeBlockerComponent* blocker);
+    ENGINE_API void setBlocked(NavRuntimeBlockerComponent* blocker, bool blocked);
 }
 
 namespace MathAPI
@@ -270,6 +287,7 @@ namespace MathAPI
     ENGINE_API float lerp(float a, float b, float t);
     ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
     ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
+    ENGINE_API Vector3 catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
     ENGINE_API float smoothStep(float edge0, float edge1, float x);
     ENGINE_API float pingPong(float t);
 

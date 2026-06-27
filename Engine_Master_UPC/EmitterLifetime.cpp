@@ -43,7 +43,18 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 
 	for (auto& particleIndex : particleData->getNewParticles()) 
 	{
-		particlePool[particleIndex].lifeTime = m_startLifeTime;
+		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		{
+			float scale = uniform_rand();
+			float lifeTime = m_startLifeTime + (m_startLifeTime2 - m_startLifeTime) * scale;
+			particlePool[particleIndex].lifeTime = lifeTime;
+			particlePool[particleIndex].startLifeTime = lifeTime; // for later
+		}
+		else
+		{
+			particlePool[particleIndex].lifeTime = m_startLifeTime;
+			particlePool[particleIndex].startLifeTime = m_startLifeTime; // for later
+		}
 	}
 }
 
@@ -53,30 +64,35 @@ bool EmitterLifetime::drawUi()
 
 	if (ImGui::CollapsingHeader("Lifetime"))
 	{
-		parameterChanged = ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		int parameterType = static_cast<int>(m_lifeTimeType);
+		// Solo mostramos Constant y Random para Lifetime
+		if (ImGui::Combo("Lifetime type##Lifetime", &parameterType, "Constant\0Random value between two\0"))
+		{
+			m_lifeTimeType = static_cast<ParameterType>(parameterType);
+			parameterChanged = true;
+		}
+
+		if (m_lifeTimeType == ParameterType::CONSTANT)
+		{
+			parameterChanged |= ImGui::DragFloat("Initial lifetime##Lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		}
+		else if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		{
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 1##Lifetime", &m_startLifeTime, 0.1f, 0.0f);
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 2##Lifetime", &m_startLifeTime2, 0.1f, 0.0f);
+		}
 	}
 
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterLifetime::getJSON(rapidjson::Document& domTree)
+void EmitterLifetime::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
-
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::LIFETIME), domTree.GetAllocator());
-
-	moduleInfo.AddMember("StartLifeTime", m_startLifeTime, domTree.GetAllocator());
-
-	return moduleInfo;
-}
-
-bool EmitterLifetime::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartLifeTime")) {
-		m_startLifeTime = moduleInfo["StartLifeTime"].GetFloat();
-	}
-
-	return true;
+	ParticleModule::serialize(archive);
+	archive.serializeStringEnum(m_lifeTimeType, "LifeTimeType", ParameterTypeToString, StringToParameterType);
+	archive.serialize(m_startLifeTime, "StartLifeTime");
+	if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		archive.serialize(m_startLifeTime2, "StartLifeTime2");
 }
 
 void EmitterLifetime::eraseBySwap(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index)

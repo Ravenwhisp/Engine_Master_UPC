@@ -26,8 +26,7 @@ public:
 
     void drawUi() override;
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+    void serialize(IArchive& archive) override;
 
 private:
     void applyToImage();

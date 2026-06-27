@@ -2,8 +2,8 @@
 #include "LightZoneManager.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LightZoneManager,
-    SERIALIZED_STRING(interiorLightName, "Interior Light Name"),
-    SERIALIZED_STRING(exteriorLightName, "Exterior Light Name")
+	SERIALIZED_COMPONENT_REF(InteriorLight, "Interior Light"),
+	SERIALIZED_COMPONENT_REF(ExteriorLight, "Exterior Light")
 )
 
 LightZoneManager::LightZoneManager(GameObject* owner)
@@ -13,18 +13,8 @@ LightZoneManager::LightZoneManager(GameObject* owner)
 
 void LightZoneManager::Start()
 {
-    auto allObjects = SceneAPI::getAllGameObjectsInScene();
-    for (GameObject* obj : allObjects)
-    {
-        const char* name = GameObjectAPI::getName(obj);
-        if (name && strcmp(name, interiorLightName) == 0)
-            m_interiorLight = obj;
-        else if (name && strcmp(name, exteriorLightName) == 0)
-            m_exteriorLight = obj;
-    }
-
-    if (!m_interiorLight) Debug::warn("LightZoneManager: Interior light '%s' not found!", interiorLightName);
-    if (!m_exteriorLight) Debug::warn("LightZoneManager: Exterior light '%s' not found!", exteriorLightName);
+	m_interiorLight = ComponentAPI::getOwner(InteriorLight.getReferencedComponent());
+	m_exteriorLight = ComponentAPI::getOwner(ExteriorLight.getReferencedComponent());
 
     m_isExterior = false;
     applyLightState();

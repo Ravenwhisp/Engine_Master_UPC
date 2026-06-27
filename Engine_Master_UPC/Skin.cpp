@@ -11,6 +11,7 @@
 #include "MeshRenderer.h"
 #include "MeshAsset.h"
 #include "SkinAsset.h"
+#include "AnimationComponent.h"
 
 #include <imgui.h>
 #include <algorithm>
@@ -18,7 +19,7 @@
 
 namespace
 {
-    GameObject* FindHierarchyRoot(GameObject* go)
+    GameObject* FindSkinSearchRoot(GameObject* go)
     {
         if (!go)
             return nullptr;
@@ -27,6 +28,11 @@ namespace
 
         while (current)
         {
+            if (current->GetComponent(ComponentType::ANIMATION))
+            {
+                return current;
+            }
+
             Transform* transform = current->GetTransform();
             if (!transform)
                 break;
@@ -38,7 +44,7 @@ namespace
             current = parentTransform->getOwner();
         }
 
-        return current;
+        return go;
     }
 
     GameObject* FindByNameRecursive(GameObject* go, const std::string& name)
@@ -116,15 +122,21 @@ std::unique_ptr<Skin> Skin::clone() const
 void Skin::lateUpdate(GameObject* owner, MeshRenderer& renderer)
 {
     if (!m_skinAsset.isValid())
+    {
         return;
+    }
 
     if (!ensureSkinLoaded())
+    {
         return;
+    }
 
     if (!m_skinBindingsResolved)
     {
         if (!resolveSkinBindings(owner))
+        {
             return;
+        }
     }
 
     rebuildMatrixPalette();
@@ -180,19 +192,24 @@ void Skin::drawUi()
 bool Skin::ensureSkinLoaded()
 {
     if (!m_skinAsset.isValid())
+    {
         return false;
+    }
 
     if (m_skin)
+    {
         return true;
+    }
 
     ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
     if (!moduleAssets)
+    {
         return false;
+    }
 
     std::shared_ptr<SkinAsset> skinAsset = moduleAssets->load<SkinAsset>(m_skinAsset);
     if (!skinAsset)
     {
-        DEBUG_WARN("[Skin] Could not load SkinAsset '%s'.", std::to_string(m_skinAsset.m_uid).c_str());
         return false;
     }
 
@@ -205,11 +222,23 @@ bool Skin::ensureSkinLoaded()
 bool Skin::resolveSkinBindings(GameObject* owner)
 {
     if (!owner || !m_skin)
+    {
         return false;
+    }
 
-    GameObject* root = FindHierarchyRoot(owner);
+    GameObject* root = FindSkinSearchRoot(owner);
     if (!root)
+    {
+        // Walk up manually for debug
+        GameObject* cur = owner;
+        while (cur)
+        {
+            auto* t = cur->GetTransform();
+            auto* r = t ? t->getRoot() : nullptr;
+            cur = r ? r->getOwner() : nullptr;
+        }
         return false;
+    }
 
     const auto& joints = m_skin->getJoints();
 
@@ -221,10 +250,6 @@ bool Skin::resolveSkinBindings(GameObject* owner)
         GameObject* jointGo = FindByNameRecursive(root, joint.nodeName);
         if (!jointGo || !jointGo->GetTransform())
         {
-            DEBUG_WARN("[Skin] Joint '%s' not found while resolving skin '%s'.",
-                joint.nodeName.c_str(),
-                m_skin->getName().c_str());
-
             m_jointTransforms.clear();
             m_skinBindingsResolved = false;
             return false;
@@ -310,8 +335,6 @@ bool Skin::ensureSourceVerticesCached(MeshRenderer& renderer)
     std::shared_ptr<MeshAsset> meshAsset = moduleAssets->load<MeshAsset>(meshUID);
     if (!meshAsset)
     {
-        DEBUG_WARN("[Skin] Could not load MeshAsset '%s'.", std::to_string(meshUID.m_uid).c_str());
-
         m_sourceVertices.clear();
         m_skinnedVertices.clear();
         m_skinnedVertexBuffer.reset();
@@ -515,7 +538,6 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
 
     if (frameIndex >= FRAMES_IN_FLIGHT)
     {
-        DEBUG_ERROR("[Skin] Invalid frame index %u. FRAMES_IN_FLIGHT = %u", frameIndex, FRAMES_IN_FLIGHT);
         return;
     }
 
@@ -523,7 +545,6 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
 
     if (!m_gpuPaletteModelBuffers[frameIndex] || !m_gpuPaletteNormalBuffers[frameIndex])
     {
-        DEBUG_ERROR("[Skin] Missing GPU palette buffer. frame=%u modelBuffer=%p normalBuffer=%p", frameIndex, m_gpuPaletteModelBuffers[frameIndex].Get(), m_gpuPaletteNormalBuffers[frameIndex].Get());
         return;
     }
 
@@ -536,10 +557,6 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
         if (FAILED(hr) || mapped == nullptr)
         {
             HRESULT reason = app->getModuleD3D12()->getDevice()->GetDeviceRemovedReason();
-
-            DEBUG_ERROR("[Skin] Failed to map GPU model palette buffer. HRESULT: 0x%08X. DeviceRemovedReason: 0x%08X",
-                hr,
-                reason);
             return;
         }
 
@@ -555,7 +572,6 @@ void Skin::updateGpuPaletteBuffers(MeshRenderer& renderer)
 
         if (FAILED(hr) || mapped == nullptr)
         {
-            DEBUG_ERROR("[Skin] Failed to map GPU normal palette buffer. HRESULT: 0x%08X", hr);
             return;
         }
 

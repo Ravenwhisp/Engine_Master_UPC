@@ -14,15 +14,13 @@ public:
     ~TriggerComponent() override = default;
 
     bool init() override;
-    bool cleanUp() override;
 
     void drawUi() override;
     void debugDraw() override;
 
     void onTransformChange() override { m_boundsDirty = true; };
 
-    rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-    bool deserializeJSON(const rapidjson::Value& componentValue) override;
+    void serialize(IArchive& archive) override;
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 

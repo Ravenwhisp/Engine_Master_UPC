@@ -28,6 +28,7 @@
 #include "BoundingBox.h"
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
+#include "NavRuntimeBlockerComponent.h"
 
 #include "CameraComponent.h"
 
@@ -500,6 +501,62 @@ namespace TransformAPI
         return transform->getRoot();
     }
 
+    int TransformAPI::getChildCount(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return 0;
+        }
+
+        return static_cast<int>(transform->getAllChildren().size());
+    }
+
+    Transform* TransformAPI::getChild(Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
+    const Transform* TransformAPI::getChild(const Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        const GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
     Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
     {
         if (transform == nullptr || childName == nullptr)
@@ -715,6 +772,32 @@ namespace AnimationAPI
 
         animation->setSpeedMultiplier(speedMultiplier);
     }
+
+    bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds, bool loop)
+    {
+        if (!animation || !clipName)
+        {
+            return false;
+        }
+
+        return animation->playOverrideClip(clipName, transitionTimeSeconds, loop);
+    }
+
+    void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->clearOverrideClip(transitionTimeSeconds);
+    }
+
+    bool hasOverrideClip(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasOverrideClip() : false;
+    }
+
 }
 
 namespace ApplicationAPI
@@ -1805,6 +1888,12 @@ namespace NavigationAPI
         }
 
         outSampledPosition = Vector3(nearest[0], height, nearest[2]);
+
+        if (navigation->isPointBlockedByRuntimeBlockers(outSampledPosition))
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -1844,6 +1933,12 @@ namespace NavigationAPI
         dtPolyRef visited[64];
         int visitedCount = 0;
         float result[3] = {};
+
+        if (navigation->isSegmentBlockedByRuntimeBlockers(startPosition, targetPosition))
+        {
+            outResultPosition = startPosition;
+            return false;
+        }
 
         const dtStatus moveStatus = query->moveAlongSurface(startRef, startNearest, end, &filter, result, visited, &visitedCount, 64);
 
@@ -1966,6 +2061,63 @@ namespace NavigationAPI
 
         return false;
     }
+
+    bool isSegmentBlocked(const Vector3& from, const Vector3& to)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        return navigation->isSegmentBlockedByRuntimeBlockers(from, to);
+    }
+
+    bool canMoveSegment(const Vector3& from, const Vector3& to)
+    {
+        return !isSegmentBlocked(from, to);
+    }
+
+    NavRuntimeBlockerComponent* getRuntimeBlockerComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    const NavRuntimeBlockerComponent* getRuntimeBlockerComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    bool isBlocked(const NavRuntimeBlockerComponent* blocker)
+    {
+        if (blocker->isBlocked())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void setBlocked(NavRuntimeBlockerComponent* blocker, bool blocked)
+    {
+        if (!blocker)
+        {
+            return;
+        }
+
+        blocker->setBlocked(blocked);
+    }
 }
 
 namespace MathAPI
@@ -1982,6 +2134,15 @@ namespace MathAPI
     {
         return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
     }
+
+    Vector3 MathAPI::catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t)
+    {
+        const float t2 = t * t;
+        const float t3 = t2 * t;
+
+        return (p1 * 2.0f + (p2 - p0) * t + (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 + (p1 * 3.0f - p0 - p2 * 3.0f + p3) * t3) * 0.5f;
+    }
+
     float smoothStep(float edge0, float edge1, float x)
     {
         x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);

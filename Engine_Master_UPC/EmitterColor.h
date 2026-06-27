@@ -15,26 +15,25 @@ public:
 
 	void update(EmitterInstance* particleData) override;
 
-	void setStartColor(const Vector4& startColor) { m_startColor = startColor; }
-	const Vector4& getStartColor() const { return m_startColor; }
+	// This will return if needed
+	//void setStartColor(const Vector4& startColor) { m_startColor = startColor; }
+	//const Vector4& getStartColor() const { return m_startColor; }
 
-	void setEndColor(const Vector4& endColor) { m_endColor = endColor; }
-	const Vector4& getEndColor() const { return m_endColor; }
+	ImGradient& getColorGradient() { return m_colorOverTime; }
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
-
+	void serialize(IArchive& archive) override;
+	
 private:
 
-	// We will want Bezier curves to tweak this better
-	Vector4 m_startColor = Vector4(1.f, 1.f, 1.f, 1.f);
-	Vector4 m_endColor = Vector4(1.f, 1.f, 1.f, 1.f);
+	// For now, we will have gradient + Bezier curve (we may want more options, like in Unity)
 
-	// TEST WITH GRADIENT
-	/*ImGradient m_colorsOverTime;
-
+	ImGradient m_colorOverTime;
 	ImGradientMark* m_draggingMark = nullptr;
-	ImGradientMark* m_selectedMark = nullptr;*/
+	ImGradientMark* m_selectedMark = nullptr;
+
+	float m_colorCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f };
+
+	bool drawBezierCurveUI(float* curveData);
 };
 

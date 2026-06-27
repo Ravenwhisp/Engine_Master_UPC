@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "MeshAsset.h"
+#include "IArchive.h"
 
 #include "IndexBuffer.h"
 
@@ -74,4 +75,44 @@ void MeshAsset::drawUI()
         boundsExtents.y,
         boundsExtents.z
     );
+}
+
+void MeshAsset::serialize(IArchive& archive)
+{
+    uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
+    archive.serialize(vertexCount);
+    if (archive.mode() == ArchiveMode::Input)
+        vertices.resize(vertexCount);
+
+    for (auto& v : vertices)
+    {
+        archive.serializeRaw(&v.position, sizeof(Vector3));
+        archive.serializeRaw(&v.texCoord0, sizeof(Vector2));
+        archive.serializeRaw(&v.normal, sizeof(Vector3));
+        archive.serializeRaw(&v.tangent, sizeof(Vector3));
+        archive.serializeRaw(v.joints, sizeof(uint16_t) * 4);
+        archive.serializeRaw(&v.weights, sizeof(Vector4));
+    }
+
+    uint32_t indexByteCount = static_cast<uint32_t>(indices.size());
+    archive.serialize(indexByteCount);
+    uint32_t idxFormat = static_cast<uint32_t>(indexFormat);
+    archive.serialize(idxFormat);
+    indexFormat = static_cast<DXGI_FORMAT>(idxFormat);
+    if (archive.mode() == ArchiveMode::Input)
+        indices.resize(indexByteCount);
+    archive.serializeRaw(indices.data(), indexByteCount);
+
+    uint32_t submeshCount = static_cast<uint32_t>(submeshes.size());
+    archive.serialize(submeshCount);
+    if (archive.mode() == ArchiveMode::Input)
+        submeshes.resize(submeshCount);
+    for (auto& sm : submeshes)
+    {
+        archive.serialize(sm.indexStart);
+        archive.serialize(sm.indexCount);
+    }
+
+    archive.serializeRaw(&boundsCenter, sizeof(Vector3));
+    archive.serializeRaw(&boundsExtents, sizeof(Vector3));
 }

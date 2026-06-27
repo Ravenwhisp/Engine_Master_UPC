@@ -76,25 +76,12 @@ namespace
         }
     }
 
-    void serializeComponentRefField(const ScriptFieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeComponentRefField(const ScriptFieldInfo& field, void* data, IArchive& archive)
     {
-        const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
-
-        rapidjson::Value key(field.name, domTree.GetAllocator());
-        outFieldsJson.AddMember(key, static_cast<uint64_t>(componentReference->uid), domTree.GetAllocator());
-    }
-
-    void deserializeComponentRefField(const ScriptFieldInfo&, void* data, const rapidjson::Value& valueJson)
-    {
-        if (!valueJson.IsUint64())
-        {
-            return;
-        }
-
         ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
-
-        componentReference->uid = static_cast<UID>(valueJson.GetUint64());
-        componentReference->component = nullptr;
+        archive.serialize(componentReference->uid, field.name);
+        if (archive.mode() == ArchiveMode::Input)
+            componentReference->component = nullptr;
     }
 
     void cloneComponentRefField(const ScriptFieldInfo&, const void* sourceData, void* targetData)
@@ -130,7 +117,7 @@ namespace
         }
     }
 
-    const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &deserializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
+    const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
 }
 
 const ScriptFieldHandler* getComponentRefFieldHandler()

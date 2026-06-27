@@ -25,15 +25,16 @@ void EmitterSize::update(EmitterInstance* particleData)
 
 		// Dealing with already existing particles //
 
-		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
+		//float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime(); <- IF WE WANT THIS AGAIN WE WILL HAVE TO DO IT AS A SEPARATE CASE 
 
 		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
+			
+			float scale = particlePool[poolIndex].lifeTime / particlePool[poolIndex].startLifeTime;
 
-			float scale = particlePool[poolIndex].lifeTime / startLifetime;
-
-			particlePool[poolIndex].scale = particlePool[poolIndex].startScale * scale + m_endScale * (1.f - scale); // We need to use Bezier curves instead of this
+			particlePool[poolIndex].scale = Vector2::Lerp(particlePool[poolIndex].endScale, particlePool[poolIndex].startScale, scale); // We need to use Bezier curves instead of this
+			//particlePool[poolIndex].scale = particlePool[poolIndex].startScale * scale + particlePool[poolIndex].endScale * (1.f - scale);
 		}
 	}
 
@@ -65,125 +66,71 @@ bool EmitterSize::drawUi()
 
 		parameterChanged = drawStartScaleUI();
 
-		parameterChanged |= ImGui::Checkbox("Change size over time", &m_changeSizeOverTime);
+		parameterChanged |= ImGui::Checkbox("Change size over time##Size", &m_changeSizeOverTime);
 		if (!m_changeSizeOverTime) return parameterChanged;
 
-		// 2nd scale value parameters
-
-		float scale[2] = { m_endScale.x, m_endScale.y };
-		if (ImGui::DragFloat2("End scale", scale, 0.1f, 0.f))
-		{
-			Vector2 newScale = Vector2(scale[0], scale[1]);
-			m_endScale = newScale;
-			parameterChanged = true;
-		}
+		parameterChanged |= drawEndScaleUI();
 	}
 
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterSize::getJSON(rapidjson::Document& domTree)
+void EmitterSize::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+	ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::SIZE), domTree.GetAllocator());
-
-	moduleInfo.AddMember("StartScaleType", unsigned int(m_startScaleType), domTree.GetAllocator());
+	archive.serializeStringEnum(m_startScaleType, "StartScaleType", ParameterTypeToString, StringToParameterType);
 
 	{
-		rapidjson::Value scaleData(rapidjson::kArrayType);
-
-		scaleData.PushBack(m_startScale.x, domTree.GetAllocator());
-		scaleData.PushBack(m_startScale.y, domTree.GetAllocator());
-
-		moduleInfo.AddMember("StartScale", scaleData, domTree.GetAllocator());
+		DirectX::SimpleMath::Vector3 v(m_startScale.x, m_startScale.y, 0.0f);
+		archive.serialize(v, "StartScale");
+		if (archive.mode() == ArchiveMode::Input)
+		{
+			m_startScale.x = v.x;
+			m_startScale.y = v.y;
+		}
 	}
 
-	if (m_startScaleType != ParameterType::CONSTANT) 
+	if (m_startScaleType != ParameterType::CONSTANT)
 	{
 		{
-			rapidjson::Value scaleData(rapidjson::kArrayType);
-
-			scaleData.PushBack(m_startScale2.x, domTree.GetAllocator());
-			scaleData.PushBack(m_startScale2.y, domTree.GetAllocator());
-
-			moduleInfo.AddMember("StartScale2", scaleData, domTree.GetAllocator());
+			DirectX::SimpleMath::Vector3 v(m_startScale2.x, m_startScale2.y, 0.0f);
+			archive.serialize(v, "StartScale2");
+			if (archive.mode() == ArchiveMode::Input)
+			{
+				m_startScale2.x = v.x;
+				m_startScale2.y = v.y;
+			}
 		}
-
-		// Curve parameters when we enable curve type will go here...
 	}
 
-	moduleInfo.AddMember("ChangeSizeOverTime", m_changeSizeOverTime, domTree.GetAllocator());
+	archive.serialize(m_changeSizeOverTime, "ChangeSizeOverTime");
 
 	if (m_changeSizeOverTime)
 	{
-		rapidjson::Value scaleData(rapidjson::kArrayType);
+		archive.serializeStringEnum(m_endScaleType, "EndScaleType", ParameterTypeToString, StringToParameterType);
 
-		scaleData.PushBack(m_endScale.x, domTree.GetAllocator());
-		scaleData.PushBack(m_endScale.y, domTree.GetAllocator());
-
-		moduleInfo.AddMember("EndScale", scaleData, domTree.GetAllocator());
-	}
-
-	return moduleInfo;
-}
-
-bool EmitterSize::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartScale"))
-	{
-		const auto& scale = moduleInfo["StartScale"].GetArray();
-		m_startScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-	}
-
-	if (moduleInfo.HasMember("StartScaleType")) // for versions that support choose random between 2 values start scale (curves later)
-	{
-		unsigned int scaleTypeUInt = moduleInfo["StartScaleType"].GetUint();
-		ParameterType scaleType = static_cast<ParameterType>(scaleTypeUInt);
-
-		switch (scaleType) {
-
-		case ParameterType::CONSTANT:
-
-			m_startScaleType = ParameterType::CONSTANT;
-
-			break;
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_startScaleType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("StartScale2"))
-			{
-				const auto& scale = moduleInfo["StartScale2"].GetArray();
-				m_startScale2 = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-			}
-
-			break;
-
-			// (We would add curve case here)
-		
-		}
-	}
-
-	if (moduleInfo.HasMember("ChangeSizeOverTime")) 
-	{
-		m_changeSizeOverTime = moduleInfo["ChangeSizeOverTime"].GetBool();
-
-		if (m_changeSizeOverTime && moduleInfo.HasMember("EndScale")) 
 		{
-			const auto& scale = moduleInfo["EndScale"].GetArray();
-			m_endScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
+			DirectX::SimpleMath::Vector3 v(m_endScale.x, m_endScale.y, 0.0f);
+			archive.serialize(v, "EndScale");
+			if (archive.mode() == ArchiveMode::Input)
+			{
+				m_endScale.x = v.x;
+				m_endScale.y = v.y;
+			}
 		}
 
-	} 
-	else if (moduleInfo.HasMember("EndScale")) // compatibility case
-	{
-		const auto& scale = moduleInfo["EndScale"].GetArray();
-		m_endScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
+		if (m_endScaleType != ParameterType::CONSTANT)
+		{
+			DirectX::SimpleMath::Vector3 v(m_endScale2.x, m_endScale2.y, 0.0f);
+			archive.serialize(v, "EndScale2");
+			if (archive.mode() == ArchiveMode::Input)
+			{
+				m_endScale2.x = v.x;
+				m_endScale2.y = v.y;
+			}
+		}
 	}
-
-	return true;
 }
 
 bool EmitterSize::drawStartScaleUI()
@@ -193,7 +140,7 @@ bool EmitterSize::drawStartScaleUI()
 	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
 	{
 		int parameterType = static_cast<int>(m_startScaleType);
-		if (ImGui::Combo("Starting scale type", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
+		if (ImGui::Combo("Starting scale type##Size", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
 		{
 			m_startScaleType = static_cast<ParameterType>(parameterType);
 			parameterChanged = true;
@@ -206,7 +153,7 @@ bool EmitterSize::drawStartScaleUI()
 
 		{
 			float scale[2] = { m_startScale.x, m_startScale.y };
-			if (ImGui::DragFloat2("Starting scale", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale = newScale;
@@ -220,7 +167,7 @@ bool EmitterSize::drawStartScaleUI()
 
 		{
 			float scale[2] = { m_startScale.x, m_startScale.y };
-			if (ImGui::DragFloat2("Starting scale 1", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 1##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale = newScale;
@@ -228,7 +175,7 @@ bool EmitterSize::drawStartScaleUI()
 			}
 
 			scale[0] = m_startScale2.x; scale[1] = m_startScale2.y;
-			if (ImGui::DragFloat2("Starting scale 2", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 2##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale2 = newScale;
@@ -243,7 +190,7 @@ bool EmitterSize::drawStartScaleUI()
 		// 1. Range of values (for that, we use the 2 constants)
 		{
 			float scale[2] = { m_startScale.x, m_startScale.y };
-			if (ImGui::DragFloat2("Starting scale 1", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 1##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale = newScale;
@@ -251,7 +198,7 @@ bool EmitterSize::drawStartScaleUI()
 			}
 
 			scale[0] = m_startScale2.x; scale[1] = m_startScale2.y;
-			if (ImGui::DragFloat2("Starting scale 2", scale, 0.1f, 0.f))
+			if (ImGui::DragFloat2("Starting scale 2##Size", scale, 0.1f, 0.f))
 			{
 				Vector2 newScale = Vector2(scale[0], scale[1]);
 				m_startScale2 = newScale;
@@ -261,34 +208,34 @@ bool EmitterSize::drawStartScaleUI()
 
 		// 2. Curve (between 0 and 1)
 
-		if (ImGui::Bezier("Curve", m_startScaleCurve))
+		if (ImGui::Bezier("Curve##Size", m_startScaleCurve))
 		{
 			parameterChanged = true;
 		}
 
 		// We add some buttons to quickly change to predefined setups (if we have these in multiple modules, maybe we want them declared in a single file, instead of duplicating)
-		if (ImGui::Button("Linear"))
+		if (ImGui::Button("Linear##Size"))
 		{
 			m_startScaleCurve[0] = 0.000f; m_startScaleCurve[1] = 0.000f; m_startScaleCurve[2] = 1.000f; m_startScaleCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseIn"))
+		if (ImGui::Button("EaseIn##Size"))
 		{
 			m_startScaleCurve[0] = 0.470f; m_startScaleCurve[1] = 0.000f; m_startScaleCurve[2] = 0.745f; m_startScaleCurve[3] = 0.715f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseOut"))
+		if (ImGui::Button("EaseOut##Size"))
 		{
 			m_startScaleCurve[0] = 0.390f; m_startScaleCurve[1] = 0.575f; m_startScaleCurve[2] = 0.565f; m_startScaleCurve[3] = 1.000f;
 			parameterChanged = true;
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("EaseInOut"))
+		if (ImGui::Button("EaseInOut##Size"))
 		{
 			m_startScaleCurve[0] = 0.445f; m_startScaleCurve[1] = 0.050f; m_startScaleCurve[2] = 0.550f; m_startScaleCurve[3] = 0.950f;
 			parameterChanged = true;
@@ -301,23 +248,208 @@ bool EmitterSize::drawStartScaleUI()
 	return parameterChanged;
 }
 
+bool EmitterSize::drawEndScaleUI()
+{
+	bool parameterChanged = false;
+
+	// Type selection combo (COULD BE REPLACED WITH SOMETHING SMALLER?)
+	{
+		int parameterType = static_cast<int>(m_endScaleType);
+		if (ImGui::Combo("End scale type##Size", &parameterType, "Constant\0Random value between two\0", static_cast<int>(ParameterType::TOTAL_TYPES))) // (will add curve later)
+		{
+			m_endScaleType = static_cast<ParameterType>(parameterType);
+			parameterChanged = true;
+		}
+	}
+
+	switch (m_endScaleType) {
+
+	case ParameterType::CONSTANT:
+
+	{
+		float scale[2] = { m_endScale.x, m_endScale.y };
+		if (ImGui::DragFloat2("End scale##Size", scale, 0.1f, 0.f))
+		{
+			Vector2 newScale = Vector2(scale[0], scale[1]);
+			m_endScale = newScale;
+			parameterChanged = true;
+		}
+	}
+	break;
+
+
+	case ParameterType::RANDOM_BETWEEN_TWO:
+
+	{
+		float scale[2] = { m_endScale.x, m_endScale.y };
+		if (ImGui::DragFloat2("End scale 1##Size", scale, 0.1f, 0.f))
+		{
+			Vector2 newScale = Vector2(scale[0], scale[1]);
+			m_endScale = newScale;
+			parameterChanged = true;
+		}
+
+		scale[0] = m_endScale2.x; scale[1] = m_endScale2.y;
+		if (ImGui::DragFloat2("End scale 2##Size", scale, 0.1f, 0.f))
+		{
+			Vector2 newScale = Vector2(scale[0], scale[1]);
+			m_endScale2 = newScale;
+			parameterChanged = true;
+		}
+	}
+	break;
+
+
+	case ParameterType::CURVE:
+
+		// 1. Range of values (for that, we use the 2 constants)
+	{
+		float scale[2] = { m_endScale.x, m_endScale.y };
+		if (ImGui::DragFloat2("End scale 1##Size", scale, 0.1f, 0.f))
+		{
+			Vector2 newScale = Vector2(scale[0], scale[1]);
+			m_endScale = newScale;
+			parameterChanged = true;
+		}
+
+		scale[0] = m_endScale2.x; scale[1] = m_endScale2.y;
+		if (ImGui::DragFloat2("End scale 2##Size", scale, 0.1f, 0.f))
+		{
+			Vector2 newScale = Vector2(scale[0], scale[1]);
+			m_endScale2 = newScale;
+			parameterChanged = true;
+		}
+	}
+
+	// 2. Curve (between 0 and 1)
+
+	if (ImGui::Bezier("Curve##Size", m_endScaleCurve))
+	{
+		parameterChanged = true;
+	}
+
+	// We add some buttons to quickly change to predefined setups (if we have these in multiple modules, maybe we want them declared in a single file, instead of duplicating)
+	if (ImGui::Button("Linear##Size"))
+	{
+		m_endScaleCurve[0] = 0.000f; m_endScaleCurve[1] = 0.000f; m_endScaleCurve[2] = 1.000f; m_endScaleCurve[3] = 1.000f;
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("EaseIn##Size"))
+	{
+		m_endScaleCurve[0] = 0.470f; m_endScaleCurve[1] = 0.000f; m_endScaleCurve[2] = 0.745f; m_endScaleCurve[3] = 0.715f;
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("EaseOut##Size"))
+	{
+		m_endScaleCurve[0] = 0.390f; m_endScaleCurve[1] = 0.575f; m_endScaleCurve[2] = 0.565f; m_endScaleCurve[3] = 1.000f;
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("EaseInOut##Size"))
+	{
+		m_endScaleCurve[0] = 0.445f; m_endScaleCurve[1] = 0.050f; m_endScaleCurve[2] = 0.550f; m_endScaleCurve[3] = 0.950f;
+		parameterChanged = true;
+	}
+
+	}
+
+	return parameterChanged;
+}
+
 void EmitterSize::setNewParticlesScaleConstant(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
-	for (auto& particleIndex : newParticles)
-	{
-		particlePool[particleIndex].scale = m_startScale;
-		particlePool[particleIndex].startScale = m_startScale; // for later
+	if (!m_changeSizeOverTime) { // just assign an initial scale, don't touch startScale, endScale
+
+		for (auto& particleIndex : newParticles)
+		{
+			particlePool[particleIndex].scale = m_startScale;
+		}
+
+		return;
+	}
+
+
+	// We will have to assign a future end scale for the particles based on the config
+	switch (m_endScaleType) {
+
+	case ParameterType::CONSTANT:
+
+		for (auto& particleIndex : newParticles)
+		{
+			particlePool[particleIndex].scale = m_startScale;
+			particlePool[particleIndex].startScale = m_startScale; // for later
+			particlePool[particleIndex].endScale = m_endScale;	   //
+		}
+		break;
+	
+	case ParameterType::RANDOM_BETWEEN_TWO:
+
+		for (auto& particleIndex : newParticles)
+		{
+			particlePool[particleIndex].scale = m_startScale;
+			particlePool[particleIndex].startScale = m_startScale; // for later
+
+			float scale = uniform_rand();
+			Vector2 randomEndScale = Vector2::Lerp(m_endScale, m_endScale2, scale);
+			particlePool[particleIndex].endScale = randomEndScale; // for later as well
+		}
+		break;
+	
 	}
 }
 
 void EmitterSize::setNewParticlesScaleRandom(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles)
 {
-	for (auto& particleIndex : newParticles)
-	{
-		float scale = uniform_rand();
-		Vector2 randomStartScale = (1.f - scale) * m_startScale + scale * m_startScale2;
+	if (!m_changeSizeOverTime) { // just assign an initial scale, don't touch startScale, endScale
 
-		particlePool[particleIndex].scale = randomStartScale;
-		particlePool[particleIndex].startScale = randomStartScale; // for later
+		for (auto& particleIndex : newParticles)
+		{
+			float scale = uniform_rand();
+			Vector2 randomStartScale = Vector2::Lerp(m_startScale, m_startScale2, scale);
+			particlePool[particleIndex].scale = randomStartScale;
+		}
+
+		return;
+	}
+
+
+	// We will have to assign a future end scale for the particles based on the config
+	switch (m_endScaleType) {
+
+	case ParameterType::CONSTANT:
+
+		for (auto& particleIndex : newParticles)
+		{
+			float scale = uniform_rand();
+			Vector2 randomStartScale = Vector2::Lerp(m_startScale, m_startScale2, scale);
+
+			particlePool[particleIndex].scale = randomStartScale;
+			particlePool[particleIndex].startScale = randomStartScale; // for later
+			particlePool[particleIndex].endScale = m_endScale;		   //
+		}
+		break;
+
+	case ParameterType::RANDOM_BETWEEN_TWO:
+
+		for (auto& particleIndex : newParticles)
+		{
+			float scale = uniform_rand();
+			Vector2 randomStartScale = Vector2::Lerp(m_startScale, m_startScale2, scale);
+
+			particlePool[particleIndex].scale = randomStartScale;
+			particlePool[particleIndex].startScale = randomStartScale; // for later
+
+			// now the same process, but for endScale
+			scale = uniform_rand();
+			Vector2 randomEndScale = Vector2::Lerp(m_endScale, m_endScale2, scale);
+			particlePool[particleIndex].endScale = randomEndScale; // for later as well
+		}
+		break;
+
 	}
 }

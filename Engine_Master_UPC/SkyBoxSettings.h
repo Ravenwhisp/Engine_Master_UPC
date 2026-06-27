@@ -1,7 +1,9 @@
 #pragma once
 #include "AssetReference.h"
+#include "ISerializable.h"
+#include "IArchive.h"
 
-struct SkyBoxSettings
+struct SkyBoxSettings : public ISerializable
 {
 	bool enabled = true;
 	AssetReference cubemapAssetId{};
@@ -10,4 +12,10 @@ struct SkyBoxSettings
     {
         return enabled == o.enabled && cubemapAssetId == o.cubemapAssetId;
     }
+
+	void serialize(IArchive& archive) override
+	{
+		archive.serialize(enabled, "enabled");
+		cubemapAssetId.serialize(archive);
+	}
 };

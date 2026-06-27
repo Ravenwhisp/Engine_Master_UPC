@@ -45,8 +45,8 @@ public:
 	void onTransformChange() override;
 	void update() override;
 
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& componentInfo) override;
+	void serialize(IArchive& archive) override;
+	void fixReferences(const SceneReferenceResolver& resolver) override;
 
 	int getTriangles() const { return m_triangles; }
 
@@ -73,6 +73,8 @@ public:
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
 private:
+	void recompute();
+
 	std::shared_ptr<BasicMesh>		m_mesh;
 	std::unique_ptr<Skin>			m_skin;
 	// The position of the material corresponds to the submesh number

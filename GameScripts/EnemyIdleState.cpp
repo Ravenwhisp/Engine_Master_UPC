@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "EnemyIdleState.h"
 
-#include "RangedEnemyController.h"
+#include "EnemyBaseController.h"
 
 EnemyIdleState::EnemyIdleState(GameObject* owner)
     : StateMachineScript(owner)
@@ -10,37 +10,46 @@ EnemyIdleState::EnemyIdleState(GameObject* owner)
 
 void EnemyIdleState::OnStateEnter()
 {
-    m_archerController = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
+    m_controller = GameObjectAPI::findScript<EnemyBaseController>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
-    if (!m_archerController)
+    if (!m_controller)
     {
-        Debug::error("[EnemyIdle] RangedEnemyController not found.");
+        Debug::error("[EnemyIdleState] EnemyController not found.");
         return;
     }
 
     if (!m_animation)
     {
-        Debug::error("[EnemyIdle] AnimationComponent not found.");
+        Debug::error("[EnemyIdleState] AnimationComponent not found.");
         return;
     }
+
+    m_controller->clearPath();
+    m_controller->resetRepathTimer();
 
     Debug::log("[EnemyIdleState] ENTER");
 }
 
 void EnemyIdleState::OnStateUpdate()
 {
-    if (!m_archerController || !m_animation)
+    if (!m_controller || !m_animation)
     {
         return;
     }
 
-    if (m_archerController->trySendDeathTrigger(m_animation))
+    if (m_controller->trySendDeathTrigger(m_animation))
     {
         return;
     }
 
-    if (!m_archerController->hasTarget())
+    if (m_controller->trySendStunTrigger(m_animation))
+    {
+        return;
+    }
+
+    m_controller->updateCurrentTarget();
+    if (!m_controller->hasValidTarget())
     {
         return;
     }

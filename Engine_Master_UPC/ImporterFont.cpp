@@ -4,9 +4,6 @@
 #include "Application.h"
 #include "FileIO.h"
 
-#include "BinaryReader.h"
-#include "BinaryWriter.h"
-
 #include <fstream>
 
 namespace fs = std::filesystem;
@@ -30,36 +27,6 @@ void ImporterFont::importTyped(const std::vector<uint8_t>& source, FontAsset* ds
 {
     dst->spriteFontData = source;
     dst->fontFamilyName = m_lastFontFamilyName;
-}
-
-uint64_t ImporterFont::saveTyped(const FontAsset* source, uint8_t** buffer)
-{
-    const uint64_t totalSize =
-        sizeof(uint64_t) +
-        sizeof(uint32_t) + source->fontFamilyName.size() +
-        sizeof(uint64_t) +  
-        source->spriteFontData.size();
-
-    *buffer = new uint8_t[totalSize];
-    BinaryWriter writer(*buffer);
-
-    writer.string(source->fontFamilyName);
-    writer.u64(static_cast<uint64_t>(source->spriteFontData.size()));
-    writer.bytes(source->spriteFontData.data(), source->spriteFontData.size());
-
-    return totalSize;
-}
-
-
-void ImporterFont::loadTyped(const uint8_t* buffer, FontAsset* dst)
-{
-    BinaryReader reader(buffer);
-
-    dst->fontFamilyName = reader.string();
-
-    const uint64_t dataSize = reader.u64();
-    dst->spriteFontData.resize(static_cast<size_t>(dataSize));
-    reader.bytes(dst->spriteFontData.data(), dataSize);
 }
 
 #include <cstdint>
