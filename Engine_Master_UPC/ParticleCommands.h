@@ -19,7 +19,7 @@ struct ParticleCommand
 struct ParticleEmitterCommand
 {
     Texture* texture = nullptr;
-    int layer; // to indicate the order which particles between overlapped emitters will be drawn in
+    uint32_t layer; // to indicate the order which particles between overlapped emitters will be drawn in
 
     EmitterRender::RenderMode renderMode = EmitterRender::RenderMode::BILLBOARD;
 

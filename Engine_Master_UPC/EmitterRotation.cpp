@@ -21,8 +21,7 @@ void EmitterRotation::update(EmitterInstance* particleData)
 
 		if (m_angularVelocityType == ParameterType::CURVE) 
 		{
-			updateAlivesRotationWithCurve(particlePool, aliveParticles, particleData->getParticleSystemComponent()->deltaTime(),
-				particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime());
+			updateAlivesRotationWithCurve(particlePool, aliveParticles, particleData->getParticleSystemComponent()->deltaTime());
 
 		}
 		else 
@@ -78,97 +77,16 @@ void EmitterRotation::serialize(IArchive& archive)
 		archive.serialize(m_angularVelocity2, "AngularVelocity2");
 
 		if (m_angularVelocityType == ParameterType::CURVE)
-			archive.serializeRaw(m_angularVelocityCurve, sizeof(m_angularVelocityCurve), "VelocityCurve");
+		{
+			uint32_t curveCount = 4;
+			archive.beginArray(curveCount, "VelocityCurve");
+			for (int i = 0; i < 4; ++i)
+				archive.serialize(m_angularVelocityCurve[i], "");
+			archive.endArray();
+		}
 	}
 
 	archive.serialize(m_flipRotationLikelihood, "FlipRotation");
-}
-
-bool EmitterRotation::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartRotation"))
-	{
-		m_startRotation = moduleInfo["StartRotation"].GetFloat();
-	}
-
-	if (moduleInfo.HasMember("RotationType")) // for versions that support choose random between 2 values start rotations
-	{
-		unsigned int rotationTypeUInt = moduleInfo["RotationType"].GetUint();
-		ParameterType rotationType = static_cast<ParameterType>(rotationTypeUInt);
-
-		switch (rotationType) {
-
-		case ParameterType::CONSTANT:
-
-			m_startRotationType = ParameterType::CONSTANT;
-
-			break;
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_startRotationType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("StartRotation2"))
-			{
-				m_startRotation2 = moduleInfo["StartRotation2"].GetFloat();
-			}
-
-			// (curve case would go here)
-		}
-
-	}
-	else m_startRotationType = ParameterType::CONSTANT; // we recreate state corresponding to previous version (PROBABLY UNNEEDED, SINCE THE MODULE IS FRESHLY INSTANTIATED)
-
-	if (moduleInfo.HasMember("AngularVelocity"))
-	{
-		m_angularVelocity = moduleInfo["AngularVelocity"].GetFloat();
-	}
-
-	if (moduleInfo.HasMember("VelocityType")) // for versions that support curves, choose random between 2 values angular velocities 
-	{
-		unsigned int velocityTypeUInt = moduleInfo["VelocityType"].GetUint();
-		ParameterType velocityType = static_cast<ParameterType>(velocityTypeUInt);
-
-		switch (velocityType) {
-
-		case ParameterType::CONSTANT:
-
-			m_angularVelocityType = ParameterType::CONSTANT;
-
-			break;
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_angularVelocityType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("AngularVelocity2"))
-				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
-
-			break;
-
-		case ParameterType::CURVE:
-
-			m_angularVelocityType = ParameterType::CURVE;
-
-			if (moduleInfo.HasMember("AngularVelocity2"))
-				m_angularVelocity2 = moduleInfo["AngularVelocity2"].GetFloat();
-
-			if (moduleInfo.HasMember("VelocityCurve"))
-			{
-				const auto& curveArray = moduleInfo["VelocityCurve"].GetArray();
-				m_angularVelocityCurve[0] = curveArray[0].GetFloat();
-				m_angularVelocityCurve[1] = curveArray[1].GetFloat();
-				m_angularVelocityCurve[2] = curveArray[2].GetFloat();
-				m_angularVelocityCurve[3] = curveArray[3].GetFloat();
-			}
-			break;
-		}
-	}
-
-	if (moduleInfo.HasMember("FlipRotation"))
-		m_flipRotationLikelihood = moduleInfo["FlipRotation"].GetFloat();
-
-	return true;
 }
 
 bool EmitterRotation::drawStartRotationUI()
@@ -358,7 +276,7 @@ void EmitterRotation::updateAlivesRotationFixed(std::array<Particle, MAX_PARTICL
 	}
 }
 
-void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifetime)
+void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime)
 {
 	for (auto& aliveParticle : aliveParticles)
 	{
@@ -371,7 +289,7 @@ void EmitterRotation::updateAlivesRotationWithCurve(std::array<Particle, MAX_PAR
 
 		// Get new rotation velocity from curve (based on current lifetime)
 
-		float scale = 1.f - particlePool[poolIndex].lifeTime/ startLifetime; // to start with 0
+		float scale = 1.f - particlePool[poolIndex].lifeTime/ particlePool[poolIndex].startLifeTime; // to start with 0
 		float bezierScale = ImGui::BezierValue(scale, m_angularVelocityCurve);
 
 		particlePool[poolIndex].rotationVelocity = particlePool[poolIndex].flippedRotation ? 

@@ -27,7 +27,6 @@ public:
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
 private:
 
@@ -50,7 +49,7 @@ private:
 	bool drawAngularVelocityUI();
 
 	void updateAlivesRotationFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime);
-	void updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime, float startLifetime);
+	void updateAlivesRotationWithCurve(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<std::pair<float, unsigned int>>& aliveParticles, float deltaTime);
 
 	void setNewParticlesVelocityFixed(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);
 	void setNewParticlesVelocityWithRange(std::array<Particle, MAX_PARTICLES>& particlePool, const std::vector<unsigned int>& newParticles);

@@ -72,8 +72,6 @@ public:
     virtual bool drawUi() { return false; }
     virtual void debugDraw(Transform* parent) {}
     virtual void serialize(IArchive& archive);
-    virtual rapidjson::Value getJSON(rapidjson::Document& domTree) { return rapidjson::Value(); }; // for serialization
-    virtual bool deserializeJSON(const rapidjson::Value& moduleInfo) { return true; }
 
 private:
     const ParticleModuleType m_moduleType;
