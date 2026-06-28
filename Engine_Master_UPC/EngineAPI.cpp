@@ -8,6 +8,8 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
+#include "ModuleMusic.h"
+
 #include "PrefabManager.h"
 #include "Quadtree.h"
 
@@ -502,6 +504,62 @@ namespace TransformAPI
         return transform->getRoot();
     }
 
+    int TransformAPI::getChildCount(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return 0;
+        }
+
+        return static_cast<int>(transform->getAllChildren().size());
+    }
+
+    Transform* TransformAPI::getChild(Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
+    const Transform* TransformAPI::getChild(const Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        const GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
     Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
     {
         if (transform == nullptr || childName == nullptr)
@@ -717,6 +775,32 @@ namespace AnimationAPI
 
         animation->setSpeedMultiplier(speedMultiplier);
     }
+
+    bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds, bool loop)
+    {
+        if (!animation || !clipName)
+        {
+            return false;
+        }
+
+        return animation->playOverrideClip(clipName, transitionTimeSeconds, loop);
+    }
+
+    void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->clearOverrideClip(transitionTimeSeconds);
+    }
+
+    bool hasOverrideClip(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasOverrideClip() : false;
+    }
+
 }
 
 namespace ApplicationAPI
@@ -2053,6 +2137,15 @@ namespace MathAPI
     {
         return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
     }
+
+    Vector3 MathAPI::catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t)
+    {
+        const float t2 = t * t;
+        const float t3 = t2 * t;
+
+        return (p1 * 2.0f + (p2 - p0) * t + (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 + (p1 * 3.0f - p0 - p2 * 3.0f + p3) * t3) * 0.5f;
+    }
+
     float smoothStep(float edge0, float edge1, float x)
     {
         x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
@@ -2816,6 +2909,31 @@ namespace AudioAPI
         {
             component->resumeEvent(playingID);
         }
+    }
+
+    void setState(const char* stateGroup, const char* stateValue)
+    {
+		app->getModuleMusic()->setState(stateGroup, stateValue);
+    }
+
+    void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component)
+    {
+        component->setSwitch(switchGroup, switchValue);
+    }
+
+    void setRTPC(const char* rtpcName, float value)
+    {
+		app->getModuleMusic()->setRTPC(rtpcName, value);
+    }
+
+    bool isMusicStarted()
+    {
+		return app->getModuleMusic()->isMusicStarted();
+    }
+
+    void setMusicStarted(bool started)
+    {
+		app->getModuleMusic()->setMusicStarted(started);
     }
 }
 

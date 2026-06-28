@@ -45,11 +45,11 @@ bool EmitterSpawn::drawUi()
 
 	if (ImGui::CollapsingHeader("Spawn"))
 	{
-		parameterChanged |= ImGui::Checkbox("Looping", &m_looping);
-		parameterChanged |= ImGui::DragFloat("Duration", &m_duration, 0.1f, 0.0f);
+		parameterChanged |= ImGui::Checkbox("Looping##Spawn", &m_looping);
+		parameterChanged |= ImGui::DragFloat("Duration##Spawn", &m_duration, 0.1f, 0.0f);
 
-		parameterChanged |= ImGui::DragFloat("Rate over time", &m_rateOverTime, 0.1f, 0.0f);
-		parameterChanged |= ImGui::DragFloat("Rate over distance", &m_rateOverDistance, 0.1f, 0.0f);
+		parameterChanged |= ImGui::DragFloat("Rate over time##Spawn", &m_rateOverTime, 0.1f, 0.0f);
+		parameterChanged |= ImGui::DragFloat("Rate over distance##Spawn", &m_rateOverDistance, 0.1f, 0.0f);
 	}
 
 	return parameterChanged;

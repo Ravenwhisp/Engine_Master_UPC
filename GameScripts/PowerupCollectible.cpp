@@ -123,7 +123,7 @@ void PowerupCollectible::idleAnimation()
     position.z += std::sin(t) * m_horizontalAmplitude;
     position.y += std::sin(t * 2.0f) * m_verticalAmplitude;
 
-    TransformAPI::setPosition(GameObjectAPI::getTransform(getOwner()), position);
+    TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(getOwner()), position);
 }
 
 IMPLEMENT_SCRIPT(PowerupCollectible)

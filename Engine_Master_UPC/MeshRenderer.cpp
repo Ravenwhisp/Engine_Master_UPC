@@ -22,9 +22,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
     newMeshRenderer->setActive(this->isActive());
 
-    newMeshRenderer->m_mesh = m_mesh;
-    newMeshRenderer->m_materials = m_materials;
-
     newMeshRenderer->m_meshAsset = m_meshAsset;
     newMeshRenderer->m_materialAssets = m_materialAssets;
 
@@ -34,11 +31,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     {
         newMeshRenderer->m_skin = m_skin->clone();
     }
-    
-    newMeshRenderer->m_triangles = m_triangles;
-
-    newMeshRenderer->m_boundingBox = m_boundingBox;
-    newMeshRenderer->m_boundingBox.update(newOwner->GetTransform()->getGlobalMatrix());
 
     return newMeshRenderer;
 }

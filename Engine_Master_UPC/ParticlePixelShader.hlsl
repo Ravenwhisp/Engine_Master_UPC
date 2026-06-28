@@ -7,6 +7,7 @@ struct ShaderParticleData
 {
     float4x4 worldPosition;
     float4 colorAndAlpha;
+    float2 sheetOffset;
 };
 
 StructuredBuffer<ShaderParticleData> instanceDataBuffer : register(t1);

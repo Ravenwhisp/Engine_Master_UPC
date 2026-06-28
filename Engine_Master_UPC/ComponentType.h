@@ -17,6 +17,7 @@
     X(NAV_MODIFIER_VOLUME)  \
     X(NAV_RUNTIME_BLOCKER)  \
     X(PARTICLE_SYSTEM)      \
+    X(TRAIL)                \
     X(UISHEET)              \
     X(SOUND_LISTENER)       \
     X(SOUND_SOURCE)         \

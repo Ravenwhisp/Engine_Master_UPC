@@ -250,12 +250,12 @@
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
     <ClInclude Include="AbilityDash.h" />
+    <ClInclude Include="AnimationOverrideTester.h" />
     <ClInclude Include="ArcherArrowBarrageState.h" />
     <ClInclude Include="ArcherAttackConfig.h" />
     <ClInclude Include="ArcherChaseState.h" />
     <ClInclude Include="ArcherSomersaultState.h" />
     <ClInclude Include="ArcherUI.h" />
-    <ClInclude Include="ArrowPool.h" />
     <ClInclude Include="ArthurAttackConfig.h" />
     <ClInclude Include="ArthurAttackDebugDraw.h" />
     <ClInclude Include="ArthurBossController.h" />
@@ -275,6 +275,8 @@
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="CameraTransitionController.h" />
     <ClInclude Include="CameraTransitionEvent.h" />
+    <ClInclude Include="CameraTransitionStep.h" />
+    <ClInclude Include="CameraTransitionStepAction.h" />
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="CharacterUI.h" />
     <ClInclude Include="CooperativeSound.h" />
@@ -330,7 +332,6 @@
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="NavBlockerTest.h" />
-
     <ClInclude Include="pch.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="PlayerAnimationController.h" />
@@ -343,6 +344,8 @@
     <ClInclude Include="PlayerStunState.h" />
     <ClInclude Include="PlayerTargetController.h" />
     <ClInclude Include="PowerupCollectible.h" />
+    <ClInclude Include="ProjectileBase.h" />
+    <ClInclude Include="ProjectilePool.h" />
     <ClInclude Include="PuzzleManagerLVL1.h" />
     <ClInclude Include="RangedEnemyController.h" />
     <ClInclude Include="ReaperGauge.h" />
@@ -359,12 +362,12 @@
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
     <ClCompile Include="AbilityDash.cpp" />
+    <ClCompile Include="AnimationOverrideTester.cpp" />
     <ClCompile Include="ArcherArrowBarrageState.cpp" />
     <ClCompile Include="ArcherAttackConfig.cpp" />
     <ClCompile Include="ArcherChaseState.cpp" />
     <ClCompile Include="ArcherSomersaultState.cpp" />
     <ClCompile Include="ArcherUI.cpp" />
-    <ClCompile Include="ArrowPool.cpp" />
     <ClCompile Include="ArthurAttackConfig.cpp" />
     <ClCompile Include="ArthurAttackDebugDraw.cpp" />
     <ClCompile Include="ArthurBossController.cpp" />
@@ -384,6 +387,8 @@
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="CameraTransitionController.cpp" />
     <ClCompile Include="CameraTransitionEvent.cpp" />
+    <ClCompile Include="CameraTransitionStep.cpp" />
+    <ClCompile Include="CameraTransitionStepAction.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="CharacterUI.cpp" />
     <ClCompile Include="CooperativeSound.cpp" />
@@ -459,6 +464,8 @@
     <ClCompile Include="PlayerStunState.cpp" />
     <ClCompile Include="PlayerTargetController.cpp" />
     <ClCompile Include="PowerupCollectible.cpp" />
+    <ClCompile Include="ProjectileBase.cpp" />
+    <ClCompile Include="ProjectilePool.cpp" />
     <ClCompile Include="PuzzleManagerLVL1.cpp" />
     <ClCompile Include="RangedEnemyController.cpp" />
     <ClCompile Include="ReaperGauge.cpp" />

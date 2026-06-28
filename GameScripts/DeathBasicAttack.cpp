@@ -69,6 +69,8 @@ void DeathBasicAttack::startAbility()
     }
 
     dealDamageToTarget(target);
+    notifyAbilitySuccessfullyStarted();
+
     m_deathCharacter->advanceCombo(false);
 
     const bool  isFinalHit  = (comboStep >= 2);
@@ -122,7 +124,7 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
         return;
     }
 
-    const Vector3 myPos = TransformAPI::getPosition(myTransform);
+    const Vector3 myPos = TransformAPI::getGlobalPosition(myTransform);
     Vector3 myForward = TransformAPI::getForward(myTransform);
     myForward.y = 0.0f;
     const float fwdLen = myForward.Length();
@@ -146,7 +148,7 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             {
                 return false;
             }
-            Vector3 toE = TransformAPI::getPosition(eTr) - myPos;
+            Vector3 toE = TransformAPI::getGlobalPosition(eTr) - myPos;
             toE.y = 0.0f;
             if (toE.LengthSquared() > rangeSq)
             {
@@ -231,7 +233,7 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             continue;
         }
         const Transform* eTr = GameObjectAPI::getTransform(enemy);
-        Vector3 toE = TransformAPI::getPosition(eTr) - myPos;
+        Vector3 toE = TransformAPI::getGlobalPosition(eTr) - myPos;
         toE.y = 0.0f;
         toE.Normalize();
         const float dot = myForward.Dot(toE);
@@ -265,7 +267,7 @@ void DeathBasicAttack::drawGizmo()
         return;
     }
 
-    const Vector3 pos      = TransformAPI::getPosition(t);
+    const Vector3 pos      = TransformAPI::getGlobalPosition(t);
     const Vector3 fwd      = TransformAPI::getForward(t);
     const float   fill     = m_deathCharacter->getComboFillRatio();
 
@@ -361,8 +363,8 @@ void DeathBasicAttack::snapFaceTarget(GameObject* target)
 
     constexpr float k_radToDeg = 180.0f / 3.14159265f;
     const float     yaw        = atan2f(dir.x, dir.z) * k_radToDeg;
-    const Vector3   euler      = TransformAPI::getEulerDegrees(myTransform);
-    TransformAPI::setRotationEuler(myTransform, Vector3(euler.x, yaw, euler.z));
+    const Vector3   euler      = TransformAPI::getGlobalEulerDegrees(myTransform);
+    TransformAPI::setGlobalRotationEuler(myTransform, Vector3(euler.x, yaw, euler.z));
 }
 
 void DeathBasicAttack::faceTarget(GameObject* target)

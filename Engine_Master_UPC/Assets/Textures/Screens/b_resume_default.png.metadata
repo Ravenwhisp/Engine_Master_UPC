@@ -1,0 +1,13 @@
+{
+    "uid": 10747260067097418889,
+    "contentHash": "c114daf2a0222a4e42e64a0eaf692121",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Screens\\b_resume_default.png",
+    "sourceFileSize": 25247,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

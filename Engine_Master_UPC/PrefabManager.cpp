@@ -29,13 +29,55 @@ namespace fs = std::filesystem;
 
 namespace {
 
-PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
-{
-    auto* comp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
-    if (!comp)
-        comp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
-    return comp;
-}
+    PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
+    {
+        auto* comp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+        if (!comp)
+            comp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        return comp;
+    }
+
+    void regeneratePrefabInstanceUIDs(GameObject* gameObject)
+    {
+        if (gameObject == nullptr)
+        {
+            return;
+        }
+
+        gameObject->SetUID(GenerateUID());
+
+        Transform* transform = gameObject->GetTransform();
+
+        if (transform != nullptr)
+        {
+            transform->setUID(GenerateUID());
+        }
+
+        for (Component* component : gameObject->GetAllComponents())
+        {
+            if (component == nullptr)
+            {
+                continue;
+            }
+
+            if (component->getType() == ComponentType::TRANSFORM)
+            {
+                continue;
+            }
+
+            component->setUID(GenerateUID());
+        }
+
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        for (GameObject* child : transform->getAllChildren())
+        {
+            regeneratePrefabInstanceUIDs(child);
+        }
+    }
 
 } // anonymous namespace
 
@@ -119,11 +161,11 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
             { return overrideSet && overrideSet->count(prop) > 0; };
 
         auto readMember = [&](const char* lower, const char* upper) -> const Value*
-        {
-            if (tfNode.HasMember(upper)) return &tfNode[upper];
-            if (tfNode.HasMember(lower)) return &tfNode[lower];
-            return nullptr;
-        };
+            {
+                if (tfNode.HasMember(upper)) return &tfNode[upper];
+                if (tfNode.HasMember(lower)) return &tfNode[lower];
+                return nullptr;
+            };
         if (!isOverridden("position"))
         {
             if (const Value* v = readMember("position", "Position"))
@@ -248,6 +290,9 @@ GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
 {
     auto clone = prefab.spawnClone();
     if (!clone) return nullptr;
+
+    regeneratePrefabInstanceUIDs(clone.get());
+
     GameObject* go = clone.get();
 
     auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
@@ -287,9 +332,7 @@ GameObject* PrefabManager::spawnPrefab(const fs::path& sourcePath, Scene* scene)
     JsonArchive goArchive(ArchiveMode::Input);
     goArchive.setValue(goNode);
     go->serialize(goArchive);
-
-    go->SetUID(savedGoUID);
-    go->GetTransform()->setUID(savedTransformUID);
+    regeneratePrefabInstanceUIDs(go);
 
     if (goNode.HasMember("PrefabLink") && goNode["PrefabLink"].IsObject())
     {

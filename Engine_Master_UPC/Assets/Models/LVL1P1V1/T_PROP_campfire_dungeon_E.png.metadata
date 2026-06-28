@@ -1,0 +1,13 @@
+{
+    "uid": 7427389340428219111,
+    "contentHash": "c94d7f1c30cde0f0a1b987a73e400f4e",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_PROP_campfire_dungeon_E.png",
+    "sourceFileSize": 440270,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 17133873202753094564,
+    "contentHash": "d647062c8859d9a139b1f962e922c935",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_wood_planks_dungeon_04_N.png",
+    "sourceFileSize": 6438806,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

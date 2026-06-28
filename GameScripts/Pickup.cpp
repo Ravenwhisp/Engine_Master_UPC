@@ -9,7 +9,7 @@ Pickup::Pickup(GameObject* owner)
 
 void Pickup::Start()
 {
-    m_startPosition = TransformAPI::getPosition(GameObjectAPI::getTransform(getOwner()));
+    m_startPosition = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner()));
 }
 
 void Pickup::Update()

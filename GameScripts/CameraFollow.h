@@ -19,6 +19,8 @@ public:
     void setFollowEnabled(bool enabled) { m_followEnabled = enabled; }
     bool isFollowEnabled() const { return m_followEnabled; }
 
+    bool getDesiredCameraTransform(Vector3& outPosition, Vector3& outRotation);
+
 public:
     ScriptComponentRef<Transform> m_firstTarget;
     ScriptComponentRef<Transform> m_secondTarget;

@@ -1,0 +1,13 @@
+{
+    "uid": 15002049953457612869,
+    "contentHash": "cc28e3b0dc08621283d976f09385a263",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_ENV_MOD_Interior_PlanksShort_02_v2_BC.jpg",
+    "sourceFileSize": 133036,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -43,8 +43,8 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
-    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange;
+    CD3DX12_ROOT_PARAMETER rootParameters[10] = {};
+    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange, ssaoRange;
 
     gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GeometryPass::GBUFFER_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
@@ -52,6 +52,7 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
     shadowMapRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
+    ssaoRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
 
     rootParameters[0].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // camera pos
     rootParameters[1].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL); // lights
@@ -63,6 +64,7 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
 
     rootParameters[7].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[8].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[9].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
@@ -164,6 +166,35 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
     m_renderSurface = &ctx.renderSurface;
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
+
+    const float width = std::max(1.0f, ctx.viewport.Width);
+    const float height = std::max(1.0f, ctx.viewport.Height);
+
+    m_sceneDataCB->screenSize = DirectX::SimpleMath::Vector2(width, height);
+    m_sceneDataCB->invScreenSize = DirectX::SimpleMath::Vector2(1.0f / width, 1.0f / height);
+
+    const SSAOSettings defaultSSAOSettings{};
+    const SSAOSettings& ssaoSettings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSSAOSettings;
+
+    m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(
+        ssaoSettings.enabled ? 1.0f : 0.0f,
+        ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f,
+        0.0f,
+        0.0f);
+
+    m_hasSSAOData = false;
+    m_ssaoSRV = {};
+
+    if (ctx.ssaoData && ctx.ssaoData->ssaoSRV.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoData->ssaoSRV;
+        m_hasSSAOData = true;
+    }
+    else if (ctx.ssaoRawTexture && ctx.ssaoRawTexture->getSRV().gpu.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
+        m_hasSSAOData = true;
+    }
 }
 
 void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -203,6 +234,11 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     {
         commandList->SetGraphicsRootConstantBufferView(7, m_shadowCBAddress);
         commandList->SetGraphicsRootDescriptorTable(8, m_shadowMapSRV);
+    }
+
+    if (m_hasSSAOData && m_ssaoSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootDescriptorTable(9, m_ssaoSRV);
     }
 
     commandList->DrawInstanced(3, 1, 0, 0);

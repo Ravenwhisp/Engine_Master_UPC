@@ -10,7 +10,6 @@ std::vector<uint8_t> FileIO::read(const std::filesystem::path& filePath)
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
     if (!file)
     {
-        DEBUG_ERROR("[ModuleFileSystem] Could not open '%s' for reading.", filePath.string().c_str());
         return {};
     }
 

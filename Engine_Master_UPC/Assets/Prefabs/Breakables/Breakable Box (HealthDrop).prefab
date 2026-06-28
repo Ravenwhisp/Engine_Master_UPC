@@ -1,0 +1,168 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Breakables\\Breakable Box (HealthDrop).prefab",
+  "Name": "Breakable Box (HealthDrop)",
+  "Version": 2,
+  "GameObject": {
+    "Name": "Breakable Box (HealthDrop)",
+    "Active": true,
+    "Tag": "BREAKABLE",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Prefabs\\Breakables\\Breakable Box (HealthDrop).prefab",
+      "AssetUID": 0
+    },
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 10907477473237870019,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "BreakableHealingDrop",
+          "ScriptFields": {
+            "Normal Object": 12460236573452176085,
+            "Broken Object": 7293822858060922015,
+            "Health Pickup Prefab Path": "Assets/Prefabs/HealthPlaceholder.prefab",
+            "Health Drop Amount": 10.0,
+            "Drop Radius": 1.0,
+            "Drop Height": 1.0,
+            "Health Drop Quantity": 2
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 10770459701721604368,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "BreakableDamageable",
+          "ScriptFields": {
+            "Max HP": 1.0,
+            "Health Slider": 0,
+            "Health Slider 2": 0,
+            "UI Update Time (Slider 2)": 1.0
+          }
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Normal",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 427429212332323787,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 14829200032389246696,
+                "libId": "2ee75ef6753a00109a85aeb4ec132434"
+              },
+              "SkinAssetId": {
+                "uid": 0,
+                "libId": ""
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 11456131738561966568,
+                  "libId": "a813bf686b7836e1488f7659cf9f13e9"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": []
+      },
+      {
+        "Name": "Broken",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 16261389144472684574,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 6299683042699325039,
+                "libId": "e8372cadc22ce013dc2db1487dad24e6"
+              },
+              "SkinAssetId": {
+                "uid": 0,
+                "libId": ""
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 1348871275559094111,
+                  "libId": "f0c0200c65a1c6c7050e05d2d7d6f5b3"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": []
+      }
+    ]
+  }
+}

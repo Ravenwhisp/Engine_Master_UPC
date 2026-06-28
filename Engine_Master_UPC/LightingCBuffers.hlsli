@@ -2,6 +2,13 @@ cbuffer SceneData : register(b1)
 {
     float3 viewPos;
     float pad0;
+
+    float2 screenSize;
+    float2 invScreenSize;
+
+    // x = ssaoEnabled
+    // y = ssaoDebugView
+    float4 renderFlags;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4

@@ -1,0 +1,13 @@
+{
+    "uid": 14196915887937157488,
+    "contentHash": "de634a9af63270de7651bb579dc9e8be",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_PROP_gold_dungeon_BC.jpg",
+    "sourceFileSize": 312048,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

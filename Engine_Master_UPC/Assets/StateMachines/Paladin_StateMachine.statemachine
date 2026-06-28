@@ -1,0 +1,137 @@
+{
+    "name": "Paladin_StateMachine",
+    "defaultState": "Idle",
+    "clips": [
+        {
+            "name": "Paladin_Tpose",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Idle",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Idle_long",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Attack",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Damage",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": true
+        },
+        {
+            "name": "Paladin_Death",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": false
+        },
+        {
+            "name": "Paladin_Walk",
+            "animationUID": {
+                "uid": 0,
+                "libId": ""
+            },
+            "loop": true
+        }
+    ],
+    "states": [
+        {
+            "name": "Paladin_Tpose",
+            "clipName": "Paladin_Tpose",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Idle",
+            "clipName": "Paladin_Idle",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyIDLE",
+            "behaviourFieldsJson": "{\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Recover",
+            "clipName": "Paladin_Idle_long",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyRECOVER",
+            "behaviourFieldsJson": "{\"Recover Duration\":0.6000000238418579,\"Go To Stun After Recover\":false,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Attack",
+            "clipName": "Paladin_Attack",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyATTACK",
+            "behaviourFieldsJson": "{\"Attack Damage\":10.0,\"Attack Cooldown\":1.7000000476837158,\"Attack Total Duration\":1.649999976158142,\"Damage Trigger Time\":0.25,\"Attack Commit Duration\":0.3499999940395355,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Stun",
+            "clipName": "Paladin_Damage",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemySTUN",
+            "behaviourFieldsJson": "{\"Stun Duration\":1.0,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Paladin_Death",
+            "clipName": "Paladin_Death",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Chase",
+            "clipName": "Paladin_Walk",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyCHASE",
+            "behaviourFieldsJson": "{\"Use Charge\":false,\"Charge Trigger Range\":4.0,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Charge",
+            "clipName": "Paladin_Walk",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyCHARGE",
+            "behaviourFieldsJson": "{\"Charge Duration\":0.5,\"Charge Speed\":6.0,\"Charge Cooldown\":3.0,\"Debug Enabled\":true}",
+            "overrideLoop": false,
+            "loop": true
+        }
+    ],
+    "transitions": []
+}

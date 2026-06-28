@@ -1,0 +1,13 @@
+{
+    "uid": 13268004352159719731,
+    "contentHash": "76f93d96015a7dc91e39ac24ae8f62c1",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\DamagedHelmet\\Default_albedo.jpg",
+    "sourceFileSize": 935629,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

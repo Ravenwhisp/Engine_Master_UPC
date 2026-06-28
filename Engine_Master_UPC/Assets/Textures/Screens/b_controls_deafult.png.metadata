@@ -1,0 +1,13 @@
+{
+    "uid": 12367809303936359580,
+    "contentHash": "73e66bd1c7ad0b0abb1fc953bc603680",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Screens\\b_controls_deafult.png",
+    "sourceFileSize": 28274,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

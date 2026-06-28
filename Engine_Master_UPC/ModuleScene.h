@@ -21,6 +21,7 @@ class ScriptComponent;
 class LightComponent;
 class IDebugDrawable;
 class ParticleSystemComponent;
+class TrailComponent;
 
 struct ID3D12GraphicsCommandList;
 
@@ -35,10 +36,11 @@ private:
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
 
-    std::vector<MeshRenderer*>       m_meshRenderers;
-    std::vector<LightComponent*>     m_lightComponents;
-    std::vector<ScriptComponent*>    m_scriptComponents;
+    std::vector<MeshRenderer*>            m_meshRenderers;
+    std::vector<LightComponent*>          m_lightComponents;
+    std::vector<ScriptComponent*>         m_scriptComponents;
     std::vector<ParticleSystemComponent*> m_particleSystemComponents;
+    std::vector<TrailComponent*>          m_trailComponents;
 
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
@@ -74,15 +76,20 @@ public:
 
 #pragma region Quadtree
     void syncQuadtreeWithSettings();
-	Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
-	Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
-	void moveGameObjectInQuadtrees(GameObject& gameObject);
-	void removeGameObjectFromQuadtree(GameObject& gameObject);
+    Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
+    Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
+    void moveGameObjectInQuadtrees(GameObject& gameObject);
+    void removeGameObjectFromQuadtree(GameObject& gameObject);
 #pragma endregion
 
 #pragma region ObjectPicking
     std::vector<GameObjectPickHit> collectAABBHits(const Ray& worldRay);
     bool pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit);
+#pragma endregion
+
+#pragma region Systems
+    void initializeRuntimeSceneSystems();
+    void clearRuntimeSceneSystems();
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }
@@ -99,4 +106,5 @@ public:
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
+    const std::vector<TrailComponent*>& getTrailComponents();
 };

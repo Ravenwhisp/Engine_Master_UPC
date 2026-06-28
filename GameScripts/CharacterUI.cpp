@@ -4,16 +4,14 @@
 IMPLEMENT_SCRIPT_FIELDS(CharacterUI,
 	FIELD_GROUP_COLLAPSE("Ability Cooldowns",
 		SERIALIZED_COMPONENT_REF(m_basicAttackCooldownUI, "Basic Attack Cooldown UI", ComponentType::TRANSFORM),
-		SERIALIZED_COMPONENT_REF(m_basicAttackCooldownSlider, "Basic Attack Cooldown Slider", ComponentType::UISLIDER),
 
 		SERIALIZED_COMPONENT_REF(m_chargedAttackCooldownUI, "Charged Attack Cooldown UI", ComponentType::TRANSFORM),
-		SERIALIZED_COMPONENT_REF(m_chargedAttackCooldownSlider, "Charged Attack Cooldown Slider", ComponentType::UISLIDER),
 
 		SERIALIZED_COMPONENT_REF(m_abilityCooldownUI, "Ability Cooldown UI", ComponentType::TRANSFORM),
-		SERIALIZED_COMPONENT_REF(m_abilityCooldownSlider, "Ability Cooldown Slider", ComponentType::UISLIDER),
 
 		SERIALIZED_COMPONENT_REF(m_dashCooldownUI, "Dash Cooldown UI", ComponentType::TRANSFORM),
-		SERIALIZED_COMPONENT_REF(m_dashCooldownSlider, "Dash Cooldown Slider", ComponentType::UISLIDER)
+
+		SERIALIZED_FLOAT(m_cooldownEndTime, "Cooldown End Time", 0.f, 10.f, 1.f)
 	)
 )
 
@@ -29,21 +27,89 @@ void CharacterUI::Start()
 	Transform* abilityUI = m_abilityCooldownUI.getReferencedComponent();
 	Transform* dashUI = m_dashCooldownUI.getReferencedComponent();
 
-	m_cooldownObjects[getSlotIndex(AbilityUISlot::BasicAttack)] = basicAttackUI ? basicAttackUI->getOwner() : nullptr;
-	m_cooldownObjects[getSlotIndex(AbilityUISlot::ChargedAttack)] = chargedAttackUI ? chargedAttackUI->getOwner() : nullptr;
-	m_cooldownObjects[getSlotIndex(AbilityUISlot::Ability)] = abilityUI ? abilityUI->getOwner() : nullptr;
-	m_cooldownObjects[getSlotIndex(AbilityUISlot::Dash)] = dashUI ? dashUI->getOwner() : nullptr;
+	setReferences(AbilityUISlot::BasicAttack, basicAttackUI);
+	setReferences(AbilityUISlot::ChargedAttack, chargedAttackUI);
+	setReferences(AbilityUISlot::Ability, abilityUI);
+	setReferences(AbilityUISlot::Dash, dashUI);
 
-	m_cooldownSliders[getSlotIndex(AbilityUISlot::BasicAttack)] = m_basicAttackCooldownSlider.getReferencedComponent();
-	m_cooldownSliders[getSlotIndex(AbilityUISlot::ChargedAttack)] = m_chargedAttackCooldownSlider.getReferencedComponent();
-	m_cooldownSliders[getSlotIndex(AbilityUISlot::Ability)] = m_abilityCooldownSlider.getReferencedComponent();
-	m_cooldownSliders[getSlotIndex(AbilityUISlot::Dash)] = m_dashCooldownSlider.getReferencedComponent();
-
-	for (int i = 0; i < static_cast<int>(AbilityUISlot::Count); ++i)
+	for (auto& cooldown : m_cooldowns)
 	{
-		if (m_cooldownObjects[i])
+		if (cooldown.disabled)
 		{
-			GameObjectAPI::setActive(m_cooldownObjects[i], false);
+			GameObjectAPI::setActive(cooldown.disabled, false);
+			Transform2DAPI::setAlpha(cooldown.background, 1.f);
+			Transform2DAPI::setAlpha(cooldown.glow, 0.f);
+		}
+	}
+}
+
+void CharacterUI::setReferences(AbilityUISlot slot, Transform* transform) 
+{
+	if (!transform)	
+	{
+		return;
+	}
+
+	Transform* containerTransform = TransformAPI::findChildByName(transform, "Container");
+	if (containerTransform)
+	{
+		m_cooldowns[static_cast<int>(slot)].container = static_cast<Transform2D*>(GameObjectAPI::getComponent(ComponentAPI::getOwner(containerTransform), ComponentType::TRANSFORM2D));
+		Transform* backgroundTransform = TransformAPI::findChildByName(containerTransform, "Background");
+		if (backgroundTransform)
+		{
+			m_cooldowns[static_cast<int>(slot)].background = static_cast<Transform2D*>(GameObjectAPI::getComponent(ComponentAPI::getOwner(backgroundTransform), ComponentType::TRANSFORM2D));
+			Transform* frameTransform = TransformAPI::findChildByName(backgroundTransform, "Frame");
+			if (frameTransform)
+			{
+				m_cooldowns[static_cast<int>(slot)].frame = static_cast<Transform2D*>(GameObjectAPI::getComponent(ComponentAPI::getOwner(frameTransform), ComponentType::TRANSFORM2D));
+			}
+		}
+		Transform* disabledTransform = TransformAPI::findChildByName(containerTransform, "Disabled");
+		if (disabledTransform)
+		{
+			m_cooldowns[static_cast<int>(slot)].disabled = disabledTransform->getOwner();
+			Transform* sliderTransform = TransformAPI::findChildByName(disabledTransform, "Slider");
+			if (sliderTransform)
+			{
+				m_cooldowns[static_cast<int>(slot)].slider = static_cast<UISlider*>(GameObjectAPI::getComponent(ComponentAPI::getOwner(sliderTransform), ComponentType::UISLIDER));
+			}
+		}
+		Transform* glowTransform = TransformAPI::findChildByName(containerTransform, "Glow");
+		if (glowTransform)
+		{
+			m_cooldowns[static_cast<int>(slot)].glow = static_cast<Transform2D*>(GameObjectAPI::getComponent(ComponentAPI::getOwner(glowTransform), ComponentType::TRANSFORM2D));
+		}
+	}
+}
+
+void CharacterUI::Update()
+{
+	for (auto& cooldown : m_cooldowns)
+	{
+		if (cooldown.remainingTime > 0.0f)
+		{
+			cooldown.remainingTime -= Time::getDeltaTime();
+			const float invt = cooldown.remainingTime / m_cooldownEndTime;
+			const float t = 1 - invt;
+
+			const float easedt = MathAPI::evaluateEasing(MathAPI::EasingType::EaseOutCubic, t);
+			if (cooldown.container)
+			{
+				const float containerScale = MathAPI::lerp(1.05f, 1, easedt);
+				Transform2DAPI::setScale(cooldown.container, Vector2(containerScale, containerScale));
+			}
+			if (cooldown.frame)
+			{
+				Transform2DAPI::setAlpha(cooldown.frame, invt);
+				const float frameScale = MathAPI::lerp(0.5f, 1.15, easedt);
+				Transform2DAPI::setScale(cooldown.frame, Vector2(frameScale, frameScale));
+			}
+
+			if (cooldown.glow)
+			{
+				const float glowEasedAlpha = MathAPI::evaluateEasing(MathAPI::EasingType::EaseInCubic, invt);
+				Transform2DAPI::setAlpha(cooldown.glow, glowEasedAlpha);
+			}
 		}
 	}
 }
@@ -62,9 +128,10 @@ void CharacterUI::showAbilityCooldown(AbilityUISlot slot)
 		return;
 	}
 
-	if (m_cooldownObjects[index])
+	if (m_cooldowns[index].disabled)
 	{
-		GameObjectAPI::setActive(m_cooldownObjects[index], true);
+		GameObjectAPI::setActive(m_cooldowns[index].disabled, true);
+		Transform2DAPI::setAlpha(m_cooldowns[index].background, 0.3f);
 	}
 }
 
@@ -77,10 +144,13 @@ void CharacterUI::hideAbilityCooldown(AbilityUISlot slot)
 		return;
 	}
 
-	if (m_cooldownObjects[index])
+	if (m_cooldowns[index].disabled)
 	{
-		GameObjectAPI::setActive(m_cooldownObjects[index], false);
+		GameObjectAPI::setActive(m_cooldowns[index].disabled, false);
+		Transform2DAPI::setAlpha(m_cooldowns[index].background, 1.f);
 	}
+
+	m_cooldowns[index].remainingTime = m_cooldownEndTime;
 }
 
 void CharacterUI::updateAbilityCooldown(AbilityUISlot slot, float ratio)
@@ -92,9 +162,9 @@ void CharacterUI::updateAbilityCooldown(AbilityUISlot slot, float ratio)
 		return;
 	}
 
-	if (m_cooldownSliders[index])
+	if (m_cooldowns[index].slider)
 	{
-		SliderAPI::setFillAmount(m_cooldownSliders[index], std::clamp(ratio, 0.0f, 1.0f));
+		SliderAPI::setFillAmount(m_cooldowns[index].slider, std::clamp(ratio, 0.0f, 1.0f));
 	}
 }
 

@@ -1,0 +1,21 @@
+{
+    "uid": 2165225052402651537,
+    "contentHash": "72394c902059b8a3d23f83bfb498ea17",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Trap\\trap.gltf",
+    "sourceFileSize": 1661,
+    "dependencies": [
+        {
+            "uid": 7822935332512641606,
+            "contentHash": "a6d873373b28a23bd0431af658d304c6",
+            "type": 2,
+            "displayName": "M_metal_dungeon_01"
+        },
+        {
+            "uid": 292809283527885779,
+            "contentHash": "d989d0d942901edee134830590ebe32a",
+            "type": 3,
+            "displayName": "SM_PROP_trap_floor_dungeon_01"
+        }
+    ]
+}

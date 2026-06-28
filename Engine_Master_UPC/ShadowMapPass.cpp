@@ -614,7 +614,7 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
 
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
-    m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
 
     const LightComponent* mainDirectionalLight = findMainShadowCastingDirectionalLight();
 

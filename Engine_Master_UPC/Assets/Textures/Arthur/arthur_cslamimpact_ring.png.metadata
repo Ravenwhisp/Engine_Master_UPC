@@ -1,0 +1,13 @@
+{
+    "uid": 15362535320426515421,
+    "contentHash": "d767554d1be7b5f4acc67f5cdb48fe9f",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_cslamimpact_ring.png",
+    "sourceFileSize": 28700,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 1565918568553857097,
+    "contentHash": "513fcfde217bc216a51bc58182281874",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Particles\\Line_horizontalShine.png",
+    "sourceFileSize": 7611,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 2762562172916437367,
+    "contentHash": "2ffdcc85831ea3f71866ef04a0b41f8d",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_cd_death_taunt.png",
+    "sourceFileSize": 8516,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

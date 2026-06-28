@@ -1,0 +1,13 @@
+{
+    "uid": 10864854026994722112,
+    "contentHash": "db3c9f59b22beee3efe41142e7a8609a",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_PROP_wood_planks_interior_01_BC.jpg",
+    "sourceFileSize": 149811,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

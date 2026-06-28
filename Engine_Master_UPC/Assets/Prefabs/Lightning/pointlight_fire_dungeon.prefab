@@ -1,0 +1,47 @@
+{
+  "SourcePath": "Assets\\Prefabs\\pointlight_fire_dungeon.prefab",
+  "Name": "pointlight_fire_dungeon",
+  "Version": 2,
+  "GameObject": {
+    "Name": "pointlight_fire_dungeon",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 509674034329936703,
+          "ComponentType": 3,
+          "Active": true,
+          "LightType": 0,
+          "Color": [
+            0.9176470637321472,
+            0.4235294163227082,
+            0.16862745583057404
+          ],
+          "Intensity": 1.0
+        }
+      }
+    ],
+    "Children": []
+  }
+}

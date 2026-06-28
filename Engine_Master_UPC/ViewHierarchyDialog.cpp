@@ -271,6 +271,20 @@ void ViewHierarchyDialog::drawCreateItems(Scene* scene, GameObject* parent)
 
         ImGui::EndMenu();
     }
+
+    if (ImGui::BeginMenu("Create Effect"))
+    {
+        if (ImGui::MenuItem("Particle System"))
+        {
+            if (GameObject* particleSystem = createGO(scene, parent))
+            {
+                particleSystem->SetName("New Particle System");
+                particleSystem->AddComponentWithUID(ComponentType::PARTICLE_SYSTEM, GenerateUID());
+            }
+        }
+
+        ImGui::EndMenu();
+    }
 }
 
 void ViewHierarchyDialog::copy(GameObject*)

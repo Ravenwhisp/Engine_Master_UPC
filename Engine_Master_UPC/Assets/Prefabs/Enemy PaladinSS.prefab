@@ -1,0 +1,1681 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Enemy PaladinSS.prefab",
+  "Name": "Enemy PaladinSS",
+  "Version": 2,
+  "GameObject": {
+    "Name": "Enemy PaladinSS",
+    "Active": true,
+    "Tag": "ENEMY",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Prefabs\\Enemy PaladinSS.prefab",
+      "AssetUID": 1283895324764590262
+    },
+    "Transform": {
+      "position": [
+        9.239344596862791,
+        1.4470961093902588,
+        26.683183670043945
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 6512150201744047686,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "EnemyDetectionAggro",
+          "ScriptFields": {
+            "Detection Radius": 14.0,
+            "Target Lock Duration": 5.0,
+            "Debug Enabled": true,
+            "Lyriel Transform": 0,
+            "Death Transform": 0
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 5999679803654709439,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "EnemyController",
+          "ScriptFields": {
+            "Enemy Type": 2,
+            "Combat Range": 1.2000000476837158,
+            "Move Speed": 2.0,
+            "Turn Speed": 4.0,
+            "Interval": 0.4000000059604645,
+            "Attack Enter Range Bonus": 0.44999998807907104,
+            "Attack Exit Range Bonus": 0.800000011920929,
+            "Debug Enabled": true
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 2002032889704139130,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "EnemyDamageable",
+          "ScriptFields": {
+            "Max HP": 100.0,
+            "Health Slider": 7203884739447614000,
+            "Health Slider 2": 10252217268521898496,
+            "UI Update Time (Slider 2)": 1.0
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 5694264299527990346,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "EnemyDeathHandler",
+          "ScriptFields": {}
+        }
+      },
+      {
+        "Type": 13,
+        "Data": {
+          "UID": 16054389009656042499,
+          "ComponentType": 13,
+          "Active": true,
+          "StateMachineUID": {
+            "uid": 11588540065910136440,
+            "libId": "e8311dcf2750ac54d4e6c5701a243e3a"
+          },
+          "AnimationSourceUID": {
+            "uid": 0,
+            "libId": ""
+          },
+          "PlayOnStart": true,
+          "ApplyScale": false,
+          "ForceWorldAfterApply": true
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 8572872802008534633,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "EnemyShadowMark",
+          "ScriptFields": {
+            "Mark Duration": 3.0,
+            "Mark UI Scale": 0.30000001192092896,
+            "Mark UI Height": -30.0,
+            "Canvas Transform": 10600738646958250321,
+            "Mark Phase 1": 12702594497862106030,
+            "Mark Phase 2": 5184702320358847157,
+            "Mark Phase 3": 4264717516681483097
+          }
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "bones",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.7071068286895752,
+            -0.0,
+            0.0,
+            0.7071068286895752
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "bip_pelvis",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.11340415477752686,
+                0.04437161237001419,
+                0.3348500728607178
+              ],
+              "rotation": [
+                0.16155824065208435,
+                0.06423786282539368,
+                -0.026871999725699425,
+                0.9844035506248474
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [],
+            "Children": [
+              {
+                "Name": "bip_spine_0",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    -2.6645351995433716e-17,
+                    -0.01150564569979906,
+                    0.07574375718832016
+                  ],
+                  "rotation": [
+                    0.10854332894086838,
+                    -0.03040849231183529,
+                    -0.0150477671995759,
+                    0.9935126304626464
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [],
+                "Children": [
+                  {
+                    "Name": "bip_spine_2",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        1.7763567996955808e-17,
+                        0.0,
+                        0.07072438299655914
+                      ],
+                      "rotation": [
+                        -0.032469358295202255,
+                        -0.12890604138374329,
+                        -0.19573330879211423,
+                        0.971605658531189
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [],
+                    "Children": [
+                      {
+                        "Name": "bip_neck",
+                        "Active": true,
+                        "Tag": "DEFAULT",
+                        "Layer": "DEFAULT",
+                        "Transform": {
+                          "position": [
+                            0.0,
+                            0.0,
+                            0.226642444729805
+                          ],
+                          "rotation": [
+                            0.09313733875751495,
+                            0.03538618981838226,
+                            0.09118875116109848,
+                            0.9908369779586792
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "Components": [],
+                        "Children": [
+                          {
+                            "Name": "bip_head",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                1.7763567996955808e-17,
+                                2.273736703610344e-15,
+                                0.1014152765274048
+                              ],
+                              "rotation": [
+                                -0.13062356412410736,
+                                0.05667416378855705,
+                                0.07972206175327301,
+                                0.986595094203949
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": []
+                          }
+                        ]
+                      },
+                      {
+                        "Name": "bip_collar_L",
+                        "Active": true,
+                        "Tag": "DEFAULT",
+                        "Layer": "DEFAULT",
+                        "Transform": {
+                          "position": [
+                            0.06782735884189606,
+                            0.00009190994023811072,
+                            0.1334916055202484
+                          ],
+                          "rotation": [
+                            1.0,
+                            -2.7755575615628914e-17,
+                            1.699538915968479e-33,
+                            -6.123234262925839e-17
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "Components": [],
+                        "Children": [
+                          {
+                            "Name": "bip_upperArm_L",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                0.09359555691480637,
+                                7.105427198782323e-17,
+                                0.0
+                              ],
+                              "rotation": [
+                                -0.004854197613894939,
+                                -0.3267980217933655,
+                                0.15471820533275604,
+                                0.932331383228302
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": [
+                              {
+                                "Name": "bip_lowerArm_L",
+                                "Active": true,
+                                "Tag": "DEFAULT",
+                                "Layer": "DEFAULT",
+                                "Transform": {
+                                  "position": [
+                                    0.1868543028831482,
+                                    3.5527135993911615e-17,
+                                    -0.0000011006881095454446
+                                  ],
+                                  "rotation": [
+                                    1.423346276396842e-7,
+                                    2.675630810244911e-7,
+                                    0.6240396499633789,
+                                    0.7813927531242371
+                                  ],
+                                  "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                  ]
+                                },
+                                "Components": [],
+                                "Children": [
+                                  {
+                                    "Name": "bip_hand_L",
+                                    "Active": true,
+                                    "Tag": "DEFAULT",
+                                    "Layer": "DEFAULT",
+                                    "Transform": {
+                                      "position": [
+                                        0.2029263824224472,
+                                        -1.7763567996955808e-17,
+                                        7.105427198782323e-17
+                                      ],
+                                      "rotation": [
+                                        -0.19100211560726169,
+                                        0.033399906009435654,
+                                        -5.720293927424792e-8,
+                                        0.9810212254524232
+                                      ],
+                                      "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                      ]
+                                    },
+                                    "Components": [],
+                                    "Children": [
+                                      {
+                                        "Name": "bip_thumb_0_L",
+                                        "Active": true,
+                                        "Tag": "DEFAULT",
+                                        "Layer": "DEFAULT",
+                                        "Transform": {
+                                          "position": [
+                                            0.01783352717757225,
+                                            0.05106999725103378,
+                                            0.03163492679595947
+                                          ],
+                                          "rotation": [
+                                            0.8383870720863342,
+                                            -0.0726420134305954,
+                                            0.27354761958122253,
+                                            0.4658347964286804
+                                          ],
+                                          "scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                          ]
+                                        },
+                                        "Components": [],
+                                        "Children": []
+                                      },
+                                      {
+                                        "Name": "bip_finger_L5",
+                                        "Active": true,
+                                        "Tag": "DEFAULT",
+                                        "Layer": "DEFAULT",
+                                        "Transform": {
+                                          "position": [
+                                            0.08014736324548721,
+                                            0.002230007667094469,
+                                            0.011410310864448547
+                                          ],
+                                          "rotation": [
+                                            0.1752418428659439,
+                                            -0.6245483160018921,
+                                            -0.09222902357578278,
+                                            0.7554625272750854
+                                          ],
+                                          "scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                          ]
+                                        },
+                                        "Components": [],
+                                        "Children": [
+                                          {
+                                            "Name": "bip_finger_L6",
+                                            "Active": true,
+                                            "Tag": "DEFAULT",
+                                            "Layer": "DEFAULT",
+                                            "Transform": {
+                                              "position": [
+                                                0.05100847780704498,
+                                                -7.256981007230934e-7,
+                                                -0.0000011297655646558269
+                                              ],
+                                              "rotation": [
+                                                6.299290557321013e-18,
+                                                -0.5263422727584839,
+                                                3.654257629643682e-17,
+                                                0.8502727746963501
+                                              ],
+                                              "scale": [
+                                                1.0,
+                                                1.0,
+                                                1.0
+                                              ]
+                                            },
+                                            "Components": [],
+                                            "Children": []
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Name": "wp_L",
+                                        "Active": true,
+                                        "Tag": "DEFAULT",
+                                        "Layer": "DEFAULT",
+                                        "Transform": {
+                                          "position": [
+                                            -0.054065849632024765,
+                                            -0.05348247289657593,
+                                            -0.04920026287436485
+                                          ],
+                                          "rotation": [
+                                            -0.2640124559402466,
+                                            0.009404022246599196,
+                                            -0.014499557204544544,
+                                            0.9643644690513612
+                                          ],
+                                          "scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                          ]
+                                        },
+                                        "Components": [],
+                                        "Children": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Name": "naplech_L",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                0.11636289209127426,
+                                -0.0257553830742836,
+                                -0.020552637055516243
+                              ],
+                              "rotation": [
+                                -0.0907023698091507,
+                                -0.19817647337913513,
+                                -0.06445824354887009,
+                                0.973829746246338
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": []
+                          }
+                        ]
+                      },
+                      {
+                        "Name": "bip_collar_R",
+                        "Active": true,
+                        "Tag": "DEFAULT",
+                        "Layer": "DEFAULT",
+                        "Transform": {
+                          "position": [
+                            -0.06782739609479904,
+                            0.0000918900841497816,
+                            0.13349184393882751
+                          ],
+                          "rotation": [
+                            -2.7755575615628914e-17,
+                            7.703719777548943e-34,
+                            -2.7755575615628914e-17,
+                            1.0
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "Components": [],
+                        "Children": [
+                          {
+                            "Name": "bip_upperArm_R",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                -0.09359560161828996,
+                                0.0,
+                                1.4210854397564646e-16
+                              ],
+                              "rotation": [
+                                -0.07321356981992722,
+                                -0.21437223255634308,
+                                0.2370498776435852,
+                                0.9447177648544312
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": [
+                              {
+                                "Name": "bip_lowerArm_R",
+                                "Active": true,
+                                "Tag": "DEFAULT",
+                                "Layer": "DEFAULT",
+                                "Transform": {
+                                  "position": [
+                                    -0.1868547797203064,
+                                    -1.7763567996955808e-17,
+                                    -0.0000011006881095454446
+                                  ],
+                                  "rotation": [
+                                    2.0110518050842074e-7,
+                                    2.2672854527172606e-7,
+                                    0.4234188497066498,
+                                    0.9059340357780457
+                                  ],
+                                  "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                  ]
+                                },
+                                "Components": [],
+                                "Children": [
+                                  {
+                                    "Name": "bip_hand_R",
+                                    "Active": true,
+                                    "Tag": "DEFAULT",
+                                    "Layer": "DEFAULT",
+                                    "Transform": {
+                                      "position": [
+                                        -0.20292632281780243,
+                                        4.4408919992389534e-18,
+                                        7.105427198782323e-17
+                                      ],
+                                      "rotation": [
+                                        -0.16400429606437683,
+                                        0.18896065652370453,
+                                        0.12507762014865875,
+                                        0.9600792527198792
+                                      ],
+                                      "scale": [
+                                        1.0,
+                                        1.0,
+                                        1.0
+                                      ]
+                                    },
+                                    "Components": [],
+                                    "Children": [
+                                      {
+                                        "Name": "bip_thumb_0_R",
+                                        "Active": true,
+                                        "Tag": "DEFAULT",
+                                        "Layer": "DEFAULT",
+                                        "Transform": {
+                                          "position": [
+                                            -0.017833469435572624,
+                                            -0.05107095465064049,
+                                            -0.03163284808397293
+                                          ],
+                                          "rotation": [
+                                            0.8923689723014832,
+                                            -0.11229269951581956,
+                                            0.4112257063388825,
+                                            0.14819377660751343
+                                          ],
+                                          "scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                          ]
+                                        },
+                                        "Components": [],
+                                        "Children": []
+                                      },
+                                      {
+                                        "Name": "bip_finger_R5",
+                                        "Active": true,
+                                        "Tag": "DEFAULT",
+                                        "Layer": "DEFAULT",
+                                        "Transform": {
+                                          "position": [
+                                            -0.0801466628909111,
+                                            -0.0022310935892164707,
+                                            -0.011408347636461258
+                                          ],
+                                          "rotation": [
+                                            0.13247700035572052,
+                                            -0.4350575804710388,
+                                            -0.08779746294021606,
+                                            0.8862653970718384
+                                          ],
+                                          "scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                          ]
+                                        },
+                                        "Components": [],
+                                        "Children": [
+                                          {
+                                            "Name": "bip_finger_R6",
+                                            "Active": true,
+                                            "Tag": "DEFAULT",
+                                            "Layer": "DEFAULT",
+                                            "Transform": {
+                                              "position": [
+                                                -0.051009081304073334,
+                                                8.428235673818563e-7,
+                                                6.111305879130668e-7
+                                              ],
+                                              "rotation": [
+                                                -0.06415820121765137,
+                                                -0.323416531085968,
+                                                -0.029232345521450043,
+                                                0.9436265230178832
+                                              ],
+                                              "scale": [
+                                                1.0,
+                                                1.0,
+                                                1.0
+                                              ]
+                                            },
+                                            "Components": [],
+                                            "Children": []
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Name": "wp_R",
+                                        "Active": true,
+                                        "Tag": "DEFAULT",
+                                        "Layer": "DEFAULT",
+                                        "Transform": {
+                                          "position": [
+                                            -0.07572850584983826,
+                                            0.002298596315085888,
+                                            -0.03807956725358963
+                                          ],
+                                          "rotation": [
+                                            0.0922512486577034,
+                                            0.49563294649124146,
+                                            0.09748340398073196,
+                                            0.8580995202064514
+                                          ],
+                                          "scale": [
+                                            1.0,
+                                            1.0,
+                                            1.0
+                                          ]
+                                        },
+                                        "Components": [],
+                                        "Children": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Name": "naplech_R",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                -0.13193874061107635,
+                                0.005196659825742245,
+                                0.008771530352532864
+                              ],
+                              "rotation": [
+                                -0.35752928256988525,
+                                -0.011726689524948595,
+                                0.06700882315635681,
+                                0.9314210414886476
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "Name": "bip_hip_L",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.08156491070985794,
+                    -0.026524070650339127,
+                    -0.02595287561416626
+                  ],
+                  "rotation": [
+                    0.6944255232810974,
+                    0.2559109628200531,
+                    -0.04844169318675995,
+                    0.6707727909088135
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [],
+                "Children": [
+                  {
+                    "Name": "bip_knee_L",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        -8.881783998477905e-18,
+                        7.105427198782323e-17,
+                        0.16185453534126282
+                      ],
+                      "rotation": [
+                        0.7777973413467407,
+                        2.5731628438472937e-17,
+                        5.6477814347422e-17,
+                        0.6285151243209839
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [],
+                    "Children": [
+                      {
+                        "Name": "bip_foot_L",
+                        "Active": true,
+                        "Tag": "DEFAULT",
+                        "Layer": "DEFAULT",
+                        "Transform": {
+                          "position": [
+                            -8.881783998477905e-18,
+                            2.6645351995433716e-17,
+                            0.17468582093715668
+                          ],
+                          "rotation": [
+                            -0.3449769616127014,
+                            0.18007734417915344,
+                            -0.1191921979188919,
+                            0.9134310483932496
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "Components": [],
+                        "Children": [
+                          {
+                            "Name": "bip_toe_L",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                5.3290703990867426e-17,
+                                0.0915374606847763,
+                                0.049121174961328506
+                              ],
+                              "rotation": [
+                                3.161013495400766e-8,
+                                -8.452782176785012e-22,
+                                5.551115123125783e-17,
+                                1.0
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "Name": "bip_hip_R",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    -0.08156490325927734,
+                    -0.026524102315306664,
+                    -0.0259530171751976
+                  ],
+                  "rotation": [
+                    -0.11432768404483797,
+                    0.31801924109458923,
+                    -0.08093217015266418,
+                    0.9376795887947084
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [],
+                "Children": [
+                  {
+                    "Name": "bip_knee_R",
+                    "Active": true,
+                    "Tag": "DEFAULT",
+                    "Layer": "DEFAULT",
+                    "Transform": {
+                      "position": [
+                        3.5527135993911615e-17,
+                        8.881783998477905e-18,
+                        -0.16185466945171356
+                      ],
+                      "rotation": [
+                        0.5873405337333679,
+                        3.2710781222793125e-17,
+                        -2.802507767664359e-17,
+                        0.8093399405479431
+                      ],
+                      "scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                      ]
+                    },
+                    "Components": [],
+                    "Children": [
+                      {
+                        "Name": "bip_foot_R",
+                        "Active": true,
+                        "Tag": "DEFAULT",
+                        "Layer": "DEFAULT",
+                        "Transform": {
+                          "position": [
+                            0.0,
+                            0.0,
+                            -0.174685537815094
+                          ],
+                          "rotation": [
+                            -0.05138435587286949,
+                            0.02354837954044342,
+                            0.2506406903266907,
+                            0.9664286971092224
+                          ],
+                          "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                          ]
+                        },
+                        "Components": [],
+                        "Children": [
+                          {
+                            "Name": "bip_toe_R",
+                            "Active": true,
+                            "Tag": "DEFAULT",
+                            "Layer": "DEFAULT",
+                            "Transform": {
+                              "position": [
+                                3.5527135993911615e-17,
+                                -0.09153741598129272,
+                                -0.0491211973130703
+                              ],
+                              "rotation": [
+                                -0.3981129825115204,
+                                -0.041985299438238144,
+                                -1.4598235814622385e-11,
+                                0.9163751006126404
+                              ],
+                              "scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                              ]
+                            },
+                            "Components": [],
+                            "Children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "Health Bar",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            1.2999999523162842,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 6,
+            "Data": {
+              "UID": 16812197393711676568,
+              "ComponentType": 6,
+              "Active": true,
+              "RenderMode": 2,
+              "ZTest": true
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Background",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 1689787203971343432,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    0.5
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.0,
+                    0.0
+                  ],
+                  "BaseSize": [
+                    189.0,
+                    25.0
+                  ],
+                  "StretchMode": 0,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 9039961570779825255,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 14538694312607389381,
+                    "libId": "2d5f24fa27461cdba4e38a08f027dbfa"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "Slider 2",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 8566231020008759429,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.5
+                      ],
+                      "BaseSize": [
+                        189.0,
+                        25.0
+                      ],
+                      "StretchMode": 0,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 3110939301403664830,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 13066959920105547232,
+                        "libId": "35770f3d2c3257ecc825ff18d3a2eb32"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 13326455170870183831,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              },
+              {
+                "Name": "Slider 1",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 5,
+                    "Data": {
+                      "UID": 11228485107399457459,
+                      "ComponentType": 5,
+                      "Active": true,
+                      "Position": [
+                        0.0,
+                        0.0
+                      ],
+                      "Scale": [
+                        1.0,
+                        1.0
+                      ],
+                      "Pivot": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMin": [
+                        0.5,
+                        0.5
+                      ],
+                      "AnchorMax": [
+                        0.5,
+                        0.5
+                      ],
+                      "BaseSize": [
+                        189.0,
+                        25.0
+                      ],
+                      "StretchMode": 0,
+                      "SizingMode": 0,
+                      "AspectRatio": 1.0,
+                      "Alpha": 1.0
+                    }
+                  },
+                  {
+                    "Type": 7,
+                    "Data": {
+                      "UID": 10539067820189150856,
+                      "ComponentType": 7,
+                      "Active": true,
+                      "TextureAssetId": {
+                        "uid": 13445409784538940101,
+                        "libId": "70ac6644b69e35b4c1e2a2e364921877"
+                      },
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0,
+                      "SheetColumns": 1,
+                      "SheetRows": 1,
+                      "SheetOffset": [
+                        0.0,
+                        0.0
+                      ],
+                      "StretchDrawMode": 0
+                    }
+                  },
+                  {
+                    "Type": 14,
+                    "Data": {
+                      "UID": 13388828006834679811,
+                      "ComponentType": 14,
+                      "Active": true,
+                      "FillAmount": 1.0,
+                      "FillMethod": 0,
+                      "FillOrigin": 0
+                    }
+                  }
+                ],
+                "Children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "Shadow Mark",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            1.2999999523162842,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 6,
+            "Data": {
+              "UID": 10760564876318527711,
+              "ComponentType": 6,
+              "Active": true,
+              "RenderMode": 2,
+              "ZTest": true
+            }
+          },
+          {
+            "Type": 5,
+            "Data": {
+              "UID": 4368361288058339372,
+              "ComponentType": 5,
+              "Active": true,
+              "Position": [
+                0.0,
+                0.0
+              ],
+              "Scale": [
+                1.0,
+                1.0
+              ],
+              "Pivot": [
+                0.5,
+                0.0
+              ],
+              "AnchorMin": [
+                0.5,
+                0.0
+              ],
+              "AnchorMax": [
+                0.5,
+                0.0
+              ],
+              "BaseSize": [
+                100.0,
+                100.0
+              ],
+              "StretchMode": 0,
+              "SizingMode": 0,
+              "AspectRatio": 1.0,
+              "Alpha": 1.0
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Shadow Mark 1",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 8282693586775472830,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    0.30000001192092896,
+                    0.30000001192092896
+                  ],
+                  "Pivot": [
+                    0.5,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.5,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.5,
+                    0.0
+                  ],
+                  "BaseSize": [
+                    278.0,
+                    281.0
+                  ],
+                  "StretchMode": 0,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 7004496019832714439,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 4361778465519367995,
+                    "libId": "7cb74d55a5809345de4ac5420def72d3"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Shadow Mark 2",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 7845287297709783653,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    0.30000001192092896,
+                    0.30000001192092896
+                  ],
+                  "Pivot": [
+                    0.5,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.5,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.5,
+                    0.0
+                  ],
+                  "BaseSize": [
+                    332.0,
+                    435.0
+                  ],
+                  "StretchMode": 0,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 9834285786793933100,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 8095061603184860963,
+                    "libId": "b3327e9b369fdd50808c433a07c4de1f"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Shadow Mark 3",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 6871194731627705044,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    0.30000001192092896,
+                    0.30000001192092896
+                  ],
+                  "Pivot": [
+                    0.5,
+                    1.0
+                  ],
+                  "AnchorMin": [
+                    0.5,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.5,
+                    0.0
+                  ],
+                  "BaseSize": [
+                    329.0,
+                    610.0
+                  ],
+                  "StretchMode": 0,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 6520895253542453143,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 3978257701211318606,
+                    "libId": "92fc1133779520dfd85e4f0d3f616c3e"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Paladin",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 1973825410968244506,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 6555910244077164144,
+                "libId": "2e0e7f2d1cca1284eee6b3dfc9b5b8eb"
+              },
+              "SkinAssetId": {
+                "uid": 3439490537757966537,
+                "libId": "dc4d1ed50d40fd248d03a05ff7ea5783"
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 3959442199544834904,
+                  "libId": "6203352cb3b758b2777ab3942c38647a"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": []
+      }
+    ]
+  }
+}

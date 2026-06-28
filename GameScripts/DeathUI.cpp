@@ -80,8 +80,8 @@ void DeathUI::updateTauntUI(const Vector3& origin, const Vector3& aimDirection)
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
 
-	TransformAPI::setPosition(m_tauntUITransform, origin);
-	TransformAPI::setRotationEuler(m_tauntUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
+	TransformAPI::setGlobalPosition(m_tauntUITransform, origin);
+	TransformAPI::setGlobalRotationEuler(m_tauntUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 }
 
 void DeathUI::hideTauntUI()
@@ -138,8 +138,8 @@ void DeathUI::updateChargedAttackUI(const Vector3& origin, const Vector3& aimDir
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
 
-	TransformAPI::setPosition(m_chargedAttackUITransform, origin);
-	TransformAPI::setRotationEuler(m_chargedAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
+	TransformAPI::setGlobalPosition(m_chargedAttackUITransform, origin);
+	TransformAPI::setGlobalRotationEuler(m_chargedAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 }
 
 void DeathUI::hideChargedAttackUI()

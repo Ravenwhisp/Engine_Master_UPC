@@ -1,0 +1,13 @@
+{
+    "uid": 4883626940256236995,
+    "contentHash": "c9486ec3cd0c58eeda4c0c93fa3ac335",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_vegetation_dungeon_BC.png",
+    "sourceFileSize": 1934654,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

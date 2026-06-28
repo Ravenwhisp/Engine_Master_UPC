@@ -7,7 +7,12 @@
 #include "GameObject.h"
 #include "ModuleResources.h"
 #include "ModuleTime.h"
+
 #include "ParticleSystemComponent.h"
+#include "EmitterAnimation.h"
+
+#include "ParticleEmitter.h"
+#include "EmitterRender.h"
 
 
 void ModuleParticleSystem::resetAllParticles()
@@ -82,6 +87,12 @@ void ModuleParticleSystem::preRender()
 	{
 		buildParticleCommands(currentParticleSystemComponent);
 	}
+
+    // sort m_particleCommands per layer value (so that overlapped emitters with higher layer are rendered on top)
+    std::sort(m_particleCommands.begin(), m_particleCommands.end(), [](const ParticleEmitterCommand& a, const ParticleEmitterCommand& b)
+    {
+        return a.layer < b.layer;
+    });
 }
 
 void ModuleParticleSystem::update()
@@ -92,6 +103,15 @@ void ModuleParticleSystem::update()
     {
         currentParticleSystemComponent->update();
     }
+}
+
+bool ModuleParticleSystem::cleanUp()
+{
+    m_particleCommands.clear();
+
+    m_particleTextures.clear(); // needed so that textures are freed at the right time everywhere else
+
+    return true;
 }
 
 /*
@@ -165,9 +185,17 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
             continue;
         }
 
+        EmitterAnimation* animationConfig = emitterInstance.getParticleEmitter()->getAnimationModule();
+        EmitterRender* renderConfig = emitterInstance.getParticleEmitter()->getRenderModule();
+
         ParticleEmitterCommand command;
 		command.texture = texture;
+        command.layer = renderConfig->getLayer();
+        command.uvScale = animationConfig->getUVScale();
+
 		command.particles.reserve(aliveParticles.size());
+        command.renderMode = renderConfig->getRenderMode();
+        command.particles.reserve(aliveParticles.size());
 
 		for (const auto& aliveParticle : aliveParticles)
 		{
@@ -176,6 +204,8 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 			particleData.colorAndAlpha = m_pool[aliveParticle.second].colorAndAlpha;
 			particleData.rotationZ = m_pool[aliveParticle.second].rotationZ;
 			particleData.scale = m_pool[aliveParticle.second].scale;
+            
+            particleData.sheetOffset = animationConfig->getUVOffset(aliveParticle.second);
 
 			command.particles.push_back(particleData);
 		}

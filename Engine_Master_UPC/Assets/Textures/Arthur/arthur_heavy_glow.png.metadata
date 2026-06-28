@@ -1,0 +1,13 @@
+{
+    "uid": 575922762263385812,
+    "contentHash": "dfbb42056ebef6d34d8a5e2ed63b9e14",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_heavy_glow.png",
+    "sourceFileSize": 74573,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

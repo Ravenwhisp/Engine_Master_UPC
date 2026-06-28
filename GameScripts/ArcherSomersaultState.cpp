@@ -99,13 +99,13 @@ void ArcherSomersaultState::moveSomersault()
     const float speed = m_attackConfig->m_somersaultDistance / duration;
     const float stepDistance = speed * Time::getDeltaTime();
 
-    Vector3 currentPosition = TransformAPI::getPosition(ownerTransform);
+    Vector3 currentPosition = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 desiredPosition = currentPosition + m_escapeDirection * stepDistance;
 
     Vector3 nextPosition;
     if (NavigationAPI::moveAlongSurface(currentPosition, desiredPosition, nextPosition, Vector3(5.0f, 5.0f, 5.0f)))
     {
-        TransformAPI::setPosition(ownerTransform, nextPosition);
+        TransformAPI::setGlobalPosition(ownerTransform, nextPosition);
     }
 }
 

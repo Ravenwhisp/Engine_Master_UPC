@@ -36,6 +36,12 @@ void BreakableObject::Start()
         GameObject* brokenObject = ComponentAPI::getOwner(m_brokenObjectTransform);
         GameObjectAPI::setActive(brokenObject, false);
     }
+
+    m_navBlocker = NavigationAPI::getRuntimeBlockerComponent(getOwner());
+    if (m_navBlocker != nullptr)
+    {
+        NavigationAPI::setBlocked(m_navBlocker, true);
+    }
 }
 
 void BreakableObject::breakObject()
@@ -58,6 +64,11 @@ void BreakableObject::breakObject()
         GameObject* brokenObject = ComponentAPI::getOwner(m_brokenObjectTransform);
         GameObjectAPI::setActive(brokenObject, true);
 		GameObject* dustEffect = GameObjectAPI::instantiatePrefab("Assets/Prefabs/Particles/Dust_1.prefab", TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+    }
+
+    if (m_navBlocker != nullptr)
+    {
+        NavigationAPI::setBlocked(m_navBlocker, false);
     }
 
     Debug::log("[BreakableObject] '%s' broke.", GameObjectAPI::getName(getOwner()));

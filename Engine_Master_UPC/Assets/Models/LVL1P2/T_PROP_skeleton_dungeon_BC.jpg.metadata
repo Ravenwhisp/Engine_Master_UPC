@@ -1,0 +1,13 @@
+{
+    "uid": 17082101387156998096,
+    "contentHash": "508022955445d85c8866cf671dd49efd",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_PROP_skeleton_dungeon_BC.jpg",
+    "sourceFileSize": 148352,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

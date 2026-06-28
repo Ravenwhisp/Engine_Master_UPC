@@ -1,0 +1,21 @@
+{
+    "uid": 26778032276370001,
+    "contentHash": "7039bb9c17e067420240076416e2b0d0",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Duck\\Duck.gltf",
+    "sourceFileSize": 5183,
+    "dependencies": [
+        {
+            "uid": 12066432177954292224,
+            "contentHash": "9bbb91dbc031692dae72678eaa0dff24",
+            "type": 2,
+            "displayName": "blinn3-fx"
+        },
+        {
+            "uid": 11725036114721331011,
+            "contentHash": "619b8900816285de7450fda0de029190",
+            "type": 3,
+            "displayName": "LOD3spShape"
+        }
+    ]
+}
