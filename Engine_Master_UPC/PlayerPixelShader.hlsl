@@ -26,8 +26,9 @@ cbuffer ModelDataCB : register(b4)
 cbuffer PlayerData : register(b5)
 {
     float damageHighlight;
-    
-    float3 align;
+    float3 damaheHighlightCenterColor;
+    float3 damaheHighlightRimColor;
+    float damaheHighlightRimIntenisty;
 }
 
 Texture2D baseColorTex : register(t0);
@@ -251,10 +252,13 @@ float ComputeShadow(float3 worldPos)
 
 
 //----------PLAYER EFFECTS----------//
-float3 CalculateDamageHighlight()
+float3 CalculateDamageHighlight(float3 normalVector, float3 viewDirection, float3 albedo)
 {
-    float3 color = float3(1, 0, 0);
-    return color * damageHighlight;
+    float NdotV = saturate(dot(normalVector, viewDirection));
+    
+    float3 fresnelColor = ColoredSchlickFresnel(damaheHighlightCenterColor * albedo, damaheHighlightRimColor, NdotV, 25-damaheHighlightRimIntenisty);
+    
+    return fresnelColor * damageHighlight;
 }
 //--------------------//
 
@@ -385,7 +389,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);
     
-    float3 damageHighlight = CalculateDamageHighlight();
+    float3 damageHighlight = CalculateDamageHighlight(finalWorldNormal, viewDirection, albedo);
     
     //Calculate final color
     float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive + damageHighlight);
