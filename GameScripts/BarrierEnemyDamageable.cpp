@@ -21,7 +21,7 @@ constexpr int barrierAttackTypeCount = 9;
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BarrierEnemyDamageable, EnemyDamageable,
     SERIALIZED_FLOAT_VECTOR(m_barriersThresholds, "Barrier Thresholds (%)"),
     SERIALIZED_ENUM_INT(m_requiredAttackType, "Barrier Break Attack", barrierAttackTypeNames, barrierAttackTypeCount),
-    SERIALIZED_BOOL(m_shadowExecutionBreaksBarriers, "Shadow Execution Breaks Barriers"),
+    SERIALIZED_BOOL(m_shadowMarkExploitBreaksBarriers, "Shadow Mark Exploit Breaks Barriers"),
     SERIALIZED_STRING(m_barrierPrefabPath, "Barrier UI Prefab Path"),
     SERIALIZED_FLOAT(m_minPos, "Barrier Min Pos (0% HP)", -1000.0f, 1000.0f, 1.0f),
     SERIALIZED_FLOAT(m_maxPos, "Barrier Max Pos (100% HP)", -1000.0f, 1000.0f, 1.0f),
@@ -143,9 +143,9 @@ void BarrierEnemyDamageable::takeDamage(float amount)
 
 bool BarrierEnemyDamageable::canBreakBarrier(EnemyAttackType attackType) const
 {
-    if (attackType == EnemyAttackType::ShadowExecution)
+    if (attackType == EnemyAttackType::ShadowMarkExploit)
     {
-        return m_shadowExecutionBreaksBarriers;
+        return m_shadowMarkExploitBreaksBarriers;
     }
 
     return attackType == static_cast<EnemyAttackType>(m_requiredAttackType);

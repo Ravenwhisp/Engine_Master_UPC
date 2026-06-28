@@ -144,7 +144,7 @@ void SpikeTrap::triggerBoxDamage()
         if(name && strcmp(name, "Lyriel") == 0 && spikeType == 0)
         {
             Transform* playerTransform = GameObjectAPI::getTransform(player);
-            const Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+            const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
             if (containsPoint(trapPosition, playerPosition))
             {
                 damagePlayer(player);
@@ -157,7 +157,7 @@ void SpikeTrap::triggerBoxDamage()
         if(name && strcmp(name, "Death") == 0 && spikeType == 1)
         {
             Transform* playerTransform = GameObjectAPI::getTransform(player);
-            const Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+            const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
             if (containsPoint(trapPosition, playerPosition))
             {
                 damagePlayer(player);

@@ -43,8 +43,8 @@ private:
     LyrielCharacter*  m_lyrielCharacter = nullptr;
     CooperativeSound* m_sound           = nullptr;
 
-    float m_p0Timer = 0.0f;
-    float m_p1Timer = 0.0f;
+    float m_p0WindowTimer = 0.0f;
+    float m_p1WindowTimer = 0.0f;
 
     bool    m_isActive        = false;
     float   m_executionTimer  = 0.0f;

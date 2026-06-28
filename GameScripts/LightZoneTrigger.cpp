@@ -43,7 +43,7 @@ void LightZoneTrigger::Update()
     for (GameObject* player : players)
     {
         Transform* pt = GameObjectAPI::getTransform(player);
-        const Vector3 pos = TransformAPI::getPosition(pt);
+        const Vector3 pos = TransformAPI::getGlobalPosition(pt);
 
         if (containsPoint(triggerCenter, pos))
             m_playersInside.insert(player);

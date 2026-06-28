@@ -4,7 +4,7 @@
 #include "LyrielCharacter.h"
 #include "LyrielSound.h"
 #include "CharacterBase.h"
-#include "ArrowPool.h"
+#include "ProjectilePool.h"
 #include "LyrielArrowProjectile.h"
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
@@ -219,6 +219,7 @@ void LyrielChargedAttack::releaseChargeAndShoot()
     collectEnemiesInLine(origin, forward, targets);
     const bool anyMarkExploited = applyChargedDamage(targets, damage);
     spawnChargedArrow(origin, forward);
+    notifyAbilitySuccessfullyStarted();
 
     if (sound != nullptr)
     {
@@ -363,22 +364,25 @@ bool LyrielChargedAttack::applyChargedDamage(const std::vector<GameObject*>& tar
 
         if (damageable != nullptr)
         {
-            {
-                EnemyHitContext ctx;
-                ctx.damage = damage;
-                ctx.attacker = GameObjectAPI::getTransform(getOwner());
-                ctx.attackType = EnemyAttackType::LyrielCharged;
-                damageable->takeDamage(ctx);
-            }
-
+            EnemyHitContext ctx;
+            ctx.damage = damage;
+            ctx.attacker = GameObjectAPI::getTransform(getOwner());
+            
             EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target);
             if (mark != nullptr && mark->isExploitable())
             {
                 mark->exploit();
+                ctx.attackType = EnemyAttackType::ShadowMarkExploit;
                 anyMarkExploited = true;
                 if (m_lyrielCharacter != nullptr)
                     m_lyrielCharacter->onMarkExploited();
             }
+            else
+            {
+                ctx.attackType = EnemyAttackType::LyrielCharged;
+            }
+
+            damageable->takeDamage(ctx);
             continue;
         }
         BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(target);
@@ -398,18 +402,20 @@ void LyrielChargedAttack::spawnChargedArrow(const Vector3& origin, const Vector3
         return;
     }
 
-    ArrowPool* arrowPool = m_lyrielCharacter->getArrowPool();
-    if (arrowPool == nullptr)
+    ProjectilePool* projectilePool = m_lyrielCharacter->getArrowPool();
+    if (!projectilePool)
     {
         return;
     }
 
-    LyrielArrowProjectile* arrow = arrowPool->acquireArrow();
-    if (arrow == nullptr)
+    ProjectileBase* projectile = projectilePool->acquireProjectile();
+    if (!projectile)
     {
-        Debug::log("[LyrielChargedAttack] No available arrow in pool for charged shot visual.");
+        Debug::log("[LyrielChargedAttack] No available projectile in pool for charged shot visual.");
         return;
     }
+
+    LyrielArrowProjectile* arrow = static_cast<LyrielArrowProjectile*>(projectile);
 
     Vector3 flatForward = forward;
     flatForward.y = 0.0f;

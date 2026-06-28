@@ -101,9 +101,11 @@ void AbilityDash::startDash()
     if (!validateDashTarget())
         return;
 
-    m_dashStartPosition = TransformAPI::getPosition(getOwner()->GetTransform());
+    m_dashStartPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
 
     m_isDashing = true;
+
+    notifyAbilitySuccessfullyStarted();
 
     setAbilityLocked(true);
     startCooldown();
@@ -147,7 +149,7 @@ void AbilityDash::calculateDashMovement(float dt)
 
     if (m_hasDashTarget)
     {
-        Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
+        Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
 
         Vector3 desiredPosition = Vector3::Lerp(
             m_dashStartPosition,
