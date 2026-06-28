@@ -592,6 +592,9 @@
     <ClCompile Include="PlayerPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
+    <ClCompile Include="PlayerRenderBufferComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -1579,6 +1582,9 @@
     </ClInclude>
     <ClInclude Include="PlayerPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerRenderBufferComponent.h">
+      <Filter>GameEntity\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

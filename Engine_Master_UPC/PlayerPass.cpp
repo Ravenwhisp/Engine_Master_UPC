@@ -13,6 +13,7 @@
 #include "SkyboxPass.h"
 #include "Skybox.h"
 #include "IndexBuffer.h"
+#include "PlayerRenderBufferComponent.h"
 
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"
@@ -37,7 +38,7 @@ PlayerPass::PlayerPass(ComPtr<ID3D12Device4> device)
 
 void PlayerPass::createRootSignature()
 {
-	CD3DX12_ROOT_PARAMETER		rootParams[11] = {};
+	CD3DX12_ROOT_PARAMETER		rootParams[12] = {};
 	CD3DX12_DESCRIPTOR_RANGE	srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -52,13 +53,13 @@ void PlayerPass::createRootSignature()
     rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Lights
     rootParams[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Shadows
     rootParams[4].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL); //Model data
-    //rootParams[4].InitAsConstantBufferView(5 , 0, D3D12_SHADER_VISIBILITY_ALL); //Player data
-    rootParams[5].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); //Mesh textures
-    rootParams[6].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL); //Irradiance texture
-    rootParams[7].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL); //Prefiltered texture
-    rootParams[8].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL); //Brdf texture
-    rootParams[9].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
-    rootParams[10].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
+    rootParams[5].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Player data
+    rootParams[6].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); //Mesh textures
+    rootParams[7].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL); //Irradiance texture
+    rootParams[8].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL); //Prefiltered texture
+    rootParams[9].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL); //Brdf texture
+    rootParams[10].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
+    rootParams[11].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
 
 	CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
 	rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -183,15 +184,15 @@ void PlayerPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(6, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(7, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(9, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+    commandList->SetGraphicsRootDescriptorTable(7, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(9, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(10, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     if (m_hasShadowData && m_shadowCBAddress != 0 && m_shadowMapSRV.ptr != 0)
     {
         commandList->SetGraphicsRootConstantBufferView(3, m_shadowCBAddress);
-        commandList->SetGraphicsRootDescriptorTable(10, m_shadowMapSRV);
+        commandList->SetGraphicsRootDescriptorTable(11, m_shadowMapSRV);
     }
 
     for (auto* renderer : m_meshRenderers)
@@ -250,6 +251,14 @@ void PlayerPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, Mes
         return;
     }
 
+    PlayerRenderBufferComponent* playerRenderBufferComponent = static_cast<PlayerRenderBufferComponent*>(owner->GetComponent(ComponentType::PLAYER_RENDER_BUFFER));
+    PlayerRenderBufferComponent::PlayerRenderBuffer playerRenderBuffer{};
+    if (playerRenderBufferComponent)
+    {
+        playerRenderBuffer.damageHighlight = playerRenderBufferComponent->getDamageHighlight();
+    }
+    commandList->SetGraphicsRootConstantBufferView(5, app->getModuleRender()->allocateInRingBuffer(&playerRenderBuffer, sizeof(PlayerRenderBufferComponent::PlayerRenderBuffer)));
+
     Matrix global = transform->getGlobalMatrix();
     Matrix mvp = useWorldSpaceSkinnedVB ? (*m_view * *m_projection).Transpose() : (global * *m_view * *m_projection).Transpose();
 
@@ -266,7 +275,7 @@ void PlayerPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, Mes
 
         commandList->SetGraphicsRootConstantBufferView(4, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
 
-        commandList->SetGraphicsRootDescriptorTable(5, material->getTableGPUHandle());
+        commandList->SetGraphicsRootDescriptorTable(6, material->getTableGPUHandle());
 
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

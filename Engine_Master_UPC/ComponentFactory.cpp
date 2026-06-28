@@ -16,6 +16,7 @@
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundListener.h"
 #include "ComponentSoundSource.h"
+#include "PlayerRenderBufferComponent.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -95,6 +96,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::PREFAB_INSTANCE:
         return std::make_unique<PrefabInstanceComponent>(id, owner);
+
+    case ComponentType::PLAYER_RENDER_BUFFER:
+        return std::make_unique<PlayerRenderBufferComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

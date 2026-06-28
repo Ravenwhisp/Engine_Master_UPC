@@ -29,6 +29,7 @@
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
 #include "NavRuntimeBlockerComponent.h"
+#include "PlayerRenderBufferComponent.h"
 
 #include "CameraComponent.h"
 
@@ -2815,5 +2816,18 @@ namespace AudioAPI
         {
             component->resumeEvent(playingID);
         }
+    }
+}
+
+namespace Shaders
+{
+    ENGINE_API float Shaders::getDamageHighlight(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlight();
+    }
+
+    ENGINE_API void setDamageHighlight(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlight(value);
     }
 }

@@ -23,6 +23,13 @@ cbuffer ModelDataCB : register(b4)
     float3 padding;
 };
 
+cbuffer PlayerData : register(b5)
+{
+    float damageHighlight;
+    
+    float3 align;
+}
+
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
@@ -246,8 +253,8 @@ float ComputeShadow(float3 worldPos)
 //----------PLAYER EFFECTS----------//
 float3 CalculateDamageHighlight()
 {
-    float3 color = 0;
-    return color;
+    float3 color = float3(1, 0, 0);
+    return color * damageHighlight;
 }
 //--------------------//
 
@@ -381,7 +388,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 damageHighlight = CalculateDamageHighlight();
     
     //Calculate final color
-    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
+    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive + damageHighlight);
     float3 finalColor = LinearToSRGB(colorMapped);
 
     

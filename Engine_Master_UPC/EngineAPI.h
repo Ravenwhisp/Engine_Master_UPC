@@ -29,6 +29,7 @@ class ParticleSystemComponent;
 class ComponentSoundSource;
 class CameraComponent;
 class NavRuntimeBlockerComponent;
+class PlayerRenderBufferComponent;
 
 struct HapticEffectDefinition;
 
@@ -415,6 +416,12 @@ namespace AudioAPI
     ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);
+}
+
+namespace Shaders
+{
+    ENGINE_API float getDamageHighlight(PlayerRenderBufferComponent* component);
+    ENGINE_API void  setDamageHighlight(PlayerRenderBufferComponent* component, float value);
 }
 
 #include "EngineAPI.inl"
