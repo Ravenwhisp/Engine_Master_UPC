@@ -143,7 +143,8 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             float halfWidth = point->get()->width * 0.5f;
 
             Vector3 prevPos = (point == trailComponent->getTrailPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
-            Vector3 nextPos = (point == std::prev(trailComponent->getTrailPoints().end())) ? owner->GetTransform()->getPosition() : std::next(point)->get()->position;
+
+            Vector3 nextPos = (point == std::prev(trailComponent->getTrailPoints().end())) ? owner->GetTransform()->getGlobalMatrix().Translation() : std::next(point)->get()->position;
 
             Vector3 tangent = nextPos - prevPos;
             Vector3 right = tangent;
