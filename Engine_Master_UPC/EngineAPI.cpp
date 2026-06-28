@@ -2833,4 +2833,14 @@ namespace AudioAPI
     {
 		app->getModuleMusic()->setRTPC(rtpcName, value);
     }
+
+    bool isMusicStarted()
+    {
+		return app->getModuleMusic()->isMusicStarted();
+    }
+
+    void setMusicStarted(bool started)
+    {
+		app->getModuleMusic()->setMusicStarted(started);
+    }
 }

@@ -12,6 +12,7 @@
 
 #include "ModuleNavigation.h"
 #include "ModuleUI.h"
+#include "ModuleMusic.h"
 
 #include "RingBuffer.h"
 #include "RenderSurface.h"
@@ -96,6 +97,11 @@ void ModuleRender::preRender()
     {
         app->getModuleD3D12()->getCommandQueue()->flush();
         app->getModuleGameView()->stopGameSimulation();
+
+        // Corta toda la música/SFX en curso al salir de play mode, para que no sigan
+        // sonando tras el Stop del editor.
+        app->getModuleMusic()->stopAllSounds();
+
         m_pendingStopSimulation = false;
     }
 

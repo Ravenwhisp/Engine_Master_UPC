@@ -286,6 +286,12 @@ void ModuleMusic::setRTPC(const char* rtpcName, float value)
 {
 	m_wwiseManager.setRTPC(rtpcName, value);
 }
+
+void ModuleMusic::stopAllSounds()
+{
+	m_wwiseManager.stopAll();
+	m_musicStarted = false;
+}
 #pragma endregion
 
 

@@ -39,6 +39,10 @@ public:
 	void update();
 	void cleanUp();
 
+	// Para TODOS los sonidos en curso (música y SFX). Se usa al salir de play mode
+	// para que la música/loops no sigan sonando tras el Stop del editor.
+	void stopAll();
+
 	AkGameObjectID getGlobalGameObject() const;
 	AkGameObjectID getGlobalListenerGameObject() const;
 

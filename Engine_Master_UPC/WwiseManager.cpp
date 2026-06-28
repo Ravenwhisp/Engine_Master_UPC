@@ -48,6 +48,14 @@ void WwiseManager::update()
 	}
 }
 
+void WwiseManager::stopAll()
+{
+	if (m_soundEngineCreated)
+	{
+		AK::SoundEngine::StopAll();
+	}
+}
+
 void WwiseManager::cleanUp()
 {
 	unregisterDefaultGameObjects();

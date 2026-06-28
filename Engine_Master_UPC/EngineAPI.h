@@ -418,6 +418,12 @@ namespace AudioAPI
     ENGINE_API void setState(const char* stateGroup, const char* stateValue);
     ENGINE_API void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component);
     ENGINE_API void setRTPC(const char* rtpcName, float value);
+
+    // "Música arrancada" en esta sesión de play (se resetea al parar la simulación).
+    // El MusicManager lo usa para postear Play_Music una sola vez y que entre escenas
+    // la música persista (solo cambia el State -> crossfade).
+    ENGINE_API bool isMusicStarted();
+    ENGINE_API void setMusicStarted(bool started);
 }
 
 #include "EngineAPI.inl"
