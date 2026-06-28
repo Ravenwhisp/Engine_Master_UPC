@@ -79,7 +79,9 @@ void TrailComponent::update()
     }
 
     Vector3 begining = m_points.front()->position;
-    Vector3 end = m_owner->GetTransform()->getPosition();
+
+    const Matrix& globalMatrix = m_owner->GetTransform()->getGlobalMatrix();
+    Vector3 end = globalMatrix.Translation();
 
     float dist_x = begining.x - end.x;
     float dist_y = begining.y - end.y;
@@ -119,8 +121,9 @@ void TrailComponent::CreatePoint()
     std::shared_ptr<TrailPoint> newPoint = std::make_shared<TrailPoint>();
     m_points.push_back(newPoint);
 
-    newPoint->position = m_owner->GetTransform()->getPosition();
-    newPoint->rotation = m_owner->GetTransform()->getRotation();
+    const Matrix& globalMatrix = m_owner->GetTransform()->getGlobalMatrix();
+    newPoint->position = globalMatrix.Translation();
+    newPoint->rotation = Quaternion::CreateFromRotationMatrix(globalMatrix);
     newPoint->lifeTime = m_pointLifetime;
 
     m_colorOverTime.getColorAt(0.f, &newPoint->color.x);
