@@ -4,7 +4,7 @@
 #include "LyrielCharacter.h"
 #include "LyrielSound.h"
 #include "CharacterBase.h"
-#include "ArrowPool.h"
+#include "ProjectilePool.h"
 #include "LyrielArrowProjectile.h"
 #include "EnemyDamageable.h"
 #include "PlayerState.h"
@@ -192,6 +192,7 @@ void LyrielArrowVolley::releaseAimAndCast()
     collectEnemiesInCone(origin, forward, targets);
     const bool anyMarkExploited = applyVolleyDamage(targets);
     spawnVolleyArrows(origin, forward);
+    notifyAbilitySuccessfullyStarted();
 
     LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
     if (sound != nullptr)
@@ -312,49 +313,37 @@ bool LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& target
             continue;
         }
 
-        ////habra q hacer refactor de damageable pq esto no es del todo eficiente
-        //EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(target);
-
-        //if (damageable != nullptr)
-        //{
-        //    damageable->takeDamageEnemy(m_volleyDamage, GameObjectAPI::getTransform(getOwner()));
-        //}
-
-        //else
-        //{
-        //    BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(target);
-
-        //    if (breakableDamageable != nullptr)
-        //    {
-        //        breakableDamageable->takeDamage(m_volleyDamage);
-        //    }
-        //}
-
         if(EnemyDamageable* enemyDamageable = dynamic_cast<EnemyDamageable*>(target))
         {
             EnemyHitContext ctx;
             ctx.damage = m_config->m_volleyDamage;
             ctx.attacker = GameObjectAPI::getTransform(getOwner());
-            ctx.attackType = EnemyAttackType::LyrielVolley;
+
+            if (PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1))
+            {
+                EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target->getOwner());
+
+                if (mark != nullptr && mark->isExploitable())
+                {
+                    mark->exploit();
+					ctx.attackType = EnemyAttackType::ShadowMarkExploit;
+                    anyMarkExploited = true;
+                    if (m_lyrielCharacter != nullptr)
+                        m_lyrielCharacter->onMarkExploited();
+                }
+                else
+                {
+                    ctx.attackType = EnemyAttackType::LyrielVolley;
+                }
+            }
+
             enemyDamageable->takeDamage(ctx);
+            continue;
         }
         else if(BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(target))
         {
             breakableDamageable->takeDamage(m_config->m_volleyDamage);
-		}
-
-        if (PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1))
-        {
-            EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target->getOwner());
-
-            if (mark != nullptr && mark->isExploitable())
-            {
-                mark->exploit();
-                anyMarkExploited = true;
-                if (m_lyrielCharacter != nullptr)
-                    m_lyrielCharacter->onMarkExploited();
-            }
-        }
+		} 
     }
 
     return anyMarkExploited;
@@ -367,8 +356,8 @@ void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& 
         return;
     }
 
-    ArrowPool* arrowPool = m_lyrielCharacter->getArrowPool();
-    if (arrowPool == nullptr)
+    ProjectilePool* projectilePool = m_lyrielCharacter->getArrowPool();
+    if (projectilePool == nullptr)
     {
         return;
     }
@@ -393,12 +382,14 @@ void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& 
 
     for (int i = 0; i < m_config->m_volleyNumVisualArrows; ++i)
     {
-        LyrielArrowProjectile* arrow = arrowPool->acquireArrow();
-        if (arrow == nullptr)
+        ProjectileBase* projectile = projectilePool->acquireProjectile();
+        if (!projectile)
         {
-            Debug::log("[LyrielArrowVolley] No available arrow in pool for visual arrow %d.", i);
+            Debug::log("[LyrielArrowVolley] No available projectile in pool for visual arrow %d.", i);
             return;
         }
+
+        LyrielArrowProjectile* arrow = static_cast<LyrielArrowProjectile*>(projectile);
 
         float t = 0.5f;
         if (m_config->m_volleyNumVisualArrows > 1)

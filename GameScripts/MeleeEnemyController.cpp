@@ -6,7 +6,7 @@
 
 #include "Damageable.h"
 
-MeleeEnemyController::MeleeEnemyController(GameObject* owner) 
+MeleeEnemyController::MeleeEnemyController(GameObject* owner)
 	: EnemyBaseController(owner)
 {
 }

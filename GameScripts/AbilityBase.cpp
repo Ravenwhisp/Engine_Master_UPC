@@ -73,6 +73,9 @@ void AbilityBase::updateCooldown(float dt)
     if (m_cooldownTimer < 0.0f)
     {
         m_cooldownTimer = 0.0f;
+
+        const AbilityUISlot slot = static_cast<AbilityUISlot>(m_uiSlot);
+        m_characterUI->hideAbilityCooldown(slot);
     }
 }
 
@@ -84,14 +87,13 @@ void AbilityBase::updateUI()
     }
 
     const float cooldown = getCooldown();
-    const AbilityUISlot slot = static_cast<AbilityUISlot>(m_uiSlot);
 
     if (m_cooldownTimer <= 0.0f || cooldown <= 0.0001f)
     {
-        m_characterUI->hideAbilityCooldown(slot);
         return;
     }
 
+    const AbilityUISlot slot = static_cast<AbilityUISlot>(m_uiSlot);
     m_characterUI->updateAbilityCooldown(slot, m_cooldownTimer / cooldown);
 }
 
@@ -149,6 +151,11 @@ void AbilityBase::updateAttackWindow(float dt)
     {
         finishAttackWindow();
     }
+}
+
+void AbilityBase::notifyAbilitySuccessfullyStarted()
+{
+    ++m_successfulUseCount;
 }
 
 bool AbilityBase::canStartAbility() const

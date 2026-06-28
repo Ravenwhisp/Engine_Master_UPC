@@ -17,9 +17,14 @@ RingBuffer::~RingBuffer() {
 
 D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, uint64_t currentFrame)
 {
+    // Real number of valid bytes the caller provided. Never copy more than
+    // this: the aligned memcpy below would otherwise read past srcData into
+    // neighbouring heap pages and trigger random 0xC0000005 access violations
+    // (e.g. ParticlesPass submits N*88 bytes, which is not a 256-byte multiple).
+    const size_t dataSize = size;
 
-
-    // Align the size
+    // The GPU needs constant-buffer data 256-byte aligned, so the ring
+    // reservation uses the aligned size; the copy uses the real size.
     size = alignUp(size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
     if (size == 0 || size > m_totalMemorySize)
@@ -61,7 +66,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
         }
     }
 
-    memcpy(m_mappedData + allocationOffset, srcData, size);
+    memcpy(m_mappedData + allocationOffset, srcData, dataSize);
     m_allocationQueue.push_back({ currentFrame, allocationOffset, size });
     return m_Resource->GetGPUVirtualAddress() + allocationOffset;
 }

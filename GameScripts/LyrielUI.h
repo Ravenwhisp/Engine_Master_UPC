@@ -31,7 +31,6 @@ public:
 	void updateDashChargesUI(int currentCharges, int maxCharges, float dt);
 
 private:
-	float moveTowards(float current, float target, float maxDelta);
 	void updateChargeVisual(Transform2D* transform, float& currentScale, float targetScale, float dt);
 
 public:

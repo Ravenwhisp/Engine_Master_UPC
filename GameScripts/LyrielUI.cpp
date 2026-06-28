@@ -78,8 +78,8 @@ void LyrielUI::updateChargedAttackUI(const Vector3& origin, const Vector3& aimDi
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
 
-	TransformAPI::setPosition(m_chargedAttackUITransform, origin);
-	TransformAPI::setRotationEuler(m_chargedAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
+	TransformAPI::setGlobalPosition(m_chargedAttackUITransform, origin);
+	TransformAPI::setGlobalRotationEuler(m_chargedAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 	TransformAPI::setScale(m_chargedAttackUITransform, Vector3(1.0f, 1.0f, range));
 }
 
@@ -137,8 +137,8 @@ void LyrielUI::updateArrowVolleyUI(const Vector3& origin, const Vector3& aimDire
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
 
-	TransformAPI::setPosition(m_arrowVolleyUITransform, origin);
-	TransformAPI::setRotationEuler(m_arrowVolleyUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
+	TransformAPI::setGlobalPosition(m_arrowVolleyUITransform, origin);
+	TransformAPI::setGlobalRotationEuler(m_arrowVolleyUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 }
 
 void LyrielUI::hideArrowVolleyUI()
@@ -202,18 +202,6 @@ void LyrielUI::updateDashChargesUI(int currentCharges, int maxCharges, float dt)
 	}
 }
 
-float LyrielUI::moveTowards(float current, float target, float maxDelta)
-{
-	const float delta = target - current;
-
-	if (std::fabs(delta) <= maxDelta)
-	{
-		return target;
-	}
-
-	return current + (delta > 0.0f ? maxDelta : -maxDelta);
-}
-
 void LyrielUI::updateChargeVisual(Transform2D* transform, float& currentScale, float targetScale, float dt)
 {
 	if (!transform)
@@ -221,7 +209,7 @@ void LyrielUI::updateChargeVisual(Transform2D* transform, float& currentScale, f
 		return;
 	}
 
-	currentScale = moveTowards(currentScale, targetScale, m_uiScaleSpeed * dt);
+	currentScale = MathAPI::moveTowards(currentScale, targetScale, m_uiScaleSpeed * dt);
 	Transform2DAPI::setScale(transform, Vector2(currentScale, currentScale));
 }
 

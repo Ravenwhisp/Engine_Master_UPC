@@ -118,12 +118,15 @@ void EnemyDeathState::dropRewards()
 			continue;
 		}
 
-		HealthPickup* healthPickup = GameObjectAPI::findScript<HealthPickup>(pickup);
-		if (healthPickup != nullptr)
-		{
-			healthPickup->setupDrop(m_dropHealAmount, finalPos);
-		}
-	}
+        Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
+        if (script != nullptr)
+        {
+            HealthPickup* healthPickup = static_cast<HealthPickup*>(script);
+            healthPickup->m_healAmount = m_dropHealAmount;
+            healthPickup->m_landingPosition = finalPos;
+            healthPickup->m_hasCustomSpawnFrom = true;
+        }
+    }
 }
 
 IMPLEMENT_SCRIPT(EnemyDeathState)

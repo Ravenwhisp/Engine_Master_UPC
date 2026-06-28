@@ -56,7 +56,7 @@ void Level2Cheats::Teleport()
     for (GameObject* player : players)
     {
         Transform* playerTransform = GameObjectAPI::getTransform(player);
-        TransformAPI::setPosition(playerTransform, spawnPoints[m_spawnIndex]);
+        TransformAPI::setGlobalPosition(playerTransform, spawnPoints[m_spawnIndex]);
     }
     m_spawnIndex += 1;
     if (m_spawnIndex >= spawnPoints.size())
@@ -112,7 +112,7 @@ void Level2Cheats::SpawnEnemy(int enemyPrefabIndex)
         return;
     }
 
-    Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+    Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
     Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
 
     const std::string& prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];

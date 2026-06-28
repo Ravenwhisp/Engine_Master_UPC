@@ -50,14 +50,14 @@ void Bound::Update()
         !m_firstDamageable || !m_secondDamageable)
         return;
 
-    const Vector3 p1 = TransformAPI::getPosition(m_firstTarget.getReferencedComponent());
-    const Vector3 p2 = TransformAPI::getPosition(m_secondTarget.getReferencedComponent());
+    const Vector3 p1 = TransformAPI::getGlobalPosition(m_firstTarget.getReferencedComponent());
+    const Vector3 p2 = TransformAPI::getGlobalPosition(m_secondTarget.getReferencedComponent());
 
     // Midpoint
     m_center = (p1 + p2) * 0.5f;
     if (m_BoundUI.getReferencedComponent())
     {
-        TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
+        TransformAPI::setGlobalPosition(m_BoundUI.getReferencedComponent(), m_center);
     }
 
     const float distance = Vector3::Distance(p1, p2);
@@ -116,8 +116,8 @@ void Bound::drawGizmo()
     if (!m_firstTarget.getReferencedComponent() || !m_secondTarget.getReferencedComponent())
         return;
 
-    const Vector3 p1 = TransformAPI::getPosition(m_firstTarget.getReferencedComponent());
-    const Vector3 p2 = TransformAPI::getPosition(m_secondTarget.getReferencedComponent());
+    const Vector3 p1 = TransformAPI::getGlobalPosition(m_firstTarget.getReferencedComponent());
+    const Vector3 p2 = TransformAPI::getGlobalPosition(m_secondTarget.getReferencedComponent());
 
     const Vector3 center = (p1 + p2) * 0.5f;
     const float distance = Vector3::Distance(p1, p2);

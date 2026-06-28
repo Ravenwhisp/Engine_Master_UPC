@@ -52,7 +52,7 @@ float DeathDash::getDashDistance() const
 void DeathDash::onDashStarted()
 {
     Transform* t = GameObjectAPI::getTransform(getOwner());
-    m_dashStartPosition = (t != nullptr) ? TransformAPI::getPosition(t) : Vector3::Zero;
+    m_dashStartPosition = (t != nullptr) ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
     m_dashDamageDealt = false;
     m_dashImpactSoundPlayed = false;
 
@@ -97,7 +97,7 @@ bool DeathDash::anyEnemyInsideDashRectangle() const
         {
             continue;
         }
-        if (isInsideDashRectangle(TransformAPI::getPosition(enemyTransform)))
+        if (isInsideDashRectangle(TransformAPI::getGlobalPosition(enemyTransform)))
         {
             return true;
         }
@@ -109,7 +109,7 @@ bool DeathDash::anyEnemyInsideDashRectangle() const
 bool DeathDash::isInsideDashRectangle(const Vector3& point) const
 {
     Transform* t = GameObjectAPI::getTransform(getOwner());
-    Vector3    endPos = (t != nullptr) ? TransformAPI::getPosition(t) : Vector3::Zero;
+    Vector3    endPos = (t != nullptr) ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
 
     Vector3 start2D = { m_dashStartPosition.x, 0.0f, m_dashStartPosition.z };
     Vector3 end2D = { endPos.x,               0.0f, endPos.z };
@@ -160,7 +160,7 @@ void DeathDash::applyDashDamage()
             continue;
         }
 
-        Vector3 enemyPos = TransformAPI::getPosition(enemyTransform);
+        Vector3 enemyPos = TransformAPI::getGlobalPosition(enemyTransform);
 
         if (!isInsideDashRectangle(enemyPos))
         {
