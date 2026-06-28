@@ -22,7 +22,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
     newMeshRenderer->setActive(this->isActive());
 
-
     newMeshRenderer->m_meshAsset = m_meshAsset;
     newMeshRenderer->m_materialAssets = m_materialAssets;
 

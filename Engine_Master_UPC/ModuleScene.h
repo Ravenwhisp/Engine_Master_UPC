@@ -75,10 +75,10 @@ public:
 
 #pragma region Quadtree
     void syncQuadtreeWithSettings();
-	Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
-	Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
-	void moveGameObjectInQuadtrees(GameObject& gameObject);
-	void removeGameObjectFromQuadtree(GameObject& gameObject);
+    Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
+    Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
+    void moveGameObjectInQuadtrees(GameObject& gameObject);
+    void removeGameObjectFromQuadtree(GameObject& gameObject);
 #pragma endregion
 
 #pragma region ObjectPicking

@@ -1,11 +1,12 @@
-#include "NewCBuffers.hlsli"
+#include "LightingCBuffers.hlsli"
 #include "General.hlsli"
 #include "PBRGeneral.hlsli"
 
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
-Texture2D emissiveTex : register(t3);
+Texture2D positionTex : register(t3);
+Texture2D emissiveTex : register(t4);
 
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
@@ -233,69 +234,34 @@ float SampleSSAO(float4 screenPosition)
     return ssaoTexture.Sample(pointClampSample, ssaoUV).r;
 }
 
-
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD, float4 screenPosition : SV_POSITION) : SV_TARGET
+float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 {
     //Initialize material values
-    float metallic = metallicFactor;
-    float alphaRoughness = roughnessFactor;
-    float minRoughness = 0.04;
-    float ao = 1;
-    float3 emissive = 0;
-    float3 finalWorldNormal = normalize(normal);
+    float3 worldPos = positionTex.Sample(linearWrapSample, coord);
+    
+    
+    //Read base color
+    float3 albedo = baseColorTex.Sample(linearWrapSample, coord);
+    
+    
+    //Read metalic roughness AO
+    float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
+    float metallic = metallicRoughnessAOSample.b;
+    float alphaRoughness = metallicRoughnessAOSample.g;
+    float ao = metallicRoughnessAOSample.r;
     
     
     
-    //Load base color texture
-    float3 albedo = baseColor;
-    if (hasBaseColorTex != 0)
-    {
-        float4 texSample = baseColorTex.Sample(linearWrapSample, coord);
-        
-        if (texSample.a < 0.5f)
-            discard;
+    //Read emissive
+    float3 emissive = emissiveTex.Sample(linearWrapSample, coord);
+    //float3 emissive = 0;
+    
+    
+    
+    //Read normal
+    float3 finalWorldNormal = normalTex.Sample(linearWrapSample, coord).rgb;
+    
 
-        albedo *= texSample.rgb;
-    }
-    
-    
-    
-    //Load metallic roughness AO texture
-    if (hasMetallicRoughnessTex != 0)
-    {
-        float3 metallicRoughnessAOSample = metallicRoughnessTex.Sample(linearWrapSample, coord).rgb;
-    
-        metallic = saturate((1 - metallicRoughnessAOSample.r) * metallicFactor);
-        ao = metallicRoughnessAOSample.r;
-        alphaRoughness = 1 - clamp(metallicRoughnessAOSample.g, minRoughness, 1.0);
-    }
-
-    
-    
-    //Load emissive texture
-    if (hasEmissiveTex != 0)
-    {
-        float3 emissiveSample = emissiveTex.Sample(linearWrapSample, coord);
-        
-        emissive = emissiveSample.rgb * emissiveColor;
-    }
-    
-    
-    
-    //Load normal texture
-    if (hasNormalTex != 0)
-    {
-        float3 tangentNormal = normalTex.Sample(linearWrapSample, coord).rgb;
-        tangentNormal = normalize(tangentNormal * 2.0 - 1.0);
-        
-        float3 tangentVector = normalize(tangent.xyz);
-        float3 bitangentVector = cross(finalWorldNormal, tangentVector);
-        float3x3 TBN = float3x3(tangentVector, bitangentVector, finalWorldNormal);
-    
-        finalWorldNormal = mul(tangentNormal, TBN);
-    }
-    
-    
     
     //Prepare data for render equation
     float3 F0Metallic = albedo;
@@ -354,7 +320,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
 
     
     //Calculate indirect lighting
-    float ssao = SampleSSAO(screenPosition);
+    float ssao = SampleSSAO(position);
 
     if (renderFlags.y > 0.5f)
     {
@@ -367,7 +333,6 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     specularAO *= horizon;
 
     float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, diffuseAO, specularAO);
-    
     
     
     //Calculate final color

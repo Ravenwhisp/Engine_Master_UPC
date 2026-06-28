@@ -22,7 +22,7 @@ class MeshRenderer;
 class TriggerSystem;
 class TriggerComponent;
 
-class Scene: public Asset
+class Scene : public Asset
 {
     friend class SceneSnapshot;
 private:
@@ -155,6 +155,6 @@ public:
     const std::vector<std::string>& getLoadedBanks() const;
     void addLoadedBank(const std::string& bank);
     void removeLoadedBank(const std::string& bank);
-	void unloadSoundBanks();
+    void unloadSoundBanks();
 #pragma endregion
 };

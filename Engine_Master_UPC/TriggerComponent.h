@@ -30,13 +30,13 @@ public:
     const Vector3& getCenter() const { return m_center; };
     const Vector3& getSize() const { return m_size; };
 
-    void setCenter(const Vector3& center) ;
+    void setCenter(const Vector3& center);
     void setSize(const Vector3& size);
 #pragma endregion
 
 #pragma region Bounds
     Engine::BoundingBox& getWorldBox();
-    Engine::BoundingBox& getWorldAABB();  
+    Engine::BoundingBox& getWorldAABB();
 #pragma endregion
 
 
@@ -49,7 +49,7 @@ private:
 
 #pragma region Defaul Model bounds
     bool setDefaultBoundsFromModel();
-    void includeHierarchyModelBounds(GameObject* object, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax,  bool& hasBounds);
+    void includeHierarchyModelBounds(GameObject* object, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax, bool& hasBounds);
     void includeMeshRendererBounds(MeshRenderer* meshRenderer, const Matrix& triggerWorldInverse, Vector3& boundsMin, Vector3& boundsMax, bool& hasBounds);
 #pragma endregion
 

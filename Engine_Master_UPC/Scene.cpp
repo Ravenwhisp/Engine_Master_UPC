@@ -28,9 +28,13 @@
 #include <algorithm>
 
 
-Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
+Scene::Scene(AssetReference& id) : Asset(id, AssetType::SCENE)
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
+    m_skybox = {};
+    m_skybox.cubemapAssetId.m_uid = 16369577574978536111;
+    m_skybox.cubemapAssetId.m_type = AssetType::TEXTURE;
+    m_skybox.cubemapAssetId.m_libId = "88b330e7e6260491cfb645f0282a1427";
 }
 
 Scene::~Scene() = default;
@@ -615,7 +619,7 @@ void Scene::clearScene()
     m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
     m_isUpdating = false;
-    m_objectsToRemove.clear(); 
+    m_objectsToRemove.clear();
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
     markDirty();
@@ -844,7 +848,7 @@ void Scene::serialize(IArchive& archive)
             GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid);
             go->serialize(archive);
 
-            goMeta.push_back({uid, transformUid, parentUid});
+            goMeta.push_back({ uid, transformUid, parentUid });
             gos.push_back(go);
 
             archive.endObject();
