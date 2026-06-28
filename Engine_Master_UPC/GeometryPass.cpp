@@ -85,6 +85,12 @@ void GeometryPass::createPipelineState()
     psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    psoDesc.DepthStencilState.StencilEnable = TRUE;
+    psoDesc.DepthStencilState.StencilReadMask = 0xFF;
+    psoDesc.DepthStencilState.StencilWriteMask = 0x00;
+    psoDesc.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
+    psoDesc.DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    psoDesc.DepthStencilState.BackFace = psoDesc.DepthStencilState.FrontFace;
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -133,6 +139,7 @@ void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
     transitionAndClearTargets(commandList, rtvHandles, &dsvHandle);
     setupPipelineAndHeaps(commandList);
 
+    commandList->OMSetStencilRef(0);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     for (auto* renderer : m_meshRenderers)
