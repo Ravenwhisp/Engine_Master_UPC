@@ -166,6 +166,35 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
     m_renderSurface = &ctx.renderSurface;
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
+
+    const float width = std::max(1.0f, ctx.viewport.Width);
+    const float height = std::max(1.0f, ctx.viewport.Height);
+
+    m_sceneDataCB->screenSize = DirectX::SimpleMath::Vector2(width, height);
+    m_sceneDataCB->invScreenSize = DirectX::SimpleMath::Vector2(1.0f / width, 1.0f / height);
+
+    const SSAOSettings defaultSSAOSettings{};
+    const SSAOSettings& ssaoSettings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSSAOSettings;
+
+    m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(
+        ssaoSettings.enabled ? 1.0f : 0.0f,
+        ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f,
+        0.0f,
+        0.0f);
+
+    m_hasSSAOData = false;
+    m_ssaoSRV = {};
+
+    if (ctx.ssaoData && ctx.ssaoData->ssaoSRV.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoData->ssaoSRV;
+        m_hasSSAOData = true;
+    }
+    else if (ctx.ssaoRawTexture && ctx.ssaoRawTexture->getSRV().gpu.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
+        m_hasSSAOData = true;
+    }
 }
 
 void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -205,6 +234,11 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     {
         commandList->SetGraphicsRootConstantBufferView(7, m_shadowCBAddress);
         commandList->SetGraphicsRootDescriptorTable(8, m_shadowMapSRV);
+    }
+
+    if (m_hasSSAOData && m_ssaoSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootDescriptorTable(9, m_ssaoSRV);
     }
 
     commandList->DrawInstanced(3, 1, 0, 0);

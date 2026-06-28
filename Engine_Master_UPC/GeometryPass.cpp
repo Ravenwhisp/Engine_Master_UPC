@@ -118,6 +118,9 @@ void GeometryPass::prepare(const RenderContext& ctx)
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(&sceneData, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
 
     m_gbufferSurface = &ctx.renderSurface;
+
+    m_trianglesCount = 0;
+    m_meshCount = 0;
 }
 
 void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -180,9 +183,6 @@ void GeometryPass::setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList
 
 void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
 {
-    m_trianglesCount = 0;
-    m_meshCount = 0;
-
     //PERF_RENDER("MeshRendererPass::renderMesh");
 
     // DEBUG_LOG("Se va a pintar la malla %d", i);
