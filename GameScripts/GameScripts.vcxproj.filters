@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
     <ClCompile Include="AbilityDash.cpp" />
-    <ClCompile Include="ArrowPool.cpp" />
     <ClCompile Include="Bound.cpp" />
     <ClCompile Include="CameraFollow.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
@@ -109,11 +108,14 @@
     <ClCompile Include="UISplashScreen.cpp" />
     <ClCompile Include="NavBlockerTest.cpp" />
     <ClCompile Include="AnimationOverrideTester.cpp" />
+    <ClCompile Include="ProjectileBase.cpp" />
+    <ClCompile Include="CameraTransitionStep.cpp" />
+    <ClCompile Include="ProjectilePool.cpp" />
+    <ClCompile Include="CameraTransitionStepAction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
     <ClInclude Include="AbilityDash.h" />
-    <ClInclude Include="ArrowPool.h" />
     <ClInclude Include="Bound.h" />
     <ClInclude Include="CameraFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
@@ -218,6 +220,10 @@
     <ClInclude Include="UISplashScreen.h" />
     <ClInclude Include="NavBlockerTest.h" />
     <ClInclude Include="AnimationOverrideTester.h" />
+    <ClInclude Include="ProjectileBase.h" />
+    <ClInclude Include="CameraTransitionStep.h" />
+    <ClInclude Include="ProjectilePool.h" />
+    <ClInclude Include="CameraTransitionStepAction.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

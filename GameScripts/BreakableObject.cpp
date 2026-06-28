@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "BreakableObject.h"
-#include "EngineDependencies/EngineAPI.h"
 
 BreakableObject::BreakableObject(GameObject* owner)
     : Script(owner)
