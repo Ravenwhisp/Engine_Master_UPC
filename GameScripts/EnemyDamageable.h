@@ -14,6 +14,7 @@ enum class EnemyAttackType
 	LyrielVolley,
 	LyrielCharged,
 	ShadowExecution,
+	ShadowMarkExploit,
 	Environment
 };
 

@@ -24,6 +24,15 @@ public:
 	ScriptComponentRef<Transform> m_bridge2;
 	ScriptComponentRef<Transform> m_door2;
 	ScriptComponentRef<Transform> m_door3;
+	ScriptComponentRef<Transform> m_navBlocker1;
+	ScriptComponentRef<Transform> m_navBlocker2;
+	ScriptComponentRef<Transform> m_navBlocker3;
+	ScriptComponentRef<Transform> m_navBlocker4;
+
+	GameObject* blocker1;
+	GameObject* blocker2;
+	GameObject* blocker3;
+	GameObject* blocker4;
 
 	void puzzle1Solved();
 	void puzzle2Solved();

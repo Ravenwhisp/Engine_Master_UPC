@@ -72,7 +72,7 @@ void PlayerDownState::Update()
 void PlayerDownState::drawGizmo()
 {
     Transform* transform = GameObjectAPI::getTransform(m_owner);
-    Vector3 position = TransformAPI::getPosition(transform);
+    Vector3 position = TransformAPI::getGlobalPosition(transform);
 
     Vector3 circleColor = Vector3(0.0f, 1.0f, 0.0f);
     if (isDowned())
@@ -178,8 +178,8 @@ bool PlayerDownState::isTeammateInAssistRange() const
         return false;
     }
 
-    Vector3 ownPosition = TransformAPI::getPosition(ownTransform);
-    Vector3 teammatePosition = TransformAPI::getPosition(teammateTransform);
+    Vector3 ownPosition = TransformAPI::getGlobalPosition(ownTransform);
+    Vector3 teammatePosition = TransformAPI::getGlobalPosition(teammateTransform);
 
     float distance = (teammatePosition - ownPosition).Length();
 
