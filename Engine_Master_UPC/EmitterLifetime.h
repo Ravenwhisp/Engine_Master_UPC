@@ -15,12 +15,11 @@ public:
 
 	void update(EmitterInstance* particleData) override;
 
-	void setStartLifetime(float startLifetime) { m_startLifeTime = startLifetime; }
-	float getStartLifetime() const { return m_startLifeTime; }
+	void setStartLifetimeConstant(float startLifetime) { m_startLifeTime = startLifetime; }
+	float getStartLifetimeConstant() const { return m_startLifeTime; }
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 
 private:
 	ParameterType m_lifeTimeType = ParameterType::CONSTANT;

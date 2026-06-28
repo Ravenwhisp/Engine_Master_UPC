@@ -14,19 +14,18 @@ public:
 
 	void update(EmitterInstance* particleData) override;
 
-	int getSheetRows() const { return m_rows; }
-	int getSheetColumns() const { return m_columns; }
+	int getSheetRows() const { return static_cast<int>(m_rows); }
+	int getSheetColumns() const { return static_cast<int>(m_columns); }
 	Vector2 getUVScale() const;
 	Vector2 getUVOffset (int particleIndex) const;
 
 	bool drawUi() override;
-	rapidjson::Value getJSON(rapidjson::Document& domTree) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
+	void serialize(IArchive& archive) override;
 
 private:
 
-	int m_rows = 1;
-	int m_columns = 1;
+	uint32_t m_rows = 1;
+	uint32_t m_columns = 1;
 
 	float m_fps = 0.f;
 

@@ -60,6 +60,10 @@ public:
     float getSpeedMultiplier() const;
     void setSpeedMultiplier(float speedMultiplier);
 
+    bool playOverrideClip(const std::string& clipName, float transitionTimeSeconds = 0.0f, bool loop = true);
+    void clearOverrideClip(float transitionTimeSeconds = 0.0f);
+    bool hasOverrideClip() const;
+
     void clearStateBehaviours();
 
 private:
@@ -109,6 +113,7 @@ private:
     void pushCurrentPlaybackToHistory(float transitionTimeSeconds);
 
     void updateFadingPlaybackRecursive(FadingPlayback* playback, float deltaTimeSeconds);
+    bool sampleBasePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const;
     bool samplePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const;
     bool samplePlaybackNodeRecursive(const FadingPlayback* playback, const std::string& channelName, AnimationSample& outSample) const;
 
@@ -162,4 +167,15 @@ private:
     std::string m_triggerInput;
 
     bool m_debugDrawHierarchy = false;
+
+    // Clip Override
+
+    std::shared_ptr<AnimationAsset> m_overrideAnimationAsset;
+    AnimationController m_overrideController;
+
+    float m_overrideFadeTime = 0.0f;
+    float m_overrideTransitionTime = 0.0f;
+
+    bool m_hasOverrideClip = false;
+    bool m_isClearingOverrideClip = false;
 };

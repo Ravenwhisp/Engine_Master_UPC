@@ -25,7 +25,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		Vector3 cameraPosition = app->getModuleCamera()->getPosition();
 
 		// Necesitamos el startLifetime para calcular en qu� punto de la curva estamos
-		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
+		// float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime(); <- SAME ISSUE AS IN OTHER MODULES
 
 		for (auto& aliveParticle : aliveParticles)
 		{
@@ -35,7 +35,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 			
 			if (m_velocityType == ParameterType::CURVE)
 			{
-				float scale = 1.f - (particlePool[poolIndex].lifeTime / startLifetime); // 0 al nacer, 1 al morir
+				float scale = 1.f - (particlePool[poolIndex].lifeTime / particlePool[poolIndex].startLifeTime); // 0 al nacer, 1 al morir
 				float bezierScale = ImGui::BezierValue(scale, m_velocityCurve);
 				particlePool[poolIndex].velocity = m_initialVelocity + (m_initialVelocity2 - m_initialVelocity) * bezierScale;
 			}
@@ -149,33 +149,12 @@ void EmitterVelocity::serialize(IArchive& archive)
 		archive.serialize(m_initialVelocity2, "InitialVelocity2");
 
 		if (m_velocityType == ParameterType::CURVE)
-			archive.serializeRaw(m_velocityCurve, sizeof(m_velocityCurve), "VelocityCurve");
-	}
-}
-
-bool EmitterVelocity::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("InitialVelocity")) {
-		m_initialVelocity = moduleInfo["InitialVelocity"].GetFloat();
-	}
-
-	if(moduleInfo.HasMember("VelocityType")) {
-		m_velocityType = static_cast<ParameterType>(moduleInfo["VelocityType"].GetUint());
-
-		if (moduleInfo.HasMember("InitialVelocity2")) {
-			m_initialVelocity2 = moduleInfo["InitialVelocity2"].GetFloat();
-		}
-
-		if (m_velocityType == ParameterType::CURVE && moduleInfo.HasMember("VelocityCurve")) {
-			const auto& curveArray = moduleInfo["VelocityCurve"].GetArray();
-			m_velocityCurve[0] = curveArray[0].GetFloat();
-			m_velocityCurve[1] = curveArray[1].GetFloat();
-			m_velocityCurve[2] = curveArray[2].GetFloat();
-			m_velocityCurve[3] = curveArray[3].GetFloat();
+		{
+			uint32_t curveCount = 4;
+			archive.beginArray(curveCount, "VelocityCurve");
+			for (int i = 0; i < 4; ++i)
+				archive.serialize(m_velocityCurve[i], "");
+			archive.endArray();
 		}
 	}
-	else {
-		m_velocityType = ParameterType::CONSTANT; 
-	}
-	return true;
 }

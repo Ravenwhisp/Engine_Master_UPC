@@ -57,8 +57,8 @@ Vector2 EmitterAnimation::getUVOffset(int particleIndex) const
 	const int col = (m_columns > 0) ? (index % m_columns) : 0;
 	const int row = (m_columns > 0) ? (index / m_columns) : 0;
 
-	const float invCols = 1.0f / float(std::max(1, m_columns));
-	const float invRows = 1.0f / float(std::max(1, m_rows));
+	const float invCols = 1.0f / float(std::max(1u, m_columns));
+	const float invRows = 1.0f / float(std::max(1u, m_rows));
 
 	Vector2 uvOffset = { static_cast<float>(col) * invCols, static_cast<float>(row) * invRows }; // we may want to add an offset to this
 
@@ -71,16 +71,24 @@ bool EmitterAnimation::drawUi()
 
 	if (ImGui::CollapsingHeader("Animation")) {
 
-		if (ImGui::DragInt("Tile rows##Animation", &m_rows, 1.f, 1))
 		{
-			m_totalFrames = static_cast<float>(m_rows * m_columns);
-			parameterChanged = true;
+			int rows = static_cast<int>(m_rows);
+			if (ImGui::DragInt("Tile rows##Animation", &rows, 1.f, 1))
+			{
+				m_rows = static_cast<uint32_t>(rows);
+				m_totalFrames = static_cast<float>(m_rows * m_columns);
+				parameterChanged = true;
+			}
 		}
 
-		if (ImGui::DragInt("Tile columns##Animation", &m_columns, 1.f, 1))
 		{
-			m_totalFrames = static_cast<float>(m_rows * m_columns);
-			parameterChanged = true;
+			int columns = static_cast<int>(m_columns);
+			if (ImGui::DragInt("Tile columns##Animation", &columns, 1.f, 1))
+			{
+				m_columns = static_cast<uint32_t>(columns);
+				m_totalFrames = static_cast<float>(m_rows * m_columns);
+				parameterChanged = true;
+			}
 		}
 
 		ImGui::Spacing();
@@ -95,79 +103,21 @@ bool EmitterAnimation::drawUi()
 	return parameterChanged;
 }
 
-rapidjson::Value EmitterAnimation::getJSON(rapidjson::Document& domTree)
+void EmitterAnimation::serialize(IArchive& archive)
 {
-	rapidjson::Value moduleInfo(rapidjson::kObjectType);
+	ParticleModule::serialize(archive);
 
-	moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::ANIMATION), domTree.GetAllocator());
+	archive.serialize(m_rows, "TileRows");
+	archive.serialize(m_columns, "TileColumns");
+	archive.serialize(m_fps, "FPS");
 
-	moduleInfo.AddMember("TileRows", m_rows, domTree.GetAllocator());
-	moduleInfo.AddMember("TileColumns", m_columns, domTree.GetAllocator());
+	archive.serializeStringEnum(m_startFrameType, "StartFrameType", ParameterTypeToString, StringToParameterType);
+	archive.serialize(m_startFrame, "StartFrame");
 
-	moduleInfo.AddMember("FPS", m_fps, domTree.GetAllocator());
-
-	moduleInfo.AddMember("StartFrameType", unsigned int(m_startFrameType), domTree.GetAllocator());
-	moduleInfo.AddMember("StartFrame", m_startFrame, domTree.GetAllocator());
-	if (m_startFrameType == ParameterType::RANDOM_BETWEEN_TWO) 
-	{
-		moduleInfo.AddMember("StartFrame2", m_startFrame2, domTree.GetAllocator());
-	}
-
-	return moduleInfo;
-}
-
-bool EmitterAnimation::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("TileRows")) {
-		m_rows = moduleInfo["TileRows"].GetInt();
-	}
-	if (moduleInfo.HasMember("TileColumns")) {
-		m_columns = moduleInfo["TileColumns"].GetInt();
-	}
-
-	if (moduleInfo.HasMember("FPS")) {
-		m_fps = moduleInfo["FPS"].GetFloat();
-	}
-
-	if (moduleInfo.HasMember("StartFrameType")) 
-	{
-		unsigned int frameTypeUInt = moduleInfo["StartFrameType"].GetUint();
-		ParameterType frameType = static_cast<ParameterType>(frameTypeUInt);
-
-		switch (frameType) {
-
-		case ParameterType::CONSTANT:
-
-			m_startFrameType = ParameterType::CONSTANT;
-
-			if (moduleInfo.HasMember("StartFrame")) 
-			{
-				m_startFrame = moduleInfo["StartFrame"].GetFloat();
-			}
-			
-			break;
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_startFrameType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("StartFrame"))
-			{
-				m_startFrame = moduleInfo["StartFrame"].GetFloat();
-			}
-
-			if (moduleInfo.HasMember("StartFrame2"))
-			{
-				m_startFrame2 = moduleInfo["StartFrame2"].GetFloat();
-			}
-
-		}
-	
-	}
+	if (m_startFrameType == ParameterType::RANDOM_BETWEEN_TWO)
+		archive.serialize(m_startFrame2, "StartFrame2");
 
 	m_totalFrames = static_cast<float>(m_rows * m_columns);
-
-	return true;
 }
 
 bool EmitterAnimation::drawStartFrameUI()

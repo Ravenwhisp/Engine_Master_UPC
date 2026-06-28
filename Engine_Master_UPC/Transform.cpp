@@ -252,5 +252,11 @@ void Transform::serialize(IArchive& archive)
 	archive.serialize(m_position, "Position");
 	archive.serialize(m_rotation, "Rotation");
 	archive.serialize(m_scale, "Scale");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        Vector3 eulerRad = m_rotation.ToEuler();
+        m_eulerDegrees = eulerRad * (180.0f / XM_PI);
+    }
 }
 

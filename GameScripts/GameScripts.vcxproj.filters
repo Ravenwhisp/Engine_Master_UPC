@@ -108,6 +108,7 @@
     <ClCompile Include="PaladinChaseState.cpp" />
     <ClCompile Include="UISplashScreen.cpp" />
     <ClCompile Include="NavBlockerTest.cpp" />
+    <ClCompile Include="AnimationOverrideTester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -216,6 +217,7 @@
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="UISplashScreen.h" />
     <ClInclude Include="NavBlockerTest.h" />
+    <ClInclude Include="AnimationOverrideTester.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

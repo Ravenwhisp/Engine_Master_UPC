@@ -3,8 +3,10 @@
 #include "SimpleMath.h"
 #include "RenderViewType.h"
 #include "ShadowTypes.h"
+#include "SSAOTypes.h"
 
 class RingBuffer;
+class Texture;
 struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
@@ -26,7 +28,14 @@ struct RenderContext
     const std::vector<ParticleEmitterCommand>* particleCommands = nullptr;
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
-
     const ShadowFrameData* shadowData = nullptr;
+
+    Texture* ssaoDepthTexture = nullptr;
+    Texture* ssaoNormalTexture = nullptr;
+    Texture* ssaoRawTexture = nullptr;
+    Texture* ssaoBlurTexture = nullptr;
+
+    const SSAOSettings* ssaoSettings = nullptr;
+    const SSAOFrameData* ssaoData = nullptr;
 
 };

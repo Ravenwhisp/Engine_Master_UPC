@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "ParticleEmitter.h"
-#include "JsonArchive.h"
 
 #include "EmitterSpawn.h"
 #include "EmitterLifetime.h"
@@ -79,52 +78,15 @@ ParticleModule* ParticleEmitter::getModule(ParticleModuleType type)
 
 void ParticleEmitter::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output)
+	uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
+	archive.beginArray(moduleCount, "Modules");
+
+	for (uint32_t i = 0; i < moduleCount && i < static_cast<uint32_t>(m_particleModules.size()); ++i)
 	{
-		uint32_t moduleCount = static_cast<uint32_t>(m_particleModules.size());
-		archive.beginArray(moduleCount, "Modules");
-
-		for (uint32_t i = 0; i < moduleCount; ++i)
-		{
-			archive.beginObject();
-			m_particleModules[i]->serialize(archive);
-			archive.endObject();
-		}
-
-		archive.endArray();
-	}
-	else // Input: cargar con deserializeJSON
-	{
-		JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
-		if (!jsonArchive)
-			return;
-
-		const rapidjson::Value* emitterInfo = jsonArchive->currentInput();
-		if (emitterInfo)
-			deserializeJSON(*emitterInfo);
-	}
-}
-
-bool ParticleEmitter::deserializeJSON(const rapidjson::Value& emitterInfo)
-{
-	if (!emitterInfo.HasMember("Modules"))
-		return false;
-
-	const rapidjson::Value& modulesInfo = emitterInfo["Modules"];
-
-	for (auto& moduleData : modulesInfo.GetArray())
-	{
-		if (!moduleData.HasMember("ModuleType")) continue;
-
-		unsigned int typeUInt = moduleData["ModuleType"].GetUint();
-		ParticleModuleType moduleType = static_cast<ParticleModuleType>(typeUInt);
-
-		ParticleModule* module = getModule(moduleType);
-		if (!module)
-			continue;
-
-		module->deserializeJSON(moduleData);
+		archive.beginObject();
+		m_particleModules[i]->serialize(archive);
+		archive.endObject();
 	}
 
-	return true;
+	archive.endArray();
 }
