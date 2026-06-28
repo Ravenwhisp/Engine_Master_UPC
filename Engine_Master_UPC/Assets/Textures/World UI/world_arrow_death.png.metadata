@@ -1,0 +1,13 @@
+{
+    "uid": 1495017925472165033,
+    "contentHash": "7664cde6f610209132c2a74a93480a11",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\World UI\\world_arrow_death.png",
+    "sourceFileSize": 6212,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -568,12 +568,21 @@
     <ClCompile Include="ScriptBuildSystem.cpp">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClCompile>
+    <ClCompile Include="TrailPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="PdbPatcher.cpp" />
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
+      <Filter>Core\Scripting\FieldTypeHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="TrailComponent.cpp" />
     <ClCompile Include="EmitterRender.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
     <ClCompile Include="EmitterAnimation.cpp">
       <Filter>ParticleSystem\Properties</Filter>
     </ClCompile>
+    <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
@@ -1557,12 +1566,18 @@
     <ClInclude Include="ScriptBuildSystem.h">
       <Filter>Core\Scripting\HotReloading\ScriptBuildSystem</Filter>
     </ClInclude>
+    <ClInclude Include="TrailPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="TrailComponent.h" />
     <ClInclude Include="EmitterRender.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
     <ClInclude Include="EmitterAnimation.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
+    <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="NavMeshBuildSettings.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
@@ -1907,6 +1922,13 @@
       <Filter>D3D12\Rendering\IBL</Filter>
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
+    <FxCompile Include="ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="TrailPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TrailVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="FullscreenTriangleVS.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>

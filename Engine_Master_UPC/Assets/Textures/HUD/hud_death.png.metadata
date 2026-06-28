@@ -1,0 +1,13 @@
+{
+    "uid": 2650282795555679527,
+    "contentHash": "e44672af1ed1681e65efc839de8b39db",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_death.png",
+    "sourceFileSize": 45031,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

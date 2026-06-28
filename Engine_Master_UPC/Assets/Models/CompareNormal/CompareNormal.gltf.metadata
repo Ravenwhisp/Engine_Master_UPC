@@ -1,0 +1,33 @@
+{
+    "uid": 14524295853532482938,
+    "contentHash": "ee152540aab6c7546ca01eed5e8e0a18",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\CompareNormal\\CompareNormal.gltf",
+    "sourceFileSize": 4095,
+    "dependencies": [
+        {
+            "uid": 10422200544052337371,
+            "contentHash": "1203464c7d21a83a485a7c3be58f6491",
+            "type": 2,
+            "displayName": "Wicker no Normal"
+        },
+        {
+            "uid": 6713578936202126703,
+            "contentHash": "927b74bb0e392a7583f7e031bbf43ae2",
+            "type": 2,
+            "displayName": "Wicker with Normal"
+        },
+        {
+            "uid": 10962761959049615814,
+            "contentHash": "173d25c655f0ca8070a93411628df8d1",
+            "type": 3,
+            "displayName": "Sphere001"
+        },
+        {
+            "uid": 13233880853009312408,
+            "contentHash": "b41f873db8815534cd16d80b9542c619",
+            "type": 3,
+            "displayName": "Sphere002"
+        }
+    ]
+}

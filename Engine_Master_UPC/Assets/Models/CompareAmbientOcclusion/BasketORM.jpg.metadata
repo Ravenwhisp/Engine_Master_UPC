@@ -1,0 +1,13 @@
+{
+    "uid": 718704052736843254,
+    "contentHash": "bcb0af8c626eccd3d3213fe50232e5b1",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\CompareAmbientOcclusion\\BasketORM.jpg",
+    "sourceFileSize": 311787,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

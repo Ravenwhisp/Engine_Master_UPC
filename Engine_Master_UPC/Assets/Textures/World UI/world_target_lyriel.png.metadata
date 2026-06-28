@@ -1,0 +1,13 @@
+{
+    "uid": 12389831469080700967,
+    "contentHash": "3cc9e614e4bba29057a76feae53168e0",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\World UI\\world_target_lyriel.png",
+    "sourceFileSize": 60965,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

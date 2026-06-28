@@ -1,0 +1,13 @@
+{
+    "uid": 6371170843851738208,
+    "contentHash": "f92d3eb0e7ab6689bf9e1769d26d69dc",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_ENV_MOD_Wall_01_v1_N.png",
+    "sourceFileSize": 8096706,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

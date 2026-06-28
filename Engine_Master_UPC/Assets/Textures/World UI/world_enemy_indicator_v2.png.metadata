@@ -1,0 +1,13 @@
+{
+    "uid": 6703742743120778305,
+    "contentHash": "03313cbcf104dc97f629ab12b056ebff",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\World UI\\world_enemy_indicator_v2.png",
+    "sourceFileSize": 6106,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

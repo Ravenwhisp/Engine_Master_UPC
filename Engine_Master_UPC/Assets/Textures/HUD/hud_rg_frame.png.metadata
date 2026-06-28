@@ -1,0 +1,13 @@
+{
+    "uid": 307726062585631891,
+    "contentHash": "c45aded8d79a5d9628df2a72a0ce4fe8",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_rg_frame.png",
+    "sourceFileSize": 5301,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,83 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Barrier UI.prefab",
+  "Name": "Barrier UI",
+  "Version": 2,
+  "GameObject": {
+    "Name": "Barrier UI",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        1.0,
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "scale": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 5,
+        "Data": {
+          "UID": 16098060869663201113,
+          "ComponentType": 5,
+          "Active": true,
+          "Position": [
+            71.0,
+            1.0
+          ],
+          "Scale": [
+            1.0,
+            1.0
+          ],
+          "Pivot": [
+            0.5,
+            0.5
+          ],
+          "AnchorMin": [
+            0.0,
+            0.0
+          ],
+          "AnchorMax": [
+            0.0,
+            0.0
+          ],
+          "BaseSize": [
+            18.0,
+            40.0
+          ],
+          "StretchMode": 0,
+          "SizingMode": 0,
+          "AspectRatio": 1.0,
+          "Alpha": 1.0
+        }
+      },
+      {
+        "Type": 7,
+        "Data": {
+          "UID": 5743631643130609216,
+          "ComponentType": 7,
+          "Active": true,
+          "TextureAssetId": {
+            "uid": 6703742743120778305,
+            "libId": "03313cbcf104dc97f629ab12b056ebff"
+          },
+          "FillAmount": 1.0,
+          "FillMethod": 0,
+          "FillOrigin": 0
+        }
+      }
+    ],
+    "Children": []
+  }
+}

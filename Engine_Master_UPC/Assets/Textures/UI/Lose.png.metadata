@@ -1,0 +1,13 @@
+{
+    "uid": 9772097631943482135,
+    "contentHash": "47fb91090338cedcfe7a1c9d955831fd",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\Lose.png",
+    "sourceFileSize": 74142,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

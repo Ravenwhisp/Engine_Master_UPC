@@ -12,6 +12,7 @@
 
 #include "ModuleNavigation.h"
 #include "ModuleUI.h"
+#include "ModuleMusic.h"
 
 #include "RingBuffer.h"
 #include "RenderSurface.h"
@@ -28,6 +29,7 @@
 #include "ParticlesPass.h"
 #include "GeometryPass.h"
 #include "DeferredShadingPass.h"
+#include "TrailPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
 #include "FontPass.h"
@@ -87,6 +89,7 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
+    m_renderPasses.push_back(std::make_unique<TrailPass>(device));
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));
@@ -117,6 +120,11 @@ void ModuleRender::preRender()
     {
         app->getModuleD3D12()->getCommandQueue()->flush();
         app->getModuleGameView()->stopGameSimulation();
+
+        // Corta toda la música/SFX en curso al salir de play mode, para que no sigan
+        // sonando tras el Stop del editor.
+        app->getModuleMusic()->stopAllSounds();
+
         m_pendingStopSimulation = false;
     }
 

@@ -1,0 +1,13 @@
+{
+    "uid": 15259202111477200151,
+    "contentHash": "cda10638f7c95ee16a368614526a8527",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_PROP_metal_interior_E.jpg",
+    "sourceFileSize": 70664,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

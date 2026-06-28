@@ -1,0 +1,140 @@
+{
+    "name": "Mage_StateMachine",
+    "defaultState": "Mage_Idle",
+    "clips": [
+        {
+            "name": "Mage_Tpose",
+            "animationUID": "bae7f0544e7f94c8a96b8d44b8e3d325",
+            "loop": true
+        },
+        {
+            "name": "Mage_Attack_1",
+            "animationUID": "dd222816aa49bde9c6f6e6ef2ba2c0f2",
+            "loop": true
+        },
+        {
+            "name": "Mage_Attack_2",
+            "animationUID": "15bcc8bbc83dd07c8b80e1bcef412760",
+            "loop": true
+        },
+        {
+            "name": "Mage_Damage",
+            "animationUID": "66fa5abd3df405e7364068cdbe64eb3b",
+            "loop": true
+        },
+        {
+            "name": "Mage_Death",
+            "animationUID": "099f44f6db94f896deb88a301e3cdb19",
+            "loop": true
+        },
+        {
+            "name": "Mage_Idle",
+            "animationUID": "8ab884b6704cd48cbac09db0c2933399",
+            "loop": true
+        },
+        {
+            "name": "Mage_Idle_long",
+            "animationUID": "a88d39970e9089e07cfcdb9f33882681",
+            "loop": true
+        },
+        {
+            "name": "Mage_Walk",
+            "animationUID": "993de9f5d17182661eeb632748d7edce",
+            "loop": true
+        }
+    ],
+    "states": [
+        {
+            "name": "Mage_Tpose",
+            "clipName": "Mage_Tpose",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Attack_1",
+            "clipName": "Mage_Attack_1",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Attack_2",
+            "clipName": "Mage_Attack_2",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Damage",
+            "clipName": "Mage_Damage",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Death",
+            "clipName": "Mage_Death",
+            "speed": 1.0,
+            "behaviourScriptName": "hfjjggjh",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Idle",
+            "clipName": "Mage_Idle",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Idle_long",
+            "clipName": "Mage_Idle_long",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Mage_Walk",
+            "clipName": "Mage_Walk",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        }
+    ],
+    "transitions": [
+        {
+            "sourceStateName": "Mage_Damage",
+            "targetStateName": "Mage_Attack_1",
+            "triggerName": "trigger",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Mage_Death",
+            "targetStateName": "Mage_Attack_2",
+            "triggerName": "trigger",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "Mage_Attack_1",
+            "targetStateName": "Mage_Idle",
+            "triggerName": "trigger",
+            "blendTimeSeconds": 0.25
+        }
+    ]
+}

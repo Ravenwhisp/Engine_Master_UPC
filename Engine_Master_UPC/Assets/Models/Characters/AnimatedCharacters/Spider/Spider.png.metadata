@@ -1,0 +1,13 @@
+{
+    "uid": 15075642692534346227,
+    "contentHash": "5a377da400593eea22d9cab9763d8b57",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Characters\\AnimatedCharacters\\Spider\\Spider.png",
+    "sourceFileSize": 276917,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

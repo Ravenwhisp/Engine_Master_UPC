@@ -1,0 +1,13 @@
+{
+    "uid": 11660840191982209457,
+    "contentHash": "238e78233b0740a20ceee5740dbb5a3d",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Characters\\Ghost.jpg",
+    "sourceFileSize": 22066,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -8,6 +8,8 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
+#include "ModuleMusic.h"
+
 #include "PrefabManager.h"
 #include "Quadtree.h"
 
@@ -2906,5 +2908,30 @@ namespace AudioAPI
         {
             component->resumeEvent(playingID);
         }
+    }
+
+    void setState(const char* stateGroup, const char* stateValue)
+    {
+		app->getModuleMusic()->setState(stateGroup, stateValue);
+    }
+
+    void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component)
+    {
+        component->setSwitch(switchGroup, switchValue);
+    }
+
+    void setRTPC(const char* rtpcName, float value)
+    {
+		app->getModuleMusic()->setRTPC(rtpcName, value);
+    }
+
+    bool isMusicStarted()
+    {
+		return app->getModuleMusic()->isMusicStarted();
+    }
+
+    void setMusicStarted(bool started)
+    {
+		app->getModuleMusic()->setMusicStarted(started);
     }
 }

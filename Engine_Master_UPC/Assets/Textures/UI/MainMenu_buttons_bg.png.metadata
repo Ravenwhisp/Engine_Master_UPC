@@ -1,0 +1,13 @@
+{
+    "uid": 921242515686824861,
+    "contentHash": "a26d8bb544fe6cd8aad19d6c34a5606c",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\MainMenu_buttons_bg.png",
+    "sourceFileSize": 146945,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

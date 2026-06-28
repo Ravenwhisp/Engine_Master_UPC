@@ -39,6 +39,10 @@ public:
 	void update();
 	void cleanUp();
 
+	// Para TODOS los sonidos en curso (música y SFX). Se usa al salir de play mode
+	// para que la música/loops no sigan sonando tras el Stop del editor.
+	void stopAll();
+
 	AkGameObjectID getGlobalGameObject() const;
 	AkGameObjectID getGlobalListenerGameObject() const;
 
@@ -53,6 +57,10 @@ public:
 	const std::vector<AkGameObjectID>& getListeners() const;
 
 	void setListeners(AkGameObjectID emitterID, const AkGameObjectID* listenerIDs, AkUInt32 listenerCount);
+
+	bool setState(const char* stateGroup, const char* stateValue);
+	bool setSwitch(const char* switchGroup, const char* switchValue, AkGameObjectID component);
+	bool setRTPC(const char* rtpcName, float value);
 
 private:
 	bool initMemory();

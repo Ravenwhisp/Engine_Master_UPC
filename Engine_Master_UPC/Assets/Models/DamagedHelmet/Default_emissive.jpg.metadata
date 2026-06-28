@@ -1,0 +1,13 @@
+{
+    "uid": 15460735290991972891,
+    "contentHash": "fa8c756ea48eac1b18f1e74c03b34436",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\DamagedHelmet\\Default_emissive.jpg",
+    "sourceFileSize": 97499,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

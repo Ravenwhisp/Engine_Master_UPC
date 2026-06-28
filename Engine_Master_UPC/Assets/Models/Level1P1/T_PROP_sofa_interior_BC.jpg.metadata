@@ -1,0 +1,13 @@
+{
+    "uid": 857180212660037212,
+    "contentHash": "ba63c4e1ac6a367fa85ce97c1e29c0e8",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_sofa_interior_BC.jpg",
+    "sourceFileSize": 107097,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}
