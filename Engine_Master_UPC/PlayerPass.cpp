@@ -38,8 +38,8 @@ PlayerPass::PlayerPass(ComPtr<ID3D12Device4> device)
 
 void PlayerPass::createRootSignature()
 {
-	CD3DX12_ROOT_PARAMETER		rootParams[12] = {};
-	CD3DX12_DESCRIPTOR_RANGE	srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange;
+	CD3DX12_ROOT_PARAMETER		rootParams[13] = {};
+	CD3DX12_DESCRIPTOR_RANGE	srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange, ssaoRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
@@ -47,8 +47,9 @@ void PlayerPass::createRootSignature()
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
     prefilteredRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
     shadowMapRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
+    ssaoRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
 
-    rootParams[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); //Model view projection
+    rootParams[0].InitAsConstants((sizeof(Matrix) / sizeof(UINT32)), 0, 0, D3D12_SHADER_VISIBILITY_ALL); //Model view projection
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); //Scene data
     rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Lights
     rootParams[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Shadows
@@ -60,6 +61,7 @@ void PlayerPass::createRootSignature()
     rootParams[9].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL); //Brdf texture
     rootParams[10].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
     rootParams[11].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
+    rootParams[12].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL); //SSAO texture
 
 	CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
 	rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -127,7 +129,11 @@ void PlayerPass::prepare(const RenderContext& ctx)
     m_projection = &ctx.projection;
     m_sceneDataCB->viewPos = ctx.cameraPosition;
 
-    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+    const float width = std::max(1.0f, ctx.viewport.Width);
+    const float height = std::max(1.0f, ctx.viewport.Height);
+
+    m_sceneDataCB->screenSize = DirectX::SimpleMath::Vector2(width, height);
+    m_sceneDataCB->invScreenSize = DirectX::SimpleMath::Vector2(1.0f / width, 1.0f / height);
 
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
@@ -157,6 +163,27 @@ void PlayerPass::prepare(const RenderContext& ctx)
     {
         m_shadowCBAddress = 0;
         m_shadowMapSRV = {};
+    }
+
+    const SSAOSettings defaultSSAOSettings{};
+    const SSAOSettings& ssaoSettings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSSAOSettings;
+
+    m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(ssaoSettings.enabled ? 1.0f : 0.0f, ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f, 0.0f, 0.0f);
+
+    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+
+    m_hasSSAOData = false;
+    m_ssaoSRV = {};
+
+    if (ctx.ssaoData && ctx.ssaoData->ssaoSRV.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoData->ssaoSRV;
+        m_hasSSAOData = true;
+    }
+    else if (ctx.ssaoRawTexture && ctx.ssaoRawTexture->getSRV().gpu.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
+        m_hasSSAOData = true;
     }
 }
 
@@ -193,6 +220,11 @@ void PlayerPass::apply(ID3D12GraphicsCommandList4* commandList)
     {
         commandList->SetGraphicsRootConstantBufferView(3, m_shadowCBAddress);
         commandList->SetGraphicsRootDescriptorTable(11, m_shadowMapSRV);
+    }
+
+    if (m_hasSSAOData && m_ssaoSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootDescriptorTable(12, m_ssaoSRV);
     }
 
     for (auto* renderer : m_meshRenderers)
@@ -263,7 +295,7 @@ void PlayerPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, Mes
     Matrix global = transform->getGlobalMatrix();
     Matrix mvp = useWorldSpaceSkinnedVB ? (*m_view * *m_projection).Transpose() : (global * *m_view * *m_projection).Transpose();
 
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(Matrix) / sizeof(UINT32), &mvp, 0);
+    commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &mvp, 0);
 
     for (int i = 0; i < submeshes.size(); i++)
     {

@@ -98,7 +98,7 @@ void SSAOBlurPass::prepare(const RenderContext& ctx)
 
 void SSAOBlurPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    PERF_RENDER("SSAOBlurPass::apply");
+    BEGIN_EVENT(commandList, "SsaoBlurPass");
 
     if (!m_inputTexture || !m_outputTexture || m_blurCBAddress == 0)
     {
@@ -150,6 +150,8 @@ void SSAOBlurPass::apply(ID3D12GraphicsCommandList4* commandList)
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     commandList->ResourceBarrier(1, &barrierToRead);
+
+    END_EVENT(commandList);
 }
 
 void SSAOBlurPass::uploadConstants(const RenderContext& ctx)

@@ -107,7 +107,7 @@ void SSAOPass::prepare(const RenderContext& ctx)
 
 void SSAOPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    PERF_RENDER("SSAOPass::apply");
+    BEGIN_EVENT(commandList, "SsaoPass");
 
     if (!m_outputTexture || !m_depthTexture || !m_normalTexture || m_ssaoCBAddress == 0)
     {
@@ -160,6 +160,8 @@ void SSAOPass::apply(ID3D12GraphicsCommandList4* commandList)
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     commandList->ResourceBarrier(1, &barrierToRead);
+
+    END_EVENT(commandList);
 }
 
 void SSAOPass::createKernel()

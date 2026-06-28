@@ -2,6 +2,11 @@
 #include "General.hlsli"
 #include "PBRGeneral.hlsli"
 
+cbuffer Mvp : register(b0)
+{
+    float4x4 mvp;
+};
+
 cbuffer ModelDataCB : register(b4)
 {
     float4x4 model;
@@ -41,6 +46,7 @@ TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
 Texture2D shadowMap : register(t11);
+Texture2D ssaoTexture : register(t12);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -264,7 +270,22 @@ float3 CalculateDamageHighlight(float3 normalVector, float3 viewDirection, float
 
 
 
-float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD) : SV_TARGET
+//----------EFFECTS----------//
+float SampleSSAO(float4 screenPosition)
+{
+    if (renderFlags.x < 0.5f)
+    {
+        return 1.0f;
+    }
+
+    float2 ssaoUV = screenPosition.xy * invScreenSize;
+    return ssaoTexture.Sample(pointClampSample, ssaoUV).r;
+}
+//--------------------//
+
+
+
+float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD, float4 position : SV_POSITION) : SV_TARGET
 {
     //Initialize material values
     float metallic = metallicFactor;
@@ -384,7 +405,16 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
 
     
     //Calculate indirect lighting
-    float specularAO = computeSpecularAO(NdotV, ao, alphaRoughness);
+    float ssao = SampleSSAO(position);
+
+    if (renderFlags.y > 0.5f)
+    {
+        return float4(ssao.xxx, 1.0f);
+    }
+    
+    float diffuseAO = saturate(ao * ssao);
+    
+    float specularAO = computeSpecularAO(NdotV, diffuseAO, alphaRoughness);
     specularAO *= horizon;
     
     float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, ao, specularAO);

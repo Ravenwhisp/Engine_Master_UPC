@@ -112,7 +112,7 @@ void ForwardPrepass::apply(ID3D12GraphicsCommandList4* commandList)
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 
 	dsvHandle = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
-	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 	commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
 
 	commandList->RSSetViewports(1, &m_viewport);
