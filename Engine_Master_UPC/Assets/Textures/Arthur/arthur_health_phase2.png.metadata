@@ -1,0 +1,13 @@
+{
+    "uid": 16724957911390201402,
+    "contentHash": "1de0009b661f542a8c3b42ce3820abd7",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_health_phase2.png",
+    "sourceFileSize": 121927,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

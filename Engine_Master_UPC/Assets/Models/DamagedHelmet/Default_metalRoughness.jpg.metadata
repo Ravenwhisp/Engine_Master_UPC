@@ -1,0 +1,13 @@
+{
+    "uid": 8877170733472611638,
+    "contentHash": "294a81a28afbf24cc5ee6cd6aad44786",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\DamagedHelmet\\Default_metalRoughness.jpg",
+    "sourceFileSize": 1300661,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

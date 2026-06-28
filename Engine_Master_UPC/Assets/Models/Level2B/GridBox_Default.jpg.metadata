@@ -1,0 +1,13 @@
+{
+    "uid": 6812710113079071762,
+    "contentHash": "9a41534847f2083c6e02e4502c40a0b0",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level2B\\GridBox_Default.jpg",
+    "sourceFileSize": 12157,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

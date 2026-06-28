@@ -1,0 +1,13 @@
+{
+    "uid": 9154116592591514781,
+    "contentHash": "9a2d62113da549df38058eb5fbefa3b8",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Screens\\screen_pause_controls.png",
+    "sourceFileSize": 165817,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 8633932425566240508,
+    "contentHash": "0434c9f26b87f87ad51e0bc23ea6a79a",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_pot_dungeon_BC.jpg",
+    "sourceFileSize": 158822,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

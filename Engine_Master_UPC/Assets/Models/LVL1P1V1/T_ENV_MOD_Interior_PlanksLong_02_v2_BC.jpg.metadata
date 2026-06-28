@@ -1,0 +1,13 @@
+{
+    "uid": 7399950736662496391,
+    "contentHash": "77096c4dd76c468f7d8f41ce1c193d71",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_ENV_MOD_Interior_PlanksLong_02_v2_BC.jpg",
+    "sourceFileSize": 127474,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

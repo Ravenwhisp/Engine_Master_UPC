@@ -1,0 +1,13 @@
+{
+    "uid": 1083058717892601512,
+    "contentHash": "968528f80bfda7c74b7d637e906762e4",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_fireplaces_interior_BC.jpg",
+    "sourceFileSize": 181463,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

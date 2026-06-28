@@ -1,0 +1,13 @@
+{
+    "uid": 6352463431480337102,
+    "contentHash": "479ae1abf96773614c3c19363ac2cb8c",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level2B\\T_PROP_dirtpile_dungeon_N.png",
+    "sourceFileSize": 14138250,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

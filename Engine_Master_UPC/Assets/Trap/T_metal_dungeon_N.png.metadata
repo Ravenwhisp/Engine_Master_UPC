@@ -1,0 +1,13 @@
+{
+    "uid": 6076955571805898027,
+    "contentHash": "96c74c3488fb07e741dcf95c50c8b8b1",
+    "type": 0,
+    "sourcePath": "Assets\\Trap\\T_metal_dungeon_N.png",
+    "sourceFileSize": 2617347,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

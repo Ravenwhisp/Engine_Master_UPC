@@ -1,0 +1,13 @@
+{
+    "uid": 10660691787070957828,
+    "contentHash": "37d8b5fa2118b733f6cd1b33ce81575e",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\uvTest.png",
+    "sourceFileSize": 829296,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 2395877385319401422,
+    "contentHash": "292a80fc3db0473ef7676213547f0a9c",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_lyriel.png",
+    "sourceFileSize": 36749,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

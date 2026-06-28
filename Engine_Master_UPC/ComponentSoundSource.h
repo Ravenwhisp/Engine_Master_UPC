@@ -27,6 +27,8 @@ public:
 	void pauseEvent(uint32_t playingID);
 	void resumeEvent(uint32_t playingID);
 
+	void setSwitch(const char* switchGroup, const char* switchValue);
+
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 	void drawUi() override;
 

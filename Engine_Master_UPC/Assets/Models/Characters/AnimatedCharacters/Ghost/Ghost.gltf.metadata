@@ -1,0 +1,73 @@
+{
+    "uid": 198415637757330278,
+    "contentHash": "476aeadb6697773033cf174bf268f9c5",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Characters\\AnimatedCharacters\\Ghost\\Ghost.gltf",
+    "sourceFileSize": 502344,
+    "dependencies": [
+        {
+            "uid": 4815528595379526972,
+            "contentHash": "c9eb32b23f6a039a01b9b9b10af704c8",
+            "type": 2,
+            "displayName": "Ghost_M"
+        },
+        {
+            "uid": 13130394555016071329,
+            "contentHash": "9e0ed60a976d8bb9b714ea298351fd48",
+            "type": 3,
+            "displayName": "Ghost"
+        },
+        {
+            "uid": 14199741254574568641,
+            "contentHash": "32559c1f60a6dc04228a475d9158525f",
+            "type": 6,
+            "displayName": "Ghost_Idle"
+        },
+        {
+            "uid": 16259659905940049556,
+            "contentHash": "664aeefaedfd881335500869580596b4",
+            "type": 6,
+            "displayName": "Ghost_Idle_long"
+        },
+        {
+            "uid": 13468629528477703923,
+            "contentHash": "1f60e2034ee4fa3a967121e24117c656",
+            "type": 6,
+            "displayName": "Ghost_Fly"
+        },
+        {
+            "uid": 9533535938206922414,
+            "contentHash": "9fbc6a247e349857d1f7c5ec7ddab220",
+            "type": 6,
+            "displayName": "Ghost_Attack"
+        },
+        {
+            "uid": 15784693465937695785,
+            "contentHash": "92bc768afb9d0f8e6723c3c46e40d0ee",
+            "type": 6,
+            "displayName": "Ghost_Damage"
+        },
+        {
+            "uid": 4255812996545272822,
+            "contentHash": "a42fbd085113f325585fb04d9b75c199",
+            "type": 6,
+            "displayName": "Ghost_Death"
+        },
+        {
+            "uid": 3766463860614034078,
+            "contentHash": "e64299eda6b1b1a34907d059df7d3d2d",
+            "type": 6,
+            "displayName": "Ghost_Tpose"
+        },
+        {
+            "uid": 15740816394657483317,
+            "contentHash": "2968e006673fcc33a1d4dfa8d1818bc8",
+            "type": 7
+        },
+        {
+            "uid": 12416610984171813391,
+            "contentHash": "01a55cf5475f86ab9449bfdd0946921d",
+            "type": 7
+        }
+    ]
+}

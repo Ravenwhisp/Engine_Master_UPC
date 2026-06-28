@@ -1,0 +1,13 @@
+{
+    "uid": 8611505141713682000,
+    "contentHash": "0dd58b075da06283f5204cd90fbc3451",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Particles\\T_smoke.png",
+    "sourceFileSize": 97778,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

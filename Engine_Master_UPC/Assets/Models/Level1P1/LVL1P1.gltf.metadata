@@ -1,0 +1,2403 @@
+{
+    "uid": 10889436296623271646,
+    "contentHash": "68f53cd7f654df4b551030e681708169",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Level1P1\\LVL1P1.gltf",
+    "sourceFileSize": 705785,
+    "dependencies": [
+        {
+            "uid": 17029331914473249241,
+            "contentHash": "7f2d6bbc872cecd9016622ff7e939b1c",
+            "type": 2,
+            "displayName": "EspectralPath"
+        },
+        {
+            "uid": 15701360070595417194,
+            "contentHash": "410ee65fdd71f19a4c50e4719741a200",
+            "type": 2,
+            "displayName": "M_MOD_Trim_Stone_01_v3"
+        },
+        {
+            "uid": 3832328038921470514,
+            "contentHash": "d38d37e1486badc40433ca8ce232a6c6",
+            "type": 2,
+            "displayName": "M_MOD_Wall_01_v3"
+        },
+        {
+            "uid": 18265778985541412769,
+            "contentHash": "fdd899aa3ac08ed9c09b8d5e88b12ece",
+            "type": 2,
+            "displayName": "M_MOD_Floor_01_v3_clean"
+        },
+        {
+            "uid": 12740361562255699943,
+            "contentHash": "c4f706d11c590474e687e95b967da8c1",
+            "type": 2,
+            "displayName": "M_MOD_Floor_01_v3"
+        },
+        {
+            "uid": 2792937337432454417,
+            "contentHash": "b904d9cfdfc334ce27b3dcc3e8387fef",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_01"
+        },
+        {
+            "uid": 9633928055629421660,
+            "contentHash": "f61458ae7d67583f515e2640f6674c89",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_03"
+        },
+        {
+            "uid": 9010131806681285296,
+            "contentHash": "f4d1b8b9ea9cae6ec80222a399a10bfc",
+            "type": 2,
+            "displayName": "M_PROP_chains_dungeon"
+        },
+        {
+            "uid": 16242389459935107935,
+            "contentHash": "421394811f1238b25b5155a9ea0d2b0d",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_02"
+        },
+        {
+            "uid": 11398071788262912916,
+            "contentHash": "f5715f93ff4e49901575311d779428de",
+            "type": 2,
+            "displayName": "M_PROP_sack_dungeon"
+        },
+        {
+            "uid": 3111572538885081166,
+            "contentHash": "e084deb34d84ebba9c4abd3bb4fca8d0",
+            "type": 2,
+            "displayName": "M_PROP_wood_planks_interior_02"
+        },
+        {
+            "uid": 15979255838023423336,
+            "contentHash": "8c34f68a392f59dec4ba8a3ad17ab439",
+            "type": 2,
+            "displayName": "M_PROP_weapon_dungeon"
+        },
+        {
+            "uid": 1370142508289988473,
+            "contentHash": "e2406d981aa6887dd0e93fe3a1166d86",
+            "type": 2,
+            "displayName": "M_PROP_bow_dungeon"
+        },
+        {
+            "uid": 11159078885625429705,
+            "contentHash": "70630f9c34e4cd4f974628053f9f69e9",
+            "type": 2,
+            "displayName": "M_PROP_wood_planks_interior_01"
+        },
+        {
+            "uid": 16256217694411738152,
+            "contentHash": "7f2f1fecb3df288c96ef353b11bf9616",
+            "type": 2,
+            "displayName": "M_PROP_flags_dungeon"
+        },
+        {
+            "uid": 9011593414953480784,
+            "contentHash": "820dd5949d5514a2161b4819cd1baec2",
+            "type": 2,
+            "displayName": "M_PROP_metal_interior"
+        },
+        {
+            "uid": 7018005675078405988,
+            "contentHash": "7b2710f364353512ea488849f150efeb",
+            "type": 2,
+            "displayName": "M_metal_dungeon_01"
+        },
+        {
+            "uid": 551948996531908404,
+            "contentHash": "b97a5bb01ff28c0d566a1e48ec49ccb9",
+            "type": 2,
+            "displayName": "M_PROP_campfire_dungeon"
+        },
+        {
+            "uid": 4621576237334424792,
+            "contentHash": "e6183f72541d067b7a159339fa9b961d",
+            "type": 2,
+            "displayName": "M_ENV_MOD_Interior_PlanksShort_02_v2"
+        },
+        {
+            "uid": 3717091126739992812,
+            "contentHash": "4230ae2ca4072702262de9ca3cb53194",
+            "type": 2,
+            "displayName": "M_MOD_Wall_01_v1"
+        },
+        {
+            "uid": 398566922885710866,
+            "contentHash": "24f9c662fb5de11a46546fa162cde085",
+            "type": 2,
+            "displayName": "M_MOD_Trim_Stone_01_v3_clean"
+        },
+        {
+            "uid": 6834644856386130295,
+            "contentHash": "d587007e809fb3fa1b0cfdff20623ec0",
+            "type": 2,
+            "displayName": "M_PROP_fabrics_interior"
+        },
+        {
+            "uid": 2920680246701555066,
+            "contentHash": "08bbc9b5c95ea61f8b66f99f8586bec5",
+            "type": 2,
+            "displayName": "M_FX_gradient_linear_interior"
+        },
+        {
+            "uid": 14065012443377595894,
+            "contentHash": "b02b47ac8ef93ee976865c39c64a99fd",
+            "type": 2,
+            "displayName": "M_ENV_MOD_gateway_interior_01"
+        },
+        {
+            "uid": 10597849036441592440,
+            "contentHash": "be759e487dc740fac112215dafb8190f",
+            "type": 2,
+            "displayName": "M_PROP_items_interior_01"
+        },
+        {
+            "uid": 4192729974003096952,
+            "contentHash": "ce9ad3930e04ba671f4bbb9eaad4f075",
+            "type": 2,
+            "displayName": "M_PROP_items_interior_02"
+        },
+        {
+            "uid": 5502611184172621081,
+            "contentHash": "20ce13fd3e3612332f0e7a5b677edc0c",
+            "type": 2,
+            "displayName": "M_PROP_fireplaces_interior"
+        },
+        {
+            "uid": 5753804626021202047,
+            "contentHash": "03c7a1c72d579fe0c32c54cf1daaa917",
+            "type": 2,
+            "displayName": "M_PROP_frames_interior"
+        },
+        {
+            "uid": 12754992429005383078,
+            "contentHash": "f69bb245756409f2083be6a00202e1cc",
+            "type": 2,
+            "displayName": "M_PROP_plant_interior"
+        },
+        {
+            "uid": 7170035392500504635,
+            "contentHash": "6a73b0b5201332ea74c1c332d1257b32",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_04"
+        },
+        {
+            "uid": 18185942348578842653,
+            "contentHash": "1cb3a4c711bb0449365897f37f08f17b",
+            "type": 2,
+            "displayName": "M_PROP_books_dungeon"
+        },
+        {
+            "uid": 10023408530995555502,
+            "contentHash": "0a115c5b5022c4635fffc88cc106f64d",
+            "type": 2,
+            "displayName": "M_PROP_candle_dungeon"
+        },
+        {
+            "uid": 10206621951746704359,
+            "contentHash": "d328000b5bbcf5118ce19707a8b9c9a5",
+            "type": 2,
+            "displayName": "M_ENV_MOD_Interior_WoodGeneric_v2"
+        },
+        {
+            "uid": 6552113613893100158,
+            "contentHash": "3946e093cdf258ce95555034b547fb59",
+            "type": 2,
+            "displayName": "M_ENV_MOD_Interior_PlanksLong_02_v2"
+        },
+        {
+            "uid": 6570067159598674227,
+            "contentHash": "334783203cf8bc5a92a16568f34b9634",
+            "type": 2,
+            "displayName": "M_PROP_goldpile_dungeon"
+        },
+        {
+            "uid": 3148679851204673108,
+            "contentHash": "2aaf79759209335a25d58e0d5934e116",
+            "type": 2,
+            "displayName": "M_PROP_skeleton_dungeon"
+        },
+        {
+            "uid": 16541043366031511646,
+            "contentHash": "9a4a59dca683a8b4523e2457dcb75abd",
+            "type": 2,
+            "displayName": "M_PROP_bottle_dungeon"
+        },
+        {
+            "uid": 17342100899067128277,
+            "contentHash": "f44b354862a8c0caa997ae7728034791",
+            "type": 2,
+            "displayName": "M_PROP_pot_dungeon"
+        },
+        {
+            "uid": 11156403221235842392,
+            "contentHash": "c50ae6e251a3dabae7589418690593cd",
+            "type": 2,
+            "displayName": "M_PROP_tools_dungeon"
+        },
+        {
+            "uid": 6677055848845111898,
+            "contentHash": "f4ebecd94631c8e18a001e261b468057",
+            "type": 2,
+            "displayName": "M_PROP_spiderweb_dungeon"
+        },
+        {
+            "uid": 14312680481458504406,
+            "contentHash": "59fe3bc7c15e71ef9212c9eab03ea3ef",
+            "type": 2,
+            "displayName": "M_PROP_items_interior_03"
+        },
+        {
+            "uid": 8507982477936963479,
+            "contentHash": "95b5c707697dd250927f39895b676835",
+            "type": 2,
+            "displayName": "M_PROP_bed_interior"
+        },
+        {
+            "uid": 2119483204091080389,
+            "contentHash": "6d0c9e8627962967bab5c9fffd07c980",
+            "type": 2,
+            "displayName": "M_PROP_vegetation_dungeon"
+        },
+        {
+            "uid": 6014064379340523785,
+            "contentHash": "5fec74e8e30c0d0bb195416485d008b0",
+            "type": 2,
+            "displayName": "M_PROP_fabric_dungeon"
+        },
+        {
+            "uid": 3273353157284240286,
+            "contentHash": "5f8bf92b21fe7c8736d60ee3b078d6ec",
+            "type": 2,
+            "displayName": "M_PROP_orevein_dungeon"
+        },
+        {
+            "uid": 10659055997972664311,
+            "contentHash": "54c51341afebf9a96f89f26e3906fc73",
+            "type": 2,
+            "displayName": "WoodFloor"
+        },
+        {
+            "uid": 6798147927541032552,
+            "contentHash": "410ee65fdd71f19a4c50e4719741a200",
+            "type": 2,
+            "displayName": "StoneStackMoss"
+        },
+        {
+            "uid": 842277321580060199,
+            "contentHash": "95b5c707697dd250927f39895b676835",
+            "type": 2,
+            "displayName": "Bed"
+        },
+        {
+            "uid": 9616553835880136679,
+            "contentHash": "d587007e809fb3fa1b0cfdff20623ec0",
+            "type": 2,
+            "displayName": "FabricsInterior"
+        },
+        {
+            "uid": 13409450878874375736,
+            "contentHash": "49472a2a388f45763e13341929778bbd",
+            "type": 2,
+            "displayName": "M_PROP_sofa_interior"
+        },
+        {
+            "uid": 1762990620757341055,
+            "contentHash": "6ce1a0c0e1addd1de56f7686663f682b",
+            "type": 2,
+            "displayName": "Frames"
+        },
+        {
+            "uid": 17717872225801716439,
+            "contentHash": "711a69328dadf0dcecb289d89f256b1b",
+            "type": 2,
+            "displayName": "M_PROP_stone_deco_dungeon"
+        },
+        {
+            "uid": 12951525959141788540,
+            "contentHash": "ff0d49c3c0f56c6d4abe34eb88c68467",
+            "type": 3,
+            "displayName": "pb_Mesh-255980"
+        },
+        {
+            "uid": 1983059613730480195,
+            "contentHash": "ff0d49c3c0f56c6d4abe34eb88c68467",
+            "type": 3,
+            "displayName": "pb_Mesh-255980(Clone)"
+        },
+        {
+            "uid": 15779102242935841729,
+            "contentHash": "34d7e09aa074f4988224a4a27e99feb8",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_straight_2"
+        },
+        {
+            "uid": 7319007745599871335,
+            "contentHash": "a03de8ad873f6888dd1e5ea157dbdf9b",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_WallCover_2"
+        },
+        {
+            "uid": 16609645884331256168,
+            "contentHash": "8e6dc9a34bade96a1e1fbb1f71234734",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_straight_med"
+        },
+        {
+            "uid": 1840925004739188057,
+            "contentHash": "9914a5fd8ad3d7d66e7634de189c12ca",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_concave_tiny"
+        },
+        {
+            "uid": 16845585918727199135,
+            "contentHash": "095e1e7b26e21658b947049ff8208744",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_straight_small"
+        },
+        {
+            "uid": 8167139657950940114,
+            "contentHash": "7c79b67dae7027eab377546c7ceb443d",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_angle_med"
+        },
+        {
+            "uid": 12055729482790710523,
+            "contentHash": "e7a0379b39760e42446836d7224585b8",
+            "type": 3,
+            "displayName": "MOD_Railing_01_straight"
+        },
+        {
+            "uid": 8395546727329073896,
+            "contentHash": "cb97337555b23c3e293bead3d5046ecc",
+            "type": 3,
+            "displayName": "MOD_Railing_01_convex_2"
+        },
+        {
+            "uid": 626768555007511516,
+            "contentHash": "046d5963d097735cf2cd073f96566ce9",
+            "type": 3,
+            "displayName": "MOD_Railing_01_straight_half"
+        },
+        {
+            "uid": 6026908696316304692,
+            "contentHash": "9825ef66cdcd7dab6c8578420e2e21b8",
+            "type": 3,
+            "displayName": "MOD_Railing_01_column"
+        },
+        {
+            "uid": 9336012495350575168,
+            "contentHash": "5febc6ac2ed3880d00c75cc3a1816ceb",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_small_half_L"
+        },
+        {
+            "uid": 10853749073747227683,
+            "contentHash": "cd94f9c5871b5d556ced986e752ab901",
+            "type": 3,
+            "displayName": "MOD_Railing_01_angle"
+        },
+        {
+            "uid": 14995284523828326594,
+            "contentHash": "8c0c5a908cad655f81364aea26baed44",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_Railing_2"
+        },
+        {
+            "uid": 1480942783057951623,
+            "contentHash": "4d01e70a0be9eea5df039e661d599db5",
+            "type": 3,
+            "displayName": "SM_PROP_woodbridge_dungeon_09"
+        },
+        {
+            "uid": 95147413398058230,
+            "contentHash": "c2145c3ba1a69f561d8cdfb21a95c8d6",
+            "type": 3,
+            "displayName": "SM_PROP_cage_holder_dungeon"
+        },
+        {
+            "uid": 13927288926303352310,
+            "contentHash": "6c6dc4a423d38fba09404f6cc821c21c",
+            "type": 3,
+            "displayName": "SM_PROP_chain_small_dungeon_04"
+        },
+        {
+            "uid": 17853048359560259872,
+            "contentHash": "5fda2d9edf0c4cffbbeadabd9fe308ed",
+            "type": 3,
+            "displayName": "MOD_Wall_01_M_concave_med"
+        },
+        {
+            "uid": 5966968965139803496,
+            "contentHash": "8f6103e536a22cae27b714e76559e679",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_M_concave_2"
+        },
+        {
+            "uid": 4666074721290139753,
+            "contentHash": "11636c779368924961458c2d23a04391",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_M_concave"
+        },
+        {
+            "uid": 16435537193507884203,
+            "contentHash": "8a4f773c18a21ed1a4ffb2d12f0a4139",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_M_concave_1"
+        },
+        {
+            "uid": 16679374516586031026,
+            "contentHash": "9c141d8b35fc30847474e1d56f299ed7",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_convex_med"
+        },
+        {
+            "uid": 6542614331156069939,
+            "contentHash": "7854f2c30d9b8518908d293af5cbc55c",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_concave_med"
+        },
+        {
+            "uid": 15568485745168900841,
+            "contentHash": "864798b127b12e601324ca19403fb7e9",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_concave"
+        },
+        {
+            "uid": 7093119373182123224,
+            "contentHash": "2377554a38586eb24cdb0cdfd97bbe48",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_concave"
+        },
+        {
+            "uid": 12652780837699897071,
+            "contentHash": "fddd898deb51bab6ea3d108f47b89d87",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_straight_2_half"
+        },
+        {
+            "uid": 12369820050031624601,
+            "contentHash": "5e62d76cfec87610a6bb517ec34d01ff",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_WallCover_2_half"
+        },
+        {
+            "uid": 5097558208597211275,
+            "contentHash": "33597ff4baa86a385709c9c9d408febc",
+            "type": 3,
+            "displayName": "MOD_Column_01_base"
+        },
+        {
+            "uid": 725075191420641243,
+            "contentHash": "d2177cd4d520bad460f818d181974250",
+            "type": 3,
+            "displayName": "MOD_Column_01_large"
+        },
+        {
+            "uid": 2108654537068778054,
+            "contentHash": "f76c65e6326477a2ee2e3ad91c996e1e",
+            "type": 3,
+            "displayName": "MOD_Column_01_capital"
+        },
+        {
+            "uid": 4890180956467324197,
+            "contentHash": "9c35b55db6819080caa3f465ce3f3110",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_dungeon_03"
+        },
+        {
+            "uid": 3122764641342963239,
+            "contentHash": "07a172b1d3cfc837a75e0414ca0f3ecf",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_07"
+        },
+        {
+            "uid": 9257295346763925598,
+            "contentHash": "008f3cb240f84aae2af9b48c29462c43",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_04"
+        },
+        {
+            "uid": 10358257206052429421,
+            "contentHash": "4c6ba7689b2ea04d6a83a20250fd5699",
+            "type": 3,
+            "displayName": "SM_PROP_sack_dungeon_03"
+        },
+        {
+            "uid": 10134305263435682730,
+            "contentHash": "e2a9eec72e23bcd184523cadcb4ec525",
+            "type": 3,
+            "displayName": "SM_PROP_sack_dungeon_04"
+        },
+        {
+            "uid": 10826674424603181374,
+            "contentHash": "c9841a342d57b99c1b1600d8a4032e1f",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_interior_01"
+        },
+        {
+            "uid": 1228226036523537830,
+            "contentHash": "f83f54b6907d96f887244702a69107d2",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_dungeon_04"
+        },
+        {
+            "uid": 13483535016685140231,
+            "contentHash": "e85981fb4aba5660f0c387b3c41ac94e",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_02"
+        },
+        {
+            "uid": 14595557791085295406,
+            "contentHash": "0dd20a972667bf30bf82a59677af8975",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_05"
+        },
+        {
+            "uid": 9640185260700097465,
+            "contentHash": "e2936c7292f94f1c5b5d3ab9962dd8b0",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_06"
+        },
+        {
+            "uid": 3238268723544184380,
+            "contentHash": "2fb20ea62002ee63aa234448b14e93f2",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_01"
+        },
+        {
+            "uid": 12595049385465040407,
+            "contentHash": "4850ff022904da03f82584715f0cc4b3",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_sword_dungeon_01"
+        },
+        {
+            "uid": 4129573307517531746,
+            "contentHash": "29c42fd654e328b1ef4469aa1c4a4792",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_bow_dungeon"
+        },
+        {
+            "uid": 5712362436672278401,
+            "contentHash": "6c0af015672b24b871e41f08d5fead79",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_dungeon_05"
+        },
+        {
+            "uid": 12292760475646406682,
+            "contentHash": "f9046e994a0588a659fb436057e437e3",
+            "type": 3,
+            "displayName": "SM_PROP_chair_02_dungeon"
+        },
+        {
+            "uid": 14480738603020127081,
+            "contentHash": "7cc666d9c45a842dc00d7dafc982c257",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_dungeon_01"
+        },
+        {
+            "uid": 6052133228532409629,
+            "contentHash": "c3d6d958f28978007c7ea31425c4e1d0",
+            "type": 3,
+            "displayName": "SM_PROP_toilet_lid_interior"
+        },
+        {
+            "uid": 17764639496698967811,
+            "contentHash": "bb6d5ae54f5386ff044efe46f2fc5725",
+            "type": 3,
+            "displayName": "SM_PROP_toilet_interior"
+        },
+        {
+            "uid": 17527526128702839012,
+            "contentHash": "35e32ad6ac108b9800ee049991c287a1",
+            "type": 3,
+            "displayName": "SM_PROP_box_interior"
+        },
+        {
+            "uid": 18321795639444111602,
+            "contentHash": "a687ef7e8e87deed55b1a1b539e50dfd",
+            "type": 3,
+            "displayName": "SM_PROP_flag_dungeon_03"
+        },
+        {
+            "uid": 626532191297836660,
+            "contentHash": "903aea064c97abd51f74e36f77321496",
+            "type": 3,
+            "displayName": "SM_PROP_lantern_04_holder_interior"
+        },
+        {
+            "uid": 8239307259157443052,
+            "contentHash": "badaa3f63965a988ffec796aef113b09",
+            "type": 3,
+            "displayName": "SM_PROP_lantern_interior_04"
+        },
+        {
+            "uid": 401555306185622138,
+            "contentHash": "685a3578e9ed7cc89ab94548dbcb7fb6",
+            "type": 3,
+            "displayName": "SM_PROP_brazier_dungeon_02"
+        },
+        {
+            "uid": 9548597099940618410,
+            "contentHash": "366ff402be7909692f40d3c30f99bb58",
+            "type": 3,
+            "displayName": "SM_PROP_campfire_dungeon_02"
+        },
+        {
+            "uid": 14330640538313102212,
+            "contentHash": "23a1d7937814958fe77ba1ae410e7169",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight"
+        },
+        {
+            "uid": 4346442697354522725,
+            "contentHash": "d79e82b1979f044a9a68bbc4f48582ff",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_large"
+        },
+        {
+            "uid": 17601676834764704425,
+            "contentHash": "e28b61ae6687e3d70cf52c69e08bc9a3",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight"
+        },
+        {
+            "uid": 6698098636622732886,
+            "contentHash": "b23f848ac94f0e1e15a7185c6725a910",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_angle_large_1"
+        },
+        {
+            "uid": 2903483081390226683,
+            "contentHash": "c77566d0dbf2a524956c4f4aef3f90e7",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_angle_1"
+        },
+        {
+            "uid": 8144925524113143800,
+            "contentHash": "e7caa236df8811d177dbda3b5f8f7be9",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_angle_1"
+        },
+        {
+            "uid": 8681299140473362451,
+            "contentHash": "08da9bd79197d4879fde3f699f9a52e9",
+            "type": 3,
+            "displayName": "MOD_Wall_01_M_concave_large_2"
+        },
+        {
+            "uid": 3656705424716050156,
+            "contentHash": "87636bf9fe0553e9e0a9c58ff9fc2c2d",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_M_concave_2_2"
+        },
+        {
+            "uid": 16368607142720546303,
+            "contentHash": "4d4deb330a2bce4cbb76fd1236682921",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_M_concave_1_2"
+        },
+        {
+            "uid": 661836742968202449,
+            "contentHash": "6545d5c8d93486ddf5a83031bc16a40b",
+            "type": 3,
+            "displayName": "pb_Mesh-155076(Clone)"
+        },
+        {
+            "uid": 5630712815963263006,
+            "contentHash": "63636e55f8bfff07689d10e1c51cbb49",
+            "type": 3,
+            "displayName": "pb_Mesh-155064(Clone)"
+        },
+        {
+            "uid": 4507774941600999296,
+            "contentHash": "3c3f12bed8695200f7cd4e57c38094fb",
+            "type": 3,
+            "displayName": "MOD_Floor_02_E_straight_med"
+        },
+        {
+            "uid": 5571474457769332670,
+            "contentHash": "610c5bd10e44cd7d9c5764f584bd28ca",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med"
+        },
+        {
+            "uid": 1534294029654018156,
+            "contentHash": "ff9a7754c6c7d8299d516269c1706f80",
+            "type": 3,
+            "displayName": "MOD_Gateway_Arc_01"
+        },
+        {
+            "uid": 13777486504228674844,
+            "contentHash": "8a5e9086dd565f9094e4a4f6dc395e4f",
+            "type": 3,
+            "displayName": "MOD_Column_01_small"
+        },
+        {
+            "uid": 7523642236614546104,
+            "contentHash": "cb994346e7c01c30ab93575486921acd",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_M_Gateway"
+        },
+        {
+            "uid": 14686464078197189367,
+            "contentHash": "32363409be6254f5f6640b49708cdb25",
+            "type": 3,
+            "displayName": "MOD_Gateway_Door_01_med_02_door"
+        },
+        {
+            "uid": 13267806620135387927,
+            "contentHash": "c4d91af0b13a4b72bad5d233b4b3c0eb",
+            "type": 3,
+            "displayName": "MOD_Gateway_Door_01_med_02"
+        },
+        {
+            "uid": 14141411189793415713,
+            "contentHash": "b5473af93322acc00468e9744dbb57ee",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_small"
+        },
+        {
+            "uid": 14361826372383221642,
+            "contentHash": "956e300f4487fa1f75af0b03d1f177b0",
+            "type": 3,
+            "displayName": "SM_PROP_curtainrod_interior"
+        },
+        {
+            "uid": 1906510146228890197,
+            "contentHash": "1463bd9d289b4cee8a898672a7587451",
+            "type": 3,
+            "displayName": "SM_PROP_curtain_interior_02_02"
+        },
+        {
+            "uid": 16275770556466174763,
+            "contentHash": "bacf23c2803744a06b19798eacbbc985",
+            "type": 3,
+            "displayName": "SM_PROP_curtain_interior_02_01"
+        },
+        {
+            "uid": 14862128051853015084,
+            "contentHash": "762effd5ce5590270fbe0934e2aa9556",
+            "type": 3,
+            "displayName": "Plane"
+        },
+        {
+            "uid": 1882830066961184476,
+            "contentHash": "2a1672ae4945a340b50b7aa3a2341c72",
+            "type": 3,
+            "displayName": "MOD_Window_interior_01"
+        },
+        {
+            "uid": 17125292293436861231,
+            "contentHash": "cdf7406fa8ec73f07763e7f48b6320d5",
+            "type": 3,
+            "displayName": "SM_PROP_chair_01_dungeon"
+        },
+        {
+            "uid": 13230974699530545474,
+            "contentHash": "1b9e7bbf9bc85c7c9f3e037790f5cb25",
+            "type": 3,
+            "displayName": "SM_PROP_chair_03_dungeon"
+        },
+        {
+            "uid": 1314400690138554866,
+            "contentHash": "c4831349757fd92bad1be514a3241126",
+            "type": 3,
+            "displayName": "SM_PROP_table_dungeon_01"
+        },
+        {
+            "uid": 10843212495765167648,
+            "contentHash": "5b6655636ca33ea0eace28bcc27801c2",
+            "type": 3,
+            "displayName": "SM_PROP_rug_interior_07"
+        },
+        {
+            "uid": 2972073826473052392,
+            "contentHash": "80817dbaa6aeb4e91b750d51c09fcad6",
+            "type": 3,
+            "displayName": "SM_PROP_cookingpot_handle_interior_01"
+        },
+        {
+            "uid": 9585926096925586880,
+            "contentHash": "b276734c58d504461d7a0256f3b6be09",
+            "type": 3,
+            "displayName": "SM_PROP_plane_soup_interior"
+        },
+        {
+            "uid": 5332471672334831631,
+            "contentHash": "78280879e0bf15f19078cbc02792ec51",
+            "type": 3,
+            "displayName": "SM_PROP_cookingpot_interior_01"
+        },
+        {
+            "uid": 3303370708087890146,
+            "contentHash": "f4a8acdb37ac040faa1e70897d35161c",
+            "type": 3,
+            "displayName": "SM_PROP_woodlogs_interior"
+        },
+        {
+            "uid": 10278195968233594702,
+            "contentHash": "46d82476197ee5bc3bf667c3ff4db1cf",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_bars_interior"
+        },
+        {
+            "uid": 13970193782621419786,
+            "contentHash": "dc6caf89dfb1413e4480f25621557079",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_hook_interior"
+        },
+        {
+            "uid": 880802990448266850,
+            "contentHash": "4f2ad66496467ed4beb5dd906d9ff7f1",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_interior"
+        },
+        {
+            "uid": 4173978735407463869,
+            "contentHash": "59c657caf45dcd639cfe3a891dc1e42a",
+            "type": 3,
+            "displayName": "SM_PROP_bookshelf_interior_01"
+        },
+        {
+            "uid": 4128814468790629828,
+            "contentHash": "a50eba7d7f5e7fecb2625e3195e6cfd1",
+            "type": 3,
+            "displayName": "SM_PROP_book_interior_03"
+        },
+        {
+            "uid": 10364532288780774638,
+            "contentHash": "aa34d0b368fa9a762e64c6ecc493b8fc",
+            "type": 3,
+            "displayName": "SM_PROP_candle_interior_01"
+        },
+        {
+            "uid": 1151455019943692168,
+            "contentHash": "68490e5b0c03d45961d60535d176f664",
+            "type": 3,
+            "displayName": "SM_PROP_candle_interior_02"
+        },
+        {
+            "uid": 10903379970043555107,
+            "contentHash": "9bfe67f1968a2b0a6b8d446e520b020a",
+            "type": 3,
+            "displayName": "SM_PROP_book_interior_01"
+        },
+        {
+            "uid": 5842520430392052194,
+            "contentHash": "39f761fb52270b0a3d925ae39b6f218c",
+            "type": 3,
+            "displayName": "SM_PROP_painting_interior_08"
+        },
+        {
+            "uid": 11687764081145761868,
+            "contentHash": "ad29e4c7329d9243f87732833361ba2d",
+            "type": 3,
+            "displayName": "SM_PROP_painting_interior_09"
+        },
+        {
+            "uid": 4237408768276487896,
+            "contentHash": "637dcaa86111c1fe58d35401d3a4d4b5",
+            "type": 3,
+            "displayName": "SM_PROP_painting_interior_10"
+        },
+        {
+            "uid": 7370979949883884377,
+            "contentHash": "fe994aa8e43bc0218c4aaeae2ed26f6f",
+            "type": 3,
+            "displayName": "SM_PROP_pot_interior_02"
+        },
+        {
+            "uid": 12217576745497184235,
+            "contentHash": "a30a22b8c937f3ea2e43183a69ddf75a",
+            "type": 3,
+            "displayName": "SM_PROP_pot_interior_01"
+        },
+        {
+            "uid": 17469927676979297762,
+            "contentHash": "4ba4b35ca18b7319ba5cb4a56023b01d",
+            "type": 3,
+            "displayName": "SM_PROP_candle_interior_04"
+        },
+        {
+            "uid": 7793535974095930939,
+            "contentHash": "3385ae2acddb0b90bcd0c61ddf8913bc",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_door_01_interior_01"
+        },
+        {
+            "uid": 1623614312056795446,
+            "contentHash": "621e93f593f0a67fd20e7f0fff1576fa",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_door_02_interior_01"
+        },
+        {
+            "uid": 6646767140435441083,
+            "contentHash": "8eb740ec76cca9e1aea8e84bba3b7ec4",
+            "type": 3,
+            "displayName": "SM_PROP_towel_interior_04"
+        },
+        {
+            "uid": 7943321154874568225,
+            "contentHash": "e260214d847d0f273095bcf0d7f18376",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_drawer_01_interior_01"
+        },
+        {
+            "uid": 5114601704964745038,
+            "contentHash": "06e336e4feaf0f027679782e887f64fa",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_drawer_02_interior_01"
+        },
+        {
+            "uid": 11291775405027072560,
+            "contentHash": "f5ca1778bbe45ae8c31268fd3217e3b7",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_pole_interior_01"
+        },
+        {
+            "uid": 1626531773462222458,
+            "contentHash": "d77912edabae3fbe3250aeb4c673d3a2",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_shelf_01_interior_01"
+        },
+        {
+            "uid": 13799066872918222631,
+            "contentHash": "aa0471f1f9eeab75f296f95d98a35940",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_shelf_02_interior_01"
+        },
+        {
+            "uid": 7660872502255523460,
+            "contentHash": "6714b05f1e6818395076b7ff960366b1",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_shelf_03_interior_01"
+        },
+        {
+            "uid": 4972999496848833944,
+            "contentHash": "d77912edabae3fbe3250aeb4c673d3a2",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_shelf_04_interior_01"
+        },
+        {
+            "uid": 5493473024504323355,
+            "contentHash": "36e38ebbeb0cfacae926643412f85589",
+            "type": 3,
+            "displayName": "SM_PROP_wardrobe_interior_01"
+        },
+        {
+            "uid": 7565899808106633415,
+            "contentHash": "69f2e37f46e22a9507558fc9a536963c",
+            "type": 3,
+            "displayName": "SM_PROP_hanger_interior_01"
+        },
+        {
+            "uid": 4809430225454021082,
+            "contentHash": "080d57fc99b2a22c63f76ad449d7b8d4",
+            "type": 3,
+            "displayName": "SM_PROP_hanger_interior_03"
+        },
+        {
+            "uid": 12319059864019963914,
+            "contentHash": "598cb2de3696fa49e5c842eb09508831",
+            "type": 3,
+            "displayName": "SM_PROP_hanger_interior_04"
+        },
+        {
+            "uid": 16834072276804759502,
+            "contentHash": "57ff409ea632fc32be688be9991568dc",
+            "type": 3,
+            "displayName": "SM_PROP_hanger_interior_02"
+        },
+        {
+            "uid": 3530888330977000115,
+            "contentHash": "60b22980783f8cf31112c58758368ea6",
+            "type": 3,
+            "displayName": "SM_PROP_towel_interior_03"
+        },
+        {
+            "uid": 2329124925807832773,
+            "contentHash": "4a8f0b77dc26a88049131de3d897cb35",
+            "type": 3,
+            "displayName": "SM_PROP_towel_interior_02"
+        },
+        {
+            "uid": 9210721647416077885,
+            "contentHash": "cce95c4949751de508f98a7dbaebc295",
+            "type": 3,
+            "displayName": "SM_PROP_towel_interior_01"
+        },
+        {
+            "uid": 5089529608593536255,
+            "contentHash": "f433e5f9cda2318756f48d9b26bd5875",
+            "type": 3,
+            "displayName": "SM_PROP_towel_interior_05"
+        },
+        {
+            "uid": 2215807106615330121,
+            "contentHash": "8048a20123c59726d527525d8317a249",
+            "type": 3,
+            "displayName": "SM_PROP_laundry_interior"
+        },
+        {
+            "uid": 2064421029206824452,
+            "contentHash": "4ab7c5f0673a1986bfe5b5f32f655290",
+            "type": 3,
+            "displayName": "SM_PROP_slipper_interior_01"
+        },
+        {
+            "uid": 7186012663771787794,
+            "contentHash": "55abce51382e0eb36a8f66ac2db6b90e",
+            "type": 3,
+            "displayName": "SM_PROP_slipper_interior_02"
+        },
+        {
+            "uid": 15841185415783908812,
+            "contentHash": "a2e98ea7b6548457cef807ffae344375",
+            "type": 3,
+            "displayName": "SM_PROP_bookshelf_dungeon_02"
+        },
+        {
+            "uid": 9071623233013162808,
+            "contentHash": "41f51fa8e3c5138b3853dfb2a9e66a15",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_09"
+        },
+        {
+            "uid": 8018791471539696212,
+            "contentHash": "5b44e2e7327d1a2241cd00267def24a3",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_08"
+        },
+        {
+            "uid": 8231243741794281379,
+            "contentHash": "fa1d4f2644f3bf42151d2f9b6832ff8e",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_02"
+        },
+        {
+            "uid": 11773506785740495321,
+            "contentHash": "6df391b7dd607be2a6076a30b93cc01b",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_04"
+        },
+        {
+            "uid": 13524918924050533187,
+            "contentHash": "95bf8d0423b61900652b659f401dbed8",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_03"
+        },
+        {
+            "uid": 15904806819134667617,
+            "contentHash": "2455e29837bfdeb9d688656e954030e7",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_07"
+        },
+        {
+            "uid": 4745559763847849881,
+            "contentHash": "115adc2b10f022e545972b3dfd751c79",
+            "type": 3,
+            "displayName": "SM_PROP_bowl_interior_02"
+        },
+        {
+            "uid": 11491305721248530893,
+            "contentHash": "36c464d9d25c0bf064138d332a1ca32c",
+            "type": 3,
+            "displayName": "SM_PROP_plane_beans_interior"
+        },
+        {
+            "uid": 7526913934841260998,
+            "contentHash": "dff4138882d3d8c25da97d3aedec7e01",
+            "type": 3,
+            "displayName": "SM_PROP_bowl_interior_01"
+        },
+        {
+            "uid": 10444078511541229430,
+            "contentHash": "ea5c6b76e75c54c9d09fa1732b5ae539",
+            "type": 3,
+            "displayName": "SM_PROP_plane_rice_interior"
+        },
+        {
+            "uid": 3955504913609280528,
+            "contentHash": "3eca2f1417cae227b2bd29bb9c75cf5a",
+            "type": 3,
+            "displayName": "SM_PROP_bread_interior_01"
+        },
+        {
+            "uid": 733333757828535778,
+            "contentHash": "3deda8add2dd3bc9107dfa33eff9791f",
+            "type": 3,
+            "displayName": "SM_PROP_bread_interior_06"
+        },
+        {
+            "uid": 10845432972489615756,
+            "contentHash": "cce4f561efa14d44c00e97278e60b627",
+            "type": 3,
+            "displayName": "SM_PROP_broom_interior"
+        },
+        {
+            "uid": 8495431619770207088,
+            "contentHash": "8756b2b7c34a3d0d0169f19c1a5772f0",
+            "type": 3,
+            "displayName": "SM_PROP_brush_interior"
+        },
+        {
+            "uid": 161689387724743645,
+            "contentHash": "09156dd598b3beca66ccd262b6ef66a8",
+            "type": 3,
+            "displayName": "SM_PROP_handmirror_interior"
+        },
+        {
+            "uid": 18432587020417634703,
+            "contentHash": "b9544bfe4e17bc7f32b8e0d35fb94f7f",
+            "type": 3,
+            "displayName": "SM_PROP_book_interior_02"
+        },
+        {
+            "uid": 6365987318876522184,
+            "contentHash": "322e523378256afd9649a650bf39479b",
+            "type": 3,
+            "displayName": "SM_PROP_pot_interior_04"
+        },
+        {
+            "uid": 9330248825208191655,
+            "contentHash": "a88dbf47885302d494279585674f69d2",
+            "type": 3,
+            "displayName": "SM_PROP_pot_interior_03"
+        },
+        {
+            "uid": 5758345763009365341,
+            "contentHash": "127d8a8ad722a57b25aa687f803900e0",
+            "type": 3,
+            "displayName": "SM_PROP_chandelier_dungeon_01"
+        },
+        {
+            "uid": 6016573408269732869,
+            "contentHash": "ccffcde4c3fe88aacd385f02788a7fda",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_13"
+        },
+        {
+            "uid": 9497698904329102396,
+            "contentHash": "8744f4b19142194a9ce7f949fa099d52",
+            "type": 3,
+            "displayName": "MOD_WallCover_02_M_straight_04"
+        },
+        {
+            "uid": 16841706323963382083,
+            "contentHash": "88bc4061bfc2fd2bc75fbc162bc0ff6f",
+            "type": 3,
+            "displayName": "MOD_Floor_02_E_straight_tiny"
+        },
+        {
+            "uid": 9507354130569376579,
+            "contentHash": "e71757763003bc3fd7c21885ea4472ba",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med_half_L"
+        },
+        {
+            "uid": 13560589540448356978,
+            "contentHash": "f327bc654f598ce30b6cabf71097e853",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight_half_L"
+        },
+        {
+            "uid": 5443205273200197993,
+            "contentHash": "306e1e7568c0772f0a5ca5b59ae320ec",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight_half_L"
+        },
+        {
+            "uid": 11291753231756606106,
+            "contentHash": "b2046f3b9ace949110751a5ba235c302",
+            "type": 3,
+            "displayName": "MOD_Wall_01_O_straight_small_half"
+        },
+        {
+            "uid": 2456895032728397317,
+            "contentHash": "98dcec4ccd14158803fd46f796aa3e4d",
+            "type": 3,
+            "displayName": "MOD_Column_01_small_2"
+        },
+        {
+            "uid": 11610626082000211320,
+            "contentHash": "da6fe43faeb9a76626183417e401eefc",
+            "type": 3,
+            "displayName": "MOD_Column_01_med"
+        },
+        {
+            "uid": 12634234160740475730,
+            "contentHash": "277ee7714f3c87beaa93aa7482c0f65b",
+            "type": 3,
+            "displayName": "SM_PROP_chair_interior_01"
+        },
+        {
+            "uid": 12138345122655198157,
+            "contentHash": "aee137b721c203509c5d6be792dd521d",
+            "type": 3,
+            "displayName": "SM_PROP_table_interior_08"
+        },
+        {
+            "uid": 11752417031287909251,
+            "contentHash": "3ad661ed2a6c40b38ee5510f3f65675c",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_02"
+        },
+        {
+            "uid": 10724773910965194905,
+            "contentHash": "0bbd0bf67099dac20c041e23d059ded6",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_01"
+        },
+        {
+            "uid": 9967638782423020914,
+            "contentHash": "05548d340d7901b0d10ef9390519e131",
+            "type": 3,
+            "displayName": "SM_PROP_bookshelf_dungeon_01"
+        },
+        {
+            "uid": 18032558582180295196,
+            "contentHash": "61e258aaab9714d1cb21090a86b3432b",
+            "type": 3,
+            "displayName": "SM_PROP_coin_dungeon_02"
+        },
+        {
+            "uid": 14261622092195030439,
+            "contentHash": "04061253e55ff13ecc1731c8da7964b9",
+            "type": 3,
+            "displayName": "SM_PROP_chest_top_dungeon_03"
+        },
+        {
+            "uid": 9122877682835049075,
+            "contentHash": "c70a5662f469c0bac5a4ba5d5e1a3a78",
+            "type": 3,
+            "displayName": "SM_PROP_chest_dungeon_03"
+        },
+        {
+            "uid": 12103426535851796224,
+            "contentHash": "718bcd6dcf85b1db36cce141ae5926af",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_sword_dungeon_03"
+        },
+        {
+            "uid": 9643765118213987609,
+            "contentHash": "ff67a4289a8f3938742c86b22b6f53ee",
+            "type": 3,
+            "displayName": "SM_PROP_scroll_dungeon_03"
+        },
+        {
+            "uid": 8409950207759626140,
+            "contentHash": "ff2ce99b4088c940c454759c0c842ec9",
+            "type": 3,
+            "displayName": "SM_PROP_coin_dungeon_03"
+        },
+        {
+            "uid": 2455906969934773416,
+            "contentHash": "89f2556ca5326b6bb68f407e818552a5",
+            "type": 3,
+            "displayName": "SM_PROP_coin_dungeon_01"
+        },
+        {
+            "uid": 5608168219954500471,
+            "contentHash": "565838511803d2da268a0263613410d0",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_12"
+        },
+        {
+            "uid": 6731733028105995025,
+            "contentHash": "6b0e44dbc5cc4a9ff3079aab75484973",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_08"
+        },
+        {
+            "uid": 16446193684474609161,
+            "contentHash": "a162b7852c124d670e242d1e26678f55",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_09"
+        },
+        {
+            "uid": 10219149852407971512,
+            "contentHash": "6c7e2d474dc97101074d457d811ea59c",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_03"
+        },
+        {
+            "uid": 7188838301757515434,
+            "contentHash": "c7965f263bc38add57ceca5666435c0b",
+            "type": 3,
+            "displayName": "SM_PROP_key_dungeon_01"
+        },
+        {
+            "uid": 12441964946464724260,
+            "contentHash": "43b586c7e013d92e67ac84472deb2e9b",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_dungeon_17"
+        },
+        {
+            "uid": 4287769630412650561,
+            "contentHash": "2207c33a2465eb982e621ddb2ad239f0",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_dungeon_01"
+        },
+        {
+            "uid": 13587627507255942968,
+            "contentHash": "487a36d26016762ed4a8f0c155db7671",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_dungeon_02"
+        },
+        {
+            "uid": 15219835184497404375,
+            "contentHash": "3e3193ff8f03976a36b924b7538c7954",
+            "type": 3,
+            "displayName": "SM_PROP_plate_dungeon_03"
+        },
+        {
+            "uid": 4245561860952828590,
+            "contentHash": "09610703ac0a24d3b6253e573c8b8f19",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_shield_dungeon_01"
+        },
+        {
+            "uid": 6070808314714699839,
+            "contentHash": "e47133c2f5661d09023c82fb234c338d",
+            "type": 3,
+            "displayName": "SM_PROP_shovel_dungeon"
+        },
+        {
+            "uid": 5012270093009674951,
+            "contentHash": "f092b781c84ae8657975001ab6818ef9",
+            "type": 3,
+            "displayName": "SM_PROP_scroll_dungeon_02"
+        },
+        {
+            "uid": 2648676098015966268,
+            "contentHash": "6c244f8198c036dae91acdc23c10caf7",
+            "type": 3,
+            "displayName": "SM_PROP_scroll_dungeon_01"
+        },
+        {
+            "uid": 17618149300941032724,
+            "contentHash": "02ebe68262b46ecb59d272b537f97c83",
+            "type": 3,
+            "displayName": "SM_PROP_skeleton_skull_dungeon"
+        },
+        {
+            "uid": 8396854839139313535,
+            "contentHash": "9ece0bfb924a00ce2d8d55124f14bd44",
+            "type": 3,
+            "displayName": "SM_PROP_spiderweb_dungeon_04"
+        },
+        {
+            "uid": 14868059964445132627,
+            "contentHash": "a58d58b5aecb8c211f212ad37317f29e",
+            "type": 3,
+            "displayName": "SM_PROP_pot_dungeon_07"
+        },
+        {
+            "uid": 5386828727213703314,
+            "contentHash": "5bd069e3f53edf4e7594a2dc1dd33840",
+            "type": 3,
+            "displayName": "SM_PROP_painting_interior_02"
+        },
+        {
+            "uid": 3361375179064188214,
+            "contentHash": "3367f33fd833ac640c186a4247e2e24b",
+            "type": 3,
+            "displayName": "SM_PROP_birdcage_door_interior_02"
+        },
+        {
+            "uid": 14630832815155739846,
+            "contentHash": "e0924c384487579d46a143f49b25b12d",
+            "type": 3,
+            "displayName": "SM_PROP_birdcage_swing_interior_02"
+        },
+        {
+            "uid": 11323293272736277266,
+            "contentHash": "3204535ff7af40ee459cb8c9e5fc41c7",
+            "type": 3,
+            "displayName": "SM_PROP_birdcage_interior_02"
+        },
+        {
+            "uid": 2847684164731528150,
+            "contentHash": "b13b4616f135c7d0f3f163024849abfb",
+            "type": 3,
+            "displayName": "SM_PROP_table_interior_02"
+        },
+        {
+            "uid": 2664488066104312723,
+            "contentHash": "526ced7b5ae0af86d72714e05a1574e8",
+            "type": 3,
+            "displayName": "SM_PROP_clock_hourhand_interior"
+        },
+        {
+            "uid": 8104487208953352952,
+            "contentHash": "7afab7b7654c15100359d788c0fccd3c",
+            "type": 3,
+            "displayName": "SM_PROP_clock_minutehand_interior"
+        },
+        {
+            "uid": 5565397300961259990,
+            "contentHash": "f1f15a5c64dc3438032a579530aa28a8",
+            "type": 3,
+            "displayName": "SM_PROP_clock_pendulum_interior"
+        },
+        {
+            "uid": 2035623631012788682,
+            "contentHash": "7aa3135b9d636c852543481c72329445",
+            "type": 3,
+            "displayName": "SM_PROP_clock_interior"
+        },
+        {
+            "uid": 8521346155018861658,
+            "contentHash": "4e121b565de3626b1855a860d8c39321",
+            "type": 3,
+            "displayName": "SM_PROP_stove_door_01_interior"
+        },
+        {
+            "uid": 12588633465868785908,
+            "contentHash": "7386a8cf8a02fb094321df2faac0dd7c",
+            "type": 3,
+            "displayName": "SM_PROP_stove_door_02_interior"
+        },
+        {
+            "uid": 7467692377182340526,
+            "contentHash": "849c8b0f93c8445ee12d604697b29e75",
+            "type": 3,
+            "displayName": "SM_PROP_stove_pipe_interior"
+        },
+        {
+            "uid": 7730885831888373268,
+            "contentHash": "e63338d3c4165e52c977d27231fd7c36",
+            "type": 3,
+            "displayName": "SM_PROP_stove_interior"
+        },
+        {
+            "uid": 14385070186560788853,
+            "contentHash": "017a2db52216a3a89862fecc5724b0f1",
+            "type": 3,
+            "displayName": "SM_PROP_telescope_maintube_interior"
+        },
+        {
+            "uid": 16434824079868115780,
+            "contentHash": "4a6711da5cb7cc8a66551cfa41bdd027",
+            "type": 3,
+            "displayName": "SM_PROP_telescope_interior"
+        },
+        {
+            "uid": 5566177428019459314,
+            "contentHash": "16049b0adf4a6ed9178c11c3549e05d7",
+            "type": 3,
+            "displayName": "SM_PROP_painting_interior_03"
+        },
+        {
+            "uid": 11323194296391407806,
+            "contentHash": "bdb5897e36b032e9cdb469a8722a2361",
+            "type": 3,
+            "displayName": "SM_PROP_clothesrack_interior_01"
+        },
+        {
+            "uid": 3702321127505084957,
+            "contentHash": "2552dd57d99e7a89ceb1ae72a900e57c",
+            "type": 3,
+            "displayName": "SM_PROP_bed_interior_01"
+        },
+        {
+            "uid": 18175051943571389323,
+            "contentHash": "433f020ca5cc975601a0306f25ccbdd9",
+            "type": 3,
+            "displayName": "SM_PROP_vegetation_dungeon_01"
+        },
+        {
+            "uid": 9762599850218471048,
+            "contentHash": "99155da3ca97a09adf53b75717ccc360",
+            "type": 3,
+            "displayName": "SM_PROP_spiderweb_dungeon_03"
+        },
+        {
+            "uid": 13491297384735189487,
+            "contentHash": "5c2991e2841e1a2ae70973f12c335663",
+            "type": 3,
+            "displayName": "SM_PROP_vegetation_dungeon_04"
+        },
+        {
+            "uid": 16327951098861488880,
+            "contentHash": "04f7d1fa0d291860c69e86427f69b096",
+            "type": 3,
+            "displayName": "SM_PROP_vegetation_dungeon_05"
+        },
+        {
+            "uid": 11306372221115723623,
+            "contentHash": "18b02d44d36682d6b62ac82be6428d3e",
+            "type": 3,
+            "displayName": "SM_PROP_torch_standing_dungeon"
+        },
+        {
+            "uid": 16117872534006602,
+            "contentHash": "cc74ddb6e44f39322fab9fddb754f6cb",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_shelf_dungeon_01"
+        },
+        {
+            "uid": 8810432922287332062,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_L_back"
+        },
+        {
+            "uid": 6512112743145495816,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_L_front"
+        },
+        {
+            "uid": 16909651396396138761,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_R_back"
+        },
+        {
+            "uid": 13535538420538659873,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_R_front"
+        },
+        {
+            "uid": 4177151858466441600,
+            "contentHash": "98b71f91e73942539d7738d03eefd63c",
+            "type": 3,
+            "displayName": "SM_PROP_sack_dungeon_05"
+        },
+        {
+            "uid": 3062138436076533094,
+            "contentHash": "cff8a72cb5a6b5281e22791018493d45",
+            "type": 3,
+            "displayName": "SM_PROP_cookingpot_handle_dungeon_01"
+        },
+        {
+            "uid": 904111505455303195,
+            "contentHash": "8dffc9be06a406dce95d5d0e8c2ad26e",
+            "type": 3,
+            "displayName": "SM_PROP_cookingpot_dungeon_01"
+        },
+        {
+            "uid": 7184628698214648168,
+            "contentHash": "4c7f60d1db69a5f0d3d8ec52e7103ad5",
+            "type": 3,
+            "displayName": "SM_PROP_bucket_dungeon_02"
+        },
+        {
+            "uid": 10227878902572797351,
+            "contentHash": "79a027f32a423339869a5033da740584",
+            "type": 3,
+            "displayName": "SM_PROP_crate_dungeon_01"
+        },
+        {
+            "uid": 17756999421166522123,
+            "contentHash": "2df3a98defe44b5011f1052462006d70",
+            "type": 3,
+            "displayName": "SM_PROP_chest_top_dungeon_01"
+        },
+        {
+            "uid": 4226089219583557609,
+            "contentHash": "02939206f2cf609553fadb21ed801365",
+            "type": 3,
+            "displayName": "SM_PROP_chest_dungeon_01"
+        },
+        {
+            "uid": 5029042896288820,
+            "contentHash": "bfce1d03c0884d1abd7b92748e05eb1c",
+            "type": 3,
+            "displayName": "SM_PROP_cart_dungeon_02"
+        },
+        {
+            "uid": 5039095316909818169,
+            "contentHash": "8265dd610cd4fdd5854afbc751b8b9f2",
+            "type": 3,
+            "displayName": "SM_PROP_rug_dungeon_01"
+        },
+        {
+            "uid": 1495179424476581782,
+            "contentHash": "b0e047837af7c1098f139511089e415b",
+            "type": 3,
+            "displayName": "SM_PROP_torch_wall_dungeon"
+        },
+        {
+            "uid": 10232675471001526191,
+            "contentHash": "10ede29120d24315d6b9d7806a2f4e89",
+            "type": 3,
+            "displayName": "MOD_Column_01_med_2"
+        },
+        {
+            "uid": 11862159684391409448,
+            "contentHash": "9fc61e6320642db973b7f45b2e72e493",
+            "type": 3,
+            "displayName": "MOD_Wall_01_O_straight_large_ArcCover"
+        },
+        {
+            "uid": 6429529459678117886,
+            "contentHash": "be31c4bb07761f627bd21d6343934b1b",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_straight_4_half"
+        },
+        {
+            "uid": 4294785364449149784,
+            "contentHash": "3c74a425781cb6bb38a4ebd5c1b13b68",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_convex_4"
+        },
+        {
+            "uid": 3624331715988835373,
+            "contentHash": "b532a4c4bda972b86499793f1f6982d0",
+            "type": 3,
+            "displayName": "MOD_Railing_02_straight"
+        },
+        {
+            "uid": 3735720041728649385,
+            "contentHash": "7f7c90fbf4119815b9e2cc974ed91e89",
+            "type": 3,
+            "displayName": "MOD_Railing_02_straight_half"
+        },
+        {
+            "uid": 11489696024944746073,
+            "contentHash": "ff0d49c3c0f56c6d4abe34eb88c68467",
+            "type": 3,
+            "displayName": "pb_Mesh-255980(Clone)(Clone)"
+        },
+        {
+            "uid": 12832439736640030139,
+            "contentHash": "ff0d49c3c0f56c6d4abe34eb88c68467",
+            "type": 3,
+            "displayName": "pb_Mesh-255980(Clone)(Clone)(Clone)"
+        },
+        {
+            "uid": 6604586230280289489,
+            "contentHash": "bef61533d4d7300d887fc29e468c3c14",
+            "type": 3,
+            "displayName": "pb_Mesh-30216(Clone)"
+        },
+        {
+            "uid": 7073304004020264056,
+            "contentHash": "19263a20bd2238f19b652ac75ae17833",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med_edge_R"
+        },
+        {
+            "uid": 16771331417895876187,
+            "contentHash": "96c8bca44cee8a446ae2a6675a6db6af",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight_edge_R"
+        },
+        {
+            "uid": 15251100141857653506,
+            "contentHash": "8e010d358bcf044136c3cfa9210c4b5f",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight_edge_R"
+        },
+        {
+            "uid": 14035108623034544984,
+            "contentHash": "08e14562c195bbebf599605abc5d24a3",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med_edge_L"
+        },
+        {
+            "uid": 13402989621854646904,
+            "contentHash": "9d382345645709e4984fefd890eb5202",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight_edge_L"
+        },
+        {
+            "uid": 12754408629808336424,
+            "contentHash": "ac140256b67c60183c260c55161992a4",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight_edge_L"
+        },
+        {
+            "uid": 3540783946277097173,
+            "contentHash": "06674d735b1931b8e330ecfefc66a1f3",
+            "type": 3,
+            "displayName": "MOD_Wall_01_M_concave_small"
+        },
+        {
+            "uid": 3134703586201575994,
+            "contentHash": "d3478e665e26382c2a172bc56e24723d",
+            "type": 3,
+            "displayName": "MOD_Wall_01_M_straight_small_half_R"
+        },
+        {
+            "uid": 12806279437064529241,
+            "contentHash": "4b2ba165567cdc03097a4c1273c22fe4",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_M_straight_half_R"
+        },
+        {
+            "uid": 1019064364758950290,
+            "contentHash": "1bd782d0434a2cf7a7d29eb9a4b2eacc",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_M_straight_half_R"
+        },
+        {
+            "uid": 3910893841080576759,
+            "contentHash": "b3812d2d175fb71558151b8dd28fb461",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_angle_tiny"
+        },
+        {
+            "uid": 10865983362171532463,
+            "contentHash": "f52c5f25369f41a15be2bef35f3de065",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_concave_med"
+        },
+        {
+            "uid": 15809643539215272546,
+            "contentHash": "67c18b42197e2b7e2c27cc36772b2528",
+            "type": 3,
+            "displayName": "MOD_Column_01_block_2"
+        },
+        {
+            "uid": 8095792088435341813,
+            "contentHash": "261ee2d6af0cfae4fc372adc2a8c747b",
+            "type": 3,
+            "displayName": "MOD_Floor_01_E_concave_med"
+        },
+        {
+            "uid": 11906109103686586928,
+            "contentHash": "74924ba0e8284c3e1752546eebe54cdc",
+            "type": 3,
+            "displayName": "SM_PROP_debris_stones_dungeon_02"
+        },
+        {
+            "uid": 12294594619537515951,
+            "contentHash": "0625835c09ab4e0d86095da96772d78e",
+            "type": 3,
+            "displayName": "SM_PROP_vegetation_dungeon_09"
+        },
+        {
+            "uid": 945186814340514751,
+            "contentHash": "5c954502791b1db2a3f61209e890f7a9",
+            "type": 3,
+            "displayName": "SM_PROP_vegetation_dungeon_08"
+        },
+        {
+            "uid": 12839334688446859736,
+            "contentHash": "c5881587e1d53f962ac99eeb8b7fff4d",
+            "type": 3,
+            "displayName": "SM_PROP_vegetation_dungeon_06"
+        },
+        {
+            "uid": 6340576666626939130,
+            "contentHash": "2728e021e99cf119da9d8f247e69657c",
+            "type": 3,
+            "displayName": "SM_PROP_spiderweb_dungeon_02"
+        },
+        {
+            "uid": 5496201143253936938,
+            "contentHash": "4ef0a461eca02f1aeceef03cd504216e",
+            "type": 3,
+            "displayName": "SM_PROP_orevein_silver_dungeon"
+        },
+        {
+            "uid": 9895596999701832411,
+            "contentHash": "5a07ebf45e07621ce9dcffc70a950407",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight_half_R"
+        },
+        {
+            "uid": 5381211017637265733,
+            "contentHash": "5f1d64af13c3565f491ce2132dd15d31",
+            "type": 3,
+            "displayName": "SM_PROP_bed_interior_03"
+        },
+        {
+            "uid": 6463836935332721648,
+            "contentHash": "9a0663d69475a405ffb87b1c03dc9221",
+            "type": 3,
+            "displayName": "SM_PROP_nightstand_drawer_interior_03"
+        },
+        {
+            "uid": 9352145169032612441,
+            "contentHash": "7380089a700626a09cb7d2db3ebdb6ac",
+            "type": 3,
+            "displayName": "SM_PROP_nightstand_interior_03"
+        },
+        {
+            "uid": 3612139151593552798,
+            "contentHash": "58d05720ef5ce5eff82701b0ebdbdf8c",
+            "type": 3,
+            "displayName": "SM_PROP_desk_drawer_01_interior_01"
+        },
+        {
+            "uid": 289744013666192054,
+            "contentHash": "58d05720ef5ce5eff82701b0ebdbdf8c",
+            "type": 3,
+            "displayName": "SM_PROP_desk_drawer_02_interior_01"
+        },
+        {
+            "uid": 5087453476039195927,
+            "contentHash": "f5c467c4da1960dcbac01f21124967d3",
+            "type": 3,
+            "displayName": "SM_PROP_desk_interior_01"
+        },
+        {
+            "uid": 17508971613532003586,
+            "contentHash": "b2e88fdc4715dd980c272d9157f59d74",
+            "type": 3,
+            "displayName": "SM_PROP_chair_interior_02"
+        },
+        {
+            "uid": 14073260331599206589,
+            "contentHash": "a942884faa53f01e00a8acfdae6cbaa2",
+            "type": 3,
+            "displayName": "SM_PROP_shelf_interior_01"
+        },
+        {
+            "uid": 13684758977477084716,
+            "contentHash": "e7206eaf4dc91980bf59c19e7a28ac10",
+            "type": 3,
+            "displayName": "SM_PROP_hourglass_interior"
+        },
+        {
+            "uid": 17482097550877042246,
+            "contentHash": "2aa8e0cefc91a608d77ab5e5920166c6",
+            "type": 3,
+            "displayName": "SM_PROP_bookpile_dungeon_01"
+        },
+        {
+            "uid": 347950334840846709,
+            "contentHash": "332e271acb6a46f2f77ae75cc6568794",
+            "type": 3,
+            "displayName": "SM_PROP_table_interior_07"
+        },
+        {
+            "uid": 8646155385530744045,
+            "contentHash": "e216e736f2325d13d63ccabdbe9b31e7",
+            "type": 3,
+            "displayName": "SM_PROP_armchair_interior_02"
+        },
+        {
+            "uid": 4802908637353583705,
+            "contentHash": "fa9739429cd2cec6d8291cfebd1edfe1",
+            "type": 3,
+            "displayName": "SM_PROP_rug_interior_04"
+        },
+        {
+            "uid": 92690210972869773,
+            "contentHash": "09eb17e1e4a3671cbb5c96a8df340015",
+            "type": 3,
+            "displayName": "SM_PROP_cup_interior_03"
+        },
+        {
+            "uid": 3442717528199132012,
+            "contentHash": "bbddf7800921d036ca2a3439804e6251",
+            "type": 3,
+            "displayName": "SM_PROP_kettle_interior"
+        },
+        {
+            "uid": 10110734441345949943,
+            "contentHash": "d27b3af32329d9da3d584f2ae8d03c93",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_arrow_dungeon"
+        },
+        {
+            "uid": 16555755487058727446,
+            "contentHash": "ea1b216607b9475e6d9d1594919fb31d",
+            "type": 3,
+            "displayName": "SM_PROP_shelf_interior_03"
+        },
+        {
+            "uid": 15569155094682317222,
+            "contentHash": "2ef7636e58804131c68c2a1e0ca30850",
+            "type": 3,
+            "displayName": "SM_PROP_waterwheel_construct_dungeon_01"
+        },
+        {
+            "uid": 14465377376951351760,
+            "contentHash": "63afc180a9ad923a4d9922b9d6d7a096",
+            "type": 3,
+            "displayName": "SM_PROP_armchair_interior_01"
+        },
+        {
+            "uid": 5238471556739108208,
+            "contentHash": "33c1a4d83504daf86f0ac361737003e2",
+            "type": 3,
+            "displayName": "SM_PROP_paravan_interior"
+        },
+        {
+            "uid": 11407998233375621145,
+            "contentHash": "8b9db54ee6eed544f519e7619b6bfb66",
+            "type": 3,
+            "displayName": "SM_PROP_mirror_glass_interior_02"
+        },
+        {
+            "uid": 1272549648651753285,
+            "contentHash": "fca15ab5f7cd91fb40c9344d174b9cb5",
+            "type": 3,
+            "displayName": "SM_PROP_mirror_interior_02"
+        },
+        {
+            "uid": 12992454731117758174,
+            "contentHash": "b390600608013a0618cde08d80accf49",
+            "type": 3,
+            "displayName": "SM_PROP_plant_interior_06"
+        },
+        {
+            "uid": 12275762670706946871,
+            "contentHash": "e210345ddc0e59f35b2540d9de4047f1",
+            "type": 3,
+            "displayName": "SM_PROP_plant_interior_03"
+        },
+        {
+            "uid": 14865607422021295944,
+            "contentHash": "7bfcd1cd8038876eb869ce870df8a9c6",
+            "type": 3,
+            "displayName": "SM_PROP_plant_interior_01"
+        },
+        {
+            "uid": 18009400004322967525,
+            "contentHash": "d2400765034d30b43d5d340b0dca06f7",
+            "type": 3,
+            "displayName": "MOD_Column_01_large_2"
+        },
+        {
+            "uid": 16631624900184181716,
+            "contentHash": "8711d6871a1b293e96ec465b9f15ac76",
+            "type": 3,
+            "displayName": "SM_PROP_flag_dungeon_04"
+        },
+        {
+            "uid": 9211421262651672011,
+            "contentHash": "22205f58defdd50db890d3282b9359f3",
+            "type": 3,
+            "displayName": "SM_PROP_painting_interior_01"
+        },
+        {
+            "uid": 873037561830292315,
+            "contentHash": "09f497f45297cb759a21d4a6602bca44",
+            "type": 3,
+            "displayName": "SM_PROP_bucket_handle_interior_02"
+        },
+        {
+            "uid": 12515688934646465506,
+            "contentHash": "2b6a9db120a55cd45cdf0da8da2d5606",
+            "type": 3,
+            "displayName": "SM_PROP_bucket_interior_02"
+        },
+        {
+            "uid": 16149126894921422039,
+            "contentHash": "ef0ad55a34302516fbea831b5e1ba408",
+            "type": 3,
+            "displayName": "SM_PROP_bucket_interior_03"
+        },
+        {
+            "uid": 16409697752573527275,
+            "contentHash": "e4c2f54a8d67b0b7fce94f92a5aee0c1",
+            "type": 3,
+            "displayName": "SM_PROP_butterchurn_lid_interior"
+        },
+        {
+            "uid": 7689129932004311270,
+            "contentHash": "e571a0894ad5ee3fef13c4e9330ef267",
+            "type": 3,
+            "displayName": "SM_PROP_butterchurn_plunger_interior"
+        },
+        {
+            "uid": 13522960570362515234,
+            "contentHash": "abd7546b957efea02c9ba200d8463815",
+            "type": 3,
+            "displayName": "SM_PROP_butterchurn_interior"
+        },
+        {
+            "uid": 16763493711767276609,
+            "contentHash": "5898315be0445adfcf69ccaf619ad974",
+            "type": 3,
+            "displayName": "SM_PROP_rug_dungeon_02"
+        },
+        {
+            "uid": 7103492400425112056,
+            "contentHash": "490a879ab23b85ebcb6c921dd06ec5c7",
+            "type": 3,
+            "displayName": "SM_PROP_planks_dungeon_04"
+        },
+        {
+            "uid": 12933252092484779943,
+            "contentHash": "7a77efa0d0fa041762fa481f479ef99c",
+            "type": 3,
+            "displayName": "SM_PROP_cart_01_wheel_L"
+        },
+        {
+            "uid": 6715180070055169316,
+            "contentHash": "0c354dc4c292588f30203d56ffe50d62",
+            "type": 3,
+            "displayName": "SM_PROP_cart_01_wheel_R"
+        },
+        {
+            "uid": 12172613088108819194,
+            "contentHash": "be0e10721cdcef888a2bc48e64a56fea",
+            "type": 3,
+            "displayName": "SM_PROP_cart_dungeon_01"
+        },
+        {
+            "uid": 5478620401218850575,
+            "contentHash": "4b7490179c4ade13cb17db9d52322651",
+            "type": 3,
+            "displayName": "MOD_Railing_02_column"
+        },
+        {
+            "uid": 9119982244690121788,
+            "contentHash": "5257de6fc55f2970b4eaff3a317c20e6",
+            "type": 3,
+            "displayName": "MOD_Stairs_02_E_straight_02"
+        },
+        {
+            "uid": 18098842061173061415,
+            "contentHash": "df09c43968e0c28e2de577aa60717b8b",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_M_straight"
+        },
+        {
+            "uid": 6055947776827361046,
+            "contentHash": "b5c078b2c3cb0e555c1c445e225d5020",
+            "type": 3,
+            "displayName": "SM_PROP_woodbridge_dungeon_08"
+        },
+        {
+            "uid": 12428587532122306181,
+            "contentHash": "823707e59623b10cf2194e36d6e1ed80",
+            "type": 3,
+            "displayName": "SM_PROP_basket_interior_03"
+        },
+        {
+            "uid": 16757574173534186116,
+            "contentHash": "fbc5d0ff2e555e7d586c7af18466e285",
+            "type": 3,
+            "displayName": "SM_PROP_bread_interior_05"
+        },
+        {
+            "uid": 12115874137209114849,
+            "contentHash": "3275431eeeb0e823a188b92d009b49f7",
+            "type": 3,
+            "displayName": "SM_PROP_plane_baverage_interior_02"
+        },
+        {
+            "uid": 9330789156459109987,
+            "contentHash": "53b2ef91f3073573b53cb7d205d32ca6",
+            "type": 3,
+            "displayName": "SM_PROP_cup_interior_02"
+        },
+        {
+            "uid": 1606990400919155595,
+            "contentHash": "1c6e282969b3ae4cd962ffa8c9c7987b",
+            "type": 3,
+            "displayName": "SM_PROP_cup_interior_01"
+        },
+        {
+            "uid": 1083222733587582588,
+            "contentHash": "0c1ab7eddd6995b8934f4cd559ec92ae",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_interior_01"
+        },
+        {
+            "uid": 10582213643077677042,
+            "contentHash": "7705fd75682d3f6416a4c8588bd3014d",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_interior_02"
+        },
+        {
+            "uid": 10023374092322234808,
+            "contentHash": "a34b5003b20912cc8237cc12132656d2",
+            "type": 3,
+            "displayName": "SM_PROP_foam_interior"
+        },
+        {
+            "uid": 15389527839961275244,
+            "contentHash": "c149439a36a4deca2fe680c9513e4b15",
+            "type": 3,
+            "displayName": "SM_PROP_table_dungeon_02"
+        },
+        {
+            "uid": 3913957655936027387,
+            "contentHash": "0ea9890a7ac6bd78702b732924bec796",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_01"
+        },
+        {
+            "uid": 10981537192888187091,
+            "contentHash": "3c3f12bed8695200f7cd4e57c38094fb",
+            "type": 3,
+            "displayName": "MOD_Floor_01_E_straight_med"
+        },
+        {
+            "uid": 16551972593833107290,
+            "contentHash": "0eecb52e4f61017bb067b6260b7ef683",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_Wall_R_2"
+        },
+        {
+            "uid": 2709412315395643927,
+            "contentHash": "e3b89e9c47545a9c749eecaad1812153",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_Wall_L_2"
+        },
+        {
+            "uid": 12359064886539922535,
+            "contentHash": "a3b7af8b48afe21259b343d747336008",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_convex_2"
+        },
+        {
+            "uid": 3686663155897773288,
+            "contentHash": "769f5dbd600ea86a42a02577e11fe600",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_small_half_R"
+        },
+        {
+            "uid": 8520813317174243173,
+            "contentHash": "a1ef7d8fe2fe8581bbf7358fabc48f02",
+            "type": 3,
+            "displayName": "MOD_Wall_01_O_straight_med"
+        },
+        {
+            "uid": 6753201700309985859,
+            "contentHash": "818ee6a4299626ed3c5228ebf7ca12c0",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_O_straight"
+        },
+        {
+            "uid": 10726522193095538,
+            "contentHash": "e797de596a445d9e561d48849415f386",
+            "type": 3,
+            "displayName": "MOD_Wall_01_M_straight_small"
+        },
+        {
+            "uid": 17432821136673125566,
+            "contentHash": "1eb55d11f7edaf6ba79e5b5dd9d9409a",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_M_straight"
+        },
+        {
+            "uid": 11438644148055621027,
+            "contentHash": "4e585f6d0a5c8c4faa63796aa3e5b984",
+            "type": 3,
+            "displayName": "SM_PROP_rug_table_01"
+        },
+        {
+            "uid": 17782784121405272263,
+            "contentHash": "ba4c8bca58c00e7db11df99b9fd9d2c0",
+            "type": 3,
+            "displayName": "SM_PROP_throne_cloth_dungeon"
+        },
+        {
+            "uid": 786852418587405522,
+            "contentHash": "ccb2cecf8e2d62ccfd9673b63d08cce4",
+            "type": 3,
+            "displayName": "SM_PROP_throne_dungeon_01"
+        },
+        {
+            "uid": 10267660103512313574,
+            "contentHash": "a6311d9fe22a437a3c466b5ffbe02d48",
+            "type": 3,
+            "displayName": "SM_PROP_pillow_interior_01"
+        },
+        {
+            "uid": 387254812754954719,
+            "contentHash": "6e24027cca6c0d35b671f279a2c10719",
+            "type": 3,
+            "displayName": "SM_PROP_fish_interior"
+        },
+        {
+            "uid": 945240071355737702,
+            "contentHash": "57a10fdbf0f830f1a765d80f740c458e",
+            "type": 3,
+            "displayName": "SM_PROP_plate_interior_02"
+        },
+        {
+            "uid": 18292549793604047628,
+            "contentHash": "dd8e1c5cc86ec00857b4c85636f1719d",
+            "type": 3,
+            "displayName": "SM_PROP_fork_interior"
+        },
+        {
+            "uid": 8801558239890958675,
+            "contentHash": "7e1a27428e2f61b708efcc1f9b6e8f22",
+            "type": 3,
+            "displayName": "SM_PROP_foodplate_interior"
+        },
+        {
+            "uid": 12228945319753197207,
+            "contentHash": "d1283d68f3c686b49f10b3980874d44b",
+            "type": 3,
+            "displayName": "SM_PROP_plane_baverage_interior_01"
+        },
+        {
+            "uid": 3609115155384192803,
+            "contentHash": "5749699be3f9e98060b5a279e39602d1",
+            "type": 3,
+            "displayName": "SM_PROP_pie_interior_01"
+        },
+        {
+            "uid": 14632460016823654240,
+            "contentHash": "02ed78ccad8c7fa9e4869c75e8d7b5bf",
+            "type": 3,
+            "displayName": "SM_PROP_pie_interior_02"
+        },
+        {
+            "uid": 17163240210399009945,
+            "contentHash": "8d2a92dea094058e5bd96530f99a70d5",
+            "type": 3,
+            "displayName": "SM_PROP_bread_interior_02"
+        },
+        {
+            "uid": 4440668762440425468,
+            "contentHash": "f9714141e40ca15e8fe050695c6a5b5f",
+            "type": 3,
+            "displayName": "SM_PROP_poultry_interior"
+        },
+        {
+            "uid": 11025392239407914074,
+            "contentHash": "72bdb79ca522f1a9b32c52eacf470449",
+            "type": 3,
+            "displayName": "SM_PROP_rug_interior_05"
+        },
+        {
+            "uid": 10131762444539861360,
+            "contentHash": "c3e85af05257a7c5926d14cc598eb8b3",
+            "type": 3,
+            "displayName": "SM_PROP_flag_dungeon_01"
+        },
+        {
+            "uid": 12650085410041427280,
+            "contentHash": "450edfd4fd40a3580a2223c8781c43fa",
+            "type": 3,
+            "displayName": "SM_PROP_candle_interior_05"
+        },
+        {
+            "uid": 15631223223288797358,
+            "contentHash": "8e6dc9a34bade96a1e1fbb1f71234734",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_straight_med"
+        },
+        {
+            "uid": 18078455675989925799,
+            "contentHash": "23a1d7937814958fe77ba1ae410e7169",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight"
+        },
+        {
+            "uid": 11311173906804330327,
+            "contentHash": "e28b61ae6687e3d70cf52c69e08bc9a3",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight"
+        },
+        {
+            "uid": 6078263930273111078,
+            "contentHash": "d2177cd4d520bad460f818d181974250",
+            "type": 3,
+            "displayName": "MOD_Column_01_large"
+        },
+        {
+            "uid": 10881916048993342162,
+            "contentHash": "610c5bd10e44cd7d9c5764f584bd28ca",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med"
+        },
+        {
+            "uid": 6264163408991576958,
+            "contentHash": "b5473af93322acc00468e9744dbb57ee",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_small"
+        },
+        {
+            "uid": 1835660427867652157,
+            "contentHash": "3c3f12bed8695200f7cd4e57c38094fb",
+            "type": 3,
+            "displayName": "MOD_Floor_02_E_straight_med"
+        },
+        {
+            "uid": 6818219542316552611,
+            "contentHash": "23a1d7937814958fe77ba1ae410e7169",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight"
+        },
+        {
+            "uid": 5181343265886344179,
+            "contentHash": "e28b61ae6687e3d70cf52c69e08bc9a3",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight"
+        },
+        {
+            "uid": 17312659549081396515,
+            "contentHash": "ff9a7754c6c7d8299d516269c1706f80",
+            "type": 3,
+            "displayName": "MOD_Gateway_Arc_01"
+        },
+        {
+            "uid": 6298060448291985766,
+            "contentHash": "33597ff4baa86a385709c9c9d408febc",
+            "type": 3,
+            "displayName": "MOD_Column_01_base"
+        },
+        {
+            "uid": 2599577301119994190,
+            "contentHash": "5b6655636ca33ea0eace28bcc27801c2",
+            "type": 3,
+            "displayName": "SM_PROP_rug_interior_07"
+        },
+        {
+            "uid": 11726406828360829244,
+            "contentHash": "095e1e7b26e21658b947049ff8208744",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_straight_small"
+        },
+        {
+            "uid": 9499996262156698912,
+            "contentHash": "e71757763003bc3fd7c21885ea4472ba",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med_half_L"
+        },
+        {
+            "uid": 1680795961946372018,
+            "contentHash": "ff9a7754c6c7d8299d516269c1706f80",
+            "type": 3,
+            "displayName": "MOD_Gateway_Arc_01"
+        },
+        {
+            "uid": 11040388103728646050,
+            "contentHash": "34d7e09aa074f4988224a4a27e99feb8",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_straight_2"
+        },
+        {
+            "uid": 1595896871613504181,
+            "contentHash": "23a1d7937814958fe77ba1ae410e7169",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight"
+        },
+        {
+            "uid": 5790333418370774335,
+            "contentHash": "e28b61ae6687e3d70cf52c69e08bc9a3",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight"
+        },
+        {
+            "uid": 1247931328779222457,
+            "contentHash": "f327bc654f598ce30b6cabf71097e853",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight_half_L"
+        },
+        {
+            "uid": 12169386741520656600,
+            "contentHash": "306e1e7568c0772f0a5ca5b59ae320ec",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight_half_L"
+        },
+        {
+            "uid": 59201155306021340,
+            "contentHash": "d2177cd4d520bad460f818d181974250",
+            "type": 3,
+            "displayName": "MOD_Column_01_large"
+        }
+    ]
+}
