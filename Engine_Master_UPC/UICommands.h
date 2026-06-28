@@ -4,6 +4,7 @@
 #include "UIFill.h"
 #include "CanvasRenderMode.h"
 #include "SimpleMath.h"
+#include "ModuleFont.h"
 
 class Texture;
 
@@ -16,6 +17,7 @@ struct UITextCommand
     float y = 0.0f;
     DirectX::XMFLOAT4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
     float scale = 1.0f;
+    int fontId = INVALID_FONT_ID;
 };
 
 struct UIImageCommand

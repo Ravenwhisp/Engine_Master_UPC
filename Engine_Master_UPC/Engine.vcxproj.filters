@@ -629,6 +629,9 @@
     <ClCompile Include="UtilityGLFT.cpp">
       <Filter>D3D12\Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleFont.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debug_draw.hpp" />
@@ -1342,9 +1345,6 @@
     <ClInclude Include="PrefabInstance.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
-    <ClInclude Include="PrefabSerializer.h">
-      <Filter>Prefabs</Filter>
-    </ClInclude>
     <ClInclude Include="PrefabUI.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
@@ -1457,6 +1457,9 @@
     </ClInclude>
     <ClInclude Include="Skin.h">
       <Filter>D3D12\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleFont.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1760,12 +1763,6 @@
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
-    <FxCompile Include="TrailPixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="TrailVertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="FullscreenTriangleVS.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
@@ -1787,5 +1784,7 @@
     <FxCompile Include="SSAONormalVS.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="TrailPixelShader.hlsl" />
+    <FxCompile Include="TrailVertexShader.hlsl" />
   </ItemGroup>
 </Project>

@@ -3,9 +3,14 @@
 #include "JsonArchive.h"
 #include <imgui.h>
 
+#include "Application.h"
+#include "ModuleFont.h"
+
+
 UIText::UIText(UID id, GameObject* owner)
     : Component(id, ComponentType::UITEXT, owner)
 {
+    m_fontId = -1;
 }
 
 void UIText::serialize(IArchive& archive)
@@ -14,6 +19,10 @@ void UIText::serialize(IArchive& archive)
     archive.serialize(m_text, "Text");
     archive.serialize(m_scale, "Scale");
     archive.serialize(reinterpret_cast<DirectX::SimpleMath::Color&>(m_color), "Color");
+
+    archive.serialize(m_font, "Font");
+
+    m_fontId = UNKNOWN_FONT_ID;
 }
 
 std::unique_ptr<Component> UIText::clone(GameObject* newOwner) const
@@ -25,7 +34,35 @@ std::unique_ptr<Component> UIText::clone(GameObject* newOwner) const
     clonedComponent->setFontScale(m_scale);
     clonedComponent->setColor(m_color);
 
+    clonedComponent->setFont(m_font);
+
 	return clonedComponent;
+}
+
+int UIText::getFontId()
+{
+    resolveFontId();
+    return m_fontId;
+}
+
+void UIText::resolveFontId()
+{
+    if (m_fontId != UNKNOWN_FONT_ID)
+        return;
+
+    if (m_font.empty())
+    {
+        m_fontId = INVALID_FONT_ID;
+        return;
+    }
+
+    m_fontId = app->getModuleFont()->findFontId(m_font);
+}
+
+void UIText::setFont(const std::string& font)
+{
+    m_font = font;
+    m_fontId = UNKNOWN_FONT_ID;
 }
 
 void UIText::drawUi()
@@ -52,6 +89,45 @@ void UIText::drawUi()
     if (ImGui::ColorEdit4("Color", color))
     {
         m_color = { color[0], color[1], color[2], color[3] };
+    }
+
+    ModuleFont* fontModule = app->getModuleFont();
+    const auto& fontNames = fontModule->getFontNames();
+
+    resolveFontId();
+
+    std::string preview;
+
+    if (m_fontId >= 0)
+    {
+        preview = m_font;
+    }
+    else if (m_fontId == INVALID_FONT_ID && !m_font.empty())
+    {
+        preview = "Unknown: " + m_font;
+    }
+    else
+    {
+        preview = "<None>";
+    }
+
+    if (ImGui::BeginCombo("Font", preview.c_str()))
+    {
+        for (const auto& fontName : fontNames)
+        {
+            const bool selected = (m_font == fontName);
+
+            if (ImGui::Selectable(fontName.c_str(), selected))
+            {
+                m_font = fontName;
+                m_fontId = fontModule->findFontId(m_font);
+            }
+
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+
+        ImGui::EndCombo();
     }
 }
 

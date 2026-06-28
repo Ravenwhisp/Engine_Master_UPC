@@ -64,8 +64,8 @@ bool ModuleMusic::loadBanksFromFolder()
 {
 	if (!std::filesystem::exists(WWISE_ASSETS_PATH))
 	{
-		WWISE_BANK_ERROR("[Module Music] Audio folder not found: %s", WWISE_ASSETS_PATH);
-		return false;
+		DEBUG_ERROR("[Module Music] Audio folder not found: %s", WWISE_ASSETS_PATH);
+		return true;
 	}
 
 	for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(WWISE_ASSETS_PATH))
@@ -102,7 +102,7 @@ bool ModuleMusic::loadBanksFromFolder()
 		if (!bank.init(bankName.c_str(), jsonPath.c_str()))
 		{
 			WWISE_BANK_ERROR("[Module Music] Failed loading bank: %s", bankName.c_str());
-			return false;
+			return true;
 		}
 
 		if (bank.getName() == "Init.bnk")

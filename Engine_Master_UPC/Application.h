@@ -24,6 +24,7 @@ class ModuleEventSystem;
 class ModuleHaptics;
 class ModuleMusic;
 class ModuleScripting;
+class ModuleFont;
 
 class CameraComponent;
 class Settings;
@@ -64,6 +65,7 @@ public:
     ModuleParticleSystem*       getModuleParticleSystem() { return m_moduleParticleSystem; }
     ModuleMusic*                getModuleMusic() { return m_moduleMusic; }
     ModuleScripting*            getModuleScripting() { return m_moduleScripting; }
+    ModuleFont*                 getModuleFont() { return m_moduleFont; }
 
     Settings*                   getSettings() { return m_settings; }
     ThreadPool*                 getThreadPool() { return m_threadPool; }
@@ -107,6 +109,7 @@ private:
     ModuleParticleSystem*   m_moduleParticleSystem = nullptr;
     ModuleMusic*            m_moduleMusic = nullptr;
     ModuleScripting*        m_moduleScripting = nullptr;
+    ModuleFont*             m_moduleFont = nullptr;
 
     Settings*               m_settings = nullptr;
     ThreadPool*             m_threadPool = nullptr;

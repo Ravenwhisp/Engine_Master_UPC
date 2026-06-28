@@ -7,11 +7,14 @@
 #include "ModuleRender.h"
 #include "ModuleD3D12.h"
 #include "ModuleTime.h"
+#include "ModuleFont.h"
 
 #include "Settings.h"
 #include "CommandQueue.h"
 
 #include "UICommands.h"
+
+constexpr int DEBUG_FONT_ID = 0;
 
 FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
@@ -28,11 +31,7 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 	const SpriteBatchPipelineStateDescription pd(rtState);
 
 	m_spriteBatch = std::make_unique<SpriteBatch>(m_device.Get(), *m_upload, pd);
-
-	m_spriteFont = std::make_unique<SpriteFont>(m_device.Get(), *m_upload,
-		L"Assets/Fonts/arial.spritefont",
-		m_fontHeap->getCPUHandle(0),
-		m_fontHeap->getGPUHandle(0));
+	app->getModuleFont()->loadFonts(m_device.Get(), *m_upload, *m_fontHeap);
 
 	auto uploadResourcesFinished = m_upload->End(app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue().Get());
 
@@ -63,7 +62,7 @@ void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 	{
 		for (const auto& command : *m_commands)
 		{
-			drawText(command.text.c_str(), command.x, command.y, command.color, command.scale);
+			drawText(command.fontId, command.text.c_str(), command.x, command.y, command.color, command.scale);
 		}
 	}
 
@@ -84,15 +83,19 @@ void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
 	m_spriteBatch->Begin(commandList);
 }
 
-void FontPass::drawText(const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale)
+void FontPass::drawText(int fontId, const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale)
 {
-	if (!m_spriteFont || !text)
-	{
+	if (!text)
 		return;
-	}
+
+	SpriteFont* font = app->getModuleFont()->getFont(fontId);
+
+	if (!font)
+		return;
+
 	const DirectX::XMVECTOR tint = DirectX::XMLoadFloat4(&color);
 
-	m_spriteFont->DrawString(m_spriteBatch.get(), text, DirectX::XMFLOAT2(x, y), tint, 0.0f, DirectX::XMFLOAT2(0, 0), scale);
+	font->DrawString(m_spriteBatch.get(), text, DirectX::XMFLOAT2(x, y), tint, 0.0f, DirectX::XMFLOAT2(0, 0), scale);
 }
 
 void FontPass::end()
@@ -109,7 +112,7 @@ void FontPass::showDebugInformation() {
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"FPS: %.0f", fps);
 
-		drawText(buffer, 10.0f, 10.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		drawText(DEBUG_FONT_ID, buffer, 10.0f, 10.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
 	}
 	if (m_settings->debugGame.showFrametime)
 	{
@@ -119,7 +122,7 @@ void FontPass::showDebugInformation() {
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Frame time: %.2f ms", ms);
 
-		drawText(buffer, 10.0f, 30.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		drawText(DEBUG_FONT_ID, buffer, 10.0f, 30.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
 	}
 	if (m_settings->debugGame.showTrianglesNumber)
 	{
@@ -128,7 +131,7 @@ void FontPass::showDebugInformation() {
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Triangles: %d", triangles);
 
-		drawText(buffer, 10.0f, 50.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		drawText(DEBUG_FONT_ID, buffer, 10.0f, 50.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
 	}
 	if (m_settings->debugGame.showMeshNumber)
 	{
@@ -137,6 +140,6 @@ void FontPass::showDebugInformation() {
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Meshes: %d", meshes);
 
-		drawText(buffer, 10.0f, 70.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		drawText(DEBUG_FONT_ID, buffer, 10.0f, 70.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
 	}
 }

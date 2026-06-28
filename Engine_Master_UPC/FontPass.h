@@ -1,11 +1,9 @@
 #pragma once
-#include "IRenderPass.h"
-
-#include "DescriptorHeap.h"
-
-#include "ResourceUploadBatch.h"
 #include <SpriteBatch.h>
-#include "SpriteFont.h"
+
+#include "IRenderPass.h"
+#include "DescriptorHeap.h"
+#include "ResourceUploadBatch.h"
 
 class Settings;
 
@@ -23,7 +21,7 @@ public:
 
 private:
 	void begin(ID3D12GraphicsCommandList4* commandList);
-	void drawText(const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale);
+	void drawText(int fontId, const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale);
 	void end();
 
 	void showDebugInformation();
@@ -38,7 +36,6 @@ private:
 
 	std::unique_ptr<ResourceUploadBatch>	m_upload;
 	std::unique_ptr<SpriteBatch>			m_spriteBatch;
-	std::unique_ptr<SpriteFont>				m_spriteFont;
 
 	ComPtr<ID3D12Device4>					m_device;
 	ComPtr<ID3D12RootSignature>				m_rootSignature;
