@@ -22,6 +22,20 @@ void UIText::serialize(IArchive& archive)
 
     archive.serialize(m_font, "Font");
 
+    archive.serialize(m_effectFlags, "EffectFlags");
+
+    archive.serialize(reinterpret_cast<DirectX::SimpleMath::Color&>(m_outlineColor), "OutlineColor");
+    archive.serialize(reinterpret_cast<DirectX::SimpleMath::Color&>(m_shadowColor), "ShadowColor");
+    archive.serialize(reinterpret_cast<DirectX::SimpleMath::Color&>(m_glowColor), "GlowColor");
+
+    archive.serialize(m_outlineSize, "OutlineSize");
+    archive.serialize(m_shadowOffsetX, "ShadowOffsetX");
+    archive.serialize(m_shadowOffsetY, "ShadowOffsetY");
+    archive.serialize(m_glowSize, "GlowSize");
+    archive.serialize(m_waveAmplitude, "WaveAmplitude");
+    archive.serialize(m_waveFrequency, "WaveFrequency");
+    archive.serialize(m_waveSpeed, "WaveSpeed");
+
     m_fontId = UNKNOWN_FONT_ID;
 }
 
@@ -36,7 +50,20 @@ std::unique_ptr<Component> UIText::clone(GameObject* newOwner) const
 
     clonedComponent->setFont(m_font);
 
-	return clonedComponent;
+    clonedComponent->m_effectFlags = m_effectFlags;
+    clonedComponent->m_outlineColor = m_outlineColor;
+    clonedComponent->m_shadowColor = m_shadowColor;
+    clonedComponent->m_glowColor = m_glowColor;
+
+    clonedComponent->m_outlineSize = m_outlineSize;
+    clonedComponent->m_shadowOffsetX = m_shadowOffsetX;
+    clonedComponent->m_shadowOffsetY = m_shadowOffsetY;
+    clonedComponent->m_glowSize = m_glowSize;
+    clonedComponent->m_waveAmplitude = m_waveAmplitude;
+    clonedComponent->m_waveFrequency = m_waveFrequency;
+    clonedComponent->m_waveSpeed = m_waveSpeed;
+
+    return clonedComponent;
 }
 
 int UIText::getFontId()
