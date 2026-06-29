@@ -118,6 +118,11 @@ void TrailComponent::update()
 
 void TrailComponent::CreatePoint()
 {
+    if (!m_generate)
+    {
+        return;
+    }
+
     std::shared_ptr<TrailPoint> newPoint = std::make_shared<TrailPoint>();
     m_points.push_back(newPoint);
 

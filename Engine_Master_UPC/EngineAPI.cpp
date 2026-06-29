@@ -32,6 +32,7 @@
 #include "ComponentSoundSource.h"
 #include "NavRuntimeBlockerComponent.h"
 #include "PlayerRenderBufferComponent.h"
+#include "TrailComponent.h"
 
 #include "CameraComponent.h"
 
@@ -2854,6 +2855,39 @@ ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem
     }
 
     particleSystem->resetParticles();
+}
+
+namespace TrailAPI
+{
+    TrailComponent* getTrailComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    const TrailComponent* getTrailComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    ENGINE_API bool isTrailGenerating(TrailComponent* trailComponent)
+    {
+        return trailComponent->isGenerating();
+    }
+
+    ENGINE_API void generateTrail(TrailComponent* trailComponent, bool value)
+    {
+        return trailComponent->generate(value);
+    }
 }
 
 namespace AudioAPI
