@@ -210,6 +210,10 @@ void MeshRenderer::serialize(IArchive& archive)
             archive.endObject();
         }
         archive.endArray();
+
+        UINT renderMode = static_cast<UINT>(m_renderMode);
+        archive.serialize(renderMode, "Render Mode");
+        m_renderMode = static_cast<RenderMode>(renderMode);
     }
     else
     {
@@ -231,6 +235,9 @@ void MeshRenderer::serialize(IArchive& archive)
             archive.endObject();
         }
         archive.endArray();
+
+        UINT renderMode = static_cast<UINT>(m_renderMode);
+        archive.serialize(renderMode, "Render Mode");
     }
 }
 
