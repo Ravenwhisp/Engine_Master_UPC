@@ -438,6 +438,9 @@ namespace AudioAPI
 
 namespace Shaders
 {
+    ENGINE_API PlayerRenderBufferComponent* getPlayerRenderBufferComponent(GameObject* gameObject);
+    ENGINE_API const PlayerRenderBufferComponent* getPlayerRenderBufferComponent(const GameObject* gameObject)
+
     ENGINE_API float getDamageHighlight(PlayerRenderBufferComponent* component);
     ENGINE_API void  setDamageHighlight(PlayerRenderBufferComponent* component, float value);
 }
