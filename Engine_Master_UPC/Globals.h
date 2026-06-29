@@ -41,7 +41,7 @@ void debug_error(const char file[], int line, const char* format, ...);
 
 #define FRAMES_IN_FLIGHT 2
 
-#define MAX_PARTICLES 300
+#define MAX_PARTICLES 1500
 
 #include "debug_draw.hpp"
 
