@@ -2040,12 +2040,6 @@
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
     <None Include="SimpleMath.inl" />
-    <None Include="ForwardCommon.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
-    <None Include="General.hlsli">
-      <Filter>D3D12\Shaders</Filter>
-    </None>
     <None Include="GBufferCommon.hlsli">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </None>
@@ -2064,6 +2058,8 @@
     <None Include="PBRGeneral.hlsli">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </None>
+    <None Include="ForwardCommon.hlsli" />
+    <None Include="General.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -2124,25 +2120,15 @@
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
     <FxCompile Include="GBufferPS.hlsl" />
     <FxCompile Include="GBufferVS.hlsl" />
-    <FxCompile Include="ForwardPrepassVertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PlayerPixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PlayerVertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl" />
+    <FxCompile Include="PlayerPixelShader.hlsl" />
+    <FxCompile Include="PlayerVertexShader.hlsl" />
+    <FxCompile Include="TrailPixelShader.hlsl" />
+    <FxCompile Include="TrailVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Engine.ico" />
     <Image Include="small.ico" />
-    <FxCompile Include="TrailPixelShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="TrailVertexShader.hlsl">
-      <Filter>D3D12\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="FullscreenTriangleVS.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
