@@ -30,6 +30,7 @@ class ComponentSoundSource;
 class CameraComponent;
 class NavRuntimeBlockerComponent;
 class PlayerRenderBufferComponent;
+class TrailComponent;
 
 struct HapticEffectDefinition;
 
@@ -415,6 +416,16 @@ namespace ParticleSystemAPI
     ENGINE_API bool isPlaying(ParticleSystemComponent* particleSystem);
 
     ENGINE_API void reset(ParticleSystemComponent* particleSystem); // resets the particles
+}
+
+namespace TrailAPI
+{
+    ENGINE_API TrailComponent* getTrailComponent(GameObject* gameObject);
+    ENGINE_API const TrailComponent* getTrailComponent(const GameObject* gameObject);
+
+    ENGINE_API bool isTrailGenerating(TrailComponent* trailComponent);
+    ENGINE_API void generateTrail(TrailComponent* trailComponent, bool value);
+
 }
 
 namespace AudioAPI
