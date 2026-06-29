@@ -1786,5 +1786,11 @@
     </FxCompile>
     <FxCompile Include="TrailPixelShader.hlsl" />
     <FxCompile Include="TrailVertexShader.hlsl" />
+    <FxCompile Include="FontPixelShader.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="FontVertexShader.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

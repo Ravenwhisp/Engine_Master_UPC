@@ -44,7 +44,7 @@ bool ModuleFont::loadFonts(ID3D12Device* device, ResourceUploadBatch& upload, De
         ));
 
         m_fontNames.push_back(entry.path().stem().string());
-        DEBUG_LOG("Loaded font: %s", entry.path().stem().string());
+        DEBUG_LOG("Loaded font: %s", entry.path().stem().string().c_str());
     }
 
     return !m_spriteFonts.empty();
@@ -56,6 +56,56 @@ SpriteFont* ModuleFont::getFont(int fontId) const
         return nullptr;
 
     return m_spriteFonts[fontId].get();
+}
+
+const SpriteFont::Glyph* ModuleFont::getGlyph(int fontId, wchar_t character) const
+{
+    SpriteFont* font = getFont(fontId);
+
+    if (!font)
+        return nullptr;
+
+    if (!font->ContainsCharacter(character))
+    {
+        const wchar_t defaultCharacter = font->GetDefaultCharacter();
+
+        if (defaultCharacter == 0 || !font->ContainsCharacter(defaultCharacter))
+            return nullptr;
+
+        character = defaultCharacter;
+    }
+
+    return font->FindGlyph(character);
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE ModuleFont::getFontTexture(int fontId) const
+{
+    SpriteFont* font = getFont(fontId);
+
+    if (!font)
+        return {};
+
+    return font->GetSpriteSheet();
+}
+
+DirectX::XMUINT2 ModuleFont::getFontTextureSize(int fontId) const
+{
+    SpriteFont* font = getFont(fontId);
+
+    if (!font)
+        return DirectX::XMUINT2(0, 0);
+
+    return font->GetSpriteSheetSize();
+}
+
+float ModuleFont::getLineSpacing(int fontId) const
+{
+    SpriteFont* font = getFont(fontId);
+
+    if (!font)
+        return 0.0f;
+
+    return font->GetLineSpacing();
 }
 
 int ModuleFont::findFontId(const std::string& fontName) const

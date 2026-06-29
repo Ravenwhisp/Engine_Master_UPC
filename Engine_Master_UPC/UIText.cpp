@@ -2,10 +2,10 @@
 #include "UIText.h"
 #include "JsonArchive.h"
 #include <imgui.h>
+#include <cfloat>
 
 #include "Application.h"
 #include "ModuleFont.h"
-
 
 UIText::UIText(UID id, GameObject* owner)
     : Component(id, ComponentType::UITEXT, owner)
@@ -69,7 +69,7 @@ void UIText::drawUi()
 {
     ImGui::Text("UIText");
 
-    char buf[512];
+    char buf[2048];
     std::memset(buf, 0, sizeof(buf));
 
     if (!m_text.empty())
@@ -78,7 +78,7 @@ void UIText::drawUi()
         buf[sizeof(buf) - 1] = '\0';
     }
 
-    if (ImGui::InputText("Text", buf, IM_ARRAYSIZE(buf)))
+    if (ImGui::InputTextMultiline("Text", buf, IM_ARRAYSIZE(buf), ImVec2(-FLT_MIN, 90.0f)))
     {
         m_text = buf;
     }
