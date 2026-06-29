@@ -288,7 +288,7 @@ void PlayerPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, Mes
     PlayerRenderBufferComponent::PlayerRenderBuffer playerRenderBuffer{};
     if (playerRenderBufferComponent)
     {
-        playerRenderBuffer.damageHighlight = playerRenderBufferComponent->getDamageHighlight();
+        playerRenderBuffer.damageHighlight = playerRenderBufferComponent->getDamageHighlightIntensity();
         playerRenderBuffer.damageHighlightData = playerRenderBufferComponent->getDamageHighlightData();
     }
     commandList->SetGraphicsRootConstantBufferView(5, app->getModuleRender()->allocateInRingBuffer(&playerRenderBuffer, sizeof(PlayerRenderBufferComponent::PlayerRenderBuffer)));
