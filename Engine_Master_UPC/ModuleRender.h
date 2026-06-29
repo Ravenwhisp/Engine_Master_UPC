@@ -24,6 +24,7 @@ class RingBuffer;
 class IRenderPass;
 class RenderSurface;
 class SkyBoxPass;
+class ForwardPrepass;
 class DeferredShadingPass;
 class GeometryPass;
 
@@ -78,6 +79,7 @@ private:
     bool m_pendingStopSimulation = false;
 
     DebugDrawPass* m_debugDrawPass = nullptr;
+    ForwardPrepass* m_forwardPrepass = nullptr;
     GeometryPass* m_geometryPass = nullptr;
     DeferredShadingPass* m_meshRenderPass = nullptr;
 

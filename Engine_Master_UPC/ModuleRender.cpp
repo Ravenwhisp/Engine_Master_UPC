@@ -27,8 +27,10 @@
 #include "ImGuiPass.h"
 #include "SkyBoxPass.h"
 #include "ParticlesPass.h"
+#include "ForwardPrepass.h"
 #include "GeometryPass.h"
 #include "DeferredShadingPass.h"
+#include "PlayerPass.h"
 #include "TrailPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
@@ -72,11 +74,16 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
+    m_forwardPrepass = new ForwardPrepass(device);
+    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
+
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
+
+    m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
@@ -161,10 +168,14 @@ void ModuleRender::preRender()
                 continue;
             }
 
+            BEGIN_EVENT(commandList, "Prepare Render Target");
+            
             auto colorTex = entry.surface->getTexture(RenderSurface::COMPOSITE);
             transitionResource(commandList, colorTex->getD3D12Resource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
             renderBackground(commandList, *entry.surface);
+
+            END_EVENT(commandList);
 
             if (entry.type == ViewportType::EDITOR)
             {

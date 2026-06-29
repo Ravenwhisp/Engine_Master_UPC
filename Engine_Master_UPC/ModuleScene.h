@@ -3,6 +3,7 @@
 
 #include "ScenePicking.h"
 #include "Layer.h"
+#include "MeshRenderer.h"
 
 #include <memory>
 #include <string>
@@ -95,7 +96,13 @@ public:
 
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
     const std::vector<MeshRenderer*>& getMeshRenderers();
+    const std::vector<MeshRenderer*> getDeferredMeshRenderers();
+    const std::vector<MeshRenderer*> getForwardMeshRenderers();
+    const std::vector<MeshRenderer*> getForwardMeshRenderers(RenderMode mode);
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleDeferredMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers(RenderMode mode);
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();

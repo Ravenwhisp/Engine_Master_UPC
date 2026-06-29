@@ -144,6 +144,15 @@
     <ClCompile Include="NavRuntimeBlockerComponent.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
+    <ClCompile Include="ForwardPrepass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerRenderBufferComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
     <ClCompile Include="JsonArchive.cpp" />
     <ClCompile Include="ShadowMapPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
@@ -693,6 +702,7 @@
     <ClCompile Include="ImporterGltf.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
+    <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
@@ -1568,6 +1578,15 @@
     <ClInclude Include="NavRuntimeBlockerComponent.h">
       <Filter>NavMesh</Filter>
     </ClInclude>
+    <ClInclude Include="ForwardPrepass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerRenderBufferComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
     <ClInclude Include="ShadowMapPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
@@ -2021,6 +2040,12 @@
       <Filter>Editor\imgui\NodeEditor</Filter>
     </None>
     <None Include="SimpleMath.inl" />
+    <None Include="ForwardCommon.hlsli">
+      <Filter>D3D12\Shaders</Filter>
+    </None>
+    <None Include="General.hlsli">
+      <Filter>D3D12\Shaders</Filter>
+    </None>
     <None Include="GBufferCommon.hlsli">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </None>
@@ -2097,6 +2122,27 @@
     </FxCompile>
     <FxCompile Include="SpritePixelShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="GBufferPS.hlsl" />
+    <FxCompile Include="GBufferVS.hlsl" />
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PlayerPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PlayerVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Engine.ico" />
+    <Image Include="small.ico" />
+    <FxCompile Include="TrailPixelShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TrailVertexShader.hlsl">
+      <Filter>D3D12\Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="FullscreenTriangleVS.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>

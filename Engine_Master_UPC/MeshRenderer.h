@@ -21,6 +21,13 @@ struct ModelData
 	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
+enum class RenderMode : UINT
+{
+	DEFAULT = 0,
+	PLAYER = 1,
+	COUNT = 2
+};
+
 
 class MeshRenderer : public Component
 {
@@ -72,6 +79,8 @@ public:
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
+	RenderMode getRenderMode() { return m_renderMode; }
+
 private:
 	void recompute();
 
@@ -89,4 +98,6 @@ private:
 	int m_triangles = 0;
 
 	bool m_isCulled = false;
+
+	RenderMode m_renderMode = RenderMode::DEFAULT;
 };

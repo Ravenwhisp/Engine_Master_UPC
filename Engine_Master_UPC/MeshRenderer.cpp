@@ -83,6 +83,13 @@ void MeshRenderer::drawUi()
         ImGui::Text("Mesh: None");
     }
 
+    static const char* RENDER_TYPES[(int)RenderMode::COUNT] = { "Default", "Player" };
+    int typeIndex = static_cast<int>(m_renderMode);
+    if (ImGui::Combo("Render Mode", &typeIndex, RENDER_TYPES, (int)RenderMode::COUNT))
+    {
+        m_renderMode = static_cast<RenderMode>(typeIndex);
+    }
+
     // --- Mesh drop target ---
     ImGui::Button("Drop Mesh Here");
     if (ImGui::BeginDragDropTarget())
