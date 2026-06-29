@@ -2879,12 +2879,12 @@ namespace TrailAPI
         return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
     }
 
-    ENGINE_API bool isTrailGenerating(TrailComponent* trailComponent)
+    bool isTrailGenerating(TrailComponent* trailComponent)
     {
         return trailComponent->isGenerating();
     }
 
-    ENGINE_API void generateTrail(TrailComponent* trailComponent, bool value)
+    void generateTrail(TrailComponent* trailComponent, bool value)
     {
         return trailComponent->generate(value);
     }
@@ -2973,7 +2973,7 @@ namespace AudioAPI
 
 namespace Shaders
 {
-    ENGINE_API PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(GameObject* gameObject)
+    PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(GameObject* gameObject)
     {
         if (!gameObject)
         {
@@ -2983,7 +2983,7 @@ namespace Shaders
         return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
     }
 
-    ENGINE_API const PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(const GameObject* gameObject)
+    const PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(const GameObject* gameObject)
     {
         if (!gameObject)
         {
@@ -2993,42 +2993,42 @@ namespace Shaders
         return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
     }
 
-    ENGINE_API float Shaders::getDamageHighlightIntensity(PlayerRenderBufferComponent* component)
+    float Shaders::getDamageHighlightIntensity(PlayerRenderBufferComponent* component)
     {
         return component->getDamageHighlightIntensity();
     }
 
-    ENGINE_API void setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value)
+    void setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value)
     {
         component->setDamageHighlightIntensity(value);
     }
 
-    ENGINE_API Vector3 Shaders::getDamageHighlightCenterColor(PlayerRenderBufferComponent* component)
+    Vector3 Shaders::getDamageHighlightCenterColor(PlayerRenderBufferComponent* component)
     {
         return component->getDamageHighlightCenterColor();
     }
     
-    ENGINE_API void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
+    void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
     {
         return component->setDamageHighlightCenterColor(value);
     }
 
-    ENGINE_API Vector3 Shaders::getDamageHighlightRimColor(PlayerRenderBufferComponent* component)
+    Vector3 Shaders::getDamageHighlightRimColor(PlayerRenderBufferComponent* component)
     {
         return component->getDamageHighlightRimColor();
     }
 
-    ENGINE_API void Shaders::setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value)
+    void Shaders::setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value)
     {
         return component->setDamageHighlightRimColor(value);
     }
 
-    ENGINE_API float Shaders::getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component)
+    float Shaders::getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component)
     {
         return component->getDamageHighlightRimIntensity();
     }
 
-    ENGINE_API void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
+    void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
     {
         component->setDamageHighlightRimIntensity(value);
     }
