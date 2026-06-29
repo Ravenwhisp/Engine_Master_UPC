@@ -254,13 +254,5 @@ void ModuleUI::buildUIText(GameObject* gameObject, const Rect2D& myRect)
         return;
     }
 
-    UITextCommand command;
-    command.text = stringToWString(uiText->getText());
-    command.x = myRect.x;
-    command.y = myRect.y;
-    command.color = uiText->getColor();
-    command.scale = uiText->getFontScale();
-    command.fontId = uiText->getFontId();
-
-    m_textCommands.push_back(std::move(command));
+    m_textCommands.push_back(uiText->buildCommand(myRect));
 }

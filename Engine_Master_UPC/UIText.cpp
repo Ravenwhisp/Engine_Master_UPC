@@ -129,5 +129,98 @@ void UIText::drawUi()
 
         ImGui::EndCombo();
     }
+
+    ImGui::SeparatorText("Effects");
+
+    bool outline = (m_effectFlags & UITextEffect_Outline) != 0;
+    bool shadow = (m_effectFlags & UITextEffect_Shadow) != 0;
+    bool glow = (m_effectFlags & UITextEffect_Glow) != 0;
+    bool wave = (m_effectFlags & UITextEffect_Wave) != 0;
+
+    if (ImGui::Checkbox("Outline", &outline))
+    {
+        if (outline) m_effectFlags |= UITextEffect_Outline;
+        else m_effectFlags &= ~UITextEffect_Outline;
+    }
+
+    if (outline)
+    {
+        float outlineColor[4] = { m_outlineColor.x, m_outlineColor.y, m_outlineColor.z, m_outlineColor.w };
+        if (ImGui::ColorEdit4("Outline Color", outlineColor))
+            m_outlineColor = { outlineColor[0], outlineColor[1], outlineColor[2], outlineColor[3] };
+
+        ImGui::DragFloat("Outline Size", &m_outlineSize, 0.05f, 0.0f, 10.0f);
+    }
+
+    if (ImGui::Checkbox("Shadow", &shadow))
+    {
+        if (shadow) m_effectFlags |= UITextEffect_Shadow;
+        else m_effectFlags &= ~UITextEffect_Shadow;
+    }
+
+    if (shadow)
+    {
+        float shadowColor[4] = { m_shadowColor.x, m_shadowColor.y, m_shadowColor.z, m_shadowColor.w };
+        if (ImGui::ColorEdit4("Shadow Color", shadowColor))
+            m_shadowColor = { shadowColor[0], shadowColor[1], shadowColor[2], shadowColor[3] };
+
+        ImGui::DragFloat("Shadow Offset X", &m_shadowOffsetX, 0.1f, -50.0f, 50.0f);
+        ImGui::DragFloat("Shadow Offset Y", &m_shadowOffsetY, 0.1f, -50.0f, 50.0f);
+    }
+
+    if (ImGui::Checkbox("Glow", &glow))
+    {
+        if (glow) m_effectFlags |= UITextEffect_Glow;
+        else m_effectFlags &= ~UITextEffect_Glow;
+    }
+
+    if (glow)
+    {
+        float glowColor[4] = { m_glowColor.x, m_glowColor.y, m_glowColor.z, m_glowColor.w };
+        if (ImGui::ColorEdit4("Glow Color", glowColor))
+            m_glowColor = { glowColor[0], glowColor[1], glowColor[2], glowColor[3] };
+
+        ImGui::DragFloat("Glow Size", &m_glowSize, 0.1f, 0.0f, 20.0f);
+    }
+
+    if (ImGui::Checkbox("Wave", &wave))
+    {
+        if (wave) m_effectFlags |= UITextEffect_Wave;
+        else m_effectFlags &= ~UITextEffect_Wave;
+    }
+
+    if (wave)
+    {
+        ImGui::DragFloat("Wave Amplitude", &m_waveAmplitude, 0.1f, 0.0f, 50.0f);
+        ImGui::DragFloat("Wave Frequency", &m_waveFrequency, 0.001f, 0.0f, 1.0f);
+        ImGui::DragFloat("Wave Speed", &m_waveSpeed, 0.1f, 0.0f, 20.0f);
+    }
 }
 
+UITextCommand UIText::buildCommand(const Rect2D& rect)
+{
+    UITextCommand command;
+
+    command.text = std::wstring(m_text.begin(), m_text.end());
+    command.x = rect.x;
+    command.y = rect.y;
+    command.color = m_color;
+    command.scale = m_scale;
+    command.fontId = getFontId();
+
+    command.effectFlags = m_effectFlags;
+
+    command.outlineColor = m_outlineColor;
+    command.shadowColor = m_shadowColor;
+    command.glowColor = m_glowColor;
+
+    command.outlineSize = m_outlineSize;
+    command.shadowOffsetX = m_shadowOffsetX;
+    command.shadowOffsetY = m_shadowOffsetY;
+    command.glowSize = m_glowSize;
+    command.waveAmplitude = m_waveAmplitude;
+    command.waveFrequency = m_waveFrequency;
+    command.waveSpeed = m_waveSpeed;
+
+    return command;
+}

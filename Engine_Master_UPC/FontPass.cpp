@@ -19,6 +19,7 @@
 
 #include <d3dcompiler.h>
 #include <SpriteFont.h>
+#include <algorithm>
 
 constexpr int DEBUG_FONT_ID = 0;
 
@@ -129,7 +130,7 @@ void FontPass::apply(ID3D12GraphicsCommandList4* commandList)
 	{
 		for (const auto& command : *m_commands)
 		{
-			drawText(commandList, command.fontId, command.text.c_str(), command.x, command.y, command.color, command.scale);
+			drawText(commandList, command);
 		}
 	}
 
@@ -141,6 +142,8 @@ void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
 	if (!m_viewport || !m_pipelineState || !m_rootSignature)
 		return;
 
+	m_time += app->getModuleTime()->deltaTime();
+
 	commandList->SetPipelineState(m_pipelineState.Get());
 	commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
@@ -148,18 +151,32 @@ void FontPass::begin(ID3D12GraphicsCommandList4* commandList)
 	commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	FontParams params{};
-	params.viewportSize = DirectX::XMFLOAT2(m_viewport->Width, m_viewport->Height);
-	params.time = app->getModuleTime()->deltaTime();
-
-	commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&params, sizeof(FontParams)));
 }
 
-void FontPass::drawText(ID3D12GraphicsCommandList4* commandList, int fontId, const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale)
+void FontPass::drawText(ID3D12GraphicsCommandList4* commandList, const UITextCommand& command)
 {
-	if (!text)
+	if (command.effectFlags & UITextEffect_Shadow)
+	{
+		UITextCommand shadowCommand = command;
+		shadowCommand.x += command.shadowOffsetX;
+		shadowCommand.y += command.shadowOffsetY;
+		shadowCommand.color = command.shadowColor;
+		shadowCommand.effectFlags &= ~UITextEffect_Shadow;
+		shadowCommand.effectFlags &= ~UITextEffect_Outline;
+		shadowCommand.effectFlags &= ~UITextEffect_Glow;
+
+		drawTextInternal(commandList, shadowCommand);
+	}
+
+	drawTextInternal(commandList, command);
+}
+
+void FontPass::drawTextInternal(ID3D12GraphicsCommandList4* commandList, const UITextCommand& command)
+{
+	if (command.text.empty())
 		return;
+
+	const int fontId = command.fontId;
 
 	D3D12_GPU_DESCRIPTOR_HANDLE atlas = app->getModuleFont()->getFontTexture(fontId);
 	DirectX::XMUINT2 atlasSize = app->getModuleFont()->getFontTextureSize(fontId);
@@ -171,21 +188,29 @@ void FontPass::drawText(ID3D12GraphicsCommandList4* commandList, int fontId, con
 
 	const float lineSpacing = app->getModuleFont()->getLineSpacing(fontId);
 
-	float cursorX = x;
-	float cursorY = y + lineSpacing * scale;
+	float cursorX = command.x;
+	float cursorY = command.y + lineSpacing * command.scale;
 
 	const float invAtlasW = 1.0f / static_cast<float>(atlasSize.x);
 	const float invAtlasH = 1.0f / static_cast<float>(atlasSize.y);
 
-	for (const wchar_t* c = text; *c != L'\0'; ++c)
+	const bool hasOutline = (command.effectFlags & UITextEffect_Outline) != 0;
+	const bool hasGlow = (command.effectFlags & UITextEffect_Glow) != 0;
+
+	const float paddingPixels = std::max(
+		hasOutline ? command.outlineSize : 0.0f,
+		hasGlow ? command.glowSize : 0.0f
+	);
+
+	for (const wchar_t* c = command.text.c_str(); *c != L'\0'; ++c)
 	{
 		if (*c == L'\r')
 			continue;
 
 		if (*c == L'\n')
 		{
-			cursorX = x;
-			cursorY += lineSpacing * scale;
+			cursorX = command.x;
+			cursorY += lineSpacing * command.scale;
 			continue;
 		}
 
@@ -197,32 +222,49 @@ void FontPass::drawText(ID3D12GraphicsCommandList4* commandList, int fontId, con
 		const float glyphW = static_cast<float>(glyph->Subrect.right - glyph->Subrect.left);
 		const float glyphH = static_cast<float>(glyph->Subrect.bottom - glyph->Subrect.top);
 
-		const float left = cursorX + glyph->XOffset * scale;
-		const float top = cursorY + (glyph->YOffset - lineSpacing) * scale;
-		const float right = left + glyphW * scale;
-		const float bottom = top + glyphH * scale;
+		const float pad = paddingPixels * command.scale;
 
-		const float u0 = static_cast<float>(glyph->Subrect.left) * invAtlasW;
-		const float v0 = static_cast<float>(glyph->Subrect.top) * invAtlasH;
-		const float u1 = static_cast<float>(glyph->Subrect.right) * invAtlasW;
-		const float v1 = static_cast<float>(glyph->Subrect.bottom) * invAtlasH;
+		const float left = cursorX + glyph->XOffset * command.scale - pad;
+		const float top = cursorY + (glyph->YOffset - lineSpacing) * command.scale - pad;
+		const float right = left + glyphW * command.scale + pad * 2.0f;
+		const float bottom = top + glyphH * command.scale + pad * 2.0f;
+
+		const float u0 = (static_cast<float>(glyph->Subrect.left) - paddingPixels) * invAtlasW;
+		const float v0 = (static_cast<float>(glyph->Subrect.top) - paddingPixels) * invAtlasH;
+		const float u1 = (static_cast<float>(glyph->Subrect.right) + paddingPixels) * invAtlasW;
+		const float v1 = (static_cast<float>(glyph->Subrect.bottom) + paddingPixels) * invAtlasH;
 
 		if (glyphW > 0.0f && glyphH > 0.0f)
 		{
-			m_vertices.push_back({ DirectX::XMFLOAT2(left, top), DirectX::XMFLOAT2(u0, v0), color });
-			m_vertices.push_back({ DirectX::XMFLOAT2(right, top), DirectX::XMFLOAT2(u1, v0), color });
-			m_vertices.push_back({ DirectX::XMFLOAT2(right, bottom), DirectX::XMFLOAT2(u1, v1), color });
+			m_vertices.push_back({ DirectX::XMFLOAT2(left, top), DirectX::XMFLOAT2(u0, v0), command.color });
+			m_vertices.push_back({ DirectX::XMFLOAT2(right, top), DirectX::XMFLOAT2(u1, v0), command.color });
+			m_vertices.push_back({ DirectX::XMFLOAT2(right, bottom), DirectX::XMFLOAT2(u1, v1), command.color });
 
-			m_vertices.push_back({ DirectX::XMFLOAT2(left, top), DirectX::XMFLOAT2(u0, v0), color });
-			m_vertices.push_back({ DirectX::XMFLOAT2(right, bottom), DirectX::XMFLOAT2(u1, v1), color });
-			m_vertices.push_back({ DirectX::XMFLOAT2(left, bottom), DirectX::XMFLOAT2(u0, v1), color });
+			m_vertices.push_back({ DirectX::XMFLOAT2(left, top), DirectX::XMFLOAT2(u0, v0), command.color });
+			m_vertices.push_back({ DirectX::XMFLOAT2(right, bottom), DirectX::XMFLOAT2(u1, v1), command.color });
+			m_vertices.push_back({ DirectX::XMFLOAT2(left, bottom), DirectX::XMFLOAT2(u0, v1), command.color });
 		}
 
-		cursorX += (glyphW + glyph->XAdvance + glyph->XOffset) * scale;
+		cursorX += (glyphW + glyph->XAdvance + glyph->XOffset) * command.scale;
 	}
 
 	if (m_vertices.empty())
 		return;
+
+	FontParams params{};
+	params.viewportSize = DirectX::XMFLOAT2(m_viewport->Width, m_viewport->Height);
+	params.atlasTexelSize = DirectX::XMFLOAT2(invAtlasW, invAtlasH);
+	params.time = m_time;
+	params.effectFlags = command.effectFlags;
+	params.outlineSize = command.outlineSize;
+	params.glowSize = command.glowSize;
+	params.outlineColor = command.outlineColor;
+	params.glowColor = command.glowColor;
+	params.waveAmplitude = command.waveAmplitude;
+	params.waveFrequency = command.waveFrequency;
+	params.waveSpeed = command.waveSpeed;
+
+	commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&params, sizeof(FontParams)));
 
 	const UINT vertexBufferSize = static_cast<UINT>(m_vertices.size() * sizeof(FontVertex));
 	const D3D12_GPU_VIRTUAL_ADDRESS vertexBufferAddress = app->getModuleRender()->allocateInRingBuffer(m_vertices.data(), vertexBufferSize);
@@ -237,9 +279,7 @@ void FontPass::drawText(ID3D12GraphicsCommandList4* commandList, int fontId, con
 	commandList->DrawInstanced(static_cast<UINT>(m_vertices.size()), 1, 0, 0);
 }
 
-void FontPass::end(ID3D12GraphicsCommandList4* commandList)
-{
-}
+void FontPass::end(ID3D12GraphicsCommandList4* commandList) { }
 
 void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 {
@@ -251,7 +291,14 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"FPS: %.0f", fps);
 
-		drawText(commandList, DEBUG_FONT_ID, buffer, 10.0f, 10.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		UITextCommand command;
+		command.text = buffer;
+		command.x = 10.0f;
+		command.y = 10.0f;
+		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
+		command.scale = 1.0f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
 	}
 
 	if (m_settings->debugGame.showFrametime)
@@ -262,7 +309,14 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Frame time: %.2f ms", ms);
 
-		drawText(commandList, DEBUG_FONT_ID, buffer, 10.0f, 30.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		UITextCommand command;
+		command.text = buffer;
+		command.x = 10.0f;
+		command.y = 10.0f;
+		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
+		command.scale = 1.0f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
 	}
 
 	if (m_settings->debugGame.showTrianglesNumber)
@@ -272,7 +326,14 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Triangles: %d", triangles);
 
-		drawText(commandList, DEBUG_FONT_ID, buffer, 10.0f, 50.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		UITextCommand command;
+		command.text = buffer;
+		command.x = 10.0f;
+		command.y = 10.0f;
+		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
+		command.scale = 1.0f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
 	}
 
 	if (m_settings->debugGame.showMeshNumber)
@@ -282,6 +343,13 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		wchar_t buffer[64];
 		swprintf_s(buffer, L"Meshes: %d", meshes);
 
-		drawText(commandList, DEBUG_FONT_ID, buffer, 10.0f, 70.0f, DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f), 1.0f);
+		UITextCommand command;
+		command.text = buffer;
+		command.x = 10.0f;
+		command.y = 10.0f;
+		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
+		command.scale = 1.0f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
 	}
 }

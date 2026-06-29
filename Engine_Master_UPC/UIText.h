@@ -2,6 +2,8 @@
 #include "Component.h"
 #include "ModuleFont.h"
 
+#include "UICommands.h"
+
 class UIText : public Component
 {
 private:
@@ -13,6 +15,21 @@ private:
     int m_fontId = UNKNOWN_FONT_ID;
 
     void resolveFontId();
+
+private:
+    uint32_t m_effectFlags = UITextEffect_None;
+
+    DirectX::XMFLOAT4 m_outlineColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+    DirectX::XMFLOAT4 m_shadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
+    DirectX::XMFLOAT4 m_glowColor = { 1.0f, 1.0f, 1.0f, 0.5f };
+
+    float m_outlineSize = 1.0f;
+    float m_shadowOffsetX = 2.0f;
+    float m_shadowOffsetY = 2.0f;
+    float m_glowSize = 3.0f;
+    float m_waveAmplitude = 2.0f;
+    float m_waveFrequency = 0.05f;
+    float m_waveSpeed = 4.0f;
 
 public:
     UIText(UID id, GameObject* owner);
@@ -35,4 +52,6 @@ public:
 
     void drawUi() override;
     void serialize(IArchive& archive) override;
+
+    UITextCommand buildCommand(const Rect2D& rect);
 };

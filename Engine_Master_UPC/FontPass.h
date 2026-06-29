@@ -17,8 +17,20 @@ struct FontVertex
 struct FontParams
 {
 	DirectX::XMFLOAT2 viewportSize;
-	float time;
-	float padding;
+	DirectX::XMFLOAT2 atlasTexelSize;
+
+	float time = 0.0f;
+	uint32_t effectFlags = 0;
+	float outlineSize = 0.0f;
+	float glowSize = 0.0f;
+
+	DirectX::XMFLOAT4 outlineColor;
+	DirectX::XMFLOAT4 glowColor;
+
+	float waveAmplitude = 0.0f;
+	float waveFrequency = 0.0f;
+	float waveSpeed = 0.0f;
+	float padding = 0.0f;
 };
 
 class FontPass : public IRenderPass
@@ -34,7 +46,8 @@ public:
 
 private:
 	void begin(ID3D12GraphicsCommandList4* commandList);
-	void drawText(ID3D12GraphicsCommandList4* commandList, int fontId, const wchar_t* text, float x, float y, const DirectX::XMFLOAT4& color, float scale);
+	void drawText(ID3D12GraphicsCommandList4* commandList, const UITextCommand& command);
+	void drawTextInternal(ID3D12GraphicsCommandList4* commandList, const UITextCommand& command);
 	void end(ID3D12GraphicsCommandList4* commandList);
 
 	void showDebugInformation(ID3D12GraphicsCommandList4* commandList);
@@ -53,4 +66,6 @@ private:
 	ComPtr<ID3D12Device4> m_device;
 	ComPtr<ID3D12RootSignature> m_rootSignature;
 	ComPtr<ID3D12PipelineState> m_pipelineState;
+
+	float m_time = 0.0f;
 };
