@@ -28,8 +28,15 @@ public:
 
 	void debugDraw() override {}
 
-	void setDamageHighlight(float value) { m_damageHighlight = value; }
-	float getDamageHighlight() { return m_damageHighlight; }
+	void setDamageHighlightIntensity(float value) { m_damageHighlight = value; }
+	float getDamageHighlightIntensity() { return m_damageHighlight; }
+	void setDamageHighlightCenterColor(Vector3 value) { m_damageHighlightData.centerColor = value; }
+	Vector3 getDamageHighlightCenterColor() { return m_damageHighlightData.centerColor; }
+	void setDamageHighlightRimColor(Vector3 value) { m_damageHighlightData.rimColor = value; }
+	Vector3 getDamageHighlightRimColor() { return m_damageHighlightData.rimColor; }
+	void setDamageHighlightRimIntensity(float value) { m_damageHighlightData.rimIntensity = value; }
+	float getDamageHighlightRimIntensity() { return m_damageHighlightData.rimIntensity; }
+
 	DamageHighlightData getDamageHighlightData() { return m_damageHighlightData; }
 
 private:
