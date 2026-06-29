@@ -76,6 +76,7 @@ void TrailComponent::update()
     if(m_points.size() <= 0)
     {
         CreatePoint();
+        return;
     }
 
     Vector3 begining = m_points.front()->position;
