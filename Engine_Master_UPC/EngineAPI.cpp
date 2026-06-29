@@ -2959,13 +2959,43 @@ namespace Shaders
         return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
     }
 
-    ENGINE_API float Shaders::getDamageHighlight(PlayerRenderBufferComponent* component)
+    ENGINE_API float Shaders::getDamageHighlightIntensity(PlayerRenderBufferComponent* component)
     {
-        return component->getDamageHighlight();
+        return component->getDamageHighlightIntensity();
     }
 
-    ENGINE_API void setDamageHighlight(PlayerRenderBufferComponent* component, float value)
+    ENGINE_API void setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value)
     {
-        component->setDamageHighlight(value);
+        component->setDamageHighlightIntensity(value);
+    }
+
+    ENGINE_API Vector3 Shaders::getDamageHighlightCenterColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+    
+    ENGINE_API void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    ENGINE_API Vector3 Shaders::getDamageHighlightRimColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    ENGINE_API void Shaders::setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    ENGINE_API float Shaders::getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    ENGINE_API void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
     }
 }
