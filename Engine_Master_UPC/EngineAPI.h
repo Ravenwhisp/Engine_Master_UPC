@@ -29,6 +29,7 @@ class ParticleSystemComponent;
 class ComponentSoundSource;
 class CameraComponent;
 class NavRuntimeBlockerComponent;
+class UIText;
 
 struct HapticEffectDefinition;
 
@@ -433,6 +434,33 @@ namespace AudioAPI
     // la música persista (solo cambia el State -> crossfade).
     ENGINE_API bool isMusicStarted();
     ENGINE_API void setMusicStarted(bool started);
+}
+
+
+namespace UITextAPI
+{
+    ENGINE_API UIText* getTextComponent(GameObject* gameObject);
+    ENGINE_API const UIText* getTextComponent(const GameObject* gameObject);
+
+    ENGINE_API const char* getText(const UIText* component);
+    ENGINE_API void setText(UIText* component, const char* text);
+
+    ENGINE_API float getScale(const UIText* component);
+    ENGINE_API void setScale(UIText* component, float scale);
+
+    ENGINE_API void setColor(UIText* component, float r, float g, float b, float a);
+
+    ENGINE_API void setOutline(UIText* component, bool enabled);
+    ENGINE_API void setOutline(UIText* component, bool enabled, float size, float r, float g, float b, float a);
+
+    ENGINE_API void setShadow(UIText* component, bool enabled);
+    ENGINE_API void setShadow(UIText* component, bool enabled, float offsetX, float offsetY, float r, float g, float b, float a);
+
+    ENGINE_API void setGlow(UIText* component, bool enabled);
+    ENGINE_API void setGlow(UIText* component, bool enabled, float size, float r, float g, float b, float a);
+
+    ENGINE_API void setWave(UIText* component, bool enabled);
+    ENGINE_API void setWave(UIText* component, bool enabled, float amplitude, float frequency, float speed);
 }
 
 #include "EngineAPI.inl"

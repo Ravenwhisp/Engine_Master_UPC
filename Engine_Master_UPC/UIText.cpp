@@ -92,6 +92,88 @@ void UIText::setFont(const std::string& font)
     m_fontId = UNKNOWN_FONT_ID;
 }
 
+#pragma region Effects
+static void setTextEffect(uint32_t& flags, uint32_t flag, bool enabled)
+{
+    if (enabled)
+    {
+        flags |= flag;
+    }
+    else
+    {
+        flags &= ~flag;
+    }
+}
+
+void UIText::enableOutline(bool enable)
+{
+    setTextEffect(m_effectFlags, UITextEffect_Outline, enable);
+}
+
+void UIText::enableShadow(bool enable)
+{
+    setTextEffect(m_effectFlags, UITextEffect_Shadow, enable);
+}
+
+void UIText::enableGlow(bool enable)
+{
+    setTextEffect(m_effectFlags, UITextEffect_Glow, enable);
+}
+
+void UIText::enableWave(bool enable)
+{
+    setTextEffect(m_effectFlags, UITextEffect_Wave, enable);
+}
+
+bool UIText::hasOutline() const
+{
+    return (m_effectFlags & UITextEffect_Outline) != 0;
+}
+
+bool UIText::hasShadow() const
+{
+    return (m_effectFlags & UITextEffect_Shadow) != 0;
+}
+
+bool UIText::hasGlow() const
+{
+    return (m_effectFlags & UITextEffect_Glow) != 0;
+}
+
+bool UIText::hasWave() const
+{
+    return (m_effectFlags & UITextEffect_Wave) != 0;
+}
+#pragma endregion
+
+UITextCommand UIText::buildCommand(const Rect2D& rect)
+{
+    UITextCommand command;
+
+    command.text = std::wstring(m_text.begin(), m_text.end());
+    command.x = rect.x;
+    command.y = rect.y;
+    command.color = m_color;
+    command.scale = m_scale;
+    command.fontId = getFontId();
+
+    command.effectFlags = m_effectFlags;
+
+    command.outlineColor = m_outlineColor;
+    command.shadowColor = m_shadowColor;
+    command.glowColor = m_glowColor;
+
+    command.outlineSize = m_outlineSize;
+    command.shadowOffsetX = m_shadowOffsetX;
+    command.shadowOffsetY = m_shadowOffsetY;
+    command.glowSize = m_glowSize;
+    command.waveAmplitude = m_waveAmplitude;
+    command.waveFrequency = m_waveFrequency;
+    command.waveSpeed = m_waveSpeed;
+
+    return command;
+}
+
 void UIText::drawUi()
 {
     ImGui::Text("UIText");
@@ -222,32 +304,4 @@ void UIText::drawUi()
         ImGui::DragFloat("Wave Frequency", &m_waveFrequency, 0.001f, 0.0f, 1.0f);
         ImGui::DragFloat("Wave Speed", &m_waveSpeed, 0.1f, 0.0f, 20.0f);
     }
-}
-
-UITextCommand UIText::buildCommand(const Rect2D& rect)
-{
-    UITextCommand command;
-
-    command.text = std::wstring(m_text.begin(), m_text.end());
-    command.x = rect.x;
-    command.y = rect.y;
-    command.color = m_color;
-    command.scale = m_scale;
-    command.fontId = getFontId();
-
-    command.effectFlags = m_effectFlags;
-
-    command.outlineColor = m_outlineColor;
-    command.shadowColor = m_shadowColor;
-    command.glowColor = m_glowColor;
-
-    command.outlineSize = m_outlineSize;
-    command.shadowOffsetX = m_shadowOffsetX;
-    command.shadowOffsetY = m_shadowOffsetY;
-    command.glowSize = m_glowSize;
-    command.waveAmplitude = m_waveAmplitude;
-    command.waveFrequency = m_waveFrequency;
-    command.waveSpeed = m_waveSpeed;
-
-    return command;
 }

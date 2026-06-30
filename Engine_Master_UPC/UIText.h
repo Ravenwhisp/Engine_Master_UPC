@@ -54,4 +54,53 @@ public:
     void serialize(IArchive& archive) override;
 
     UITextCommand buildCommand(const Rect2D& rect);
+
+#pragma region Effects
+    uint32_t getEffectFlags() const { return m_effectFlags; }
+    void setEffectFlags(uint32_t flags) { m_effectFlags = flags; }
+
+    void enableOutline(bool enable);
+    void enableShadow(bool enable);
+    void enableGlow(bool enable);
+    void enableWave(bool enable);
+
+    bool hasOutline() const;
+    bool hasShadow() const;
+    bool hasGlow() const;
+    bool hasWave() const;
+
+    const DirectX::XMFLOAT4& getOutlineColor() const { return m_outlineColor; }
+    void setOutlineColor(const DirectX::XMFLOAT4& color) { m_outlineColor = color; }
+
+    const DirectX::XMFLOAT4& getShadowColor() const { return m_shadowColor; }
+    void setShadowColor(const DirectX::XMFLOAT4& color) { m_shadowColor = color; }
+
+    const DirectX::XMFLOAT4& getGlowColor() const { return m_glowColor; }
+    void setGlowColor(const DirectX::XMFLOAT4& color) { m_glowColor = color; }
+
+    float getOutlineSize() const { return m_outlineSize; }
+    void setOutlineSize(float size) { m_outlineSize = size; }
+
+    float getShadowOffsetX() const { return m_shadowOffsetX; }
+    float getShadowOffsetY() const { return m_shadowOffsetY; }
+    void setShadowOffset(float x, float y)
+    {
+        m_shadowOffsetX = x;
+        m_shadowOffsetY = y;
+    }
+
+    float getGlowSize() const { return m_glowSize; }
+    void setGlowSize(float size) { m_glowSize = size; }
+
+    float getWaveAmplitude() const { return m_waveAmplitude; }
+    float getWaveFrequency() const { return m_waveFrequency; }
+    float getWaveSpeed() const { return m_waveSpeed; }
+
+    void setWave(float amplitude, float frequency, float speed)
+    {
+        m_waveAmplitude = amplitude;
+        m_waveFrequency = frequency;
+        m_waveSpeed = speed;
+    }
+#pragma endregion
 };
