@@ -22,6 +22,16 @@
 
 #include "ScenePicking.h"
 
+namespace
+{
+    double elapsedMs(
+        const std::chrono::high_resolution_clock::time_point& begin,
+        const std::chrono::high_resolution_clock::time_point& end)
+    {
+        return std::chrono::duration<double, std::milli>(end - begin).count();
+    }
+}
+
 ModuleScene::ModuleScene()
 {
     AssetReference defaultSceneRef;
@@ -36,11 +46,6 @@ ModuleScene::~ModuleScene() = default;
 void ModuleScene::requestSceneChange(const std::string& sceneName)
 {
     m_pendingSceneLoad = sceneName;
-}
-
-void ModuleScene::requestSceneChange(std::shared_ptr<Scene> scene)
-{
-    m_pendingScene = std::move(scene);
 }
 
 #pragma region GameLoop
@@ -59,12 +64,6 @@ void ModuleScene::update()
     {
         loadScene(m_pendingSceneLoad);
         m_pendingSceneLoad.clear();
-    }
-
-    if (m_pendingScene)
-    {
-        loadScene(m_pendingScene);
-        m_pendingScene.reset();
     }
 
     m_scene->update();
@@ -361,11 +360,15 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    auto tTotal0 = std::chrono::high_resolution_clock::now();
+
     clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
 
     std::string path = "Assets/Scenes/" + sceneName + ".scene";
+
+    auto tRead0 = std::chrono::high_resolution_clock::now();
 
     JsonArchive archive(ArchiveMode::Input);
     if (!archive.loadFile(path))
@@ -373,6 +376,11 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         DEBUG_ERROR("[ModuleScene] Failed to load scene file: %s", path.c_str());
         return false;
     }
+
+    auto tRead1 = std::chrono::high_resolution_clock::now();
+    const double readMs = elapsedMs(tRead0, tRead1);
+
+    auto tCreateScene0 = std::chrono::high_resolution_clock::now();
 
     AssetReference ref(GenerateUID());
     auto newScene = std::make_unique<Scene>(ref);
@@ -389,6 +397,9 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     m_dynamicQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
 
+    auto tCreateScene1 = std::chrono::high_resolution_clock::now();
+    const double createSceneMs = elapsedMs(tCreateScene0, tCreateScene1);
+
     if (app->getModuleNavigation()->loadNavMeshForScene(sceneName.c_str()))
     {
         DEBUG_LOG("[ModuleScene] NavMesh loaded: %s", sceneName.c_str());
@@ -401,10 +412,10 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
 #ifdef GAME_RELEASE
-    app->getSettings()->frustumCulling.enabled = true;
+        app->getSettings()->frustumCulling.enabled = true;
 #endif
 
-    rebuildComponentCaches();
+        rebuildComponentCaches();
 
     for (std::string bank : m_scene->getLoadedBanks())
     {
@@ -413,49 +424,19 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     initializeRuntimeSceneSystems();
 
+    auto tTotal1 = std::chrono::high_resolution_clock::now();
+    const double totalMs = elapsedMs(tTotal0, tTotal1);
+
+    DEBUG_LOG(
+        "[ModuleScene][LoadScene timings] readFile: %.3f ms | createScene: %.3f ms | total: %.3f ms | scene: %s",
+        readMs,
+        createSceneMs,
+        totalMs,
+        sceneName.c_str()
+    );
+
     return true;
-}
 
-bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
-{
-    clearRuntimeSceneSystems();
-    clearComponentCaches();
-
-    auto sceneName = scene->getName();
-
-    if (!sceneName)
-    {
-        DEBUG_ERROR("[ModuleScene] Failed to load scene: %s", sceneName);
-        return false;
-    }
-
-    m_scene = std::move(scene);
-    m_scene->setName(sceneName);
-    m_scene->markDirty();
-
-    m_staticQuadtree = std::make_unique<Quadtree>();
-    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
-    m_dynamicQuadtree = std::make_unique<Quadtree>();
-    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
-
-    if (app->getModuleNavigation()->loadNavMeshForScene(sceneName))
-    {
-        DEBUG_LOG("[ModuleScene] NavMesh loaded: %s", sceneName);
-    }
-    else
-    {
-        DEBUG_WARN("[ModuleScene] NavMesh not found for scene: %s", sceneName);
-    }
-
-    app->getModuleEditor()->setSelectedGameObject(nullptr);
-
-#ifdef GAME_RELEASE
-    app->getSettings()->frustumCulling.enabled = true;
-#endif
-
-    rebuildComponentCaches();
-    initializeRuntimeSceneSystems();
-    return true;
 }
 
 #pragma endregion

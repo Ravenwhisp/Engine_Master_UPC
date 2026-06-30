@@ -34,7 +34,6 @@ private:
     std::unique_ptr<Quadtree> m_dynamicQuadtree;
 
     std::string m_pendingSceneLoad;
-    std::shared_ptr<Scene> m_pendingScene;
 
     std::vector<MeshRenderer*>            m_meshRenderers;
     std::vector<LightComponent*>          m_lightComponents;
@@ -61,10 +60,8 @@ public:
 #pragma region Persistence
     void saveScene();
     bool loadScene(const std::string& sceneName);
-    bool loadScene(std::shared_ptr<Scene> scene);
 
     void requestSceneChange(const std::string& sceneName);
-    void requestSceneChange(std::shared_ptr<Scene> scene);
 
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 #pragma endregion
