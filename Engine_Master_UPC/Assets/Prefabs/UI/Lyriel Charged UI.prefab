@@ -1,0 +1,121 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Lyriel Charged UI.prefab",
+  "Name": "Lyriel Charged UI",
+  "Version": 2,
+  "GameObject": {
+    "Name": "Lyriel Charged UI",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.100000023841858
+      ]
+    },
+    "Components": [
+      {
+        "Type": 6,
+        "Data": {
+          "UID": 11149738534969458056,
+          "ComponentType": 6,
+          "Active": true,
+          "RenderMode": 1,
+          "ZTest": true
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Sprite",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.7071068286895752,
+            0.0,
+            0.0,
+            0.7071067094802856
+          ],
+          "scale": [
+            0.75,
+            0.6818181276321411,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 5,
+            "Data": {
+              "UID": 10604935313114315824,
+              "ComponentType": 5,
+              "Active": true,
+              "Position": [
+                0.0,
+                0.0
+              ],
+              "Scale": [
+                1.0,
+                1.0
+              ],
+              "Pivot": [
+                0.5,
+                0.0
+              ],
+              "AnchorMin": [
+                0.5,
+                0.0
+              ],
+              "AnchorMax": [
+                0.5,
+                0.0
+              ],
+              "BaseSize": [
+                196.0,
+                1484.0
+              ],
+              "StretchMode": 0,
+              "SizingMode": 0,
+              "AspectRatio": 1.0,
+              "Alpha": 1.0
+            }
+          },
+          {
+            "Type": 7,
+            "Data": {
+              "UID": 17700878390519589498,
+              "ComponentType": 7,
+              "Active": true,
+              "TextureAssetId": {
+                "uid": 11249993779082743377,
+                "libId": "d43a82ff74807822d216c47c341ace07"
+              },
+              "FillAmount": 1.0,
+              "FillMethod": 0,
+              "FillOrigin": 0
+            }
+          }
+        ],
+        "Children": []
+      }
+    ]
+  }
+}

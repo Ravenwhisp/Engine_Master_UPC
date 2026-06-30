@@ -1,0 +1,13 @@
+{
+    "uid": 3561876426305488489,
+    "contentHash": "2d2e7dd9b32e85a984f055c825f18faf",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_gradient_linear_interior_BC.png",
+    "sourceFileSize": 13903,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

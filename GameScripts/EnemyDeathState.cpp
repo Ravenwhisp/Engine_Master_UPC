@@ -84,45 +84,48 @@ void EnemyDeathState::dropRewards()
         return;
     }
 
-    const Transform* myTransform = GameObjectAPI::getTransform(getOwner());
-    if (myTransform == nullptr)
-    {
-        return;
-    }
+	const Transform* myTransform = GameObjectAPI::getTransform(getOwner());
+	if (myTransform == nullptr)
+	{
+		return;
+	}
 
-    const Vector3 spawnPosition = TransformAPI::getGlobalPosition(myTransform);
+	const Vector3 spawnPosition = TransformAPI::getGlobalPosition(myTransform);
 
-    for (int i = 0; i < m_healthDropQuantity; ++i)
-    {
+	for (int i = 0; i < m_healthDropQuantity; ++i)
+	{
 
-        float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
-
-
-        float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
+		float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
 
 
-        Vector3 offset;
-        offset.x = std::cos(angle) * distance;
-        offset.z = std::sin(angle) * distance;
-        offset.y = 0.0f;
+		float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
 
-        Vector3 finalPos = spawnPosition + offset;
-        Vector3 arcOrigin = Vector3(spawnPosition.x, spawnPosition.y + m_dropHeight, spawnPosition.z);
+
+		Vector3 offset;
+		offset.x = std::cos(angle) * distance;
+		offset.z = std::sin(angle) * distance;
+		offset.y = 0.0f;
+
+		Vector3 finalPos = spawnPosition + offset;
+		Vector3 arcOrigin = Vector3(spawnPosition.x, spawnPosition.y + m_dropHeight, spawnPosition.z);
 
         // Instantiate at the arc origin (enemy center) so the pickup is never
         // visible at the floor position before Start() runs.
         GameObject* pickup = GameObjectAPI::instantiatePrefab(m_healthPrefab.m_ref, arcOrigin, Vector3::Zero);
 
-        if (pickup == nullptr)
-        {
-            continue;
-        }
-
-		HealthPickup* healthPickup = GameObjectAPI::findScript<HealthPickup>(pickup);
-		if (healthPickup != nullptr)
+		if (pickup == nullptr)
 		{
-			healthPickup->setupDrop(m_dropHealAmount, finalPos);
+			continue;
 		}
+
+        Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
+        if (script != nullptr)
+        {
+            HealthPickup* healthPickup = static_cast<HealthPickup*>(script);
+            healthPickup->m_healAmount = m_dropHealAmount;
+            healthPickup->m_landingPosition = finalPos;
+            healthPickup->m_hasCustomSpawnFrom = true;
+        }
     }
 }
 

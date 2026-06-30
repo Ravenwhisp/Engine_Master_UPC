@@ -127,7 +127,7 @@ void HealthPickup::fallAnimation()
         m_fallVelocity = 0.0f;
     }
 
-    TransformAPI::setPosition(t, pos);
+    TransformAPI::setGlobalPosition(t, pos);
 }
 
 void HealthPickup::idleAnimation()
@@ -141,7 +141,7 @@ void HealthPickup::idleAnimation()
     position.z += std::sin(t) * m_horizontalAmplitude;
     position.y += std::sin(t * 2.0f) * m_verticalAmplitude;
 
-    TransformAPI::setPosition(GameObjectAPI::getTransform(getOwner()), position);
+    TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(getOwner()), position);
 }
 
 

@@ -1,0 +1,13 @@
+{
+    "uid": 13400479809045228354,
+    "contentHash": "277343d91a0098fbadefe2261395768e",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level2B\\NormalBasic.png",
+    "sourceFileSize": 8905,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

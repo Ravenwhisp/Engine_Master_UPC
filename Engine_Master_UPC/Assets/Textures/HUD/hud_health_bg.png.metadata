@@ -1,0 +1,13 @@
+{
+    "uid": 8255388540452820052,
+    "contentHash": "7c64d75aa8474d06bcc23249fa7401b4",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_health_bg.png",
+    "sourceFileSize": 31880,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

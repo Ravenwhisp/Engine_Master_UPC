@@ -1,0 +1,13 @@
+{
+    "uid": 15893969437403602086,
+    "contentHash": "cdcdd60140260678e8c619a3eb6f57cb",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_PROP_ember_dungeon_E.jpg",
+    "sourceFileSize": 137654,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

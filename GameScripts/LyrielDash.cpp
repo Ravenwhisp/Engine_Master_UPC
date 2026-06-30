@@ -111,7 +111,7 @@ void LyrielDash::onDashUpdate(float dt)
 
 bool LyrielDash::validateDashTarget()
 {
-    Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
+    Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
     m_debugDashStart = currentPosition; // Debugging
 
     Vector3 candidateEnd = currentPosition + m_dashDirection * getDashDistance();

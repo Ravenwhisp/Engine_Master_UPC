@@ -22,7 +22,7 @@ public:
 
 public:
     std::vector<float> m_barriersThresholds;
-    int m_requiredAttackType = static_cast<int>(EnemyAttackType::ShadowExecution);
+    int m_requiredAttackType = static_cast<int>(EnemyAttackType::ShadowMarkExploit);
     bool m_shadowExecutionBreaksBarriers = true;
     AssetRef<Prefab> m_barrierPrefab;
 

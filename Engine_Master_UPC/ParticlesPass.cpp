@@ -22,7 +22,7 @@
 ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange;
     CD3DX12_DESCRIPTOR_RANGE samplerRange;
 
@@ -30,12 +30,14 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
     rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
-    rootParameters[1].InitAsShaderResourceView(1); // t1 <- particle data (could we join it with the srvRange?)
-    rootParameters[2].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
-    rootParameters[3].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
+    rootParameters[1].InitAsConstants(sizeof(Vector2) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b1 <- emitter u, v scaling (for tile animation)
+    
+    rootParameters[2].InitAsShaderResourceView(1); // t1 <- particle data (could we join it with the srvRange?)
+    rootParameters[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
+    rootParameters[4].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init(4, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(5, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -148,7 +150,7 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(4, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -184,46 +186,81 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
         for (unsigned int i = 0; i < size; ++i)
         {
-            XMMATRIX m = buildImageWorldMatrix(command.particles[i]).Transpose();
+            XMMATRIX m = buildImageWorldMatrix(command.particles[i], command.renderMode).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
+            particleData[i].sheetOffset = command.particles[i].sheetOffset;
         }
 
         commandList->SetGraphicsRootShaderResourceView(
-            1,
+            2,
             app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(shaderParticleData) )
         );
 
         delete[] particleData;
 
-        commandList->SetGraphicsRootDescriptorTable(2, srv.gpu);
+        commandList->SetGraphicsRootDescriptorTable(3, srv.gpu);
+        commandList->SetGraphicsRoot32BitConstants(1, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
     }
 }
 
 
-Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command) const
+Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, EmitterRender::RenderMode mode) const
 {
     Matrix view = *m_view;
 
-    Matrix rot = view;
-    rot._41 = rot._42 = rot._43 = 0.0f;
-
-    Matrix rotInv = rot.Transpose();
-
-    /*
-    Vector3 cameraUp(view._12, view._22, view._32);
-    Vector3 cameraForward(-view._13, -view._23, -view._33);
-
-    Matrix billboardMatrix = Matrix::CreateBillboard(command.position, *m_cameraPosition, cameraUp, &cameraForward); // adds translation as well!
-    */
-
     Vector3 scale = Vector3(command.scale.x, command.scale.y, 1.0f);
+    Matrix scaleMat = Matrix::CreateScale(scale);
+    Matrix rotZMat = Matrix::CreateRotationZ(command.rotationZ);
+    Matrix transMat = Matrix::CreateTranslation(command.position);
 
-    return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * rotInv * Matrix::CreateTranslation(command.position);
-    //return Matrix::CreateScale(scale) * Matrix::CreateRotationZ(command.rotationZ) * billboardMatrix;
+    switch (mode)
+    {
+    case EmitterRender::RenderMode::BILLBOARD:
+    {
+        Matrix rot = view;
+        rot._41 = rot._42 = rot._43 = 0.0f;
+        Matrix rotInv = rot.Transpose();
+
+        return scaleMat * rotZMat * rotInv * transMat;
+    }
+
+    case EmitterRender::RenderMode::HORIZONTAL:
+    {
+        // Rotamos el quad 90 grados en X para alinearlo con el suelo
+        Matrix rotX = Matrix::CreateRotationX(-1.57079633f);
+
+        return scaleMat * rotZMat * rotX * transMat;
+    }
+
+    case EmitterRender::RenderMode::VERTICAL:
+    {
+        // Extraer la posición de la cámara
+        Matrix invView = view.Invert();
+        Vector3 camPos = Vector3(invView._41, invView._42, invView._43);
+
+        // Dirección hacia la cámara (ignorando la altura para que sea cilíndrico)
+        Vector3 lookAt = command.position - camPos;
+        lookAt.y = 0.0f;
+
+        if (lookAt.LengthSquared() < 0.001f) {
+            lookAt = Vector3::Forward;
+        }
+        else {
+            lookAt.Normalize();
+        }
+
+        Matrix billboardMat = Matrix::CreateLookAt(Vector3::Zero, lookAt, Vector3::Up);
+        Matrix rotInv = billboardMat.Transpose();
+
+        return scaleMat * rotZMat * rotInv * transMat;
+    }
+    }
+
+    return scaleMat * rotZMat * transMat;
 }
 
 Matrix ParticlesPass::buildImageVP()

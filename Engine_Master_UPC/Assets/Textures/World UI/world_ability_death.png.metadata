@@ -1,0 +1,13 @@
+{
+    "uid": 1390797398037610197,
+    "contentHash": "3109c96dbce3fb9eaa5c0921a11d9397",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\World UI\\world_ability_death.png",
+    "sourceFileSize": 222762,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

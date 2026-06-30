@@ -24,7 +24,7 @@ void BreakableExplosive::Update()
 
 void BreakableExplosive::drawGizmo()
 {
-	DebugDrawAPI::drawCircle(TransformAPI::getPosition(GameObjectAPI::getTransform(getOwner())), 
+	DebugDrawAPI::drawCircle(TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())), 
         Vector3::UnitY,
 		Vector3(1.0f, 0.0f, 0.0f),
         m_explosionRadius);
@@ -39,7 +39,7 @@ void BreakableExplosive::onBreak()
         return;
 	}
 
-    const Vector3 explosionCenter = TransformAPI::getPosition(ownerTransform);
+    const Vector3 explosionCenter = TransformAPI::getGlobalPosition(ownerTransform);
 
     const std::vector<GameObject*> objectsInArea = SceneAPI::getObjectsInCircularArea(Vector2(explosionCenter.x, explosionCenter.z), m_explosionRadius);
 
@@ -55,7 +55,7 @@ void BreakableExplosive::onBreak()
         {
             continue;
         }
-        const Vector3 targetPosition = TransformAPI::getPosition(targetTransform);
+        const Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
         const float distanceSquared = Vector3::DistanceSquared(explosionCenter, targetPosition);
         if (distanceSquared > m_explosionRadius * m_explosionRadius)
         {

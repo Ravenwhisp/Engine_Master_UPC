@@ -1,0 +1,13 @@
+{
+    "uid": 8335912227133897155,
+    "contentHash": "e0e7485c1c5ea137512e0ff9e08e6881",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\Peasant.jpg",
+    "sourceFileSize": 22681,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

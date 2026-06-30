@@ -24,13 +24,13 @@ void EnemyAttackState::OnStateEnter()
 
     if (!m_controller)
     {
-        Debug::error("[EnemyAttackState] RangedEnemyController not found.");
+        Debug::error("[EnemyAttackState] EnemyController not found.");
         return;
     }
 
     if (!m_attackConfig)
     {
-        Debug::error("[EnemyAttackState] ArcherAttackConfig not found.");
+        Debug::error("[EnemyAttackState] AttackConfig not found.");
         return;
     }
 

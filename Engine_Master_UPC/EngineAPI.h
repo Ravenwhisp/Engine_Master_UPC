@@ -30,6 +30,8 @@ class ParticleSystemComponent;
 class ComponentSoundSource;
 class CameraComponent;
 class NavRuntimeBlockerComponent;
+class PlayerRenderBufferComponent;
+class TrailComponent;
 
 struct HapticEffectDefinition;
 
@@ -105,6 +107,10 @@ namespace TransformAPI
     ENGINE_API Transform* getParent(Transform* transform);
     ENGINE_API const Transform* getParent(const Transform* transform);
 
+    ENGINE_API int getChildCount(const Transform* transform);
+    ENGINE_API Transform* getChild(Transform* transform, int index);
+    ENGINE_API const Transform* getChild(const Transform* transform, int index);
+
     ENGINE_API Transform* findChildByName(Transform* transform, const char* childName);
     ENGINE_API const Transform* findChildByName(const Transform* transform, const char* childName);
 }
@@ -142,6 +148,10 @@ namespace AnimationAPI
 
     ENGINE_API float getSpeedMultiplier(const AnimationComponent* animation);
     ENGINE_API void setSpeedMultiplier(AnimationComponent* animation, float speedMultiplier);
+
+    ENGINE_API bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds = 0.0f, bool loop = true);
+    ENGINE_API void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds = 0.0f);
+    ENGINE_API bool hasOverrideClip(const AnimationComponent* animation);
 }
 
 namespace ApplicationAPI
@@ -280,6 +290,7 @@ namespace MathAPI
     ENGINE_API float lerp(float a, float b, float t);
     ENGINE_API Vector3 lerp(const Vector3& a, const Vector3& b, float t);
     ENGINE_API Vector2 lerp(const Vector2& a, const Vector2& b, float t);
+    ENGINE_API Vector3 catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t);
     ENGINE_API float smoothStep(float edge0, float edge1, float x);
     ENGINE_API float pingPong(float t);
 
@@ -408,6 +419,16 @@ namespace ParticleSystemAPI
     ENGINE_API void reset(ParticleSystemComponent* particleSystem); // resets the particles
 }
 
+namespace TrailAPI
+{
+    ENGINE_API TrailComponent* getTrailComponent(GameObject* gameObject);
+    ENGINE_API const TrailComponent* getTrailComponent(const GameObject* gameObject);
+
+    ENGINE_API bool isTrailGenerating(TrailComponent* trailComponent);
+    ENGINE_API void generateTrail(TrailComponent* trailComponent, bool value);
+
+}
+
 namespace AudioAPI
 {
     ENGINE_API ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject);
@@ -416,6 +437,30 @@ namespace AudioAPI
     ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);
+    ENGINE_API void setState(const char* stateGroup, const char* stateValue);
+    ENGINE_API void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component);
+    ENGINE_API void setRTPC(const char* rtpcName, float value);
+
+    // "Música arrancada" en esta sesión de play (se resetea al parar la simulación).
+    // El MusicManager lo usa para postear Play_Music una sola vez y que entre escenas
+    // la música persista (solo cambia el State -> crossfade).
+    ENGINE_API bool isMusicStarted();
+    ENGINE_API void setMusicStarted(bool started);
+}
+
+namespace Shaders
+{
+    ENGINE_API PlayerRenderBufferComponent* getPlayerRenderBufferComponent(GameObject* gameObject);
+    ENGINE_API const PlayerRenderBufferComponent* getPlayerRenderBufferComponent(const GameObject* gameObject);
+
+    ENGINE_API float   getDamageHighlightIntensity(PlayerRenderBufferComponent* component);
+    ENGINE_API void    setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value);
+    ENGINE_API Vector3 getDamageHighlightCenterColor(PlayerRenderBufferComponent* component);
+    ENGINE_API void    setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value);
+    ENGINE_API Vector3 getDamageHighlightRimColor(PlayerRenderBufferComponent* component);
+    ENGINE_API void    setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value);
+    ENGINE_API float   getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component);
+    ENGINE_API void    setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value);
 }
 
 #include "EngineAPI.inl"

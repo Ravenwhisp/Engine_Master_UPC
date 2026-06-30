@@ -1,0 +1,13 @@
+{
+    "uid": 7121187722909514537,
+    "contentHash": "5bf00d57df4bbe8643e0f83aafecb962",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\MainMenu_frame.png",
+    "sourceFileSize": 11916,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

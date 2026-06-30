@@ -1,0 +1,97 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Particles\\TinyDust.prefab",
+  "Name": "TinyDust",
+  "Version": 2,
+  "GameObject": {
+    "Name": "TinyDust",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        -0.009599163196980951,
+        0.0,
+        0.9999539256095886
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 17,
+        "Data": {
+          "UID": 10299259173065496091,
+          "ComponentType": 17,
+          "Active": true,
+          "TextureAssetId": {
+            "uid": 18397412372386409293,
+            "libId": "daec75fabdc85d041af40097e2ac1b24"
+          },
+          "ParticleEmitters": [
+            {
+              "Modules": [
+                {
+                  "ModuleType": 2,
+                  "Looping": true,
+                  "Duration": 20.0,
+                  "RateOverTime": 6.199999809265137,
+                  "RateOverDistance": 12.399999618530272
+                },
+                {
+                  "ModuleType": 4,
+                  "StartLifeTime": 5.0
+                },
+                {
+                  "ModuleType": 1,
+                  "ShapeType": 3,
+                  "Radius": 5.0,
+                  "RadiusThickness": 1.0
+                },
+                {
+                  "ModuleType": 3,
+                  "StartColor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "EndColor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ]
+                },
+                {
+                  "ModuleType": 5,
+                  "InitialVelocity": 0.10000000149011612
+                },
+                {
+                  "ModuleType": 6,
+                  "StartScale": [
+                    0.20000000298023224,
+                    0.20000000298023224
+                  ],
+                  "EndScale": [
+                    0.30000001192092896,
+                    0.30000001192092896
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "Children": []
+  }
+}

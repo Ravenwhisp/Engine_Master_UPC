@@ -304,6 +304,8 @@ void ModuleNavigation::rebuildNavMeshDebugLines()
                     color = dd::colors::Green;
                 else if (p->flags & static_cast<unsigned short>(NavPolyFlags::Spectral))
                     color = dd::colors::Blue;
+                else if(p->flags & static_cast<unsigned short>(NavPolyFlags::DashGap))
+					color = dd::colors::Yellow;
                 else
                     color = dd::colors::Red; // for unknown flag
 
@@ -612,12 +614,16 @@ unsigned short ModuleNavigation::getIncludeFlagsForProfile(NavAgentProfile profi
 {
     unsigned short defaultFlag = static_cast<unsigned short>(NavPolyFlags::Default);
     unsigned short spectralFlag = static_cast<unsigned short>(NavPolyFlags::Spectral);
+	unsigned short dashGapFlag = static_cast<unsigned short>(NavPolyFlags::DashGap);
 
     if (profile == NavAgentProfile::PlayerNormal)
         return defaultFlag;
 
     if (profile == NavAgentProfile::PlayerSpectral)
         return defaultFlag | spectralFlag;
+
+    if(profile == NavAgentProfile::PlayerDash)
+		return defaultFlag | dashGapFlag;
 
     if (profile == NavAgentProfile::EnemyGround)
         return defaultFlag;

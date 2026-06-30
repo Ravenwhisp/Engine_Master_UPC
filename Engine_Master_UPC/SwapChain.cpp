@@ -127,7 +127,7 @@ void SwapChain::createRenderTargetViews(ComPtr<ID3D12Device2> device)
         DXCall(m_swapChain->GetBuffer(n, IID_PPV_ARGS(&backBuffer)));
 
         m_backBufferTextures[n] = app->getModuleResources()->createTexture(backBuffer, TextureView::RTV, DXGI_FORMAT_R8G8B8A8_UNORM);
-        m_renderSurface.attachTexture(RenderSurface::COLOR_0, m_backBufferTextures[n]);
+        m_renderSurface.attachTexture(RenderSurface::COMPOSITE, m_backBufferTextures[n]);
     }
 }
 
@@ -158,9 +158,9 @@ bool SwapChain::checkTearingSupport() const
 void SwapChain::updateCurrentBackBuffer()
 {
     UINT index = m_swapChain->GetCurrentBackBufferIndex();
-    m_renderSurface.attachTexture(RenderSurface::COLOR_0, m_backBufferTextures[index]);
+    m_renderSurface.attachTexture(RenderSurface::COMPOSITE, m_backBufferTextures[index]);
 }
-const RenderSurface& SwapChain::getRenderSurface() const
+RenderSurface& SwapChain::getRenderSurface() const
 {
     return m_renderSurface;
 }

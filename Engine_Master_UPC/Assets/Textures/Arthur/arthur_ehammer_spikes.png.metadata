@@ -1,0 +1,13 @@
+{
+    "uid": 8637406177407459473,
+    "contentHash": "cfebe4690ad8f1083d50f2445fc0ddef",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_ehammer_spikes.png",
+    "sourceFileSize": 299562,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

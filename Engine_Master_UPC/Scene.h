@@ -21,7 +21,7 @@ class MeshRenderer;
 class TriggerSystem;
 class TriggerComponent;
 
-class Scene: public Asset
+class Scene : public Asset
 {
     friend class SceneSnapshot;
 private:
@@ -34,6 +34,7 @@ private:
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
     AssetReference m_navMesh;
+    SSAOSettings m_ssao;
 
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
@@ -101,6 +102,8 @@ public:
     const SceneDataCB& getCBData() const { return m_sceneDataCB; }
     SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
+    SSAOSettings& getSSAOSettings() { return m_ssao; }
+    const SSAOSettings& getSSAOSettings() const { return m_ssao; }
 
     AssetReference& getNavMesh() { return m_navMesh; }
     const AssetReference& getNavMesh() const { return m_navMesh; }

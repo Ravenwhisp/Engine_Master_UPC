@@ -1,0 +1,13 @@
+{
+    "uid": 3618203839848742380,
+    "contentHash": "a5bd51f8faaca3f85f258f4b80137774",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Breakables\\Barrel\\Barrel_Normal_GLTF\\Barrel_Normal\\T_wood_planks_dungeon_03_BC.png",
+    "sourceFileSize": 686039,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -15,9 +15,6 @@ Engine_OUT/imgui.ini
 Engine_OUT/editor_windows.ini
 Engine_OUT/script_build_settings.ini
 
-Engine_OUT/GameScripts_runtime_*.dll
-Engine_OUT/GS_*.pdb
-
 Engine_OUT/AnimationStateMachine*
 NodeEditor.json
 

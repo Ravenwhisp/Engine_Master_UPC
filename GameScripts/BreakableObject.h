@@ -3,6 +3,7 @@
 #include "ScriptAPI.h"
 
 class Transform;
+class NavRuntimeBlockerComponent;
 
 class BreakableObject : public Script
 {
@@ -27,5 +28,6 @@ protected:
 
 private:
     bool m_isBroken = false;
+    NavRuntimeBlockerComponent* m_navBlocker = nullptr;
 
 };

@@ -9,7 +9,7 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurUI,
 		SERIALIZED_FLOAT(m_healthBarDuration, "Health Bar Duration", 0.0f, 10.0f, 0.1f)
 	),
 
-	FIELD_GROUP_COLLAPSE("Heavy Swipe", 
+	FIELD_GROUP_COLLAPSE("Heavy Swipe",
 		SERIALIZED_COMPONENT_REF(m_heavySwipeUICanvas, "Heavy Swipe UI Canvas", ComponentType::TRANSFORM),
 		SERIALIZED_COMPONENT_REF(m_heavySwipeUIContainer, "Heavy Swipe UI Container", ComponentType::TRANSFORM2D),
 		SERIALIZED_COMPONENT_REF(m_heavySwipeUIBackground, "Heavy Swipe UI Background", ComponentType::TRANSFORM2D),
@@ -270,7 +270,7 @@ void ArthurUI::updateHeavySwipeUI(float stateTimer, bool isPhase2, float hit1Tim
 		const float lastHitTime = isPhase2 ? hit4Time : hit3Time;
 		const float t = (stateTimer - lastHitTime) / (totalDuration - lastHitTime);
 
-		applyHeavySwipeHitEffects(t, m_heavySwipeUIGlowTransform2D, m_heavySwipeUIBorderTransform2D, isPhase2 ? m_heavySwipeUIRightClawTransform2D : m_heavySwipeUILeftClawTransform2D,heavySwipeRange);
+		applyHeavySwipeHitEffects(t, m_heavySwipeUIGlowTransform2D, m_heavySwipeUIBorderTransform2D, isPhase2 ? m_heavySwipeUIRightClawTransform2D : m_heavySwipeUILeftClawTransform2D, heavySwipeRange);
 
 		const float alpha = MathAPI::moveTowards(t, 1.0f, 0.3f);
 		Transform2DAPI::setAlpha(m_heavySwipeUIContainerTransform2D, alpha);
@@ -325,11 +325,11 @@ void ArthurUI::setupSideSweepUI(int sweepSide)
 
 	if (sweepSide == -1)
 	{
-		TransformAPI::setRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, -90.0f));
+		TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, -90.0f));
 	}
 	else
 	{
-		TransformAPI::setRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, 90.0f));
+		TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, 90.0f));
 	}
 
 	Transform2DAPI::setAlpha(m_sideSweepUIBackgroundTransform2D, 0.0f);
@@ -414,8 +414,8 @@ void ArthurUI::setupChargingSlamUI(const Vector3& startPosition, const Vector3& 
 	}
 
 	GameObjectAPI::setActive(m_chargingSlamImpactUICanvasTransform->getOwner(), true);
-	TransformAPI::setPosition(m_chargingSlamImpactUICanvasTransform, Vector3(lockedTargetPosition.x, lockedTargetPosition.y, lockedTargetPosition.z));
-	TransformAPI::setRotationEuler(m_chargingSlamImpactUICanvasTransform, Vector3(90.0f, 0.0f, atan2(dashDirection.z, dashDirection.x) * 180.0f / 3.14159265f - 90.0f));
+	TransformAPI::setGlobalPosition(m_chargingSlamImpactUICanvasTransform, lockedTargetPosition);
+	TransformAPI::setGlobalRotationEuler(m_chargingSlamImpactUICanvasTransform, Vector3(90.0f, 0.0f, atan2(dashDirection.z, dashDirection.x) * 180.0f / 3.14159265f - 90.0f));
 
 	Transform2DAPI::setAlpha(m_chargingSlamImpactUIContainerTransform2D, 0.0f);
 	Transform2DAPI::setAlpha(m_chargingSlamImpactUICenterTransform2D, 0.0f);

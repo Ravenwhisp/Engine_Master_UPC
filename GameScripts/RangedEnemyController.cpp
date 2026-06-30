@@ -90,7 +90,7 @@ bool RangedEnemyController::playerInSomersaultRange() const
         return false;
     }
 
-    Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+    Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
     Transform* playerTransforms[] =
     {
@@ -112,7 +112,7 @@ bool RangedEnemyController::playerInSomersaultRange() const
             continue;
         }
 
-        Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+        Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
 
         Vector3 difference = playerPosition - ownerPosition;
         difference.y = 0.0f;
@@ -164,7 +164,7 @@ Vector3 RangedEnemyController::getDirectionAwayFromClosestPlayer() const
     }
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-    Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+    Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
     Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
     Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
@@ -185,7 +185,7 @@ Vector3 RangedEnemyController::getDirectionAwayFromClosestPlayer() const
             continue;
         }
 
-        Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+        Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
         Vector3 difference = ownerPosition - playerPosition;
         difference.y = 0.0f;
 
@@ -212,7 +212,7 @@ Vector3 RangedEnemyController::getDirectionAwayFromClosestPlayer() const
         return backward;
     }
 
-    Vector3 closestPosition = TransformAPI::getPosition(closestTransform);
+    Vector3 closestPosition = TransformAPI::getGlobalPosition(closestTransform);
     Vector3 escapeDirection = ownerPosition - closestPosition;
     escapeDirection.y = 0.0f;
 

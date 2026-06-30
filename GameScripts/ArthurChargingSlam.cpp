@@ -225,20 +225,20 @@ void ArthurChargingSlam::updateDash()
 
     if (remainingDistance <= 0.05f)
     {
-        TransformAPI::setPosition(ownerTransform, m_lockedTargetPosition);
+        TransformAPI::setGlobalPosition(ownerTransform, m_lockedTargetPosition);
         m_hasReachedDestination = true;
         return;
     }
 
     if (stepDistance >= remainingDistance)
     {
-        TransformAPI::setPosition(ownerTransform, m_lockedTargetPosition);
+        TransformAPI::setGlobalPosition(ownerTransform, m_lockedTargetPosition);
         m_hasReachedDestination = true;
         return;
     }
 
     currentPosition += m_dashDirection * stepDistance;
-    TransformAPI::setPosition(ownerTransform, currentPosition);
+    TransformAPI::setGlobalPosition(ownerTransform, currentPosition);
 
     Transform* focusTarget = m_arthurController->getFocusTarget();
     Transform* nonFocusTarget = m_arthurController->getNonFocusTarget();

@@ -1,0 +1,26 @@
+Event	ID	Name			Wwise Object Path	Notes
+	2837384057	Stop_Music			\Default Work Unit\Music\Stop_Music	
+	2932040671	Play_Music			\Default Work Unit\Music\Play_Music	
+
+State Group	ID	Name			Wwise Object Path	Notes
+	1021618141	MusicState			\Default Work Unit\MusicState	
+
+State	ID	Name	State Group			Notes
+	441421484	Level2_Upper	MusicState			
+	748895195	None	MusicState			
+	975124050	Level1_Boss	MusicState			
+	2147352708	FinalBoss	MusicState			
+	2425108878	Level2_Elevator	MusicState			
+	3377093860	Level1_Chapel	MusicState			
+	3400764851	Level1_Upper	MusicState			
+	3604647259	MainMenu	MusicState			
+
+In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
+	45480675	BbD_UpperFloorAmbient_vers1_1(loopable)	.cache\B0\{B08FF4A2-B30C-451B-AF9B-07F0BAAA3AAA}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Level1\PL_L1_Upper\MUS_L1_Upper\BbD_UpperFloorAmbient_vers1_1(loopable)		18641664
+	83421443	BbD_ChapelAmbient_vers_1_0(loopable)	.cache\21\{21DDF446-CD31-C001-1798-023BE5B18F73}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Level1\PL_L1_Chapel\MUS_L1_Chapel\BbD_ChapelAmbient_vers_1_0(loopable)		15197744
+	202669457	260411_LVL2-1_V1_BOND TO DEATH	.cache\71\{71E292FB-7FC4-89A0-49BE-9741FEB1748C}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Level2\PL_L2_Upper\MUS_L2_Upper\260411_LVL2-1_V1_BOND TO DEATH		40215368
+	247320562	BbD_VC_Boss_v1	.cache\92\{9279B466-8759-633E-E773-DDF81B01F0F5}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Level_FinalBoss\PL_FinalBoss\MUS_FinalBoss\BbD_VC_Boss_v1		10571392
+	514034575	260413_LVL2-2_V1_BOND TO DEATH	.cache\D5\{D5CC28C7-7105-08C8-90C3-83BC17DD8AC5}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Level2\PL_L2_Elevator\MUS_L2_Elevator\260413_LVL2-2_V1_BOND TO DEATH		6702640
+	673004913	Main_Menu	.cache\1D\{1D38D640-57D1-1CD0-58A9-191FE2FD2F70}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Menu\PL_MainMenu\MUS_MainMenu\Main_Menu		11520096
+	820737674	Mini_Boss_Arthur_Lvl1	.cache\EC\{ECCCACE0-48FE-E01B-AB1C-C9B07530C7DB}.wem		\Containers\Music (Migrated)\Default Work Unit\MUS_Main\Level1\PL_L1_Arthur\MUS_L1_Arthur\Mini_Boss_Arthur_Lvl1		10421376
+

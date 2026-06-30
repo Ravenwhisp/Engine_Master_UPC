@@ -37,7 +37,7 @@ void SceneSnapshot::init(const Scene& scene)
     CameraComponent* oldCameraComponent = scene.getDefaultCamera();
     if (oldCameraComponent)
     {
-        m_defaultCamera = (CameraComponent *)m_resolver.getClonedComponent(oldCameraComponent->getID());
+        m_defaultCamera = (CameraComponent*)m_resolver.getClonedComponent(oldCameraComponent->getID());
     }
 }
 

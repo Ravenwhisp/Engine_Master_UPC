@@ -1,0 +1,13 @@
+{
+    "uid": 16166415254738363886,
+    "contentHash": "fce1e92765c77068105ab1f8723d0eaf",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level2B\\T_ENV_MOD_Floor_01_v3_MTSM.jpg",
+    "sourceFileSize": 156183,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 5469905480982756742,
+    "contentHash": "a97f63921ee76eef07ef2ddcf399d4d1",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Breakables\\Vase\\Vase_Normal_GLTF\\Vase_Normal\\T_PROP_pot_dungeon_BC.png",
+    "sourceFileSize": 823321,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

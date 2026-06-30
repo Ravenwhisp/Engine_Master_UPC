@@ -10,6 +10,8 @@
 #include "Scene.h"
 #include "WwiseBank.h"
 
+#include <algorithm>
+
 SceneConfig::SceneConfig()
 {
     m_moduleScene = app->getModuleScene();
@@ -28,8 +30,9 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawLightSettings();
     ImGui::Separator();
-    drawMusicBanksSettings();
+    drawSSAOSettings();
     ImGui::Separator();
+    drawMusicBanksSettings();
 }
 
 void SceneConfig::drawSaveSceneSettings()
@@ -181,6 +184,39 @@ void SceneConfig::drawLightSettings()
     {
         ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
+    }
+}
+
+void SceneConfig::drawSSAOSettings()
+{
+    SSAOSettings& ssao = m_moduleScene->getScene()->getSSAOSettings();
+
+    if (ImGui::CollapsingHeader("SSAO"))
+    {
+        ImGui::Checkbox("Enabled###SSAOEnabled", &ssao.enabled);
+        ImGui::Checkbox("Blur Enabled###SSAOBlurEnabled", &ssao.blurEnabled);
+        ImGui::Checkbox("Debug View###SSAODebugView", &ssao.debugView);
+
+        ImGui::Separator();
+
+        ImGui::DragFloat("Radius###SSAORadius", &ssao.radius, 0.01f, 0.01f, 5.0f);
+        ImGui::DragFloat("Bias###SSAOBias", &ssao.bias, 0.0001f, 0.0f, 0.1f, "%.4f");
+        ImGui::DragFloat("Strength###SSAOStrength", &ssao.strength, 0.01f, 0.0f, 8.0f);
+
+        int sampleCount = static_cast<int>(ssao.sampleCount);
+
+        if (ImGui::SliderInt("Sample Count###SSAOSampleCount", &sampleCount, 1, SSAO_KERNEL_SIZE))
+        {
+            sampleCount = std::clamp(sampleCount, 1, static_cast<int>(SSAO_KERNEL_SIZE));
+            ssao.sampleCount = static_cast<uint32_t>(sampleCount);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::Button("Reset Defaults###SSAOResetDefaults"))
+        {
+            ssao = SSAOSettings{};
+        }
     }
 }
 

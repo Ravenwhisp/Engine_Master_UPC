@@ -143,9 +143,9 @@ void BarrierEnemyDamageable::takeDamage(float amount)
 
 bool BarrierEnemyDamageable::canBreakBarrier(EnemyAttackType attackType) const
 {
-    if (attackType == EnemyAttackType::ShadowExecution)
+    if (attackType == EnemyAttackType::ShadowMarkExploit)
     {
-        return m_shadowExecutionBreaksBarriers;
+        return m_shadowMarkExploitBreaksBarriers;
     }
 
     return attackType == static_cast<EnemyAttackType>(m_requiredAttackType);

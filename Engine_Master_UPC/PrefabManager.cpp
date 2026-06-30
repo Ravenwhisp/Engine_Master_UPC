@@ -29,55 +29,55 @@ namespace fs = std::filesystem;
 
 namespace {
 
-PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
-{
-    auto* comp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
-    if (!comp)
-        comp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
-    return comp;
-}
-
-void regeneratePrefabInstanceUIDs(GameObject* gameObject)
-{
-    if (gameObject == nullptr)
+    PrefabInstanceComponent* getOrCreatePrefabComponent(GameObject* go)
     {
-        return;
+        auto* comp = go->GetComponentAs<PrefabInstanceComponent>(ComponentType::PREFAB_INSTANCE);
+        if (!comp)
+            comp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
+        return comp;
     }
 
-    gameObject->SetUID(GenerateUID());
-
-    Transform* transform = gameObject->GetTransform();
-
-    if (transform != nullptr)
+    void regeneratePrefabInstanceUIDs(GameObject* gameObject)
     {
-        transform->setUID(GenerateUID());
-    }
-
-    for (Component* component : gameObject->GetAllComponents())
-    {
-        if (component == nullptr)
+        if (gameObject == nullptr)
         {
-            continue;
+            return;
         }
 
-        if (component->getType() == ComponentType::TRANSFORM)
+        gameObject->SetUID(GenerateUID());
+
+        Transform* transform = gameObject->GetTransform();
+
+        if (transform != nullptr)
         {
-            continue;
+            transform->setUID(GenerateUID());
         }
 
-        component->setUID(GenerateUID());
-    }
+        for (Component* component : gameObject->GetAllComponents())
+        {
+            if (component == nullptr)
+            {
+                continue;
+            }
 
-    if (transform == nullptr)
-    {
-        return;
-    }
+            if (component->getType() == ComponentType::TRANSFORM)
+            {
+                continue;
+            }
 
-    for (GameObject* child : transform->getAllChildren())
-    {
-        regeneratePrefabInstanceUIDs(child);
+            component->setUID(GenerateUID());
+        }
+
+        if (transform == nullptr)
+        {
+            return;
+        }
+
+        for (GameObject* child : transform->getAllChildren())
+        {
+            regeneratePrefabInstanceUIDs(child);
+        }
     }
-}
 
 } // anonymous namespace
 
@@ -161,11 +161,11 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
             { return overrideSet && overrideSet->count(prop) > 0; };
 
         auto readMember = [&](const char* lower, const char* upper) -> const Value*
-        {
-            if (tfNode.HasMember(upper)) return &tfNode[upper];
-            if (tfNode.HasMember(lower)) return &tfNode[lower];
-            return nullptr;
-        };
+            {
+                if (tfNode.HasMember(upper)) return &tfNode[upper];
+                if (tfNode.HasMember(lower)) return &tfNode[lower];
+                return nullptr;
+            };
         if (!isOverridden("position"))
         {
             if (const Value* v = readMember("position", "Position"))

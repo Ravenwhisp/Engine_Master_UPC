@@ -1,0 +1,2345 @@
+{
+  "SourcePath": "Assets\\Prefabs\\LightsP1.prefab",
+  "Name": "LightsP1",
+  "Version": 2,
+  "GameObject": {
+    "Name": "LightsP1",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [],
+    "Children": [
+      {
+        "Name": "LyrielRoom",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                6.819544315338135,
+                2.8678154945373535,
+                30.31326675415039
+              ],
+              "rotation": [
+                4.30736236012308e-7,
+                -6.15110195667512e-7,
+                8.419119694735855e-7,
+                1.0
+              ],
+              "scale": [
+                1.0000057220458984,
+                1.0000028610229492,
+                1.0000042915344238
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 6209381690253355204,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 6.400000095367432,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "ChandelierLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                11.823674201965332,
+                2.9548676013946533,
+                30.510000228881836
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 2518732095798897401,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4707542657852173,
+                    0.16955620050430298
+                  ],
+                  "Intensity": 27.200000762939453,
+                  "Radius": 13.300000190734863
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Fireplace",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                6.840717315673828,
+                1.7135868072509766,
+                34.047035217285156
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 3775088104887406535,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4590260982513428,
+                    0.11905013024806976
+                  ],
+                  "Intensity": 5.800000190734863,
+                  "Radius": 1.7999999523162842
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "SecretPath",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                6.937623500823975,
+                3.107414484024048,
+                19.181671142578125
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 7910224198370429181,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 3.5999999046325684
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                6.792501926422119,
+                0.5865768194198608,
+                14.319286346435549
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 3816669217302253214,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.5
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Moonlight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                3.9282050132751465,
+                -2.210538864135742,
+                9.773564338684082
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 13565539303029258401,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.6894351243972778,
+                    0.9498069286346436,
+                    0.9347274899482728
+                  ],
+                  "Intensity": 29.100000381469727,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                16.053075790405273,
+                0.46158933639526367,
+                8.76406192779541
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 817537839945826871,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                20.917787551879883,
+                0.46158933639526367,
+                8.76406192779541
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 10417523836248848047,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                24.960063934326172,
+                0.46158933639526367,
+                8.76406192779541
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 9715648171271719347,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                29.051647186279297,
+                0.33710914850234985,
+                8.76406192779541
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 11450515537022757032,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                28.57058906555176,
+                0.490114152431488,
+                -2.13671875
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 18234197077093495896,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "StorageRoom",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "ChandelierLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                15.074710845947266,
+                2.95487117767334,
+                -15.170010566711426
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 6877324443324834619,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4707542657852173,
+                    0.16955620050430298
+                  ],
+                  "Intensity": 27.200000762939453,
+                  "Radius": 13.300000190734863
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                22.58825302124023,
+                2.9920859336853027,
+                -10.33686351776123
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 15458730858874357330,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                22.21229362487793,
+                3.114075183868408,
+                -19.118785858154297
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 17285996519436463681,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                18.040069580078125,
+                2.992079734802246,
+                -22.024133682250977
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 12598594507177520977,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                11.267797470092772,
+                2.9920825958251953,
+                -22.023502349853516
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 2366160602142781213,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                8.30855941772461,
+                3.036466121673584,
+                -19.057418823242188
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 16103126713980356319,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                8.008169174194336,
+                2.9920859336853027,
+                -10.483951568603516
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 4553470851440810470,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                18.77718734741211,
+                4.034943103790283,
+                -7.857826709747315
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 13805754258141077397,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                12.247302055358888,
+                4.034943103790283,
+                -7.93970251083374
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 7191538501563784962,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                26.64492416381836,
+                3.778524160385132,
+                -7.66338300704956
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 3608435471198998142,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": [
+              {
+                "Name": "TorchLight",
+                "Active": true,
+                "Tag": "DEFAULT",
+                "Layer": "DEFAULT",
+                "Transform": {
+                  "position": [
+                    -1.990440368652344,
+                    0.2810981273651123,
+                    -10.610530853271484
+                  ],
+                  "rotation": [
+                    -0.0,
+                    0.0,
+                    -0.0,
+                    1.0
+                  ],
+                  "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                  ]
+                },
+                "Components": [
+                  {
+                    "Type": 2,
+                    "Data": {
+                      "UID": 11324835201496169644,
+                      "ComponentType": 2,
+                      "Active": true,
+                      "LightType": 1,
+                      "Color": [
+                        0.969111979007721,
+                        0.5200158953666687,
+                        0.22824646532535553
+                      ],
+                      "Intensity": 6.099999904632568,
+                      "Radius": 5.699999809265137
+                    }
+                  }
+                ],
+                "Children": []
+              }
+            ]
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                24.334333419799805,
+                3.692968845367432,
+                -12.303071022033691
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 6306948210950238992,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "Halls",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                2.964740753173828,
+                3.1158342361450195,
+                -12.734119415283203
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 9131472980659126046,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.299999952316284
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                2.847289562225342,
+                3.1158342361450195,
+                -17.380605697631836
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 5604035778609326745,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -4.323731422424316,
+                3.1158342361450195,
+                -17.9256649017334
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 18238030878185349663,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 5.099999904632568,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -11.175321578979492,
+                3.1158342361450195,
+                -17.9256649017334
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 11801610554195761663,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 5.099999904632568,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -18.4427490234375,
+                3.1158342361450195,
+                -17.9256649017334
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 14833098256278248850,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -24.303009033203125,
+                3.1158342361450195,
+                -18.000255584716797
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 10352850503525698180,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -31.256324768066406,
+                3.1158342361450195,
+                -17.893360137939453
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 16386077131582399939,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -31.256324768066406,
+                3.1158342361450195,
+                -12.229272842407228
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 9293197241458620949,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -24.278236389160156,
+                3.1158342361450195,
+                -12.229272842407228
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 10598873805149690372,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -16.301809310913086,
+                3.1158342361450195,
+                -12.229272842407228
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 9115125716886319593,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -11.66485595703125,
+                3.583121538162231,
+                -9.776636123657228
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 13611377319907781115,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -4.372097969055176,
+                3.583121538162231,
+                -9.776636123657228
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 7346986661437603722,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "TorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -39.73093032836914,
+                5.7394304275512695,
+                -13.02562427520752
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 1313159029869627419,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.5200158953666687,
+                    0.22824646532535553
+                  ],
+                  "Intensity": 6.099999904632568,
+                  "Radius": 5.699999809265137
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "ServantsRoom",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -27.21419906616211,
+                2.188911199569702,
+                1.22024667263031
+              ],
+              "rotation": [
+                0.331577330827713,
+                0.6245450377464294,
+                -0.3315783441066742,
+                -0.6245444416999817
+              ],
+              "scale": [
+                1.1376060247421265,
+                1.137602686882019,
+                1.1376042366027832
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 11688823473093300984,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 4.300000190734863,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -27.21411895751953,
+                2.4426259994506836,
+                -7.198210716247559
+              ],
+              "rotation": [
+                0.3315773904323578,
+                0.6245450377464294,
+                -0.3315782845020294,
+                -0.6245444416999817
+              ],
+              "scale": [
+                1.1376056671142578,
+                1.1376030445098877,
+                1.1376042366027832
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 12023193069637883851,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 4.300000190734863,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "ChandelierLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -22.330188751220703,
+                2.9548685550689697,
+                -3.268545627593994
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 6786682784173549509,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4707542657852173,
+                    0.16955620050430298
+                  ],
+                  "Intensity": 27.200000762939453,
+                  "Radius": 13.300000190734863
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -19.385852813720703,
+                3.071800947189331,
+                3.8635199069976807
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 14492446446277194456,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "StandTorchLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -23.05422592163086,
+                3.0718092918395996,
+                -10.056551933288574
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 6576309980237192423,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.969111979007721,
+                    0.4295349717140198,
+                    0.14218631386756897
+                  ],
+                  "Intensity": 4.5,
+                  "Radius": 3.0
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Fireplace",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -27.213165283203125,
+                1.5707920789718628,
+                -3.073720932006836
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 11981102209642923369,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4590260982513428,
+                    0.11905013024806976
+                  ],
+                  "Intensity": 5.800000190734863,
+                  "Radius": 1.5
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Name": "BanquetRoom",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            -0.0,
+            0.0,
+            -0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [],
+        "Children": [
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -75.20140838623047,
+                4.289663314819336,
+                17.089271545410156
+              ],
+              "rotation": [
+                0.331577330827713,
+                0.624545156955719,
+                -0.3315783441066742,
+                -0.6245444416999817
+              ],
+              "scale": [
+                1.1375900506973269,
+                1.1375995874404907,
+                1.1376043558120728
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 13747770224158067874,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 6.400000095367432,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -66.12074279785156,
+                6.761349678039551,
+                -7.503668785095215
+              ],
+              "rotation": [
+                0.331577330827713,
+                0.6245450973510742,
+                -0.3315782845020294,
+                -0.6245444416999817
+              ],
+              "scale": [
+                1.1376057863235474,
+                1.1376028060913086,
+                1.1376043558120728
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 9579500753767995280,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 4.300000190734863,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -66.12405395507813,
+                6.761039733886719,
+                -1.9668464660644531
+              ],
+              "rotation": [
+                0.331577330827713,
+                0.624545156955719,
+                -0.3315783441066742,
+                -0.6245444416999817
+              ],
+              "scale": [
+                1.1375900506973269,
+                1.1375995874404907,
+                1.1376043558120728
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 12918347680350333450,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 4.300000190734863,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -63.41157150268555,
+                4.289668083190918,
+                6.550271034240723
+              ],
+              "rotation": [
+                0.331577330827713,
+                0.6245450377464294,
+                -0.3315782845020294,
+                -0.6245445013046265
+              ],
+              "scale": [
+                1.1376056671142578,
+                1.1376025676727295,
+                1.1376042366027832
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 7469602606122501341,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 4.300000190734863,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "WindowLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -63.41155242919922,
+                4.289534568786621,
+                -15.8245267868042
+              ],
+              "rotation": [
+                0.331577330827713,
+                0.6245450377464294,
+                -0.3315783441066742,
+                -0.6245444416999817
+              ],
+              "scale": [
+                1.1376060247421265,
+                1.1376030445098877,
+                1.1376042366027832
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 1733997294510063728,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.5036448836326599,
+                    0.8996139168739319,
+                    0.8491621613502502
+                  ],
+                  "Intensity": 4.300000190734863,
+                  "Radius": 2.4000000953674316
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "ChandelierLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -50.19755935668945,
+                5.702415943145752,
+                2.9368906021118164
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 12899398888571886697,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4707542657852173,
+                    0.16955620050430298
+                  ],
+                  "Intensity": 27.200000762939453,
+                  "Radius": 13.300000190734863
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "ChandelierLight",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -50.5334587097168,
+                5.702415943145752,
+                -11.472386360168455
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 6456310700085727114,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4707542657852173,
+                    0.16955620050430298
+                  ],
+                  "Intensity": 27.200000762939453,
+                  "Radius": 13.300000190734863
+                }
+              }
+            ],
+            "Children": []
+          },
+          {
+            "Name": "Fireplace",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                -65.86701202392578,
+                6.543862342834473,
+                -4.730328559875488
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 2,
+                "Data": {
+                  "UID": 942044201339290379,
+                  "ComponentType": 2,
+                  "Active": true,
+                  "LightType": 1,
+                  "Color": [
+                    0.9343629479408264,
+                    0.4590260982513428,
+                    0.11905013024806976
+                  ],
+                  "Intensity": 5.800000190734863,
+                  "Radius": 2.0
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      }
+    ]
+  }
+}

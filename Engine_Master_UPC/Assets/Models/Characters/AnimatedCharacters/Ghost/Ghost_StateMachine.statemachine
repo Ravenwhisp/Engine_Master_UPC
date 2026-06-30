@@ -1,0 +1,128 @@
+{
+    "name": "Ghost_StateMachine",
+    "defaultState": "Ghost_Idle",
+    "clips": [
+        {
+            "name": "Ghost_Idle",
+            "animationUID": {
+                "uid": 14199741254574568641,
+                "libId": "32559c1f60a6dc04228a475d9158525f"
+            },
+            "loop": true
+        },
+        {
+            "name": "Ghost_Idle_long",
+            "animationUID": {
+                "uid": 16259659905940049556,
+                "libId": "664aeefaedfd881335500869580596b4"
+            },
+            "loop": true
+        },
+        {
+            "name": "Ghost_Fly",
+            "animationUID": {
+                "uid": 13468629528477703923,
+                "libId": "1f60e2034ee4fa3a967121e24117c656"
+            },
+            "loop": true
+        },
+        {
+            "name": "Ghost_Attack",
+            "animationUID": {
+                "uid": 9533535938206922414,
+                "libId": "9fbc6a247e349857d1f7c5ec7ddab220"
+            },
+            "loop": false
+        },
+        {
+            "name": "Ghost_Damage",
+            "animationUID": {
+                "uid": 15784693465937695785,
+                "libId": "92bc768afb9d0f8e6723c3c46e40d0ee"
+            },
+            "loop": false
+        },
+        {
+            "name": "Ghost_Death",
+            "animationUID": {
+                "uid": 4255812996545272822,
+                "libId": "a42fbd085113f325585fb04d9b75c199"
+            },
+            "loop": false
+        },
+        {
+            "name": "Ghost_Tpose",
+            "animationUID": {
+                "uid": 3766463860614034078,
+                "libId": "e64299eda6b1b1a34907d059df7d3d2d"
+            },
+            "loop": true
+        }
+    ],
+    "states": [
+        {
+            "name": "Ghost_Idle",
+            "clipName": "Ghost_Idle",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Ghost_Idle_long",
+            "clipName": "Ghost_Idle_long",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Ghost_Fly",
+            "clipName": "Ghost_Fly",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Ghost_Attack",
+            "clipName": "Ghost_Attack",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": false
+        },
+        {
+            "name": "Ghost_Damage",
+            "clipName": "Ghost_Damage",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": false
+        },
+        {
+            "name": "Ghost_Death",
+            "clipName": "Ghost_Death",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": false
+        },
+        {
+            "name": "Ghost_Tpose",
+            "clipName": "Ghost_Tpose",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        }
+    ],
+    "transitions": []
+}
