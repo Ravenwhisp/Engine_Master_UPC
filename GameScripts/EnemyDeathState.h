@@ -28,7 +28,7 @@ protected:
 	float m_destroyDelay = 2.0f;
 	float m_deathTimer = 0.0f;
 	
-	std::string m_healthPrefabPath = "";
+	AssetRef<Prefab> m_healthPrefab;
 	bool m_shouldDropHealth = true;
 	int m_healthDropQuantity = 1;
 	float m_dropHealAmount = 10.0f;

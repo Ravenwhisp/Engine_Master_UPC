@@ -17,6 +17,10 @@ public:
     virtual void onBreak() { breakObject(); }
     bool isBroken() const { return m_isBroken; }
 
+    ScriptFieldList getExposedFields() const override;
+
+    AssetRef<Prefab> m_dustPrefab;
+
 protected:
 	Transform* m_normalObjectTransform = nullptr;
 	Transform* m_brokenObjectTransform = nullptr;

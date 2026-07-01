@@ -6,12 +6,12 @@
 #include <cmath>
 #include <cstdlib>
 
-GameObject* HealthDropSpawner::drop(const char* prefabPath, const Vector3& originPosition, float healAmount, float dropRadius, float dropHeight
+GameObject* HealthDropSpawner::drop(const AssetReference& prefabRef, const Vector3& originPosition, float healAmount, float dropRadius, float dropHeight
 )
 {
-    if (prefabPath == nullptr || prefabPath[0] == '\0')
+    if (!prefabRef.isValid())
     {
-        Debug::warn("[HealthDropSpawner] Cannot drop health pickup. Prefab path is empty.");
+        Debug::warn("[HealthDropSpawner] Cannot drop health pickup. Prefab reference is invalid.");
         return nullptr;
     }
 
@@ -27,18 +27,18 @@ GameObject* HealthDropSpawner::drop(const char* prefabPath, const Vector3& origi
 
     const Vector3 arcOrigin = Vector3(originPosition.x, originPosition.y + dropHeight, originPosition.z);
 
-    GameObject* pickup = GameObjectAPI::instantiatePrefab(prefabPath, arcOrigin, Vector3::Zero);
+    GameObject* pickup = GameObjectAPI::instantiatePrefab(prefabRef, arcOrigin, Vector3::Zero);
 
     if (pickup == nullptr)
     {
-        Debug::warn("[HealthDropSpawner] Failed to instantiate prefab '%s'.", prefabPath);
+        Debug::warn("[HealthDropSpawner] Failed to instantiate prefab (UID %llu).", prefabRef.m_uid);
         return nullptr;
     }
 
     Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
     if (script == nullptr)
     {
-        Debug::warn("[HealthDropSpawner] Spawned prefab '%s' but it has no HealthPickup script.", prefabPath);
+        Debug::warn("[HealthDropSpawner] Spawned prefab (UID %llu) but it has no HealthPickup script.", prefabRef.m_uid);
 
         return pickup;
     }

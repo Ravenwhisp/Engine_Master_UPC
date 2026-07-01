@@ -7,7 +7,7 @@
 #include "EnemyDamageable.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LevelCheats,
-    SERIALIZED_STRING_VECTOR(m_enemyPrefabPaths, "Enemy Prefab Paths")
+    FIELD_GROUP_LABEL("Cheats")
 )
 
 LevelCheats::LevelCheats(GameObject* owner)
@@ -145,11 +145,9 @@ void LevelCheats::SpawnEnemy(int enemyPrefabIndex)
     Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
     Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
 
-    const std::string& prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
-
-    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.c_str());
-
-    GameObjectAPI::instantiatePrefab(prefabPath.c_str(), enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
+    const AssetRef<Prefab>& prefabRef = m_enemyPrefabPaths[enemyPrefabIndex];
+    Debug::log("[LevelCheats] Spawning enemy prefab: UID %llu", prefabRef.m_ref.m_uid);
+    GameObjectAPI::instantiatePrefab(prefabRef.m_ref, enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
 }
 
 void LevelCheats::RestoreHealth()

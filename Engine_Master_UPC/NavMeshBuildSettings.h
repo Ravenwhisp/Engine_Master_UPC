@@ -1,7 +1,9 @@
 #pragma once
+#include "ImportSettings.h"
 
-struct NavMeshBuildSettings
+class NavMeshBuildSettings : public ImportSettings
 {
+public:
     float cellSize = 0.2f;
     float cellHeight = 0.1f;
 
@@ -20,4 +22,8 @@ struct NavMeshBuildSettings
 
     float detailSampleDist = 6.0f;
     float detailSampleMaxError = 1.0f;
+
+    void serialize(IArchive& archive) override;
+    std::unique_ptr<ImportSettings> clone() const override;
+    const char* getTypeName() const override { return "NavMeshBuildSettings"; }
 };
