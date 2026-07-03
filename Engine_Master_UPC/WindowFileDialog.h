@@ -5,11 +5,22 @@
 #include "PrefabUI.h"
 #include "UID.h"
 
+#include "AssetType.h"
+#include "Extensions.h"
+
 #include <filesystem>
 #include <unordered_set>
 
+#include "IconsFontAwesome5.h"
+
 struct AssetEntry;
 struct DirectoryEntry;
+
+struct AssetUIProperties
+{
+    const char* iconGlyph;
+    const char* payloadID;
+};
 
 class WindowFileDialog : public EditorWindow
 {
@@ -45,6 +56,35 @@ private:
         const DirectoryEntry& directory,
         const AssetEntry& asset
     ) const;
+
+    inline AssetType getAssetType(std::string_view extension)
+    {
+        if (extension == PREFAB_EXTENSION)                  return AssetType::PREFAB;
+        if (extension == MESH_EXTENSION)                    return AssetType::MESH;
+        if (extension == MATERIAL_EXTENSION)                return AssetType::MATERIAL;
+        if (extension == ANIMATION_EXTENSION)               return AssetType::ANIMATION;
+        if (extension == ANIMATION_STATE_MACHINE_EXTENSION) return AssetType::ANIMATION_STATE_MACHINE;
+        if (extension == SCENE_EXTENSION)                   return AssetType::SCENE;
+        if (extension == GLTF_EXTENSION)                    return AssetType::MODEL;
+
+        if (extension == CPP_EXTENSION || extension == H_EXTENSION)
+        {
+            return AssetType::SCRIPT;
+        }
+
+        if (extension == PNG_EXTENSION ||
+            extension == JPG_EXTENSION ||
+            extension == JPEG_EXTENSION ||
+            extension == BMP_EXTENSION ||
+            extension == TGA_EXTENSION ||
+            extension == DDS_EXTENSION ||
+            extension == HDR_EXTENSION)
+        {
+            return AssetType::TEXTURE;
+        }
+
+        return AssetType::UNKNOWN;
+    }
 
     PrefabUI::FileDialogBuffers buildFileDialogBuffers();
 

@@ -128,7 +128,7 @@ void WindowFileDialog::drawDirectoryItem(DirectoryEntry* directory)
 
     ImGui::PushID(directory->path.string().c_str());
 
-    ImGui::Button("[DIR]", ImVec2(40, 40));
+    ImGui::Button(ICON_FA_FOLDER, ImVec2(40, 40));
 
     if (ImGui::IsItemClicked())
     {
@@ -203,9 +203,10 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
     const std::filesystem::path sourcePath = getAssetSourcePath(*directory, asset);
     const std::filesystem::path metaPath = getAssetMetaPath(*directory, asset);
 
-    const bool isPrefab =
-        sourcePath.extension() == PREFAB_EXTENSION ||
-        sourcePath.extension() == GLTF_EXTENSION;
+    AssetType type = getAssetType(sourcePath.extension().string());
+    AssetUIProperties uiProps = assetUIData.at(type);
+
+    const bool isPrefabLogic = (type == AssetType::PREFAB || type == AssetType::MODEL);
 
     ImGui::PushID(static_cast<int>(asset.uid));
 
@@ -217,24 +218,30 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
         if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right))
         {
             if (isExpanded)
+            {
                 m_expandedAssets.erase(asset.uid);
+            }
             else
+            {
                 m_expandedAssets.insert(asset.uid);
+            }
         }
         ImGui::SameLine();
     }
 
-    if (isPrefab)
+    if (isPrefabLogic)
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
     }
 
-    ImGui::Button(isPrefab ? "[P]" : "[FILE]", ImVec2(40, 40));
+    // 3. CAMBIO: Generamos el botón dinámico basado en la extensión (UI Props)
+    ImGui::Button(uiProps.iconGlyph, ImVec2(40, 40));
 
-    if (isPrefab)
+    if (isPrefabLogic)
     {
         ImGui::PopStyleColor();
     }
+
     if (ImGui::IsItemHovered() &&
         ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
         !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
@@ -245,22 +252,24 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
 
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
     {
-        if (isPrefab)
+        // 4. CAMBIO: Mejoramos el texto al arrastrar, pero mantenemos vuestros payloads (PREFAB_ASSET vs ASSET)
+        // para no romper la recepción en el viewport o inspector.
+        if (isPrefabLogic)
         {
             const std::string pathStr = sourcePath.string();
             ImGui::SetDragDropPayload("PREFAB_ASSET", pathStr.c_str(), pathStr.size() + 1);
-            ImGui::Text("[Prefab] %s", asset.displayName.c_str());
+            ImGui::Text("%s [Prefab] %s", uiProps.iconGlyph, asset.displayName.c_str());
         }
         else
         {
             ImGui::SetDragDropPayload("ASSET", &asset.uid, sizeof(UID));
-            ImGui::Text("Dragging %s", asset.displayName.c_str());
+            ImGui::Text("%s Dragging %s", uiProps.iconGlyph, asset.displayName.c_str());
         }
 
         ImGui::EndDragDropSource();
     }
 
-    if (isPrefab)
+    if (isPrefabLogic)
     {
         PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
         PrefabUI::drawFileDialogItemContextMenu(
@@ -283,8 +292,7 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
             CommandImportAsset(sourcePath, asset.uid).run();
         }
 
-        const bool isGltf = sourcePath.extension() == GLTF_EXTENSION;
-        if (isGltf && ImGui::MenuItem("Create State Machine"))
+        if (type == AssetType::MODEL && ImGui::MenuItem("Create State Machine"))
         {
             m_pendingStateMachinePath = sourcePath;
             ImGui::CloseCurrentPopup();
@@ -330,7 +338,7 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
 
     ImGui::PushID(static_cast<int>(subAsset.uid));
 
-    ImGui::Button("[S]", ImVec2(40, 40));
+    ImGui::Button(ICON_FA_PUZZLE_PIECE, ImVec2(40, 40));
 
     if (ImGui::IsItemHovered() &&
         ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
@@ -345,7 +353,7 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
     {
         ImGui::SetDragDropPayload("ASSET", &subAsset.uid, sizeof(UID));
-        ImGui::Text("Dragging %s", subAsset.displayName.c_str());
+        ImGui::Text("%s Dragging %s", ICON_FA_PUZZLE_PIECE, subAsset.displayName.c_str());
         ImGui::EndDragDropSource();
     }
 

@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <ClCompile Include="Quadtree.cpp">
@@ -626,6 +626,9 @@
     <ClCompile Include="UINavigation.cpp">
       <Filter>Persistence\Importers\External\UI\Events</Filter>
     </ClCompile>
+    <ClCompile Include="ForwardPrepass.cpp" />
+    <ClCompile Include="PlayerPass.cpp" />
+    <ClCompile Include="PlayerRenderBufferComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
@@ -1475,6 +1478,12 @@
     <ClInclude Include="PlatformHelpers.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="ForwardPrepass.h" />
+    <ClInclude Include="PlayerPass.h" />
+    <ClInclude Include="PlayerRenderBufferComponent.h" />
+    <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
+      <Filter>Editor\Fonts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1564,6 +1573,9 @@
     <FxCompile Include="TrailVertexShader.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl" />
+    <FxCompile Include="PlayerPixelShader.hlsl" />
+    <FxCompile Include="PlayerVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeSpriteFont.exe" />
@@ -1594,6 +1606,8 @@
     <None Include="PBRGeneral.hlsli">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </None>
+    <None Include="ForwardCommon.hlsli" />
+    <None Include="General.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1821,6 +1835,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\RenderData">
       <UniqueIdentifier>{A859F71B-E36E-53D9-8C4D-D592C1F9C7D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Fonts">
+      <UniqueIdentifier>{e6bd4f60-7273-4dbe-b942-af53a62134c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
