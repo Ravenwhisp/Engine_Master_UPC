@@ -22,6 +22,7 @@
 #include "CommandSaveGameObjectAsPrefab.h"
 
 #include <algorithm>
+#include <cctype>
 #include <string>
 
 void WindowFileDialog::navigateTo(const std::filesystem::path& path)
@@ -96,6 +97,24 @@ std::filesystem::path WindowFileDialog::getAssetMetaPath(
     std::filesystem::path metaPath = getAssetSourcePath(directory, asset);
     Metadata::getMetadataPath(metaPath);
     return metaPath.lexically_normal();
+}
+
+bool WindowFileDialog::passesSearchFilter(const std::string& name) const
+{
+    if (m_searchBuffer[0] == '\0')
+    {
+        return true;
+    }
+
+    const auto toLower = [](unsigned char c) { return static_cast<char>(std::tolower(c)); };
+
+    std::string lowerName(name.size(), '\0');
+    std::transform(name.begin(), name.end(), lowerName.begin(), toLower);
+
+    std::string lowerFilter(m_searchBuffer);
+    std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(), toLower);
+
+    return lowerName.find(lowerFilter) != std::string::npos;
 }
 
 void WindowFileDialog::drawDirectoryTree(DirectoryEntry* directory)
@@ -417,6 +436,11 @@ void WindowFileDialog::drawScriptGrid()
 
     for (const ScriptSourceInfo& script : scripts)
     {
+        if (!passesSearchFilter(script.name))
+        {
+            continue;
+        }
+
         drawScriptItem(script);
     }
 
@@ -521,6 +545,11 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
 
     for (const AssetEntry& asset : directory->assets)
     {
+        if (!passesSearchFilter(asset.displayName))
+        {
+            continue;
+        }
+
         drawAssetItem(directory, asset);
         if (!asset.subAssets.empty() && m_expandedAssets.count(asset.uid))
         {
@@ -556,6 +585,14 @@ void WindowFileDialog::drawInternal()
         app->getModuleAssets()->createStateMachineFromGltf(m_pendingStateMachinePath);
         m_pendingStateMachinePath.clear();
     }
+
+    ImGui::SetNextItemWidth(-1);
+    ImGui::InputTextWithHint(
+        "##FileDialogSearch",
+        ICON_FA_SEARCH " Search...",
+        m_searchBuffer,
+        sizeof(m_searchBuffer)
+    );
 
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
     drawScriptsTreeNode();

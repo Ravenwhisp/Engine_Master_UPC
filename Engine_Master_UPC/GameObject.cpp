@@ -332,6 +332,10 @@ void GameObject::drawUI()
     ImGui::Separator();
     const bool inPrefabMode = app->getModuleEditor()->isInPrefabEditMode();
 
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 size = ImGui::GetContentRegionAvail();
+    ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+
     if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
@@ -612,6 +616,22 @@ void GameObject::drawUI()
     if (pendingMoveFrom != -1 && pendingMoveTo != -1)
     {
         moveComponent(static_cast<size_t>(pendingMoveFrom), static_cast<size_t>(pendingMoveTo));
+    }
+
+    if (ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("##InspectorDropZone")))
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCRIPT_ASSET"))
+        {
+            const std::string scriptName(static_cast<const char*>(payload->Data));
+
+            Component* component = AddComponentWithUID(ComponentType::SCRIPT, GenerateUID());
+            if (ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component))
+            {
+                scriptComponent->setScriptName(scriptName);
+                scriptComponent->createScriptInstance();
+            }
+        }
+        ImGui::EndDragDropTarget();
     }
 
     ImGui::Separator();

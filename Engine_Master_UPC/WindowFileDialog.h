@@ -62,6 +62,8 @@ private:
         const AssetEntry& asset
     ) const;
 
+    bool passesSearchFilter(const std::string& name) const;
+
     inline AssetType getAssetType(std::string_view extension)
     {
         if (extension == PREFAB_EXTENSION)                  return AssetType::PREFAB;
@@ -98,6 +100,7 @@ private:
     std::filesystem::path m_selectedPath;
     UID m_selectedAsset = INVALID_UID;
     bool m_viewingScripts = false;
+    char m_searchBuffer[128] = {};
 
     FileDialogClipboard m_clipboard;
     std::unordered_set<UID> m_expandedAssets;
