@@ -15,6 +15,7 @@
 
 struct AssetEntry;
 struct DirectoryEntry;
+struct ScriptSourceInfo;
 
 struct AssetUIProperties
 {
@@ -39,6 +40,10 @@ private:
     void drawDirectoryItem(DirectoryEntry* directory);
     void drawAssetItem(DirectoryEntry* directory, const AssetEntry& asset);
     void drawSubAssetItem(const AssetEntry& subAsset);
+
+    void drawScriptsTreeNode();
+    void drawScriptGrid();
+    void drawScriptItem(const ScriptSourceInfo& script);
 
     void navigateTo(const std::filesystem::path& path);
 
@@ -92,9 +97,25 @@ private:
     std::filesystem::path m_currentDirectory;
     std::filesystem::path m_selectedPath;
     UID m_selectedAsset = INVALID_UID;
+    bool m_viewingScripts = false;
 
     FileDialogClipboard m_clipboard;
     std::unordered_set<UID> m_expandedAssets;
+
+    const std::unordered_map<AssetType, AssetUIProperties> assetUIData = {
+    { AssetType::TEXTURE,                 { ICON_FA_IMAGE,          "DND_TEXTURE" } },
+    { AssetType::MODEL,                   { ICON_FA_CUBES,          "DND_MODEL" } },
+    { AssetType::MATERIAL,                { ICON_FA_PALETTE,        "DND_MATERIAL" } },
+    { AssetType::MESH,                    { ICON_FA_PROJECT_DIAGRAM,"DND_MESH" } },
+    { AssetType::FONT,                    { ICON_FA_FONT,           "DND_FONT" } },
+    { AssetType::PREFAB,                  { ICON_FA_CUBE,           "DND_PREFAB" } },
+    { AssetType::ANIMATION,               { ICON_FA_RUNNING,        "DND_ANIMATION" } },
+    { AssetType::SKIN,                    { ICON_FA_USER_TAG,       "DND_SKIN" } },
+    { AssetType::ANIMATION_STATE_MACHINE, { ICON_FA_SITEMAP,        "DND_STATE_MACHINE" } },
+    { AssetType::SCENE,                   { ICON_FA_FILM,           "DND_SCENE" } },
+    { AssetType::SCRIPT,                  { ICON_FA_FILE_CODE,      "SCRIPT_ASSET" } },
+    { AssetType::UNKNOWN,                 { ICON_FA_FILE,           "DND_UNKNOWN" } }
+    };
 
     bool m_showVariantModal = false;
     bool m_showSavePrefabModal = false;

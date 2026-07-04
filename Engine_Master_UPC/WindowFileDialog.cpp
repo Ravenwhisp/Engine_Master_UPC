@@ -11,6 +11,7 @@
 #include "Metadata.h"
 #include "ModuleAssets.h"
 #include "ModuleEditor.h"
+#include "ModuleScripting.h"
 
 #include "CommandCreateFolder.h"
 #include "CommandCutItem.h"
@@ -28,6 +29,7 @@ void WindowFileDialog::navigateTo(const std::filesystem::path& path)
     m_currentDirectory = path.lexically_normal();
     m_selectedPath.clear();
     m_selectedAsset = INVALID_UID;
+    m_viewingScripts = false;
 }
 
 void WindowFileDialog::handleAssetClick(const AssetEntry& asset)
@@ -234,7 +236,7 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
     }
 
-    // 3. CAMBIO: Generamos el botón dinámico basado en la extensión (UI Props)
+    // 3. CAMBIO: Generamos el botï¿½n dinï¿½mico basado en la extensiï¿½n (UI Props)
     ImGui::Button(uiProps.iconGlyph, ImVec2(40, 40));
 
     if (isPrefabLogic)
@@ -253,7 +255,7 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
     {
         // 4. CAMBIO: Mejoramos el texto al arrastrar, pero mantenemos vuestros payloads (PREFAB_ASSET vs ASSET)
-        // para no romper la recepción en el viewport o inspector.
+        // para no romper la recepciï¿½n en el viewport o inspector.
         if (isPrefabLogic)
         {
             const std::string pathStr = sourcePath.string();
@@ -361,6 +363,64 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
     ImGui::NextColumn();
 
     ImGui::PopID();
+}
+
+void WindowFileDialog::drawScriptsTreeNode()
+{
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+    if (m_viewingScripts)
+    {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    ImGui::TreeNodeEx(ICON_FA_FILE_CODE " Scripts", flags);
+
+    if (ImGui::IsItemClicked())
+    {
+        m_viewingScripts = true;
+        m_selectedPath.clear();
+        m_selectedAsset = INVALID_UID;
+    }
+}
+
+void WindowFileDialog::drawScriptItem(const ScriptSourceInfo& script)
+{
+    const AssetUIProperties& uiProps = assetUIData.at(AssetType::SCRIPT);
+
+    ImGui::PushID(script.name.c_str());
+
+    ImGui::Button(uiProps.iconGlyph, ImVec2(40, 40));
+
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+    {
+        ImGui::SetDragDropPayload(uiProps.payloadID, script.name.c_str(), script.name.size() + 1);
+        ImGui::Text("%s Dragging %s", uiProps.iconGlyph, script.name.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    ImGui::TextWrapped("%s", script.name.c_str());
+    ImGui::NextColumn();
+
+    ImGui::PopID();
+}
+
+void WindowFileDialog::drawScriptGrid()
+{
+    const std::vector<ScriptSourceInfo> scripts = app->getModuleScripting()->getAvailableScripts();
+
+    const float panelWidth = ImGui::GetContentRegionAvail().x;
+    const float cellSize = 96.0f;
+    const int columnCount = std::max(1, (static_cast<int>(panelWidth / cellSize)));
+
+    ImGui::Columns(columnCount, nullptr, false);
+
+    for (const ScriptSourceInfo& script : scripts)
+    {
+        drawScriptItem(script);
+    }
+
+    ImGui::Columns(1);
 }
 
 void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
@@ -498,6 +558,7 @@ void WindowFileDialog::drawInternal()
     }
 
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
+    drawScriptsTreeNode();
     drawDirectoryTree(registry->getRoot());
     ImGui::EndChild();
 
@@ -505,7 +566,11 @@ void WindowFileDialog::drawInternal()
 
     ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
 
-    if (DirectoryEntry* directory = registry->getDirectory(m_currentDirectory))
+    if (m_viewingScripts)
+    {
+        drawScriptGrid();
+    }
+    else if (DirectoryEntry* directory = registry->getDirectory(m_currentDirectory))
     {
         drawAssetGrid(directory);
     }
