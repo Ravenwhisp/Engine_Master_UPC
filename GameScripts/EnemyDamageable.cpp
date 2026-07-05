@@ -2,6 +2,7 @@
 #include "EnemyDamageable.h"
 
 #include "EnemyDetectionAggro.h"
+#include "EnemySound.h"
 
 EnemyDamageable::EnemyDamageable(GameObject* owner)
 	: Damageable(owner)
@@ -18,6 +19,8 @@ void EnemyDamageable::Start()
 	{
 		Debug::warn("EnemyDetectionAggro Script is missing from %s", GameObjectAPI::getName(m_owner));
 	}
+
+	m_enemySound = GameObjectAPI::findScript<EnemySound>(m_owner);
 
 	if (!m_healthBarSlider || !m_healthBar2Slider)
 	{
@@ -55,7 +58,12 @@ void EnemyDamageable::Start()
 void EnemyDamageable::onDamaged(float amount)
 {
 	Damageable::onDamaged(amount);
-	
+
+	if (m_enemySound)
+	{
+		m_enemySound->playHurt();
+	}
+
 	if (!m_enemyDetectionAggro)
 	{
 		return;

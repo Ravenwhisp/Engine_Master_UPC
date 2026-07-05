@@ -5,6 +5,7 @@
 #include "ArthurAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
+#include "ArthurSound.h"
 
 ArthurHeavySwipe::ArthurHeavySwipe(GameObject* owner)
     : StateMachineScript(owner)
@@ -18,6 +19,7 @@ void ArthurHeavySwipe::OnStateEnter()
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
+    m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
 
     m_stateTimer = 0.0f;
 
@@ -173,7 +175,16 @@ void ArthurHeavySwipe::tryApplyHit(int hitIndex)
     Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 forward = TransformAPI::getForward(ownerTransform);
 
-    m_attackExecutor->applyDamageInCone(center, forward, m_attackConfig->m_heavySwipeRange, m_attackConfig->m_heavySwipeHalfAngleDegrees, m_attackConfig->m_heavySwipeDamage, "HeavySwipe");
+    const int hits = m_attackExecutor->applyDamageInCone(center, forward, m_attackConfig->m_heavySwipeRange, m_attackConfig->m_heavySwipeHalfAngleDegrees, m_attackConfig->m_heavySwipeDamage, "HeavySwipe");
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playClawSwipe();          // swoosh on every strike of the combo
+        if (hits > 0)
+        {
+            m_arthurSound->playClawImpact();     // impact only when the strike connects
+        }
+    }
 
     Debug::log("[ArthurHeavySwipe] Hit %d applied.", hitIndex);
 }

@@ -5,6 +5,7 @@
 class Damageable;
 class Transform;
 class PlayerState;
+class CooperativeSound;
 
 class PlayerDownState : public Script
 {
@@ -30,6 +31,11 @@ private:
     bool isTeammateInAssistRange() const;
     void completeRevive();
 
+    // Drives the cooperative revive loops. Reviving (downed, alone) and Help Reviving
+    // (partner assisting) are mutually exclusive, matching the revive-UI swap.
+    enum class ReviveAudioState { None, Self, Assisted };
+    void setReviveAudio(ReviveAudioState state);
+
 public:
     float m_selfReviveTime = 10.0f;
     float m_assistRadius = 3.0f;
@@ -41,10 +47,13 @@ public:
 private:
     PlayerState* m_playerState = nullptr;
     Damageable* m_damageable = nullptr;
+    CooperativeSound* m_cooperativeSound = nullptr;
 
     float m_reviveProgress = 0.0f;
 
     bool m_reviveBlocked = false;
+
+    ReviveAudioState m_reviveAudioState = ReviveAudioState::None;
 
 public:
     ScriptComponentRef<Transform> m_downedSprite;

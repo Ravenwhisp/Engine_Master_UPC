@@ -5,6 +5,7 @@
 #include "ArthurAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
+#include "ArthurSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurSideSweep,
     SERIALIZED_INT(m_sweepSide, "Sweep Side")
@@ -22,6 +23,7 @@ void ArthurSideSweep::OnStateEnter()
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
+    m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
 
     m_stateTimer = 0.0f;
     m_hasAppliedHit = false;
@@ -60,6 +62,11 @@ void ArthurSideSweep::OnStateEnter()
     m_arthurController->resetRepathTimer();
 
     m_arthurUI->setupSideSweepUI(m_sweepSide);
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playSideSweep();
+    }
 
     Debug::log("[ArthurSideSweep] ENTER");
 }
@@ -132,6 +139,11 @@ void ArthurSideSweep::applyHit()
     Vector3 sweepDirection = m_arthurController->getSideSweepDirection(m_sweepSide);
 
     m_attackExecutor->applyDamageInCone(center, sweepDirection, m_attackConfig->m_sideSweepRange, m_attackConfig->m_sideSweepHalfAngleDegrees, m_attackConfig->m_sideSweepDamage, "SideSweep");
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playSideImpact();
+    }
 
     Debug::log("[ArthurSideSweep] Hit applied. Side: %d", m_sweepSide);
 }

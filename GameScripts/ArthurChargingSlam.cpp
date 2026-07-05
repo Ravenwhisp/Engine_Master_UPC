@@ -5,6 +5,7 @@
 #include "ArthurAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
+#include "ArthurSound.h"
 
 #include "Transform2D.h"
 
@@ -27,6 +28,7 @@ void ArthurChargingSlam::OnStateEnter()
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
+    m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
 
     m_stateTimer = 0.0f;
 
@@ -84,6 +86,11 @@ void ArthurChargingSlam::OnStateEnter()
     setupAnimationPrepSection();
 
     m_arthurUI->setupChargingSlamUI(m_startPosition, m_lockedTargetPosition, m_dashDirection);
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playPreparingGrowl();   // wind-up growl
+    }
 
     Debug::log("[ArthurChargingSlam] ENTER");
 }
@@ -144,6 +151,11 @@ void ArthurChargingSlam::OnStateUpdate()
 
 void ArthurChargingSlam::OnStateExit()
 {
+    if (m_arthurSound)
+    {
+        m_arthurSound->stopGallopingLoop();   // safety: covers death/interrupt mid-dash
+    }
+
     if (m_animation)
     {
         AnimationAPI::setSpeedMultiplier(m_animation, m_previousAnimationSpeed);
@@ -194,6 +206,12 @@ void ArthurChargingSlam::startDash()
     {
         m_hasReachedDestination = true;
         return;
+    }
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playChargeSlam();
+        m_arthurSound->startGallopingLoop();   // gallop loop during the dash
     }
 
     Debug::log("[ArthurChargingSlam] Dash started.");
@@ -290,6 +308,12 @@ void ArthurChargingSlam::applyImpact()
     }
 
     m_attackExecutor->applyDamageAndStunInRadius(m_lockedTargetPosition, m_attackConfig->m_chargingSlamImpactRadius, m_attackConfig->m_chargingSlamFinalAreaImpactDamage, m_attackConfig->m_chargingSlamImpactStunDuration, "ChargingSlamImpact");
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->stopGallopingLoop();
+        m_arthurSound->playBodyImpact();
+    }
 
     Debug::log("[ArthurChargingSlam] Impact applied.");
 }

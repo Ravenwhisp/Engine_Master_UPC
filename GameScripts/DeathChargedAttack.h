@@ -3,6 +3,7 @@
 #include "DeathAbilityBase.h"
 
 class DeathUI;
+class DeathParticles;
 
 class DeathChargedAttack : public DeathAbilityBase
 {
@@ -40,4 +41,6 @@ private:
     float   m_chargeTime = 0.0f;
     bool    m_isCharging = false;
     Vector3 m_aimDirection = { 0.0f, 0.0f, 0.0f };
+
+    DeathParticles* m_particles = nullptr;
 };
