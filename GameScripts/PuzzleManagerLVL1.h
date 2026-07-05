@@ -34,6 +34,8 @@ public:
 	GameObject* blocker3;
 	GameObject* blocker4;
 
+	float m_bridgeLowerDuration = 2.0f;   // seconds the bridge takes to lower (chains play during)
+
 	void puzzle1Solved();
 	void puzzle2Solved();
 	void puzzle3Solved();
@@ -47,6 +49,15 @@ private:
 	void onPuzzleSolved(int puzzleId);
 
 	std::unordered_map<int, PuzzleData> m_puzzles;
+
+	// Bridge lowering animation (puzzle 2): tween down over m_bridgeLowerDuration with the
+	// chain loop, then a thud + open the path at the bottom.
+	bool m_bridgeLowering = false;
+	float m_bridgeLowerTimer = 0.0f;
+	Vector3 m_bridge1StartPos, m_bridge1StartRot, m_bridge1TargetPos, m_bridge1TargetRot;
+	Vector3 m_bridge2StartPos, m_bridge2StartRot, m_bridge2TargetPos, m_bridge2TargetRot;
+	GameObject* m_bridgeSoundEmitter = nullptr;
+	void updateBridgeLowering(float dt);
 
     ScriptFieldList getExposedFields() const override;
 };

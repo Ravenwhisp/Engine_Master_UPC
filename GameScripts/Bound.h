@@ -5,6 +5,7 @@
 class Transform;
 class Damageable;
 class HeartbeatHaptic;
+class CooperativeSound;
 
 class Bound : public Script
 {
@@ -47,4 +48,5 @@ public:
 
 private:
     HeartbeatHaptic* m_haptic = nullptr;
+    CooperativeSound* m_coopSound = nullptr;
 };

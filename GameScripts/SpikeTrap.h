@@ -51,6 +51,9 @@ public:
 	float waitPositionY = -0.7f;
 	float activePositionY = 0.0f;
 
+    ScriptComponentRef<Transform> m_spikeShineT;
+    ScriptComponentRef<Transform> m_spectralAuraT;
+
 private:
     
     bool containsPoint(const Vector3& triggerCenter, const Vector3& point) const;
@@ -59,6 +62,9 @@ private:
 	void damagePlayer(GameObject* player);
 
     void triggerBoxDamage();
+
+    void addEffect(int type);
+	void removeEffect(int type);
 
 	int spikeType = 0; // 0 for normal, 1 for spectral
 

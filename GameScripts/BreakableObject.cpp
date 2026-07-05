@@ -1,6 +1,17 @@
 #include "pch.h"
 #include "BreakableObject.h"
 
+#include "EnvironmentSound.h"
+
+namespace
+{
+    constexpr const char* k_barrelBreak = "Play_Environment_Barrel_Break";
+}
+
+IMPLEMENT_SCRIPT_FIELDS(BreakableObject,
+    SERIALIZED_STRING(m_dustEffectParticle, "Dust Effect Particle")
+)
+
 BreakableObject::BreakableObject(GameObject* owner)
     : Script(owner)
 {
@@ -44,6 +55,12 @@ void BreakableObject::Start()
     }
 }
 
+void BreakableObject::onBreak()
+{
+    breakObject();
+    EnvironmentSound::play(getOwner(), k_barrelBreak);   // barrels & crates (same prefab)
+}
+
 void BreakableObject::breakObject()
 {
     if (m_isBroken)
@@ -63,7 +80,7 @@ void BreakableObject::breakObject()
     {
         GameObject* brokenObject = ComponentAPI::getOwner(m_brokenObjectTransform);
         GameObjectAPI::setActive(brokenObject, true);
-		GameObject* dustEffect = GameObjectAPI::instantiatePrefab("Assets/Prefabs/Particles/Dust_1.prefab", TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+		GameObject* dustEffect = GameObjectAPI::instantiatePrefab(m_dustEffectParticle.c_str(), TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
     }
 
     if (m_navBlocker != nullptr)

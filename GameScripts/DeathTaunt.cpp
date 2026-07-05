@@ -8,6 +8,7 @@
 #include "EnemyShadowMark.h"
 #include "DeathUI.h"
 #include "DeathConfig.h"
+#include "DeathParticles.h"
 
 #include <cmath>
 
@@ -30,6 +31,13 @@ void DeathTaunt::Start()
     if (!m_deathUI)
     {
         Debug::warn("[DeathTaunt] DeathUI not found.");
+    }
+
+    m_deathParticles = GameObjectAPI::findScript<DeathParticles>(getOwner());
+
+    if (!m_deathParticles)
+    {
+        Debug::warn("[DeathTaunt] DeathParticles not found.");
     }
 }
 
@@ -76,6 +84,14 @@ void DeathTaunt::Update()
 bool DeathTaunt::canStartSpecificAbility() const
 {
     return !m_isAiming;
+}
+
+void DeathTaunt::onAttackWindowFinished()
+{
+    if (m_movementLockedForCombo)
+    {
+        releaseComboMoveLock();
+    }
 }
 
 float DeathTaunt::getCooldown() const
@@ -205,9 +221,18 @@ void DeathTaunt::releaseAimAndCast()
             sound->playTauntShout();
         }
 
+        if (m_deathParticles != nullptr)
+        {
+            m_deathParticles->SetTauntActive(finalDirection);
+        }
+
         applyTauntToEnemiesInCone(finalDirection);
         notifyAbilitySuccessfullyStarted();
         m_debugConeTimer = 0.25f;
+
+        m_movementLockedForCombo = true;
+        beginAttackPresentation();
+        beginAttackWindow(m_config->m_tauntLockDuration);
     }
 
     m_currentAimDirection = Vector3::Zero;

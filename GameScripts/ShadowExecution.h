@@ -8,6 +8,12 @@ class DeathCharacter;
 class LyrielCharacter;
 class CooperativeSound;
 
+// Estructura para controlar el tiempo de vida de las partículas instanciadas
+struct SpawnedPrefab {
+    GameObject* gameObject;
+    float lifetimeRemaining;
+};
+
 class ShadowExecution : public Script
 {
     DECLARE_SCRIPT(ShadowExecution)
@@ -29,6 +35,9 @@ public:
     float m_instaKillThreshold = 0.20f;
     float m_standardDamage     = 0.10f;
 
+    // Ruta del prefab de partículas (ajustable desde el editor si lo expones)
+    const char* m_particlePrefabPath = "Assets/Prefabs/Particles/Death/ShadowExecution.prefab";
+
 private:
     void cachePlayers();
     void tryTrigger();
@@ -38,9 +47,9 @@ private:
     void applyAoEDamage();
     void lockPlayers(bool locked);
 
-    ReaperGauge*      m_reaperGauge     = nullptr;
-    DeathCharacter*   m_deathCharacter  = nullptr;
-    LyrielCharacter*  m_lyrielCharacter = nullptr;
+    ReaperGauge* m_reaperGauge     = nullptr;
+    DeathCharacter* m_deathCharacter  = nullptr;
+    LyrielCharacter* m_lyrielCharacter = nullptr;
     CooperativeSound* m_sound           = nullptr;
 
     float m_p0WindowTimer = 0.0f;
@@ -53,6 +62,9 @@ private:
     float   m_currentRadius   = 0.0f;
 
     std::vector<GameObject*> m_hitEnemies;
+    
+    // Lista para trackear las partículas que deben morir tras 1 segundo
+    std::vector<SpawnedPrefab> m_temporaryPrefabs;
 
 public:
     ScriptComponentRef<UISlider> m_reaperGaugeBar;

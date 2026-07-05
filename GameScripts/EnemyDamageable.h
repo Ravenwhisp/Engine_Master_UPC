@@ -3,6 +3,7 @@
 #include "Damageable.h"
 
 class EnemyDetectionAggro;
+class EnemySound;
 
 enum class EnemyAttackType
 {
@@ -39,5 +40,6 @@ class EnemyDamageable : public Damageable
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
+	EnemySound* m_enemySound = nullptr;
 	Transform* m_damageSource = nullptr;
 };

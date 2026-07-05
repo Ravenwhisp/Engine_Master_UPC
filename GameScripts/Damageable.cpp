@@ -35,6 +35,16 @@ void Damageable::Update()
 
 void Damageable::takeDamage(float amount)
 {
+    applyDamage(amount, /*continuous=*/false);
+}
+
+void Damageable::takeDamage(const HitContext& ctx)
+{
+    applyDamage(ctx.damage, ctx.continuous);
+}
+
+void Damageable::applyDamage(float amount, bool continuous)
+{
     if (m_isDead)
     {
         return;
@@ -53,17 +63,13 @@ void Damageable::takeDamage(float amount)
     m_currentHp -= amount;
     clampHp();
 
+    m_damageIsContinuous = continuous;
     onDamaged(amount);
 
     if (m_currentHp <= 0.0f)
     {
         onHpDepleted();
     }
-}
-
-void Damageable::takeDamage(const HitContext& ctx)
-{
-    takeDamage(ctx.damage);
 }
 
 void Damageable::heal(float amount)

@@ -16,6 +16,12 @@ public:
 
 	ScriptFieldList getExposedFields() const override;
 
+	void pauseDeathCountdown();
+	void resumeDeathCountdown();
+	void finalizeDeathNow();
+	void abortDeathForRevival();
+	bool isDeathActive() const { return m_waitingToDestroy && !m_deathFinished; }
+
 protected:
 	virtual void onDeathStarted(); // use this to trigger specific logic like open a locked door etc
 	virtual void onDeathFinished();
@@ -38,4 +44,5 @@ protected:
 private:
 	bool m_waitingToDestroy = false;
 	bool m_deathFinished = false;
+	bool m_deathPaused = false;
 };
