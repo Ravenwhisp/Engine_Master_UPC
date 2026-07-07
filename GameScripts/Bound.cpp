@@ -2,6 +2,7 @@
 #include "Bound.h"
 #include "Damageable.h"
 #include "HeartbeatHaptic.h"
+#include "CooperativeSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
@@ -42,6 +43,12 @@ void Bound::Start()
     {
         m_haptic->m_variant = HapticEffectDefinition::HeartbeatVariant::Separation;
     }
+
+    const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
+    if (!coopGOs.empty())
+    {
+        m_coopSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
 }
 
 void Bound::Update()
@@ -67,6 +74,7 @@ void Bound::Update()
 
     if (m_previousDistance < m_distanceInstaKill && distance >= m_distanceInstaKill)
     {
+        if (m_coopSound) m_coopSound->stopBoundDamageLoop();
         m_firstDamageable->takeDamage(m_firstDamageable->getCurrentHp());
         m_secondDamageable->takeDamage(m_secondDamageable->getCurrentHp());
         return;
@@ -75,6 +83,9 @@ void Bound::Update()
 
     if (distance > m_distanceDamage && distance < m_distanceInstaKill)
     {
+        // Separation damage band: the cooperative loop replaces the per-hit hurt grunt.
+        if (m_coopSound) m_coopSound->startBoundDamageLoop();
+
         const float range = m_distanceInstaKill - m_minDistance;
 
         // Manual clamp
@@ -89,8 +100,10 @@ void Bound::Update()
 
         const float damage = damagePerSecond * Time::getDeltaTime();
 
-        m_firstDamageable->takeDamage(damage);
-        m_secondDamageable->takeDamage(damage);
+        // Continuous flag: suppresses the per-hit hurt grunt (the Bound-Damage loop
+        // above conveys the separation); the escalating heartbeat handles the tension.
+        m_firstDamageable->takeDamage(HitContext{ damage, /*continuous=*/true });
+        m_secondDamageable->takeDamage(HitContext{ damage, /*continuous=*/true });
 
         const bool p1LowHp = m_firstDamageable->getHpPercent() < m_separationHapticHpGate;
         const bool p2LowHp = m_secondDamageable->getHpPercent() < m_separationHapticHpGate;
@@ -105,6 +118,7 @@ void Bound::Update()
     }
     else
     {
+        if (m_coopSound) m_coopSound->stopBoundDamageLoop();
         if (m_haptic) m_haptic->stop();
     }
 

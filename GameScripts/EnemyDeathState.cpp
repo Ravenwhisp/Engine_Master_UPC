@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "EnemyDeathState.h"
 #include "HealthPickup.h"
-
-#include <cmath>
+#include "HealthDropSpawner.h"
+#include "EnemySound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyDeathState,
 	SERIALIZED_FLOAT(m_destroyDelay, "Destroy Delay", 0.0f, 30.0f, 0.1f),
@@ -22,6 +22,14 @@ EnemyDeathState::EnemyDeathState(GameObject* owner)
 void EnemyDeathState::OnStateEnter()
 {
 	Debug::log("[EnemyDeathState] ENTER");
+
+	EnemySound* enemySound = GameObjectAPI::findScript<EnemySound>(getOwner());
+	if (enemySound)
+	{
+		enemySound->stopAllLoops();   // kill charge loop / footsteps before the death sting
+		enemySound->playDeath();
+	}
+
 	onDeathStarted();
 
 	if (m_shouldDropHealth)
@@ -34,7 +42,7 @@ void EnemyDeathState::OnStateEnter()
 
 void EnemyDeathState::OnStateUpdate()
 {
-	if (!m_waitingToDestroy || m_deathFinished)
+	if (!m_waitingToDestroy || m_deathFinished || m_deathPaused)
 	{
 		return;
 	}
@@ -84,18 +92,28 @@ void EnemyDeathState::dropRewards()
         return;
     }
 
-	const Transform* myTransform = GameObjectAPI::getTransform(getOwner());
-	if (myTransform == nullptr)
-	{
-		return;
-	}
+    const Transform* myTransform = GameObjectAPI::getTransform(getOwner());
+    if (myTransform == nullptr)
+    {
+        return;
+    }
 
-	const Vector3 spawnPosition = TransformAPI::getGlobalPosition(myTransform);
+    const Vector3 spawnPosition = TransformAPI::getGlobalPosition(myTransform);
 
-	for (int i = 0; i < m_healthDropQuantity; ++i)
-	{
+    for (int i = 0; i < m_healthDropQuantity; ++i)
+    {
+        HealthDropSpawner::drop(m_healthPrefabPath.c_str(),
+                                spawnPosition,
+                                m_dropHealAmount,
+                                m_dropRadius,
+                                m_dropHeight);
+    }
+}
 
-		float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
+void EnemyDeathState::pauseDeathCountdown()
+{
+	m_deathPaused = true;
+}
 
 
 		float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
@@ -118,15 +136,22 @@ void EnemyDeathState::dropRewards()
 			continue;
 		}
 
-        Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
-        if (script != nullptr)
-        {
-            HealthPickup* healthPickup = static_cast<HealthPickup*>(script);
-            healthPickup->m_healAmount = m_dropHealAmount;
-            healthPickup->m_landingPosition = finalPos;
-            healthPickup->m_hasCustomSpawnFrom = true;
-        }
-    }
+void EnemyDeathState::finalizeDeathNow()
+{
+	m_deathPaused = false;
+	if (m_shouldDropHealth)
+	{
+		dropRewards();
+	}
+	startDestroyCountdown(m_destroyDelay);
+}
+
+void EnemyDeathState::abortDeathForRevival()
+{
+	m_deathPaused = false;
+	m_waitingToDestroy = false;
+	m_deathFinished = false;
+	m_deathTimer = 0.0f;
 }
 
 IMPLEMENT_SCRIPT(EnemyDeathState)

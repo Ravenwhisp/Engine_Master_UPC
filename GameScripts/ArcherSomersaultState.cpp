@@ -3,6 +3,7 @@
 
 #include "RangedEnemyController.h"
 #include "ArcherAttackConfig.h"
+#include "ArcherGuardParticles.h"
 
 ArcherSomersaultState::ArcherSomersaultState(GameObject* owner)
     : StateMachineScript(owner)
@@ -14,6 +15,7 @@ void ArcherSomersaultState::OnStateEnter()
     m_archerController = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
     m_attackConfig = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_particles = GameObjectAPI::findScript<ArcherGuardParticles>(getOwner());
 
     m_stateTimer = 0.0f;
     m_escapeDirection = Vector3(0.0f, 0.0f, 0.0f);
@@ -40,6 +42,8 @@ void ArcherSomersaultState::OnStateEnter()
 
     m_escapeDirection = m_archerController->getDirectionAwayFromClosestPlayer();
 
+    if (m_particles) m_particles->startChargeParticle();
+
     Debug::log("[ArcherSomersaultState] ENTER");
 }
 
@@ -62,6 +66,7 @@ void ArcherSomersaultState::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
+    if (m_particles) m_particles->updateChargeParticle();
     moveSomersault();
 
     if (m_stateTimer >= m_attackConfig->m_somersaultDuration)
@@ -73,6 +78,7 @@ void ArcherSomersaultState::OnStateUpdate()
 
 void ArcherSomersaultState::OnStateExit()
 {
+    if (m_particles) m_particles->stopChargeParticle();
     Debug::log("[ArcherSomersaultState] EXIT");
 }
 

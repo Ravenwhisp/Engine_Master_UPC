@@ -5,6 +5,7 @@
 #include "ArthurAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
+#include "ArthurSound.h"
 
 ArthurEarthHammer::ArthurEarthHammer(GameObject* owner)
     : StateMachineScript(owner)
@@ -18,6 +19,7 @@ void ArthurEarthHammer::OnStateEnter()
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
+    m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
 
     m_stateTimer = 0.0f;
     m_hasAppliedImpact = false;
@@ -59,6 +61,11 @@ void ArthurEarthHammer::OnStateEnter()
     m_arthurController->faceCurrentTarget();
 
     m_arthurUI->setupEarthHammerUI();
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playHammerPreparing();   // wind-up
+    }
 
     Debug::log("[ArthurEarthHammer] ENTER");
 }
@@ -132,6 +139,11 @@ void ArthurEarthHammer::applyImpact()
     }
 
     m_attackExecutor->applyDamageAndStunInRadius(center, m_attackConfig->m_earthHammerRadius, damage, stunDuration, "EarthHammer");
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playHammerImpact();
+    }
 }
 
 void ArthurEarthHammer::goToRecover()

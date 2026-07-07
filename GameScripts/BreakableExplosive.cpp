@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "BreakableExplosive.h"
 #include "Damageable.h"
+#include "EnvironmentSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BreakableExplosive, BreakableObject,
     SERIALIZED_FLOAT(m_explosionRadius, "Explosion Radius", 0.0f, 20.0f, 0.1f),
@@ -68,6 +69,8 @@ void BreakableExplosive::onBreak()
     {
         GameObjectAPI::instantiatePrefab(m_explosionPrefab.m_ref, TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
     }
+
+    EnvironmentSound::play(getOwner(), "Play_Environment_Explosive_Barrel");
 
     Debug::log("[BreakableExplosive] '%s' exploded dealing %.1f damage in radius %.1f.", GameObjectAPI::getName(getOwner()), m_explosionDamage, m_explosionRadius);
 

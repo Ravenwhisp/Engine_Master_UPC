@@ -6,6 +6,8 @@
 class MeleeEnemyController;
 class PaladinAttackConfig;
 class AnimationComponent;
+class PaladinSound;
+class PaladinVFX;
 
 class PaladinChargeState : public StateMachineScript
 {
@@ -22,10 +24,14 @@ private:
 	void moveCharge();
 	void finishCharge();
 
+	void stopChargeAttackEffect();
+
 private:
 	MeleeEnemyController* m_paladinController = nullptr;
 	PaladinAttackConfig* m_attackConfig = nullptr;
 	AnimationComponent* m_animation = nullptr;
+	PaladinSound* m_paladinSound = nullptr;
+	PaladinVFX* m_paladinVFX = nullptr;
 
 	Vector3 m_chargeDirection = Vector3::Zero;
 

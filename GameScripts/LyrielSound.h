@@ -39,6 +39,7 @@ public:
     // Damage
     void playHurt();
     void playDown();
+    void playRevived();   // played when this player is revived from down state
 
     // Targeting
     void playLockTarget();
@@ -60,4 +61,9 @@ private:
     // Footstep ticking
     bool  m_footstepsActive = false;
     float m_footstepTimer   = 0.0f;
+
+    // Hurt SFX debounce: a one-shot reaction sound must never re-fire every frame
+    // when damage is continuous (Bound separation, DoTs, traps). Counts down in
+    // Update; playHurt() only fires when <= 0.
+    float m_hurtCooldownTimer = 0.0f;
 };

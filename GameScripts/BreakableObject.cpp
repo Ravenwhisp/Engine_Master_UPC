@@ -48,6 +48,12 @@ void BreakableObject::Start()
     }
 }
 
+void BreakableObject::onBreak()
+{
+    breakObject();
+    EnvironmentSound::play(getOwner(), k_barrelBreak);   // barrels & crates (same prefab)
+}
+
 void BreakableObject::breakObject()
 {
     if (m_isBroken)

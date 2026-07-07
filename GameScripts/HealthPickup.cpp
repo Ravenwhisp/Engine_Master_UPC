@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "HealthPickup.h"
 #include "PlayerDamageable.h"
+#include "CooperativeSound.h"
 
 #include <cmath>
 
@@ -43,6 +44,12 @@ void HealthPickup::Start()
 
     m_isFalling    = true;
     m_fallVelocity = 0.0f;
+
+    const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
+    if (!coopGOs.empty())
+    {
+        m_cooperativeSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
 }
 
 void HealthPickup::Update()
@@ -139,7 +146,7 @@ void HealthPickup::idleAnimation()
     Vector3 position = m_startPosition;
 
     position.z += std::sin(t) * m_horizontalAmplitude;
-    position.y += std::sin(t * 2.0f) * m_verticalAmplitude;
+    position.y = m_startPosition.y + std::abs(std::sin(t * 2.0f)) * m_verticalAmplitude;
 
     TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(getOwner()), position);
 }

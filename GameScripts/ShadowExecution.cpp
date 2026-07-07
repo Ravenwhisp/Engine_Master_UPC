@@ -61,6 +61,24 @@ void ShadowExecution::Update()
 {
     const float dt = Time::getDeltaTime();
 
+    // Actualizar y eliminar los prefabs de partículas cuando pase 1 segundo
+    for (auto it = m_temporaryPrefabs.begin(); it != m_temporaryPrefabs.end(); )
+    {
+        it->lifetimeRemaining -= dt;
+        if (it->lifetimeRemaining <= 0.0f)
+        {
+            if (it->gameObject != nullptr)
+            {
+                GameObjectAPI::removeGameObject(it->gameObject);
+            }
+            it = m_temporaryPrefabs.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     if (m_isActive)
     {
         updateExecution(dt);
@@ -181,6 +199,12 @@ void ShadowExecution::beginExecution()
     if (m_sound != nullptr)
     {
         m_sound->playShadowExecution();
+    }
+
+    GameObject* fxCenter = GameObjectAPI::instantiatePrefab(m_particlePrefabPath, m_center, Vector3::Zero);
+    if (fxCenter)
+    {
+        m_temporaryPrefabs.push_back({ fxCenter, 1.0f });
     }
 
     lockPlayers(true);

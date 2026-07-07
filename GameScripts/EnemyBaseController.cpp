@@ -2,6 +2,7 @@
 #include "EnemyBaseController.h"
 
 #include "Damageable.h"
+#include "EnemySound.h"
 
 static const char* navAgentProfileNames[] =
 {
@@ -157,7 +158,23 @@ bool EnemyBaseController::moveTowardsTarget()
         resetRepathTimer();
     }
 
-    return followPath();
+    const bool moved = followPath();
+
+    if (moved)
+    {
+        if (!m_enemySoundResolved)
+        {
+            m_enemySound = GameObjectAPI::findScript<EnemySound>(getOwner());
+            m_enemySoundResolved = true;
+        }
+
+        if (m_enemySound)
+        {
+            m_enemySound->notifyMoving();
+        }
+    }
+
+    return moved;
 }
 
 void EnemyBaseController::clearPath()

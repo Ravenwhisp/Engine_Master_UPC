@@ -4,6 +4,8 @@
 
 #include "Pickup.h"
 
+class CooperativeSound;
+
 class HealthPickup : public Pickup
 {
     DECLARE_SCRIPT(HealthPickup)
@@ -38,6 +40,8 @@ private:
     float   m_fallHVelocityZ        = 0.0f;
 
     Vector3 m_fallStartPosition     = Vector3::Zero;  // where the arc begins
+
+    CooperativeSound* m_cooperativeSound = nullptr;
 
     float m_idleTimer               = 0.0f;
     float m_idleSpeed               = 0.2f;
