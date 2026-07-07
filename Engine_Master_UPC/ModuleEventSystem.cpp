@@ -22,25 +22,7 @@
 #include <WindowSceneEditor.h>
 #include "Delegates.h"
 
-namespace
-{
-    constexpr float k_uiReferenceWidth = 1920.0f;
-    constexpr float k_uiReferenceHeight = 1080.0f;
-
-    Vector2 CalculateUIScale(float width, float height)
-    {
-        if (width <= 0.0f || height <= 0.0f)
-        {
-            return { 1.0f, 1.0f };
-        }
-
-        const float scaleX = width / k_uiReferenceWidth;
-        const float scaleY = height / k_uiReferenceHeight;
-        const float canvasScale = std::min(scaleX, scaleY);
-
-        return { canvasScale, canvasScale };
-    }
-}
+#include "UILayoutUtils.h"
 
 unsigned int DelegateHandle::CURRENT_ID = 0;
 
@@ -231,7 +213,7 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     screenRect.w = size.x;
     screenRect.h = size.y;
 
-    const Vector2 uiScale = CalculateUIScale(size.x, size.y);
+    const Vector2 uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
 
     for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects())
     {
