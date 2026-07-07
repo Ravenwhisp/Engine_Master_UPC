@@ -1,6 +1,5 @@
 #pragma once
 #include "ScriptAPI.h"
-#include <string>
 #include <vector>
 
 class ArcherGuardParticles : public Script
@@ -11,10 +10,10 @@ public:
     void Start() override;
     ScriptFieldList getExposedFields() const override;
 
-    std::string m_trailPrefab  = "Assets/Prefabs/Particles/Archer/ArcherGuardBasicShot.prefab";
-    std::string m_volleyPrefab = "Assets/Prefabs/Particles/Archer/ArcherGuardVolley.prefab";
-    std::string m_chargePrefab = "Assets/Prefabs/Particles/Archer/ArcherGuardCharge.prefab";
-    std::string m_arrowPrefab  = "Assets/Prefabs/Projectiles/ArcherArrow.prefab";
+    PrefabRef m_trailPrefab;
+    PrefabRef m_volleyPrefab;
+    PrefabRef m_chargePrefab;
+    PrefabRef m_arrowPrefab;
 
     // Basic attack trail — called by ArcherArrowShooter
     void spawnBasicAttackTrail(const Vector3& pos);

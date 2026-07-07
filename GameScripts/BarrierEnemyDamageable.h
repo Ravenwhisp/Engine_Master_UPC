@@ -23,8 +23,8 @@ public:
 public:
     std::vector<float> m_barriersThresholds;
     int m_requiredAttackType = static_cast<int>(EnemyAttackType::ShadowMarkExploit);
-    bool m_shadowExecutionBreaksBarriers = true;
-    AssetRef<Prefab> m_barrierPrefab;
+    bool m_shadowMarkExploitBreaksBarriers = true;
+    PrefabRef m_barrierPrefab;
 
     float m_minPos = 80.0f;
     float m_maxPos = -90.0f;

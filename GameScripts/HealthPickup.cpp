@@ -98,6 +98,11 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
 
     damageable->heal(m_healAmount);
 
+    if (m_cooperativeSound != nullptr)
+    {
+        m_cooperativeSound->playHealthOrb();
+    }
+
     if (m_collectParticlePrefab.m_ref.isValid())
     {
         Transform* t = GameObjectAPI::getTransform(getOwner());

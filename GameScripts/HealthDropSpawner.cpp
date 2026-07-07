@@ -9,7 +9,7 @@ GameObject* HealthDropSpawner::drop(const AssetReference& prefabRef, const Vecto
 {
     if (!prefabRef.isValid())
     {
-        Debug::warn("[HealthDropSpawner] Cannot drop health pickup. Prefab reference is invalid.");
+        Debug::warn("[HealthDropSpawner] Cannot drop health pickup. Prefab ref is invalid.");
         return nullptr;
     }
 
@@ -31,14 +31,14 @@ GameObject* HealthDropSpawner::drop(const AssetReference& prefabRef, const Vecto
 
     if (pickup == nullptr)
     {
-        Debug::warn("[HealthDropSpawner] Failed to instantiate prefab (UID %llu).", prefabRef.m_uid);
+        Debug::warn("[HealthDropSpawner] Failed to instantiate prefab.");
         return nullptr;
     }
 
     Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
     if (script == nullptr)
     {
-        Debug::warn("[HealthDropSpawner] Spawned prefab (UID %llu) but it has no HealthPickup script.", prefabRef.m_uid);
+        Debug::warn("[HealthDropSpawner] Spawned prefab but it has no HealthPickup script.");
 
         return pickup;
     }

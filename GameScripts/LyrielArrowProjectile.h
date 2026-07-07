@@ -21,7 +21,7 @@ private:
     void syncParticleTransform();
 
 public:
-    AssetRef<Prefab> m_particlePrefab;
+    PrefabRef m_particlePrefab;
 
 private:
     Vector3 m_direction = Vector3::Zero;

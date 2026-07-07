@@ -1,6 +1,5 @@
 #pragma once
 #include "ScriptAPI.h"
-#include <string>
 
 class ArcherAttackConfig;
 class RangedEnemyController;
@@ -16,7 +15,7 @@ public:
     void Update() override;
     ScriptFieldList getExposedFields() const override;
 
-    std::string m_arrowPrefab = "Assets/Prefabs/Projectiles/ArcherArrow.prefab";
+    PrefabRef m_arrowPrefab;
 
 private:
     ArcherAttackConfig*    m_config     = nullptr;

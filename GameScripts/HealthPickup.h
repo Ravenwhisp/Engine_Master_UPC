@@ -23,7 +23,7 @@ public:
 
 public:
     float   m_healAmount            = 10.0f;
-    AssetRef<Prefab> m_collectParticlePrefab;
+    PrefabRef m_collectParticlePrefab;
     float   m_spawnHeight           = 1.5f;   // fallback height when no custom spawn-from
     float   m_fallGravity           = 8.0f;
     Vector3 m_landingPosition       = Vector3::Zero;  // target floor position, set by spawner

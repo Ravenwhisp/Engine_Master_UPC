@@ -6,7 +6,7 @@
 #include "ArcherGuardParticles.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArcherArrowShooter,
-    SERIALIZED_STRING(m_arrowPrefab, "Arrow Prefab")
+    SERIALIZED_ASSET_REF(m_arrowPrefab, "Arrow Prefab", AssetType::PREFAB)
 )
 
 ArcherArrowShooter::ArcherArrowShooter(GameObject* owner) : Script(owner) {}
@@ -70,7 +70,7 @@ void ArcherArrowShooter::Update()
             Vector3 dest = targetPos;
             dest.y      += 1.0f;
 
-            m_arrowGO = GameObjectAPI::instantiatePrefab(m_arrowPrefab.c_str(), spawnPos, Vector3::Zero);
+            m_arrowGO = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_ref, spawnPos, Vector3::Zero);
             if (m_arrowGO)
             {
                 ArcherArrowProjectile* arrow = GameObjectAPI::findScript<ArcherArrowProjectile>(m_arrowGO);

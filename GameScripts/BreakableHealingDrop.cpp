@@ -30,7 +30,7 @@ void BreakableHealingDrop::onBreak()
 {
     if (!m_healthPickupPrefab.m_ref.isValid())
     {
-		Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab set.", GameObjectAPI::getName(getOwner()));
+		Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab path set.", GameObjectAPI::getName(getOwner()));
         return;
     }
 

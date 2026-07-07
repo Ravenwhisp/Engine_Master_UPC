@@ -87,7 +87,7 @@ void EnemyDeathState::destroyEnemyNow()
 
 void EnemyDeathState::dropRewards()
 {
-        if (!m_healthPrefab.m_ref.isValid())
+    if (!m_healthPrefab.m_ref.isValid())
     {
         return;
     }
@@ -102,7 +102,7 @@ void EnemyDeathState::dropRewards()
 
     for (int i = 0; i < m_healthDropQuantity; ++i)
     {
-        HealthDropSpawner::drop(m_healthPrefabPath.c_str(),
+        HealthDropSpawner::drop(m_healthPrefab.m_ref,
                                 spawnPosition,
                                 m_dropHealAmount,
                                 m_dropRadius,
@@ -115,26 +115,10 @@ void EnemyDeathState::pauseDeathCountdown()
 	m_deathPaused = true;
 }
 
-
-		float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
-
-
-		Vector3 offset;
-		offset.x = std::cos(angle) * distance;
-		offset.z = std::sin(angle) * distance;
-		offset.y = 0.0f;
-
-		Vector3 finalPos = spawnPosition + offset;
-		Vector3 arcOrigin = Vector3(spawnPosition.x, spawnPosition.y + m_dropHeight, spawnPosition.z);
-
-        // Instantiate at the arc origin (enemy center) so the pickup is never
-        // visible at the floor position before Start() runs.
-        GameObject* pickup = GameObjectAPI::instantiatePrefab(m_healthPrefab.m_ref, arcOrigin, Vector3::Zero);
-
-		if (pickup == nullptr)
-		{
-			continue;
-		}
+void EnemyDeathState::resumeDeathCountdown()
+{
+	m_deathPaused = false;
+}
 
 void EnemyDeathState::finalizeDeathNow()
 {

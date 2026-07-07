@@ -12,6 +12,7 @@
 #include "UID.h"
 
 #include <unordered_map>
+#include <SSAOSettings.h>
 
 struct ID3D12GraphicsCommandList;
 

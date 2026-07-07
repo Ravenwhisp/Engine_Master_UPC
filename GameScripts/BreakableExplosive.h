@@ -21,9 +21,8 @@ public:
 public:
     float m_explosionRadius = 5.0f;
     float m_explosionDamage = 30.0f;
-    AssetRef<Prefab> m_explosionPrefab;
 
-    std::string m_explosionEffectParticle = "Assets/Prefabs/Particles/BarrelExplosion.prefab";
+    PrefabRef m_explosionEffectParticle;
 
 private:
 	void onBreak() override;
