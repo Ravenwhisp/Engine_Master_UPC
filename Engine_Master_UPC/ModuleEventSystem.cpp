@@ -213,14 +213,22 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     screenRect.w = size.x;
     screenRect.h = size.y;
 
-    const Vector2 uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
-
     for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!root || !root->GetActive()) continue;
 
         Canvas* canvas = root->GetComponentAs<Canvas>(ComponentType::CANVAS);
-        if (!canvas || !canvas->isActive()) continue;
+        if (!canvas || !canvas->isActive())
+        {
+            continue;
+        }
+
+        Vector2 uiScale(1.0f, 1.0f);
+
+        if (canvas->renderMode == CanvasRenderMode::SCREEN_SPACE)
+        {
+            uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
+        }
 
         raycastAll(root, screenPos, screenRect, best, bestDepth, 0, uiScale);
     }

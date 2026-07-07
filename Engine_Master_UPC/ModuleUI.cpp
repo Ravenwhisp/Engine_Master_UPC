@@ -42,8 +42,6 @@ void ModuleUI::preRender()
 
     m_rootScreenRect = { 0.0f, 0.0f, screenSize.x, screenSize.y };
 
-    const Vector2 uiScale = UILayoutUtils::CalculateScreenSpaceScale(screenSize.x, screenSize.y);
-
     for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!go || !go->GetActive())
@@ -51,13 +49,23 @@ void ModuleUI::preRender()
 
         Canvas* canvas = go->GetComponentAs<Canvas>(ComponentType::CANVAS);
         if (!canvas || !canvas->isActive())
+        {
             continue;
+        }
 
-		Rect2D rootRect = m_rootScreenRect;
-		if (canvas->renderMode != CanvasRenderMode::SCREEN_SPACE)
-		{
-			rootRect = { -0.5f, -0.5f, 1.0f, 1.0f };
-		}
+        const bool isScreenSpace = canvas->renderMode == CanvasRenderMode::SCREEN_SPACE;
+
+        Vector2 uiScale(1.0f, 1.0f);
+        Rect2D rootRect = m_rootScreenRect;
+
+        if (isScreenSpace)
+        {
+            uiScale = UILayoutUtils::CalculateScreenSpaceScale(screenSize.x, screenSize.y);
+        }
+        else
+        {
+            rootRect = { -0.5f, -0.5f, 1.0f, 1.0f };
+        }
 
 		if (Transform2D* canvasTransform = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
 		{
