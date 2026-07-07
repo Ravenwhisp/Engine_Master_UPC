@@ -22,6 +22,26 @@
 #include <WindowSceneEditor.h>
 #include "Delegates.h"
 
+namespace
+{
+    constexpr float k_uiReferenceWidth = 1920.0f;
+    constexpr float k_uiReferenceHeight = 1080.0f;
+
+    Vector2 CalculateUIScale(float width, float height)
+    {
+        if (width <= 0.0f || height <= 0.0f)
+        {
+            return { 1.0f, 1.0f };
+        }
+
+        const float scaleX = width / k_uiReferenceWidth;
+        const float scaleY = height / k_uiReferenceHeight;
+        const float canvasScale = std::min(scaleX, scaleY);
+
+        return { canvasScale, canvasScale };
+    }
+}
+
 unsigned int DelegateHandle::CURRENT_ID = 0;
 
 #pragma region Statics
@@ -211,6 +231,8 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
     screenRect.w = size.x;
     screenRect.h = size.y;
 
+    const Vector2 uiScale = CalculateUIScale(size.x, size.y);
+
     for (GameObject* root : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!root || !root->GetActive()) continue;
@@ -218,21 +240,24 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
         Canvas* canvas = root->GetComponentAs<Canvas>(ComponentType::CANVAS);
         if (!canvas || !canvas->isActive()) continue;
 
-        raycastAll(root, screenPos, screenRect, best, bestDepth, 0);
+        raycastAll(root, screenPos, screenRect, best, bestDepth, 0, uiScale);
     }
     return best;
 }
 
-void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth)
+void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth, const Vector2& inheritedScale)
 {
     if (!go || !go->GetActive()) return;
 
     Rect2D myRect = parentRect;
+    Vector2 childScale = inheritedScale;
 
     Transform2D* t2d = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
     if (t2d && t2d->isActive())
     {
-        myRect = t2d->getRect(parentRect, { 1.0f, 1.0f });
+        myRect = t2d->getRect(parentRect, inheritedScale);
+
+        childScale = { t2d->scale.x * inheritedScale.x, t2d->scale.y * inheritedScale.y };
 
         if (myRect.contains(screenPos))
         {
@@ -246,7 +271,7 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 
     for (GameObject* child : go->GetTransform()->getAllChildren())
     {
-        raycastAll(child, screenPos, myRect, best, bestDepth, depth + 1);
+        raycastAll(child, screenPos, myRect, best, bestDepth, depth + 1, childScale);
     }
 }
 
