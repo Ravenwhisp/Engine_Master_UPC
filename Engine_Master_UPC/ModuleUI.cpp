@@ -23,6 +23,9 @@
 #include "WindowSceneEditor.h"
 #include "AssetReference.h"
 
+static constexpr float uiReferenceWidth = 1920.0f;
+static constexpr float uiReferenceHeight = 1080.0f;
+
 void ModuleUI::preRender()
 {
     m_textCommands.clear();
@@ -39,6 +42,13 @@ void ModuleUI::preRender()
         return;
 
     m_rootScreenRect = { 0.0f, 0.0f, screenSize.x, screenSize.y };
+
+    const float scaleX = screenSize.x / uiReferenceWidth;
+    const float scaleY = screenSize.y / uiReferenceHeight;
+
+    const float canvasScale = std::min(scaleX, scaleY);
+
+    const Vector2 uiScale = { canvasScale, canvasScale };
 
     for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
     {
@@ -63,7 +73,7 @@ void ModuleUI::preRender()
 			}
 		}
 
-		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, { 1.0f, 1.0f });
+		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, uiScale);
     }
 }
 
