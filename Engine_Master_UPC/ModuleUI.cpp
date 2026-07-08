@@ -283,6 +283,14 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
             command.sheetOffset = Vector2(0.5f, 0.5f);
         }
 
+        DEBUG_LOG(
+            "Home Background rect: x=%f y=%f w=%f h=%f",
+            command.rect.x,
+            command.rect.y,
+            command.rect.w,
+            command.rect.h
+        );
+
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)
             ? Matrix::Identity

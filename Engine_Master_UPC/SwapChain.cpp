@@ -60,6 +60,8 @@ SwapChain::SwapChain(HWND hWnd, ComPtr<ID3D12Device4> device, CommandQueue* queu
 
     auto* depthTexture = app->getModuleResources()->createDepthBuffer(float(m_windowWidth), float(m_windowHeight));
     m_renderSurface.attachTexture( RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(depthTexture));
+
+    m_renderSurface.setSize(m_windowWidth, m_windowHeight);
 }
 
 SwapChain::~SwapChain()
@@ -114,7 +116,11 @@ void SwapChain::resize()
         DXCall(m_swapChain->ResizeBuffers(FRAMES_IN_FLIGHT, width, height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
 
         createRenderTargetViews(app->getModuleD3D12()->getDevice());
-        m_renderSurface.resize(m_windowWidth, m_windowHeight);
+
+        auto* depthTexture = app->getModuleResources()->createDepthBuffer(float(m_windowWidth), float(m_windowHeight));
+        m_renderSurface.attachTexture(RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(depthTexture));
+
+        m_renderSurface.setSize(m_windowWidth, m_windowHeight);
     }
 }
 
