@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <ClCompile Include="Quadtree.cpp">
@@ -625,6 +625,12 @@
     </ClCompile>
     <ClCompile Include="UINavigation.cpp">
       <Filter>Persistence\Importers\External\UI\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="ForwardPrepass.cpp" />
+    <ClCompile Include="PlayerPass.cpp" />
+    <ClCompile Include="PlayerRenderBufferComponent.cpp" />
+    <ClCompile Include="UILayoutUtils.cpp">
+      <Filter>Persistence\Importers\External\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1475,6 +1481,12 @@
     <ClInclude Include="PlatformHelpers.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="ForwardPrepass.h" />
+    <ClInclude Include="PlayerPass.h" />
+    <ClInclude Include="PlayerRenderBufferComponent.h" />
+    <ClInclude Include="UILayoutUtils.h">
+      <Filter>Persistence\Importers\External\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1564,6 +1576,9 @@
     <FxCompile Include="TrailVertexShader.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl" />
+    <FxCompile Include="PlayerPixelShader.hlsl" />
+    <FxCompile Include="PlayerVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeSpriteFont.exe" />
@@ -1594,6 +1609,8 @@
     <None Include="PBRGeneral.hlsli">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </None>
+    <None Include="ForwardCommon.hlsli" />
+    <None Include="General.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
