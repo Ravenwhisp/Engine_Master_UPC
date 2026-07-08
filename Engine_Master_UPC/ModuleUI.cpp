@@ -226,9 +226,43 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         command.sheetOffset = Vector2(0.5f, 0.5f) * command.uvScale + uiImg->getSheetOffset();
 
         const bool hasSheet = uiImg->getSheetColumns() > 1 || uiImg->getSheetRows() > 1;
-        if (uiImg->getStretchDrawMode() == UIImage::StretchDrawMode::Tile && !hasSheet)
-        {
+        const UIImage::StretchDrawMode drawMode = uiImg->getStretchDrawMode();
 
+        if (drawMode == UIImage::StretchDrawMode::Cover && !hasSheet)
+        {
+            TextureAsset* textureAsset = uiImg->getTextureAsset();
+
+            if (textureAsset)
+            {
+                const float textureWidth = static_cast<float>(textureAsset->getWidth());
+                const float textureHeight = static_cast<float>(textureAsset->getHeight());
+
+                if (textureWidth > 0.0f && textureHeight > 0.0f && myRect.w > 0.0f && myRect.h > 0.0f)
+                {
+                    const float textureAspect = textureWidth / textureHeight;
+                    const float rectAspect = myRect.w / myRect.h;
+
+                    if (rectAspect > textureAspect)
+                    {
+                        // if the rectAspect is wider than the texture, fill width and crop top/bottom.
+                        const float visibleV = textureAspect / rectAspect;
+
+                        command.uvScale = { 1.0f, visibleV };
+                        command.sheetOffset = { 0.5f, 0.5f };
+                    }
+                    else
+                    {
+                        // int he other hand, if the rect is taller/narrower than the texture, fill height and crop left/right.
+                        const float visibleU = rectAspect / textureAspect;
+
+                        command.uvScale = { visibleU, 1.0f };
+                        command.sheetOffset = { 0.5f, 0.5f };
+                    }
+                }
+            }
+        }
+        else if (drawMode == UIImage::StretchDrawMode::Tile && !hasSheet)
+        {
             if (t2d->getStretchMode() == StretchMode::HORIZONTAL)
             {
                 command.uvScale.y *= t2d->getScale().y;
@@ -236,16 +270,17 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
             else if (t2d->getStretchMode() == StretchMode::VERTICAL)
             {
                 command.uvScale.x *= t2d->getScale().x;
-			}
+            }
             else if (t2d->getStretchMode() == StretchMode::BOTH)
-             {
-				command.uvScale *= Vector2(myRect.w / t2d->getBaseSize().x, myRect.h / t2d->getBaseSize().y);
-			}
+            {
+                command.uvScale *= Vector2(myRect.w / t2d->getBaseSize().x, myRect.h / t2d->getBaseSize().y);
+            }
             else
             {
                 command.uvScale *= t2d->getScale();
-			}
-			command.sheetOffset = Vector2(0.5f, 0.5f);
+            }
+
+            command.sheetOffset = Vector2(0.5f, 0.5f);
         }
 
         command.renderMode = renderMode;

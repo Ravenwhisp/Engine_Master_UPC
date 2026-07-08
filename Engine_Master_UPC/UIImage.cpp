@@ -107,7 +107,7 @@ void UIImage::drawUi()
         ImGui::Separator();
         ImGui::TextUnformatted("Stretch");
         {
-            const char* modes[] = { "Stretch", "Tile" };
+            const char* modes[] = { "Stretch", "Tile", "Cover" };
             int mode = static_cast<int>(m_stretchDrawMode);
             if (ImGui::Combo("When Stretched", &mode, modes, IM_ARRAYSIZE(modes)))
             {
