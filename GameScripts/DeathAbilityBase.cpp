@@ -3,6 +3,7 @@
 
 #include "DeathCharacter.h"
 #include "PlayerState.h"
+#include "DeathConfig.h"
 
 DeathAbilityBase::DeathAbilityBase(GameObject* owner)
     : AbilityBase(owner)
@@ -14,6 +15,12 @@ void DeathAbilityBase::Start()
     AbilityBase::Start();
 
     m_deathCharacter = dynamic_cast<DeathCharacter*>(m_character);
+    m_config = GameObjectAPI::findScript<DeathConfig>(getOwner());
+
+    if (!m_config)
+    {
+        Debug::error("[DeathAbilityBase] DeathConfig not found. This character requires DeathConfig.");
+    }
 }
 
 void DeathAbilityBase::releaseComboMoveLock()

@@ -14,10 +14,10 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
 public:
-    std::string m_healthPickupPrefabPath = "";
+    PrefabRef m_healthPickupPrefab;
 
     float m_healthDropAmount = 10.0f;
     float m_dropRadius = 1.0f;

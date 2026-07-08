@@ -1,12 +1,11 @@
 #pragma once
 
 #include "ScriptAPI.h"
-#include "DataContainerRef.h"
 
 class Transform;
 class Damageable;
-class BoundConfig;
 class HeartbeatHaptic;
+class CooperativeSound;
 
 class Bound : public Script
 {
@@ -20,18 +19,16 @@ public:
 
     void drawGizmo() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
 public:
-    ComponentRef<Transform> m_firstTarget;
-    ComponentRef<Transform> m_secondTarget;
+    ScriptComponentRef<Transform> m_firstTarget;
+    ScriptComponentRef<Transform> m_secondTarget;
 
-    ComponentRef<Transform> m_BoundUI;
+    ScriptComponentRef<Transform> m_BoundUI;
 
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
-
-    DataContainerRef<BoundConfig> m_config;
 
     float m_minDistance = 70.0f;
     float m_distanceDamage = 80.0f;
@@ -51,4 +48,5 @@ public:
 
 private:
     HeartbeatHaptic* m_haptic = nullptr;
+    CooperativeSound* m_coopSound = nullptr;
 };

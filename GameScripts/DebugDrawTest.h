@@ -14,7 +14,7 @@ public:
 
     void drawGizmo() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
 public:
     Vector3 m_origin = { 0.0f, 0.0f, 0.0f };

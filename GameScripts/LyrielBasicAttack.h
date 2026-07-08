@@ -14,8 +14,6 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
-
 private:
     void startAbility() override;
     bool spawnArrowToTarget(GameObject* target);
@@ -25,11 +23,8 @@ protected:
     void onAttackWindowUpdate() override;
     void onAttackWindowFinished() override;
 
+    float getCooldown() const override;
+
 private:
     GameObject* m_attackFacingTarget = nullptr;
-
-public:
-    float m_attackDamage = 10.0f;
-    float m_arrowSpeed = 18.0f;
-    float m_attackLockDuration = 0.2f;
 };

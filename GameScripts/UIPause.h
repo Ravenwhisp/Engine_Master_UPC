@@ -17,12 +17,12 @@ public:
     void ChangeScene(const std::string& sceneName);
     void ToggleControls(bool isOpen);
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
     ScriptMethodList getExposedMethods() const override;
 
 public:
-    ComponentRef<Transform> m_pausePanel;
-    ComponentRef<Transform> m_controlsPanel;
+    ScriptComponentRef<Transform> m_pausePanel;
+    ScriptComponentRef<Transform> m_controlsPanel;
 
 private:
     bool m_isPause = false;

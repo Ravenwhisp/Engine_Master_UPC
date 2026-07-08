@@ -13,12 +13,12 @@ public:
     void OnStateUpdate() override;
     void OnStateExit() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     void notifyLinkedDeath();
 
 public:
-    ComponentRef<Transform> m_linkedPartner;
+    ScriptComponentRef<Transform> m_linkedPartner;
     float m_graceWindow = 3.0f;
     float m_reviveHpPercent = 0.5f;
 

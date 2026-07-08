@@ -7,7 +7,8 @@ class ArthurBossController;
 class ArthurAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
-
+class ArthurUI;
+class ArthurSound;
 
 class ArthurSideSweep : public StateMachineScript
 {
@@ -20,14 +21,11 @@ public:
     void OnStateUpdate() override;
     void OnStateExit() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
 private:
     void applyHit();
     void goToRecover();
-
-	void setupUI();
-	void updateUI();
 
 public:
     // -1 = right side, +1 = left side.
@@ -38,6 +36,8 @@ private:
     ArthurAttackConfig* m_attackConfig = nullptr;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
+    ArthurUI* m_arthurUI = nullptr;
+    ArthurSound* m_arthurSound = nullptr;
 
     float m_stateTimer = 0.0f;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ScriptAPI.h"
+#include "CharacterUI.h"
 
 class CharacterBase;
 
@@ -14,7 +15,7 @@ public:
 
     void Start() override;
     void Update() override;
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     bool isEnabled() const { return m_isEnabled; }
     void setEnabled(bool enabled) { m_isEnabled = enabled; }
@@ -25,12 +26,17 @@ public:
     // Clamps to 0. Hides the CD UI if it reaches 0.
     void reduceCooldown(float fraction);
 
+    int getSuccessfulUse() const { return m_successfulUseCount; }
+
 protected:
 	virtual void startAbility() {}
+
+    void notifyAbilitySuccessfullyStarted();
 
     bool canStartAbility() const;
     virtual bool canStartSpecificAbility() const { return true; }
 
+    virtual float getCooldown() const { return m_cooldown; }
     void updateCooldown(float dt);
 	void updateAttackWindow(float dt);
 	void startCooldown();
@@ -50,18 +56,19 @@ protected:
     Vector3 computeCameraRelativeAimDirection(float deadzoneSq = 0.0001f) const;
 	Vector3 getFallbackFacingDirection() const;
 
+    virtual void updateUI();
+
 protected:
     CharacterBase* m_character = nullptr;
+    CharacterUI* m_characterUI = nullptr;
+    int m_uiSlot = static_cast<int>(AbilityUISlot::BasicAttack);
 
-	virtual void updateUI();
-    float m_cooldown = 0.0f;
+    float m_cooldown = 0.0;
     float m_cooldownTimer = 0.0f;
-    ComponentRef<Transform> m_cdUI;
-    GameObject* m_cdGO = nullptr;
-    ComponentRef<UISlider> m_cdBar;
-	UISlider* m_cdBarSlider = nullptr;
 
     float m_attackStateTimer = 0.0f;
+
+    int m_successfulUseCount = 0;
 
     bool m_isEnabled = true; //esto nunca cambia?
 };

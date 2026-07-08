@@ -3,6 +3,7 @@
 
 #include "RangedEnemyController.h"
 #include "ArcherAttackConfig.h"
+#include "ArcherGuardParticles.h"
 
 ArcherSomersaultState::ArcherSomersaultState(GameObject* owner)
     : StateMachineScript(owner)
@@ -14,6 +15,7 @@ void ArcherSomersaultState::OnStateEnter()
     m_archerController = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
     m_attackConfig = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_particles = GameObjectAPI::findScript<ArcherGuardParticles>(getOwner());
 
     m_stateTimer = 0.0f;
     m_escapeDirection = Vector3(0.0f, 0.0f, 0.0f);
@@ -36,8 +38,11 @@ void ArcherSomersaultState::OnStateEnter()
     }
 
     m_archerController->clearPath();
+    m_archerController->resetRepathTimer();
 
     m_escapeDirection = m_archerController->getDirectionAwayFromClosestPlayer();
+
+    if (m_particles) m_particles->startChargeParticle();
 
     Debug::log("[ArcherSomersaultState] ENTER");
 }
@@ -54,8 +59,14 @@ void ArcherSomersaultState::OnStateUpdate()
         return;
     }
 
+    if (m_archerController->trySendStunTrigger(m_animation))
+    {
+        return;
+    }
+
     m_stateTimer += Time::getDeltaTime();
 
+    if (m_particles) m_particles->updateChargeParticle();
     moveSomersault();
 
     if (m_stateTimer >= m_attackConfig->m_somersaultDuration)
@@ -67,6 +78,7 @@ void ArcherSomersaultState::OnStateUpdate()
 
 void ArcherSomersaultState::OnStateExit()
 {
+    if (m_particles) m_particles->stopChargeParticle();
     Debug::log("[ArcherSomersaultState] EXIT");
 }
 
@@ -93,13 +105,13 @@ void ArcherSomersaultState::moveSomersault()
     const float speed = m_attackConfig->m_somersaultDistance / duration;
     const float stepDistance = speed * Time::getDeltaTime();
 
-    Vector3 currentPosition = TransformAPI::getPosition(ownerTransform);
+    Vector3 currentPosition = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 desiredPosition = currentPosition + m_escapeDirection * stepDistance;
 
     Vector3 nextPosition;
     if (NavigationAPI::moveAlongSurface(currentPosition, desiredPosition, nextPosition, Vector3(5.0f, 5.0f, 5.0f)))
     {
-        TransformAPI::setPosition(ownerTransform, nextPosition);
+        TransformAPI::setGlobalPosition(ownerTransform, nextPosition);
     }
 }
 

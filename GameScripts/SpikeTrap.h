@@ -19,7 +19,7 @@ public:
         ACTIVE
     };
     
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     float a_duration = 2.0;
 	float p_duration = 1.0;
@@ -30,8 +30,8 @@ public:
 
 	bool alternativeMode = false;
 
-    /*ComponentRef<Transform> m_normalSpike;
-    ComponentRef<Transform> m_spectralSpike;*/
+    /*ScriptComponentRef<Transform> m_normalSpike;
+    ScriptComponentRef<Transform> m_spectralSpike;*/
 
 	Vector3 normalSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
 	Vector3 spectralSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
@@ -51,6 +51,9 @@ public:
 	float waitPositionY = -0.7f;
 	float activePositionY = 0.0f;
 
+    ScriptComponentRef<Transform> m_spikeShineT;
+    ScriptComponentRef<Transform> m_spectralAuraT;
+
 private:
     
     bool containsPoint(const Vector3& triggerCenter, const Vector3& point) const;
@@ -59,6 +62,9 @@ private:
 	void damagePlayer(GameObject* player);
 
     void triggerBoxDamage();
+
+    void addEffect(int type);
+	void removeEffect(int type);
 
 	int spikeType = 0; // 0 for normal, 1 for spectral
 

@@ -2,6 +2,7 @@
 #include "DefeatConditionManager.h"
 #include "PlayerState.h"
 #include "PlayerDownState.h"
+#include "CooperativeSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(DefeatConditionManager,
     SERIALIZED_COMPONENT_REF(m_player1Transform, "Player 1 Transform", ComponentType::TRANSFORM),
@@ -23,6 +24,12 @@ void DefeatConditionManager::Start()
 
     m_player1DownState = findPlayerDownStateFromReference(player1Transform);
     m_player2DownState = findPlayerDownStateFromReference(player2Transform);
+
+    const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
+    if (!coopGOs.empty())
+    {
+        m_cooperativeSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
 
     if (!m_player1State)
     {
@@ -79,6 +86,13 @@ void DefeatConditionManager::Update()
     m_defeatCountdownStarted = true;
     m_defeatTimer = 0.0f;
 
+    if (m_cooperativeSound)
+    {
+        // Silence any lingering revive/bound loops, then play the defeat sting.
+        m_cooperativeSound->stopAllLoops();
+        m_cooperativeSound->playDefeated();
+    }
+
     if (m_player1DownState)
     {
         m_player1DownState->enterDefeatedState();
@@ -128,7 +142,7 @@ void DefeatConditionManager::triggerDefeat()
 {
     m_hasTriggeredDefeat = true;
 
-    SceneAPI::requestSceneChange("LoseScene");
+    SceneAPI::requestSceneChange("Lose_Scene");
 }
 
 IMPLEMENT_SCRIPT(DefeatConditionManager)

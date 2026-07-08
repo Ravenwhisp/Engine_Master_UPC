@@ -25,7 +25,7 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     void setMoving(bool moving);
     void setDashing(bool dashing);

@@ -13,7 +13,7 @@ public:
     void Update() override;
 	void OnTriggerEnter(GameObject* gameObject) override;
 
-    //FieldList getExposedFields() const override;
+    //ScriptFieldList getExposedFields() const override;
 //
 //public:
 //    float m_idleSpeed = 0.5f;

@@ -5,6 +5,7 @@
 class Damageable;
 class Transform;
 class PlayerState;
+class CooperativeSound;
 
 class PlayerDownState : public Script
 {
@@ -15,7 +16,7 @@ public:
 
     void Start() override;
     void Update() override;
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     void drawGizmo() override;
 
@@ -30,24 +31,32 @@ private:
     bool isTeammateInAssistRange() const;
     void completeRevive();
 
+    // Drives the cooperative revive loops. Reviving (downed, alone) and Help Reviving
+    // (partner assisting) are mutually exclusive, matching the revive-UI swap.
+    enum class ReviveAudioState { None, Self, Assisted };
+    void setReviveAudio(ReviveAudioState state);
+
 public:
     float m_selfReviveTime = 10.0f;
     float m_assistRadius = 3.0f;
     float m_assistSpeedMultiplier = 2.0f;
     float m_reviveHp = 50.0f;
 
-    ComponentRef<Transform> m_teammateTransform;
+    ScriptComponentRef<Transform> m_teammateTransform;
 
 private:
     PlayerState* m_playerState = nullptr;
     Damageable* m_damageable = nullptr;
+    CooperativeSound* m_cooperativeSound = nullptr;
 
     float m_reviveProgress = 0.0f;
 
     bool m_reviveBlocked = false;
 
+    ReviveAudioState m_reviveAudioState = ReviveAudioState::None;
+
 public:
-    ComponentRef<Transform> m_downedSprite;
+    ScriptComponentRef<Transform> m_downedSprite;
 
 private:
     Transform* m_downedSpriteTransform = nullptr;

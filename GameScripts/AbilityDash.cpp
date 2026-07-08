@@ -7,11 +7,6 @@
 
 #define PI 3.1415926535897931f
 
-IMPLEMENT_SCRIPT_FIELDS_INHERITED(AbilityDash, AbilityBase,
-    SERIALIZED_FLOAT(m_dashDuration, "Dash Duration", 0.0f, 1.0f, 0.01f),
-    SERIALIZED_FLOAT(m_dashDistance, "Dash Distance", 0.0f, 10.0f, 0.1f)
-)
-
 AbilityDash::AbilityDash(GameObject* owner)
     : AbilityBase(owner)
 {
@@ -76,7 +71,6 @@ void AbilityDash::onDashStarted()
 void AbilityDash::startDash()
 {
     m_dashTimer = 0.0f;
-    m_hasDashTarget = false;
 
     Vector3 moveDirection = m_playerController->getMoveDirection();
 
@@ -103,12 +97,11 @@ void AbilityDash::startDash()
         m_dashDirection.Normalize();
     }
 
-    if (!validateDashTarget())
-        return;
-
-    m_dashStartPosition = TransformAPI::getPosition(getOwner()->GetTransform());
+    m_dashStartPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
 
     m_isDashing = true;
+
+    notifyAbilitySuccessfullyStarted();
 
     setAbilityLocked(true);
     startCooldown();
@@ -121,7 +114,7 @@ void AbilityDash::updateDash(float dt)
     m_dashTimer += dt;
     calculateDashMovement(dt);
 
-    if (m_dashTimer >= m_dashDuration)
+    if (m_dashTimer >= getDashDuration())
     {
         stopDash();
     }
@@ -139,35 +132,19 @@ void AbilityDash::stopDash()
 
 void AbilityDash::calculateDashMovement(float dt)
 {
-    if (m_dashDuration <= 0.0001f)
+    const float dashDuration = getDashDuration();
+    const float dashDistance = getDashDistance();
+
+    if (dashDuration <= 0.0001f)
     {
         return;
     }
 
-    float t = m_dashTimer / m_dashDuration;
+    float t = m_dashTimer / dashDuration;
     t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
 
-    if (m_hasDashTarget)
-    {
-        Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
-
-        Vector3 desiredPosition = Vector3::Lerp(
-            m_dashStartPosition,
-            m_dashTargetPosition,
-            t
-        );
-
-        Vector3 delta = desiredPosition - currentPosition;
-        
-        if (m_playerMovement)
-        {
-            m_playerMovement->playerDashMovement(getOwner(), delta, true);
-            return;
-        }
-    }
-
     const float curveSpeed = 0.5f * PI * cos(t * PI * 0.5f);
-    const float currentSpeed = (m_dashDistance / m_dashDuration) * curveSpeed;
+    const float currentSpeed = (dashDistance / dashDuration) * curveSpeed;
 
     const Vector3 velocity = m_dashDirection * currentSpeed;
 

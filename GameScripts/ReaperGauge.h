@@ -18,7 +18,7 @@ public:
     void drawGizmo() override;
     void updateUI();
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     void  onMarkExploited();
     void  consume();
@@ -34,9 +34,9 @@ public:
     float m_gracePeriod      = 10.0f;
     float m_decayPerSecond   = 2.0f;
 
-    ComponentRef<UISlider> m_reaperGaugeUI;
-	ComponentRef<Transform2D> m_glowUI;
-    ComponentRef<Transform2D> m_blinkAlphaUI;
+    ScriptComponentRef<UISlider> m_reaperGaugeUI;
+	ScriptComponentRef<Transform2D> m_glowUI;
+    ScriptComponentRef<Transform2D> m_blinkAlphaUI;
 
 	float m_blinkSpeed = 5.0f;
     float m_blinkAlpha = 0.25f;

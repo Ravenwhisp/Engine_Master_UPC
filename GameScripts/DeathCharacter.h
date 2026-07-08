@@ -4,6 +4,7 @@
 
 class DeathSound;
 class PlayerMovement;
+class DeathConfig;
 
 class DeathCharacter : public CharacterBase
 {
@@ -15,10 +16,11 @@ public:
     void Start()  override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
-
     DeathSound* getSound() const { return m_sound; }
+    DeathConfig* getConfig() const { return m_config; }
 
+    float getComboWindowR2() const;
+    float getComboWindowMaxCharge() const;
     int   getComboStep()       const { return m_comboStep; }
     bool  canUseR2InCombo()    const { return m_consecutiveR2Count < 2; }
     bool  isInComboCooldown()  const { return m_comboCooldownTimer > 0.0f; }
@@ -34,12 +36,6 @@ public:
     void advanceCombo(bool isR2, float comboWindowOverride = -1.0f);
     void resetCombo();
 
-public:
-    float m_comboWindow            = 1.0f;
-    float m_comboWindowR2          = 2.0f;
-    float m_comboWindowMaxCharge   = 3.0f;
-    float m_comboCooldown          = 1.0f;
-
 private:
     void tickCombo(float dt);
 
@@ -50,6 +46,7 @@ private:
     float m_comboCooldownTimer  = 0.0f;
     float m_activeComboWindow   = 0.0f;
 
-    DeathSound*     m_sound    = nullptr;
-    PlayerMovement* m_movement = nullptr;
+    DeathSound*     m_sound     = nullptr;
+    PlayerMovement* m_movement  = nullptr;
+    DeathConfig* m_config       = nullptr;
 };

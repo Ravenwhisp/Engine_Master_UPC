@@ -2,6 +2,7 @@
 #include "PlayerDownState.h"
 #include "Damageable.h"
 #include "PlayerState.h"
+#include "CooperativeSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerDownState,
     SERIALIZED_FLOAT(m_selfReviveTime, "Self Revive Time", 0.1f, 999999.0f, 0.1f),
@@ -33,6 +34,12 @@ void PlayerDownState::Start()
         Debug::warn("PlayerDownState on '%s' could not find PlayerState on the same GameObject.", GameObjectAPI::getName(m_owner));
     }
 
+    const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
+    if (!coopGOs.empty())
+    {
+        m_cooperativeSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
+
     setupUI();
 }
 
@@ -53,11 +60,11 @@ void PlayerDownState::Update()
         return;
     }
 
-    float speedMultiplier = 1.0f;
-    if (isTeammateInAssistRange()) 
-    {
-        speedMultiplier *= m_assistSpeedMultiplier;
-    }
+    const bool assisted = isTeammateInAssistRange();
+
+    setReviveAudio(assisted ? ReviveAudioState::Assisted : ReviveAudioState::Self);
+
+    const float speedMultiplier = assisted ? m_assistSpeedMultiplier : 1.0f;
 
     m_reviveProgress += Time::getDeltaTime() * speedMultiplier;
 
@@ -72,7 +79,7 @@ void PlayerDownState::Update()
 void PlayerDownState::drawGizmo()
 {
     Transform* transform = GameObjectAPI::getTransform(m_owner);
-    Vector3 position = TransformAPI::getPosition(transform);
+    Vector3 position = TransformAPI::getGlobalPosition(transform);
 
     Vector3 circleColor = Vector3(0.0f, 1.0f, 0.0f);
     if (isDowned())
@@ -166,6 +173,8 @@ void PlayerDownState::blockRevive()
 {
     m_reviveBlocked = true;
     m_reviveProgress = 0.0f;
+
+    setReviveAudio(ReviveAudioState::None);
 }
 
 bool PlayerDownState::isTeammateInAssistRange() const
@@ -178,12 +187,43 @@ bool PlayerDownState::isTeammateInAssistRange() const
         return false;
     }
 
-    Vector3 ownPosition = TransformAPI::getPosition(ownTransform);
-    Vector3 teammatePosition = TransformAPI::getPosition(teammateTransform);
+    Vector3 ownPosition = TransformAPI::getGlobalPosition(ownTransform);
+    Vector3 teammatePosition = TransformAPI::getGlobalPosition(teammateTransform);
 
     float distance = (teammatePosition - ownPosition).Length();
 
     return distance <= m_assistRadius;
+}
+
+void PlayerDownState::setReviveAudio(ReviveAudioState state)
+{
+    if (m_reviveAudioState == state)
+    {
+        return;
+    }
+
+    m_reviveAudioState = state;
+
+    if (!m_cooperativeSound)
+    {
+        return;
+    }
+
+    switch (state)
+    {
+    case ReviveAudioState::None:
+        m_cooperativeSound->stopReviving();
+        m_cooperativeSound->stopHelpReviving();
+        break;
+    case ReviveAudioState::Self:
+        m_cooperativeSound->stopHelpReviving();
+        m_cooperativeSound->startReviving();
+        break;
+    case ReviveAudioState::Assisted:
+        m_cooperativeSound->stopReviving();
+        m_cooperativeSound->startHelpReviving();
+        break;
+    }
 }
 
 void PlayerDownState::completeRevive()
@@ -194,6 +234,8 @@ void PlayerDownState::completeRevive()
     }
 
     m_reviveProgress = 0.0f;
+
+    setReviveAudio(ReviveAudioState::None);
 
     if (m_playerState)
     {

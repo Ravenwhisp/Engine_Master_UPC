@@ -4,6 +4,8 @@
 
 #include "Pickup.h"
 
+class CooperativeSound;
+
 class HealthPickup : public Pickup
 {
     DECLARE_SCRIPT(HealthPickup)
@@ -15,13 +17,13 @@ public:
     void Update() override;
     void OnTriggerEnter(GameObject* player) override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     void setupDrop(float healAmount, const Vector3& landingPosition);
 
 public:
     float   m_healAmount            = 10.0f;
-    std::string m_collectParticlePrefabPath = "";
+    PrefabRef m_collectParticlePrefab;
     float   m_spawnHeight           = 1.5f;   // fallback height when no custom spawn-from
     float   m_fallGravity           = 8.0f;
     Vector3 m_landingPosition       = Vector3::Zero;  // target floor position, set by spawner
@@ -38,6 +40,8 @@ private:
     float   m_fallHVelocityZ        = 0.0f;
 
     Vector3 m_fallStartPosition     = Vector3::Zero;  // where the arc begins
+
+    CooperativeSound* m_cooperativeSound = nullptr;
 
     float m_idleTimer               = 0.0f;
     float m_idleSpeed               = 0.2f;

@@ -11,12 +11,12 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     void onBothPlayersCrossed();
 
-    const char* interiorLightName = "InteriorDirectionalLight";
-    const char* exteriorLightName = "ExteriorDirectionalLight";
+    ScriptComponentRef<Transform> InteriorLight;
+    ScriptComponentRef<Transform> ExteriorLight;
 
 private:
     GameObject* m_interiorLight = nullptr;

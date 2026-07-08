@@ -14,7 +14,7 @@ public:
     void Update() override;
     void registerTestEffects();
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
 protected:
     virtual std::vector<HapticEffectDefinition> defineEffects();

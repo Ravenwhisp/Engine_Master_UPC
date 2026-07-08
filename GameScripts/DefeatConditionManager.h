@@ -5,6 +5,7 @@
 class Transform;
 class PlayerState;
 class PlayerDownState;
+class CooperativeSound;
 
 class DefeatConditionManager : public Script
 {
@@ -15,7 +16,7 @@ public:
 
     void Start() override;
     void Update() override;
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     bool hasTriggeredDefeat() const { return m_hasTriggeredDefeat; }
 
@@ -26,8 +27,8 @@ private:
     void triggerDefeat();
 
 public:
-    ComponentRef<Transform> m_player1Transform;
-    ComponentRef<Transform> m_player2Transform;
+    ScriptComponentRef<Transform> m_player1Transform;
+    ScriptComponentRef<Transform> m_player2Transform;
 
 private:
     PlayerState* m_player1State = nullptr;
@@ -35,6 +36,8 @@ private:
 
     PlayerDownState* m_player1DownState = nullptr;
     PlayerDownState* m_player2DownState = nullptr;
+
+    CooperativeSound* m_cooperativeSound = nullptr;
 
     bool m_hasTriggeredDefeat = false;
 

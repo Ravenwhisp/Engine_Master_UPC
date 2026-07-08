@@ -13,7 +13,7 @@ public:
     void Update() override;
     void OnTriggerEnter(GameObject* player) override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
 private:
     bool canBeCollectedBy(GameObject* player) const;

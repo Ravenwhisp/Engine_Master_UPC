@@ -14,11 +14,16 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
+
+    void setFollowEnabled(bool enabled) { m_followEnabled = enabled; }
+    bool isFollowEnabled() const { return m_followEnabled; }
+
+    bool getDesiredCameraTransform(Vector3& outPosition, Vector3& outRotation);
 
 public:
-    ComponentRef<Transform> m_firstTarget;
-    ComponentRef<Transform> m_secondTarget;
+    ScriptComponentRef<Transform> m_firstTarget;
+    ScriptComponentRef<Transform> m_secondTarget;
 
     Vector3 m_transformOffset = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 m_rotationOffset = Vector3(0.0f, 0.0f, 0.0f);
@@ -43,5 +48,6 @@ private:
 private:
     bool m_firstUpdateAfterResolve = true;
 
+    bool m_followEnabled = true;
     float m_currentExtraHeight = 0.0f;
 };

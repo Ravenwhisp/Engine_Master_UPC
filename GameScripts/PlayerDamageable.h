@@ -17,7 +17,7 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     float m_heartbeatThreshold = 0.5f;
 
@@ -32,4 +32,14 @@ private:
     HeartbeatHaptic* m_haptic = nullptr;
     DeathSound*  m_deathSound  = nullptr;
     LyrielSound* m_lyrielSound = nullptr;
+    PlayerRenderBufferComponent* m_playerRenderBuffer = nullptr;
+
+    ScriptComponentRef<Transform> m_renderer;
+
+    bool  m_damageHighlightActive = false;
+    float m_damageHighlightTimer = 0.0f;
+    float m_damageHighlightSpeed = 1.0f;
+
+    void playHurtSfx();
+    void playHurtVfx();
 };

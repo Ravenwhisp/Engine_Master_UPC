@@ -13,7 +13,7 @@ public:
     void Start() override;
     void Update() override;
 
-    FieldList getExposedFields() const override;
+    ScriptFieldList getExposedFields() const override;
 
     float m_hapticIntensity = 1.0f;
 
