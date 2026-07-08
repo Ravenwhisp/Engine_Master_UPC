@@ -29,23 +29,26 @@ void ModuleUI::preRender()
 {
     m_textCommands.clear();
     m_imageCommands.clear();
+}
 
-#ifdef GAME_RELEASE
-    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
-    const ImVec2 screenSize(viewport.Width, viewport.Height);
-#else
-    const ImVec2 screenSize = app->getModuleEditor()->getWindowSceneEditor()->getSize();
-#endif
+void ModuleUI::buildCommandsForViewport(float width, float height)
+{
+    m_textCommands.clear();
+    m_imageCommands.clear();
 
-    if (screenSize.x <= 0.0f || screenSize.y <= 0.0f)
+    if (width <= 0.0f || height <= 0.0f)
+    {
         return;
+    }
 
-    m_rootScreenRect = { 0.0f, 0.0f, screenSize.x, screenSize.y };
+    m_rootScreenRect = { 0.0f, 0.0f, width, height };
 
     for (GameObject* go : app->getModuleScene()->getScene()->getAllGameObjects())
     {
         if (!go || !go->GetActive())
+        {
             continue;
+        }
 
         Canvas* canvas = go->GetComponentAs<Canvas>(ComponentType::CANVAS);
         if (!canvas || !canvas->isActive())
@@ -60,22 +63,22 @@ void ModuleUI::preRender()
 
         if (isScreenSpace)
         {
-            uiScale = UILayoutUtils::CalculateScreenSpaceScale(screenSize.x, screenSize.y);
+            uiScale = UILayoutUtils::CalculateScreenSpaceScale(width, height);
         }
         else
         {
             rootRect = { -0.5f, -0.5f, 1.0f, 1.0f };
         }
 
-		if (Transform2D* canvasTransform = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
-		{
-			if (canvasTransform->isActive())
-			{
-				rootRect = canvasTransform->getRect(rootRect, { 1.0f, 1.0f });
-			}
-		}
+        if (Transform2D* canvasTransform = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D))
+        {
+            if (canvasTransform->isActive())
+            {
+                rootRect = canvasTransform->getRect(rootRect, { 1.0f, 1.0f });
+            }
+        }
 
-		buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, uiScale);
+        buildUIDrawCommands(go, rootRect, canvas->renderMode, go->GetTransform()->getGlobalMatrix(), canvas->zTest, uiScale);
     }
 }
 
@@ -282,14 +285,6 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
 
             command.sheetOffset = Vector2(0.5f, 0.5f);
         }
-
-        DEBUG_LOG(
-            "Home Background rect: x=%f y=%f w=%f h=%f",
-            command.rect.x,
-            command.rect.y,
-            command.rect.w,
-            command.rect.h
-        );
 
         command.renderMode = renderMode;
         command.world = (renderMode == CanvasRenderMode::SCREEN_SPACE)

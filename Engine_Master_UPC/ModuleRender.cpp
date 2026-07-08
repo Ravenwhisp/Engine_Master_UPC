@@ -168,15 +168,6 @@ void ModuleRender::preRender()
                 continue;
             }
 
-            DEBUG_LOG(
-                "Rendering viewport: type=%s surface=%p size=%f,%f visible=%d",
-                entry.type == ViewportType::EDITOR ? "EDITOR" : "PLAY",
-                entry.surface,
-                entry.width,
-                entry.height,
-                entry.isVisible
-            );
-
             BEGIN_EVENT(commandList, "Prepare Render Target");
             
             auto colorTex = entry.surface->getTexture(RenderSurface::COMPOSITE);
@@ -375,11 +366,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     const float w = static_cast<float>(outputSurface.getWidth());
     const float h = static_cast<float>(outputSurface.getHeight());
 
-    DEBUG_LOG(
-        "RenderSurface size: w=%u h=%u",
-        outputSurface.getWidth(),
-        outputSurface.getHeight()
-    );
+    app->getModuleUI()->buildCommandsForViewport(w, h);
 
     D3D12_VIEWPORT viewport = { 0.0f, 0.0f, w, h, 0.0f, 1.0f };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
