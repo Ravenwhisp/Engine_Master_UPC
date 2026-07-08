@@ -17,12 +17,12 @@ TrailComponent::TrailComponent(UID id, GameObject* owner) : Component(id, Compon
 {
     CreatePoint();
 
-    m_colorOverTime.getMarks().clear(); // because it has default values that we don't want
+    m_colorOverTime.clearMarks(); // because it has default values that we don't want
 
     m_colorOverTime.addMark(0.f, ImColor(1.f, 1.f, 1.f, 1.f));
-    m_colorOverTime.addAlphaMark(0.f, true);
+    m_colorOverTime.addAlphaMark(0.f, 1.0f);
     m_colorOverTime.addMark(1.f, ImColor(1.f, 1.f, 1.f, 1.f));
-    m_colorOverTime.addAlphaMark(1.f, true);
+    m_colorOverTime.addAlphaMark(1.f, 1.0f);
     m_colorOverTime.setEditAlpha(true);
 }
 
@@ -60,6 +60,8 @@ void TrailComponent::drawUi()
         if (app->getModuleInput()->isKeyJustPressed(Keyboard::Keys::Delete) && m_selectedMark != nullptr)
         {
             m_colorOverTime.removeMark(m_selectedMark);
+            m_selectedMark = nullptr;
+            m_draggingMark = nullptr;
         }
 
         //ImGui::PopID(); // (same, corresponding)

@@ -57,7 +57,8 @@ void PlayerTargetController::Update()
     }
 
     updateTargetsInRange();
-    ensureValidCurrentTarget();
+    clearInvalidCurrentTarget();
+    setDefaultEnemyTargetIfNeeded();
 
     updateCurrentTarget();
 }
@@ -231,7 +232,7 @@ void PlayerTargetController::setCurrentTarget(GameObject* newTarget)
     }
 }
 
-void PlayerTargetController::ensureValidCurrentTarget()
+void PlayerTargetController::clearInvalidCurrentTarget()
 {
     if (m_currentTarget == nullptr)
     {
@@ -242,6 +243,40 @@ void PlayerTargetController::ensureValidCurrentTarget()
     {
         setCurrentTarget(nullptr);
     }
+}
+
+void PlayerTargetController::setDefaultEnemyTargetIfNeeded()
+{
+    if (m_currentTarget != nullptr)
+    {
+        return;
+    }
+
+    GameObject* defaultTarget = findDefaultEnemyTarget();
+    if (defaultTarget != nullptr)
+    {
+        setCurrentTarget(defaultTarget);
+    }
+}
+
+GameObject* PlayerTargetController::findDefaultEnemyTarget() const
+{
+    const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+
+    for (GameObject* enemy : enemies)
+    {
+        if (enemy == nullptr)
+        {
+            continue;
+        }
+
+        if (isTargetInRange(enemy) && isTargetAlive(enemy))
+        {
+            return enemy;
+        }
+    }
+
+    return nullptr;
 }
 
 bool PlayerTargetController::canUpdateTarget() const

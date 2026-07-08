@@ -440,6 +440,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="TriggerDebugDrawMode.h" />
     <ClInclude Include="TriggerShape.h" />
     <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UILayoutUtils.h" />
     <ClInclude Include="UINavigation.h" />
     <ClInclude Include="UISheet.h" />
     <ClInclude Include="UISlider.h" />
@@ -833,6 +834,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="StaticTexturesPass.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
+    <ClCompile Include="UILayoutUtils.cpp" />
     <ClCompile Include="UINavigation.cpp" />
     <ClCompile Include="UISheet.cpp" />
     <ClCompile Include="UISlider.cpp" />

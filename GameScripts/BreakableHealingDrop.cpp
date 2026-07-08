@@ -2,6 +2,7 @@
 #include "BreakableHealingDrop.h"
 
 #include "HealthDropSpawner.h"
+#include "EnvironmentSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BreakableHealingDrop, BreakableObject,
     SERIALIZED_STRING(m_healthPickupPrefabPath, "Health Pickup Prefab Path"),
@@ -40,6 +41,9 @@ void BreakableHealingDrop::onBreak()
     {
         HealthDropSpawner::drop(m_healthPickupPrefabPath.c_str(), breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
     }
+
+    // It's still a barrel/crate breaking → same break SFX.
+    EnvironmentSound::play(getOwner(), "Play_Environment_Barrel_Break");
 
     BreakableObject::breakObject();
 }

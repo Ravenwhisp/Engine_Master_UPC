@@ -629,6 +629,9 @@
     <ClCompile Include="ForwardPrepass.cpp" />
     <ClCompile Include="PlayerPass.cpp" />
     <ClCompile Include="PlayerRenderBufferComponent.cpp" />
+    <ClCompile Include="UILayoutUtils.cpp">
+      <Filter>Persistence\Importers\External\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
@@ -1481,6 +1484,9 @@
     <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="PlayerPass.h" />
     <ClInclude Include="PlayerRenderBufferComponent.h" />
+    <ClInclude Include="UILayoutUtils.h">
+      <Filter>Persistence\Importers\External\UI</Filter>
+    </ClInclude>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
       <Filter>Editor\Fonts</Filter>
     </ClInclude>

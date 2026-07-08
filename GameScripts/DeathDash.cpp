@@ -6,6 +6,7 @@
 #include "EnemyDamageable.h"
 #include "EnemyShadowMark.h"
 #include "DeathConfig.h"
+#include "DeathParticles.h"
 
 DeathDash::DeathDash(GameObject* owner): AbilityDash(owner)
 {
@@ -32,6 +33,20 @@ void DeathDash::Start()
     }
 
     m_sound = GameObjectAPI::findScript<DeathSound>(getOwner());
+
+    if (!m_sound)
+    {
+        Debug::error("[DeathDash] DeathSound not found.");
+        return;
+    }
+
+    m_particles = GameObjectAPI::findScript<DeathParticles>(getOwner());
+
+    if (!m_particles)
+    {
+        Debug::error("[DeathDash] DeathParticles not found.");
+        return;
+    }
 }
 
 float DeathDash::getCooldown() const
@@ -60,11 +75,21 @@ void DeathDash::onDashStarted()
     {
         m_sound->playDashWhoosh();
     }
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetDashActive();
+    }
 }
 
 void DeathDash::onDashEnded()
 {
     applyDashDamage();
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetDashInactive();
+    }
 }
 
 void DeathDash::onDashUpdate(float dt)

@@ -42,6 +42,7 @@ public:
 	float m_tauntDuration = 3.0f;
 	float m_tauntRange = 2.5f;
 	float m_tauntHalfAngleDegrees = 35.0f;
+	float m_tauntLockDuration = 0.4f;
 	float m_tauntCooldown = 0.0f;
 
 	// Dash

@@ -5,6 +5,8 @@
 #include "LyrielSound.h"
 #include "LyrielUI.h"
 #include "LyrielConfig.h"
+#include "LyrielParticles.h"
+#include "PlayerMovement.h"
 
 LyrielDash::LyrielDash(GameObject* owner)
     : AbilityDash(owner)
@@ -39,6 +41,14 @@ void LyrielDash::Start()
     }
 
     m_sound = GameObjectAPI::findScript<LyrielSound>(getOwner());
+
+    m_particles = GameObjectAPI::findScript<LyrielParticles>(getOwner());
+
+    if (!m_particles)
+    {
+        Debug::error("[LyrielDash] LyrielParticles not found.");
+        return;
+    }
 }
 
 void LyrielDash::recoverCharge()
@@ -78,9 +88,19 @@ void LyrielDash::onDashStarted()
 {
     --m_currentCharges;
 
+    if (validateDashTarget())
+    {
+        m_playerMovement->m_playerType = static_cast<int>(NavAgentProfile::PlayerDash);
+    }
+
     if (m_sound != nullptr)
     {
         m_sound->playDashWhoosh();
+    }
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetDashActive();
     }
 }
 
@@ -109,28 +129,61 @@ void LyrielDash::onDashUpdate(float dt)
     }
 }
 
+void LyrielDash::onDashEnded()
+{
+    m_playerMovement->m_playerType = static_cast<int>(NavAgentProfile::PlayerNormal);
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetDashInactive();
+    }
+}
+
 bool LyrielDash::validateDashTarget()
 {
-    Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
-    m_debugDashStart = currentPosition; // Debugging
+    //Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
+    //m_debugDashStart = currentPosition; // Debugging
 
-    Vector3 candidateEnd = currentPosition + m_dashDirection * getDashDistance();
-    m_debugDashCandidateEnd = candidateEnd; // Debugging
+    //Vector3 candidateEnd = currentPosition + m_dashDirection * getDashDistance();
+    //m_debugDashCandidateEnd = candidateEnd; // Debugging
 
-    Vector3 sampledPosition;
-    Vector3 searchExtents = Vector3(1.0f, 2.0f, 1.0f);
+    //Vector3 sampledPosition;
+    //Vector3 searchExtents = Vector3(1.0f, 2.0f, 1.0f);
 
-    if (NavigationAPI::samplePosition(candidateEnd, sampledPosition, searchExtents, NavAgentProfile::PlayerNormal))
+    //if (NavigationAPI::samplePosition(candidateEnd, sampledPosition, searchExtents, NavAgentProfile::PlayerNormal))
+    //{
+    //    m_dashTargetPosition = sampledPosition;
+    //    m_hasDashTarget = true;
+    //    m_debugDashSampleEnd = sampledPosition; // Debugging
+    //    m_debugLastDashValid = true; // Debugging
+
+    //    return true;
+    //}
+
+    //m_debugLastDashValid = false; // Debugging
+    //return false;
+
+    Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
+
+    Vector3 idealEnd = currentPosition + m_dashDirection * getDashDistance();
+
+    Vector3 candidateEnd;
+    Vector3 searchExtents = Vector3(0.2f, 2.0f, 0.2f);
+
+    if (NavigationAPI::moveAlongSurface(currentPosition, idealEnd, candidateEnd, searchExtents, NavAgentProfile::PlayerDash))
     {
-        m_dashTargetPosition = sampledPosition;
-        m_hasDashTarget = true;
-        m_debugDashSampleEnd = sampledPosition; // Debugging
-        m_debugLastDashValid = true; // Debugging
+        Vector3 checkEnd;
+        searchExtents = Vector3(0.2f, 2.0f, 0.2f);
+        if (NavigationAPI::samplePosition(candidateEnd, checkEnd, searchExtents, NavAgentProfile::PlayerNormal))
+        {
+            m_dashTargetPosition = candidateEnd;
 
-        return true;
+            m_debugDashSampleEnd = candidateEnd; // Debugging
+            m_debugLastDashValid = true;         // Debugging
+            return true;
+        }
     }
 
-    m_debugLastDashValid = false; // Debugging
     return false;
 }
 
