@@ -311,48 +311,13 @@ GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
     return go;
 }
 
-GameObject* PrefabManager::spawnPrefab(const fs::path& sourcePath, Scene* scene)
+GameObject* PrefabManager::spawnPrefab(const AssetReference& ref, Scene* scene)
 {
-    if (!scene || sourcePath.empty()) return nullptr;
+    if (!scene) return nullptr;
 
-    auto asset = m_moduleAssets->loadAtPath<Prefab>(sourcePath);
-    if (asset) return spawnPrefab(*asset, scene);
+    AssetReference mutableRef = ref;
+    auto prefab = m_moduleAssets->load<Prefab>(mutableRef);
+    if (!prefab) return nullptr;
 
-    auto raw = FileIO::read(sourcePath);
-    Document doc;
-    doc.Parse(reinterpret_cast<const char*>(raw.data()));
-    if (raw.empty() || doc.HasParseError() || !doc.HasMember("GameObject")) return nullptr;
-
-    const Value& goNode = doc["GameObject"];
-    const UID savedGoUID = GenerateUID();
-    const UID savedTransformUID = GenerateUID();
-    GameObject* go = scene->createGameObjectWithUID(savedGoUID, savedTransformUID);
-    if (!go) return nullptr;
-
-    JsonArchive goArchive(ArchiveMode::Input);
-    goArchive.setValue(goNode);
-    go->serialize(goArchive);
-    regeneratePrefabInstanceUIDs(go);
-
-    if (goNode.HasMember("PrefabLink") && goNode["PrefabLink"].IsObject())
-    {
-        const Value& pl = goNode["PrefabLink"];
-        auto* preComp = static_cast<PrefabInstanceComponent*>(
-            go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
-        if (preComp)
-        {
-            auto& data = preComp->getData();
-            if (pl.HasMember("SourcePath") && pl["SourcePath"].IsString())
-                data.m_sourcePath = pl["SourcePath"].GetString();
-            if (pl.HasMember("AssetUID") && pl["AssetUID"].IsUint64())
-                data.m_assetUID = pl["AssetUID"].GetUint64();
-        }
-    }
-
-    auto* preComp = getOrCreatePrefabComponent(go);
-    if (preComp)
-        preComp->getData().m_sourcePath = sourcePath;
-
-    go->init();
-    return go;
+    return spawnPrefab(*prefab, scene);
 }

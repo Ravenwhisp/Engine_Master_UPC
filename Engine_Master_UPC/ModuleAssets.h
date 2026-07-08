@@ -3,7 +3,9 @@
 #include "AssetIndex.h"
 #include "ImporterRegistry.h"
 #include "AssetCache.h"
+#ifndef GAME_RELEASE
 #include "AssetFileDialog.h"
+#endif
 #include "AssetReference.h"
 #include <filesystem>
 #include <memory>
@@ -15,6 +17,7 @@ class ContentRegistry;
 class PrefabManager;
 struct DependencyRecord;
 struct ScanFileResult;
+
 struct Metadata;
 class DataContainer;
 
@@ -31,10 +34,6 @@ public:
 #pragma region Load
     template<typename T>
     std::shared_ptr<T> load(AssetReference& ref);
-
-
-    template<typename T>
-    std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath);
 
     bool isLoaded(const AssetReference& id);
     void unload(const AssetReference& id);
@@ -74,10 +73,12 @@ private:
     AssetIndex                           m_index;
     ImporterRegistry                     m_importers;
     AssetCache                           m_cache;
+#ifndef GAME_RELEASE
     AssetFileDialog                      m_dialog;
 
     std::unique_ptr<AssetScanner>        m_scanner;
     std::unique_ptr<ContentRegistry>     m_contentRegistry;
+#endif
     std::unique_ptr<PrefabManager>       m_prefabManager;
 
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;

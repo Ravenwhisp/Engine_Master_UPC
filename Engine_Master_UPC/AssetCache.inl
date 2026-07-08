@@ -40,6 +40,7 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
     std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
     importer->load(buffer.data(), asset.get());
 
+#ifndef GAME_RELEASE
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
     if (entry && !entry->sourcePath.empty())
     {
@@ -58,6 +59,7 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
 
         asset->setImportSettings(std::move(meta.importSettings));
     }
+#endif
     if (!asset->getImportSettings())
     {
         asset->setImportSettings(asset->createDefaultImportSettings());

@@ -12,6 +12,10 @@
 #include "ModuleRender.h"
 #include "ModuleScene.h"
 #include "ModuleAssets.h"
+#include "AssetReference.h"
+#include "MD5.h"
+#include "FileIO.h"
+#include <sstream>
 #include "ModuleEventSystem.h"
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
@@ -85,7 +89,60 @@ bool Application::init()
 
 #ifdef GAME_RELEASE
     app->setEngineState(ENGINE_STATE::PLAYING);
-    m_moduleScene->loadScene("main");
+
+    std::vector<uint8_t> configData = FileIO::read("../Engine_OUT/build.cfg");
+    if (configData.empty())
+    {
+        configData = FileIO::read("build.cfg");
+    }
+
+    if (!configData.empty())
+    {
+        std::string configStr(reinterpret_cast<const char*>(configData.data()), configData.size());
+        std::istringstream stream(configStr);
+        std::string line;
+
+        if (std::getline(stream, line))
+        {
+            line.erase(line.find_last_not_of(" \n\r\t") + 1);
+            if (!line.empty())
+            {
+                std::string sceneHash = line;
+                UID uid = hashToUID(sceneHash);
+                if (isValidUID(uid))
+                {
+                    if (std::getline(stream, line))
+                    {
+                        line.erase(line.find_last_not_of(" \n\r\t") + 1);
+                        if (!line.empty())
+                        {
+                            AssetReference initRef(GenerateUID(), line, AssetType::SOUND_BANK);
+                            m_moduleMusic->loadBank(initRef);
+                        }
+                    }
+
+                    AssetReference ref(uid, sceneHash, AssetType::SCENE);
+                    m_moduleScene->loadScene(ref);
+                }
+                else
+                {
+                    DEBUG_ERROR("[Application] Invalid hash in build.cfg.");
+                }
+            }
+            else
+            {
+                DEBUG_ERROR("[Application] build.cfg is empty.");
+            }
+        }
+        else
+        {
+            DEBUG_ERROR("[Application] build.cfg is empty.");
+        }
+    }
+    else
+    {
+        DEBUG_ERROR("[Application] build.cfg not found in ../Engine_OUT/ or current directory.");
+    }
 #endif
 
     m_lastMilis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();

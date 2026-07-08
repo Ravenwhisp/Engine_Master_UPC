@@ -2,6 +2,7 @@
 
 #include "ComponentType.h"
 #include "PrefabInstance.h"
+#include "AssetReference.h"
 #include <filesystem>
 
 class ModuleAssets;
@@ -19,7 +20,7 @@ public:
     bool revertPrefab(GameObject* go, Scene* scene);
     bool createVariant(const std::filesystem::path& src, const std::filesystem::path& dst);
     GameObject* spawnPrefab(const Prefab& prefab, Scene* scene);
-    GameObject* spawnPrefab(const std::filesystem::path& sourcePath, Scene* scene);
+    GameObject* spawnPrefab(const AssetReference& ref, Scene* scene);
 
 private:
     ModuleAssets* m_moduleAssets;

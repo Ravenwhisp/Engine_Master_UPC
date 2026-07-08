@@ -30,6 +30,11 @@ struct AssetReference {
 
     bool operator!=(const AssetReference& o) const { return !(*this == o); }
 
-    void serialize(IArchive& archive);
+    void serialize(IArchive& archive)
+    {
+        archive.serialize(m_uid, "uid");
+        archive.serialize(m_libId, "libId");
+        archive.serializeStringEnum(m_type, "type", AssetTypeToString, StringToAssetType);
+    }
 
 };
