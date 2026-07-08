@@ -11,8 +11,12 @@ public:
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-    float getFillAmount() const { return m_fillAmount; }
-    void setFillAmount(float amount);
+    Vector2 getFillAmount() const { return m_fillAmount; }
+    void setFillAmount(const Vector2& amount);
+    float getFillStart() const { return m_fillAmount.x; }
+    float getFillEnd() const { return m_fillAmount.y; }
+    void setFillStart(float start);
+    void setFillEnd(float end);
 
     FillMethod getFillMethod() const { return m_fillMethod; }
     void setFillMethod(FillMethod method);
@@ -28,7 +32,7 @@ private:
     void applyToImage();
 
 private:
-    float m_fillAmount = 1.0f;
+    Vector2 m_fillAmount = Vector2(0.0f, 1.0f);
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
 };

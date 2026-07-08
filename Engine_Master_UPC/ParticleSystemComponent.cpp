@@ -74,7 +74,7 @@ float ParticleSystemComponent::deltaTime() const
 
 void ParticleSystemComponent::drawUi()
 {
-    ImGui::Text("Particle system");
+    ImGui::Text("Particle System");
 
     ImGui::Button("Drop Here the Texture");
 
@@ -159,7 +159,7 @@ void ParticleSystemComponent::serialize(IArchive& archive)
     archive.endObject();
 
     uint32_t emitterCount = m_particleSystem ? static_cast<uint32_t>(m_particleSystem->getEmitters().size()) : 0;
-    archive.beginArray(emitterCount, "Emitters");
+    archive.beginArray(emitterCount, "ParticleEmitters");
     if (archive.mode() == ArchiveMode::Input && emitterCount > 0)
     {
         m_particleSystem.reset(new ParticleSystem(emitterCount));

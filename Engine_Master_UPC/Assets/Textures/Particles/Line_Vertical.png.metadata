@@ -1,0 +1,13 @@
+{
+    "uid": 10764966982965910805,
+    "contentHash": "79aa7d0194ab9b0020aa064e26131741",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Particles\\Line_Vertical.png",
+    "sourceFileSize": 7378,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

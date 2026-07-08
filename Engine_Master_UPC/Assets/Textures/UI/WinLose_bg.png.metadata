@@ -1,0 +1,13 @@
+{
+    "uid": 6478923542604627957,
+    "contentHash": "42d01eb3361a4772305dac3af8433c0b",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\WinLose_bg.png",
+    "sourceFileSize": 507833,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

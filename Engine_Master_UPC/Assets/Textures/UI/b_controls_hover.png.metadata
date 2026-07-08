@@ -1,0 +1,13 @@
+{
+    "uid": 13138634748770298276,
+    "contentHash": "6dc7d433b94d7f68d28a3cfae4be029d",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_controls_hover.png",
+    "sourceFileSize": 25803,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

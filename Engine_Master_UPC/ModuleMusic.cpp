@@ -272,6 +272,26 @@ void ModuleMusic::setAudioGameObjectTransform(uint64_t gameObjectID, const Vecto
 	m_wwiseManager.setGameObjectTransform(static_cast<AkGameObjectID>(gameObjectID), akTransform);
 }
 
+void ModuleMusic::setState(const char* stateGroup, const char* stateValue)
+{
+	m_wwiseManager.setState(stateGroup, stateValue);
+}
+
+void ModuleMusic::setSwitch(const char* switchGroup, const char* switchValue, uint64_t emitterID)
+{
+	m_wwiseManager.setSwitch(switchGroup, switchValue, static_cast<AkGameObjectID>(emitterID));
+}
+
+void ModuleMusic::setRTPC(const char* rtpcName, float value)
+{
+	m_wwiseManager.setRTPC(rtpcName, value);
+}
+
+void ModuleMusic::stopAllSounds()
+{
+	m_wwiseManager.stopAll();
+	m_musicStarted = false;
+}
 #pragma endregion
 
 

@@ -77,20 +77,12 @@ namespace
         }
     }
 
-    void serializeComponentRefField(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeComponentRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
-        const ComponentRef<Component>* componentReference = reinterpret_cast<const ComponentRef<Component>*>(data);
-        uint64_t uid = static_cast<uint64_t>(componentReference->uid);
-        archive.serialize(uid, field.name);
-    }
-
-    void deserializeComponentRefField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
-        uint64_t uid = static_cast<uint64_t>(componentReference->uid);
-        archive.serialize(uid, field.name);
-        componentReference->uid = static_cast<UID>(uid);
-        componentReference->component = nullptr;
+        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        archive.serialize(componentReference->uid, field.name);
+        if (archive.mode() == ArchiveMode::Input)
+            componentReference->component = nullptr;
     }
 
     void cloneComponentRefField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -126,7 +118,7 @@ namespace
         }
     }
 
-    const FieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &deserializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
+    const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
 }
 
 const FieldHandler* getComponentRefFieldHandler()

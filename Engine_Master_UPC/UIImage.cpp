@@ -1,11 +1,9 @@
 #include "Globals.h"
 #include "UIImage.h"
-#include "JsonArchive.h"
 #include <imgui.h>
 
 #include "Application.h"
 #include "ModuleAssets.h"
-#include "SceneReferenceResolver.h"
 #include <UIRect.h>
 #include <Transform2D.h>
 #include <GameObject.h>
@@ -129,45 +127,73 @@ bool UIImage::consumeLoadRequest()
 
 void UIImage::serialize(IArchive& archive)
 {
-    Component::serialize(archive);
+	Component::serialize(archive);
 
-    archive.beginObject("TextureAssetId");
-    m_textureAssetId.serialize(archive);
-    archive.endObject();
+	archive.beginObject("TextureAssetId");
+	m_textureAssetId.serialize(archive);
+	archive.endObject();
 
-    archive.serialize(m_fillAmount, "FillAmount");
+	if (archive.mode() == ArchiveMode::Input)
+	{
+		m_texture = nullptr;
+		m_textureAsset.reset();
+		m_loadRequested = false;
 
-    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
+		if (m_textureAssetId.isValid())
+		{
+			m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+			if (m_textureAsset)
+			{
+				m_loadRequested = true;
+			}
+		}
+	}
 
-    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
+	{
+		uint32_t count = 2;
+		archive.beginArray(count, "FillAmount");
+		float start = m_fillAmount.x;
+		float end = m_fillAmount.y;
+		archive.serialize(start, "");
+		archive.serialize(end, "");
+		archive.endArray();
+		if (archive.mode() == ArchiveMode::Input)
+		{
+			m_fillAmount.x = start;
+			m_fillAmount.y = end;
+		}
+	}
 
-    uint32_t sheetColumns = static_cast<uint32_t>(m_sheetColumns);
-    archive.serialize(sheetColumns, "SheetColumns");
-    if (archive.mode() == ArchiveMode::Input)
-        m_sheetColumns = static_cast<int>(sheetColumns);
+	archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
+	archive.serialize(m_fillOrigin, "FillOrigin");
 
-    uint32_t sheetRows = static_cast<uint32_t>(m_sheetRows);
-    archive.serialize(sheetRows, "SheetRows");
-    if (archive.mode() == ArchiveMode::Input)
-        m_sheetRows = static_cast<int>(sheetRows);
+	{
+		uint32_t columns = static_cast<uint32_t>(m_sheetColumns);
+		archive.serialize(columns, "SheetColumns");
+		if (archive.mode() == ArchiveMode::Input)
+			m_sheetColumns = std::max(1, static_cast<int>(columns));
+	}
 
-    DirectX::SimpleMath::Vector3 sheetOffset(m_sheetOffset.x, m_sheetOffset.y, 0.0f);
-    archive.serialize(sheetOffset, "SheetOffset");
-    if (archive.mode() == ArchiveMode::Input)
-    {
-        m_sheetOffset.x = sheetOffset.x;
-        m_sheetOffset.y = sheetOffset.y;
-    }
+	{
+		uint32_t rows = static_cast<uint32_t>(m_sheetRows);
+		archive.serialize(rows, "SheetRows");
+		if (archive.mode() == ArchiveMode::Input)
+			m_sheetRows = std::max(1, static_cast<int>(rows));
+	}
 
-    archive.serializeStringEnum(m_stretchDrawMode, "StretchDrawMode", StretchDrawModeToString, StringToStretchDrawMode);
+	{
+		DirectX::SimpleMath::Vector3 v(m_sheetOffset.x, m_sheetOffset.y, 0.0f);
+		archive.serialize(v, "SheetOffset");
+		if (archive.mode() == ArchiveMode::Input)
+		{
+			m_sheetOffset.x = v.x;
+			m_sheetOffset.y = v.y;
+		}
+	}
+
+	archive.serializeStringEnum(m_stretchDrawMode, "StretchDrawMode", StretchDrawModeToString, StringToStretchDrawMode);
 }
 
 void UIImage::fixReferences(const SceneReferenceResolver& resolver)
 {
-    if (m_textureAssetId.isValid())
-    {
-        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
-        if (m_textureAsset)
-            m_loadRequested = true;
-    }
 }

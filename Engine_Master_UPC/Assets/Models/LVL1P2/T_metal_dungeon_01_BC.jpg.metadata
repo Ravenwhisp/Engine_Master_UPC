@@ -1,0 +1,13 @@
+{
+    "uid": 11679287315328531057,
+    "contentHash": "1052f985539681a003d13450dc3ae117",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_metal_dungeon_01_BC.jpg",
+    "sourceFileSize": 107609,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

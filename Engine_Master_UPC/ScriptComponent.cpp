@@ -3,7 +3,7 @@
 #include "Script.h"
 #include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
-#include "FieldUtils.h"
+#include "JsonArchive.h"
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -116,35 +116,85 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
     FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
 
+        if (field.type == ScriptFieldType::GroupCollapseEnd)
+        {
+            currentGroupOpen = true;
+            continue;
+        }
+
+        if (!currentGroupOpen)
+        {
+            continue;
+        }
+
+        void* data = base + field.offset;
+
+        assert(field.handler != nullptr);
+        field.handler->drawUi(field, data, script, *this);
+    }
+}
+
 void ScriptComponent::serialize(IArchive& archive)
 {
-    Component::serialize(archive);
+	Component::serialize(archive);
 
-    archive.serialize(m_scriptName, "ScriptName");
+	archive.serialize(m_scriptName, "ScriptName");
 
-    if (archive.mode() == ArchiveMode::Output && m_script)
-    {
-        archive.beginObject("ScriptFields");
-        FieldUtils::serialize(*m_script, reinterpret_cast<const char*>(m_script.get()), archive);
-        archive.endObject();
-    }
+	if (archive.mode() == ArchiveMode::Input && !m_scriptName.empty())
+	{
+		destroyScriptInstance();
+		createScriptInstance();
+	}
 
-    if (archive.mode() == ArchiveMode::Input)
-    {
-        destroyScriptInstance();
-        if (!m_scriptName.empty())
-        {
-            createScriptInstance();
-        }
+	if (m_script)
+	{
+		archive.beginObject("ScriptFields");
+		serializeScriptFields(*m_script, archive);
+		archive.endObject();
 
-        if (m_script)
-        {
-            archive.beginObject("ScriptFields");
-            FieldUtils::deserialize(*m_script, reinterpret_cast<char*>(m_script.get()), archive);
-            archive.endObject();
-            m_script->onAfterDeserialize();
-        }
-    }
+		if (archive.mode() == ArchiveMode::Input)
+			m_script->onAfterDeserialize();
+	}
+}
+
+void ScriptComponent::serializeScriptFields(Script& script, IArchive& archive)
+{
+	ScriptFieldList fieldList = script.getExposedFields();
+	char* base = reinterpret_cast<char*>(&script);
+
+	for (const ScriptFieldInfo& field : fieldList.fields)
+	{
+		if (!field.isDataField())
+			continue;
+
+		void* data = base + field.offset;
+
+		assert(field.handler != nullptr);
+		field.handler->serialize(field, data, archive);
+	}
+}
+
+rapidjson::Value ScriptComponent::serializeScriptFieldsForReload(rapidjson::Document& domTree)
+{
+	if (m_script)
+	{
+		JsonArchive archive(ArchiveMode::Output);
+		serializeScriptFields(*m_script, archive);
+		return archive.extractValue(domTree.GetAllocator());
+	}
+
+	return rapidjson::Value(rapidjson::kObjectType);
+}
+
+void ScriptComponent::deserializeScriptFieldsForReload(const rapidjson::Value& fieldsJson)
+{
+	if (!m_script)
+		return;
+
+	JsonArchive archive(ArchiveMode::Input);
+	archive.setValue(fieldsJson);
+	serializeScriptFields(*m_script, archive);
+	m_script->onAfterDeserialize();
 }
 
 void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)

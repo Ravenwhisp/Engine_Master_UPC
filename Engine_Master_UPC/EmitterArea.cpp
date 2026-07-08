@@ -2,8 +2,10 @@
 #include "EmitterArea.h"
 #include "JsonArchive.h"
 
+#include "Application.h"
 #include "Transform.h"
 #include "EmitterInstance.h"
+#include "ModuleParticleSystem.h"
 #include "ParticleSystemComponent.h"
 #include "GameObject.h"
 
@@ -42,21 +44,21 @@ bool EmitterArea::drawUi()
 	{
 		{
 			int shapeType = static_cast<int>(m_shapeType);
-			if (ImGui::Combo("Shape", &shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES)))
+			if (ImGui::Combo("Shape##Area", &shapeType, "Circle\0Cone\0Sphere\0Hemisphere\0", static_cast<int>(AreaType::TOTAL_TYPES)))
 			{
 				m_shapeType = static_cast<AreaType>(shapeType);
 				parameterChanged |= true;
 			}
 		}
 
-		parameterChanged |= ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.0f);
+		parameterChanged |= ImGui::DragFloat("Radius##Area", &m_radius, 0.1f, 0.0f);
 
-		parameterChanged |= ImGui::DragFloat("Radius thickness", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
+		parameterChanged |= ImGui::DragFloat("Radius thickness##Area", &m_radiusThickness, 0.1f, 0.0f, 1.0f);
 
 
 		if (m_shapeType == AreaType::CONE) 
 		{
-			parameterChanged |= ImGui::DragFloat("Radius scale", &m_radiusScale, 0.1f, 1.0f, 100.f);
+			parameterChanged |= ImGui::DragFloat("Radius scale##Area", &m_radiusScale, 0.1f, 1.0f, 100.f);
 		}
 	}
 
@@ -130,7 +132,7 @@ void EmitterArea::serialize(IArchive& archive)
 
 void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -190,7 +192,7 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 
 void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -252,7 +254,7 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 
 void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
@@ -314,7 +316,7 @@ void EmitterArea::setNewParticlesPlacementHemisphere(EmitterInstance* particleDa
 
 void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
 {
-	Particle* particlePool = particleData->getParticlePool();
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
 	std::vector<unsigned int>& newParticles = particleData->getNewParticles();
 
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();

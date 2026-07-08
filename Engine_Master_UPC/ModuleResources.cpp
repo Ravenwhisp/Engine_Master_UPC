@@ -145,6 +145,26 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
+Texture* ModuleResources::createShadowMap(uint32_t size)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R32_TYPELESS;
+	desc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
+	desc.width = size;
+	desc.height = size;
+	desc.views = TextureView::DSV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true;
+
+	Texture* shadowMap = new Texture(GenerateUID(), *m_device.Get(), desc);
+	shadowMap->setName(L"ShadowMap");
+
+	return shadowMap;
+}
+
 Texture* ModuleResources::createRenderTexture(float width, float height)
 {
 	TextureDesc desc{};
@@ -162,16 +182,122 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
+Texture* ModuleResources::createGBuffer(float width, float height, const DXGI_FORMAT format)
+{
+	//const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	const float clearColor[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	
+
+	TextureDesc desc{};
+	desc.format = format;
+	desc.srvFormat = format;
+	desc.rtvFormat = format;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::SRV | TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(format, clearColor);
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
+Texture* ModuleResources::createSSAODepthBuffer(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R32_TYPELESS;
+	desc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::DSV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"SSAO_Depth");
+
+	return texture;
+}
+
+Texture* ModuleResources::createSSAONormalBuffer(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::RTV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		Color(0.5f, 0.5f, 1.0f, 1.0f)
+	);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"SSAO_Normal");
+
+	return texture;
+}
+
+Texture* ModuleResources::createSSAOTexture(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R8_UNORM;
+	desc.srvFormat = DXGI_FORMAT_R8_UNORM;
+	desc.rtvFormat = DXGI_FORMAT_R8_UNORM;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::RTV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(
+		DXGI_FORMAT_R8_UNORM,
+		Color(1.0f, 1.0f, 1.0f, 1.0f)
+	);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"SSAO_Texture");
+
+	return texture;
+}
+
 RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
 
 	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
 	colorTex->setName(L"RenderSurface_Color");
+
 	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
-	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+
+	auto ssaoDepthTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
+	ssaoDepthTex->setName(L"RenderSurface_SSAO_Depth");
+
+	auto ssaoNormalTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
+	ssaoNormalTex->setName(L"RenderSurface_SSAO_Normal");
+
+	auto ssaoRawTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+	ssaoRawTex->setName(L"RenderSurface_SSAO_Raw");
+
+	auto ssaoBlurTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+	ssaoBlurTex->setName(L"RenderSurface_SSAO_Blur");
+
+	surface->attachTexture(RenderSurface::COMPOSITE, colorTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
+
+	surface->attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTex);
+	surface->attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTex);
+	surface->attachTexture(RenderSurface::SSAO_RAW, ssaoRawTex);
+	surface->attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTex);
 
 	return surface;
 }
@@ -233,7 +359,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-	
+
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -243,6 +369,14 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto irradianceTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
@@ -420,6 +554,14 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	desc.mipLevels = 11; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto environmentTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
@@ -654,11 +796,9 @@ std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& text
 
 	if (auto cached = m_resources.getAs<Texture>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Texture libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Texture libId=%s", libId.c_str());
 	auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createTextureInternal(textureAsset, shaderVisible));
 	m_resources.insert(libId, texture);
 	return texture;
@@ -694,11 +834,9 @@ std::shared_ptr<BasicMesh> ModuleResources::createMesh(const MeshAsset& meshAsse
 
 	if (auto cached = m_resources.getAs<BasicMesh>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Mesh libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Mesh libId=%s", libId.c_str());
 	auto mesh = std::make_shared<BasicMesh>(meshAsset.getUID(), meshAsset);
 	m_resources.insert(libId, mesh);
 	return mesh;
@@ -710,11 +848,9 @@ std::shared_ptr<BasicMaterial> ModuleResources::createMaterial(MaterialAsset& ma
 
 	if (auto cached = m_resources.getAs<BasicMaterial>(libId))
 	{
-		DEBUG_LOG("[Cache HIT] Material libId=%s", libId.c_str());
 		return cached;
 	}
 
-	DEBUG_LOG("[Cache MISS] Material libId=%s", libId.c_str());
 	auto material = std::make_shared<BasicMaterial>(materialAsset.getUID(), materialAsset);
 	m_resources.insert(libId, material);
 	return material;

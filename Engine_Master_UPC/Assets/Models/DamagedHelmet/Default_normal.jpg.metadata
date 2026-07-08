@@ -1,0 +1,13 @@
+{
+    "uid": 1488345875832413725,
+    "contentHash": "48d9ff1bd7adf4abfa7fbe231cb016bd",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\DamagedHelmet\\Default_normal.jpg",
+    "sourceFileSize": 517757,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

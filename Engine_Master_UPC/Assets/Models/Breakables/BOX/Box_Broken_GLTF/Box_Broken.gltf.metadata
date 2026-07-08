@@ -1,0 +1,21 @@
+{
+    "uid": 12035147023628493160,
+    "contentHash": "d7757f75e2791377a5489d6d3640b72f",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Breakables\\BOX\\Box_Broken_GLTF\\Box_Broken.gltf",
+    "sourceFileSize": 2244,
+    "dependencies": [
+        {
+            "uid": 1348871275559094111,
+            "contentHash": "f0c0200c65a1c6c7050e05d2d7d6f5b3",
+            "type": 2,
+            "displayName": "Material.002"
+        },
+        {
+            "uid": 6299683042699325039,
+            "contentHash": "4f7c175ea56089a23aeac258d85358a6",
+            "type": 3,
+            "displayName": "Mesh.2423"
+        }
+    ]
+}

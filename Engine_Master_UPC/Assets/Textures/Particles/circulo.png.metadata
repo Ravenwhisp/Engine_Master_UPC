@@ -1,0 +1,13 @@
+{
+    "uid": 17427793376948693573,
+    "contentHash": "6eaf6e601878bab14a649a5599054651",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Particles\\circulo.png",
+    "sourceFileSize": 12119,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

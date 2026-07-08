@@ -1,0 +1,48 @@
+{
+  "SourcePath": "Assets\\Prefabs\\TorchLight.prefab",
+  "Name": "TorchLight",
+  "Version": 2,
+  "GameObject": {
+    "Name": "TorchLight",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        6.937623500823975,
+        3.107414484024048,
+        19.181671142578125
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 2,
+        "Data": {
+          "UID": 7910224198370429181,
+          "ComponentType": 2,
+          "Active": true,
+          "LightType": 1,
+          "Color": [
+            0.969111979007721,
+            0.5200158953666687,
+            0.22824646532535553
+          ],
+          "Intensity": 6.099999904632568,
+          "Radius": 3.5999999046325684
+        }
+      }
+    ],
+    "Children": []
+  }
+}

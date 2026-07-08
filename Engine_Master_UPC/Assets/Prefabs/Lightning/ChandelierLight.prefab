@@ -1,0 +1,48 @@
+{
+  "SourcePath": "Assets\\Prefabs\\ChandelierLight.prefab",
+  "Name": "ChandelierLight",
+  "Version": 2,
+  "GameObject": {
+    "Name": "ChandelierLight",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        11.823674201965332,
+        2.9548676013946533,
+        30.510000228881836
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 2,
+        "Data": {
+          "UID": 6877324443324834619,
+          "ComponentType": 2,
+          "Active": true,
+          "LightType": 1,
+          "Color": [
+            0.9343629479408264,
+            0.4707542657852173,
+            0.16955620050430298
+          ],
+          "Intensity": 27.200000762939453,
+          "Radius": 13.300000190734863
+        }
+      }
+    ],
+    "Children": []
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 17486841116566167103,
+    "contentHash": "123d84101e796edfc5f0cfdd659b6ad5",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Breakables\\BOX\\Box_Broken_GLTF\\Box_Broken\\T_wood_planks_dungeon_01_BC.png",
+    "sourceFileSize": 525098,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

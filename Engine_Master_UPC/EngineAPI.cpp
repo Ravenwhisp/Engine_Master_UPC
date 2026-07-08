@@ -8,6 +8,8 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
+#include "ModuleMusic.h"
+
 #include "PrefabManager.h"
 #include "Quadtree.h"
 
@@ -28,6 +30,9 @@
 #include "BoundingBox.h"
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
+#include "NavRuntimeBlockerComponent.h"
+#include "PlayerRenderBufferComponent.h"
+#include "TrailComponent.h"
 
 #include "CameraComponent.h"
 
@@ -505,6 +510,62 @@ namespace TransformAPI
         return transform->getRoot();
     }
 
+    int TransformAPI::getChildCount(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return 0;
+        }
+
+        return static_cast<int>(transform->getAllChildren().size());
+    }
+
+    Transform* TransformAPI::getChild(Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
+    const Transform* TransformAPI::getChild(const Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        const GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
     Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
     {
         if (transform == nullptr || childName == nullptr)
@@ -720,6 +781,32 @@ namespace AnimationAPI
 
         animation->setSpeedMultiplier(speedMultiplier);
     }
+
+    bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds, bool loop)
+    {
+        if (!animation || !clipName)
+        {
+            return false;
+        }
+
+        return animation->playOverrideClip(clipName, transitionTimeSeconds, loop);
+    }
+
+    void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->clearOverrideClip(transitionTimeSeconds);
+    }
+
+    bool hasOverrideClip(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasOverrideClip() : false;
+    }
+
 }
 
 namespace ApplicationAPI
@@ -1690,6 +1777,74 @@ namespace Debug
     }
 }
 
+namespace CameraAPI
+{
+    CameraComponent* getCameraComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    const CameraComponent* getCameraComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<CameraComponent>(ComponentType::CAMERA);
+    }
+
+    float getFov(const CameraComponent* camera)
+    {
+        return camera ? camera->getFov() : 0.0f;
+    }
+
+    void setFov(CameraComponent* camera, float fov)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setFov(fov);
+    }
+
+    float getNearPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getNearPlane() : 0.0f;
+    }
+
+    void setNearPlane(CameraComponent* camera, float nearPlane)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setNearPlane(nearPlane);
+    }
+
+    float getFarPlane(const CameraComponent* camera)
+    {
+        return camera ? camera->getFarPlane() : 0.0f;
+    }
+
+    void setFarPlane(CameraComponent* camera, float farPlane)
+    {
+        if (!camera)
+        {
+            return;
+        }
+
+        camera->setFarPlane(farPlane);
+    }
+}
+
 namespace NavigationAPI
 {
     bool hasNavMesh()
@@ -1742,6 +1897,12 @@ namespace NavigationAPI
         }
 
         outSampledPosition = Vector3(nearest[0], height, nearest[2]);
+
+        if (navigation->isPointBlockedByRuntimeBlockers(outSampledPosition))
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -1781,6 +1942,12 @@ namespace NavigationAPI
         dtPolyRef visited[64];
         int visitedCount = 0;
         float result[3] = {};
+
+        if (navigation->isSegmentBlockedByRuntimeBlockers(startPosition, targetPosition))
+        {
+            outResultPosition = startPosition;
+            return false;
+        }
 
         const dtStatus moveStatus = query->moveAlongSurface(startRef, startNearest, end, &filter, result, visited, &visitedCount, 64);
 
@@ -1903,6 +2070,63 @@ namespace NavigationAPI
 
         return false;
     }
+
+    bool isSegmentBlocked(const Vector3& from, const Vector3& to)
+    {
+        ModuleNavigation* navigation = app->getModuleNavigation();
+
+        if (!navigation || !navigation->hasNavMesh())
+        {
+            return false;
+        }
+
+        return navigation->isSegmentBlockedByRuntimeBlockers(from, to);
+    }
+
+    bool canMoveSegment(const Vector3& from, const Vector3& to)
+    {
+        return !isSegmentBlocked(from, to);
+    }
+
+    NavRuntimeBlockerComponent* getRuntimeBlockerComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    const NavRuntimeBlockerComponent* getRuntimeBlockerComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+    }
+
+    bool isBlocked(const NavRuntimeBlockerComponent* blocker)
+    {
+        if (blocker->isBlocked())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void setBlocked(NavRuntimeBlockerComponent* blocker, bool blocked)
+    {
+        if (!blocker)
+        {
+            return;
+        }
+
+        blocker->setBlocked(blocked);
+    }
 }
 
 namespace MathAPI
@@ -1919,6 +2143,15 @@ namespace MathAPI
     {
         return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
     }
+
+    Vector3 MathAPI::catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t)
+    {
+        const float t2 = t * t;
+        const float t3 = t2 * t;
+
+        return (p1 * 2.0f + (p2 - p0) * t + (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 + (p1 * 3.0f - p0 - p2 * 3.0f + p3) * t3) * 0.5f;
+    }
+
     float smoothStep(float edge0, float edge1, float x)
     {
         x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
@@ -2163,7 +2396,7 @@ namespace SliderAPI
             return 0.0f;
         }
 
-        return slider->getFillAmount();
+        return slider->getFillAmount().y;
     }
 
     void setFillAmount(UISlider* slider, const float amount)
@@ -2173,6 +2406,23 @@ namespace SliderAPI
             return;
         }
 
+        Vector2 v = slider->getFillAmount();
+        v.y = amount;
+        slider->setFillAmount(v);
+    }
+
+    Vector2 getFillAmountVec(const UISlider* slider)
+    {
+        if (!slider)
+        {
+            return Vector2(0.0f, 0.0f);
+        }
+        return slider->getFillAmount();
+    }
+
+    void setFillAmountVec(UISlider* slider, const Vector2& amount)
+    {
+        if (!slider) return;
         slider->setFillAmount(amount);
     }
 
@@ -2286,6 +2536,15 @@ namespace UISheetAPI
         }
         sheet->setOffset(offset);
     }
+
+    void reset(UISheet* sheet)
+    {
+        if (!sheet)
+        {
+            return;
+        }
+		sheet->reset();
+	}
 }
 
 namespace DebugDrawAPI
@@ -2603,6 +2862,39 @@ ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem
     particleSystem->resetParticles();
 }
 
+namespace TrailAPI
+{
+    TrailComponent* getTrailComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    const TrailComponent* getTrailComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    bool isTrailGenerating(TrailComponent* trailComponent)
+    {
+        return trailComponent->isGenerating();
+    }
+
+    void generateTrail(TrailComponent* trailComponent, bool value)
+    {
+        return trailComponent->generate(value);
+    }
+}
+
 namespace AudioAPI
 {
     ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject)
@@ -2656,5 +2948,93 @@ namespace AudioAPI
         {
             component->resumeEvent(playingID);
         }
+    }
+
+    void setState(const char* stateGroup, const char* stateValue)
+    {
+		app->getModuleMusic()->setState(stateGroup, stateValue);
+    }
+
+    void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component)
+    {
+        component->setSwitch(switchGroup, switchValue);
+    }
+
+    void setRTPC(const char* rtpcName, float value)
+    {
+		app->getModuleMusic()->setRTPC(rtpcName, value);
+    }
+
+    bool isMusicStarted()
+    {
+		return app->getModuleMusic()->isMusicStarted();
+    }
+
+    void setMusicStarted(bool started)
+    {
+		app->getModuleMusic()->setMusicStarted(started);
+    }
+}
+
+namespace Shaders
+{
+    PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
+    }
+
+    const PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
+    }
+
+    float Shaders::getDamageHighlightIntensity(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightIntensity();
+    }
+
+    void setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightIntensity(value);
+    }
+
+    Vector3 Shaders::getDamageHighlightCenterColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+    
+    void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    Vector3 Shaders::getDamageHighlightRimColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    void Shaders::setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    float Shaders::getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
     }
 }

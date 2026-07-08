@@ -15,17 +15,65 @@
 #include <vector>
 
 #include <DetourNavMeshQuery.h>
-#include <DetourAlloc.h>
 #include <WindowLogger.h>
 #include <NavMeshBuilder.h>
 
 #include "NavMeshGeometryExtractor.h"
 #include "NavModifierVolumeComponent.h"
-#include "Transform.h"
+#include "NavRuntimeBlockerComponent.h"
 
 static std::string MakeNavMeshPath(const char* sceneName)
 {
     return std::string("Assets/NavMeshes/") + sceneName + ".navmesh";
+}
+
+static bool SegmentIntersectsAABB(const Vector3& a, const Vector3& b, const Vector3& center, const Vector3& halfExtents)
+{
+    const Vector3 min = center - halfExtents;
+    const Vector3 max = center + halfExtents;
+
+    float tmin = 0.0f;
+    float tmax = 1.0f;
+
+    const Vector3 d = b - a;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        float start = (&a.x)[i];
+        float dir = (&d.x)[i];
+        float minB = (&min.x)[i];
+        float maxB = (&max.x)[i];
+
+        if (fabs(dir) < 0.0001f)
+        {
+            if (start < minB || start > maxB)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            float ood = 1.0f / dir;
+
+            float t1 = (minB - start) * ood;
+            float t2 = (maxB - start) * ood;
+
+            if (t1 > t2)
+            {
+                std::swap(t1, t2);
+            }
+
+            tmin = std::max(tmin, t1);
+            tmax = std::min(tmax, t2);
+
+            if (tmin > tmax)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool ModuleNavigation::init()
@@ -140,9 +188,11 @@ bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
 bool ModuleNavigation::unloadNavMesh()
 {
     if (m_navQuery) { dtFreeNavMeshQuery(m_navQuery); m_navQuery = nullptr; }
-    if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }
+    if (m_navMesh) { dtFreeNavMesh(m_navMesh);       m_navMesh = nullptr; }  
+
     m_tileRefs.clear();
     m_loadedScene.clear();
+
     return true;
 }
 
@@ -202,31 +252,23 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
         return false;
     }
 
-    NavMeshBuildSettings settings;
-    settings.cellSize = m_settings.cellSize;
-    settings.cellHeight = m_settings.cellHeight;
-    settings.agentHeight = m_settings.agentHeight;
-    settings.agentRadius = m_settings.agentRadius;
-    settings.agentMaxClimb = m_settings.agentMaxClimb;
-    settings.agentMaxSlope = m_settings.agentMaxSlope;
-
-    NavMeshBuildResult result;
-
     // get modifier volumes from the scene
     m_modifierVolumes = collectNavModifierVolumes(*app->getModuleScene()->getScene());
 
-    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, settings, result, m_modifierVolumes))
+    NavMeshBuildResult result;
+
+    // build solo mesh
+    if (!NavMeshBuilder::BuildSoloMesh(verts, tris, m_settings, result, m_modifierVolumes))
     {
         LOG_ERROR(__FILE__, __LINE__, "NavMesh build failed (Recast pipeline).");
         return false;
     }
 
-
     unloadNavMesh();
+
     m_navMesh = result.navMesh;
     m_navQuery = result.navQuery;
-    m_tileRefs.clear();
-    m_tileRefs.push_back(result.tileRef);
+    m_tileRefs = result.tileRefs;
 
     const char* sceneName = app->getModuleScene()->getScene()->getName();
     const bool saved = saveNavMeshForScene(sceneName);
@@ -277,6 +319,8 @@ void ModuleNavigation::rebuildNavMeshDebugLines()
                     color = dd::colors::Green;
                 else if (p->flags & static_cast<unsigned short>(NavPolyFlags::Spectral))
                     color = dd::colors::Blue;
+                else if(p->flags & static_cast<unsigned short>(NavPolyFlags::DashGap))
+					color = dd::colors::Yellow;
                 else
                     color = dd::colors::Red; // for unknown flag
 
@@ -344,11 +388,14 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
     dtPolyRef refs[128];
     int straightCount = 0;
 
-    m_navQuery->findStraightPath(
+    if (dtStatusFailed(m_navQuery->findStraightPath(
         nearestStart, nearestEnd,
         pathPolys, pathCount,
         straight, flags, refs,
-        &straightCount, 128);
+        &straightCount, 128)))
+    {
+        return false;
+    }
 
     if (straightCount < 2)
         return false;
@@ -364,7 +411,98 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
         );
     }
 
+    if (isPathBlockedByRuntimeBlockers(outPath))
+    {
+        outPath.clear();
+        return false;
+    }
+
     return true;
+}
+
+bool ModuleNavigation::isSegmentBlockedByRuntimeBlockers(const Vector3& from, const Vector3& to) const
+{
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+    {
+        return false;
+    }
+
+    for (GameObject* obj : scene->getAllGameObjects())
+    {
+        if (!obj || !obj->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        auto* blocker = obj->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+
+        if (!blocker || !blocker->isActive() || !blocker->isBlocked())
+        {
+            continue;
+        }
+
+        Transform* transform = obj->GetTransform();
+        if (!transform)
+        {
+            continue;
+        }
+
+        const Vector3 center = transform->getGlobalMatrix().Translation();
+        const Vector3 halfExtents = blocker->getHalfExtents();
+
+        if (SegmentIntersectsAABB(from, to, center, halfExtents))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool ModuleNavigation::isPointBlockedByRuntimeBlockers(const Vector3& point) const
+{
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+    {
+        return false;
+    }
+
+    for (GameObject* obj : scene->getAllGameObjects())
+    {
+        if (!obj || !obj->IsActiveInWindowHierarchy())
+        {
+            continue;
+        }
+
+        auto* blocker = obj->GetComponentAs<NavRuntimeBlockerComponent>(ComponentType::NAV_RUNTIME_BLOCKER);
+
+        if (!blocker || !blocker->isActive() || !blocker->isBlocked())
+        {
+            continue;
+        }
+
+        Transform* transform = obj->GetTransform();
+        if (!transform)
+        {
+            continue;
+        }
+
+        const Vector3 center = transform->getGlobalMatrix().Translation();
+        const Vector3 halfExtents = blocker->getHalfExtents();
+
+        const Vector3 min = center - halfExtents;
+        const Vector3 max = center + halfExtents;
+
+        if (point.x >= min.x && point.x <= max.x &&
+            point.y >= min.y && point.y <= max.y &&
+            point.z >= min.z && point.z <= max.z)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void ModuleNavigation::debugDraw()
@@ -399,7 +537,6 @@ bool ModuleNavigation::computeDebugPath(NavAgentProfile profile)
     if (!m_hasPathStart || !m_hasPathEnd) return false;
 
     dtQueryFilter filter;
-    //filter.setIncludeFlags(0xFFFF);
     filter.setIncludeFlags(getIncludeFlagsForProfile(profile));
     filter.setExcludeFlags(0);
 
@@ -435,7 +572,12 @@ bool ModuleNavigation::computeDebugPath(NavAgentProfile profile)
     {
         m_debugPathPoints.emplace_back(straight[i * 3 + 0], straight[i * 3 + 1], straight[i * 3 + 2]);
     }
-        
+    
+    if (isPathBlockedByRuntimeBlockers(m_debugPathPoints))
+    {
+        m_debugPathPoints.clear();
+        return false;
+    }
 
     return (m_debugPathPoints.size() >= 2);
 }
@@ -446,7 +588,7 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
 
     for (GameObject* obj : scene.getAllGameObjects())
     {
-        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAVMODIFIER_VOLUME);
+        NavModifierVolumeComponent* navComp = obj->GetComponentAs<NavModifierVolumeComponent>(ComponentType::NAV_MODIFIER_VOLUME);
         if (navComp)
         {
             Transform* transformComp = obj->GetComponentAs<Transform>(ComponentType::TRANSFORM);
@@ -470,16 +612,33 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
     return data;
 }
 
+bool ModuleNavigation::isPathBlockedByRuntimeBlockers(const std::vector<Vector3>& path) const
+{
+    for (size_t i = 1; i < path.size(); ++i)
+    {
+        if (isSegmentBlockedByRuntimeBlockers(path[i - 1], path[i]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 unsigned short ModuleNavigation::getIncludeFlagsForProfile(NavAgentProfile profile) const
 {
     unsigned short defaultFlag = static_cast<unsigned short>(NavPolyFlags::Default);
     unsigned short spectralFlag = static_cast<unsigned short>(NavPolyFlags::Spectral);
+	unsigned short dashGapFlag = static_cast<unsigned short>(NavPolyFlags::DashGap);
 
     if (profile == NavAgentProfile::PlayerNormal)
         return defaultFlag;
 
     if (profile == NavAgentProfile::PlayerSpectral)
         return defaultFlag | spectralFlag;
+
+    if(profile == NavAgentProfile::PlayerDash)
+		return defaultFlag | dashGapFlag;
 
     if (profile == NavAgentProfile::EnemyGround)
         return defaultFlag;

@@ -1,0 +1,13 @@
+{
+    "uid": 3146649889161723931,
+    "contentHash": "c546941b028d2110fac8f0517831cb13",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_controls_default.png",
+    "sourceFileSize": 27213,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

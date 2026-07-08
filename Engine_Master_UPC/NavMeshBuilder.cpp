@@ -11,7 +11,6 @@
 #include <DetourNavMesh.h>
 #include <DetourNavMeshQuery.h>
 #include <DetourNavMeshBuilder.h>
-#include <DetourAlloc.h>
 
 static int ClampInt(int v, int mn, int mx) { return v < mn ? mn : (v > mx ? mx : v); }
 
@@ -94,6 +93,7 @@ bool NavMeshBuilder::BuildSoloMesh(
     unsigned int defaultTriangles = 0;
     unsigned int spectralTriangles = 0;
     unsigned int blockedTriangles = 0;
+	unsigned int dashGapTriangles = 0;
 
     for (int i = 0; i < ntris; ++i)
     {
@@ -129,6 +129,8 @@ bool NavMeshBuilder::BuildSoloMesh(
             spectralTriangles++;
         if (area == NavAreaType::Blocked)
             blockedTriangles++;
+        if(area == NavAreaType::DashGap)
+			dashGapTriangles++;
 
         triAreas[i] = toRecastAreaId(area);
     }
@@ -335,9 +337,9 @@ bool NavMeshBuilder::BuildSoloMesh(
 
     outResult.navMesh = navMesh;
     outResult.navQuery = navQuery;
-    outResult.tileRef = outRef;
+    outResult.tileRefs.push_back(outRef);
 
-    DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, modifierVolumes.size());
+    DEBUG_LOG("NavMesh Areas: Default Triangles - %d, Spectral Triangles - %d, Blocked Triangles - %d, DashGap Triangles - %d, Modifier Volumes - %d", defaultTriangles, spectralTriangles, blockedTriangles, dashGapTriangles, modifierVolumes.size());
 
     return true;
 }
@@ -376,6 +378,8 @@ unsigned char NavMeshBuilder::toRecastAreaId(NavAreaType areaType)
         return static_cast<unsigned char>(NavAreaId::NAV_AREA_DEFAULT);
     else if (areaType == NavAreaType::Spectral)
         return static_cast<unsigned char>(NavAreaId::NAV_AREA_SPECTRAL);
+    else if (areaType == NavAreaType::DashGap)
+        return static_cast<unsigned char>(NavAreaId::NAV_AREA_DASHGAP);
 
     return RC_NULL_AREA;
 }
@@ -386,6 +390,8 @@ unsigned short NavMeshBuilder::toPolyFlags(NavAreaId areaId)
         return static_cast<unsigned short>(NavPolyFlags::Default);
     else if (areaId == NavAreaId::NAV_AREA_SPECTRAL)
         return static_cast<unsigned short>(NavPolyFlags::Spectral);
+    else if(areaId == NavAreaId::NAV_AREA_DASHGAP)
+		return static_cast<unsigned short>(NavPolyFlags::DashGap);
 
     return 0;
 }

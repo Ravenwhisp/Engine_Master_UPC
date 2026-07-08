@@ -1,5 +1,6 @@
 #pragma once
 #include "ScriptAPI.h"
+#include <string>
 
 class EnemyStunParticles : public Script
 {

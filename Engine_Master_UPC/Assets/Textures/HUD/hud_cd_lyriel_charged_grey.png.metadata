@@ -1,0 +1,13 @@
+{
+    "uid": 13474890805531736090,
+    "contentHash": "3208819ba8053fccfc4a25fe070d2faf",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_cd_lyriel_charged_grey.png",
+    "sourceFileSize": 3733,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

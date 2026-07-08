@@ -1,0 +1,13 @@
+{
+    "uid": 12494130194815868929,
+    "contentHash": "5bbd2f1ca36dd27e6fc08a9a96b8a95c",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Screens\\b_restart_pressed.png",
+    "sourceFileSize": 23427,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

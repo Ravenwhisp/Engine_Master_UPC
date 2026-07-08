@@ -15,17 +15,18 @@ public:
 
 	void update(EmitterInstance* particleData) override;
 
-	void setStartLifetime(float startLifetime) { m_startLifeTime = startLifetime; }
-	float getStartLifetime() const { return m_startLifeTime; }
+	void setStartLifetimeConstant(float startLifetime) { m_startLifeTime = startLifetime; }
+	float getStartLifetimeConstant() const { return m_startLifeTime; }
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
 
 private:
-
+	ParameterType m_lifeTimeType = ParameterType::CONSTANT;
 	float m_startLifeTime = 5.0f;
+	float m_startLifeTime2 = 5.0f;
 
-	void eraseBySwap(std::vector<std::pair<float, unsigned int>>* aliveParticles, unsigned int index); // swaps the element at position = index with the back and pops it (does not respect order, but should be faster)
-	void swapWithBack(std::vector<std::pair<float, unsigned int>>* aliveParticles, unsigned int index);
+	void eraseBySwap(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index); // swaps the element at position = index with the back and pops it (does not respect order, but should be faster)
+	void swapWithBack(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index);
 };
 

@@ -1,0 +1,13 @@
+{
+    "uid": 12623403218954852153,
+    "contentHash": "1b74cc796c40737fbb931bdc22a2231b",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_ENV_MOD_Wall_01_v3_BC.jpg",
+    "sourceFileSize": 223861,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

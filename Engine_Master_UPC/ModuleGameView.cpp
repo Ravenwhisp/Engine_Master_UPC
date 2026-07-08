@@ -6,6 +6,7 @@
 #include "ModuleInput.h"
 #include "ModuleD3D12.h"
 #include "ModuleParticleSystem.h"
+#include "ModuleScripting.h"
 
 #include "Scene.h"
 #include "SceneSnapshot.h"
@@ -52,31 +53,15 @@ void ModuleGameView::startGameSimulation()
 	m_sceneCloned = std::unique_ptr<SceneSnapshot>(m_moduleScene->takeSnapshot());
 	m_moduleParticleSystem->resetAllParticles();
 
-	instantiateScriptsOnPlay();
+	app->getModuleScripting()->instantiateSceneScripts();
+
+	m_moduleScene->initializeRuntimeSceneSystems();
 }
 
 void ModuleGameView::stopGameSimulation()
 {
+	m_moduleScene->clearRuntimeSceneSystems();
+
 	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
 	m_sceneCloned.reset();
-}
-
-void ModuleGameView::instantiateScriptsOnPlay() {
-	// scripts instantiation
-	for (GameObject* gameObject : m_moduleScene->getScene()->getAllGameObjects())
-	{
-		ScriptComponent* scriptComponent = gameObject->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT);
-		if (!scriptComponent || scriptComponent->getScriptName().empty())
-		{
-			continue;
-		}
-
-		if (!scriptComponent->getScript())
-		{
-			bool created = scriptComponent->createScriptInstance();
-			assert(created);
-		}
-
-		scriptComponent->resetStartState();
-	}
 }

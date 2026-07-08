@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "UISlider.h"
-#include "JsonArchive.h"
 
 #include <imgui.h>
 #include "UIImage.h"
@@ -43,9 +42,21 @@ void UISlider::applyToImage()
     img->setFillOrigin(m_fillOrigin);
 }
 
-void UISlider::setFillAmount(float amount)
+void UISlider::setFillAmount(const Vector2& amount)
 {
     m_fillAmount = amount;
+    applyToImage();
+}
+
+void UISlider::setFillStart(float start)
+{
+    m_fillAmount.x = start;
+    applyToImage();
+}
+
+void UISlider::setFillEnd(float end)
+{
+    m_fillAmount.y = end;
     applyToImage();
 }
 
@@ -86,7 +97,19 @@ void UISlider::drawUi()
     ImGui::Separator();
 
     bool changed = false;
-    changed |= ImGui::SliderFloat("Fill Amount", &m_fillAmount, 0.0f, 1.0f);
+    // Allow editing start and end separately
+    float start = m_fillAmount.x;
+    float end = m_fillAmount.y;
+    if (ImGui::SliderFloat("Fill Start", &start, 0.0f, 1.0f))
+    {
+        m_fillAmount.x = start;
+        changed = true;
+    }
+    if (ImGui::SliderFloat("Fill End", &end, 0.0f, 1.0f))
+    {
+        m_fillAmount.y = end;
+        changed = true;
+    }
 
     const char* fillMethods[] = { "Horizontal", "Vertical", "Radial 90", "Radial 180", "Radial 360" };
     int currentMethod = static_cast<int>(m_fillMethod);
@@ -166,11 +189,23 @@ void UISlider::drawUi()
 
 void UISlider::serialize(IArchive& archive)
 {
-    Component::serialize(archive);
+	Component::serialize(archive);
 
-    archive.serialize(m_fillAmount, "FillAmount");
+	{
+		uint32_t count = 2;
+		archive.beginArray(count, "FillAmount");
+		float start = m_fillAmount.x;
+		float end = m_fillAmount.y;
+		archive.serialize(start, "");
+		archive.serialize(end, "");
+		archive.endArray();
+		if (archive.mode() == ArchiveMode::Input)
+		{
+			m_fillAmount.x = start;
+			m_fillAmount.y = end;
+		}
+	}
 
-    archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
-
-    archive.serializeStringEnum(m_fillOrigin, "FillOrigin", FillOriginToString, StringToFillOrigin);
+	archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
+	archive.serialize(m_fillOrigin, "FillOrigin");
 }

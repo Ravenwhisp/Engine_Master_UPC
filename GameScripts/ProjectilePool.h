@@ -25,7 +25,7 @@ private:
 
 public:
 	int m_maxProjectiles = 5;
-	PrefabRef m_projectilePrefab;
+	std::string m_projectilePrefabPath = "Assets/Prefabs/Particles/Lyriel/LyrielArrowParticle_1.prefab";
 
 private:
 	std::vector<ProjectileBase*> m_projectiles;

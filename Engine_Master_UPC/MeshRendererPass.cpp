@@ -41,8 +41,13 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[12] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, irradianceRange, brdfRange, sampRange, prefilteredRange;
+    CD3DX12_DESCRIPTOR_RANGE shadowMapRange;
+    CD3DX12_DESCRIPTOR_RANGE ssaoRange;
+
+    shadowMapRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
+    ssaoRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
@@ -59,9 +64,15 @@ MeshRendererPass::MeshRendererPass(ComPtr<ID3D12Device4> device): m_device(devic
     rootParameters[6].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[7].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[8].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+    // Shadows
+    rootParameters[9].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[10].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    // SSAO
+    rootParameters[11].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL);
     
 
-    rootSignatureDesc.Init(9, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(12, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -126,6 +137,21 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
         m_sceneDataCB->viewPos = ctx.cameraPosition;
     }
 
+    const float width = std::max(1.0f, ctx.viewport.Width);
+    const float height = std::max(1.0f, ctx.viewport.Height);
+
+    m_sceneDataCB->screenSize = DirectX::SimpleMath::Vector2(width, height);
+    m_sceneDataCB->invScreenSize = DirectX::SimpleMath::Vector2(1.0f / width, 1.0f / height);
+
+    const SSAOSettings defaultSSAOSettings{};
+    const SSAOSettings& ssaoSettings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSSAOSettings;
+
+    m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(
+        ssaoSettings.enabled ? 1.0f : 0.0f,
+        ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f,
+        0.0f,
+        0.0f);
+
     {
         PERF_RENDER("MeshRendererPass::prepare::GetVisibleMeshRenderers");
         m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
@@ -155,6 +181,34 @@ void MeshRendererPass::prepare(const RenderContext& ctx)
             sizeof(GPULightsConstantBuffer),
             app->getModuleD3D12()->getCurrentFrame());
     }
+
+    m_hasShadowData = ctx.shadowData != nullptr;
+
+    if (m_hasShadowData)
+    {
+        m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
+        m_shadowMapSRV = ctx.shadowData->shadowMapSRV;
+    }
+    else
+    {
+        m_shadowCBAddress = 0;
+        m_shadowMapSRV = {};
+    }
+
+    m_hasSSAOData = false;
+    m_ssaoSRV = {};
+
+    if (ctx.ssaoData && ctx.ssaoData->ssaoSRV.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoData->ssaoSRV;
+        m_hasSSAOData = true;
+    }
+    else if (ctx.ssaoRawTexture && ctx.ssaoRawTexture->getSRV().gpu.ptr != 0)
+    {
+        m_ssaoSRV = ctx.ssaoRawTexture->getSRV().gpu;
+        m_hasSSAOData = true;
+    }
+
 }
 
 void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -173,6 +227,17 @@ void MeshRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(3, m_lightsAddress);
 
     commandList->SetGraphicsRootDescriptorTable(8, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_shadowMapSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootConstantBufferView(9, m_shadowCBAddress);
+        commandList->SetGraphicsRootDescriptorTable(10, m_shadowMapSRV);
+    }
+
+    if (m_hasSSAOData && m_ssaoSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootDescriptorTable(11, m_ssaoSRV);
+    }
 
     renderMesh(commandList);
 }

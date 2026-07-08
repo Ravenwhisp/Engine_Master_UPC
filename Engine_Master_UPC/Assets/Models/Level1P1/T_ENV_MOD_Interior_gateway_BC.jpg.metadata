@@ -1,0 +1,13 @@
+{
+    "uid": 3630210179152311913,
+    "contentHash": "316981857a501706142f2eb13f952548",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_ENV_MOD_Interior_gateway_BC.jpg",
+    "sourceFileSize": 125236,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

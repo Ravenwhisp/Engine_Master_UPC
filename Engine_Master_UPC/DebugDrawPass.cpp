@@ -665,9 +665,6 @@ void DebugDrawPass::rebuildDrawableCache()
             case ComponentType::CAMERA:
                 m_cameraDrawables.push_back(drawable);
                 break;
-            case ComponentType::NAVIGATION_AGENT:
-                m_navDrawables.push_back(drawable);
-                break;
             case ComponentType::SCRIPT:
                 m_scriptDrawables.push_back(drawable);
                 break;

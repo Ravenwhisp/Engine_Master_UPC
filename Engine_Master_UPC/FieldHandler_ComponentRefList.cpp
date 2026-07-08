@@ -151,39 +151,32 @@ namespace
         ImGui::EndChild();
     }
 
-    void serializeComponentRefListField(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeComponentRefListField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        const ComponentRefList* componentList = reinterpret_cast<const ComponentRefList*>(data);
-
-        uint32_t count = static_cast<uint32_t>(componentList->size());
+        ComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+        uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(componentList->size()) : 0;
         archive.beginArray(count, field.name);
 
-        for (const ComponentRef<Component>& entry : *componentList)
+        if (archive.mode() == ArchiveMode::Input)
         {
-            uint64_t uid = static_cast<uint64_t>(entry.uid);
-            archive.serialize(uid);
+            componentList->clear();
+            componentList->reserve(count);
         }
-
-        archive.endArray();
-    }
-
-    void deserializeComponentRefListField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
-        componentList->clear();
-
-        uint32_t count = 0;
-        archive.beginArray(count, field.name);
-        componentList->reserve(count);
 
         for (uint32_t i = 0; i < count; ++i)
         {
-            uint64_t uid = 0;
-            archive.serialize(uid);
-            ComponentRef<Component> entry;
-            entry.uid = static_cast<UID>(uid);
-            entry.component = nullptr;
-            componentList->push_back(entry);
+            if (archive.mode() == ArchiveMode::Output)
+            {
+                uint64_t uid = static_cast<uint64_t>((*componentList)[i].uid);
+                archive.serialize(uid, "");
+            }
+            else
+            {
+                ComponentRef<Component> entry;
+                archive.serialize(entry.uid, "");
+                entry.component = nullptr;
+                componentList->push_back(std::move(entry));
+            }
         }
 
         archive.endArray();
@@ -232,7 +225,7 @@ namespace
         }
     }
 
-    const FieldHandler componentRefListFieldHandler = {&drawComponentRefListFieldUi, &serializeComponentRefListField, &deserializeComponentRefListField, &cloneComponentRefListField, &fixReferencesComponentRefListField};
+    const ScriptFieldHandler componentRefListFieldHandler = {&drawComponentRefListFieldUi, &serializeComponentRefListField, &cloneComponentRefListField, &fixReferencesComponentRefListField};
 }
 
 const FieldHandler* getComponentRefListFieldHandler()

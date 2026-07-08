@@ -18,6 +18,7 @@
 #include "LightComponent.h"
 #include "ScriptComponent.h"
 #include "ParticleSystemComponent.h"
+#include "TrailComponent.h"
 
 #include "ScenePicking.h"
 
@@ -48,7 +49,7 @@ bool ModuleScene::init()
     m_scene->init();
     m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
-    
+
     return true;
 }
 
@@ -58,14 +59,14 @@ void ModuleScene::update()
     {
         loadScene(m_pendingSceneLoad);
         m_pendingSceneLoad.clear();
-    }  
+    }
 
-    if(m_pendingScene)
+    if (m_pendingScene)
     {
-		loadScene(m_pendingScene);
-		m_pendingScene.reset();
-	}
-  
+        loadScene(m_pendingScene);
+        m_pendingScene.reset();
+    }
+
     m_scene->update();
 
     syncQuadtreeWithSettings();
@@ -98,6 +99,7 @@ void ModuleScene::rebuildComponentCaches()
     m_lightComponents.clear();
     m_scriptComponents.clear();
     m_particleSystemComponents.clear();
+    m_trailComponents.clear();
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -126,15 +128,15 @@ void ModuleScene::rebuildComponentCaches()
         {
             m_particleSystemComponents.push_back(particleSystem);
         }
+
+        if (auto* particleSystem = go->GetComponentAs<TrailComponent>(ComponentType::TRAIL))
+        {
+            m_trailComponents.push_back(particleSystem);
+        }
     }
 
     m_scene->clearDirty();
 
-    DEBUG_LOG("[ModuleScene] Cache rebuild: %zu GOs, %zu MeshRenderers, %zu Lights, %zu Scripts",
-              m_scene->getAllGameObjects().size(),
-              m_meshRenderers.size(),
-              m_lightComponents.size(),
-              m_scriptComponents.size());
 }
 
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
@@ -146,7 +148,64 @@ const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
     return m_meshRenderers;
 }
 
-const std::vector<MeshRenderer*>& ModuleScene::getVisibleMeshRenderers()
+const std::vector<MeshRenderer*> ModuleScene::getDeferredMeshRenderers()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers = {};
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer->getRenderMode() == RenderMode::DEFAULT)
+        {
+            meshRenderers.push_back(renderer);
+        }
+    }
+
+    return meshRenderers;
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers = {};
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer->getRenderMode() != RenderMode::DEFAULT)
+        {
+            meshRenderers.push_back(renderer);
+        }
+    }
+
+    return meshRenderers;
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers(RenderMode mode)
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers = {};
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer->getRenderMode() == mode)
+        {
+            meshRenderers.push_back(renderer);
+        }
+    }
+
+    return meshRenderers;
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.enabled)
     {
@@ -171,6 +230,87 @@ const std::vector<MeshRenderer*>& ModuleScene::getVisibleMeshRenderers()
         return m_visibleMeshRenderers;
     }
     return getMeshRenderers();
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
+{
+    if (app->getSettings()->frustumCulling.enabled)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : m_staticQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() == RenderMode::DEFAULT)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+
+        for (GameObject* gO : m_dynamicQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() == RenderMode::DEFAULT)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getDeferredMeshRenderers();
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
+{
+    if (app->getSettings()->frustumCulling.enabled)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : m_staticQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+
+        for (GameObject* gO : m_dynamicQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getForwardMeshRenderers();
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(RenderMode mode)
+{
+    if (app->getSettings()->frustumCulling.enabled)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : m_staticQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() == mode)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+
+        for (GameObject* gO : m_dynamicQuadtree->query())
+        {
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getRenderMode() == mode)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getForwardMeshRenderers(mode);
 }
 
 
@@ -201,7 +341,15 @@ const std::vector<ParticleSystemComponent*>& ModuleScene::getParticleSystemCompo
 
     return m_particleSystemComponents;
 }
+const std::vector<TrailComponent*>& ModuleScene::getTrailComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
 
+    return m_trailComponents;
+}
 
 #pragma endregion
 
@@ -213,6 +361,7 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
 
@@ -262,11 +411,14 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         app->getModuleMusic()->loadBank(bank);
     }
 
+    initializeRuntimeSceneSystems();
+
     return true;
 }
 
 bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 {
+    clearRuntimeSceneSystems();
     clearComponentCaches();
 
     auto sceneName = scene->getName();
@@ -302,6 +454,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #endif
 
     rebuildComponentCaches();
+    initializeRuntimeSceneSystems();
     return true;
 }
 
@@ -310,7 +463,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #pragma region Snapshot
 SceneSnapshot* ModuleScene::takeSnapshot() const
 {
-    SceneSnapshot * sceneSnapshot = new SceneSnapshot();
+    SceneSnapshot* sceneSnapshot = new SceneSnapshot();
     sceneSnapshot->init(*m_scene.get());
 
     return sceneSnapshot;
@@ -371,13 +524,13 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
-	const Layer layer = gameObject.GetLayer();
+    const Layer layer = gameObject.GetLayer();
 
     if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
     {
         m_dynamicQuadtree->move(gameObject);
     }
-	else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
     {
         m_staticQuadtree->move(gameObject);
     }
@@ -394,7 +547,7 @@ void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
     else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
     {
         m_staticQuadtree->remove(gameObject);
-	}
+    }
 }
 #pragma endregion
 
@@ -486,5 +639,32 @@ bool ModuleScene::pickGameObject(const Ray& worldRay, GameObjectPickHit& outHit)
 
     outHit = closestTriangleHit;
     return true;
+}
+#pragma endregion
+
+#pragma region Systems
+void ModuleScene::initializeRuntimeSceneSystems()
+{
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    {
+        return;
+    }
+
+    if (m_scene == nullptr)
+    {
+        return;
+    }
+
+    m_scene->registerAllTriggersInScene();
+}
+
+void ModuleScene::clearRuntimeSceneSystems()
+{
+    if (m_scene == nullptr)
+    {
+        return;
+    }
+
+    m_scene->clearTriggers();
 }
 #pragma endregion

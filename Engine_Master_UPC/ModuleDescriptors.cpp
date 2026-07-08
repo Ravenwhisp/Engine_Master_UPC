@@ -37,14 +37,12 @@ bool ModuleDescriptors::init()
 
 void ModuleDescriptors::preRender()
 {
-    const uint64_t lastCompletedFrame = app->getModuleD3D12()->getLastCompletedFrame();
+	UINT lastCompletedFrame = (UINT)app->getModuleD3D12()->getLastCompletedFrame();
+    for (size_t i = 0; i < m_defferedDescriptors.size();) {
 
-    int i = 0;
-    while (i < static_cast<int>(m_defferedDescriptors.size()))
-    {
         if (lastCompletedFrame >= m_defferedDescriptors[i].frame)
         {
-            m_DescriptorHeapMap[m_defferedDescriptors[i].heapType]->free(m_defferedDescriptors[i].handle);
+            m_DescriptorHeapMap[m_defferedDescriptors[i].heap]->free(m_defferedDescriptors[i].handle);
             m_defferedDescriptors[i] = m_defferedDescriptors.back();
             m_defferedDescriptors.pop_back();
         }
@@ -127,12 +125,12 @@ void ModuleDescriptors::createDefaultSamplers()
     }
 }
 
-void ModuleDescriptors::defferDescriptorRelease(Handle handle, D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+void ModuleDescriptors::defferDescriptorRelease(Handle handle, D3D12_DESCRIPTOR_HEAP_TYPE heap)
 {
 	DefferedDescriptor defferedDescriptor;
 	defferedDescriptor.frame = app->getModuleD3D12()->getCurrentFrame();
 	defferedDescriptor.handle = handle;
-	defferedDescriptor.heapType = heapType;
+    defferedDescriptor.heap = heap;
 	m_defferedDescriptors.push_back(defferedDescriptor);
 }
 

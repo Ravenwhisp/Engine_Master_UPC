@@ -1,0 +1,139 @@
+{
+  "SourcePath": "Assets/Prefabs/SpikeTrap",
+  "Name": "SpikeTrap",
+  "Version": 2,
+  "PrefabUID": 6342207439423618137,
+  "GameObject": {
+    "Name": "SpikeTrap",
+    "Active": true,
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 6115702634317977502,
+          "ComponentType": 1,
+          "Active": true,
+          "MeshAssetId": "137bbd3e4068d1a1d79c28854b255b29",
+          "SkinAssetId": "",
+          "MaterialAssetId": [
+            "5805c3f5af0a95d7ec438a08c1fa1847"
+          ]
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 5942957868135713803,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "SpikeTrap",
+          "ScriptFields": {
+            "Alternative Mode": false,
+            "Active Duration": 2.0,
+            "Preparing Duration": 1.0,
+            "Start Position Y": -1.0,
+            "Wait Position Y": -0.699999988079071,
+            "Active Position Y": 0.0,
+            "Trap Damage": 20.0
+          }
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Normal",
+        "Active": true,
+        "Transform": {
+          "position": [
+            0.0,
+            -1.0260000228881836,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 7540897376620032325,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": "3100e6f4e244b9c72c844ef38b85fb82",
+              "SkinAssetId": "",
+              "MaterialAssetId": [
+                "5805c3f5af0a95d7ec438a08c1fa1847"
+              ]
+            }
+          }
+        ],
+        "Children": []
+      },
+      {
+        "Name": "Spectral",
+        "Active": true,
+        "Transform": {
+          "position": [
+            0.0,
+            -1.0260000228881836,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 10895499705080038588,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": "db5ca0715abd4b43b2c31e9a79b95cc2",
+              "SkinAssetId": "",
+              "MaterialAssetId": [
+                "e58e1792b026b920ee916aa70f9cc5ea"
+              ]
+            }
+          }
+        ],
+        "Children": []
+      }
+    ]
+  }
+}

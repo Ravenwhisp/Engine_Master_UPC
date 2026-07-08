@@ -103,7 +103,7 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
         m_cooperativeSound->playHealthOrb();
     }
 
-    if (m_collectParticlePrefab.m_ref.isValid())
+    if (!m_collectParticlePrefabPath.empty())
     {
         Transform* t = GameObjectAPI::getTransform(getOwner());
         Vector3 spawnPosition = t != nullptr ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;

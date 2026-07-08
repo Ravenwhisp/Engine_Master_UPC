@@ -8,7 +8,7 @@
 struct DefferedDescriptor {
 	uint64_t frame = 0;
 	Handle handle;
-	D3D12_DESCRIPTOR_HEAP_TYPE heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	D3D12_DESCRIPTOR_HEAP_TYPE heap;
 };
 
 struct DefferedBlock {
@@ -51,8 +51,7 @@ public:
 	DescriptorHeap& getHeap(D3D12_DESCRIPTOR_HEAP_TYPE type) { return *m_DescriptorHeapMap[type]; }
 	StagingDescriptorHeap& getStagingHeap() { return *m_stagingSRVHeap; }
 
-	void defferDescriptorRelease(Handle handle, D3D12_DESCRIPTOR_HEAP_TYPE heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	void defferBlockRelease(DescriptorHeapBlock* block, D3D12_DESCRIPTOR_HEAP_TYPE heapType);
+	void defferDescriptorRelease(Handle handle, D3D12_DESCRIPTOR_HEAP_TYPE heap);
 
 private:
 	void createDefaultSamplers();

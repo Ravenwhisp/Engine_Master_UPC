@@ -1,31 +1,35 @@
 #include "Globals.h"
 #include "EmitterLifetime.h"
-#include "JsonArchive.h"
+
+#include "Application.h"
+
+#include "ModuleParticleSystem.h"
 #include "EmitterInstance.h"
 #include "ParticleSystemComponent.h"
 
 void EmitterLifetime::update(EmitterInstance* particleData)
 {
-	Particle* particlePool;
+	ModuleParticleSystem* moduleParticleSystem = app->getModuleParticleSystem();
+
+	auto& particlePool = moduleParticleSystem->getPool();
 	{
-		std::vector<std::pair<float, unsigned int>>* aliveParticles; // saves distance (sqr) to camera + index to pool
-		particleData->getPoolAndAlives(particlePool, aliveParticles);
+		std::vector<std::pair<float, unsigned int>>& aliveParticles = particleData->getAliveParticles();
 		
 		// Dealing with already existing particles //
 
 		float deltaTime = particleData->getParticleSystemComponent()->deltaTime();
 
 		unsigned int i = 0;
-		while (i < aliveParticles->size()) 
+		while (i < aliveParticles.size()) 
 		{
-			unsigned int poolIndex = (*aliveParticles)[i].second;
+			unsigned int poolIndex = aliveParticles[i].second;
 
 			if (particlePool[poolIndex].lifeTime == 0.f) 
 			{
 				// Remove from alives
 				// aliveParticles->erase(aliveParticles->begin() + i); <- Should not need to be brough back
 				eraseBySwap(aliveParticles, i);
-				particleData->freePoolSlot(poolIndex); // mark poolIndex slot as free
+				moduleParticleSystem->freePoolSlot(poolIndex); // mark poolIndex slot as free
 			}
 			else 
 			{
@@ -39,7 +43,18 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 
 	for (auto& particleIndex : particleData->getNewParticles()) 
 	{
-		particlePool[particleIndex].lifeTime = m_startLifeTime;
+		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		{
+			float scale = uniform_rand();
+			float lifeTime = m_startLifeTime + (m_startLifeTime2 - m_startLifeTime) * scale;
+			particlePool[particleIndex].lifeTime = lifeTime;
+			particlePool[particleIndex].startLifeTime = lifeTime; // for later
+		}
+		else
+		{
+			particlePool[particleIndex].lifeTime = m_startLifeTime;
+			particlePool[particleIndex].startLifeTime = m_startLifeTime; // for later
+		}
 	}
 }
 
@@ -49,7 +64,23 @@ bool EmitterLifetime::drawUi()
 
 	if (ImGui::CollapsingHeader("Lifetime"))
 	{
-		parameterChanged = ImGui::DragFloat("Initial lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		int parameterType = static_cast<int>(m_lifeTimeType);
+		// Solo mostramos Constant y Random para Lifetime
+		if (ImGui::Combo("Lifetime type##Lifetime", &parameterType, "Constant\0Random value between two\0"))
+		{
+			m_lifeTimeType = static_cast<ParameterType>(parameterType);
+			parameterChanged = true;
+		}
+
+		if (m_lifeTimeType == ParameterType::CONSTANT)
+		{
+			parameterChanged |= ImGui::DragFloat("Initial lifetime##Lifetime", &m_startLifeTime, 0.1f, 0.0f);
+		}
+		else if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		{
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 1##Lifetime", &m_startLifeTime, 0.1f, 0.0f);
+			parameterChanged |= ImGui::DragFloat("Initial lifetime 2##Lifetime", &m_startLifeTime2, 0.1f, 0.0f);
+		}
 	}
 
 	return parameterChanged;
@@ -57,22 +88,25 @@ bool EmitterLifetime::drawUi()
 
 void EmitterLifetime::serialize(IArchive& archive)
 {
-    ParticleModule::serialize(archive);
-    archive.serialize(m_startLifeTime, "StartLifeTime");
+	ParticleModule::serialize(archive);
+	archive.serializeStringEnum(m_lifeTimeType, "LifeTimeType", ParameterTypeToString, StringToParameterType);
+	archive.serialize(m_startLifeTime, "StartLifeTime");
+	if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
+		archive.serialize(m_startLifeTime2, "StartLifeTime2");
 }
 
-void EmitterLifetime::eraseBySwap(std::vector<std::pair<float, unsigned int>>* aliveParticles, unsigned int index)
+void EmitterLifetime::eraseBySwap(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index)
 {
 	// maybe also consider case = 0 (would be swapWithFront() + pop_front(); we could even be smarter with cases for cache optimisations)
-	if (index != aliveParticles->size()-1) swapWithBack(aliveParticles, index);
+	if (index != aliveParticles.size()-1) swapWithBack(aliveParticles, index);
 
-	aliveParticles->pop_back();
+	aliveParticles.pop_back();
 }
 
-void EmitterLifetime::swapWithBack(std::vector<std::pair<float, unsigned int>>* aliveParticles, unsigned int index)
+void EmitterLifetime::swapWithBack(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index)
 {
-	std::pair<float, unsigned int> oldBack = aliveParticles->back();
+	std::pair<float, unsigned int> oldBack = aliveParticles.back();
 
-	aliveParticles->back() = (*aliveParticles)[index];
-	(*aliveParticles)[index] = oldBack;
+	aliveParticles.back() = aliveParticles[index];
+	aliveParticles[index] = oldBack;
 }

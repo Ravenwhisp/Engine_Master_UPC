@@ -1,0 +1,13 @@
+{
+    "uid": 497951777151995905,
+    "contentHash": "978ca0da1f670201532a32c83e9e4941",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_PROP_fabrics_interior_BC.jpg",
+    "sourceFileSize": 251077,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

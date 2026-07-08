@@ -1,0 +1,13 @@
+{
+    "uid": 5903705486614966992,
+    "contentHash": "cbb4a78cc637ce19d925e91016b1d40d",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\b_credits_pressed.png",
+    "sourceFileSize": 22927,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

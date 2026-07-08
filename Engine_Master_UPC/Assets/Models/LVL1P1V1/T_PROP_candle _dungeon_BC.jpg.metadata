@@ -1,0 +1,13 @@
+{
+    "uid": 16193174726935552885,
+    "contentHash": "066454ef31ec52e66b9e28851e06d7fc",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_PROP_candle _dungeon_BC.jpg",
+    "sourceFileSize": 36644,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

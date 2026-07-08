@@ -1,0 +1,13 @@
+{
+    "uid": 18296804048419733933,
+    "contentHash": "8f7f521de10c17a2be88e3b03f966971",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P1\\T_PROP_gold_dungeon_MTSM_nometal.jpg",
+    "sourceFileSize": 145162,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -7,7 +7,12 @@
 #include "GameObject.h"
 #include "ModuleResources.h"
 #include "ModuleTime.h"
+
 #include "ParticleSystemComponent.h"
+#include "EmitterAnimation.h"
+
+#include "ParticleEmitter.h"
+#include "EmitterRender.h"
 
 
 void ModuleParticleSystem::resetAllParticles()
@@ -55,6 +60,25 @@ Texture* ModuleParticleSystem::resolveTexture(AssetReference& textureRef)
 }
 
 
+bool ModuleParticleSystem::init()
+{
+    initSlotManagement();
+
+    return true;
+}
+
+void ModuleParticleSystem::initSlotManagement()
+{
+    m_slots[MAX_PARTICLES - 1] = 0;
+
+    for (unsigned int i = 0; i < MAX_PARTICLES - 1; ++i)
+    {
+        m_slots[i] = i + 1;
+    }
+
+    m_firstFree = 0;
+}
+
 void ModuleParticleSystem::preRender()
 {
 	m_particleCommands.clear();
@@ -63,6 +87,12 @@ void ModuleParticleSystem::preRender()
 	{
 		buildParticleCommands(currentParticleSystemComponent);
 	}
+
+    // sort m_particleCommands per layer value (so that overlapped emitters with higher layer are rendered on top)
+    std::sort(m_particleCommands.begin(), m_particleCommands.end(), [](const ParticleEmitterCommand& a, const ParticleEmitterCommand& b)
+    {
+        return a.layer < b.layer;
+    });
 }
 
 void ModuleParticleSystem::update()
@@ -75,6 +105,16 @@ void ModuleParticleSystem::update()
     }
 }
 
+bool ModuleParticleSystem::cleanUp()
+{
+    m_particleCommands.clear();
+
+    m_particleTextures.clear(); // needed so that textures are freed at the right time everywhere else
+
+    return true;
+}
+
+/*
 ParticleSystem* ModuleParticleSystem::addSystem(Transform* parent)
 {
 	m_particleSystems.push_back(std::make_unique<ParticleSystem>());
@@ -97,6 +137,30 @@ bool ModuleParticleSystem::removeSystem(ParticleSystem* system)
 
     return false;
 }
+*/
+
+int ModuleParticleSystem::requestPoolSlot()
+{
+
+    if (m_firstFree == m_slots[m_firstFree]) return -1; // because the slot points to itself, which indicates used
+
+    int slot = m_firstFree;
+
+    m_firstFree = m_slots[slot]; // update first free, to point to the next one
+
+    m_slots[slot] = slot; // mark as used
+
+    return slot;
+}
+
+void ModuleParticleSystem::freePoolSlot(unsigned int index) 
+{
+    m_slots[index] = m_firstFree; // Set next free (because we are adding the index slot as the new first)
+
+    m_firstFree = index; // Update first
+}
+
+
 
 void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystemComponent)
 {
@@ -114,26 +178,34 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 
     for (auto& emitterInstance : particleSystemComponent->getEmitterInstances())
     {
-        Particle* pool = nullptr;
-        std::vector<std::pair<float, unsigned int>>* aliveParticles = nullptr;
-        emitterInstance.getPoolAndAlives(pool, aliveParticles);
+        std::vector<std::pair<float, unsigned int>>& aliveParticles = emitterInstance.getAliveParticles();
 
-        if (!pool || !aliveParticles || aliveParticles->empty())
+        if (aliveParticles.empty())
         {
             continue;
         }
 
+        EmitterAnimation* animationConfig = emitterInstance.getParticleEmitter()->getAnimationModule();
+        EmitterRender* renderConfig = emitterInstance.getParticleEmitter()->getRenderModule();
+
         ParticleEmitterCommand command;
 		command.texture = texture;
-		command.particles.reserve(aliveParticles->size());
+        command.layer = renderConfig->getLayer();
+        command.uvScale = animationConfig->getUVScale();
 
-		for (const auto& aliveParticle : *aliveParticles)
+		command.particles.reserve(aliveParticles.size());
+        command.renderMode = renderConfig->getRenderMode();
+        command.particles.reserve(aliveParticles.size());
+
+		for (const auto& aliveParticle : aliveParticles)
 		{
 			ParticleCommand particleData;
-			particleData.position = pool[aliveParticle.second].position;
-			particleData.colorAndAlpha = pool[aliveParticle.second].colorAndAlpha;
-			particleData.rotationZ = pool[aliveParticle.second].rotationZ;
-			particleData.scale = pool[aliveParticle.second].scale;
+			particleData.position = m_pool[aliveParticle.second].position;
+			particleData.colorAndAlpha = m_pool[aliveParticle.second].colorAndAlpha;
+			particleData.rotationZ = m_pool[aliveParticle.second].rotationZ;
+			particleData.scale = m_pool[aliveParticle.second].scale;
+            
+            particleData.sheetOffset = animationConfig->getUVOffset(aliveParticle.second);
 
 			command.particles.push_back(particleData);
 		}
