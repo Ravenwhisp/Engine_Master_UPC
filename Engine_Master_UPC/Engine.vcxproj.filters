@@ -1487,6 +1487,9 @@
     <ClInclude Include="UILayoutUtils.h">
       <Filter>Persistence\Importers\External\UI</Filter>
     </ClInclude>
+    <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
+      <Filter>Editor\Fonts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1838,6 +1841,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\RenderData">
       <UniqueIdentifier>{A859F71B-E36E-53D9-8C4D-D592C1F9C7D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Fonts">
+      <UniqueIdentifier>{e6bd4f60-7273-4dbe-b942-af53a62134c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
