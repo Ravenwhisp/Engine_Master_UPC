@@ -332,10 +332,6 @@ void GameObject::drawUI()
     ImGui::Separator();
     const bool inPrefabMode = app->getModuleEditor()->isInPrefabEditMode();
 
-    ImVec2 pos = ImGui::GetCursorScreenPos();
-    ImVec2 size = ImGui::GetContentRegionAvail();
-    ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
-
     if (ImGui::BeginTable("GameObjectWindowInspector", 2, ImGuiTableFlags_SizingStretchProp))
     {
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 120.0f);
@@ -407,7 +403,7 @@ void GameObject::drawUI()
                 {
                     s_pendingLayer = m_layer;
                     s_pendingLayerTarget = this;
-                    m_layer = previousLayer; // revert until user decides
+                    m_layer = previousLayer;
                     ImGui::OpenPopup("##LayerChildrenPopup");
                 }
 
@@ -479,7 +475,7 @@ void GameObject::drawUI()
 
         ImGui::PushID(static_cast<int>(component->getID()));
 
-        std::string header = std::string(ComponentTypeToString(component->getType())); // + " | UUID: " + std::to_string(component->getID());
+        std::string header = std::string(ComponentTypeToString(component->getType()));
 
         if (component->getType() == ComponentType::SCRIPT)
         {
@@ -529,7 +525,6 @@ void GameObject::drawUI()
             const float dropZoneHeight = 5.0f;
             const float fullWidth = headerMax.x - headerMin.x;
 
-            // TOP DROP ZONE
             ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y));
             ImGui::InvisibleButton("##drop_above", ImVec2(fullWidth, dropZoneHeight));
 
@@ -550,7 +545,6 @@ void GameObject::drawUI()
                 ImGui::EndDragDropTarget();
             }
 
-            // BOTTOM DROP ZONE
             ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMax.y - dropZoneHeight));
             ImGui::InvisibleButton("##drop_below", ImVec2(fullWidth, dropZoneHeight));
 
@@ -617,6 +611,10 @@ void GameObject::drawUI()
     {
         moveComponent(static_cast<size_t>(pendingMoveFrom), static_cast<size_t>(pendingMoveTo));
     }
+
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 windowSize = ImGui::GetWindowSize();
+    ImRect bb(windowPos, ImVec2(windowPos.x + windowSize.x, windowPos.y + windowSize.y));
 
     if (ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("##InspectorDropZone")))
     {
