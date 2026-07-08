@@ -28,12 +28,12 @@
  gradient.getColorAt(0.3f, color); //position from 0 to 1
  
  ::MODIFY GRADIENT WITH CODE::
- gradient.getMarks().clear();
+ gradient.clearMarks();
  gradient.addMark(0.0f, ImColor(0.2f, 0.1f, 0.0f));
  gradient.addMark(0.7f, ImColor(120, 200, 255));
  
  ::WOOD BROWNS PRESET::
- gradient.getMarks().clear();
+ gradient.clearMarks();
  gradient.addMark(0.0f, ImColor(0xA0, 0x79, 0x3D));
  gradient.addMark(0.2f, ImColor(0xAA, 0x83, 0x47));
  gradient.addMark(0.3f, ImColor(0xB4, 0x8D, 0x51));
@@ -63,6 +63,9 @@ class ImGradient
 public:
     ImGradient();
     ~ImGradient();
+
+    ImGradient(const ImGradient& other);
+    ImGradient& operator=(const ImGradient& other);
     
     void getColorAt(float position, float* color) const;
     ImGradientMark* addMark(float position, ImColor const color);
