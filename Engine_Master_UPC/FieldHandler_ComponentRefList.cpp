@@ -225,7 +225,7 @@ namespace
         }
     }
 
-    const ScriptFieldHandler componentRefListFieldHandler = {&drawComponentRefListFieldUi, &serializeComponentRefListField, &cloneComponentRefListField, &fixReferencesComponentRefListField};
+    const FieldHandler componentRefListFieldHandler = {&drawComponentRefListFieldUi, &serializeComponentRefListField, &cloneComponentRefListField, &fixReferencesComponentRefListField};
 }
 
 const FieldHandler* getComponentRefListFieldHandler()

@@ -79,7 +79,7 @@ namespace
 
     void serializeComponentRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
     {
-        ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
+        ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
         archive.serialize(componentReference->uid, field.name);
         if (archive.mode() == ArchiveMode::Input)
             componentReference->component = nullptr;
@@ -118,7 +118,7 @@ namespace
         }
     }
 
-    const ScriptFieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
+    const FieldHandler componentRefFieldHandler = { &drawComponentRefFieldUi, &serializeComponentRefField, &cloneComponentRefField, &fixReferencesComponentRefField};
 }
 
 const FieldHandler* getComponentRefFieldHandler()

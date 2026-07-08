@@ -35,8 +35,7 @@ public:
     float m_instaKillThreshold = 0.20f;
     float m_standardDamage     = 0.10f;
 
-    // Ruta del prefab de partículas (ajustable desde el editor si lo expones)
-    const char* m_particlePrefabPath = "Assets/Prefabs/Particles/Death/ShadowExecution.prefab";
+    PrefabRef m_particlePrefab;
 
 private:
     void cachePlayers();

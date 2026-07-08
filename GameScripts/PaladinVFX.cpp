@@ -1,18 +1,6 @@
 #include "pch.h"
 #include "PaladinVFX.h"
 
-namespace
-{
-    constexpr const char* WALKING_DUST_PREFAB_PATH =
-        "Assets/Prefabs/Particles/WalkingDust.prefab";
-
-    constexpr const char* CHARGE_ATTACK_EFFECT_PREFAB_PATH =
-        "Assets/Prefabs/Particles/Paladin/ChargeAttackEffect.prefab";
-
-    constexpr const char* BASIC_ATTACK_EFFECT_PREFAB_PATH =
-        "Assets/Prefabs/Particles/Paladin/BasicAttackEffect.prefab";
-}
-
 IMPLEMENT_SCRIPT_FIELDS(PaladinVFX,
     SERIALIZED_ASSET_REF(m_walkingDustPrefab, "Walking Dust Prefab", AssetType::PREFAB),
     SERIALIZED_ASSET_REF(m_chargeAttackEffectPrefab, "Charge Attack Effect Prefab", AssetType::PREFAB),
@@ -190,7 +178,7 @@ void PaladinVFX::addWalkingDust()
     removeWalkingDust();
 
     walkingDustEffect = GameObjectAPI::instantiatePrefab(
-        WALKING_DUST_PREFAB_PATH,
+        m_walkingDustPrefab.m_ref,
         getWalkingDustPosition(),
         getOwnerRotation()
     );
@@ -238,7 +226,7 @@ void PaladinVFX::addChargeAttackEffect()
     removeChargeAttackEffect();
 
     chargeAttackEffect = GameObjectAPI::instantiatePrefab(
-        CHARGE_ATTACK_EFFECT_PREFAB_PATH,
+        m_chargeAttackEffectPrefab.m_ref,
         getChargeAttackEffectPosition(),
         getOwnerRotation()
     );
@@ -284,7 +272,7 @@ void PaladinVFX::updateChargeAttackEffectPosition()
 void PaladinVFX::addBasicAttackEffect()
 {
     basicAttackEffect = GameObjectAPI::instantiatePrefab(
-        BASIC_ATTACK_EFFECT_PREFAB_PATH,
+        m_basicAttackEffectPrefab.m_ref,
         getBasicAttackEffectPosition(),
         getOwnerRotation()
     );

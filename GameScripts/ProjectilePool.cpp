@@ -5,7 +5,7 @@
 
 IMPLEMENT_SCRIPT_FIELDS(ProjectilePool,
 	SERIALIZED_INT(m_maxProjectiles, "Max Projectiles"),
-	SERIALIZED_STRING(m_projectilePrefabPath, "Projectile Prefab Path")
+	SERIALIZED_ASSET_REF(m_projectilePrefab, "Projectile Prefab", AssetType::PREFAB)
 )
 
 ProjectilePool::ProjectilePool(GameObject* owner)
@@ -29,13 +29,13 @@ void ProjectilePool::Start()
 
 bool ProjectilePool::createProjectile()
 {
-	if (m_projectilePrefabPath.empty())
+	if (!m_projectilePrefab.m_ref.isValid())
 	{
 		return false;
 	}
 
 	GameObject* projectileObject = GameObjectAPI::instantiatePrefab(
-		m_projectilePrefabPath.c_str(),
+		m_projectilePrefab.m_ref,
 		Vector3::Zero,
 		Vector3::Zero,
 		nullptr

@@ -16,7 +16,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     float m_xWidth = 2.0f;
@@ -24,8 +24,8 @@ public:
 
     std::string m_sceneToLoad;
 
-    ScriptComponentRef<Transform> m_firstTarget;
-    ScriptComponentRef<Transform> m_secondTarget;
+    ComponentRef<Transform> m_firstTarget;
+    ComponentRef<Transform> m_secondTarget;
 
 private:
     bool containsPoint(const Vector3& triggerCenter, const Vector3& point) const;
