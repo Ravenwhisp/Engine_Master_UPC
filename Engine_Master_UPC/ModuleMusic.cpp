@@ -273,7 +273,32 @@ bool ModuleMusic::loadBank(const AssetReference& ref)
 		return false;
 	}
 
-	return loadBank(asset->getBankName());
+	const std::string& bankName = asset->getBankName();
+
+	for (WwiseBank& bank : m_banks)
+	{
+		if (bank.getName() == bankName)
+			return bank.load();
+	}
+
+	if (m_initBnk.getName() == bankName)
+		return m_initBnk.load();
+
+	WwiseBank bank;
+	bank.setName(bankName);
+	bank.setAssetRef(mutableRef);
+	bank.setBankData(asset->getBankData());
+	for (const auto& e : asset->getEvents())
+		bank.addEvent(e);
+
+	if (bankName == "Init.bnk")
+	{
+		m_initBnk = std::move(bank);
+		return m_initBnk.load();
+	}
+
+	m_banks.push_back(std::move(bank));
+	return m_banks.back().load();
 }
 
 bool ModuleMusic::unloadBank(const std::string& bankName)

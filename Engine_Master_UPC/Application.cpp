@@ -15,6 +15,7 @@
 #include "AssetReference.h"
 #include "MD5.h"
 #include "FileIO.h"
+#include <sstream>
 #include "ModuleEventSystem.h"
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
@@ -97,20 +98,40 @@ bool Application::init()
 
     if (!configData.empty())
     {
-        std::string hash(reinterpret_cast<const char*>(configData.data()), configData.size());
-        hash.erase(hash.find_last_not_of(" \n\r\t") + 1);
+        std::string configStr(reinterpret_cast<const char*>(configData.data()), configData.size());
+        std::istringstream stream(configStr);
+        std::string line;
 
-        if (!hash.empty())
+        if (std::getline(stream, line))
         {
-            UID uid = hashToUID(hash);
-            if (isValidUID(uid))
+            line.erase(line.find_last_not_of(" \n\r\t") + 1);
+            if (!line.empty())
             {
-                AssetReference ref(uid, hash, AssetType::SCENE);
-                m_moduleScene->loadScene(ref);
+                std::string sceneHash = line;
+                UID uid = hashToUID(sceneHash);
+                if (isValidUID(uid))
+                {
+                    if (std::getline(stream, line))
+                    {
+                        line.erase(line.find_last_not_of(" \n\r\t") + 1);
+                        if (!line.empty())
+                        {
+                            AssetReference initRef(GenerateUID(), line, AssetType::SOUND_BANK);
+                            m_moduleMusic->loadBank(initRef);
+                        }
+                    }
+
+                    AssetReference ref(uid, sceneHash, AssetType::SCENE);
+                    m_moduleScene->loadScene(ref);
+                }
+                else
+                {
+                    DEBUG_ERROR("[Application] Invalid hash in build.cfg.");
+                }
             }
             else
             {
-                DEBUG_ERROR("[Application] Invalid hash in build.cfg.");
+                DEBUG_ERROR("[Application] build.cfg is empty.");
             }
         }
         else

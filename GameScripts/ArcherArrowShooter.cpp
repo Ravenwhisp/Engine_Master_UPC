@@ -22,7 +22,7 @@ void ArcherArrowShooter::Start()
 
 void ArcherArrowShooter::Update()
 {
-    if (!m_animation || !m_config || m_arrowPrefab.empty()) return;
+    if (!m_animation || !m_config || !m_arrowPrefab.m_ref.isValid()) return;
 
     const char* state = AnimationAPI::getActiveStateName(m_animation);
     if (!state) return;

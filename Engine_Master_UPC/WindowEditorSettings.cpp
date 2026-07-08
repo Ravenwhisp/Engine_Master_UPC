@@ -5,6 +5,7 @@
 #include "ModuleScene.h"
 #include "ModuleScripting.h"
 #include "ModuleAssets.h"
+#include "ModuleMusic.h"
 
 #include "Settings.h"
 #include "Scene.h"
@@ -203,8 +204,16 @@ void WindowEditorSettings::drawBuildSettings()
 
         if (ref && !ref->m_libId.empty())
         {
+            std::string configStr = ref->m_libId + "\n";
+
+            AssetReference initBnkRef = app->getModuleMusic()->findBankRef("Init.bnk");
+            if (initBnkRef.isValid())
+            {
+                configStr += initBnkRef.m_libId + "\n";
+            }
+
             const std::filesystem::path outPath = "../Engine_OUT/build.cfg";
-            FileIO::write(outPath, ref->m_libId.c_str(), ref->m_libId.size());
+            FileIO::write(outPath, configStr.c_str(), configStr.size());
             DEBUG_LOG("[WindowEditorSettings] Build config exported to %s", outPath.string().c_str());
         }
         else
