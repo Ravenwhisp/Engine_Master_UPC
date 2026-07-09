@@ -32,6 +32,8 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
         newMeshRenderer->m_skin = m_skin->clone();
     }
 
+    newMeshRenderer->m_renderMode = m_renderMode;
+
     return newMeshRenderer;
 }
 
