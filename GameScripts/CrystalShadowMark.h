@@ -26,7 +26,7 @@ public:
 
 	float m_activeTime = 5.0f;
 
-    std::string m_crystalSparks = "Assets/Prefabs/Particles/CrystalSparks.prefab";
+    PrefabRef m_crystalSparks;
 
 private:
 

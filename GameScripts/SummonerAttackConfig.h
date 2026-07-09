@@ -22,7 +22,7 @@ public:
 	float m_energyBallLifetime = 2.0f;
 
 	// Summon
-	std::string m_spiderPrefabPath = "";
+	PrefabRef m_spiderPrefab;
 	int m_summonCount = 3;
 	float m_summonRadius = 2.0f;
 	float m_summonCastTime = 0.5f;

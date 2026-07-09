@@ -12,6 +12,7 @@ ENGINE_API const ScriptFieldHandler* getVec3FieldHandler();
 ENGINE_API const ScriptFieldHandler* getEnumIntFieldHandler();
 ENGINE_API const ScriptFieldHandler* getComponentRefFieldHandler();
 ENGINE_API const ScriptFieldHandler* getComponentRefListFieldHandler();
+ENGINE_API const ScriptFieldHandler* getAssetRefFieldHandler();
 ENGINE_API const ScriptFieldHandler* getStringFieldHandler();
 ENGINE_API const ScriptFieldHandler* getListFieldHandler(ScriptFieldType elementType);
 

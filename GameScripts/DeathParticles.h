@@ -13,7 +13,7 @@ public:
 
 	ScriptComponentRef<Transform> m_dashTrail;
 	ScriptComponentRef<Transform> m_scytheTrail;
-	std::string m_tauntParticlePath = "Assets/Prefabs/Particles/Death/DeathTaunt.prefab";
+	PrefabRef m_tauntParticle;
 
 	GameObject* m_activeTauntParticle = nullptr;
 	float m_tauntParticleLifetime = 0.0f;

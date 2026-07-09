@@ -9,3 +9,4 @@
 #include "ScriptFieldMacros.h"
 
 #include "ScriptComponentRef.h"
+#include "AssetRef.h"

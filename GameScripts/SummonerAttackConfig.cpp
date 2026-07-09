@@ -15,7 +15,7 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(SummonerAttackConfig, EnemyBaseAttackConfig,
 	),
 	// Summon
 	FIELD_GROUP_COLLAPSE("Summon",
-		SERIALIZED_STRING(m_spiderPrefabPath, "Spider Prefab Path"),
+		SERIALIZED_ASSET_REF(m_spiderPrefab, "Spider Prefab", AssetType::PREFAB),
 		SERIALIZED_INT(m_summonCount, "Summon Count"),
 		SERIALIZED_FLOAT(m_summonRadius, "Summon Radius", 0.0f, 10.0f, 0.1f),
 		SERIALIZED_FLOAT(m_summonCastTime, "Summon Cast Time", 0.0f, 10.0f, 0.1f),

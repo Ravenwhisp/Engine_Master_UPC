@@ -21,7 +21,7 @@ private:
     void syncParticleTransform();
 
 public:
-    std::string m_particlePrefabPath = "";
+    PrefabRef m_particlePrefab;
 
 private:
     Vector3 m_direction = Vector3::Zero;

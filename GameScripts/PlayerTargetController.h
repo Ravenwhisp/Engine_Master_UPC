@@ -25,10 +25,7 @@ public:
 
 private:
     void updateTargetsInRange();
-    void clearInvalidCurrentTarget();
-    void setDefaultEnemyTargetIfNeeded();
-
-    GameObject* findDefaultEnemyTarget() const;
+    void ensureValidCurrentTarget();
 
     bool canUpdateTarget() const;
     void updateCurrentTarget();

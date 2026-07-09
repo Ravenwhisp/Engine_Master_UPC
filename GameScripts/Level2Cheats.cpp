@@ -6,9 +6,6 @@
 #include "PlayerController.h"
 #include "EnemyDamageable.h"
 
-IMPLEMENT_SCRIPT_FIELDS(Level2Cheats,
-    SERIALIZED_STRING_VECTOR(m_enemyPrefabPaths, "Enemy Prefab Paths")
-)
 
 Level2Cheats::Level2Cheats(GameObject* owner)
     : Script(owner)
@@ -83,7 +80,7 @@ void Level2Cheats::ToggleInvincibility()
 
 void Level2Cheats::SpawnEnemy(int enemyPrefabIndex)
 {
-    if (enemyPrefabIndex < 0 || enemyPrefabIndex >= static_cast<int>(m_enemyPrefabPaths.size()))
+    /*if (enemyPrefabIndex < 0 || enemyPrefabIndex >= static_cast<int>(m_enemyPrefabPaths.size()))
     {
         Debug::warn("[LevelCheats] Invalid enemy prefab index: %i", enemyPrefabIndex);
         return;
@@ -115,11 +112,11 @@ void Level2Cheats::SpawnEnemy(int enemyPrefabIndex)
     Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
     Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
 
-    const std::string& prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
+    const AssetRef<Prefab> prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
 
-    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.c_str());
+    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.m_ref);
 
-    GameObjectAPI::instantiatePrefab(prefabPath.c_str(), enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
+    GameObjectAPI::instantiatePrefab(prefabPath.m_ref, enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));*/
 }
 
 IMPLEMENT_SCRIPT(Level2Cheats)

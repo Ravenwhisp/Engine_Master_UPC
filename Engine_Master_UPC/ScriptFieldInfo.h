@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "ComponentType.h"
+#include "AssetType.h"
 #include "ScriptFieldHandler.h"
 
 enum class ScriptFieldType
@@ -15,6 +16,7 @@ enum class ScriptFieldType
     ComponentRefList,
     String,
     List,
+    AssetRef,
 
     GroupLabel,
     GroupCollapseBegin,
@@ -39,6 +41,11 @@ struct ScriptFieldComponentRefInfo
     ComponentType componentType;
 };
 
+struct ScriptFieldAssetRefInfo
+{
+    AssetType assetType = AssetType::UNKNOWN;
+};
+
 struct ScriptFieldListInfo
 {
     ScriptFieldType elementType;
@@ -57,6 +64,7 @@ struct ScriptFieldInfo
     ScriptFieldEnumInfo enumInfo{};
     ScriptFieldComponentRefInfo componentRefInfo{ ComponentType::TRANSFORM };
     ScriptFieldListInfo listInfo{ ScriptFieldType::Float, nullptr };
+    ScriptFieldAssetRefInfo assetRefInfo{};
 
     bool editorOnly = false;
 

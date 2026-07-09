@@ -5,9 +5,9 @@
 #include "NavMeshBuilder.h"
 
 #include <vector>
-#include <unordered_map>
 #include <string>
 #include <DetourNavMesh.h>
+#include "NavMeshResource.h"
 
 class dtNavMesh;
 class dtNavMeshQuery;
@@ -19,23 +19,22 @@ public:
     bool init() override;
     bool cleanUp() override;
 
-    // Access
     dtNavMesh* getNavMesh() const { return m_navMesh; }
     dtNavMeshQuery* getNavQuery() const { return m_navQuery; }
     const std::string& getLoadedScene() const { return m_loadedScene; }
 
-    // Scene resource API
     bool loadNavMeshForScene(const char* sceneName);
     bool unloadNavMesh();
-    bool saveNavMeshForScene(const char* sceneName) const;
     bool buildNavMeshForCurrentScene();
+    bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
 
-    // Debug
+    NavMeshBuildSettings& getSettings() { return m_settings; }
+
     struct NavDebugLine
     {
         Vector3 a;
         Vector3 b;
-        const float* color;
+        const float* color = nullptr;
     };
 
     const std::vector<NavDebugLine>& getNavMeshDebugLines() const { return m_navDebugLines; }
@@ -43,9 +42,6 @@ public:
 
     void setDrawNavMesh(bool v) { m_drawNavMesh = v; }
     bool getDrawNavMesh() const { return m_drawNavMesh; }
-
-    NavMeshBuildSettings& getSettings() { return m_settings; }
-    bool hasNavMesh() const { return m_navMesh != nullptr && m_navQuery != nullptr; }
 
     void setPathStart(const Vector3& p, NavAgentProfile profile);
     void setPathEnd(const Vector3& p, NavAgentProfile profile);
@@ -58,6 +54,8 @@ public:
     void debugDraw() override;
 
     IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
+
+    unsigned short getIncludeFlagsForProfile(NavAgentProfile profile) const;
 
 private:
     NavMeshBuildSettings m_settings;
@@ -80,12 +78,8 @@ private:
     std::vector<NavModifierVolumeData> m_modifierVolumes;
     NavAgentProfile m_debugPathProfile = NavAgentProfile::PlayerNormal;
 
-private:
     bool computeDebugPath(NavAgentProfile profile);
     std::vector<NavModifierVolumeData> collectNavModifierVolumes(Scene& scene) const;
     bool isPathBlockedByRuntimeBlockers(const std::vector<Vector3>& path) const;
-
-public:
-    unsigned short getIncludeFlagsForProfile(NavAgentProfile profile) const; // Helper
 };
 

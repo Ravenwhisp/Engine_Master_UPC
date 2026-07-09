@@ -6,7 +6,7 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(CrystalShadowMark, EnemyShadowMark,
     SERIALIZED_COMPONENT_REF(m_puzzleManager, "PuzzleManager", ComponentType::TRANSFORM),
 	SERIALIZED_INT(m_puzzleID, "Puzzle ID"),
 	SERIALIZED_FLOAT(m_activeTime, "Active Time", 0.0f, 10.0f, 0.1f),
-    SERIALIZED_STRING(m_crystalSparks, "Crystal Sparks Particle")
+    SERIALIZED_ASSET_REF(m_crystalSparks, "Crystal Sparks Particle", AssetType::PREFAB)
 )
 
 CrystalShadowMark::CrystalShadowMark(GameObject* owner) : EnemyShadowMark(owner) {}
@@ -98,7 +98,7 @@ void CrystalShadowMark::activeEffect()
 {
     if (effectObject == nullptr)
     {
-        effectObject = GameObjectAPI::instantiatePrefab(m_crystalSparks.c_str(), TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
+        effectObject = GameObjectAPI::instantiatePrefab(m_crystalSparks.m_ref, TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
     }
 }
 

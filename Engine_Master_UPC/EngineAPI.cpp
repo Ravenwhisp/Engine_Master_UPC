@@ -287,11 +287,11 @@ namespace GameObjectAPI
     }
     */
 
-    ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(prefabRef, currentScene);
 
         if (!prefabInstance) return nullptr;
 

@@ -7,7 +7,7 @@
 IMPLEMENT_SCRIPT_FIELDS(EnemyDeathState,
 	SERIALIZED_FLOAT(m_destroyDelay, "Destroy Delay", 0.0f, 30.0f, 0.1f),
 	SERIALIZED_BOOL(m_shouldDropHealth, "Should Drop Health"),
-	SERIALIZED_STRING(m_healthPrefabPath, "Health Prefab Path"),
+	SERIALIZED_ASSET_REF(m_healthPrefab, "Health Prefab", AssetType::PREFAB),
 	SERIALIZED_INT(m_healthDropQuantity, "Health Drop Quantity"),
 	SERIALIZED_FLOAT(m_dropHealAmount, "Drop Heal Amount", 0.0f, 100.0f, 1.0f),
 	SERIALIZED_FLOAT(m_dropRadius, "Drop Radius", 0.0f, 5.0f, 0.1f),
@@ -87,7 +87,7 @@ void EnemyDeathState::destroyEnemyNow()
 
 void EnemyDeathState::dropRewards()
 {
-    if (m_healthPrefabPath.empty())
+    if (!m_healthPrefab.m_ref.isValid())
     {
         return;
     }
@@ -102,7 +102,7 @@ void EnemyDeathState::dropRewards()
 
     for (int i = 0; i < m_healthDropQuantity; ++i)
     {
-        HealthDropSpawner::drop(m_healthPrefabPath.c_str(),
+        HealthDropSpawner::drop(m_healthPrefab.m_ref,
                                 spawnPosition,
                                 m_dropHealAmount,
                                 m_dropRadius,

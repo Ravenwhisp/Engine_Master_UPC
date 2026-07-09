@@ -17,7 +17,6 @@ inline MD5Hash computeMD5(const std::filesystem::path& filePath)
     std::ifstream file(filePath, std::ios::binary);
     if (!file)
     {
-        DEBUG_ERROR("[MD5] Could not open file for hashing: %s", filePath.string().c_str());
         return "";
     }
 
@@ -42,7 +41,6 @@ inline uint64_t hashToUID(const MD5Hash& hash)
         const bool valid = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
         if (!valid)
         {
-            DEBUG_ERROR("[MD5] hashToUID: non-hex character '%c' at index %zu in hash '%s'.", c, i, hash.c_str());
             return 0;
         }
     }
