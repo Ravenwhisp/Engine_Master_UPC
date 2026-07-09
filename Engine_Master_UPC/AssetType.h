@@ -15,6 +15,7 @@
     X(SCENE)                   \
     X(NAVMESH)                 \
     X(SOUND_BANK)              \
+    X(SCRIPT)                  \
     X(UNKNOWN)
 
 #define ASSET_ENUM(name) name,

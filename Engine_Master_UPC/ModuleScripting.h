@@ -8,6 +8,7 @@
 #include <rapidjson/document.h>
 #include <vector>
 #include <future>
+#include <filesystem>
 
 class ScriptComponent;
 
@@ -19,6 +20,12 @@ enum class ScriptReloadState
     BuildFailed,
     ReloadFailed,
     Completed
+};
+
+struct ScriptSourceInfo
+{
+    std::string name;
+    std::filesystem::path headerPath;
 };
 
 class ModuleScripting : public Module
@@ -52,7 +59,11 @@ public:
     const ScriptBuildSettings& getScriptBuildSettings() const { return m_buildSettings; }
 #pragma endregion
 
-private: 
+#pragma region ScriptSources
+    std::vector<ScriptSourceInfo> getAvailableScripts() const;
+#pragma endregion
+
+private:
     struct ScriptReloadInfo
     {
         ScriptComponent* component = nullptr;
@@ -82,5 +93,4 @@ private:
     ScriptReloadState m_scriptReloadState = ScriptReloadState::Idle;
 
     ScriptBuildSettings m_buildSettings;
-
 };
