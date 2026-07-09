@@ -9,7 +9,7 @@ class ArcherAttackConfig : public EnemyBaseAttackConfig
 public:
     explicit ArcherAttackConfig(GameObject* owner);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     // Arrow Barrage

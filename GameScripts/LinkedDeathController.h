@@ -14,12 +14,12 @@ public:
 	void Start() override;
 	void Update() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	void notifyLinkedDeath();
 
 public:
-	ScriptComponentRef<Transform> m_linkedPartner;
+	ComponentRef<Transform> m_linkedPartner;
 	float m_graceWindow = 3.0f;
 	float m_reviveHpPercent = 0.5f;
 

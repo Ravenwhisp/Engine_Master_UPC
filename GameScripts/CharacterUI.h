@@ -37,7 +37,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     void showAbilityCooldown(AbilityUISlot slot);
@@ -49,10 +49,10 @@ private:
     int getSlotIndex(AbilityUISlot slot) const;
 
 private:
-    ScriptComponentRef<Transform> m_basicAttackCooldownUI;
-    ScriptComponentRef<Transform> m_chargedAttackCooldownUI;
-    ScriptComponentRef<Transform> m_abilityCooldownUI;
-    ScriptComponentRef<Transform> m_dashCooldownUI;
+    ComponentRef<Transform> m_basicAttackCooldownUI;
+    ComponentRef<Transform> m_chargedAttackCooldownUI;
+    ComponentRef<Transform> m_abilityCooldownUI;
+    ComponentRef<Transform> m_dashCooldownUI;
 
     float m_cooldownEndTime = 1.0f;
 

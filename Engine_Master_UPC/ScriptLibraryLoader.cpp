@@ -1,8 +1,8 @@
 #include "Globals.h"
 #include "ScriptLibraryLoader.h"
+#include "GenericTypeFactory.h"
 
 #include "PdbPatcher.h"
-#include "ScriptFactory.h"
 
 #include <cstdio>
 #include <filesystem>

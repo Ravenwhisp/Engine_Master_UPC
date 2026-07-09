@@ -18,7 +18,7 @@ enum class FieldType
     GroupLabel,
     GroupCollapseBegin,
     GroupCollapseEnd,
-    DataContainerRef,
+    AssetRef,
 };
 
 struct FieldFloatInfo

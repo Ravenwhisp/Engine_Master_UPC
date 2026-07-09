@@ -16,30 +16,30 @@ public:
 
     void executeEvent(GameplayEventTrigger* trigger) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     void closeArea();
     void openArea();
 
-    void setBlockerState(const ScriptComponentRef<Transform>& blockerTransformRef, bool blocked);
+    void setBlockerState(const ComponentRef<Transform>& blockerTransformRef, bool blocked);
 
-	void setVisualsState(const ScriptComponentRef<Transform>& visualsTransformRef, bool active);
+	void setVisualsState(const ComponentRef<Transform>& visualsTransformRef, bool active);
 
     void removeDeadEnemies();
-    bool shouldRemoveEnemy(const ScriptComponentRef<Transform>& enemyTransformRef) const;
+    bool shouldRemoveEnemy(const ComponentRef<Transform>& enemyTransformRef) const;
 
 public:
-    std::vector<ScriptComponentRef<Transform>> m_enemies;
+    std::vector<ComponentRef<Transform>> m_enemies;
 
-    ScriptComponentRef<Transform> m_entranceBlocker;
-    ScriptComponentRef<Transform> m_exitBlocker;
+    ComponentRef<Transform> m_entranceBlocker;
+    ComponentRef<Transform> m_exitBlocker;
 
-	ScriptComponentRef<Transform> m_entranceVisuals;
-	ScriptComponentRef<Transform> m_exitVisuals;
+	ComponentRef<Transform> m_entranceVisuals;
+	ComponentRef<Transform> m_exitVisuals;
 
 private:
-    std::vector<ScriptComponentRef<Transform>> m_remainingEnemies;
+    std::vector<ComponentRef<Transform>> m_remainingEnemies;
 
     bool m_isActive = false;
     bool m_hasCompleted = false;

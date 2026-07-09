@@ -170,7 +170,7 @@ namespace
     }
 
     template<typename T>
-    void serializeListField(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeListField(const FieldInfo& field, void* data, IArchive& archive)
     {
         const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
 
@@ -242,7 +242,6 @@ namespace
     const FieldHandler floatListHandler = {
         &drawListFieldUi<float>,
         &serializeListField<float>,
-        &deserializeListField<float>,
         &cloneListField<float>,
         &fixReferencesListField<float>
     };
@@ -250,7 +249,6 @@ namespace
     const FieldHandler intListHandler = {
         &drawListFieldUi<int>,
         &serializeListField<int>,
-        &deserializeListField<int>,
         &cloneListField<int>,
         &fixReferencesListField<int>
     };
@@ -258,7 +256,6 @@ namespace
     const FieldHandler boolListHandler = {
         &drawListFieldUi<bool>,
         &serializeListField<bool>,
-        &deserializeListField<bool>,
         &cloneListField<bool>,
         &fixReferencesListField<bool>
     };
@@ -266,7 +263,6 @@ namespace
     const FieldHandler vec3ListHandler = {
         &drawListFieldUi<Vector3>,
         &serializeListField<Vector3>,
-        &deserializeListField<Vector3>,
         &cloneListField<Vector3>,
         &fixReferencesListField<Vector3>
     };
@@ -274,7 +270,6 @@ namespace
     const FieldHandler stringListHandler = {
         &drawListFieldUi<std::string>,
         &serializeListField<std::string>,
-        &deserializeListField<std::string>,
         &cloneListField<std::string>,
         &fixReferencesListField<std::string>
     };
@@ -282,7 +277,6 @@ namespace
     const FieldHandler enumIntListHandler = {
         &drawListFieldUi<int>,
         &serializeListField<int>,
-        &deserializeListField<int>,
         &cloneListField<int>,
         &fixReferencesListField<int>
     };
@@ -290,7 +284,6 @@ namespace
     const FieldHandler componentRefListHandler = {
         &drawListFieldUi<ComponentRef<Component>>,
         &serializeListField<ComponentRef<Component>>,
-        &deserializeListField<ComponentRef<Component>>,
         &cloneListField<ComponentRef<Component>>,
         &fixReferencesListField<ComponentRef<Component>>
     };

@@ -17,7 +17,7 @@ public:
     void Update() override;
     void OnTriggerEnter(GameObject* player) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void setupDrop(float healAmount, const Vector3& landingPosition);
 

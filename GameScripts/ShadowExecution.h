@@ -25,7 +25,7 @@ public:
     void Update()    override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     bool isActive() const { return m_isActive; }
 
@@ -66,9 +66,9 @@ private:
     std::vector<SpawnedPrefab> m_temporaryPrefabs;
 
 public:
-    ScriptComponentRef<UISlider> m_reaperGaugeBar;
-    ScriptComponentRef<Transform> m_executionCanvas;
-    ScriptComponentRef<Transform2D> m_executionSprite;
+    ComponentRef<UISlider> m_reaperGaugeBar;
+    ComponentRef<Transform> m_executionCanvas;
+    ComponentRef<Transform2D> m_executionSprite;
 
 private:
     UISlider* m_reaperGaugeSlider = nullptr;

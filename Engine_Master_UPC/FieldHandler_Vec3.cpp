@@ -16,7 +16,7 @@ namespace
         }
     }
 
-    void serializeVec3Field(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeVec3Field(const FieldInfo& field, void* data, IArchive& archive)
     {
         Vector3 value = *reinterpret_cast<const Vector3*>(data);
         archive.serialize(value, field.name);
@@ -36,7 +36,7 @@ namespace
     {
     }
 
-    const FieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &deserializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
+    const FieldHandler vec3FieldHandler = {&drawVec3FieldUi, &serializeVec3Field, &cloneVec3Field, &fixReferencesVec3Field};
 }
 
 const FieldHandler* getVec3FieldHandler()

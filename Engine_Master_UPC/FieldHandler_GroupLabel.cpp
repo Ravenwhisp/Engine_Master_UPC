@@ -12,7 +12,7 @@ namespace
         ImGui::SeparatorText(field.name);
     }
 
-    void serializeGroupLabel(const FieldInfo&, const void*, IArchive&)
+    void serializeGroupLabel(const FieldInfo&, void*, IArchive&)
     {
     }
 
@@ -28,7 +28,7 @@ namespace
     {
     }
 
-    const FieldHandler groupLabelFieldHandler = {&drawGroupLabelUi, &serializeGroupLabel, &deserializeGroupLabel, &cloneGroupLabel, &fixReferencesGroupLabel};
+    const FieldHandler groupLabelFieldHandler = {&drawGroupLabelUi, &serializeGroupLabel, &cloneGroupLabel, &fixReferencesGroupLabel};
 }
 
 const FieldHandler* getGroupLabelFieldHandler()

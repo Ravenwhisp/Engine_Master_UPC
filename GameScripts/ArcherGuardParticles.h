@@ -8,12 +8,12 @@ class ArcherGuardParticles : public Script
 public:
     explicit ArcherGuardParticles(GameObject* owner);
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
-    PrefabRef m_trailPrefab;
-    PrefabRef m_volleyPrefab;
-    PrefabRef m_chargePrefab;
-    PrefabRef m_arrowPrefab;
+    AssetRef<Prefab> m_trailPrefab;
+    AssetRef<Prefab> m_volleyPrefab;
+    AssetRef<Prefab> m_chargePrefab;
+    AssetRef<Prefab> m_arrowPrefab;
 
     // Basic attack trail — called by ArcherArrowShooter
     void spawnBasicAttackTrail(const Vector3& pos);

@@ -16,7 +16,7 @@ public:
     void Update()    override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void notifyDeathHit();
     bool isExploitable() const { return m_phase == 3; }
@@ -28,10 +28,10 @@ public:
     float m_markDuration              = 3.0f;
     float m_markUITargetScale = 1.0f;
 	float m_markUIHeightOffset = 1.0f;
-    ScriptComponentRef<Transform2D> m_canvas;
-    ScriptComponentRef<Transform> m_mark_1;
-    ScriptComponentRef<Transform> m_mark_2;
-    ScriptComponentRef<Transform> m_mark_3;
+    ComponentRef<Transform2D> m_canvas;
+    ComponentRef<Transform> m_mark_1;
+    ComponentRef<Transform> m_mark_2;
+    ComponentRef<Transform> m_mark_3;
     
     float m_volleyCooldownReduction   = 0.20f;  // % of base cooldown removed per exploit
 

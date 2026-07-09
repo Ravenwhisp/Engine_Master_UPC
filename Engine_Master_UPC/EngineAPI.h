@@ -8,7 +8,6 @@
 
 #include "GenericTypeFactory.h"
 #include "AssetReference.h"
-#include "ScriptCreator.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"

@@ -67,7 +67,6 @@ void WindowDataContainerManager::ensureLoaded(int i)
     Entry& e = m_entries[i];
     if (e.asset)
         return;
-    e.asset = app->getModuleAssets()->loadAtPath<DataContainer>(e.path);
 }
 
 void WindowDataContainerManager::drawList()

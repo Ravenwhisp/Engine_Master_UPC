@@ -419,7 +419,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
     <ClInclude Include="ComponentRef.h" />
-    <ClInclude Include="DataContainerRef.h" />
     <ClInclude Include="FieldHandler.h" />
     <ClInclude Include="FieldHandlerRegistry.h" />
     <ClInclude Include="FieldInfo.h" />
@@ -824,7 +823,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="FieldHandler_Bool.cpp" />
     <ClCompile Include="FieldHandler_ComponentRef.cpp" />
     <ClCompile Include="FieldHandler_ComponentRefList.cpp" />
-    <ClCompile Include="FieldHandler_DataContainerRef.cpp" />
     <ClCompile Include="FieldHandler_EnumInt.cpp" />
     <ClCompile Include="FieldHandler_Float.cpp" />
     <ClCompile Include="FieldHandler_Int.cpp" />
@@ -832,16 +830,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="FieldHandler_String.cpp" />
     <ClCompile Include="FieldHandler_Vec3.cpp" />
     <ClCompile Include="FieldUtils.cpp" />
-    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
-    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
-    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
-    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Float.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Int.cpp" />
-    <ClCompile Include="ScriptFieldHandler_List.cpp" />
-    <ClCompile Include="ScriptFieldHandler_String.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
+    <ClCompile Include="FieldHandler_AssetRef.cpp" />
     <ClCompile Include="Skin.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="ParticleModule.cpp" />

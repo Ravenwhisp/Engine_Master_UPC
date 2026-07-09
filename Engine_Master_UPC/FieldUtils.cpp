@@ -47,7 +47,7 @@ namespace FieldUtils
 
             const void* data = base + field.offset;
             assert(field.handler != nullptr);
-            field.handler->serialize(field, data, archive);
+            field.handler->serialize(field, const_cast<void*>(data), archive);
         }
     }
 
@@ -62,9 +62,10 @@ namespace FieldUtils
 
             void* data = base + field.offset;
             assert(field.handler != nullptr);
-            field.handler->deserialize(field, data, archive);
+            field.handler->serialize(field, data, archive);
         }
     }
+
 
     void clone(const IFieldContainer& source, const char* srcBase, IFieldContainer& target, char* dstBase)
     {

@@ -9,7 +9,7 @@ class SummonerAttackConfig : public EnemyBaseAttackConfig
 public:
 	explicit SummonerAttackConfig(GameObject* owner);
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// Teleport
@@ -22,7 +22,7 @@ public:
 	float m_energyBallLifetime = 2.0f;
 
 	// Summon
-	PrefabRef m_spiderPrefab;
+	AssetRef<Prefab> m_spiderPrefab;
 	int m_summonCount = 3;
 	float m_summonRadius = 2.0f;
 	float m_summonCastTime = 0.5f;

@@ -77,7 +77,7 @@ namespace
         }
     }
 
-    void serializeComponentRefField(const FieldInfo& field, const void* data, rapidjson::Value& outFieldsJson, rapidjson::Document& domTree)
+    void serializeComponentRefField(const FieldInfo& field, void* data, IArchive& archive)
     {
         ComponentRef<Component>* componentReference = reinterpret_cast<ComponentRef<Component>*>(data);
         archive.serialize(componentReference->uid, field.name);

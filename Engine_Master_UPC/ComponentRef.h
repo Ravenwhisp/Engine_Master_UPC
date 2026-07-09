@@ -19,5 +19,3 @@ struct ComponentRef
 
 using ComponentRefList = std::vector<ComponentRef<Component>>;
 
-// Backward compatibility alias
-using ScriptComponentRefList = ComponentRefList;

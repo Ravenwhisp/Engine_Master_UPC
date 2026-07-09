@@ -24,11 +24,11 @@ public:
 
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     // Los dos jugadores. El listener se sitúa en su punto medio cada frame.
-    ScriptComponentRef<Transform> m_firstTarget;
-    ScriptComponentRef<Transform> m_secondTarget;
+    ComponentRef<Transform> m_firstTarget;
+    ComponentRef<Transform> m_secondTarget;
 
     // Orientación del listener. Por defecto = Fixed Rotation de la cámara, para que el
     // paneo 3D izquierda/derecha cuadre con la pantalla (enemigo a la izquierda → suena

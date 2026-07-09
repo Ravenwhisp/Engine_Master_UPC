@@ -13,13 +13,13 @@ public:
 
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     AnimationComponent* getTargetAnimation() const;
 
 public:
-    ScriptComponentRef<Transform> m_target;
+    ComponentRef<Transform> m_target;
 
     std::string m_overrideClipName = "Walk";
 

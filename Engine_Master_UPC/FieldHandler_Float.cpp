@@ -19,7 +19,7 @@ namespace
         }
     }
 
-    void serializeFloatField(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeFloatField(const FieldInfo& field, void* data, IArchive& archive)
     {
         float value = *reinterpret_cast<const float*>(data);
         archive.serialize(value, field.name);
@@ -39,7 +39,7 @@ namespace
     {
     }
 
-    const FieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &deserializeFloatField, &cloneFloatField, &fixReferencesFloatField};
+    const FieldHandler floatFieldHandler = { &drawFloatFieldUi, &serializeFloatField, &cloneFloatField, &fixReferencesFloatField};
 }
 
 const FieldHandler* getFloatFieldHandler()

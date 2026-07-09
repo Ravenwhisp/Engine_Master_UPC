@@ -12,14 +12,14 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
-    ScriptComponentRef<Transform2D> buttonGlow;
-    ScriptComponentRef<Transform2D> logoGlow;
-    ScriptComponentRef<Transform2D> lyrielDeath;
-    ScriptComponentRef<Transform2D> particles1;
-    ScriptComponentRef<Transform2D> particles2;
+    ComponentRef<Transform2D> buttonGlow;
+    ComponentRef<Transform2D> logoGlow;
+    ComponentRef<Transform2D> lyrielDeath;
+    ComponentRef<Transform2D> particles1;
+    ComponentRef<Transform2D> particles2;
     std::string nextSceneName;
 
 private:

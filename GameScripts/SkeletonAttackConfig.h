@@ -9,7 +9,7 @@ class SkeletonAttackConfig : public EnemyBaseAttackConfig
 public:
 	explicit SkeletonAttackConfig(GameObject* owner);
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// --- Scimitar Strike --- //

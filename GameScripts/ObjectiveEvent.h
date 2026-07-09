@@ -23,7 +23,7 @@ public:
 
     void executeEvent(GameplayEventTrigger* trigger) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     bool isObjectiveCompleted() const;

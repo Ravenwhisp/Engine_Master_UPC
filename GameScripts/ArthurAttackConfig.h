@@ -11,7 +11,7 @@ class ArthurAttackConfig : public Script
 public:
     explicit ArthurAttackConfig(GameObject* owner);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     // Heavy Swipe

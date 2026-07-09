@@ -9,7 +9,7 @@ class PaladinAttackConfig : public EnemyBaseAttackConfig
 public:
 	explicit PaladinAttackConfig(GameObject* owner);
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// Charge

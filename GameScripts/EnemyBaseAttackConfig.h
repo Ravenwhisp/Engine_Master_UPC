@@ -9,7 +9,7 @@ class EnemyBaseAttackConfig : public Script
 public:
     explicit EnemyBaseAttackConfig(GameObject* owner);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     // Basic attack

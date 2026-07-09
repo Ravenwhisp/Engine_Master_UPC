@@ -153,7 +153,7 @@ namespace
 
     void serializeComponentRefListField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        ComponentRefList* componentList = reinterpret_cast<ScriptComponentRefList*>(data);
+        ComponentRefList* componentList = reinterpret_cast<ComponentRefList*>(data);
         uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(componentList->size()) : 0;
         archive.beginArray(count, field.name);
 

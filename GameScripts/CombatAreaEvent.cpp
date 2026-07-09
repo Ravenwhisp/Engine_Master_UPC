@@ -68,7 +68,7 @@ void CombatAreaEvent::openArea()
 	setVisualsState(m_exitVisuals, false);
 }
 
-void CombatAreaEvent::setBlockerState(const ScriptComponentRef<Transform>& blockerTransformRef, bool blocked)
+void CombatAreaEvent::setBlockerState(const ComponentRef<Transform>& blockerTransformRef, bool blocked)
 {
     Transform* blockerTransform = blockerTransformRef.getReferencedComponent();
 
@@ -96,7 +96,7 @@ void CombatAreaEvent::setBlockerState(const ScriptComponentRef<Transform>& block
     NavigationAPI::setBlocked(runtimeBlocker, blocked);
 }
 
-void CombatAreaEvent::setVisualsState(const ScriptComponentRef<Transform>& visualsTransformRef, bool active)
+void CombatAreaEvent::setVisualsState(const ComponentRef<Transform>& visualsTransformRef, bool active)
 {
     Transform* visualsTransform = visualsTransformRef.getReferencedComponent();
     if (visualsTransform == nullptr)
@@ -127,7 +127,7 @@ void CombatAreaEvent::removeDeadEnemies()
     }
 }
 
-bool CombatAreaEvent::shouldRemoveEnemy(const ScriptComponentRef<Transform>& enemyTransformRef) const
+bool CombatAreaEvent::shouldRemoveEnemy(const ComponentRef<Transform>& enemyTransformRef) const
 {
     Transform* enemyTransform = enemyTransformRef.getReferencedComponent();
 

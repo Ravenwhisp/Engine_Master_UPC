@@ -16,7 +16,7 @@ public:
 
     void Start() override;
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     bool hasTriggeredDefeat() const { return m_hasTriggeredDefeat; }
 
@@ -27,8 +27,8 @@ private:
     void triggerDefeat();
 
 public:
-    ScriptComponentRef<Transform> m_player1Transform;
-    ScriptComponentRef<Transform> m_player2Transform;
+    ComponentRef<Transform> m_player1Transform;
+    ComponentRef<Transform> m_player2Transform;
 
 private:
     PlayerState* m_player1State = nullptr;

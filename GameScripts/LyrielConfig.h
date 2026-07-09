@@ -9,7 +9,7 @@ class LyrielConfig : public Script
 public:
 	explicit LyrielConfig(GameObject* owner);
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// Basic Attack

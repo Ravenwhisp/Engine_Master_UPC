@@ -10,17 +10,17 @@ public:
 
 	explicit LyrielParticles(GameObject* owner);
 
-	ScriptComponentRef<Transform> m_dashTrail;
+	ComponentRef<Transform> m_dashTrail;
 
 	Transform* m_dashTrailController = nullptr;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	void SetDashActive();
 	void SetDashInactive();
 
 private:
 
-	Transform* getTransform(ScriptComponentRef<Transform> controller);
+	Transform* getTransform(ComponentRef<Transform> controller);
 
 };

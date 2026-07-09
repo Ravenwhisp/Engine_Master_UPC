@@ -9,7 +9,7 @@ class DeathConfig : public Script
 public:
 	explicit DeathConfig(GameObject* owner);
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// Combo

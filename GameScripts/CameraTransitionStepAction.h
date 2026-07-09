@@ -20,7 +20,7 @@ public:
     void Update() override;
 
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void onStepStarted(CameraTransitionController* controller, CameraTransitionStep* step);
     void onStepReached(CameraTransitionController* controller, CameraTransitionStep* step);

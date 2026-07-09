@@ -209,13 +209,13 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.enabled)
     {
-        m_visibleMeshRenderers.clear();
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
-                m_visibleMeshRenderers.push_back(renderer);
+                visibleMeshRenderers.push_back(renderer);
             }
         }
 
@@ -224,12 +224,12 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
-                m_visibleMeshRenderers.push_back(renderer);
+                visibleMeshRenderers.push_back(renderer);
             }
         }
-        return m_visibleMeshRenderers;
+        return visibleMeshRenderers;
     }
-    return getMeshRenderers();
+    return app->getModuleScene()->getMeshRenderers();
 }
 
 const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()

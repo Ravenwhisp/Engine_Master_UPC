@@ -16,7 +16,7 @@ namespace
         }
     }
 
-    void serializeIntField(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeIntField(const FieldInfo& field, void* data, IArchive& archive)
     {
         uint32_t value = static_cast<uint32_t>(*reinterpret_cast<const int*>(data));
         archive.serialize(value, field.name);
@@ -37,7 +37,7 @@ namespace
     {
     }
 
-    const FieldHandler intFieldHandler = {&drawIntFieldUi, &serializeIntField, &deserializeIntField, &cloneIntField, &fixReferencesIntField};
+    const FieldHandler intFieldHandler = {&drawIntFieldUi, &serializeIntField, &cloneIntField, &fixReferencesIntField};
 }
 
 const FieldHandler* getIntFieldHandler()

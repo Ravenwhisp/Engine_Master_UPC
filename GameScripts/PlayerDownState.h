@@ -16,7 +16,7 @@ public:
 
     void Start() override;
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void drawGizmo() override;
 
@@ -42,7 +42,7 @@ public:
     float m_assistSpeedMultiplier = 2.0f;
     float m_reviveHp = 50.0f;
 
-    ScriptComponentRef<Transform> m_teammateTransform;
+    ComponentRef<Transform> m_teammateTransform;
 
 private:
     PlayerState* m_playerState = nullptr;
@@ -56,7 +56,7 @@ private:
     ReviveAudioState m_reviveAudioState = ReviveAudioState::None;
 
 public:
-    ScriptComponentRef<Transform> m_downedSprite;
+    ComponentRef<Transform> m_downedSprite;
 
 private:
     Transform* m_downedSpriteTransform = nullptr;

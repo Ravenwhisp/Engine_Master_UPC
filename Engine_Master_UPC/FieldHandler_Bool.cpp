@@ -16,15 +16,10 @@ namespace
         }
     }
 
-    void serializeBoolField(const FieldInfo& field, const void* data, IArchive& archive)
+    void serializeBoolField(const FieldInfo& field, void* data, IArchive& archive)
     {
         bool value = *reinterpret_cast<const bool*>(data);
         archive.serialize(value, field.name);
-    }
-
-    void deserializeBoolField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        archive.serialize(*reinterpret_cast<bool*>(data), field.name);
     }
 
     void cloneBoolField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -36,7 +31,7 @@ namespace
     {
     }
 
-    const FieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &deserializeBoolField, &cloneBoolField, &fixReferencesBoolField};
+    const FieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &cloneBoolField, &fixReferencesBoolField};
 }
 
 const FieldHandler* getBoolFieldHandler()

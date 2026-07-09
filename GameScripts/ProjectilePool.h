@@ -15,7 +15,7 @@ public:
 
 	void Start() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	ProjectileBase* acquireProjectile();
 	void releaseProjectile(ProjectileBase* projectile);

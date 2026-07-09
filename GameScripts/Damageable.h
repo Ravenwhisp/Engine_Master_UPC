@@ -23,7 +23,7 @@ public:
     void Start()     override;
 	void Update()	 override;
     void drawGizmo() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     virtual void takeDamage(float amount);
     virtual void takeDamage(const HitContext& ctx);
@@ -60,9 +60,9 @@ private:
 
 public:
     float m_maxHp = 100.0f;
-	ScriptComponentRef<UISlider> m_healthBar;
-    ScriptComponentRef<UISlider> m_healthBar2;
-    ScriptComponentRef<UISlider> m_healthGlow;
+	ComponentRef<UISlider> m_healthBar;
+    ComponentRef<UISlider> m_healthBar2;
+    ComponentRef<UISlider> m_healthGlow;
     float m_uiWaitTime = 0.6f;
     float m_uiUpdateTime = 1.0f;
 

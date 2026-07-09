@@ -345,7 +345,7 @@ void Texture::releaseViews()
     {
         if (m_contiguousRTV)
         {
-            descriptors->defferBlockRelease(m_contiguousRTV, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).freeBlock(m_contiguousRTV);
             m_contiguousRTV = nullptr;
         }
         else

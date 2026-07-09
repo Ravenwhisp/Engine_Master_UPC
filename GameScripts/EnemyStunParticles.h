@@ -7,7 +7,7 @@ class EnemyStunParticles : public Script
 public:
     explicit EnemyStunParticles(GameObject* owner);
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     PrefabRef m_stunPrefab;
     float       m_heightOffset = 2.0f;

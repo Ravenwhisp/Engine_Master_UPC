@@ -15,7 +15,7 @@ public:
     FieldList getExposedFields() const override;
 
 private:
-    ScriptComponentRefList m_transforms;
+    ComponentRefList m_transforms;
     int m_test1 = 0;
     float m_test2 = 0.0;
 };

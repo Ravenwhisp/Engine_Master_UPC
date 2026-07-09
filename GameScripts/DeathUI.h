@@ -13,7 +13,7 @@ public:
 
 	void Start() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// Taunt
@@ -37,19 +37,19 @@ private:
 
 private:
 	// Taunt
-	ScriptComponentRef<Transform> m_tauntUI;
+	ComponentRef<Transform> m_tauntUI;
 	Transform* m_tauntUITransform = nullptr;
 
 	// Charged Attack
-	ScriptComponentRef<Transform> m_chargedAttackUI;
+	ComponentRef<Transform> m_chargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;
 
 	// Slash Combo
-	ScriptComponentRef<Transform> m_basicSlashUI;
-	ScriptComponentRef<UISlider> m_basicSlashSlider;
+	ComponentRef<Transform> m_basicSlashUI;
+	ComponentRef<UISlider> m_basicSlashSlider;
 
-	ScriptComponentRef<Transform> m_chargedSlashUI;
-	ScriptComponentRef<UISlider> m_chargedSlashSlider;
+	ComponentRef<Transform> m_chargedSlashUI;
+	ComponentRef<UISlider> m_chargedSlashSlider;
 
 	Transform* m_basicSlashUITransform = nullptr;
 	UISlider* m_basicSlashUISlider = nullptr;

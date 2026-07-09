@@ -20,7 +20,7 @@ public:
 
     void Start() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void stop();
 
