@@ -4,10 +4,14 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleScripting.h"
+#include "ModuleAssets.h"
+#include "ModuleMusic.h"
 
 #include "Settings.h"
 #include "Scene.h"
 #include "Quadtree.h"
+#include "AssetReference.h"
+#include "FileIO.h"
 
 WindowEditorSettings::WindowEditorSettings()
 {
@@ -26,6 +30,8 @@ void WindowEditorSettings::drawInternal()
     drawFrustumCullingSettings();
     ImGui::Separator();
     drawScriptsSettings();
+    ImGui::Separator();
+    drawBuildSettings();
 
     drawScriptReloadModal();
 }
@@ -170,6 +176,53 @@ void WindowEditorSettings::drawScriptsSettings()
         buildSettings.platform = m_scriptPlatformBuffer.data();
 
         moduleScripting->requestBuildAndReloadGameScriptsDll();
+    }
+}
+
+void WindowEditorSettings::drawBuildSettings()
+{
+    if (!ImGui::CollapsingHeader("Build"))
+    {
+        return;
+    }
+
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+    {
+        ImGui::TextDisabled("No scene loaded.");
+        return;
+    }
+
+    ImGui::Text("Scene: %s", scene->getName());
+
+    if (ImGui::Button("Export Build Config"))
+    {
+        app->getModuleScene()->saveScene();
+
+        const UID uid = scene->getUID();
+        AssetReference* ref = app->getModuleAssets()->findReference(uid);
+
+        if (ref && !ref->m_libId.empty())
+        {
+            std::string configStr = ref->m_libId + "\n";
+
+            AssetReference initBnkRef = app->getModuleMusic()->findBankRef("Init.bnk");
+            if (initBnkRef.isValid())
+            {
+                configStr += initBnkRef.m_libId + "\n";
+            }
+
+            const std::filesystem::path outPath = "../Engine_OUT/build.cfg";
+            FileIO::write(outPath, configStr.c_str(), configStr.size());
+            DEBUG_LOG("[WindowEditorSettings] Build config exported to %s", outPath.string().c_str());
+        }
+        else
+        {
+            DEBUG_ERROR("[WindowEditorSettings] Failed to resolve scene hash.");
+
+        }
+
+        delete ref;
     }
 }
 

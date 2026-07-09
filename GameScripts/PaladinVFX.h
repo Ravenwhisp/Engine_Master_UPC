@@ -44,6 +44,10 @@ private:
 
 public:
 
+    PrefabRef m_walkingDustPrefab;
+    PrefabRef m_chargeAttackEffectPrefab;
+    PrefabRef m_basicAttackEffectPrefab;
+
     float walkingDustYOffset = 0.05f;
     float walkingDustForwardOffset = -0.35f;
 

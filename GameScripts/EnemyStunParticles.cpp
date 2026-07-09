@@ -2,7 +2,7 @@
 #include "EnemyStunParticles.h"
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyStunParticles,
-    SERIALIZED_STRING(m_stunPrefab, "Stun Particle Prefab"),
+    SERIALIZED_ASSET_REF(m_stunPrefab, "Stun Particle Prefab", AssetType::PREFAB),
     SERIALIZED_FLOAT(m_heightOffset, "Height Offset", 0.0f, 10.0f, 0.1f)
 )
 
@@ -13,11 +13,11 @@ void EnemyStunParticles::Start() {}
 void EnemyStunParticles::startStunParticle()
 {
     stopStunParticle();
-    if (m_stunPrefab.empty()) return;
+    if (!m_stunPrefab.m_ref.isValid()) return;
     Transform* t = GameObjectAPI::getTransform(getOwner());
     Vector3 pos  = t ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
     pos.y       += m_heightOffset;
-    m_stunParticle = GameObjectAPI::instantiatePrefab(m_stunPrefab.c_str(), pos, Vector3::Zero);
+    m_stunParticle = GameObjectAPI::instantiatePrefab(m_stunPrefab.m_ref, pos, Vector3::Zero);
 }
 
 void EnemyStunParticles::updateStunParticle()

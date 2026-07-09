@@ -3,6 +3,7 @@
 
 #include "Application.h"
 #include "ModuleScene.h"
+#include "ModuleAssets.h"
 
 #include "Scene.h"
 #include "GameObject.h"
@@ -10,9 +11,11 @@
 #include "MeshRenderer.h"
 #include "BasicMesh.h"
 #include "NavMeshResource.h"
+#include "NavMeshAsset.h"
+#include "Scene.h"
 
-#include <fstream>
 #include <vector>
+#include <cstring>
 
 #include <DetourNavMeshQuery.h>
 #include <WindowLogger.h>
@@ -21,11 +24,6 @@
 #include "NavMeshGeometryExtractor.h"
 #include "NavModifierVolumeComponent.h"
 #include "NavRuntimeBlockerComponent.h"
-
-static std::string MakeNavMeshPath(const char* sceneName)
-{
-    return std::string("Assets/NavMeshes/") + sceneName + ".navmesh";
-}
 
 static bool SegmentIntersectsAABB(const Vector3& a, const Vector3& b, const Vector3& center, const Vector3& halfExtents)
 {
@@ -78,14 +76,17 @@ static bool SegmentIntersectsAABB(const Vector3& a, const Vector3& b, const Vect
 
 bool ModuleNavigation::init()
 {
-    const char* sceneName = app->getModuleScene()->getScene()->getName();
+    Scene* scene = app->getModuleScene()->getScene();
+    if (scene)
+    {
+        loadNavMeshForScene(scene->getName());
+    }
     m_triedLoadOnce = true;
-    loadNavMeshForScene(sceneName);
 
-    if (WindowLogger::Instance())
+    if (WindowLogger::Instance() && scene)
     {
         TriangleSoup soup;
-        NavMeshGeometryExtractor::Extract(*app->getModuleScene()->getScene(), soup, Layer::NAVMESH, true);
+        NavMeshGeometryExtractor::Extract(*scene, soup, Layer::NAVMESH, true);
 
         const auto& verts = soup.vertices;
         const auto& tris = soup.indices;
@@ -110,54 +111,50 @@ bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
     unloadNavMesh();
     m_tileRefs.clear();
 
-    const std::string path = MakeNavMeshPath(sceneName);
-    std::ifstream file(path, std::ios::binary);
-    if (!file.is_open())
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
     {
         m_loadedScene.clear();
         return false;
     }
 
-    NavMeshSetHeader header{};
-    file.read(reinterpret_cast<char*>(&header), sizeof(header));
-    if (!file || header.magic != NAVMESHSET_MAGIC || header.version != NAVMESHSET_VERSION)
+    AssetReference& navRef = scene->getNavMesh();
+    if (!navRef.isValid())
+    {
+        m_loadedScene.clear();
         return false;
+    }
+
+    auto navAsset = app->getModuleAssets()->load<NavMeshAsset>(navRef);
+    if (!navAsset)
+    {
+        m_loadedScene.clear();
+        return false;
+    }
 
     dtNavMesh* mesh = dtAllocNavMesh();
     if (!mesh) return false;
 
-    if (dtStatusFailed(mesh->init(&header.params)))
+    if (dtStatusFailed(mesh->init(&navAsset->getParams())))
     {
         dtFreeNavMesh(mesh);
         return false;
     }
 
-    for (int i = 0; i < header.numTiles; ++i)
+    const auto& tileRefs = navAsset->getTileRefs();
+    const auto& tileData = navAsset->getTileData();
+    for (size_t i = 0; i < tileRefs.size(); ++i)
     {
-        NavMeshTileHeader tileHeader{};
-        file.read(reinterpret_cast<char*>(&tileHeader), sizeof(tileHeader));
-        if (!file || !tileHeader.tileRef || !tileHeader.dataSize)
-        {
-            dtFreeNavMesh(mesh);
-            return false;
-        }
-
-        unsigned char* data = (unsigned char*)dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM);
+        unsigned char* data = static_cast<unsigned char*>(dtAlloc(tileData[i].size(), DT_ALLOC_PERM));
         if (!data)
         {
             dtFreeNavMesh(mesh);
             return false;
         }
 
-        file.read(reinterpret_cast<char*>(data), tileHeader.dataSize);
-        if (!file)
-        {
-            dtFree(data);
-            dtFreeNavMesh(mesh);
-            return false;
-        }
+        std::memcpy(data, tileData[i].data(), tileData[i].size());
 
-        const dtStatus st = mesh->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, nullptr);
+        const dtStatus st = mesh->addTile(data, static_cast<int>(tileData[i].size()), DT_TILE_FREE_DATA, tileRefs[i], nullptr);
         if (dtStatusFailed(st))
         {
             dtFree(data);
@@ -165,7 +162,7 @@ bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
             return false;
         }
 
-        m_tileRefs.push_back(tileHeader.tileRef);
+        m_tileRefs.push_back(tileRefs[i]);
     }
 
     dtNavMeshQuery* query = dtAllocNavMeshQuery();
@@ -178,7 +175,7 @@ bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
 
     m_navMesh = mesh;
     m_navQuery = query;
-    m_loadedScene = sceneName;
+    m_loadedScene = sceneName ? sceneName : "";
 
     rebuildNavMeshDebugLines();
 
@@ -192,43 +189,6 @@ bool ModuleNavigation::unloadNavMesh()
 
     m_tileRefs.clear();
     m_loadedScene.clear();
-
-    return true;
-}
-
-bool ModuleNavigation::saveNavMeshForScene(const char* sceneName) const
-{
-    if (!m_navMesh || !sceneName) return false;
-
-    const std::string path = MakeNavMeshPath(sceneName);
-    std::ofstream file(path, std::ios::binary);
-    if (!file.is_open()) return false;
-
-    NavMeshSetHeader header{};
-    header.magic = NAVMESHSET_MAGIC;
-    header.version = NAVMESHSET_VERSION;
-    header.numTiles = (int)m_tileRefs.size();
-    header.params = *m_navMesh->getParams();
-
-    file.write((const char*)&header, sizeof(header));
-    if (!file) return false;
-
-    for (dtTileRef ref : m_tileRefs)
-    {
-        const dtMeshTile* tile = m_navMesh->getTileByRef(ref);
-        if (!tile || !tile->header || !tile->data || tile->dataSize <= 0)
-            return false;
-
-        NavMeshTileHeader th{};
-        th.tileRef = ref;
-        th.dataSize = tile->dataSize;
-
-        file.write((const char*)&th, sizeof(th));
-        if (!file) return false;
-
-        file.write((const char*)tile->data, tile->dataSize);
-        if (!file) return false;
-    }
 
     return true;
 }
@@ -270,14 +230,39 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
     m_navQuery = result.navQuery;
     m_tileRefs = result.tileRefs;
 
-    const char* sceneName = app->getModuleScene()->getScene()->getName();
-    const bool saved = saveNavMeshForScene(sceneName);
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene) return false;
 
-    LOG_INFO(__FILE__, __LINE__, "NavMesh built: verts=%d tris=%d saved=%s", numVerts, numTris, saved ? "true" : "false");
+    auto navAsset = std::make_shared<NavMeshAsset>();
+    navAsset->setSettings(m_settings);
+    navAsset->setParams(*m_navMesh->getParams());
+
+    for (dtTileRef ref : m_tileRefs)
+    {
+        const dtMeshTile* tile = m_navMesh->getTileByRef(ref);
+        if (!tile || !tile->data || tile->dataSize <= 0) continue;
+        navAsset->addTile(ref, std::vector<uint8_t>(tile->data, tile->data + tile->dataSize));
+    }
+
+    {
+        const std::string navPath = std::string("Assets/NavMeshes/") + scene->getName() + ".navmesh";
+        app->getModuleAssets()->save(*navAsset, navPath);
+    }
+
+    AssetReference& navRef = scene->getNavMesh();
+    navRef = navAsset->getReference();
+    navRef.m_type = AssetType::NAVMESH;
+
+    {
+        const std::string scenePath = std::string("Assets/Scenes/") + scene->getName() + ".scene";
+        app->getModuleAssets()->save(*scene, scenePath);
+    }
+
+    LOG_INFO(__FILE__, __LINE__, "NavMesh built and saved as asset.");
 
     rebuildNavMeshDebugLines();
 
-    return saved;
+    return true;
 }
 
 void ModuleNavigation::rebuildNavMeshDebugLines()

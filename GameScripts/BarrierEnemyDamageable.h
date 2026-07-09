@@ -2,7 +2,6 @@
 
 #include "EnemyDamageable.h"
 #include <vector>
-#include <string>
 
 class BarrierEnemyDamageable : public EnemyDamageable
 {
@@ -25,7 +24,7 @@ public:
     std::vector<float> m_barriersThresholds;
     int m_requiredAttackType = static_cast<int>(EnemyAttackType::ShadowMarkExploit);
     bool m_shadowMarkExploitBreaksBarriers = true;
-    std::string m_barrierPrefabPath;
+    PrefabRef m_barrierPrefab;
 
     float m_minPos = 80.0f;
     float m_maxPos = -90.0f;

@@ -406,10 +406,12 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     rebuildComponentCaches();
 
-    for (std::string bank : m_scene->getLoadedBanks())
+    for (const auto& ref : m_scene->getLoadedBankRefs())
     {
-        app->getModuleMusic()->loadBank(bank);
+        app->getModuleMusic()->loadBank(ref);
     }
+
+    m_scene->resolveLoadedBankNames();
 
     initializeRuntimeSceneSystems();
 
@@ -454,8 +456,31 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #endif
 
     rebuildComponentCaches();
-    initializeRuntimeSceneSystems();
+
+    for (const auto& ref : m_scene->getLoadedBankRefs())
+    {
+        app->getModuleMusic()->loadBank(ref);
+    }
+
+    m_scene->resolveLoadedBankNames();
+
     return true;
+}
+
+bool ModuleScene::loadScene(const AssetReference& ref)
+{
+    AssetReference mutableRef = ref;
+    auto scene = app->getModuleAssets()->load<Scene>(mutableRef);
+    if (!scene)
+    {
+        DEBUG_ERROR("[ModuleScene] Failed to load scene from Library.");
+        return false;
+    }
+
+    scene->FixReferences();
+    scene->initLoadedObjects();
+
+    return loadScene(scene);
 }
 
 #pragma endregion

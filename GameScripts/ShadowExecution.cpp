@@ -15,6 +15,7 @@ IMPLEMENT_SCRIPT_FIELDS(ShadowExecution,
     SERIALIZED_FLOAT(m_executionDuration,  "Execution Duration (s)", 0.1f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_instaKillThreshold, "Insta Kill HP %",        0.0f,  1.0f, 0.01f),
     SERIALIZED_FLOAT(m_standardDamage,     "Standard Damage (max HP %)", 0.0f, 1.0f, 0.01f),
+    SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB),
     SERIALIZED_COMPONENT_REF(m_reaperGaugeBar, "Reaper Gauge UI", ComponentType::UISLIDER),
     SERIALIZED_COMPONENT_REF(m_executionCanvas, "Execution Canvas", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_executionSprite, "Execution Sprite", ComponentType::TRANSFORM2D),
@@ -201,7 +202,7 @@ void ShadowExecution::beginExecution()
         m_sound->playShadowExecution();
     }
 
-    GameObject* fxCenter = GameObjectAPI::instantiatePrefab(m_particlePrefabPath, m_center, Vector3::Zero);
+    GameObject* fxCenter = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_ref, m_center, Vector3::Zero);
     if (fxCenter)
     {
         m_temporaryPrefabs.push_back({ fxCenter, 1.0f });
