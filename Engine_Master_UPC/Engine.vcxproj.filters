@@ -323,9 +323,6 @@
     <ClCompile Include="AssetDialogFilter.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="AssetReference.cpp">
-      <Filter>Persistence\Assets</Filter>
-    </ClCompile>
     <ClCompile Include="AssetScanner.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
@@ -632,6 +629,12 @@
     <ClCompile Include="UILayoutUtils.cpp">
       <Filter>Persistence\Importers\External\UI</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterNavMesh.cpp" />
+    <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="NavMeshAsset.cpp" />
+    <ClCompile Include="NavMeshBuildSettings.cpp" />
+    <ClCompile Include="SoundBankAsset.cpp" />
+    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
@@ -1490,6 +1493,11 @@
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
       <Filter>Editor\Fonts</Filter>
     </ClInclude>
+    <ClInclude Include="AssetRef.h" />
+    <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="SoundBankAsset.h" />
+    <ClInclude Include="ImporterNavMesh.h" />
+    <ClInclude Include="NavMeshAsset.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
